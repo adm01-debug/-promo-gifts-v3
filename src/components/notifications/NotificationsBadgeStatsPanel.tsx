@@ -166,6 +166,15 @@ export function NotificationsBadgeStatsPanel() {
     return streak;
   }, [samples]);
   const isSuspicious = suspiciousStreakSeconds >= SUSPICIOUS_STREAK_SECONDS;
+  /**
+   * Index (in the `samples` array) of the FIRST sample that belongs to the
+   * current suspicious trailing streak. Returns -1 when no streak is active.
+   * Used by the expandable samples panel to highlight the offending segment.
+   */
+  const streakStartIdx = useMemo(() => {
+    if (suspiciousStreakSeconds === 0) return -1;
+    return samples.length - suspiciousStreakSeconds;
+  }, [samples.length, suspiciousStreakSeconds]);
 
   if (!visible) return null;
 
@@ -506,6 +515,99 @@ export function NotificationsBadgeStatsPanel() {
               )}
             </svg>
           </div>
+
+          {/* Click-to-expand panel: per-second ratio samples (newest first).
+              When a suspicious streak is active, the rows belonging to it get
+              a warning-tinted background + left bar so the offending segment
+              is immediately spottable. */}
+          <details className="mt-1.5">
+            <summary
+              className={cn(
+                "cursor-pointer select-none text-[10px] inline-flex items-center gap-1",
+                isSuspicious ? "text-warning hover:text-warning/80" : "text-muted-foreground hover:text-foreground"
+              )}
+              aria-label="Toggle per-second ratio samples"
+            >
+              <TrendingUp className="h-2.5 w-2.5" aria-hidden="true" />
+              Samples ({samples.length}/{SPARK_WINDOW_SECONDS})
+              {isSuspicious && (
+                <span className="ml-1 text-warning">
+                  · streak {suspiciousStreakSeconds}s
+                </span>
+              )}
+            </summary>
+            {samples.length === 0 ? (
+              <p className="mt-1 text-[10px] text-muted-foreground italic pl-3.5">
+                collecting…
+              </p>
+            ) : (
+              <ScrollArea className="max-h-40 mt-1 rounded border border-border/30 bg-background/40">
+                <div className="font-mono text-[10px]">
+                  {/* Header */}
+                  <div className="grid grid-cols-[auto_auto_1fr_auto_auto] gap-x-2 px-1.5 py-0.5 border-b border-border/30 text-muted-foreground sticky top-0 bg-background/80 backdrop-blur">
+                    <span>#</span>
+                    <span>time</span>
+                    <span>ratio</span>
+                    <span className="text-right">T</span>
+                    <span className="text-right">F</span>
+                  </div>
+                  {/* Newest first → reverse a copy. */}
+                  {[...samples].reverse().map((s, revIdx) => {
+                    const realIdx = samples.length - 1 - revIdx;
+                    const inStreak = streakStartIdx >= 0 && realIdx >= streakStartIdx;
+                    const isStreakStart = realIdx === streakStartIdx;
+                    const date = new Date(s.t);
+                    const hh = String(date.getHours()).padStart(2, "0");
+                    const mm = String(date.getMinutes()).padStart(2, "0");
+                    const ss = String(date.getSeconds()).padStart(2, "0");
+                    const tone = ratioTone(s.ratio, s.triggers);
+                    return (
+                      <div
+                        key={`${s.t}-${realIdx}`}
+                        className={cn(
+                          "grid grid-cols-[auto_auto_1fr_auto_auto] gap-x-2 px-1.5 py-0.5 items-center border-l-2 transition-colors",
+                          inStreak
+                            ? "bg-warning/10 border-l-warning"
+                            : "border-l-transparent",
+                          isStreakStart && "border-t border-t-warning/60"
+                        )}
+                        title={
+                          isStreakStart
+                            ? `Suspicious streak started here (ratio ≥ ${SUSPICIOUS_RATIO_THRESHOLD})`
+                            : inStreak
+                              ? "Part of the current suspicious streak"
+                              : undefined
+                        }
+                      >
+                        <span className="text-muted-foreground tabular-nums">
+                          {realIdx}
+                        </span>
+                        <span className="text-muted-foreground tabular-nums">
+                          {hh}:{mm}:{ss}
+                        </span>
+                        <span className="inline-flex items-center gap-1">
+                          <span className={cn("tabular-nums font-semibold", tone)}>
+                            {s.triggers === 0 ? "—" : s.ratio.toFixed(2)}
+                          </span>
+                          {isStreakStart && (
+                            <span className="text-[9px] text-warning font-semibold uppercase tracking-wide">
+                              ◆ start
+                            </span>
+                          )}
+                        </span>
+                        <span className="text-right tabular-nums text-muted-foreground">
+                          {s.triggers}
+                        </span>
+                        <span className="text-right tabular-nums text-muted-foreground">
+                          {s.fetches}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </ScrollArea>
+            )}
+          </details>
 
           <div className="mt-1 pt-1 border-t border-border/30 flex items-center justify-between text-muted-foreground">
             <span>Coalesced (saved fetches)</span>
