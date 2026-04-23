@@ -351,10 +351,55 @@ export const notificationsMetrics = {
     state.since = Date.now();
     resetThrottle();
   },
+
+  /**
+   * Start a periodic auto-reset (default 15 min). Counters reset to zero on
+   * every tick so dashboards always reflect a fresh window. Calling again
+   * replaces the existing interval. Returns a stop function. No-op in SSR.
+   */
+  startAutoReset(intervalMs: number = AUTO_RESET_INTERVAL_MS): () => void {
+    this.stopAutoReset();
+    if (typeof window === "undefined") return () => {};
+    autoResetIntervalMs = intervalMs;
+    autoResetTimer = setInterval(() => {
+      const prev = this.snapshot();
+      this.reset();
+      debugLog("auto-reset", {
+        intervalMs,
+        prevTriggers: prev.triggers,
+        prevFetches: prev.fetches,
+        prevRatio: prev.ratio,
+        prevBadgeBudget: prev.badgeBudget,
+      });
+    }, intervalMs);
+    return () => this.stopAutoReset();
+  },
+
+  stopAutoReset() {
+    if (autoResetTimer) {
+      clearInterval(autoResetTimer);
+      autoResetTimer = null;
+    }
+  },
+
+  getAutoResetConfig(): { running: boolean; intervalMs: number; nextResetAt: number | null } {
+    return {
+      running: autoResetTimer !== null,
+      intervalMs: autoResetIntervalMs,
+      nextResetAt: autoResetTimer !== null ? state.since + autoResetIntervalMs : null,
+    };
+  },
 };
+
+/** Default auto-reset cadence: 15 minutes. */
+export const AUTO_RESET_INTERVAL_MS = 15 * 60 * 1000;
+let autoResetTimer: ReturnType<typeof setInterval> | null = null;
+let autoResetIntervalMs = AUTO_RESET_INTERVAL_MS;
 
 // Expose for devtools inspection: window.__notificationsMetrics.snapshot()
 if (typeof window !== "undefined") {
   (window as unknown as { __notificationsMetrics?: typeof notificationsMetrics }).__notificationsMetrics =
     notificationsMetrics;
+  // Auto-start the 15-minute reset cycle on module load (browser only).
+  notificationsMetrics.startAutoReset();
 }
