@@ -591,6 +591,7 @@ export function SecretField({ label, secretName, status, helperText, onSaved, co
               error={lastError}
               onRetry={handleSave}
               retryDisabled={!canSave}
+              onViewDetails={handleViewDetails}
             />
           )}
           {value.length > 0 && value.length < MIN_SUFFIX_LENGTH && (
@@ -725,6 +726,7 @@ export function SecretField({ label, secretName, status, helperText, onSaved, co
                 setMode((m) => m);
                 setEditing(true);
               }}
+              onViewDetails={handleViewDetails}
             />
           )}
         </>
