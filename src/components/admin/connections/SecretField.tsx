@@ -437,12 +437,24 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
         <>
           <div className="flex gap-2">
             <Input value={status?.has_value ? "•••••••••••••••••" : ""} placeholder="Não configurado" readOnly />
-            <Button size="sm" variant="outline" onClick={() => startEdit("set")}>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => startEdit("set")}
+              disabled={!nameValidation.ok}
+              title={!nameValidation.ok ? nameValidation.message : undefined}
+            >
               <RefreshCw className="h-4 w-4 mr-1" />
               {status?.has_value ? "Atualizar" : "Configurar"}
             </Button>
             {status?.has_value && (
-              <Button size="sm" variant="outline" onClick={() => startEdit("rotate")} title="Rotacionar (registra no log)">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => startEdit("rotate")}
+                disabled={!nameValidation.ok}
+                title={!nameValidation.ok ? nameValidation.message : "Rotacionar (registra no log)"}
+              >
                 <RotateCw className="h-4 w-4 mr-1" /> Rotacionar
               </Button>
             )}
