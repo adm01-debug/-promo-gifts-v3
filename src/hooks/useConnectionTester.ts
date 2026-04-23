@@ -36,6 +36,7 @@ interface TestOptions {
   env_key?: "promobrind" | "crm";
   config?: Record<string, string>;
   connectionId?: string;
+  silent?: boolean;
 }
 
 export function useConnectionTester() {
