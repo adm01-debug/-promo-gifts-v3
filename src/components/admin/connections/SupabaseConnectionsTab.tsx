@@ -48,6 +48,8 @@ export function SupabaseConnectionsTab() {
   const [lastByEnv, setLastByEnv] = useState<Record<string, LastTestInfo | null>>({});
   const [historyKeyByEnv, setHistoryKeyByEnv] = useState<Record<string, number>>({});
   const [detailsDialogByEnv, setDetailsDialogByEnv] = useState<Record<string, boolean>>({});
+  const [phaseByEnv, setPhaseByEnv] = useState<Record<string, TestProgressPhase>>({});
+  const [pendingByEnv, setPendingByEnv] = useState<Record<string, string | null>>({});
 
   useEffect(() => { list(); }, [list]);
 
@@ -71,6 +73,8 @@ export function SupabaseConnectionsTab() {
   const get = (n: string) => secrets.find((s) => s.name === n);
 
   const handleTest = async (envKey: "promobrind" | "crm", localKey: string) => {
+    setPhaseByEnv((cur) => ({ ...cur, [localKey]: "running" }));
+    setPendingByEnv((cur) => ({ ...cur, [localKey]: new Date().toISOString() }));
     const r = await test("supabase", { env_key: envKey });
     setLastByEnv((cur) => ({
       ...cur,
@@ -84,6 +88,8 @@ export function SupabaseConnectionsTab() {
       },
     }));
     setHistoryKeyByEnv((cur) => ({ ...cur, [localKey]: (cur[localKey] ?? 0) + 1 }));
+    setPendingByEnv((cur) => ({ ...cur, [localKey]: null }));
+    setPhaseByEnv((cur) => ({ ...cur, [localKey]: r.ok ? "completed" : "failed" }));
   };
 
   return (
