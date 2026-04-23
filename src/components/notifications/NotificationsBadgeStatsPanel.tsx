@@ -7,7 +7,7 @@
  * end users.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Activity, Database, Wifi, MousePointerClick, Zap, TrendingUp } from "lucide-react";
+import { Activity, Database, Wifi, MousePointerClick, Zap, TrendingUp, Download } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/contexts/AuthContext";
@@ -157,6 +157,38 @@ export function NotificationsBadgeStatsPanel() {
     { key: "drawer-open", label: "drawer-open" },
   ];
 
+  /**
+   * Build a self-contained debug payload (snapshot + env metadata) and trigger
+   * a JSON file download via an in-memory Blob URL. Wrapped in try/catch so a
+   * sandboxed environment never crashes the panel.
+   */
+  const handleExportDebugJson = () => {
+    try {
+      const snap = notificationsMetrics.snapshot();
+      const payload = {
+        exportedAt: new Date().toISOString(),
+        userAgent: typeof navigator !== "undefined" ? navigator.userAgent : null,
+        url: typeof window !== "undefined" ? window.location.href : null,
+        debugMode: debugOn,
+        sparklineSamples: samples,
+        snapshot: snap,
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `notifications-metrics-${new Date().toISOString().replace(/[:.]/g, "-")}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      // Defer revoke so Safari has a tick to honor the download.
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error("[NotificationsBadgeStatsPanel] export failed", err);
+    }
+  };
+
   return (
     <div className="border-t border-border/40 bg-muted/20 px-3 py-2 text-[11px]">
       <div className="flex items-center justify-between gap-2 mb-1.5">
@@ -164,9 +196,21 @@ export function NotificationsBadgeStatsPanel() {
           <Activity className="h-3 w-3" aria-hidden="true" />
           Badge stats (QA)
         </span>
-        <span className="text-muted-foreground">
-          T{triggers} · F{fetches} · {ratio.toFixed(2)}
-        </span>
+        <div className="inline-flex items-center gap-2">
+          <span className="text-muted-foreground tabular-nums">
+            T{triggers} · F{fetches} · {ratio.toFixed(2)}
+          </span>
+          <button
+            type="button"
+            onClick={handleExportDebugJson}
+            className="inline-flex items-center gap-1 rounded border border-border/50 bg-background/60 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground hover:text-foreground hover:bg-background hover:border-border transition-colors"
+            title="Download a JSON snapshot of all notifications metrics (triggers, fetches, breakdowns, badge renders, sparkline samples)"
+            aria-label="Export debug JSON"
+          >
+            <Download className="h-2.5 w-2.5" aria-hidden="true" />
+            Export JSON
+          </button>
+        </div>
       </div>
 
       {/* Trigger/fetch ratio block — only visible while debug mode is on. */}
