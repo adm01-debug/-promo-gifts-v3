@@ -91,9 +91,10 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
     }
   }, [editing, value, mode, draftKey]);
 
-  // Rotation confirm modal
+  // Confirmation modals
   const [rotateConfirmOpen, setRotateConfirmOpen] = useState(false);
   const [rotateConfirmError, setRotateConfirmError] = useState<string | null>(null);
+  const [saveConfirmOpen, setSaveConfirmOpen] = useState(false);
 
   // Cancellation for in-flight retries
   const abortRef = useRef<AbortController | null>(null);
