@@ -1,6 +1,11 @@
 /**
  * simulationCalculator — Pure calculation logic for the simulator.
- * Extracted from useSimulation.ts to eliminate 3x duplication.
+ *
+ * @deprecated Desde a integração das novas tabelas de gravação
+ * (áreas, técnicas, faixas e valores), o cálculo oficial deve ser feito
+ * via `fetchAllOptions` em `src/hooks/simulation/simulationPriceFetcher.ts`,
+ * que chama o RPC `fn_get_customization_price`. Este módulo é mantido
+ * apenas como fallback offline e para compatibilidade com testes legados.
  */
 import type { Technique, TechniqueSettings, SimulationOption } from "@/types/simulation";
 
