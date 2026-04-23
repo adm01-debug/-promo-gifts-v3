@@ -441,14 +441,13 @@ export function ConnectionTestHistoryPanel({
       )}
       {showPreview && (
         <div className="space-y-2 mt-2">
-          {/* eslint-disable-next-line @typescript-eslint/no-unused-expressions */}
           {loading && previewItems.length === 0 ? (
             <div className="flex items-center justify-center py-3 text-xs text-muted-foreground">
               <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> Carregando…
             </div>
           ) : previewItems.length === 0 ? (
             <div className="py-3 text-center text-xs text-muted-foreground">
-              {filter === "fail" ? "Nenhuma falha nos últimos testes 🎉" : "Nenhum teste com este filtro."}
+              {emptyMessage(filter, source)}
             </div>
           ) : (
             <TooltipProvider delayDuration={150}>
