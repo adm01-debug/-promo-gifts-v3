@@ -10,6 +10,7 @@ export interface TestHistoryItem {
   status: number | null;
   message: string | null;
   triggered_by?: "manual" | "cron" | "webhook";
+  attempts?: number;
 }
 
 interface Options {

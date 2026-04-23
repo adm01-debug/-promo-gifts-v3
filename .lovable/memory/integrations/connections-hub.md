@@ -34,5 +34,5 @@ Bancos · Bitrix24 · n8n · MCP · Webhooks (sub-abas: Saída + **Playground** 
 ## Crons
 - `webhook-retry-failed` `*/10 * * * *`
 - `connections-health-check` `*/15 * * * *` (Onda 13)
-- `connections-auto-test` (configurável via UI: 5/10/15/30/60/120/240min — RPC `set_connections_auto_test_interval` admin-only com auditoria; respeita `auto_test_enabled` por conexão)
+- `connections-auto-test` (configurável via UI: 5/10/15/30/60/120/240min — RPC `set_connections_auto_test_interval` admin-only com auditoria; respeita `auto_test_enabled` por conexão; **1 retry automático em erros transitórios** — timeout/network/dns/5xx — com backoff 800ms; coluna `attempts` em `connection_test_history` registra a contagem e badge `2×` no painel "Últimos testes")
 - `webhook-logs-cleanup-daily` `30 3 * * *`

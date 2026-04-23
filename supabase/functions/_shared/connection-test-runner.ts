@@ -26,6 +26,22 @@ export interface RunOptions {
   service: SupabaseClient;
   /** Per-test timeout in ms. Default: per-type table; falls back to 8000. */
   timeoutMs?: number;
+  /** Number of attempts performed (1 = first try; 2 = after one retry). Default 1. */
+  attempts?: number;
+  /** When true, skip writing to external_connections + connection_test_history.
+   *  Used by the cron to "probe" before deciding whether to retry. */
+  skipPersistence?: boolean;
+}
+
+/** Transient error kinds that are safe to retry once (no side effects expected). */
+export const TRANSIENT_ERROR_KINDS: ReadonlySet<ErrorKind> = new Set(["timeout", "network", "dns"]);
+
+/** True if a RunResult-like object represents a transient failure worth retrying. */
+export function isTransientFailure(r: { ok: boolean; error_kind?: ErrorKind; status?: number }): boolean {
+  if (r.ok) return false;
+  if (r.error_kind && TRANSIENT_ERROR_KINDS.has(r.error_kind)) return true;
+  if (typeof r.status === "number" && r.status >= 500 && r.status <= 599) return true;
+  return false;
 }
 
 export interface RunResult {
@@ -156,6 +172,7 @@ export async function runConnectionTest(opts: RunOptions): Promise<RunResult> {
   const { type, config = {}, env_key, service, created_by } = opts;
   const triggered_by: TriggeredBy = opts.triggered_by ?? "manual";
   const timeoutMs = opts.timeoutMs ?? DEFAULT_TIMEOUTS_MS[type] ?? 8000;
+  const attempts = Math.max(1, Math.min(opts.attempts ?? 1, 9));
   let connection_id = opts.connection_id;
 
   let result: {
@@ -213,6 +230,10 @@ export async function runConnectionTest(opts: RunOptions): Promise<RunResult> {
   const tested_at = new Date().toISOString();
   const message = result.error ?? result.message ?? `HTTP ${result.status ?? "?"}`;
 
+  if (opts.skipPersistence) {
+    return { ...result, tested_at, connection_id };
+  }
+
   if (connection_id) {
     await service.from("external_connections").update({
       last_test_at: tested_at,
@@ -231,6 +252,7 @@ export async function runConnectionTest(opts: RunOptions): Promise<RunResult> {
       error_message: result.ok ? null : (result.error ?? message)?.slice(0, 500),
       error_kind: result.ok ? null : (result.error_kind ?? null),
       triggered_by,
+      attempts,
     }).then(() => undefined, (e) => console.error("history insert failed", e));
   } else if (env_key && type === "supabase" && created_by) {
     const { data: upserted } = await service.from("external_connections").upsert({
@@ -255,6 +277,7 @@ export async function runConnectionTest(opts: RunOptions): Promise<RunResult> {
         error_message: result.ok ? null : (result.error ?? message)?.slice(0, 500),
         error_kind: result.ok ? null : (result.error_kind ?? null),
         triggered_by,
+        attempts,
       }).then(() => undefined, (e) => console.error("history insert failed (env)", e));
     }
   }
