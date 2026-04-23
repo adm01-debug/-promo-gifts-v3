@@ -173,13 +173,8 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
     }
   }, [editing, value, mode, draftKey]);
 
-  // Confirmation modals
-  const [rotateConfirmOpen, setRotateConfirmOpen] = useState(false);
-  const [rotateConfirmError, setRotateConfirmError] = useState<string | null>(null);
-  const [saveConfirmOpen, setSaveConfirmOpen] = useState(false);
 
-  // Cancellation for in-flight retries
-  const abortRef = useRef<AbortController | null>(null);
+
 
   const performSave = async (currentMode: "set" | "rotate", currentValue: string, notes?: string) => {
     const wasEnvFallback = !!status?.env_fallback_active;
