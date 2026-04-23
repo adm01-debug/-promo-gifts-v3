@@ -8,11 +8,13 @@ import { useSecretsManager } from "@/hooks/useSecretsManager";
 import { useConnectionTester } from "@/hooks/useConnectionTester";
 import { ConnectionTimelineDrawer } from "./ConnectionTimelineDrawer";
 import { LastTestLine, type LastTestInfo } from "./LastTestLine";
+import { ConnectionTestHistoryPanel } from "./ConnectionTestHistoryPanel";
 
 export function N8nTab() {
   const { secrets, list } = useSecretsManager();
   const { test, isTesting, fetchLastTest } = useConnectionTester();
   const [last, setLast] = useState<LastTestInfo | null>(null);
+  const [historyKey, setHistoryKey] = useState(0);
 
   useEffect(() => { list(); }, [list]);
   const hydrate = useCallback(async () => {
@@ -31,6 +33,7 @@ export function N8nTab() {
   const onTest = async () => {
     const r = await test("n8n");
     setLast({ ok: r.ok, tested_at: r.tested_at ?? new Date().toISOString(), latency_ms: r.latency_ms, message: r.error ?? r.message, status: r.status });
+    setHistoryKey((k) => k + 1);
   };
 
   return (
@@ -61,6 +64,7 @@ export function N8nTab() {
             <ConnectionTimelineDrawer type="n8n" label="n8n" />
           </div>
           <LastTestLine info={last} />
+          <ConnectionTestHistoryPanel type="n8n" label="n8n" refreshKey={historyKey} />
         </CardContent>
       </Card>
       <Card>

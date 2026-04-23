@@ -8,11 +8,13 @@ import { useSecretsManager } from "@/hooks/useSecretsManager";
 import { useConnectionTester } from "@/hooks/useConnectionTester";
 import { ConnectionTimelineDrawer } from "./ConnectionTimelineDrawer";
 import { LastTestLine, type LastTestInfo } from "./LastTestLine";
+import { ConnectionTestHistoryPanel } from "./ConnectionTestHistoryPanel";
 
 export function Bitrix24Tab() {
   const { secrets, list } = useSecretsManager();
   const { test, isTesting, fetchLastTest } = useConnectionTester();
   const [last, setLast] = useState<LastTestInfo | null>(null);
+  const [historyKey, setHistoryKey] = useState(0);
 
   useEffect(() => { list(); }, [list]);
 
@@ -32,6 +34,7 @@ export function Bitrix24Tab() {
   const onTest = async () => {
     const r = await test("bitrix24");
     setLast({ ok: r.ok, tested_at: r.tested_at ?? new Date().toISOString(), latency_ms: r.latency_ms, message: r.error ?? r.message, status: r.status });
+    setHistoryKey((k) => k + 1);
   };
 
   return (
@@ -65,6 +68,7 @@ export function Bitrix24Tab() {
           <ConnectionTimelineDrawer type="bitrix24" label="Bitrix24" />
         </div>
         <LastTestLine info={last} />
+        <ConnectionTestHistoryPanel type="bitrix24" label="Bitrix24" refreshKey={historyKey} />
       </CardContent>
     </Card>
   );
