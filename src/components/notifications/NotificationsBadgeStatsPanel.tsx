@@ -331,6 +331,18 @@ export function NotificationsBadgeStatsPanel() {
               </Tooltip>
             </TooltipProvider>
           )}
+          {isSuspicious && (
+            <button
+              type="button"
+              onClick={handleJumpToContributors}
+              className="inline-flex items-center gap-1 rounded border border-warning/40 bg-warning/5 px-1.5 py-0.5 text-[10px] font-medium text-warning hover:bg-warning/15 hover:border-warning/60 transition-colors"
+              title="Jump to the breakdown of which trigger sources are driving the high ratio"
+              aria-label="Jump to top trigger contributors"
+            >
+              <ArrowDown className="h-2.5 w-2.5" aria-hidden="true" />
+              Top contributors
+            </button>
+          )}
           <span className="text-muted-foreground tabular-nums">
             T{triggers} · F{fetches} · {ratio.toFixed(2)}
           </span>
