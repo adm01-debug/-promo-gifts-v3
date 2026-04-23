@@ -28,6 +28,23 @@ const typeConfig = {
 };
 
 /**
+ * Default trailing-edge debounce delay (ms) for hover/focus prefetch on the bell.
+ * Tuned for "feels instant on next click" while still coalescing mouse jitter
+ * (~50ms) and focus-ring bouncing during keyboard navigation. Override per
+ * mount via `<NotificationBell prefetchDebounceMs={...} />`.
+ */
+export const DEFAULT_PREFETCH_DEBOUNCE_MS = 200;
+
+export interface NotificationBellProps {
+  /**
+   * Trailing-edge debounce delay in ms for hover/focus/touch prefetch triggers.
+   * Defaults to {@link DEFAULT_PREFETCH_DEBOUNCE_MS}. Set to `0` to fire
+   * immediately on the first event (still coalesced inside the same tick).
+   */
+  prefetchDebounceMs?: number;
+}
+
+/**
  * BellBadge — apenas o ícone + contador de não lidas.
  * Memoizado por `unreadCount`, `shouldShake` e `isMutationRehydrating`.
  * Durante a re-hidratação pós-mutação, esconde o número e exibe um spinner
@@ -192,7 +209,10 @@ function NotificationItem({
   );
 }
 
-export const NotificationBell = React.forwardRef<HTMLDivElement>(function NotificationBell(_props, ref) {
+export const NotificationBell = React.forwardRef<HTMLDivElement, NotificationBellProps>(function NotificationBell(
+  { prefetchDebounceMs = DEFAULT_PREFETCH_DEBOUNCE_MS },
+  ref,
+) {
   const { notifications, unreadCount, isLoading, isRefetching, isMutationRehydrating, markAsRead, markAllAsRead, clearAll, prefetch } =
     useNotifications();
   const navigate = useNavigate();
@@ -237,8 +257,11 @@ export const NotificationBell = React.forwardRef<HTMLDivElement>(function Notifi
 
   // Debounce prefetch on hover/focus to coalesce rapid bursts (mouse jitter, focus rings).
   // The hook itself enforces a 5s TTL, but the trailing-edge debounce avoids even queuing
-  // microtasks for repeated events within the window.
+  // microtasks for repeated events within the window. Delay is configurable via
+  // `prefetchDebounceMs` so consumers can tune it per surface (or set 0 for tests).
   const prefetchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const delayRef = useRef(prefetchDebounceMs);
+  useEffect(() => { delayRef.current = prefetchDebounceMs; }, [prefetchDebounceMs]);
   useEffect(() => () => {
     if (prefetchDebounceRef.current) clearTimeout(prefetchDebounceRef.current);
   }, []);
@@ -248,7 +271,7 @@ export const NotificationBell = React.forwardRef<HTMLDivElement>(function Notifi
     prefetchDebounceRef.current = setTimeout(() => {
       prefetchDebounceRef.current = null;
       void prefetch();
-    }, 200);
+    }, delayRef.current);
   }, [prefetch]);
 
   return (
