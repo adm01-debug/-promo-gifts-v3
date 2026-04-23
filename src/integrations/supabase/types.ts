@@ -1306,6 +1306,42 @@ export type Database = {
           },
         ]
       }
+      integration_credentials: {
+        Row: {
+          created_at: string
+          id: string
+          length: number | null
+          masked_suffix: string | null
+          notes: string | null
+          secret_name: string
+          secret_value: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          length?: number | null
+          masked_suffix?: string | null
+          notes?: string | null
+          secret_name: string
+          secret_value: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          length?: number | null
+          masked_suffix?: string | null
+          notes?: string | null
+          secret_name?: string
+          secret_value?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       ip_access_control: {
         Row: {
           created_at: string
