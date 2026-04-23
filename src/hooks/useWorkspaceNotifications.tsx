@@ -115,7 +115,7 @@ export function useWorkspaceNotifications() {
   }, [user]);
 
   const fetchNotifications = useCallback(
-    async (opts: { silent?: boolean } = {}) => {
+    async (opts: { silent?: boolean; source?: FetchSource } = {}) => {
       if (!user) return;
       const hasData = notifications.length > 0;
       const silent = opts.silent ?? hasData;
@@ -123,6 +123,7 @@ export function useWorkspaceNotifications() {
       if (silent) setIsRefetching(true);
       else setIsLoading(true);
 
+      notificationsMetrics.recordFetch(opts.source ?? "initial");
       const t0 = typeof performance !== "undefined" ? performance.now() : Date.now();
       try {
         const { data, error } = await supabase
