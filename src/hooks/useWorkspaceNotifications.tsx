@@ -70,6 +70,9 @@ export function useWorkspaceNotifications() {
   const [notifications, setNotifications] = useState<WorkspaceNotification[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isRefetching, setIsRefetching] = useState(false);
+  // True only while a markAllAsRead/clearAll mutation + its silent re-hydration are in flight.
+  // Distinct from isRefetching, which also turns true for polling and prefetch.
+  const [isMutationRehydrating, setIsMutationRehydrating] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const lastFetchAtRef = useRef<number>(0);
   const hydratedRef = useRef<string | null>(null);
