@@ -157,8 +157,7 @@ export function SecretField({ label, secretName, status, helperText, onSaved, co
   });
   const detailsAvailable = !!testerMap;
   const handleViewDetails = detailsAvailable ? () => setDetailsOpen(true) : undefined;
-  // Cancellation for in-flight retries (declared early for the same reason)
-  const abortRef = useRef<AbortController | null>(null);
+
 
   const showNormalization = (changes: string[]) => {
     if (changes.length === 0) return;
