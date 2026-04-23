@@ -495,6 +495,15 @@ export function ConnectionTestHistoryPanel({
               );
             })}
           </div>
+          <SourceFilterChips
+            value={source}
+            onChange={setSource}
+            allCount={items.length}
+            manualCount={manualTotal}
+            cronOk={cronCounts.ok}
+            cronFail={cronCounts.fail}
+            cronTotal={cronCounts.total}
+          />
 
           {loading && items.length === 0 ? (
             <div className="flex items-center justify-center py-4 text-xs text-muted-foreground">
@@ -502,7 +511,7 @@ export function ConnectionTestHistoryPanel({
             </div>
           ) : visibleItems.length === 0 ? (
             <div className="py-3 text-center text-xs text-muted-foreground">
-              {filter === "fail" ? "Nenhuma falha nos últimos testes 🎉" : "Nenhum teste com este filtro."}
+              {emptyMessage(filter, source)}
             </div>
           ) : (
             <TooltipProvider delayDuration={150}>
