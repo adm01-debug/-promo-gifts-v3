@@ -217,6 +217,22 @@ export function ConnectionsOverviewFilters({
               <X className="h-3 w-3" />
             </button>
           )}
+          {filters.onlyConsecutiveFailures && (
+            <button
+              onClick={() => setOnlyConsecutiveFailures(false)}
+              onKeyDown={(e) => {
+                if (e.key === "Backspace" || e.key === "Delete") {
+                  e.preventDefault();
+                  setOnlyConsecutiveFailures(false);
+                }
+              }}
+              className="inline-flex items-center gap-1 rounded-full border border-destructive/40 bg-destructive/10 px-2 py-0.5 text-xs text-destructive transition-colors hover:bg-destructive/20 focus:outline-none focus:ring-2 focus:ring-destructive/40"
+              aria-label="Remover filtro de falhas consecutivas"
+            >
+              ≥{CONSECUTIVE_FAILURE_THRESHOLD} falhas seguidas
+              <X className="h-3 w-3" />
+            </button>
+          )}
         </div>
       )}
     </div>
