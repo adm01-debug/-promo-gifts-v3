@@ -57,7 +57,9 @@ import { NotificationBell } from "@/components/notifications/NotificationDrawer"
 function renderBell() {
   return render(
     <MemoryRouter>
-      <NotificationBell />
+      <TooltipProvider>
+        <NotificationBell />
+      </TooltipProvider>
     </MemoryRouter>
   );
 }
