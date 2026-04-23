@@ -10,7 +10,7 @@ import { ConnectionTimelineDrawer } from "./ConnectionTimelineDrawer";
 import { LastTestLine, type LastTestInfo } from "./LastTestLine";
 import { ConnectionTestHistoryPanel } from "./ConnectionTestHistoryPanel";
 import { RetestButton } from "./RetestButton";
-import { ConnectionErrorDetailsDialog } from "./ConnectionErrorDetailsDialog";
+import { ConnectionTestDetailsDialog } from "./ConnectionTestDetailsDialog";
 import { RefreshFromDbButton } from "./RefreshFromDbButton";
 import { hasSuspiciousLength } from "./secretValidators";
 
@@ -19,7 +19,7 @@ export function Bitrix24Tab() {
   const { test, isTesting, fetchLastTest } = useConnectionTester();
   const [last, setLast] = useState<LastTestInfo | null>(null);
   const [historyKey, setHistoryKey] = useState(0);
-  const [errorDialogOpen, setErrorDialogOpen] = useState(false);
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
 
   useEffect(() => { list(); }, [list]);
 
@@ -79,7 +79,7 @@ export function Bitrix24Tab() {
         </div>
         <LastTestLine
           info={last}
-          onClick={last?.ok === false ? () => setErrorDialogOpen(true) : undefined}
+          onClick={last?.tested_at ? () => setDetailsDialogOpen(true) : undefined}
           action={
             <RetestButton
               onRetest={onTest}
@@ -89,12 +89,11 @@ export function Bitrix24Tab() {
           }
         />
         <ConnectionTestHistoryPanel type="bitrix24" label="Bitrix24" refreshKey={historyKey} />
-        <ConnectionErrorDetailsDialog
-          open={errorDialogOpen}
-          onOpenChange={setErrorDialogOpen}
+        <ConnectionTestDetailsDialog
+          open={detailsDialogOpen}
+          onOpenChange={setDetailsDialogOpen}
           connectionType="bitrix24"
           connectionLabel="Bitrix24"
-          summary={last}
         />
       </CardContent>
     </Card>

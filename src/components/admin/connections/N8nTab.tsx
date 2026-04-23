@@ -10,7 +10,7 @@ import { ConnectionTimelineDrawer } from "./ConnectionTimelineDrawer";
 import { LastTestLine, type LastTestInfo } from "./LastTestLine";
 import { ConnectionTestHistoryPanel } from "./ConnectionTestHistoryPanel";
 import { RetestButton } from "./RetestButton";
-import { ConnectionErrorDetailsDialog } from "./ConnectionErrorDetailsDialog";
+import { ConnectionTestDetailsDialog } from "./ConnectionTestDetailsDialog";
 import { RefreshFromDbButton } from "./RefreshFromDbButton";
 import { hasSuspiciousLength } from "./secretValidators";
 
@@ -19,7 +19,7 @@ export function N8nTab() {
   const { test, isTesting, fetchLastTest } = useConnectionTester();
   const [last, setLast] = useState<LastTestInfo | null>(null);
   const [historyKey, setHistoryKey] = useState(0);
-  const [errorDialogOpen, setErrorDialogOpen] = useState(false);
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
 
   useEffect(() => { list(); }, [list]);
   const hydrate = useCallback(async () => {
@@ -75,7 +75,7 @@ export function N8nTab() {
           </div>
           <LastTestLine
             info={last}
-            onClick={last?.ok === false ? () => setErrorDialogOpen(true) : undefined}
+            onClick={last?.tested_at ? () => setDetailsDialogOpen(true) : undefined}
             action={
               <RetestButton
                 onRetest={onTest}
@@ -85,12 +85,11 @@ export function N8nTab() {
             }
           />
           <ConnectionTestHistoryPanel type="n8n" label="n8n" refreshKey={historyKey} />
-          <ConnectionErrorDetailsDialog
-            open={errorDialogOpen}
-            onOpenChange={setErrorDialogOpen}
+          <ConnectionTestDetailsDialog
+            open={detailsDialogOpen}
+            onOpenChange={setDetailsDialogOpen}
             connectionType="n8n"
             connectionLabel="n8n"
-            summary={last}
           />
         </CardContent>
       </Card>

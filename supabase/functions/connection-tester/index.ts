@@ -12,7 +12,7 @@ const corsHeaders = {
 };
 
 const BodySchema = z.object({
-  action: z.enum(["test", "last_test", "test_history"]).optional().default("test"),
+  action: z.enum(["test", "last_test", "test_history", "last_test_full"]).optional().default("test"),
   type: z.enum(["supabase", "bitrix24", "n8n", "mcp", "webhook_outbound"]),
   config: z.record(z.string()).optional(),
   connection_id: z.string().uuid().optional(),
@@ -20,6 +20,34 @@ const BodySchema = z.object({
   limit: z.number().int().min(1).max(50).optional(),
   timeout_ms: z.number().int().min(1000).max(30000).optional(),
 });
+
+/** Mascaramento server-side de URLs e cabeçalhos sensíveis. */
+function maskUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  let out = url;
+  // Bitrix: /rest/<userId>/<token>/
+  out = out.replace(/(\/rest\/\d+\/)[A-Za-z0-9]+(\/)/g, "$1••••$2");
+  // ?auth=, ?apikey=, ?token=
+  out = out.replace(/([?&](?:auth|apikey|api_key|token|access_token|key)=)[^&#]+/gi, "$1••••");
+  return out;
+}
+
+function maskHeaders(headers: Record<string, string> | null | undefined): Record<string, string> | null {
+  if (!headers) return null;
+  const SENSITIVE = /^(authorization|apikey|api-key|x-api-key|x-n8n-api-key|cookie|set-cookie|x-auth-token)$/i;
+  const out: Record<string, string> = {};
+  for (const [k, v] of Object.entries(headers)) {
+    out[k] = SENSITIVE.test(k) ? "••••" : String(v);
+  }
+  return out;
+}
+
+function maskBody(body: string | null | undefined): string | null {
+  if (!body) return null;
+  let out = body;
+  out = out.replace(/("(?:authorization|apikey|api_key|token|access_token|password|secret)"\s*:\s*")[^"]+(")/gi, "$1••••$2");
+  return out;
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -132,6 +160,93 @@ Deno.serve(async (req) => {
           triggered_by: r.triggered_by ?? "manual",
         })),
         total: count ?? 0,
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // -- last_test_full: full record of latest test --
+    if (action === "last_test_full") {
+      let connIds: string[] = [];
+      if (connection_id) {
+        connIds = [connection_id];
+      } else if (env_key) {
+        const { data } = await service.from("external_connections")
+          .select("id").eq("env_key", env_key).eq("type", type);
+        connIds = (data ?? []).map((r: { id: string }) => r.id);
+      } else {
+        const { data } = await service.from("external_connections")
+          .select("id").eq("type", type)
+          .order("last_test_at", { ascending: false, nullsFirst: false }).limit(1);
+        connIds = (data ?? []).map((r: { id: string }) => r.id);
+      }
+      if (connIds.length === 0) {
+        return new Response(JSON.stringify({ ok: true, details: null }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const { data: rows } = await service.from("connection_test_history")
+        .select("id, tested_at, success, latency_ms, status_code, error_message, error_kind, triggered_by, triggered_by_user_id, request_method, request_url, response_headers, response_body, dns_ms, tcp_ms, tls_ms, ttfb_ms, download_ms")
+        .in("connection_id", connIds)
+        .order("tested_at", { ascending: false })
+        .limit(1);
+      const row = (rows ?? [])[0] as {
+        id: string; tested_at: string; success: boolean;
+        latency_ms: number | null; status_code: number | null;
+        error_message: string | null; error_kind: string | null;
+        triggered_by: string | null; triggered_by_user_id: string | null;
+        request_method: string | null; request_url: string | null;
+        response_headers: Record<string, string> | null; response_body: string | null;
+        dns_ms: number | null; tcp_ms: number | null; tls_ms: number | null;
+        ttfb_ms: number | null; download_ms: number | null;
+      } | undefined;
+      if (!row) {
+        return new Response(JSON.stringify({ ok: true, details: null }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      // Resolve email of triggering user (best-effort, admin-only context)
+      let triggered_by_user_email: string | null = null;
+      if (row.triggered_by_user_id) {
+        const { data: uu } = await service.auth.admin.getUserById(row.triggered_by_user_id);
+        triggered_by_user_email = uu?.user?.email ?? null;
+      }
+      // Truncate body @ 16KB server-side
+      const MAX = 16 * 1024;
+      const rawBody = row.response_body ?? null;
+      const truncated = !!rawBody && rawBody.length > MAX;
+      const body = truncated ? rawBody!.slice(0, MAX) : rawBody;
+      return new Response(JSON.stringify({
+        ok: true,
+        details: {
+          id: row.id,
+          tested_at: row.tested_at,
+          ok: row.success,
+          triggered_by: row.triggered_by ?? "manual",
+          triggered_by_user_email,
+          request: {
+            method: row.request_method ?? null,
+            url: maskUrl(row.request_url),
+          },
+          response: {
+            status: row.status_code,
+            headers: maskHeaders(row.response_headers),
+            body: maskBody(body),
+            truncated,
+          },
+          timing: {
+            latency_ms: row.latency_ms,
+            dns_ms: row.dns_ms,
+            tcp_ms: row.tcp_ms,
+            tls_ms: row.tls_ms,
+            ttfb_ms: row.ttfb_ms,
+            download_ms: row.download_ms,
+          },
+          error: row.success ? null : {
+            kind: row.error_kind,
+            message: row.error_message,
+          },
+        },
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
