@@ -1,116 +1,143 @@
 
 
-# Modal de confirmação antes de rotacionar credencial
+# Validação inline em `SecretField` + bloqueio de "Testar conexão"
 
 ## Diagnóstico
 
-Hoje em `SecretField.tsx`, ao clicar **"Rotacionar"** com um valor novo digitado, a função `rotateSecret` é chamada imediatamente — sem confirmação. Como rotação é uma operação destrutiva (sobrescreve o segredo atual e gera entrada permanente em `secret_rotation_log`), faz sentido pedir confirmação explícita.
+Hoje em `SecretField.tsx`:
+- O único guard é `value.length < 4` para habilitar "Salvar"/"Rotacionar"
+- Não há validação de formato (URL malformada, service key sem prefixo `eyJ`, webhook sem `/rest/`, etc.)
+- O botão "Testar conexão" em cada aba (`Bitrix24Tab`, `N8nTab`, `SupabaseConnectionsTab`, `McpTab`) só checa `has_value`, então um valor inválido salvo via env permite testar e falhar com erro genérico de rede
 
-Já existe `src/components/ui/ConfirmDialog.tsx` com variante `warning`, ícone `AlertTriangle`, suporte a `loading` e bloco `impactPreview` — perfeito para reutilizar.
+Resultado: admin cola um valor errado, salva, clica "Testar", recebe erro confuso sem saber se é o valor ou o serviço.
 
 ## Solução
 
-### 1. Novo modal `RotateSecretConfirmDialog`
+### 1. Registry de validadores por nome de credencial
 
-Componente fino (~50 linhas) que envolve o `ConfirmDialog` existente com conteúdo específico para rotação:
+Novo arquivo `src/components/admin/connections/secretValidators.ts` com um mapa `SECRET_NAME → ValidatorRule`:
+
+```ts
+type ValidatorRule = {
+  /** Regex ou função que retorna true se válido */
+  test: (v: string) => boolean;
+  /** Mensagem de erro exibida inline quando inválido */
+  message: string;
+  /** Hint exibido em cinza abaixo do input quando vazio/editando */
+  hint?: string;
+  /** Exemplo clicável que preenche o input com placeholder de demo */
+  example?: string;
+};
+```
+
+Regras (cobertura inicial — todos os secrets já listados nas abas):
+
+| Secret name | Regra |
+|---|---|
+| `EXTERNAL_PROMOBRIND_URL`, `EXTERNAL_CRM_URL` | URL `https://` válida, sem barra final, host termina em `.supabase.co` |
+| `EXTERNAL_*_ANON_KEY`, `EXTERNAL_*_SERVICE_ROLE_KEY` | JWT: começa com `eyJ`, 3 segmentos separados por `.`, length ≥ 100 |
+| `BITRIX24_WEBHOOK_URL` | URL `https://` válida + contém `/rest/` + termina com `/` |
+| `BITRIX24_DOMAIN` | host válido (`*.bitrix24.*`), sem `https://` |
+| `BITRIX24_USER_ID` | inteiro positivo |
+| `BITRIX24_TOKEN` | alfanumérico, 10–60 chars |
+| `N8N_BASE_URL` | URL `https://` válida, sem caminho (só host), sem barra final |
+| `N8N_API_KEY` | string ≥ 20 chars, sem espaços |
+| `MCP_SERVER_URL` | URL `https://` ou `wss://` válida |
+| Default (sem regra) | `length ≥ 4` (comportamento atual) |
+
+### 2. Validação inline no `SecretField`
+
+Ao digitar (`onChange`), avaliar o validator do `secretName`:
+
+- **Vazio**: nenhum erro, mostra `hint` em cinza abaixo do input (ex: _"Formato esperado: https://abc.supabase.co"_)
+- **Inválido**: borda vermelha + ícone `AlertCircle` + mensagem em `text-destructive` (ex: _"URL deve terminar em .supabase.co"_)
+- **Válido**: borda verde sutil + ícone `CheckCircle2` em verde-success
+- **Loading/saving**: estados de validação congelam até resposta
+
+Botão "Salvar"/"Rotacionar" desabilitado enquanto inválido (com tooltip explicativo: _"Corrija o formato antes de salvar"_).
+
+```ts
+const validation = useMemo(() => validateSecret(secretName, value), [secretName, value]);
+const canSave = value.length > 0 && validation.ok && !saving;
+```
+
+### 3. Indicador de validade do valor já salvo
+
+Quando o campo **não está em edição** mas tem `status.has_value`, rodar a validação contra um proxy do valor salvo:
+- Não temos o valor real no frontend (segurança), mas temos `masked_suffix` + `length` + heurísticas (ex: JWT mínimo 100 chars; URL não dá para validar sem o valor)
+- Para JWTs: se `length < 100` exibir badge amarelo `⚠ Comprimento suspeito` ao lado do sufixo
+- Para URLs: sem warning (não dá para inferir do mascarado)
+- Esse warning é informativo, não bloqueia nada
+
+### 4. Bloqueio do botão "Testar conexão"
+
+Hoje em cada aba o `disabled` é `isTesting || !credsOk` onde `credsOk = !!secret?.has_value`. Mudar para também checar warnings de comprimento:
+
+```ts
+const credsLooksValid = credsOk && !hasSuspiciousLength(secrets, requiredNames);
+<Button disabled={isTesting || !credsLooksValid}
+  title={!credsOk ? "Configure as credenciais primeiro"
+    : !credsLooksValid ? "Credenciais com formato suspeito — re-salve antes de testar"
+    : "Testar conexão"}>
+```
+
+Helper `hasSuspiciousLength(secrets, ["EXTERNAL_CRM_SERVICE_ROLE_KEY"])` retorna true se algum secret na lista tem `length < threshold` definido no validator.
+
+Aplicar em:
+- `Bitrix24Tab` → checa `BITRIX24_WEBHOOK_URL` (length ≥ 60)
+- `N8nTab` → checa `N8N_BASE_URL` (length ≥ 15) e `N8N_API_KEY` se presente
+- `SupabaseConnectionsTab` → checa `EXTERNAL_*_URL` (length ≥ 25) e `*_SERVICE_ROLE_KEY` (length ≥ 100)
+- `McpTab` → checa `MCP_SERVER_URL` (length ≥ 15)
+
+### 5. Validação no modal de rotação
+
+`RotateSecretConfirmDialog` já recebe `newSuffix` e `newLength`. O bloqueio do "Salvar/Rotacionar" no `SecretField` já cobre isso (modal só abre se `canSave` for true), então nenhuma mudança no modal.
+
+### 6. Estados visuais
 
 ```text
-┌─ ⚠ Rotacionar credencial? ──────────────────────────┐
-│                                                      │
-│ Você está prestes a rotacionar:                     │
-│   SUPABASE_SERVICE_ROLE_KEY                         │
-│                                                      │
-│ ┌──────────────────────────────────────────────┐   │
-│ │ Valor atual:  ••••YZ89  (203 chars)          │   │
-│ │ Novo valor:   ••••KM47  (198 chars)          │   │
-│ └──────────────────────────────────────────────┘   │
-│                                                      │
-│ Isto irá:                                            │
-│  • Sobrescrever a credencial em uso agora            │
-│  • Registrar a rotação no histórico de auditoria    │
-│  • Disparar verificação automática da nova chave    │
-│                                                      │
-│ Esta ação não pode ser desfeita.                    │
-│                                                      │
-│        [ Cancelar ]   [ Sim, rotacionar ]           │
-└──────────────────────────────────────────────────────┘
+┌─ Service Role Key ───────────────────────────────────────┐
+│ [eyJhbGc..._invalido_]                  [✗] [Salvar]🚫   │
+│ ⚠ Service Role Key deve ter ≥100 chars (atual: 47)       │
+└──────────────────────────────────────────────────────────┘
+
+┌─ Service Role Key ───────────────────────────────────────┐
+│ [eyJhbGciOiJIUzI1NiIs...XYZ]            [✓] [Salvar]    │
+│ Formato JWT válido                                        │
+└──────────────────────────────────────────────────────────┘
+
+┌─ Service Role Key ───────────────────────────────────────┐
+│ [..............]                        [Salvar]🚫       │
+│ Formato esperado: token JWT (eyJ...) com ≥100 chars      │
+└──────────────────────────────────────────────────────────┘
 ```
-
-Props:
-- `secretName: string` — nome da credencial (ex: `SUPABASE_SERVICE_ROLE_KEY`)
-- `currentSuffix: string | null` — sufixo mascarado atual (do `status.masked_suffix`)
-- `currentLength: number | null` — tamanho atual
-- `newSuffix: string` — últimos 4 chars do novo valor digitado (calculado client-side)
-- `newLength: number` — tamanho do novo valor
-- `notes?: string` — opcional (campo livre para anotação de auditoria, ver item 3)
-- `onConfirm: (notes?: string) => Promise<void>`
-- `loading: boolean`
-- `open` / `onOpenChange`
-
-Internamente usa `<ConfirmDialog variant="warning" impactPreview={...} />` com:
-- `title: "Rotacionar {secretName}?"`
-- `confirmLabel: "Sim, rotacionar"`
-- `cancelLabel: "Cancelar"`
-- O bloco "Valor atual / Novo valor" renderizado como `children` extras antes do `impactPreview`
-
-### 2. Integração no `SecretField.tsx`
-
-Substituir o handler atual de "Rotacionar" por:
-
-```ts
-// antes: chama rotateSecret direto
-onClick={() => handleRotate()}
-
-// depois:
-onClick={() => setRotateConfirmOpen(true)}
-```
-
-E ao confirmar no modal, executa o `rotateSecret` real (mantendo o flash verde, toast e bump de `historyRefreshKey` que já funcionam).
-
-Calcular `newSuffix` no frontend a partir do valor digitado:
-```ts
-const newSuffix = newValue.slice(-4);
-const newLength = newValue.length;
-```
-
-### 3. Campo opcional "Motivo da rotação" (auditoria)
-
-Dentro do modal, adicionar um `<Textarea>` opcional rotulado **"Motivo (opcional)"** com placeholder _"Ex: rotação periódica trimestral, comprometimento suspeito, troca de fornecedor..."_. O valor é passado como `notes` ao `rotateSecret`, que já aceita esse parâmetro e grava em `secret_rotation_log.notes` (visível depois no `RotationHistoryDialog`).
-
-Limite de 200 chars, contador discreto no canto. Não é obrigatório — o usuário pode confirmar com o campo vazio.
-
-### 4. Estados e comportamento
-
-- **Botão "Rotacionar" no SecretField**: continua exigindo que o usuário tenha digitado um valor novo antes de habilitar (já é o comportamento atual). Só abre o modal se houver valor.
-- **Loading no modal**: durante o `await rotateSecret(...)`, botão "Sim, rotacionar" mostra spinner e fica desabilitado, "Cancelar" também desabilitado, fechamento por ESC/click-outside bloqueado.
-- **Após sucesso**: modal fecha automaticamente, flash verde aparece no campo, toast confirma, painel de histórico inline atualiza.
-- **Após erro**: modal permanece aberto com mensagem de erro inline (ex: "Falha ao rotacionar: rede indisponível"), botão volta a estar clicável para retry.
-
-### 5. Detalhes visuais
-
-- Ícone do header: `AlertTriangle` amarelo (variante `warning` do `ConfirmDialog`)
-- Bloco "Valor atual / Novo valor" em fundo `bg-muted/50` com fonte `font-mono` para os sufixos, similar ao já usado em `RotationHistoryRow`
-- Texto "Esta ação não pode ser desfeita" em `text-destructive text-sm font-medium`
-- Botão de confirmação usa cor padrão warning (não destructive) — rotação é uma operação esperada/positiva, não uma exclusão
 
 ## Arquivos tocados
 
 **Frontend (novos)**
-- `src/components/admin/connections/RotateSecretConfirmDialog.tsx` (~90 linhas): wrapper especializado do `ConfirmDialog` com bloco "Valor atual → Novo valor", textarea opcional de motivo, e props tipadas.
+- `src/components/admin/connections/secretValidators.ts` (~120 linhas): registry de validadores + helpers `validateSecret(name, value)` e `hasSuspiciousLength(secrets, names)`.
 
 **Frontend (editados)**
 - `src/components/admin/connections/SecretField.tsx`:
-  - Adicionar state `rotateConfirmOpen` e `rotateConfirmLoading`
-  - Trocar `onClick` direto do botão "Rotacionar" por `setRotateConfirmOpen(true)`
-  - Renderizar `<RotateSecretConfirmDialog />` no rodapé do componente
-  - Mover a lógica real de `rotateSecret` para `handleConfirmedRotate(notes)` chamado pelo modal
-  - Calcular `newSuffix` e `newLength` a partir do valor digitado
+  - Importar `validateSecret`
+  - Adicionar `useMemo` de validação a partir de `value` e `secretName`
+  - Renderizar ícone `CheckCircle2`/`AlertCircle` à direita do input em modo edição
+  - Renderizar mensagem de erro / hint abaixo do input
+  - Mudar `disabled` do "Salvar"/"Rotacionar" para `!validation.ok || value.length === 0 || saving`
+  - Adicionar `title` no botão explicando o motivo do disabled
+  - No modo não-edição, mostrar badge `⚠ Comprimento suspeito` se `hasSuspiciousLength` retornar true para o secret atual
+- `src/components/admin/connections/Bitrix24Tab.tsx`: trocar `credsOk` por `credsLooksValid` e ajustar `title`/`disabled` do botão "Testar conexão"
+- `src/components/admin/connections/N8nTab.tsx`: idem
+- `src/components/admin/connections/SupabaseConnectionsTab.tsx`: idem (por env)
+- `src/components/admin/connections/McpTab.tsx`: idem
+
+**Backend**: nenhuma mudança. `secrets-manager` continua aceitando qualquer valor ≥ 4 chars (validação é defense-in-depth no client; o admin pode forçar override removendo o validator se necessário, mas o caso de uso primário é evitar erros de digitação).
 
 ## Fora de escopo
 
-- Não muda o backend `secrets-manager` (o action `rotate` já aceita `notes`)
-- Não adiciona modal de confirmação para "Configurar" inicial (set sem valor anterior — não é destrutivo)
-- Não adiciona modal para "Atualizar" (overwrite simples sem entrada em `secret_rotation_log` — fluxo separado, pode vir em onda futura se necessário)
-- Não adiciona política de exigir motivo obrigatório (continua opcional; pode virar feature flag depois)
-- Não muda o `RotationHistoryDialog` ou `RotationHistoryRow` (já mostram `notes` quando presente)
+- Não adiciona validação no backend `secrets-manager` (mantém liberdade para casos especiais — frontend é defense-in-depth)
+- Não adiciona "auto-fix" (ex: remover barra final automaticamente) — só sinaliza
+- Não adiciona validação cruzada (ex: "URL e Service Key devem ser do mesmo projeto") — fora do escopo
+- Não muda os validadores em runtime via UI admin — registry é estático no código
+- Não adiciona validação para webhooks customizados na aba Webhooks (URLs livres por design)
 
