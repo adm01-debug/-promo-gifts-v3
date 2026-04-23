@@ -231,6 +231,14 @@ export function ConnectionsOverviewTable() {
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
+        {progress && (
+          <BulkTestProgressPanel
+            progress={progress}
+            elapsed={elapsed}
+            cancelling={cancelRef.current && progress.done < progress.total}
+            onCancel={cancelBulk}
+          />
+        )}
         <ConnectionsOverviewFilters
           filters={filters}
           toggleType={filterState.toggleType}
