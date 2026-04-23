@@ -11,6 +11,7 @@ const corsHeaders = {
 };
 
 const BodySchema = z.object({
+  action: z.enum(["test", "last_test"]).optional().default("test"),
   type: z.enum(["supabase", "bitrix24", "n8n", "mcp", "webhook_outbound"]),
   config: z.record(z.string()).optional(),
   connection_id: z.string().uuid().optional(),
