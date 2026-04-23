@@ -420,7 +420,7 @@ export function ConnectionTestHistoryPanel({
             <TooltipProvider delayDuration={150}>
               <ul className="space-y-0.5">
                 {previewItems.map((it) => (
-                  <HistoryRow key={it.id} item={it} onClick={() => setDetailsId(it.id)} />
+                  <HistoryRow key={it.id} item={it} onClick={() => setDetailsId(it.id)} highlighted={highlightId === it.id} rowRef={setRowRef(it.id)} />
                 ))}
               </ul>
             </TooltipProvider>
