@@ -164,6 +164,12 @@ export function SupabaseConnectionsTab() {
                       </Link>
                     </Button>
                   </div>
+                  <TestProgressIndicator
+                    phase={phaseByEnv[env.key] ?? "idle"}
+                    latencyMs={last?.latency_ms ?? null}
+                    message={last?.ok ? `HTTP ${last?.status ?? 200}` : (last?.message ?? null)}
+                    onDismiss={() => setPhaseByEnv((cur) => ({ ...cur, [env.key]: "idle" }))}
+                  />
                   <LastTestLine
                     info={last}
                     onClick={last?.tested_at ? () => setDetailsDialogByEnv((cur) => ({ ...cur, [env.key]: true })) : undefined}
@@ -184,6 +190,7 @@ export function SupabaseConnectionsTab() {
                     envKey={env.envKey!}
                     label={env.name}
                     refreshKey={historyKeyByEnv[env.key] ?? 0}
+                    pendingTest={pendingByEnv[env.key] ? { startedAt: pendingByEnv[env.key]! } : null}
                   />
                   <ConnectionTestDetailsDialog
                     open={!!detailsDialogByEnv[env.key]}
