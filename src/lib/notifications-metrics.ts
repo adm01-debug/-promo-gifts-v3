@@ -289,6 +289,8 @@ export const notificationsMetrics = {
       cache: { hits: 0, misses: 0 },
       network: { hits: 0, misses: 0 },
     };
+    state.triggerToFetch = [];
+    state.triggerToFetchTtlBreaches = 0;
     state.since = Date.now();
   },
 };
