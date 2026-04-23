@@ -155,12 +155,12 @@ export function SmokeTestChecklist({ availableSecrets = [] }: Props) {
         console.groupEnd();
         return;
       }
-      const suffixOk = rotateResult.masked_suffix === expectedSuffix;
+      const suffixOk = normalizeMaskedSuffix(rotateResult.masked_suffix) === expectedSuffix;
       const lengthOk = (rotateResult.length ?? 0) === newValue.length;
       if (!suffixOk || !lengthOk) {
         updateStep("rotate", {
           status: "failed",
-          detail: `Sufixo esperado ••••${expectedSuffix}, recebido ••••${rotateResult.masked_suffix ?? "????"}`,
+          detail: `Sufixo esperado ${formatMaskedSuffix(expectedSuffix)}, recebido ${formatMaskedSuffix(rotateResult.masked_suffix)}`,
           durationMs: took,
         });
         // eslint-disable-next-line no-console
@@ -168,7 +168,7 @@ export function SmokeTestChecklist({ availableSecrets = [] }: Props) {
       } else {
         updateStep("rotate", {
           status: "passed",
-          detail: `previous=${rotateResult.previous_suffix ?? "(env)"} → new=${rotateResult.masked_suffix} • ${rotateResult.length} chars`,
+          detail: `previous=${rotateResult.previous_suffix ?? "(env)"} → new=${normalizeMaskedSuffix(rotateResult.masked_suffix)} • ${rotateResult.length} chars`,
           durationMs: took,
         });
         // eslint-disable-next-line no-console
