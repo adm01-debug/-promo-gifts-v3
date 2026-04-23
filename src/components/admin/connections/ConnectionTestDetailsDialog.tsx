@@ -119,6 +119,7 @@ export function ConnectionTestDetailsDialog({
   envKey,
   connectionId,
   historyId,
+  onViewFullHistory,
 }: Props) {
   const { details, loading } = useConnectionTestDetails({
     open,
