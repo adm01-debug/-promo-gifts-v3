@@ -418,6 +418,11 @@ export const notificationsMetrics = {
     };
     state.triggerToFetch = [];
     state.triggerToFetchTtlBreaches = 0;
+    state.coalescingByTrigger = {
+      hover: { triggers: 0, fetches: 0 },
+      focus: { triggers: 0, fetches: 0 },
+      "drawer-open": { triggers: 0, fetches: 0 },
+    };
     state.since = Date.now();
     resetThrottle();
   },
