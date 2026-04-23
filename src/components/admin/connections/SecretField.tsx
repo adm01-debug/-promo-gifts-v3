@@ -481,6 +481,18 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
               )}
             </div>
           )}
+          {lastError && lastError.retryable && (
+            <SecretErrorAlert
+              error={lastError}
+              retryLabel="Tentar novamente"
+              onRetry={() => {
+                // Reopen editing — useEffect on mount restores draft (value+mode)
+                // from sessionStorage, so the user doesn't lose what was typed.
+                setMode((m) => m);
+                setEditing(true);
+              }}
+            />
+          )}
         </>
       )}
       {flash && (
