@@ -7,6 +7,8 @@ import { ConnectionTimelineDrawer } from "./ConnectionTimelineDrawer";
 import { ConnectionTestDetailsDialog } from "./ConnectionTestDetailsDialog";
 import { useConnectionTestHistory, type TestHistoryItem } from "@/hooks/useConnectionTestHistory";
 import type { ConnectionType } from "@/hooks/useConnectionTester";
+import { getErrorCopy, getKindBadgeClass, getKindLabel } from "@/lib/connection-error-copy";
+import { inferErrorKind } from "@/lib/error-kind-inference";
 
 interface Props {
   type: ConnectionType;
@@ -231,6 +233,17 @@ function HistoryRow({ item: it, onClick, highlighted, rowRef }: RowProps) {
   const tail = it.ok
     ? `HTTP ${it.status ?? "?"}${it.message ? ` — ${it.message}` : ""}`
     : (it.message || "Falha");
+  // Para falhas, infere kind (com fallback heurístico para registros antigos)
+  // e renderiza badge semântico ao lado da mensagem.
+  const resolvedKind = !it.ok
+    ? inferErrorKind({
+        errorKind: it.error_kind ?? null,
+        errorMessage: it.message ?? null,
+        statusCode: it.status ?? null,
+        success: it.ok,
+      })
+    : null;
+  const kindCopy = resolvedKind ? getErrorCopy(resolvedKind, it.status, it.message) : null;
   return (
     <li>
       <div
@@ -286,14 +299,26 @@ function HistoryRow({ item: it, onClick, highlighted, rowRef }: RowProps) {
         <Tooltip>
           <TooltipTrigger asChild>
             <span className={cn(
-              "truncate",
+              "truncate inline-flex items-center gap-1.5 min-w-0",
               it.ok ? "text-foreground/80" : "text-destructive",
             )}>
-              {tail}
+              {kindCopy && (
+                <span
+                  className={cn(
+                    "inline-flex items-center gap-1 text-[9px] font-medium h-4 px-1 rounded border shrink-0 tabular-nums",
+                    getKindBadgeClass(kindCopy.tone),
+                  )}
+                  title={`Tipo de falha: ${kindCopy.title}`}
+                  aria-label={`Tipo de falha: ${getKindLabel(kindCopy.tone)}`}
+                >
+                  {getKindLabel(kindCopy.tone)}
+                </span>
+              )}
+              <span className="truncate">{tail}</span>
             </span>
           </TooltipTrigger>
           <TooltipContent side="top" className="max-w-sm break-words">
-            {tail}
+            {kindCopy ? `${kindCopy.title} — ${tail}` : tail}
           </TooltipContent>
         </Tooltip>
         {!it.ok ? (
