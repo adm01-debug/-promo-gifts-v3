@@ -1,158 +1,63 @@
 
 
-# Plano — Testes de foco visível e consistente após alterar variação ativa (clique em card / marcar vencedora)
+## Pré-carregamento de notificações + estado de loading inteligente
 
-Adiciono **1 teste** ao final do sub-describe `"setas atualizam activeIndex e ARIA acompanha após rerender"` em `tests/components/magic-up-onda5.test.tsx`, validando que após interações de **clique em card** e **clique em "Marcar vencedora"**, o foco permanece no elemento correto e mantém as classes `focus-visible:*` exigidas pelo guideline `docs/MAGIC_UP_ONDA5_A11Y.md`.
+### Diagnóstico
 
-## Justificativa
+`useWorkspaceNotifications` já busca na montagem do `Header` (sempre montado), mas há 3 problemas que causam atraso/flicker percebido ao abrir o drawer:
 
-Cobertura atual valida foco/ARIA durante navegação por **teclado** (setas, Home, End, Tab, Shift+Tab). Mas **não há teste** que afirme o comportamento de foco após **mutações via clique/Enter**:
+1. **`setIsLoading(true)` em todo refetch** (linha 27) — cada poll de 30s ou refresh manual reativa o skeleton, mesmo com dados já em memória. Se o usuário abre o drawer durante um poll, vê skeleton em vez dos dados existentes.
+2. **Sem prefetch on hover/focus** — usuário só dispara nova busca ao abrir; se o último poll foi há 25s, dados podem estar levemente stale.
+3. **Sem cache compartilhado/persistente** — primeiro carregamento após login espera o roundtrip completo (200-800ms) antes de mostrar contador no badge.
 
-| Lacuna | Risco |
-|---|---|
-| Após clicar em card N, foco permanece no card N (não pula para outro) | Bug onde `onSelect` causa rerender que perde foco (volta ao body) — quebra navegação por teclado mista (mouse → teclado) |
-| Após clicar em "Marcar vencedora" do card ativo, foco permanece no botão (ou migra para card vencedor) de forma previsível | Foco perdido após ação destrutiva = leitor de tela perde contexto |
-| Em ambos os casos, elemento focado mantém classes `focus-visible:*` corretas | Refator que remova focus-visible em estado pós-ação passaria sem detecção |
-| `aria-pressed`/`aria-current` no elemento focado refletem o novo estado | Drift entre foco visual e estado ARIA pós-ação |
-| Ativação via teclado (Enter/Espaço) preserva foco igual a clique | Diferença entre mouse e teclado quebraria WCAG 2.1.1 (Keyboard) |
+### Mudanças (2 arquivos)
 
-**WCAG 2.4.3 (Focus Order)** + **2.4.7 (Focus Visible)** + **3.2.1 (On Focus)**: mudanças de contexto não devem mover foco inesperadamente; ações pós-clique/Enter devem preservar contexto focável.
+#### 1. `src/hooks/useWorkspaceNotifications.tsx`
 
-## Alteração
+- **Distinguir initial load de refetch silencioso:** dois flags, `isLoading` (apenas primeira busca) e `isRefetching` (background). `setIsLoading(true)` só quando `notifications.length === 0`.
+- **Adicionar `prefetch()`** idempotente: dispara `fetchNotifications()` apenas se a última busca foi há mais de 5s (cache TTL curto via `lastFetchAtRef`). Não muda `isLoading`.
+- **Persistir snapshot em `sessionStorage`** sob chave `workspace_notifications_cache:<userId>` com TTL de 60s. No mount, hidratar o estado imediatamente (zero flash, contador aparece em < 16ms) e disparar refetch em background.
+- **Expor `prefetch` no retorno** do hook.
 
-### `tests/components/magic-up-onda5.test.tsx`
+#### 2. `src/hooks/useNotifications.ts` (façade)
 
-Adicionar **1 teste** ao final do sub-describe `"setas atualizam activeIndex e ARIA acompanha após rerender"` (linha ~3111, antes do `});` que fecha o sub-describe — mesmo local dos testes anteriores aprovados):
+- Repassar `prefetch` no retorno.
+- Atualizar `UseNotificationsReturn` interface.
 
-```ts
-it("foco permanece visível e consistente após clicar em card e em 'Marcar vencedora'", async () => {
-  const user = userEvent.setup();
-  const onSelectWinner = vi.fn();
+#### 3. `src/components/notifications/NotificationDrawer.tsx`
 
-  function ControlledWrapper() {
-    const [activeIndex, setActiveIndex] = React.useState(0);
-    return (
-      <MagicUpVariationComparator
-        variations={navVariations}
-        activeIndex={activeIndex}
-        onSelect={setActiveIndex}
-        onSelectWinner={onSelectWinner}
-      />
-    );
-  }
+- **Prefetch on hover/focus do bell:** adicionar `onMouseEnter` e `onFocus` no `<Button>` do trigger, chamando `prefetch()`. Latência percebida vai a ~zero porque a busca começa antes do clique.
+- **Prefetch on `onOpenChange(true)`** do `Sheet` como fallback (touch devices sem hover).
+- **Skeleton só na primeira carga:** trocar `isLoading` por `isLoading && notifications.length === 0` no render do skeleton (na prática já será o comportamento via flag corrigida no hook, mas defensivo).
 
-  render(<ControlledWrapper />);
+### Validação
 
-  const REQUIRED_FOCUS_CLASSES = [
-    "focus-visible:outline-none",
-    "focus-visible:ring-2",
-    "focus-visible:ring-ring",
-  ];
+1. **Typecheck:** `npm run typecheck` — zero erros.
+2. **Testes existentes:** `npm run test -- --run tests/hooks/useWorkspaceNotifications.test.ts` — manter compatibilidade da API pública (`notifications`, `unreadCount`, `isLoading`, `markAsRead`, `markAllAsRead`, `clearAll`, `refresh`).
+3. **Smoke manual via session_replay:**
+   - Login fresh → badge aparece quase instantaneamente (hidratação do cache OU em < 1 frame após primeira fetch).
+   - Hover no bell → DevTools Network mostra request disparada antes do clique.
+   - Abrir drawer com cache quente → conteúdo aparece sem skeleton.
+   - Refetch automático (esperar 30s) não pisca skeleton.
+4. **Verificação de localStorage/sessionStorage:** chave `workspace_notifications_cache:<userId>` presente após primeira busca.
 
-  const expectFocusVisible = (el: HTMLElement) => {
-    REQUIRED_FOCUS_CLASSES.forEach((cls) => {
-      expect(el.className).toContain(cls);
-    });
-    expect(el.className).not.toMatch(/(?<!focus-visible:)focus:ring-/);
-  };
+### Critério de aceite
 
-  // ── Cenário 1: clique em card 2 mantém foco no card 2 + focus-visible + aria-pressed ──
-  const card2 = screen.getByRole("button", { name: /^Selecionar variação 2/ });
-  await user.click(card2);
-  expect(card2).toHaveFocus();
-  expect(card2).toHaveAttribute("aria-pressed", "true");
-  expectFocusVisible(card2);
+- Badge de contador visível em < 100ms após mount do Header em sessão recorrente (cache hit).
+- Skeleton só aparece na primeiríssima busca quando não há cache.
+- Hover/focus no bell dispara prefetch (visível em DevTools Network).
+- Polling de 30s não causa flicker visível no drawer aberto ou no badge.
+- Zero regressão na API pública do hook (`tests/hooks/useWorkspaceNotifications.test.ts` passa sem mudanças).
+- Nenhuma alteração visual perceptível além da redução de flicker.
 
-  // Demais cards perderam aria-pressed
-  const card1 = screen.getByRole("button", { name: /^Selecionar variação 1/ });
-  expect(card1).toHaveAttribute("aria-pressed", "false");
+### Fora de escopo
 
-  // ── Cenário 2: clique em card 3 mantém foco no card 3 + focus-visible + aria-pressed ──
-  const card3 = screen.getByRole("button", { name: /^Selecionar variação 3/ });
-  await user.click(card3);
-  expect(card3).toHaveFocus();
-  expect(card3).toHaveAttribute("aria-pressed", "true");
-  expectFocusVisible(card3);
-  expect(card2).toHaveAttribute("aria-pressed", "false");
+- Migração para React Query (mudança maior, fora do escopo).
+- Realtime via Supabase channels (removido por segurança conforme memória do projeto).
+- Push notifications nativas (já cobertas por `usePushNotifications`).
+- Persistência cross-tab via `BroadcastChannel` (over-engineering para 50 itens).
 
-  // ── Cenário 3: ativação via teclado (Enter) preserva foco igual a clique ──
-  card1.focus();
-  await user.keyboard("{Enter}");
-  expect(card1).toHaveFocus();
-  expect(card1).toHaveAttribute("aria-pressed", "true");
-  expectFocusVisible(card1);
+### Estimativa
 
-  // ── Cenário 4: ativação via Espaço também preserva foco ──
-  card2.focus();
-  await user.keyboard(" ");
-  expect(card2).toHaveFocus();
-  expect(card2).toHaveAttribute("aria-pressed", "true");
-  expectFocusVisible(card2);
-
-  // ── Cenário 5: clique em "Marcar vencedora" do card ativo mantém foco previsível ──
-  // Localiza o botão "vencedora" associado ao card ativo (card 2)
-  const winnerButtons = screen.getAllByRole("button", { name: /vencedora/i });
-  expect(winnerButtons.length).toBeGreaterThan(0);
-
-  // Clica no primeiro botão "vencedora" disponível
-  const firstWinnerBtn = winnerButtons[0];
-  await user.click(firstWinnerBtn);
-
-  // Callback foi disparado
-  expect(onSelectWinner).toHaveBeenCalledTimes(1);
-
-  // Foco deve permanecer em algum elemento focável do componente (não no body)
-  expect(document.activeElement).not.toBe(document.body);
-
-  // O elemento focado (qualquer que seja: botão vencedora ou card) deve ter focus-visible
-  const focusedAfterWinner = document.activeElement as HTMLElement;
-  expect(focusedAfterWinner).not.toBeNull();
-  // Valida que tem AO MENOS as classes base focus-visible (outline-none + ring-2)
-  expect(focusedAfterWinner.className).toContain("focus-visible:outline-none");
-  expect(focusedAfterWinner.className).toContain("focus-visible:ring-2");
-  expect(focusedAfterWinner.className).not.toMatch(/(?<!focus-visible:)focus:ring-/);
-
-  // ── Cenário 6: após ação de winner, card ativo continua com aria-pressed correto ──
-  // (mudança de winner não deve afetar activeIndex/aria-pressed)
-  const cards = screen.getAllByRole("button", { name: /^Selecionar variação/ });
-  const pressedCards = cards.filter((c) => c.getAttribute("aria-pressed") === "true");
-  expect(pressedCards).toHaveLength(1); // INVARIANTE preservada após winner click
-});
-```
-
-## Restrições
-
-- Sem alteração no `MagicUpVariationComparator.tsx`
-- Sem novos imports (reusa `React`, `render`, `screen`, `userEvent`, `vi`, `navVariations`, `MagicUpVariationComparator`)
-- 1 teste novo (123 → 124 testes)
-- Helper `expectFocusVisible` valida 3 classes base + ausência de `focus:` puro em 1 chamada
-- 6 cenários cobertos: clique card 2, clique card 3, Enter no card 1, Espaço no card 2, clique vencedora, invariante pós-winner
-- Cenário 5 é **defensivo**: aceita que foco fique no botão vencedora OU no card ativo (qualquer comportamento previsível), desde que não vá para `body` e tenha focus-visible
-- Negative lookbehind `(?<!focus-visible:)focus:ring-` mantém contrato WCAG 2.4.7
-
-## Risco do teste
-
-Este teste pode **falhar** se o componente atual:
-- Perde foco após `onSelect` (foco volta ao body durante rerender) — comportamento comum sem `useRef` para preservar foco
-- Não tem botões "Marcar vencedora" visíveis em todos os cards (cenário 5 pode precisar de ajuste)
-
-Se falhar, a saída do teste indicará exatamente qual cenário e abriremos plano de correção (adicionar gerenciamento de foco no `onSelect`/`onSelectWinner`).
-
-## Entregável
-
-- 1 teste cobrindo:
-  1. **Clique em card** preserva foco + `aria-pressed=true` + focus-visible
-  2. **Clique em card diferente** transfere foco corretamente, limpa pressed do anterior
-  3. **Enter** no card focado tem comportamento idêntico ao clique
-  4. **Espaço** no card focado tem comportamento idêntico ao clique
-  5. **Clique em "Marcar vencedora"** dispara callback e mantém foco em elemento focável (não body) com focus-visible
-  6. **Invariante de exclusividade `aria-pressed`** preservada após ação de winner
-- Captura regressões onde:
-  - `onSelect`/`onSelectWinner` causem perda de foco (foco vai para body após rerender)
-  - Refator quebre paridade entre clique/Enter/Espaço (WCAG 2.1.1)
-  - Ação de winner mude `activeIndex` indevidamente (acoplamento errado)
-  - Classes focus-visible sejam removidas de algum estado pós-ação
-  - Aparecimento de `focus:ring-*` puro (sem `-visible`) em elementos pós-mutação
-- Sem impacto nos 123 testes existentes: novo teste é isolado em `ControlledWrapper` próprio
-- Após implementação: rodar `npx vitest run tests/components/magic-up-onda5.test.tsx` e confirmar 124/124 verde (ou abrir plano de correção caso falhe)
+~6-10 chamadas: 3 edições, 1 typecheck, 1 run de testes, 1-2 verificações via session_replay/DOM.
 
