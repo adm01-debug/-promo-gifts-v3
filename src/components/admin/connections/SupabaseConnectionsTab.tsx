@@ -15,6 +15,7 @@ import { ConnectionTestDetailsDialog } from "./ConnectionTestDetailsDialog";
 import { RefreshFromDbButton } from "./RefreshFromDbButton";
 import { hasSuspiciousLength, getPreflightIssues } from "./secretValidators";
 import { ConnectionPreflightAlert } from "./ConnectionPreflightAlert";
+import { TestProgressIndicator, type TestProgressPhase } from "./TestProgressIndicator";
 
 const ENVS = [
   {
@@ -47,6 +48,8 @@ export function SupabaseConnectionsTab() {
   const [lastByEnv, setLastByEnv] = useState<Record<string, LastTestInfo | null>>({});
   const [historyKeyByEnv, setHistoryKeyByEnv] = useState<Record<string, number>>({});
   const [detailsDialogByEnv, setDetailsDialogByEnv] = useState<Record<string, boolean>>({});
+  const [phaseByEnv, setPhaseByEnv] = useState<Record<string, TestProgressPhase>>({});
+  const [pendingByEnv, setPendingByEnv] = useState<Record<string, string | null>>({});
 
   useEffect(() => { list(); }, [list]);
 
@@ -70,6 +73,8 @@ export function SupabaseConnectionsTab() {
   const get = (n: string) => secrets.find((s) => s.name === n);
 
   const handleTest = async (envKey: "promobrind" | "crm", localKey: string) => {
+    setPhaseByEnv((cur) => ({ ...cur, [localKey]: "running" }));
+    setPendingByEnv((cur) => ({ ...cur, [localKey]: new Date().toISOString() }));
     const r = await test("supabase", { env_key: envKey });
     setLastByEnv((cur) => ({
       ...cur,
@@ -83,6 +88,8 @@ export function SupabaseConnectionsTab() {
       },
     }));
     setHistoryKeyByEnv((cur) => ({ ...cur, [localKey]: (cur[localKey] ?? 0) + 1 }));
+    setPendingByEnv((cur) => ({ ...cur, [localKey]: null }));
+    setPhaseByEnv((cur) => ({ ...cur, [localKey]: r.ok ? "completed" : "failed" }));
   };
 
   return (
@@ -157,6 +164,12 @@ export function SupabaseConnectionsTab() {
                       </Link>
                     </Button>
                   </div>
+                  <TestProgressIndicator
+                    phase={phaseByEnv[env.key] ?? "idle"}
+                    latencyMs={last?.latency_ms ?? null}
+                    message={last?.ok ? `HTTP ${last?.status ?? 200}` : (last?.message ?? null)}
+                    onDismiss={() => setPhaseByEnv((cur) => ({ ...cur, [env.key]: "idle" }))}
+                  />
                   <LastTestLine
                     info={last}
                     onClick={last?.tested_at ? () => setDetailsDialogByEnv((cur) => ({ ...cur, [env.key]: true })) : undefined}
@@ -177,6 +190,7 @@ export function SupabaseConnectionsTab() {
                     envKey={env.envKey!}
                     label={env.name}
                     refreshKey={historyKeyByEnv[env.key] ?? 0}
+                    pendingTest={pendingByEnv[env.key] ? { startedAt: pendingByEnv[env.key]! } : null}
                   />
                   <ConnectionTestDetailsDialog
                     open={!!detailsDialogByEnv[env.key]}

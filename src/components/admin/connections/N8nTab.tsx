@@ -13,6 +13,7 @@ import { RetestButton } from "./RetestButton";
 import { ConnectionTestDetailsDialog } from "./ConnectionTestDetailsDialog";
 import { RefreshFromDbButton } from "./RefreshFromDbButton";
 import { hasSuspiciousLength } from "./secretValidators";
+import { TestProgressIndicator, type TestProgressPhase } from "./TestProgressIndicator";
 
 export function N8nTab() {
   const { secrets, list } = useSecretsManager();
@@ -20,6 +21,8 @@ export function N8nTab() {
   const [last, setLast] = useState<LastTestInfo | null>(null);
   const [historyKey, setHistoryKey] = useState(0);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
+  const [phase, setPhase] = useState<TestProgressPhase>("idle");
+  const [pendingStartedAt, setPendingStartedAt] = useState<string | null>(null);
 
   useEffect(() => { list(); }, [list]);
   const hydrate = useCallback(async () => {
@@ -38,9 +41,13 @@ export function N8nTab() {
     : last?.ok === false ? "error" : "active";
 
   const onTest = async () => {
+    setPhase("running");
+    setPendingStartedAt(new Date().toISOString());
     const r = await test("n8n");
     setLast({ ok: r.ok, tested_at: r.tested_at ?? new Date().toISOString(), latency_ms: r.latency_ms, message: r.error ?? r.message, status: r.status, error_kind: r.error_kind ?? null });
     setHistoryKey((k) => k + 1);
+    setPendingStartedAt(null);
+    setPhase(r.ok ? "completed" : "failed");
   };
 
   return (
@@ -73,6 +80,12 @@ export function N8nTab() {
             <ConnectionTimelineDrawer type="n8n" label="n8n" />
             <RefreshFromDbButton onRefreshed={list} />
           </div>
+          <TestProgressIndicator
+            phase={phase}
+            latencyMs={last?.latency_ms ?? null}
+            message={last?.ok ? `HTTP ${last?.status ?? 200}` : (last?.message ?? null)}
+            onDismiss={() => setPhase("idle")}
+          />
           <LastTestLine
             info={last}
             onClick={last?.tested_at ? () => setDetailsDialogOpen(true) : undefined}
@@ -85,7 +98,12 @@ export function N8nTab() {
               />
             }
           />
-          <ConnectionTestHistoryPanel type="n8n" label="n8n" refreshKey={historyKey} />
+          <ConnectionTestHistoryPanel
+            type="n8n"
+            label="n8n"
+            refreshKey={historyKey}
+            pendingTest={pendingStartedAt ? { startedAt: pendingStartedAt } : null}
+          />
           <ConnectionTestDetailsDialog
             open={detailsDialogOpen}
             onOpenChange={setDetailsDialogOpen}

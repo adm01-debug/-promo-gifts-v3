@@ -19,6 +19,10 @@ interface Props {
   className?: string;
   /** Show the 5 latest tests inline by default (default: true). */
   defaultPreview?: boolean;
+  /** When set, renders a non-clickable placeholder row at the top of the list
+   *  ("Teste em andamento…") so the user sees the test was queued before the
+   *  real history row arrives via refreshKey. Cleared by the parent on result. */
+  pendingTest?: { startedAt: string } | null;
 }
 
 const PREVIEW_SIZE_OPTIONS = [5, 10, 20] as const;
@@ -191,6 +195,37 @@ interface RowProps {
   rowRef?: (el: HTMLDivElement | null) => void;
 }
 
+/**
+ * Optimistic placeholder shown at the top of the list while a manual test is
+ * in flight, so users see immediately that their click was registered and a new
+ * row will be appended without a page reload.
+ */
+function PendingHistoryRow({ startedAt }: { startedAt: string }) {
+  const rel = formatRelative(startedAt);
+  return (
+    <li>
+      <div
+        className={cn(
+          "w-full grid grid-cols-[14px_minmax(80px,auto)_minmax(54px,auto)_1fr_auto] items-center gap-2 text-xs px-1.5 py-1 rounded",
+          "border border-dashed border-primary/40 bg-primary/5 text-primary animate-pulse",
+        )}
+        aria-live="polite"
+        aria-label="Teste em andamento"
+      >
+        <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" />
+        <span className="text-muted-foreground tabular-nums truncate">
+          iniciado {rel || "agora"}
+        </span>
+        <span className="text-[10px] text-muted-foreground/70">…ms</span>
+        <span className="truncate text-primary/80">
+          Aguardando resposta do servidor…
+        </span>
+        <span className="text-[10px] text-primary/70 shrink-0 px-1">novo</span>
+      </div>
+    </li>
+  );
+}
+
 function HistoryRow({ item: it, onClick, highlighted, rowRef }: RowProps) {
   const Icon = it.ok ? CheckCircle2 : XCircle;
   const tail = it.ok
@@ -280,7 +315,7 @@ function HistoryRow({ item: it, onClick, highlighted, rowRef }: RowProps) {
 }
 
 export function ConnectionTestHistoryPanel({
-  type, envKey, connectionId, refreshKey, label, className, defaultPreview = true,
+  type, envKey, connectionId, refreshKey, label, className, defaultPreview = true, pendingTest = null,
 }: Props) {
   const [expanded, setExpanded] = useState(false);
   const [filter, setFilter] = useState<StatusFilter>("all");
@@ -344,7 +379,9 @@ export function ConnectionTestHistoryPanel({
   }, [items, counts.ok]);
 
   const empty = total === 0 && !loading;
-  const showPreview = defaultPreview && !empty && !expanded;
+  // Show the inline preview whenever defaultPreview is on AND we either have
+  // data, are loading, or have an in-flight test to surface.
+  const showPreview = defaultPreview && !expanded && (!empty || !!pendingTest);
 
   // Most-recent failure (items are returned newest-first)
   const latestFailure = useMemo(() => items.find((i) => !i.ok) ?? null, [items]);
@@ -357,6 +394,15 @@ export function ConnectionTestHistoryPanel({
     const t = setTimeout(() => setHighlightId(null), 2500);
     return () => clearTimeout(t);
   }, [highlightId]);
+
+  // Auto-highlight the freshest item whenever refreshKey changes (i.e. a manual
+  // test just completed). Items are returned newest-first by the edge function.
+  const prevRefreshKeyRef = useRef(refreshKey);
+  useEffect(() => {
+    if (prevRefreshKeyRef.current === refreshKey) return;
+    prevRefreshKeyRef.current = refreshKey;
+    if (items.length > 0) setHighlightId(items[0].id);
+  }, [refreshKey, items]);
 
   const goToLatestFailure = (e?: React.MouseEvent) => {
     e?.stopPropagation();
@@ -514,17 +560,18 @@ export function ConnectionTestHistoryPanel({
       )}
       {showPreview && (
         <div className="space-y-2 mt-2">
-          {loading && previewItems.length === 0 ? (
+          {loading && previewItems.length === 0 && !pendingTest ? (
             <div className="flex items-center justify-center py-3 text-xs text-muted-foreground">
               <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> Carregando…
             </div>
-          ) : previewItems.length === 0 ? (
+          ) : previewItems.length === 0 && !pendingTest ? (
             <div className="py-3 text-center text-xs text-muted-foreground">
               {emptyMessage(filter, source)}
             </div>
           ) : (
             <TooltipProvider delayDuration={150}>
               <ul className="space-y-0.5">
+                {pendingTest && <PendingHistoryRow startedAt={pendingTest.startedAt} />}
                 {previewItems.map((it) => (
                   <HistoryRow key={it.id} item={it} onClick={() => setDetailsId(it.id)} highlighted={highlightId === it.id} rowRef={setRowRef(it.id)} />
                 ))}
@@ -578,17 +625,18 @@ export function ConnectionTestHistoryPanel({
             cronTotal={cronCounts.total}
           />
 
-          {loading && items.length === 0 ? (
+          {loading && items.length === 0 && !pendingTest ? (
             <div className="flex items-center justify-center py-4 text-xs text-muted-foreground">
               <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> Carregando…
             </div>
-          ) : visibleItems.length === 0 ? (
+          ) : visibleItems.length === 0 && !pendingTest ? (
             <div className="py-3 text-center text-xs text-muted-foreground">
               {emptyMessage(filter, source)}
             </div>
           ) : (
             <TooltipProvider delayDuration={150}>
               <ul className="space-y-0.5">
+                {pendingTest && <PendingHistoryRow startedAt={pendingTest.startedAt} />}
                 {visibleItems.map((it) => (
                   <HistoryRow key={it.id} item={it} onClick={() => setDetailsId(it.id)} highlighted={highlightId === it.id} rowRef={setRowRef(it.id)} />
                 ))}
