@@ -13,6 +13,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { useNotifications, type WorkspaceNotification } from "@/hooks/useNotifications";
+import { useAriaLive } from "@/components/a11y/AriaLive";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
