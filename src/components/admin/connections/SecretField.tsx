@@ -15,6 +15,7 @@ import {
 import { JustSavedFlash } from "./JustSavedFlash";
 import { RotationHistoryRow } from "./RotationHistoryRow";
 import { RotateSecretConfirmDialog } from "./RotateSecretConfirmDialog";
+import { withRetryBackoff, CancelledError } from "./secretRetry";
 
 function formatRelative(iso: string): string {
   const then = new Date(iso).getTime();
@@ -88,29 +89,63 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
   const [rotateConfirmOpen, setRotateConfirmOpen] = useState(false);
   const [rotateConfirmError, setRotateConfirmError] = useState<string | null>(null);
 
+  // Cancellation for in-flight retries
+  const abortRef = useRef<AbortController | null>(null);
+
   const performSave = async (currentMode: "set" | "rotate", currentValue: string, notes?: string) => {
     const wasEnvFallback = !!status?.env_fallback_active;
     const toastId = `secret-${secretName}-${Date.now()}`;
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    const baseLabel = currentMode === "rotate" ? `Rotacionando ${secretName}` : `Salvando ${secretName}`;
+    const cancelAction = {
+      label: "Cancelar",
+      onClick: () => controller.abort(),
+    };
+
     const slowTimer = setTimeout(() => {
-      toast.loading(
-        currentMode === "rotate" ? `Rotacionando ${secretName}…` : `Salvando ${secretName}…`,
-        { id: toastId },
-      );
+      toast.loading(`${baseLabel}…`, { id: toastId, action: cancelAction });
     }, 800);
 
     let result: SecretMutationResult;
     try {
-      result =
-        currentMode === "rotate"
-          ? await rotateSecret(secretName, currentValue, notes)
-          : await setSecret(secretName, currentValue);
+      result = await withRetryBackoff(
+        () =>
+          currentMode === "rotate"
+            ? rotateSecret(secretName, currentValue, notes)
+            : setSecret(secretName, currentValue),
+        {
+          signal: controller.signal,
+          onAttempt: (attempt, nextDelayMs) => {
+            if (attempt > 1 || nextDelayMs !== null) {
+              const sec = nextDelayMs ? Math.max(1, Math.round(nextDelayMs / 1000)) : null;
+              const desc = nextDelayMs
+                ? `Rede instável — nova tentativa em ${sec}s (tentativa ${attempt}/3)`
+                : `Tentativa ${attempt}/3…`;
+              toast.loading(`${baseLabel}…`, {
+                id: toastId,
+                description: desc,
+                action: cancelAction,
+              });
+            }
+          },
+        },
+      );
     } catch (err) {
+      if (err instanceof CancelledError) {
+        clearTimeout(slowTimer);
+        abortRef.current = null;
+        toast(`${baseLabel} cancelado`, { id: toastId, duration: 3000 });
+        return { ok: false as const, errorDescription: "Cancelado pelo usuário", cancelled: true };
+      }
       result = {
         ok: false,
         error: { code: "unexpected", message: err instanceof Error ? err.message : "Erro inesperado" },
       };
     }
     clearTimeout(slowTimer);
+    abortRef.current = null;
 
     if (!result.ok || !result.secret) {
       const err = result.error ?? { code: "unexpected", message: "Erro desconhecido" };
@@ -128,7 +163,7 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
           },
         },
       });
-      return { ok: false as const, errorDescription: description };
+      return { ok: false as const, errorDescription: description, cancelled: false };
     }
 
     const { secret, was_update, previous_suffix } = result;
