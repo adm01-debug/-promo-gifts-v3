@@ -203,6 +203,30 @@ export function NotificationsBadgeStatsPanel() {
             <span className="tabular-nums text-right">{byFetch.polling}</span>
             <span className="pl-3.5">· mutation</span>
             <span className="tabular-nums text-right">{byFetch.mutation}</span>
+            {/* TTL-window split: how many fetches landed inside the 5s prefetch
+                TTL since the previous fetch (= candidates that *could* have
+                been coalesced) vs after the window expired (= legitimately
+                fresh fetches). High `within TTL` count = TTL gate is leaky. */}
+            <span className="pl-3.5 inline-flex items-center gap-1 mt-0.5">
+              <Zap className="h-2.5 w-2.5" aria-hidden="true" />
+              within TTL (&lt;5s)
+            </span>
+            <span
+              className={cn(
+                "tabular-nums text-right mt-0.5 font-semibold",
+                fetchesByTtlWindow.withinTtl === 0 ? "text-muted-foreground" : "text-warning"
+              )}
+              title="Fetches that fired within 5s of the previous fetch — should normally be 0 thanks to the prefetch TTL gate."
+            >
+              {fetchesByTtlWindow.withinTtl} ({ttlWithinPct}%)
+            </span>
+            <span className="pl-3.5">· after TTL (≥5s)</span>
+            <span
+              className="tabular-nums text-right text-primary font-semibold"
+              title="Fetches that fired after the 5s window expired (or were the very first fetch). Healthy default."
+            >
+              {fetchesByTtlWindow.afterTtl} ({ttlAfterPct}%)
+            </span>
           </div>
           {/* 60-second sparkline of the trigger/fetch ratio. */}
           <div className="mt-1.5 pt-1.5 border-t border-border/30">
