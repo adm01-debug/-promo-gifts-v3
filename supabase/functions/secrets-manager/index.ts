@@ -165,6 +165,14 @@ Deno.serve(async (req) => {
       const requested = names && names.length > 0 ? names : Array.from(ALLOWED_SECRETS);
       const allowed = requested.filter(isAllowedSecretName);
       const dbMap = await loadFromDb(allowed);
+      const updaterIds = Array.from(
+        new Set(
+          Array.from(dbMap.values())
+            .map((r) => r.updated_by)
+            .filter((v): v is string => !!v),
+        ),
+      );
+      const emailMap = await resolveEmails(updaterIds);
       const results = allowed.map((n) => {
         const dbRow = dbMap.get(n);
         if (dbRow && dbRow.length > 0) {
@@ -174,6 +182,8 @@ Deno.serve(async (req) => {
             masked_suffix: dbRow.masked_suffix,
             length: dbRow.length,
             updated_at: dbRow.updated_at,
+            updated_by: dbRow.updated_by,
+            updated_by_email: dbRow.updated_by ? emailMap.get(dbRow.updated_by) ?? null : null,
             source: "db" as const,
             env_fallback_active: false,
           };
@@ -185,6 +195,8 @@ Deno.serve(async (req) => {
           masked_suffix: env.masked_suffix,
           length: env.length,
           updated_at: null as string | null,
+          updated_by: null as string | null,
+          updated_by_email: null as string | null,
           source: env.has_value ? ("env" as const) : ("none" as const),
           env_fallback_active: env.has_value,
         };
