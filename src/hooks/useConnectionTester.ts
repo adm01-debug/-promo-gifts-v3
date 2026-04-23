@@ -3,15 +3,34 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export type ConnectionType = "supabase" | "bitrix24" | "n8n" | "mcp" | "webhook_outbound";
+export type ErrorKind =
+  | "timeout"
+  | "network"
+  | "dns"
+  | "http"
+  | "auth"
+  | "config"
+  | "unknown";
 
 export interface TestResult {
   ok: boolean;
   status?: number;
   latency_ms?: number;
   error?: string;
+  error_kind?: ErrorKind;
   message?: string;
   tested_at?: string;
 }
+
+const TOAST_TITLE_BY_KIND: Record<ErrorKind, string> = {
+  timeout: "Tempo esgotado",
+  network: "Sem conexão com o serviço",
+  dns: "URL não encontrada",
+  auth: "Credenciais rejeitadas",
+  http: "Serviço retornou erro",
+  config: "Configuração incompleta",
+  unknown: "Falha na conexão",
+};
 
 interface TestOptions {
   env_key?: "promobrind" | "crm";
@@ -53,6 +72,7 @@ export function useConnectionTester() {
         status: r.status,
         latency_ms: r.latency_ms,
         error: r.error,
+        error_kind: r.error_kind,
         message: r.message,
         tested_at: r.tested_at ?? new Date().toISOString(),
       };
@@ -62,14 +82,17 @@ export function useConnectionTester() {
           description: normalized.message ?? `${normalized.status ?? "200"} em ${normalized.latency_ms ?? "?"}ms`,
         });
       } else {
-        toast.error("Falha na conexão", {
+        const title = normalized.error_kind
+          ? TOAST_TITLE_BY_KIND[normalized.error_kind]
+          : "Falha na conexão";
+        toast.error(title, {
           description: normalized.error ?? `HTTP ${normalized.status ?? "?"}`,
         });
       }
       return normalized;
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Erro";
-      const failed: TestResult = { ok: false, error: msg, tested_at: new Date().toISOString() };
+      const failed: TestResult = { ok: false, error: msg, error_kind: "unknown", tested_at: new Date().toISOString() };
       setLastResult(failed);
       toast.error("Erro ao testar conexão", { description: msg });
       return failed;
