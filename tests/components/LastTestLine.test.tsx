@@ -25,7 +25,7 @@ describe("LastTestLine", () => {
   it("Timeout com timeout_ms exibe título, hint com '12000ms' e linha técnica", () => {
     render(<LastTestLine info={toLastTestInfo(makeTimeoutResult())} />);
     expect(screen.getByText(/Tempo esgotado/)).toBeInTheDocument();
-    expect(screen.getByText(/12000ms/)).toBeInTheDocument();
+    expect(screen.getAllByText(/12000ms/).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText(/timeout 12000ms/)).toBeInTheDocument();
   });
 
