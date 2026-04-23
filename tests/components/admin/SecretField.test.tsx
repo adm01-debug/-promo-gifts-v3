@@ -43,7 +43,12 @@ function renderField(overrides: Partial<React.ComponentProps<typeof SecretField>
     <TooltipProvider>
       <SecretField
         label="Token de teste"
-        secretName="GENERIC_TEST_SECRET"
+        // Usamos um secretName real da whitelist (caso contrário o botão
+        // "Configurar" fica desabilitado por validação de nome).
+        // MCP_SHARED_SECRET usa o DEFAULT_RULE (>=4 chars), o que isola o
+        // teste do bloqueio crítico de sufixo (também 4) sem interferência
+        // de validadores específicos.
+        secretName="MCP_SHARED_SECRET"
         status={undefined}
         {...overrides}
       />
