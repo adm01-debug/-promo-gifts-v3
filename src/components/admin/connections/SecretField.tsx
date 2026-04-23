@@ -23,6 +23,27 @@ import { SaveSecretConfirmDialog } from "./SaveSecretConfirmDialog";
 import { withRetryBackoff, CancelledError } from "./secretRetry";
 import { normalizeSecretError, type NormalizedSecretError } from "./secretErrors";
 import { SecretErrorAlert } from "./SecretErrorAlert";
+import { ErrorDetailsDialog } from "./ErrorDetailsDialog";
+import { useConnectionTestDetails } from "@/hooks/useConnectionTestDetails";
+import type { ConnectionType } from "@/hooks/useConnectionTester";
+
+/**
+ * Mapeia o `connectionId` (curto, usado nas abas) para a `ConnectionType`
+ * + `env_key` que o backend de testes entende. Retorna `null` quando não há
+ * mapeamento conhecido — nesse caso o link "Ver detalhes" não é exibido.
+ */
+function mapConnectionToTester(
+  connectionId: string | undefined,
+): { type: ConnectionType; envKey?: "promobrind" | "crm" } | null {
+  if (!connectionId) return null;
+  if (connectionId === "n8n") return { type: "n8n" };
+  if (connectionId === "bitrix24") return { type: "bitrix24" };
+  if (connectionId === "mcp") return { type: "mcp" };
+  if (connectionId === "promobrind" || connectionId === "crm") {
+    return { type: "supabase", envKey: connectionId };
+  }
+  return null;
+}
 
 function formatRelative(iso: string): string {
   const then = new Date(iso).getTime();
