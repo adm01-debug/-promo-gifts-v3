@@ -64,6 +64,16 @@ const DEFAULT_TIMEOUTS_MS: Record<ConnectionType, number> = {
   webhook_outbound: 8000,
 };
 
+/** Stable display name when auto-registering a connection from the first test. */
+function defaultConnectionName(type: ConnectionType, env_key?: "promobrind" | "crm"): string {
+  if (type === "supabase") return env_key === "crm" ? "Catálogo CRM" : env_key === "promobrind" ? "Catálogo Promobrind" : "Supabase";
+  if (type === "bitrix24") return "Bitrix24";
+  if (type === "n8n") return "n8n";
+  if (type === "mcp") return "MCP Server";
+  if (type === "webhook_outbound") return "Webhook (saída)";
+  return type;
+}
+
 function withTimeout(ms: number): { signal: AbortSignal; cancel: () => void } {
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), ms);
@@ -254,19 +264,35 @@ export async function runConnectionTest(opts: RunOptions): Promise<RunResult> {
       triggered_by,
       attempts,
     }).then(() => undefined, (e) => console.error("history insert failed", e));
-  } else if (env_key && type === "supabase" && created_by) {
-    const { data: upserted } = await service.from("external_connections").upsert({
-      env_key,
+  } else if (created_by) {
+    // Auto-register the connection on the first test (success OR fail).
+    // Covers all types — not just supabase/env_key — so bitrix24, n8n, mcp and
+    // webhook_outbound also get a row + active status after the first
+    // "Testar conexão" instead of staying invisible to cron / health-check.
+    const upsertPayload: Record<string, unknown> = {
       type,
-      name: env_key === "crm" ? "Catálogo CRM" : "Catálogo Promobrind",
+      name: defaultConnectionName(type, env_key),
       status: result.ok ? "active" : "error",
       last_test_at: tested_at,
       last_test_ok: result.ok,
       last_test_message: message,
       last_latency_ms: result.latency_ms ?? null,
       created_by,
-    }, { onConflict: "env_key,type" }).select("id").maybeSingle();
-    if (upserted?.id) {
+    };
+    let conflictKey: "env_key,type" | "type,name" = "type,name";
+    if (env_key && type === "supabase") {
+      upsertPayload.env_key = env_key;
+      conflictKey = "env_key,type";
+    }
+
+    const { data: upserted, error: upErr } = await service
+      .from("external_connections")
+      .upsert(upsertPayload, { onConflict: conflictKey })
+      .select("id")
+      .maybeSingle();
+    if (upErr) {
+      console.error("auto-upsert failed", upErr.message);
+    } else if (upserted?.id) {
       connection_id = upserted.id;
       await service.from("connection_test_history").insert({
         connection_id: upserted.id,
@@ -278,7 +304,7 @@ export async function runConnectionTest(opts: RunOptions): Promise<RunResult> {
         error_kind: result.ok ? null : (result.error_kind ?? null),
         triggered_by,
         attempts,
-      }).then(() => undefined, (e) => console.error("history insert failed (env)", e));
+      }).then(() => undefined, (e) => console.error("history insert failed (auto)", e));
     }
   }
 
