@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { AlertCircle, Check, CheckCircle2, Eye, EyeOff, Loader2, RefreshCw, RotateCw, Save, ShieldAlert } from "lucide-react";
+import { AlertCircle, Check, CheckCircle2, Eye, EyeOff, Loader2, RefreshCw, RotateCw, Save, ShieldAlert, Sparkles } from "lucide-react";
 import { validateSecret, getMinLength } from "./secretValidators";
+import { normalizeSecret } from "./secretNormalizers";
 import { validateSecretName } from "./secretWhitelist";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -70,6 +71,45 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
   const [rotationRefreshKey, setRotationRefreshKey] = useState(0);
   const [lastError, setLastError] = useState<NormalizedSecretError | null>(null);
   const flashCounter = useRef(0);
+  const [lastNormalization, setLastNormalization] = useState<string[] | null>(null);
+  const normTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const showNormalization = (changes: string[]) => {
+    if (changes.length === 0) return;
+    setLastNormalization(changes);
+    if (normTimerRef.current) clearTimeout(normTimerRef.current);
+    normTimerRef.current = setTimeout(() => setLastNormalization(null), 4000);
+    toast.info("Valor normalizado", {
+      id: `paste-norm-${secretName}`,
+      description: changes.join(", "),
+      duration: 3500,
+    });
+  };
+
+  useEffect(() => {
+    return () => {
+      if (normTimerRef.current) clearTimeout(normTimerRef.current);
+    };
+  }, []);
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    const raw = e.clipboardData.getData("text");
+    if (!raw) return;
+    e.preventDefault();
+    const { value: normalized, changes } = normalizeSecret(secretName, raw);
+    setValue(normalized);
+    if (lastError) setLastError(null);
+    showNormalization(changes);
+  };
+
+  const handleBlur = () => {
+    if (!value) return;
+    const { value: normalized, changes } = normalizeSecret(secretName, value);
+    if (normalized !== value) {
+      setValue(normalized);
+      showNormalization(changes);
+    }
+  };
 
   // Hydrate draft (value + mode) from sessionStorage on mount — survives accidental reload after a failed save
   useEffect(() => {
@@ -348,6 +388,8 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
                 type={show ? "text" : "password"}
                 value={value}
                 onChange={(e) => { setValue(e.target.value); if (lastError) setLastError(null); }}
+                onPaste={handlePaste}
+                onBlur={handleBlur}
                 placeholder={mode === "rotate" ? `Novo valor para ${secretName}…` : `Cole o valor de ${secretName}…`}
                 autoFocus
                 disabled={saving}
@@ -401,6 +443,15 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
               Cancelar
             </Button>
           </div>
+          {lastNormalization && lastNormalization.length > 0 && (
+            <div
+              className="inline-flex items-center gap-1.5 rounded-md border border-success/30 bg-success/10 px-2 py-0.5 text-[11px] text-success animate-in fade-in duration-200"
+              role="status"
+            >
+              <Sparkles className="h-3 w-3" />
+              Valor ajustado: {lastNormalization.join(", ")}
+            </div>
+          )}
           {lastError && !saving && (
             <SecretErrorAlert
               error={lastError}
