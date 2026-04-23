@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { AlertCircle, Check, CheckCircle2, Eye, EyeOff, Loader2, RefreshCw, RotateCw, Save, ShieldAlert } from "lucide-react";
+import { AlertCircle, Check, CheckCircle2, Eye, EyeOff, Loader2, RefreshCw, RotateCw, Save, ShieldAlert, Sparkles } from "lucide-react";
 import { validateSecret, getMinLength } from "./secretValidators";
+import { normalizeSecret } from "./secretNormalizers";
 import { validateSecretName } from "./secretWhitelist";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
