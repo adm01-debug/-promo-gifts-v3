@@ -83,7 +83,20 @@ interface Snapshot {
   lastBadgeRender: BadgeRenderStat | null;
   /** Running hit/miss counters for the <16ms render budget. */
   badgeBudget: BadgeRenderBudget;
+  /** Last N trigger→fetch end-to-end timings (most recent first). */
+  triggerToFetch: TriggerToFetchTiming[];
+  lastTriggerToFetch: TriggerToFetchTiming | null;
+  /** Number of timings that exceeded TRIGGER_TO_FETCH_TTL_MS. */
+  triggerToFetchTtlBreaches: number;
 }
+
+const TRIGGER_TO_FETCH_HISTORY = 20;
+/**
+ * Hard ceiling for the trigger→prefetch round-trip. Matches the 5 s prefetch
+ * TTL inside `useWorkspaceNotifications.prefetch`. Any sample above this is
+ * counted as a "TTL breach" and warned to the console.
+ */
+export const TRIGGER_TO_FETCH_TTL_MS = 5000;
 
 const BADGE_RENDER_HISTORY = 20;
 /** Render budget threshold (ms). A render is a "hit" iff `elapsedMs < BUDGET_MS`. */
