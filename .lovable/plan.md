@@ -1,94 +1,118 @@
 
 
-# Tornar "Testar conexão" 100% funcional com credenciais persistidas
+# Loading state + toast detalhado no salvar de credenciais
 
-## Diagnóstico
+## O que muda
 
-A infraestrutura nova já está no lugar:
-- Tabela `integration_credentials` (admin-only RLS) existe
-- Helper `_shared/credentials.ts` lê DB → env → cache 60s
-- `secrets-manager` persiste de verdade
-- `connection-tester` aceita `env_key` e resolve credenciais via helper
-- `useConnectionTester` repassa `env_key`
-
-Falta fechar o ciclo de UX no clique do botão **"Testar conexão"**:
-
-1. **Resultado some**: o toast aparece e desaparece. O card não mostra "Última verificação às 14:32 — 142ms" persistente.
-2. **`external_connections` não é atualizado**: o tester roda o ping mas não grava `last_test_at`/`last_status`/`last_latency_ms` para os bancos `promobrind`/`crm` (só grava quando há `connection_id` para Bitrix/n8n/MCP/webhook).
-3. **Bitrix/n8n/MCP**: o botão "Testar" chama `test("bitrix24")` sem `connection_id`, então o tester não sabe qual conexão pingar e responde erro genérico.
-4. **Sem feedback inline**: badge de status do card continua "Sem credenciais" por 1-2s mesmo após salvar (espera o `list()` voltar).
+Hoje o `SecretField` chama `setSecret`/`rotateSecret` e mostra apenas um toast genérico ("Credencial registrada"). Não há:
+- Spinner visível durante o salvar (só desabilita o botão)
+- Confirmação do sufixo mascarado salvo (`••••AB12`)
+- Mensagem de erro contextualizada (whitelist, RLS, rede)
+- Indicação de "novo valor" vs "atualização" vs "rotação"
 
 ## Solução
 
-### 1. Backend — `connection-tester` grava resultado dos bancos externos
+### 1. `useSecretsManager` retorna payload normalizado
 
-Para `type: "supabase"` com `env_key`, após o ping fazer `upsert` em `external_connections` por `(env_key, type)` com:
-- `last_test_at = now()`
-- `last_status = 'ok' | 'error'`
-- `last_latency_ms`
-- `last_error` (quando falha)
+Hoje `setSecret`/`rotateSecret` disparam o toast internamente e retornam `data` cru. Mudar para:
+- **Não disparar toast dentro do hook** — só retornar `{ ok, masked_suffix, length, action, error }`.
+- O componente decide qual toast mostrar (com o sufixo real vindo do backend).
 
-Assim o resultado fica persistido e qualquer card pode reler.
+Isso evita toast duplicado e dá controle ao `SecretField`.
 
-### 2. Backend — endpoint auxiliar `last_test`
+### 2. `SecretField` — estado de loading visível + toast rico
 
-Adicionar `action: "last_test"` no `connection-tester` (ou novo `connection-status`) que retorna a última verificação por `env_key`/`connection_id`. Usado pelos cards para hidratar "Última verificação há Xm — 142ms".
+- **Botão "Salvar"** ganha:
+  - `<Loader2 className="animate-spin" />` no lugar do ícone `Save` enquanto `saving === true`
+  - Texto muda para "Salvando…" / "Rotacionando…"
+  - Input fica `disabled` durante o salvar (evita edição parcial)
+- **Após o `await`**:
+  - **Sucesso**: `toast.success(...)` com:
+    - Título: `"Credencial salva"` ou `"Credencial atualizada"` ou `"Rotação concluída"` (decidido pelo `was_update` que o backend já sinaliza)
+    - Description: `"${secretName} agora termina em ••••${masked_suffix} (${length} chars)"`
+    - Duração 5s para o usuário ler o sufixo
+  - **Erro**: `toast.error(...)` com:
+    - Título: `"Falha ao salvar ${secretName}"`
+    - Description normalizada por código HTTP/mensagem:
+      - 403 / "not allowed" → "Apenas administradores podem alterar esta credencial."
+      - 400 / "whitelist" → "Este nome de credencial não está na lista permitida."
+      - 400 / "value too short" → "O valor precisa ter pelo menos 4 caracteres."
+      - default → mensagem original do backend
+    - Action button "Tentar novamente" que reabre o campo com o valor digitado
+- **Inline feedback transitório no card** (~2s após salvar):
+  - Linha verde abaixo do input: `✓ Salvo • ••••${masked_suffix} • atualizado agora`
+  - Anima `fade-in` e some sozinha (não substitui o badge persistente que já existe)
 
-### 3. Frontend — `SupabaseConnectionsTab`
+### 3. Backend — `secrets-manager` retorna metadados do upsert
 
-- Após `test()` retornar, atualizar estado local `lastTestByEnv[env_key] = { ok, latency_ms, ts }` e renderizar abaixo dos botões:
-  ```text
-  ✓ Última verificação há 3s — 142ms (HTTP 200)
-  ```
-  ou em vermelho:
-  ```text
-  ✗ Falhou há 3s — DNS lookup failed
-  ```
-- Ao montar, chamar o `last_test` para hidratar do banco (sobrevive ao reload).
-- Badge de status do card considera `last_status === 'ok'` como `active`, `error` como `error`.
+O `set`/`rotate` já fazem upsert e o trigger calcula `masked_suffix`/`length`. Garantir que a resposta inclua:
+```json
+{
+  "ok": true,
+  "stored": true,
+  "was_update": true|false,
+  "secret": { "name", "masked_suffix", "length", "updated_at", "source": "db" }
+}
+```
+Hoje a função retorna `message` genérico. Adicionar o objeto `secret` lendo de volta a linha após o upsert (mesma transação) para garantir que o sufixo exibido vem do banco, não da string que o frontend mandou.
 
-### 4. Frontend — Bitrix/n8n/McpTab
+Para `rotate`, incluir também `previous_suffix` no retorno para o toast poder mostrar `"de ••••XXXX para ••••YYYY"`.
 
-Esses tabs hoje fazem `test("bitrix24")` sem `connection_id`. Ajustar para:
-- Buscar a primeira `external_connections` linha de `type='bitrix24'` (ou `n8n`/`mcp`) ativa.
-- Se existir → passar `connectionId`; se não → toast "Cadastre a conexão primeiro" + desabilitar botão.
-- Mesma UI de "Última verificação" abaixo do botão.
+### 4. Tratamento de erro padronizado
 
-### 5. Frontend — `SecretField` invalida cache do helper
+Backend retorna `{ ok: false, error: { code, message } }` em vez de só `error`. Códigos:
+- `forbidden` (403) — sem permissão
+- `not_whitelisted` (400) — nome fora da lista
+- `invalid_value` (400) — valor curto/vazio
+- `db_error` (500) — falha no upsert
+- `unexpected` (500) — fallback
 
-Quando o admin salva uma credencial nova, o helper backend ainda tem 60s de cache. Adicionar `action: "invalidate_cache"` no `secrets-manager` que chama `invalidateCredentialCache(name)` (já exportado em `_shared/credentials.ts`). Disparado automaticamente após `set`/`rotate`.
+O `useSecretsManager` repassa esse objeto; `SecretField` mapeia para mensagens em PT-BR.
 
-### 6. Hook `useConnectionTester` — retornar resultado normalizado
+### 5. Toast de "Configurando…" para operações > 800ms
 
-Hoje retorna `r` cru. Padronizar para `{ ok, latency_ms, status, error, tested_at }` para o componente consumir sem unwrap manual.
+Se o `await` demorar mais de 800ms, mostra `toast.loading("Salvando ${secretName}…")` que é substituído por `toast.success/error` com o mesmo `id`. Evita flicker em rede rápida e dá feedback em rede lenta.
 
 ## O que o usuário verá
 
-1. Configura URL + Service Key em **Catálogo Promobrind** → badge vira "Ativo".
-2. Clica **"Testar conexão"** → spinner 200ms → toast verde + linha persistente no card:
+1. Cola valor no campo `EXTERNAL_PROMOBRIND_URL` → clica **Salvar**.
+2. Botão vira `[⟳ Salvando…]` (input desabilitado).
+3. Em ~300ms: toast verde sticky por 5s:
    ```text
-   ✓ Verificado há instantes — 142ms (HTTP 200)
+   ✓ Credencial salva
+   EXTERNAL_PROMOBRIND_URL agora termina em ••••.co (52 chars)
    ```
-3. Recarrega a página → a linha continua lá (vem do `external_connections.last_test_at`).
-4. Se a credencial estiver errada → badge fica "Erro", linha vermelha mostra `DNS lookup failed` ou `401 Invalid API key`.
-5. Mesmo comportamento em **Bitrix24**, **n8n** e **MCP** (com guarda "cadastre a conexão primeiro" se não existe).
+4. Linha verde fade-in abaixo do input: `✓ Salvo • ••••.co • atualizado agora` (some em 2s).
+5. Badge superior atualiza para `✓ ••••.co (52 chars) · atualizado agora`.
+6. Em caso de erro 403:
+   ```text
+   ✗ Falha ao salvar EXTERNAL_PROMOBRIND_URL
+   Apenas administradores podem alterar esta credencial.
+   [Tentar novamente]
+   ```
+7. Em rotação:
+   ```text
+   ✓ Rotação concluída
+   EXTERNAL_PROMOBRIND_SERVICE_ROLE_KEY: ••••AB12 → ••••YZ89 (registrado no log)
+   ```
 
 ## Arquivos tocados
 
 **Backend**
-- `supabase/functions/connection-tester/index.ts`: persistir resultado em `external_connections` para `env_key`; novo `action: "last_test"`.
-- `supabase/functions/secrets-manager/index.ts`: invalidar cache do helper após `set`/`rotate`/`delete`.
-- Migration: garantir colunas `last_test_at timestamptz`, `last_status text`, `last_latency_ms int`, `last_error text` em `external_connections` (adicionar se não existirem) + índice `(env_key)`.
+- `supabase/functions/secrets-manager/index.ts`: enriquecer resposta de `set`/`rotate` com `{ secret: {...}, was_update, previous_suffix }`; padronizar erros como `{ ok:false, error:{code,message} }`.
 
 **Frontend**
-- `src/hooks/useConnectionTester.ts`: padronizar retorno; expor `lastResult`.
-- `src/components/admin/connections/SupabaseConnectionsTab.tsx`: hidratar última verificação ao montar; renderizar linha persistente; badge usa `last_status`.
-- `src/components/admin/connections/Bitrix24Tab.tsx`, `N8nTab.tsx`, `McpTab.tsx`: buscar `connection_id` ativo; mostrar última verificação; desabilitar botão quando não há conexão cadastrada.
-- `src/components/admin/connections/LastTestLine.tsx` (novo): componente compartilhado `<LastTestLine status latency_ms tested_at error />` com formato relativo (`há 3s`).
+- `src/hooks/useSecretsManager.ts`: remover toasts internos; retornar payload normalizado `{ ok, secret, was_update, previous_suffix, error }`.
+- `src/components/admin/connections/SecretField.tsx`:
+  - Spinner `Loader2` no botão, input `disabled` durante save
+  - `toast.loading` → `toast.success`/`toast.error` com `id` para troca atômica
+  - Mapeamento de códigos de erro → PT-BR
+  - Linha inline `JustSavedFlash` (auto-some em 2s) com sufixo real do backend
+- `src/components/admin/connections/JustSavedFlash.tsx` (novo, ~30 linhas): pequeno componente animado que recebe `{ masked_suffix, length, action }` e some sozinho.
 
 ## Fora de escopo
 
-- Não vamos enviar notificação por e-mail em falha (próxima onda).
-- Não vamos criar gráfico histórico de latência (já existe `connection_test_log` que pode alimentar isso depois).
-- Cache TTL continua 60s; quem precisar de leitura imediata usa `invalidate_cache`.
+- Não muda o badge persistente já existente (continua igual)
+- Não muda o fluxo de "Configurar"/"Atualizar"/"Rotacionar" (só o feedback)
+- Não adiciona retry automático em erro de rede (a action "Tentar novamente" do toast é manual)
 
