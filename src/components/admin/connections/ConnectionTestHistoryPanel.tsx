@@ -379,7 +379,9 @@ export function ConnectionTestHistoryPanel({
   }, [items, counts.ok]);
 
   const empty = total === 0 && !loading;
-  const showPreview = defaultPreview && !empty && !expanded;
+  // Show the inline preview whenever defaultPreview is on AND we either have
+  // data, are loading, or have an in-flight test to surface.
+  const showPreview = defaultPreview && !expanded && (!empty || !!pendingTest);
 
   // Most-recent failure (items are returned newest-first)
   const latestFailure = useMemo(() => items.find((i) => !i.ok) ?? null, [items]);
@@ -558,17 +560,18 @@ export function ConnectionTestHistoryPanel({
       )}
       {showPreview && (
         <div className="space-y-2 mt-2">
-          {loading && previewItems.length === 0 ? (
+          {loading && previewItems.length === 0 && !pendingTest ? (
             <div className="flex items-center justify-center py-3 text-xs text-muted-foreground">
               <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> Carregando…
             </div>
-          ) : previewItems.length === 0 ? (
+          ) : previewItems.length === 0 && !pendingTest ? (
             <div className="py-3 text-center text-xs text-muted-foreground">
               {emptyMessage(filter, source)}
             </div>
           ) : (
             <TooltipProvider delayDuration={150}>
               <ul className="space-y-0.5">
+                {pendingTest && <PendingHistoryRow startedAt={pendingTest.startedAt} />}
                 {previewItems.map((it) => (
                   <HistoryRow key={it.id} item={it} onClick={() => setDetailsId(it.id)} highlighted={highlightId === it.id} rowRef={setRowRef(it.id)} />
                 ))}
@@ -622,17 +625,18 @@ export function ConnectionTestHistoryPanel({
             cronTotal={cronCounts.total}
           />
 
-          {loading && items.length === 0 ? (
+          {loading && items.length === 0 && !pendingTest ? (
             <div className="flex items-center justify-center py-4 text-xs text-muted-foreground">
               <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> Carregando…
             </div>
-          ) : visibleItems.length === 0 ? (
+          ) : visibleItems.length === 0 && !pendingTest ? (
             <div className="py-3 text-center text-xs text-muted-foreground">
               {emptyMessage(filter, source)}
             </div>
           ) : (
             <TooltipProvider delayDuration={150}>
               <ul className="space-y-0.5">
+                {pendingTest && <PendingHistoryRow startedAt={pendingTest.startedAt} />}
                 {visibleItems.map((it) => (
                   <HistoryRow key={it.id} item={it} onClick={() => setDetailsId(it.id)} highlighted={highlightId === it.id} rowRef={setRowRef(it.id)} />
                 ))}
