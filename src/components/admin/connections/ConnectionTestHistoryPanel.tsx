@@ -284,7 +284,7 @@ function HistoryRow({ item: it, onClick, highlighted, rowRef }: RowProps) {
 }
 
 export function ConnectionTestHistoryPanel({
-  type, envKey, connectionId, refreshKey, label, className, defaultPreview = true,
+  type, envKey, connectionId, refreshKey, label, className, defaultPreview = true, pendingTest = null,
 }: Props) {
   const [expanded, setExpanded] = useState(false);
   const [filter, setFilter] = useState<StatusFilter>("all");
