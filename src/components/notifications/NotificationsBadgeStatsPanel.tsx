@@ -7,7 +7,7 @@
  * end users.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Activity, Database, Wifi, MousePointerClick, Zap, TrendingUp, Download } from "lucide-react";
+import { Activity, Database, Wifi, MousePointerClick, Zap, TrendingUp, Download, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/contexts/AuthContext";
@@ -16,6 +16,11 @@ import { cn } from "@/lib/utils";
 
 /** Sliding-window length for the sparkline (60 samples × 1s = 60s). */
 const SPARK_WINDOW_SECONDS = 60;
+
+/** Suspicious threshold: ratio at/above this is considered "leaky coalescing". */
+const SUSPICIOUS_RATIO_THRESHOLD = 0.7;
+/** How many consecutive seconds the ratio must stay ≥ threshold to fire the warning. */
+const SUSPICIOUS_STREAK_SECONDS = 10;
 
 /** One ratio sample for the sparkline. */
 interface RatioSample { t: number; ratio: number; triggers: number; fetches: number; }
@@ -143,6 +148,24 @@ export function NotificationsBadgeStatsPanel() {
     };
   }, [samples]);
 
+  /**
+   * Trailing-streak detector: count contiguous samples (from newest going back)
+   * whose ratio is ≥ SUSPICIOUS_RATIO_THRESHOLD. The warning fires once the
+   * streak reaches SUSPICIOUS_STREAK_SECONDS, signaling the prefetch debounce
+   * + 5s TTL coalescing isn't keeping up. We also require triggers > 0 in the
+   * latest sample to suppress noise from "ratio = 0/0 → 0" edge cases.
+   */
+  const suspiciousStreakSeconds = useMemo(() => {
+    let streak = 0;
+    for (let i = samples.length - 1; i >= 0; i--) {
+      const s = samples[i];
+      if (s.triggers > 0 && s.ratio >= SUSPICIOUS_RATIO_THRESHOLD) streak += 1;
+      else break;
+    }
+    return streak;
+  }, [samples]);
+  const isSuspicious = suspiciousStreakSeconds >= SUSPICIOUS_STREAK_SECONDS;
+
   if (!visible) return null;
 
   const { lastBadgeRender, badgeRenders, triggers, fetches, ratio, byTrigger, byFetch, fetchesByTtlWindow, coalescingByTrigger } = snapshot;
@@ -197,6 +220,18 @@ export function NotificationsBadgeStatsPanel() {
           Badge stats (QA)
         </span>
         <div className="inline-flex items-center gap-2">
+          {isSuspicious && (
+            <span
+              role="status"
+              aria-live="polite"
+              aria-label={`Suspicious trigger/fetch ratio held above ${SUSPICIOUS_RATIO_THRESHOLD} for ${suspiciousStreakSeconds} seconds`}
+              className="inline-flex items-center gap-1 rounded border border-warning/40 bg-warning/10 px-1.5 py-0.5 text-[10px] font-semibold text-warning animate-pulse"
+              title={`Trigger/fetch ratio ≥ ${SUSPICIOUS_RATIO_THRESHOLD} for the last ${suspiciousStreakSeconds}s — debounce + 5s TTL coalescing may be leaking. Investigate prefetch call sites.`}
+            >
+              <AlertTriangle className="h-2.5 w-2.5" aria-hidden="true" />
+              ratio ≥ {SUSPICIOUS_RATIO_THRESHOLD} for {suspiciousStreakSeconds}s
+            </span>
+          )}
           <span className="text-muted-foreground tabular-nums">
             T{triggers} · F{fetches} · {ratio.toFixed(2)}
           </span>
