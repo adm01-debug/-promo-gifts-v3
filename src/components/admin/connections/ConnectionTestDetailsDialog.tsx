@@ -21,7 +21,8 @@ import {
   useConnectionTestDetails,
   type TestDetails,
 } from "@/hooks/useConnectionTestDetails";
-import type { ConnectionType } from "@/hooks/useConnectionTester";
+import type { ConnectionType, ErrorKind } from "@/hooks/useConnectionTester";
+import { getErrorCopy } from "@/lib/connection-error-copy";
 
 interface Props {
   open: boolean;
