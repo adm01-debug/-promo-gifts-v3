@@ -224,15 +224,18 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
     return { ok: true as const, cancelled: false };
   };
 
+  const nameValidation = useMemo(() => validateSecretName(secretName), [secretName]);
   const validation = useMemo(() => validateSecret(secretName, value), [secretName, value]);
-  const canSave = !saving && value.length > 0 && validation.ok;
+  const canSave = !saving && nameValidation.ok && value.length > 0 && validation.ok;
   const saveDisabledReason = saving
     ? null
-    : value.length === 0
-      ? "Cole um valor antes de salvar"
-      : !validation.ok
-        ? validation.message ?? "Corrija o formato antes de salvar"
-        : null;
+    : !nameValidation.ok
+      ? nameValidation.message ?? "Nome de credencial não permitido"
+      : value.length === 0
+        ? "Cole um valor antes de salvar"
+        : !validation.ok
+          ? validation.message ?? "Corrija o formato antes de salvar"
+          : null;
 
   const minLen = getMinLength(secretName);
   const storedLooksSuspicious =
