@@ -186,3 +186,94 @@ describe("useWorkspaceNotifications — cache invalidation after mutations", () 
     expect(limitMock).toHaveBeenCalledTimes(2);
   });
 });
+
+describe("useWorkspaceNotifications — cache TTL is honored, then invalidated by mutations", () => {
+  it("uses a fresh (within 60s TTL) sessionStorage entry to hydrate before any network call", async () => {
+    // Pre-seed cache with a fresh entry. The hook MUST hydrate from it before
+    // (or independently of) the initial fetch — proving the cache is honored
+    // within the TTL window.
+    sessionStorage.setItem(
+      CACHE_KEY,
+      JSON.stringify({ cachedAt: Date.now() - 1_000, notifications: SEED })
+    );
+
+    const useWorkspaceNotifications = await loadHook();
+    const { result } = renderHook(() => useWorkspaceNotifications());
+
+    // Hydration is synchronous from the first effect tick — assert before any
+    // network resolves. unreadCount comes from the cache, not from limitMock.
+    await waitFor(() => {
+      expect(result.current.notifications).toHaveLength(2);
+      expect(result.current.unreadCount).toBe(2);
+    });
+  });
+
+  it("markAllAsRead deletes the cache key BEFORE the silent re-fetch writes a new one", async () => {
+    // Pre-seed a fresh cache so we can prove the entry observed mid-mutation
+    // is the new one (post-invalidation), not the pre-mutation snapshot.
+    sessionStorage.setItem(
+      CACHE_KEY,
+      JSON.stringify({ cachedAt: Date.now(), notifications: SEED })
+    );
+
+    // Capture the cache state at the exact moment the silent re-fetch runs.
+    // Because the hook does: removeItem(CACHE_KEY) -> await fetch -> writeCache,
+    // sessionStorage MUST be empty at the start of the .limit() call.
+    let cacheAtRefetchTime: string | null = "<unset>";
+    limitMock
+      // initial mount fetch
+      .mockResolvedValueOnce({ data: SEED, error: null })
+      // silent re-fetch after markAllAsRead — sample the cache here
+      .mockImplementationOnce(async () => {
+        cacheAtRefetchTime = sessionStorage.getItem(CACHE_KEY);
+        return { data: SEED.map((n) => ({ ...n, is_read: true })), error: null };
+      });
+
+    const useWorkspaceNotifications = await loadHook();
+    const { result } = renderHook(() => useWorkspaceNotifications());
+
+    await waitFor(() => expect(result.current.notifications).toHaveLength(2));
+
+    await act(async () => {
+      await result.current.markAllAsRead();
+    });
+
+    // The pre-existing cache was wiped before the silent re-fetch ran
+    expect(cacheAtRefetchTime).toBeNull();
+    // After the re-fetch resolves, a fresh cache entry exists with server-truth
+    const raw = sessionStorage.getItem(CACHE_KEY);
+    expect(raw).toBeTruthy();
+    const parsed = JSON.parse(raw!) as { notifications: Array<{ is_read: boolean }> };
+    expect(parsed.notifications.every((n) => n.is_read)).toBe(true);
+  });
+
+  it("clearAll deletes the cache key BEFORE the silent re-fetch writes a new one", async () => {
+    sessionStorage.setItem(
+      CACHE_KEY,
+      JSON.stringify({ cachedAt: Date.now(), notifications: SEED })
+    );
+
+    let cacheAtRefetchTime: string | null = "<unset>";
+    limitMock
+      .mockResolvedValueOnce({ data: SEED, error: null })
+      .mockImplementationOnce(async () => {
+        cacheAtRefetchTime = sessionStorage.getItem(CACHE_KEY);
+        return { data: [], error: null };
+      });
+
+    const useWorkspaceNotifications = await loadHook();
+    const { result } = renderHook(() => useWorkspaceNotifications());
+
+    await waitFor(() => expect(result.current.notifications).toHaveLength(2));
+
+    await act(async () => {
+      await result.current.clearAll();
+    });
+
+    expect(cacheAtRefetchTime).toBeNull();
+    const raw = sessionStorage.getItem(CACHE_KEY);
+    expect(raw).toBeTruthy();
+    const parsed = JSON.parse(raw!) as { notifications: unknown[] };
+    expect(parsed.notifications).toHaveLength(0);
+  });
+});
