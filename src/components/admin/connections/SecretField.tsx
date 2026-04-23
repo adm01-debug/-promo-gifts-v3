@@ -38,6 +38,38 @@ function formatRelative(iso: string): string {
   return `há ${d}d`;
 }
 
+/**
+ * Timestamp completo em PT-BR no padrão "dd/mm/aaaa, HH:MM:SS (GMT-3)".
+ * Inclui o offset do fuso para deixar claro qual horário o usuário está vendo.
+ */
+function formatFullPtBr(iso: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return iso;
+  const fmt = new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    timeZoneName: "short",
+  });
+  return fmt.format(date);
+}
+
+/** Monta o tooltip multi-linha de "última atualização" com autor + timestamp. */
+function buildUpdatedTooltip(
+  updatedAt: string | null | undefined,
+  updatedByEmail: string | null | undefined,
+): string | undefined {
+  if (!updatedAt) return undefined;
+  const lines = [
+    `Última atualização: ${formatFullPtBr(updatedAt)}`,
+    `Autor: ${updatedByEmail ?? "desconhecido"}`,
+  ];
+  return lines.join("\n");
+}
+
 // NOTE: error translation moved to ./secretErrors.ts so that every
 // connections component shows the same wording, chip and tone.
 
