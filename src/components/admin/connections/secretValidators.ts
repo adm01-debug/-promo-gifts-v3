@@ -198,3 +198,58 @@ export function hasSuspiciousLength(
 export function getMinLength(name: string): number | undefined {
   return SECRET_VALIDATORS[name]?.minLength;
 }
+
+export function getSecretHint(name: string): string | undefined {
+  return SECRET_VALIDATORS[name]?.hint;
+}
+
+export interface PreflightIssue {
+  name: string;
+  label: string;
+  reason: "missing" | "too_short";
+  message: string;
+  hint?: string;
+  currentLength?: number;
+  minLength?: number;
+}
+
+/**
+ * Returns a list of pre-flight issues for the given secret names. A field is
+ * flagged when it is required but absent, or when its stored length is below
+ * the validator's minLength (likely truncated / wrong format).
+ *
+ * Used to block "Testar conexão" with a clear inline explanation.
+ */
+export function getPreflightIssues(
+  secrets: SecretStatus[],
+  required: { name: string; label: string }[],
+): PreflightIssue[] {
+  const issues: PreflightIssue[] = [];
+  for (const { name, label } of required) {
+    const rule = SECRET_VALIDATORS[name];
+    const s = secrets.find((x) => x.name === name);
+    if (!s?.has_value) {
+      issues.push({
+        name,
+        label,
+        reason: "missing",
+        message: `${label} não está configurado.`,
+        hint: rule?.hint,
+      });
+      continue;
+    }
+    if (rule?.minLength && (s.length ?? 0) < rule.minLength) {
+      issues.push({
+        name,
+        label,
+        reason: "too_short",
+        message: `${label} tem ${s.length} caracteres (mínimo esperado: ${rule.minLength}). Provavelmente truncado ou em formato errado.`,
+        hint: rule.hint,
+        currentLength: s.length ?? 0,
+        minLength: rule.minLength,
+      });
+    }
+  }
+  return issues;
+}
+
