@@ -80,15 +80,35 @@ function formatFullPtBr(iso: string): string {
   return fmt.format(date);
 }
 
-/** Monta o tooltip multi-linha de "última atualização" com autor + timestamp. */
+/**
+ * Monta o tooltip multi-linha de "última atualização" com autor + timestamp.
+ *
+ * Regras de fallback do autor (em ordem):
+ *  1. `updatedByEmail` resolvido → exibe o e-mail.
+ *  2. Existe `updatedById` mas o e-mail não pôde ser resolvido (admin removido,
+ *     sem permissão de leitura em `auth.users`, ou e-mail nulo) → "equipe"
+ *     com o sufixo curto do UUID para rastreabilidade ("equipe (#a1b2c3d4)").
+ *  3. Nenhum `updatedById` (credencial veio só de ENV / sem autor registrado)
+ *     → "sistema (sem autor registrado)".
+ */
 function buildUpdatedTooltip(
   updatedAt: string | null | undefined,
   updatedByEmail: string | null | undefined,
+  updatedById?: string | null | undefined,
 ): string | undefined {
   if (!updatedAt) return undefined;
+  let author: string;
+  if (updatedByEmail) {
+    author = updatedByEmail;
+  } else if (updatedById) {
+    const shortId = updatedById.slice(0, 8);
+    author = `equipe (#${shortId})`;
+  } else {
+    author = "sistema (sem autor registrado)";
+  }
   const lines = [
     `Última atualização: ${formatFullPtBr(updatedAt)}`,
-    `Autor: ${updatedByEmail ?? "desconhecido"}`,
+    `Autor: ${author}`,
   ];
   return lines.join("\n");
 }
