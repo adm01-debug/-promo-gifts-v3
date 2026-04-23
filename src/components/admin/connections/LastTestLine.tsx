@@ -11,6 +11,8 @@ export interface LastTestInfo {
   message?: string | null;
   status?: number | null;
   error_kind?: ErrorKind | null;
+  /** Timeout efetivo aplicado (apenas em falhas por timeout). */
+  timeout_ms?: number | null;
 }
 
 function formatRelative(iso: string | null | undefined): string {
@@ -62,9 +64,9 @@ export function LastTestLine({
   const isClickable = !!onClick;
   // Para falhas, derivamos copy semântica via error_kind (SSOT). O texto cru
   // do erro (info.message) vai para a linha técnica (3ª linha) e tooltip.
-  const errorCopy = !info.ok ? getErrorCopy(info.error_kind, info.status, info.message) : null;
+  const errorCopy = !info.ok ? getErrorCopy(info.error_kind, info.status, info.message, info.timeout_ms) : null;
   const technicalDetail = !info.ok
-    ? [httpInfo, info.message?.trim()].filter(Boolean).join(" · ")
+    ? [httpInfo, info.error_kind === "timeout" && info.timeout_ms ? `timeout ${info.timeout_ms}ms` : null, info.message?.trim()].filter(Boolean).join(" · ")
     : "";
   // Header line: status + when. Always single line, never truncates the timestamp.
   const headerText = (
