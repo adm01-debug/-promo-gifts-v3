@@ -460,6 +460,21 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
         errorMessage={rotateConfirmError}
         onConfirm={handleConfirmedRotate}
       />
+
+      <SaveSecretConfirmDialog
+        open={saveConfirmOpen}
+        onOpenChange={(open) => {
+          if (!saving) setSaveConfirmOpen(open);
+        }}
+        secretName={secretName}
+        isUpdate={!!status?.has_value}
+        currentSuffix={status?.masked_suffix ?? null}
+        currentLength={status?.length ?? null}
+        newSuffix={value.slice(-4)}
+        newLength={value.length}
+        loading={saving}
+        onConfirm={handleConfirmedSave}
+      />
     </div>
   );
 }
