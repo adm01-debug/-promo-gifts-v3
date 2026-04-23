@@ -118,20 +118,63 @@ Deno.serve(async (req) => {
       });
     }
 
-    // 3) Connections that just transitioned to error (last_test_ok = false in last hour)
-    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-    const { data: down } = await service
-      .from("external_connections")
-      .select("id, name, type, last_test_message, last_test_at")
-      .eq("last_test_ok", false)
-      .gte("last_test_at", oneHourAgo);
-    for (const c of down ?? []) {
-      incidents.push({
-        key: `connection_down:${c.id}`,
-        title: `Conexão ${c.type} com erro`,
-        message: `${c.name} — ${c.last_test_message ?? "ping falhou"}.`,
-        type: "error",
-      });
+    // 3) Connections that have been failing CONTINUOUSLY for at least
+    //    `failure_window_minutes` (configurable). A "connection_down" incident
+    //    is only emitted if every recorded test inside that window failed —
+    //    transient flaps that already recovered are ignored.
+    let failureWindowMin = DEFAULT_FAILURE_WINDOW_MINUTES;
+    try {
+      const { data: rpcData } = await service.rpc("get_connection_failure_window_minutes");
+      if (typeof rpcData === "number" && rpcData >= 0) failureWindowMin = rpcData;
+    } catch (_) { /* keep default */ }
+
+    if (failureWindowMin === 0) {
+      // Window disabled → behave like the legacy "any failure in last hour" rule.
+      const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+      const { data: down } = await service
+        .from("external_connections")
+        .select("id, name, type, last_test_message, last_test_at")
+        .eq("last_test_ok", false)
+        .gte("last_test_at", oneHourAgo);
+      for (const c of down ?? []) {
+        incidents.push({
+          key: `connection_down:${c.id}`,
+          title: `Conexão ${c.type} com erro`,
+          message: `${c.name} — ${c.last_test_message ?? "ping falhou"}.`,
+          type: "error",
+        });
+      }
+    } else {
+      const windowStart = new Date(Date.now() - failureWindowMin * 60 * 1000).toISOString();
+      const { data: candidates } = await service
+        .from("external_connections")
+        .select("id, name, type, last_test_message, last_test_at")
+        .eq("last_test_ok", false);
+      for (const c of candidates ?? []) {
+        // Need at least one test inside the window AND zero successes inside it.
+        const [{ data: anyInWindow }, { count: successesInWindow }] = await Promise.all([
+          service.from("connection_test_history")
+            .select("id")
+            .eq("connection_id", c.id)
+            .gte("tested_at", windowStart)
+            .limit(1),
+          service.from("connection_test_history")
+            .select("id", { count: "exact", head: true })
+            .eq("connection_id", c.id)
+            .eq("success", true)
+            .gte("tested_at", windowStart),
+        ]);
+        const hasTests = (anyInWindow ?? []).length > 0;
+        const hadSuccess = (successesInWindow ?? 0) > 0;
+        if (!hasTests || hadSuccess) continue;
+
+        incidents.push({
+          key: `connection_down:${c.id}`,
+          title: `Conexão ${c.type} com erro`,
+          message: `${c.name} — falhando há ≥${failureWindowMin}min. Último erro: ${c.last_test_message ?? "ping falhou"}.`,
+          type: "error",
+        });
+      }
     }
 
     let notified = 0;
