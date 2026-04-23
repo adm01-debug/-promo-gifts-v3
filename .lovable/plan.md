@@ -1,63 +1,76 @@
 
 
-## Botão "Atualizar do banco" global em /admin/conexoes
+## Mensagens coerentes por `error_kind` no UI de Conexões
 
 ### Objetivo
-Adicionar um único botão no header da página de Conexões que, num clique:
-1. Invalida o cache de **todas** as credenciais (TTL 60s no edge `_shared/credentials.ts`)
-2. Recarrega a lista de secrets (status, suffix, source)
-3. Recarrega a tabela `external_connections` (status persistido)
-4. Mostra feedback unificado com cooldown de 5s
+Hoje a UI mostra apenas o texto cru do erro (`info.message`) e o status HTTP. Vamos enriquecer isso com **título humano + dica acionável** baseados em `error_kind` (`timeout | network | dns | auth | http | config | unknown`), mantendo o texto técnico como detalhe secundário.
 
 ### O que será criado
 
-**`src/components/admin/connections/GlobalRefreshFromDbButton.tsx`** (novo)
-- Botão `variant="outline"` com ícone `DatabaseZap` + label "Atualizar tudo do banco"
-- Estado interno: `isRunning`, `cooldownUntil` (mesmo padrão do `RefreshFromDbButton`)
-- Ao clicar, executa em paralelo via `Promise.allSettled`:
-  - `refreshCache()` (sem nome → invalida tudo no edge `secrets-manager` action `refresh_cache`)
-  - `list()` do `useSecretsManager` (relê status do banco)
-  - Callback `onRefreshed` (para o page recarregar overview + outros hooks)
-- Toast único agregado:
-  - **Sucesso total**: "Tudo atualizado · cache + N credenciais + status das conexões"
-  - **Sucesso parcial**: "Atualização parcial" listando o que falhou
-  - **Falha total**: "Falha ao atualizar"
-- Cooldown de 5s com contagem regressiva visível ("Aguarde 4s")
-- Tooltip explicando: "Invalida o cache de 60s das credenciais, relê o banco e recarrega o status de todas as conexões"
-- Atalho de teclado opcional: `R` (sem modificadores quando não em input) — registrar via `useEffect` simples com guard para `event.target` não ser input/textarea
+**`src/lib/connection-error-copy.ts`** (novo, ~60 linhas)
+Mapa SSOT que transforma `error_kind` em copy estruturada:
+
+```ts
+export interface ErrorCopy {
+  title: string;       // Curto, humano: "Tempo esgotado"
+  hint: string;        // Acionável: "O serviço demorou mais de 10s..."
+  icon: LucideIcon;    // Ícone semântico
+  tone: "timeout" | "network" | "auth" | "http" | "config" | "unknown";
+}
+export function getErrorCopy(kind?: ErrorKind | null, status?: number | null): ErrorCopy
+```
+
+Coberturas:
+| kind | title | hint |
+|---|---|---|
+| `timeout` | "Tempo esgotado" | "Endpoint não respondeu em tempo. Verifique se o serviço está ativo." |
+| `network` | "Sem conexão" | "Falha de rede ao alcançar o serviço. Verifique firewall/VPN." |
+| `dns` | "URL não encontrada" | "DNS não resolveu o domínio. Confira a URL configurada." |
+| `auth` | "Credenciais rejeitadas" | "Token/chave inválido ou expirado. Reabra o secret e cole novamente." |
+| `http` | "Erro HTTP `<status>`" | Específico por faixa: 4xx → "verifique payload/permissões"; 5xx → "instabilidade no serviço destino" |
+| `config` | "Configuração incompleta" | "Faltam campos obrigatórios. Edite a conexão e preencha." |
+| `unknown` (ou null) | "Falha na conexão" | usa `info.message` como fallback |
 
 ### O que será alterado
 
-**`src/pages/admin/AdminConexoesPage.tsx`**
-- Importa `GlobalRefreshFromDbButton`
-- Coloca-o no header, à direita do `<SmokeTestChecklist>`, antes da listagem
-- Passa `onRefreshed` que dispara `list()` (já tem) + um novo trigger para `ConnectionsOverviewTable` recarregar
+**`src/components/admin/connections/LastTestLine.tsx`**
+- Em vez de renderizar `info.message` cru no segundo bloco, renderiza:
+  - **Linha 1 (header)**: ícone semântico + `copy.title` + tempo relativo
+  - **Linha 2 (hint)**: `copy.hint` em `text-destructive/80`
+  - **Linha 3 (técnico)**: `HTTP <status> · <message>` em `text-[10px] text-muted-foreground` (quando houver — só aparece se diferente do hint)
+- Tooltip no header mostra a mensagem técnica completa
 
-**`src/components/admin/connections/ConnectionsOverviewTable.tsx`**
-- Já expõe `refresh` internamente. Para permitir recarga externa, expor via prop opcional `refreshSignal?: number`. Quando o número muda, dispara `load(false)`.
-- Alternativa mais simples: expor o componente com `forwardRef` e método `refresh()`. Vou usar `refreshSignal` (mais previsível, sem ref).
+**`src/components/admin/connections/ConnectionTestDetailsDialog.tsx`**
+- No bloco "Resumo", substitui o destaque vermelho atual por um card estruturado:
+  - Ícone + `copy.title` (h3)
+  - `copy.hint` (parágrafo)
+  - Badge "kind: timeout" + Badge "HTTP 504" lado a lado
+  - `<details>` colapsável "Mensagem técnica" com `error.message`
 
-**`src/pages/admin/AdminConexoesPage.tsx`** (continuação)
-- Mantém um state `refreshTick` incrementado pelo callback do botão global
-- Passa `refreshSignal={refreshTick}` ao `<ConnectionsOverviewTable>`
+**`src/hooks/useConnectionTester.ts`**
+- O `TOAST_TITLE_BY_KIND` já existe. Vamos passar a usar `getErrorCopy()` para o **título** e **descrição** do toast de falha, mantendo consistência com a UI.
+  - Antes: `toast.error("Tempo esgotado", { description: "fetch failed" })`
+  - Depois: `toast.error("Tempo esgotado", { description: "Endpoint não respondeu em tempo..." })`
+  - Mensagem técnica vai para `data-attr` ou é omitida do toast (já está no modal/linha)
 
 ### Detalhes técnicos
+- **Sem mudança de schema/edge**: `error_kind` já é retornado pelo `connection-tester` e persistido em `connection_tests`.
+- **Backwards compat**: Se `error_kind` vier null/undefined (registros antigos), cai no caso `unknown` que usa `info.message` (comportamento atual).
+- **Acessibilidade**: ícones com `aria-hidden`; `role="alert"` no card do modal; `title` no header da linha para revelar texto técnico.
+- **i18n-ready**: copy centralizada num único arquivo facilita tradução futura.
 
-- **Sem nova migração**: tudo já existe no edge `secrets-manager` action `refresh_cache` (sem `name` invalida tudo).
-- **Sem novo endpoint**: a tabela `external_connections` é lida diretamente pelo hook `useConnectionsOverview` — basta reexecutar o `select`.
-- **Não duplica os botões por-aba**: os `RefreshFromDbButton` por aba (Bitrix24/n8n/Supabase) continuam, pois servem o caso de uso de invalidar 1 secret específico após edição. O global é o "big button" para o admin que acabou de editar várias credenciais.
-- **Acessibilidade**: `aria-label` dinâmico ("Atualizar tudo do banco" / "Aguarde Ns" / "Atualizando…"), `disabled` apropriado.
-- **Concorrência**: se já estiver rodando, segundo clique é ignorado (não enfileira).
+### Resultado visual (linha de falha no card)
 
-### Resultado visual
-
-```text
-┌─ Conexões ───────────────────────── [Atualizar tudo do banco] [Smoke test] ─┐
-│  Hub central de integrações...                                              │
-├──────────────────────────────────────────────────────────────────────────────┤
-│  Saúde geral: 87% · 1 falha consecutiva                                     │
-└──────────────────────────────────────────────────────────────────────────────┘
+Antes:
+```
+✗ Falhou há 2min — HTTP 504
+HTTP 504 — Gateway Timeout
 ```
 
-Após clique → toast: "Tudo atualizado · cache invalidado · 12 credenciais relidas · 8 conexões atualizadas (1.2s)" → cooldown 5s.
+Depois:
+```
+✗ Tempo esgotado · há 2min
+Endpoint não respondeu em tempo. Verifique se o serviço está ativo.
+HTTP 504 · Gateway Timeout                              [Testar novamente]
+```
 
