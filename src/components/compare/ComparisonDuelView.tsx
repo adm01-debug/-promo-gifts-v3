@@ -31,10 +31,10 @@ const ROWS: Array<{
 ];
 
 export function ComparisonDuelView({ products, formatCurrency, onRemove, onProductClick }: Props) {
-  const { items: scoreItems } = useComparisonScore(products);
+  const scoreItems = useComparisonScore(products);
   const winnerIdx = useMemo(() => {
     if (scoreItems.length === 0) return -1;
-    return scoreItems.reduce((best, cur, idx, arr) => cur.score > arr[best].score ? idx : best, 0);
+    return scoreItems.reduce((best, cur, idx, arr) => cur.total > arr[best].total ? idx : best, 0);
   }, [scoreItems]);
 
   if (products.length !== 2) return null;
