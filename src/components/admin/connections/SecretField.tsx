@@ -64,7 +64,7 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
   const [saving, setSaving] = useState(false);
   const [flash, setFlash] = useState<FlashState | null>(null);
   const [rotationRefreshKey, setRotationRefreshKey] = useState(0);
-  const [lastError, setLastError] = useState<string | null>(null);
+  const [lastError, setLastError] = useState<NormalizedSecretError | null>(null);
   const flashCounter = useRef(0);
 
   // Hydrate draft (value + mode) from sessionStorage on mount — survives accidental reload after a failed save
@@ -155,22 +155,25 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
 
     if (!result.ok || !result.secret) {
       const err = result.error ?? { code: "unexpected", message: "Erro desconhecido" };
-      const description = describeError(err, secretName);
-      setLastError(description);
-      toast.error(`Falha ao salvar ${secretName}`, {
+      const normalized = normalizeSecretError(err, secretName, { action: currentMode === "rotate" ? "rotate" : "save" });
+      setLastError(normalized);
+      const toastDescription = normalized.hint ? `${normalized.description} ${normalized.hint}` : normalized.description;
+      toast.error(normalized.title, {
         id: toastId,
-        description,
+        description: toastDescription,
         duration: 7000,
-        action: {
-          label: "Tentar novamente",
-          onClick: () => {
-            setMode(currentMode);
-            setValue(currentValue);
-            setEditing(true);
-          },
-        },
+        action: normalized.retryable
+          ? {
+              label: "Tentar novamente",
+              onClick: () => {
+                setMode(currentMode);
+                setValue(currentValue);
+                setEditing(true);
+              },
+            }
+          : undefined,
       });
-      return { ok: false as const, errorDescription: description, cancelled: false };
+      return { ok: false as const, errorDescription: toastDescription, cancelled: false };
     }
     setLastError(null);
 
