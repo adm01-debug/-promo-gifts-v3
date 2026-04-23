@@ -286,45 +286,63 @@ export function ConnectionTestHistoryPanel({
 
   return (
     <div className={cn("border-t pt-3 mt-3", className)}>
-      <button
-        type="button"
-        onClick={() => !empty && setExpanded((v) => !v)}
-        disabled={empty}
-        className={cn(
-          "w-full flex items-center justify-between gap-2 text-xs font-medium",
-          "rounded-md px-1 py-1 transition-colors",
-          empty ? "text-muted-foreground/60 cursor-not-allowed" : "text-foreground hover:bg-muted/50",
+      <div className="flex items-center gap-1">
+        <button
+          type="button"
+          onClick={() => !empty && setExpanded((v) => !v)}
+          disabled={empty}
+          className={cn(
+            "flex-1 flex items-center justify-between gap-2 text-xs font-medium",
+            "rounded-md px-1 py-1 transition-colors",
+            empty ? "text-muted-foreground/60 cursor-not-allowed" : "text-foreground hover:bg-muted/50",
+          )}
+          aria-expanded={expanded}
+        >
+          <span className="inline-flex items-center gap-1.5">
+            {empty ? (
+              <History className="h-3.5 w-3.5" />
+            ) : defaultPreview ? (
+              <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", expanded && "rotate-180")} />
+            ) : (
+              <ChevronRight className={cn("h-3.5 w-3.5 transition-transform", expanded && "rotate-90")} />
+            )}
+            {showPreview ? `Últimas verificações (${total})` : `Histórico de testes (${total})`}
+          </span>
+          <span className="inline-flex items-center gap-2">
+            {!expanded && items.length >= 2 && (
+              <TooltipProvider delayDuration={150}>
+                <LatencySparkline items={items} />
+              </TooltipProvider>
+            )}
+            {stats && !expanded && (
+              <span className={cn(
+                "text-[11px] tabular-nums",
+                stats.rate === 100
+                  ? "text-green-700 dark:text-green-400"
+                  : stats.rate >= 80 ? "text-muted-foreground" : "text-destructive",
+              )}>
+                {stats.rate}% sucesso
+              </span>
+            )}
+          </span>
+        </button>
+        {latestFailure && (
+          <button
+            type="button"
+            onClick={goToLatestFailure}
+            className={cn(
+              "shrink-0 inline-flex items-center gap-1 text-[10px] font-medium",
+              "px-2 py-1 rounded border border-destructive/40 bg-destructive/10 text-destructive",
+              "hover:bg-destructive/20 transition-colors",
+            )}
+            aria-label="Rolar até o erro mais recente e destacar"
+            title="Rolar até o erro mais recente"
+          >
+            <AlertCircle className="h-3 w-3" />
+            Ver erro mais recente
+          </button>
         )}
-        aria-expanded={expanded}
-      >
-        <span className="inline-flex items-center gap-1.5">
-          {empty ? (
-            <History className="h-3.5 w-3.5" />
-          ) : defaultPreview ? (
-            <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", expanded && "rotate-180")} />
-          ) : (
-            <ChevronRight className={cn("h-3.5 w-3.5 transition-transform", expanded && "rotate-90")} />
-          )}
-          {showPreview ? `Últimas verificações (${total})` : `Histórico de testes (${total})`}
-        </span>
-        <span className="inline-flex items-center gap-2">
-          {!expanded && items.length >= 2 && (
-            <TooltipProvider delayDuration={150}>
-              <LatencySparkline items={items} />
-            </TooltipProvider>
-          )}
-          {stats && !expanded && (
-            <span className={cn(
-              "text-[11px] tabular-nums",
-              stats.rate === 100
-                ? "text-green-700 dark:text-green-400"
-                : stats.rate >= 80 ? "text-muted-foreground" : "text-destructive",
-            )}>
-              {stats.rate}% sucesso
-            </span>
-          )}
-        </span>
-      </button>
+      </div>
 
       {/* Preview inline (5 itens, com filtros rápidos) */}
       {showPreview && (
