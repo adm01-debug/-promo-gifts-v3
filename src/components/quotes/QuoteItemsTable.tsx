@@ -140,7 +140,6 @@ export function QuoteItemsTable({ items }: QuoteItemsTableProps) {
         )}
         <td className="p-3 text-center font-semibold text-sm w-20">{item.quantity}</td>
         <td className="p-3 text-left text-muted-foreground tabular-nums w-28">
-        <td className="p-3 text-left text-muted-foreground tabular-nums w-28">
           <div className="flex flex-col gap-0.5">
             <span>
               {formatCurrency(item.unit_price + (allPersonalizations.reduce((sum: number, p: { total_cost?: number }) => {
