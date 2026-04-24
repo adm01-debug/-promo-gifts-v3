@@ -7,6 +7,8 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { invokeExternalRpc } from '@/lib/external-rpc';
+import { validateRpcPayload } from '@/lib/personalization/rpc-validator';
+import { PRICE_CONTRACT } from '@/lib/personalization/rpc-contracts';
 import type { CustomizationPriceResponseV6 } from '@/types/customization';
 
 export interface CalculatePriceParamsV6 {
