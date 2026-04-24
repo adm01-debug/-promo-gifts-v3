@@ -26,10 +26,26 @@ export const DEFAULT_PRICE_FRESHNESS_THRESHOLD_DAYS = 60;
 
 const MS_PER_DAY = 1000 * 60 * 60 * 24;
 
-function formatAbsoluteDate(date: Date): string {
+/**
+ * Formato curto numérico — usado em layouts compactos (sticky header,
+ * tabela de orçamento, cards). Ex.: "20/03/2026".
+ */
+export function formatPriceDateShort(date: Date): string {
   return new Intl.DateTimeFormat("pt-BR", {
     day: "2-digit",
     month: "2-digit",
+    year: "numeric",
+  }).format(date);
+}
+
+/**
+ * Formato longo por extenso — padrão PT-BR usado em destaques (PDP,
+ * tooltips, avisos). Ex.: "20 de março de 2026".
+ */
+export function formatPriceDateLong(date: Date): string {
+  return new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "long",
     year: "numeric",
   }).format(date);
 }
@@ -54,9 +70,9 @@ export function getPriceFreshness(
       status: "unknown",
       daysSinceUpdate: null,
       thresholdDays: threshold,
-      label: "Data de atualização indisponível",
+      label: "Data de atualização não informada",
       tooltip:
-        "O fornecedor não informou a data da última atualização deste preço. Confirme com o fornecedor antes de fechar o orçamento.",
+        "O fornecedor não informou quando este preço foi atualizado pela última vez. Confirme o valor diretamente com o fornecedor antes de enviar o orçamento ao cliente.",
       shouldWarn: false,
       isStale: false,
     };
@@ -72,7 +88,7 @@ export function getPriceFreshness(
       thresholdDays: threshold,
       label: "Data de atualização inválida",
       tooltip:
-        "A data informada pelo fornecedor é inválida. Confirme o preço antes de fechar o orçamento.",
+        "A data informada pelo fornecedor é inválida. Confirme o valor diretamente com o fornecedor antes de enviar o orçamento ao cliente.",
       shouldWarn: false,
       isStale: false,
     };
@@ -80,7 +96,7 @@ export function getPriceFreshness(
 
   const diffMs = Date.now() - date.getTime();
   const days = Math.max(0, Math.floor(diffMs / MS_PER_DAY));
-  const absolute = formatAbsoluteDate(date);
+  const absoluteLong = formatPriceDateLong(date);
   const relative = formatRelativeDays(days);
 
   let status: PriceFreshnessStatus;
@@ -89,7 +105,10 @@ export function getPriceFreshness(
   else status = "fresh";
 
   const baseLabel = `Preço atualizado ${relative}`;
-  const baseTooltip = `Última atualização do preço pelo fornecedor: ${absolute} (${relative}). Limite de validade configurado: ${threshold} dias.`;
+  // Tooltip padronizado para todos os status: data por extenso + janela de
+  // validade configurada para este produto. Mensagem escrita para o vendedor:
+  // direta, sem jargão técnico, sem repetir o número de dias.
+  const baseTooltip = `Última atualização do preço pelo fornecedor: ${absoluteLong} (${relative}). Validade configurada: ${threshold} dias.`;
 
   if (status === "stale") {
     return {
@@ -97,9 +116,21 @@ export function getPriceFreshness(
       daysSinceUpdate: days,
       thresholdDays: threshold,
       label: `Preço pode estar defasado (${relative})`,
-      tooltip: `${baseTooltip} Recomendamos confirmar o valor com o fornecedor antes de enviar o orçamento.`,
+      tooltip: `${baseTooltip} O prazo de validade já foi ultrapassado — confirme o valor com o fornecedor antes de enviar o orçamento ao cliente.`,
       shouldWarn: true,
       isStale: true,
+    };
+  }
+
+  if (status === "aging") {
+    return {
+      status,
+      daysSinceUpdate: days,
+      thresholdDays: threshold,
+      label: baseLabel,
+      tooltip: `${baseTooltip} Está se aproximando do limite — recomendamos confirmar o valor com o fornecedor antes de fechar o orçamento.`,
+      shouldWarn: true,
+      isStale: false,
     };
   }
 
@@ -108,8 +139,8 @@ export function getPriceFreshness(
     daysSinceUpdate: days,
     thresholdDays: threshold,
     label: baseLabel,
-    tooltip: baseTooltip,
-    shouldWarn: status === "aging",
+    tooltip: `${baseTooltip} Preço dentro do prazo de validade.`,
+    shouldWarn: false,
     isStale: false,
   };
 }
