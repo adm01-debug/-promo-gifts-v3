@@ -1520,18 +1520,23 @@ export function logSelectDecision(ctx: SelectDecisionLogContext): void {
     reason: resolved.reason,
     effectiveLimit,
     hasId,
+    limitThreshold: LIGHTWEIGHT_LIMIT_THRESHOLD,
+    columnThreshold: WIDE_SELECT_COLUMN_THRESHOLD,
+    // mantido para compat com dashboards já existentes
     threshold: LIGHTWEIGHT_LIMIT_THRESHOLD,
     callerSelect: callerSelect && callerSelect.length > 120
       ? `${callerSelect.slice(0, 117)}...`
       : (callerSelect ?? '(omitted)'),
     callerColumnCount: callerLen,
     effectiveColumnCount: effectiveLen,
+    exceededColumnThreshold: callerLen > WIDE_SELECT_COLUMN_THRESHOLD,
   };
 
   if (resolved.forcedLightweight) {
     console.log(
       `[external-db-bridge] ⚡ select-decision table=${table} mode=lightweight-forced reason=${resolved.reason} ` +
-      `limit=${effectiveLimit} (>${LIGHTWEIGHT_LIMIT_THRESHOLD}) caller_cols=${callerLen} effective_cols=${effectiveLen} ` +
+      `limit=${effectiveLimit} (>${LIGHTWEIGHT_LIMIT_THRESHOLD}) caller_cols=${callerLen} ` +
+      `(col_threshold=${WIDE_SELECT_COLUMN_THRESHOLD}) effective_cols=${effectiveLen} ` +
       `callSite=${callSite} → ${JSON.stringify(payload)}`,
     );
     return;
