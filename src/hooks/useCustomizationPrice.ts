@@ -118,6 +118,7 @@ export function useCustomizationPriceReactive(
         );
 
         if (result?.success) {
+          validateRpcPayload(PRICE_CONTRACT, result as unknown as Record<string, unknown>);
           setPrice(result);
         } else {
           setError(result?.error || 'Erro no cálculo');
