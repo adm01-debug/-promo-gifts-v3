@@ -100,6 +100,8 @@ function buildUnavailableOption(
     grandTotalPerUnit: quantity > 0 ? totalProductCost / quantity : 0,
     priceSource: 'unavailable',
     unavailableReason: reason,
+    calculatedAt: new Date().toISOString(),
+    rpcAvailable: false,
   };
 }
 
