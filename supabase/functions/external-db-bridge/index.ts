@@ -1553,7 +1553,8 @@ export function logSelectDecision(ctx: SelectDecisionLogContext): void {
   if (isInformative) {
     console.log(
       `[external-db-bridge] · select-decision table=${table} mode=caller-default reason=${resolved.reason} ` +
-      `limit=${effectiveLimit} hasId=${hasId} caller_cols=${callerLen} callSite=${callSite} → ${JSON.stringify(payload)}`,
+      `limit=${effectiveLimit} hasId=${hasId} caller_cols=${callerLen} ` +
+      `(col_threshold=${WIDE_SELECT_COLUMN_THRESHOLD}) callSite=${callSite} → ${JSON.stringify(payload)}`,
     );
   }
 }
