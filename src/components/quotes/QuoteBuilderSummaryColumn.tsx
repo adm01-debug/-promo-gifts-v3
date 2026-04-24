@@ -2,7 +2,7 @@
  * QuoteBuilderSummaryColumn — Coluna 3: Resumo com cards de itens, desconto e CTAs
  */
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,10 +13,13 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
-import { AlertTriangle, Edit, Loader2, Package, Percent, Save, Send, Shield, ShoppingCart, Trash2 } from "lucide-react";
+import { AlertTriangle, Edit, Loader2, Package, Percent, Save, Send, Shield, ShoppingCart, Trash2, CheckCircle2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { QuoteItem } from "@/hooks/useQuotes";
 import { NegotiationMarkupCard } from "@/components/quote/NegotiationMarkupCard";
+import { ConfirmDialog } from "@/components/common/ConfirmDialog";
+import { getPriceFreshness } from "@/utils/price-freshness";
+import { toast } from "sonner";
 
 interface Props {
   items: QuoteItem[];
