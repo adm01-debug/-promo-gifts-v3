@@ -1383,3 +1383,72 @@ export function resolveProductsSelect(input: ResolveProductsSelectInput): Resolv
 
   return { effectiveSelect: callerSelect, forcedLightweight: false, reason: 'caller-select' };
 }
+
+// ============================================
+// STRUCTURED SELECT-DECISION LOG
+// ============================================
+// Emite UM log estruturado por decisão de `select`, em ambos os call sites
+// (handleSelect e handleBatch). Permite filtrar por `event=select-decision`
+// no painel de logs e cruzar com telemetria — inclui sempre tabela, limit
+// efetivo e motivo (default vs forçado).
+export interface SelectDecisionLogContext {
+  callSite: 'handleSelect' | 'handleBatch';
+  table: string;
+  callerSelect: string | undefined | null;
+  effectiveLimit: number;
+  hasId: boolean;
+  resolved: ResolveProductsSelectResult;
+}
+
+const LIGHTWEIGHT_REASONS = new Set<ResolveProductsSelectResult['reason']>([
+  'star-select-listing',
+  'wide-select-listing',
+  'heavy-jsonb-listing',
+]);
+
+export function logSelectDecision(ctx: SelectDecisionLogContext): void {
+  const { callSite, table, callerSelect, effectiveLimit, hasId, resolved } = ctx;
+  const callerLen = (callerSelect ?? '').split(',').filter(Boolean).length;
+  const effectiveLen = resolved.effectiveSelect.split(',').filter(Boolean).length;
+
+  const payload = {
+    event: 'select-decision',
+    callSite,
+    table,
+    forcedLightweight: resolved.forcedLightweight,
+    mode: resolved.forcedLightweight ? 'lightweight-forced' : 'caller-default',
+    reason: resolved.reason,
+    effectiveLimit,
+    hasId,
+    threshold: LIGHTWEIGHT_LIMIT_THRESHOLD,
+    callerSelect: callerSelect && callerSelect.length > 120
+      ? `${callerSelect.slice(0, 117)}...`
+      : (callerSelect ?? '(omitted)'),
+    callerColumnCount: callerLen,
+    effectiveColumnCount: effectiveLen,
+  };
+
+  if (resolved.forcedLightweight) {
+    console.log(
+      `[external-db-bridge] ⚡ select-decision table=${table} mode=lightweight-forced reason=${resolved.reason} ` +
+      `limit=${effectiveLimit} (>${LIGHTWEIGHT_LIMIT_THRESHOLD}) caller_cols=${callerLen} effective_cols=${effectiveLen} ` +
+      `callSite=${callSite} → ${JSON.stringify(payload)}`,
+    );
+    return;
+  }
+
+  // Para não poluir os logs de queries triviais, só registramos o "default"
+  // em situações onde a decisão é informativa: tabela `products` com qualquer limit,
+  // ou outras tabelas quando o limit ultrapassa o threshold (poderia ter sido afetado).
+  const isInformative =
+    table === 'products' ||
+    LIGHTWEIGHT_REASONS.has(resolved.reason) || // defesa: nunca cai aqui, mas explícito
+    effectiveLimit > LIGHTWEIGHT_LIMIT_THRESHOLD;
+
+  if (isInformative) {
+    console.log(
+      `[external-db-bridge] · select-decision table=${table} mode=caller-default reason=${resolved.reason} ` +
+      `limit=${effectiveLimit} hasId=${hasId} caller_cols=${callerLen} callSite=${callSite} → ${JSON.stringify(payload)}`,
+    );
+  }
+}
