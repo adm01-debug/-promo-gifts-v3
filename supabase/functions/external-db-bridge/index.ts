@@ -1308,6 +1308,43 @@ function jsonResponse(body: unknown, status: number, corsHeaders: Record<string,
   return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 }
 
+// FNV-1a 32-bit — barato e suficiente para ETag (não-criptográfico).
+function fnv1aHash(input: string): string {
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < input.length; i++) {
+    hash ^= input.charCodeAt(i);
+    hash = (hash + ((hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24))) >>> 0;
+  }
+  return hash.toString(16).padStart(8, '0');
+}
+
+/**
+ * Resposta JSON com cache HTTP de borda (Cloudflare) + ETag.
+ * Use APENAS para dados públicos imutáveis a curto prazo (catálogo).
+ * - s-maxage: cache compartilhado (CF) por 60s
+ * - stale-while-revalidate: serve stale por +300s enquanto revalida em background
+ * - ETag: permite 304 Not Modified em hits subsequentes
+ */
+function cacheableJsonResponse(
+  body: unknown,
+  corsHeaders: Record<string, string>,
+  ifNoneMatch: string | null,
+): Response {
+  const payload = JSON.stringify(body);
+  const etag = `W/"${fnv1aHash(payload)}"`;
+  const cacheHeaders = {
+    ...corsHeaders,
+    'Content-Type': 'application/json',
+    'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+    'ETag': etag,
+    'Vary': 'Accept-Encoding, Authorization',
+  };
+  if (ifNoneMatch && ifNoneMatch === etag) {
+    return new Response(null, { status: 304, headers: cacheHeaders });
+  }
+  return new Response(payload, { status: 200, headers: cacheHeaders });
+}
+
 function getExternalClient(corsHeaders: Record<string, string>) {
   const externalUrl = Deno.env.get('EXTERNAL_SUPABASE_URL');
   const externalKey = Deno.env.get('EXTERNAL_SUPABASE_SERVICE_ROLE_KEY')
