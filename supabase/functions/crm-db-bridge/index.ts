@@ -35,6 +35,37 @@ const VENDOR_WRITE_TABLES: string[] = [];
 const OPTIONAL_QUOTE_TABLES = new Set<string>();
 
 // ============================================
+// TYPE-SAFE RESULT HELPERS
+// ============================================
+
+/**
+ * Narrow an unknown value (which may also be a PostgREST GenericStringError
+ * or any other non-row payload) to a plain Record<string, unknown>.
+ * Returns null when the value is not a usable row object.
+ */
+export function toRecord(value: unknown): Record<string, unknown> | null {
+  if (value === null || value === undefined) return null;
+  if (typeof value !== "object") return null;
+  if (Array.isArray(value)) return null;
+  // PostgREST GenericStringError has shape { error: true; message: string }
+  // and should never be treated as a row.
+  const maybeErr = value as { error?: unknown; message?: unknown };
+  if (maybeErr.error === true && typeof maybeErr.message === "string") return null;
+  return value as Record<string, unknown>;
+}
+
+/**
+ * Safely access the first row of a PostgREST result (`data` from `.select()`),
+ * which Supabase types as `T[] | null` but at runtime can also surface
+ * `GenericStringError`-like payloads when selectors fail. Returns null
+ * unless the first element is a real row object.
+ */
+export function firstRowAsRecord(result: unknown): Record<string, unknown> | null {
+  if (!Array.isArray(result) || result.length === 0) return null;
+  return toRecord(result[0]);
+}
+
+// ============================================
 // TYPES
 // ============================================
 
@@ -280,15 +311,16 @@ async function handleInsert(crm: SupabaseClient, body: CrmQuery): Promise<Respon
   const { data: result, error } = await crm.from(table).insert(data as any).select(returning || "*");
 
   // Fix quote_number if it was overridden by DB default
-  if (!error && result?.length && table === "quotes") {
-    const insertedRow = result[0] as unknown as Record<string, unknown>;
-    const targetNumber = Array.isArray(data)
-      ? (data[0] as Record<string, unknown>).quote_number
-      : (data as Record<string, unknown>).quote_number;
+  if (!error && table === "quotes") {
+    const insertedRow = firstRowAsRecord(result);
+    if (insertedRow) {
+      const sourceRow = Array.isArray(data) ? toRecord(data[0]) : toRecord(data);
+      const targetNumber = sourceRow?.quote_number;
 
-    if (targetNumber && targetNumber !== "" && insertedRow.quote_number !== targetNumber) {
-      await crm.from("quotes").update({ quote_number: targetNumber }).eq("id", insertedRow.id as string);
-      insertedRow.quote_number = targetNumber;
+      if (targetNumber && targetNumber !== "" && insertedRow.quote_number !== targetNumber) {
+        await crm.from("quotes").update({ quote_number: targetNumber }).eq("id", insertedRow.id as string);
+        insertedRow.quote_number = targetNumber;
+      }
     }
   }
 
