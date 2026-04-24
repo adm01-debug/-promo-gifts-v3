@@ -404,6 +404,28 @@ export function useQuoteBuilderState() {
     setItems(prev => prev.filter((_, idx) => idx !== index));
   }, []);
 
+  // ── Confirmação de preço com fornecedor (suprime badge "stale") ──
+  const confirmItemPrice = useCallback((index: number) => {
+    const ts = new Date().toISOString();
+    setItems(prev => prev.map((item, idx) => idx === index ? { ...item, price_confirmed_at: ts } : item));
+  }, []);
+
+  const confirmAllStalePrices = useCallback(() => {
+    const ts = new Date().toISOString();
+    setItems(prev => prev.map(item => {
+      if (item.price_confirmed_at) return item;
+      // Apenas itens cujo preço esteja em estado de alerta (aging/stale) e ainda não confirmado
+      const days = item.price_updated_at
+        ? Math.max(0, Math.floor((Date.now() - new Date(item.price_updated_at).getTime()) / (1000 * 60 * 60 * 24)))
+        : null;
+      const threshold = item.price_freshness_threshold_days && item.price_freshness_threshold_days > 0
+        ? item.price_freshness_threshold_days
+        : 60;
+      const shouldWarn = days !== null && days >= threshold * 0.5; // aging começa em 50% do threshold
+      return shouldWarn ? { ...item, price_confirmed_at: ts } : item;
+    }));
+  }, []);
+
   // ── Template ──
   const applyTemplate = useCallback((template: QuoteTemplate) => {
     const newItems: QuoteItem[] = template.items_data.map((item) => ({
