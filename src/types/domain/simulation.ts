@@ -100,10 +100,13 @@ export interface SimulationOption {
   grandTotalPerUnit: number;
 
   // Origem do cálculo (auditoria)
-  // 'rpc'         → fn_get_customization_price (oficial, novas tabelas de gravação)
-  // 'unavailable' → técnica selecionada sem print area cadastrada para o produto
-  priceSource?: 'rpc' | 'unavailable';
+  // 'rpc'             → fn_get_customization_price (oficial, novas tabelas de gravação)
+  // 'legacy-fallback' → RPC falhou; estimativa heurística a partir de Technique.unit_cost/setup_cost
+  // 'unavailable'     → técnica selecionada sem print area cadastrada para o produto
+  priceSource?: 'rpc' | 'legacy-fallback' | 'unavailable';
   unavailableReason?: string;
+  /** Mensagem amigável quando `priceSource === 'legacy-fallback'` */
+  fallbackReason?: string;
 }
 
 // ============================================
