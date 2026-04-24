@@ -2,7 +2,7 @@
  * Testes funcionais de useCustomizationPriceReactive — debounce + guards.
  */
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
-import { act, waitFor } from "@testing-library/react";
+import { act } from "@testing-library/react";
 import { renderHookWithProviders } from "./_helpers/render-hook-providers";
 import { useCustomizationPriceReactive } from "@/hooks/useCustomizationPrice";
 import { PRICE_PAYLOAD_PT_V6 } from "../fixtures/personalization-payloads";
@@ -64,8 +64,10 @@ describe("useCustomizationPriceReactive", () => {
     // Depois do timeout — exatamente 1 chamada com último valor
     await act(async () => {
       vi.advanceTimersByTime(200);
+      // flush microtasks da Promise interna
+      await Promise.resolve();
     });
-    await waitFor(() => expect(mockedRpc).toHaveBeenCalledTimes(1));
+    expect(mockedRpc).toHaveBeenCalledTimes(1);
     expect(mockedRpc.mock.calls[0][1].p_num_cores).toBe(3);
   });
 
@@ -75,8 +77,9 @@ describe("useCustomizationPriceReactive", () => {
     );
     await act(async () => {
       vi.advanceTimersByTime(600);
+      await Promise.resolve();
     });
-    await waitFor(() => expect(mockedRpc).toHaveBeenCalledTimes(1));
+    expect(mockedRpc).toHaveBeenCalledTimes(1);
     const params = mockedRpc.mock.calls[0][1];
     expect(params.p_largura_cm).toBe(5);
     expect(params.p_altura_cm).toBe(8);
