@@ -2295,6 +2295,98 @@ export type Database = {
         }
         Relationships: []
       }
+      optimization_queue: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          error: string | null
+          finished_at: string | null
+          guardrail_status: string | null
+          id: string
+          priority: number
+          result: Json | null
+          started_at: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          error?: string | null
+          finished_at?: string | null
+          guardrail_status?: string | null
+          id?: string
+          priority?: number
+          result?: Json | null
+          started_at?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          error?: string | null
+          finished_at?: string | null
+          guardrail_status?: string | null
+          id?: string
+          priority?: number
+          result?: Json | null
+          started_at?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      optimization_queue_runs: {
+        Row: {
+          created_at: string
+          duration_ms: number | null
+          executed_by: string | null
+          guardrail_status: string | null
+          id: string
+          notes: string | null
+          queue_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          duration_ms?: number | null
+          executed_by?: string | null
+          guardrail_status?: string | null
+          id?: string
+          notes?: string | null
+          queue_id: string
+          status: string
+        }
+        Update: {
+          created_at?: string
+          duration_ms?: number | null
+          executed_by?: string | null
+          guardrail_status?: string | null
+          id?: string
+          notes?: string | null
+          queue_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "optimization_queue_runs_queue_id_fkey"
+            columns: ["queue_id"]
+            isOneToOne: false
+            referencedRelation: "optimization_queue"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_items: {
         Row: {
           created_at: string
@@ -4244,6 +4336,31 @@ export type Database = {
         Returns: Json
       }
       check_telemetry_regression: { Args: never; Returns: Json }
+      claim_next_optimization: {
+        Args: never
+        Returns: {
+          category: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          error: string | null
+          finished_at: string | null
+          guardrail_status: string | null
+          id: string
+          priority: number
+          result: Json | null
+          started_at: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "optimization_queue"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       cleanup_discount_test_data: { Args: never; Returns: Json }
       cleanup_expired_collection_trash: { Args: never; Returns: number }
       cleanup_expired_favorite_trash: { Args: never; Returns: number }
@@ -4252,8 +4369,49 @@ export type Database = {
       cleanup_rate_limits: { Args: never; Returns: undefined }
       cleanup_security_logs: { Args: never; Returns: Json }
       cleanup_webhook_logs: { Args: never; Returns: Json }
+      complete_optimization: {
+        Args: {
+          _error?: string
+          _guardrail_status?: string
+          _id: string
+          _notes?: string
+          _result?: Json
+          _status: string
+        }
+        Returns: {
+          category: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          error: string | null
+          finished_at: string | null
+          guardrail_status: string | null
+          id: string
+          priority: number
+          result: Json | null
+          started_at: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "optimization_queue"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       create_organization_with_owner: {
         Args: { _name: string; _slug: string }
+        Returns: string
+      }
+      enqueue_optimization: {
+        Args: {
+          _category?: string
+          _description?: string
+          _priority?: number
+          _title: string
+        }
         Returns: string
       }
       ensure_default_favorite_list: {
@@ -4472,6 +4630,10 @@ export type Database = {
           _ua: string
         }
         Returns: undefined
+      }
+      reset_optimization_queue: {
+        Args: { _only_running?: boolean }
+        Returns: number
       }
       retry_failed_webhook_deliveries: { Args: never; Returns: Json }
       search_products_semantic: {

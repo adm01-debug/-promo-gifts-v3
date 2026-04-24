@@ -16,6 +16,7 @@ import { ResolveProductsSelectComparisonCard } from '@/components/admin/telemetr
 import { HighLimitTelemetryCard } from '@/components/admin/telemetry/HighLimitTelemetryCard';
 import { OptimizationMetricsCards } from '@/components/admin/telemetry/OptimizationMetricsCards';
 import { RegressionGuardrailBanner } from '@/components/admin/telemetry/RegressionGuardrailBanner';
+import { OptimizationQueuePanel } from '@/components/admin/telemetry/OptimizationQueuePanel';
 import { useTelemetryData, formatDuration, formatTime } from './telemetry/useTelemetryData';
 import { useErrorCounters } from './telemetry/useErrorCounters';
 import { exportCSV, exportPDF } from './telemetry/exportHelpers';
@@ -61,6 +62,9 @@ export default function AdminTelemetriaPage() {
         </div>
         {/* Guardrail automático: interrompe regressões antes que afetem usuários */}
         <RegressionGuardrailBanner />
+
+        {/* Fila automática de otimizações — executa todas em sequência sem pausas */}
+        <OptimizationQueuePanel />
 
 
         <div className="grid grid-cols-2 gap-4">
