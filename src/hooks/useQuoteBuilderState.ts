@@ -21,6 +21,7 @@ import type { SelectedCompanyInfo, SelectedContactInfo } from "@/components/quot
 import type { ExternalVariantStock } from "@/hooks/useExternalVariantStock";
 import type { QuoteBuilderStep } from "@/components/quotes/QuoteBuilderStepper";
 import { createProductFuseOptions, dedupeById, rankProductSearchResults } from "@/utils/product-search";
+import { getPriceFreshness } from "@/utils/price-freshness";
 
 interface Product {
   id: string;
