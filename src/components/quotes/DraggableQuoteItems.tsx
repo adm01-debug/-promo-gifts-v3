@@ -28,6 +28,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { PriceFreshnessBadge } from "@/components/products/PriceFreshnessBadge";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -41,6 +42,10 @@ interface QuoteItem {
   unit_price: number;
   color_name?: string;
   color_hex?: string;
+  /** ISO timestamp da última atualização do preço (catálogo externo). */
+  price_updated_at?: string | null;
+  /** Janela em dias para alertar preço defasado (default 60). */
+  price_freshness_threshold_days?: number | null;
   personalizations?: any[];
 }
 
