@@ -71,11 +71,19 @@ Deno.test("perf: listing limit=150 enforces lightweight select (no heavy JSONB f
   assert(rows.length > 0, "esperava pelo menos 1 produto retornado");
 
   const sample = rows[0];
+  const columnCount = Object.keys(sample).length;
   const presentHeavy = HEAVY_FIELDS.filter((f) => Object.prototype.hasOwnProperty.call(sample, f));
+
+  console.log(`[perf] lightweight payload — columns=${columnCount} heavy_present=${presentHeavy.length}`);
+
   assertEquals(
     presentHeavy,
     [],
     `payload contém campos pesados que deveriam ter sido removidos pelo lightweight select: ${presentHeavy.join(", ")}`,
+  );
+  assert(
+    columnCount <= LIGHTWEIGHT_MAX_COLUMNS,
+    `payload lightweight tem ${columnCount} colunas (esperado ≤ ${LIGHTWEIGHT_MAX_COLUMNS}) — regra de force-lightweight pode ter regredido`,
   );
 });
 
