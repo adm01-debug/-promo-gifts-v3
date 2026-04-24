@@ -348,8 +348,13 @@ export const ProductTableView = memo(function ProductTableView({
                 </td>
                 {/* Price */}
                 <td className="px-3 py-1.5 text-right">
-                  <span className="font-display font-bold text-foreground text-[13px]">
+                  <span className="font-display font-bold text-foreground text-[13px] inline-flex items-center gap-1 justify-end">
                     {formatPrice(product.price)}
+                    <PriceFreshnessBadge
+                      priceUpdatedAt={product.priceUpdatedAt}
+                      thresholdDays={product.priceFreshnessThresholdDays}
+                      variant="icon-only"
+                    />
                   </span>
                 </td>
                 {/* Stock — color-aware */}
