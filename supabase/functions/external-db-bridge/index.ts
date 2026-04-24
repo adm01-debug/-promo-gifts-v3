@@ -66,34 +66,60 @@ function applyFilters(
       return;
     }
 
+    // Detect unknown suffix-style keys early (e.g. foo_isnotnull, foo_between) and log clearly.
+    const unknownSuffix = key.match(/^(.+)_([a-z]+)$/);
+    if (unknownSuffix && !['category', 'main', 'sub', 'group', 'price', 'created', 'updated', 'product', 'supplier', 'color', 'image'].includes(unknownSuffix[2])) {
+      // Heuristic: if the suffix looks like an operator attempt but isn't whitelisted, warn but still try equality.
+      const knownOps = ['gte','lte','gt','lt','neq','like','ilike','isnull','notnull','eq','in'];
+      if (knownOps.some(op => unknownSuffix[2].includes(op)) && !knownOps.includes(unknownSuffix[2])) {
+        console.warn(`[external-db-bridge] Unknown filter operator suffix "_${unknownSuffix[2]}" for key "${key}". Supported: ${knownOps.join(', ')}. Falling back to equality.`);
+      }
+    }
+
     if (typeof value === 'string') {
-      // Support PostgREST-style is.null / not.is.null
-      if (value === 'is.null') { query = query.is(key, null); return; }
-      if (value === 'not.is.null' || value === 'is.not.null') { query = query.not(key, 'is', null); return; }
+      // Support PostgREST-style is.null / not.is.null (and common variants)
+      const nullVariants = ['is.null', 'isnull', 'null'];
+      const notNullVariants = ['not.is.null', 'is.not.null', 'notnull', 'not.null'];
+      if (nullVariants.includes(value)) { query = query.is(key, null); return; }
+      if (notNullVariants.includes(value)) { query = query.not(key, 'is', null); return; }
 
       // Support PostgREST-style in.(val1,val2,...) operator
       const inMatch = value.match(/^in\.\((.+)\)$/);
       if (inMatch) {
         const vals = inMatch[1].split(',').map(v => v.trim());
         query = query.in(key, vals);
-      } else {
-        // Support PostgREST-style comparison operators: gte., lte., gt., lt., neq.
-        const operatorMatch = value.match(/^(gte|lte|gt|lt|neq|like|ilike)\.(.+)$/);
-        if (operatorMatch) {
-          const [, op, val] = operatorMatch;
-          query = query[op](key, val);
-        } else if (['name', 'description', 'title', 'razao_social', 'nome_fantasia', 'nome', 'descricao'].includes(key)) {
-          query = query.ilike(key, `%${value}%`);
-        } else {
-          query = query.eq(key, value);
+        return;
+      }
+
+      // Support PostgREST-style comparison operators: gte., lte., gt., lt., neq., like., ilike.
+      const operatorMatch = value.match(/^(gte|lte|gt|lt|neq|like|ilike)\.(.+)$/);
+      if (operatorMatch) {
+        const [, op, val] = operatorMatch;
+        query = query[op](key, val);
+        return;
+      }
+
+      // Detect unrecognized PostgREST-style "op.value" attempts and log clearly.
+      const looksLikeOperator = value.match(/^([a-z]+(?:\.[a-z]+)?)\.(.+)$/);
+      if (looksLikeOperator) {
+        const attemptedOp = looksLikeOperator[1];
+        const knownStringOps = ['is.null','not.is.null','is.not.null','in','gte','lte','gt','lt','neq','like','ilike'];
+        if (!knownStringOps.includes(attemptedOp)) {
+          console.warn(`[external-db-bridge] Unknown PostgREST-style operator "${attemptedOp}" in value for key "${key}". Supported: ${knownStringOps.join(', ')}. Treating as literal equality.`);
         }
+      }
+
+      if (['name', 'description', 'title', 'razao_social', 'nome_fantasia', 'nome', 'descricao'].includes(key)) {
+        query = query.ilike(key, `%${value}%`);
+      } else {
+        query = query.eq(key, value);
       }
     } else if (Array.isArray(value)) {
       query = query.in(key, value);
     } else if (typeof value === 'object') {
       // Sanitize object filters: skip silently to prevent "[object Object]" syntax errors.
       // Callers should use suffix-based promotion (foo_gte) or PostgREST string operators instead.
-      console.warn(`[external-db-bridge] Skipping object-type filter for key "${key}" — use suffix promotion (e.g. ${key}_gte) or string operator.`);
+      console.warn(`[external-db-bridge] Skipping object-type filter for key "${key}" — use suffix promotion (e.g. ${key}_gte) or string operator (e.g. "gte.10", "is.null").`);
       return;
     } else {
       query = query.eq(key, value);
