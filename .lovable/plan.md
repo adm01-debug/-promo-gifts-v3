@@ -1,74 +1,86 @@
 
 
-# Aviso visual de fallback de cálculo no simulador
+# Testes do badge "preço atualizado em…" na PDP
 
-Hoje, quando o RPC `fn_get_customization_price` falha, o simulador já cai no `buildLegacyFallbackOption` e dispara um `toast.warning` em `useSimulation`. Mas o aviso é efêmero: assim que o toast some, o vendedor não tem como saber que aquele preço é estimado. Esta tarefa torna o aviso **persistente e visível** no card de cada opção que veio do fallback, e mostra a data/hora do último cálculo bem-sucedido vs. estimado.
+Garantir que, quando o `priceUpdatedAt` chega via `mapPromobrindToProduct` e é repassado ao `ProductDetailHero`, a PDP renderiza corretamente o `PriceFreshnessBadge variant="pdp"` em todos os estados (fresh / aging / stale / unknown).
 
-## 1. Enriquecer o tipo `SimulationOption`
+## 1. Investigar o contrato atual da PDP
 
-Arquivo: `src/types/domain/simulation.ts`
+Antes de escrever os testes, conferir 2 pontos rápidos via `code--view`:
+- `src/pages/product-detail/ProductDetailHero.tsx` — props que recebe e como propaga `priceUpdatedAt` / `priceFreshnessThresholdDays` para o badge.
+- `src/utils/product-mapper.ts` — formato de saída de `mapPromobrindToProduct` (já temos teste cobrindo a propagação dos campos).
 
-- Já existem `priceSource` e `fallbackReason`. Adicionar:
-  - `calculatedAt: string` (ISO, sempre preenchido — momento em que o resultado foi gerado).
-  - `rpcAvailable: boolean` (false quando o RPC falhou e o fallback foi usado).
+Isso confirma o shape mínimo de produto necessário para montar o teste de integração leve.
 
-## 2. Preencher os novos campos no fetcher
+## 2. Novo arquivo: `tests/pages/ProductDetailHero.priceFreshness.test.tsx`
 
-Arquivo: `src/hooks/simulation/simulationPriceFetcher.ts`
+Teste **focado** no `ProductDetailHero` (não na rota inteira), montando-o com um produto mockado. Cobre 4 cenários:
 
-- `fetchOptionForTechnique`: preencher `calculatedAt: new Date().toISOString()` e `rpcAvailable: true` no caminho de sucesso.
-- `buildLegacyFallbackOption`: preencher `calculatedAt: new Date().toISOString()` e `rpcAvailable: false`.
+1. **Fresh (5 dias atrás)** → renderiza pílula esmeralda com data `DD/MM/AAAA` e texto "atualizado em".
+2. **Aging (45 dias, threshold 60)** → renderiza pílula âmbar suave sugerindo confirmação.
+3. **Stale (90 dias, threshold 60)** → renderiza bloco âmbar com "defasado", data absoluta e CTA "Confirme com o fornecedor".
+4. **Unknown (`priceUpdatedAt: null`)** → renderiza pílula neutra "não informada".
 
-## 3. Novo componente `SimulationPriceSourceBadge`
+Estrutura:
 
-Novo arquivo: `src/components/simulation/SimulationPriceSourceBadge.tsx`
+```ts
+import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
+import { render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
+import { ProductDetailHero } from "@/pages/product-detail/ProductDetailHero";
 
-- Props: `priceSource`, `fallbackReason`, `calculatedAt`.
-- Quando `priceSource === 'rpc'` (oficial):
-  - Pílula sutil verde: `✓ Cálculo oficial · atualizado às HH:mm`.
-- Quando `priceSource === 'legacy-fallback'`:
-  - Bloco âmbar destacado (mesmo padrão visual do `PriceFreshnessBadge variant="pdp"` para `stale`):
-    - Linha 1 (negrito): "Estimativa — cálculo oficial indisponível"
-    - Linha 2: "Calculado às HH:mm de DD/MM/AAAA"
-    - Linha 3 (sutil): motivo (`fallbackReason`) + "Confirme o valor antes de fechar o orçamento"
-  - Cores: `amber-100` / `amber-300` / `amber-900` (claro) e `amber-500/15` / `amber-500/60` / `amber-200` (dark), ícone `AlertTriangle`.
-- A11y: `role="status"`, tooltip Radix com texto longo, classes via `cn()`.
+const FIXED_NOW = new Date("2026-04-24T12:00:00.000Z").getTime();
+const daysAgo = (d: number) => new Date(FIXED_NOW - d * 86400000).toISOString();
 
-## 4. Renderizar o badge no card de opção do simulador
+beforeAll(() => { vi.useFakeTimers(); vi.setSystemTime(FIXED_NOW); });
+afterAll(() => { vi.useRealTimers(); });
 
-Investigar e atualizar o(s) componente(s) que renderizam cada `SimulationOption` (provavelmente `src/components/simulation/SimulationOptionCard.tsx` ou similar dentro de `src/components/simulation/`). O badge fica logo abaixo do preço final da opção, antes do breakdown por área/técnica/tamanho.
+function makeProduct(overrides) {
+  return {
+    id: "p-1", name: "Caneta", sku: "CAN-1", price: 10,
+    images: ["/x.png"], colors: [], variations: [],
+    category: { id: "c", name: "Escrita" },
+    supplier: { id: "s", name: "Fornec" },
+    stockStatus: "in-stock", featured: false,
+    priceUpdatedAt: null, priceFreshnessThresholdDays: 60,
+    ...overrides,
+  };
+}
 
-Quando `priceSource === 'rpc'`, exibir versão compacta (verde discreto). Quando `legacy-fallback`, exibir bloco âmbar completo, garantindo que o vendedor não perca a informação.
+const renderHero = (product) =>
+  render(
+    <MemoryRouter>
+      <ProductDetailHero product={product} /* …props mínimas */ />
+    </MemoryRouter>,
+  );
+```
 
-## 5. Suavizar o toast de fallback
+Asserts via `screen.getByRole("status")` + regex no `textContent` / `className` — mesmo padrão dos testes existentes em `tests/components/PriceFreshnessBadge.test.tsx`.
 
-Arquivo: `src/hooks/useSimulation.ts`
+## 3. Estender `tests/utils/product-mapper.test.ts`
 
-- Manter o `toast.warning` mas reduzir para um único disparo por sessão de simulação (evitar spam quando várias opções caem no fallback). O badge persistente no card passa a ser a fonte de verdade visual; o toast vira só um sinal inicial.
+Adicionar 1 caso novo confirmando que, ao receber `price_updated_at: "2026-03-20T..."` do BD externo, o produto mapeado entrega `priceUpdatedAt` no formato ISO **sem mutação** (já existe teste de propagação, mas o novo caso explicita o cenário "veio preenchido → chega na UI"). Pequena adição de 1 `it(...)`.
 
-## 6. Testes
+## 4. Mocks necessários
 
-- `tests/components/SimulationPriceSourceBadge.test.tsx` (novo): cobre os 2 estados (rpc / legacy-fallback) — formatação de data/hora, classes amber/emerald, presença de `role="status"` e do motivo.
-- `tests/hooks/simulation/simulationPriceFetcher.test.ts` (estender, se existir; senão criar): garantir que `calculatedAt` e `rpcAvailable` estão preenchidos corretamente em sucesso e em falha do RPC.
+O `ProductDetailHero` provavelmente usa hooks de catálogo / favoritos / coleções / preço. Estratégia:
+- Identificar via `code--view` quais hooks o `ProductDetailHero` consome.
+- Mockar **só** o que for necessário para o componente renderizar (ex.: `vi.mock("@/hooks/useFavorites", () => ({ useFavorites: () => ({ ... }) }))`).
+- Manter o badge real (sem mock) — ele é o sob-teste.
 
-## Arquivos tocados
+Se o componente for muito acoplado, fallback: testar via composição mínima que renderize só o bloco de preço + badge, isolando a regressão ao contrato `priceUpdatedAt → badge`.
 
-**Criados (2)**:
-- `src/components/simulation/SimulationPriceSourceBadge.tsx`
-- `tests/components/SimulationPriceSourceBadge.test.tsx`
+## 5. Arquivos tocados
 
-**Editados (4)**:
-- `src/types/domain/simulation.ts` (2 campos novos)
-- `src/hooks/simulation/simulationPriceFetcher.ts` (preencher os campos)
-- `src/hooks/useSimulation.ts` (toast 1x por sessão)
-- 1 componente de card de opção do simulador (a confirmar nome exato em `src/components/simulation/`)
+**Criados (1)**:
+- `tests/pages/ProductDetailHero.priceFreshness.test.tsx` — 4 cenários (fresh/aging/stale/unknown).
 
-**Estendido (1, opcional se existir)**:
-- `tests/hooks/simulation/simulationPriceFetcher.test.ts`
+**Editados (1)**:
+- `tests/utils/product-mapper.test.ts` — +1 asserção de "preço atualizado vindo do BD externo chega no campo `priceUpdatedAt`".
 
 ## Compatibilidade
 
-- Zero breaking change: `calculatedAt` e `rpcAvailable` são novos campos opcionais; consumidores existentes que ignoram metadados continuam funcionando.
-- Reusa o vocabulário visual já estabelecido pelo `PriceFreshnessBadge` (amber/emerald + pílula + ícone), mantendo coerência com o padrão de "preço pode estar defasado".
-- Não muda a lógica de cálculo nem o fallback — só torna o estado visível.
+- Zero mudança de produção. Apenas testes adicionais.
+- Reusa `vi.useFakeTimers()` + `daysAgo()` no mesmo padrão dos testes já existentes do `PriceFreshnessBadge`, mantendo determinismo.
+- Se hooks pesados do `ProductDetailHero` exigirem muitos mocks, o plano permite cair para testes focados no bloco de preço — sem comprometer a cobertura do contrato.
 
