@@ -792,6 +792,20 @@ async function handleCrud(body: any, req: Request, corsHeaders: Record<string, s
     console.warn(`🟡 [telemetry] Total request ${operation}:${table} took ${totalDuration}ms (SLOW)`);
   }
 
+  // Edge HTTP cache: SOMENTE para reads públicos sem auth e sem countMode=exact.
+  // Bypass automático para qualquer request autenticada (userId definido) ou contagem exata.
+  const isExactCount = requestCountMode === 'exact';
+  const isCacheable =
+    operation === 'select' &&
+    allowPublicAccess &&
+    !userId &&
+    !isExactCount;
+
+  if (isCacheable) {
+    const ifNoneMatch = req.headers.get('If-None-Match');
+    return cacheableJsonResponse({ data: result, success: true }, corsHeaders, ifNoneMatch);
+  }
+
   return jsonResponse({ data: result, success: true }, 200, corsHeaders);
 }
 
