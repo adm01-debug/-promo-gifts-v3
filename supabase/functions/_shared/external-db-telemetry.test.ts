@@ -33,6 +33,7 @@ Deno.test("classifyErrorKind: auth", () => {
 Deno.test("classifyErrorKind: validation", () => {
   assertEquals(classifyErrorKind("Zod validation failed", "error"), "validation");
   assertEquals(classifyErrorKind("invalid input syntax", "error"), "postgrest_error"); // syntax wins
+  assertEquals(classifyErrorKind("zod validation error on body", "error"), "validation");
   assertEquals(classifyErrorKind("HTTP 400 invalid input", "error"), "validation");
 });
 
