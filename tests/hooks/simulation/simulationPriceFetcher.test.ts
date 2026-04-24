@@ -127,6 +127,9 @@ describe('fetchAllOptions', () => {
 
     expect(out).toHaveLength(1);
     expect(out[0].priceSource).toBe('rpc');
+    expect(out[0].rpcAvailable).toBe(true);
+    expect(out[0].calculatedAt).toBeTruthy();
+    expect(() => new Date(out[0].calculatedAt!).toISOString()).not.toThrow();
     expect(out[0].techniqueId).toBe('tech-silk');
     expect(out[0].totalProductCost).toBe(500); // 5 * 100
     expect(out[0].totalPersonalizationCost).toBeGreaterThan(0);
