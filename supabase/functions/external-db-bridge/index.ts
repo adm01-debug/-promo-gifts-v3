@@ -732,9 +732,24 @@ async function handleSelect(externalSupabase: any, table: string, opts: any) {
   const queryCountMode = countMode === 'none' ? undefined : countMode;
 
   // Use lightweight columns for products table when select is '*' (avoids heavy JSONB columns like personalization_areas, metadata)
-  const effectiveSelect = (table === 'products' && (!select || select === '*'))
-    ? PRODUCTS_LIGHTWEIGHT_SELECT
-    : (select || '*');
+  // Also force lightweight projection on listings (limit > 50) when caller didn't ask for a focused select,
+  // or asked for a heavy/star select. Single-record fetches (id present) keep the requested select.
+  const requestedLimitRaw = typeof queryLimit === 'number' && queryLimit > 0 ? queryLimit : 500;
+  const isListing = !id && requestedLimitRaw > 50;
+  const callerSelectIsHeavy = !select
+    || select === '*'
+    || select.split(',').length > 25
+    || /personalization_areas|metadata|specifications|attributes_json|description_html/i.test(select);
+
+  let effectiveSelect: string;
+  if (table === 'products' && (!select || select === '*')) {
+    effectiveSelect = PRODUCTS_LIGHTWEIGHT_SELECT;
+  } else if (table === 'products' && isListing && callerSelectIsHeavy) {
+    console.log(`[external-db-bridge] Forcing lightweight select on products listing (limit=${requestedLimitRaw})`);
+    effectiveSelect = PRODUCTS_LIGHTWEIGHT_SELECT;
+  } else {
+    effectiveSelect = select || '*';
+  }
 
   let query = queryCountMode
     ? externalSupabase.from(table).select(effectiveSelect, { count: queryCountMode })
@@ -744,7 +759,7 @@ async function handleSelect(externalSupabase: any, table: string, opts: any) {
   if (id) query = query.eq('id', id);
   if (orderBy) query = query.order(orderBy.column, { ascending: orderBy.ascending ?? false });
 
-  const requestedLimit = typeof queryLimit === 'number' && queryLimit > 0 ? queryLimit : 500;
+  const requestedLimit = requestedLimitRaw;
   const safeOffset = typeof queryOffset === 'number' && queryOffset >= 0 ? queryOffset : 0;
   const safeLimit = computeSafeLimit(requestedLimit, table, !!(hasSearch || hasNamePrefix), safeOffset, effectiveSelect);
   query = query.range(safeOffset, safeOffset + safeLimit - 1);
