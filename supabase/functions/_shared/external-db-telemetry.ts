@@ -6,6 +6,15 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 export const SLOW_QUERY_THRESHOLD_MS = 3000;
 export const VERY_SLOW_QUERY_THRESHOLD_MS = 8000;
 
+export type ErrorKind =
+  | 'timeout'
+  | 'postgrest_error'
+  | 'validation'
+  | 'network'
+  | 'rate_limit'
+  | 'auth'
+  | 'unknown';
+
 export interface TelemetryMeta {
   operation: string;
   table?: string;
@@ -17,7 +26,23 @@ export interface TelemetryMeta {
   recordCount?: number;
   status: 'ok' | 'error' | 'slow' | 'very_slow';
   error?: string;
+  errorKind?: ErrorKind | null;
   userId?: string | null;
+}
+
+// Classifica error_message bruto em uma categoria estável.
+// Heurística determinística — baseada em padrões observados no postgrest/deno.
+export function classifyErrorKind(error: string | undefined | null, status?: TelemetryMeta['status']): ErrorKind | null {
+  if (status === 'ok' || status === 'slow' || status === 'very_slow') return null;
+  if (!error) return status === 'error' ? 'unknown' : null;
+  const msg = error.toLowerCase();
+  if (msg.includes('timeout') || msg.includes('timed out') || msg.includes('etimedout') || msg.includes('57014')) return 'timeout';
+  if (msg.includes('rate limit') || msg.includes('429') || msg.includes('too many requests')) return 'rate_limit';
+  if (msg.includes('jwt') || msg.includes('unauthor') || msg.includes('401') || msg.includes('403') || msg.includes('forbidden')) return 'auth';
+  if (msg.includes('validation') || msg.includes('zod') || msg.includes('invalid input') || msg.includes('400')) return 'validation';
+  if (msg.includes('pgrst') || msg.includes('postgrest') || msg.includes('relation ') || msg.includes('column ') || msg.includes('syntax error')) return 'postgrest_error';
+  if (msg.includes('fetch failed') || msg.includes('econnrefused') || msg.includes('network') || msg.includes('socket') || msg.includes('dns')) return 'network';
+  return 'unknown';
 }
 
 export function emitTelemetry(meta: TelemetryMeta) {
