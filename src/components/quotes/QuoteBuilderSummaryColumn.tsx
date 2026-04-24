@@ -460,6 +460,23 @@ export function QuoteBuilderSummaryColumn({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Confirm All Stale Prices Dialog */}
+      <ConfirmDialog
+        open={confirmAllOpen}
+        onOpenChange={setConfirmAllOpen}
+        variant="warning"
+        title="Confirmar preços com o fornecedor?"
+        description={`Você está confirmando que validou ${staleCount} preço(s) diretamente com o(s) fornecedor(es). O alerta de preço defasado será removido destes itens neste orçamento.`}
+        confirmText={`Confirmar ${staleCount} preço${staleCount === 1 ? '' : 's'}`}
+        cancelText="Cancelar"
+        onConfirm={() => {
+          confirmAllStalePrices?.();
+          setConfirmAllOpen(false);
+          setShowOnlyStale(false);
+          toast.success(`${staleCount} preço(s) confirmado(s) com fornecedor`);
+        }}
+      />
     </div>
   );
 }
