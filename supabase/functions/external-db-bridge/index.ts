@@ -1343,7 +1343,75 @@ const PRODUCTS_LIGHTWEIGHT_SELECT = 'id,name,sku,sale_price,cost_price,primary_i
 //   limit > 50 AND select touches heavy JSONB     → force lightweight  (Rule C)
 //   otherwise                               → keep caller's select
 export const LIGHTWEIGHT_LIMIT_THRESHOLD = 50;
-const HEAVY_JSONB_COLUMN_RE = /personalization_areas|metadata|specifications|attributes_json|description_html/i;
+
+// Colunas confirmadas como JSONB pesados / arrays grandes / texto longo na tabela `products`.
+// Fonte: inspeção empírica do payload SELECT * (148 cols → ver lightweightSelect.e2e.test.ts)
+// e PRODUCTS_LIGHTWEIGHT_SELECT (subset das 24 colunas leves).
+//
+// Manter como Set para lookup O(1) e tokenização precisa (sem falsos positivos via substring).
+export const HEAVY_PRODUCT_COLUMNS = new Set<string>([
+  // JSONB / objects
+  'metadata',
+  'specifications',
+  'attributes_json',
+  'attributes',
+  'personalization_areas',
+  'schema_json',
+  'dimensions',
+  'seo_issues',
+  // HTML / texto longo
+  'description_html',
+  'description_packaging_info',
+  'meta_description',
+  'meta_keywords',
+  'ai_description',
+  'ai_summary',
+  // Arrays / JSON arrays grandes
+  'images',
+  'videos',
+  'tags',
+  'key_benefits',
+  'capacities',
+  'combined_sizes',
+  'use_cases',
+  'target_audience',
+  'colors',
+  'materials',
+]);
+
+// Extrai o nome canônico de uma coluna PostgREST a partir de um token de select.
+// Suporta:
+//   "name"                    → "name"
+//   "alias:column"            → "column"          (alias PostgREST)
+//   "metadata->>summary"      → "metadata"        (operador JSON)
+//   "metadata->path->>x"      → "metadata"
+//   "alias:metadata->>x"      → "metadata"
+//   "table(col1,col2)"        → ""                (embed — não é coluna direta)
+//   "  spaced  "              → "spaced"
+// Retorna '' quando o token não representa uma coluna direta da tabela base
+// (embeds não devem disparar o detector de "heavy").
+export function extractBaseColumn(token: string): string {
+  const trimmed = token.trim();
+  if (!trimmed) return '';
+  // Embed PostgREST (joins): "fk_table(...)" — não é uma coluna direta da base.
+  if (trimmed.includes('(')) return '';
+  // Remove alias PostgREST "alias:column"
+  const afterAlias = trimmed.includes(':') ? trimmed.slice(trimmed.indexOf(':') + 1) : trimmed;
+  // Remove operadores JSON "->" e "->>"
+  const beforeArrow = afterAlias.split('->')[0];
+  return beforeArrow.trim();
+}
+
+// Detecta se o select do caller toca uma coluna pesada da tabela `products`.
+// Usa tokenização com boundary (não regex bruto) para evitar falsos positivos
+// como `meta_description` casando dentro de `meta_description_id`.
+export function callerSelectIsHeavy(select: string): boolean {
+  for (const rawToken of select.split(',')) {
+    const col = extractBaseColumn(rawToken);
+    if (col && HEAVY_PRODUCT_COLUMNS.has(col)) return true;
+  }
+  return false;
+}
 
 export interface ResolveProductsSelectInput {
   table: string;
@@ -1389,7 +1457,7 @@ export function resolveProductsSelect(input: ResolveProductsSelectInput): Resolv
   if (select.split(',').length > 25) {
     return { effectiveSelect: PRODUCTS_LIGHTWEIGHT_SELECT, forcedLightweight: true, reason: 'wide-select-listing' };
   }
-  if (HEAVY_JSONB_COLUMN_RE.test(select)) {
+  if (callerSelectIsHeavy(select)) {
     return { effectiveSelect: PRODUCTS_LIGHTWEIGHT_SELECT, forcedLightweight: true, reason: 'heavy-jsonb-listing' };
   }
 
