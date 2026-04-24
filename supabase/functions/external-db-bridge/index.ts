@@ -1407,6 +1407,24 @@ function setCached(key: string, payload: string): void {
   responseCache.set(key, { payload, expiresAt: Date.now() + CACHE_TTL_MS });
 }
 
+/**
+ * Invalida todas as entradas de cache que referenciam a tabela tocada.
+ * Como a key embute a tabela, fazemos full scan barato (max 200 entradas).
+ */
+function invalidateCacheForTable(table: string): void {
+  const tagPrefix = `t:${table}|`;
+  let removed = 0;
+  for (const [key, entry] of responseCache.entries()) {
+    // entry.payload contém o resultado, mas precisamos identificar pela tabela.
+    // Reescrevemos buildCacheKey para anexar tag legível antes do hash.
+    if (key.startsWith(tagPrefix)) {
+      responseCache.delete(key);
+      removed++;
+    }
+  }
+  if (removed > 0) console.info(`🧹 [cache] invalidated ${removed} entries for table=${table}`);
+}
+
 function cachedJsonResponse(payload: string, corsHeaders: Record<string, string>, hit: boolean): Response {
   return new Response(payload, {
     status: 200,
