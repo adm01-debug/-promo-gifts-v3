@@ -233,10 +233,9 @@ describe("PriceFreshnessBadge — cópia pt-BR exata por variant", () => {
         />,
       );
       const aria = screen.getByRole("status").getAttribute("aria-label")!;
-      expect(aria).toMatch(/^Preço possivelmente defasado/);
-      expect(aria).toMatch(/24 de janeiro de 2026/);
-      expect(aria).toMatch(/há 90 dias/);
-      expect(aria).toMatch(/onfirme com o fornecedor/);
+      expect(aria).toBe(
+        "Atenção: preço possivelmente defasado. Última atualização do fornecedor em 24 de janeiro de 2026, há 90 dias. Confirme o valor antes de enviar o orçamento ao cliente.",
+      );
     });
   });
 
