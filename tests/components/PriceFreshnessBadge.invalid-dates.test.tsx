@@ -43,12 +43,18 @@ const ABSENT_INPUTS: { label: string; value: string | null | undefined }[] = [
   { label: "string vazia", value: "" },
 ];
 
-/** Inputs equivalentes a "data inválida" (string presente mas não-parseável). */
+/**
+ * Inputs equivalentes a "data inválida" (string presente mas não-parseável
+ * pelo `Date` constructor). Cuidado: strings como "12345" ou "2025-06"
+ * são parseadas com sucesso (ano 12345 / junho de 2025) — não são
+ * "inválidas" sob a ótica do JS, então não entram aqui. Cobrimos apenas
+ * o que `Number.isNaN(d.getTime())` realmente captura.
+ */
 const INVALID_INPUTS: { label: string; value: string }[] = [
   { label: "lixo textual", value: "not-a-date" },
   { label: "ISO com mês/dia/hora fora do range", value: "2025-13-45T99:99:99Z" },
-  { label: "número solto sem timezone", value: "12345" },
-  { label: "data parcial sem dia", value: "2025-06" },
+  { label: "string só com letras", value: "abcdefg" },
+  { label: "objeto serializado por engano", value: "[object Object]" },
 ];
 
 /**
