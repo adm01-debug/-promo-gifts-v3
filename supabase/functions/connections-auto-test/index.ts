@@ -74,7 +74,7 @@ const BATCH_SIZE = 5;
 const RETRY_BACKOFF_MS = [500, 1500, 3000] as const;
 const MAX_ATTEMPTS = RETRY_BACKOFF_MS.length;
 
-interface ActiveConnection {
+export interface ActiveConnection {
   id: string;
   type: string;
   name: string;
