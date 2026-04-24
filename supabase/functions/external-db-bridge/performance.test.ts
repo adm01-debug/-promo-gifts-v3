@@ -120,10 +120,11 @@ Deno.test("perf: small limit=10 still receives full payload (no over-eager light
   assert(rows.length > 0, "esperava pelo menos 1 produto retornado");
 
   const sample = rows[0];
-  // Pelo menos UM dos campos pesados deve estar presente (mesmo que null) no payload completo.
-  const hasAnyHeavy = HEAVY_FIELDS.some((f) => Object.prototype.hasOwnProperty.call(sample, f));
+  const columnCount = Object.keys(sample).length;
+  console.log(`[perf] full payload (small limit) — columns=${columnCount}`);
+
   assert(
-    hasAnyHeavy,
-    `listing pequeno (limit=10) deveria preservar campos completos, mas nenhum dos campos pesados foi retornado: ${HEAVY_FIELDS.join(", ")}`,
+    columnCount >= FULL_MIN_COLUMNS,
+    `listing pequeno (limit=10) deveria preservar payload completo (≥ ${FULL_MIN_COLUMNS} colunas), recebeu ${columnCount} — regra de lightweight pode estar agressiva demais`,
   );
 });
