@@ -149,9 +149,11 @@ describe("QuoteBuilderSummaryColumn — Confirmar todos (com diálogo)", () => {
     ).toBeInTheDocument();
     expect(screen.getByText(/validou 2 preço/i)).toBeInTheDocument();
 
-    // Os badges inline (status do PriceFreshnessBadge) ainda existem — nada confirmado
+    // Os badges inline (status do PriceFreshnessBadge) ainda existem — nada
+    // confirmado. Usamos getAllByLabelText porque o Radix AlertDialog aplica
+    // aria-hidden no body, escondendo elementos da accessibility tree.
     expect(
-      screen.getAllByRole("status", { name: /preço pode estar defasado/i }),
+      screen.getAllByLabelText(/preço pode estar defasado/i, { selector: "span" }),
     ).toHaveLength(2);
   });
 
@@ -171,7 +173,7 @@ describe("QuoteBuilderSummaryColumn — Confirmar todos (com diálogo)", () => {
     // Chip e badges continuam intactos
     expect(screen.getByRole("button", { name: /preço a confirmar/i })).toBeInTheDocument();
     expect(
-      screen.getAllByRole("status", { name: /preço pode estar defasado/i }),
+      screen.getAllByLabelText(/preço pode estar defasado/i, { selector: "span" }),
     ).toHaveLength(2);
   });
 
@@ -212,7 +214,7 @@ describe("QuoteBuilderSummaryColumn — Confirmar todos (com diálogo)", () => {
     expect(screen.queryByRole("button", { name: /confirmar todos/i })).not.toBeInTheDocument();
     // Nenhum badge stale/aging restante (todos viraram pill verde "Confirmado")
     expect(
-      screen.queryByRole("status", { name: /preço pode estar defasado/i }),
+      screen.queryByLabelText(/preço pode estar defasado/i, { selector: "span" }),
     ).not.toBeInTheDocument();
   });
 
