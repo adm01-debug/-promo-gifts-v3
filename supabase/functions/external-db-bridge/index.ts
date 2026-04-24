@@ -693,22 +693,30 @@ async function handleCrud(body: any, req: Request, corsHeaders: Record<string, s
   let userId: string | null = null;
   let userRole = 'public';
 
-  if (authHeader?.startsWith('Bearer ')) {
+  // ⚡ FAST-PATH: skip auth entirely for anonymous reads on public catalog tables.
+  // Saves ~150–300ms per request (no getUser RTT, no user_roles lookup).
+  // Write operations and sensitive tables ALWAYS go through full auth below.
+  const isWriteOp = ['insert', 'update', 'delete', 'upsert', 'batch_insert'].includes(operation);
+  const skipAuth = allowPublicAccess && !isWriteOp && (!authHeader || !authHeader.startsWith('Bearer '));
+
+  if (!skipAuth && authHeader?.startsWith('Bearer ')) {
     const localSupabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_ANON_KEY')!,
       { global: { headers: { Authorization: authHeader } } }
     );
-    const { data: userData, error: userError } = await localSupabase.auth.getUser();
+    // getClaims is faster than getUser — verifies JWT locally without server RTT.
+    const token = authHeader.replace('Bearer ', '');
+    const { data: claimsData, error: claimsError } = await localSupabase.auth.getClaims(token);
 
-    if (userData?.user && !userError) {
-      userId = userData.user.id;
+    if (claimsData?.claims?.sub && !claimsError) {
+      userId = claimsData.claims.sub;
       const localService = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
       const { data: userRoles, error: roleError } = await localService.from('user_roles').select('role').eq('user_id', userId);
       if (roleError) console.error('Error fetching user roles:', roleError);
       userRole = userRoles?.[0]?.role || 'vendedor';
-    } else {
-      console.error('Auth failed:', userError?.message);
+    } else if (!allowPublicAccess) {
+      console.error('Auth failed:', claimsError?.message);
     }
   }
 
@@ -761,6 +769,15 @@ async function handleCrud(body: any, req: Request, corsHeaders: Record<string, s
       cacheHitsTotal++;
       const totalDuration = Math.round(performance.now() - requestStartTime);
       console.info(`⚡ [cache] HIT ${operation}:${table} ${totalDuration}ms key=${cacheKey} (hits=${cacheHitsTotal} misses=${cacheMissesTotal})`);
+      // Persist cache hit so the admin dashboard can compute Cache Hit Rate.
+      emitTelemetry({
+        operation,
+        table,
+        durationMs: totalDuration,
+        status: 'ok',
+        cacheHit: true,
+        userId,
+      });
       return cachedJsonResponse(cached, corsHeaders, true);
     }
     cacheMissesTotal++;

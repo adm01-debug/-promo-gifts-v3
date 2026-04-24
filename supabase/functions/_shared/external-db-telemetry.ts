@@ -28,6 +28,8 @@ export interface TelemetryMeta {
   error?: string;
   errorKind?: ErrorKind | null;
   userId?: string | null;
+  retryCount?: number;
+  cacheHit?: boolean;
 }
 
 // Classifica error_message bruto em uma categoria estável.
@@ -55,8 +57,9 @@ export function emitTelemetry(meta: TelemetryMeta) {
   else if (meta.status === 'error') console.error(line + ` error=${meta.error}`);
   else console.info(line);
 
-  // Persist slow/error queries (fire-and-forget)
-  if (meta.status !== 'ok') {
+  // Persist slow/error queries (fire-and-forget) — also persists cache hits & retry savings for analytics.
+  const shouldPersist = meta.status !== 'ok' || meta.cacheHit === true || (meta.retryCount ?? 0) > 0;
+  if (shouldPersist) {
     try {
       const localUrl = Deno.env.get('SUPABASE_URL');
       const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
@@ -78,6 +81,8 @@ export function emitTelemetry(meta: TelemetryMeta) {
           error_message: meta.error || null,
           error_kind: errorKind,
           user_id: meta.userId || null,
+          retry_count: meta.retryCount ?? 0,
+          cache_hit: meta.cacheHit ?? false,
         }).then(({ error: insertErr }) => {
           if (insertErr) console.warn('[telemetry-persist] Insert failed:', insertErr.message);
         });
