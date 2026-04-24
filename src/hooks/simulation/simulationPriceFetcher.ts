@@ -104,6 +104,53 @@ function buildUnavailableOption(
 }
 
 /**
+ * Fallback heurístico (legado): usado APENAS quando o RPC oficial falha
+ * ou está indisponível. Estima o preço a partir de campos do catálogo
+ * `personalization_techniques` (unit_cost, setup_cost) — sem consultar
+ * tabelas de gravação. Marca a opção com `priceSource: 'legacy-fallback'`
+ * e `fallbackReason` para que a UI exiba aviso ao usuário.
+ */
+function buildLegacyFallbackOption(
+  technique: Technique,
+  settings: TechniqueSettings,
+  quantity: number,
+  productUnitPrice: number,
+  reason: string,
+  idSuffix?: string,
+): SimulationOption {
+  const positions = Math.max(1, settings.positions);
+  const colors = Math.max(1, settings.colors);
+  // Estimativa: unit_cost por cor por posição × quantidade + setup × posições
+  const unitCost = (technique.unit_cost ?? 0) * colors * positions;
+  const setupCost = (technique.setup_cost ?? 0) * positions;
+  const totalPersonalizationCost = unitCost * quantity + setupCost;
+  const costPerUnit = quantity > 0 ? totalPersonalizationCost / quantity : 0;
+  const totalProductCost = productUnitPrice * quantity;
+  const grandTotal = totalProductCost + totalPersonalizationCost;
+  return {
+    id: `${technique.id}-${idSuffix ?? 'fb'}`,
+    techniqueId: technique.id,
+    techniqueName: technique.name,
+    techniqueCode: technique.code ?? '',
+    colors,
+    width: settings.width,
+    height: settings.height,
+    positions,
+    unitCost,
+    setupCost,
+    totalPersonalizationCost,
+    costPerUnit,
+    estimatedDays: technique.estimated_days,
+    productUnitPrice,
+    totalProductCost,
+    grandTotal,
+    grandTotalPerUnit: quantity > 0 ? grandTotal / quantity : 0,
+    priceSource: 'legacy-fallback',
+    fallbackReason: reason,
+  };
+}
+
+/**
  * Busca o preço de UMA técnica via RPC `fn_get_customization_price` e
  * monta a `SimulationOption` correspondente.
  */
