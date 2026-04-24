@@ -211,6 +211,7 @@ export function useTecnicaById(id: string | undefined) {
 
       const records = data?.data?.records || [];
       return records.length > 0 ? bridgeToTecnicaUnificada(adaptTecnicaRow(records[0])) : null;
+    },
     ...TECNICAS_QUERY_OPTIONS,
   });
 }
@@ -237,6 +238,7 @@ export function useTecnicaByCodigo(codigo: string | undefined) {
 
       const records = data?.data?.records || [];
       return records.length > 0 ? bridgeToTecnicaUnificada(adaptTecnicaRow(records[0])) : null;
+    },
     ...TECNICAS_QUERY_OPTIONS,
   });
 }

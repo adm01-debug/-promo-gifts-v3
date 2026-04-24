@@ -14,6 +14,8 @@
 
 import type { CustomizationPriceFlat } from '@/hooks/useGravacaoPriceV2';
 import { detectPriceSchema, warnUnknownSchemaOnce, type PriceSchemaVersion } from './schema-detection';
+import { validateRpcPayload } from '@/lib/personalization/rpc-validator';
+import { PRICE_CONTRACT } from '@/lib/personalization/rpc-contracts';
 
 // ============================================
 // MAPA DE RENOMEAÇÃO v7 (futuro)
@@ -167,6 +169,10 @@ export function adaptPriceResponseWithMeta(
   if (!resp) {
     return { flat: parseFlat({}), schemaVersion: 'unknown' };
   }
+  // Validação observacional do payload bruto (apenas formatos não-nested)
+  if (!('area' in resp)) {
+    validateRpcPayload(PRICE_CONTRACT, resp);
+  }
   const version = detectPriceSchema(resp);
   switch (version) {
     case 'v5.9-nested':
@@ -177,7 +183,6 @@ export function adaptPriceResponseWithMeta(
       return { flat: parseFlat(normalizeV7Aliases(resp) as AnyRec), schemaVersion: version };
     default: {
       warnUnknownSchemaOnce('price-response', resp);
-      // Fallback: tenta o parser flat — geralmente sobrevive a payloads parciais.
       return { flat: parseFlat(resp as AnyRec), schemaVersion: 'unknown' };
     }
   }

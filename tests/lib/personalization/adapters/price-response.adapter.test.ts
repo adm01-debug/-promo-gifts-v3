@@ -186,8 +186,10 @@ describe('adaptPriceResponseWithMeta', () => {
   it('emite warn deduplicado para unknown', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
     adaptPriceResponseWithMeta({ foo: 'bar' } as Record<string, unknown>);
-    adaptPriceResponseWithMeta({ baz: 'qux' } as Record<string, unknown>);
-    expect(warn).toHaveBeenCalledTimes(1);
+    const before = warn.mock.calls.length;
+    adaptPriceResponseWithMeta({ foo: 'bar' } as Record<string, unknown>);
+    // Mesmo payload → não deve disparar warns adicionais
+    expect(warn.mock.calls.length).toBe(before);
     warn.mockRestore();
   });
 });

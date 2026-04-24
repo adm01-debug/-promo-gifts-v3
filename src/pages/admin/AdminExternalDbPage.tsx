@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Database, RefreshCw, ChevronRight, ArrowLeft, FileSearch, Copy, CheckCircle2, AlertTriangle } from "lucide-react";
+import { Database, RefreshCw, ChevronRight, ArrowLeft, FileSearch, Copy, CheckCircle2, AlertTriangle, ShieldCheck } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,12 +15,58 @@ import {
   buildMarkdownReport,
   type TableDiff,
 } from "./engraving-schema-diff";
+import {
+  getContractMismatches,
+  getRecentMismatches,
+  type ContractMismatchEntry,
+} from "@/lib/personalization/adapters";
+import { ALL_CONTRACTS } from "@/lib/personalization/rpc-contracts";
+import { validateRpcPayload, type ValidationResult } from "@/lib/personalization/rpc-validator";
+import { invokeExternalRpc } from "@/lib/external-rpc";
 
 export default function AdminExternalDbPage() {
   const { result, isLoading, listTables, describeTable } = useExternalDbInspect();
   const [selectedTable, setSelectedTable] = useState<string | null>(null);
   const [diffs, setDiffs] = useState<TableDiff[] | null>(null);
   const [diffLoading, setDiffLoading] = useState(false);
+  const [contractCounts, setContractCounts] = useState<Record<string, number>>({});
+  const [recentMismatches, setRecentMismatches] = useState<ContractMismatchEntry[]>([]);
+  const [liveResults, setLiveResults] = useState<Record<string, ValidationResult>>({});
+  const [liveLoading, setLiveLoading] = useState<string | null>(null);
+
+  const refreshTelemetry = () => {
+    setContractCounts(getContractMismatches() as Record<string, number>);
+    setRecentMismatches([...getRecentMismatches()]);
+  };
+
+  const testContract = async (contractName: string) => {
+    setLiveLoading(contractName);
+    try {
+      const contract = ALL_CONTRACTS.find((c) => c.name === contractName);
+      if (!contract) return;
+      // Payloads de teste mínimos — front aceita "samples".
+      // O usuário pode ajustar via UI futura; por ora validamos o último payload conhecido.
+      // Aqui só rodamos uma chamada vazia para registrar erro/sucesso.
+      const params: Record<string, unknown> =
+        contractName === "fn_get_customization_price"
+          ? { p_area_id: "00000000-0000-0000-0000-000000000000", p_quantidade: 100, p_num_cores: 1 }
+          : { p_product_id: "00000000-0000-0000-0000-000000000000" };
+      const result = await invokeExternalRpc<Record<string, unknown>>(contractName, params);
+      const validation = validateRpcPayload(contract, result ?? {});
+      setLiveResults((prev) => ({ ...prev, [contractName]: validation }));
+      toast.success(`${contractName}`, {
+        description: validation.ok ? "Contrato OK" : `${validation.missing.length} campos ausentes`,
+      });
+      refreshTelemetry();
+    } catch (err) {
+      toast.error("Falha ao testar RPC", {
+        description: err instanceof Error ? err.message : "Erro desconhecido",
+      });
+    } finally {
+      setLiveLoading(null);
+    }
+  };
+
 
   const runEngravingDiff = async () => {
     setDiffLoading(true);
@@ -75,6 +121,9 @@ export default function AdminExternalDbPage() {
 
   useEffect(() => {
     listTables();
+    refreshTelemetry();
+    const id = setInterval(refreshTelemetry, 4000);
+    return () => clearInterval(id);
   }, []);
 
   const handleSelectTable = async (tableName: string) => {
@@ -205,6 +254,110 @@ export default function AdminExternalDbPage() {
             ))}
           </CardContent>
         )}
+      </Card>
+
+      <Card className="border-primary/30">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <ShieldCheck className="h-5 w-5" /> Validação RPC (Personalização)
+          </CardTitle>
+          <p className="text-xs text-muted-foreground mt-1">
+            Compara payloads de <code>fn_get_customization_price</code> e{" "}
+            <code>fn_get_product_customization_options</code> contra o contrato esperado pelo
+            front. Mismatches são contados em{" "}
+            <code>window.__personalizationSchemaStats.contractMismatches</code>.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {ALL_CONTRACTS.map((c) => {
+            const count = contractCounts[c.name] ?? 0;
+            const live = liveResults[c.name];
+            return (
+              <div key={c.name} className="border rounded-lg p-3 space-y-2">
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <div className="flex items-center gap-2">
+                    {count === 0 ? (
+                      <CheckCircle2 className="h-4 w-4 text-success" />
+                    ) : (
+                      <AlertTriangle className="h-4 w-4 text-destructive" />
+                    )}
+                    <code className="text-sm font-semibold">{c.name}</code>
+                    <Badge variant={count === 0 ? "outline" : "destructive"}>
+                      {count} mismatch{count === 1 ? "" : "es"}
+                    </Badge>
+                    <Badge variant="outline" className="text-xs">
+                      {c.requiredFields.length} required
+                    </Badge>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={liveLoading === c.name}
+                    onClick={() => testContract(c.name)}
+                  >
+                    {liveLoading === c.name ? "Testando..." : "Testar agora"}
+                  </Button>
+                </div>
+                {live && (
+                  <div className="text-xs space-y-1 pt-1 border-t">
+                    <p>
+                      <strong>Resultado:</strong>{" "}
+                      <Badge variant={live.ok ? "default" : "destructive"} className="text-xs">
+                        {live.ok ? "OK" : "Mismatch"}
+                      </Badge>
+                    </p>
+                    {live.missing.length > 0 && (
+                      <p>
+                        <strong className="text-destructive">Missing:</strong>{" "}
+                        {live.missing.map((m) => (
+                          <code key={m} className="bg-destructive/10 px-1 rounded mr-1">
+                            {m}
+                          </code>
+                        ))}
+                      </p>
+                    )}
+                    {live.extras.length > 0 && (
+                      <p>
+                        <strong className="text-success">Extras:</strong>{" "}
+                        {live.extras.map((m) => (
+                          <code key={m} className="bg-success/10 px-1 rounded mr-1">
+                            {m}
+                          </code>
+                        ))}
+                      </p>
+                    )}
+                    {Object.keys(live.resolvedAliases).length > 0 && (
+                      <p>
+                        <strong>Aliases resolvidos:</strong>{" "}
+                        <code>{JSON.stringify(live.resolvedAliases)}</code>
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          {recentMismatches.length > 0 && (
+            <details className="text-xs">
+              <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
+                Últimos {recentMismatches.length} desvios observados
+              </summary>
+              <ul className="mt-2 space-y-1">
+                {recentMismatches.slice().reverse().map((m, i) => (
+                  <li key={i} className="border-l-2 border-destructive/50 pl-2">
+                    <code className="text-xs">{m.contract}</code>{" "}
+                    <span className="text-muted-foreground">
+                      ({new Date(m.at).toLocaleTimeString()})
+                    </span>
+                    {m.missing.length > 0 && (
+                      <div>missing: {m.missing.join(", ")}</div>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
+        </CardContent>
       </Card>
 
       {selectedTable ? (

@@ -19,6 +19,8 @@
  */
 
 import type { CustomizationOptionsResponse, GravacaoLocation, TechniqueOption } from '@/types/customization';
+import { validateRpcPayload } from '@/lib/personalization/rpc-validator';
+import { OPTIONS_CONTRACT } from '@/lib/personalization/rpc-contracts';
 
 type Raw = Record<string, unknown>;
 
@@ -99,6 +101,8 @@ export function adaptCustomizationOptions(
   resp: Raw | null | undefined,
 ): CustomizationOptionsResponse | null {
   if (!resp || typeof resp !== 'object') return null;
+  // Validação observacional — não bloqueia o parse
+  validateRpcPayload(OPTIONS_CONTRACT, resp);
   const locationsRaw = (resp.locations ?? resp.locais ?? []) as Raw[];
   return {
     product_id: String(pick(resp, 'product_id', 'produto_id', 'id') ?? ''),

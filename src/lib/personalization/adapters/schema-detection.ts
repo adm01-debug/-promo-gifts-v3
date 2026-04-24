@@ -15,9 +15,20 @@ export type PriceSchemaVersion = 'v5.9-nested' | 'v6.x-flat' | 'v7-new' | 'unkno
 
 export type SchemaStats = Record<PriceSchemaVersion, number>;
 
+export interface ContractMismatchEntry {
+  contract: string;
+  missing: string[];
+  extras: string[];
+  at: number;
+}
+
 export interface FullSchemaStats extends SchemaStats {
   /** Contador por nome de coluna PT legado detectado em payloads brutos. */
   legacyFieldsSeen: Record<string, number>;
+  /** Contagem de mismatches por contrato. */
+  contractMismatches: Record<string, number>;
+  /** Buffer circular dos últimos 20 desvios detectados. */
+  recentMismatches: ContractMismatchEntry[];
 }
 
 const stats: SchemaStats = {
@@ -28,6 +39,9 @@ const stats: SchemaStats = {
 };
 
 const legacyFieldsSeen: Record<string, number> = {};
+const contractMismatches: Record<string, number> = {};
+const recentMismatches: ContractMismatchEntry[] = [];
+const MAX_RECENT = 20;
 
 // Aviso "unknown" deduplicado por sessão para não poluir o console.
 const warnedKeys = new Set<string>();
@@ -37,6 +51,8 @@ function publishStats() {
     (window as unknown as { __personalizationSchemaStats?: FullSchemaStats }).__personalizationSchemaStats = {
       ...stats,
       legacyFieldsSeen: { ...legacyFieldsSeen },
+      contractMismatches: { ...contractMismatches },
+      recentMismatches: [...recentMismatches],
     };
   }
 }
@@ -46,10 +62,6 @@ function bumpStat(version: PriceSchemaVersion) {
   publishStats();
 }
 
-/**
- * Registra detecção de um campo legado (PT antigo). Útil para saber quando
- * o backend parou de devolver os nomes antigos e podemos limpar deprecations.
- */
 export function recordLegacyField(name: string): void {
   legacyFieldsSeen[name] = (legacyFieldsSeen[name] ?? 0) + 1;
   publishStats();
@@ -58,6 +70,29 @@ export function recordLegacyField(name: string): void {
 export function getLegacyFieldsSeen(): Readonly<Record<string, number>> {
   return { ...legacyFieldsSeen };
 }
+
+/**
+ * Registra desvio entre payload e contrato esperado.
+ */
+export function recordContractMismatch(
+  contract: string,
+  missing: string[],
+  extras: string[],
+): void {
+  contractMismatches[contract] = (contractMismatches[contract] ?? 0) + 1;
+  recentMismatches.push({ contract, missing, extras, at: Date.now() });
+  if (recentMismatches.length > MAX_RECENT) recentMismatches.shift();
+  publishStats();
+}
+
+export function getContractMismatches(): Readonly<Record<string, number>> {
+  return { ...contractMismatches };
+}
+
+export function getRecentMismatches(): ReadonlyArray<ContractMismatchEntry> {
+  return [...recentMismatches];
+}
+
 
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -124,5 +159,7 @@ export function __resetSchemaStatsForTests(): void {
   stats['v7-new'] = 0;
   stats.unknown = 0;
   for (const k of Object.keys(legacyFieldsSeen)) delete legacyFieldsSeen[k];
+  for (const k of Object.keys(contractMismatches)) delete contractMismatches[k];
+  recentMismatches.length = 0;
   warnedKeys.clear();
 }

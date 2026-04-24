@@ -7,6 +7,8 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { invokeExternalRpc } from '@/lib/external-rpc';
+import { validateRpcPayload } from '@/lib/personalization/rpc-validator';
+import { PRICE_CONTRACT } from '@/lib/personalization/rpc-contracts';
 import type { CustomizationPriceResponseV6 } from '@/types/customization';
 
 export interface CalculatePriceParamsV6 {
@@ -45,12 +47,13 @@ export function useCustomizationPriceCalculator() {
         'fn_get_customization_price',
         rpcParams
       );
-      
+
       setLoading(false);
       if (!result?.success) {
         setError(result?.error || 'Erro no cálculo de preço');
         return null;
       }
+      validateRpcPayload(PRICE_CONTRACT, result as unknown as Record<string, unknown>);
       return result;
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro ao calcular preço';
@@ -115,6 +118,7 @@ export function useCustomizationPriceReactive(
         );
 
         if (result?.success) {
+          validateRpcPayload(PRICE_CONTRACT, result as unknown as Record<string, unknown>);
           setPrice(result);
         } else {
           setError(result?.error || 'Erro no cálculo');
