@@ -884,11 +884,16 @@ async function handleSelect(externalSupabase: any, table: string, opts: any) {
   // (single source of truth, hard guard: limit > 50 AND no id)
   // ============================================
   const requestedLimitRaw = typeof queryLimit === 'number' && queryLimit > 0 ? queryLimit : 500;
+  // hasId considera tanto `id` top-level quanto `filters.id` (fetch direto via filters):
+  // ambos resultam em consulta single-row e devem preservar o payload completo
+  // para detail/edit pages — não devem ser degradados pelo lightweight forçado.
+  const filtersId = filters && typeof filters === 'object' ? (filters as Record<string, unknown>).id : undefined;
+  const hasIdSignal = !!id || (filtersId !== undefined && filtersId !== null && filtersId !== '');
   const resolved = resolveProductsSelect({
     table,
     select,
     limit: requestedLimitRaw,
-    hasId: !!id,
+    hasId: hasIdSignal,
   });
   const effectiveSelect = resolved.effectiveSelect;
   if (resolved.forcedLightweight) {
