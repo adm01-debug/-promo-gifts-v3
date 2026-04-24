@@ -21,6 +21,7 @@ import { cn } from "@/lib/utils";
 import {
   getPriceFreshness,
   formatPriceDateLong,
+  formatPriceDateShort,
   type PriceFreshnessStatus,
   type PriceFreshness,
 } from "@/utils/price-freshness";
