@@ -161,6 +161,11 @@ export function PriceFreshnessBadge({
   const freshness = getPriceFreshness(priceUpdatedAt, thresholdDays);
   const { Icon, color } = STATUS_STYLES[freshness.status];
 
+  // Sufixo "(limite Yd)" só aparece quando o produto traz threshold próprio.
+  // Para o resto do catálogo (default global de 60d) o badge segue limpo.
+  const explicitThreshold = hasExplicitThreshold(thresholdDays);
+  const limitSuffix = explicitThreshold ? ` (limite ${thresholdDays}d)` : "";
+
   // Quiet variants only render when there's something worth flagging.
   if (
     !alwaysShow &&
