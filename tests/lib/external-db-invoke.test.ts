@@ -81,4 +81,31 @@ describe('invokeWithRetry', () => {
     expect(result.error).toBe(retryableError);
     expect(mockInvoke).toHaveBeenCalledTimes(2);
   });
+
+  it('fails fast on deterministic schema error (does not exist)', async () => {
+    const schemaError = new Error('column products.price_updated_at does not exist');
+    (mockInvoke as any).mockResolvedValue({ data: null, error: schemaError });
+
+    const result = await invokeWithRetry({ table: 'products', operation: 'select' }, 3);
+    expect(result.error).toBe(schemaError);
+    expect(mockInvoke).toHaveBeenCalledTimes(1);
+  });
+
+  it('fails fast on invalid input syntax', async () => {
+    const validationError = new Error('invalid input syntax for type timestamp');
+    (mockInvoke as any).mockResolvedValue({ data: null, error: validationError });
+
+    const result = await invokeWithRetry({ table: 'products', operation: 'select' }, 3);
+    expect(result.error).toBe(validationError);
+    expect(mockInvoke).toHaveBeenCalledTimes(1);
+  });
+
+  it('fails fast on PGRST error', async () => {
+    const pgrstError = new Error('PGRST204: column not found');
+    (mockInvoke as any).mockResolvedValue({ data: null, error: pgrstError });
+
+    const result = await invokeWithRetry({ table: 'products', operation: 'select' }, 3);
+    expect(result.error).toBe(pgrstError);
+    expect(mockInvoke).toHaveBeenCalledTimes(1);
+  });
 });
