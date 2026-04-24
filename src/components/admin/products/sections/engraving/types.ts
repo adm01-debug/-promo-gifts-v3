@@ -8,22 +8,44 @@ import { TECHNIQUE_ICONS } from '@/types/gravacao';
 /** Técnica do catálogo externo (tabela_preco_gravacao_oficial) */
 export interface ExternalTechnique {
   id: string;
+  /** @deprecated use `name` */
   nome: string;
+  name?: string | null;
   codigo_curto?: string | null;
+  /** @deprecated use `code` */
+  codigo?: string | null;
+  code?: string | null;
+  /** @deprecated use `group` */
   grupo_tecnica?: string;
+  group?: string | null;
+  /** @deprecated use `group_name` */
   nome_grupo?: string;
+  group_name?: string | null;
+  /** @deprecated use `max_colors` */
   max_cores?: number | string | null;
+  max_colors?: number | null;
+  /** @deprecated use `charges_per_color` */
   cobra_por_cor?: boolean;
+  charges_per_color?: boolean | null;
+  /** @deprecated use `setup_price` */
   custo_setup?: number | null;
+  setup_price?: number | null;
+  /** @deprecated use `handling_price` */
   custo_manuseio?: number | null;
+  handling_price?: number | null;
+  /** @deprecated use `active` */
   ativo?: boolean;
+  active?: boolean | null;
 }
 
 /** Registro de print_area_techniques (BD externo) */
 export interface PrintAreaTechnique {
   id: string;
   product_id: string;
+  /** @deprecated use `price_table_id` */
   tabela_preco_id: string;
+  price_table_id?: string | null;
+  /** @deprecated use `location_code` (são equivalentes) */
   location_code: string;
   location_name: string | null;
   location_order: number | null;
@@ -32,7 +54,9 @@ export interface PrintAreaTechnique {
   is_curved: boolean;
   shape: string;
   technique_order: number;
+  /** @deprecated use `is_active` */
   is_active: boolean;
+  ativo?: boolean | null;
   notes: string | null;
   unit_cost: number | null;
   created_at?: string;
