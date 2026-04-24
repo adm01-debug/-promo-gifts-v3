@@ -1344,6 +1344,26 @@ const PRODUCTS_LIGHTWEIGHT_SELECT = 'id,name,sku,sale_price,cost_price,primary_i
 //   otherwise                               → keep caller's select
 export const LIGHTWEIGHT_LIMIT_THRESHOLD = 50;
 
+// Threshold (em número de colunas no select do caller) acima do qual forçamos
+// lightweight como Rule B ("wide-select-listing"). Configurável via env
+// LIGHTWEIGHT_COLUMN_THRESHOLD para permitir tuning sem redeploy de código —
+// fallback para 25, valor empírico que cobre o PRODUCTS_LIGHTWEIGHT_SELECT (24 cols)
+// com folga de 1 coluna para selects ligeiramente customizados.
+function readColumnThresholdFromEnv(): number {
+  try {
+    // deno-lint-ignore no-explicit-any
+    const denoGlobal = (globalThis as any).Deno;
+    const raw = denoGlobal?.env?.get?.('LIGHTWEIGHT_COLUMN_THRESHOLD');
+    if (!raw) return 25;
+    const parsed = Number.parseInt(String(raw), 10);
+    if (!Number.isFinite(parsed) || parsed <= 0) return 25;
+    return parsed;
+  } catch {
+    return 25;
+  }
+}
+export const WIDE_SELECT_COLUMN_THRESHOLD = readColumnThresholdFromEnv();
+
 // Colunas confirmadas como JSONB pesados / arrays grandes / texto longo na tabela `products`.
 // Fonte: inspeção empírica do payload SELECT * (148 cols → ver lightweightSelect.e2e.test.ts)
 // e PRODUCTS_LIGHTWEIGHT_SELECT (subset das 24 colunas leves).
