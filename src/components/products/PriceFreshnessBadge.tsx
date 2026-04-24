@@ -289,7 +289,10 @@ export function PriceFreshnessBadge({
       <Tooltip>
         <TooltipTrigger asChild>{body}</TooltipTrigger>
         <TooltipContent side="top" className="max-w-xs text-xs">
-          {freshness.tooltip}
+          <FreshnessTooltipBody
+            freshness={freshness}
+            priceUpdatedAt={priceUpdatedAt}
+          />
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
