@@ -116,8 +116,8 @@ console.log("─".repeat(80));
 for (const l of lines) console.log(l);
 console.log("─".repeat(80));
 console.log(
-  `Pisos: statements ≥${THRESHOLDS.statements}%, branches ≥${THRESHOLDS.branches}%, ` +
-    `functions ≥${THRESHOLDS.functions}%, lines ≥${THRESHOLDS.lines}%`,
+  `Pisos calibrados por arquivo (baseline atual − ~1pp). Para subir um piso ` +
+    `após adicionar testes, edite FILE_THRESHOLDS em scripts/check-price-freshness-coverage.mjs.`,
 );
 
 if (hasFailure) {
