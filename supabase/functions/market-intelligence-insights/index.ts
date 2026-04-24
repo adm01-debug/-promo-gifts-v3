@@ -1,7 +1,7 @@
 // supabase/functions/market-intelligence-insights/index.ts
 // Generates AI-powered insights for the Market Intelligence dashboard.
 // v2: server-side cache, structured logging, telemetry, quota check, smart empty state.
-import { createClient } from "npm:@supabase/supabase-js@2.49.4";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { authenticateRequest, authErrorResponse } from "../_shared/auth.ts";
 
 const corsHeaders = {

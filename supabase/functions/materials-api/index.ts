@@ -1,5 +1,5 @@
 import { getCorsHeaders } from '../_shared/cors.ts';
-import { createClient } from "npm:@supabase/supabase-js@2.49.4";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { z } from '../_shared/zod-validate.ts';
 
 const MaterialsRequestSchema = z.object({

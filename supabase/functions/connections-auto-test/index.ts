@@ -1,7 +1,7 @@
 // connections-auto-test: cron-driven (every 30min). Re-tests every active
 // connection in `external_connections` and updates last_test_* fields +
 // inserts a row in `connection_test_history` with triggered_by='cron'.
-import { createClient } from "npm:@supabase/supabase-js@2.49.4";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { runConnectionTest, type ConnectionType, isTransientFailure } from "../_shared/connection-test-runner.ts";
 import { resolveTimeout } from "../_shared/connection-timeouts.ts";
 
