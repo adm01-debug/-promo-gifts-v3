@@ -194,10 +194,10 @@ describe("QuoteBuilderSummaryColumn — reatividade do chip + botão de confirma
     expect(getStaleChip()).toHaveAttribute("aria-pressed", "true");
 
     // Confirma o único stale.
+    const ctas = getInlineConfirmCtas();
+    expect(ctas.length).toBe(1);
     act(() => {
-      fireEvent.click(
-        screen.getByRole("button", { name: /confirmei com fornecedor/i }),
-      );
+      fireEvent.click(ctas[0]);
     });
 
     // Auto-desliga via setTimeout(0) — avança timers para disparar.
