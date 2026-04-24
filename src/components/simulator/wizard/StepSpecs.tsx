@@ -13,12 +13,14 @@ import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { 
   SlidersHorizontal, 
   Palette, 
   Ruler,
   DollarSign,
   ChevronLeft,
+  ChevronDown,
   AlertTriangle,
   BarChart3,
   Loader2,
