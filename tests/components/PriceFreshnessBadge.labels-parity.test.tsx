@@ -7,20 +7,22 @@
  *
  * Aqui garantimos que o `PriceFreshnessBadge` — quando renderizado no
  * variant `inline` (PDP/Quick View, sem CTA, sem confirmação) — expõe
- * exatamente os mesmos rótulos:
- *   1. Aria-label do badge === `freshness.label`.
- *   2. Texto visível === `freshness.label` (sem sufixo de limite quando
+ * exatamente os mesmos rótulos no **texto visível** (DOM). O aria-label
+ * passou a ser um copy enriquecido de a11y a partir da mudança
+ * "Acessibilidade do selo": leitores de tela ouvem agora "Preço atualizado…",
+ * "Atenção: preço possivelmente defasado…", etc., em vez do label cru da
+ * utility. Por isso esta suíte valida:
+ *   1. Texto visível === `freshness.label` (sem sufixo de limite quando
  *      o produto usa o threshold default global).
- *   3. Pluralização correta: "hoje" / "há 1 dia" / "há N dias".
- *   4. Copy de stale === "Preço pode estar defasado (há Nd)".
- *   5. Copy de unknown === "Data de atualização não informada".
+ *   2. Aria-label CONTÉM um termo distintivo do status (atualizado /
+ *      próximo do limite / possivelmente defasado / não informada) —
+ *      leitor de tela continua ouvindo a categoria correta.
+ *   3. Pluralização correta no DOM: "hoje" / "há 1 dia" / "há N dias".
+ *   4. Copy de stale (DOM) === "Preço pode estar defasado (há Nd)".
+ *   5. Copy de unknown (DOM) === "Data de atualização não informada".
  *   6. Quando o threshold é explícito (per-product), o badge anexa
  *      "(limite Yd)" ao label da utility — paridade preservada como
- *      *prefixo*.
- *
- * Regressões aqui significam que badge e utility divergiram — quem
- * lê o badge na UI veria um copy diferente do que os testes da
- * função garantem.
+ *      *prefixo* no DOM.
  */
 import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
