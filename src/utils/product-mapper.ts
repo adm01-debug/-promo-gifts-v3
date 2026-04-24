@@ -126,10 +126,17 @@ export function mapPromobrindToProduct(p: PromobrindProduct): Product {
     leadTimeDays: p.lead_time_days ?? null,
     // SSOT: coluna dedicada `price_updated_at` no BD externo (Promobrind),
     // mantida por trigger automático em mudanças de preço (cost_price,
-    // sale_price, suggested_price, list_price, cost_price_1..5). Fallback para
-    // `updated_at` apenas como rede de segurança caso o trigger ainda não
-    // tenha disparado para algum produto antigo.
-    priceUpdatedAt: p.price_updated_at ?? p.updated_at ?? null,
+    // sale_price, suggested_price, list_price, cost_price_1..5).
+    // Precedência: price_updated_at SEMPRE vence quando presente; só caímos
+    // em `updated_at` se o campo oficial for null/undefined/string vazia
+    // (~0,08% dos produtos hoje — registros antigos sem trigger disparado).
+    priceUpdatedAt:
+      (typeof p.price_updated_at === 'string' && p.price_updated_at.trim() !== ''
+        ? p.price_updated_at
+        : null)
+      ?? (typeof p.updated_at === 'string' && p.updated_at.trim() !== ''
+        ? p.updated_at
+        : null),
     priceFreshnessThresholdDays: p.price_freshness_threshold_days ?? null,
     variations: variations.length > 0 ? variations : undefined,
     productVideos: p.product_videos?.length ? p.product_videos : undefined,
