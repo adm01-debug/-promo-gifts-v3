@@ -979,7 +979,7 @@ async function handleSelect(externalSupabase: any, table: string, opts: any) {
       console.warn(
         `[external-db-bridge] orderBy fallback: column "${orderColumn}" failed on table "${table}" ` +
         `(code=${errCode || 'n/a'}, msg="${errMsg}"). Retrying without orderBy. ` +
-        `Caller origin: userId=${userId ?? 'anon'} select="${effectiveSelect.slice(0, 80)}..." filters=${JSON.stringify(filters ?? {}).slice(0, 200)}`
+        `Caller origin: select="${effectiveSelect.slice(0, 80)}..." filters=${JSON.stringify(filters ?? {}).slice(0, 200)}`
       );
 
       const retryStart = performance.now();
