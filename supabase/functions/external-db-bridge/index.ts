@@ -475,6 +475,18 @@ async function handleBatch(body: any, req: Request, corsHeaders: Record<string, 
       const resourceGroup = getResourceGroup(qTable);
       if (!resourceGroup) return { success: false, error: `Tabela '${qTable}' não mapeada` };
 
+      // Reject malformed filters (objects, NaN, functions) per-batch-item BEFORE building the query.
+      const batchFilterViolations = validateFilters(qFilters);
+      if (batchFilterViolations.length > 0) {
+        console.warn(`[batch] Query ${idx} (${qTable}) rejected — invalid filters:`, batchFilterViolations);
+        return {
+          success: false,
+          error: 'Invalid filter values',
+          details: batchFilterViolations,
+          hint: 'Each filter value must be a primitive. Use suffix promotion (e.g. price_gte) or PostgREST string operators ("gte.10", "is.null", "in.(a,b)").',
+        };
+      }
+
       try {
         const queryStart = performance.now();
         // Use lightweight select for products in batch too
