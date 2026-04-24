@@ -19,15 +19,22 @@ const SLA_MEDIAN_MS = 3500;       // mediana deve ficar bem abaixo do baseline (
 const SLA_HARD_CEILING_MS = 8000; // teto absoluto: nenhuma request individual deve exceder
 const MEASUREMENT_RUNS = 3;
 
-// Campos JSONB pesados que são dropados pelo PRODUCTS_LIGHTWEIGHT_SELECT.
-// Fonte: supabase/functions/external-db-bridge/index.ts (PRODUCTS_LIGHTWEIGHT_SELECT)
+// Campos pesados (JSONB / array / texto longo) presentes no SELECT * completo
+// que NÃO devem aparecer no PRODUCTS_LIGHTWEIGHT_SELECT.
+// Confirmado empiricamente: small=148 cols vs lightweight=24 cols.
 const HEAVY_FIELDS = [
-  "metadata",
-  "personalization_areas",
-  "description_html",
-  "specifications",
-  "attributes",
+  "schema_json",
+  "images",
+  "videos",
+  "dimensions",
+  "seo_issues",
+  "meta_description",
+  "tags",
+  "key_benefits",
 ];
+// Lightweight é estritamente menor que o payload completo.
+const LIGHTWEIGHT_MAX_COLUMNS = 40;
+const FULL_MIN_COLUMNS = 60;
 
 async function callListing(limit: number): Promise<{ ms: number; rows: any[]; status: number }> {
   const started = performance.now();
