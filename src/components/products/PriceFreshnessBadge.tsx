@@ -165,12 +165,16 @@ function formatCompactRelative(days: number | null): string {
   return `há ${Math.floor(days / 365)}a`;
 }
 
+/**
+ * Padrão único pt-BR para a data absoluta exibida no corpo do badge:
+ * "DD/MM/AAAA". Usado em todas as variantes (inline, compact, pdp) para
+ * garantir consistência entre cards, lista e tabela. A data por extenso
+ * + hora local fica reservada ao tooltip (camada de detalhamento).
+ */
 function formatAbsoluteDate(value: string | Date): string | null {
   const d = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(d.getTime())) return null;
-  // PDP usa data por extenso (PT-BR) — padrão único alinhado ao tooltip
-  // para evitar leituras ambíguas como "03/04/2026".
-  return formatPriceDateLong(d);
+  return formatPriceDateShort(d);
 }
 
 function formatRelativeDaysShort(days: number | null): string {
