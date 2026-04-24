@@ -46,8 +46,13 @@ export {
   getSchemaStats,
   getLegacyFieldsSeen,
   recordLegacyField,
+  recordContractMismatch,
+  getContractMismatches,
+  getRecentMismatches,
   __resetSchemaStatsForTests,
   type PriceSchemaVersion,
   type SchemaStats,
   type FullSchemaStats,
+  type ContractMismatchEntry,
 } from './schema-detection';
+
