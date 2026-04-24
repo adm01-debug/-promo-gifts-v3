@@ -168,11 +168,10 @@ describe("QuoteBuilderSummaryColumn — reatividade do chip + botão de confirma
     expect(within(getStaleChip()!).getByText("1")).toBeInTheDocument();
     expect(getConfirmAllButton()).toBeInTheDocument();
 
-    const confirmCta = screen.getByRole("button", {
-      name: /confirmei com fornecedor/i,
-    });
+    const confirmCtas = getInlineConfirmCtas();
+    expect(confirmCtas.length).toBe(1);
     act(() => {
-      fireEvent.click(confirmCta);
+      fireEvent.click(confirmCtas[0]);
     });
 
     expect(getStaleChip()).toBeNull();
