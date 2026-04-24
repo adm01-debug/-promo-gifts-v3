@@ -166,6 +166,7 @@ export function useSimulation() {
     setTechniqueSettingsState(prev => { const u = { ...prev, [techniqueId]: { ...prev[techniqueId], [field]: value } }; setLastTechniqueSettings(u); return u; });
   }, [setLastTechniqueSettings]);
 
+  const fallbackToastShownRef = useRef(false);
   const calculateSimulation = useCallback(async () => {
     if (!selectedProduct || selectedTechniques.length === 0) {
       toast.error("Selecione um produto e pelo menos uma técnica");
@@ -187,10 +188,15 @@ export function useSimulation() {
       const fallback = options.filter(o => o.priceSource === 'legacy-fallback').length;
       const unavailable = options.filter(o => o.priceSource === 'unavailable').length;
       if (fallback > 0) {
-        toast.warning(
-          `Simulação calculada com estimativa para ${fallback} técnica(s). O cálculo oficial não respondeu — use os valores como referência e revise antes de fechar.`,
-          { duration: 7000 },
-        );
+        // Toast inicial só uma vez por sessão — o badge persistente no card
+        // é a fonte de verdade visual a partir daí.
+        if (!fallbackToastShownRef.current) {
+          fallbackToastShownRef.current = true;
+          toast.warning(
+            `Cálculo oficial indisponível para ${fallback} técnica(s). Os valores marcados são estimativas — revise antes de fechar.`,
+            { duration: 7000, id: 'simulation-fallback-warning' },
+          );
+        }
       } else if (unavailable > 0) {
         toast.success(`Simulação calculada: ${available} ok, ${unavailable} indisponível(is)`);
       } else {

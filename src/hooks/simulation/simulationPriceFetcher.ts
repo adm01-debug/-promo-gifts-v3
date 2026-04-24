@@ -100,6 +100,8 @@ function buildUnavailableOption(
     grandTotalPerUnit: quantity > 0 ? totalProductCost / quantity : 0,
     priceSource: 'unavailable',
     unavailableReason: reason,
+    calculatedAt: new Date().toISOString(),
+    rpcAvailable: false,
   };
 }
 
@@ -147,6 +149,8 @@ function buildLegacyFallbackOption(
     grandTotalPerUnit: quantity > 0 ? grandTotal / quantity : 0,
     priceSource: 'legacy-fallback',
     fallbackReason: reason,
+    calculatedAt: new Date().toISOString(),
+    rpcAvailable: false,
   };
 }
 
@@ -251,6 +255,8 @@ export async function fetchOptionForTechnique(
     grandTotal,
     grandTotalPerUnit,
     priceSource: 'rpc',
+    calculatedAt: new Date().toISOString(),
+    rpcAvailable: true,
   };
 }
 
