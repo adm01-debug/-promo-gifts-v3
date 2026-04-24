@@ -357,7 +357,7 @@ function removeTechniqueFromAreas(personalizationAreas: unknown, areaId: string,
 // ============================================
 
 const TopLevelBodySchema = z.object({
-  operation: z.enum(['select', 'insert', 'update', 'delete', 'upsert', 'batch_insert', 'rpc', 'batch']),
+  operation: z.enum(['select', 'insert', 'update', 'delete', 'upsert', 'batch_insert', 'rpc', 'batch', 'ping']),
   table: z.string().min(1).optional(),
   queries: z.array(z.record(z.unknown())).max(10).optional(),
   rpcName: z.string().optional(),
@@ -373,6 +373,7 @@ const TopLevelBodySchema = z.object({
   onConflict: z.string().optional(),
 }).refine(data => {
   if (data.operation === 'batch') return true;
+  if (data.operation === 'ping') return true;
   if (data.operation === 'rpc') return !!data.rpcName;
   return !!data.table;
 }, { message: "Field 'table' is required for CRUD operations, 'rpcName' for RPC" });
@@ -402,6 +403,13 @@ Deno.serve(async (req) => {
     }
 
     const body = parsed.data as Record<string, unknown>;
+
+    // ============================================
+    // PING (keep-alive — no DB I/O, no auth)
+    // ============================================
+    if (body.operation === 'ping') {
+      return jsonResponse({ ok: true, ts: Date.now(), warm: true }, 200, corsHeaders);
+    }
 
     // ============================================
     // BATCH OPERATION

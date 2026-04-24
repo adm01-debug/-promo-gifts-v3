@@ -14,9 +14,34 @@ const RETRYABLE_PATTERNS = [
   'AbortError', 'Failed to fetch',
 ];
 
-function isRetryableError(msg: string): boolean {
+// Erros determinísticos do Postgres/PostgREST: retry NUNCA muda o resultado.
+// Falhar imediatamente economiza até 3×backoff (~5.6s) por chamada inválida.
+const NON_RETRYABLE_PATTERNS = [
+  'does not exist',          // column / relation X does not exist
+  'invalid input syntax',    // type cast failures
+  'pgrst',                   // PostgREST schema/parse errors
+  'permission denied',       // RLS / role mismatch
+  'duplicate key',           // 23505
+  'violates ',               // foreign key / not-null / check constraints
+  'syntax error',            // SQL syntax
+  'malformed',
+  'jwt',                     // auth-related (cliente precisa renovar, não retry)
+  'unauthorized', '401', '403', '400',
+];
+
+function matches(msg: string, patterns: string[]): boolean {
   const lower = msg.toLowerCase();
-  return RETRYABLE_PATTERNS.some(p => lower.includes(p.toLowerCase()));
+  return patterns.some(p => lower.includes(p.toLowerCase()));
+}
+
+function isNonRetryableError(msg: string): boolean {
+  return matches(msg, NON_RETRYABLE_PATTERNS);
+}
+
+function isRetryableError(msg: string): boolean {
+  // Determinísticos vencem a lista de retry mesmo que casem por acidente.
+  if (isNonRetryableError(msg)) return false;
+  return matches(msg, RETRYABLE_PATTERNS);
 }
 
 export async function extractFunctionErrorMessage(error: unknown): Promise<string> {
@@ -55,6 +80,13 @@ export async function invokeWithRetry(
     if (!error) return { data, error: null };
 
     const msg = await extractFunctionErrorMessage(error);
+
+    // Fail-fast em erros determinísticos (schema/validação/auth) — retry não muda o resultado.
+    if (isNonRetryableError(msg)) {
+      logger.warn(`[external-db] Fail-fast (deterministic error, no retry): ${msg}`);
+      return { data, error };
+    }
+
     if (attempt < retries && isRetryableError(msg)) {
       const delay = Math.min(INITIAL_BACKOFF_MS * Math.pow(2, attempt), 4000); // Cap at 4s
       logger.warn(`[external-db] Retry ${attempt + 1}/${retries} after ${delay}ms: ${msg}`);
