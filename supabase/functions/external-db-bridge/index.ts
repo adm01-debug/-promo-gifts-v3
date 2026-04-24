@@ -56,7 +56,21 @@ function applyFilters(
       return;
     }
 
+    // Suffix-based operator promotion: foo_gte → .gte('foo', val), foo_isnull → .is('foo', null|not.null)
+    const suffixMatch = key.match(/^(.+)_(gte|lte|gt|lt|neq|like|ilike|isnull|notnull)$/);
+    if (suffixMatch) {
+      const [, col, op] = suffixMatch;
+      if (op === 'isnull') { query = query.is(col, null); return; }
+      if (op === 'notnull') { query = query.not(col, 'is', null); return; }
+      query = query[op](col, value);
+      return;
+    }
+
     if (typeof value === 'string') {
+      // Support PostgREST-style is.null / not.is.null
+      if (value === 'is.null') { query = query.is(key, null); return; }
+      if (value === 'not.is.null' || value === 'is.not.null') { query = query.not(key, 'is', null); return; }
+
       // Support PostgREST-style in.(val1,val2,...) operator
       const inMatch = value.match(/^in\.\((.+)\)$/);
       if (inMatch) {
@@ -64,7 +78,7 @@ function applyFilters(
         query = query.in(key, vals);
       } else {
         // Support PostgREST-style comparison operators: gte., lte., gt., lt., neq.
-        const operatorMatch = value.match(/^(gte|lte|gt|lt|neq)\.(.+)$/);
+        const operatorMatch = value.match(/^(gte|lte|gt|lt|neq|like|ilike)\.(.+)$/);
         if (operatorMatch) {
           const [, op, val] = operatorMatch;
           query = query[op](key, val);
@@ -76,6 +90,11 @@ function applyFilters(
       }
     } else if (Array.isArray(value)) {
       query = query.in(key, value);
+    } else if (typeof value === 'object') {
+      // Sanitize object filters: skip silently to prevent "[object Object]" syntax errors.
+      // Callers should use suffix-based promotion (foo_gte) or PostgREST string operators instead.
+      console.warn(`[external-db-bridge] Skipping object-type filter for key "${key}" — use suffix promotion (e.g. ${key}_gte) or string operator.`);
+      return;
     } else {
       query = query.eq(key, value);
     }
@@ -668,6 +687,28 @@ async function handleSelect(externalSupabase: any, table: string, opts: any) {
     return { records: paginated, count: allRecords.length };
   }
 
+  // #7: In-memory TTL cache for static reference tables (10min, see external-db-cache.ts)
+  // Avoids repeated cold queries on small static tables that drive the catalog UI.
+  const STATIC_TABLES = new Set([
+    'categories', 'suppliers', 'tags', 'colors', 'materials',
+    'print_techniques', 'print_areas', 'price_tables',
+  ]);
+  const isCacheable =
+    STATIC_TABLES.has(table) &&
+    !id &&
+    requestCountMode !== 'exact' &&
+    requestCountMode !== 'planned';
+  const cacheKey = isCacheable
+    ? `select:${table}:${JSON.stringify({ filters: filters ?? null, select: select ?? '*', orderBy: orderBy ?? null, queryLimit: queryLimit ?? null, queryOffset: queryOffset ?? 0 })}`
+    : null;
+  if (cacheKey) {
+    const cached = getCached<{ records: unknown[]; count: number | null }>(cacheKey);
+    if (cached) {
+      emitTelemetry({ operation: 'select', table, limit: queryLimit, offset: queryOffset ?? 0, countMode: 'cache', durationMs: 0, status: 'ok', recordCount: cached.records.length });
+      return cached;
+    }
+  }
+
   // Category descendants optimization
   let categoryDescendants: string[] | null = null;
   if (table === 'products' && filters && (filters.category_id || filters.main_category_id)) {
@@ -774,7 +815,9 @@ async function handleSelect(externalSupabase: any, table: string, opts: any) {
   emitTelemetry({ operation: 'select', table, limit: safeLimit, offset: safeOffset, countMode, durationMs: selectDuration, status: classifyDuration(selectDuration), recordCount: records.length });
   console.log(`Selected ${records.length} records from ${table} (offset=${safeOffset}, limit=${safeLimit}, count=${count ?? 'n/a'})`);
 
-  return { records, count: count ?? null };
+  const result = { records, count: count ?? null };
+  if (cacheKey) setCache(cacheKey, result);
+  return result;
 }
 
 // ============================================
