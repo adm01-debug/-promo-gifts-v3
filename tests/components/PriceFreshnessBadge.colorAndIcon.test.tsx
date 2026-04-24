@@ -65,7 +65,7 @@ const COLOR_FAMILY_BY_STATUS: Record<Status, RegExp> = {
 
 // Identificador do ícone Lucide via classe `lucide-*` que o pacote injeta.
 const ICON_CLASS_BY_STATUS: Record<Status, RegExp> = {
-  fresh: /lucide-circle-check-big|lucide-check-circle-2/,
+  fresh: /lucide-circle-check-big|lucide-check-circle-?2/,
   aging: /lucide-clock/,
   stale: /lucide-triangle-alert|lucide-alert-triangle/,
   unknown: /lucide-circle-help|lucide-help-circle/,
