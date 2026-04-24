@@ -81,9 +81,14 @@ function buildAccessibleLabel(
         : "Atenção: preço possivelmente defasado. Confirme com o fornecedor antes de enviar o orçamento.";
       break;
     case "unknown":
-    default:
-      ariaLabel =
-        "Preço sem data de atualização informada pelo fornecedor. Confirme o valor antes de enviar o orçamento.";
+    default: {
+      // Diferencia entre data ausente e data inválida (ambas caem em
+      // `unknown` na utility, mas o `freshness.label` carrega a causa).
+      const isInvalid = /inválida/i.test(freshness.label);
+      ariaLabel = isInvalid
+        ? "Preço com data de atualização inválida informada pelo fornecedor. Confirme o valor antes de enviar o orçamento."
+        : "Preço com data de atualização não informada pelo fornecedor. Confirme o valor antes de enviar o orçamento.";
+    }
   }
 
   // `title` espelha o aria-label para que o tooltip nativo do navegador
