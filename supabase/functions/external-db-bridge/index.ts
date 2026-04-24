@@ -761,6 +761,17 @@ async function handleCrud(body: any, req: Request, corsHeaders: Record<string, s
 async function handleSelect(externalSupabase: any, table: string, opts: any) {
   const { filters, id, select, orderBy, queryLimit, queryOffset, requestCountMode, isVirtual, aliasType, corsHeaders } = opts;
 
+  // Reject malformed filters (objects, NaN, functions) BEFORE building the query.
+  const filterViolations = validateFilters(filters as Record<string, unknown> | undefined);
+  if (filterViolations.length > 0) {
+    console.warn(`[external-db-bridge] Rejecting select on "${table}" — ${filterViolations.length} invalid filter(s):`, filterViolations);
+    return jsonResponse({
+      error: 'Invalid filter values',
+      details: filterViolations,
+      hint: 'Each filter value must be a primitive. For range/null/in queries use suffix promotion (e.g. price_gte) or PostgREST string operators (e.g. "gte.10", "is.null", "in.(a,b)").',
+    }, 400, corsHeaders);
+  }
+
   if (isVirtual) {
     const selectStart = performance.now();
     const productIdFromId = typeof id === 'string' ? parseVirtualId(id)?.productId : null;
