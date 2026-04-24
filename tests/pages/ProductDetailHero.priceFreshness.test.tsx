@@ -73,7 +73,8 @@ describe("ProductDetailHero — price freshness badge", () => {
     );
     const badge = screen.getByRole("status");
     expect(badge.textContent).toMatch(/atualizado em/i);
-    expect(badge.textContent).toMatch(/\d{2}\/\d{2}\/\d{4}/);
+    // Padrão PT-BR por extenso: "DD de <mês> de AAAA"
+    expect(badge.textContent).toMatch(/\d{1,2} de [a-zçãéíúô]+ de \d{4}/i);
   });
 
   it("renders aging state with amber styling when within 50–100% of threshold", () => {

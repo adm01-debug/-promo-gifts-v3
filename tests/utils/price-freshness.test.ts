@@ -77,9 +77,10 @@ describe("getPriceFreshness", () => {
     expect(r.status).toBe("fresh");
   });
 
-  it("includes absolute date and threshold context in tooltip", () => {
+  it("includes absolute date (long PT-BR) and threshold context in tooltip", () => {
     const r = getPriceFreshness(daysAgo(10), 60);
-    expect(r.tooltip).toMatch(/\d{2}\/\d{2}\/\d{4}/);
-    expect(r.tooltip).toMatch(/60 dias/);
+    // Padrão por extenso: "DD de <mês> de AAAA"
+    expect(r.tooltip).toMatch(/\d{1,2} de [a-zçãéíúô]+ de \d{4}/i);
+    expect(r.tooltip).toMatch(/Validade configurada: 60 dias/);
   });
 });

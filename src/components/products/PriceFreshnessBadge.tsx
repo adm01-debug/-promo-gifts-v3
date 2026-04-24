@@ -20,6 +20,7 @@ import {
 import { cn } from "@/lib/utils";
 import {
   getPriceFreshness,
+  formatPriceDateLong,
   type PriceFreshnessStatus,
 } from "@/utils/price-freshness";
 
@@ -53,11 +54,9 @@ function formatCompactRelative(days: number | null): string {
 function formatAbsoluteDate(value: string | Date): string | null {
   const d = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(d.getTime())) return null;
-  return new Intl.DateTimeFormat("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  }).format(d);
+  // PDP usa data por extenso (PT-BR) — padrão único alinhado ao tooltip
+  // para evitar leituras ambíguas como "03/04/2026".
+  return formatPriceDateLong(d);
 }
 
 function formatRelativeDaysShort(days: number | null): string {

@@ -83,7 +83,7 @@ describe("PriceFreshnessBadge", () => {
         variant="inline"
       />,
     );
-    expect(screen.getByRole("status")).toHaveAccessibleName(/indisponível/i);
+    expect(screen.getByRole("status")).toHaveAccessibleName(/não informada/i);
   });
 
   it("forces compact render when alwaysShow=true even for fresh status", () => {
@@ -112,7 +112,7 @@ describe("PriceFreshnessBadge", () => {
     expect(badge.className).toMatch(/amber-(100|300|500)/);
   });
 
-  it("renders pdp variant with fresh state showing absolute DD/MM/AAAA date", () => {
+  it("renders pdp variant with fresh state showing absolute date in long PT-BR format", () => {
     render(
       <PriceFreshnessBadge
         priceUpdatedAt={daysAgo(6)}
@@ -121,7 +121,8 @@ describe("PriceFreshnessBadge", () => {
       />,
     );
     const badge = screen.getByRole("status");
-    expect(badge.textContent).toMatch(/\d{2}\/\d{2}\/\d{4}/);
+    // Padrão por extenso: "DD de <mês> de AAAA" (ex.: "09 de junho de 2025")
+    expect(badge.textContent).toMatch(/\d{1,2} de [a-zçãéíúô]+ de \d{4}/i);
     expect(badge.textContent).toMatch(/atualizado em/i);
   });
 
