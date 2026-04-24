@@ -355,7 +355,13 @@ export function PriceFreshnessBadge({
     );
   }
 
-  const ariaLabel = freshness.label;
+  const { ariaLabel, title } = buildAccessibleLabel(freshness, priceUpdatedAt);
+
+  // Anel de foco visível padronizado para os triggers compactos. Usa o token
+  // `--ring` para herdar a cor do tema (light/dark/skins) e respeitar o
+  // contraste configurado pelo design system.
+  const focusRing =
+    "outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-sm";
 
   let body: React.ReactNode;
   if (variant === "icon-only") {
@@ -363,9 +369,12 @@ export function PriceFreshnessBadge({
       <span
         role="status"
         aria-label={ariaLabel}
+        title={title}
+        tabIndex={0}
         className={cn(
           "inline-flex items-center justify-center",
           color,
+          focusRing,
           className,
         )}
       >
