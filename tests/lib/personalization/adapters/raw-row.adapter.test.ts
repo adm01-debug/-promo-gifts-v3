@@ -124,6 +124,26 @@ describe('adaptTabelaPrecoRow', () => {
     // E ainda herda os pares de tecnica
     expect(row.code).toBe('LASER-3x12');
   });
+
+  it('aceita colunas EN puras', () => {
+    const row = adaptTabelaPrecoRow({
+      id: 'tp-en-1',
+      code: 'SERI-5x5',
+      name: 'Serigrafia',
+      setup_price: 80,
+      handling_price: 2,
+      max_colors: 4,
+      active: true,
+      display_order: 2,
+    });
+    expect(row.code).toBe('SERI-5x5');
+    expect(row.codigo).toBe('SERI-5x5');
+    expect(row.name).toBe('Serigrafia');
+    expect(row.setup_price).toBe(80);
+    expect(row.custo_setup).toBe(80);
+    expect(row.max_colors).toBe(4);
+    expect(row.max_cores).toBe(4);
+  });
 });
 
 describe('adaptFaixaPrecoRow', () => {
@@ -155,6 +175,21 @@ describe('adaptFaixaPrecoRow', () => {
     expect(f.tabela_preco_gravacao_id).toBe('tp-2');
     expect(f.quantidade_minima).toBe(50);
     expect(f.preco_unitario).toBe(4.2);
+  });
+
+  it('lida com payload híbrido (EN + PT)', () => {
+    const f = adaptFaixaPrecoRow({
+      id: 'f-hyb',
+      price_table_id: 'tp-h',
+      min_quantity: 50,
+      preco_unitario: 4.2,
+    });
+    expect(f.tabela_preco_gravacao_id).toBe('tp-h');
+    expect(f.price_table_id).toBe('tp-h');
+    expect(f.quantidade_minima).toBe(50);
+    expect(f.min_quantity).toBe(50);
+    expect(f.preco_unitario).toBe(4.2);
+    expect(f.unit_price).toBe(4.2);
   });
 });
 
