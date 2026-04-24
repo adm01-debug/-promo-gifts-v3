@@ -769,6 +769,15 @@ async function handleCrud(body: any, req: Request, corsHeaders: Record<string, s
       cacheHitsTotal++;
       const totalDuration = Math.round(performance.now() - requestStartTime);
       console.info(`⚡ [cache] HIT ${operation}:${table} ${totalDuration}ms key=${cacheKey} (hits=${cacheHitsTotal} misses=${cacheMissesTotal})`);
+      // Persist cache hit so the admin dashboard can compute Cache Hit Rate.
+      emitTelemetry({
+        operation,
+        table,
+        durationMs: totalDuration,
+        status: 'ok',
+        cacheHit: true,
+        userId,
+      });
       return cachedJsonResponse(cached, corsHeaders, true);
     }
     cacheMissesTotal++;
