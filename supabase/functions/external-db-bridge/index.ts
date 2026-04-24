@@ -30,6 +30,90 @@ const breaker = getBreaker("external-db");
 // QUERY HELPERS
 // ============================================
 
+/**
+ * Custom error thrown when a filter value is invalid (e.g. raw object).
+ * Captured at the request boundary and returned as HTTP 400 with details.
+ */
+class InvalidFilterError extends Error {
+  field: string;
+  reason: string;
+  receivedType: string;
+  constructor(field: string, reason: string, receivedType: string) {
+    super(`Invalid filter on field "${field}": ${reason}`);
+    this.name = 'InvalidFilterError';
+    this.field = field;
+    this.reason = reason;
+    this.receivedType = receivedType;
+  }
+}
+
+/**
+ * Pre-validates a filters object and returns a list of violations.
+ * Rejects non-plain values (objects, functions, symbols, NaN) that would otherwise
+ * be coerced to "[object Object]" or break the PostgREST query.
+ *
+ * Allowed value types: string | number | boolean | bigint | null | undefined | Array<primitive>
+ */
+function validateFilters(filters: Record<string, unknown> | undefined | null): Array<{ field: string; reason: string; receivedType: string; sample: string }> {
+  if (!filters || typeof filters !== 'object') return [];
+  const violations: Array<{ field: string; reason: string; receivedType: string; sample: string }> = [];
+
+  for (const [key, value] of Object.entries(filters)) {
+    if (value === null || value === undefined || value === '') continue;
+
+    const t = typeof value;
+
+    // Arrays are allowed only if every element is a primitive.
+    if (Array.isArray(value)) {
+      const badIdx = value.findIndex(v => v !== null && (typeof v === 'object' || typeof v === 'function'));
+      if (badIdx >= 0) {
+        violations.push({
+          field: key,
+          reason: `array contains non-primitive element at index ${badIdx} (use only string/number/boolean inside arrays)`,
+          receivedType: `Array<${typeof value[badIdx]}>`,
+          sample: safeStringify(value).slice(0, 120),
+        });
+      }
+      continue;
+    }
+
+    if (t === 'object') {
+      violations.push({
+        field: key,
+        reason: 'filter value must be a primitive (string, number, boolean) — received a raw object. Use suffix promotion (e.g. `${key}_gte`) or a PostgREST string operator (e.g. "gte.10", "is.null", "in.(a,b)") instead.',
+        receivedType: 'object',
+        sample: safeStringify(value).slice(0, 120),
+      });
+      continue;
+    }
+
+    if (t === 'function' || t === 'symbol') {
+      violations.push({
+        field: key,
+        reason: `filter value of type "${t}" is not serializable`,
+        receivedType: t,
+        sample: String(value).slice(0, 80),
+      });
+      continue;
+    }
+
+    if (t === 'number' && Number.isNaN(value as number)) {
+      violations.push({
+        field: key,
+        reason: 'filter value is NaN',
+        receivedType: 'number(NaN)',
+        sample: 'NaN',
+      });
+    }
+  }
+
+  return violations;
+}
+
+function safeStringify(v: unknown): string {
+  try { return JSON.stringify(v); } catch { return String(v); }
+}
+
 function applyFilters(
   query: any,
   filters: Record<string, unknown>,
