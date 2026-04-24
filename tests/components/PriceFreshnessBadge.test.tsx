@@ -97,4 +97,42 @@ describe("PriceFreshnessBadge", () => {
     );
     expect(screen.getByRole("status")).toBeInTheDocument();
   });
+
+  it("renders pdp variant with stale state showing 'defasado' and amber styling", () => {
+    render(
+      <PriceFreshnessBadge
+        priceUpdatedAt={daysAgo(72)}
+        thresholdDays={60}
+        variant="pdp"
+      />,
+    );
+    const badge = screen.getByRole("status");
+    expect(badge).toBeInTheDocument();
+    expect(badge.textContent).toMatch(/defasado/i);
+    expect(badge.className).toMatch(/amber-(100|300|500)/);
+  });
+
+  it("renders pdp variant with fresh state showing absolute DD/MM/AAAA date", () => {
+    render(
+      <PriceFreshnessBadge
+        priceUpdatedAt={daysAgo(6)}
+        thresholdDays={60}
+        variant="pdp"
+      />,
+    );
+    const badge = screen.getByRole("status");
+    expect(badge.textContent).toMatch(/\d{2}\/\d{2}\/\d{4}/);
+    expect(badge.textContent).toMatch(/atualizado em/i);
+  });
+
+  it("renders pdp variant with unknown state when priceUpdatedAt is null", () => {
+    render(
+      <PriceFreshnessBadge
+        priceUpdatedAt={null}
+        thresholdDays={60}
+        variant="pdp"
+      />,
+    );
+    expect(screen.getByRole("status").textContent).toMatch(/não informada/i);
+  });
 });
