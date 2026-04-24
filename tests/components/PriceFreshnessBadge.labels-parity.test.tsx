@@ -28,6 +28,7 @@ import { PriceFreshnessBadge } from "@/components/products/PriceFreshnessBadge";
 import {
   getPriceFreshness,
   formatPriceDateLong,
+  formatPriceDateShort,
 } from "@/utils/price-freshness";
 
 const FIXED_NOW = new Date("2025-06-15T12:00:00.000Z").getTime();
