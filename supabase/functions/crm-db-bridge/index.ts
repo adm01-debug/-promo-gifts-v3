@@ -35,6 +35,37 @@ const VENDOR_WRITE_TABLES: string[] = [];
 const OPTIONAL_QUOTE_TABLES = new Set<string>();
 
 // ============================================
+// TYPE-SAFE RESULT HELPERS
+// ============================================
+
+/**
+ * Narrow an unknown value (which may also be a PostgREST GenericStringError
+ * or any other non-row payload) to a plain Record<string, unknown>.
+ * Returns null when the value is not a usable row object.
+ */
+export function toRecord(value: unknown): Record<string, unknown> | null {
+  if (value === null || value === undefined) return null;
+  if (typeof value !== "object") return null;
+  if (Array.isArray(value)) return null;
+  // PostgREST GenericStringError has shape { error: true; message: string }
+  // and should never be treated as a row.
+  const maybeErr = value as { error?: unknown; message?: unknown };
+  if (maybeErr.error === true && typeof maybeErr.message === "string") return null;
+  return value as Record<string, unknown>;
+}
+
+/**
+ * Safely access the first row of a PostgREST result (`data` from `.select()`),
+ * which Supabase types as `T[] | null` but at runtime can also surface
+ * `GenericStringError`-like payloads when selectors fail. Returns null
+ * unless the first element is a real row object.
+ */
+export function firstRowAsRecord(result: unknown): Record<string, unknown> | null {
+  if (!Array.isArray(result) || result.length === 0) return null;
+  return toRecord(result[0]);
+}
+
+// ============================================
 // TYPES
 // ============================================
 
