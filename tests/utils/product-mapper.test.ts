@@ -137,5 +137,20 @@ describe("product-mapper", () => {
       expect(result.priceUpdatedAt).toBeNull();
       expect(result.priceFreshnessThresholdDays).toBeNull();
     });
+
+    it("forwards an external DB price_updated_at ISO string unchanged to the UI field", () => {
+      const iso = "2026-03-20T08:30:00.000Z";
+      const result = mapPromobrindToProduct({
+        ...baseProduct,
+        price_updated_at: iso,
+        price_freshness_threshold_days: 45,
+      } as any);
+      // Must be the exact same ISO string the PDP badge will consume — no
+      // mutation, no Date round-trip, so the badge can compute the days diff
+      // against the real supplier timestamp.
+      expect(result.priceUpdatedAt).toBe(iso);
+      expect(typeof result.priceUpdatedAt).toBe("string");
+      expect(result.priceFreshnessThresholdDays).toBe(45);
+    });
   });
 });
