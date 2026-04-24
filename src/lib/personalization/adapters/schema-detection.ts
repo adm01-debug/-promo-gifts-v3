@@ -15,6 +15,11 @@ export type PriceSchemaVersion = 'v5.9-nested' | 'v6.x-flat' | 'v7-new' | 'unkno
 
 export type SchemaStats = Record<PriceSchemaVersion, number>;
 
+export interface FullSchemaStats extends SchemaStats {
+  /** Contador por nome de coluna PT legado detectado em payloads brutos. */
+  legacyFieldsSeen: Record<string, number>;
+}
+
 const stats: SchemaStats = {
   'v5.9-nested': 0,
   'v6.x-flat': 0,
@@ -22,14 +27,36 @@ const stats: SchemaStats = {
   unknown: 0,
 };
 
+const legacyFieldsSeen: Record<string, number> = {};
+
 // Aviso "unknown" deduplicado por sessão para não poluir o console.
 const warnedKeys = new Set<string>();
 
+function publishStats() {
+  if (typeof window !== 'undefined') {
+    (window as unknown as { __personalizationSchemaStats?: FullSchemaStats }).__personalizationSchemaStats = {
+      ...stats,
+      legacyFieldsSeen: { ...legacyFieldsSeen },
+    };
+  }
+}
+
 function bumpStat(version: PriceSchemaVersion) {
   stats[version] += 1;
-  if (typeof window !== 'undefined') {
-    (window as unknown as { __personalizationSchemaStats?: SchemaStats }).__personalizationSchemaStats = stats;
-  }
+  publishStats();
+}
+
+/**
+ * Registra detecção de um campo legado (PT antigo). Útil para saber quando
+ * o backend parou de devolver os nomes antigos e podemos limpar deprecations.
+ */
+export function recordLegacyField(name: string): void {
+  legacyFieldsSeen[name] = (legacyFieldsSeen[name] ?? 0) + 1;
+  publishStats();
+}
+
+export function getLegacyFieldsSeen(): Readonly<Record<string, number>> {
+  return { ...legacyFieldsSeen };
 }
 
 function isObject(value: unknown): value is Record<string, unknown> {
@@ -96,5 +123,6 @@ export function __resetSchemaStatsForTests(): void {
   stats['v6.x-flat'] = 0;
   stats['v7-new'] = 0;
   stats.unknown = 0;
+  for (const k of Object.keys(legacyFieldsSeen)) delete legacyFieldsSeen[k];
   warnedKeys.clear();
 }
