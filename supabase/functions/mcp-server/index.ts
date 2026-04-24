@@ -44,8 +44,7 @@ const mcpServer = new McpServer({
 // We resolve the auth context from a per-request module-level holder.
 let currentCtx: AuthCtx | null = null;
 
-mcpServer.tool({
-  name: "list_quotes",
+mcpServer.tool("list_quotes", {
   description: "Lista os orçamentos mais recentes (limite 50). Escopo: quotes:read",
   inputSchema: {
     type: "object",
@@ -68,8 +67,7 @@ mcpServer.tool({
   },
 });
 
-mcpServer.tool({
-  name: "get_quote",
+mcpServer.tool("get_quote", {
   description: "Detalha um orçamento por id. Escopo: quotes:read",
   inputSchema: {
     type: "object",
@@ -85,8 +83,7 @@ mcpServer.tool({
   },
 });
 
-mcpServer.tool({
-  name: "list_companies",
+mcpServer.tool("list_companies", {
   description: "Lista as últimas empresas/clientes do CRM. Escopo: crm:read",
   inputSchema: {
     type: "object",
@@ -96,7 +93,6 @@ mcpServer.tool({
     if (!currentCtx) throw new Error("Não autenticado");
     requireScope(currentCtx, "crm:read");
     const lim = Math.min(Math.max(Number(limit ?? 20), 1), 50);
-    // List from local quotes' distinct client_name as a safe proxy
     let q = supabase.from("quotes").select("client_name, client_email, client_company")
       .not("client_name", "is", null).limit(lim);
     if (search) q = q.ilike("client_name", `%${search}%`);
@@ -106,8 +102,7 @@ mcpServer.tool({
   },
 });
 
-mcpServer.tool({
-  name: "list_recent_orders",
+mcpServer.tool("list_recent_orders", {
   description: "Lista os pedidos mais recentes. Escopo: orders:read",
   inputSchema: {
     type: "object",
@@ -125,8 +120,7 @@ mcpServer.tool({
   },
 });
 
-mcpServer.tool({
-  name: "ping",
+mcpServer.tool("ping", {
   description: "Verifica conectividade do MCP. Escopo: nenhum",
   inputSchema: { type: "object", properties: {} },
   handler: () => {
@@ -140,6 +134,8 @@ const app = new Hono();
 
 app.options("/*", (c) => new Response(null, { headers: corsHeaders }));
 
+const httpHandler = transport.bind(mcpServer);
+
 app.all("/*", async (c) => {
   const ctx = await authenticate(c.req.raw);
   if (!ctx) {
@@ -149,8 +145,7 @@ app.all("/*", async (c) => {
   }
   currentCtx = ctx;
   try {
-    const res = await transport.handleRequest(c.req.raw, mcpServer);
-    // attach CORS headers to mcp-lite response
+    const res = await httpHandler(c.req.raw);
     const merged = new Headers(res.headers);
     for (const [k, v] of Object.entries(corsHeaders)) merged.set(k, v);
     return new Response(res.body, { status: res.status, headers: merged });
