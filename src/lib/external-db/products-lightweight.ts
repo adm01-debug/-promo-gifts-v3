@@ -31,6 +31,10 @@ export interface LightweightProduct {
   min_quantity?: number | null;
   is_kit?: boolean | null;
   gender?: string | null;
+  /** SSOT da idade do preço — trigger no BD externo. */
+  price_updated_at?: string | null;
+  /** Não existe ainda no BD externo; reservado para quando for criada. */
+  price_freshness_threshold_days?: number | null;
 }
 
 function isTimeoutError(error: unknown): boolean {

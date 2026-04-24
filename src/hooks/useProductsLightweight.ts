@@ -79,6 +79,11 @@ export function mapLightweightToProduct(p: LightweightProduct): Product {
       nicho: [],
     },
     dimensions: {},
+    // SSOT externo. `price_freshness_threshold_days` ainda não vem na lightweight
+    // (coluna inexistente no BD externo) — fica null e o util cai no default 60d
+    // ou no override local resolvido pelo consumidor.
+    priceUpdatedAt: p.price_updated_at ?? null,
+    priceFreshnessThresholdDays: null,
   };
 }
 
@@ -88,7 +93,10 @@ export function mapLightweightToProduct(p: LightweightProduct): Product {
 
 export const CATALOG_PAGE_SIZE = 500;
 export const CATALOG_BATCH_PAGES = 4;
-export const PRODUCT_SELECT_LIGHTWEIGHT = 'id, name, sku, sale_price, cost_price, primary_image_url, supplier_id, category_id, main_category_id, brand, is_active, active, stock_quantity, min_quantity, is_kit, gender';
+// `price_updated_at` é o SSOT da idade do preço (trigger no BD externo).
+// `price_freshness_threshold_days` ainda NÃO existe no BD externo — quando
+// existir, basta acrescentar à lista; o mapper já trata como opcional.
+export const PRODUCT_SELECT_LIGHTWEIGHT = 'id, name, sku, sale_price, cost_price, primary_image_url, supplier_id, category_id, main_category_id, brand, is_active, active, stock_quantity, min_quantity, is_kit, gender, price_updated_at';
 
 interface CatalogPage {
   products: Product[];
