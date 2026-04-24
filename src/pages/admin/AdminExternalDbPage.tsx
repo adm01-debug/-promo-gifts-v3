@@ -121,6 +121,9 @@ export default function AdminExternalDbPage() {
 
   useEffect(() => {
     listTables();
+    refreshTelemetry();
+    const id = setInterval(refreshTelemetry, 4000);
+    return () => clearInterval(id);
   }, []);
 
   const handleSelectTable = async (tableName: string) => {
