@@ -297,6 +297,10 @@ export function PriceFreshnessBadge({
       </span>
     );
   } else if (variant === "compact") {
+    // `compact` é usado em listas densas (ProductListItem). Mostra o
+    // relativo curto ("há 12d") + a data numérica pt-BR como sufixo
+    // discreto para que o vendedor consiga conferir sem abrir o tooltip.
+    const compactDate = priceUpdatedAt ? formatAbsoluteDate(priceUpdatedAt) : null;
     body = (
       <span
         role="status"
@@ -310,6 +314,9 @@ export function PriceFreshnessBadge({
         <Icon className="h-3 w-3" aria-hidden="true" />
         <span className="tabular-nums">
           {formatCompactRelative(freshness.daysSinceUpdate)}
+          {compactDate && (
+            <span className="text-muted-foreground"> · em {compactDate}</span>
+          )}
           {limitSuffix && <span className="text-muted-foreground">{limitSuffix}</span>}
         </span>
       </span>
@@ -335,7 +342,7 @@ export function PriceFreshnessBadge({
             </span>
             {absolute && (
               <span className="text-xs text-amber-800/90 dark:text-amber-200/80 tabular-nums">
-                Última atualização: {absolute} ({relative})
+                Última atualização em {absolute} ({relative})
               </span>
             )}
             <span className="text-[11px] text-amber-800/80 dark:text-amber-200/70">
@@ -355,7 +362,11 @@ export function PriceFreshnessBadge({
           )}
         >
           <Clock className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-          <span className="tabular-nums">Atualizado {relative}{limitSuffix}</span>
+          <span className="tabular-nums">
+            Atualizado em {absolute}
+            <span className="text-amber-700/70 dark:text-amber-300/70"> · {relative}</span>
+            {limitSuffix}
+          </span>
         </span>
       );
     } else if (freshness.status === "fresh" && absolute) {
@@ -369,7 +380,11 @@ export function PriceFreshnessBadge({
           )}
         >
           <CheckCircle2 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-          <span className="tabular-nums">Atualizado {relative}{limitSuffix}</span>
+          <span className="tabular-nums">
+            Atualizado em {absolute}
+            <span className="text-emerald-700/70 dark:text-emerald-400/70"> · {relative}</span>
+            {limitSuffix}
+          </span>
         </span>
       );
     } else {
@@ -389,6 +404,10 @@ export function PriceFreshnessBadge({
       );
     }
   } else {
+    // `inline` (default) — usado em PDP/Quick View. Mantém o label do util
+    // ("Atualizado há N dias" / "Preço pode estar defasado (há N dias)") e
+    // anexa a data numérica pt-BR no padrão "em DD/MM/AAAA".
+    const inlineDate = priceUpdatedAt ? formatAbsoluteDate(priceUpdatedAt) : null;
     body = (
       <span
         role="status"
@@ -400,7 +419,13 @@ export function PriceFreshnessBadge({
         )}
       >
         <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-        <span>{freshness.label}{limitSuffix}</span>
+        <span>
+          {freshness.label}
+          {inlineDate && (
+            <span className="text-muted-foreground tabular-nums"> · em {inlineDate}</span>
+          )}
+          {limitSuffix}
+        </span>
       </span>
     );
   }
