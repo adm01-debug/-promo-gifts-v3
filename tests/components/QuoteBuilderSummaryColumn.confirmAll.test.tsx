@@ -210,8 +210,10 @@ describe("QuoteBuilderSummaryColumn — Confirmar todos (com diálogo)", () => {
     expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /preço a confirmar/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /confirmar todos/i })).not.toBeInTheDocument();
-    // Nenhum alerta inline restante
-    expect(screen.queryByText(/preço pode estar defasado/i)).not.toBeInTheDocument();
+    // Nenhum badge stale/aging restante (todos viraram pill verde "Confirmado")
+    expect(
+      screen.queryByRole("status", { name: /preço pode estar defasado/i }),
+    ).not.toBeInTheDocument();
   });
 
   it("CTA do diálogo concorda em singular quando há apenas 1 pendente", () => {
