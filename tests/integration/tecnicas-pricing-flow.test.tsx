@@ -6,6 +6,21 @@
  */
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { act, waitFor } from "@testing-library/react";
+
+vi.mock("@/integrations/supabase/client", () => ({
+  supabase: {
+    functions: { invoke: vi.fn() },
+    auth: {
+      getSession: vi.fn().mockResolvedValue({ data: { session: null }, error: null }),
+      onAuthStateChange: vi.fn().mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } }),
+    },
+  },
+}));
+
+vi.mock("@/lib/external-rpc", () => ({
+  invokeExternalRpc: vi.fn(),
+}));
+
 import { renderHookWithProviders } from "../hooks/_helpers/render-hook-providers";
 import { supabase } from "@/integrations/supabase/client";
 import { useTecnicasList } from "@/hooks/tecnicas/useTecnicasList";
@@ -15,10 +30,6 @@ import {
   TECNICA_ROW_EN,
   PRICE_PAYLOAD_PT_V6,
 } from "../fixtures/personalization-payloads";
-
-vi.mock("@/lib/external-rpc", () => ({
-  invokeExternalRpc: vi.fn(),
-}));
 
 import { invokeExternalRpc } from "@/lib/external-rpc";
 const mockedRpc = invokeExternalRpc as unknown as ReturnType<typeof vi.fn>;

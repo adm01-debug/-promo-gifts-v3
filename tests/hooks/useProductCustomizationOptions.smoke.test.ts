@@ -3,10 +3,29 @@
  */
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { waitFor } from "@testing-library/react";
+
+vi.mock("@/integrations/supabase/client", () => ({
+  supabase: {
+    functions: { invoke: vi.fn() },
+    auth: {
+      getSession: vi.fn().mockResolvedValue({ data: { session: null }, error: null }),
+      onAuthStateChange: vi.fn().mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } }),
+    },
+  },
+}));
+
+// invokeExternalRpc usa supabase.functions.invoke por baixo, então precisamos
+// mockar diretamente o módulo external-rpc para o useProductCustomizationOptions
+vi.mock("@/lib/external-rpc", () => ({
+  invokeExternalRpc: vi.fn(),
+}));
+
 import { renderHookWithProviders } from "./_helpers/render-hook-providers";
-import { supabase } from "@/integrations/supabase/client";
+import { invokeExternalRpc } from "@/lib/external-rpc";
 import { useProductCustomizationOptions } from "@/hooks/useProductCustomizationOptions";
 import { OPTIONS_PAYLOAD_PT } from "../fixtures/personalization-payloads";
+
+const mockedRpc = invokeExternalRpc as unknown as ReturnType<typeof vi.fn>;
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -14,23 +33,18 @@ beforeEach(() => {
 
 describe("useProductCustomizationOptions (smoke)", () => {
   it("não chama RPC quando productId é null", async () => {
-    const invoke = supabase.functions.invoke as unknown as ReturnType<typeof vi.fn>;
     const { result, unmount } = renderHookWithProviders(() =>
       useProductCustomizationOptions(null),
     );
     // Query desabilitada → nunca dispara fetch
     await new Promise((r) => setTimeout(r, 30));
-    expect(invoke).not.toHaveBeenCalled();
+    expect(mockedRpc).not.toHaveBeenCalled();
     expect(result.current.data).toBeUndefined();
     unmount();
   });
 
   it("adapta payload PT canônico em estrutura normalizada", async () => {
-    const invoke = supabase.functions.invoke as unknown as ReturnType<typeof vi.fn>;
-    invoke.mockResolvedValue({
-      data: { success: true, data: OPTIONS_PAYLOAD_PT },
-      error: null,
-    });
+    mockedRpc.mockResolvedValue(OPTIONS_PAYLOAD_PT);
 
     const { result } = renderHookWithProviders(() =>
       useProductCustomizationOptions("prod-1"),

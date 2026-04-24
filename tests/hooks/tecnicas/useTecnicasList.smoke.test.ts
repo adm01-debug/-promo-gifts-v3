@@ -9,6 +9,17 @@
  */
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { waitFor } from "@testing-library/react";
+
+vi.mock("@/integrations/supabase/client", () => ({
+  supabase: {
+    functions: { invoke: vi.fn() },
+    auth: {
+      getSession: vi.fn().mockResolvedValue({ data: { session: null }, error: null }),
+      onAuthStateChange: vi.fn().mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } }),
+    },
+  },
+}));
+
 import { renderHookWithProviders } from "../_helpers/render-hook-providers";
 import { supabase } from "@/integrations/supabase/client";
 import { useTecnicasList } from "@/hooks/tecnicas/useTecnicasList";
