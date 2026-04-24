@@ -815,7 +815,9 @@ async function handleSelect(externalSupabase: any, table: string, opts: any) {
   emitTelemetry({ operation: 'select', table, limit: safeLimit, offset: safeOffset, countMode, durationMs: selectDuration, status: classifyDuration(selectDuration), recordCount: records.length });
   console.log(`Selected ${records.length} records from ${table} (offset=${safeOffset}, limit=${safeLimit}, count=${count ?? 'n/a'})`);
 
-  return { records, count: count ?? null };
+  const result = { records, count: count ?? null };
+  if (cacheKey) setCache(cacheKey, result);
+  return result;
 }
 
 // ============================================
