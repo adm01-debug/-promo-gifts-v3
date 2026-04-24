@@ -62,6 +62,9 @@ export function emitTelemetry(meta: TelemetryMeta) {
       const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
       if (localUrl && serviceKey) {
         const localClient = createClient(localUrl, serviceKey);
+        const errorKind = meta.errorKind === undefined
+          ? classifyErrorKind(meta.error, meta.status)
+          : meta.errorKind;
         localClient.from('query_telemetry').insert({
           operation: meta.operation,
           table_name: meta.table || null,
@@ -73,6 +76,7 @@ export function emitTelemetry(meta: TelemetryMeta) {
           count_mode: meta.countMode || null,
           severity: meta.status,
           error_message: meta.error || null,
+          error_kind: errorKind,
           user_id: meta.userId || null,
         }).then(({ error: insertErr }) => {
           if (insertErr) console.warn('[telemetry-persist] Insert failed:', insertErr.message);
