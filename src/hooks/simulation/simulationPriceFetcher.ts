@@ -147,6 +147,8 @@ function buildLegacyFallbackOption(
     grandTotalPerUnit: quantity > 0 ? grandTotal / quantity : 0,
     priceSource: 'legacy-fallback',
     fallbackReason: reason,
+    calculatedAt: new Date().toISOString(),
+    rpcAvailable: false,
   };
 }
 
@@ -251,6 +253,8 @@ export async function fetchOptionForTechnique(
     grandTotal,
     grandTotalPerUnit,
     priceSource: 'rpc',
+    calculatedAt: new Date().toISOString(),
+    rpcAvailable: true,
   };
 }
 

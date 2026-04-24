@@ -107,6 +107,10 @@ export interface SimulationOption {
   unavailableReason?: string;
   /** Mensagem amigável quando `priceSource === 'legacy-fallback'` */
   fallbackReason?: string;
+  /** ISO timestamp do momento em que o resultado foi gerado (sucesso ou fallback). */
+  calculatedAt?: string;
+  /** `false` quando o RPC oficial falhou e o fallback heurístico foi usado. */
+  rpcAvailable?: boolean;
 }
 
 // ============================================
