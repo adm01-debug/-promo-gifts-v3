@@ -102,6 +102,9 @@ export default function AdminTelemetriaPage() {
           })}
         </div>
 
+        {/* Alerta de regressão de latência em listings de products (limit > 50) */}
+        <ProductsListingLatencyAlert />
+
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
