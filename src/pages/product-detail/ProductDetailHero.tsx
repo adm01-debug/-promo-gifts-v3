@@ -151,7 +151,7 @@ export function ProductDetailHero({
                   <PriceFreshnessBadge
                     priceUpdatedAt={product.priceUpdatedAt}
                     thresholdDays={product.priceFreshnessThresholdDays}
-                    variant="inline"
+                    variant="pdp"
                     alwaysShow
                   />
                 </div>
