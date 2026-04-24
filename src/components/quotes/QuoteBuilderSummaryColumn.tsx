@@ -222,6 +222,28 @@ export function QuoteBuilderSummaryColumn({
                         <span className="font-medium">{formatCurrency(item.unit_price)}</span>
                         <span className="ml-auto font-semibold text-foreground tabular-nums">{formatCurrency(item.quantity * item.unit_price)}</span>
                       </div>
+                      {isStale && confirmItemPrice && (
+                        <div className="flex items-center gap-2 px-2 py-1.5 rounded-lg border border-warning/30 bg-warning/10">
+                          <AlertTriangle className="h-3 w-3 text-warning shrink-0" />
+                          <span className="text-[11px] text-warning font-medium leading-tight flex-1">
+                            Preço pode estar defasado — confirme com o fornecedor
+                          </span>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              confirmItemPrice(idx);
+                              toast.success("Preço confirmado com fornecedor", {
+                                description: item.product_name,
+                              });
+                            }}
+                            className="text-[10px] font-semibold text-warning hover:underline shrink-0 whitespace-nowrap"
+                            aria-label={`Confirmar preço com fornecedor para ${item.product_name}`}
+                          >
+                            Confirmei
+                          </button>
+                        </div>
+                      )}
                     </div>
                     {item.personalizations && item.personalizations.length > 0 && (
                       <div className="px-3 pb-3 pt-0">
