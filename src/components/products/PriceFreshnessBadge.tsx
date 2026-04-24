@@ -107,6 +107,17 @@ export interface PriceFreshnessBadgeProps {
   alwaysShow?: boolean;
 }
 
+/**
+ * Threshold é "explícito" quando vem do produto (não é o default global).
+ * Só nesse caso enriquecemos o badge com "(limite Yd)" — caso contrário
+ * o sufixo poluiria a UI de >99% do catálogo que ainda não tem o campo.
+ */
+function hasExplicitThreshold(
+  thresholdDays?: number | null,
+): thresholdDays is number {
+  return typeof thresholdDays === "number" && thresholdDays > 0;
+}
+
 const STATUS_STYLES: Record<
   PriceFreshnessStatus,
   { color: string; Icon: typeof Clock }
