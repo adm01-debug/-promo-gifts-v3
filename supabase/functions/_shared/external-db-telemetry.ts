@@ -28,6 +28,8 @@ export interface TelemetryMeta {
   error?: string;
   errorKind?: ErrorKind | null;
   userId?: string | null;
+  retryCount?: number;
+  cacheHit?: boolean;
 }
 
 // Classifica error_message bruto em uma categoria estável.
