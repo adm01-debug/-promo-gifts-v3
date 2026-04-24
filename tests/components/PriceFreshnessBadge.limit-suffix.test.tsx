@@ -28,9 +28,10 @@ describe("PriceFreshnessBadge — sufixo (limite Yd)", () => {
         variant="inline"
       />,
     );
-    expect(screen.getByRole("status").textContent).toMatch(
-      /atualizado há 5 dias \(limite 30d\)/i,
-    );
+    const text = screen.getByRole("status").textContent ?? "";
+    expect(text).toMatch(/atualizado há 5 dias/i);
+    expect(text).toMatch(/\(limite 30d\)/);
+    expect(text).toMatch(/em \d{2}\/\d{2}\/\d{4}/);
   });
 
   it("inline: NÃO mostra '(limite ...)' quando threshold é null (default global 60d)", () => {
@@ -74,8 +75,10 @@ describe("PriceFreshnessBadge — sufixo (limite Yd)", () => {
         variant="pdp"
       />,
     );
-    const badge = screen.getByRole("status");
-    expect(badge.textContent).toMatch(/atualizado há 20 dias \(limite 30d\)/i);
+    const text = badge.textContent ?? "";
+    expect(text).toMatch(/atualizado em \d{2}\/\d{2}\/\d{4}/i);
+    expect(text).toMatch(/há 20 dias/);
+    expect(text).toMatch(/\(limite 30d\)/);
   });
 
   it("pdp fresh: sufixa '(limite Yd)' na pílula verde", () => {
@@ -86,9 +89,10 @@ describe("PriceFreshnessBadge — sufixo (limite Yd)", () => {
         variant="pdp"
       />,
     );
-    expect(screen.getByRole("status").textContent).toMatch(
-      /atualizado há 5 dias \(limite 90d\)/i,
-    );
+    const text = screen.getByRole("status").textContent ?? "";
+    expect(text).toMatch(/atualizado em \d{2}\/\d{2}\/\d{4}/i);
+    expect(text).toMatch(/há 5 dias/);
+    expect(text).toMatch(/\(limite 90d\)/);
   });
 
   it("pdp fresh: SEM '(limite ...)' quando threshold ausente (cenário atual do BD)", () => {
