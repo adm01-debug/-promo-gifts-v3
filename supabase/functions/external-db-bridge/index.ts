@@ -30,6 +30,90 @@ const breaker = getBreaker("external-db");
 // QUERY HELPERS
 // ============================================
 
+/**
+ * Custom error thrown when a filter value is invalid (e.g. raw object).
+ * Captured at the request boundary and returned as HTTP 400 with details.
+ */
+class InvalidFilterError extends Error {
+  field: string;
+  reason: string;
+  receivedType: string;
+  constructor(field: string, reason: string, receivedType: string) {
+    super(`Invalid filter on field "${field}": ${reason}`);
+    this.name = 'InvalidFilterError';
+    this.field = field;
+    this.reason = reason;
+    this.receivedType = receivedType;
+  }
+}
+
+/**
+ * Pre-validates a filters object and returns a list of violations.
+ * Rejects non-plain values (objects, functions, symbols, NaN) that would otherwise
+ * be coerced to "[object Object]" or break the PostgREST query.
+ *
+ * Allowed value types: string | number | boolean | bigint | null | undefined | Array<primitive>
+ */
+function validateFilters(filters: Record<string, unknown> | undefined | null): Array<{ field: string; reason: string; receivedType: string; sample: string }> {
+  if (!filters || typeof filters !== 'object') return [];
+  const violations: Array<{ field: string; reason: string; receivedType: string; sample: string }> = [];
+
+  for (const [key, value] of Object.entries(filters)) {
+    if (value === null || value === undefined || value === '') continue;
+
+    const t = typeof value;
+
+    // Arrays are allowed only if every element is a primitive.
+    if (Array.isArray(value)) {
+      const badIdx = value.findIndex(v => v !== null && (typeof v === 'object' || typeof v === 'function'));
+      if (badIdx >= 0) {
+        violations.push({
+          field: key,
+          reason: `array contains non-primitive element at index ${badIdx} (use only string/number/boolean inside arrays)`,
+          receivedType: `Array<${typeof value[badIdx]}>`,
+          sample: safeStringify(value).slice(0, 120),
+        });
+      }
+      continue;
+    }
+
+    if (t === 'object') {
+      violations.push({
+        field: key,
+        reason: 'filter value must be a primitive (string, number, boolean) — received a raw object. Use suffix promotion (e.g. `${key}_gte`) or a PostgREST string operator (e.g. "gte.10", "is.null", "in.(a,b)") instead.',
+        receivedType: 'object',
+        sample: safeStringify(value).slice(0, 120),
+      });
+      continue;
+    }
+
+    if (t === 'function' || t === 'symbol') {
+      violations.push({
+        field: key,
+        reason: `filter value of type "${t}" is not serializable`,
+        receivedType: t,
+        sample: String(value).slice(0, 80),
+      });
+      continue;
+    }
+
+    if (t === 'number' && Number.isNaN(value as number)) {
+      violations.push({
+        field: key,
+        reason: 'filter value is NaN',
+        receivedType: 'number(NaN)',
+        sample: 'NaN',
+      });
+    }
+  }
+
+  return violations;
+}
+
+function safeStringify(v: unknown): string {
+  try { return JSON.stringify(v); } catch { return String(v); }
+}
+
 function applyFilters(
   query: any,
   filters: Record<string, unknown>,
@@ -117,10 +201,13 @@ function applyFilters(
     } else if (Array.isArray(value)) {
       query = query.in(key, value);
     } else if (typeof value === 'object') {
-      // Sanitize object filters: skip silently to prevent "[object Object]" syntax errors.
-      // Callers should use suffix-based promotion (foo_gte) or PostgREST string operators instead.
-      console.warn(`[external-db-bridge] Skipping object-type filter for key "${key}" — use suffix promotion (e.g. ${key}_gte) or string operator (e.g. "gte.10", "is.null").`);
-      return;
+      // Defense-in-depth: validateFilters() should have caught this earlier and returned 400.
+      // If we reach here (e.g. internal call site bypassed validation), refuse loudly instead of silently dropping.
+      throw new InvalidFilterError(
+        key,
+        'filter value must be a primitive (string, number, boolean) — received a raw object. Use suffix promotion (e.g. `${key}_gte`) or a PostgREST string operator (e.g. "gte.10", "is.null").',
+        'object',
+      );
     } else {
       query = query.eq(key, value);
     }
@@ -340,6 +427,15 @@ Deno.serve(async (req) => {
     return response;
 
   } catch (error) {
+    if (error instanceof InvalidFilterError) {
+      const totalDuration = Math.round(performance.now() - requestStartTime);
+      console.warn(`⚠️ [external-db-bridge] InvalidFilterError after ${totalDuration}ms — field="${error.field}" type=${error.receivedType}`);
+      return jsonResponse({
+        error: 'Invalid filter values',
+        details: [{ field: error.field, reason: error.reason, receivedType: error.receivedType }],
+        hint: 'Each filter value must be a primitive. Use suffix promotion (e.g. price_gte) or PostgREST string operators ("gte.10", "is.null", "in.(a,b)").',
+      }, 400, corsHeaders);
+    }
     breaker.recordFailure();
     const totalDuration = Math.round(performance.now() - requestStartTime);
     const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
@@ -387,6 +483,18 @@ async function handleBatch(body: any, req: Request, corsHeaders: Record<string, 
 
       const resourceGroup = getResourceGroup(qTable);
       if (!resourceGroup) return { success: false, error: `Tabela '${qTable}' não mapeada` };
+
+      // Reject malformed filters (objects, NaN, functions) per-batch-item BEFORE building the query.
+      const batchFilterViolations = validateFilters(qFilters);
+      if (batchFilterViolations.length > 0) {
+        console.warn(`[batch] Query ${idx} (${qTable}) rejected — invalid filters:`, batchFilterViolations);
+        return {
+          success: false,
+          error: 'Invalid filter values',
+          details: batchFilterViolations,
+          hint: 'Each filter value must be a primitive. Use suffix promotion (e.g. price_gte) or PostgREST string operators ("gte.10", "is.null", "in.(a,b)").',
+        };
+      }
 
       try {
         const queryStart = performance.now();
@@ -673,6 +781,17 @@ async function handleCrud(body: any, req: Request, corsHeaders: Record<string, s
 
 async function handleSelect(externalSupabase: any, table: string, opts: any) {
   const { filters, id, select, orderBy, queryLimit, queryOffset, requestCountMode, isVirtual, aliasType, corsHeaders } = opts;
+
+  // Reject malformed filters (objects, NaN, functions) BEFORE building the query.
+  const filterViolations = validateFilters(filters as Record<string, unknown> | undefined);
+  if (filterViolations.length > 0) {
+    console.warn(`[external-db-bridge] Rejecting select on "${table}" — ${filterViolations.length} invalid filter(s):`, filterViolations);
+    return jsonResponse({
+      error: 'Invalid filter values',
+      details: filterViolations,
+      hint: 'Each filter value must be a primitive. For range/null/in queries use suffix promotion (e.g. price_gte) or PostgREST string operators (e.g. "gte.10", "is.null", "in.(a,b)").',
+    }, 400, corsHeaders);
+  }
 
   if (isVirtual) {
     const selectStart = performance.now();
