@@ -1,102 +1,110 @@
 
 
-# Adaptar hooks e types ao novo schema de gravação
+# Validar RPCs de gravação e ajustar parse
 
-## Contexto
+## Objetivo
 
-A camada de adapters (`src/lib/personalization/adapters/`) já isola componentes de mudanças no payload. Falta agora alinhar os **leitores diretos** (hooks que fazem `select` cru) e os **types canônicos** (`gravacao-database.ts`, `gravacao-types.ts`) com a estrutura nova devolvida pelas edge functions / RPCs de preço (`fn_get_customization_price`, `fn_get_product_customization_options`, `external-db-bridge`).
+Garantir que os dois RPCs centrais do fluxo de personalização — `fn_get_customization_price` e `fn_get_product_customization_options` — retornam os campos que o front espera. Onde houver divergência, ajustar o parse via adapters (sem tocar consumidores).
 
-Como o snapshot do schema real ainda não foi colado, este ciclo trabalha com as renomeações **já mapeadas** nos adapters (PT antigo → canônico) e prepara a base para acomodar novas colunas sem reescrita.
+## Estratégia
 
-## O que será feito
+Reaproveitar a infraestrutura já existente:
+- **Adapters** (`src/lib/personalization/adapters/`) já cuidam de aliases PT ↔ EN.
+- **Telemetria** (`window.__personalizationSchemaStats`) já contabiliza schema detectado e campos legados vistos.
+- **Edge function** `external-db-bridge` é a porta de entrada das RPCs.
 
-### 1. Tornar os types canônicos "tolerantes"
+Adicionar uma **camada de validação real** que compara payload vs. contrato, registra desvios e exibe na página `/admin/external-db`.
 
-Arquivos:
-- `src/types/gravacao-database.ts`
-- `src/hooks/gravacao/gravacao-types.ts`
-- `src/components/admin/products/sections/engraving/types.ts`
+## Passos
 
-Ações por interface (`TabelaPrecoOficial`, `FaixaPrecoOficial`, `TecnicaGravacao`, `PrintAreaTechnique`, `TecnicaGravacaoVariante`):
+### 1. Definir contratos esperados (TS puro, sem Zod por ora)
 
-- Adicionar **aliases novos** como campos opcionais (ex.: `code?: string` ao lado de `codigo`, `setup_price?: number` ao lado de `custo_setup`, `handling_price?: number`, `max_colors?: number`, `charges_per_color?: boolean`, `price_by_area?: boolean`).
-- Marcar campos **legados** com `/** @deprecated use <novo> */` mas mantê-los opcionais.
-- Promover campos hoje obrigatórios que podem sumir para opcionais (`tipo_setup`, `quantidade_corte`, `validade_inicio/fim`).
-- Garantir que `Database` (em `gravacao-database.ts`) reflita os campos opcionais nos `Insert/Update`.
+Arquivo novo: `src/lib/personalization/rpc-contracts.ts`
 
-### 2. Criar adapter de "row" para tabelas raw
+Para cada RPC, declarar:
+- `requiredFields: string[]` — campos que o parse depende.
+- `optionalFields: string[]` — bônus que se vierem o front usa.
+- `aliasMap: Record<string, string[]>` — chave canônica → nomes aceitos (já cobertos pelos adapters).
 
-Arquivo novo: `src/lib/personalization/adapters/raw-row.adapter.ts`
+Contratos:
+- `fn_get_customization_price` → flat: `tabela`, `nome_tabela`, `grupo_tecnica`, `quantidade`, `num_cores`, `faixa{...}`, `detalhes{...}`, `markup{...}`, `preco_unitario`, `valor_gravacao`, `setup_total`, `total_cobrado`.
+- `fn_get_product_customization_options` → `product_id`, `locations[].{location_code, location_name, location_order, options[]}`; em `options[]`: `technique_id`, `codigo_tabela`, `tecnica_nome`, `grupo_tecnica`, `max_width`, `max_height`, `efetiva_largura_max`, `efetiva_altura_max`, `shape`, `is_curved`, `usa_dimensao`, `cobra_por_cor`, `max_cores`.
 
-Funções:
-- `adaptTecnicaRow(row)` → preenche tanto `codigo` quanto `code`, `custo_setup` quanto `setup_price` (espelhando os dois lados durante o ciclo de transição).
-- `adaptTabelaPrecoRow(row)` → idem para `tabela_preco_gravacao_oficial`.
-- `adaptFaixaPrecoRow(row)` → idem para faixas (`quantidade_minima` ↔ `min_quantity`, `preco_unitario` ↔ `unit_price`).
-- `adaptPrintAreaTechniqueRow(row)` → consolida com o já existente `print-area.adapter.ts`.
+### 2. Validador genérico
 
-Cada função usa o helper de schema-detection já existente para incrementar `window.__personalizationSchemaStats` quando detecta nome legado, mantendo telemetria.
+Arquivo novo: `src/lib/personalization/rpc-validator.ts`
 
-Exportar tudo via `src/lib/personalization/adapters/index.ts`.
+```ts
+validateRpcPayload(contract, payload) → {
+  ok: boolean;
+  missing: string[];   // campos required ausentes (após resolver aliases)
+  extras: string[];    // chaves no payload não previstas
+  resolvedAliases: Record<string, string>; // canônico → nome efetivamente recebido
+}
+```
 
-### 3. Refatorar hooks de leitura direta
+- Aceita payloads aninhados (`faixa.qtd_min`, `locations[].options[].technique_id`).
+- Em **dev**: `console.warn` por desvio (deduplicado por contrato).
+- Em **prod**: incrementa `window.__personalizationSchemaStats.contractMismatches[contract]++`.
+- Nunca lança — só observa.
 
-Arquivos:
-- `src/hooks/tecnicas/useTecnicasList.ts` — passa cada row pelo `adaptTecnicaRow`; `select` continua `*` para suportar colunas novas.
-- `src/hooks/usePrintAreas.ts` — usa `adaptPrintAreaTechniqueRow` + `adaptTabelaPrecoRow` no join.
-- `src/hooks/useMockupGenerator.ts` — usa `adaptTecnicaRow` e `adaptPrintAreaTechniqueRow`.
-- `src/lib/fetch-print-areas.ts` — encaminha rows para `adaptPrintAreaRow` (já existe) e usa novo helper para tabelas/técnicas embutidas.
-- `src/components/admin/techniques-manager/TechniqueTable.tsx` (e `useTechniquesData.ts`, se houver) — leitura via `adaptTecnicaRow`; mutations passam a aceitar **ambos** os nomes (`codigo` E `code`) no payload de update enquanto o back não decide. Helper `buildTecnicaUpdatePayload(partial)` centraliza isso.
-- `src/components/products/customization/ConfigurationPanel.tsx` — onde lê linhas brutas, encaminhar via adapter (a maior parte já passa por `adaptCustomizationOptions`).
+### 3. Plugar validação nos pontos de entrada (sem alterar consumidores)
 
-### 4. Centralizar telemetria de campos legados
+- `src/hooks/useCustomizationPrice.ts`: chamar `validateRpcPayload('fn_get_customization_price', result)` antes de devolver.
+- `src/hooks/simulator/useLivePricePreview.ts`: idem.
+- Adapter `customization-options.adapter.ts`: validar o payload bruto antes do mapeamento.
+- Adapter `price-response.adapter.ts`: validar a saída flat após mapeamento (garante que aliases cobriram tudo).
 
-Estender `src/lib/personalization/adapters/schema-detection.ts`:
-- Novo balde `legacyFieldsSeen: Record<string, number>` exposto em `window.__personalizationSchemaStats.legacyFieldsSeen`.
-- Helper `recordLegacyField(name)` chamado pelos novos `adaptXxxRow`.
-- Aviso único por sessão (via `warnUnknownSchemaOnce` reutilizado com nova chave).
+### 4. Estender adapters quando o validador detectar gaps
 
-### 5. Tipo utilitário compartilhado
+Após observar a telemetria (no passo 5), para cada `missing` reportado:
+- Se for um alias novo (back mudou nome): adicionar ao `aliasMap` do adapter.
+- Se for campo realmente removido: marcar como opcional no contrato + nota no `docs/`.
+- Se for campo novo no payload (vem em `extras`) que o front quer consumir: subir para `optionalFields` e usar.
 
-Arquivo novo: `src/lib/personalization/adapters/raw-row.types.ts`
-- `TecnicaGravacaoCanonical`, `TabelaPrecoCanonical`, `FaixaPrecoCanonical`, `PrintAreaTechniqueCanonical` — versões "saída do adapter" com **ambos** os nomes preenchidos, evitando refator imediato dos consumidores.
-- Re-exportados pelo `index.ts` da pasta `adapters/`.
+Refatorar pontos onde o parse hoje confia em campo que pode vir nulo (ex.: `result.markup` em payloads pré-v6.3): fallback explícito quando ausente.
+
+### 5. Painel de diagnóstico
+
+Estender `src/pages/admin/AdminExternalDbPage.tsx` com nova aba **"Validação RPC"**:
+- Tabela com cada RPC, contagem de chamadas, contagem de mismatches, lista dos últimos 5 `missing` e `extras`.
+- Botão "Testar agora" que dispara uma chamada real (com payload mínimo conhecido) e roda o validador, exibindo o resultado.
+- Lê de `window.__personalizationSchemaStats.contractMismatches` + buffer circular dos últimos desvios.
 
 ### 6. Testes
 
-Arquivos novos em `tests/lib/personalization/adapters/`:
-- `raw-row.adapter.test.ts` — fixtures com payload **PT antigo**, **EN novo** e **híbrido**; verifica que `code === codigo`, `setup_price === custo_setup`, etc.
-- `tecnicas-list.adapter.test.ts` — garante que array de rows passa por `adaptTecnicaRow` sem perder campos.
-- Atualizar `price-response.adapter.test.ts` se algum campo cruzar com os novos aliases.
+`tests/lib/personalization/rpc-contracts.test.ts`:
+- Payloads canônicos (PT atual) → `ok: true`, `missing: []`.
+- Payload com aliases EN → `ok: true` (aliases resolvidos).
+- Payload com campo obrigatório faltando → `ok: false`, `missing` correto.
+- Payload com campo extra → `ok: true`, `extras` populado.
+- Payload nested incompleto (`faixa` sem `preco`) → `missing: ['faixa.preco']`.
 
-### 7. Verificação
+### 7. Verificação final
 
-- `npx tsc --noEmit` limpo (campos opcionais evitam quebra).
+- `npx tsc --noEmit` limpo.
 - `npx vitest run tests/lib/personalization` passando.
-- Smoke manual: `/admin/tecnicas`, `/admin/produtos/:id` (aba Gravação), `/admin/external-db`, simulador wizard, mockup config.
-- Em dev: `window.__personalizationSchemaStats.legacyFieldsSeen` mostra contagem dos nomes legados detectados — base para o próximo ciclo decidir o que remover.
+- Em `/admin/external-db` aba nova, disparar uma chamada real do simulador e confirmar `ok: true` para ambos os RPCs.
+- Telemetria: `window.__personalizationSchemaStats.contractMismatches` deve permanecer vazio em payloads atuais.
 
 ## Arquivos tocados
 
 **Criados (3)**:
-- `src/lib/personalization/adapters/raw-row.adapter.ts`
-- `src/lib/personalization/adapters/raw-row.types.ts`
-- `tests/lib/personalization/adapters/raw-row.adapter.test.ts`
+- `src/lib/personalization/rpc-contracts.ts`
+- `src/lib/personalization/rpc-validator.ts`
+- `tests/lib/personalization/rpc-contracts.test.ts`
 
-**Editados (~10)**:
-- `src/lib/personalization/adapters/index.ts`
-- `src/lib/personalization/adapters/schema-detection.ts`
-- `src/types/gravacao-database.ts`
-- `src/hooks/gravacao/gravacao-types.ts`
-- `src/components/admin/products/sections/engraving/types.ts`
-- `src/hooks/tecnicas/useTecnicasList.ts`
-- `src/hooks/usePrintAreas.ts`
-- `src/hooks/useMockupGenerator.ts`
-- `src/lib/fetch-print-areas.ts`
-- `src/components/admin/techniques-manager/TechniqueTable.tsx` (+ `useTechniquesData.ts` se existir)
+**Editados (~6)**:
+- `src/lib/personalization/adapters/schema-detection.ts` (adiciona balde `contractMismatches` + helper `recordContractMismatch`)
+- `src/lib/personalization/adapters/index.ts` (re-export)
+- `src/lib/personalization/adapters/customization-options.adapter.ts` (chama validador)
+- `src/lib/personalization/adapters/price-response.adapter.ts` (chama validador)
+- `src/hooks/useCustomizationPrice.ts` (chama validador)
+- `src/hooks/simulator/useLivePricePreview.ts` (chama validador)
+- `src/pages/admin/AdminExternalDbPage.tsx` (nova aba)
 
 ## Compatibilidade
 
-- **Zero breaking change**: campos legados continuam preenchidos pelos adapters, então consumidores não tocados seguem funcionando.
-- Componentes podem migrar gradualmente para os nomes canônicos novos.
-- Telemetria mostra quando o back parou de devolver os nomes antigos — gatilho para limpar deprecations no ciclo seguinte.
+- **Zero breaking change**: validador só observa; adapters continuam fazendo o mapeamento real.
+- Se o back trocar nomes amanhã, a aba "Validação RPC" mostra o desvio antes de qualquer componente quebrar — gatilho proativo para atualizar o `aliasMap`.
 
