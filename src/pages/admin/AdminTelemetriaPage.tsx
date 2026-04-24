@@ -12,6 +12,7 @@ import { Activity, AlertTriangle, Clock, Database, RefreshCw, Zap, Trash2, Downl
 import { format } from 'date-fns';
 import { TelemetryCharts } from '@/components/admin/telemetry/TelemetryCharts';
 import { useTelemetryData, formatDuration, formatTime } from './telemetry/useTelemetryData';
+import { useErrorCounters } from './telemetry/useErrorCounters';
 import { exportCSV, exportPDF } from './telemetry/exportHelpers';
 import type { SeverityFilter, TimeFilter } from './telemetry/useTelemetryData';
 
@@ -31,6 +32,7 @@ export default function AdminTelemetriaPage() {
     customDateFrom, setCustomDateFrom, customDateTo, setCustomDateTo,
     stats, topOffenders,
   } = useTelemetryData();
+  const { errors1h, errors24h, isLoading: errorsLoading } = useErrorCounters();
 
   return (
     <MainLayout>
@@ -51,6 +53,52 @@ export default function AdminTelemetriaPage() {
             <Button variant="outline" size="sm" onClick={handleCleanup}><Trash2 className="h-3.5 w-3.5 mr-1.5" />Limpar +7d</Button>
             <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isRefetching}><RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${isRefetching ? 'animate-spin' : ''}`} />Atualizar</Button>
           </div>
+        </div>
+
+        {/* Error Counters (independent of filters, auto-refresh 30s) */}
+        <div className="grid grid-cols-2 gap-4">
+          {[
+            { value: errors1h, label: 'Erros na última 1h', sub: 'Janela móvel · auto-refresh 30s' },
+            { value: errors24h, label: 'Erros nas últimas 24h', sub: 'Janela móvel · auto-refresh 30s' },
+          ].map(({ value, label, sub }) => {
+            const tone = value > 10 ? 'destructive' : value > 0 ? 'warning' : 'muted';
+            return (
+              <Card
+                key={label}
+                className={cn(
+                  'border-[1.5px] transition-colors',
+                  tone === 'destructive' && 'border-destructive/40 bg-destructive/5',
+                  tone === 'warning' && 'border-warning/40 bg-warning/5',
+                )}
+              >
+                <CardContent className="p-4 flex items-center gap-3">
+                  <div
+                    className={cn(
+                      'p-2.5 rounded-lg',
+                      tone === 'destructive' && 'bg-destructive/15 text-destructive',
+                      tone === 'warning' && 'bg-warning/15 text-warning',
+                      tone === 'muted' && 'bg-muted text-muted-foreground',
+                    )}
+                  >
+                    <AlertTriangle className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</p>
+                    <p
+                      className={cn(
+                        'font-display text-3xl font-bold tabular-nums leading-tight',
+                        tone === 'destructive' && 'text-destructive',
+                        tone === 'warning' && 'text-warning',
+                      )}
+                    >
+                      {errorsLoading ? '—' : value}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">{sub}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
 
         {/* Stats */}
