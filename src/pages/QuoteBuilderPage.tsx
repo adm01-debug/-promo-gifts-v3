@@ -365,6 +365,8 @@ export default function QuoteBuilderPage() {
             setNegotiationMarkup={s.setNegotiationMarkup}
             realSubtotal={s.realSubtotal}
             realDiscountPercent={s.realDiscountPercent}
+            confirmItemPrice={s.confirmItemPrice}
+            confirmAllStalePrices={s.confirmAllStalePrices}
           />
         </div>
       </div>
