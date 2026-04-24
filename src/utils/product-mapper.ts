@@ -124,7 +124,12 @@ export function mapPromobrindToProduct(p: PromobrindProduct): Product {
     boxLengthMm: p.box_length_mm, boxWeightKg: p.box_weight_kg,
     boxQuantity: p.box_quantity, boxVolumeCm3: p.box_volume_cm3,
     leadTimeDays: p.lead_time_days ?? null,
-    priceUpdatedAt: p.price_updated_at ?? null,
+    // BD externo (Promobrind) ainda não tem coluna dedicada `price_updated_at`.
+    // Usamos `updated_at` da linha do produto como proxy: qualquer alteração
+    // no produto (incluindo preço) atualiza esse timestamp. É uma aproximação
+    // segura para o aviso "preço pode estar defasado" — quando a coluna
+    // dedicada existir, ela tem precedência.
+    priceUpdatedAt: p.price_updated_at ?? p.updated_at ?? null,
     priceFreshnessThresholdDays: p.price_freshness_threshold_days ?? null,
     variations: variations.length > 0 ? variations : undefined,
     productVideos: p.product_videos?.length ? p.product_videos : undefined,
