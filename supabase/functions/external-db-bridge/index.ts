@@ -752,12 +752,14 @@ async function handleCrud(body: any, req: Request, corsHeaders: Record<string, s
     }
   }
 
-  // Determina elegibilidade de cache cedo (antes de tocar BD)
+  // Determina elegibilidade de cache cedo (antes de tocar BD).
+  // Cache é seguro para qualquer usuário em tabelas públicas não-sensíveis:
+  // a resposta não depende da identidade (sem RLS no BD externo).
+  // Excluímos apenas count='exact' (precisa ser preciso) e tabelas sensíveis.
   const isExactCount = requestCountMode === 'exact';
   const isCacheable =
     operation === 'select' &&
     allowPublicAccess &&
-    !userId &&
     !isExactCount;
 
   // CACHE LOOKUP: serve direto da memória se houver hit válido
