@@ -1372,7 +1372,6 @@ let cacheMissesTotal = 0;
 
 function buildCacheKey(table: string, body: any): string {
   const raw = JSON.stringify({
-    t: table,
     o: body.operation,
     s: body.select ?? null,
     f: body.filters ?? null,
@@ -1382,7 +1381,8 @@ function buildCacheKey(table: string, body: any): string {
     cm: body.countMode ?? null,
     id: body.id ?? null,
   });
-  return fnv1aHash(raw);
+  // Prefixa com a tabela em texto puro para permitir invalidação seletiva.
+  return `t:${table}|${fnv1aHash(raw)}`;
 }
 
 function getCached(key: string): string | null {
