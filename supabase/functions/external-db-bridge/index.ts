@@ -687,6 +687,28 @@ async function handleSelect(externalSupabase: any, table: string, opts: any) {
     return { records: paginated, count: allRecords.length };
   }
 
+  // #7: In-memory TTL cache for static reference tables (10min, see external-db-cache.ts)
+  // Avoids repeated cold queries on small static tables that drive the catalog UI.
+  const STATIC_TABLES = new Set([
+    'categories', 'suppliers', 'tags', 'colors', 'materials',
+    'print_techniques', 'print_areas', 'price_tables',
+  ]);
+  const isCacheable =
+    STATIC_TABLES.has(table) &&
+    !id &&
+    requestCountMode !== 'exact' &&
+    requestCountMode !== 'planned';
+  const cacheKey = isCacheable
+    ? `select:${table}:${JSON.stringify({ filters: filters ?? null, select: select ?? '*', orderBy: orderBy ?? null, queryLimit: queryLimit ?? null, queryOffset: queryOffset ?? 0 })}`
+    : null;
+  if (cacheKey) {
+    const cached = getCached<{ records: unknown[]; count: number | null }>(cacheKey);
+    if (cached) {
+      emitTelemetry({ operation: 'select', table, limit: queryLimit, offset: queryOffset ?? 0, countMode: 'cache', durationMs: 0, status: 'ok', recordCount: cached.records.length });
+      return cached;
+    }
+  }
+
   // Category descendants optimization
   let categoryDescendants: string[] | null = null;
   if (table === 'products' && filters && (filters.category_id || filters.main_category_id)) {
