@@ -133,7 +133,11 @@ jobs:
             --coverage.reporter=json-summary \
             --coverage.reporter=html \
             --coverage.include='src/utils/price-freshness.ts' \
-            --coverage.include='src/components/products/PriceFreshnessBadge.tsx'
+            --coverage.include='src/components/products/PriceFreshnessBadge.tsx' \
+            --coverage.thresholds.statements=0 \
+            --coverage.thresholds.branches=0 \
+            --coverage.thresholds.functions=0 \
+            --coverage.thresholds.lines=0
 
       # Gate por arquivo: falha se qualquer arquivo monitorado cair do piso atual.
       - name: Enforce per-file coverage floor (anti-regressão)
