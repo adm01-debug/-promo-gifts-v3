@@ -499,12 +499,21 @@ async function handleBatch(body: any, req: Request, corsHeaders: Record<string, 
       try {
         const queryStart = performance.now();
         // Use centralized resolver (same hard guard: limit > 50 AND no id) for batch too
-        const effectiveBatchSelect = resolveProductsSelect({
+        const batchResolved = resolveProductsSelect({
           table: qTable,
           select: qSelect,
           limit: rawLimit,
           hasId: false,
-        }).effectiveSelect;
+        });
+        const effectiveBatchSelect = batchResolved.effectiveSelect;
+        logSelectDecision({
+          callSite: 'handleBatch',
+          table: qTable,
+          callerSelect: qSelect,
+          effectiveLimit: rawLimit ?? qLimit,
+          hasId: false,
+          resolved: batchResolved,
+        });
         const selectOpts = qCountMode ? { count: qCountMode as 'exact' | 'planned' | 'estimated' } : undefined;
         let query = selectOpts
           ? externalSupabase.from(qTable).select(effectiveBatchSelect, selectOpts)
