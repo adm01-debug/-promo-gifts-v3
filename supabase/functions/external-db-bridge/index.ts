@@ -759,7 +759,7 @@ async function handleSelect(externalSupabase: any, table: string, opts: any) {
   if (id) query = query.eq('id', id);
   if (orderBy) query = query.order(orderBy.column, { ascending: orderBy.ascending ?? false });
 
-  const requestedLimit = typeof queryLimit === 'number' && queryLimit > 0 ? queryLimit : 500;
+  const requestedLimit = requestedLimitRaw;
   const safeOffset = typeof queryOffset === 'number' && queryOffset >= 0 ? queryOffset : 0;
   const safeLimit = computeSafeLimit(requestedLimit, table, !!(hasSearch || hasNamePrefix), safeOffset, effectiveSelect);
   query = query.range(safeOffset, safeOffset + safeLimit - 1);
