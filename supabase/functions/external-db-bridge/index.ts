@@ -1344,6 +1344,26 @@ const PRODUCTS_LIGHTWEIGHT_SELECT = 'id,name,sku,sale_price,cost_price,primary_i
 //   otherwise                               → keep caller's select
 export const LIGHTWEIGHT_LIMIT_THRESHOLD = 50;
 
+// Threshold (em número de colunas no select do caller) acima do qual forçamos
+// lightweight como Rule B ("wide-select-listing"). Configurável via env
+// LIGHTWEIGHT_COLUMN_THRESHOLD para permitir tuning sem redeploy de código —
+// fallback para 25, valor empírico que cobre o PRODUCTS_LIGHTWEIGHT_SELECT (24 cols)
+// com folga de 1 coluna para selects ligeiramente customizados.
+function readColumnThresholdFromEnv(): number {
+  try {
+    // deno-lint-ignore no-explicit-any
+    const denoGlobal = (globalThis as any).Deno;
+    const raw = denoGlobal?.env?.get?.('LIGHTWEIGHT_COLUMN_THRESHOLD');
+    if (!raw) return 25;
+    const parsed = Number.parseInt(String(raw), 10);
+    if (!Number.isFinite(parsed) || parsed <= 0) return 25;
+    return parsed;
+  } catch {
+    return 25;
+  }
+}
+export const WIDE_SELECT_COLUMN_THRESHOLD = readColumnThresholdFromEnv();
+
 // Colunas confirmadas como JSONB pesados / arrays grandes / texto longo na tabela `products`.
 // Fonte: inspeção empírica do payload SELECT * (148 cols → ver lightweightSelect.e2e.test.ts)
 // e PRODUCTS_LIGHTWEIGHT_SELECT (subset das 24 colunas leves).
@@ -1454,7 +1474,7 @@ export function resolveProductsSelect(input: ResolveProductsSelectInput): Resolv
   if (isStarOrEmpty) {
     return { effectiveSelect: PRODUCTS_LIGHTWEIGHT_SELECT, forcedLightweight: true, reason: 'star-select-listing' };
   }
-  if (select.split(',').length > 25) {
+  if (select.split(',').length > WIDE_SELECT_COLUMN_THRESHOLD) {
     return { effectiveSelect: PRODUCTS_LIGHTWEIGHT_SELECT, forcedLightweight: true, reason: 'wide-select-listing' };
   }
   if (callerSelectIsHeavy(select)) {
@@ -1500,18 +1520,23 @@ export function logSelectDecision(ctx: SelectDecisionLogContext): void {
     reason: resolved.reason,
     effectiveLimit,
     hasId,
+    limitThreshold: LIGHTWEIGHT_LIMIT_THRESHOLD,
+    columnThreshold: WIDE_SELECT_COLUMN_THRESHOLD,
+    // mantido para compat com dashboards já existentes
     threshold: LIGHTWEIGHT_LIMIT_THRESHOLD,
     callerSelect: callerSelect && callerSelect.length > 120
       ? `${callerSelect.slice(0, 117)}...`
       : (callerSelect ?? '(omitted)'),
     callerColumnCount: callerLen,
     effectiveColumnCount: effectiveLen,
+    exceededColumnThreshold: callerLen > WIDE_SELECT_COLUMN_THRESHOLD,
   };
 
   if (resolved.forcedLightweight) {
     console.log(
       `[external-db-bridge] ⚡ select-decision table=${table} mode=lightweight-forced reason=${resolved.reason} ` +
-      `limit=${effectiveLimit} (>${LIGHTWEIGHT_LIMIT_THRESHOLD}) caller_cols=${callerLen} effective_cols=${effectiveLen} ` +
+      `limit=${effectiveLimit} (>${LIGHTWEIGHT_LIMIT_THRESHOLD}) caller_cols=${callerLen} ` +
+      `(col_threshold=${WIDE_SELECT_COLUMN_THRESHOLD}) effective_cols=${effectiveLen} ` +
       `callSite=${callSite} → ${JSON.stringify(payload)}`,
     );
     return;
@@ -1528,7 +1553,8 @@ export function logSelectDecision(ctx: SelectDecisionLogContext): void {
   if (isInformative) {
     console.log(
       `[external-db-bridge] · select-decision table=${table} mode=caller-default reason=${resolved.reason} ` +
-      `limit=${effectiveLimit} hasId=${hasId} caller_cols=${callerLen} callSite=${callSite} → ${JSON.stringify(payload)}`,
+      `limit=${effectiveLimit} hasId=${hasId} caller_cols=${callerLen} ` +
+      `(col_threshold=${WIDE_SELECT_COLUMN_THRESHOLD}) callSite=${callSite} → ${JSON.stringify(payload)}`,
     );
   }
 }
