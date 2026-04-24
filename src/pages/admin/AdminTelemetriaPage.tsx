@@ -55,6 +55,52 @@ export default function AdminTelemetriaPage() {
           </div>
         </div>
 
+        {/* Error Counters (independent of filters, auto-refresh 30s) */}
+        <div className="grid grid-cols-2 gap-4">
+          {[
+            { value: errors1h, label: 'Erros na última 1h', sub: 'Janela móvel · auto-refresh 30s' },
+            { value: errors24h, label: 'Erros nas últimas 24h', sub: 'Janela móvel · auto-refresh 30s' },
+          ].map(({ value, label, sub }) => {
+            const tone = value > 10 ? 'destructive' : value > 0 ? 'warning' : 'muted';
+            return (
+              <Card
+                key={label}
+                className={cn(
+                  'border-[1.5px] transition-colors',
+                  tone === 'destructive' && 'border-destructive/40 bg-destructive/5',
+                  tone === 'warning' && 'border-warning/40 bg-warning/5',
+                )}
+              >
+                <CardContent className="p-4 flex items-center gap-3">
+                  <div
+                    className={cn(
+                      'p-2.5 rounded-lg',
+                      tone === 'destructive' && 'bg-destructive/15 text-destructive',
+                      tone === 'warning' && 'bg-warning/15 text-warning',
+                      tone === 'muted' && 'bg-muted text-muted-foreground',
+                    )}
+                  >
+                    <AlertTriangle className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</p>
+                    <p
+                      className={cn(
+                        'font-display text-3xl font-bold tabular-nums leading-tight',
+                        tone === 'destructive' && 'text-destructive',
+                        tone === 'warning' && 'text-warning',
+                      )}
+                    >
+                      {errorsLoading ? '—' : value}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">{sub}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
