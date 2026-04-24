@@ -18,6 +18,7 @@ import { useLogoColorAnalysis } from "@/hooks/useLogoColorAnalysis";
 import { showMockupSuccessToast } from "@/components/mockup/MockupSuccessToast";
 import { classifyTechnique, techniqueNeedsColorConfig, type TechniqueColorConfig } from "@/components/mockup/techniqueColorUtils";
 import { invokeWithRetry, extractFunctionErrorMessage } from "@/lib/external-db/invoke";
+import { adaptTabelaPrecoRows } from "@/lib/personalization/adapters";
 import type { PersonalizationArea } from "@/components/mockup/MultiAreaManager";
 import type { MockupProductSelection } from "@/components/mockup/MockupProductSelector";
 import type { MockupClient } from "@/components/mockup/MockupConfigPanel";
@@ -259,9 +260,11 @@ export function useMockupGenerator() {
         toast.error("Erro ao carregar técnicas. Tente recarregar a página.");
         return;
       }
-      const records = techniquesRes?.data?.records || techniquesRes?.records || [];
-      const techniquesData = records.map((r: Record<string, unknown>) => ({
-        id: r.id, name: r.nome, code: r.codigo_curto || r.codigo_tabela || null,
+      const records = adaptTabelaPrecoRows(techniquesRes?.data?.records || techniquesRes?.records || []);
+      const techniquesData = records.map((r) => ({
+        id: r.id,
+        name: r.name ?? r.nome ?? '',
+        code: r.codigo_curto ?? r.codigo_tabela ?? r.code ?? r.codigo ?? null,
       }));
       techniquesData.sort((a: Technique, b: Technique) => (a.name || '').localeCompare(b.name || ''));
       setTechniques(techniquesData);
