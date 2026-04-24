@@ -251,7 +251,7 @@ export function PriceFreshnessBadge({
           )}
         >
           <Clock className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-          <span className="tabular-nums">Atualizado {relative}</span>
+          <span className="tabular-nums">Atualizado {relative}{limitSuffix}</span>
         </span>
       );
     } else if (freshness.status === "fresh" && absolute) {
