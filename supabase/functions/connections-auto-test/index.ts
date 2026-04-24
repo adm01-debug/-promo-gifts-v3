@@ -30,7 +30,9 @@ export type ServiceClient = SupabaseClient;
 export type CompatibleSupabaseClient<
   // deno-lint-ignore no-explicit-any
   Database = any,
-  SchemaName extends string = "public",
+  SchemaName extends string & keyof Database = "public" extends keyof Database
+    ? "public" & string
+    : string & keyof Database,
 > = SupabaseClient<Database, SchemaName>;
 
 /**
