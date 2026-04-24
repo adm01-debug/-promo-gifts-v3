@@ -1,9 +1,9 @@
 /**
- * simulationPriceFetcher — Cálculo oficial de preço do simulador legado.
+ * simulationPriceFetcher — Cálculo oficial de preço do simulador.
  *
- * Substitui o `simulationCalculator` (fórmulas heurísticas no front) por
- * chamadas ao RPC `fn_get_customization_price`, que reflete a estrutura
- * atualizada das tabelas de gravação (áreas, técnicas, faixas e valores).
+ * Fonte única de verdade: o RPC `fn_get_customization_price`, que reflete
+ * a estrutura atualizada das tabelas de gravação (áreas, técnicas, faixas
+ * e valores). Não há mais fallback heurístico no front.
  *
  * Fluxo:
  *   1. Para um `productId`, carrega `print_area_techniques` via
@@ -13,7 +13,7 @@
  *   3. Chama o RPC em paralelo (`Promise.allSettled`) e mapeia o retorno
  *      flat para `SimulationOption`.
  *   4. Técnicas sem print area cadastrada → opção marcada como
- *      `unavailable` (não usa heurística antiga).
+ *      `unavailable` (UI exibe motivo, sem inventar preço).
  */
 
 import { invokeExternalRpc } from '@/lib/external-rpc';
