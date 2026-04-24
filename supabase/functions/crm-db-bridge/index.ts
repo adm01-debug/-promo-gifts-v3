@@ -426,6 +426,16 @@ async function handleInsert(crm: SupabaseClient, body: CrmQuery): Promise<Respon
 
   const { data: result, error } = await crm.from(table).insert(data as any).select(returning || "*");
 
+  // Diagnose result shape BEFORE doing anything else so GenericStringError
+  // payloads (and other anomalies) are visible immediately in runtime logs.
+  if (!error) {
+    const diag = inspectInsertResult(result);
+    logInsertResultIfAnomalous(
+      { callSite: "handleInsert", table, operation: "insert", returning: returning || "*" },
+      diag,
+    );
+  }
+
   // Fix quote_number if it was overridden by DB default
   if (!error && table === "quotes") {
     const insertedRow = firstRowAsRecord(result);
