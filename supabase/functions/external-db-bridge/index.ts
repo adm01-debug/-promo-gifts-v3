@@ -498,11 +498,14 @@ async function handleBatch(body: any, req: Request, corsHeaders: Record<string, 
 
       try {
         const queryStart = performance.now();
-        // Use lightweight select for products in batch too
-        const effectiveBatchSelect = (qTable === 'products' && (!qSelect || qSelect === '*'))
-          ? PRODUCTS_LIGHTWEIGHT_SELECT
-          : qSelect;
-        const selectOpts = qCountMode ? { count: qCountMode } : undefined;
+        // Use centralized resolver (same hard guard: limit > 50 AND no id) for batch too
+        const effectiveBatchSelect = resolveProductsSelect({
+          table: qTable,
+          select: qSelect,
+          limit: rawLimit,
+          hasId: false,
+        }).effectiveSelect;
+        const selectOpts = qCountMode ? { count: qCountMode as 'exact' | 'planned' | 'estimated' } : undefined;
         let query = selectOpts
           ? externalSupabase.from(qTable).select(effectiveBatchSelect, selectOpts)
           : externalSupabase.from(qTable).select(effectiveBatchSelect);
@@ -877,45 +880,21 @@ async function handleSelect(externalSupabase: any, table: string, opts: any) {
   const queryCountMode = countMode === 'none' ? undefined : countMode;
 
   // ============================================
-  // PRODUCTS LIGHTWEIGHT SELECT — performance rule
+  // PRODUCTS LIGHTWEIGHT SELECT — delegated to resolveProductsSelect()
+  // (single source of truth, hard guard: limit > 50 AND no id)
   // ============================================
-  // Goal: never ship heavy JSONB columns (personalization_areas, metadata, specifications,
-  // attributes_json, description_html) on big listings, even if caller asked for `select=*`.
-  //
-  // Rules (priority order, only for table === 'products' and when no specific id is requested):
-  //   1. select='*' OR omitted + limit > LIGHTWEIGHT_LIMIT_THRESHOLD → force lightweight (HIGH-IMPACT path)
-  //   2. select='*' OR omitted, any limit → force lightweight (catalog default)
-  //   3. caller's select touches heavy JSONB columns AND it's a listing (limit > 50) → force lightweight
-  //   4. otherwise → respect caller's select
-  //
-  // Single-record fetches (id present) ALWAYS keep the requested select so detail pages can hydrate JSONB.
-  const LIGHTWEIGHT_LIMIT_THRESHOLD = 50;
   const requestedLimitRaw = typeof queryLimit === 'number' && queryLimit > 0 ? queryLimit : 500;
-  const isListing = !id && requestedLimitRaw > LIGHTWEIGHT_LIMIT_THRESHOLD;
-  const selectIsStarOrEmpty = !select || select === '*';
-  const callerSelectTouchesHeavyJsonb = !!select
-    && select !== '*'
-    && /personalization_areas|metadata|specifications|attributes_json|description_html/i.test(select);
-  const callerSelectIsHeavy = selectIsStarOrEmpty
-    || (select?.split(',').length ?? 0) > 25
-    || callerSelectTouchesHeavyJsonb;
-
-  let effectiveSelect: string;
-  if (table === 'products' && !id && selectIsStarOrEmpty && requestedLimitRaw > LIGHTWEIGHT_LIMIT_THRESHOLD) {
-    // Rule 1 — high-impact: star-select + big listing. Always force lightweight.
+  const resolved = resolveProductsSelect({
+    table,
+    select,
+    limit: requestedLimitRaw,
+    hasId: !!id,
+  });
+  const effectiveSelect = resolved.effectiveSelect;
+  if (resolved.forcedLightweight) {
     console.log(
-      `[external-db-bridge] ⚡ Forcing PRODUCTS_LIGHTWEIGHT_SELECT — caller sent select='${select ?? '(omitted)'}' with limit=${requestedLimitRaw} (> ${LIGHTWEIGHT_LIMIT_THRESHOLD}). Heavy JSONB columns dropped for performance.`
+      `[external-db-bridge] ⚡ Forcing PRODUCTS_LIGHTWEIGHT_SELECT — reason=${resolved.reason} caller='${select ?? '(omitted)'}' limit=${requestedLimitRaw} (> ${LIGHTWEIGHT_LIMIT_THRESHOLD}). Heavy JSONB columns dropped.`
     );
-    effectiveSelect = PRODUCTS_LIGHTWEIGHT_SELECT;
-  } else if (table === 'products' && selectIsStarOrEmpty) {
-    // Rule 2 — catalog default for star-select.
-    effectiveSelect = PRODUCTS_LIGHTWEIGHT_SELECT;
-  } else if (table === 'products' && isListing && callerSelectIsHeavy) {
-    // Rule 3 — caller asked for heavy JSONB columns on a big listing.
-    console.log(`[external-db-bridge] Forcing lightweight select on products listing (limit=${requestedLimitRaw}, callerSelect touched heavy JSONB)`);
-    effectiveSelect = PRODUCTS_LIGHTWEIGHT_SELECT;
-  } else {
-    effectiveSelect = select || '*';
   }
 
   let query = queryCountMode
@@ -1000,7 +979,7 @@ async function handleSelect(externalSupabase: any, table: string, opts: any) {
       console.warn(
         `[external-db-bridge] orderBy fallback: column "${orderColumn}" failed on table "${table}" ` +
         `(code=${errCode || 'n/a'}, msg="${errMsg}"). Retrying without orderBy. ` +
-        `Caller origin: userId=${userId ?? 'anon'} select="${effectiveSelect.slice(0, 80)}..." filters=${JSON.stringify(filters ?? {}).slice(0, 200)}`
+        `Caller origin: select="${effectiveSelect.slice(0, 80)}..." filters=${JSON.stringify(filters ?? {}).slice(0, 200)}`
       );
 
       const retryStart = performance.now();
@@ -1331,3 +1310,71 @@ function getExternalClient(corsHeaders: Record<string, string>) {
 
 // Default lightweight columns for products table to avoid fetching heavy JSONB columns
 const PRODUCTS_LIGHTWEIGHT_SELECT = 'id,name,sku,sale_price,cost_price,primary_image_url,category_id,main_category_id,supplier_id,supplier_reference,description,short_description,brand,is_active,active,stock_quantity,min_quantity,created_at,updated_at,is_featured,is_bestseller,is_new,is_on_sale,is_kit';
+
+// ============================================
+// PRODUCTS SELECT RESOLVER — single source of truth for the lightweight rule
+// ============================================
+// Centralizes the decision to swap the caller's `select` for `PRODUCTS_LIGHTWEIGHT_SELECT`.
+// HARD GUARD: lightweight is ONLY applied when limit > LIGHTWEIGHT_LIMIT_THRESHOLD AND no `id` is set.
+// This prevents regressions where detail/edit pages (id present, or limit ≤ 50) lose JSONB columns.
+//
+// Decision matrix (table === 'products'):
+//   id present                              → keep caller's select (detail/edit)
+//   limit ≤ 50                              → keep caller's select (small reads)
+//   limit > 50 AND select is '*' or empty   → force lightweight  (Rule A)
+//   limit > 50 AND select is very wide (>25 cols) → force lightweight  (Rule B)
+//   limit > 50 AND select touches heavy JSONB     → force lightweight  (Rule C)
+//   otherwise                               → keep caller's select
+export const LIGHTWEIGHT_LIMIT_THRESHOLD = 50;
+const HEAVY_JSONB_COLUMN_RE = /personalization_areas|metadata|specifications|attributes_json|description_html/i;
+
+export interface ResolveProductsSelectInput {
+  table: string;
+  select: string | undefined | null;
+  limit: number | undefined | null;
+  hasId: boolean;
+}
+
+export interface ResolveProductsSelectResult {
+  effectiveSelect: string;
+  forcedLightweight: boolean;
+  reason:
+    | 'not-products'
+    | 'has-id'
+    | 'small-limit'
+    | 'star-select-listing'
+    | 'wide-select-listing'
+    | 'heavy-jsonb-listing'
+    | 'caller-select';
+}
+
+export function resolveProductsSelect(input: ResolveProductsSelectInput): ResolveProductsSelectResult {
+  const { table, select, limit, hasId } = input;
+  const callerSelect = select && select.length > 0 ? select : '*';
+
+  if (table !== 'products') {
+    return { effectiveSelect: callerSelect, forcedLightweight: false, reason: 'not-products' };
+  }
+  if (hasId) {
+    return { effectiveSelect: callerSelect, forcedLightweight: false, reason: 'has-id' };
+  }
+
+  const safeLimit = typeof limit === 'number' && limit > 0 ? limit : 0;
+  // HARD GUARD against regression: never force lightweight on small reads.
+  if (safeLimit <= LIGHTWEIGHT_LIMIT_THRESHOLD) {
+    return { effectiveSelect: callerSelect, forcedLightweight: false, reason: 'small-limit' };
+  }
+
+  const isStarOrEmpty = !select || select === '*';
+  if (isStarOrEmpty) {
+    return { effectiveSelect: PRODUCTS_LIGHTWEIGHT_SELECT, forcedLightweight: true, reason: 'star-select-listing' };
+  }
+  if (select.split(',').length > 25) {
+    return { effectiveSelect: PRODUCTS_LIGHTWEIGHT_SELECT, forcedLightweight: true, reason: 'wide-select-listing' };
+  }
+  if (HEAVY_JSONB_COLUMN_RE.test(select)) {
+    return { effectiveSelect: PRODUCTS_LIGHTWEIGHT_SELECT, forcedLightweight: true, reason: 'heavy-jsonb-listing' };
+  }
+
+  return { effectiveSelect: callerSelect, forcedLightweight: false, reason: 'caller-select' };
+}
