@@ -744,6 +744,28 @@ async function handleCrud(body: any, req: Request, corsHeaders: Record<string, s
     }
   }
 
+  // Determina elegibilidade de cache cedo (antes de tocar BD)
+  const isExactCount = requestCountMode === 'exact';
+  const isCacheable =
+    operation === 'select' &&
+    allowPublicAccess &&
+    !userId &&
+    !isExactCount;
+
+  // CACHE LOOKUP: serve direto da memória se houver hit válido
+  let cacheKey: string | null = null;
+  if (isCacheable) {
+    cacheKey = buildCacheKey(table, body);
+    const cached = getCached(cacheKey);
+    if (cached !== null) {
+      cacheHitsTotal++;
+      const totalDuration = Math.round(performance.now() - requestStartTime);
+      console.info(`⚡ [cache] HIT ${operation}:${table} ${totalDuration}ms key=${cacheKey} (hits=${cacheHitsTotal} misses=${cacheMissesTotal})`);
+      return cachedJsonResponse(cached, corsHeaders, true);
+    }
+    cacheMissesTotal++;
+  }
+
   const externalSupabase = getExternalClient(corsHeaders);
   if (externalSupabase instanceof Response) return externalSupabase;
 
@@ -785,11 +807,23 @@ async function handleCrud(body: any, req: Request, corsHeaders: Record<string, s
       return jsonResponse({ error: `Operação não suportada: ${operation}` }, 400, corsHeaders);
   }
 
+  // Invalidação: qualquer write expira TODAS as entradas de cache da tabela tocada
+  if (['insert', 'update', 'delete', 'upsert', 'batch_insert'].includes(operation)) {
+    invalidateCacheForTable(table);
+  }
+
   const totalDuration = Math.round(performance.now() - requestStartTime);
   if (totalDuration >= VERY_SLOW_QUERY_THRESHOLD_MS) {
     console.warn(`🔴 [telemetry] Total request ${operation}:${table} took ${totalDuration}ms (VERY SLOW)`);
   } else if (totalDuration >= SLOW_QUERY_THRESHOLD_MS) {
     console.warn(`🟡 [telemetry] Total request ${operation}:${table} took ${totalDuration}ms (SLOW)`);
+  }
+
+  // CACHE WRITE: armazena resposta para próximas requisições
+  if (isCacheable && cacheKey) {
+    const payload = JSON.stringify({ data: result, success: true });
+    setCached(cacheKey, payload);
+    return cachedJsonResponse(payload, corsHeaders, false);
   }
 
   return jsonResponse({ data: result, success: true }, 200, corsHeaders);
@@ -1306,6 +1340,100 @@ async function handleBatchInsert(externalSupabase: any, table: string, opts: any
 
 function jsonResponse(body: unknown, status: number, corsHeaders: Record<string, string>) {
   return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+}
+
+// FNV-1a 32-bit — barato e suficiente para chave de cache (não-criptográfico).
+function fnv1aHash(input: string): string {
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < input.length; i++) {
+    hash ^= input.charCodeAt(i);
+    hash = (hash + ((hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24))) >>> 0;
+  }
+  return hash.toString(16).padStart(8, '0');
+}
+
+/**
+ * In-memory cache para reads públicos do catálogo.
+ * Vive dentro da instância da edge function (mesma vida do worker).
+ * Como mantemos a função quente via cron keep-alive a cada 4 min, o cache
+ * sobrevive entre requests reais.
+ *
+ * - TTL: 60s (catálogo muda raramente)
+ * - Tamanho máx: 200 entradas (evita memory bloat)
+ * - Eviction: LRU simples via Map (delete+set restaura ordem de inserção)
+ */
+const CACHE_TTL_MS = 60_000;
+const CACHE_MAX_ENTRIES = 200;
+type CacheEntry = { payload: string; expiresAt: number };
+const responseCache = new Map<string, CacheEntry>();
+
+let cacheHitsTotal = 0;
+let cacheMissesTotal = 0;
+
+function buildCacheKey(table: string, body: any): string {
+  const raw = JSON.stringify({
+    o: body.operation,
+    s: body.select ?? null,
+    f: body.filters ?? null,
+    ob: body.orderBy ?? null,
+    l: body.limit ?? null,
+    of: body.offset ?? null,
+    cm: body.countMode ?? null,
+    id: body.id ?? null,
+  });
+  // Prefixa com a tabela em texto puro para permitir invalidação seletiva.
+  return `t:${table}|${fnv1aHash(raw)}`;
+}
+
+function getCached(key: string): string | null {
+  const entry = responseCache.get(key);
+  if (!entry) return null;
+  if (entry.expiresAt < Date.now()) {
+    responseCache.delete(key);
+    return null;
+  }
+  // LRU touch: move para o final reordenando inserção
+  responseCache.delete(key);
+  responseCache.set(key, entry);
+  return entry.payload;
+}
+
+function setCached(key: string, payload: string): void {
+  if (responseCache.size >= CACHE_MAX_ENTRIES) {
+    // Evict o mais antigo (primeiro no Map)
+    const oldestKey = responseCache.keys().next().value;
+    if (oldestKey !== undefined) responseCache.delete(oldestKey);
+  }
+  responseCache.set(key, { payload, expiresAt: Date.now() + CACHE_TTL_MS });
+}
+
+/**
+ * Invalida todas as entradas de cache que referenciam a tabela tocada.
+ * Como a key embute a tabela, fazemos full scan barato (max 200 entradas).
+ */
+function invalidateCacheForTable(table: string): void {
+  const tagPrefix = `t:${table}|`;
+  let removed = 0;
+  for (const [key, entry] of responseCache.entries()) {
+    // entry.payload contém o resultado, mas precisamos identificar pela tabela.
+    // Reescrevemos buildCacheKey para anexar tag legível antes do hash.
+    if (key.startsWith(tagPrefix)) {
+      responseCache.delete(key);
+      removed++;
+    }
+  }
+  if (removed > 0) console.info(`🧹 [cache] invalidated ${removed} entries for table=${table}`);
+}
+
+function cachedJsonResponse(payload: string, corsHeaders: Record<string, string>, hit: boolean): Response {
+  return new Response(payload, {
+    status: 200,
+    headers: {
+      ...corsHeaders,
+      'Content-Type': 'application/json',
+      'X-Bridge-Cache': hit ? 'HIT' : 'MISS',
+    },
+  });
 }
 
 function getExternalClient(corsHeaders: Record<string, string>) {
