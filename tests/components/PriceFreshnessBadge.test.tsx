@@ -62,7 +62,7 @@ describe("PriceFreshnessBadge", () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  it("renders icon-only variant for stale and uses warning color", () => {
+  it("renders icon-only variant for stale and uses warning color (WCAG AA)", () => {
     render(
       <PriceFreshnessBadge
         priceUpdatedAt={daysAgo(90)}
@@ -72,7 +72,8 @@ describe("PriceFreshnessBadge", () => {
     );
     const badge = screen.getByRole("status");
     expect(badge).toBeInTheDocument();
-    expect(badge.className).toMatch(/amber-600/);
+    // amber-700 atinge ≥ 4.5:1 sobre fundo claro (era amber-600 = 3.4:1).
+    expect(badge.className).toMatch(/amber-700/);
   });
 
   it("renders inline variant for unknown when alwaysShow is implicit (inline always shows)", () => {
@@ -83,6 +84,8 @@ describe("PriceFreshnessBadge", () => {
         variant="inline"
       />,
     );
+    // O aria-label rico inclui "não informada" para leitores de tela
+    // (ex.: "Preço com data de atualização não informada pelo fornecedor.").
     expect(screen.getByRole("status")).toHaveAccessibleName(/não informada/i);
   });
 
