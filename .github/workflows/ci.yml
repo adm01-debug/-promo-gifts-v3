@@ -151,3 +151,27 @@ jobs:
           path: coverage/
           retention-days: 30
           if-no-files-found: ignore
+
+  edge-functions-typecheck:
+    name: Edge Functions — Deno typecheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 20
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      # Roda `deno check` em cada supabase/functions/<fn>/*.ts.
+      # Falha o job se qualquer função tiver erro de tipos
+      # (ex: cast inseguro de GenericStringError, SupabaseClient com schema errado).
+      - name: Typecheck all edge functions
+        run: node scripts/typecheck-edge-functions.mjs
+
