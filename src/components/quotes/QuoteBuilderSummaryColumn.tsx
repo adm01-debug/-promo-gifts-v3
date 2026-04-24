@@ -47,6 +47,10 @@ interface Props {
   setNegotiationMarkup?: (v: number) => void;
   realSubtotal?: number;
   realDiscountPercent?: number;
+  /** Marca um item como "preço confirmado com fornecedor" — suprime alerta stale. */
+  confirmItemPrice?: (index: number) => void;
+  /** Marca todos os itens com preço aging/stale como confirmados. */
+  confirmAllStalePrices?: () => void;
 }
 
 export function QuoteBuilderSummaryColumn({
@@ -58,9 +62,35 @@ export function QuoteBuilderSummaryColumn({
   maxDiscountPercent, isDiscountExceeded,
   negotiationMarkup = 0, setNegotiationMarkup,
   realSubtotal = 0, realDiscountPercent = 0,
+  confirmItemPrice, confirmAllStalePrices,
 }: Props) {
   const [approvalDialogOpen, setApprovalDialogOpen] = useState(false);
   const [sellerNotes, setSellerNotes] = useState("");
+  const [confirmAllOpen, setConfirmAllOpen] = useState(false);
+  const [showOnlyStale, setShowOnlyStale] = useState(false);
+
+  // ── Itens com preço pendente de confirmação (aging/stale e ainda não confirmado) ──
+  const staleIndexes = useMemo(() => {
+    const set = new Set<number>();
+    items.forEach((item, idx) => {
+      if (item.price_confirmed_at) return;
+      const f = getPriceFreshness(item.price_updated_at, item.price_freshness_threshold_days);
+      if (f.shouldWarn) set.add(idx);
+    });
+    return set;
+  }, [items]);
+
+  const staleCount = staleIndexes.size;
+  const visibleItems = useMemo(
+    () => showOnlyStale ? items.map((it, idx) => ({ it, idx })).filter(({ idx }) => staleIndexes.has(idx))
+                        : items.map((it, idx) => ({ it, idx })),
+    [items, showOnlyStale, staleIndexes],
+  );
+
+  // Auto-desliga o filtro se a contagem zerar (após confirmar todos)
+  if (showOnlyStale && staleCount === 0) {
+    setTimeout(() => setShowOnlyStale(false), 0);
+  }
 
   const handleRequestApproval = () => {
     onSave("pending_approval", sellerNotes);
