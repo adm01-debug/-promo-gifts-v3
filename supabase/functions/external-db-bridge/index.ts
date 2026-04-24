@@ -357,7 +357,7 @@ function removeTechniqueFromAreas(personalizationAreas: unknown, areaId: string,
 // ============================================
 
 const TopLevelBodySchema = z.object({
-  operation: z.enum(['select', 'insert', 'update', 'delete', 'upsert', 'batch_insert', 'rpc', 'batch']),
+  operation: z.enum(['select', 'insert', 'update', 'delete', 'upsert', 'batch_insert', 'rpc', 'batch', 'ping']),
   table: z.string().min(1).optional(),
   queries: z.array(z.record(z.unknown())).max(10).optional(),
   rpcName: z.string().optional(),
