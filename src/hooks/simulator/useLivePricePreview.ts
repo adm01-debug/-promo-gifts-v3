@@ -118,7 +118,7 @@ export function useLivePricePreview({
             costPerUnit: quantity > 0 ? flat.total_price / quantity : 0,
             productionDays: flat.production_days,
             breakdown: {
-              areaName: flat.area_name || tech.printAreaName || '—',
+              areaName: flat.area_name || selectedLocation.locationName || '—',
               areaCode: flat.area_code || '',
               locationName: selectedLocation.locationName ?? null,
               techniqueGroup: flat.grupo_tecnica || '',
