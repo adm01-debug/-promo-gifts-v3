@@ -311,15 +311,16 @@ async function handleInsert(crm: SupabaseClient, body: CrmQuery): Promise<Respon
   const { data: result, error } = await crm.from(table).insert(data as any).select(returning || "*");
 
   // Fix quote_number if it was overridden by DB default
-  if (!error && result?.length && table === "quotes") {
-    const insertedRow = result[0] as unknown as Record<string, unknown>;
-    const targetNumber = Array.isArray(data)
-      ? (data[0] as Record<string, unknown>).quote_number
-      : (data as Record<string, unknown>).quote_number;
+  if (!error && table === "quotes") {
+    const insertedRow = firstRowAsRecord(result);
+    if (insertedRow) {
+      const sourceRow = Array.isArray(data) ? toRecord(data[0]) : toRecord(data);
+      const targetNumber = sourceRow?.quote_number;
 
-    if (targetNumber && targetNumber !== "" && insertedRow.quote_number !== targetNumber) {
-      await crm.from("quotes").update({ quote_number: targetNumber }).eq("id", insertedRow.id as string);
-      insertedRow.quote_number = targetNumber;
+      if (targetNumber && targetNumber !== "" && insertedRow.quote_number !== targetNumber) {
+        await crm.from("quotes").update({ quote_number: targetNumber }).eq("id", insertedRow.id as string);
+        insertedRow.quote_number = targetNumber;
+      }
     }
   }
 
