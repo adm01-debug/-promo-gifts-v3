@@ -2971,6 +2971,7 @@ export type Database = {
           count_mode: string | null
           created_at: string
           duration_ms: number
+          error_kind: string | null
           error_message: string | null
           id: string
           operation: string
@@ -2986,6 +2987,7 @@ export type Database = {
           count_mode?: string | null
           created_at?: string
           duration_ms: number
+          error_kind?: string | null
           error_message?: string | null
           id?: string
           operation: string
@@ -3001,6 +3003,7 @@ export type Database = {
           count_mode?: string | null
           created_at?: string
           duration_ms?: number
+          error_kind?: string | null
           error_message?: string | null
           id?: string
           operation?: string
