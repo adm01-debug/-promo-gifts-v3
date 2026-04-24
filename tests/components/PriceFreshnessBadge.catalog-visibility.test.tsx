@@ -105,7 +105,8 @@ describe("PriceFreshnessBadge — visibilidade nos componentes do catálogo", ()
       render(<CardBadge priceUpdatedAt={daysAgo(90)} thresholdDays={60} />);
       const badge = screen.getByRole("status");
       expect(badge).toBeInTheDocument();
-      expect(badge.className).toMatch(/amber-600/);
+      // amber-700 garante WCAG AA (≥ 4.5:1) sobre fundos claros.
+      expect(badge.className).toMatch(/amber-700/);
     });
 
     it("respeita o threshold per-produto: 25 dias com janela 30 ainda é fresh → some", () => {
