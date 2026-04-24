@@ -12,6 +12,7 @@ import { Activity, AlertTriangle, Clock, Database, RefreshCw, Zap, Trash2, Downl
 import { format } from 'date-fns';
 import { TelemetryCharts } from '@/components/admin/telemetry/TelemetryCharts';
 import { useTelemetryData, formatDuration, formatTime } from './telemetry/useTelemetryData';
+import { useErrorCounters } from './telemetry/useErrorCounters';
 import { exportCSV, exportPDF } from './telemetry/exportHelpers';
 import type { SeverityFilter, TimeFilter } from './telemetry/useTelemetryData';
 
