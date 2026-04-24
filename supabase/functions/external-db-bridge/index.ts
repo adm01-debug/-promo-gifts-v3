@@ -404,6 +404,13 @@ Deno.serve(async (req) => {
     const body = parsed.data as Record<string, unknown>;
 
     // ============================================
+    // PING (keep-alive — no DB I/O, no auth)
+    // ============================================
+    if (body.operation === 'ping') {
+      return jsonResponse({ ok: true, ts: Date.now(), warm: true }, 200, corsHeaders);
+    }
+
+    // ============================================
     // BATCH OPERATION
     // ============================================
     if (body.operation === 'batch') {
