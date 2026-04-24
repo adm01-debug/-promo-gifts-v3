@@ -96,6 +96,11 @@ export function getProductStock(product: PromobrindProduct): number {
 }
 
 // Select field constants
+// NOTE: `price_updated_at` and `price_freshness_threshold_days` are intentionally
+// NOT selected here — those columns don't exist in the external Promobrind DB
+// yet. The mapper (`product-mapper.ts`) already coalesces missing values to
+// `null`, and `getPriceFreshness` falls back to the default 60-day window.
+// When the external DB adds the columns, just append them back to these lists.
 export const PRODUCT_SELECT_FIELDS_WITH_SALE =
   'id, name, sku, sale_price, cost_price, images, primary_image_url, ' +
   'category_id, main_category_id, supplier_id, supplier_reference, description, ' +
@@ -104,8 +109,7 @@ export const PRODUCT_SELECT_FIELDS_WITH_SALE =
   'is_featured, is_bestseller, is_new, is_on_sale, is_kit, gender, ' +
   'height_cm, width_cm, length_cm, diameter_cm, weight_g, capacity_ml, ' +
   'packing_type, packing_classification, has_commercial_packaging, repacking_type, packaging_context, ' +
-  'box_image, box_width_mm, box_height_mm, box_length_mm, box_weight_kg, box_quantity, box_volume_cm3, ' +
-  'price_updated_at, price_freshness_threshold_days';
+  'box_image, box_width_mm, box_height_mm, box_length_mm, box_weight_kg, box_quantity, box_volume_cm3';
 
 export const PRODUCT_SELECT_FIELDS_LEGACY =
   'id, name, sku, cost_price, images, primary_image_url, ' +
@@ -115,8 +119,7 @@ export const PRODUCT_SELECT_FIELDS_LEGACY =
   'is_featured, is_bestseller, is_new, is_on_sale, is_kit, ' +
   'height_cm, width_cm, length_cm, diameter_cm, weight_g, capacity_ml, ' +
   'packing_type, packing_classification, has_commercial_packaging, repacking_type, packaging_context, ' +
-  'box_image, box_width_mm, box_height_mm, box_length_mm, box_weight_kg, box_quantity, box_volume_cm3, ' +
-  'price_updated_at, price_freshness_threshold_days';
+  'box_image, box_width_mm, box_height_mm, box_length_mm, box_weight_kg, box_quantity, box_volume_cm3';
 
 export const PRODUCT_SELECT_FIELDS_DETAIL =
   'id, name, sku, sale_price, cost_price, images, primary_image_url, ' +
@@ -126,8 +129,7 @@ export const PRODUCT_SELECT_FIELDS_DETAIL =
   'is_featured, is_bestseller, is_new, is_on_sale, is_kit, tags, ' +
   'height_cm, width_cm, length_cm, diameter_cm, weight_g, capacity_ml, ' +
   'packing_type, packing_classification, has_commercial_packaging, repacking_type, packaging_context, ' +
-  'box_image, box_width_mm, box_height_mm, box_length_mm, box_weight_kg, box_quantity, box_volume_cm3, ' +
-  'price_updated_at, price_freshness_threshold_days';
+  'box_image, box_width_mm, box_height_mm, box_length_mm, box_weight_kg, box_quantity, box_volume_cm3';
 
 export function shouldFallbackSelect(err: unknown) {
   const msg = err instanceof Error ? err.message : String(err);
