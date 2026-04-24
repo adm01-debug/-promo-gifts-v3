@@ -198,7 +198,7 @@ describe("PriceFreshnessBadge — visibilidade nos componentes do catálogo", ()
       render(<CardBadge priceUpdatedAt={daysAgo(61)} thresholdDays={60} />);
       const badge = screen.getByRole("status");
       expect(badge).toBeInTheDocument();
-      expect(badge.className).toMatch(/amber-600/);
+      expect(badge.className).toMatch(/amber-700/);
     });
   });
 });
