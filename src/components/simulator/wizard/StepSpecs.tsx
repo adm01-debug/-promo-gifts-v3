@@ -13,12 +13,14 @@ import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { 
   SlidersHorizontal, 
   Palette, 
   Ruler,
   DollarSign,
   ChevronLeft,
+  ChevronDown,
   AlertTriangle,
   BarChart3,
   Loader2,
@@ -384,6 +386,108 @@ export function StepSpecs({ wizard }: StepSpecsProps) {
           <p className="text-[10px] text-muted-foreground/70 mt-2">
             * Estimativa baseada na técnica mais acessível. Clique em "Comparar" para ver todas.
           </p>
+
+          {/* Breakdown — detalhamento por área, técnica e tamanho retornado pelo RPC */}
+          {estimate && !priceLoading && (
+            <Collapsible className="mt-3">
+              <CollapsibleTrigger className="group flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary/80 transition-colors">
+                <ChevronDown className="h-3.5 w-3.5 transition-transform group-data-[state=open]:rotate-180" />
+                Ver detalhamento do cálculo
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2 p-3 rounded-xl bg-background/60 border border-border/60 text-xs">
+                  <div>
+                    <p className="text-muted-foreground">Área</p>
+                    <p className="font-semibold truncate" title={estimate.breakdown.areaName}>
+                      {estimate.breakdown.areaName}
+                      {estimate.breakdown.areaCode && (
+                        <span className="ml-1 text-muted-foreground/70">({estimate.breakdown.areaCode})</span>
+                      )}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Técnica</p>
+                    <p className="font-semibold truncate" title={estimate.cheapestName}>
+                      {estimate.cheapestName}
+                      {estimate.breakdown.techniqueGroup && (
+                        <span className="ml-1 text-muted-foreground/70">· {estimate.breakdown.techniqueGroup}</span>
+                      )}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Tabela</p>
+                    <p className="font-semibold font-mono truncate" title={estimate.breakdown.tableCode}>
+                      {estimate.breakdown.tableCodeShort || estimate.breakdown.tableCode || '—'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Tamanho</p>
+                    <p className="font-semibold">
+                      {estimate.breakdown.width != null && estimate.breakdown.height != null ? (
+                        <>
+                          {estimate.breakdown.width}×{estimate.breakdown.height}cm
+                          {estimate.breakdown.areaCm2 != null && (
+                            <span className="ml-1 text-muted-foreground/70">({estimate.breakdown.areaCm2}cm²)</span>
+                          )}
+                        </>
+                      ) : (
+                        <span className="text-muted-foreground/70">não usa dimensão</span>
+                      )}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Cores</p>
+                    <p className="font-semibold">
+                      {estimate.breakdown.numColors}
+                      <span className="ml-1 text-muted-foreground/70">
+                        {estimate.breakdown.priceByColor ? `(máx ${estimate.breakdown.maxColors})` : '(full color)'}
+                      </span>
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Faixa de quantidade</p>
+                    <p className="font-semibold">
+                      {estimate.breakdown.tierMinQty}
+                      {estimate.breakdown.tierMaxQty > 0 && estimate.breakdown.tierMaxQty < 999999
+                        ? ` – ${estimate.breakdown.tierMaxQty}`
+                        : '+'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Subtotal peças</p>
+                    <p className="font-semibold">{formatCurrency(estimate.breakdown.subtotalPieces)}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Setup / Mín.</p>
+                    <p className="font-semibold">
+                      {formatCurrency(estimate.breakdown.setupTotal)}
+                      {estimate.breakdown.minimumApplied && (
+                        <span className="ml-1 text-warning text-[10px]">⚠ aplicado</span>
+                      )}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Custo / un</p>
+                    <p className="font-semibold">{formatCurrency(estimate.costPerUnit)}</p>
+                  </div>
+                  {estimate.productionDays != null && (
+                    <div>
+                      <p className="text-muted-foreground">Prazo produção</p>
+                      <p className="font-semibold">{estimate.productionDays} dias</p>
+                    </div>
+                  )}
+                  {estimate.breakdown.quotationCode && (
+                    <div className="col-span-2 sm:col-span-3">
+                      <p className="text-muted-foreground">Código orçamento</p>
+                      <p className="font-semibold font-mono text-[11px] truncate" title={estimate.breakdown.quotationCode}>
+                        {estimate.breakdown.quotationCode}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          )}
         </motion.div>
       )}
 

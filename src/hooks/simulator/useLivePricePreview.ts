@@ -18,6 +18,29 @@ export interface LivePriceEstimate {
   totalPrice: number;
   costPerUnit: number;
   productionDays: number | null;
+  /** Detalhamento (breakdown) retornado pelo RPC para inspeção pelo usuário */
+  breakdown: {
+    areaName: string;
+    areaCode: string;
+    locationName: string | null;
+    techniqueGroup: string;
+    tableCode: string;
+    tableCodeShort: string;
+    quotationCode: string;
+    quantity: number;
+    numColors: number;
+    maxColors: number;
+    priceByColor: boolean;
+    width: number | null;
+    height: number | null;
+    areaCm2: number | null;
+    subtotalPieces: number;
+    setupTotal: number;
+    minimumApplied: boolean;
+    tierMinQty: number;
+    tierMaxQty: number;
+    markupPercent: number;
+  };
 }
 
 interface UseLivePricePreviewParams {
@@ -84,6 +107,9 @@ export function useLivePricePreview({
 
         if (result?.success) {
           const flat = adaptPriceResponse(result);
+          const usedWidth = usaDimensao && engravingSpecs.width > 0 ? engravingSpecs.width : null;
+          const usedHeight = usaDimensao && engravingSpecs.height > 0 ? engravingSpecs.height : null;
+          const usedArea = usedWidth && usedHeight ? +(usedWidth * usedHeight).toFixed(2) : null;
           setEstimate({
             cheapestName: flat.technique || tech.techniqueName,
             cheapestCode: flat.tabela_codigo_curto || tech.techniqueCode,
@@ -91,6 +117,28 @@ export function useLivePricePreview({
             totalPrice: flat.total_price,
             costPerUnit: quantity > 0 ? flat.total_price / quantity : 0,
             productionDays: flat.production_days,
+            breakdown: {
+              areaName: flat.area_name || selectedLocation.locationName || '—',
+              areaCode: flat.area_code || '',
+              locationName: selectedLocation.locationName ?? null,
+              techniqueGroup: flat.grupo_tecnica || '',
+              tableCode: flat.tabela_codigo || '',
+              tableCodeShort: flat.tabela_codigo_curto || '',
+              quotationCode: flat.codigo_orcamento || '',
+              quantity: flat.quantity || quantity,
+              numColors: flat.num_cores || effectiveColors,
+              maxColors: flat.max_cores ?? tech.maxColors ?? 1,
+              priceByColor: !!flat.price_by_color,
+              width: usedWidth,
+              height: usedHeight,
+              areaCm2: usedArea,
+              subtotalPieces: flat.subtotal_pecas || 0,
+              setupTotal: flat.faturamento_minimo_gravacao || 0,
+              minimumApplied: !!flat.minimum_applied,
+              tierMinQty: flat.tier_min_qty || 0,
+              tierMaxQty: flat.tier_max_qty || 0,
+              markupPercent: flat.markup_percent || 0,
+            },
           });
         } else {
           setEstimate(null);
