@@ -22,7 +22,7 @@
  * visibilidade do próprio badge, ESTA suíte quebra primeiro com uma
  * mensagem legível ("card icon-only deve ficar invisível em fresh").
  */
-import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
+import { describe, it, expect, beforeAll, beforeEach, afterAll, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { PriceFreshnessBadge } from "@/components/products/PriceFreshnessBadge";
 
@@ -136,7 +136,7 @@ function badgeCountIn(testId: string): number {
 
 describe("E2E Catálogo — visibilidade do PriceFreshnessBadge por host", () => {
   describe("Produto FRESH (5d, threshold 60d) — preço dentro do prazo", () => {
-    beforeAll(() => renderCatalogRow(CATALOG[0]));
+    beforeEach(() => renderCatalogRow(CATALOG[0]));
 
     it("Card (icon-only) NÃO renderiza badge", () => {
       expect(badgeCountIn("card-fresh")).toBe(0);
@@ -159,7 +159,7 @@ describe("E2E Catálogo — visibilidade do PriceFreshnessBadge por host", () =>
   });
 
   describe("Produto AGING (45d, threshold 60d) — próximo do limite", () => {
-    beforeAll(() => renderCatalogRow(CATALOG[1]));
+    beforeEach(() => renderCatalogRow(CATALOG[1]));
 
     it("Card (icon-only) RENDERIZA badge amber", () => {
       expect(badgeCountIn("card-aging")).toBe(1);
@@ -183,7 +183,7 @@ describe("E2E Catálogo — visibilidade do PriceFreshnessBadge por host", () =>
   });
 
   describe("Produto STALE (90d, threshold 60d) — preço defasado", () => {
-    beforeAll(() => renderCatalogRow(CATALOG[2]));
+    beforeEach(() => renderCatalogRow(CATALOG[2]));
 
     it("Card (icon-only) RENDERIZA badge de alerta", () => {
       expect(badgeCountIn("card-stale")).toBe(1);
@@ -207,7 +207,7 @@ describe("E2E Catálogo — visibilidade do PriceFreshnessBadge por host", () =>
   });
 
   describe("Produto UNKNOWN (sem priceUpdatedAt) — data não informada", () => {
-    beforeAll(() => renderCatalogRow(CATALOG[3]));
+    beforeEach(() => renderCatalogRow(CATALOG[3]));
 
     it("Card (icon-only) NÃO renderiza badge", () => {
       expect(badgeCountIn("card-unknown")).toBe(0);
