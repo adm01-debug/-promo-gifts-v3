@@ -28,6 +28,7 @@ import type { ExternalVariantStock } from "@/hooks/useExternalVariantStock";
 import { SharePreviewDialog } from "./share/SharePreviewDialog";
 import { ProductCardImage } from "./ProductCardImage";
 import { ProductCardActions } from "./ProductCardActions";
+import { PriceFreshnessBadge } from "./PriceFreshnessBadge";
 
 export interface ProductCardProps {
   product: Product;

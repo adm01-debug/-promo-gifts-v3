@@ -28,6 +28,7 @@ import { GenderBadge } from "./GenderBadge";
 import { getSupplierColors } from "@/lib/supplier-colors";
 import { resolveColorImage, resolveColorStock, getActiveColorName, type ActiveColorFilter } from "@/utils/color-image-resolver";
 import { resolveHighlightHex } from "@/utils/color-group-hex";
+import { PriceFreshnessBadge } from "./PriceFreshnessBadge";
 import { isLightColor } from "@/hooks/useColorSystem";
 import { resolveAllMatchingColors } from "@/utils/color-variant-carousel";
 import { showUndoToast, showErrorToast } from "@/utils/undoToast";
@@ -390,6 +391,13 @@ export const ProductListItem = memo(function ProductListItem({
           <span className="text-base sm:text-lg font-display font-bold text-foreground whitespace-nowrap">
             {formatPrice(product.price)}
           </span>
+          <div className="mt-0.5 flex justify-end">
+            <PriceFreshnessBadge
+              priceUpdatedAt={product.priceUpdatedAt}
+              thresholdDays={product.priceFreshnessThresholdDays}
+              variant="compact"
+            />
+          </div>
         </div>
 
         <ListItemActions

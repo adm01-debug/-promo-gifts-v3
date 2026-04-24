@@ -28,6 +28,7 @@ import { QuickAddToQuote } from "./QuickAddToQuote";
 import { useFavoritesStore } from "@/stores/useFavoritesStore";
 import { useComparisonStore } from "@/stores/useComparisonStore";
 import type { ExternalVariantStock } from "@/hooks/useExternalVariantStock";
+import { PriceFreshnessBadge } from "./PriceFreshnessBadge";
 import { toast } from "sonner";
 import { showUndoToast, showErrorToast } from "@/utils/undoToast";
 
