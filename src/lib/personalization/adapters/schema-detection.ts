@@ -15,9 +15,20 @@ export type PriceSchemaVersion = 'v5.9-nested' | 'v6.x-flat' | 'v7-new' | 'unkno
 
 export type SchemaStats = Record<PriceSchemaVersion, number>;
 
+export interface ContractMismatchEntry {
+  contract: string;
+  missing: string[];
+  extras: string[];
+  at: number;
+}
+
 export interface FullSchemaStats extends SchemaStats {
   /** Contador por nome de coluna PT legado detectado em payloads brutos. */
   legacyFieldsSeen: Record<string, number>;
+  /** Contagem de mismatches por contrato. */
+  contractMismatches: Record<string, number>;
+  /** Buffer circular dos últimos 20 desvios detectados. */
+  recentMismatches: ContractMismatchEntry[];
 }
 
 const stats: SchemaStats = {
@@ -28,6 +39,9 @@ const stats: SchemaStats = {
 };
 
 const legacyFieldsSeen: Record<string, number> = {};
+const contractMismatches: Record<string, number> = {};
+const recentMismatches: ContractMismatchEntry[] = [];
+const MAX_RECENT = 20;
 
 // Aviso "unknown" deduplicado por sessão para não poluir o console.
 const warnedKeys = new Set<string>();
