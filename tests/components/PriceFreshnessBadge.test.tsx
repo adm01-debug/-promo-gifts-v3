@@ -121,9 +121,10 @@ describe("PriceFreshnessBadge", () => {
       />,
     );
     const badge = screen.getByRole("status");
-    // Copy curto e consistente: "Atualizado há 6 dias" (sem data inline)
-    expect(badge.textContent).toMatch(/atualizado há \d+ dias?/i);
-    // A data absoluta agora vive no aria-label/tooltip, não no corpo do badge
+    // Novo padrão: "Atualizado em DD/MM/AAAA · há N dias" (numérico pt-BR)
+    expect(badge.textContent).toMatch(/atualizado em \d{2}\/\d{2}\/\d{4}/i);
+    expect(badge.textContent).toMatch(/há \d+ dias?/i);
+    // A data por extenso (formato longo) fica reservada ao tooltip
     expect(badge.textContent).not.toMatch(/\d{1,2} de [a-zçãéíúô]+ de \d{4}/i);
   });
 
