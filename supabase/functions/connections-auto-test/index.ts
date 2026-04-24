@@ -27,7 +27,8 @@ interface ActiveConnection {
 }
 
 async function processBatch(
-  service: ReturnType<typeof createClient>,
+  // deno-lint-ignore no-explicit-any
+  service: any,
   batch: ActiveConnection[],
 ) {
   return Promise.all(batch.map(async (conn) => {

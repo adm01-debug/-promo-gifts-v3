@@ -281,7 +281,7 @@ async function handleInsert(crm: SupabaseClient, body: CrmQuery): Promise<Respon
 
   // Fix quote_number if it was overridden by DB default
   if (!error && result?.length && table === "quotes") {
-    const insertedRow = result[0] as Record<string, unknown>;
+    const insertedRow = result[0] as unknown as Record<string, unknown>;
     const targetNumber = Array.isArray(data)
       ? (data[0] as Record<string, unknown>).quote_number
       : (data as Record<string, unknown>).quote_number;
