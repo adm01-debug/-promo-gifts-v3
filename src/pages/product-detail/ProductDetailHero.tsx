@@ -66,6 +66,14 @@ export function ProductDetailHero({
   const minQuantity = product.minQuantity || 1;
   const stockInfo = getStockStatusInfo(product.stockStatus);
 
+  // Override local (admin-only) tem precedência sobre o valor exposto pelo BD
+  // externo. Quando ambos são nulos, o util cai no default de 60 dias.
+  const { data: freshnessOverride } = useProductFreshnessOverride(id);
+  const effectiveThresholdDays =
+    freshnessOverride?.threshold_days ??
+    product.priceFreshnessThresholdDays ??
+    DEFAULT_PRICE_FRESHNESS_THRESHOLD_DAYS;
+
   return (
     <div className="grid min-w-0 overflow-x-hidden lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] gap-4 lg:gap-6 xl:gap-8">
       {/* LEFT — Gallery */}
@@ -150,12 +158,16 @@ export function ProductDetailHero({
                   <span className="text-3xl xl:text-4xl font-display font-extrabold text-foreground tracking-tight leading-none">{formatPrice(product.price)}</span>
                   <span className="text-sm text-muted-foreground/50 font-medium">/un</span>
                 </div>
-                <div className="mt-2">
+                <div className="mt-2 flex flex-wrap items-center gap-2">
                   <PriceFreshnessBadge
                     priceUpdatedAt={product.priceUpdatedAt}
-                    thresholdDays={product.priceFreshnessThresholdDays}
+                    thresholdDays={effectiveThresholdDays}
                     variant="pdp"
                     alwaysShow
+                  />
+                  <PriceFreshnessThresholdEditor
+                    productId={id}
+                    currentEffectiveDays={effectiveThresholdDays}
                   />
                 </div>
               </div>
