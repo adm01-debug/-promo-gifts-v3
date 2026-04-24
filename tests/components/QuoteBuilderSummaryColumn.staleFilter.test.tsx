@@ -139,19 +139,19 @@ describe("QuoteBuilderSummaryColumn — filtro/contador de preços a confirmar",
         ]}
       />,
     );
-    // 2 alertas inline visíveis
+    // 2 alertas inline visíveis (status do PriceFreshnessBadge)
     expect(screen.getAllByText(/preço pode estar defasado/i)).toHaveLength(2);
     const chip = screen.getByRole("button", { name: /preço a confirmar/i });
     expect(within(chip).getByText("2")).toBeInTheDocument();
 
-    // Confirma o primeiro item
-    fireEvent.click(
-      screen.getByRole("button", {
-        name: /confirmar preço com fornecedor para caneta-stale/i,
-      }),
-    );
+    // Confirma o primeiro item via botão "Confirmei com fornecedor" do badge
+    const confirmButtons = screen.getAllByRole("button", {
+      name: /confirmar que validei este preço com o fornecedor/i,
+    });
+    expect(confirmButtons).toHaveLength(2);
+    fireEvent.click(confirmButtons[0]);
 
-    // O alerta inline daquele item sumiu (sobrou 1)
+    // O alerta inline daquele item virou pill verde (sobrou 1 alerta amber)
     expect(screen.getAllByText(/preço pode estar defasado/i)).toHaveLength(1);
     // E o contador caiu para 1
     const chip2 = screen.getByRole("button", { name: /preço a confirmar/i });
@@ -169,7 +169,7 @@ describe("QuoteBuilderSummaryColumn — filtro/contador de preços a confirmar",
     expect(screen.getByRole("button", { name: /preço a confirmar/i })).toBeInTheDocument();
 
     fireEvent.click(
-      screen.getByRole("button", { name: /confirmar preço com fornecedor para único/i }),
+      screen.getByRole("button", { name: /confirmar que validei este preço com o fornecedor/i }),
     );
 
     expect(screen.queryByRole("button", { name: /preço a confirmar/i })).not.toBeInTheDocument();

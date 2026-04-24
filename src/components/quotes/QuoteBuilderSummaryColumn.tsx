@@ -19,6 +19,7 @@ import type { QuoteItem } from "@/hooks/useQuotes";
 import { NegotiationMarkupCard } from "@/components/quote/NegotiationMarkupCard";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 import { getPriceFreshness } from "@/utils/price-freshness";
+import { PriceFreshnessBadge } from "@/components/products/PriceFreshnessBadge";
 import { toast } from "sonner";
 
 interface Props {
@@ -222,26 +223,24 @@ export function QuoteBuilderSummaryColumn({
                         <span className="font-medium">{formatCurrency(item.unit_price)}</span>
                         <span className="ml-auto font-semibold text-foreground tabular-nums">{formatCurrency(item.quantity * item.unit_price)}</span>
                       </div>
-                      {isStale && confirmItemPrice && (
-                        <div className="flex items-center gap-2 px-2 py-1.5 rounded-lg border border-warning/30 bg-warning/10">
-                          <AlertTriangle className="h-3 w-3 text-warning shrink-0" />
-                          <span className="text-[11px] text-warning font-medium leading-tight flex-1">
-                            Preço pode estar defasado — confirme com o fornecedor
-                          </span>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              confirmItemPrice(idx);
-                              toast.success("Preço confirmado com fornecedor", {
-                                description: item.product_name,
-                              });
-                            }}
-                            className="text-[10px] font-semibold text-warning hover:underline shrink-0 whitespace-nowrap"
-                            aria-label={`Confirmar preço com fornecedor para ${item.product_name}`}
-                          >
-                            Confirmei
-                          </button>
+                      {(item.price_updated_at || item.price_confirmed_at) && (
+                        <div onClick={(e) => e.stopPropagation()} className="pt-0.5">
+                          <PriceFreshnessBadge
+                            priceUpdatedAt={item.price_updated_at}
+                            thresholdDays={item.price_freshness_threshold_days}
+                            confirmedAt={item.price_confirmed_at}
+                            variant="inline"
+                            onConfirm={
+                              confirmItemPrice
+                                ? () => {
+                                    confirmItemPrice(idx);
+                                    toast.success("Preço confirmado com fornecedor", {
+                                      description: item.product_name,
+                                    });
+                                  }
+                                : undefined
+                            }
+                          />
                         </div>
                       )}
                     </div>

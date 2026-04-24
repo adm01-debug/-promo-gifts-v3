@@ -10,7 +10,7 @@
  * In `compact` and `icon-only` variants, the badge only renders for
  * `aging`/`stale` statuses to avoid noise on freshly-updated products.
  */
-import { AlertTriangle, Clock, CheckCircle2, HelpCircle } from "lucide-react";
+import { AlertTriangle, Clock, CheckCircle2, HelpCircle, ShieldCheck } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -105,6 +105,34 @@ export interface PriceFreshnessBadgeProps {
   className?: string;
   /** Force render even when status is `fresh`/`unknown` in compact/icon-only variants. */
   alwaysShow?: boolean;
+  /**
+   * Quando informado, o badge passa a expor a ação "Confirmei com fornecedor"
+   * para itens aging/stale ainda não confirmados. Após o clique, o consumidor
+   * deve atualizar `confirmedAt` para que o badge entre no estado "confirmado".
+   * Sem esta prop o badge continua somente leitura (catálogo/PDP padrão).
+   */
+  onConfirm?: () => void;
+  /**
+   * ISO timestamp do momento em que o vendedor confirmou o preço com o
+   * fornecedor neste contexto (ex.: orçamento). Quando preenchido, o alerta
+   * stale/aging é substituído por um pill verde "Confirmado por você".
+   */
+  confirmedAt?: string | Date | null;
+}
+
+function formatConfirmedRelative(value: string | Date): string {
+  const d = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(d.getTime())) return "agora";
+  const diffMs = Date.now() - d.getTime();
+  const minutes = Math.floor(diffMs / 60000);
+  if (minutes < 1) return "agora";
+  if (minutes < 60) return `há ${minutes} min`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `há ${hours}h`;
+  const days = Math.floor(hours / 24);
+  if (days === 1) return "ontem";
+  if (days < 30) return `há ${days} dias`;
+  return formatPriceDateLong(d);
 }
 
 /**
@@ -157,6 +185,8 @@ export function PriceFreshnessBadge({
   variant = "inline",
   className,
   alwaysShow = false,
+  onConfirm,
+  confirmedAt,
 }: PriceFreshnessBadgeProps) {
   const freshness = getPriceFreshness(priceUpdatedAt, thresholdDays);
   const { Icon, color } = STATUS_STYLES[freshness.status];
@@ -166,6 +196,13 @@ export function PriceFreshnessBadge({
   const explicitThreshold = hasExplicitThreshold(thresholdDays);
   const limitSuffix = explicitThreshold ? ` (limite ${thresholdDays}d)` : "";
 
+  // Estado "confirmado pelo vendedor" — substitui o alerta stale/aging por um
+  // pill verde discreto. Só faz sentido quando o item realmente entrava em
+  // alerta; para `fresh`/`unknown` ignoramos (não polui o catálogo padrão).
+  const isConfirmed = Boolean(confirmedAt) && freshness.shouldWarn;
+  const canOfferConfirm =
+    typeof onConfirm === "function" && freshness.shouldWarn && !isConfirmed;
+
   // Quiet variants only render when there's something worth flagging.
   if (
     !alwaysShow &&
@@ -173,6 +210,68 @@ export function PriceFreshnessBadge({
     !freshness.shouldWarn
   ) {
     return null;
+  }
+
+  // Estado "confirmado pelo vendedor" — pill verde discreto que substitui o
+  // alerta. Mantém o tooltip (mostra data SSOT + regra) para auditoria.
+  if (isConfirmed) {
+    const confirmedLabel = `Preço confirmado por você ${formatConfirmedRelative(confirmedAt as string | Date)}`;
+    const confirmedBody =
+      variant === "icon-only" ? (
+        <span
+          role="status"
+          aria-label={confirmedLabel}
+          className={cn(
+            "inline-flex items-center justify-center text-emerald-600 dark:text-emerald-500",
+            className,
+          )}
+        >
+          <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
+        </span>
+      ) : variant === "compact" ? (
+        <span
+          role="status"
+          aria-label={confirmedLabel}
+          className={cn(
+            "inline-flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-500",
+            className,
+          )}
+        >
+          <ShieldCheck className="h-3 w-3" aria-hidden="true" />
+          <span>Confirmado</span>
+        </span>
+      ) : (
+        <span
+          role="status"
+          aria-label={confirmedLabel}
+          className={cn(
+            "inline-flex items-center gap-1.5 rounded-full border-[1.5px] border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700 dark:border-emerald-500/40 dark:bg-emerald-500/10 dark:text-emerald-400",
+            className,
+          )}
+        >
+          <ShieldCheck className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+          <span>Confirmado com fornecedor</span>
+        </span>
+      );
+    return (
+      <TooltipProvider delayDuration={150}>
+        <Tooltip>
+          <TooltipTrigger asChild>{confirmedBody}</TooltipTrigger>
+          <TooltipContent side="top" className="max-w-xs text-xs">
+            <div className="flex flex-col gap-1.5">
+              <div className="font-semibold">Preço confirmado com fornecedor</div>
+              <div className="leading-snug text-muted-foreground">
+                Você validou este preço {formatConfirmedRelative(confirmedAt as string | Date)}. O alerta de preço defasado fica suprimido neste contexto até o próximo recálculo.
+              </div>
+              <FreshnessTooltipBody
+                freshness={freshness}
+                priceUpdatedAt={priceUpdatedAt}
+              />
+            </div>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
   }
 
   const ariaLabel = freshness.label;
@@ -301,7 +400,7 @@ export function PriceFreshnessBadge({
     );
   }
 
-  return (
+  const tooltipped = (
     <TooltipProvider delayDuration={150}>
       <Tooltip>
         <TooltipTrigger asChild>{body}</TooltipTrigger>
@@ -313,5 +412,35 @@ export function PriceFreshnessBadge({
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
+  );
+
+  // Sem ação individual configurada → comportamento clássico (somente leitura).
+  if (!canOfferConfirm) return tooltipped;
+
+  // Com ação configurada → agrupa o badge + botão "Confirmei com fornecedor".
+  // Em variants compactas o CTA encolhe para "Confirmei" para caber em linha.
+  const ctaLabel =
+    variant === "compact" || variant === "icon-only"
+      ? "Confirmei"
+      : "Confirmei com fornecedor";
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      {tooltipped}
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          onConfirm?.();
+        }}
+        className={cn(
+          "inline-flex items-center gap-1 rounded-full border-[1.5px] border-emerald-300 bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 transition-colors hover:bg-emerald-100 hover:text-emerald-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 dark:border-emerald-500/50 dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20",
+        )}
+        aria-label="Confirmar que validei este preço com o fornecedor"
+      >
+        <ShieldCheck className="h-3 w-3" aria-hidden="true" />
+        <span>{ctaLabel}</span>
+      </button>
+    </span>
   );
 }

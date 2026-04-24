@@ -149,8 +149,12 @@ describe("QuoteBuilderSummaryColumn — Confirmar todos (com diálogo)", () => {
     ).toBeInTheDocument();
     expect(screen.getByText(/validou 2 preço/i)).toBeInTheDocument();
 
-    // Os alertas inline ainda existem — nada foi confirmado
-    expect(screen.getAllByText(/preço pode estar defasado/i)).toHaveLength(2);
+    // Os badges inline ainda existem — nada confirmado. Stale usa label
+    // "Preço pode estar defasado", aging usa "Atualizado há Nd". Validamos
+    // que o item stale (90d) ainda tem o badge amber.
+    expect(
+      screen.getAllByLabelText(/preço pode estar defasado/i, { selector: "span" }),
+    ).toHaveLength(1);
   });
 
   it("Cancelar fecha o diálogo sem mexer no estado", () => {
@@ -166,9 +170,11 @@ describe("QuoteBuilderSummaryColumn — Confirmar todos (com diálogo)", () => {
     fireEvent.click(within(screen.getByRole("alertdialog")).getByRole("button", { name: /cancelar/i }));
 
     expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
-    // Chip e alertas continuam intactos
+    // Chip e badge stale continuam intactos (1 stale + 1 aging)
     expect(screen.getByRole("button", { name: /preço a confirmar/i })).toBeInTheDocument();
-    expect(screen.getAllByText(/preço pode estar defasado/i)).toHaveLength(2);
+    expect(
+      screen.getAllByLabelText(/preço pode estar defasado/i, { selector: "span" }),
+    ).toHaveLength(1);
   });
 
   it("Confirmar marca todos os pendentes, esconde chip/botão e remove alertas inline", () => {
@@ -206,8 +212,10 @@ describe("QuoteBuilderSummaryColumn — Confirmar todos (com diálogo)", () => {
     expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /preço a confirmar/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /confirmar todos/i })).not.toBeInTheDocument();
-    // Nenhum alerta inline restante
-    expect(screen.queryByText(/preço pode estar defasado/i)).not.toBeInTheDocument();
+    // Nenhum badge stale/aging restante (todos viraram pill verde "Confirmado")
+    expect(
+      screen.queryByLabelText(/preço pode estar defasado/i, { selector: "span" }),
+    ).not.toBeInTheDocument();
   });
 
   it("CTA do diálogo concorda em singular quando há apenas 1 pendente", () => {
