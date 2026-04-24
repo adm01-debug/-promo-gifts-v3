@@ -105,6 +105,9 @@ export default function AdminTelemetriaPage() {
           })}
         </div>
 
+        {/* Métricas das otimizações Onda 2 (cache hit rate + retries evitados) */}
+        <OptimizationMetricsCards />
+
         {/* Alerta de regressão de latência em listings de products (limit > 50) */}
         <ProductsListingLatencyAlert />
 
