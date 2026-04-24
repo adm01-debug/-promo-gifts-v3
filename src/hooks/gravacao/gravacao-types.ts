@@ -10,23 +10,43 @@
 export interface TabelaPrecoOficial {
   id: string;
   tecnica_variante_id: string | null;
+  /** @deprecated use `code` */
   codigo: string;
+  /** Alias EN do `codigo`. Preenchido pelo adapter quando o back devolve nome novo. */
+  code?: string | null;
   nome: string;
+  /** Alias EN do `nome`. */
+  name?: string | null;
   descricao: string | null;
   cobra_por_cor: boolean;
+  /** Alias EN do `cobra_por_cor`. */
+  charges_per_color?: boolean | null;
   max_cores: number | null;
+  /** Alias EN do `max_cores`. */
+  max_colors?: number | null;
   desconto_segunda_cor: number | null;
   desconto_terceira_cor: number | null;
   desconto_quarta_cor_mais: number | null;
   cobra_por_area: boolean;
+  /** Alias EN do `cobra_por_area`. */
+  price_by_area?: boolean | null;
   area_maxima_cm2: number | null;
   area_maxima_texto: string | null;
   cobra_por_pontos: boolean;
+  /** Alias EN do `cobra_por_pontos`. */
+  price_by_points?: boolean | null;
   max_pontos: number | null;
   custo_setup: number | null;
+  /** Alias EN do `custo_setup`. */
+  setup_price?: number | null;
   custo_setup_por_cor: boolean;
-  tipo_setup: string | null;
+  /** Alias EN do `custo_setup_por_cor`. */
+  setup_by_color?: boolean | null;
+  /** @deprecated pode sumir do schema novo. */
+  tipo_setup?: string | null;
   custo_manuseio: number | null;
+  /** Alias EN do `custo_manuseio`. */
+  handling_price?: number | null;
   custo_manuseio_por_peca: boolean;
   custo_aplicacao: number | null;
   cobra_aplicacao: boolean;
@@ -35,10 +55,16 @@ export interface TabelaPrecoOficial {
   custo_termo_transferencia: number | null;
   cobra_termo_transferencia: boolean;
   faturamento_minimo: number | null;
-  quantidade_corte: number | null;
-  validade_inicio: string | null;
-  validade_fim: string | null;
+  /** @deprecated pode sumir do schema novo; use `min_quantity`. */
+  quantidade_corte?: number | null;
+  min_quantity?: number | null;
+  /** @deprecated */
+  validade_inicio?: string | null;
+  /** @deprecated */
+  validade_fim?: string | null;
   ativo: boolean;
+  /** Alias EN do `ativo`. */
+  active?: boolean | null;
   created_at: string;
   updated_at: string;
 }
@@ -49,12 +75,23 @@ export interface TabelaPrecoOficial {
  */
 export interface FaixaPrecoOficial {
   id: string;
+  /** @deprecated use `price_table_id` */
   tabela_preco_gravacao_id: string;
+  price_table_id?: string | null;
+  /** @deprecated use `min_quantity` */
   quantidade_minima: number;
+  min_quantity?: number | null;
+  /** @deprecated use `max_quantity` */
   quantidade_maxima: number | null;
+  max_quantity?: number | null;
+  /** @deprecated use `unit_price` */
   preco_unitario: number;
+  unit_price?: number | null;
   prazo_dias: number | null;
+  production_days?: number | null;
+  /** @deprecated use `display_order` */
   ordem: number;
+  display_order?: number | null;
   created_at: string;
   updated_at: string;
 }

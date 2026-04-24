@@ -6,6 +6,11 @@
  */
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from "@/lib/logger";
+import {
+  adaptPrintAreaTechniqueRows,
+  adaptTabelaPrecoRows,
+  type TabelaPrecoCanonical,
+} from '@/lib/personalization/adapters';
 
 export interface PrintAreaFromProduct {
   id: string;
@@ -60,17 +65,19 @@ export async function fetchPrintAreasFromProduct(productId: string): Promise<Pri
       return [];
     }
 
-    const areas = data.data?.records || [];
-    if (!areas.length) return [];
+    const rawAreas = data.data?.records || [];
+    if (!rawAreas.length) return [];
+    const areas = adaptPrintAreaTechniqueRows(rawAreas);
 
-    // 2. Coletar tabela_preco_ids para lookup
+    // 2. Coletar tabela_preco_ids para lookup (ler tanto PT quanto EN)
     const priceTableIds = new Set<string>();
     for (const area of areas) {
-      if (area.tabela_preco_id) priceTableIds.add(area.tabela_preco_id);
+      const id = area.price_table_id ?? area.tabela_preco_id;
+      if (id) priceTableIds.add(id);
     }
 
     // 3. Buscar técnicas para resolver nomes
-    const techById = new Map<string, any>();
+    const techById = new Map<string, TabelaPrecoCanonical>();
     if (priceTableIds.size > 0) {
       const { data: techData } = await supabase.functions.invoke('external-db-bridge', {
         body: {
@@ -81,49 +88,55 @@ export async function fetchPrintAreasFromProduct(productId: string): Promise<Pri
         },
       });
       if (techData?.success) {
-        for (const t of (techData.data?.records || [])) {
+        for (const t of adaptTabelaPrecoRows(techData.data?.records || [])) {
           if (priceTableIds.has(t.id)) techById.set(t.id, t);
         }
       }
     }
 
     // 4. Mapear para interface esperada
-    return areas.map((area: Record<string, unknown>, idx: number) => {
-      const tech = area.tabela_preco_id ? techById.get(area.tabela_preco_id) : null;
-      const techCode = tech?.codigo_curto || tech?.codigo_tabela || null;
+    return areas.map((area, idx) => {
+      const techId = area.price_table_id ?? area.tabela_preco_id ?? null;
+      const tech = techId ? techById.get(techId) : null;
+      const techNome = tech?.name ?? tech?.nome ?? null;
+      const techCode = tech?.codigo_curto ?? tech?.codigo_tabela ?? tech?.code ?? tech?.codigo ?? null;
+      const locationCode = area.location_code ?? area.area_code ?? '';
+      const locationName = area.location_name ?? area.area_name ?? null;
+      const maxW = area.max_width ?? area.largura_max ?? 0;
+      const maxH = area.max_height ?? area.altura_max ?? 0;
+      const setupCost = (tech?.custo_setup ?? tech?.setup_price) ?? null;
+      const chargesPerColor = (tech?.charges_per_color ?? tech?.cobra_por_cor) ?? false;
 
       return {
         id: area.id || `${productId}-area-${idx}`,
         product_id: productId,
-        area_code: area.location_code || '',
-        area_name: area.location_name
-          ? (tech?.nome ? `${area.location_name} — ${tech.nome}` : area.location_name)
+        area_code: locationCode,
+        area_name: locationName
+          ? (techNome ? `${locationName} — ${techNome}` : locationName)
           : `Área ${idx + 1}`,
         component_name: null,
         component_code: null,
-        location_name: area.location_name || null,
-        location_code: area.location_code || null,
-        max_width: area.max_width || 0,
-        max_height: area.max_height || 0,
+        location_name: locationName,
+        location_code: locationCode || null,
+        max_width: maxW,
+        max_height: maxH,
         unit: 'cm',
         shape: area.shape || 'rectangle',
         is_curved: area.is_curved ?? false,
         is_primary: idx === 0,
-        is_active: area.is_active !== false,
-        display_order: area.technique_order || idx,
-        max_colors: tech?.max_cores || null,
-        allowed_technique_ids: area.tabela_preco_id ? [area.tabela_preco_id] : [],
-        customization_price_table_id: area.tabela_preco_id || null,
-        supplier_technique_code: techCode,
-        serv_code: tech?.codigo_curto || undefined,
-        area_cm2: (area.max_width && area.max_height)
-          ? Number((area.max_width * area.max_height).toFixed(2))
-          : null,
-        technique_name: tech?.nome || null,
+        is_active: (area.is_active ?? area.ativo) !== false,
+        display_order: area.technique_order ?? idx,
+        max_colors: (tech?.max_colors ?? (typeof tech?.max_cores === 'string' ? Number(tech.max_cores) : tech?.max_cores)) ?? null,
+        allowed_technique_ids: techId ? [techId] : [],
+        customization_price_table_id: techId,
+        supplier_technique_code: techCode ?? undefined,
+        serv_code: tech?.codigo_curto ?? undefined,
+        area_cm2: (maxW && maxH) ? Number((Number(maxW) * Number(maxH)).toFixed(2)) : null,
+        technique_name: techNome,
         technique_code: techCode,
-        technique_group: tech?.grupo_tecnica || null,
-        setup_cost: tech?.custo_setup || null,
-        charges_per_color: tech?.cobra_por_cor ?? false,
+        technique_group: tech?.group_name ?? tech?.nome_grupo ?? tech?.group ?? tech?.grupo_tecnica ?? null,
+        setup_cost: typeof setupCost === 'number' ? setupCost : null,
+        charges_per_color: !!chargesPerColor,
       };
     });
   } catch (err) {

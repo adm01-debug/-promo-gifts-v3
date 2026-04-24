@@ -6,6 +6,7 @@ import {
 } from "@/components/ui/table";
 import { Trash2, Loader2, Palette, Droplets, Ruler, Hash } from "lucide-react";
 import { InlineEditField } from "../InlineEditField";
+import { buildTecnicaUpdatePayload } from "@/lib/personalization/adapters";
 
 interface TecnicaRow {
   id: string;
@@ -80,10 +81,10 @@ export function TechniqueTable({ tecnicas, isLoading, isRemoving, onToggleStatus
         {tecnicas.map((tecnica) => (
           <TableRow key={tecnica.id}>
             <TableCell>
-              <InlineEditField value={tecnica.codigo || ""} onSave={value => onUpdate({ id: tecnica.id, code: value.toUpperCase() })} placeholder="—" className="font-mono text-xs" />
+              <InlineEditField value={tecnica.codigo || ""} onSave={value => onUpdate(buildTecnicaUpdatePayload({ id: tecnica.id, code: value.toUpperCase() }))} placeholder="—" className="font-mono text-xs" />
             </TableCell>
             <TableCell>
-              <InlineEditField value={tecnica.nome} onSave={value => onUpdate({ id: tecnica.id, name: value })} />
+              <InlineEditField value={tecnica.nome} onSave={value => onUpdate(buildTecnicaUpdatePayload({ id: tecnica.id, name: value }))} />
             </TableCell>
             <TableCell><Badge variant="outline">{tecnica.categoria || '—'}</Badge></TableCell>
             <TableCell>
@@ -97,19 +98,19 @@ export function TechniqueTable({ tecnicas, isLoading, isRemoving, onToggleStatus
               </div>
             </TableCell>
             <TableCell>
-              <InlineEditField value={tecnica.custoSetup?.toString() || ""} onSave={value => onUpdate({ id: tecnica.id, setup_price: value ? parseFloat(value) : null })} type="number" placeholder="—" />
+              <InlineEditField value={tecnica.custoSetup?.toString() || ""} onSave={value => onUpdate(buildTecnicaUpdatePayload({ id: tecnica.id, setup_price: value ? parseFloat(value) : null }))} type="number" placeholder="—" />
             </TableCell>
             <TableCell>
-              <InlineEditField value={tecnica.custoManuseio?.toString() || ""} onSave={value => onUpdate({ id: tecnica.id, handling_price: value ? parseFloat(value) : null })} type="number" placeholder="—" />
+              <InlineEditField value={tecnica.custoManuseio?.toString() || ""} onSave={value => onUpdate(buildTecnicaUpdatePayload({ id: tecnica.id, handling_price: value ? parseFloat(value) : null }))} type="number" placeholder="—" />
             </TableCell>
             <TableCell>
               {tecnica.maxCores ? <span className="text-sm">{tecnica.minCores || 1} - {tecnica.maxCores}</span> : <span className="text-muted-foreground text-xs">—</span>}
             </TableCell>
             <TableCell>
-              <InlineEditField value={tecnica.quantidadeMinima?.toString() || ""} onSave={value => onUpdate({ id: tecnica.id, min_quantity: value ? parseInt(value) : null })} type="number" placeholder="—" />
+              <InlineEditField value={tecnica.quantidadeMinima?.toString() || ""} onSave={value => onUpdate(buildTecnicaUpdatePayload({ id: tecnica.id, min_quantity: value ? parseInt(value) : null }))} type="number" placeholder="—" />
             </TableCell>
             <TableCell>
-              <InlineEditField value={tecnica.prazoEstimado?.toString() || ""} onSave={value => onUpdate({ id: tecnica.id, estimated_days: value ? parseInt(value) : null })} type="number" placeholder="—" />
+              <InlineEditField value={tecnica.prazoEstimado?.toString() || ""} onSave={value => onUpdate(buildTecnicaUpdatePayload({ id: tecnica.id, estimated_days: value ? parseInt(value) : null }))} type="number" placeholder="—" />
             </TableCell>
             <TableCell className="text-center">
               <Switch checked={tecnica.ativo} onCheckedChange={checked => onToggleStatus({ id: tecnica.id, ativo: checked })} />

@@ -22,10 +22,32 @@ export {
 } from './print-area.adapter';
 
 export {
+  adaptTecnicaRow,
+  adaptTecnicaRows,
+  adaptTabelaPrecoRow,
+  adaptTabelaPrecoRows,
+  adaptFaixaPrecoRow,
+  adaptFaixaPrecoRows,
+  adaptPrintAreaTechniqueRow,
+  adaptPrintAreaTechniqueRows,
+  buildTecnicaUpdatePayload,
+} from './raw-row.adapter';
+
+export type {
+  TecnicaGravacaoCanonical,
+  TabelaPrecoCanonical,
+  FaixaPrecoCanonical,
+  PrintAreaTechniqueCanonical,
+} from './raw-row.types';
+
+export {
   detectPriceSchema,
   warnUnknownSchemaOnce,
   getSchemaStats,
+  getLegacyFieldsSeen,
+  recordLegacyField,
   __resetSchemaStatsForTests,
   type PriceSchemaVersion,
   type SchemaStats,
+  type FullSchemaStats,
 } from './schema-detection';
