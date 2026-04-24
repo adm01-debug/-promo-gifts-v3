@@ -1322,7 +1322,7 @@ function jsonResponse(body: unknown, status: number, corsHeaders: Record<string,
   return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 }
 
-// FNV-1a 32-bit — barato e suficiente para ETag (não-criptográfico).
+// FNV-1a 32-bit — barato e suficiente para chave de cache (não-criptográfico).
 function fnv1aHash(input: string): string {
   let hash = 0x811c9dc5;
   for (let i = 0; i < input.length; i++) {
@@ -1333,30 +1333,69 @@ function fnv1aHash(input: string): string {
 }
 
 /**
- * Resposta JSON com cache HTTP de borda (Cloudflare) + ETag.
- * Use APENAS para dados públicos imutáveis a curto prazo (catálogo).
- * - s-maxage: cache compartilhado (CF) por 60s
- * - stale-while-revalidate: serve stale por +300s enquanto revalida em background
- * - ETag: permite 304 Not Modified em hits subsequentes
+ * In-memory cache para reads públicos do catálogo.
+ * Vive dentro da instância da edge function (mesma vida do worker).
+ * Como mantemos a função quente via cron keep-alive a cada 4 min, o cache
+ * sobrevive entre requests reais.
+ *
+ * - TTL: 60s (catálogo muda raramente)
+ * - Tamanho máx: 200 entradas (evita memory bloat)
+ * - Eviction: LRU simples via Map (delete+set restaura ordem de inserção)
  */
-function cacheableJsonResponse(
-  body: unknown,
-  corsHeaders: Record<string, string>,
-  ifNoneMatch: string | null,
-): Response {
-  const payload = JSON.stringify(body);
-  const etag = `W/"${fnv1aHash(payload)}"`;
-  const cacheHeaders = {
-    ...corsHeaders,
-    'Content-Type': 'application/json',
-    'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
-    'ETag': etag,
-    'Vary': 'Accept-Encoding, Authorization',
-  };
-  if (ifNoneMatch && ifNoneMatch === etag) {
-    return new Response(null, { status: 304, headers: cacheHeaders });
+const CACHE_TTL_MS = 60_000;
+const CACHE_MAX_ENTRIES = 200;
+type CacheEntry = { payload: string; expiresAt: number };
+const responseCache = new Map<string, CacheEntry>();
+
+let cacheHitsTotal = 0;
+let cacheMissesTotal = 0;
+
+function buildCacheKey(table: string, body: any): string {
+  const raw = JSON.stringify({
+    t: table,
+    o: body.operation,
+    s: body.select ?? null,
+    f: body.filters ?? null,
+    ob: body.orderBy ?? null,
+    l: body.limit ?? null,
+    of: body.offset ?? null,
+    cm: body.countMode ?? null,
+    id: body.id ?? null,
+  });
+  return fnv1aHash(raw);
+}
+
+function getCached(key: string): string | null {
+  const entry = responseCache.get(key);
+  if (!entry) return null;
+  if (entry.expiresAt < Date.now()) {
+    responseCache.delete(key);
+    return null;
   }
-  return new Response(payload, { status: 200, headers: cacheHeaders });
+  // LRU touch: move para o final reordenando inserção
+  responseCache.delete(key);
+  responseCache.set(key, entry);
+  return entry.payload;
+}
+
+function setCached(key: string, payload: string): void {
+  if (responseCache.size >= CACHE_MAX_ENTRIES) {
+    // Evict o mais antigo (primeiro no Map)
+    const oldestKey = responseCache.keys().next().value;
+    if (oldestKey !== undefined) responseCache.delete(oldestKey);
+  }
+  responseCache.set(key, { payload, expiresAt: Date.now() + CACHE_TTL_MS });
+}
+
+function cachedJsonResponse(payload: string, corsHeaders: Record<string, string>, hit: boolean): Response {
+  return new Response(payload, {
+    status: 200,
+    headers: {
+      ...corsHeaders,
+      'Content-Type': 'application/json',
+      'X-Bridge-Cache': hit ? 'HIT' : 'MISS',
+    },
+  });
 }
 
 function getExternalClient(corsHeaders: Record<string, string>) {
