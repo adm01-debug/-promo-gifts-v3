@@ -75,7 +75,7 @@ describe("PriceFreshnessBadge — sufixo (limite Yd)", () => {
         variant="pdp"
       />,
     );
-    const text = badge.textContent ?? "";
+    const text = screen.getByRole("status").textContent ?? "";
     expect(text).toMatch(/atualizado em \d{2}\/\d{2}\/\d{4}/i);
     expect(text).toMatch(/há 20 dias/);
     expect(text).toMatch(/\(limite 30d\)/);
