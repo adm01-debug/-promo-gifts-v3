@@ -114,7 +114,7 @@ function safeStringify(v: unknown): string {
   try { return JSON.stringify(v); } catch { return String(v); }
 }
 
-function applyFilters(
+export function applyFilters(
   query: any,
   filters: Record<string, unknown>,
   categoryDescendants: string[] | null,
