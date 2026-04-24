@@ -843,6 +843,64 @@ async function handleSelect(externalSupabase: any, table: string, opts: any) {
       return { records, count: null };
     }
 
+    // Fallback: orderBy column missing or invalid (e.g. price_updated_at not yet provisioned)
+    // Symptoms: PostgREST 42703 "column ... does not exist", or generic order-related failure.
+    const errMsg = selectError.message || '';
+    const errCode = (selectError as { code?: string }).code || '';
+    const orderColumn = orderBy?.column;
+    const looksLikeOrderFailure = !!orderColumn && (
+      errCode === '42703' ||
+      errMsg.includes(`column "${orderColumn}"`) ||
+      errMsg.includes(`"${orderColumn}" does not exist`) ||
+      (errMsg.toLowerCase().includes('order') && errMsg.includes(orderColumn))
+    );
+
+    if (orderBy && looksLikeOrderFailure) {
+      console.warn(
+        `[external-db-bridge] orderBy fallback: column "${orderColumn}" failed on table "${table}" ` +
+        `(code=${errCode || 'n/a'}, msg="${errMsg}"). Retrying without orderBy. ` +
+        `Caller origin: userId=${userId ?? 'anon'} select="${effectiveSelect.slice(0, 80)}..." filters=${JSON.stringify(filters ?? {}).slice(0, 200)}`
+      );
+
+      const retryStart = performance.now();
+      let retryQuery = queryCountMode
+        ? externalSupabase.from(table).select(effectiveSelect, { count: queryCountMode })
+        : externalSupabase.from(table).select(effectiveSelect);
+      if (filters) retryQuery = applyFilters(retryQuery, filters, categoryDescendants);
+      if (id) retryQuery = retryQuery.eq('id', id);
+      // Intentionally skip .order() — that's the whole point of the fallback.
+      retryQuery = retryQuery.range(safeOffset, safeOffset + safeLimit - 1);
+
+      const { data: retryData, error: retryError, count: retryCount } = await retryQuery;
+      const retryDuration = Math.round(performance.now() - retryStart);
+
+      if (retryError) {
+        emitTelemetry({ operation: 'select', table, limit: safeLimit, offset: safeOffset, countMode, durationMs: retryDuration, status: 'error', error: `orderBy-fallback failed: ${retryError.message}` });
+        return jsonResponse({ error: retryError.message }, 400, corsHeaders);
+      }
+
+      let records = retryData || [];
+      if (aliasType === 'technique') records = records.map(mapTechniqueRowToLegacyShape);
+      if (aliasType === 'priceTable') records = records.map(mapPriceTableRowToLegacyShape);
+
+      emitTelemetry({
+        operation: 'select',
+        table,
+        limit: safeLimit,
+        offset: safeOffset,
+        countMode,
+        durationMs: retryDuration,
+        status: classifyDuration(retryDuration),
+        recordCount: records.length,
+        error: `orderBy-fallback applied (column=${orderColumn})`,
+      });
+      console.log(`[orderBy-fallback] Selected ${records.length} records from ${table} without orderBy (was: ${orderColumn})`);
+
+      const result = { records, count: retryCount ?? null, meta: { orderBy_fallback: orderColumn } };
+      if (cacheKey) setCache(cacheKey, result);
+      return result;
+    }
+
     emitTelemetry({ operation: 'select', table, limit: safeLimit, offset: safeOffset, countMode, durationMs: selectDuration, status: 'error', error: selectError.message });
     return jsonResponse({ error: selectError.message }, 400, corsHeaders);
   }
