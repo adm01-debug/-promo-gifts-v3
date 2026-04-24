@@ -51,6 +51,8 @@ function publishStats() {
     (window as unknown as { __personalizationSchemaStats?: FullSchemaStats }).__personalizationSchemaStats = {
       ...stats,
       legacyFieldsSeen: { ...legacyFieldsSeen },
+      contractMismatches: { ...contractMismatches },
+      recentMismatches: [...recentMismatches],
     };
   }
 }
@@ -60,10 +62,6 @@ function bumpStat(version: PriceSchemaVersion) {
   publishStats();
 }
 
-/**
- * Registra detecção de um campo legado (PT antigo). Útil para saber quando
- * o backend parou de devolver os nomes antigos e podemos limpar deprecations.
- */
 export function recordLegacyField(name: string): void {
   legacyFieldsSeen[name] = (legacyFieldsSeen[name] ?? 0) + 1;
   publishStats();
@@ -72,6 +70,29 @@ export function recordLegacyField(name: string): void {
 export function getLegacyFieldsSeen(): Readonly<Record<string, number>> {
   return { ...legacyFieldsSeen };
 }
+
+/**
+ * Registra desvio entre payload e contrato esperado.
+ */
+export function recordContractMismatch(
+  contract: string,
+  missing: string[],
+  extras: string[],
+): void {
+  contractMismatches[contract] = (contractMismatches[contract] ?? 0) + 1;
+  recentMismatches.push({ contract, missing, extras, at: Date.now() });
+  if (recentMismatches.length > MAX_RECENT) recentMismatches.shift();
+  publishStats();
+}
+
+export function getContractMismatches(): Readonly<Record<string, number>> {
+  return { ...contractMismatches };
+}
+
+export function getRecentMismatches(): ReadonlyArray<ContractMismatchEntry> {
+  return [...recentMismatches];
+}
+
 
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
