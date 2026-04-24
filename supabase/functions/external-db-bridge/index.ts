@@ -744,6 +744,28 @@ async function handleCrud(body: any, req: Request, corsHeaders: Record<string, s
     }
   }
 
+  // Determina elegibilidade de cache cedo (antes de tocar BD)
+  const isExactCount = requestCountMode === 'exact';
+  const isCacheable =
+    operation === 'select' &&
+    allowPublicAccess &&
+    !userId &&
+    !isExactCount;
+
+  // CACHE LOOKUP: serve direto da memória se houver hit válido
+  let cacheKey: string | null = null;
+  if (isCacheable) {
+    cacheKey = buildCacheKey(table, body);
+    const cached = getCached(cacheKey);
+    if (cached !== null) {
+      cacheHitsTotal++;
+      const totalDuration = Math.round(performance.now() - requestStartTime);
+      console.info(`⚡ [cache] HIT ${operation}:${table} ${totalDuration}ms key=${cacheKey} (hits=${cacheHitsTotal} misses=${cacheMissesTotal})`);
+      return cachedJsonResponse(cached, corsHeaders, true);
+    }
+    cacheMissesTotal++;
+  }
+
   const externalSupabase = getExternalClient(corsHeaders);
   if (externalSupabase instanceof Response) return externalSupabase;
 
@@ -785,6 +807,11 @@ async function handleCrud(body: any, req: Request, corsHeaders: Record<string, s
       return jsonResponse({ error: `Operação não suportada: ${operation}` }, 400, corsHeaders);
   }
 
+  // Invalidação: qualquer write expira TODAS as entradas de cache da tabela tocada
+  if (['insert', 'update', 'delete', 'upsert', 'batch_insert'].includes(operation)) {
+    invalidateCacheForTable(table);
+  }
+
   const totalDuration = Math.round(performance.now() - requestStartTime);
   if (totalDuration >= VERY_SLOW_QUERY_THRESHOLD_MS) {
     console.warn(`🔴 [telemetry] Total request ${operation}:${table} took ${totalDuration}ms (VERY SLOW)`);
@@ -792,18 +819,11 @@ async function handleCrud(body: any, req: Request, corsHeaders: Record<string, s
     console.warn(`🟡 [telemetry] Total request ${operation}:${table} took ${totalDuration}ms (SLOW)`);
   }
 
-  // Edge HTTP cache: SOMENTE para reads públicos sem auth e sem countMode=exact.
-  // Bypass automático para qualquer request autenticada (userId definido) ou contagem exata.
-  const isExactCount = requestCountMode === 'exact';
-  const isCacheable =
-    operation === 'select' &&
-    allowPublicAccess &&
-    !userId &&
-    !isExactCount;
-
-  if (isCacheable) {
-    const ifNoneMatch = req.headers.get('If-None-Match');
-    return cacheableJsonResponse({ data: result, success: true }, corsHeaders, ifNoneMatch);
+  // CACHE WRITE: armazena resposta para próximas requisições
+  if (isCacheable && cacheKey) {
+    const payload = JSON.stringify({ data: result, success: true });
+    setCached(cacheKey, payload);
+    return cachedJsonResponse(payload, corsHeaders, false);
   }
 
   return jsonResponse({ data: result, success: true }, 200, corsHeaders);
