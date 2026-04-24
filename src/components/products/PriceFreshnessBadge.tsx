@@ -107,6 +107,17 @@ export interface PriceFreshnessBadgeProps {
   alwaysShow?: boolean;
 }
 
+/**
+ * Threshold é "explícito" quando vem do produto (não é o default global).
+ * Só nesse caso enriquecemos o badge com "(limite Yd)" — caso contrário
+ * o sufixo poluiria a UI de >99% do catálogo que ainda não tem o campo.
+ */
+function hasExplicitThreshold(
+  thresholdDays?: number | null,
+): thresholdDays is number {
+  return typeof thresholdDays === "number" && thresholdDays > 0;
+}
+
 const STATUS_STYLES: Record<
   PriceFreshnessStatus,
   { color: string; Icon: typeof Clock }
@@ -150,6 +161,11 @@ export function PriceFreshnessBadge({
   const freshness = getPriceFreshness(priceUpdatedAt, thresholdDays);
   const { Icon, color } = STATUS_STYLES[freshness.status];
 
+  // Sufixo "(limite Yd)" só aparece quando o produto traz threshold próprio.
+  // Para o resto do catálogo (default global de 60d) o badge segue limpo.
+  const explicitThreshold = hasExplicitThreshold(thresholdDays);
+  const limitSuffix = explicitThreshold ? ` (limite ${thresholdDays}d)` : "";
+
   // Quiet variants only render when there's something worth flagging.
   if (
     !alwaysShow &&
@@ -190,6 +206,7 @@ export function PriceFreshnessBadge({
         <Icon className="h-3 w-3" aria-hidden="true" />
         <span className="tabular-nums">
           {formatCompactRelative(freshness.daysSinceUpdate)}
+          {limitSuffix && <span className="text-muted-foreground">{limitSuffix}</span>}
         </span>
       </span>
     );
@@ -234,7 +251,7 @@ export function PriceFreshnessBadge({
           )}
         >
           <Clock className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-          <span className="tabular-nums">Atualizado {relative}</span>
+          <span className="tabular-nums">Atualizado {relative}{limitSuffix}</span>
         </span>
       );
     } else if (freshness.status === "fresh" && absolute) {
@@ -248,7 +265,7 @@ export function PriceFreshnessBadge({
           )}
         >
           <CheckCircle2 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-          <span className="tabular-nums">Atualizado {relative}</span>
+          <span className="tabular-nums">Atualizado {relative}{limitSuffix}</span>
         </span>
       );
     } else {
@@ -279,7 +296,7 @@ export function PriceFreshnessBadge({
         )}
       >
         <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-        <span>{freshness.label}</span>
+        <span>{freshness.label}{limitSuffix}</span>
       </span>
     );
   }
