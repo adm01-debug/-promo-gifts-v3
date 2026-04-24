@@ -97,11 +97,9 @@ export function getProductStock(product: PromobrindProduct): number {
 
 // Select field constants
 // NOTE: `price_updated_at` is the SSOT for price freshness — populated via
-// trigger on the external Promobrind DB whenever any price field changes
-// (cost_price, sale_price, suggested_price, list_price, cost_price_1..5).
-// `price_freshness_threshold_days` does NOT exist in the external DB yet —
-// the mapper coalesces it to `null` and `getPriceFreshness` falls back to
-// the default 60-day window.
+// trigger on the external Promobrind DB whenever any price field changes.
+// `price_freshness_threshold_days` does NOT exist in the external DB and was
+// removed from all selects to eliminate "column does not exist" errors.
 export const PRODUCT_SELECT_FIELDS_WITH_SALE =
   'id, name, sku, sale_price, cost_price, images, primary_image_url, ' +
   'category_id, main_category_id, supplier_id, supplier_reference, description, ' +
@@ -132,7 +130,8 @@ export const PRODUCT_SELECT_FIELDS_DETAIL =
   'packing_type, packing_classification, has_commercial_packaging, repacking_type, packaging_context, ' +
   'box_image, box_width_mm, box_height_mm, box_length_mm, box_weight_kg, box_quantity, box_volume_cm3';
 
+// #2: also trigger fallback when orderBy hits a missing column
 export function shouldFallbackSelect(err: unknown) {
   const msg = err instanceof Error ? err.message : String(err);
-  return /(sale_price|base_price|image_url|supplier_name|category_name|product_videos|selected_images|gender|price_updated_at|price_freshness_threshold_days|does not exist|não existe|undefined column|column .+ does not exist)/i.test(msg);
+  return /(sale_price|base_price|image_url|supplier_name|category_name|product_videos|selected_images|gender|price_updated_at|price_freshness_threshold_days|does not exist|não existe|undefined column|column .+ does not exist|could not identify an ordering operator|order by)/i.test(msg);
 }

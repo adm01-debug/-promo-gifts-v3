@@ -56,7 +56,21 @@ function applyFilters(
       return;
     }
 
+    // Suffix-based operator promotion: foo_gte → .gte('foo', val), foo_isnull → .is('foo', null|not.null)
+    const suffixMatch = key.match(/^(.+)_(gte|lte|gt|lt|neq|like|ilike|isnull|notnull)$/);
+    if (suffixMatch) {
+      const [, col, op] = suffixMatch;
+      if (op === 'isnull') { query = query.is(col, null); return; }
+      if (op === 'notnull') { query = query.not(col, 'is', null); return; }
+      query = query[op](col, value);
+      return;
+    }
+
     if (typeof value === 'string') {
+      // Support PostgREST-style is.null / not.is.null
+      if (value === 'is.null') { query = query.is(key, null); return; }
+      if (value === 'not.is.null' || value === 'is.not.null') { query = query.not(key, 'is', null); return; }
+
       // Support PostgREST-style in.(val1,val2,...) operator
       const inMatch = value.match(/^in\.\((.+)\)$/);
       if (inMatch) {
@@ -64,7 +78,7 @@ function applyFilters(
         query = query.in(key, vals);
       } else {
         // Support PostgREST-style comparison operators: gte., lte., gt., lt., neq.
-        const operatorMatch = value.match(/^(gte|lte|gt|lt|neq)\.(.+)$/);
+        const operatorMatch = value.match(/^(gte|lte|gt|lt|neq|like|ilike)\.(.+)$/);
         if (operatorMatch) {
           const [, op, val] = operatorMatch;
           query = query[op](key, val);
@@ -76,6 +90,11 @@ function applyFilters(
       }
     } else if (Array.isArray(value)) {
       query = query.in(key, value);
+    } else if (typeof value === 'object') {
+      // Sanitize object filters: skip silently to prevent "[object Object]" syntax errors.
+      // Callers should use suffix-based promotion (foo_gte) or PostgREST string operators instead.
+      console.warn(`[external-db-bridge] Skipping object-type filter for key "${key}" — use suffix promotion (e.g. ${key}_gte) or string operator.`);
+      return;
     } else {
       query = query.eq(key, value);
     }
