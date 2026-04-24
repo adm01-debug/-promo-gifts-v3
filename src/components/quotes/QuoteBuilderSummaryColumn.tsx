@@ -2,7 +2,7 @@
  * QuoteBuilderSummaryColumn — Coluna 3: Resumo com cards de itens, desconto e CTAs
  */
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,10 +13,13 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
-import { AlertTriangle, Edit, Loader2, Package, Percent, Save, Send, Shield, ShoppingCart, Trash2 } from "lucide-react";
+import { AlertTriangle, Edit, Loader2, Package, Percent, Save, Send, Shield, ShoppingCart, Trash2, CheckCircle2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { QuoteItem } from "@/hooks/useQuotes";
 import { NegotiationMarkupCard } from "@/components/quote/NegotiationMarkupCard";
+import { ConfirmDialog } from "@/components/common/ConfirmDialog";
+import { getPriceFreshness } from "@/utils/price-freshness";
+import { toast } from "sonner";
 
 interface Props {
   items: QuoteItem[];
@@ -44,6 +47,10 @@ interface Props {
   setNegotiationMarkup?: (v: number) => void;
   realSubtotal?: number;
   realDiscountPercent?: number;
+  /** Marca um item como "preço confirmado com fornecedor" — suprime alerta stale. */
+  confirmItemPrice?: (index: number) => void;
+  /** Marca todos os itens com preço aging/stale como confirmados. */
+  confirmAllStalePrices?: () => void;
 }
 
 export function QuoteBuilderSummaryColumn({
@@ -55,9 +62,35 @@ export function QuoteBuilderSummaryColumn({
   maxDiscountPercent, isDiscountExceeded,
   negotiationMarkup = 0, setNegotiationMarkup,
   realSubtotal = 0, realDiscountPercent = 0,
+  confirmItemPrice, confirmAllStalePrices,
 }: Props) {
   const [approvalDialogOpen, setApprovalDialogOpen] = useState(false);
   const [sellerNotes, setSellerNotes] = useState("");
+  const [confirmAllOpen, setConfirmAllOpen] = useState(false);
+  const [showOnlyStale, setShowOnlyStale] = useState(false);
+
+  // ── Itens com preço pendente de confirmação (aging/stale e ainda não confirmado) ──
+  const staleIndexes = useMemo(() => {
+    const set = new Set<number>();
+    items.forEach((item, idx) => {
+      if (item.price_confirmed_at) return;
+      const f = getPriceFreshness(item.price_updated_at, item.price_freshness_threshold_days);
+      if (f.shouldWarn) set.add(idx);
+    });
+    return set;
+  }, [items]);
+
+  const staleCount = staleIndexes.size;
+  const visibleItems = useMemo(
+    () => showOnlyStale ? items.map((it, idx) => ({ it, idx })).filter(({ idx }) => staleIndexes.has(idx))
+                        : items.map((it, idx) => ({ it, idx })),
+    [items, showOnlyStale, staleIndexes],
+  );
+
+  // Auto-desliga o filtro se a contagem zerar (após confirmar todos)
+  if (showOnlyStale && staleCount === 0) {
+    setTimeout(() => setShowOnlyStale(false), 0);
+  }
 
   const handleRequestApproval = () => {
     onSave("pending_approval", sellerNotes);
@@ -77,6 +110,40 @@ export function QuoteBuilderSummaryColumn({
             <h3 className="font-display font-semibold text-base">Resumo</h3>
           </div>
 
+          {/* Stale price filter — só aparece quando há itens com preço pendente de confirmação */}
+          {staleCount > 0 && (
+            <div className="px-4 pb-3 shrink-0 flex items-center gap-2 flex-wrap">
+              <button
+                type="button"
+                onClick={() => setShowOnlyStale((v) => !v)}
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded-xl border-[1.5px] px-2.5 py-1 text-xs font-medium transition-all",
+                  showOnlyStale
+                    ? "border-warning bg-warning/15 text-warning shadow-sm"
+                    : "border-warning/40 bg-warning/5 text-warning hover:bg-warning/10",
+                )}
+                aria-pressed={showOnlyStale}
+                aria-label={`Mostrar apenas ${staleCount} item(ns) com preço a confirmar`}
+              >
+                <AlertTriangle className="h-3.5 w-3.5" />
+                <span>Preços a confirmar</span>
+                <Badge variant="secondary" className="h-4 px-1.5 text-[10px] bg-warning text-warning-foreground border-0">{staleCount}</Badge>
+                {showOnlyStale && <X className="h-3 w-3 ml-0.5" aria-hidden="true" />}
+              </button>
+              {confirmAllStalePrices && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-7 px-2.5 text-xs gap-1.5 border-warning/40 text-warning hover:bg-warning/10 hover:text-warning"
+                  onClick={() => setConfirmAllOpen(true)}
+                >
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  Confirmar todos
+                </Button>
+              )}
+            </div>
+          )}
+
           {/* Product Cards */}
           <div className="flex-1 min-h-0 px-4 overflow-y-auto max-h-[50vh]">
             <div className="space-y-3 pr-1">
@@ -85,15 +152,30 @@ export function QuoteBuilderSummaryColumn({
                   <Package className="h-5 w-5 mx-auto mb-2 text-muted-foreground/40" />
                   <p className="text-xs text-muted-foreground">Nenhum item adicionado</p>
                 </div>
-              ) : items.map((item, idx) => {
+              ) : visibleItems.length === 0 ? (
+                <div className="p-4 rounded-lg border border-dashed border-warning/40 bg-warning/5 text-center">
+                  <CheckCircle2 className="h-5 w-5 mx-auto mb-2 text-warning" />
+                  <p className="text-xs text-warning font-medium">Todos os preços estão confirmados</p>
+                  <button
+                    type="button"
+                    onClick={() => setShowOnlyStale(false)}
+                    className="text-[11px] text-muted-foreground hover:text-foreground underline mt-1"
+                  >
+                    Mostrar todos os itens
+                  </button>
+                </div>
+              ) : visibleItems.map(({ it: item, idx }) => {
                 const persTotal = calculateItemPersonalizationTotal(item);
                 const isActive = activeItemIndex === idx;
+                const isStale = staleIndexes.has(idx);
                 return (
                   <div
                     key={idx}
                     className={cn(
                       "rounded-xl border transition-all cursor-pointer",
-                      isActive ? "border-primary/50 bg-primary/5 ring-1 ring-primary/20" : "border-border/60 bg-muted/30 hover:border-border"
+                      isActive ? "border-primary/50 bg-primary/5 ring-1 ring-primary/20" : "border-border/60 bg-muted/30 hover:border-border",
+                      isStale && !isActive && "border-warning/40 bg-warning/[0.04]",
+                      isStale && isActive && "ring-warning/30"
                     )}
                     onClick={() => setActiveItemIndex(idx)}
                   >
@@ -140,6 +222,28 @@ export function QuoteBuilderSummaryColumn({
                         <span className="font-medium">{formatCurrency(item.unit_price)}</span>
                         <span className="ml-auto font-semibold text-foreground tabular-nums">{formatCurrency(item.quantity * item.unit_price)}</span>
                       </div>
+                      {isStale && confirmItemPrice && (
+                        <div className="flex items-center gap-2 px-2 py-1.5 rounded-lg border border-warning/30 bg-warning/10">
+                          <AlertTriangle className="h-3 w-3 text-warning shrink-0" />
+                          <span className="text-[11px] text-warning font-medium leading-tight flex-1">
+                            Preço pode estar defasado — confirme com o fornecedor
+                          </span>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              confirmItemPrice(idx);
+                              toast.success("Preço confirmado com fornecedor", {
+                                description: item.product_name,
+                              });
+                            }}
+                            className="text-[10px] font-semibold text-warning hover:underline shrink-0 whitespace-nowrap"
+                            aria-label={`Confirmar preço com fornecedor para ${item.product_name}`}
+                          >
+                            Confirmei
+                          </button>
+                        </div>
+                      )}
                     </div>
                     {item.personalizations && item.personalizations.length > 0 && (
                       <div className="px-3 pb-3 pt-0">
@@ -356,6 +460,23 @@ export function QuoteBuilderSummaryColumn({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Confirm All Stale Prices Dialog */}
+      <ConfirmDialog
+        open={confirmAllOpen}
+        onOpenChange={setConfirmAllOpen}
+        variant="warning"
+        title="Confirmar preços com o fornecedor?"
+        description={`Você está confirmando que validou ${staleCount} preço(s) diretamente com o(s) fornecedor(es). O alerta de preço defasado será removido destes itens neste orçamento.`}
+        confirmText={`Confirmar ${staleCount} preço${staleCount === 1 ? '' : 's'}`}
+        cancelText="Cancelar"
+        onConfirm={() => {
+          confirmAllStalePrices?.();
+          setConfirmAllOpen(false);
+          setShowOnlyStale(false);
+          toast.success(`${staleCount} preço(s) confirmado(s) com fornecedor`);
+        }}
+      />
     </div>
   );
 }
