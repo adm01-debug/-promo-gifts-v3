@@ -1,5 +1,5 @@
 import { getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts';
-import { createClient } from "npm:@supabase/supabase-js@2.49.4";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 
 // CORS headers are now dynamic — use getCorsHeaders(req) inside the handler
 // See _shared/cors.ts for the centralized configuration

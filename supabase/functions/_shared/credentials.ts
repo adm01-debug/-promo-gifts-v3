@@ -3,7 +3,7 @@
 // Used across edge functions so that values entered via /admin/conexoes
 // take effect at runtime without redeploying.
 
-import type { SupabaseClient } from "npm:@supabase/supabase-js@2.49.4";
+import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 
 interface CacheEntry {
   value: string | null;
