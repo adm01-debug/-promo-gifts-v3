@@ -32,6 +32,7 @@ export default function AdminTelemetriaPage() {
     customDateFrom, setCustomDateFrom, customDateTo, setCustomDateTo,
     stats, topOffenders,
   } = useTelemetryData();
+  const { errors1h, errors24h, isLoading: errorsLoading } = useErrorCounters();
 
   return (
     <MainLayout>
