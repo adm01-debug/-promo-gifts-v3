@@ -8,6 +8,13 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { PrintAreaWithTechniques, TecnicaGravacao } from '@/types/gravacao';
 import { logger } from "@/lib/logger";
+import {
+  adaptPrintAreaTechniqueRows,
+  adaptTabelaPrecoRows,
+  adaptTecnicaRows,
+  type PrintAreaTechniqueCanonical,
+  type TabelaPrecoCanonical,
+} from '@/lib/personalization/adapters';
 
 // ============================================
 // FUNÇÕES AUXILIARES

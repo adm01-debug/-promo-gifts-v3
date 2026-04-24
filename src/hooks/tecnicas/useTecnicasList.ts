@@ -160,27 +160,28 @@ export function useTecnicasResumo(apenasAtivas = true) {
     queryKey: [...TECNICAS_QUERY_KEYS.resumo(), apenasAtivas],
     queryFn: async (): Promise<TecnicaResumo[]> => {
       const rawData = await fetchTecnicasExterno();
-      
+
       let tecnicas = rawData;
       if (apenasAtivas) {
-        tecnicas = tecnicas.filter(t => t.ativo);
+        tecnicas = tecnicas.filter(t => (t.active ?? t.ativo) === true);
       }
 
       return tecnicas.map(t => {
-        const maxCores = typeof t.max_cores === 'string' 
-          ? parseInt(t.max_cores, 10) 
-          : (t.max_cores ?? 0);
+        const maxCoresRaw = t.max_colors ?? t.max_cores;
+        const maxCores = typeof maxCoresRaw === 'string'
+          ? parseInt(maxCoresRaw, 10)
+          : (maxCoresRaw ?? 0);
 
         return {
           id: t.id,
-          codigo: t.codigo || '',
-          nome: t.nome,
-          categoria: t.nome_grupo || t.grupo_tecnica || 'geral',
-          permiteCores: t.permite_cores ?? (maxCores > 0),
+          codigo: t.code ?? t.codigo ?? '',
+          nome: t.name ?? t.nome ?? '',
+          categoria: t.group_name ?? t.nome_grupo ?? t.group ?? t.grupo_tecnica ?? 'geral',
+          permiteCores: t.allows_colors ?? t.permite_cores ?? (maxCores > 0),
           maxCores: maxCores,
-          precoPorCor: t.cobra_por_cor ?? false,
-          precoPorArea: t.cobra_por_area ?? false,
-          ativo: t.ativo ?? true,
+          precoPorCor: t.charges_per_color ?? t.cobra_por_cor ?? false,
+          precoPorArea: t.price_by_area ?? t.cobra_por_area ?? false,
+          ativo: t.active ?? t.ativo ?? true,
         };
       });
     },
@@ -209,9 +210,7 @@ export function useTecnicaById(id: string | undefined) {
       if (error) throw error;
 
       const records = data?.data?.records || [];
-      return records.length > 0 ? bridgeToTecnicaUnificada(records[0]) : null;
-    },
-    enabled: !!id,
+      return records.length > 0 ? bridgeToTecnicaUnificada(adaptTecnicaRow(records[0])) : null;
     ...TECNICAS_QUERY_OPTIONS,
   });
 }
@@ -237,9 +236,7 @@ export function useTecnicaByCodigo(codigo: string | undefined) {
       if (error) throw error;
 
       const records = data?.data?.records || [];
-      return records.length > 0 ? bridgeToTecnicaUnificada(records[0]) : null;
-    },
-    enabled: !!codigo,
+      return records.length > 0 ? bridgeToTecnicaUnificada(adaptTecnicaRow(records[0])) : null;
     ...TECNICAS_QUERY_OPTIONS,
   });
 }
