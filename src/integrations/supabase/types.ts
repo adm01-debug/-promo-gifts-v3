@@ -2783,6 +2783,33 @@ export type Database = {
         }
         Relationships: []
       }
+      product_price_freshness_overrides: {
+        Row: {
+          created_at: string
+          id: string
+          product_id: string
+          threshold_days: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          product_id: string
+          threshold_days: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          product_id?: string
+          threshold_days?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       product_sync_logs: {
         Row: {
           created_at: string
