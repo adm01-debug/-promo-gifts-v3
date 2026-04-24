@@ -34,6 +34,7 @@ import { sortByColorGroup } from "@/utils/colorSorting";
 import { toast } from "sonner";
 import { useProductImages, type ProductImage } from "@/hooks/useProductImages";
 import { getCdnUrl, getSrcSet, getColorImages, type ProductImageMeta } from "@/utils/image-utils";
+import { PriceFreshnessBadge } from "@/components/products/PriceFreshnessBadge";
 
 interface ProductQuickViewProps {
   product: Product | null;
@@ -293,6 +294,14 @@ export const ProductQuickView = forwardRef<HTMLDivElement, ProductQuickViewProps
                 <span className="text-3xl font-display font-bold text-foreground">
                   {formatPrice(product.price)}
                 </span>
+                <div className="mt-1.5">
+                  <PriceFreshnessBadge
+                    priceUpdatedAt={product.priceUpdatedAt}
+                    thresholdDays={product.priceFreshnessThresholdDays}
+                    variant="inline"
+                    alwaysShow
+                  />
+                </div>
               </div>
               <div className={cn("flex items-center gap-2 px-3 py-1.5 rounded-full", stockInfo.bg)}>
                 <Package className={cn("h-4 w-4", stockInfo.color)} />

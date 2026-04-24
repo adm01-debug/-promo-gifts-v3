@@ -5,6 +5,7 @@ import { ShoppingCart, Heart, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { QuickAddToQuote } from "./QuickAddToQuote";
 import { BulkVariantWizard } from "@/components/catalog/BulkVariantWizard";
+import { PriceFreshnessBadge } from "./PriceFreshnessBadge";
 import { cn } from "@/lib/utils";
 import type { Product } from "@/hooks/useProducts";
 
@@ -82,8 +83,13 @@ export function ProductStickyHeader({
               </h2>
 
               {/* Price */}
-              <span className="text-sm font-bold text-foreground whitespace-nowrap ml-auto">
+              <span className="text-sm font-bold text-foreground whitespace-nowrap ml-auto flex items-center gap-2">
                 {formatPrice(productPrice)}<span className="text-muted-foreground font-normal">/un</span>
+                <PriceFreshnessBadge
+                  priceUpdatedAt={product?.priceUpdatedAt}
+                  thresholdDays={product?.priceFreshnessThresholdDays}
+                  variant="compact"
+                />
               </span>
 
               {/* Actions */}
