@@ -160,9 +160,7 @@ export function PriceFreshnessBadge({
           )}
         >
           <Clock className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-          <span className="tabular-nums">
-            Preço atualizado em {absolute} · confirme se necessário
-          </span>
+          <span className="tabular-nums">Atualizado {relative}</span>
         </span>
       );
     } else if (freshness.status === "fresh" && absolute) {
@@ -176,9 +174,7 @@ export function PriceFreshnessBadge({
           )}
         >
           <CheckCircle2 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-          <span className="tabular-nums">
-            Preço atualizado em {absolute} · {relative}
-          </span>
+          <span className="tabular-nums">Atualizado {relative}</span>
         </span>
       );
     } else {
