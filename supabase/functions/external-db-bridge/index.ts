@@ -1474,7 +1474,7 @@ export function resolveProductsSelect(input: ResolveProductsSelectInput): Resolv
   if (isStarOrEmpty) {
     return { effectiveSelect: PRODUCTS_LIGHTWEIGHT_SELECT, forcedLightweight: true, reason: 'star-select-listing' };
   }
-  if (select.split(',').length > 25) {
+  if (select.split(',').length > WIDE_SELECT_COLUMN_THRESHOLD) {
     return { effectiveSelect: PRODUCTS_LIGHTWEIGHT_SELECT, forcedLightweight: true, reason: 'wide-select-listing' };
   }
   if (callerSelectIsHeavy(select)) {
