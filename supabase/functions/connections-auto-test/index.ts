@@ -1,9 +1,46 @@
 // connections-auto-test: cron-driven (every 30min). Re-tests every active
 // connection in `external_connections` and updates last_test_* fields +
 // inserts a row in `connection_test_history` with triggered_by='cron'.
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
+import { createClient, type SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { runConnectionTest, type ConnectionType, isTransientFailure } from "../_shared/connection-test-runner.ts";
 import { resolveTimeout } from "../_shared/connection-timeouts.ts";
+
+// ────────────────────────────────────────────────────────────────────────────
+// Schema-validated service client
+// ────────────────────────────────────────────────────────────────────────────
+// O parâmetro `service` precisa ser tipado com a MESMA assinatura usada por
+// `runConnectionTest` (`SupabaseClient` default, sem genéricos custom). Antes
+// usávamos `any`, o que silenciava o erro `TS2345 ('public' not assignable to
+// never)` mas removia toda a validação de tipo. Agora usamos um alias dedicado
+// + um guard de runtime que falha cedo se a forma do client divergir.
+type ServiceClient = SupabaseClient;
+
+/**
+ * Runtime guard: garante que o objeto recebido é um SupabaseClient válido
+ * com o schema esperado (`.from`, `.rpc`, `.auth`). Lança erro descritivo
+ * se a forma divergir — protege contra:
+ *   - createClient chamado com genéricos diferentes (mismatch de schema)
+ *   - mock/stub passado por engano em testes
+ *   - objeto undefined/null por bug de inicialização
+ */
+function assertServiceClient(client: unknown): asserts client is ServiceClient {
+  if (!client || typeof client !== "object") {
+    throw new TypeError(
+      `[connections-auto-test] service client inválido: esperado SupabaseClient, recebeu ${client === null ? "null" : typeof client}`,
+    );
+  }
+  const c = client as Record<string, unknown>;
+  const missing: string[] = [];
+  if (typeof c.from !== "function") missing.push(".from()");
+  if (typeof c.rpc !== "function") missing.push(".rpc()");
+  if (typeof c.auth !== "object" || c.auth === null) missing.push(".auth");
+  if (missing.length > 0) {
+    throw new TypeError(
+      `[connections-auto-test] service client não satisfaz a forma de SupabaseClient — faltando: ${missing.join(", ")}. ` +
+      `Verifique se createClient<Database, 'public'> está alinhado com o schema esperado por runConnectionTest.`,
+    );
+  }
+}
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
