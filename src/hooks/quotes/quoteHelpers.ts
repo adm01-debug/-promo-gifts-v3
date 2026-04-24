@@ -114,6 +114,7 @@ export function buildItemsInsertPayload(
     sort_order: index,
     kit_group_id: item.kit_group_id || null,
     kit_name: item.kit_name || null,
+    price_confirmed_at: item.price_confirmed_at ?? null,
   }));
 }
 

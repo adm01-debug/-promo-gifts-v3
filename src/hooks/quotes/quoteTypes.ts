@@ -42,6 +42,8 @@ export interface QuoteItem {
   price_updated_at?: string | null;
   /** Janela (em dias) configurada por produto para alertar preço defasado. Default 60. */
   price_freshness_threshold_days?: number | null;
+  /** Timestamp em que o vendedor confirmou o preço com o fornecedor durante a montagem do orçamento. Quando preenchido, o badge de preço defasado é suprimido neste item. */
+  price_confirmed_at?: string | null;
   personalizations?: QuoteItemPersonalization[];
 }
 
