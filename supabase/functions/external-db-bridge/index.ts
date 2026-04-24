@@ -373,6 +373,7 @@ const TopLevelBodySchema = z.object({
   onConflict: z.string().optional(),
 }).refine(data => {
   if (data.operation === 'batch') return true;
+  if (data.operation === 'ping') return true;
   if (data.operation === 'rpc') return !!data.rpcName;
   return !!data.table;
 }, { message: "Field 'table' is required for CRUD operations, 'rpcName' for RPC" });
