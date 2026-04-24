@@ -22,7 +22,81 @@ import {
   getPriceFreshness,
   formatPriceDateLong,
   type PriceFreshnessStatus,
+  type PriceFreshness,
 } from "@/utils/price-freshness";
+
+const STATUS_LABELS: Record<PriceFreshnessStatus, string> = {
+  fresh: "Atualizado",
+  aging: "Próximo do limite",
+  stale: "Possivelmente defasado",
+  unknown: "Sem informação",
+};
+
+/** Data + hora exatas no fuso local do usuário (PT-BR). Ex.: "24/04/2026 09:32". */
+function formatExactDateTime(value: string | Date): string | null {
+  const d = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(d.getTime())) return null;
+  return new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(d);
+}
+
+function buildClassificationRule(thresholdDays: number): string {
+  const half = Math.floor(thresholdDays / 2);
+  return `Regra: até ${half} dias = atualizado · ${half + 1}–${thresholdDays} dias = próximo do limite · acima de ${thresholdDays} dias = possivelmente defasado.`;
+}
+
+interface FreshnessTooltipProps {
+  freshness: PriceFreshness;
+  priceUpdatedAt?: string | Date | null;
+}
+
+function FreshnessTooltipBody({ freshness, priceUpdatedAt }: FreshnessTooltipProps) {
+  const exact = priceUpdatedAt ? formatExactDateTime(priceUpdatedAt) : null;
+  const long = priceUpdatedAt ? formatAbsoluteDate(priceUpdatedAt) : null;
+  const statusLabel = STATUS_LABELS[freshness.status];
+  const rule = buildClassificationRule(freshness.thresholdDays);
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <div className="flex items-center gap-1.5">
+        <span className="font-semibold">{statusLabel}</span>
+        {freshness.status !== "unknown" && (
+          <span className="text-muted-foreground">· {freshness.label.replace(/^Atualizado\s+/i, "").replace(/^Preço pode estar defasado\s*/i, "")}</span>
+        )}
+      </div>
+      {exact && (
+        <div className="leading-snug">
+          <span className="text-muted-foreground">Atualizado em:</span>{" "}
+          <span className="tabular-nums font-medium">{exact}</span>
+          {long && (
+            <span className="text-muted-foreground"> ({long})</span>
+          )}
+        </div>
+      )}
+      {!exact && (
+        <div className="leading-snug text-muted-foreground">
+          O fornecedor não informou a data da última atualização deste preço.
+        </div>
+      )}
+      <div className="leading-snug text-muted-foreground">{rule}</div>
+      {freshness.status === "stale" && (
+        <div className="leading-snug text-amber-600 dark:text-amber-400">
+          Confirme o valor com o fornecedor antes de enviar o orçamento ao cliente.
+        </div>
+      )}
+      {freshness.status === "aging" && (
+        <div className="leading-snug text-muted-foreground">
+          Recomendamos confirmar o valor antes de fechar o orçamento.
+        </div>
+      )}
+    </div>
+  );
+}
 
 export interface PriceFreshnessBadgeProps {
   priceUpdatedAt?: string | Date | null;
@@ -215,7 +289,10 @@ export function PriceFreshnessBadge({
       <Tooltip>
         <TooltipTrigger asChild>{body}</TooltipTrigger>
         <TooltipContent side="top" className="max-w-xs text-xs">
-          {freshness.tooltip}
+          <FreshnessTooltipBody
+            freshness={freshness}
+            priceUpdatedAt={priceUpdatedAt}
+          />
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
