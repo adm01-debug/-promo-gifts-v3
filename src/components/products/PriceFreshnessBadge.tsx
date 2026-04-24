@@ -33,6 +33,65 @@ const STATUS_LABELS: Record<PriceFreshnessStatus, string> = {
   unknown: "Sem informação",
 };
 
+/**
+ * Aria-label rico para leitores de tela. O label do util é otimizado para
+ * UI ("Atualizado há 5 dias"), mas em `icon-only`/`compact` o leitor de
+ * tela não tem o contexto visual do "$ 19,90" ao lado — precisa ouvir
+ * **Preço** + status legível + data por extenso quando disponível. Para
+ * contexto mais rico do que aria-label sozinho consegue, complementamos
+ * com `title` (lido por SRs como descrição auxiliar e útil offline).
+ */
+function buildAccessibleLabel(
+  freshness: PriceFreshness,
+  priceUpdatedAt?: string | Date | null,
+): { ariaLabel: string; title: string } {
+  const dateValue = priceUpdatedAt
+    ? priceUpdatedAt instanceof Date
+      ? priceUpdatedAt
+      : new Date(priceUpdatedAt)
+    : null;
+  const isValid = dateValue && !Number.isNaN(dateValue.getTime());
+  const longDate = isValid ? formatPriceDateLong(dateValue) : null;
+  const days = freshness.daysSinceUpdate;
+  const relative =
+    days === null
+      ? null
+      : days <= 0
+        ? "hoje"
+        : days === 1
+          ? "há 1 dia"
+          : `há ${days} dias`;
+
+  // Frase principal lida pelo screen reader (curta e direta).
+  let ariaLabel: string;
+  switch (freshness.status) {
+    case "fresh":
+      ariaLabel = longDate
+        ? `Preço atualizado pelo fornecedor em ${longDate}, ${relative}.`
+        : "Preço atualizado pelo fornecedor recentemente.";
+      break;
+    case "aging":
+      ariaLabel = longDate
+        ? `Preço próximo do limite de validade. Última atualização do fornecedor em ${longDate}, ${relative}. Recomendamos confirmar antes de fechar o orçamento.`
+        : "Preço próximo do limite de validade. Recomendamos confirmar com o fornecedor.";
+      break;
+    case "stale":
+      ariaLabel = longDate
+        ? `Atenção: preço possivelmente defasado. Última atualização do fornecedor em ${longDate}, ${relative}. Confirme o valor antes de enviar o orçamento ao cliente.`
+        : "Atenção: preço possivelmente defasado. Confirme com o fornecedor antes de enviar o orçamento.";
+      break;
+    case "unknown":
+    default:
+      ariaLabel =
+        "Preço sem data de atualização informada pelo fornecedor. Confirme o valor antes de enviar o orçamento.";
+  }
+
+  // `title` espelha o aria-label para que o tooltip nativo do navegador
+  // funcione mesmo quando o Radix Tooltip não estiver disponível (ex.: foco
+  // por teclado em browsers sem suporte a hover).
+  return { ariaLabel, title: ariaLabel };
+}
+
 /** Data + hora exatas no fuso local do usuário (PT-BR). Ex.: "24/04/2026 09:32". */
 function formatExactDateTime(value: string | Date): string | null {
   const d = value instanceof Date ? value : new Date(value);
