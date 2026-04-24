@@ -1331,3 +1331,71 @@ function getExternalClient(corsHeaders: Record<string, string>) {
 
 // Default lightweight columns for products table to avoid fetching heavy JSONB columns
 const PRODUCTS_LIGHTWEIGHT_SELECT = 'id,name,sku,sale_price,cost_price,primary_image_url,category_id,main_category_id,supplier_id,supplier_reference,description,short_description,brand,is_active,active,stock_quantity,min_quantity,created_at,updated_at,is_featured,is_bestseller,is_new,is_on_sale,is_kit';
+
+// ============================================
+// PRODUCTS SELECT RESOLVER — single source of truth for the lightweight rule
+// ============================================
+// Centralizes the decision to swap the caller's `select` for `PRODUCTS_LIGHTWEIGHT_SELECT`.
+// HARD GUARD: lightweight is ONLY applied when limit > LIGHTWEIGHT_LIMIT_THRESHOLD AND no `id` is set.
+// This prevents regressions where detail/edit pages (id present, or limit ≤ 50) lose JSONB columns.
+//
+// Decision matrix (table === 'products'):
+//   id present                              → keep caller's select (detail/edit)
+//   limit ≤ 50                              → keep caller's select (small reads)
+//   limit > 50 AND select is '*' or empty   → force lightweight  (Rule A)
+//   limit > 50 AND select is very wide (>25 cols) → force lightweight  (Rule B)
+//   limit > 50 AND select touches heavy JSONB     → force lightweight  (Rule C)
+//   otherwise                               → keep caller's select
+export const LIGHTWEIGHT_LIMIT_THRESHOLD = 50;
+const HEAVY_JSONB_COLUMN_RE = /personalization_areas|metadata|specifications|attributes_json|description_html/i;
+
+export interface ResolveProductsSelectInput {
+  table: string;
+  select: string | undefined | null;
+  limit: number | undefined | null;
+  hasId: boolean;
+}
+
+export interface ResolveProductsSelectResult {
+  effectiveSelect: string;
+  forcedLightweight: boolean;
+  reason:
+    | 'not-products'
+    | 'has-id'
+    | 'small-limit'
+    | 'star-select-listing'
+    | 'wide-select-listing'
+    | 'heavy-jsonb-listing'
+    | 'caller-select';
+}
+
+export function resolveProductsSelect(input: ResolveProductsSelectInput): ResolveProductsSelectResult {
+  const { table, select, limit, hasId } = input;
+  const callerSelect = select && select.length > 0 ? select : '*';
+
+  if (table !== 'products') {
+    return { effectiveSelect: callerSelect, forcedLightweight: false, reason: 'not-products' };
+  }
+  if (hasId) {
+    return { effectiveSelect: callerSelect, forcedLightweight: false, reason: 'has-id' };
+  }
+
+  const safeLimit = typeof limit === 'number' && limit > 0 ? limit : 0;
+  // HARD GUARD against regression: never force lightweight on small reads.
+  if (safeLimit <= LIGHTWEIGHT_LIMIT_THRESHOLD) {
+    return { effectiveSelect: callerSelect, forcedLightweight: false, reason: 'small-limit' };
+  }
+
+  const isStarOrEmpty = !select || select === '*';
+  if (isStarOrEmpty) {
+    return { effectiveSelect: PRODUCTS_LIGHTWEIGHT_SELECT, forcedLightweight: true, reason: 'star-select-listing' };
+  }
+  if (select.split(',').length > 25) {
+    return { effectiveSelect: PRODUCTS_LIGHTWEIGHT_SELECT, forcedLightweight: true, reason: 'wide-select-listing' };
+  }
+  if (HEAVY_JSONB_COLUMN_RE.test(select)) {
+    return { effectiveSelect: PRODUCTS_LIGHTWEIGHT_SELECT, forcedLightweight: true, reason: 'heavy-jsonb-listing' };
+  }
+
+  return { effectiveSelect: callerSelect, forcedLightweight: false, reason: 'caller-select' };
+}
