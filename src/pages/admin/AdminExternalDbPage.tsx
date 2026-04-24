@@ -29,6 +29,44 @@ export default function AdminExternalDbPage() {
   const [selectedTable, setSelectedTable] = useState<string | null>(null);
   const [diffs, setDiffs] = useState<TableDiff[] | null>(null);
   const [diffLoading, setDiffLoading] = useState(false);
+  const [contractCounts, setContractCounts] = useState<Record<string, number>>({});
+  const [recentMismatches, setRecentMismatches] = useState<ContractMismatchEntry[]>([]);
+  const [liveResults, setLiveResults] = useState<Record<string, ValidationResult>>({});
+  const [liveLoading, setLiveLoading] = useState<string | null>(null);
+
+  const refreshTelemetry = () => {
+    setContractCounts(getContractMismatches() as Record<string, number>);
+    setRecentMismatches([...getRecentMismatches()]);
+  };
+
+  const testContract = async (contractName: string) => {
+    setLiveLoading(contractName);
+    try {
+      const contract = ALL_CONTRACTS.find((c) => c.name === contractName);
+      if (!contract) return;
+      // Payloads de teste mínimos — front aceita "samples".
+      // O usuário pode ajustar via UI futura; por ora validamos o último payload conhecido.
+      // Aqui só rodamos uma chamada vazia para registrar erro/sucesso.
+      const params: Record<string, unknown> =
+        contractName === "fn_get_customization_price"
+          ? { p_area_id: "00000000-0000-0000-0000-000000000000", p_quantidade: 100, p_num_cores: 1 }
+          : { p_product_id: "00000000-0000-0000-0000-000000000000" };
+      const result = await invokeExternalRpc<Record<string, unknown>>(contractName, params);
+      const validation = validateRpcPayload(contract, result ?? {});
+      setLiveResults((prev) => ({ ...prev, [contractName]: validation }));
+      toast.success(`${contractName}`, {
+        description: validation.ok ? "Contrato OK" : `${validation.missing.length} campos ausentes`,
+      });
+      refreshTelemetry();
+    } catch (err) {
+      toast.error("Falha ao testar RPC", {
+        description: err instanceof Error ? err.message : "Erro desconhecido",
+      });
+    } finally {
+      setLiveLoading(null);
+    }
+  };
+
 
   const runEngravingDiff = async () => {
     setDiffLoading(true);
