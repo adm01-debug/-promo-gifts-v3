@@ -1,110 +1,120 @@
 
 
-# Validar RPCs de gravação e ajustar parse
+# Testes smoke e funcionais para técnicas + cálculo de preço
 
 ## Objetivo
 
-Garantir que os dois RPCs centrais do fluxo de personalização — `fn_get_customization_price` e `fn_get_product_customization_options` — retornam os campos que o front espera. Onde houver divergência, ajustar o parse via adapters (sem tocar consumidores).
+Travar com testes a regressão do fluxo principal pós-migração: carregar lista de técnicas, carregar opções de personalização de produto e calcular preço — cobrindo payload PT (atual), EN (futuro) e híbrido.
 
-## Estratégia
+## Estado atual
 
-Reaproveitar a infraestrutura já existente:
-- **Adapters** (`src/lib/personalization/adapters/`) já cuidam de aliases PT ↔ EN.
-- **Telemetria** (`window.__personalizationSchemaStats`) já contabiliza schema detectado e campos legados vistos.
-- **Edge function** `external-db-bridge` é a porta de entrada das RPCs.
+Já temos:
+- `tests/lib/personalization/` com 35+ testes de adapters, `rpc-contracts`, `safe-coerce` parcial.
+- `tests/hooks/_helpers/smoke-template.ts` (`smokeHook`) e `render-hook-providers.ts`.
+- `tests/components/pricing/QuantityPriceCalculator.test.tsx` como referência de mock de hooks.
 
-Adicionar uma **camada de validação real** que compara payload vs. contrato, registra desvios e exibe na página `/admin/external-db`.
+Falta cobrir end-to-end (no nível de hook) o caminho: **rows brutas do bridge → adapter → hook → consumidor**, garantindo que a migração de schema não quebra silenciosamente.
 
-## Passos
+## O que será feito
 
-### 1. Definir contratos esperados (TS puro, sem Zod por ora)
+### 1. Smoke tests dos hooks de leitura
 
-Arquivo novo: `src/lib/personalization/rpc-contracts.ts`
+Arquivo novo: `tests/hooks/tecnicas/useTecnicasList.smoke.test.ts`
+- `smokeHook("useTecnicasList", () => useTecnicasList())` — mock de `invokeExternalDb` retornando `[]`; garante mount sem crash.
+- Variante: mock retornando 3 rows PT antigas → `result.current.data` tem 3 itens com `codigo` E `code` preenchidos.
 
-Para cada RPC, declarar:
-- `requiredFields: string[]` — campos que o parse depende.
-- `optionalFields: string[]` — bônus que se vierem o front usa.
-- `aliasMap: Record<string, string[]>` — chave canônica → nomes aceitos (já cobertos pelos adapters).
+Arquivo novo: `tests/hooks/useProductCustomizationOptions.smoke.test.ts`
+- Smoke com `productId = null` (não chama RPC) e com mock RPC retornando payload PT canônico.
 
-Contratos:
-- `fn_get_customization_price` → flat: `tabela`, `nome_tabela`, `grupo_tecnica`, `quantidade`, `num_cores`, `faixa{...}`, `detalhes{...}`, `markup{...}`, `preco_unitario`, `valor_gravacao`, `setup_total`, `total_cobrado`.
-- `fn_get_product_customization_options` → `product_id`, `locations[].{location_code, location_name, location_order, options[]}`; em `options[]`: `technique_id`, `codigo_tabela`, `tecnica_nome`, `grupo_tecnica`, `max_width`, `max_height`, `efetiva_largura_max`, `efetiva_altura_max`, `shape`, `is_curved`, `usa_dimensao`, `cobra_por_cor`, `max_cores`.
+Arquivo novo: `tests/hooks/usePrintAreas.smoke.test.ts`
+- Smoke + asserção que `adaptPrintAreaTechniqueRow` foi aplicado (campo `code` presente quando row só tinha `codigo`).
 
-### 2. Validador genérico
+### 2. Testes funcionais do cálculo de preço
 
-Arquivo novo: `src/lib/personalization/rpc-validator.ts`
+Arquivo novo: `tests/hooks/useCustomizationPrice.functional.test.ts`
 
-```ts
-validateRpcPayload(contract, payload) → {
-  ok: boolean;
-  missing: string[];   // campos required ausentes (após resolver aliases)
-  extras: string[];    // chaves no payload não previstas
-  resolvedAliases: Record<string, string>; // canônico → nome efetivamente recebido
-}
-```
+Mocks:
+- `vi.mock('@/lib/external-rpc')` com `invokeExternalRpc` retornando fixtures controladas.
 
-- Aceita payloads aninhados (`faixa.qtd_min`, `locations[].options[].technique_id`).
-- Em **dev**: `console.warn` por desvio (deduplicado por contrato).
-- Em **prod**: incrementa `window.__personalizationSchemaStats.contractMismatches[contract]++`.
-- Nunca lança — só observa.
+Cenários (`renderHook` + `act`):
+- **Happy path PT**: `calculatePrice({ areaId, quantidade: 100, numCores: 2 })` → resolve com `success: true`, `preco_unitario > 0`, `_hasMarkup === true` (após adapter).
+- **Happy path EN**: mesma chamada, payload com chaves `unit_price`/`engraving_value` → adapter normaliza; resultado canônico idêntico.
+- **Error path**: RPC retorna `{ success: false, error: 'no table' }` → `error` populado, `loading: false`, retorno `null`.
+- **Validador**: payload com `markup` ausente → retorno funciona, `window.__personalizationSchemaStats.contractMismatches` incrementa para `fn_get_customization_price`.
+- **Sem dimensão**: chamada sem `larguraCm/alturaCm` → params RPC não contêm `p_largura_cm`.
 
-### 3. Plugar validação nos pontos de entrada (sem alterar consumidores)
+### 3. Teste funcional reativo
 
-- `src/hooks/useCustomizationPrice.ts`: chamar `validateRpcPayload('fn_get_customization_price', result)` antes de devolver.
-- `src/hooks/simulator/useLivePricePreview.ts`: idem.
-- Adapter `customization-options.adapter.ts`: validar o payload bruto antes do mapeamento.
-- Adapter `price-response.adapter.ts`: validar a saída flat após mapeamento (garante que aliases cobriram tudo).
+Arquivo novo: `tests/hooks/useCustomizationPriceReactive.functional.test.ts`
+- Verifica debounce de 500ms (`vi.useFakeTimers`).
+- Mudança rápida em `numCores` (1→2→3) dispara apenas 1 chamada RPC após `vi.advanceTimersByTime(500)`.
+- `usaDimensao: true` sem largura/altura → não chama RPC, `price === null`.
 
-### 4. Estender adapters quando o validador detectar gaps
+### 4. Teste de integração lista → cálculo
 
-Após observar a telemetria (no passo 5), para cada `missing` reportado:
-- Se for um alias novo (back mudou nome): adicionar ao `aliasMap` do adapter.
-- Se for campo realmente removido: marcar como opcional no contrato + nota no `docs/`.
-- Se for campo novo no payload (vem em `extras`) que o front quer consumir: subir para `optionalFields` e usar.
+Arquivo novo: `tests/integration/tecnicas-pricing-flow.test.tsx`
 
-Refatorar pontos onde o parse hoje confia em campo que pode vir nulo (ex.: `result.markup` em payloads pré-v6.3): fallback explícito quando ausente.
+Encadeia 2 hooks num componente de teste:
+1. `useTecnicasList()` carrega 2 técnicas mockadas (uma com `code`, outra com `codigo`).
+2. Para cada técnica, simula chamada `useCustomizationPriceCalculator().calculatePrice({ areaId: t.id, quantidade: 50 })`.
+3. Asserções: ambas resolvem; `result.totalPrice > 0`; nenhum `console.error` dispara.
 
-### 5. Painel de diagnóstico
+Garante que o **shape canônico produzido pelos adapters de row** é compatível com o **shape esperado pelos hooks de preço**.
 
-Estender `src/pages/admin/AdminExternalDbPage.tsx` com nova aba **"Validação RPC"**:
-- Tabela com cada RPC, contagem de chamadas, contagem de mismatches, lista dos últimos 5 `missing` e `extras`.
-- Botão "Testar agora" que dispara uma chamada real (com payload mínimo conhecido) e roda o validador, exibindo o resultado.
-- Lê de `window.__personalizationSchemaStats.contractMismatches` + buffer circular dos últimos desvios.
+### 5. Atualizar/expandir testes existentes de adapter
 
-### 6. Testes
+`tests/lib/personalization/adapters/price-response.adapter.test.ts`:
+- Adicionar caso: payload com `markup: null` → resultado tem `markup` com defaults (após implementação do passo 4 do plano anterior; se ainda não houver defaults, marcar `it.skip` com TODO claro).
+- Adicionar caso: payload com `valor_gravacao: "12.50"` (string) → coerção para number.
 
-`tests/lib/personalization/rpc-contracts.test.ts`:
-- Payloads canônicos (PT atual) → `ok: true`, `missing: []`.
-- Payload com aliases EN → `ok: true` (aliases resolvidos).
-- Payload com campo obrigatório faltando → `ok: false`, `missing` correto.
-- Payload com campo extra → `ok: true`, `extras` populado.
-- Payload nested incompleto (`faixa` sem `preco`) → `missing: ['faixa.preco']`.
+`tests/lib/personalization/adapters/raw-row.adapter.test.ts`:
+- Adicionar caso `adaptTabelaPrecoRow` com colunas EN puras (`code`, `setup_price`, `handling_price`, `max_colors`).
+- Adicionar caso `adaptFaixaPrecoRow` com payload híbrido (`min_quantity` + `preco_unitario`).
 
-### 7. Verificação final
+### 6. Fixtures compartilhadas
 
+Arquivo novo: `tests/fixtures/personalization-payloads.ts`
+
+Exporta:
+- `PRICE_PAYLOAD_PT_V6` — payload canônico atual completo.
+- `PRICE_PAYLOAD_EN_FUTURE` — mesmo conteúdo com chaves EN.
+- `PRICE_PAYLOAD_HYBRID` — mistura.
+- `OPTIONS_PAYLOAD_PT` — `fn_get_product_customization_options` com 2 locations × 3 options.
+- `TECNICA_ROW_PT`, `TECNICA_ROW_EN`, `TECNICA_ROW_HYBRID`.
+- `TABELA_PRECO_ROW_*`, `FAIXA_PRECO_ROW_*`.
+
+Reutilizadas pelos testes acima, garantindo single source of truth para os payloads de teste.
+
+### 7. Helper de teste para hooks com providers
+
+Estender `tests/hooks/_helpers/render-hook-providers.ts` (se necessário) para aceitar QueryClient pré-populado nos testes de integração — usa `QueryClient` com `retry: false, gcTime: 0` para evitar flakiness.
+
+### 8. Verificação
+
+- `npx vitest run tests/hooks tests/integration tests/lib/personalization` — todos verdes.
+- Total esperado: ~50 testes (35 atuais + ~15 novos).
 - `npx tsc --noEmit` limpo.
-- `npx vitest run tests/lib/personalization` passando.
-- Em `/admin/external-db` aba nova, disparar uma chamada real do simulador e confirmar `ok: true` para ambos os RPCs.
-- Telemetria: `window.__personalizationSchemaStats.contractMismatches` deve permanecer vazio em payloads atuais.
+- Smoke manual: nenhum.
 
 ## Arquivos tocados
 
-**Criados (3)**:
-- `src/lib/personalization/rpc-contracts.ts`
-- `src/lib/personalization/rpc-validator.ts`
-- `tests/lib/personalization/rpc-contracts.test.ts`
+**Criados (8)**:
+- `tests/hooks/tecnicas/useTecnicasList.smoke.test.ts`
+- `tests/hooks/useProductCustomizationOptions.smoke.test.ts`
+- `tests/hooks/usePrintAreas.smoke.test.ts`
+- `tests/hooks/useCustomizationPrice.functional.test.ts`
+- `tests/hooks/useCustomizationPriceReactive.functional.test.ts`
+- `tests/integration/tecnicas-pricing-flow.test.tsx`
+- `tests/fixtures/personalization-payloads.ts`
+- (opcional) extensão de `tests/hooks/_helpers/render-hook-providers.ts`
 
-**Editados (~6)**:
-- `src/lib/personalization/adapters/schema-detection.ts` (adiciona balde `contractMismatches` + helper `recordContractMismatch`)
-- `src/lib/personalization/adapters/index.ts` (re-export)
-- `src/lib/personalization/adapters/customization-options.adapter.ts` (chama validador)
-- `src/lib/personalization/adapters/price-response.adapter.ts` (chama validador)
-- `src/hooks/useCustomizationPrice.ts` (chama validador)
-- `src/hooks/simulator/useLivePricePreview.ts` (chama validador)
-- `src/pages/admin/AdminExternalDbPage.tsx` (nova aba)
+**Editados (2)**:
+- `tests/lib/personalization/adapters/price-response.adapter.test.ts`
+- `tests/lib/personalization/adapters/raw-row.adapter.test.ts`
 
 ## Compatibilidade
 
-- **Zero breaking change**: validador só observa; adapters continuam fazendo o mapeamento real.
-- Se o back trocar nomes amanhã, a aba "Validação RPC" mostra o desvio antes de qualquer componente quebrar — gatilho proativo para atualizar o `aliasMap`.
+- **Zero impacto em runtime**: só adiciona testes.
+- Fixtures cobrem PT/EN/híbrido — quando o back finalmente migrar, o mesmo conjunto de testes valida a transição sem reescrita.
+- Falhas futuras em `contractMismatches` aparecerão como assertion failure no teste do passo 2, dando alarme antes de chegar em produção.
 
