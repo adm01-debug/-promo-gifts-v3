@@ -23,7 +23,7 @@ import {
 /**
  * Busca áreas de gravação de um produto via print_area_techniques.
  */
-async function fetchProductPrintAreas(productId: string) {
+async function fetchProductPrintAreas(productId: string): Promise<PrintAreaTechniqueCanonical[]> {
   try {
     const { data, error } = await supabase.functions.invoke('external-db-bridge', {
       body: {
@@ -40,7 +40,7 @@ async function fetchProductPrintAreas(productId: string) {
       return [];
     }
 
-    return data.data?.records || [];
+    return adaptPrintAreaTechniqueRows(data.data?.records || []);
   } catch (err) {
     logger.warn('[usePrintAreas] Exceção ao buscar áreas:', err);
     return [];
@@ -63,10 +63,11 @@ export function usePrintAreas(productId: string | null) {
       const areas = await fetchProductPrintAreas(productId);
       if (!areas.length) return [];
 
-      // Coletar tabela_preco_ids
+      // Coletar tabela_preco_ids (lê tanto PT quanto EN graças ao adapter)
       const priceTableIds = new Set<string>();
       for (const area of areas) {
-        if (area.tabela_preco_id) priceTableIds.add(area.tabela_preco_id);
+        const id = area.price_table_id ?? area.tabela_preco_id;
+        if (id) priceTableIds.add(id);
       }
 
       // Buscar técnicas ativas
@@ -82,36 +83,43 @@ export function usePrintAreas(productId: string | null) {
       if (techError) throw new Error(techError.message);
       if (!techData?.success) throw new Error(techData?.error || 'Erro ao buscar técnicas');
 
-      const allTechs = techData.data?.records || [];
-      const techById = new Map(allTechs.map((t: Record<string, unknown>) => [t.id as string, t]));
+      const allTechs: TabelaPrecoCanonical[] = adaptTabelaPrecoRows(techData.data?.records || []);
+      const techById = new Map(allTechs.map(t => [t.id, t]));
 
-      return areas.map((area: Record<string, unknown>, idx: number) => {
-        const tech = area.tabela_preco_id ? techById.get(area.tabela_preco_id) : null;
+      return areas.map((area, idx) => {
+        const techId = area.price_table_id ?? area.tabela_preco_id ?? null;
+        const tech = techId ? techById.get(techId) : null;
         const techniques: { id: string; nome: string; codigo: string }[] = [];
 
         if (tech) {
+          const techNome = tech.name ?? tech.nome ?? '';
+          const techCodigo = tech.codigo_curto ?? tech.codigo_tabela ?? tech.code ?? tech.codigo ?? '';
           techniques.push({
             id: tech.id,
-            nome: tech.nome,
-            codigo: tech.codigo_curto || tech.codigo_tabela || '',
+            nome: techNome,
+            codigo: techCodigo,
           });
         }
 
+        const locationName = area.location_name ?? area.area_name ?? null;
+        const locationCode = area.location_code ?? area.area_code ?? '';
+        const techNomeForLabel = tech?.name ?? tech?.nome;
+
         return {
           area_id: area.id,
-          area_code: area.location_code || '',
-          area_name: area.location_name
-            ? (tech?.nome ? `${area.location_name} — ${tech.nome}` : area.location_name)
+          area_code: locationCode,
+          area_name: locationName
+            ? (techNomeForLabel ? `${locationName} — ${techNomeForLabel}` : locationName)
             : `Área ${idx + 1}`,
           component_name: null,
-          location_name: area.location_name || null,
-          max_width: area.max_width || 0,
-          max_height: area.max_height || 0,
+          location_name: locationName,
+          max_width: area.max_width ?? area.largura_max ?? 0,
+          max_height: area.max_height ?? area.altura_max ?? 0,
           unit: 'cm',
           shape: area.shape || 'rectangle',
           is_curved: area.is_curved ?? false,
           is_primary: idx === 0,
-          display_order: area.technique_order || idx,
+          display_order: area.technique_order ?? idx,
           techniques,
         };
       });
@@ -140,7 +148,7 @@ export function useTechniques() {
       if (error) throw new Error(error.message);
       if (!data?.success) throw new Error(data?.error || 'Erro ao buscar técnicas');
 
-      return data.data?.records || [];
+      return adaptTecnicaRows(data.data?.records || []) as unknown as TecnicaGravacao[];
     },
     staleTime: 5 * 60 * 1000,
   });
