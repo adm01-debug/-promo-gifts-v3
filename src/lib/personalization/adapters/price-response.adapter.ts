@@ -14,6 +14,8 @@
 
 import type { CustomizationPriceFlat } from '@/hooks/useGravacaoPriceV2';
 import { detectPriceSchema, warnUnknownSchemaOnce, type PriceSchemaVersion } from './schema-detection';
+import { validateRpcPayload } from '@/lib/personalization/rpc-validator';
+import { PRICE_CONTRACT } from '@/lib/personalization/rpc-contracts';
 
 // ============================================
 // MAPA DE RENOMEAÇÃO v7 (futuro)
