@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 import { Activity, AlertTriangle, Clock, Database, RefreshCw, Zap, Trash2, Download, FileText, CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { TelemetryCharts } from '@/components/admin/telemetry/TelemetryCharts';
+import { ProductsListingLatencyAlert } from '@/components/admin/telemetry/ProductsListingLatencyAlert';
 import { useTelemetryData, formatDuration, formatTime } from './telemetry/useTelemetryData';
 import { useErrorCounters } from './telemetry/useErrorCounters';
 import { exportCSV, exportPDF } from './telemetry/exportHelpers';
@@ -100,6 +101,9 @@ export default function AdminTelemetriaPage() {
             );
           })}
         </div>
+
+        {/* Alerta de regressão de latência em listings de products (limit > 50) */}
+        <ProductsListingLatencyAlert />
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
