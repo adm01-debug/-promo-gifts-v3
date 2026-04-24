@@ -3220,6 +3220,7 @@ export type Database = {
           kit_group_id: string | null
           kit_name: string | null
           notes: string | null
+          price_confirmed_at: string | null
           product_id: string | null
           product_image_url: string | null
           product_name: string
@@ -3242,6 +3243,7 @@ export type Database = {
           kit_group_id?: string | null
           kit_name?: string | null
           notes?: string | null
+          price_confirmed_at?: string | null
           product_id?: string | null
           product_image_url?: string | null
           product_name: string
@@ -3264,6 +3266,7 @@ export type Database = {
           kit_group_id?: string | null
           kit_name?: string | null
           notes?: string | null
+          price_confirmed_at?: string | null
           product_id?: string | null
           product_image_url?: string | null
           product_name?: string
