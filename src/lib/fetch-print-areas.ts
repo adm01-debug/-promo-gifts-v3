@@ -6,6 +6,11 @@
  */
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from "@/lib/logger";
+import {
+  adaptPrintAreaTechniqueRows,
+  adaptTabelaPrecoRows,
+  type TabelaPrecoCanonical,
+} from '@/lib/personalization/adapters';
 
 export interface PrintAreaFromProduct {
   id: string;
