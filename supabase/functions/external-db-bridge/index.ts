@@ -505,7 +505,7 @@ async function handleBatch(body: any, req: Request, corsHeaders: Record<string, 
           limit: rawLimit,
           hasId: false,
         }).effectiveSelect;
-        const selectOpts = qCountMode ? { count: qCountMode } : undefined;
+        const selectOpts = qCountMode ? { count: qCountMode as 'exact' | 'planned' | 'estimated' } : undefined;
         let query = selectOpts
           ? externalSupabase.from(qTable).select(effectiveBatchSelect, selectOpts)
           : externalSupabase.from(qTable).select(effectiveBatchSelect);
