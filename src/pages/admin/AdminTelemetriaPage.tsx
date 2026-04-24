@@ -15,6 +15,7 @@ import { ProductsListingLatencyAlert } from '@/components/admin/telemetry/Produc
 import { ResolveProductsSelectComparisonCard } from '@/components/admin/telemetry/ResolveProductsSelectComparisonCard';
 import { HighLimitTelemetryCard } from '@/components/admin/telemetry/HighLimitTelemetryCard';
 import { OptimizationMetricsCards } from '@/components/admin/telemetry/OptimizationMetricsCards';
+import { RegressionGuardrailBanner } from '@/components/admin/telemetry/RegressionGuardrailBanner';
 import { useTelemetryData, formatDuration, formatTime } from './telemetry/useTelemetryData';
 import { useErrorCounters } from './telemetry/useErrorCounters';
 import { exportCSV, exportPDF } from './telemetry/exportHelpers';
@@ -58,8 +59,10 @@ export default function AdminTelemetriaPage() {
             <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isRefetching}><RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${isRefetching ? 'animate-spin' : ''}`} />Atualizar</Button>
           </div>
         </div>
+        {/* Guardrail automático: interrompe regressões antes que afetem usuários */}
+        <RegressionGuardrailBanner />
 
-        {/* Error Counters (independent of filters, auto-refresh 30s) */}
+
         <div className="grid grid-cols-2 gap-4">
           {[
             { value: errors1h, label: 'Erros na última 1h', sub: 'Janela móvel · auto-refresh 30s' },

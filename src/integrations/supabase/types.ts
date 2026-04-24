@@ -4243,6 +4243,7 @@ export type Database = {
         }
         Returns: Json
       }
+      check_telemetry_regression: { Args: never; Returns: Json }
       cleanup_discount_test_data: { Args: never; Returns: Json }
       cleanup_expired_collection_trash: { Args: never; Returns: number }
       cleanup_expired_favorite_trash: { Args: never; Returns: number }
