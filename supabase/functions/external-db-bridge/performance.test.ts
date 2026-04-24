@@ -19,13 +19,14 @@ const SLA_MEDIAN_MS = 3500;       // mediana deve ficar bem abaixo do baseline (
 const SLA_HARD_CEILING_MS = 8000; // teto absoluto: nenhuma request individual deve exceder
 const MEASUREMENT_RUNS = 3;
 
-// Campos pesados que NUNCA devem aparecer em um listing lightweight.
+// Campos JSONB pesados que são dropados pelo PRODUCTS_LIGHTWEIGHT_SELECT.
+// Fonte: supabase/functions/external-db-bridge/index.ts (PRODUCTS_LIGHTWEIGHT_SELECT)
 const HEAVY_FIELDS = [
   "metadata",
   "personalization_areas",
   "description_html",
-  "description",
   "specifications",
+  "attributes",
 ];
 
 async function callListing(limit: number): Promise<{ ms: number; rows: any[]; status: number }> {
