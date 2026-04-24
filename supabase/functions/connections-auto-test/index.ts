@@ -83,10 +83,21 @@ interface ActiveConnection {
   created_by: string;
 }
 
-async function processBatch(
-  service: ServiceClient,
+export async function processBatch<
+  // deno-lint-ignore no-explicit-any
+  Database = any,
+  SchemaName extends string & keyof Database = "public" extends keyof Database
+    ? "public" & string
+    : string & keyof Database,
+>(
+  service: CompatibleSupabaseClient<Database, SchemaName>,
   batch: ActiveConnection[],
 ) {
+  // runConnectionTest exige `SupabaseClient` com schema 'public' (default).
+  // Como CompatibleSupabaseClient<_, 'public'> é estruturalmente equivalente,
+  // narrow uma única vez aqui — evita repetir cast em cada call site.
+  const serviceForRunner = service as unknown as ServiceClient;
+
   return Promise.all(batch.map(async (conn) => {
     const t0 = Date.now();
     try {
@@ -106,9 +117,10 @@ async function processBatch(
         connection_id: conn.id,
         created_by: conn.created_by,
         triggered_by: "cron" as const,
-        service,
+        service: serviceForRunner,
         timeoutMs: perTypeTimeout,
       };
+
 
       // Probe up to MAX_ATTEMPTS times. Each attempt skips persistence so we
       // don't write intermediate "failed" rows in connection_test_history;
