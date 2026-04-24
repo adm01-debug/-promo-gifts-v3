@@ -57,8 +57,17 @@ interface FreshnessTooltipProps {
 }
 
 function FreshnessTooltipBody({ freshness, priceUpdatedAt }: FreshnessTooltipProps) {
-  const exact = priceUpdatedAt ? formatExactDateTime(priceUpdatedAt) : null;
-  const long = priceUpdatedAt ? formatAbsoluteDate(priceUpdatedAt) : null;
+  const dateValue = priceUpdatedAt
+    ? priceUpdatedAt instanceof Date
+      ? priceUpdatedAt
+      : new Date(priceUpdatedAt)
+    : null;
+  const isValidDate = dateValue && !Number.isNaN(dateValue.getTime());
+  // Padrão único pt-BR: "em DD/MM/AAAA". A hora local e a forma por extenso
+  // ficam como detalhamento auxiliar, sem repetir a data curta.
+  const shortDate = isValidDate ? formatPriceDateShort(dateValue) : null;
+  const longDate = isValidDate ? formatPriceDateLong(dateValue) : null;
+  const exactDateTime = isValidDate ? formatExactDateTime(dateValue) : null;
   const statusLabel = STATUS_LABELS[freshness.status];
   const rule = buildClassificationRule(freshness.thresholdDays);
 
@@ -70,16 +79,21 @@ function FreshnessTooltipBody({ freshness, priceUpdatedAt }: FreshnessTooltipPro
           <span className="text-muted-foreground">· {freshness.label.replace(/^Atualizado\s+/i, "").replace(/^Preço pode estar defasado\s*/i, "")}</span>
         )}
       </div>
-      {exact && (
+      {shortDate && (
         <div className="leading-snug">
-          <span className="text-muted-foreground">Atualizado em:</span>{" "}
-          <span className="tabular-nums font-medium">{exact}</span>
-          {long && (
-            <span className="text-muted-foreground"> ({long})</span>
+          <span className="text-muted-foreground">Atualizado</span>{" "}
+          <span className="tabular-nums font-medium">em {shortDate}</span>
+          {longDate && (
+            <span className="text-muted-foreground"> ({longDate})</span>
           )}
         </div>
       )}
-      {!exact && (
+      {exactDateTime && (
+        <div className="leading-snug text-[11px] text-muted-foreground tabular-nums">
+          Hora local: {exactDateTime}
+        </div>
+      )}
+      {!shortDate && (
         <div className="leading-snug text-muted-foreground">
           O fornecedor não informou a data da última atualização deste preço.
         </div>
