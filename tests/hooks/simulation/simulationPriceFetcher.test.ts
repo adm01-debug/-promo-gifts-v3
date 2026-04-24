@@ -201,4 +201,25 @@ describe('fetchAllOptions', () => {
     expect(out).toHaveLength(2);
     expect(invokeExternalRpcMock).toHaveBeenCalledTimes(2);
   });
+
+  it('fills calculatedAt and rpcAvailable=false on legacy-fallback path', async () => {
+    fetchProductPrintAreasV2Mock.mockResolvedValue([printArea]);
+    invokeExternalRpcMock.mockRejectedValue(new Error('rpc down'));
+
+    const out = await fetchAllOptions({
+      selectedTechniqueIds: ['tech-silk'],
+      techniques: [baseTechnique],
+      techniqueSettings: { 'tech-silk': baseSettings },
+      quantity: 100,
+      productUnitPrice: 5,
+      productId: 'prod-1',
+    });
+
+    expect(out).toHaveLength(1);
+    // The fetcher falls back to legacy-fallback when RPC throws.
+    expect(out[0].priceSource).toBe('legacy-fallback');
+    expect(out[0].rpcAvailable).toBe(false);
+    expect(out[0].calculatedAt).toBeTruthy();
+    expect(out[0].fallbackReason).toMatch(/rpc down/);
+  });
 });
