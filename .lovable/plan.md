@@ -1,86 +1,143 @@
 
 
-# Testes do badge "preço atualizado em…" na PDP
+# Configuração do limite de alerta (30/60/90 dias) por produto
 
-Garantir que, quando o `priceUpdatedAt` chega via `mapPromobrindToProduct` e é repassado ao `ProductDetailHero`, a PDP renderiza corretamente o `PriceFreshnessBadge variant="pdp"` em todos os estados (fresh / aging / stale / unknown).
+A infraestrutura de leitura (`priceFreshnessThresholdDays` no `Product` + util `getPriceFreshness` com fallback de 60d + badges em todos os pontos da UI) **já está implementada**. Falta a interface administrativa para o vendedor/admin **configurar** o `price_freshness_threshold_days` por produto, com escolha entre os presets 30/60/90 e fallback automático para 60d quando o produto não tiver valor explícito.
 
-## 1. Investigar o contrato atual da PDP
+## 1. Confirmar coluna no BD externo
 
-Antes de escrever os testes, conferir 2 pontos rápidos via `code--view`:
-- `src/pages/product-detail/ProductDetailHero.tsx` — props que recebe e como propaga `priceUpdatedAt` / `priceFreshnessThresholdDays` para o badge.
-- `src/utils/product-mapper.ts` — formato de saída de `mapPromobrindToProduct` (já temos teste cobrindo a propagação dos campos).
+Antes de qualquer UI, conferir via `supabase--read_query` (ou consulta direta ao bridge):
+- Existe `price_freshness_threshold_days` em `products` no BD externo?
+- Tipo, default, nullable?
 
-Isso confirma o shape mínimo de produto necessário para montar o teste de integração leve.
+Se **existir**: a UI de edição grava direto via `external-db-bridge` (UPDATE).  
+Se **não existir**: ativar fallback puro (UI continua mostrando o seletor mas grava em uma tabela local de overrides — `product_freshness_overrides` — sem tocar no BD externo). Plano cobre ambos os caminhos.
 
-## 2. Novo arquivo: `tests/pages/ProductDetailHero.priceFreshness.test.tsx`
+**Decisão será tomada após a consulta** — provavelmente a coluna não existe ainda (memory `mem://features/price-freshness-indicator.md` menciona o fallback 60d como já operacional sem dependência da coluna).
 
-Teste **focado** no `ProductDetailHero` (não na rota inteira), montando-o com um produto mockado. Cobre 4 cenários:
+## 2. Tabela local de overrides (caminho mais provável)
 
-1. **Fresh (5 dias atrás)** → renderiza pílula esmeralda com data `DD/MM/AAAA` e texto "atualizado em".
-2. **Aging (45 dias, threshold 60)** → renderiza pílula âmbar suave sugerindo confirmação.
-3. **Stale (90 dias, threshold 60)** → renderiza bloco âmbar com "defasado", data absoluta e CTA "Confirme com o fornecedor".
-4. **Unknown (`priceUpdatedAt: null`)** → renderiza pílula neutra "não informada".
+Criar via `supabase--migration` no BD local:
 
-Estrutura:
+```sql
+CREATE TABLE public.product_price_freshness_overrides (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  product_id text NOT NULL UNIQUE,
+  threshold_days int NOT NULL CHECK (threshold_days IN (30, 60, 90)),
+  updated_by uuid REFERENCES auth.users(id),
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);
 
-```ts
-import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
-import { ProductDetailHero } from "@/pages/product-detail/ProductDetailHero";
+ALTER TABLE public.product_price_freshness_overrides ENABLE ROW LEVEL SECURITY;
 
-const FIXED_NOW = new Date("2026-04-24T12:00:00.000Z").getTime();
-const daysAgo = (d: number) => new Date(FIXED_NOW - d * 86400000).toISOString();
+-- Leitura: qualquer autenticado (vendedores precisam ver)
+CREATE POLICY "Authenticated can read" ON public.product_price_freshness_overrides
+  FOR SELECT TO authenticated USING (true);
 
-beforeAll(() => { vi.useFakeTimers(); vi.setSystemTime(FIXED_NOW); });
-afterAll(() => { vi.useRealTimers(); });
+-- Escrita: só admin
+CREATE POLICY "Admins can manage" ON public.product_price_freshness_overrides
+  FOR ALL TO authenticated
+  USING (has_role(auth.uid(), 'admin'))
+  WITH CHECK (has_role(auth.uid(), 'admin'));
 
-function makeProduct(overrides) {
-  return {
-    id: "p-1", name: "Caneta", sku: "CAN-1", price: 10,
-    images: ["/x.png"], colors: [], variations: [],
-    category: { id: "c", name: "Escrita" },
-    supplier: { id: "s", name: "Fornec" },
-    stockStatus: "in-stock", featured: false,
-    priceUpdatedAt: null, priceFreshnessThresholdDays: 60,
-    ...overrides,
-  };
-}
-
-const renderHero = (product) =>
-  render(
-    <MemoryRouter>
-      <ProductDetailHero product={product} /* …props mínimas */ />
-    </MemoryRouter>,
-  );
+-- Trigger updated_at
+CREATE TRIGGER set_updated_at BEFORE UPDATE
+  ON public.product_price_freshness_overrides
+  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 ```
 
-Asserts via `screen.getByRole("status")` + regex no `textContent` / `className` — mesmo padrão dos testes existentes em `tests/components/PriceFreshnessBadge.test.tsx`.
+Por que tabela local em vez de coluna no BD externo:
+- BD externo é SSOT do catálogo — alteração estrutural exige coordenação com o time do Promobrind.
+- Override local é um conceito **operacional** do nosso vendedor, não dado de catálogo.
+- Mantém o SSOT intacto e nos dá deploy imediato.
 
-## 3. Estender `tests/utils/product-mapper.test.ts`
+## 3. Hook `useProductFreshnessOverride`
 
-Adicionar 1 caso novo confirmando que, ao receber `price_updated_at: "2026-03-20T..."` do BD externo, o produto mapeado entrega `priceUpdatedAt` no formato ISO **sem mutação** (já existe teste de propagação, mas o novo caso explicita o cenário "veio preenchido → chega na UI"). Pequena adição de 1 `it(...)`.
+`src/hooks/useProductFreshnessOverride.ts`:
 
-## 4. Mocks necessários
+```ts
+export function useProductFreshnessOverride(productId: string) {
+  // SELECT pelo product_id; retorna { threshold, isOverride, isLoading }
+  // Realtime opcional (canal por product_id)
+}
 
-O `ProductDetailHero` provavelmente usa hooks de catálogo / favoritos / coleções / preço. Estratégia:
-- Identificar via `code--view` quais hooks o `ProductDetailHero` consome.
-- Mockar **só** o que for necessário para o componente renderizar (ex.: `vi.mock("@/hooks/useFavorites", () => ({ useFavorites: () => ({ ... }) }))`).
-- Manter o badge real (sem mock) — ele é o sob-teste.
+export function useUpdateProductFreshnessOverride() {
+  // UPSERT com invalidação do cache do produto + toast
+  // Validação client: só aceita 30/60/90
+  // Auditoria: insere em admin_audit_log via trigger ou explicitamente
+}
+```
 
-Se o componente for muito acoplado, fallback: testar via composição mínima que renderize só o bloco de preço + badge, isolando a regressão ao contrato `priceUpdatedAt → badge`.
+## 4. Integrar override no fluxo de leitura
 
-## 5. Arquivos tocados
+`src/utils/product-mapper.ts`:
+- `mapPromobrindToProduct` já lê `p.price_freshness_threshold_days`. Adicionar fallback 2-camadas:
+  1. Override local (se existir) — injetado via parâmetro extra ou hook ao montar a página.
+  2. Coluna externa (se existir).
+  3. `null` → util já usa default 60d.
 
-**Criados (1)**:
-- `tests/pages/ProductDetailHero.priceFreshness.test.tsx` — 4 cenários (fresh/aging/stale/unknown).
+Estratégia mais limpa: hook `useProductWithFreshnessOverride(productId)` que combina `useProduct` + `useProductFreshnessOverride` e devolve o `Product` já com o `priceFreshnessThresholdDays` correto. Usado pela PDP e admin.
 
-**Editados (1)**:
-- `tests/utils/product-mapper.test.ts` — +1 asserção de "preço atualizado vindo do BD externo chega no campo `priceUpdatedAt`".
+## 5. UI de configuração na PDP (admin only)
+
+`src/components/products/PriceFreshnessThresholdEditor.tsx`:
+- Botão sutil "Configurar validade" ao lado do `PriceFreshnessBadge variant="pdp"` — visível **só para admins**.
+- Abre um `Popover` com:
+  - Radio group 30 / 60 / 90 dias.
+  - Texto explicativo: "Define quando o sistema avisará que o preço pode estar defasado."
+  - Indicador "Padrão: 60 dias" quando não há override.
+  - Botões "Restaurar padrão" e "Salvar".
+- Após salvar: invalida cache do produto, badge re-renderiza com novo threshold, toast de confirmação.
+
+Ponto de inserção: `src/pages/product-detail/ProductDetailHero.tsx`, logo abaixo do `PriceFreshnessBadge`.
+
+## 6. UI de configuração em massa (admin)
+
+Página nova: `src/pages/admin/PriceFreshnessSettings.tsx` em `/admin/validade-precos`:
+- Lista produtos com override custom (não-60d).
+- Filtros: por threshold (30/60/90), por categoria.
+- Bulk action: "Aplicar 30d a todos da categoria X", "Restaurar padrão".
+- Link no `AdminLayout` sidebar.
+
+## 7. Testes
+
+- `tests/utils/price-freshness.test.ts` — já cobre 30/60/90 e fallback. Sem mudança.
+- `tests/components/PriceFreshnessThresholdEditor.test.tsx` — novo: render, seleção, salvar, restaurar.
+- `tests/hooks/useProductFreshnessOverride.test.ts` — novo: read, upsert, invalidação.
+
+## 8. Memória
+
+Atualizar `mem://features/price-freshness-indicator.md` com:
+- Tabela `product_price_freshness_overrides` (local, RLS admin-only).
+- Hook `useProductFreshnessOverride`.
+- Editor inline na PDP + página `/admin/validade-precos`.
+- Política: override local **sobrescreve** valor do BD externo se ambos existirem.
+
+## Arquivos tocados
+
+**Criados (5)**:
+- Migration: `product_price_freshness_overrides` + RLS
+- `src/hooks/useProductFreshnessOverride.ts`
+- `src/components/products/PriceFreshnessThresholdEditor.tsx`
+- `src/pages/admin/PriceFreshnessSettings.tsx`
+- 2 arquivos de teste
+
+**Editados (3)**:
+- `src/pages/product-detail/ProductDetailHero.tsx` (renderiza editor para admin)
+- `src/utils/product-mapper.ts` (assinatura aceita override opcional)
+- `src/App.tsx` (rota admin)
+- `src/components/admin/AdminSidebar.tsx` (link no menu)
+- `mem://features/price-freshness-indicator.md`
 
 ## Compatibilidade
 
-- Zero mudança de produção. Apenas testes adicionais.
-- Reusa `vi.useFakeTimers()` + `daysAgo()` no mesmo padrão dos testes já existentes do `PriceFreshnessBadge`, mantendo determinismo.
-- Se hooks pesados do `ProductDetailHero` exigirem muitos mocks, o plano permite cair para testes focados no bloco de preço — sem comprometer a cobertura do contrato.
+- Zero breaking change: ausência de override → comportamento atual (BD externo OU fallback 60d).
+- SSOT preservado: BD externo continua como fonte primária; override é uma camada operacional adicional.
+- Caso a coluna `price_freshness_threshold_days` venha a ser criada no BD externo no futuro, a precedência fica clara: override local > BD externo > default 60d.
+- RLS garante que só admins configuram; vendedores apenas leem.
+
+## Pergunta antes de prosseguir
+
+Posso confirmar que a coluna `price_freshness_threshold_days` **não existe** no BD externo hoje (e portanto vamos com a tabela local de overrides)? Ou você prefere que eu tente alterar o BD externo direto (exige acesso/coordenação)?
 
