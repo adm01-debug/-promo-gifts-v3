@@ -80,6 +80,13 @@ export async function invokeWithRetry(
     if (!error) return { data, error: null };
 
     const msg = await extractFunctionErrorMessage(error);
+
+    // Fail-fast em erros determinísticos (schema/validação/auth) — retry não muda o resultado.
+    if (isNonRetryableError(msg)) {
+      logger.warn(`[external-db] Fail-fast (deterministic error, no retry): ${msg}`);
+      return { data, error };
+    }
+
     if (attempt < retries && isRetryableError(msg)) {
       const delay = Math.min(INITIAL_BACKOFF_MS * Math.pow(2, attempt), 4000); // Cap at 4s
       logger.warn(`[external-db] Retry ${attempt + 1}/${retries} after ${delay}ms: ${msg}`);
