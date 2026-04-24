@@ -8,22 +8,40 @@ import { resolveTimeout } from "../_shared/connection-timeouts.ts";
 // ────────────────────────────────────────────────────────────────────────────
 // Schema-validated service client
 // ────────────────────────────────────────────────────────────────────────────
-// O parâmetro `service` precisa ser tipado com a MESMA assinatura usada por
-// `runConnectionTest` (`SupabaseClient` default, sem genéricos custom). Antes
-// usávamos `any`, o que silenciava o erro `TS2345 ('public' not assignable to
-// never)` mas removia toda a validação de tipo. Agora usamos um alias dedicado
-// + um guard de runtime que falha cedo se a forma do client divergir.
-type ServiceClient = SupabaseClient;
+// `runConnectionTest` exige um `SupabaseClient` com schema 'public' (default).
+// Antes processBatch aceitava `any`, o que silenciava `TS2345 ('public' not
+// assignable to never)` mas removia toda validação. Agora processBatch é
+// GENÉRICO em (Database, SchemaName) — o caller pode passar
+// `SupabaseClient<MyDB, 'public'>` ou variações, desde que mantenha a forma
+// estrutural de SupabaseClient. Internamente narrow para o alias
+// `ServiceClient` (default `SupabaseClient`) antes de repassar para
+// runConnectionTest, preservando compatibilidade total.
+
+/** Alias canônico do client esperado por runConnectionTest (schema 'public'). */
+export type ServiceClient = SupabaseClient;
+
+/**
+ * Tipo aceito por processBatch — genérico para evitar `any` mas
+ * estruturalmente compatível com SupabaseClient (schema 'public' por padrão).
+ *
+ * @template Database  Tipo gerado do schema (default `any` mantém retro-compat).
+ * @template SchemaName Nome do schema; default `"public"` cobre 100% do uso atual.
+ */
+export type CompatibleSupabaseClient<
+  // deno-lint-ignore no-explicit-any
+  Database = any,
+  SchemaName extends string = "public",
+> = SupabaseClient<Database, SchemaName>;
 
 /**
  * Runtime guard: garante que o objeto recebido é um SupabaseClient válido
- * com o schema esperado (`.from`, `.rpc`, `.auth`). Lança erro descritivo
+ * com a forma esperada (`.from`, `.rpc`, `.auth`). Lança erro descritivo
  * se a forma divergir — protege contra:
  *   - createClient chamado com genéricos diferentes (mismatch de schema)
  *   - mock/stub passado por engano em testes
  *   - objeto undefined/null por bug de inicialização
  */
-function assertServiceClient(client: unknown): asserts client is ServiceClient {
+export function assertServiceClient(client: unknown): asserts client is ServiceClient {
   if (!client || typeof client !== "object") {
     throw new TypeError(
       `[connections-auto-test] service client inválido: esperado SupabaseClient, recebeu ${client === null ? "null" : typeof client}`,
