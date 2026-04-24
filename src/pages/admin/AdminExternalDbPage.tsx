@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Database, RefreshCw, ChevronRight, ArrowLeft, FileSearch, Copy, CheckCircle2, AlertTriangle } from "lucide-react";
+import { Database, RefreshCw, ChevronRight, ArrowLeft, FileSearch, Copy, CheckCircle2, AlertTriangle, ShieldCheck } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,6 +15,14 @@ import {
   buildMarkdownReport,
   type TableDiff,
 } from "./engraving-schema-diff";
+import {
+  getContractMismatches,
+  getRecentMismatches,
+  type ContractMismatchEntry,
+} from "@/lib/personalization/adapters";
+import { ALL_CONTRACTS } from "@/lib/personalization/rpc-contracts";
+import { validateRpcPayload, type ValidationResult } from "@/lib/personalization/rpc-validator";
+import { invokeExternalRpc } from "@/lib/external-rpc";
 
 export default function AdminExternalDbPage() {
   const { result, isLoading, listTables, describeTable } = useExternalDbInspect();
