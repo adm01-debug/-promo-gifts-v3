@@ -296,7 +296,7 @@ export function PriceFreshnessBadge({
         )}
       >
         <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-        <span>{freshness.label}</span>
+        <span>{freshness.label}{limitSuffix}</span>
       </span>
     );
   }
