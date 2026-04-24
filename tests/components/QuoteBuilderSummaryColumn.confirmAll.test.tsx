@@ -149,8 +149,10 @@ describe("QuoteBuilderSummaryColumn — Confirmar todos (com diálogo)", () => {
     ).toBeInTheDocument();
     expect(screen.getByText(/validou 2 preço/i)).toBeInTheDocument();
 
-    // Os alertas inline ainda existem — nada foi confirmado
-    expect(screen.getAllByText(/preço pode estar defasado/i)).toHaveLength(2);
+    // Os badges inline (status do PriceFreshnessBadge) ainda existem — nada confirmado
+    expect(
+      screen.getAllByRole("status", { name: /preço pode estar defasado/i }),
+    ).toHaveLength(2);
   });
 
   it("Cancelar fecha o diálogo sem mexer no estado", () => {
@@ -166,9 +168,11 @@ describe("QuoteBuilderSummaryColumn — Confirmar todos (com diálogo)", () => {
     fireEvent.click(within(screen.getByRole("alertdialog")).getByRole("button", { name: /cancelar/i }));
 
     expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
-    // Chip e alertas continuam intactos
+    // Chip e badges continuam intactos
     expect(screen.getByRole("button", { name: /preço a confirmar/i })).toBeInTheDocument();
-    expect(screen.getAllByText(/preço pode estar defasado/i)).toHaveLength(2);
+    expect(
+      screen.getAllByRole("status", { name: /preço pode estar defasado/i }),
+    ).toHaveLength(2);
   });
 
   it("Confirmar marca todos os pendentes, esconde chip/botão e remove alertas inline", () => {
