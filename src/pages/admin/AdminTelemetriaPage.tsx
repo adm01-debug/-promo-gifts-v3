@@ -12,6 +12,7 @@ import { Activity, AlertTriangle, Clock, Database, RefreshCw, Zap, Trash2, Downl
 import { format } from 'date-fns';
 import { TelemetryCharts } from '@/components/admin/telemetry/TelemetryCharts';
 import { ProductsListingLatencyAlert } from '@/components/admin/telemetry/ProductsListingLatencyAlert';
+import { ResolveProductsSelectComparisonCard } from '@/components/admin/telemetry/ResolveProductsSelectComparisonCard';
 import { useTelemetryData, formatDuration, formatTime } from './telemetry/useTelemetryData';
 import { useErrorCounters } from './telemetry/useErrorCounters';
 import { exportCSV, exportPDF } from './telemetry/exportHelpers';
@@ -104,6 +105,9 @@ export default function AdminTelemetriaPage() {
 
         {/* Alerta de regressão de latência em listings de products (limit > 50) */}
         <ProductsListingLatencyAlert />
+
+        {/* Comparativo antes vs depois do resolveProductsSelect (lightweight forçado em listings limit>50) */}
+        <ResolveProductsSelectComparisonCard />
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
