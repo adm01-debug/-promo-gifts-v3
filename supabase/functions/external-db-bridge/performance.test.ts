@@ -46,7 +46,14 @@ async function callListing(limit: number): Promise<{ ms: number; rows: any[]; st
   });
   const ms = performance.now() - started;
   const body = await res.json().catch(() => ({}));
-  const rows = Array.isArray(body?.data) ? body.data : Array.isArray(body) ? body : [];
+  // Bridge response shape: { success, data: { records: [...] } } | { data: [...] } | [...]
+  const rows = Array.isArray(body?.data?.records)
+    ? body.data.records
+    : Array.isArray(body?.data)
+      ? body.data
+      : Array.isArray(body)
+        ? body
+        : [];
   return { ms, rows, status: res.status };
 }
 
