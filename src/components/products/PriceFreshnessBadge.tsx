@@ -10,7 +10,7 @@
  * In `compact` and `icon-only` variants, the badge only renders for
  * `aging`/`stale` statuses to avoid noise on freshly-updated products.
  */
-import { AlertTriangle, Clock, CheckCircle2, HelpCircle } from "lucide-react";
+import { AlertTriangle, Clock, CheckCircle2, HelpCircle, ShieldCheck } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -105,6 +105,34 @@ export interface PriceFreshnessBadgeProps {
   className?: string;
   /** Force render even when status is `fresh`/`unknown` in compact/icon-only variants. */
   alwaysShow?: boolean;
+  /**
+   * Quando informado, o badge passa a expor a ação "Confirmei com fornecedor"
+   * para itens aging/stale ainda não confirmados. Após o clique, o consumidor
+   * deve atualizar `confirmedAt` para que o badge entre no estado "confirmado".
+   * Sem esta prop o badge continua somente leitura (catálogo/PDP padrão).
+   */
+  onConfirm?: () => void;
+  /**
+   * ISO timestamp do momento em que o vendedor confirmou o preço com o
+   * fornecedor neste contexto (ex.: orçamento). Quando preenchido, o alerta
+   * stale/aging é substituído por um pill verde "Confirmado por você".
+   */
+  confirmedAt?: string | Date | null;
+}
+
+function formatConfirmedRelative(value: string | Date): string {
+  const d = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(d.getTime())) return "agora";
+  const diffMs = Date.now() - d.getTime();
+  const minutes = Math.floor(diffMs / 60000);
+  if (minutes < 1) return "agora";
+  if (minutes < 60) return `há ${minutes} min`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `há ${hours}h`;
+  const days = Math.floor(hours / 24);
+  if (days === 1) return "ontem";
+  if (days < 30) return `há ${days} dias`;
+  return formatPriceDateLong(d);
 }
 
 /**
