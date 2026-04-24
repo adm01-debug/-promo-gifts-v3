@@ -110,6 +110,40 @@ export function QuoteBuilderSummaryColumn({
             <h3 className="font-display font-semibold text-base">Resumo</h3>
           </div>
 
+          {/* Stale price filter — só aparece quando há itens com preço pendente de confirmação */}
+          {staleCount > 0 && (
+            <div className="px-4 pb-3 shrink-0 flex items-center gap-2 flex-wrap">
+              <button
+                type="button"
+                onClick={() => setShowOnlyStale((v) => !v)}
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded-xl border-[1.5px] px-2.5 py-1 text-xs font-medium transition-all",
+                  showOnlyStale
+                    ? "border-warning bg-warning/15 text-warning shadow-sm"
+                    : "border-warning/40 bg-warning/5 text-warning hover:bg-warning/10",
+                )}
+                aria-pressed={showOnlyStale}
+                aria-label={`Mostrar apenas ${staleCount} item(ns) com preço a confirmar`}
+              >
+                <AlertTriangle className="h-3.5 w-3.5" />
+                <span>Preços a confirmar</span>
+                <Badge variant="secondary" className="h-4 px-1.5 text-[10px] bg-warning text-warning-foreground border-0">{staleCount}</Badge>
+                {showOnlyStale && <X className="h-3 w-3 ml-0.5" aria-hidden="true" />}
+              </button>
+              {confirmAllStalePrices && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-7 px-2.5 text-xs gap-1.5 border-warning/40 text-warning hover:bg-warning/10 hover:text-warning"
+                  onClick={() => setConfirmAllOpen(true)}
+                >
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  Confirmar todos
+                </Button>
+              )}
+            </div>
+          )}
+
           {/* Product Cards */}
           <div className="flex-1 min-h-0 px-4 overflow-y-auto max-h-[50vh]">
             <div className="space-y-3 pr-1">
