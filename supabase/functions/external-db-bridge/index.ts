@@ -201,10 +201,13 @@ function applyFilters(
     } else if (Array.isArray(value)) {
       query = query.in(key, value);
     } else if (typeof value === 'object') {
-      // Sanitize object filters: skip silently to prevent "[object Object]" syntax errors.
-      // Callers should use suffix-based promotion (foo_gte) or PostgREST string operators instead.
-      console.warn(`[external-db-bridge] Skipping object-type filter for key "${key}" — use suffix promotion (e.g. ${key}_gte) or string operator (e.g. "gte.10", "is.null").`);
-      return;
+      // Defense-in-depth: validateFilters() should have caught this earlier and returned 400.
+      // If we reach here (e.g. internal call site bypassed validation), refuse loudly instead of silently dropping.
+      throw new InvalidFilterError(
+        key,
+        'filter value must be a primitive (string, number, boolean) — received a raw object. Use suffix promotion (e.g. `${key}_gte`) or a PostgREST string operator (e.g. "gte.10", "is.null").',
+        'object',
+      );
     } else {
       query = query.eq(key, value);
     }
