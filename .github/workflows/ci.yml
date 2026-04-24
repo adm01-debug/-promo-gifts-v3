@@ -89,3 +89,56 @@ jobs:
           path: coverage/
           retention-days: 14
           if-no-files-found: ignore
+
+  price-freshness-tests:
+    name: Price Freshness — testes + gate de cobertura
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Roda APENAS os testes de price freshness (utils + componente).
+      # Falha rápido se algum cenário pt-BR/threshold/timezone regredir.
+      - name: Run price freshness suite
+        run: |
+          npx vitest run \
+            "tests/utils/price-freshness*.test.ts" \
+            "tests/components/PriceFreshnessBadge*.test.tsx" \
+            --reporter=verbose
+
+      # Gera coverage focado nos arquivos de price freshness para alimentar o gate.
+      # Usamos --coverage.include para isolar o cálculo e evitar que mudanças em
+      # arquivos não-relacionados afetem o resultado deste job.
+      - name: Coverage (price freshness only)
+        run: |
+          npx vitest run \
+            "tests/utils/price-freshness*.test.ts" \
+            "tests/components/PriceFreshnessBadge*.test.tsx" \
+            --coverage \
+            --coverage.reporter=text \
+            --coverage.reporter=json-summary \
+            --coverage.reporter=html \
+            --coverage.include='src/utils/price-freshness.ts' \
+            --coverage.include='src/components/products/PriceFreshnessBadge.tsx'
+
+      # Gate por arquivo: falha se qualquer arquivo monitorado cair do piso.
+      - name: Enforce per-file coverage floor (≥95%)
+        run: node scripts/check-price-freshness-coverage.mjs
+
+      - name: Upload price-freshness coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: price-freshness-coverage
+          path: coverage/
+          retention-days: 30
+          if-no-files-found: ignore
