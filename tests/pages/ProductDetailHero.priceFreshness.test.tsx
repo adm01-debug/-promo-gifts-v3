@@ -67,14 +67,13 @@ function renderHeroPriceBadge(rawProduct: Record<string, unknown>) {
 }
 
 describe("ProductDetailHero — price freshness badge", () => {
-  it("renders fresh state with absolute date when price was updated 5 days ago", () => {
+  it("renders fresh state with short relative copy when price was updated 5 days ago", () => {
     renderHeroPriceBadge(
       makeRawProduct({ price_updated_at: daysAgo(5) }),
     );
     const badge = screen.getByRole("status");
-    expect(badge.textContent).toMatch(/atualizado em/i);
-    // Padrão PT-BR por extenso: "DD de <mês> de AAAA"
-    expect(badge.textContent).toMatch(/\d{1,2} de [a-zçãéíúô]+ de \d{4}/i);
+    // Copy curto e consistente entre PDP e Quick View
+    expect(badge.textContent).toMatch(/atualizado há \d+ dias?/i);
   });
 
   it("renders aging state with amber styling when within 50–100% of threshold", () => {

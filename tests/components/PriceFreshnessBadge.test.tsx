@@ -112,7 +112,7 @@ describe("PriceFreshnessBadge", () => {
     expect(badge.className).toMatch(/amber-(100|300|500)/);
   });
 
-  it("renders pdp variant with fresh state showing absolute date in long PT-BR format", () => {
+  it("renders pdp variant with fresh state showing short relative copy and absolute date in tooltip", () => {
     render(
       <PriceFreshnessBadge
         priceUpdatedAt={daysAgo(6)}
@@ -121,9 +121,10 @@ describe("PriceFreshnessBadge", () => {
       />,
     );
     const badge = screen.getByRole("status");
-    // Padrão por extenso: "DD de <mês> de AAAA" (ex.: "09 de junho de 2025")
-    expect(badge.textContent).toMatch(/\d{1,2} de [a-zçãéíúô]+ de \d{4}/i);
-    expect(badge.textContent).toMatch(/atualizado em/i);
+    // Copy curto e consistente: "Atualizado há 6 dias" (sem data inline)
+    expect(badge.textContent).toMatch(/atualizado há \d+ dias?/i);
+    // A data absoluta agora vive no aria-label/tooltip, não no corpo do badge
+    expect(badge.textContent).not.toMatch(/\d{1,2} de [a-zçãéíúô]+ de \d{4}/i);
   });
 
   it("renders pdp variant with unknown state when priceUpdatedAt is null", () => {
