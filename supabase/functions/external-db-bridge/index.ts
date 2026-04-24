@@ -896,11 +896,14 @@ async function handleSelect(externalSupabase: any, table: string, opts: any) {
     hasId: hasIdSignal,
   });
   const effectiveSelect = resolved.effectiveSelect;
-  if (resolved.forcedLightweight) {
-    console.log(
-      `[external-db-bridge] ⚡ Forcing PRODUCTS_LIGHTWEIGHT_SELECT — reason=${resolved.reason} caller='${select ?? '(omitted)'}' limit=${requestedLimitRaw} (> ${LIGHTWEIGHT_LIMIT_THRESHOLD}). Heavy JSONB columns dropped.`
-    );
-  }
+  logSelectDecision({
+    callSite: 'handleSelect',
+    table,
+    callerSelect: select,
+    effectiveLimit: requestedLimitRaw,
+    hasId: hasIdSignal,
+    resolved,
+  });
 
   let query = queryCountMode
     ? externalSupabase.from(table).select(effectiveSelect, { count: queryCountMode })
