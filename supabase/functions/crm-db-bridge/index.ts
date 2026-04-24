@@ -65,9 +65,125 @@ export function firstRowAsRecord(result: unknown): Record<string, unknown> | nul
   return toRecord(result[0]);
 }
 
-// ============================================
-// TYPES
-// ============================================
+/**
+ * Classify the shape of a PostgREST `data` payload returned by an
+ * insert/update so we can log clearly when it is NOT a real row array.
+ *
+ * Possible shapes:
+ *  - "rows"        → expected: Array<Record>
+ *  - "empty-array" → [] returned (no rows affected, no error)
+ *  - "null"        → null returned
+ *  - "generic-string-error" → { error: true, message: "..." } (PostgREST shape)
+ *  - "single-object"        → object returned instead of array (.single()/.maybeSingle())
+ *  - "primitive"            → string/number/boolean
+ *  - "unknown"              → anything else
+ */
+export type InsertResultShape =
+  | "rows"
+  | "empty-array"
+  | "null"
+  | "generic-string-error"
+  | "single-object"
+  | "primitive"
+  | "unknown";
+
+export interface InsertResultDiagnostic {
+  shape: InsertResultShape;
+  rowCount: number;
+  /** Stringified preview of the payload (truncated) for log readability. */
+  preview: string;
+  /** Extracted message when shape is "generic-string-error". */
+  errorMessage?: string;
+}
+
+const PREVIEW_MAX = 400;
+
+function previewValue(value: unknown): string {
+  try {
+    const json = JSON.stringify(value);
+    if (!json) return String(value);
+    return json.length > PREVIEW_MAX ? `${json.slice(0, PREVIEW_MAX)}…` : json;
+  } catch {
+    return String(value);
+  }
+}
+
+export function inspectInsertResult(value: unknown): InsertResultDiagnostic {
+  if (value === null) return { shape: "null", rowCount: 0, preview: "null" };
+  if (value === undefined) return { shape: "null", rowCount: 0, preview: "undefined" };
+
+  if (Array.isArray(value)) {
+    if (value.length === 0) return { shape: "empty-array", rowCount: 0, preview: "[]" };
+    const first = value[0];
+    if (first && typeof first === "object" && !Array.isArray(first)) {
+      const maybeErr = first as { error?: unknown; message?: unknown };
+      if (maybeErr.error === true && typeof maybeErr.message === "string") {
+        return {
+          shape: "generic-string-error",
+          rowCount: value.length,
+          preview: previewValue(value),
+          errorMessage: maybeErr.message,
+        };
+      }
+      return { shape: "rows", rowCount: value.length, preview: previewValue(value) };
+    }
+    return { shape: "unknown", rowCount: value.length, preview: previewValue(value) };
+  }
+
+  if (typeof value === "object") {
+    const maybeErr = value as { error?: unknown; message?: unknown };
+    if (maybeErr.error === true && typeof maybeErr.message === "string") {
+      return {
+        shape: "generic-string-error",
+        rowCount: 0,
+        preview: previewValue(value),
+        errorMessage: maybeErr.message,
+      };
+    }
+    return { shape: "single-object", rowCount: 1, preview: previewValue(value) };
+  }
+
+  if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+    return { shape: "primitive", rowCount: 0, preview: previewValue(value) };
+  }
+  return { shape: "unknown", rowCount: 0, preview: previewValue(value) };
+}
+
+/**
+ * Emit a structured log line whenever an insert/update result is not a
+ * regular array of rows. This makes runtime debugging of GenericStringError
+ * (and other unexpected shapes) trivial — search logs for `result-shape-anomaly`.
+ *
+ * Returns true if an anomaly was logged.
+ */
+export function logInsertResultIfAnomalous(
+  context: { callSite: string; table: string; operation: "insert" | "update"; returning?: string },
+  diagnostic: InsertResultDiagnostic,
+): boolean {
+  if (diagnostic.shape === "rows") return false;
+
+  const payload = {
+    event: "result-shape-anomaly",
+    callSite: context.callSite,
+    operation: context.operation,
+    table: context.table,
+    returning: context.returning ?? "*",
+    shape: diagnostic.shape,
+    rowCount: diagnostic.rowCount,
+    errorMessage: diagnostic.errorMessage,
+    preview: diagnostic.preview,
+  };
+
+  const icon = diagnostic.shape === "generic-string-error" ? "🚨" : "⚠️";
+  console.error(
+    `[crm-db-bridge] ${icon} result-shape-anomaly op=${context.operation} table=${context.table} ` +
+      `shape=${diagnostic.shape}` +
+      (diagnostic.errorMessage ? ` message="${diagnostic.errorMessage}"` : "") +
+      ` → ${JSON.stringify(payload)}`,
+  );
+  return true;
+}
+
 
 interface CrmQuery {
   table: string;
@@ -310,6 +426,16 @@ async function handleInsert(crm: SupabaseClient, body: CrmQuery): Promise<Respon
 
   const { data: result, error } = await crm.from(table).insert(data as any).select(returning || "*");
 
+  // Diagnose result shape BEFORE doing anything else so GenericStringError
+  // payloads (and other anomalies) are visible immediately in runtime logs.
+  if (!error) {
+    const diag = inspectInsertResult(result);
+    logInsertResultIfAnomalous(
+      { callSite: "handleInsert", table, operation: "insert", returning: returning || "*" },
+      diag,
+    );
+  }
+
   // Fix quote_number if it was overridden by DB default
   if (!error && table === "quotes") {
     const insertedRow = firstRowAsRecord(result);
@@ -347,6 +473,13 @@ async function handleUpdate(crm: SupabaseClient, body: CrmQuery): Promise<Respon
   }
 
   const { data: result, error } = await query.select(returning || "*");
+  if (!error) {
+    const diag = inspectInsertResult(result);
+    logInsertResultIfAnomalous(
+      { callSite: "handleUpdate", table, operation: "update", returning: returning || "*" },
+      diag,
+    );
+  }
   if (error) {
     if (isOptionalQuoteTable(table) && isMissingTableError(error, table)) {
       return createOptionalWriteError(table);
