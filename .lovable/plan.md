@@ -1,71 +1,74 @@
 
 
-# Destaque do badge de validade do preço na PDP
+# Aviso visual de fallback de cálculo no simulador
 
-Hoje a PDP já exibe um `PriceFreshnessBadge variant="inline"` abaixo do preço. O texto é pequeno e fácil de passar despercebido. Vou criar uma variante mais destacada **só para a PDP**, com pílula colorida, data absoluta visível e aviso explícito quando o preço estiver defasado.
+Hoje, quando o RPC `fn_get_customization_price` falha, o simulador já cai no `buildLegacyFallbackOption` e dispara um `toast.warning` em `useSimulation`. Mas o aviso é efêmero: assim que o toast some, o vendedor não tem como saber que aquele preço é estimado. Esta tarefa torna o aviso **persistente e visível** no card de cada opção que veio do fallback, e mostra a data/hora do último cálculo bem-sucedido vs. estimado.
 
-## 1. Nova variante `pdp` no `PriceFreshnessBadge`
+## 1. Enriquecer o tipo `SimulationOption`
 
-Arquivo: `src/components/products/PriceFreshnessBadge.tsx`
+Arquivo: `src/types/domain/simulation.ts`
 
-- Adicionar `"pdp"` ao union `variant`.
-- Renderiza uma **pílula** (rounded-full, padding generoso, borda 1.5px) ao invés de texto solto:
-  - `fresh` (verde): "Preço atualizado em DD/MM/AAAA · há Nd" — fundo `emerald-50`, borda `emerald-200`, texto `emerald-700`.
-  - `aging` (âmbar suave): "Preço atualizado em DD/MM/AAAA · confirme se necessário" — fundo `amber-50`, borda `amber-200`, texto `amber-700`.
-  - `stale` (âmbar forte/destaque): bloco em duas linhas — linha 1 "Preço pode estar defasado" em negrito, linha 2 "Última atualização: DD/MM/AAAA (há Nd)" — fundo `amber-100`, borda `amber-300`, ícone `AlertTriangle` à esquerda. Inclui call-to-action sutil "Confirme com o fornecedor".
-  - `unknown`: pílula neutra "Data de atualização não informada".
-- Mantém `role="status"`, tooltip Radix com texto longo, classes via `cn()`.
-- Sem mudança de comportamento das variantes existentes (`inline`, `compact`, `icon-only`).
+- Já existem `priceSource` e `fallbackReason`. Adicionar:
+  - `calculatedAt: string` (ISO, sempre preenchido — momento em que o resultado foi gerado).
+  - `rpcAvailable: boolean` (false quando o RPC falhou e o fallback foi usado).
 
-## 2. Trocar a variante usada na PDP
+## 2. Preencher os novos campos no fetcher
 
-Arquivo: `src/pages/product-detail/ProductDetailHero.tsx` (linha 150-157)
+Arquivo: `src/hooks/simulation/simulationPriceFetcher.ts`
 
-- Trocar `variant="inline"` por `variant="pdp"`.
-- Manter `alwaysShow` para garantir que aparece em qualquer status (inclusive `fresh`/`unknown`).
-- Wrapper continua `mt-2`; remover o `text-xs` que vinha por herança — a pílula tem tamanho próprio.
+- `fetchOptionForTechnique`: preencher `calculatedAt: new Date().toISOString()` e `rpcAvailable: true` no caminho de sucesso.
+- `buildLegacyFallbackOption`: preencher `calculatedAt: new Date().toISOString()` e `rpcAvailable: false`.
 
-## 3. Testes
+## 3. Novo componente `SimulationPriceSourceBadge`
 
-Arquivo: `tests/components/PriceFreshnessBadge.test.tsx`
+Novo arquivo: `src/components/simulation/SimulationPriceSourceBadge.tsx`
 
-- Adicionar 3 casos para a nova variante:
-  - `pdp` + `stale` → renderiza texto "defasado" e classe `amber-300`/`amber-100`.
-  - `pdp` + `fresh` → renderiza data absoluta no formato `DD/MM/AAAA`.
-  - `pdp` + `unknown` (priceUpdatedAt=null) → renderiza "não informada".
+- Props: `priceSource`, `fallbackReason`, `calculatedAt`.
+- Quando `priceSource === 'rpc'` (oficial):
+  - Pílula sutil verde: `✓ Cálculo oficial · atualizado às HH:mm`.
+- Quando `priceSource === 'legacy-fallback'`:
+  - Bloco âmbar destacado (mesmo padrão visual do `PriceFreshnessBadge variant="pdp"` para `stale`):
+    - Linha 1 (negrito): "Estimativa — cálculo oficial indisponível"
+    - Linha 2: "Calculado às HH:mm de DD/MM/AAAA"
+    - Linha 3 (sutil): motivo (`fallbackReason`) + "Confirme o valor antes de fechar o orçamento"
+  - Cores: `amber-100` / `amber-300` / `amber-900` (claro) e `amber-500/15` / `amber-500/60` / `amber-200` (dark), ícone `AlertTriangle`.
+- A11y: `role="status"`, tooltip Radix com texto longo, classes via `cn()`.
 
-## Visual (referência)
+## 4. Renderizar o badge no card de opção do simulador
 
-```text
-┌──────────────────────────────────────────────────────┐
-│ A PARTIR DE                                          │
-│ R$ 24,90 /un                                         │
-│                                                      │
-│ ┌──────────────────────────────────────────────────┐ │
-│ │ ⚠  Preço pode estar defasado                     │ │
-│ │    Última atualização: 12/02/2025 (há 72 dias)   │ │
-│ │    Confirme com o fornecedor                     │ │
-│ └──────────────────────────────────────────────────┘ │
-└──────────────────────────────────────────────────────┘
-```
+Investigar e atualizar o(s) componente(s) que renderizam cada `SimulationOption` (provavelmente `src/components/simulation/SimulationOptionCard.tsx` ou similar dentro de `src/components/simulation/`). O badge fica logo abaixo do preço final da opção, antes do breakdown por área/técnica/tamanho.
 
-Para `fresh`:
-```text
-[✓ Preço atualizado em 18/04/2026 · há 6 dias]
-```
+Quando `priceSource === 'rpc'`, exibir versão compacta (verde discreto). Quando `legacy-fallback`, exibir bloco âmbar completo, garantindo que o vendedor não perca a informação.
+
+## 5. Suavizar o toast de fallback
+
+Arquivo: `src/hooks/useSimulation.ts`
+
+- Manter o `toast.warning` mas reduzir para um único disparo por sessão de simulação (evitar spam quando várias opções caem no fallback). O badge persistente no card passa a ser a fonte de verdade visual; o toast vira só um sinal inicial.
+
+## 6. Testes
+
+- `tests/components/SimulationPriceSourceBadge.test.tsx` (novo): cobre os 2 estados (rpc / legacy-fallback) — formatação de data/hora, classes amber/emerald, presença de `role="status"` e do motivo.
+- `tests/hooks/simulation/simulationPriceFetcher.test.ts` (estender, se existir; senão criar): garantir que `calculatedAt` e `rpcAvailable` estão preenchidos corretamente em sucesso e em falha do RPC.
 
 ## Arquivos tocados
 
-**Editados (2)**:
-- `src/components/products/PriceFreshnessBadge.tsx` — nova variante `pdp`
-- `src/pages/product-detail/ProductDetailHero.tsx` — usar `variant="pdp"`
+**Criados (2)**:
+- `src/components/simulation/SimulationPriceSourceBadge.tsx`
+- `tests/components/SimulationPriceSourceBadge.test.tsx`
 
-**Editado (1, testes)**:
-- `tests/components/PriceFreshnessBadge.test.tsx` — 3 casos novos
+**Editados (4)**:
+- `src/types/domain/simulation.ts` (2 campos novos)
+- `src/hooks/simulation/simulationPriceFetcher.ts` (preencher os campos)
+- `src/hooks/useSimulation.ts` (toast 1x por sessão)
+- 1 componente de card de opção do simulador (a confirmar nome exato em `src/components/simulation/`)
+
+**Estendido (1, opcional se existir)**:
+- `tests/hooks/simulation/simulationPriceFetcher.test.ts`
 
 ## Compatibilidade
 
-- Zero breaking change: variantes existentes intactas, demais consumidores (Quick View, Sticky, Cards, Quote) não são tocados.
-- A pílula respeita os tokens semânticos (`amber-*`, `emerald-*`) já usados no projeto e o padrão `font-display`.
-- A11y mantida: `role="status"`, `aria-label`, tooltip via Radix.
+- Zero breaking change: `calculatedAt` e `rpcAvailable` são novos campos opcionais; consumidores existentes que ignoram metadados continuam funcionando.
+- Reusa o vocabulário visual já estabelecido pelo `PriceFreshnessBadge` (amber/emerald + pílula + ícone), mantendo coerência com o padrão de "preço pode estar defasado".
+- Não muda a lógica de cálculo nem o fallback — só torna o estado visível.
 
