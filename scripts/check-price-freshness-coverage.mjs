@@ -93,7 +93,8 @@ for (const file of TRACKED_FILES) {
     lines: entry.lines?.pct ?? 0,
   };
 
-  const violations = Object.entries(THRESHOLDS).filter(
+  const thresholds = FILE_THRESHOLDS[file];
+  const violations = Object.entries(thresholds).filter(
     ([metric, min]) => m[metric] < min,
   );
 
