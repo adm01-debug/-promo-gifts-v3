@@ -212,6 +212,68 @@ export function PriceFreshnessBadge({
     return null;
   }
 
+  // Estado "confirmado pelo vendedor" — pill verde discreto que substitui o
+  // alerta. Mantém o tooltip (mostra data SSOT + regra) para auditoria.
+  if (isConfirmed) {
+    const confirmedLabel = `Preço confirmado por você ${formatConfirmedRelative(confirmedAt as string | Date)}`;
+    const confirmedBody =
+      variant === "icon-only" ? (
+        <span
+          role="status"
+          aria-label={confirmedLabel}
+          className={cn(
+            "inline-flex items-center justify-center text-emerald-600 dark:text-emerald-500",
+            className,
+          )}
+        >
+          <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
+        </span>
+      ) : variant === "compact" ? (
+        <span
+          role="status"
+          aria-label={confirmedLabel}
+          className={cn(
+            "inline-flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-500",
+            className,
+          )}
+        >
+          <ShieldCheck className="h-3 w-3" aria-hidden="true" />
+          <span>Confirmado</span>
+        </span>
+      ) : (
+        <span
+          role="status"
+          aria-label={confirmedLabel}
+          className={cn(
+            "inline-flex items-center gap-1.5 rounded-full border-[1.5px] border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700 dark:border-emerald-500/40 dark:bg-emerald-500/10 dark:text-emerald-400",
+            className,
+          )}
+        >
+          <ShieldCheck className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+          <span>Confirmado com fornecedor</span>
+        </span>
+      );
+    return (
+      <TooltipProvider delayDuration={150}>
+        <Tooltip>
+          <TooltipTrigger asChild>{confirmedBody}</TooltipTrigger>
+          <TooltipContent side="top" className="max-w-xs text-xs">
+            <div className="flex flex-col gap-1.5">
+              <div className="font-semibold">Preço confirmado com fornecedor</div>
+              <div className="leading-snug text-muted-foreground">
+                Você validou este preço {formatConfirmedRelative(confirmedAt as string | Date)}. O alerta de preço defasado fica suprimido neste contexto até o próximo recálculo.
+              </div>
+              <FreshnessTooltipBody
+                freshness={freshness}
+                priceUpdatedAt={priceUpdatedAt}
+              />
+            </div>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  }
+
   const ariaLabel = freshness.label;
 
   let body: React.ReactNode;
