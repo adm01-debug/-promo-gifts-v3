@@ -13,6 +13,7 @@ import { format } from 'date-fns';
 import { TelemetryCharts } from '@/components/admin/telemetry/TelemetryCharts';
 import { ProductsListingLatencyAlert } from '@/components/admin/telemetry/ProductsListingLatencyAlert';
 import { ResolveProductsSelectComparisonCard } from '@/components/admin/telemetry/ResolveProductsSelectComparisonCard';
+import { HighLimitTelemetryCard } from '@/components/admin/telemetry/HighLimitTelemetryCard';
 import { useTelemetryData, formatDuration, formatTime } from './telemetry/useTelemetryData';
 import { useErrorCounters } from './telemetry/useErrorCounters';
 import { exportCSV, exportPDF } from './telemetry/exportHelpers';
@@ -108,6 +109,9 @@ export default function AdminTelemetriaPage() {
 
         {/* Comparativo antes vs depois do resolveProductsSelect (lightweight forçado em listings limit>50) */}
         <ResolveProductsSelectComparisonCard />
+
+        {/* Gráficos segmentados por endpoint/timestamp/error_kind — escopo limit > 50 */}
+        <HighLimitTelemetryCard />
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
