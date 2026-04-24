@@ -19,6 +19,7 @@ import type { QuoteItem } from "@/hooks/useQuotes";
 import { NegotiationMarkupCard } from "@/components/quote/NegotiationMarkupCard";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 import { getPriceFreshness } from "@/utils/price-freshness";
+import { PriceFreshnessBadge } from "@/components/products/PriceFreshnessBadge";
 import { toast } from "sonner";
 
 interface Props {
