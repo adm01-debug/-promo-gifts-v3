@@ -152,15 +152,30 @@ export function QuoteBuilderSummaryColumn({
                   <Package className="h-5 w-5 mx-auto mb-2 text-muted-foreground/40" />
                   <p className="text-xs text-muted-foreground">Nenhum item adicionado</p>
                 </div>
-              ) : items.map((item, idx) => {
+              ) : visibleItems.length === 0 ? (
+                <div className="p-4 rounded-lg border border-dashed border-warning/40 bg-warning/5 text-center">
+                  <CheckCircle2 className="h-5 w-5 mx-auto mb-2 text-warning" />
+                  <p className="text-xs text-warning font-medium">Todos os preços estão confirmados</p>
+                  <button
+                    type="button"
+                    onClick={() => setShowOnlyStale(false)}
+                    className="text-[11px] text-muted-foreground hover:text-foreground underline mt-1"
+                  >
+                    Mostrar todos os itens
+                  </button>
+                </div>
+              ) : visibleItems.map(({ it: item, idx }) => {
                 const persTotal = calculateItemPersonalizationTotal(item);
                 const isActive = activeItemIndex === idx;
+                const isStale = staleIndexes.has(idx);
                 return (
                   <div
                     key={idx}
                     className={cn(
                       "rounded-xl border transition-all cursor-pointer",
-                      isActive ? "border-primary/50 bg-primary/5 ring-1 ring-primary/20" : "border-border/60 bg-muted/30 hover:border-border"
+                      isActive ? "border-primary/50 bg-primary/5 ring-1 ring-primary/20" : "border-border/60 bg-muted/30 hover:border-border",
+                      isStale && !isActive && "border-warning/40 bg-warning/[0.04]",
+                      isStale && isActive && "ring-warning/30"
                     )}
                     onClick={() => setActiveItemIndex(idx)}
                   >
