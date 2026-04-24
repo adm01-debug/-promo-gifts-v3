@@ -110,6 +110,9 @@ export default function AdminTelemetriaPage() {
         {/* Comparativo antes vs depois do resolveProductsSelect (lightweight forçado em listings limit>50) */}
         <ResolveProductsSelectComparisonCard />
 
+        {/* Gráficos segmentados por endpoint/timestamp/error_kind — escopo limit > 50 */}
+        <HighLimitTelemetryCard />
+
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
