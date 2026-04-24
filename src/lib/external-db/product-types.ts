@@ -96,16 +96,17 @@ export function getProductStock(product: PromobrindProduct): number {
 }
 
 // Select field constants
-// NOTE: `price_updated_at` and `price_freshness_threshold_days` are intentionally
-// NOT selected here — those columns don't exist in the external Promobrind DB
-// yet. The mapper (`product-mapper.ts`) already coalesces missing values to
-// `null`, and `getPriceFreshness` falls back to the default 60-day window.
-// When the external DB adds the columns, just append them back to these lists.
+// NOTE: `price_updated_at` is the SSOT for price freshness — populated via
+// trigger on the external Promobrind DB whenever any price field changes
+// (cost_price, sale_price, suggested_price, list_price, cost_price_1..5).
+// `price_freshness_threshold_days` does NOT exist in the external DB yet —
+// the mapper coalesces it to `null` and `getPriceFreshness` falls back to
+// the default 60-day window.
 export const PRODUCT_SELECT_FIELDS_WITH_SALE =
   'id, name, sku, sale_price, cost_price, images, primary_image_url, ' +
   'category_id, main_category_id, supplier_id, supplier_reference, description, ' +
   'short_description, meta_description, brand, is_active, active, stock_quantity, colors, ' +
-  'materials, dimensions, min_quantity, created_at, updated_at, ' +
+  'materials, dimensions, min_quantity, created_at, updated_at, price_updated_at, ' +
   'is_featured, is_bestseller, is_new, is_on_sale, is_kit, gender, ' +
   'height_cm, width_cm, length_cm, diameter_cm, weight_g, capacity_ml, ' +
   'packing_type, packing_classification, has_commercial_packaging, repacking_type, packaging_context, ' +
@@ -115,7 +116,7 @@ export const PRODUCT_SELECT_FIELDS_LEGACY =
   'id, name, sku, cost_price, images, primary_image_url, ' +
   'category_id, main_category_id, supplier_id, supplier_reference, description, ' +
   'short_description, meta_description, brand, is_active, active, stock_quantity, colors, ' +
-  'materials, dimensions, min_quantity, created_at, updated_at, ' +
+  'materials, dimensions, min_quantity, created_at, updated_at, price_updated_at, ' +
   'is_featured, is_bestseller, is_new, is_on_sale, is_kit, ' +
   'height_cm, width_cm, length_cm, diameter_cm, weight_g, capacity_ml, ' +
   'packing_type, packing_classification, has_commercial_packaging, repacking_type, packaging_context, ' +
@@ -125,7 +126,7 @@ export const PRODUCT_SELECT_FIELDS_DETAIL =
   'id, name, sku, sale_price, cost_price, images, primary_image_url, ' +
   'category_id, main_category_id, supplier_id, supplier_reference, description, ' +
   'short_description, meta_description, brand, is_active, active, stock_quantity, colors, ' +
-  'materials, dimensions, min_quantity, created_at, updated_at, ' +
+  'materials, dimensions, min_quantity, created_at, updated_at, price_updated_at, ' +
   'is_featured, is_bestseller, is_new, is_on_sale, is_kit, tags, ' +
   'height_cm, width_cm, length_cm, diameter_cm, weight_g, capacity_ml, ' +
   'packing_type, packing_classification, has_commercial_packaging, repacking_type, packaging_context, ' +
