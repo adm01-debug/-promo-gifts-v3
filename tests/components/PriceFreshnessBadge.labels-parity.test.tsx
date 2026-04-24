@@ -28,6 +28,7 @@ import { PriceFreshnessBadge } from "@/components/products/PriceFreshnessBadge";
 import {
   getPriceFreshness,
   formatPriceDateLong,
+  formatPriceDateShort,
 } from "@/utils/price-freshness";
 
 const FIXED_NOW = new Date("2025-06-15T12:00:00.000Z").getTime();
@@ -65,50 +66,66 @@ function renderInline(
   );
 }
 
+/**
+ * Quando há data válida, o `inline` anexa " · em DD/MM/AAAA" ao
+ * `freshness.label`. O `aria-label` continua sendo o label puro
+ * (sem o sufixo numérico) — leitores de tela ouvem só o status.
+ */
+function expectedInlineText(priceUpdatedAt: string | null, opts: { thresholdDays?: number } = {}) {
+  const t = opts.thresholdDays ?? null;
+  const label = getPriceFreshness(priceUpdatedAt, t).label;
+  const limit = typeof opts.thresholdDays === "number" ? ` (limite ${opts.thresholdDays}d)` : "";
+  if (!priceUpdatedAt) return label + limit;
+  const d = new Date(priceUpdatedAt);
+  if (Number.isNaN(d.getTime())) return label + limit;
+  return `${label} · em ${formatPriceDateShort(d)}${limit}`;
+}
+
 describe("PriceFreshnessBadge — paridade de rótulos com getPriceFreshness", () => {
   describe("rótulo principal sem threshold explícito (catálogo padrão)", () => {
     it("usa 'Atualizado hoje' quando o preço foi atualizado no mesmo dia", () => {
-      const expected = getPriceFreshness(new Date(FIXED_NOW).toISOString(), 60).label;
+      const ariaExpected = getPriceFreshness(new Date(FIXED_NOW).toISOString(), 60).label;
+      const textExpected = expectedInlineText(new Date(FIXED_NOW).toISOString());
       renderInline(new Date(FIXED_NOW).toISOString());
       const badge = screen.getByRole("status");
-      expect(badge).toHaveAccessibleName(expected);
-      expect(badge.textContent).toBe(expected);
+      expect(badge).toHaveAccessibleName(ariaExpected);
+      expect(badge.textContent).toBe(textExpected);
     });
 
     it("usa singular 'há 1 dia' quando faz exatamente 1 dia", () => {
-      const expected = getPriceFreshness(daysAgo(1), 60).label;
-      expect(expected).toBe("Atualizado há 1 dia");
+      const ariaExpected = getPriceFreshness(daysAgo(1), 60).label;
+      expect(ariaExpected).toBe("Atualizado há 1 dia");
       renderInline(daysAgo(1));
       const badge = screen.getByRole("status");
-      expect(badge).toHaveAccessibleName(expected);
-      expect(badge.textContent).toBe(expected);
+      expect(badge).toHaveAccessibleName(ariaExpected);
+      expect(badge.textContent).toBe(expectedInlineText(daysAgo(1)));
     });
 
     it("usa plural 'há N dias' para 2+ dias (status fresh)", () => {
-      const expected = getPriceFreshness(daysAgo(7), 60).label;
-      expect(expected).toBe("Atualizado há 7 dias");
+      const ariaExpected = getPriceFreshness(daysAgo(7), 60).label;
+      expect(ariaExpected).toBe("Atualizado há 7 dias");
       renderInline(daysAgo(7));
       const badge = screen.getByRole("status");
-      expect(badge).toHaveAccessibleName(expected);
-      expect(badge.textContent).toBe(expected);
+      expect(badge).toHaveAccessibleName(ariaExpected);
+      expect(badge.textContent).toBe(expectedInlineText(daysAgo(7)));
     });
 
     it("renderiza copy de stale 'Preço pode estar defasado (há Nd)' acima do threshold default", () => {
-      const expected = getPriceFreshness(daysAgo(90), 60).label;
-      expect(expected).toBe("Preço pode estar defasado (há 90 dias)");
+      const ariaExpected = getPriceFreshness(daysAgo(90), 60).label;
+      expect(ariaExpected).toBe("Preço pode estar defasado (há 90 dias)");
       renderInline(daysAgo(90));
       const badge = screen.getByRole("status");
-      expect(badge).toHaveAccessibleName(expected);
-      expect(badge.textContent).toBe(expected);
+      expect(badge).toHaveAccessibleName(ariaExpected);
+      expect(badge.textContent).toBe(expectedInlineText(daysAgo(90)));
     });
 
     it("renderiza copy de aging idêntico ao label da utility (entre meio e threshold)", () => {
-      const expected = getPriceFreshness(daysAgo(45), 60).label;
-      expect(expected).toBe("Atualizado há 45 dias");
+      const ariaExpected = getPriceFreshness(daysAgo(45), 60).label;
+      expect(ariaExpected).toBe("Atualizado há 45 dias");
       renderInline(daysAgo(45));
       const badge = screen.getByRole("status");
-      expect(badge).toHaveAccessibleName(expected);
-      expect(badge.textContent).toBe(expected);
+      expect(badge).toHaveAccessibleName(ariaExpected);
+      expect(badge.textContent).toBe(expectedInlineText(daysAgo(45)));
     });
 
     it("renderiza copy de unknown 'Data de atualização não informada' quando priceUpdatedAt é null", () => {
@@ -117,6 +134,7 @@ describe("PriceFreshnessBadge — paridade de rótulos com getPriceFreshness", (
       renderInline(null);
       const badge = screen.getByRole("status");
       expect(badge).toHaveAccessibleName(expected);
+      // Sem data válida: textContent === label puro (sem sufixo "em ...")
       expect(badge.textContent).toBe(expected);
     });
   });
@@ -126,12 +144,13 @@ describe("PriceFreshnessBadge — paridade de rótulos com getPriceFreshness", (
       const expected = getPriceFreshness(daysAgo(40), 30).label;
       expect(expected).toMatch(/^Preço pode estar defasado/);
       renderInline(daysAgo(40), { thresholdDays: 30 });
-      // O badge anexa o sufixo "(limite Yd)" quando o threshold é explícito.
-      // Validamos paridade como prefixo: o `freshness.label` da utility está
-      // integralmente presente no copy renderizado.
+      // Paridade preservada: o `freshness.label` aparece como prefixo do
+      // copy renderizado, e o sufixo "(limite Yd)" + " · em DD/MM/AAAA"
+      // são adições estáveis.
       const text = screen.getByRole("status").textContent ?? "";
       expect(text.startsWith(expected)).toBe(true);
       expect(text).toContain("(limite 30d)");
+      expect(text).toMatch(/· em \d{2}\/\d{2}\/\d{4}/);
     });
 
     it("respeita threshold custom: 40 dias com janela de 90 ainda é fresh (== utility)", () => {
@@ -141,6 +160,7 @@ describe("PriceFreshnessBadge — paridade de rótulos com getPriceFreshness", (
       const text = screen.getByRole("status").textContent ?? "";
       expect(text.startsWith(expected)).toBe(true);
       expect(text).toContain("(limite 90d)");
+      expect(text).toMatch(/· em \d{2}\/\d{2}\/\d{4}/);
     });
   });
 

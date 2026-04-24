@@ -37,10 +37,10 @@ const SUMMARY_PATH = path.resolve("coverage/coverage-summary.json");
  */
 const FILE_THRESHOLDS = {
   "src/utils/price-freshness.ts": {
-    statements: 93,
+    statements: 99,
     branches: 99,
-    functions: 70, // formatPriceDateShort só é usada no UI, fica fora do util-suite
-    lines: 93,
+    functions: 99,
+    lines: 99,
   },
   "src/components/products/PriceFreshnessBadge.tsx": {
     statements: 62,
