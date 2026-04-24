@@ -473,6 +473,13 @@ async function handleUpdate(crm: SupabaseClient, body: CrmQuery): Promise<Respon
   }
 
   const { data: result, error } = await query.select(returning || "*");
+  if (!error) {
+    const diag = inspectInsertResult(result);
+    logInsertResultIfAnomalous(
+      { callSite: "handleUpdate", table, operation: "update", returning: returning || "*" },
+      diag,
+    );
+  }
   if (error) {
     if (isOptionalQuoteTable(table) && isMissingTableError(error, table)) {
       return createOptionalWriteError(table);
