@@ -136,6 +136,9 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
+    // Validação de tipo (estática + runtime) antes de qualquer chamada batch:
+    // garante que o client tem a forma esperada por processBatch / runConnectionTest.
+    assertServiceClient(service);
 
     const { data: active, error } = await service
       .from("external_connections")
