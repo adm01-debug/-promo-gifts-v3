@@ -182,19 +182,18 @@ describe("PriceFreshnessBadge — paridade de rótulos com getPriceFreshness", (
 
   describe("paridade do conteúdo do tooltip (sem hover, via DOM mountado)", () => {
     /**
-     * Em jsdom o Radix Tooltip não monta o conteúdo sem hover real, e
-     * `vi.useFakeTimers` impede o `delayDuration` de avançar. Em vez de
-     * tentar abrir o tooltip, validamos que o aria-label do trigger (lido
-     * por leitores de tela quando o tooltip não está visível) carrega o
-     * mesmo `freshness.label` da utility, e que a data por extenso
-     * exposta pelo helper `formatPriceDateLong` corresponde à formatação
-     * documentada nos testes de coverage da utility.
+     * Em jsdom o Radix Tooltip não monta o conteúdo sem hover real. Validamos
+     * que o aria-label rico do trigger (a11y) menciona a categoria correta
+     * ("possivelmente defasado") e a data relativa ("há 120 dias"), e que o
+     * texto visível continua igual ao `freshness.label` da utility.
      */
-    it("aria-label do badge cobre o leitor de tela com o mesmo copy da utility", () => {
-      // Stale com threshold default — caso mais sensível para auditoria.
-      const expected = getPriceFreshness(daysAgo(120), 60).label;
+    it("aria-label do badge expõe status + relativo para o leitor de tela", () => {
+      const labelExpected = getPriceFreshness(daysAgo(120), 60).label;
       renderInline(daysAgo(120));
-      expect(screen.getByRole("status")).toHaveAccessibleName(expected);
+      const badge = screen.getByRole("status");
+      expect(badge.getAttribute("aria-label")).toMatch(/possivelmente defasado/i);
+      expect(badge.getAttribute("aria-label")).toMatch(/há 120 dias/);
+      expect(badge.textContent?.startsWith(labelExpected)).toBe(true);
     });
 
     it("formatPriceDateLong (usado pelo tooltip) produz data pt-BR por extenso", () => {
