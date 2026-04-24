@@ -498,10 +498,13 @@ async function handleBatch(body: any, req: Request, corsHeaders: Record<string, 
 
       try {
         const queryStart = performance.now();
-        // Use lightweight select for products in batch too
-        const effectiveBatchSelect = (qTable === 'products' && (!qSelect || qSelect === '*'))
-          ? PRODUCTS_LIGHTWEIGHT_SELECT
-          : qSelect;
+        // Use centralized resolver (same hard guard: limit > 50 AND no id) for batch too
+        const effectiveBatchSelect = resolveProductsSelect({
+          table: qTable,
+          select: qSelect,
+          limit: rawLimit,
+          hasId: false,
+        }).effectiveSelect;
         const selectOpts = qCountMode ? { count: qCountMode } : undefined;
         let query = selectOpts
           ? externalSupabase.from(qTable).select(effectiveBatchSelect, selectOpts)
