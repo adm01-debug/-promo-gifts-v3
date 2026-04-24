@@ -206,6 +206,7 @@ export function PriceFreshnessBadge({
         <Icon className="h-3 w-3" aria-hidden="true" />
         <span className="tabular-nums">
           {formatCompactRelative(freshness.daysSinceUpdate)}
+          {limitSuffix && <span className="text-muted-foreground">{limitSuffix}</span>}
         </span>
       </span>
     );
