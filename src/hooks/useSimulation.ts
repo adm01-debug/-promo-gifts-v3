@@ -184,8 +184,14 @@ export function useSimulation() {
       setSimulationOptions(options);
       setCurrentStep('results');
       const available = options.filter(o => o.priceSource === 'rpc').length;
-      const unavailable = options.length - available;
-      if (unavailable > 0) {
+      const fallback = options.filter(o => o.priceSource === 'legacy-fallback').length;
+      const unavailable = options.filter(o => o.priceSource === 'unavailable').length;
+      if (fallback > 0) {
+        toast.warning(
+          `Simulação calculada com estimativa para ${fallback} técnica(s). O cálculo oficial não respondeu — use os valores como referência e revise antes de fechar.`,
+          { duration: 7000 },
+        );
+      } else if (unavailable > 0) {
         toast.success(`Simulação calculada: ${available} ok, ${unavailable} indisponível(is)`);
       } else {
         toast.success(`Simulação calculada para ${options.length} técnica(s)`);
