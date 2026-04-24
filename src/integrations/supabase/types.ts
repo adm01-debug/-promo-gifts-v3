@@ -2968,6 +2968,7 @@ export type Database = {
       }
       query_telemetry: {
         Row: {
+          cache_hit: boolean
           count_mode: string | null
           created_at: string
           duration_ms: number
@@ -2978,12 +2979,14 @@ export type Database = {
           query_limit: number | null
           query_offset: number | null
           record_count: number | null
+          retry_count: number
           rpc_name: string | null
           severity: string
           table_name: string | null
           user_id: string | null
         }
         Insert: {
+          cache_hit?: boolean
           count_mode?: string | null
           created_at?: string
           duration_ms: number
@@ -2994,12 +2997,14 @@ export type Database = {
           query_limit?: number | null
           query_offset?: number | null
           record_count?: number | null
+          retry_count?: number
           rpc_name?: string | null
           severity?: string
           table_name?: string | null
           user_id?: string | null
         }
         Update: {
+          cache_hit?: boolean
           count_mode?: string | null
           created_at?: string
           duration_ms?: number
@@ -3010,6 +3015,7 @@ export type Database = {
           query_limit?: number | null
           query_offset?: number | null
           record_count?: number | null
+          retry_count?: number
           rpc_name?: string | null
           severity?: string
           table_name?: string | null
