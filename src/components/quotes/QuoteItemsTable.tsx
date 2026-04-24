@@ -5,6 +5,7 @@ import React from "react";
 import { Package } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { QuoteItemDetailSheet } from "./QuoteItemDetailSheet";
+import { PriceFreshnessBadge } from "@/components/products/PriceFreshnessBadge";
 
 /** Recalculate personalization total using rounded unit price to match UI display */
 function calcPersTotal(totalCost: number, qty: number): number {
@@ -29,6 +30,10 @@ interface QuoteItem {
   unit_price: number;
   kit_group_id?: string | null;
   kit_name?: string | null;
+  /** Optional: ISO timestamp from the external catalog (SSOT) for freshness badge. */
+  price_updated_at?: string | null;
+  /** Optional: per-product threshold (days) for the stale-price warning. */
+  price_freshness_threshold_days?: number | null;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   personalizations?: any[];
   [key: string]: unknown;
