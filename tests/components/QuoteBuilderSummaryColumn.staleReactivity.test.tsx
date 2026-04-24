@@ -145,9 +145,7 @@ describe("QuoteBuilderSummaryColumn — reatividade do chip + botão de confirma
     expect(within(getStaleChip()!).getByText("2")).toBeInTheDocument();
 
     // Clica no CTA "Confirmei com fornecedor" do primeiro badge stale.
-    const confirmCtas = screen.getAllByRole("button", {
-      name: /confirmei com fornecedor/i,
-    });
+    const confirmCtas = getInlineConfirmCtas();
     expect(confirmCtas.length).toBeGreaterThanOrEqual(2);
     act(() => {
       fireEvent.click(confirmCtas[0]);
