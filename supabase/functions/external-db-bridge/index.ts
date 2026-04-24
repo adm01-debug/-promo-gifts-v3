@@ -427,6 +427,15 @@ Deno.serve(async (req) => {
     return response;
 
   } catch (error) {
+    if (error instanceof InvalidFilterError) {
+      const totalDuration = Math.round(performance.now() - requestStartTime);
+      console.warn(`⚠️ [external-db-bridge] InvalidFilterError after ${totalDuration}ms — field="${error.field}" type=${error.receivedType}`);
+      return jsonResponse({
+        error: 'Invalid filter values',
+        details: [{ field: error.field, reason: error.reason, receivedType: error.receivedType }],
+        hint: 'Each filter value must be a primitive. Use suffix promotion (e.g. price_gte) or PostgREST string operators ("gte.10", "is.null", "in.(a,b)").',
+      }, 400, corsHeaders);
+    }
     breaker.recordFailure();
     const totalDuration = Math.round(performance.now() - requestStartTime);
     const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
