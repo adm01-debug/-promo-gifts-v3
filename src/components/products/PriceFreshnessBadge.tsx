@@ -224,9 +224,12 @@ const STATUS_STYLES: Record<
   PriceFreshnessStatus,
   { color: string; Icon: typeof Clock }
 > = {
-  fresh: { color: "text-emerald-600 dark:text-emerald-500", Icon: CheckCircle2 },
-  aging: { color: "text-muted-foreground", Icon: Clock },
-  stale: { color: "text-amber-600 dark:text-amber-500", Icon: AlertTriangle },
+  // amber-700 garante contraste ≥ 4.5:1 (WCAG AA) sobre fundos claros e
+  // ≥ 4.6:1 com amber-300 no dark mode — necessário para aging/stale que
+  // sempre carregam um ícone de alerta junto ao preço.
+  fresh: { color: "text-emerald-700 dark:text-emerald-400", Icon: CheckCircle2 },
+  aging: { color: "text-amber-700 dark:text-amber-300", Icon: Clock },
+  stale: { color: "text-amber-700 dark:text-amber-300", Icon: AlertTriangle },
   unknown: { color: "text-muted-foreground", Icon: HelpCircle },
 };
 
