@@ -256,6 +256,110 @@ export default function AdminExternalDbPage() {
         )}
       </Card>
 
+      <Card className="border-primary/30">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <ShieldCheck className="h-5 w-5" /> Validação RPC (Personalização)
+          </CardTitle>
+          <p className="text-xs text-muted-foreground mt-1">
+            Compara payloads de <code>fn_get_customization_price</code> e{" "}
+            <code>fn_get_product_customization_options</code> contra o contrato esperado pelo
+            front. Mismatches são contados em{" "}
+            <code>window.__personalizationSchemaStats.contractMismatches</code>.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {ALL_CONTRACTS.map((c) => {
+            const count = contractCounts[c.name] ?? 0;
+            const live = liveResults[c.name];
+            return (
+              <div key={c.name} className="border rounded-lg p-3 space-y-2">
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <div className="flex items-center gap-2">
+                    {count === 0 ? (
+                      <CheckCircle2 className="h-4 w-4 text-success" />
+                    ) : (
+                      <AlertTriangle className="h-4 w-4 text-destructive" />
+                    )}
+                    <code className="text-sm font-semibold">{c.name}</code>
+                    <Badge variant={count === 0 ? "outline" : "destructive"}>
+                      {count} mismatch{count === 1 ? "" : "es"}
+                    </Badge>
+                    <Badge variant="outline" className="text-xs">
+                      {c.requiredFields.length} required
+                    </Badge>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={liveLoading === c.name}
+                    onClick={() => testContract(c.name)}
+                  >
+                    {liveLoading === c.name ? "Testando..." : "Testar agora"}
+                  </Button>
+                </div>
+                {live && (
+                  <div className="text-xs space-y-1 pt-1 border-t">
+                    <p>
+                      <strong>Resultado:</strong>{" "}
+                      <Badge variant={live.ok ? "default" : "destructive"} className="text-xs">
+                        {live.ok ? "OK" : "Mismatch"}
+                      </Badge>
+                    </p>
+                    {live.missing.length > 0 && (
+                      <p>
+                        <strong className="text-destructive">Missing:</strong>{" "}
+                        {live.missing.map((m) => (
+                          <code key={m} className="bg-destructive/10 px-1 rounded mr-1">
+                            {m}
+                          </code>
+                        ))}
+                      </p>
+                    )}
+                    {live.extras.length > 0 && (
+                      <p>
+                        <strong className="text-success">Extras:</strong>{" "}
+                        {live.extras.map((m) => (
+                          <code key={m} className="bg-success/10 px-1 rounded mr-1">
+                            {m}
+                          </code>
+                        ))}
+                      </p>
+                    )}
+                    {Object.keys(live.resolvedAliases).length > 0 && (
+                      <p>
+                        <strong>Aliases resolvidos:</strong>{" "}
+                        <code>{JSON.stringify(live.resolvedAliases)}</code>
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          {recentMismatches.length > 0 && (
+            <details className="text-xs">
+              <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
+                Últimos {recentMismatches.length} desvios observados
+              </summary>
+              <ul className="mt-2 space-y-1">
+                {recentMismatches.slice().reverse().map((m, i) => (
+                  <li key={i} className="border-l-2 border-destructive/50 pl-2">
+                    <code className="text-xs">{m.contract}</code>{" "}
+                    <span className="text-muted-foreground">
+                      ({new Date(m.at).toLocaleTimeString()})
+                    </span>
+                    {m.missing.length > 0 && (
+                      <div>missing: {m.missing.join(", ")}</div>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
+        </CardContent>
+      </Card>
+
       {selectedTable ? (
         <>
           <Button variant="ghost" onClick={handleBack}>
