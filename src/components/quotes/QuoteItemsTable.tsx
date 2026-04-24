@@ -5,6 +5,7 @@ import React from "react";
 import { Package } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { QuoteItemDetailSheet } from "./QuoteItemDetailSheet";
+import { PriceFreshnessBadge } from "@/components/products/PriceFreshnessBadge";
 
 /** Recalculate personalization total using rounded unit price to match UI display */
 function calcPersTotal(totalCost: number, qty: number): number {
@@ -29,6 +30,10 @@ interface QuoteItem {
   unit_price: number;
   kit_group_id?: string | null;
   kit_name?: string | null;
+  /** Optional: ISO timestamp from the external catalog (SSOT) for freshness badge. */
+  price_updated_at?: string | null;
+  /** Optional: per-product threshold (days) for the stale-price warning. */
+  price_freshness_threshold_days?: number | null;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   personalizations?: any[];
   [key: string]: unknown;
@@ -135,10 +140,20 @@ export function QuoteItemsTable({ items }: QuoteItemsTableProps) {
         )}
         <td className="p-3 text-center font-semibold text-sm w-20">{item.quantity}</td>
         <td className="p-3 text-left text-muted-foreground tabular-nums w-28">
-          {formatCurrency(item.unit_price + (allPersonalizations.reduce((sum: number, p: { total_cost?: number }) => {
-            const pTotal = p.total_cost || 0;
-            return sum + (item.quantity > 0 ? Math.round((pTotal / item.quantity) * 100) / 100 : 0);
-          }, 0)))}
+        <td className="p-3 text-left text-muted-foreground tabular-nums w-28">
+          <div className="flex flex-col gap-0.5">
+            <span>
+              {formatCurrency(item.unit_price + (allPersonalizations.reduce((sum: number, p: { total_cost?: number }) => {
+                const pTotal = p.total_cost || 0;
+                return sum + (item.quantity > 0 ? Math.round((pTotal / item.quantity) * 100) / 100 : 0);
+              }, 0)))}
+            </span>
+            <PriceFreshnessBadge
+              priceUpdatedAt={item.price_updated_at}
+              thresholdDays={item.price_freshness_threshold_days}
+              variant="compact"
+            />
+          </div>
         </td>
         <td className="p-3 text-left font-bold text-base tabular-nums w-32">{formatCurrency(itemTotal)}</td>
         <td className="p-3 text-center print:hidden">

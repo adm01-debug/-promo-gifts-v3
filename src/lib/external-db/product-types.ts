@@ -69,6 +69,8 @@ export interface PromobrindProduct {
   gender?: string | null;
   category_name?: string | null;
   tags?: Record<string, unknown> | null;
+  price_updated_at?: string | null;
+  price_freshness_threshold_days?: number | null;
   kit_components?: Array<{
     id: string; component_name: string | null; component_code: string | null;
     component_product_id: string | null; component_sku: string | null;
@@ -102,7 +104,8 @@ export const PRODUCT_SELECT_FIELDS_WITH_SALE =
   'is_featured, is_bestseller, is_new, is_on_sale, is_kit, gender, ' +
   'height_cm, width_cm, length_cm, diameter_cm, weight_g, capacity_ml, ' +
   'packing_type, packing_classification, has_commercial_packaging, repacking_type, packaging_context, ' +
-  'box_image, box_width_mm, box_height_mm, box_length_mm, box_weight_kg, box_quantity, box_volume_cm3';
+  'box_image, box_width_mm, box_height_mm, box_length_mm, box_weight_kg, box_quantity, box_volume_cm3, ' +
+  'price_updated_at, price_freshness_threshold_days';
 
 export const PRODUCT_SELECT_FIELDS_LEGACY =
   'id, name, sku, cost_price, images, primary_image_url, ' +
@@ -112,7 +115,8 @@ export const PRODUCT_SELECT_FIELDS_LEGACY =
   'is_featured, is_bestseller, is_new, is_on_sale, is_kit, ' +
   'height_cm, width_cm, length_cm, diameter_cm, weight_g, capacity_ml, ' +
   'packing_type, packing_classification, has_commercial_packaging, repacking_type, packaging_context, ' +
-  'box_image, box_width_mm, box_height_mm, box_length_mm, box_weight_kg, box_quantity, box_volume_cm3';
+  'box_image, box_width_mm, box_height_mm, box_length_mm, box_weight_kg, box_quantity, box_volume_cm3, ' +
+  'price_updated_at, price_freshness_threshold_days';
 
 export const PRODUCT_SELECT_FIELDS_DETAIL =
   'id, name, sku, sale_price, cost_price, images, primary_image_url, ' +
@@ -122,9 +126,10 @@ export const PRODUCT_SELECT_FIELDS_DETAIL =
   'is_featured, is_bestseller, is_new, is_on_sale, is_kit, tags, ' +
   'height_cm, width_cm, length_cm, diameter_cm, weight_g, capacity_ml, ' +
   'packing_type, packing_classification, has_commercial_packaging, repacking_type, packaging_context, ' +
-  'box_image, box_width_mm, box_height_mm, box_length_mm, box_weight_kg, box_quantity, box_volume_cm3';
+  'box_image, box_width_mm, box_height_mm, box_length_mm, box_weight_kg, box_quantity, box_volume_cm3, ' +
+  'price_updated_at, price_freshness_threshold_days';
 
 export function shouldFallbackSelect(err: unknown) {
   const msg = err instanceof Error ? err.message : String(err);
-  return /(sale_price|base_price|image_url|supplier_name|category_name|product_videos|selected_images|gender|does not exist|não existe|undefined column|column .+ does not exist)/i.test(msg);
+  return /(sale_price|base_price|image_url|supplier_name|category_name|product_videos|selected_images|gender|price_updated_at|price_freshness_threshold_days|does not exist|não existe|undefined column|column .+ does not exist)/i.test(msg);
 }

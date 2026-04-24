@@ -21,6 +21,7 @@ import { BulkVariantWizard } from "@/components/catalog/BulkVariantWizard";
 import { DynamicTrustBadges } from "@/components/common/SocialProof";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { PriceFreshnessBadge } from "@/components/products/PriceFreshnessBadge";
 import { cn } from "@/lib/utils";
 import { sortVariationsByColor } from "@/utils/colorSorting";
 import type { Product } from "@/hooks/useProducts";
@@ -145,6 +146,14 @@ export function ProductDetailHero({
                 <div className="flex items-baseline gap-1.5">
                   <span className="text-3xl xl:text-4xl font-display font-extrabold text-foreground tracking-tight leading-none">{formatPrice(product.price)}</span>
                   <span className="text-sm text-muted-foreground/50 font-medium">/un</span>
+                </div>
+                <div className="mt-2">
+                  <PriceFreshnessBadge
+                    priceUpdatedAt={product.priceUpdatedAt}
+                    thresholdDays={product.priceFreshnessThresholdDays}
+                    variant="inline"
+                    alwaysShow
+                  />
                 </div>
               </div>
 

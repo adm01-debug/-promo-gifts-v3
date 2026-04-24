@@ -28,6 +28,7 @@ import type { ExternalVariantStock } from "@/hooks/useExternalVariantStock";
 import { SharePreviewDialog } from "./share/SharePreviewDialog";
 import { ProductCardImage } from "./ProductCardImage";
 import { ProductCardActions } from "./ProductCardActions";
+import { PriceFreshnessBadge } from "./PriceFreshnessBadge";
 
 export interface ProductCardProps {
   product: Product;
@@ -261,7 +262,14 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
             <div className="flex items-end justify-between pt-0.5 sm:pt-1">
               <div>
                 <p className="text-[10px] sm:text-xs text-muted-foreground mb-0.5">A partir de</p>
-                <span className="text-base sm:text-xl font-display font-bold text-foreground">{formatPrice(product.price)}</span>
+                <span className="text-base sm:text-xl font-display font-bold text-foreground inline-flex items-center gap-1.5">
+                  {formatPrice(product.price)}
+                  <PriceFreshnessBadge
+                    priceUpdatedAt={product.priceUpdatedAt}
+                    thresholdDays={product.priceFreshnessThresholdDays}
+                    variant="icon-only"
+                  />
+                </span>
               </div>
               <div className="flex flex-col items-end gap-0.5 sm:gap-1">
                 <span className={cn("stock-indicator text-[10px] sm:text-xs", getStockStatusColor(displayStatus))}>

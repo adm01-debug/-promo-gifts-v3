@@ -28,6 +28,7 @@ import { QuickAddToQuote } from "./QuickAddToQuote";
 import { useFavoritesStore } from "@/stores/useFavoritesStore";
 import { useComparisonStore } from "@/stores/useComparisonStore";
 import type { ExternalVariantStock } from "@/hooks/useExternalVariantStock";
+import { PriceFreshnessBadge } from "./PriceFreshnessBadge";
 import { toast } from "sonner";
 import { showUndoToast, showErrorToast } from "@/utils/undoToast";
 
@@ -347,8 +348,13 @@ export const ProductTableView = memo(function ProductTableView({
                 </td>
                 {/* Price */}
                 <td className="px-3 py-1.5 text-right">
-                  <span className="font-display font-bold text-foreground text-[13px]">
+                  <span className="font-display font-bold text-foreground text-[13px] inline-flex items-center gap-1 justify-end">
                     {formatPrice(product.price)}
+                    <PriceFreshnessBadge
+                      priceUpdatedAt={product.priceUpdatedAt}
+                      thresholdDays={product.priceFreshnessThresholdDays}
+                      variant="icon-only"
+                    />
                   </span>
                 </td>
                 {/* Stock — color-aware */}

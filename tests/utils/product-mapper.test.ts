@@ -120,5 +120,22 @@ describe("product-mapper", () => {
       const result = mapPromobrindToProduct({ ...baseProduct, tags: null } as any);
       expect(result.tags?.publicoAlvo).toEqual([]);
     });
+
+    it("propagates priceUpdatedAt from external DB", () => {
+      const withFreshness = {
+        ...baseProduct,
+        price_updated_at: "2025-01-15T10:00:00.000Z",
+        price_freshness_threshold_days: 30,
+      };
+      const result = mapPromobrindToProduct(withFreshness as any);
+      expect(result.priceUpdatedAt).toBe("2025-01-15T10:00:00.000Z");
+      expect(result.priceFreshnessThresholdDays).toBe(30);
+    });
+
+    it("defaults priceUpdatedAt fields to null when missing", () => {
+      const result = mapPromobrindToProduct(baseProduct as any);
+      expect(result.priceUpdatedAt).toBeNull();
+      expect(result.priceFreshnessThresholdDays).toBeNull();
+    });
   });
 });
