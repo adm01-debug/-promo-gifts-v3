@@ -1,120 +1,107 @@
 
 
-# Testes smoke e funcionais para técnicas + cálculo de preço
+# Selo "Preço atualizado em…" no produto
 
-## Objetivo
+Adiciona um indicador visual da data em que o preço foi atualizado pelo fornecedor, com aviso quando estiver defasado. Dado vem do BD externo (catálogo) — sem duplicar localmente (SSOT).
 
-Travar com testes a regressão do fluxo principal pós-migração: carregar lista de técnicas, carregar opções de personalização de produto e calcular preço — cobrindo payload PT (atual), EN (futuro) e híbrido.
+## 1. Backend / dados
 
-## Estado atual
+- **Coluna no BD externo (`products`)**: usar `price_updated_at` (timestamp). Confirmar nome real consultando o schema do Promobrind no primeiro passo da implementação; se a coluna existente for `preco_atualizado_em`, `last_price_update`, etc., mapear no adapter sem renomear no banco.
+- **Alerta configurável por produto**: adicionar coluna opcional `price_freshness_threshold_days` (smallint, default `NULL`) no mesmo `products`. Quando `NULL`, usar fallback global de **60 dias**.
+  - Se essa coluna ainda não existir, será necessária migração no BD externo (fora do nosso controle direto). Plano: detectar via `shouldFallbackSelect` e degradar suavemente para o fallback de 60 dias enquanto o admin do BD externo não cria a coluna.
+- **Sem mudanças no BD local** (mantém política SSOT).
 
-Já temos:
-- `tests/lib/personalization/` com 35+ testes de adapters, `rpc-contracts`, `safe-coerce` parcial.
-- `tests/hooks/_helpers/smoke-template.ts` (`smokeHook`) e `render-hook-providers.ts`.
-- `tests/components/pricing/QuantityPriceCalculator.test.tsx` como referência de mock de hooks.
+## 2. Camada de tipos e mapeamento
 
-Falta cobrir end-to-end (no nível de hook) o caminho: **rows brutas do bridge → adapter → hook → consumidor**, garantindo que a migração de schema não quebra silenciosamente.
+- `src/lib/external-db/product-types.ts`
+  - Adicionar `price_updated_at?: string | null` e `price_freshness_threshold_days?: number | null` em `PromobrindProduct`.
+  - Incluir os 2 campos em `PRODUCT_SELECT_FIELDS_WITH_SALE`, `PRODUCT_SELECT_FIELDS_LEGACY` e `PRODUCT_SELECT_FIELDS_DETAIL`.
+  - Garantir que `shouldFallbackSelect` já cobre a regex genérica de "column does not exist" (cobre).
+- `src/types/product-catalog.ts` — adicionar:
+  ```ts
+  priceUpdatedAt?: string | null;
+  priceFreshnessThresholdDays?: number | null;
+  ```
+- `src/utils/product-mapper.ts` — propagar os 2 campos no objeto retornado.
 
-## O que será feito
+## 3. Utilitário compartilhado
 
-### 1. Smoke tests dos hooks de leitura
+Novo arquivo `src/utils/price-freshness.ts`:
 
-Arquivo novo: `tests/hooks/tecnicas/useTecnicasList.smoke.test.ts`
-- `smokeHook("useTecnicasList", () => useTecnicasList())` — mock de `invokeExternalDb` retornando `[]`; garante mount sem crash.
-- Variante: mock retornando 3 rows PT antigas → `result.current.data` tem 3 itens com `codigo` E `code` preenchidos.
+```ts
+export type PriceFreshnessStatus = 'fresh' | 'aging' | 'stale' | 'unknown';
+export interface PriceFreshness {
+  status: PriceFreshnessStatus;
+  daysSinceUpdate: number | null;
+  thresholdDays: number;       // 60 por padrão
+  label: string;               // "Preço atualizado há 12 dias"
+  tooltip: string;             // texto longo
+  shouldWarn: boolean;
+}
+export function getPriceFreshness(
+  priceUpdatedAt: string | null | undefined,
+  thresholdDays: number | null | undefined,
+): PriceFreshness;
+```
 
-Arquivo novo: `tests/hooks/useProductCustomizationOptions.smoke.test.ts`
-- Smoke com `productId = null` (não chama RPC) e com mock RPC retornando payload PT canônico.
+Regras:
+- `unknown` → quando `priceUpdatedAt` ausente. Selo neutro "Data de atualização do preço indisponível".
+- `fresh` → ≤ 50% do threshold (ex.: ≤ 30d quando threshold=60). Sem destaque, só tooltip.
+- `aging` → entre 50% e 100% do threshold. Cor `muted-foreground` + ícone `Clock`.
+- `stale` → > threshold. Cor `amber-600` (warning), ícone `AlertTriangle`, copy: "Preço pode estar defasado — confirme com o fornecedor".
 
-Arquivo novo: `tests/hooks/usePrintAreas.smoke.test.ts`
-- Smoke + asserção que `adaptPrintAreaTechniqueRow` foi aplicado (campo `code` presente quando row só tinha `codigo`).
+## 4. Componente UI
 
-### 2. Testes funcionais do cálculo de preço
+Novo `src/components/products/PriceFreshnessBadge.tsx`:
 
-Arquivo novo: `tests/hooks/useCustomizationPrice.functional.test.ts`
+- Props: `priceUpdatedAt`, `thresholdDays`, `variant?: 'inline' | 'compact' | 'icon-only'`.
+- `inline` (PDP, Quick View): texto + ícone, tooltip com data absoluta (`pt-BR`) + dias relativos + threshold ativo.
+- `compact` (Sticky header, Quote line): só "há Nd" + cor.
+- `icon-only` (cards do catálogo): renderiza **apenas** quando `status === 'stale'` ou `aging` — evita poluir cards atualizados. Ícone com `aria-label`.
 
-Mocks:
-- `vi.mock('@/lib/external-rpc')` com `invokeExternalRpc` retornando fixtures controladas.
+A11y: `role="status"` + tooltip via Radix; respeita padrão `var(--primary)` e `font-display`.
 
-Cenários (`renderHook` + `act`):
-- **Happy path PT**: `calculatePrice({ areaId, quantidade: 100, numCores: 2 })` → resolve com `success: true`, `preco_unitario > 0`, `_hasMarkup === true` (após adapter).
-- **Happy path EN**: mesma chamada, payload com chaves `unit_price`/`engraving_value` → adapter normaliza; resultado canônico idêntico.
-- **Error path**: RPC retorna `{ success: false, error: 'no table' }` → `error` populado, `loading: false`, retorno `null`.
-- **Validador**: payload com `markup` ausente → retorno funciona, `window.__personalizationSchemaStats.contractMismatches` incrementa para `fn_get_customization_price`.
-- **Sem dimensão**: chamada sem `larguraCm/alturaCm` → params RPC não contêm `p_largura_cm`.
+## 5. Integração nos consumidores
 
-### 3. Teste funcional reativo
+| Local | Arquivo | Variante | Quando aparece |
+|-|-|-|-|
+| PDP (abaixo do preço) | `src/pages/ProductDetail.tsx` (no header de preço) | `inline` | sempre |
+| Quick View | `src/components/products/ProductQuickView.tsx` | `inline` | sempre |
+| Sticky header | `src/components/products/ProductStickyHeader.tsx` | `compact` | apenas `stale`/`aging` |
+| Card grid | `src/components/products/EnhancedProductCard.tsx` e `ProductCard.tsx` | `icon-only` | apenas `stale`/`aging` |
+| Lista | `src/components/products/ProductListItem.tsx` | `compact` | apenas `stale`/`aging` |
+| Tabela | `src/components/products/ProductTableView.tsx` | `icon-only` na coluna de preço | apenas `stale`/`aging` |
+| Criador de Orçamentos | `src/components/quotes/builder/...` (linha do item) | `compact` | apenas `stale` |
 
-Arquivo novo: `tests/hooks/useCustomizationPriceReactive.functional.test.ts`
-- Verifica debounce de 500ms (`vi.useFakeTimers`).
-- Mudança rápida em `numCores` (1→2→3) dispara apenas 1 chamada RPC após `vi.advanceTimersByTime(500)`.
-- `usaDimensao: true` sem largura/altura → não chama RPC, `price === null`.
+## 6. Testes
 
-### 4. Teste de integração lista → cálculo
+- `tests/utils/price-freshness.test.ts`: cobre `unknown`, `fresh`, `aging`, `stale`, threshold custom (30/60/90), datas inválidas.
+- `tests/utils/product-mapper.test.ts`: estender com asserções para `priceUpdatedAt`/`priceFreshnessThresholdDays`.
+- `tests/components/PriceFreshnessBadge.test.tsx`: render por variante + classes de cor para cada status.
 
-Arquivo novo: `tests/integration/tecnicas-pricing-flow.test.tsx`
+## 7. Documentação
 
-Encadeia 2 hooks num componente de teste:
-1. `useTecnicasList()` carrega 2 técnicas mockadas (uma com `code`, outra com `codigo`).
-2. Para cada técnica, simula chamada `useCustomizationPriceCalculator().calculatePrice({ areaId: t.id, quantidade: 50 })`.
-3. Asserções: ambas resolvem; `result.totalPrice > 0`; nenhum `console.error` dispara.
-
-Garante que o **shape canônico produzido pelos adapters de row** é compatível com o **shape esperado pelos hooks de preço**.
-
-### 5. Atualizar/expandir testes existentes de adapter
-
-`tests/lib/personalization/adapters/price-response.adapter.test.ts`:
-- Adicionar caso: payload com `markup: null` → resultado tem `markup` com defaults (após implementação do passo 4 do plano anterior; se ainda não houver defaults, marcar `it.skip` com TODO claro).
-- Adicionar caso: payload com `valor_gravacao: "12.50"` (string) → coerção para number.
-
-`tests/lib/personalization/adapters/raw-row.adapter.test.ts`:
-- Adicionar caso `adaptTabelaPrecoRow` com colunas EN puras (`code`, `setup_price`, `handling_price`, `max_colors`).
-- Adicionar caso `adaptFaixaPrecoRow` com payload híbrido (`min_quantity` + `preco_unitario`).
-
-### 6. Fixtures compartilhadas
-
-Arquivo novo: `tests/fixtures/personalization-payloads.ts`
-
-Exporta:
-- `PRICE_PAYLOAD_PT_V6` — payload canônico atual completo.
-- `PRICE_PAYLOAD_EN_FUTURE` — mesmo conteúdo com chaves EN.
-- `PRICE_PAYLOAD_HYBRID` — mistura.
-- `OPTIONS_PAYLOAD_PT` — `fn_get_product_customization_options` com 2 locations × 3 options.
-- `TECNICA_ROW_PT`, `TECNICA_ROW_EN`, `TECNICA_ROW_HYBRID`.
-- `TABELA_PRECO_ROW_*`, `FAIXA_PRECO_ROW_*`.
-
-Reutilizadas pelos testes acima, garantindo single source of truth para os payloads de teste.
-
-### 7. Helper de teste para hooks com providers
-
-Estender `tests/hooks/_helpers/render-hook-providers.ts` (se necessário) para aceitar QueryClient pré-populado nos testes de integração — usa `QueryClient` com `retry: false, gcTime: 0` para evitar flakiness.
-
-### 8. Verificação
-
-- `npx vitest run tests/hooks tests/integration tests/lib/personalization` — todos verdes.
-- Total esperado: ~50 testes (35 atuais + ~15 novos).
-- `npx tsc --noEmit` limpo.
-- Smoke manual: nenhum.
+- Atualizar `mem://integrations/product-image-standards-v2` ou criar nova memória curta `mem://features/price-freshness-indicator` registrando a regra (60d default, configurável por produto, fonte SSOT externa).
 
 ## Arquivos tocados
 
-**Criados (8)**:
-- `tests/hooks/tecnicas/useTecnicasList.smoke.test.ts`
-- `tests/hooks/useProductCustomizationOptions.smoke.test.ts`
-- `tests/hooks/usePrintAreas.smoke.test.ts`
-- `tests/hooks/useCustomizationPrice.functional.test.ts`
-- `tests/hooks/useCustomizationPriceReactive.functional.test.ts`
-- `tests/integration/tecnicas-pricing-flow.test.tsx`
-- `tests/fixtures/personalization-payloads.ts`
-- (opcional) extensão de `tests/hooks/_helpers/render-hook-providers.ts`
+**Criados (3)**:
+- `src/utils/price-freshness.ts`
+- `src/components/products/PriceFreshnessBadge.tsx`
+- `tests/utils/price-freshness.test.ts` + `tests/components/PriceFreshnessBadge.test.tsx`
 
-**Editados (2)**:
-- `tests/lib/personalization/adapters/price-response.adapter.test.ts`
-- `tests/lib/personalization/adapters/raw-row.adapter.test.ts`
+**Editados (~10)**:
+- `src/lib/external-db/product-types.ts` (3 SELECTs + tipo)
+- `src/utils/product-mapper.ts`
+- `src/types/product-catalog.ts`
+- `src/pages/ProductDetail.tsx`
+- `src/components/products/{ProductQuickView, ProductStickyHeader, EnhancedProductCard, ProductCard, ProductListItem, ProductTableView}.tsx`
+- 1 componente do Quote Builder (linha do item)
+- `tests/utils/product-mapper.test.ts`
 
-## Compatibilidade
+## Compatibilidade e riscos
 
-- **Zero impacto em runtime**: só adiciona testes.
-- Fixtures cobrem PT/EN/híbrido — quando o back finalmente migrar, o mesmo conjunto de testes valida a transição sem reescrita.
-- Falhas futuras em `contractMismatches` aparecerão como assertion failure no teste do passo 2, dando alarme antes de chegar em produção.
+- **Zero breaking change**: campos opcionais; ausência → comportamento neutro ("indisponível" silencioso nos cards, badge sutil na PDP).
+- Se `price_freshness_threshold_days` ainda não existir no BD externo, o fallback automático para 60d garante operação imediata; basta o admin do BD externo criar a coluna depois para habilitar a personalização por produto.
+- SSOT preservado: nada é replicado no BD local.
 
