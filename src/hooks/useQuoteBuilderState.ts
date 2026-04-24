@@ -551,6 +551,7 @@ export function useQuoteBuilderState() {
     toggleExpanded, handlePersonalizationsChange,
     handleProductClick, addProductWithColor,
     updateItemQuantity, updateItemPrice, removeItem,
+    confirmItemPrice, confirmAllStalePrices,
     applyTemplate, getTemplateItems, handleSaveQuote,
   };
 }
