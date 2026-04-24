@@ -16,96 +16,73 @@ import type {
   TecnicaResumo,
   TecnicaFiltros,
 } from '@/types/tecnica-unificada';
+import { adaptTecnicaRow, adaptTecnicaRows, type TecnicaGravacaoCanonical } from '@/lib/personalization/adapters';
 
 /**
- * Shape retornado pelo bridge após mapTechniqueRowToLegacyShape
- * Combina campos legacy + campos reais da tabela_preco_gravacao_oficial
+ * Shape retornado pelo bridge, **após** passar pelo adapter — contém ambos
+ * os nomes (PT legado + EN canônico). Consumidores podem ler qualquer um.
  */
-interface TecnicaBridgeResponse {
-  id: string;
-  // Campos legacy (mapeados pelo bridge)
-  codigo: string;
-  codigo_interno?: string;
-  nome: string;
-  slug?: string;
-  descricao?: string | null;
-  permite_cores: boolean;
-  max_cores?: number | string | null;
-  cobra_por_cor: boolean;
-  cobra_por_area: boolean;
-  cobra_por_pontos: boolean;
-  requer_setup: boolean;
-  tipo_setup?: string;
-  tempo_producao_dias?: number | null;
-  ordem_exibicao?: number;
-  ativo: boolean;
-  created_at?: string;
-  updated_at?: string;
-  // Campos extras da tabela real
-  grupo_tecnica?: string;
-  nome_grupo?: string;
-  slug_grupo?: string;
-  ordem_grupo?: number;
-  custo_setup?: number;
-  custo_aplicacao?: number;
-  cobra_aplicacao?: boolean;
-  // Campos legacy (personalization_techniques shape)
-  setup_price?: number;
-  handling_price?: number;
-  setup_cost?: number;
-  min_quantity?: number | null;
-  estimated_days?: number | null;
-  display_order?: number;
-  // Campos da tabela real
-  area_maxima_texto?: string;
-  is_curved?: boolean;
-  aplica_superficie_curva?: boolean;
-}
+type TecnicaBridgeResponse = TecnicaGravacaoCanonical;
 
 /**
- * Transforma resposta do bridge para TecnicaUnificada
+ * Transforma resposta canônica do adapter para TecnicaUnificada.
+ * Lê tanto nomes antigos (PT) quanto novos (EN), com preferência ao EN
+ * quando ambos estão presentes.
  */
 function bridgeToTecnicaUnificada(row: TecnicaBridgeResponse): TecnicaUnificada {
-  const maxCores = typeof row.max_cores === 'string' 
-    ? parseInt(row.max_cores, 10) 
-    : (row.max_cores ?? 0);
+  const maxCoresRaw = row.max_colors ?? row.max_cores;
+  const maxCores = typeof maxCoresRaw === 'string'
+    ? parseInt(maxCoresRaw, 10)
+    : (maxCoresRaw ?? 0);
+
+  const codigo = row.code ?? row.codigo ?? '';
+  const nome = row.name ?? row.nome ?? '';
+  const ativo = row.active ?? row.ativo ?? true;
+  const ordem = row.display_order ?? row.ordem_exibicao ?? row.ordem_grupo ?? 0;
+
+  // Setup: preferência custo_setup → setup_price → setup_cost (legacy)
+  const setupCost = row.custo_setup ?? row.setup_price ?? (row as { setup_cost?: number }).setup_cost ?? 0;
+  const handling = row.handling_price ?? row.custo_manuseio ?? 0;
+  const minQty = (row as { min_quantity?: number | null }).min_quantity ?? row.quantidade_corte ?? null;
+  const prazo = row.production_days ?? row.tempo_producao_dias ?? (row as { estimated_days?: number | null }).estimated_days ?? null;
+  const curva = row.applies_to_curved ?? row.aplica_superficie_curva ?? row.is_curved ?? false;
 
   return {
     id: row.id,
-    codigo: row.codigo || '',
-    codigoFornecedor: row.codigo_interno || null,
+    codigo: codigo || '',
+    codigoFornecedor: row.internal_code ?? row.codigo_interno ?? null,
     codigoStricker: null,
-    nome: row.nome,
-    descricao: row.descricao || null,
-    categoria: row.nome_grupo || row.grupo_tecnica || 'geral',
+    nome: nome || '',
+    descricao: row.description ?? row.descricao ?? null,
+    categoria: row.group_name ?? row.nome_grupo ?? row.group ?? row.grupo_tecnica ?? 'geral',
     icone: null,
-    permiteCores: row.permite_cores ?? (maxCores > 0),
+    permiteCores: row.allows_colors ?? row.permite_cores ?? (maxCores > 0),
     minCores: 1,
     maxCores: maxCores || 0,
-    precoPorCor: row.cobra_por_cor ?? false,
+    precoPorCor: row.charges_per_color ?? row.cobra_por_cor ?? false,
     precoCorExtra: 0,
-    precoPorArea: row.cobra_por_area ?? false,
-    precoPorPontos: row.cobra_por_pontos ?? false,
+    precoPorArea: row.price_by_area ?? row.cobra_por_area ?? false,
+    precoPorPontos: row.price_by_points ?? row.cobra_por_pontos ?? false,
     areaMinimaCm2: null,
-    areaMaximaCm2: null,
+    areaMaximaCm2: row.max_area_cm2 ?? row.area_maxima_cm2 ?? null,
     pontosMaximos: null,
-    custoSetup: row.custo_setup ?? row.setup_price ?? 0,
-    custoManuseio: row.handling_price ?? 0,
+    custoSetup: typeof setupCost === 'number' ? setupCost : 0,
+    custoManuseio: typeof handling === 'number' ? handling : 0,
     multiplicadorCusto: 1,
-    quantidadeMinima: row.min_quantity ?? null,
-    prazoEstimado: row.tempo_producao_dias ?? row.estimated_days ?? null,
-    aplicaSuperficieCurva: row.is_curved ?? row.aplica_superficie_curva ?? false,
+    quantidadeMinima: minQty,
+    prazoEstimado: prazo,
+    aplicaSuperficieCurva: !!curva,
     promptSuffix: null,
-    ativo: row.ativo ?? true,
-    ordemExibicao: row.ordem_exibicao ?? row.ordem_grupo ?? row.display_order ?? 0,
+    ativo: !!ativo,
+    ordemExibicao: typeof ordem === 'number' ? ordem : 0,
     fonte: 'externo',
-    criadoEm: row.created_at || '',
-    atualizadoEm: row.updated_at || '',
+    criadoEm: row.created_at ?? '',
+    atualizadoEm: row.updated_at ?? '',
   };
 }
 
 /**
- * Busca técnicas do BD EXTERNO via edge function
+ * Busca técnicas do BD EXTERNO via edge function (já passa por adapter).
  */
 async function fetchTecnicasExterno(): Promise<TecnicaBridgeResponse[]> {
   const { data, error } = await supabase.functions.invoke('external-db-bridge', {
@@ -126,7 +103,7 @@ async function fetchTecnicasExterno(): Promise<TecnicaBridgeResponse[]> {
     throw new Error(data?.error || 'Erro desconhecido ao buscar técnicas');
   }
 
-  return data.data?.records || [];
+  return adaptTecnicaRows(data.data?.records || []);
 }
 
 /**
