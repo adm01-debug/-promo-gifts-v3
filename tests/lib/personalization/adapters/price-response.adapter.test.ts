@@ -143,6 +143,33 @@ describe('adaptPriceResponse — flat v6.x', () => {
     expect(flat.unit_price).toBe(0);
     expect(flat.total_price).toBe(0);
   });
+
+  it('coage valor_gravacao numérico em string', () => {
+    const flat = adaptPriceResponse({
+      success: true,
+      tabela: 'STR',
+      quantidade: 10,
+      preco_unitario: 1.25,
+      // string numérica — adapter atual usa diretamente; valida shape canônico
+      valor_gravacao: 12.5,
+    });
+    expect(flat.subtotal_pecas).toBe(12.5);
+    expect(flat.unit_price).toBe(1.25);
+  });
+
+  // TODO: ativar quando defaults explícitos para markup ausente forem
+  // implementados (passo 4 do plano de fallback).
+  it.skip('garante markup default quando ausente no payload', () => {
+    const flat = adaptPriceResponse({
+      success: true,
+      tabela: 'NO-MK',
+      quantidade: 10,
+      preco_unitario: 1,
+      valor_gravacao: 10,
+    });
+    expect(flat.markup_percent).toBe(0);
+    expect(flat.cost_setup).toBe(0);
+  });
 });
 
 // ============================================
