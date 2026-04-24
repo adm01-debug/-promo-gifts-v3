@@ -47,12 +47,13 @@ export function useCustomizationPriceCalculator() {
         'fn_get_customization_price',
         rpcParams
       );
-      
+
       setLoading(false);
       if (!result?.success) {
         setError(result?.error || 'Erro no cálculo de preço');
         return null;
       }
+      validateRpcPayload(PRICE_CONTRACT, result as unknown as Record<string, unknown>);
       return result;
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro ao calcular preço';
