@@ -79,6 +79,11 @@ export interface Product {
   groups?: Array<{ id: number; name: string }>;
   variations?: any[];
   kitItems?: KitComponent[];
+
+  /** ISO timestamp of the last price update at the supplier (SSOT: external DB). */
+  priceUpdatedAt?: string | null;
+  /** Per-product override (in days) for the "stale price" alert threshold. Default = 60. */
+  priceFreshnessThresholdDays?: number | null;
 }
 
 export interface KitComponent {
