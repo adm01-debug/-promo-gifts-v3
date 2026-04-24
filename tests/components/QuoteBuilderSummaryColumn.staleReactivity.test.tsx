@@ -105,6 +105,17 @@ function getConfirmAllButton(): HTMLElement | null {
   return screen.queryByRole("button", { name: /confirmar todos/i });
 }
 
+/**
+ * O CTA "Confirmei com fornecedor" do badge inline pode receber sufixos do
+ * tooltip (data, status). Filtramos pelo texto literal e ignoramos o chip do
+ * topo (que tem "preço a confirmar" no nome, sem "Confirmei").
+ */
+function getInlineConfirmCtas(): HTMLElement[] {
+  return screen
+    .getAllByRole("button")
+    .filter((b) => /^confirmei com fornecedor/i.test(b.textContent ?? ""));
+}
+
 describe("QuoteBuilderSummaryColumn — reatividade do chip + botão de confirmar todos", () => {
   it("monta com 2 stale → chip mostra '2' e botão 'Confirmar todos' aparece", () => {
     render(
