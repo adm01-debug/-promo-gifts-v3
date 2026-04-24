@@ -185,6 +185,8 @@ export function PriceFreshnessBadge({
   variant = "inline",
   className,
   alwaysShow = false,
+  onConfirm,
+  confirmedAt,
 }: PriceFreshnessBadgeProps) {
   const freshness = getPriceFreshness(priceUpdatedAt, thresholdDays);
   const { Icon, color } = STATUS_STYLES[freshness.status];
@@ -193,6 +195,13 @@ export function PriceFreshnessBadge({
   // Para o resto do catálogo (default global de 60d) o badge segue limpo.
   const explicitThreshold = hasExplicitThreshold(thresholdDays);
   const limitSuffix = explicitThreshold ? ` (limite ${thresholdDays}d)` : "";
+
+  // Estado "confirmado pelo vendedor" — substitui o alerta stale/aging por um
+  // pill verde discreto. Só faz sentido quando o item realmente entrava em
+  // alerta; para `fresh`/`unknown` ignoramos (não polui o catálogo padrão).
+  const isConfirmed = Boolean(confirmedAt) && freshness.shouldWarn;
+  const canOfferConfirm =
+    typeof onConfirm === "function" && freshness.shouldWarn && !isConfirmed;
 
   // Quiet variants only render when there's something worth flagging.
   if (
