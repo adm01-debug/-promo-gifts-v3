@@ -400,7 +400,7 @@ export function PriceFreshnessBadge({
     );
   }
 
-  return (
+  const tooltipped = (
     <TooltipProvider delayDuration={150}>
       <Tooltip>
         <TooltipTrigger asChild>{body}</TooltipTrigger>
@@ -412,5 +412,35 @@ export function PriceFreshnessBadge({
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
+  );
+
+  // Sem ação individual configurada → comportamento clássico (somente leitura).
+  if (!canOfferConfirm) return tooltipped;
+
+  // Com ação configurada → agrupa o badge + botão "Confirmei com fornecedor".
+  // Em variants compactas o CTA encolhe para "Confirmei" para caber em linha.
+  const ctaLabel =
+    variant === "compact" || variant === "icon-only"
+      ? "Confirmei"
+      : "Confirmei com fornecedor";
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      {tooltipped}
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          onConfirm?.();
+        }}
+        className={cn(
+          "inline-flex items-center gap-1 rounded-full border-[1.5px] border-emerald-300 bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 transition-colors hover:bg-emerald-100 hover:text-emerald-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 dark:border-emerald-500/50 dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20",
+        )}
+        aria-label="Confirmar que validei este preço com o fornecedor"
+      >
+        <ShieldCheck className="h-3 w-3" aria-hidden="true" />
+        <span>{ctaLabel}</span>
+      </button>
+    </span>
   );
 }
