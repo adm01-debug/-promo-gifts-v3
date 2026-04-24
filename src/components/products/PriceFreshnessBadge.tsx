@@ -33,6 +33,70 @@ const STATUS_LABELS: Record<PriceFreshnessStatus, string> = {
   unknown: "Sem informação",
 };
 
+/**
+ * Aria-label rico para leitores de tela. O label do util é otimizado para
+ * UI ("Atualizado há 5 dias"), mas em `icon-only`/`compact` o leitor de
+ * tela não tem o contexto visual do "$ 19,90" ao lado — precisa ouvir
+ * **Preço** + status legível + data por extenso quando disponível. Para
+ * contexto mais rico do que aria-label sozinho consegue, complementamos
+ * com `title` (lido por SRs como descrição auxiliar e útil offline).
+ */
+function buildAccessibleLabel(
+  freshness: PriceFreshness,
+  priceUpdatedAt?: string | Date | null,
+): { ariaLabel: string; title: string } {
+  const dateValue = priceUpdatedAt
+    ? priceUpdatedAt instanceof Date
+      ? priceUpdatedAt
+      : new Date(priceUpdatedAt)
+    : null;
+  const isValid = dateValue && !Number.isNaN(dateValue.getTime());
+  const longDate = isValid ? formatPriceDateLong(dateValue) : null;
+  const days = freshness.daysSinceUpdate;
+  const relative =
+    days === null
+      ? null
+      : days <= 0
+        ? "hoje"
+        : days === 1
+          ? "há 1 dia"
+          : `há ${days} dias`;
+
+  // Frase principal lida pelo screen reader (curta e direta).
+  let ariaLabel: string;
+  switch (freshness.status) {
+    case "fresh":
+      ariaLabel = longDate
+        ? `Preço atualizado pelo fornecedor em ${longDate}, ${relative}.`
+        : "Preço atualizado pelo fornecedor recentemente.";
+      break;
+    case "aging":
+      ariaLabel = longDate
+        ? `Preço próximo do limite de validade. Última atualização do fornecedor em ${longDate}, ${relative}. Recomendamos confirmar antes de fechar o orçamento.`
+        : "Preço próximo do limite de validade. Recomendamos confirmar com o fornecedor.";
+      break;
+    case "stale":
+      ariaLabel = longDate
+        ? `Atenção: preço possivelmente defasado. Última atualização do fornecedor em ${longDate}, ${relative}. Confirme o valor antes de enviar o orçamento ao cliente.`
+        : "Atenção: preço possivelmente defasado. Confirme com o fornecedor antes de enviar o orçamento.";
+      break;
+    case "unknown":
+    default: {
+      // Diferencia entre data ausente e data inválida (ambas caem em
+      // `unknown` na utility, mas o `freshness.label` carrega a causa).
+      const isInvalid = /inválida/i.test(freshness.label);
+      ariaLabel = isInvalid
+        ? "Preço com data de atualização inválida informada pelo fornecedor. Confirme o valor antes de enviar o orçamento."
+        : "Preço com data de atualização não informada pelo fornecedor. Confirme o valor antes de enviar o orçamento.";
+    }
+  }
+
+  // `title` espelha o aria-label para que o tooltip nativo do navegador
+  // funcione mesmo quando o Radix Tooltip não estiver disponível (ex.: foco
+  // por teclado em browsers sem suporte a hover).
+  return { ariaLabel, title: ariaLabel };
+}
+
 /** Data + hora exatas no fuso local do usuário (PT-BR). Ex.: "24/04/2026 09:32". */
 function formatExactDateTime(value: string | Date): string | null {
   const d = value instanceof Date ? value : new Date(value);
@@ -165,9 +229,12 @@ const STATUS_STYLES: Record<
   PriceFreshnessStatus,
   { color: string; Icon: typeof Clock }
 > = {
-  fresh: { color: "text-emerald-600 dark:text-emerald-500", Icon: CheckCircle2 },
-  aging: { color: "text-muted-foreground", Icon: Clock },
-  stale: { color: "text-amber-600 dark:text-amber-500", Icon: AlertTriangle },
+  // amber-700 garante contraste ≥ 4.5:1 (WCAG AA) sobre fundos claros e
+  // ≥ 4.6:1 com amber-300 no dark mode — necessário para aging/stale que
+  // sempre carregam um ícone de alerta junto ao preço.
+  fresh: { color: "text-emerald-700 dark:text-emerald-400", Icon: CheckCircle2 },
+  aging: { color: "text-amber-700 dark:text-amber-300", Icon: Clock },
+  stale: { color: "text-amber-700 dark:text-amber-300", Icon: AlertTriangle },
   unknown: { color: "text-muted-foreground", Icon: HelpCircle },
 };
 
@@ -293,7 +360,13 @@ export function PriceFreshnessBadge({
     );
   }
 
-  const ariaLabel = freshness.label;
+  const { ariaLabel, title } = buildAccessibleLabel(freshness, priceUpdatedAt);
+
+  // Anel de foco visível padronizado para os triggers compactos. Usa o token
+  // `--ring` para herdar a cor do tema (light/dark/skins) e respeitar o
+  // contraste configurado pelo design system.
+  const focusRing =
+    "outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-sm";
 
   let body: React.ReactNode;
   if (variant === "icon-only") {
@@ -301,9 +374,12 @@ export function PriceFreshnessBadge({
       <span
         role="status"
         aria-label={ariaLabel}
+        title={title}
+        tabIndex={0}
         className={cn(
           "inline-flex items-center justify-center",
           color,
+          focusRing,
           className,
         )}
       >
@@ -319,9 +395,12 @@ export function PriceFreshnessBadge({
       <span
         role="status"
         aria-label={ariaLabel}
+        title={title}
+        tabIndex={0}
         className={cn(
           "inline-flex items-center gap-1 text-xs font-medium",
           color,
+          focusRing,
           className,
         )}
       >
@@ -426,6 +505,7 @@ export function PriceFreshnessBadge({
       <span
         role="status"
         aria-label={ariaLabel}
+        title={title}
         className={cn(
           "inline-flex items-center gap-1.5 text-xs font-medium",
           color,

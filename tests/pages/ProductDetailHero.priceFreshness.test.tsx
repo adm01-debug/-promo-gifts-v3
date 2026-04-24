@@ -72,8 +72,9 @@ describe("ProductDetailHero — price freshness badge", () => {
       makeRawProduct({ price_updated_at: daysAgo(5) }),
     );
     const badge = screen.getByRole("status");
-    // Copy curto e consistente entre PDP e Quick View
-    expect(badge.textContent).toMatch(/atualizado há \d+ dias?/i);
+    // Novo padrão: "Atualizado em DD/MM/AAAA · há N dias" no PDP fresh.
+    expect(badge.textContent).toMatch(/atualizado em \d{2}\/\d{2}\/\d{4}/i);
+    expect(badge.textContent).toMatch(/há \d+ dias?/i);
   });
 
   it("renders aging state with amber styling when within 50–100% of threshold", () => {
