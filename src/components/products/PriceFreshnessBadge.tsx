@@ -500,6 +500,7 @@ export function PriceFreshnessBadge({
       <span
         role="status"
         aria-label={ariaLabel}
+        title={title}
         className={cn(
           "inline-flex items-center gap-1.5 text-xs font-medium",
           color,
