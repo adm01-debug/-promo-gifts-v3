@@ -164,6 +164,7 @@ export default function AdminConexoesPage() {
             <HeaderSeveritySummary className="mr-1 hidden sm:inline-flex" />
             <ZoneCommandTrigger onOpen={() => setPaletteOpen(true)} />
             <GlobalRefreshFromDbButton onRefreshed={handleGlobalRefreshed} />
+            <TestAllConnectionsButton />
             <SmokeTestChecklist availableSecrets={secrets} />
           </header>
 
