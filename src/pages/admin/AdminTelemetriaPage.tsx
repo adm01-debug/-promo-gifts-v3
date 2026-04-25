@@ -65,6 +65,9 @@ const ColdStartRetriesPanel = lazy(() =>
 const BridgesLiveCard = lazy(() =>
   import('@/components/admin/telemetry/BridgesLiveCard').then((m) => ({ default: m.BridgesLiveCard })),
 );
+const ColdVsWarmCrmCard = lazy(() =>
+  import('@/components/admin/telemetry/ColdVsWarmCrmCard').then((m) => ({ default: m.ColdVsWarmCrmCard })),
+);
 
 
 const getSeverityBadge = (severity: string) => {
@@ -179,6 +182,11 @@ export default function AdminTelemetriaPage() {
         {/* Telemetria client-side ao vivo das chamadas às bridges (external/CRM) */}
         <Suspense fallback={<CardSkeleton height={260} label="Carregando telemetria das bridges" />}>
           <BridgesLiveCard />
+        </Suspense>
+
+        {/* Cold vs Warm path do isolate atual do crm-db-bridge (poll ?op=diag) */}
+        <Suspense fallback={<CardSkeleton height={260} label="Carregando snapshot cold/warm" />}>
+          <ColdVsWarmCrmCard />
         </Suspense>
 
 

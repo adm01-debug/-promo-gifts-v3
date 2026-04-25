@@ -17,10 +17,32 @@ let cachedCrmClient: SupabaseClient | null = null;
 let crmWarmupPromise: Promise<void> | null = null;
 let crmWarmupCompleted = false;
 
+// ─── Métricas de cold vs warm path (vida do isolate) ──────────────────
+// Todas em ms; null quando ainda não medido. Reiniciam a cada cold start
+// porque o isolate inteiro é descartado pelo runtime entre invocações ociosas.
+const isolateBootedAt = Date.now();              // wall-clock do boot
+const isolateMonoStart = performance.now();      // monotônico, base para deltas
+let clientBuildMs: number | null = null;         // tempo p/ instanciar o SupabaseClient
+let warmupStartedAtMs: number | null = null;     // delta desde boot quando warmup começou
+let warmupMs: number | null = null;              // duração do warmup query
+let warmupOk = false;
+let warmupError: string | null = null;
+let firstRequestMs: number | null = null;        // duração da 1ª request real (pós-boot)
+let firstRequestStartedAtMs: number | null = null; // delta desde boot quando 1ª request entrou
+let requestCount = 0;                            // total de requests recebidas pelo isolate
+let coldRequestCount = 0;                        // requests marcadas como was_cold
+
 function buildCrmClient(url: string, key: string): SupabaseClient {
-  return createClient(url, key, {
+  const t0 = performance.now();
+  const client = createClient(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
+  // Só registra a primeira construção (singleton) — chamadas subsequentes não acontecem.
+  if (clientBuildMs === null) {
+    clientBuildMs = Math.round(performance.now() - t0);
+    console.log(`[crm-boot] client_build_ms=${clientBuildMs}`);
+  }
+  return client;
 }
 
 function getCrmClient(): SupabaseClient | null {
@@ -42,24 +64,34 @@ function getCrmClient(): SupabaseClient | null {
  */
 function warmupCrmClient(): Promise<void> {
   if (crmWarmupPromise) return crmWarmupPromise;
+  warmupStartedAtMs = Math.round(performance.now() - isolateMonoStart);
   crmWarmupPromise = (async () => {
+    const t0 = performance.now();
     try {
       const client = getCrmClient();
       if (!client) {
-        console.warn('[crm-boot-warmup] ⚠️ CRM_SUPABASE_URL/KEY not configured');
+        warmupError = 'CRM_SUPABASE_URL/KEY not configured';
+        console.warn(`[crm-boot-warmup] ⚠️ ${warmupError}`);
+        warmupMs = Math.round(performance.now() - t0);
         return;
       }
-      const t0 = performance.now();
       const { error } = await client.from('companies').select('id').limit(1);
-      const ms = Math.round(performance.now() - t0);
+      warmupMs = Math.round(performance.now() - t0);
       if (error) {
-        console.warn(`[crm-boot-warmup] ⚠️ ${error.message} (${ms}ms)`);
+        warmupError = error.message;
+        console.warn(`[crm-boot-warmup] ⚠️ warmup_ms=${warmupMs} error="${error.message}"`);
       } else {
-        console.log(`[crm-boot-warmup] ✅ crm client ready (${ms}ms)`);
+        warmupOk = true;
         crmWarmupCompleted = true;
+        console.log(
+          `[crm-boot-warmup] ✅ ready client_build_ms=${clientBuildMs} ` +
+            `warmup_started_at_ms=${warmupStartedAtMs} warmup_ms=${warmupMs}`,
+        );
       }
     } catch (e) {
-      console.warn(`[crm-boot-warmup] ⚠️ ${e instanceof Error ? e.message : String(e)}`);
+      warmupMs = Math.round(performance.now() - t0);
+      warmupError = e instanceof Error ? e.message : String(e);
+      console.warn(`[crm-boot-warmup] ⚠️ warmup_ms=${warmupMs} ${warmupError}`);
     }
   })();
   return crmWarmupPromise;
@@ -85,33 +117,65 @@ function jsonResponse(body: unknown, status = 200): Response {
 }
 
 /**
- * Detecta se a request é um ping de diagnóstico.
- * Aceita GET com `?op=ping` (ou `?ping=1`) ou POST com `{ "operation": "ping" }`.
- * Não levanta erro nem consome o body se não houver match — preserva o fluxo normal.
+ * Detecta operações de diagnóstico (`ping` | `diag`) sem consumir o body original.
+ * Aceita querystring (`?op=ping`, `?op=diag`, `?ping=1`, `?diag=1`) ou
+ * body JSON `{ "operation": "ping" | "diag" }`.
  */
-async function isPingRequest(req: Request): Promise<boolean> {
-  // Query string (funciona para GET e POST)
+async function detectDiagOp(req: Request): Promise<"ping" | "diag" | null> {
+  // Query string
   try {
     const url = new URL(req.url);
-    if (url.searchParams.get("op") === "ping" || url.searchParams.get("ping") === "1") {
-      return true;
-    }
+    const op = url.searchParams.get("op");
+    if (op === "ping" || op === "diag") return op;
+    if (url.searchParams.get("ping") === "1") return "ping";
+    if (url.searchParams.get("diag") === "1") return "diag";
   } catch { /* ignore */ }
 
-  // Body JSON (apenas POST/PUT/PATCH com content-type JSON).
-  // ATENÇÃO: clonamos a request para não consumir o body original.
+  // Body JSON (POST/PUT/PATCH apenas; clonamos para não consumir o original)
   if (req.method !== "GET" && req.method !== "HEAD") {
     const ct = req.headers.get("content-type") || "";
     if (ct.includes("application/json")) {
       try {
         const cloned = req.clone();
         const peek = await cloned.json() as { operation?: unknown };
-        if (peek && peek.operation === "ping") return true;
-      } catch { /* corpo inválido / vazio — não é ping */ }
+        if (peek?.operation === "ping" || peek?.operation === "diag") return peek.operation;
+      } catch { /* corpo inválido — não é diag */ }
     }
   }
-  return false;
+  return null;
 }
+
+/**
+ * Snapshot completo de métricas de boot/runtime do isolate atual.
+ * Cada isolate tem sua própria vida — quando o runtime descarta o isolate
+ * por ociosidade, o próximo cold start gera novos valores.
+ */
+function buildDiagSnapshot() {
+  const now = Date.now();
+  return {
+    ok: true,
+    ts: now,
+    warm: crmWarmupCompleted,
+    isolate: {
+      booted_at: isolateBootedAt,
+      age_ms: now - isolateBootedAt,
+      request_count: requestCount,
+      cold_request_count: coldRequestCount,
+    },
+    boot: {
+      client_build_ms: clientBuildMs,
+      warmup_started_at_ms: warmupStartedAtMs,
+      warmup_ms: warmupMs,
+      warmup_ok: warmupOk,
+      warmup_error: warmupError,
+    },
+    runtime: {
+      first_request_started_at_ms: firstRequestStartedAtMs,
+      first_request_ms: firstRequestMs,
+    },
+  };
+}
+
 
 // ============================================
 // CONSTANTS
@@ -674,25 +738,33 @@ Deno.serve(async (req) => {
   }
 
   // ─────────────────────────────────────────────────────────────────
-  // PING — endpoint de diagnóstico SEMPRE disponível.
-  // Faz BYPASS deliberado de:
-  //   • circuit-breaker (queremos inspecionar saúde mesmo com circuito aberto)
-  //   • autenticação JWT (diagnóstico precisa funcionar pré-login)
-  //   • bot protection / rate limit (probes externos podem ser frequentes)
-  //   • acesso ao banco CRM externo (ping não toca o upstream)
+  // PING / DIAG — endpoints de diagnóstico SEMPRE disponíveis.
+  // BYPASS deliberado de circuit-breaker, JWT, bot-protection e CRM externo.
   //
-  // Aceita: GET /?op=ping  ou  POST { "operation": "ping" }
-  // Resposta: { ok: true, ts: <epoch ms>, warm: <boolean> }
-  //   - `warm` = true quando o warmup do isolate concluiu com sucesso
-  //     (singleton CRM client + handshake TLS + schema cache prontos).
+  //   GET  ?op=ping  | POST { operation:"ping" }  → { ok, ts, warm }
+  //   GET  ?op=diag  | POST { operation:"diag" }  → snapshot completo de
+  //     métricas de cold vs warm path do isolate atual:
+  //       boot.client_build_ms    — tempo p/ instanciar o SupabaseClient
+  //       boot.warmup_started_at_ms — delta desde boot quando warmup começou
+  //       boot.warmup_ms          — duração do warmup query
+  //       boot.warmup_ok / warmup_error
+  //       runtime.first_request_ms — duração da 1ª request real pós-boot
+  //       isolate.age_ms / request_count / cold_request_count
   // ─────────────────────────────────────────────────────────────────
-  if (await isPingRequest(req)) {
-    return jsonResponse({
-      ok: true,
-      ts: Date.now(),
-      warm: crmWarmupCompleted,
-    });
+  const diagOp = await detectDiagOp(req);
+  if (diagOp === "ping") {
+    return jsonResponse({ ok: true, ts: Date.now(), warm: crmWarmupCompleted });
   }
+  if (diagOp === "diag") {
+    return jsonResponse(buildDiagSnapshot());
+  }
+
+  // Marca início da request real (pós-diag) para medir cold vs warm path.
+  // `was_cold` = true para a 1ª request real após o boot do isolate.
+  const reqStartedAt = performance.now();
+  const wasCold = requestCount === 0;
+  requestCount++;
+  if (wasCold) coldRequestCount++;
 
   if (!breaker.canRequest()) {
     return circuitOpenResponse("crm-db", corsHeaders);
@@ -803,10 +875,32 @@ Deno.serve(async (req) => {
       default: return jsonResponse({ error: `Operation '${operation}' not supported.` }, 400);
     }
     if (response.status >= 500) breaker.recordFailure(); else breaker.recordSuccess();
+
+    // Captura métricas de cold vs warm path para a 1ª request real do isolate.
+    const elapsed = Math.round(performance.now() - reqStartedAt);
+    if (wasCold) {
+      firstRequestMs = elapsed;
+      firstRequestStartedAtMs = Math.round(reqStartedAt - isolateMonoStart);
+      console.log(
+        `[crm-runtime] first_request_ms=${elapsed} was_cold=true ` +
+          `op=${operation} table=${table ?? '-'} ` +
+          `client_build_ms=${clientBuildMs} warmup_ms=${warmupMs} warmup_ok=${warmupOk}`,
+      );
+    } else {
+      console.log(
+        `[crm-runtime] request_ms=${elapsed} was_cold=false ` +
+          `op=${operation} table=${table ?? '-'} ` +
+          `request_count=${requestCount}`,
+      );
+    }
     return response;
   } catch (error: unknown) {
     breaker.recordFailure();
-    console.error("CRM Bridge error:", error);
+    const elapsed = Math.round(performance.now() - reqStartedAt);
+    console.error(
+      `[crm-runtime] error_ms=${elapsed} was_cold=${wasCold} ` +
+        `${error instanceof Error ? error.message : String(error)}`,
+    );
     return jsonResponse({ error: error instanceof Error ? error.message : "Internal error" }, 500);
   }
 });
