@@ -120,10 +120,18 @@ export async function invokeBridge<T>(body: Record<string, unknown>): Promise<Br
         const base = BOOT_INITIAL_BACKOFF_MS * Math.pow(2, attempt - 1);
         const jitter = Math.floor(Math.random() * 150);
         const delay = Math.min(base + jitter, 4000);
-        logger.warn(`[external-db] bridge retry ${attempt}/${BOOT_RETRY_ATTEMPTS - 1} in ${delay}ms: ${parsed.message}`);
+        logger.warn(`[external-db] bridge retry ${attempt}/${BOOT_RETRY_ATTEMPTS - 1} in ${delay}ms (base=${base}+jitter=${jitter}): ${parsed.message}`);
         if (isColdStartSignal(parsed.message)) {
           sawColdStart = true;
-          emitBridgeStatus({ type: 'degraded', attempt, maxAttempts: BOOT_RETRY_ATTEMPTS, delayMs: delay, reason: parsed.message });
+          emitBridgeStatus({
+            type: 'degraded',
+            attempt,
+            maxAttempts: BOOT_RETRY_ATTEMPTS,
+            delayMs: delay,
+            baseDelayMs: base,
+            jitterMs: jitter,
+            reason: parsed.message,
+          });
         }
         await sleep(delay);
         continue;

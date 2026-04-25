@@ -104,11 +104,19 @@ export async function invokeWithRetry(
       const base = INITIAL_BACKOFF_MS * Math.pow(2, attempt);
       const jitter = Math.floor(Math.random() * 200);
       const delay = Math.min(base + jitter, 4000);
-      logger.warn(`[external-db] Retry ${attempt + 1}/${retries} after ${delay}ms: ${msg}`);
+      logger.warn(`[external-db] Retry ${attempt + 1}/${retries} after ${delay}ms (base=${base}+jitter=${jitter}): ${msg}`);
       onRetry?.(attempt + 1, retries, delay);
       if (isColdStartSignal(msg)) {
         sawColdStart = true;
-        emitBridgeStatus({ type: 'degraded', attempt: attempt + 1, maxAttempts: retries, delayMs: delay, reason: msg });
+        emitBridgeStatus({
+          type: 'degraded',
+          attempt: attempt + 1,
+          maxAttempts: retries,
+          delayMs: delay,
+          baseDelayMs: base,
+          jitterMs: jitter,
+          reason: msg,
+        });
       }
       await new Promise(r => setTimeout(r, delay));
       continue;

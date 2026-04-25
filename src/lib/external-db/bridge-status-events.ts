@@ -11,7 +11,17 @@
  */
 
 export type BridgeStatusEvent =
-  | { type: 'degraded'; attempt: number; maxAttempts: number; delayMs: number; reason: string }
+  | {
+      type: 'degraded';
+      attempt: number;
+      maxAttempts: number;
+      delayMs: number;
+      /** Backoff base (sem jitter) — útil para telemetria mostrar a fórmula. */
+      baseDelayMs?: number;
+      /** Componente aleatório aplicado em cima do base. */
+      jitterMs?: number;
+      reason: string;
+    }
   | { type: 'unavailable'; reason: string; attempts: number }
   | { type: 'recovered' };
 
