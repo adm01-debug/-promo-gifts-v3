@@ -31,6 +31,11 @@ import { useZoneCollapse } from "@/components/admin/connections/useZoneCollapse"
 import { ZoneQuickNav } from "@/components/admin/connections/ZoneQuickNav";
 import { HeaderSeveritySummary } from "@/components/admin/connections/HeaderSeveritySummary";
 import { ZoneRefreshButton } from "@/components/admin/connections/ZoneRefreshButton";
+import {
+  ZoneCommandPalette,
+  useZoneCommandPaletteShortcut,
+} from "@/components/admin/connections/ZoneCommandPalette";
+import { ZoneCommandTrigger } from "@/components/admin/connections/ZoneCommandTrigger";
 
 /**
  * /admin/conexoes — Hub Central de Integrações
