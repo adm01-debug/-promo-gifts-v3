@@ -280,4 +280,3 @@ Deno.serve(async (req) => {
     return jsonResponse({ error: "internal_error", detail }, 500, requestId);
   }
 });
-});
