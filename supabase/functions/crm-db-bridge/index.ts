@@ -3,8 +3,17 @@ import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-
 import { z } from "https://esm.sh/zod@3.23.8";
 import { runBotProtection } from '../_shared/bot-protection.ts';
 import { getBreaker, circuitOpenResponse, getAllBreakerStatuses } from '../_shared/circuit-breaker.ts';
+import { AsyncLocalStorage } from "node:async_hooks";
+import { getOrCreateRequestId, REQUEST_ID_HEADER } from "../_shared/request-id.ts";
 
 const breaker = getBreaker("crm-db");
+
+// Contexto async por-request — garante isolamento mesmo com requisições concorrentes.
+// Cada handler.run() instala um requestId na chain; jsonResponse lê dele.
+const requestCtx = new AsyncLocalStorage<{ requestId: string }>();
+function currentRequestId(): string | undefined {
+  return requestCtx.getStore()?.requestId;
+}
 
 // ============================================
 // CRM CLIENT — singleton por isolate + warm-up no boot
@@ -121,10 +130,16 @@ warmupCrmClient();
 let corsHeaders: Record<string, string> = {};
 
 function jsonResponse(body: unknown, status = 200): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-  });
+  const reqId = currentRequestId();
+  // Injeta request_id no body (objeto) e no header — permite ao client
+  // correlacionar com os logs do servidor sem mudar o shape esperado.
+  let finalBody: unknown = body;
+  if (reqId && body && typeof body === "object" && !Array.isArray(body)) {
+    finalBody = { ...(body as Record<string, unknown>), request_id: reqId };
+  }
+  const headers: Record<string, string> = { ...corsHeaders, "Content-Type": "application/json" };
+  if (reqId) headers[REQUEST_ID_HEADER] = reqId;
+  return new Response(JSON.stringify(finalBody), { status, headers });
 }
 
 type DiagOp = "ping" | "diag" | "breaker_status";
@@ -747,11 +762,16 @@ async function handleSearch(crm: SupabaseClient, body: CrmQuery): Promise<Respon
 // MAIN HANDLER
 // ============================================
 
-Deno.serve(async (req) => {
-  corsHeaders = getCorsHeaders(req);
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+Deno.serve((req) => {
+  // Extrai/gera o request-id e roda todo o resto dentro do AsyncLocalStorage,
+  // garantindo que jsonResponse() o injete em todas as respostas e logs
+  // possam prefixá-lo via currentRequestId().
+  const requestId = getOrCreateRequestId(req);
+  return requestCtx.run({ requestId }, async () => {
+    corsHeaders = getCorsHeaders(req);
+    if (req.method === "OPTIONS") {
+      return new Response(null, { headers: { ...corsHeaders, [REQUEST_ID_HEADER]: requestId } });
+    }
 
   // ─────────────────────────────────────────────────────────────────
   // PING / DIAG — endpoints de diagnóstico SEMPRE disponíveis.
@@ -799,6 +819,7 @@ Deno.serve(async (req) => {
   const wasCold = requestCount === 0;
   requestCount++;
   if (wasCold) coldRequestCount++;
+  console.log(`[crm-db-bridge] [req_id=${requestId}] request_start method=${req.method} was_cold=${wasCold}`);
 
   if (!breaker.canRequest()) {
     return circuitOpenResponse("crm-db", corsHeaders);
@@ -916,13 +937,13 @@ Deno.serve(async (req) => {
       firstRequestMs = elapsed;
       firstRequestStartedAtMs = Math.round(reqStartedAt - isolateMonoStart);
       console.log(
-        `[crm-runtime] first_request_ms=${elapsed} was_cold=true ` +
+        `[crm-runtime] [req_id=${requestId}] first_request_ms=${elapsed} was_cold=true ` +
           `op=${operation} table=${table ?? '-'} ` +
           `client_build_ms=${clientBuildMs} warmup_ms=${warmupMs} warmup_ok=${warmupOk}`,
       );
     } else {
       console.log(
-        `[crm-runtime] request_ms=${elapsed} was_cold=false ` +
+        `[crm-runtime] [req_id=${requestId}] request_ms=${elapsed} was_cold=false ` +
           `op=${operation} table=${table ?? '-'} ` +
           `request_count=${requestCount}`,
       );
@@ -932,9 +953,10 @@ Deno.serve(async (req) => {
     breaker.recordFailure();
     const elapsed = Math.round(performance.now() - reqStartedAt);
     console.error(
-      `[crm-runtime] error_ms=${elapsed} was_cold=${wasCold} ` +
+      `[crm-runtime] [req_id=${requestId}] error_ms=${elapsed} was_cold=${wasCold} ` +
         `${error instanceof Error ? error.message : String(error)}`,
     );
     return jsonResponse({ error: error instanceof Error ? error.message : "Internal error" }, 500);
   }
+  });
 });

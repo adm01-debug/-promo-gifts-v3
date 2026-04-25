@@ -25,6 +25,10 @@ export interface BridgeCallSample {
   ok: boolean;
   status?: number;
   errorMessage?: string;
+  /** Correlation-id propagado via X-Request-Id (UUID v4 gerado no client). */
+  requestId?: string;
+  /** Eco do request-id devolvido pelo servidor (deve bater com requestId). */
+  serverRequestId?: string;
 }
 
 const MAX_SAMPLES = 500;
@@ -63,6 +67,8 @@ export function recordBridgeCall(sample: Omit<BridgeCallSample, 'id' | 'ts'> & {
     ok: sample.ok,
     status: sample.status,
     errorMessage: sample.errorMessage,
+    requestId: sample.requestId,
+    serverRequestId: sample.serverRequestId,
   };
   samples.push(entry);
   if (samples.length > MAX_SAMPLES) samples.splice(0, samples.length - MAX_SAMPLES);

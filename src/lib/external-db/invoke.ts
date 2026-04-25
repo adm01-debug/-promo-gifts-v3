@@ -7,6 +7,7 @@ import { logger } from "@/lib/logger";
 import { emitBridgeStatus, isColdStartSignal } from './bridge-status-events';
 import { ensureCloudReady, CloudNotReadyError, getCachedCloudStatus } from '@/lib/cloud-status';
 import { recordBridgeCall, estimatePayloadBytes } from '@/lib/telemetry/bridgeCallMetrics';
+import { newRequestId, REQUEST_ID_HEADER } from '@/lib/telemetry/requestId';
 
 function deriveExternalOp(body: Record<string, unknown>): { op: string; target?: string } {
   const operation = typeof body.operation === 'string' ? body.operation : undefined;
@@ -97,8 +98,16 @@ export async function invokeWithRetry(
   const startedAt = performance.now();
   const reqBytes = estimatePayloadBytes(body);
   const { op, target } = deriveExternalOp(body);
+  const requestId = newRequestId();
+  let serverRequestId: string | undefined;
 
   const finalize = (result: { data: unknown; error: Error | null }) => {
+    // Servidor pode ecoar request_id no body — prioriza o eco quando presente.
+    const echoed =
+      result.data && typeof result.data === 'object' && 'request_id' in result.data
+        ? String((result.data as { request_id?: unknown }).request_id ?? '')
+        : '';
+    if (echoed) serverRequestId = echoed;
     recordBridgeCall({
       bridge: 'external-db-bridge',
       op,
@@ -108,6 +117,8 @@ export async function invokeWithRetry(
       respBytes: result.error ? 0 : estimatePayloadBytes(result.data),
       ok: !result.error,
       errorMessage: result.error?.message,
+      requestId,
+      serverRequestId,
     });
     return result;
   };
@@ -130,7 +141,10 @@ export async function invokeWithRetry(
   }
 
   for (let attempt = 0; attempt <= retries; attempt++) {
-    const { data, error } = await supabase.functions.invoke('external-db-bridge', { body });
+    const { data, error } = await supabase.functions.invoke('external-db-bridge', {
+      body,
+      headers: { [REQUEST_ID_HEADER]: requestId },
+    });
 
     if (!error) {
       if (sawColdStart) emitBridgeStatus({ type: 'recovered' });

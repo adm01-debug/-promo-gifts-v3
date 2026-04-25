@@ -24,8 +24,17 @@ import { emitTelemetry, classifyDuration, VERY_SLOW_QUERY_THRESHOLD_MS, SLOW_QUE
 import { getCached, setCache } from "../_shared/external-db-cache.ts";
 import { getBreaker, circuitOpenResponse } from "../_shared/circuit-breaker.ts";
 import { retrySupabaseCall } from "../_shared/retry-backoff.ts";
+import { AsyncLocalStorage } from "node:async_hooks";
+import { getOrCreateRequestId, REQUEST_ID_HEADER } from "../_shared/request-id.ts";
 
 const breaker = getBreaker("external-db");
+
+// Contexto async por-request — propaga requestId para jsonResponse() sem
+// precisar passar como argumento por toda a árvore de handlers.
+const requestCtx = new AsyncLocalStorage<{ requestId: string }>();
+function currentRequestId(): string | undefined {
+  return requestCtx.getStore()?.requestId;
+}
 
 /**
  * Transient classifier for the EXTERNAL Postgres bridge.
@@ -404,12 +413,15 @@ const TopLevelBodySchema = z.object({
   return !!data.table;
 }, { message: "Field 'table' is required for CRUD operations, 'rpcName' for RPC" });
 
-Deno.serve(async (req) => {
-  const corsHeaders = getCorsHeaders(req);
-  const preflightResponse = handleCorsPreflightIfNeeded(req);
-  if (preflightResponse) return preflightResponse;
+Deno.serve((req) => {
+  const requestId = getOrCreateRequestId(req);
+  return requestCtx.run({ requestId }, async () => {
+    const corsHeaders = getCorsHeaders(req);
+    const preflightResponse = handleCorsPreflightIfNeeded(req);
+    if (preflightResponse) return preflightResponse;
 
-  const requestStartTime = performance.now();
+    const requestStartTime = performance.now();
+    console.log(`[external-db-bridge] [req_id=${requestId}] request_start method=${req.method}`);
 
   try {
     let rawBody: unknown;
@@ -475,9 +487,10 @@ Deno.serve(async (req) => {
     breaker.recordFailure();
     const totalDuration = Math.round(performance.now() - requestStartTime);
     const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
-    console.error(`❌ [telemetry] Request failed after ${totalDuration}ms: ${errorMessage}`);
+    console.error(`❌ [telemetry] [req_id=${requestId}] Request failed after ${totalDuration}ms: ${errorMessage}`);
     return jsonResponse({ error: errorMessage }, 500, corsHeaders);
   }
+  });
 });
 
 // ============================================
@@ -1447,7 +1460,14 @@ async function handleBatchInsert(externalSupabase: any, table: string, opts: any
 // ============================================
 
 function jsonResponse(body: unknown, status: number, corsHeaders: Record<string, string>) {
-  return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+  const reqId = currentRequestId();
+  let finalBody: unknown = body;
+  if (reqId && body && typeof body === "object" && !Array.isArray(body)) {
+    finalBody = { ...(body as Record<string, unknown>), request_id: reqId };
+  }
+  const headers: Record<string, string> = { ...corsHeaders, 'Content-Type': 'application/json' };
+  if (reqId) headers[REQUEST_ID_HEADER] = reqId;
+  return new Response(JSON.stringify(finalBody), { status, headers });
 }
 
 // FNV-1a 32-bit — barato e suficiente para chave de cache (não-criptográfico).
