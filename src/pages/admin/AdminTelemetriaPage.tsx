@@ -159,25 +159,39 @@ export default function AdminTelemetriaPage() {
         </div>
 
         {/* Banner de alerta + log central quando taxa de 503/cold-start excede o limite configurado */}
-        <PlatformFailureAlertBanner windowMinutes={60} />
+        <Suspense fallback={<BannerSkeleton />}>
+          <PlatformFailureAlertBanner windowMinutes={60} />
+        </Suspense>
 
         {/* KPIs de falhas de plataforma (503 / cold-start) — janela móvel de 60min */}
-        <PlatformFailureCards windowMinutes={60} />
+        <Suspense fallback={<GridCardsSkeleton count={4} height={100} />}>
+          <PlatformFailureCards windowMinutes={60} />
+        </Suspense>
 
         {/* Resumo por tentativa (attempt, base, jitter, delay, motivo) dos cold-starts em tempo real */}
-        <ColdStartRetriesPanel />
+        <Suspense fallback={<CardSkeleton height={180} label="Carregando retries de cold-start" />}>
+          <ColdStartRetriesPanel />
+        </Suspense>
 
         {/* Métricas das otimizações Onda 2 (cache hit rate + retries evitados) */}
-        <OptimizationMetricsCards />
+        <Suspense fallback={<GridCardsSkeleton count={3} height={100} />}>
+          <OptimizationMetricsCards />
+        </Suspense>
 
         {/* Alerta de regressão de latência em listings de products (limit > 50) */}
-        <ProductsListingLatencyAlert />
+        <Suspense fallback={<BannerSkeleton />}>
+          <ProductsListingLatencyAlert />
+        </Suspense>
 
         {/* Comparativo antes vs depois do resolveProductsSelect (lightweight forçado em listings limit>50) */}
-        <ResolveProductsSelectComparisonCard />
+        <Suspense fallback={<CardSkeleton height={160} label="Carregando comparativo" />}>
+          <ResolveProductsSelectComparisonCard />
+        </Suspense>
 
         {/* Gráficos segmentados por endpoint/timestamp/error_kind — escopo limit > 50 */}
-        <HighLimitTelemetryCard />
+        <Suspense fallback={<ChartsSkeleton />}>
+          <HighLimitTelemetryCard />
+        </Suspense>
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
