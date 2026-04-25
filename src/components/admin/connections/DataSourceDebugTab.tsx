@@ -14,6 +14,7 @@ type ExternalConnRow = {
   name: string | null;
   type: string | null;
   status: string | null;
+  env_key: string | null;
   last_test_at: string | null;
   updated_at: string | null;
 };
