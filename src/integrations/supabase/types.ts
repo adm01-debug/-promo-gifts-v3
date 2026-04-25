@@ -3067,6 +3067,8 @@ export type Database = {
           error_kind: string | null
           error_message: string | null
           id: string
+          is_503: boolean
+          is_cold_start: boolean
           operation: string
           query_limit: number | null
           query_offset: number | null
@@ -3085,6 +3087,8 @@ export type Database = {
           error_kind?: string | null
           error_message?: string | null
           id?: string
+          is_503?: boolean
+          is_cold_start?: boolean
           operation: string
           query_limit?: number | null
           query_offset?: number | null
@@ -3103,6 +3107,8 @@ export type Database = {
           error_kind?: string | null
           error_message?: string | null
           id?: string
+          is_503?: boolean
+          is_cold_start?: boolean
           operation?: string
           query_limit?: number | null
           query_offset?: number | null
@@ -4514,6 +4520,10 @@ export type Database = {
           unique_clients: number
           unique_sellers: number
         }[]
+      }
+      get_platform_failure_metrics: {
+        Args: { window_minutes?: number }
+        Returns: Json
       }
       get_quote_token_by_value: {
         Args: { _token: string }
