@@ -4,7 +4,7 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { getCorsHeaders, handleCorsPreflightIfNeeded } from "../_shared/cors.ts";
-import { authenticateRequest, requireRole, authErrorResponse } from "../_shared/auth.ts";
+import { authenticateRequest, requireDev, authErrorResponse } from "../_shared/auth.ts";
 
 interface CheckResult {
   name: string;
@@ -60,7 +60,7 @@ Deno.serve(async (req: Request) => {
 
   try {
     const auth = await authenticateRequest(req);
-    requireRole(auth, "admin");
+    requireDev(auth);
 
     const tableChecks: CheckResult[] = [];
     for (const t of REQUIRED_TABLES) {

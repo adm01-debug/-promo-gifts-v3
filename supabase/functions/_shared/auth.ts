@@ -5,13 +5,16 @@ import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-
 
 export interface AuthResult {
   userId: string;
+  /** Primeira role retornada (compat). Para checagens, prefira `userRoles` ou `requireDev`. */
   userRole: string;
+  /** Todas as roles do usuário (dev, supervisor, agente, admin legado). */
+  userRoles: string[];
   localServiceClient: SupabaseClient;
 }
 
 /**
  * Authenticate a request using the Authorization header (JWT).
- * Returns the user ID, role, and a service-role client for further queries.
+ * Returns the user ID, all roles, and a service-role client for further queries.
  * Throws an object with { status, message } on failure.
  */
 export async function authenticateRequest(req: Request): Promise<AuthResult> {
@@ -37,10 +40,10 @@ export async function authenticateRequest(req: Request): Promise<AuthResult> {
 
   const userId = userData.user.id;
 
-  // Fetch role using service role client (bypasses RLS)
+  // Fetch ALL roles using service role client (bypasses RLS)
   const localServiceClient = createClient(supabaseUrl, serviceRoleKey);
 
-  const { data: userRoles, error: roleError } = await localServiceClient
+  const { data: roleRows, error: roleError } = await localServiceClient
     .from('user_roles')
     .select('role')
     .eq('user_id', userId);
@@ -49,18 +52,48 @@ export async function authenticateRequest(req: Request): Promise<AuthResult> {
     console.error('[auth] Error fetching user roles:', roleError.message);
   }
 
-  const userRole = userRoles?.[0]?.role || 'vendedor';
+  const userRoles = (roleRows ?? []).map((r: { role: string }) => r.role);
+  const userRole = userRoles[0] ?? 'agente';
 
-  return { userId, userRole, localServiceClient };
+  return { userId, userRole, userRoles, localServiceClient };
 }
 
 /**
- * Require the user to have a specific role. 
- * Throws { status: 403, message } if the role doesn't match.
+ * Hierarquia: dev > supervisor > agente. `admin` é alias legado de supervisor.
+ */
+function isDevRole(auth: AuthResult): boolean {
+  return auth.userRoles.includes('dev');
+}
+
+function isSupervisorOrAbove(auth: AuthResult): boolean {
+  return (
+    auth.userRoles.includes('dev') ||
+    auth.userRoles.includes('supervisor') ||
+    auth.userRoles.includes('admin')
+  );
+}
+
+/**
+ * Require the user to have a specific role.
+ * `dev` sempre passa (top da hierarquia).
+ * `admin` (legado) e `supervisor` são equivalentes.
  */
 export function requireRole(auth: AuthResult, requiredRole: string): void {
-  if (auth.userRole !== requiredRole && auth.userRole !== 'admin') {
-    throw { status: 403, message: `Acesso restrito ao papel '${requiredRole}'` };
+  if (isDevRole(auth)) return;
+  if (requiredRole === 'admin' || requiredRole === 'supervisor') {
+    if (isSupervisorOrAbove(auth)) return;
+  } else if (auth.userRoles.includes(requiredRole)) {
+    return;
+  }
+  throw { status: 403, message: `Acesso restrito ao papel '${requiredRole}'` };
+}
+
+/**
+ * Exige papel `dev` — para telemetria, logs técnicos e operações de MCP.
+ */
+export function requireDev(auth: AuthResult): void {
+  if (!isDevRole(auth)) {
+    throw { status: 403, message: 'Acesso restrito a desenvolvedores' };
   }
 }
 
