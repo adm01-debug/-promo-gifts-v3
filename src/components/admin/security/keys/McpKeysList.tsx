@@ -20,7 +20,7 @@ import { McpKeyDetailsDrawer } from "./McpKeyDetailsDrawer";
 import { IssueMcpKeyForm } from "@/components/admin/connections/IssueMcpKeyForm";
 
 export function McpKeysList() {
-  const { rows, loading, filters, setFilters, counts, reload, revoke } = useMcpKeys();
+  const { rows, loading, filters, setFilters, counts, creators, reload, revoke } = useMcpKeys();
   const [issueOpen, setIssueOpen] = useState(false);
   const [rotateTarget, setRotateTarget] = useState<McpKeyRowType | null>(null);
   const [detailsTarget, setDetailsTarget] = useState<McpKeyRowType | null>(null);
@@ -64,6 +64,10 @@ export function McpKeysList() {
           status={filters.status}
           onlyFull={filters.onlyFull}
           sort={filters.sort}
+          creator={filters.creator}
+          createdFrom={filters.createdFrom}
+          createdTo={filters.createdTo}
+          creators={creators}
           counts={counts}
           onChange={(patch) => setFilters((cur) => ({ ...cur, ...patch }))}
         />
