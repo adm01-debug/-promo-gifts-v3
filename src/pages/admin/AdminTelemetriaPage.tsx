@@ -231,7 +231,9 @@ export default function AdminTelemetriaPage() {
           </Card>
         )}
 
-        <TelemetryCharts rows={rows} timeFilter={timeFilter} />
+        <Suspense fallback={<ChartsSkeleton />}>
+          <TelemetryCharts rows={rows} timeFilter={timeFilter} />
+        </Suspense>
 
         {/* Filters */}
         <div className="flex items-center gap-3">
