@@ -240,6 +240,12 @@ export function IssueMcpKeyForm({ onIssued }: Props) {
             })}
           </div>
         </TooltipProvider>
+        {!grantorLoading && !canGrantFull && (
+          <p className="mt-2 text-[11px] text-muted-foreground">
+            🔒 Você não está autorizado a conceder o escopo <code className="font-mono">*</code> (FULL).
+            Solicite a um admin já listado em <code className="font-mono">mcp_full_grantors</code> para te incluir.
+          </p>
+        )}
       </div>
 
       {full && (
