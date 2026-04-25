@@ -57,12 +57,13 @@ export default function AdminConexoesPage() {
   const { collapsed, toggle: toggleCollapse, expand: expandZone } = useZoneCollapse();
   const { open: paletteOpen, setOpen: setPaletteOpen } = useZoneCommandPaletteShortcut();
   const [highlightZone, setHighlightZone] = useState<string | null>(null);
+  const { context: focusContext, setZone: persistZone, setIncident: persistIncident } = useFocusContext();
   useEffect(() => { list(); }, [list]);
   // Toast automático em escaladas P0/P1 — com confirmação para não repetir
   useSeverityChangeNotifier();
 
-  // Listener para "ir até zona" disparado pela Incident Strip:
-  // reabre a zona se estiver oculta, rola até ela e aplica highlight 1.8s.
+  // Listener para "ir até zona" disparado pela Incident Strip / Quick Nav / Palette:
+  // reabre a zona se estiver oculta, rola até ela, aplica highlight 1.8s e persiste o foco.
   useEffect(() => {
     const handler = (e: Event) => {
       const detail = (e as CustomEvent<{ zone: ZoneId; anchorId: string }>).detail;
@@ -72,6 +73,8 @@ export default function AdminConexoesPage() {
       if (!visible[zone]) toggle(zone);
       // Garante que esteja expandida (não colapsada)
       expandZone(zone);
+      // Persiste para restaurar no próximo reload
+      persistZone(zone);
       // Aguarda render para garantir que o nó existe
       requestAnimationFrame(() => {
         const el = document.getElementById(anchorId);
@@ -84,7 +87,48 @@ export default function AdminConexoesPage() {
     };
     window.addEventListener("connections:focus-zone", handler);
     return () => window.removeEventListener("connections:focus-zone", handler);
-  }, [visible, toggle, expandZone]);
+  }, [visible, toggle, expandZone, persistZone]);
+
+  // Listener para abertura de incidente (drawer) — persiste o id para restaurar no reload.
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<{ incidentId: string | null }>).detail;
+      if (!detail) return;
+      persistIncident(detail.incidentId);
+    };
+    window.addEventListener("connections:incident-open", handler);
+    return () => window.removeEventListener("connections:incident-open", handler);
+  }, [persistIncident]);
+
+  // Restauração one-shot ao montar: recoloca o usuário na última zona em foco.
+  // (O drawer do último incidente é reaberto pela ConnectionsIncidentStrip,
+  // que tem acesso aos dados carregados.)
+  const [restored, setRestored] = useState(false);
+  useEffect(() => {
+    if (restored) return;
+    if (!focusContext.lastZone) {
+      setRestored(true);
+      return;
+    }
+    const zone = focusContext.lastZone;
+    const anchorId = `zone-${zone}`;
+    if (!visible[zone]) toggle(zone);
+    expandZone(zone);
+    requestAnimationFrame(() => {
+      const el = document.getElementById(anchorId);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+        setHighlightZone(anchorId);
+        window.setTimeout(
+          () => setHighlightZone((cur) => (cur === anchorId ? null : cur)),
+          1800,
+        );
+      }
+      setRestored(true);
+    });
+    // Intencionalmente roda apenas uma vez no mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleGlobalRefreshed = useCallback(() => {
     setRefreshTick((n) => n + 1);
