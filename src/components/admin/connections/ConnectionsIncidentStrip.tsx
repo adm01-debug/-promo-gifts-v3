@@ -23,6 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useRecentIncidents, type IncidentSeverity, type IncidentItem } from "./useRecentIncidents";
 import { getIncidentTargetZone, getZoneLabel, navigateToZone } from "./incidentZoneMapping";
+import { readFocusContextOnce } from "./useFocusContext";
 
 const SEV_META: Record<
   IncidentSeverity,
