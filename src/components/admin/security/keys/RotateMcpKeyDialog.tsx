@@ -41,6 +41,7 @@ export function RotateMcpKeyDialog({ source, open, onOpenChange, onRotated }: Pr
   const [submitting, setSubmitting] = useState(false);
   const [generated, setGenerated] = useState<string | null>(null);
   const [stepUpOpen, setStepUpOpen] = useState(false);
+  const { challenge } = useDevChallenge();
 
   const reset = () => {
     setJustification("");
