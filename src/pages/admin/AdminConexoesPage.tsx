@@ -28,6 +28,7 @@ import { useSecretsManager } from "@/hooks/useSecretsManager";
 import { useSeverityChangeNotifier } from "@/components/admin/connections/useSeverityChangeNotifier";
 import { useZoneVisibility } from "@/components/admin/connections/useZoneVisibility";
 import { ZoneQuickNav } from "@/components/admin/connections/ZoneQuickNav";
+import { HeaderSeveritySummary } from "@/components/admin/connections/HeaderSeveritySummary";
 
 /**
  * /admin/conexoes — Hub Central de Integrações
@@ -76,6 +77,7 @@ export default function AdminConexoesPage() {
                 Hub central de integrações externas e credenciais do sistema.
               </p>
             </div>
+            <HeaderSeveritySummary className="mr-1 hidden sm:inline-flex" />
             <GlobalRefreshFromDbButton onRefreshed={handleGlobalRefreshed} />
             <SmokeTestChecklist availableSecrets={secrets} />
           </header>
