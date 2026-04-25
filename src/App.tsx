@@ -20,10 +20,12 @@ import { useGlobalErrorCatcher } from "@/hooks/useErrorHandler";
 import { getFallback } from "@/components/layout/SkeletonLoaders";
 import { BridgeStatusBanner } from "@/components/BridgeStatusBanner";
 import { startBridgeTelemetry } from "@/lib/external-db/bridge-telemetry-client";
+import { startColdStartRecorder } from "@/lib/external-db/cold-start-recorder";
 import "./App.css";
 
-// Inicia o bridge telemetry uma única vez por bundle (idempotente).
+// Inicia o bridge telemetry e o recorder de cold-start (idempotentes).
 startBridgeTelemetry();
+startColdStartRecorder();
 
 // Auth Pages
 const Auth = lazyWithRetry(() => import("./pages/Auth"));
