@@ -1,5 +1,5 @@
-import { useEffect, useState, useCallback } from "react";
-import { Bug, Database, KeyRound, RefreshCw, CheckCircle2, AlertCircle, Search, X } from "lucide-react";
+import { useEffect, useState, useCallback, useMemo } from "react";
+import { Bug, Database, KeyRound, RefreshCw, CheckCircle2, AlertCircle, Search, X, ChevronRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useSecretsManager } from "@/hooks/useSecretsManager";
 import { ExpectedKeysMatchPanel } from "./ExpectedKeysMatchPanel";
+import { FieldSourceDrillDownDialog, type FieldDrillDownData } from "./FieldSourceDrillDownDialog";
 import { toast } from "sonner";
 
 type ExternalConnRow = {
