@@ -145,7 +145,11 @@ export function ConnectionsIncidentStrip() {
   }, [visible]);
 
   if (isLoading) return null;
-  if (visible.length === 0) return null;
+  // Sem nenhum incidente carregado E sem filtro ativo ⇒ não renderiza nada.
+  // Com filtro ativo, mantém a strip visível para deixar claro que há um filtro
+  // aplicado (mostra mensagem dentro do corpo).
+  const hasAnyData = (data?.length ?? 0) > 0;
+  if (!hasAnyData) return null;
 
   const dismiss = (id: string) => setDismissed((prev) => new Set(prev).add(id));
 
