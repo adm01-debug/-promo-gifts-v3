@@ -43,11 +43,44 @@ function emit() {
   }
 }
 
-/** Estima o tamanho serializado de um payload sem custo alto. */
+/**
+ * Estimativa BARATA do tamanho serializado de um payload.
+ *
+ * IMPORTANTE: chamar `JSON.stringify` em respostas grandes (ex: listing de 500
+ * produtos ≈ 1MB) bloqueia a main thread em TODA chamada de bridge — mesmo
+ * quando o painel /admin/telemetria não está aberto. Isso causava lentidão
+ * geral na navegação.
+ *
+ * Estratégia:
+ *  - Strings: tamanho direto.
+ *  - Arrays grandes: amostra os primeiros N itens e extrapola (O(N), não O(total)).
+ *  - Objetos pequenos: stringify normal.
+ *  - Falha: 0 (telemetria é best-effort, jamais quebra o fluxo).
+ */
+const SAMPLE_SIZE = 10;
+
 export function estimatePayloadBytes(value: unknown): number {
   if (value == null) return 0;
   try {
     if (typeof value === 'string') return value.length;
+    // Heurística para arrays grandes (caso comum: { records: [...] }).
+    if (Array.isArray(value) && value.length > SAMPLE_SIZE) {
+      const sample = value.slice(0, SAMPLE_SIZE);
+      const sampleBytes = JSON.stringify(sample).length;
+      return Math.round((sampleBytes / SAMPLE_SIZE) * value.length);
+    }
+    if (typeof value === 'object') {
+      const obj = value as Record<string, unknown>;
+      // Caso comum do bridge: { data: { records: [...], count }, success }
+      const records =
+        (obj.data as { records?: unknown[] } | undefined)?.records ??
+        (obj.records as unknown[] | undefined);
+      if (Array.isArray(records) && records.length > SAMPLE_SIZE) {
+        const sample = records.slice(0, SAMPLE_SIZE);
+        const sampleBytes = JSON.stringify(sample).length;
+        return Math.round((sampleBytes / SAMPLE_SIZE) * records.length) + 64;
+      }
+    }
     return JSON.stringify(value).length;
   } catch {
     return 0;
