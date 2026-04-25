@@ -2,8 +2,8 @@
  * Product detail fetching — fetchById, bySku, categories, colors.
  */
 import { logger } from '@/lib/logger';
-import { invokeExternalDb } from './bridge';
-import type { InvokeResult } from './bridge';
+import { invokeExternalDb, invokeBatchBridge } from './bridge';
+import type { InvokeResult, BatchQuery } from './bridge';
 import {
   type PromobrindProduct,
   PRODUCT_SELECT_FIELDS_WITH_SALE,
