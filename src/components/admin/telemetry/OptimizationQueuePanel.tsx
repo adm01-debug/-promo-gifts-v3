@@ -15,7 +15,7 @@ import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from '@/components/ui/dialog';
 import {
-  Play, Pause, Plus, Trash2, RotateCcw, ListChecks, CheckCircle2, AlertTriangle, Loader2, Clock,
+  Play, Pause, Plus, Trash2, RotateCcw, ListChecks, CheckCircle2, AlertTriangle, Loader2, Clock, Zap,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useOptimizationQueue, type OptimizationItem } from '@/pages/admin/telemetry/useOptimizationQueue';
