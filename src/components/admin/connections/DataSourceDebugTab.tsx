@@ -383,12 +383,26 @@ export function DataSourceDebugTab() {
                 <tr className="border-b text-left text-xs text-muted-foreground">
                   <th className="py-2 pr-3 font-medium">Campo / UI</th>
                   <th className="py-2 pr-3 font-medium">Origem</th>
-                  <th className="py-2 font-medium">Observações</th>
+                  <th className="py-2 pr-3 font-medium">Observações</th>
+                  <th className="py-2 font-medium text-right">Drill-down</th>
                 </tr>
               </thead>
               <tbody>
                 {FIELD_MAP.map((row) => (
-                  <tr key={row.field} className="border-b last:border-0 align-top">
+                  <tr
+                    key={row.field}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setDrillField(row.field)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setDrillField(row.field);
+                      }
+                    }}
+                    className="border-b last:border-0 align-top cursor-pointer hover:bg-muted/40 focus:bg-muted/60 outline-none"
+                    aria-label={`Ver origem técnica e amostras de ${row.field}`}
+                  >
                     <td className="py-2 pr-3">
                       <div className="font-medium">{row.field}</div>
                       <div className="text-xs text-muted-foreground">{row.description}</div>
@@ -407,7 +421,10 @@ export function DataSourceDebugTab() {
                         {row.source}
                       </Badge>
                     </td>
-                    <td className="py-2 text-xs text-muted-foreground">{row.notes}</td>
+                    <td className="py-2 pr-3 text-xs text-muted-foreground">{row.notes}</td>
+                    <td className="py-2 text-right">
+                      <ChevronRight className="inline h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                    </td>
                   </tr>
                 ))}
               </tbody>
