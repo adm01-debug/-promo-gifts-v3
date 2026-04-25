@@ -181,15 +181,24 @@ export async function fetchPromobrindProductById(
         });
 
   // ─── (C) Variantes (cores) ───────────────────────────────────────────
+  // ─── (C) Variantes (cores) ───────────────────────────────────────────
+  // Fetch ENXUTO: NÃO traz `images` (text[] potencialmente grande) nem
+  // `selected_thumbnail` por padrão — esses campos só são necessários como
+  // FALLBACK para variantes cujas imagens não foram cobertas por
+  // `supplier_code` em `product_images` (caso atípico). Buscamos esses
+  // campos sob demanda em UMA chamada extra (id=in.(...)) só para quem
+  // realmente precisar, depois do merge inicial.
+  //
+  // Limite 100 → 60: dedupe por color_name raramente excede 20–30; 60
+  // dá folga para kits sem inflar payload.
   type Variant = {
-    id: string; product_id: string; color_name: string | null; color_hex: string | null;
+    id: string; color_name: string | null; color_hex: string | null;
     color_code: string | null; sku: string | null; stock_quantity: number | null;
-    images: string[] | null; selected_thumbnail: string | null;
   };
   const variantsPromise = invokeExternalDb<Variant>({
     table: 'product_variants', operation: 'select',
-    select: 'id, product_id, color_name, color_hex, color_code, sku, stock_quantity, images, selected_thumbnail',
-    filters: { product_id: productId, is_active: true }, limit: 100,
+    select: 'id, color_name, color_hex, color_code, sku, stock_quantity',
+    filters: { product_id: productId, is_active: true }, limit: 60,
   }).then(r => r.records).catch(err => {
     logger.warn(`[product:${productId}] Não foi possível buscar variantes:`, err);
     return [] as Variant[];
