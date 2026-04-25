@@ -235,10 +235,8 @@ const App = () => {
                             <Route element={<AdminRoute />} errorElement={<RouteErrorBoundary />}>
                               <Route path="/admin" element={<Navigate to="/admin/usuarios" replace />} />
                               <Route path="/admin/usuarios" element={<AdminUsuariosPage />} />
-                              <Route path="/admin/seguranca" element={<AdminSegurancaPage />} />
                               <Route path="/admin/cadastros" element={<AdminCadastrosPage />} />
                               <Route path="/admin/cadastros/produto/:id" element={<AdminProductFormPage />} />
-                              <Route path="/admin/prompts-ia" element={<AdminPromptsIAPage />} />
                               <Route path="/admin/permissoes" element={<PermissionsPage />} />
                               <Route path="/admin/roles" element={<RolesPage />} />
                               <Route path="/admin/role-permissoes" element={<RolePermissionsPage />} />
@@ -246,17 +244,19 @@ const App = () => {
                               <Route path="/admin/video-variantes" element={<AdminVideoVariantsPage />} />
                               <Route path="/admin/kit-templates" element={<KitTemplatesAdminPage />} />
                               <Route path="/admin/kit-templates/metricas" element={<KitTemplatesMetricsPage />} />
-                              <Route path="/admin/validade-precos" element={<PriceFreshnessSettingsPage />} />
                               <Route path="/admin/aprovacoes-desconto" element={<DeprecatedRoute message="A gestão de descontos foi movida para a aba 'Descontos' em Usuários." redirectTo="/admin/usuarios?tab=discounts" />} />
                               <Route path="/admin/performance" element={<DeprecatedRoute message="O módulo de Performance foi descontinuado. Use o BI Comercial para análises." redirectTo="/ferramentas/bi" />} />
                               <Route path="/admin/performance-comercial" element={<DeprecatedRoute message="O módulo de Performance Comercial foi descontinuado. Use o BI Comercial para análises." redirectTo="/ferramentas/bi" />} />
                               <Route path="/admin/comissoes" element={<DeprecatedRoute message="O módulo de Comissões foi descontinuado nesta plataforma." redirectTo="/admin/usuarios" />} />
-                              <Route path="/admin/seguranca-acesso" element={<AdminSegurancaAcessoPage />} />
                               <Route path="/tendencias" element={<TrendsPage />} />
 
-                              {/* DEV-ONLY — páginas técnicas com risco elevado (telemetria, conexões, secrets, MCP, audit técnico) */}
+                              {/* DEV-ONLY — páginas técnicas com risco elevado (telemetria, conexões, secrets, MCP, audit técnico, prompts IA) */}
                               <Route element={<DevRoute />} errorElement={<RouteErrorBoundary />}>
+                                <Route path="/admin/seguranca" element={<AdminSegurancaPage />} />
+                                <Route path="/admin/seguranca-acesso" element={<AdminSegurancaAcessoPage />} />
                                 <Route path="/admin/seguranca/chaves" element={<AdminSegurancaChavesPage />} />
+                                <Route path="/admin/prompts-ia" element={<AdminPromptsIAPage />} />
+                                <Route path="/admin/validade-precos" element={<PriceFreshnessSettingsPage />} />
                                 <Route path="/admin/telemetria" element={<AdminTelemetriaPage />} />
                                 <Route path="/admin/rate-limit" element={<RateLimitDashboard />} />
                                 <Route path="/admin/workflows" element={<AdminWorkflowsPage />} />
