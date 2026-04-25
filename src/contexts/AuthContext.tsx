@@ -217,7 +217,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }, 0);
         } else {
           setProfile(null);
-          setUserRole(null);
+          setUserRoles([]);
           setCurrentAAL(null);
           setNextAAL(null);
           setHasMFA(false);
@@ -319,7 +319,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     setSession(null);
     setProfile(null);
-    setUserRole(null);
+    setUserRoles([]);
     setCurrentAAL(null);
     setNextAAL(null);
     setHasMFA(false);
@@ -334,12 +334,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Helpers de permissão baseados em user_roles (fonte principal)
-  const isAdmin = userRole === "admin";
-  const isManager = userRole === "manager";
-  const isSeller = userRole === "vendedor";
-  const canManage = isAdmin || isManager;
-  // MFA exigido para qualquer admin/manager que ainda não autenticou em aal2
+  // Helpers da NOVA hierarquia (fonte: array userRoles).
+  // 'admin' legado mapeia para supervisor; 'vendedor' legado mapeia para agente.
+  const has = (r: AppRole) => userRoles.includes(r);
+  const isDev = has("dev");
+  const isSupervisor = has("supervisor") || has("admin"); // admin legado = supervisor
+  const isAgente = has("agente") || has("vendedor");      // vendedor legado = agente
+  const isSupervisorOrAbove = isDev || isSupervisor;
+
+  // Role principal para exibição (mais alta na hierarquia)
+  const primaryRole: AppRole | null = isDev
+    ? "dev"
+    : isSupervisor
+    ? "supervisor"
+    : isAgente
+    ? "agente"
+    : userRoles[0] ?? null;
+
+  // Aliases legados (deprecated, mantidos para componentes ainda não migrados)
+  const isAdmin = isSupervisorOrAbove;
+  const isManager = has("manager");
+  const isSeller = isAgente;
+  const canManage = isSupervisorOrAbove;
+  // MFA exigido para qualquer supervisor/dev que ainda não autenticou em aal2
   const mfaRequired = canManage && currentAAL !== 'aal2';
 
   const value: AuthContextType = {
@@ -347,7 +364,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     session,
     profile,
     isLoading,
-    role: userRole,
+    roles: userRoles,
+    role: primaryRole,
+    isDev,
+    isSupervisor,
+    isAgente,
+    isSupervisorOrAbove,
     isAdmin,
     isManager,
     isSeller,
