@@ -5,6 +5,7 @@ import { runBotProtection } from '../_shared/bot-protection.ts';
 import { getBreaker, circuitOpenResponse, getAllBreakerStatuses } from '../_shared/circuit-breaker.ts';
 import { AsyncLocalStorage } from "node:async_hooks";
 import { getOrCreateRequestId, REQUEST_ID_HEADER } from "../_shared/request-id.ts";
+import { resolveCredential } from "../_shared/credentials.ts";
 
 const breaker = getBreaker("crm-db");
 
@@ -54,10 +55,16 @@ function buildCrmClient(url: string, key: string): SupabaseClient {
   return client;
 }
 
-export function getCrmClient(): SupabaseClient | null {
+export async function getCrmClient(): Promise<SupabaseClient | null> {
   if (cachedCrmClient) return cachedCrmClient;
-  const url = Deno.env.get("CRM_SUPABASE_URL");
-  const key = Deno.env.get("CRM_SUPABASE_SERVICE_KEY") ?? Deno.env.get("CRM_SUPABASE_ANON_KEY");
+  // SSOT: DB-first via integration_credentials, fallback to legacy env aliases
+  // (CRM_SUPABASE_URL / CRM_SUPABASE_SERVICE_KEY / CRM_SUPABASE_ANON_KEY).
+  const [{ value: url }, { value: serviceKey }, { value: anonKey }] = await Promise.all([
+    resolveCredential("EXTERNAL_CRM_URL"),
+    resolveCredential("EXTERNAL_CRM_SERVICE_ROLE_KEY"),
+    resolveCredential("EXTERNAL_CRM_ANON_KEY"),
+  ]);
+  const key = serviceKey ?? anonKey;
   if (!url || !key) return null;
   cachedCrmClient = buildCrmClient(url, key);
   return cachedCrmClient;
