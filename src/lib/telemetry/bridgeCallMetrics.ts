@@ -1,0 +1,144 @@
+/**
+ * Telemetria client-side em memória para chamadas às edge functions de bridge
+ * (external-db-bridge e crm-db-bridge).
+ *
+ * - Sem persistência: zera ao recarregar a página.
+ * - Sem custo de backend: apenas observa as chamadas que já ocorrem.
+ * - Buffer circular curto (últimas N chamadas) para evitar crescimento ilimitado.
+ *
+ * Consumido pelo card "Bridges (ao vivo)" em /admin/telemetria.
+ */
+
+export type BridgeName = 'external-db-bridge' | 'crm-db-bridge';
+
+export interface BridgeCallSample {
+  id: number;
+  ts: number;
+  bridge: BridgeName;
+  /** Operação lógica (ex: "select", "batch", "rpc:get_categories"). */
+  op: string;
+  /** Tabela/RPC alvo quando aplicável, para agrupamento mais fino. */
+  target?: string;
+  durationMs: number;
+  reqBytes: number;
+  respBytes: number;
+  ok: boolean;
+  status?: number;
+  errorMessage?: string;
+}
+
+const MAX_SAMPLES = 500;
+
+let nextId = 1;
+const samples: BridgeCallSample[] = [];
+const listeners = new Set<() => void>();
+
+function emit() {
+  for (const l of listeners) {
+    try { l(); } catch { /* noop */ }
+  }
+}
+
+/** Estima o tamanho serializado de um payload sem custo alto. */
+export function estimatePayloadBytes(value: unknown): number {
+  if (value == null) return 0;
+  try {
+    if (typeof value === 'string') return value.length;
+    return JSON.stringify(value).length;
+  } catch {
+    return 0;
+  }
+}
+
+export function recordBridgeCall(sample: Omit<BridgeCallSample, 'id' | 'ts'> & { ts?: number }): void {
+  const entry: BridgeCallSample = {
+    id: nextId++,
+    ts: sample.ts ?? Date.now(),
+    bridge: sample.bridge,
+    op: sample.op,
+    target: sample.target,
+    durationMs: Math.max(0, Math.round(sample.durationMs)),
+    reqBytes: Math.max(0, sample.reqBytes | 0),
+    respBytes: Math.max(0, sample.respBytes | 0),
+    ok: sample.ok,
+    status: sample.status,
+    errorMessage: sample.errorMessage,
+  };
+  samples.push(entry);
+  if (samples.length > MAX_SAMPLES) samples.splice(0, samples.length - MAX_SAMPLES);
+  emit();
+}
+
+export function getBridgeSamples(): readonly BridgeCallSample[] {
+  return samples;
+}
+
+export function subscribeBridgeCalls(listener: () => void): () => void {
+  listeners.add(listener);
+  return () => { listeners.delete(listener); };
+}
+
+export function clearBridgeSamples(): void {
+  samples.length = 0;
+  emit();
+}
+
+// ---------- Agregações ----------
+
+export interface BridgeAggregateRow {
+  key: string;
+  bridge: BridgeName;
+  op: string;
+  count: number;
+  errors: number;
+  avgMs: number;
+  p50Ms: number;
+  p95Ms: number;
+  maxMs: number;
+  totalReqBytes: number;
+  totalRespBytes: number;
+  lastTs: number;
+}
+
+function percentile(sortedAsc: number[], p: number): number {
+  if (sortedAsc.length === 0) return 0;
+  const idx = Math.min(sortedAsc.length - 1, Math.floor((p / 100) * sortedAsc.length));
+  return sortedAsc[idx];
+}
+
+export function aggregateByEndpoint(input: readonly BridgeCallSample[]): BridgeAggregateRow[] {
+  const groups = new Map<string, BridgeCallSample[]>();
+  for (const s of input) {
+    const key = `${s.bridge}::${s.op}`;
+    const arr = groups.get(key);
+    if (arr) arr.push(s);
+    else groups.set(key, [s]);
+  }
+
+  const rows: BridgeAggregateRow[] = [];
+  for (const [key, arr] of groups.entries()) {
+    const durations = arr.map(s => s.durationMs).sort((a, b) => a - b);
+    const sumDur = durations.reduce((a, b) => a + b, 0);
+    const errors = arr.reduce((acc, s) => acc + (s.ok ? 0 : 1), 0);
+    const totalReq = arr.reduce((acc, s) => acc + s.reqBytes, 0);
+    const totalResp = arr.reduce((acc, s) => acc + s.respBytes, 0);
+    const lastTs = arr.reduce((acc, s) => Math.max(acc, s.ts), 0);
+    rows.push({
+      key,
+      bridge: arr[0].bridge,
+      op: arr[0].op,
+      count: arr.length,
+      errors,
+      avgMs: Math.round(sumDur / arr.length),
+      p50Ms: percentile(durations, 50),
+      p95Ms: percentile(durations, 95),
+      maxMs: durations[durations.length - 1] ?? 0,
+      totalReqBytes: totalReq,
+      totalRespBytes: totalResp,
+      lastTs,
+    });
+  }
+
+  rows.sort((a, b) => b.count - a.count);
+  return rows;
+}
