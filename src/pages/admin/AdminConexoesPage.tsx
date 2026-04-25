@@ -1,4 +1,5 @@
 import { Plug, Activity, Settings2, Network } from "lucide-react";
+import { DataSourceDebugTab } from "@/components/admin/connections/DataSourceDebugTab";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { SupabaseConnectionsTab } from "@/components/admin/connections/SupabaseConnectionsTab";
@@ -277,12 +278,14 @@ export default function AdminConexoesPage() {
                 <TabsTrigger value="n8n">n8n</TabsTrigger>
                 <TabsTrigger value="mcp">MCP (Claude)</TabsTrigger>
                 <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
+                <TabsTrigger value="debug">🐛 Debug</TabsTrigger>
               </TabsList>
               <TabsContent value="databases"><SupabaseConnectionsTab /></TabsContent>
               <TabsContent value="bitrix24"><Bitrix24Tab /></TabsContent>
               <TabsContent value="n8n"><N8nTab /></TabsContent>
               <TabsContent value="mcp"><McpTab /></TabsContent>
               <TabsContent value="webhooks"><WebhooksTab /></TabsContent>
+              <TabsContent value="debug"><DataSourceDebugTab /></TabsContent>
             </Tabs>
           </ZoneSection>
           )}
