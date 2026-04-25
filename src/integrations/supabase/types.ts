@@ -5036,6 +5036,8 @@ export type Database = {
         | "mcp_full_escalate"
         | "secret_rotation"
         | "secret_revoke"
+        | "mcp_key_revoke"
+        | "mcp_key_rotate"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -5172,6 +5174,8 @@ export const Constants = {
         "mcp_full_escalate",
         "secret_rotation",
         "secret_revoke",
+        "mcp_key_revoke",
+        "mcp_key_rotate",
       ],
     },
   },

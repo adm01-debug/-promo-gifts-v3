@@ -51,6 +51,7 @@ import {
 } from "@/lib/mcp/scopes";
 import { useCanGrantMcpFull } from "@/components/admin/security/keys/useCanGrantMcpFull";
 import { StepUpAuthDialog } from "@/components/auth/StepUpAuthDialog";
+import { useDevChallenge } from "@/contexts/DevChallengeContext";
 import { sanitizeError } from "@/lib/security/sanitize-error";
 
 interface Props {
@@ -81,6 +82,7 @@ export function IssueMcpKeyForm({ onIssued }: Props) {
 
   const full = isFullAccess(scopes);
   const { canGrant: canGrantFull, loading: grantorLoading } = useCanGrantMcpFull();
+  const { challenge } = useDevChallenge();
 
   // Auto-popula expires com default de 90 dias quando FULL é marcado.
   const handleScopeToggle = (s: McpScope) => {
@@ -113,18 +115,25 @@ export function IssueMcpKeyForm({ onIssued }: Props) {
     return null;
   }, [name, scopes, full, expiresLocal, justification, confirmation]);
 
-  const requestSubmit = () => {
+  const requestSubmit = async () => {
     if (validation) {
       toast.error(validation);
       return;
     }
     if (full) {
-      // Gate extra para acesso root
+      // Gate extra para acesso root: confirmação por nome → modal step-up dedicado (mcp_full_issue).
       setRootNameEcho("");
       setConfirmRootOpen(true);
       return;
     }
-    void doSubmit();
+    // Chaves limitadas: também exigem step-up server-side (action: mcp_key_rotate).
+    const token = await challenge({
+      action: "mcp_key_rotate",
+      actionLabel: `Emitir chave MCP "${name}"`,
+      targetRef: null,
+    });
+    if (!token) return; // cancelado
+    void doSubmit(token);
   };
 
   const doSubmit = async (stepUpToken?: string) => {

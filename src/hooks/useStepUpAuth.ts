@@ -7,6 +7,8 @@ export type StepUpAction =
   | "demote_dev"
   | "mcp_full_issue"
   | "mcp_full_escalate"
+  | "mcp_key_revoke"
+  | "mcp_key_rotate"
   | "secret_rotation"
   | "secret_revoke";
 

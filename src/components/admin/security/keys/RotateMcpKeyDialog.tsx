@@ -26,6 +26,7 @@ import {
 import { StepUpAuthDialog } from "@/components/auth/StepUpAuthDialog";
 import type { McpKeyRow } from "./useMcpKeys";
 import { sanitizeError } from "@/lib/security/sanitize-error";
+import { useDevChallenge } from "@/contexts/DevChallengeContext";
 
 interface Props {
   source: McpKeyRow | null;
@@ -40,6 +41,7 @@ export function RotateMcpKeyDialog({ source, open, onOpenChange, onRotated }: Pr
   const [submitting, setSubmitting] = useState(false);
   const [generated, setGenerated] = useState<string | null>(null);
   const [stepUpOpen, setStepUpOpen] = useState(false);
+  const { challenge } = useDevChallenge();
 
   const reset = () => {
     setJustification("");
@@ -94,11 +96,18 @@ export function RotateMcpKeyDialog({ source, open, onOpenChange, onRotated }: Pr
         toast.error(`Digite "${FULL_SCOPE_CONFIRMATION}" para confirmar.`);
         return;
       }
-      // Step-up obrigatório para chaves FULL: senha + OTP por e-mail
+      // Step-up obrigatório para chaves FULL: senha + OTP por e-mail (action: mcp_full_issue)
       setStepUpOpen(true);
       return;
     }
-    await performRotate();
+    // Chaves limitadas: também exigem step-up server-side (action: mcp_key_rotate).
+    const token = await challenge({
+      action: "mcp_key_rotate",
+      actionLabel: `Rotacionar chave MCP "${source.name}"`,
+      targetRef: source.id,
+    });
+    if (!token) return; // cancelado
+    await performRotate(token);
   };
 
   const copy = (s: string) => {

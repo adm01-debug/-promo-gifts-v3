@@ -16,6 +16,8 @@ import { useSecretsManager } from "@/hooks/useSecretsManager";
 import { GitHubCredentialsTester } from "./GitHubCredentialsTester";
 import { IssueMcpKeyForm } from "./IssueMcpKeyForm";
 import { isFullAccess } from "@/lib/mcp/scopes";
+import { useDevChallenge } from "@/contexts/DevChallengeContext";
+import { sanitizeError } from "@/lib/security/sanitize-error";
 
 interface McpKey {
   id: string;
@@ -42,6 +44,7 @@ function formatExpiresIn(expiresAt: string | null): string | null {
 
 export function McpTab() {
   const { secrets, list } = useSecretsManager();
+  const { challenge } = useDevChallenge();
   const [keys, setKeys] = useState<McpKey[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
@@ -62,12 +65,19 @@ export function McpTab() {
   useEffect(() => { load(); }, []);
 
   const revoke = async (id: string) => {
+    // Step-up obrigatório: senha + OTP recentes antes de revogar.
+    const token = await challenge({
+      action: "mcp_key_revoke",
+      actionLabel: "Revogar chave MCP",
+      targetRef: id,
+    });
+    if (!token) return; // cancelado pelo usuário
+
     const { data, error } = await supabase.functions.invoke("mcp-keys-revoke", {
-      body: { key_id: id },
+      body: { key_id: id, step_up_token: token },
     });
     if (error || (data && (data as { error?: string }).error)) {
-      const msg = error?.message ?? (data as { error?: string; message?: string })?.message ?? "Falha ao revogar";
-      toast.error("Erro ao revogar", { description: msg });
+      toast.error("Erro ao revogar", { description: sanitizeError(error ?? data) });
     } else { toast.success("Chave revogada"); load(); }
   };
 
