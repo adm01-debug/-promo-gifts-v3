@@ -197,8 +197,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setTimeout(() => {
             fetchUserData(session.user.id);
             fetchAAL();
-            // Pre-warm external DB to avoid cold starts
-            import('@/lib/external-db-prewarm').then(m => m.prewarmExternalDb());
+            // Pre-warm external DB + CRM bridge to avoid cold starts (1x por sessão)
+            import('@/lib/external-db-prewarm').then(m => m.prewarmExternalDb({ oncePerSession: true }));
           }, 0);
         } else {
           setProfile(null);
@@ -308,6 +308,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setCurrentAAL(null);
     setNextAAL(null);
     setHasMFA(false);
+    // Permite prewarm no próximo login (mesma aba)
+    import('@/lib/external-db-prewarm').then(m => m.resetPrewarmSession()).catch(() => {});
   };
 
   const refreshProfile = async () => {
