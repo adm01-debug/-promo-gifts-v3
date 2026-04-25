@@ -107,6 +107,8 @@ export function estimatePayloadBytes(value: unknown): number {
 }
 
 export function recordBridgeCall(sample: Omit<BridgeCallSample, 'id' | 'ts'> & { ts?: number }): void {
+  // Kill-switch global — descarta sem alocar/notificar.
+  if (isInstrumentationPaused()) return;
   const entry: BridgeCallSample = {
     id: nextId++,
     ts: sample.ts ?? Date.now(),
