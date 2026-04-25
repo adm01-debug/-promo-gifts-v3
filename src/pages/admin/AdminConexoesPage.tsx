@@ -36,6 +36,7 @@ import {
   useZoneCommandPaletteShortcut,
 } from "@/components/admin/connections/ZoneCommandPalette";
 import { ZoneCommandTrigger } from "@/components/admin/connections/ZoneCommandTrigger";
+import { useFocusContext } from "@/components/admin/connections/useFocusContext";
 
 /**
  * /admin/conexoes — Hub Central de Integrações
