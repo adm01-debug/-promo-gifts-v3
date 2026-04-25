@@ -1,9 +1,10 @@
 import { useEffect, useState, useCallback } from "react";
-import { Bug, Database, KeyRound, RefreshCw, CheckCircle2, AlertCircle } from "lucide-react";
+import { Bug, Database, KeyRound, RefreshCw, CheckCircle2, AlertCircle, Search, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useSecretsManager } from "@/hooks/useSecretsManager";
 import { toast } from "sonner";
