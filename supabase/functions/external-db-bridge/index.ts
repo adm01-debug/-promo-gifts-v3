@@ -26,6 +26,7 @@ import { getBreaker, circuitOpenResponse } from "../_shared/circuit-breaker.ts";
 import { retrySupabaseCall } from "../_shared/retry-backoff.ts";
 import { AsyncLocalStorage } from "node:async_hooks";
 import { getOrCreateRequestId, REQUEST_ID_HEADER } from "../_shared/request-id.ts";
+import { resolveCredential } from "../_shared/credentials.ts";
 
 const breaker = getBreaker("external-db");
 
@@ -506,7 +507,7 @@ async function handleBatch(body: any, req: Request, corsHeaders: Record<string, 
     return jsonResponse({ error: 'Batch limited to 10 queries max' }, 400, corsHeaders);
   }
 
-  const externalSupabase = getExternalClient(corsHeaders);
+  const externalSupabase = await getExternalClient(corsHeaders);
   if (externalSupabase instanceof Response) return externalSupabase;
 
   const results = await Promise.all(
@@ -661,7 +662,7 @@ async function handleRpc(body: any, corsHeaders: Record<string, string>) {
     return jsonResponse({ error: `RPC '${rpcName}' não permitida`, allowedRpcs: ALLOWED_RPCS }, 403, corsHeaders);
   }
 
-  const externalSupabase = getExternalClient(corsHeaders);
+  const externalSupabase = await getExternalClient(corsHeaders);
   if (externalSupabase instanceof Response) return externalSupabase;
 
   console.log(`RPC: ${rpcName}`, rpcParams);
@@ -844,7 +845,7 @@ async function handleCrud(body: any, req: Request, corsHeaders: Record<string, s
     cacheMissesTotal++;
   }
 
-  const externalSupabase = getExternalClient(corsHeaders);
+  const externalSupabase = await getExternalClient(corsHeaders);
   if (externalSupabase instanceof Response) return externalSupabase;
 
   const isVirtual = table === 'product_print_areas';
@@ -1587,14 +1588,17 @@ function buildExternalClient(url: string, key: string) {
   });
 }
 
-function getExternalClient(corsHeaders: Record<string, string>) {
+async function getExternalClient(corsHeaders: Record<string, string>) {
   if (cachedExternalClient) return cachedExternalClient;
 
-  const externalUrl = Deno.env.get('EXTERNAL_SUPABASE_URL');
-  const externalKey = Deno.env.get('EXTERNAL_SUPABASE_SERVICE_ROLE_KEY')
-    ?? Deno.env.get('EXTERNAL_SUPABASE_SERVICE_KEY');
+  // SSOT: DB-first via integration_credentials, fallback to legacy env aliases
+  // (EXTERNAL_SUPABASE_URL/EXTERNAL_SUPABASE_SERVICE_ROLE_KEY/EXTERNAL_SUPABASE_SERVICE_KEY).
+  const [{ value: externalUrl }, { value: externalKey }] = await Promise.all([
+    resolveCredential("EXTERNAL_PROMOBRIND_URL"),
+    resolveCredential("EXTERNAL_PROMOBRIND_SERVICE_ROLE_KEY"),
+  ]);
   if (!externalUrl || !externalKey) {
-    console.warn('[external-db-bridge] EXTERNAL_SUPABASE_URL/KEY not configured — returning empty payload');
+    console.warn('[external-db-bridge] EXTERNAL_PROMOBRIND_URL/KEY not configured (DB or env) — returning empty payload');
     return jsonResponse(
       { records: [], data: [], count: 0, _unconfigured: true, _message: 'Banco externo não configurado' },
       200,
@@ -1613,9 +1617,10 @@ function warmupExternalClient(): Promise<void> {
   if (warmupPromise) return warmupPromise;
   warmupPromise = (async () => {
     try {
-      const url = Deno.env.get('EXTERNAL_SUPABASE_URL');
-      const key = Deno.env.get('EXTERNAL_SUPABASE_SERVICE_ROLE_KEY')
-        ?? Deno.env.get('EXTERNAL_SUPABASE_SERVICE_KEY');
+      const [{ value: url }, { value: key }] = await Promise.all([
+        resolveCredential("EXTERNAL_PROMOBRIND_URL"),
+        resolveCredential("EXTERNAL_PROMOBRIND_SERVICE_ROLE_KEY"),
+      ]);
       if (!url || !key) return;
       if (!cachedExternalClient) cachedExternalClient = buildExternalClient(url, key);
       const t0 = performance.now();

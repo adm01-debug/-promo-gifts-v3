@@ -25,7 +25,7 @@ if (!Deno.env.get("CRM_SUPABASE_SERVICE_KEY") && !Deno.env.get("CRM_SUPABASE_ANO
 
 const mod = await import("./index.ts");
 const { getCrmClient, __getClientBootStateForTests } = mod as {
-  getCrmClient: () => unknown;
+  getCrmClient: () => Promise<unknown>;
   __getClientBootStateForTests: () => { cached: unknown; clientBuildMs: number | null };
 };
 
@@ -33,7 +33,7 @@ Deno.test("crm-db-bridge: singleton client é reutilizado em chamadas concorrent
   const CONCURRENCY = 50;
 
   const clients = await Promise.all(
-    Array.from({ length: CONCURRENCY }, () => Promise.resolve().then(() => getCrmClient())),
+    Array.from({ length: CONCURRENCY }, () => getCrmClient()),
   );
 
   const first = clients[0];
@@ -55,10 +55,10 @@ Deno.test("crm-db-bridge: singleton client é reutilizado em chamadas concorrent
   );
 });
 
-Deno.test("crm-db-bridge: chamadas síncronas sequenciais também reutilizam o client", () => {
-  const a = getCrmClient();
-  const b = getCrmClient();
-  const c = getCrmClient();
+Deno.test("crm-db-bridge: chamadas sequenciais também reutilizam o client", async () => {
+  const a = await getCrmClient();
+  const b = await getCrmClient();
+  const c = await getCrmClient();
   assertStrictEquals(a, b);
   assertStrictEquals(b, c);
 });
