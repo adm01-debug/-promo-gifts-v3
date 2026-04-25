@@ -4,7 +4,12 @@ import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { logger } from '@/lib/logger';
 
-export type RoleName = 'admin' | 'manager' | 'seller';
+/**
+ * Hierarquia oficial: dev > supervisor > agente.
+ * Os nomes legados admin/manager/seller permanecem na tabela `role_permissions`
+ * por compatibilidade — mapeamos transparentemente abaixo.
+ */
+export type RoleName = 'dev' | 'supervisor' | 'agente';
 
 export interface Role {
   id: string;
@@ -31,23 +36,53 @@ function parsePermissionCode(code: string): Permission {
 }
 
 /**
+ * Normaliza qualquer valor vindo do banco/auth para a hierarquia atual.
+ * dev → dev | admin/supervisor → supervisor | demais → agente
+ */
+function normalizeRole(raw: string | null | undefined): RoleName {
+  const r = (raw ?? '').toLowerCase();
+  if (r === 'dev') return 'dev';
+  if (r === 'supervisor' || r === 'admin' || r === 'manager') return 'supervisor';
+  return 'agente';
+}
+
+/**
+ * Converte a role normalizada para o nome usado em `role_permissions`
+ * (mantemos os enums legados nessa tabela enquanto a migração não desce).
+ */
+function toDbRole(role: RoleName): 'admin' | 'manager' | 'vendedor' {
+  if (role === 'dev') return 'admin';        // dev herda permissões de admin no banco
+  if (role === 'supervisor') return 'manager';
+  return 'vendedor';
+}
+
+/**
  * Hook de RBAC dinâmico — busca permissões da tabela role_permissions no banco.
- * Fallback hardcoded para admin (wildcard) garante acesso mesmo se a query falhar.
+ * dev recebe wildcard (*) sempre — é o topo da hierarquia técnica.
  */
 export function useRBAC() {
-  const { role: authRole, isLoading: authLoading, profile, user } = useAuth();
+  const {
+    role: authRole,
+    roles: authRoles,
+    isLoading: authLoading,
+    profile,
+    user,
+    isDev,
+    isSupervisor,
+    isSupervisorOrAbove,
+    isAgente,
+  } = useAuth();
 
-  const getRoleName = (): RoleName => {
-    const roleStr = authRole || 'seller';
-    if (roleStr === 'vendedor') return 'seller';
-    if (['admin', 'manager', 'seller'].includes(roleStr)) return roleStr as RoleName;
-    return 'seller';
-  };
+  // Prioriza as roles reais do user_roles; cai no `role` único como fallback
+  const roleName: RoleName = useMemo(() => {
+    if (isDev) return 'dev';
+    if (isSupervisor || authRoles?.includes('admin') || authRoles?.includes('supervisor')) {
+      return 'supervisor';
+    }
+    return normalizeRole(authRole);
+  }, [isDev, isSupervisor, authRoles, authRole]);
 
-  const roleName = getRoleName();
-
-  // Map RoleName back to the DB enum for querying
-  const dbRole = roleName === 'seller' ? 'vendedor' : roleName;
+  const dbRole = toDbRole(roleName);
 
   const { data: dbPermissions, isLoading: permissionsLoading } = useQuery({
     queryKey: ['role-permissions', dbRole],
@@ -64,18 +99,16 @@ export function useRBAC() {
       return data.map((row: { permission_code: string }) => row.permission_code);
     },
     enabled: !!user,
-    staleTime: 5 * 60 * 1000, // 5 min cache
+    staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
   });
 
   const permissions = useMemo<Permission[]>(() => {
-    // Admin always has wildcard access
-    if (roleName === 'admin') {
+    // dev sempre tem wildcard — é o topo da hierarquia
+    if (roleName === 'dev') {
       return [{ action: '*', resource: '*' }];
     }
-
     if (!dbPermissions) return [];
-
     return dbPermissions.map(parsePermissionCode);
   }, [roleName, dbPermissions]);
 
@@ -94,14 +127,23 @@ export function useRBAC() {
   };
 
   const hasPermissionByCode = (code: string): boolean => {
-    if (roleName === 'admin') return true;
+    if (roleName === 'dev') return true;
     return dbPermissions?.includes(code) ?? false;
   };
 
   const hasRole = (...roles: RoleName[]): boolean => roles.includes(roleName);
 
-  const isAdmin = roleName === 'admin';
-  const isManagerOrAbove = roleName === 'admin' || roleName === 'manager';
+  /**
+   * Aplica `requiredRole` respeitando hierarquia:
+   *  - 'dev' → apenas dev
+   *  - 'supervisor' → supervisor ou dev
+   *  - 'agente' → todos os autenticados
+   */
+  const meetsRequiredRole = (required: RoleName): boolean => {
+    if (required === 'dev') return roleName === 'dev';
+    if (required === 'supervisor') return roleName === 'dev' || roleName === 'supervisor';
+    return true;
+  };
 
   const getPermissions = (): Permission[] => permissions;
 
@@ -111,19 +153,26 @@ export function useRBAC() {
     hasPermission,
     hasPermissionByCode,
     hasRole,
-    isAdmin,
-    isManagerOrAbove,
+    meetsRequiredRole,
+    // Helpers da hierarquia atual
+    isDev,
+    isSupervisor,
+    isSupervisorOrAbove,
+    isAgente,
+    // Aliases legados — preferir os helpers acima
+    isAdmin: isSupervisorOrAbove,
+    isManagerOrAbove: isSupervisorOrAbove,
     getPermissions,
   };
 }
 
 function getDescriptionForRole(role: RoleName): string {
   const descriptions: Record<RoleName, string> = {
-    admin: 'Administrador',
-    manager: 'Gerente',
-    seller: 'Vendedor',
+    dev: 'Desenvolvedor',
+    supervisor: 'Supervisor',
+    agente: 'Agente',
   };
-  return descriptions[role] || 'Vendedor';
+  return descriptions[role] || 'Agente';
 }
 
 export default useRBAC;
