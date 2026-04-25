@@ -192,6 +192,11 @@ export default function AdminTelemetriaPage() {
           <ColdVsWarmCrmCard />
         </Suspense>
 
+        {/* Estado do circuit-breaker do crm-db-bridge (poll ?op=breaker_status) */}
+        <Suspense fallback={<CardSkeleton height={200} label="Carregando estado do breaker" />}>
+          <BreakerStatusCard />
+        </Suspense>
+
 
         {/* Métricas das otimizações Onda 2 (cache hit rate + retries evitados) */}
         <Suspense fallback={<GridCardsSkeleton count={3} height={100} />}>
