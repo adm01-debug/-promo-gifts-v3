@@ -8,6 +8,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { isFullAccess } from "@/lib/mcp/scopes";
+import { sanitizeError } from "@/lib/security/sanitize-error";
 
 export interface McpKeyRow {
   id: string;
@@ -165,8 +166,7 @@ export function useMcpKeys() {
         body: { key_id: id, reason: reason ?? null },
       });
       if (error || (data && (data as { error?: string }).error)) {
-        const msg = error?.message ?? (data as { error?: string; message?: string })?.message ?? "Falha ao revogar";
-        toast.error("Erro ao revogar", { description: msg });
+        toast.error("Erro ao revogar", { description: sanitizeError(error ?? data) });
         return false;
       }
       toast.success("Chave revogada");

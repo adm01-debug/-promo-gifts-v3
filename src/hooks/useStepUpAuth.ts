@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { sanitizeError, SAFE_MESSAGES } from "@/lib/security/sanitize-error";
 
 export type StepUpAction =
   | "promote_dev"
@@ -43,7 +44,7 @@ export function useStepUpAuth() {
       body: { step: "request", action, target_ref: targetRef ?? null },
     });
     if (error || data?.error) {
-      setState((s) => ({ ...s, loading: false, error: data?.error || error?.message || "Falha ao iniciar verificação" }));
+      setState((s) => ({ ...s, loading: false, error: sanitizeError(data ?? error) }));
       return false;
     }
     setState((s) => ({ ...s, loading: false, challengeId: data.challenge_id, expiresAt: data.expires_at }));
@@ -56,7 +57,8 @@ export function useStepUpAuth() {
       body: { step: "verify_password", challenge_id: state.challengeId, password },
     });
     if (error || data?.error) {
-      setState((s) => ({ ...s, loading: false, error: "Senha incorreta" }));
+      // Mensagem genérica — não diferencia "senha errada" de outros erros (anti-enumeration)
+      setState((s) => ({ ...s, loading: false, error: SAFE_MESSAGES.AUTH_GENERIC }));
       return false;
     }
     setState((s) => ({ ...s, loading: false, passwordVerified: true }));
@@ -69,7 +71,7 @@ export function useStepUpAuth() {
       body: { step: "verify_otp", challenge_id: state.challengeId, otp },
     });
     if (error || data?.error) {
-      setState((s) => ({ ...s, loading: false, error: "Código inválido ou expirado" }));
+      setState((s) => ({ ...s, loading: false, error: SAFE_MESSAGES.STEP_UP_FAILED }));
       return null;
     }
     setState((s) => ({ ...s, loading: false, token: data.token, expiresAt: data.expires_at }));

@@ -51,6 +51,7 @@ import {
 } from "@/lib/mcp/scopes";
 import { useCanGrantMcpFull } from "@/components/admin/security/keys/useCanGrantMcpFull";
 import { StepUpAuthDialog } from "@/components/auth/StepUpAuthDialog";
+import { sanitizeError } from "@/lib/security/sanitize-error";
 
 interface Props {
   onIssued: () => void;
@@ -142,12 +143,11 @@ export function IssueMcpKeyForm({ onIssued }: Props) {
         },
       });
       if (error) {
-        toast.error("Falha ao emitir chave", { description: error.message });
+        toast.error("Falha ao emitir chave", { description: sanitizeError(error) });
         return;
       }
       if (!data?.ok || !data?.key) {
-        const fields = data?.fields ? JSON.stringify(data.fields) : "";
-        toast.error("Servidor recusou a emissão", { description: data?.message ?? fields });
+        toast.error("Não foi possível emitir a chave", { description: sanitizeError(data) });
         return;
       }
       setGenerated(data.key as string);
