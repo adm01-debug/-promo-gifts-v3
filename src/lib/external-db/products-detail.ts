@@ -57,52 +57,50 @@ export async function fetchPromobrindProductById(
     product.description = product.meta_description;
   }
 
-  // Fetch images
-  let allProductImages: Array<{
+  // ─────────────────────────────────────────────────────────────────────
+  // Paralelização: as 4 famílias de fetch dependem só de `productId` (e do
+  // próprio `product` já carregado), então podem ir juntas em vez de em
+  // série. Cada chamada continua propagando seu próprio request-id via
+  // invokeExternalDb / invokeBatchBridge — a rastreabilidade no painel de
+  // telemetria fica preservada (1 req_id por linha do timeline).
+  //
+  // Etapas:
+  //   A) product_images
+  //   B) batch enrichment (categories + suppliers + product_materials)
+  //   C) product_variants
+  //   D) product_videos
+  //   E) product_kit_components (apenas se is_kit)
+  //
+  // material_types continua em série, pois depende do resultado de (B).
+  // O pós-processamento de variants depende de (A) p/ resolver imagens por
+  // color_code → fazemos o merge depois do Promise.all.
+  // ─────────────────────────────────────────────────────────────────────
+
+  type ProductImage = {
     url_cdn: string; url_original: string | null; filename: string | null;
     image_type: string; is_primary: boolean; is_og_image: boolean;
     applies_to_color: boolean | null; display_order: number;
     alt_text: string | null; title_text: string | null; supplier_code: string | null;
-  }> = [];
+  };
 
-  try {
-    const imagesResult = await invokeExternalDb<typeof allProductImages[0]>({
-      table: 'product_images', operation: 'select',
-      select: 'url_cdn, url_original, filename, image_type, is_primary, is_og_image, applies_to_color, display_order, alt_text, title_text, supplier_code',
-      filters: { product_id: productId, is_active: true },
-      orderBy: { column: 'display_order', ascending: true }, limit: 200,
-    });
-    allProductImages = imagesResult.records;
+  // ─── (A) Imagens ─────────────────────────────────────────────────────
+  const imagesPromise = invokeExternalDb<ProductImage>({
+    table: 'product_images', operation: 'select',
+    select: 'url_cdn, url_original, filename, image_type, is_primary, is_og_image, applies_to_color, display_order, alt_text, title_text, supplier_code',
+    filters: { product_id: productId, is_active: true },
+    orderBy: { column: 'display_order', ascending: true }, limit: 200,
+  }).then(r => r.records).catch(err => {
+    logger.warn(`[product:${productId}] Não foi possível buscar imagens:`, err);
+    return [] as ProductImage[];
+  });
 
-    if (allProductImages.length > 0) {
-      const colorImages = allProductImages.filter(img => img.supplier_code && img.image_type !== 'box').sort((a, b) => a.display_order - b.display_order);
-      const generalImages = allProductImages.filter(img => !img.supplier_code && img.image_type !== 'box').sort((a, b) => a.display_order - b.display_order);
-      const mainImages = [...colorImages, ...generalImages];
-      const primaryImage = mainImages.find(img => img.is_primary) || mainImages[0];
-      if (primaryImage) { product.primary_image_url = primaryImage.url_cdn; product.image_url = primaryImage.url_cdn; }
-      const ogImage = mainImages.find(img => img.is_og_image) || mainImages.find(img => img.image_type === 'main') || primaryImage;
-      if (ogImage) product.og_image_url = ogImage.url_cdn;
-      product.images = mainImages.map(img => img.url_cdn);
-    }
-  } catch (err) {
-    logger.warn('Não foi possível buscar imagens da tabela product_images:', err);
-  }
-
-  // ─────────────────────────────────────────────────────────────────────
-  // Enriquecimento em LOTE — categories + suppliers + product_materials
-  // numa única ida ao external-db-bridge (em vez de 3 calls sequenciais),
-  // e depois UM batch para todos os material_types referenciados.
-  //
-  // Antes: até 3 + N requests (1 por material) = N+1.
-  // Depois: 1 request + (no máx) 1 request adicional para os material_types.
-  // ─────────────────────────────────────────────────────────────────────
+  // ─── (B) Enrichment (cat/supplier/materials) em batch + cache ────────
   const categoryId = product.category_id || product.main_category_id;
   const needsCategory = !!categoryId && !product.category_name;
   const needsSupplier = !!product.supplier_id;
   const needsMaterials =
     !product.materials || (Array.isArray(product.materials) && product.materials.length === 0);
 
-  // 1) Tenta servir categoria/fornecedor do cache de entidades imutáveis
   if (needsCategory && categoryId) {
     const cached = getFreshFromCacheSafe('categories', categoryId);
     if (cached?.name) product.category_name = cached.name;
@@ -140,70 +138,133 @@ export async function fetchPromobrindProductById(
     enrichmentSlots.push('materials');
   }
 
-  let materialIds: string[] = [];
-
-  if (enrichmentQueries.length > 0) {
-    try {
-      const batchResults = await invokeBatchBridge(enrichmentQueries);
-      enrichmentSlots.forEach((slot, idx) => {
-        const result = batchResults[idx];
-        if (!result?.success || !result.data) return;
-        const records = result.data.records;
-        if (slot === 'category') {
-          const rec = records[0] as { id?: string; name?: string } | undefined;
-          if (rec?.name) {
-            product.category_name = rec.name;
-            if (rec.id) putInCacheSafe('categories', { id: rec.id, name: rec.name });
-          }
-        } else if (slot === 'supplier') {
-          const rec = records[0] as { id?: string; name?: string; code?: string } | undefined;
-          if (rec?.name) {
-            product.supplier_name = rec.name;
-            if (rec.id) putInCacheSafe('suppliers', { id: rec.id, name: rec.name, code: rec.code });
-          }
-        } else if (slot === 'materials') {
-          const matRecs = records as Array<{ material_id: string }>;
-          const seen = new Set<string>();
-          for (const m of matRecs) {
-            if (m.material_id && !seen.has(m.material_id)) {
-              seen.add(m.material_id);
-              materialIds.push(m.material_id);
+  const enrichmentPromise: Promise<{ materialIds: string[] }> =
+    enrichmentQueries.length === 0
+      ? Promise.resolve({ materialIds: [] })
+      : invokeBatchBridge(enrichmentQueries).then(batchResults => {
+          const materialIds: string[] = [];
+          enrichmentSlots.forEach((slot, idx) => {
+            const r = batchResults[idx];
+            if (!r?.success || !r.data) return;
+            const records = r.data.records;
+            if (slot === 'category') {
+              const rec = records[0] as { id?: string; name?: string } | undefined;
+              if (rec?.name) {
+                product.category_name = rec.name;
+                if (rec.id) putInCacheSafe('categories', { id: rec.id, name: rec.name });
+              }
+            } else if (slot === 'supplier') {
+              const rec = records[0] as { id?: string; name?: string; code?: string } | undefined;
+              if (rec?.name) {
+                product.supplier_name = rec.name;
+                if (rec.id) putInCacheSafe('suppliers', { id: rec.id, name: rec.name, code: rec.code });
+              }
+            } else if (slot === 'materials') {
+              const matRecs = records as Array<{ material_id: string }>;
+              const seen = new Set<string>();
+              for (const m of matRecs) {
+                if (m.material_id && !seen.has(m.material_id)) {
+                  seen.add(m.material_id);
+                  materialIds.push(m.material_id);
+                }
+              }
             }
-          }
-        }
-      });
-    } catch (err) {
-      logger.warn('Não foi possível enriquecer produto em lote (categoria/fornecedor/materiais):', err);
-    }
+          });
+          return { materialIds };
+        }).catch(err => {
+          logger.warn(`[product:${productId}] Não foi possível enriquecer em lote:`, err);
+          return { materialIds: [] };
+        });
+
+  // ─── (C) Variantes (cores) ───────────────────────────────────────────
+  type Variant = {
+    id: string; product_id: string; color_name: string | null; color_hex: string | null;
+    color_code: string | null; sku: string | null; stock_quantity: number | null;
+    images: string[] | null; selected_thumbnail: string | null;
+  };
+  const variantsPromise = invokeExternalDb<Variant>({
+    table: 'product_variants', operation: 'select',
+    select: 'id, product_id, color_name, color_hex, color_code, sku, stock_quantity, images, selected_thumbnail',
+    filters: { product_id: productId, is_active: true }, limit: 100,
+  }).then(r => r.records).catch(err => {
+    logger.warn(`[product:${productId}] Não foi possível buscar variantes:`, err);
+    return [] as Variant[];
+  });
+
+  // ─── (D) Vídeos ──────────────────────────────────────────────────────
+  type Video = {
+    id: string; url_stream: string | null; url_hls: string | null; url_thumbnail: string | null;
+    url_original: string | null; source_youtube_id: string | null; video_type: string | null;
+    display_order: number; is_primary: boolean; title: string | null; cloudflare_status: string | null;
+  };
+  const videosPromise = invokeExternalDb<Video>({
+    table: 'product_videos', operation: 'select',
+    select: 'id, url_stream, url_hls, url_thumbnail, url_original, source_youtube_id, video_type, display_order, is_primary, title, cloudflare_status',
+    filters: { product_id: productId, is_active: true },
+    orderBy: { column: 'display_order', ascending: true }, limit: 20,
+  }).then(r => r.records).catch(err => {
+    logger.warn(`[product:${productId}] Não foi possível buscar vídeos:`, err);
+    return [] as Video[];
+  });
+
+  // ─── (E) Componentes do kit (condicional) ────────────────────────────
+  type KitComponent = {
+    id: string; component_name: string | null; component_code: string | null;
+    component_product_id: string | null; component_sku: string | null;
+    quantity: number | null; display_order: number | null;
+    is_optional: boolean | null; is_packaging: boolean | null;
+    is_replaceable: boolean | null; allows_personalization: boolean | null;
+    material: string | null; primary_image_url: string | null;
+    height_mm: number | null; width_mm: number | null; length_mm: number | null;
+    weight_g: number | null; notes: string | null;
+  };
+  const kitPromise: Promise<KitComponent[]> = product.is_kit
+    ? invokeExternalDb<KitComponent>({
+        table: 'product_kit_components', operation: 'select',
+        select: 'id, component_name, component_code, component_product_id, component_sku, quantity, display_order, is_optional, is_packaging, is_replaceable, allows_personalization, material, primary_image_url, height_mm, width_mm, length_mm, weight_g, notes',
+        filters: { kit_product_id: productId },
+        orderBy: { column: 'display_order', ascending: true }, limit: 50,
+      }).then(r => r.records).catch(err => {
+        logger.warn(`[product:${productId}] Não foi possível buscar componentes do kit:`, err);
+        return [] as KitComponent[];
+      })
+    : Promise.resolve([]);
+
+  // Dispara TUDO em paralelo
+  const [allProductImages, enrichment, variants, videos, kitComponents] =
+    await Promise.all([imagesPromise, enrichmentPromise, variantsPromise, videosPromise, kitPromise]);
+
+  // ─── Pós-processamento (ordem importa apenas localmente) ─────────────
+
+  // Imagens → primary/og/lista
+  if (allProductImages.length > 0) {
+    const colorImages = allProductImages.filter(img => img.supplier_code && img.image_type !== 'box').sort((a, b) => a.display_order - b.display_order);
+    const generalImages = allProductImages.filter(img => !img.supplier_code && img.image_type !== 'box').sort((a, b) => a.display_order - b.display_order);
+    const mainImages = [...colorImages, ...generalImages];
+    const primaryImage = mainImages.find(img => img.is_primary) || mainImages[0];
+    if (primaryImage) { product.primary_image_url = primaryImage.url_cdn; product.image_url = primaryImage.url_cdn; }
+    const ogImage = mainImages.find(img => img.is_og_image) || mainImages.find(img => img.image_type === 'main') || primaryImage;
+    if (ogImage) product.og_image_url = ogImage.url_cdn;
+    product.images = mainImages.map(img => img.url_cdn);
   }
 
-  // Resolve nomes de material_types através do cache em lote (apenas IDs faltantes vão para o bridge).
-  if (materialIds.length > 0) {
+  // material_types — depende do enrichment, em série (1 chamada extra ou cache)
+  if (enrichment.materialIds.length > 0) {
     try {
-      const nameById = await getCachedByIds<{ id: string; name: string }>('material_types', materialIds);
-      const materialNames = materialIds
+      const nameById = await getCachedByIds<{ id: string; name: string }>('material_types', enrichment.materialIds);
+      const materialNames = enrichment.materialIds
         .map(id => nameById.get(id)?.name)
         .filter((n): n is string => !!n);
       if (materialNames.length > 0) product.materials = materialNames;
     } catch (err) {
-      logger.warn('Não foi possível buscar nomes dos material_types em lote:', err);
+      logger.warn(`[product:${productId}] Não foi possível buscar nomes de material_types:`, err);
     }
   }
 
-  // Variants (colors)
-  try {
-    const variantsResult = await invokeExternalDb<{
-      id: string; product_id: string; color_name: string | null; color_hex: string | null;
-      color_code: string | null; sku: string | null; stock_quantity: number | null;
-      images: string[] | null; selected_thumbnail: string | null;
-    }>({
-      table: 'product_variants', operation: 'select',
-      select: 'id, product_id, color_name, color_hex, color_code, sku, stock_quantity, images, selected_thumbnail',
-      filters: { product_id: productId, is_active: true }, limit: 100,
-    });
-
+  // Variants → cores únicas (precisa de allProductImages para byCode)
+  if (variants.length > 0) {
     const uniqueColors: Array<{ name: string; hex: string; code?: string; sku?: string; stock?: number; image?: string; images?: string[] }> = [];
-    variantsResult.records.forEach(variant => {
+    variants.forEach(variant => {
       if (variant.color_name && !uniqueColors.some(c => c.name === variant.color_name)) {
         const byCode = variant.color_code
           ? allProductImages.filter(img => img.supplier_code === variant.color_code).sort((a, b) => a.display_order - b.display_order).map(img => img.url_cdn)
@@ -220,60 +281,23 @@ export async function fetchPromobrindProductById(
       }
     });
     if (uniqueColors.length > 0) product.colors = uniqueColors;
-  } catch (err) {
-    logger.warn('Não foi possível buscar cores das variantes para produto:', productId, err);
   }
 
   // Videos
-  try {
-    const videosResult = await invokeExternalDb<{
-      id: string; url_stream: string | null; url_hls: string | null; url_thumbnail: string | null;
-      url_original: string | null; source_youtube_id: string | null; video_type: string | null;
-      display_order: number; is_primary: boolean; title: string | null; cloudflare_status: string | null;
-    }>({
-      table: 'product_videos', operation: 'select',
-      select: 'id, url_stream, url_hls, url_thumbnail, url_original, source_youtube_id, video_type, display_order, is_primary, title, cloudflare_status',
-      filters: { product_id: productId, is_active: true },
-      orderBy: { column: 'display_order', ascending: true }, limit: 20,
-    });
-    if (videosResult.records.length > 0) {
-      product.product_videos = videosResult.records
-        .filter(v => !v.cloudflare_status || v.cloudflare_status === 'ready')
-        .map(v => ({
-          id: v.id, url_stream: v.url_stream, url_hls: v.url_hls,
-          url_thumbnail: v.url_thumbnail, url_original: v.url_original,
-          source_youtube_id: v.source_youtube_id, video_type: v.video_type,
-          display_order: v.display_order, is_primary: v.is_primary, title: v.title,
-        }));
-    }
-  } catch (err) {
-    logger.warn('Não foi possível buscar vídeos do produto:', productId, err);
+  if (videos.length > 0) {
+    product.product_videos = videos
+      .filter(v => !v.cloudflare_status || v.cloudflare_status === 'ready')
+      .map(v => ({
+        id: v.id, url_stream: v.url_stream, url_hls: v.url_hls,
+        url_thumbnail: v.url_thumbnail, url_original: v.url_original,
+        source_youtube_id: v.source_youtube_id, video_type: v.video_type,
+        display_order: v.display_order, is_primary: v.is_primary, title: v.title,
+      }));
   }
 
   // Kit components
-  if (product.is_kit) {
-    try {
-      const kitResult = await invokeExternalDb<{
-        id: string; component_name: string | null; component_code: string | null;
-        component_product_id: string | null; component_sku: string | null;
-        quantity: number | null; display_order: number | null;
-        is_optional: boolean | null; is_packaging: boolean | null;
-        is_replaceable: boolean | null; allows_personalization: boolean | null;
-        material: string | null; primary_image_url: string | null;
-        height_mm: number | null; width_mm: number | null; length_mm: number | null;
-        weight_g: number | null; notes: string | null;
-      }>({
-        table: 'product_kit_components', operation: 'select',
-        select: 'id, component_name, component_code, component_product_id, component_sku, quantity, display_order, is_optional, is_packaging, is_replaceable, allows_personalization, material, primary_image_url, height_mm, width_mm, length_mm, weight_g, notes',
-        filters: { kit_product_id: productId },
-        orderBy: { column: 'display_order', ascending: true }, limit: 50,
-      });
-      if (kitResult.records.length > 0) {
-        product.kit_components = kitResult.records;
-      }
-    } catch (err) {
-      logger.warn('Não foi possível buscar componentes do kit:', productId, err);
-    }
+  if (kitComponents.length > 0) {
+    product.kit_components = kitComponents;
   }
 
   return product;
