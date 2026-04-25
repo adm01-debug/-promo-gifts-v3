@@ -13,8 +13,8 @@
  * Tom de voz: híbrido com tradução.
  */
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import { AlertOctagon, AlertTriangle, Info, ArrowRight, X, ChevronDown, ChevronUp } from "lucide-react";
+import { IncidentDetailsDrawer } from "./IncidentDetailsDrawer";
 import { formatDistanceToNow, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -52,9 +52,11 @@ const SEV_META: Record<
 function IncidentCard({
   incident,
   onDismiss,
+  onOpen,
 }: {
   incident: IncidentItem;
   onDismiss: (id: string) => void;
+  onOpen: (incident: IncidentItem) => void;
 }) {
   const meta = SEV_META[incident.severity];
   const Icon = meta.icon;
@@ -108,12 +110,14 @@ function IncidentCard({
         </button>
       </header>
       <footer className="flex items-center justify-end pt-0.5">
-        <Link
-          to={incident.detailsHref}
+        <button
+          type="button"
+          onClick={() => onOpen(incident)}
           className="inline-flex items-center gap-0.5 text-[11px] font-medium text-primary hover:underline"
+          aria-label={`Ver métricas e logs do incidente ${incident.title}`}
         >
           Detalhes <ArrowRight className="h-3 w-3" />
-        </Link>
+        </button>
       </footer>
     </article>
   );
@@ -123,6 +127,7 @@ export function ConnectionsIncidentStrip() {
   const { data, isLoading } = useRecentIncidents();
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
   const [collapsed, setCollapsed] = useState(false);
+  const [openIncident, setOpenIncident] = useState<IncidentItem | null>(null);
 
   const visible = useMemo(
     () => (data ?? []).filter((i) => !dismissed.has(i.id)),
@@ -194,11 +199,21 @@ export function ConnectionsIncidentStrip() {
             className="flex gap-2 p-2 overflow-x-auto snap-x snap-mandatory scrollbar-thin"
           >
             {visible.map((incident) => (
-              <IncidentCard key={incident.id} incident={incident} onDismiss={dismiss} />
+              <IncidentCard
+                key={incident.id}
+                incident={incident}
+                onDismiss={dismiss}
+                onOpen={setOpenIncident}
+              />
             ))}
           </div>
         )}
       </section>
+      <IncidentDetailsDrawer
+        incident={openIncident}
+        open={!!openIncident}
+        onOpenChange={(o) => { if (!o) setOpenIncident(null); }}
+      />
     </TooltipProvider>
   );
 }
