@@ -14,6 +14,7 @@ interface CacheEntry {
   value: string | null;
   source: CredentialSource;
   expires_at: number;
+  stored_at: number;
 }
 
 export type CredentialSource = "db" | "env" | "none";
@@ -40,14 +41,206 @@ const ALIASES: Record<string, string[]> = {
   EXTERNAL_CRM_ANON_KEY: ["CRM_SUPABASE_ANON_KEY"],
 };
 
+// =============================================================================
+// Metrics: per-isolate (in-memory). Reset on isolate restart.
+// =============================================================================
+
+interface PerNameStats {
+  hits: number;
+  misses: number;
+  expirations: number;
+  resolutions: number;
+  last_source: CredentialSource | null;
+  last_resolved_at: number | null;
+  last_duration_ms: number | null;
+}
+
+interface CacheMetricsState {
+  /** Wall-clock ms when this isolate started collecting metrics. */
+  started_at: number;
+  hits: number;
+  misses: number;
+  expirations: number;
+  resolutions: number;
+  invalidations_single: number;
+  invalidations_full: number;
+  /** Rolling buffer of resolution durations (ms). Bounded for memory safety. */
+  durations_ms: number[];
+  per_name: Map<string, PerNameStats>;
+}
+
+const MAX_DURATIONS = 500;
+
+const METRICS: CacheMetricsState = {
+  started_at: Date.now(),
+  hits: 0,
+  misses: 0,
+  expirations: 0,
+  resolutions: 0,
+  invalidations_single: 0,
+  invalidations_full: 0,
+  durations_ms: [],
+  per_name: new Map(),
+};
+
+function getOrInitName(name: string): PerNameStats {
+  let entry = METRICS.per_name.get(name);
+  if (!entry) {
+    entry = {
+      hits: 0,
+      misses: 0,
+      expirations: 0,
+      resolutions: 0,
+      last_source: null,
+      last_resolved_at: null,
+      last_duration_ms: null,
+    };
+    METRICS.per_name.set(name, entry);
+  }
+  return entry;
+}
+
+function recordDuration(ms: number): void {
+  METRICS.durations_ms.push(ms);
+  if (METRICS.durations_ms.length > MAX_DURATIONS) {
+    METRICS.durations_ms.splice(0, METRICS.durations_ms.length - MAX_DURATIONS);
+  }
+}
+
+function percentile(sorted: number[], p: number): number {
+  if (sorted.length === 0) return 0;
+  const idx = Math.min(sorted.length - 1, Math.floor((p / 100) * sorted.length));
+  return sorted[idx];
+}
+
+export interface CacheMetricsSnapshot {
+  isolate_started_at: string;
+  uptime_ms: number;
+  cache: {
+    size: number;
+    ttl_ms: number;
+    entries: Array<{
+      name: string;
+      source: CredentialSource;
+      has_value: boolean;
+      stored_at: string;
+      expires_at: string;
+      ttl_remaining_ms: number;
+      expired: boolean;
+    }>;
+  };
+  counters: {
+    resolutions: number;
+    hits: number;
+    misses: number;
+    expirations: number;
+    invalidations_single: number;
+    invalidations_full: number;
+    hit_ratio: number;
+  };
+  duration_ms: {
+    samples: number;
+    avg: number;
+    p50: number;
+    p95: number;
+    p99: number;
+    max: number;
+  };
+  per_name: Array<{
+    name: string;
+    hits: number;
+    misses: number;
+    expirations: number;
+    resolutions: number;
+    last_source: CredentialSource | null;
+    last_resolved_at: string | null;
+    last_duration_ms: number | null;
+    hit_ratio: number;
+  }>;
+}
+
+/** Public read-only snapshot of cache health for the current isolate. */
+export function getCredentialCacheMetrics(): CacheMetricsSnapshot {
+  const now = Date.now();
+  const sorted = [...METRICS.durations_ms].sort((a, b) => a - b);
+  const sum = sorted.reduce((acc, n) => acc + n, 0);
+  const avg = sorted.length ? sum / sorted.length : 0;
+  const totalAccess = METRICS.hits + METRICS.misses;
+  const hitRatio = totalAccess > 0 ? METRICS.hits / totalAccess : 0;
+
+  return {
+    isolate_started_at: new Date(METRICS.started_at).toISOString(),
+    uptime_ms: now - METRICS.started_at,
+    cache: {
+      size: CACHE.size,
+      ttl_ms: TTL_MS,
+      entries: Array.from(CACHE.entries()).map(([name, e]) => ({
+        name,
+        source: e.source,
+        has_value: e.value !== null,
+        stored_at: new Date(e.stored_at).toISOString(),
+        expires_at: new Date(e.expires_at).toISOString(),
+        ttl_remaining_ms: Math.max(0, e.expires_at - now),
+        expired: e.expires_at <= now,
+      })),
+    },
+    counters: {
+      resolutions: METRICS.resolutions,
+      hits: METRICS.hits,
+      misses: METRICS.misses,
+      expirations: METRICS.expirations,
+      invalidations_single: METRICS.invalidations_single,
+      invalidations_full: METRICS.invalidations_full,
+      hit_ratio: Number(hitRatio.toFixed(4)),
+    },
+    duration_ms: {
+      samples: sorted.length,
+      avg: Number(avg.toFixed(2)),
+      p50: percentile(sorted, 50),
+      p95: percentile(sorted, 95),
+      p99: percentile(sorted, 99),
+      max: sorted.length ? sorted[sorted.length - 1] : 0,
+    },
+    per_name: Array.from(METRICS.per_name.entries()).map(([name, s]) => {
+      const access = s.hits + s.misses;
+      return {
+        name,
+        hits: s.hits,
+        misses: s.misses,
+        expirations: s.expirations,
+        resolutions: s.resolutions,
+        last_source: s.last_source,
+        last_resolved_at: s.last_resolved_at ? new Date(s.last_resolved_at).toISOString() : null,
+        last_duration_ms: s.last_duration_ms,
+        hit_ratio: access > 0 ? Number((s.hits / access).toFixed(4)) : 0,
+      };
+    }),
+  };
+}
+
+/** Reset all in-memory metrics. Cache itself is NOT cleared. */
+export function resetCredentialCacheMetrics(): void {
+  METRICS.started_at = Date.now();
+  METRICS.hits = 0;
+  METRICS.misses = 0;
+  METRICS.expirations = 0;
+  METRICS.resolutions = 0;
+  METRICS.invalidations_single = 0;
+  METRICS.invalidations_full = 0;
+  METRICS.durations_ms = [];
+  METRICS.per_name.clear();
+}
+
 export function invalidateCredentialCache(name?: string): void {
   if (name) {
     CACHE.delete(name);
+    METRICS.invalidations_single += 1;
     for (const [canonical] of Object.entries(ALIASES)) {
       if (canonical === name) CACHE.delete(canonical);
     }
   } else {
     CACHE.clear();
+    METRICS.invalidations_full += 1;
   }
 }
 
@@ -63,12 +256,6 @@ function getInternalServiceClient(): SupabaseClient | null {
   return internalServiceClient;
 }
 
-/**
- * Structured log for credential resolution. NEVER includes the secret value —
- * only metadata (name, resolved_name, source, has_value, value_length, cached, duration_ms).
- *
- * Set LOG_CREDENTIAL_RESOLUTION=off to silence (default: on).
- */
 interface ResolutionLogPayload {
   event: "credential_resolved";
   name: string;
@@ -91,6 +278,29 @@ function logResolution(payload: ResolutionLogPayload): void {
   }
 }
 
+function recordResolution(opts: {
+  name: string;
+  source: CredentialSource;
+  duration_ms: number;
+  cached: boolean;
+  expired_before: boolean;
+}): void {
+  METRICS.resolutions += 1;
+  if (opts.cached) METRICS.hits += 1;
+  else METRICS.misses += 1;
+  if (opts.expired_before) METRICS.expirations += 1;
+  recordDuration(opts.duration_ms);
+
+  const stats = getOrInitName(opts.name);
+  stats.resolutions += 1;
+  if (opts.cached) stats.hits += 1;
+  else stats.misses += 1;
+  if (opts.expired_before) stats.expirations += 1;
+  stats.last_source = opts.source;
+  stats.last_resolved_at = Date.now();
+  stats.last_duration_ms = opts.duration_ms;
+}
+
 /**
  * Resolve a credential by name with full provenance metadata.
  * Always prefers DB; falls back to env (and to legacy env aliases).
@@ -101,8 +311,12 @@ export async function resolveCredential(
 ): Promise<CredentialResolution> {
   const startedAt = Date.now();
   const cached = CACHE.get(name);
-  if (cached && cached.expires_at > Date.now()) {
+  const expiredBefore = !!cached && cached.expires_at <= startedAt;
+
+  if (cached && cached.expires_at > startedAt) {
     const value = cached.value;
+    const duration = Date.now() - startedAt;
+    recordResolution({ name, source: cached.source, duration_ms: duration, cached: true, expired_before: false });
     logResolution({
       event: "credential_resolved",
       name,
@@ -111,7 +325,7 @@ export async function resolveCredential(
       has_value: value !== null,
       value_length: value ? value.length : 0,
       cached: true,
-      duration_ms: Date.now() - startedAt,
+      duration_ms: duration,
       via_alias: false,
     });
     return { value, source: cached.source, resolved_name: name };
@@ -120,7 +334,7 @@ export async function resolveCredential(
   const client = serviceClient ?? getInternalServiceClient();
   let dbError: string | undefined;
 
-  // 1) DB (canonical name only)
+  // 1) DB
   if (client) {
     try {
       const { data, error } = await client
@@ -130,7 +344,10 @@ export async function resolveCredential(
         .maybeSingle();
       if (!error && data?.secret_value) {
         const value = data.secret_value as string;
-        CACHE.set(name, { value, source: "db", expires_at: Date.now() + TTL_MS });
+        const now = Date.now();
+        CACHE.set(name, { value, source: "db", expires_at: now + TTL_MS, stored_at: now });
+        const duration = Date.now() - startedAt;
+        recordResolution({ name, source: "db", duration_ms: duration, cached: false, expired_before: expiredBefore });
         logResolution({
           event: "credential_resolved",
           name,
@@ -139,7 +356,7 @@ export async function resolveCredential(
           has_value: true,
           value_length: value.length,
           cached: false,
-          duration_ms: Date.now() - startedAt,
+          duration_ms: duration,
           via_alias: false,
         });
         return { value, source: "db", resolved_name: name };
@@ -154,7 +371,10 @@ export async function resolveCredential(
   // 2) Env at canonical name
   const envCanonical = Deno.env.get(name);
   if (envCanonical) {
-    CACHE.set(name, { value: envCanonical, source: "env", expires_at: Date.now() + TTL_MS });
+    const now = Date.now();
+    CACHE.set(name, { value: envCanonical, source: "env", expires_at: now + TTL_MS, stored_at: now });
+    const duration = Date.now() - startedAt;
+    recordResolution({ name, source: "env", duration_ms: duration, cached: false, expired_before: expiredBefore });
     logResolution({
       event: "credential_resolved",
       name,
@@ -163,7 +383,7 @@ export async function resolveCredential(
       has_value: true,
       value_length: envCanonical.length,
       cached: false,
-      duration_ms: Date.now() - startedAt,
+      duration_ms: duration,
       via_alias: false,
       error: dbError,
     });
@@ -174,7 +394,10 @@ export async function resolveCredential(
   for (const alias of ALIASES[name] ?? []) {
     const v = Deno.env.get(alias);
     if (v) {
-      CACHE.set(name, { value: v, source: "env", expires_at: Date.now() + TTL_MS });
+      const now = Date.now();
+      CACHE.set(name, { value: v, source: "env", expires_at: now + TTL_MS, stored_at: now });
+      const duration = Date.now() - startedAt;
+      recordResolution({ name, source: "env", duration_ms: duration, cached: false, expired_before: expiredBefore });
       logResolution({
         event: "credential_resolved",
         name,
@@ -183,7 +406,7 @@ export async function resolveCredential(
         has_value: true,
         value_length: v.length,
         cached: false,
-        duration_ms: Date.now() - startedAt,
+        duration_ms: duration,
         via_alias: true,
         error: dbError,
       });
@@ -191,7 +414,10 @@ export async function resolveCredential(
     }
   }
 
-  CACHE.set(name, { value: null, source: "none", expires_at: Date.now() + TTL_MS });
+  const now = Date.now();
+  CACHE.set(name, { value: null, source: "none", expires_at: now + TTL_MS, stored_at: now });
+  const duration = Date.now() - startedAt;
+  recordResolution({ name, source: "none", duration_ms: duration, cached: false, expired_before: expiredBefore });
   logResolution({
     event: "credential_resolved",
     name,
@@ -200,16 +426,14 @@ export async function resolveCredential(
     has_value: false,
     value_length: 0,
     cached: false,
-    duration_ms: Date.now() - startedAt,
+    duration_ms: duration,
     via_alias: false,
     error: dbError,
   });
   return { value: null, source: "none", resolved_name: name };
 }
 
-/**
- * Convenience: just the value (or null). Backwards-compatible with older callers.
- */
+/** Convenience: just the value (or null). Backwards-compatible. */
 export async function getCredential(
   name: string,
   serviceClient?: SupabaseClient | null,
@@ -218,9 +442,7 @@ export async function getCredential(
   return value;
 }
 
-/**
- * Resolve many credentials in parallel.
- */
+/** Resolve many credentials in parallel. */
 export async function resolveCredentials(
   names: string[],
   serviceClient?: SupabaseClient | null,
