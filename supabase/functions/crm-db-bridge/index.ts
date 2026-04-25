@@ -738,25 +738,33 @@ Deno.serve(async (req) => {
   }
 
   // ─────────────────────────────────────────────────────────────────
-  // PING — endpoint de diagnóstico SEMPRE disponível.
-  // Faz BYPASS deliberado de:
-  //   • circuit-breaker (queremos inspecionar saúde mesmo com circuito aberto)
-  //   • autenticação JWT (diagnóstico precisa funcionar pré-login)
-  //   • bot protection / rate limit (probes externos podem ser frequentes)
-  //   • acesso ao banco CRM externo (ping não toca o upstream)
+  // PING / DIAG — endpoints de diagnóstico SEMPRE disponíveis.
+  // BYPASS deliberado de circuit-breaker, JWT, bot-protection e CRM externo.
   //
-  // Aceita: GET /?op=ping  ou  POST { "operation": "ping" }
-  // Resposta: { ok: true, ts: <epoch ms>, warm: <boolean> }
-  //   - `warm` = true quando o warmup do isolate concluiu com sucesso
-  //     (singleton CRM client + handshake TLS + schema cache prontos).
+  //   GET  ?op=ping  | POST { operation:"ping" }  → { ok, ts, warm }
+  //   GET  ?op=diag  | POST { operation:"diag" }  → snapshot completo de
+  //     métricas de cold vs warm path do isolate atual:
+  //       boot.client_build_ms    — tempo p/ instanciar o SupabaseClient
+  //       boot.warmup_started_at_ms — delta desde boot quando warmup começou
+  //       boot.warmup_ms          — duração do warmup query
+  //       boot.warmup_ok / warmup_error
+  //       runtime.first_request_ms — duração da 1ª request real pós-boot
+  //       isolate.age_ms / request_count / cold_request_count
   // ─────────────────────────────────────────────────────────────────
-  if (await isPingRequest(req)) {
-    return jsonResponse({
-      ok: true,
-      ts: Date.now(),
-      warm: crmWarmupCompleted,
-    });
+  const diagOp = await detectDiagOp(req);
+  if (diagOp === "ping") {
+    return jsonResponse({ ok: true, ts: Date.now(), warm: crmWarmupCompleted });
   }
+  if (diagOp === "diag") {
+    return jsonResponse(buildDiagSnapshot());
+  }
+
+  // Marca início da request real (pós-diag) para medir cold vs warm path.
+  // `was_cold` = true para a 1ª request real após o boot do isolate.
+  const reqStartedAt = performance.now();
+  const wasCold = requestCount === 0;
+  requestCount++;
+  if (wasCold) coldRequestCount++;
 
   if (!breaker.canRequest()) {
     return circuitOpenResponse("crm-db", corsHeaders);
