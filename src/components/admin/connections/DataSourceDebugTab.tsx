@@ -10,6 +10,7 @@ import { useSecretsManager } from "@/hooks/useSecretsManager";
 import { ExpectedKeysMatchPanel } from "./ExpectedKeysMatchPanel";
 import { LastSyncRunPanel } from "./LastSyncRunPanel";
 import { CredentialCacheMetricsPanel } from "./CredentialCacheMetricsPanel";
+import { BridgeProductsPreviewPanel } from "./BridgeProductsPreviewPanel";
 import { FieldSourceDrillDownDialog, type FieldDrillDownData } from "./FieldSourceDrillDownDialog";
 import { toast } from "sonner";
 
@@ -447,6 +448,9 @@ export function DataSourceDebugTab() {
 
       {/* Métricas de cache da SSOT (resolveCredential) */}
       <CredentialCacheMetricsPanel />
+
+      {/* Pré-visualização paginada dos produtos retornados pelo external-db-bridge */}
+      <BridgeProductsPreviewPanel />
 
       {/* Raw rows */}
       <div className="grid gap-3 lg:grid-cols-2">
