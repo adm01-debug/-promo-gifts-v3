@@ -16,6 +16,13 @@ import {
   clearBridgeSamples,
   type BridgeCallSample,
 } from '@/lib/telemetry/bridgeCallMetrics';
+import {
+  getLongTaskEvents,
+  subscribeLongTasks,
+  clearLongTaskEvents,
+  describeLongTask,
+  type LongTaskEvent,
+} from '@/lib/telemetry/longTaskWatchdog';
 
 const STORAGE_KEY = 'lov:bridge-metrics-overlay:open';
 const MAX_VISIBLE = 60;
@@ -53,6 +60,7 @@ export default function BridgeMetricsOverlay() {
   });
   const [paused, setPaused] = useState(false);
   const [filter, setFilter] = useState<'all' | 'slow' | 'errors'>('all');
+  const [tab, setTab] = useState<'calls' | 'longtasks'>('calls');
 
   // Subscrição compartilhada (já é throttled em 100ms). Quando colapsado,
   // skipamos o snapshot para zero overhead durante navegação.
@@ -60,6 +68,13 @@ export default function BridgeMetricsOverlay() {
     subscribeBridgeCalls,
     () => (open && !paused ? getBridgeSamples() : EMPTY),
     () => EMPTY,
+  );
+
+  // Long tasks: lazy-start o PerformanceObserver na 1ª subscription.
+  const longTasks = useSyncExternalStore(
+    subscribeLongTasks,
+    () => (open && !paused ? getLongTaskEvents() : EMPTY_LT),
+    () => EMPTY_LT,
   );
 
   const listRef = useRef<HTMLDivElement>(null);
@@ -183,67 +198,174 @@ export default function BridgeMetricsOverlay() {
         </div>
       </div>
 
-      {/* Filter tabs */}
-      <div className="flex gap-1 border-b border-white/5 px-3 py-1.5 text-[10px] uppercase tracking-wider">
-        {(['all', 'slow', 'errors'] as const).map(f => (
+      {/* Tab switcher + filtros contextuais */}
+      <div className="flex items-center gap-1 border-b border-white/5 px-3 py-1.5 text-[10px] uppercase tracking-wider">
+        <button
+          type="button"
+          onClick={() => setTab('calls')}
+          className={`rounded px-2 py-0.5 ${tab === 'calls' ? 'bg-white/10 text-white' : 'text-zinc-500 hover:text-zinc-200'}`}
+        >
+          calls
+        </button>
+        <button
+          type="button"
+          onClick={() => setTab('longtasks')}
+          className={`rounded px-2 py-0.5 ${tab === 'longtasks' ? 'bg-white/10 text-white' : 'text-zinc-500 hover:text-zinc-200'}`}
+          title="Long tasks (PerformanceObserver) correlacionadas com bridge calls"
+        >
+          longtasks
+          {longTasks.length > 0 && (
+            <span className="ml-1 rounded bg-red-500/30 px-1 text-[9px] text-red-200">{longTasks.length}</span>
+          )}
+        </button>
+
+        {tab === 'calls' && (
+          <div className="ml-auto flex gap-1">
+            {(['all', 'slow', 'errors'] as const).map(f => (
+              <button
+                key={f}
+                type="button"
+                onClick={() => setFilter(f)}
+                className={`rounded px-2 py-0.5 ${filter === f ? 'bg-white/10 text-white' : 'text-zinc-500 hover:text-zinc-200'}`}
+              >
+                {f === 'slow' ? '≥600ms' : f}
+              </button>
+            ))}
+          </div>
+        )}
+        {tab === 'longtasks' && (
           <button
-            key={f}
             type="button"
-            onClick={() => setFilter(f)}
-            className={`rounded px-2 py-0.5 ${filter === f ? 'bg-white/10 text-white' : 'text-zinc-500 hover:text-zinc-200'}`}
+            onClick={() => clearLongTaskEvents()}
+            className="ml-auto rounded bg-white/5 px-2 py-0.5 text-zinc-300 hover:bg-white/10"
           >
-            {f === 'slow' ? '≥600ms' : f}
+            clear
           </button>
-        ))}
+        )}
       </div>
 
-      {/* List */}
+      {/* Body */}
       <div ref={listRef} className="flex-1 overflow-auto">
-        {visible.length === 0 ? (
-          <div className="px-3 py-6 text-center text-zinc-500">
-            Sem chamadas {filter !== 'all' ? `(${filter})` : 'ainda'}. Navegue pela app.
-          </div>
-        ) : (
-          <ul className="divide-y divide-white/5">
-            {visible.map(s => (
-              <li key={s.id} className="px-3 py-1.5 hover:bg-white/5">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex min-w-0 items-center gap-1.5">
-                    <span className={`shrink-0 rounded border px-1 text-[9px] uppercase ${bridgeBadge(s.bridge)}`}>
-                      {s.bridge === 'external-db-bridge' ? 'ext' : 'crm'}
-                    </span>
-                    <span className="truncate text-zinc-200">{s.op}</span>
-                    {s.target && <span className="truncate text-zinc-500">·{s.target}</span>}
-                  </div>
-                  <div className="flex shrink-0 items-center gap-2 tabular-nums">
-                    <span className={latencyClass(s.durationMs)}>{s.durationMs}ms</span>
-                    <span className="text-zinc-400">{formatBytes(s.respBytes)}</span>
-                    {!s.ok && (
-                      <span className="rounded bg-red-500/20 px-1 text-[9px] text-red-300">
-                        {s.status ?? 'err'}
+        {tab === 'calls' && (
+          visible.length === 0 ? (
+            <div className="px-3 py-6 text-center text-zinc-500">
+              Sem chamadas {filter !== 'all' ? `(${filter})` : 'ainda'}. Navegue pela app.
+            </div>
+          ) : (
+            <ul className="divide-y divide-white/5">
+              {visible.map(s => (
+                <li key={s.id} className="px-3 py-1.5 hover:bg-white/5">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex min-w-0 items-center gap-1.5">
+                      <span className={`shrink-0 rounded border px-1 text-[9px] uppercase ${bridgeBadge(s.bridge)}`}>
+                        {s.bridge === 'external-db-bridge' ? 'ext' : 'crm'}
                       </span>
-                    )}
+                      <span className="truncate text-zinc-200">{s.op}</span>
+                      {s.target && <span className="truncate text-zinc-500">·{s.target}</span>}
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2 tabular-nums">
+                      <span className={latencyClass(s.durationMs)}>{s.durationMs}ms</span>
+                      <span className="text-zinc-400">{formatBytes(s.respBytes)}</span>
+                      {!s.ok && (
+                        <span className="rounded bg-red-500/20 px-1 text-[9px] text-red-300">
+                          {s.status ?? 'err'}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </div>
-                <div className="mt-0.5 flex items-center gap-2 text-[10px] text-zinc-500">
-                  <span title={s.requestId}>req={shortReqId(s.requestId)}</span>
-                  {s.serverRequestId && s.serverRequestId !== s.requestId && (
-                    <span className="text-amber-400" title={`server=${s.serverRequestId}`}>≠srv</span>
+                  <div className="mt-0.5 flex items-center gap-2 text-[10px] text-zinc-500">
+                    <span title={s.requestId}>req={shortReqId(s.requestId)}</span>
+                    {s.serverRequestId && s.serverRequestId !== s.requestId && (
+                      <span className="text-amber-400" title={`server=${s.serverRequestId}`}>≠srv</span>
+                    )}
+                    <span>req:{formatBytes(s.reqBytes)}</span>
+                    {s.errorMessage && <span className="truncate text-red-400">{s.errorMessage}</span>}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )
+        )}
+
+        {tab === 'longtasks' && (
+          longTasks.length === 0 ? (
+            <div className="px-3 py-6 text-center text-zinc-500">
+              Nenhuma long task ≥80ms detectada. Interaja com a UI para reproduzir.
+            </div>
+          ) : (
+            <ul className="divide-y divide-white/5">
+              {[...longTasks].slice(-50).reverse().map(lt => (
+                <li key={lt.id} className="px-3 py-1.5 hover:bg-white/5">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex min-w-0 items-center gap-1.5">
+                      <span className="shrink-0 rounded border border-red-500/40 bg-red-500/20 px-1 text-[9px] uppercase text-red-300">jank</span>
+                      <span className="truncate text-zinc-200">
+                        {new Date(lt.startedAtWallMs).toISOString().slice(11, 23)}
+                      </span>
+                      {lt.attribution.length > 0 && (
+                        <span className="truncate text-zinc-500">·{lt.attribution.join('|')}</span>
+                      )}
+                    </div>
+                    <span className={`shrink-0 tabular-nums ${latencyClass(lt.durationMs)}`}>
+                      {lt.durationMs}ms
+                    </span>
+                  </div>
+                  {lt.overlappingCalls.length > 0 && (
+                    <div className="mt-1 ml-2 border-l border-amber-500/40 pl-2 text-[10px]">
+                      <div className="text-amber-400">↳ em voo durante o bloqueio:</div>
+                      <ul className="mt-0.5 space-y-0.5">
+                        {lt.overlappingCalls.map(c => (
+                          <li key={c.id} className="flex items-center gap-1.5 text-zinc-300">
+                            <span className={`rounded border px-1 text-[9px] uppercase ${bridgeBadge(c.bridge)}`}>
+                              {c.bridge === 'external-db-bridge' ? 'ext' : 'crm'}
+                            </span>
+                            <span className="truncate">{c.op}{c.target ? `·${c.target}` : ''}</span>
+                            <span className={`ml-auto tabular-nums ${latencyClass(c.durationMs)}`}>{c.durationMs}ms</span>
+                            <span className="tabular-nums text-zinc-500">{formatBytes(c.respBytes)}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   )}
-                  <span>req:{formatBytes(s.reqBytes)}</span>
-                  {s.errorMessage && <span className="truncate text-red-400">{s.errorMessage}</span>}
-                </div>
-              </li>
-            ))}
-          </ul>
+                  {lt.recentlyCompletedCalls.length > 0 && (
+                    <div className="mt-1 ml-2 border-l border-zinc-500/40 pl-2 text-[10px]">
+                      <div className="text-zinc-400">↳ acabou de chegar (≤50ms antes):</div>
+                      <ul className="mt-0.5 space-y-0.5">
+                        {lt.recentlyCompletedCalls.map(c => (
+                          <li key={c.id} className="flex items-center gap-1.5 text-zinc-300">
+                            <span className="truncate">{c.op}{c.target ? `·${c.target}` : ''}</span>
+                            <span className="ml-auto tabular-nums text-zinc-500">{formatBytes(c.respBytes)}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {lt.overlappingCalls.length === 0 && lt.recentlyCompletedCalls.length === 0 && (
+                    <div className="mt-0.5 text-[10px] text-zinc-500">
+                      Sem bridge calls correlacionadas — provável causa: render/parsing client-side.
+                    </div>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )
         )}
       </div>
 
       <div className="border-t border-white/5 bg-zinc-900/60 px-3 py-1 text-[10px] text-zinc-500">
-        ` para fechar · mostrando {visible.length} de {summary.total}
+        ` para fechar · {tab === 'calls'
+          ? `mostrando ${visible.length} de ${summary.total} calls`
+          : `${longTasks.length} long task${longTasks.length === 1 ? '' : 's'}`}
       </div>
     </div>
   );
 }
 
 const EMPTY: readonly BridgeCallSample[] = [];
+const EMPTY_LT: readonly LongTaskEvent[] = [];
+
+// Atalho para console: window.__longTasks() devolve resumo textual.
+if (typeof window !== 'undefined' && !import.meta.env.PROD) {
+  (window as unknown as { __longTasks?: () => string[] }).__longTasks = () =>
+    getLongTaskEvents().map(describeLongTask);
+}
