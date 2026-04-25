@@ -303,11 +303,76 @@ export function IssueMcpKeyForm({ onIssued }: Props) {
       )}
 
       <div className="flex justify-end pt-2">
-        <Button onClick={submit} disabled={submitting || !!validation}>
+        <Button onClick={requestSubmit} disabled={submitting || !!validation}>
           <Key className="h-4 w-4 mr-1" />
-          {submitting ? "Emitindo…" : full ? "Emitir chave FULL" : "Gerar chave"}
+          {submitting ? "Emitindo…" : full ? "Revisar e emitir FULL" : "Gerar chave"}
         </Button>
       </div>
+
+      <AlertDialog open={confirmRootOpen} onOpenChange={setConfirmRootOpen}>
+        <AlertDialogContent className="max-w-lg">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="h-5 w-5" />
+              Você está prestes a emitir uma chave de acesso ROOT
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3 text-sm">
+                <p>
+                  O escopo <code className="font-mono bg-muted px-1 rounded">*</code> concede
+                  acesso <strong>total</strong> a este sistema, equivalente ao papel de{" "}
+                  <strong>superusuário</strong>:
+                </p>
+                <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
+                  <li>Ler e escrever em qualquer tabela (CRM, orçamentos, catálogo, usuários)</li>
+                  <li>Disparar funções administrativas e jobs internos</li>
+                  <li>Modificar configurações de segurança e integrações</li>
+                  <li>Agir em nome de qualquer usuário autenticado</li>
+                </ul>
+                <p className="text-foreground">
+                  Esta chave aparecerá em <strong>todos os logs de auditoria</strong> com seu
+                  nome como emissor. Você é <strong>responsável</strong> por seu uso e
+                  armazenamento seguro.
+                </p>
+                <div className="pt-2">
+                  <Label htmlFor="mcp-key-root-echo" className="text-foreground">
+                    Para confirmar, digite o nome exato da chave:{" "}
+                    <code className="font-mono bg-muted px-1 rounded">{name.trim()}</code>
+                  </Label>
+                  <Input
+                    id="mcp-key-root-echo"
+                    value={rootNameEcho}
+                    onChange={(e) => setRootNameEcho(e.target.value)}
+                    placeholder={name.trim()}
+                    className="font-mono mt-2"
+                    autoComplete="off"
+                    autoFocus
+                    maxLength={100}
+                  />
+                  {rootNameEcho.length > 0 && !rootNameMatches && (
+                    <p className="text-xs text-destructive mt-1">
+                      O nome digitado não confere.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={submitting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={!rootNameMatches || submitting}
+              onClick={(e) => {
+                e.preventDefault();
+                if (rootNameMatches) void doSubmit();
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {submitting ? "Emitindo…" : "Emitir chave ROOT"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
