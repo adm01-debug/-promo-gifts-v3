@@ -16,6 +16,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { usePulseBarStatus, type PulseSeverity } from "./usePulseBarStatus";
+import { useExplainMode } from "./ExplainModeContext";
+import { KpiExplainTooltip, type KpiExplain } from "./KpiExplainTooltip";
 
 const SEVERITY_META: Record<
   PulseSeverity,
@@ -50,13 +52,16 @@ function MiniKpi({
   value,
   tone = "default",
   tooltip,
+  explain,
 }: {
   icon: typeof Activity;
   label: string;
   value: string;
   tone?: "default" | "success" | "warning" | "destructive";
   tooltip?: string;
+  explain?: KpiExplain;
 }) {
+  const { enabled: explainOn } = useExplainMode();
   const iconCls = {
     default: "text-muted-foreground",
     success: "text-success",
@@ -71,12 +76,20 @@ function MiniKpi({
   }[tone];
 
   const content = (
-    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-background/60 border border-border/40 min-w-0">
+    <div
+      className={cn(
+        "flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-background/60 border min-w-0 transition-colors",
+        explainOn && explain ? "border-primary/40 bg-primary/5" : "border-border/40",
+      )}
+    >
       <Icon className={cn("h-3.5 w-3.5 shrink-0", iconCls)} aria-hidden="true" />
       <div className="flex flex-col min-w-0 leading-tight">
         <span className={cn("text-xs font-semibold tabular-nums truncate", valueCls)}>{value}</span>
         <span className="text-[10px] text-muted-foreground truncate">{label}</span>
       </div>
+      {explainOn && explain && (
+        <KpiExplainTooltip explain={explain} className="ml-0.5 shrink-0" />
+      )}
     </div>
   );
 
@@ -179,6 +192,13 @@ export function ConnectionsPulseBar() {
               value={data ? `${data.kpis.activeWebhooks}/${data.kpis.totalWebhooks}` : "—"}
               tone={webhookTone}
               tooltip="Webhooks de saída habilitados (active=true) sobre o total cadastrado"
+              explain={{
+                summary: "Webhooks ativos vs. total cadastrado",
+                formula: "count(active=true) / count(*)",
+                window: "Snapshot atual (sem janela temporal)",
+                source: "outbound_webhooks.active",
+                threshold: "Esperado: ≥1 ativo se há integrações em uso",
+              }}
             />
             <MiniKpi
               icon={CheckCircle2}
@@ -186,6 +206,13 @@ export function ConnectionsPulseBar() {
               value={successRate === null ? "—" : `${successRate.toFixed(1)}%`}
               tone={successTone}
               tooltip="Taxa de entrega bem-sucedida (HTTP 2xx) nas últimas 24 horas. Alvo ≥95%."
+              explain={{
+                summary: "Taxa de entregas de webhook bem-sucedidas",
+                formula: "count(success=true) / count(*) × 100",
+                window: "Últimas 24h (delivered_at ≥ now()-24h)",
+                source: "webhook_deliveries.success, .delivered_at",
+                threshold: "≥95% verde · 70–95% atenção · <70% crítico",
+              }}
             />
             <MiniKpi
               icon={XCircle}
@@ -193,6 +220,13 @@ export function ConnectionsPulseBar() {
               value={data ? String(data.kpis.failingConnections) : "—"}
               tone={failingTone}
               tooltip="Conexões cujo último teste (last_test_ok) retornou falha. Pode ser flap pontual; veja o banner de alerta para janela contínua."
+              explain={{
+                summary: "Conexões cujo último teste de saúde falhou",
+                formula: "count(last_test_ok = false)",
+                window: "Último teste registrado (auto-test a cada N min ou manual)",
+                source: "external_connections.last_test_ok",
+                threshold: "0 ideal · ≥1 sustentado pela janela vira P0",
+              }}
             />
             <MiniKpi
               icon={Clock}
@@ -203,6 +237,13 @@ export function ConnectionsPulseBar() {
                   : "—"
               }
               tooltip="Quando ocorreu a última entrega de webhook bem-sucedida (latest delivered_at com success=true)"
+              explain={{
+                summary: "Heartbeat: última entrega de webhook com sucesso",
+                formula: "max(delivered_at) where success = true",
+                window: "Histórico completo (sem corte temporal)",
+                source: "webhook_deliveries.delivered_at, .success",
+                threshold: "Recente (<1h) saudável · >24h sugere fluxo parado",
+              }}
             />
             <button
               type="button"

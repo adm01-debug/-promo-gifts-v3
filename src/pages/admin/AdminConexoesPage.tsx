@@ -21,6 +21,8 @@ import { IncidentTimeline72h } from "@/components/admin/connections/IncidentTime
 import { ZoneSection } from "@/components/admin/connections/ZoneSection";
 import { SeverityFilterProvider } from "@/components/admin/connections/SeverityFilterContext";
 import { SeverityFilterToolbar } from "@/components/admin/connections/SeverityFilterToolbar";
+import { ExplainModeProvider } from "@/components/admin/connections/ExplainModeContext";
+import { ExplainModeToggle } from "@/components/admin/connections/ExplainModeToggle";
 import { useCallback, useEffect, useState } from "react";
 import { useSecretsManager } from "@/hooks/useSecretsManager";
 
@@ -47,6 +49,7 @@ export default function AdminConexoesPage() {
 
   return (
     <SeverityFilterProvider>
+      <ExplainModeProvider>
       <CredentialsSourceFilterProvider>
         <div className="container mx-auto py-6 max-w-7xl space-y-6">
           <PageSEO title="Conexões | Admin" description="Hub central de integrações externas: Supabase, Bitrix24, n8n, MCP, Webhooks." />
@@ -71,8 +74,11 @@ export default function AdminConexoesPage() {
             <SmokeTestChecklist availableSecrets={secrets} />
           </header>
 
-          {/* Filtro global de severidade — persiste em URL + localStorage */}
-          <SeverityFilterToolbar />
+          {/* Filtro global de severidade + toggle "ver como calculamos" */}
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <SeverityFilterToolbar />
+            <ExplainModeToggle />
+          </div>
 
           {/* Quick nav (anchors) — atalho leve sem virar nav primária */}
           <nav aria-label="Navegação por zonas" className="flex flex-wrap gap-2 text-xs">
@@ -154,6 +160,7 @@ export default function AdminConexoesPage() {
         </div>
       </div>
     </CredentialsSourceFilterProvider>
+    </ExplainModeProvider>
     </SeverityFilterProvider>
   );
 }
