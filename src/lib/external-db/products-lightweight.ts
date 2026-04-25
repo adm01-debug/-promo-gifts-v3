@@ -7,10 +7,11 @@ import { invokeExternalDb, invokeBatchBridge } from './bridge';
 import type { InvokeResult } from './bridge';
 
 const PRODUCT_SELECT_LIGHTWEIGHT = 'id, name, sku, supplier_reference, sale_price, cost_price, primary_image_url, supplier_id, category_id, main_category_id, brand, is_active, active, stock_quantity, min_quantity, is_kit, gender';
-const LIGHTWEIGHT_PAGE_SIZE = 100;
-const LIGHTWEIGHT_MAX_CONCURRENCY = 2;
+const LIGHTWEIGHT_PAGE_SIZE = 500;          // antes 100 — reduz round-trips em 5x
+const LIGHTWEIGHT_MAX_CONCURRENCY = 3;       // antes 2 — bridge tem singleton + warmup
 const LIGHTWEIGHT_MIN_SPLIT_PAGE_SIZE = 125;
 const LIGHTWEIGHT_MAX_TOTAL = 15000;
+const LIGHTWEIGHT_INITIAL_BURST = 4;         // 1ª onda paralela; depois sequencial até esvaziar
 
 export interface LightweightProduct {
   id: string;
@@ -100,24 +101,62 @@ export async function fetchPromobrindProductsLightweight(options?: {
   }
 
   const maxTotal = LIGHTWEIGHT_MAX_TOTAL;
-  const pagesToFetch = Math.ceil(maxTotal / LIGHTWEIGHT_PAGE_SIZE);
-  const batchQueries = Array.from({ length: pagesToFetch }, (_, i) => ({
+
+  // Estratégia em 2 fases (substitui o batch fixo de 150 queries × 100 records):
+  //   Fase 1 — burst inicial paralelo de LIGHTWEIGHT_INITIAL_BURST páginas × 500 records.
+  //            Cobre 2k registros (suficiente para 1ª tela em todas as UIs hoje).
+  //   Fase 2 — paginação sequencial até esgotar, com early-exit assim que uma
+  //            página retornar < LIGHTWEIGHT_PAGE_SIZE.
+  //
+  // Ganhos: 4 round-trips iniciais em vez de 150, mantendo concurrency segura;
+  // sem novo protocolo entre client e bridge; sem mudança de ordenação.
+
+  const initialBatch = Array.from({ length: LIGHTWEIGHT_INITIAL_BURST }, (_, i) => ({
     table: 'products', operation: 'select' as const,
     select: PRODUCT_SELECT_LIGHTWEIGHT, filters, orderBy,
     limit: LIGHTWEIGHT_PAGE_SIZE, offset: baseOffset + i * LIGHTWEIGHT_PAGE_SIZE,
   }));
 
+  const products: LightweightProduct[] = [];
+  let lastBurstPageSize = LIGHTWEIGHT_PAGE_SIZE;
+
   try {
-    const batchResults = await invokeBatchBridge(batchQueries);
-    const products: LightweightProduct[] = [];
+    const batchResults = await invokeBatchBridge(initialBatch);
     for (const result of batchResults) {
-      if (result.success && result.data?.records) products.push(...(result.data.records as LightweightProduct[]));
+      if (result.success && result.data?.records) {
+        const records = result.data.records as LightweightProduct[];
+        products.push(...records);
+        lastBurstPageSize = records.length;
+      }
     }
-    return products;
   } catch (batchError) {
-    logger.warn('[lightweight] Batch fetch failed, falling back to sequential:', batchError);
+    logger.warn('[lightweight] Burst inicial falhou, fallback sequencial:', batchError);
     return fetchSequential(filters, orderBy, baseOffset, maxTotal);
   }
+
+  // Early-exit: se a última página do burst veio incompleta, não há mais dados.
+  if (lastBurstPageSize < LIGHTWEIGHT_PAGE_SIZE) return products;
+  if (products.length >= maxTotal) return products.slice(0, maxTotal);
+
+  // Fase 2: continuar sequencialmente a partir do último offset coberto.
+  let nextOffset = baseOffset + LIGHTWEIGHT_INITIAL_BURST * LIGHTWEIGHT_PAGE_SIZE;
+  while (products.length < maxTotal) {
+    let page: InvokeResult<LightweightProduct>;
+    try {
+      page = await fetchPageResilient({
+        filters, orderBy, limit: LIGHTWEIGHT_PAGE_SIZE, offset: nextOffset, countMode: 'none',
+      });
+    } catch (err) {
+      logger.warn(`[lightweight] Fase 2 abortada em offset=${nextOffset} (${products.length} produtos):`, err);
+      break;
+    }
+    if (page.records.length === 0) break;
+    products.push(...page.records);
+    if (page.records.length < LIGHTWEIGHT_PAGE_SIZE) break;
+    nextOffset += LIGHTWEIGHT_PAGE_SIZE;
+  }
+
+  return products.slice(0, maxTotal);
 }
 
 async function fetchSequential(
