@@ -18,6 +18,7 @@ import { OptimizationMetricsCards } from '@/components/admin/telemetry/Optimizat
 import { RegressionGuardrailBanner } from '@/components/admin/telemetry/RegressionGuardrailBanner';
 import { OptimizationQueuePanel } from '@/components/admin/telemetry/OptimizationQueuePanel';
 import { PlatformFailureCards } from '@/components/admin/telemetry/PlatformFailureCards';
+import { PlatformFailureAlertBanner } from '@/components/admin/telemetry/PlatformFailureAlertBanner';
 import { ColdStartRetriesPanel } from '@/components/admin/telemetry/ColdStartRetriesPanel';
 import { useTelemetryData, formatDuration, formatTime } from './telemetry/useTelemetryData';
 import { useErrorCounters } from './telemetry/useErrorCounters';
@@ -113,6 +114,9 @@ export default function AdminTelemetriaPage() {
             );
           })}
         </div>
+
+        {/* Banner de alerta + log central quando taxa de 503/cold-start excede o limite configurado */}
+        <PlatformFailureAlertBanner windowMinutes={60} />
 
         {/* KPIs de falhas de plataforma (503 / cold-start) — janela móvel de 60min */}
         <PlatformFailureCards windowMinutes={60} />
