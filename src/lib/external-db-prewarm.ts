@@ -148,30 +148,48 @@ export async function prewarmExternalDb(opts: { force?: boolean; oncePerSession?
     return;
   }
 
-  // 2) Isolate confirmadamente quente — dispara tabelas + crm-bridge EM PARALELO
-  const [crmPing, ...results] = await Promise.allSettled([
+  // 2) Isolate confirmadamente quente — dispara batch único + crm-bridge EM PARALELO
+  //    (apenas 2 invokes totais: 1 batch das 6 tabelas + 1 ping CRM)
+  const [crmPing, batchResult] = await Promise.allSettled([
     pingCrmBridge(),
-    ...PREWARM_TABLES.map(warmTable),
+    warmAllTables(PREWARM_TABLES),
   ]);
 
   const totalMs = Math.round(performance.now() - totalStart);
   let okCount = 0;
   let failCount = 0;
 
-  for (const r of results) {
-    if (r.status === 'fulfilled') {
-      if (r.value.ok) {
+  if (batchResult.status === 'fulfilled') {
+    for (const r of batchResult.value) {
+      if (r.ok) {
         okCount++;
-        logger.log(`[Prewarm] ✅ ${r.value.table} warmed (${r.value.ms}ms)`);
+        logger.log(`[Prewarm] ✅ ${r.table} warmed (batch ${r.ms}ms)`);
       } else {
         failCount++;
-        logger.warn(`[Prewarm] ⚠️ ${r.value.table} failed (${r.value.ms}ms): ${r.value.err}`);
+        logger.warn(`[Prewarm] ⚠️ ${r.table} failed: ${r.err}`);
       }
-    } else {
-      failCount++;
-      logger.warn(`[Prewarm] ⚠️ rejected:`, r.reason);
     }
+  } else {
+    failCount += PREWARM_TABLES.length;
+    logger.warn(`[Prewarm] ⚠️ batch rejected:`, batchResult.reason);
   }
+
+  const crmInfo =
+    crmPing.status === 'fulfilled'
+      ? `crm=${crmPing.value.ok ? '✅' : '⚠️'} (${crmPing.value.ms}ms)`
+      : 'crm=⚠️ rejected';
+
+  // Marca a sessão como aquecida — evita prewarm duplicado se outro gatilho disparar
+  try {
+    sessionStorage.setItem(SESSION_KEY, '1');
+  } catch {
+    /* ignore */
+  }
+
+  logger.log(
+    `[Prewarm] Done in ${totalMs}ms — ping=${ping.ms}ms (${ping.attempts}x) ${crmInfo} external_ok=${okCount} fail=${failCount} (1 batch invoke)`,
+  );
+}
 
   const crmInfo =
     crmPing.status === 'fulfilled'
