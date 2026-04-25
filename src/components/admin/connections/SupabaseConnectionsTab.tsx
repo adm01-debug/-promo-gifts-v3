@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Database, ExternalLink } from "lucide-react";
+import { Database, ExternalLink, Eye } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ConnectionStatusBadge } from "./ConnectionStatusBadge";
 import { resolveSupabaseConnectionStatus } from "./connectionStatus";
@@ -19,6 +19,7 @@ import { hasSuspiciousLength, getPreflightIssues } from "./secretValidators";
 import { ConnectionPreflightAlert } from "./ConnectionPreflightAlert";
 import { TestProgressIndicator, type TestProgressPhase } from "./TestProgressIndicator";
 import { RetestCooldownSelector } from "./RetestCooldownSelector";
+import { ConnectionDetailsDialog } from "./ConnectionDetailsDialog";
 
 const ENVS = [
   {
@@ -54,6 +55,7 @@ export function SupabaseConnectionsTab() {
   const [phaseByEnv, setPhaseByEnv] = useState<Record<string, TestProgressPhase>>({});
   const [pendingByEnv, setPendingByEnv] = useState<Record<string, string | null>>({});
   const [timelineOpenByEnv, setTimelineOpenByEnv] = useState<Record<string, boolean>>({});
+  const [overviewOpenByEnv, setOverviewOpenByEnv] = useState<Record<string, boolean>>({});
 
   useEffect(() => { list(); }, [list]);
 
