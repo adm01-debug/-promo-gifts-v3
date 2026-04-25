@@ -13,6 +13,7 @@ import {
 import { ConnectionTestHistoryPanel } from "./ConnectionTestHistoryPanel";
 import { SecretField } from "./SecretField";
 import { useSecretsManager } from "@/hooks/useSecretsManager";
+import { GitHubCredentialsTester } from "./GitHubCredentialsTester";
 
 interface McpKey {
   id: string;
@@ -161,6 +162,7 @@ export function McpTab() {
             connectionId="mcp"
             helperText="Recomendado: mcp-edits/main (evita commits diretos em main). Aceita qualquer branch existente."
           />
+          <GitHubCredentialsTester />
         </CardContent>
       </Card>
 
