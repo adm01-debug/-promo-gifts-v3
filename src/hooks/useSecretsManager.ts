@@ -184,5 +184,5 @@ export function useSecretsManager() {
     return { ok: true, message: data?.message };
   }, []);
 
-  return { secrets, isLoading, list, setSecret, rotateSecret, getRotationHistory, refreshCache };
+  return { secrets, isLoading, listError, list, setSecret, rotateSecret, getRotationHistory, refreshCache };
 }
