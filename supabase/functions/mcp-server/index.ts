@@ -5,6 +5,10 @@
 import { Hono } from "hono";
 import { McpServer, StreamableHttpTransport } from "mcp-lite";
 import { createClient } from "@supabase/supabase-js";
+import { getOrCreateRequestId, REQUEST_ID_HEADER } from "../_shared/request-id.ts";
+import { summarizePayload } from "../_shared/audit-log.ts";
+
+const SOURCE = "mcp-server";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
