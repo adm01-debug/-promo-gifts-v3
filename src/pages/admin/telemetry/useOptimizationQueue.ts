@@ -8,10 +8,29 @@
  *   - respeita o guardrail (`check_telemetry_regression`): se status = 'regression',
  *     o item é marcado como 'blocked' e a fila pausa.
  */
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { waitForBridgeReady, invalidateBridgeReadyCache } from '@/lib/external-db/health-check';
+
+/** Detecta erros do bridge causados por 503 / cold-start do isolate. */
+const BRIDGE_FAILURE_PATTERNS = [
+  '503',
+  '502',
+  '504',
+  'supabase_edge_runtime_error',
+  'boot_error',
+  'service is temporarily unavailable',
+  'bad gateway',
+  'gateway timeout',
+];
+
+export function isBridgeColdStartError(msg?: string | null): boolean {
+  if (!msg) return false;
+  const m = msg.toLowerCase();
+  return BRIDGE_FAILURE_PATTERNS.some(p => m.includes(p));
+}
 
 export interface OptimizationItem {
   id: string;
@@ -169,6 +188,72 @@ export function useOptimizationQueue() {
 
   useEffect(() => () => { stopRef.current = true; }, []);
 
+  /**
+   * Última execução do optimization/bridge que falhou com 503 ou
+   * SUPABASE_EDGE_RUNTIME_ERROR. Usado para habilitar o botão de re-enfileirar.
+   */
+  const lastBridgeFailure = useMemo(() => {
+    const candidates = items
+      .filter(i => (i.status === 'failed' || i.status === 'blocked') && isBridgeColdStartError(i.error))
+      .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+    return candidates[0] ?? null;
+  }, [items]);
+
+  /**
+   * Re-enfileira o item falho com prioridade alta (10), aguarda o bridge ficar
+   * pronto via health-check e dispara a fila automaticamente. Garante que a
+   * nova tentativa não pega o mesmo cold-start.
+   */
+  const requeueLastBridgeFailure = useCallback(async () => {
+    if (!lastBridgeFailure) {
+      toast.info('Nenhuma falha de bridge/503 recente para re-enfileirar');
+      return false;
+    }
+    const target = lastBridgeFailure;
+
+    // 1) Aguarda bridge pronto antes de re-enfileirar — evita loop de cold start.
+    invalidateBridgeReadyCache();
+    const tReady = toast.loading('Verificando readiness do bridge…');
+    const ready = await waitForBridgeReady(8000);
+    toast.dismiss(tReady);
+    if (!ready.ok) {
+      toast.error('Bridge ainda indisponível. Tente novamente em alguns segundos.');
+      return false;
+    }
+
+    // 2) Re-enfileira como novo item com prioridade alta + marca de retry.
+    const retryTitle = target.title.startsWith('[retry] ') ? target.title : `[retry] ${target.title}`;
+    const retryDescription = [
+      target.description ?? '',
+      `\n— Re-enfileirado após falha (${target.error ?? 'erro desconhecido'})`,
+      `Origem: ${target.id}`,
+    ].filter(Boolean).join('\n').trim();
+
+    const ok = await enqueue({
+      title: retryTitle,
+      description: retryDescription,
+      category: target.category,
+      priority: 10,
+    });
+    if (!ok) return false;
+
+    // 3) Marca o item original como 'skipped' para limpar a UI.
+    await supabase
+      .from('optimization_queue' as never)
+      .update({ status: 'skipped', error: `${target.error ?? ''} (re-enfileirado)` } as never)
+      .eq('id', target.id);
+    invalidate();
+
+    // 4) Dispara o auto-runner imediatamente.
+    toast.success('Item re-enfileirado. Iniciando execução…');
+    void startAutoRef.current?.();
+    return true;
+  }, [lastBridgeFailure, enqueue]);
+
+  // Permite que requeue chame startAuto sem ciclo de dependência.
+  const startAutoRef = useRef<typeof startAuto | null>(null);
+  useEffect(() => { startAutoRef.current = startAuto; }, [startAuto]);
+
   const pending = items.filter(i => i.status === 'pending').length;
   const done = items.filter(i => i.status === 'done').length;
   const blocked = items.filter(i => i.status === 'blocked' || i.status === 'failed').length;
@@ -177,6 +262,7 @@ export function useOptimizationQueue() {
     items, isLoading, refetch,
     enqueue, remove, resetStuck,
     runOne, startAuto, stopAuto,
+    requeueLastBridgeFailure, lastBridgeFailure,
     isExecuting, autoRun,
     counts: { pending, done, blocked, total: items.length },
   };

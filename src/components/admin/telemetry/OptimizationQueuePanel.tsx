@@ -15,7 +15,7 @@ import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from '@/components/ui/dialog';
 import {
-  Play, Pause, Plus, Trash2, RotateCcw, ListChecks, CheckCircle2, AlertTriangle, Loader2, Clock,
+  Play, Pause, Plus, Trash2, RotateCcw, ListChecks, CheckCircle2, AlertTriangle, Loader2, Clock, Zap,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useOptimizationQueue, type OptimizationItem } from '@/pages/admin/telemetry/useOptimizationQueue';
@@ -44,7 +44,14 @@ export function OptimizationQueuePanel() {
   const {
     items, isLoading, enqueue, remove, resetStuck,
     startAuto, stopAuto, isExecuting, counts,
+    requeueLastBridgeFailure, lastBridgeFailure,
   } = useOptimizationQueue();
+  const [requeuing, setRequeuing] = useState(false);
+
+  const handleRequeue = async () => {
+    setRequeuing(true);
+    try { await requeueLastBridgeFailure(); } finally { setRequeuing(false); }
+  };
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [title, setTitle] = useState('');
@@ -111,6 +118,30 @@ export function OptimizationQueuePanel() {
               <RotateCcw className="h-3.5 w-3.5 mr-1.5" />Reset
             </Button>
 
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRequeue}
+              disabled={!lastBridgeFailure || requeuing || isExecuting}
+              className={cn(
+                lastBridgeFailure && 'border-warning/50 text-warning hover:bg-warning/10 hover:text-warning',
+              )}
+              title={
+                lastBridgeFailure
+                  ? `Re-enfileirar: ${lastBridgeFailure.title} (${lastBridgeFailure.error ?? 'erro'})`
+                  : 'Sem falhas de 503/SUPABASE_EDGE_RUNTIME_ERROR para retry'
+              }
+            >
+              {requeuing
+                ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                : <Zap className="h-3.5 w-3.5 mr-1.5" />}
+              Retry 503
+              {lastBridgeFailure && (
+                <Badge variant="outline" className="ml-1.5 h-4 px-1 text-[9px] bg-warning/10 border-warning/30 text-warning">
+                  1
+                </Badge>
+              )}
+            </Button>
             {isExecuting ? (
               <Button variant="destructive" size="sm" onClick={stopAuto}>
                 <Pause className="h-3.5 w-3.5 mr-1.5" />Parar
