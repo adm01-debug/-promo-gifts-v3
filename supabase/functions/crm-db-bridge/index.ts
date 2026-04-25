@@ -762,11 +762,16 @@ async function handleSearch(crm: SupabaseClient, body: CrmQuery): Promise<Respon
 // MAIN HANDLER
 // ============================================
 
-Deno.serve(async (req) => {
-  corsHeaders = getCorsHeaders(req);
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+Deno.serve((req) => {
+  // Extrai/gera o request-id e roda todo o resto dentro do AsyncLocalStorage,
+  // garantindo que jsonResponse() o injete em todas as respostas e logs
+  // possam prefixá-lo via currentRequestId().
+  const requestId = getOrCreateRequestId(req);
+  return requestCtx.run({ requestId }, async () => {
+    corsHeaders = getCorsHeaders(req);
+    if (req.method === "OPTIONS") {
+      return new Response(null, { headers: { ...corsHeaders, [REQUEST_ID_HEADER]: requestId } });
+    }
 
   // ─────────────────────────────────────────────────────────────────
   // PING / DIAG — endpoints de diagnóstico SEMPRE disponíveis.
