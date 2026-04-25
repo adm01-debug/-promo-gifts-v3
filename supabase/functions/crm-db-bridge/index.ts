@@ -3,8 +3,17 @@ import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-
 import { z } from "https://esm.sh/zod@3.23.8";
 import { runBotProtection } from '../_shared/bot-protection.ts';
 import { getBreaker, circuitOpenResponse, getAllBreakerStatuses } from '../_shared/circuit-breaker.ts';
+import { AsyncLocalStorage } from "node:async_hooks";
+import { getOrCreateRequestId, REQUEST_ID_HEADER } from "../_shared/request-id.ts";
 
 const breaker = getBreaker("crm-db");
+
+// Contexto async por-request — garante isolamento mesmo com requisições concorrentes.
+// Cada handler.run() instala um requestId na chain; jsonResponse lê dele.
+const requestCtx = new AsyncLocalStorage<{ requestId: string }>();
+function currentRequestId(): string | undefined {
+  return requestCtx.getStore()?.requestId;
+}
 
 // ============================================
 // CRM CLIENT — singleton por isolate + warm-up no boot
