@@ -4,13 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Plug, Copy, Trash2, Plus, Key } from "lucide-react";
+import { Plug, Copy, Trash2, Plus, Key, Github } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger,
 } from "@/components/ui/dialog";
 import { ConnectionTestHistoryPanel } from "./ConnectionTestHistoryPanel";
+import { SecretField } from "./SecretField";
+import { useSecretsManager } from "@/hooks/useSecretsManager";
 
 interface McpKey {
   id: string;
