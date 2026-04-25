@@ -4561,7 +4561,29 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      v_full_scope_grants: {
+        Row: {
+          audit_id: string | null
+          challenge_id: string | null
+          extra: Json | null
+          granted_at: string | null
+          granted_to_email: string | null
+          granted_to_name: string | null
+          granted_to_user_id: string | null
+          ip_address: unknown
+          justification: string | null
+          key_expires_at: string | null
+          key_id: string | null
+          key_prefix: string | null
+          operation: string | null
+          request_id: string | null
+          step_up_action: Database["public"]["Enums"]["step_up_action"] | null
+          token_id: string | null
+          user_agent: string | null
+          verifications_applied: Json | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       acquire_ai_quota: {
@@ -4879,6 +4901,23 @@ export type Database = {
         Returns: boolean
       }
       is_supervisor_or_above: { Args: { _user_id?: string }; Returns: boolean }
+      log_full_scope_grant: {
+        Args: {
+          _challenge_id?: string
+          _confirmation_phrase_ok?: boolean
+          _expires_at?: string
+          _extra?: Json
+          _ip?: unknown
+          _justification?: string
+          _key_id: string
+          _key_prefix: string
+          _operation: string
+          _request_id?: string
+          _token_id?: string
+          _user_agent?: string
+        }
+        Returns: string
+      }
       mark_all_notifications_read: { Args: never; Returns: undefined }
       mark_notification_read: {
         Args: { p_notification_id: string }

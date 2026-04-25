@@ -269,6 +269,38 @@ Deno.serve(async (req) => {
       },
     });
 
+    // Auditoria explícita de concessão FULL (escalada)
+    if (escalating) {
+      try {
+        await userClient.rpc("log_full_scope_grant", {
+          _operation: "escalate",
+          _key_id: updated.id,
+          _key_prefix: updated.key_prefix,
+          _justification: justification ?? null,
+          _confirmation_phrase_ok: confirmation_phrase === FULL_SCOPE_CONFIRMATION,
+          _expires_at: updated.expires_at,
+          _ip: ip,
+          _user_agent: ua,
+          _request_id: requestId,
+          _extra: {
+            previous_scopes: current.scopes,
+            new_scopes: updated.scopes,
+          },
+        });
+      } catch (e) {
+        await writeAuditEntry(admin, {
+          user_id: userId,
+          action: "mcp_key.audit_log_failed",
+          resource_type: "mcp_api_key",
+          resource_id: updated.id,
+          status: "error",
+          source: SOURCE,
+          request_id: requestId,
+          details: { reason: "log_full_scope_grant_failed", detail: (e as Error).message },
+        });
+      }
+    }
+
     return jsonResponse({ ok: true, key: updated, escalated_to_full: escalating }, 200, requestId);
   } catch (err) {
     const detail = err instanceof Error ? err.message : String(err);

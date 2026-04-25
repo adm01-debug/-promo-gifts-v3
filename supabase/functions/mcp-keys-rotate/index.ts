@@ -252,6 +252,35 @@ Deno.serve(async (req) => {
       },
     });
 
+    // Auditoria explícita de concessão FULL (correlaciona token/challenge/chave)
+    if (full) {
+      try {
+        await userClient.rpc("log_full_scope_grant", {
+          _operation: "rotate",
+          _key_id: inserted.id,
+          _key_prefix: inserted.key_prefix,
+          _justification: justification ?? null,
+          _confirmation_phrase_ok: confirmation_phrase === FULL_SCOPE_CONFIRMATION,
+          _expires_at: inserted.expires_at,
+          _ip: ip,
+          _user_agent: ua,
+          _request_id: requestId,
+          _extra: { source_id: source.id, source_prefix: source.key_prefix },
+        });
+      } catch (e) {
+        await writeAuditEntry(admin, {
+          user_id: userId,
+          action: "mcp_key.audit_log_failed",
+          resource_type: "mcp_api_key",
+          resource_id: inserted.id,
+          status: "error",
+          source: SOURCE,
+          request_id: requestId,
+          details: { reason: "log_full_scope_grant_failed", detail: (e as Error).message },
+        });
+      }
+    }
+
     return jsonResponse(
       {
         ok: true,
