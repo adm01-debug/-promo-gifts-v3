@@ -255,7 +255,10 @@ const App = () => {
                               <Route path="/admin/performance-comercial" element={<DeprecatedRoute message="O módulo de Performance Comercial foi descontinuado. Use o BI Comercial para análises." redirectTo="/ferramentas/bi" />} />
                               <Route path="/admin/comissoes" element={<DeprecatedRoute message="O módulo de Comissões foi descontinuado nesta plataforma." redirectTo="/admin/usuarios" />} />
                               <Route path="/admin/seguranca-acesso" element={<AdminSegurancaAcessoPage />} />
-                              <Route path="/admin/conexoes" element={<AdminConexoesPage />} />
+                              {/* Conexões manipulam credenciais sensíveis — exige admin estrito (não managers) */}
+                              <Route element={<ProtectedRoute requireAdmin />}>
+                                <Route path="/admin/conexoes" element={<AdminConexoesPage />} />
+                              </Route>
                               <Route path="/tendencias" element={<TrendsPage />} />
                               <Route path="/status" element={<SystemStatusPage />} />
                               <Route path="/external-db-test" element={<ExternalDatabaseTest />} />
