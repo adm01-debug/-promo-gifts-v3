@@ -115,18 +115,25 @@ export function IssueMcpKeyForm({ onIssued }: Props) {
     return null;
   }, [name, scopes, full, expiresLocal, justification, confirmation]);
 
-  const requestSubmit = () => {
+  const requestSubmit = async () => {
     if (validation) {
       toast.error(validation);
       return;
     }
     if (full) {
-      // Gate extra para acesso root
+      // Gate extra para acesso root: confirmação por nome → modal step-up dedicado (mcp_full_issue).
       setRootNameEcho("");
       setConfirmRootOpen(true);
       return;
     }
-    void doSubmit();
+    // Chaves limitadas: também exigem step-up server-side (action: mcp_key_rotate).
+    const token = await challenge({
+      action: "mcp_key_rotate",
+      actionLabel: `Emitir chave MCP "${name}"`,
+      targetRef: null,
+    });
+    if (!token) return; // cancelado
+    void doSubmit(token);
   };
 
   const doSubmit = async (stepUpToken?: string) => {
