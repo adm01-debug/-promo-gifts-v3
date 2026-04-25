@@ -4,18 +4,21 @@
  *
  * Sem persistência (memória apenas). Atualiza em tempo real via subscribe.
  */
-import { useSyncExternalStore, useMemo } from 'react';
+import { useSyncExternalStore, useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Activity, Trash2, Network } from 'lucide-react';
+import { Activity, Trash2, Network, Search } from 'lucide-react';
 import {
   aggregateByEndpoint,
   clearBridgeSamples,
   getBridgeSamples,
   subscribeBridgeCalls,
   type BridgeAggregateRow,
+  type BridgeCallSample,
 } from '@/lib/telemetry/bridgeCallMetrics';
+import { shortRequestId } from '@/lib/telemetry/requestId';
+import { BridgeCallDetailDrawer } from './BridgeCallDetailDrawer';
 
 function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
