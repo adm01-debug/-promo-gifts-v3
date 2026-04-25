@@ -82,6 +82,7 @@ export function IssueMcpKeyForm({ onIssued }: Props) {
 
   const full = isFullAccess(scopes);
   const { canGrant: canGrantFull, loading: grantorLoading } = useCanGrantMcpFull();
+  const { challenge } = useDevChallenge();
 
   // Auto-popula expires com default de 90 dias quando FULL é marcado.
   const handleScopeToggle = (s: McpScope) => {
