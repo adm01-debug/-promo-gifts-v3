@@ -50,7 +50,7 @@ async function pingCrmBridge(): Promise<{ ok: boolean; ms: number }> {
  */
 async function pingBridge(): Promise<{ ok: boolean; ms: number; attempts: number }> {
   const t0 = performance.now();
-  const res = await waitForBridgeReady(8000);
+  const res = await waitForBridgeReady(5000);
   return {
     ok: res.ok,
     ms: res.ms || Math.round(performance.now() - t0),
