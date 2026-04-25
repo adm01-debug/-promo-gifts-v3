@@ -27,33 +27,18 @@ let lastPrewarmAt = 0;
 const PREWARM_COOLDOWN_MS = 5 * 60 * 1000; // 5 minutos entre pre-warms
 
 /**
- * Acorda a edge function com um ping leve antes do leque paralelo.
- *
- * O 1º ping pode receber 503 `SUPABASE_EDGE_RUNTIME_ERROR` enquanto o isolate
- * está bootando — esperar aqui (com backoff exponencial) evita que as 6
- * chamadas paralelas a seguir peguem a mesma janela de cold start e falhem
- * em cascata. Retorna `{ ok, ms }` para o caller decidir se segue em frente.
+ * Acorda a edge function via health-check compartilhado (`waitForBridgeReady`).
+ * O helper já faz polling com backoff e cacheia "ready" — então UI e prewarm
+ * convergem na mesma promise quando rodam próximos no tempo.
  */
 async function pingBridge(): Promise<{ ok: boolean; ms: number; attempts: number }> {
   const t0 = performance.now();
-  const MAX_ATTEMPTS = 3;
-  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-    try {
-      const { error } = await supabase.functions.invoke('external-db-bridge', {
-        body: { operation: 'ping' },
-      });
-      if (!error) {
-        return { ok: true, ms: Math.round(performance.now() - t0), attempts: attempt };
-      }
-    } catch {
-      // continua tentando
-    }
-    if (attempt < MAX_ATTEMPTS) {
-      // Backoff exponencial: 400ms, 800ms (suficiente para o isolate bootar).
-      await new Promise(r => setTimeout(r, 400 * Math.pow(2, attempt - 1)));
-    }
-  }
-  return { ok: false, ms: Math.round(performance.now() - t0), attempts: MAX_ATTEMPTS };
+  const res = await waitForBridgeReady(8000);
+  return {
+    ok: res.ok,
+    ms: res.ms || Math.round(performance.now() - t0),
+    attempts: 1,
+  };
 }
 
 async function warmTable(table: string): Promise<{ table: string; ok: boolean; ms: number; err?: string }> {
