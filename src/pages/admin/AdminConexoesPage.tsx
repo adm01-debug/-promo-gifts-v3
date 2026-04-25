@@ -131,6 +131,7 @@ export default function AdminConexoesPage() {
             title="Saúde"
             description="Status agregado das integrações em tempo real (health check a cada 60s)."
             tone="primary"
+            highlight={highlightZone === "zone-health"}
           >
             <IntegrationsHealthCard secrets={secrets} />
           </ZoneSection>
@@ -144,6 +145,7 @@ export default function AdminConexoesPage() {
             title="Operação"
             description="Configurações do auto-test (verificação periódica), janela de falha contínua e status do job de monitoramento."
             tone="info"
+            highlight={highlightZone === "zone-operation"}
           >
             <div className="grid gap-3 md:grid-cols-2">
               <AutoTestIntervalCard />
