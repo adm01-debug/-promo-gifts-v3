@@ -174,6 +174,7 @@ const App = () => {
                     <AppProviders>
                       <Toaster />
                       <Sonner />
+                      <BridgeStatusBanner />
                       <RouteSuspense>
                         <Routes>
                           {/* Public Routes */}
