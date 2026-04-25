@@ -164,8 +164,16 @@ export function useMcpKeys() {
 
   const revoke = useCallback(
     async (id: string, reason?: string) => {
+      // Step-up obrigatório: senha + OTP recentes antes de revogar.
+      const token = await challenge({
+        action: "mcp_key_revoke",
+        actionLabel: "Revogar chave MCP",
+        targetRef: id,
+      });
+      if (!token) return false; // cancelado pelo usuário
+
       const { data, error } = await supabase.functions.invoke("mcp-keys-revoke", {
-        body: { key_id: id, reason: reason ?? null },
+        body: { key_id: id, reason: reason ?? null, step_up_token: token },
       });
       if (error || (data && (data as { error?: string }).error)) {
         toast.error("Erro ao revogar", { description: sanitizeError(error ?? data) });
@@ -175,7 +183,7 @@ export function useMcpKeys() {
       await load();
       return true;
     },
-    [load],
+    [load, challenge],
   );
 
   return { rows: filtered, allRows: rows, loading, filters, setFilters, counts, reload: load, revoke };
