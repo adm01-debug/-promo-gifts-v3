@@ -385,15 +385,23 @@ export function IssueMcpKeyForm({ onIssued }: Props) {
               disabled={!rootNameMatches || submitting}
               onClick={(e) => {
                 e.preventDefault();
-                if (rootNameMatches) void doSubmit();
+                if (rootNameMatches) handleRootConfirmed();
               }}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {submitting ? "Emitindo…" : "Emitir chave ROOT"}
+              Avançar para verificação dupla
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <StepUpAuthDialog
+        open={stepUpOpen}
+        onOpenChange={setStepUpOpen}
+        action="mcp_full_issue"
+        actionLabel={`Emitir chave MCP FULL "${name}"`}
+        onVerified={(token) => doSubmit(token)}
+      />
     </div>
   );
 }
