@@ -33,6 +33,9 @@ interface AuthCtx {
   isFull: boolean;
   ip: string | null;
   ua: string | null;
+  requestId: string;
+  startedAt: string;
+  startedMs: number;
 }
 
 interface ToolGuard {
