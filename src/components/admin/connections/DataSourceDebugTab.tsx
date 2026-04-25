@@ -10,6 +10,7 @@ import { useSecretsManager } from "@/hooks/useSecretsManager";
 import { ExpectedKeysMatchPanel } from "./ExpectedKeysMatchPanel";
 import { LastSyncRunPanel } from "./LastSyncRunPanel";
 import { CredentialCacheMetricsPanel } from "./CredentialCacheMetricsPanel";
+import { BridgeProductsPreviewPanel } from "./BridgeProductsPreviewPanel";
 import { FieldSourceDrillDownDialog, type FieldDrillDownData } from "./FieldSourceDrillDownDialog";
 import { toast } from "sonner";
 
