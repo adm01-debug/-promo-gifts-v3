@@ -16,6 +16,7 @@ import { CredentialsSourceFilterProvider } from "@/components/admin/connections/
 import { CredentialsSourceFilter } from "@/components/admin/connections/CredentialsSourceFilter";
 import { GlobalRefreshFromDbButton } from "@/components/admin/connections/GlobalRefreshFromDbButton";
 import { ConnectionsPulseBar } from "@/components/admin/connections/ConnectionsPulseBar";
+import { ConnectionsIncidentStrip } from "@/components/admin/connections/ConnectionsIncidentStrip";
 import { useCallback, useEffect, useState } from "react";
 import { useSecretsManager } from "@/hooks/useSecretsManager";
 
@@ -33,6 +34,7 @@ export default function AdminConexoesPage() {
       <div className="container mx-auto py-6 space-y-6 max-w-7xl">
         <PageSEO title="Conexões | Admin" description="Hub central de integrações externas: Supabase, Bitrix24, n8n, MCP, Webhooks." />
         <ConnectionsPulseBar />
+        <ConnectionsIncidentStrip />
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
             <Plug className="h-5 w-5 text-primary" />
