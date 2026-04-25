@@ -161,7 +161,7 @@ Deno.serve(async (req) => {
       const { data: stepUpOk, error: stepUpErr } = await userClient.rpc("consume_step_up_token", {
         _token: step_up_token,
         _expected_action: "mcp_full_escalate",
-        _expected_target: key_id,
+        _expected_target: null,
       });
       if (stepUpErr || !stepUpOk) {
         await auditFailure("denied", { reason: "step_up_invalid", detail: stepUpErr?.message }, key_id);
