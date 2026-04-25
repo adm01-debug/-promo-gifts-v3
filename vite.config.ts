@@ -73,10 +73,10 @@ export default defineConfig(({ mode }) => ({
           if (id.includes('node_modules/recharts/') || id.includes('node_modules/d3-')) {
             return 'charts-vendor';
           }
-          // Icons — split into separate chunk to allow tree shaking per-route
-          if (id.includes('node_modules/lucide-react/')) {
-            return 'icons-vendor';
-          }
+          // Icons — NÃO criar chunk único. Permitir que Rollup tree-shake por
+          // page-chunk, assim cada rota só carrega os ícones que usa.
+          // Anterior: icons-vendor ~680KB (118KB gzip) carregado em toda rota.
+          // Atual: cada page-chunk inclui ~5–15KB de ícones sob demanda.
           // Validation
           if (id.includes('node_modules/zod/')) {
             return 'zod-vendor';
