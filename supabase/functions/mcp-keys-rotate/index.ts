@@ -26,6 +26,8 @@ const BodySchema = z.object({
   source_key_id: z.string().uuid(),
   justification: z.string().trim().max(1000).optional().nullable(),
   confirmation_phrase: z.string().optional().nullable(),
+  /** Token de step-up (senha + OTP) — obrigatório ao rotacionar chave FULL. */
+  step_up_token: z.string().min(32).max(256).optional().nullable(),
 });
 
 function jsonResponse(body: unknown, status: number, requestId: string) {
