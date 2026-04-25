@@ -1,72 +1,112 @@
-# Plano de QA — Colapso/Expansão de Zonas com Persistência
+# Plano: Otimização Performance BD ↔ Front (Rumo ao 10/10)
 
-## Resumo da análise estática
+## Contexto
+Diagnóstico anterior provou: BD está saudável (queries 51–323ms), edge functions OK em steady-state. Os ofensores reais são:
+1. **Cold-start em rajada** do `external-db-bridge` (pico 3s quando 6+ requests chegam frias juntas)
+2. **Bundle não otimizado** em prod (Sentry 186KB, lucide-react 136KB, sem manual chunks calibrados)
 
-Já fiz uma simulação manual linha-a-linha dos 3 arquivos tocados (`useZoneCollapse.ts`, `ZoneSection.tsx`, `AdminConexoesPage.tsx`). A lógica está **sólida** em ~95% dos cenários. Encontrei 2 pontos que merecem atenção antes de fechar:
-
-### Achado 1 — Cobertura de teste ausente
-Não existem testes automatizados para `useZoneCollapse` nem para o novo comportamento de colapso em `ZoneSection`. Como você pediu uma bateria abrangente, vou adicionar.
-
-### Achado 2 — Pequena redundância em `ZoneSection`
-O wrapper de conteúdo usa **simultaneamente** `hidden={collapsed}` (atributo HTML) **e** `className={cn("space-y-4", collapsed && "hidden")}` (classe Tailwind). Os dois fazem a mesma coisa. Funciona, mas é ruído. Vou manter apenas o atributo `hidden` (tem prioridade nativa, é mais semântico para leitores de tela e dispensa CSS).
-
-### Achado 3 — Persistência via `useEffect` grava no mount
-`useEffect(..., [collapsed])` roda no primeiro render também, regravando o mesmo valor lido. Sem bug funcional, mas desnecessário. Não vou alterar — risco/benefício baixo.
+Vou executar **4 ondas**, da maior para menor impacto, validando cada uma antes de prosseguir.
 
 ---
 
-## O que vou executar (modo build)
+## Onda 1 — Prewarm agressivo do external-db-bridge no login
+**Impacto:** elimina pico de 3s na primeira ação do dia.
 
-### 1. Criar testes unitários
+**O que fazer:**
+- Ler `src/lib/external-db-prewarm.ts` (já existe) e o fluxo do `AuthContext`
+- Disparar 1 ping `noop` (operação leve) ao `external-db-bridge` imediatamente após `isAuthenticated = true`, em paralelo com o prefetch do catálogo
+- Adicionar 2º ping ao `crm-db-bridge` (mesma latência de cold-start)
+- Garantir idempotência: 1x por sessão via `sessionStorage`
+- Tratar falhas silenciosamente (não bloqueia UI)
 
-**`tests/hooks/useZoneCollapse.test.ts`** (9 cenários):
-
-1. Estado inicial: todas zonas expandidas (`collapsed=false`)
-2. `toggle` alterna 1 zona sem afetar as outras
-3. `expand` reabre zona colapsada e é no-op em zona já expandida (preserva referência)
-4. `collapseAll` colapsa as 3; `expandAll` reabre as 3
-5. Persistência: cada mudança grava em `localStorage` na chave `connections.zone-collapse.v1`
-6. Hidratação: nova instância com `localStorage` preenchido recupera o estado correto
-7. Resiliência: JSON inválido em storage → fallback para todas expandidas
-8. Merge parcial: `{ health: true }` no storage → mescla com defaults das outras
-9. Sem guarda: permite colapsar todas as 3 (intencionalmente diferente de `useZoneVisibility`)
-
-**`tests/components/admin/connections/ZoneSection.test.tsx`** (9 cenários):
-
-1. Conteúdo visível por padrão (sem props de colapso)
-2. Conteúdo recebe atributo `hidden` quando `collapsed=true`
-3. Botão de toggle só aparece se `onToggleCollapse` for passado
-4. `aria-expanded` reflete o estado (`true` expandido, `false` colapsado)
-5. `aria-controls` aponta para `${id}-content`
-6. Click no botão dispara `onToggleCollapse`
-7. Header (título h2) permanece visível mesmo colapsado
-8. `actions` e botão de toggle coexistem sem conflito
-9. `highlight=true` aplica classes `ring-2`
-
-### 2. Limpeza no `ZoneSection.tsx`
-Remover a classe `collapsed && "hidden"` redundante (manter só o atributo `hidden`).
-
-### 3. Rodar a suíte
-Executar `vitest run tests/hooks/useZoneCollapse.test.ts tests/components/admin/connections/ZoneSection.test.tsx` e reportar resultados.
-
-### 4. Checklist manual (você executa no preview)
-Documento curto com 8 cenários do dia a dia para você validar visualmente:
-
-- [ ] Clicar no chevron de **Saúde** → conteúdo some, header permanece, ícone gira -90°
-- [ ] Clicar de novo → reabre, ícone volta
-- [ ] Colapsar **Operação** → recarregar página → continua colapsada
-- [ ] Colapsar as 3 zonas → recarregar → as 3 voltam colapsadas (diferente de visibility)
-- [ ] Colapsar **Saúde** → clicar em incidente da Incident Strip que aponta para "health" → zona expande automaticamente, faz scroll e pisca highlight
-- [ ] Combinar com Quick Nav: ocultar **Conexões** + colapsar **Operação** → ambas preferências persistem juntas (chaves separadas no localStorage)
-- [ ] Hover no botão → tooltip "Colapsar zona" / "Expandir zona"
-- [ ] Tab navigation: foco visível no botão, Enter aciona
+**Critério de excelência:**
+- Logs do `external-db-bridge` mostram `booted` no T+0 do login (não na primeira ação)
+- Nenhum erro novo em console
+- Teste unitário cobrindo "não dispara 2x na mesma sessão"
 
 ---
 
-## Arquivos que serão criados/editados
+## Onda 2 — Manual chunks calibrados no Vite
+**Impacto:** reduz FCP em produção em ~30% e melhora cache hit em deploys.
 
-- **criar** `tests/hooks/useZoneCollapse.test.ts`
-- **criar** `tests/components/admin/connections/ZoneSection.test.tsx`
-- **editar** `src/components/admin/connections/ZoneSection.tsx` (remoção da classe `hidden` redundante — 1 linha)
+**O que fazer:**
+- Ler `vite.config.ts` atual
+- Adicionar `build.rollupOptions.output.manualChunks` separando:
+  - `react-vendor` (react, react-dom, react-router-dom)
+  - `ui-radix` (todos `@radix-ui/*`)
+  - `charts` (recharts)
+  - `motion` (framer-motion)
+  - `supabase` (@supabase/supabase-js)
+  - `query` (@tanstack/react-query)
+  - `forms` (react-hook-form, zod)
+  - `dates` (date-fns)
+- Garantir que `lucide-react` continue tree-shakeable (não criar chunk único)
+- Validar com `bun run build` que não há circular deps
 
-Sem mudanças de schema, sem edge functions, sem migração.
+**Critério de excelência:**
+- `dist/assets/` tem chunks separados ≤ 200KB cada
+- Build passa sem warnings de chunk-size > 500KB
+- Tipos TypeScript intactos
+
+---
+
+## Onda 3 — Lazy load do Sentry (186KB)
+**Impacto:** -200ms no FCP inicial.
+
+**O que fazer:**
+- Ler `src/lib/sentry.ts` e onde é importado
+- Converter `import * as Sentry from '@sentry/react'` em `import()` dinâmico
+- Inicializar Sentry após `requestIdleCallback` ou após 3s de delay
+- Manter `ErrorBoundary` funcional via fallback nativo até Sentry carregar
+- Buffer de erros antes da inicialização → flush quando carregar
+
+**Critério de excelência:**
+- Sentry **não aparece** no chunk inicial (verificar via `bun run build` + grep)
+- Erros disparados antes do load são capturados quando Sentry inicializa
+- Reportagem manual (`captureException`) ainda funciona com fila
+
+---
+
+## Onda 4 — Lazy icons + cleanup de barrel imports
+**Impacto:** -100ms FCP, bundle inicial mais magro.
+
+**O que fazer:**
+- Identificar componentes do *first paint* que importam `lucide-react` em massa (Header, Sidebar)
+- Manter `lucide-react` mas garantir que componentes lazy-loaded **não** subam ícones para o chunk principal
+- Auditar `MainLayout` para confirmar que ícones de rotas secundárias estão em chunks lazy
+- Remover imports não utilizados via ESLint `no-unused-imports` se já configurado, senão executar verificação manual
+
+**Critério de excelência:**
+- Chunk inicial < 250KB
+- Re-rodar `browser--performance_profile` em `/admin/telemetria` mostrando FCP < 3s no preview-dev
+- Zero import quebrado (typecheck passa)
+
+---
+
+## Validação Final
+Após as 4 ondas:
+1. `bun run build` limpo, sem warnings
+2. Suite de testes existente (41 testes prévios + novos) 100% verde
+3. `browser--performance_profile` na rota `/admin/telemetria` comparando antes/depois
+4. Logs do `external-db-bridge` confirmando prewarm efetivo
+5. Resumo executivo das melhorias com métricas reais
+
+---
+
+## Detalhes técnicos
+
+**Arquivos que vou ler/criar/editar:**
+- `src/lib/external-db-prewarm.ts` (editar)
+- `src/contexts/AuthContext.tsx` (editar — gatilho do prewarm)
+- `src/lib/sentry.ts` (refatorar para lazy)
+- `src/main.tsx` ou `src/App.tsx` (gatilho lazy do Sentry)
+- `vite.config.ts` (manualChunks)
+- `tests/` (1 teste novo para idempotência do prewarm)
+
+**Nada toca:**
+- Schema do BD
+- Edge functions existentes
+- RLS policies
+- Design system / tokens
+
+Aprove para eu começar pela Onda 1 e seguir ininterruptamente até a Onda 4.
