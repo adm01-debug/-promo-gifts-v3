@@ -26,6 +26,7 @@ import {
 import { StepUpAuthDialog } from "@/components/auth/StepUpAuthDialog";
 import type { McpKeyRow } from "./useMcpKeys";
 import { sanitizeError } from "@/lib/security/sanitize-error";
+import { useDevChallenge } from "@/contexts/DevChallengeContext";
 
 interface Props {
   source: McpKeyRow | null;
