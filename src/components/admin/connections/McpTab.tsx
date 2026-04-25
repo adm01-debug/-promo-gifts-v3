@@ -123,6 +123,49 @@ export function McpTab() {
 
       <Card>
         <CardHeader>
+          <div className="flex items-center gap-2">
+            <Github className="h-5 w-5 text-primary" />
+            <CardTitle>GitHub — código-fonte do app</CardTitle>
+          </div>
+          <CardDescription>
+            Credenciais usadas pelas tools de código do MCP server
+            (<code className="bg-muted px-1 rounded text-xs">list_repo_files</code>,{" "}
+            <code className="bg-muted px-1 rounded text-xs">read_repo_file</code>,{" "}
+            <code className="bg-muted px-1 rounded text-xs">write_repo_file</code>).
+            Necessárias quando uma chave com escopo <code className="bg-muted px-1 rounded text-xs">*</code>{" "}
+            (full access) precisa editar o repositório.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4 max-w-2xl">
+          <SecretField
+            label="Personal Access Token"
+            secretName="GITHUB_TOKEN"
+            status={getSecret("GITHUB_TOKEN")}
+            onSaved={list}
+            connectionId="mcp"
+            helperText="Fine-grained PAT com permissões: Contents (read & write), Metadata (read). Gere em github.com/settings/tokens?type=beta"
+          />
+          <SecretField
+            label="Repositório (owner/repo)"
+            secretName="GITHUB_REPO"
+            status={getSecret("GITHUB_REPO")}
+            onSaved={list}
+            connectionId="mcp"
+            helperText="Ex: minha-org/promo-gifts"
+          />
+          <SecretField
+            label="Branch padrão para escrita"
+            secretName="GITHUB_DEFAULT_BRANCH"
+            status={getSecret("GITHUB_DEFAULT_BRANCH")}
+            onSaved={list}
+            connectionId="mcp"
+            helperText="Recomendado: mcp-edits/main (evita commits diretos em main). Aceita qualquer branch existente."
+          />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="text-base">Chaves emitidas</CardTitle>
             <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setGenerated(null); }}>
