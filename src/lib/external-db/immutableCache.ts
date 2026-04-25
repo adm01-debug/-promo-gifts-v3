@@ -71,16 +71,32 @@ export async function getCachedByIds<T extends { id: string; name: string; code?
 ): Promise<Map<string, T>> {
   const out = new Map<string, T>();
   const missing: string[] = [];
+  /** ids cuja resposta vamos esperar de outra chamada já em voo. */
+  const awaitedFromOthers: string[] = [];
   const seen = new Set<string>();
   for (const raw of ids) {
     if (!raw || seen.has(raw)) continue;
     seen.add(raw);
     const hit = getFresh<T>(entity, raw);
-    if (hit) out.set(raw, hit);
+    if (hit) { out.set(raw, hit); continue; }
+    if (INFLIGHT_BY_ID[entity].has(raw)) awaitedFromOthers.push(raw);
     else missing.push(raw);
   }
 
-  if (missing.length === 0) return out;
+  // Reaproveita promises por id em voo (sem disparar rede).
+  const piggybackPromises: Promise<void>[] = [];
+  for (const id of awaitedFromOthers) {
+    const p = INFLIGHT_BY_ID[entity].get(id);
+    if (!p) { missing.push(id); continue; }
+    piggybackPromises.push(p.then((rec) => {
+      if (rec) out.set(id, rec as T);
+    }));
+  }
+
+  if (missing.length === 0) {
+    if (piggybackPromises.length) await Promise.all(piggybackPromises);
+    return out;
+  }
 
   const key = `${entity}::${[...missing].sort().join(',')}`;
   const inflight = INFLIGHT.get(key) as Promise<T[]> | undefined;
@@ -102,6 +118,24 @@ export async function getCachedByIds<T extends { id: string; name: string; code?
       return [] as T[];
     }).finally(() => { INFLIGHT.delete(key); });
     INFLIGHT.set(key, p as Promise<unknown>);
+
+    // Registra resolvers individuais por id para piggyback de chamadas concorrentes.
+    const resolvers = new Map<string, (rec: T | undefined) => void>();
+    for (const id of missing) {
+      const perId = new Promise<T | undefined>((resolve) => {
+        resolvers.set(id, resolve);
+      });
+      INFLIGHT_BY_ID[entity].set(id, perId as Promise<{ id: string; name: string; code?: string } | undefined>);
+    }
+    p.then((recs) => {
+      const byId = new Map(recs.map(r => [r.id, r]));
+      for (const id of missing) {
+        const r = byId.get(id);
+        resolvers.get(id)?.(r);
+        INFLIGHT_BY_ID[entity].delete(id);
+      }
+    });
+
     records = await p;
   }
 
@@ -111,6 +145,8 @@ export async function getCachedByIds<T extends { id: string; name: string; code?
       out.set(rec.id, rec);
     }
   }
+
+  if (piggybackPromises.length) await Promise.all(piggybackPromises);
   return out;
 }
 
