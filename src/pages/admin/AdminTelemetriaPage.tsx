@@ -115,6 +115,9 @@ export default function AdminTelemetriaPage() {
           })}
         </div>
 
+        {/* Banner de alerta + log central quando taxa de 503/cold-start excede o limite configurado */}
+        <PlatformFailureAlertBanner windowMinutes={60} />
+
         {/* KPIs de falhas de plataforma (503 / cold-start) — janela móvel de 60min */}
         <PlatformFailureCards windowMinutes={60} />
 
