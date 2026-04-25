@@ -507,7 +507,7 @@ async function handleBatch(body: any, req: Request, corsHeaders: Record<string, 
     return jsonResponse({ error: 'Batch limited to 10 queries max' }, 400, corsHeaders);
   }
 
-  const externalSupabase = getExternalClient(corsHeaders);
+  const externalSupabase = await getExternalClient(corsHeaders);
   if (externalSupabase instanceof Response) return externalSupabase;
 
   const results = await Promise.all(
@@ -662,7 +662,7 @@ async function handleRpc(body: any, corsHeaders: Record<string, string>) {
     return jsonResponse({ error: `RPC '${rpcName}' não permitida`, allowedRpcs: ALLOWED_RPCS }, 403, corsHeaders);
   }
 
-  const externalSupabase = getExternalClient(corsHeaders);
+  const externalSupabase = await getExternalClient(corsHeaders);
   if (externalSupabase instanceof Response) return externalSupabase;
 
   console.log(`RPC: ${rpcName}`, rpcParams);
@@ -845,7 +845,7 @@ async function handleCrud(body: any, req: Request, corsHeaders: Record<string, s
     cacheMissesTotal++;
   }
 
-  const externalSupabase = getExternalClient(corsHeaders);
+  const externalSupabase = await getExternalClient(corsHeaders);
   if (externalSupabase instanceof Response) return externalSupabase;
 
   const isVirtual = table === 'product_print_areas';
