@@ -17,10 +17,32 @@ let cachedCrmClient: SupabaseClient | null = null;
 let crmWarmupPromise: Promise<void> | null = null;
 let crmWarmupCompleted = false;
 
+// ─── Métricas de cold vs warm path (vida do isolate) ──────────────────
+// Todas em ms; null quando ainda não medido. Reiniciam a cada cold start
+// porque o isolate inteiro é descartado pelo runtime entre invocações ociosas.
+const isolateBootedAt = Date.now();              // wall-clock do boot
+const isolateMonoStart = performance.now();      // monotônico, base para deltas
+let clientBuildMs: number | null = null;         // tempo p/ instanciar o SupabaseClient
+let warmupStartedAtMs: number | null = null;     // delta desde boot quando warmup começou
+let warmupMs: number | null = null;              // duração do warmup query
+let warmupOk = false;
+let warmupError: string | null = null;
+let firstRequestMs: number | null = null;        // duração da 1ª request real (pós-boot)
+let firstRequestStartedAtMs: number | null = null; // delta desde boot quando 1ª request entrou
+let requestCount = 0;                            // total de requests recebidas pelo isolate
+let coldRequestCount = 0;                        // requests marcadas como was_cold
+
 function buildCrmClient(url: string, key: string): SupabaseClient {
-  return createClient(url, key, {
+  const t0 = performance.now();
+  const client = createClient(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
+  // Só registra a primeira construção (singleton) — chamadas subsequentes não acontecem.
+  if (clientBuildMs === null) {
+    clientBuildMs = Math.round(performance.now() - t0);
+    console.log(`[crm-boot] client_build_ms=${clientBuildMs}`);
+  }
+  return client;
 }
 
 function getCrmClient(): SupabaseClient | null {
@@ -42,24 +64,34 @@ function getCrmClient(): SupabaseClient | null {
  */
 function warmupCrmClient(): Promise<void> {
   if (crmWarmupPromise) return crmWarmupPromise;
+  warmupStartedAtMs = Math.round(performance.now() - isolateMonoStart);
   crmWarmupPromise = (async () => {
+    const t0 = performance.now();
     try {
       const client = getCrmClient();
       if (!client) {
-        console.warn('[crm-boot-warmup] ⚠️ CRM_SUPABASE_URL/KEY not configured');
+        warmupError = 'CRM_SUPABASE_URL/KEY not configured';
+        console.warn(`[crm-boot-warmup] ⚠️ ${warmupError}`);
+        warmupMs = Math.round(performance.now() - t0);
         return;
       }
-      const t0 = performance.now();
       const { error } = await client.from('companies').select('id').limit(1);
-      const ms = Math.round(performance.now() - t0);
+      warmupMs = Math.round(performance.now() - t0);
       if (error) {
-        console.warn(`[crm-boot-warmup] ⚠️ ${error.message} (${ms}ms)`);
+        warmupError = error.message;
+        console.warn(`[crm-boot-warmup] ⚠️ warmup_ms=${warmupMs} error="${error.message}"`);
       } else {
-        console.log(`[crm-boot-warmup] ✅ crm client ready (${ms}ms)`);
+        warmupOk = true;
         crmWarmupCompleted = true;
+        console.log(
+          `[crm-boot-warmup] ✅ ready client_build_ms=${clientBuildMs} ` +
+            `warmup_started_at_ms=${warmupStartedAtMs} warmup_ms=${warmupMs}`,
+        );
       }
     } catch (e) {
-      console.warn(`[crm-boot-warmup] ⚠️ ${e instanceof Error ? e.message : String(e)}`);
+      warmupMs = Math.round(performance.now() - t0);
+      warmupError = e instanceof Error ? e.message : String(e);
+      console.warn(`[crm-boot-warmup] ⚠️ warmup_ms=${warmupMs} ${warmupError}`);
     }
   })();
   return crmWarmupPromise;
