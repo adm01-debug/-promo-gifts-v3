@@ -3,14 +3,16 @@ import { PageSEO } from "@/components/seo/PageSEO";
 import { KeyRound, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { McpKeysList } from "@/components/admin/security/keys/McpKeysList";
+import { McpAuditFeed } from "@/components/admin/security/keys/audit/McpAuditFeed";
 
 export default function AdminSegurancaChavesPage() {
   return (
     <MainLayout>
       <PageSEO
         title="Chaves MCP"
-        description="Gerencie ciclo de vida de chaves do MCP server: criar, listar, rotacionar e revogar."
+        description="Gerencie ciclo de vida de chaves do MCP server: criar, listar, rotacionar, revogar e auditar."
         path="/admin/seguranca/chaves"
         noIndex
       />
@@ -34,8 +36,20 @@ export default function AdminSegurancaChavesPage() {
           </Button>
         </div>
 
-        <McpKeysList />
+        <Tabs defaultValue="keys" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="keys">Chaves</TabsTrigger>
+            <TabsTrigger value="audit">Histórico de auditoria</TabsTrigger>
+          </TabsList>
+          <TabsContent value="keys" className="m-0">
+            <McpKeysList />
+          </TabsContent>
+          <TabsContent value="audit" className="m-0">
+            <McpAuditFeed />
+          </TabsContent>
+        </Tabs>
       </div>
     </MainLayout>
   );
 }
+
