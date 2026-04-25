@@ -907,14 +907,32 @@ async function handleSelect(externalSupabase: any, table: string, opts: any) {
     return { records: paginated, count: allRecords.length };
   }
 
-  // #7: In-memory TTL cache for static reference tables (10min, see external-db-cache.ts)
-  // Avoids repeated cold queries on small static tables that drive the catalog UI.
+  // #7: In-memory TTL cache.
+  //   - STATIC_TABLES: 10min TTL (categories, suppliers, etc.) — quase imutáveis.
+  //   - PRODUCTS lightweight (lista pública): 60s TTL — só quando o caller
+  //     usa o select lightweight padrão SEM filtros dinâmicos pesados.
+  //     Reduz custo de re-paginação quando usuário troca de filtro/aba rápido.
   const STATIC_TABLES = new Set([
     'categories', 'suppliers', 'tags', 'colors', 'materials',
     'print_techniques', 'print_areas', 'price_tables',
   ]);
+
+  // Detecta listing lightweight de products (sem id, sem search/keyset).
+  // Filtros simples (booleanos / IDs) podem entrar no cache; _search e _keyset não.
+  const hasDynamicFilter =
+    filters && (
+      Object.prototype.hasOwnProperty.call(filters, '_search') ||
+      Object.prototype.hasOwnProperty.call(filters, '_keyset')
+    );
+  const isProductsListingCacheable =
+    table === 'products' &&
+    !id &&
+    !hasDynamicFilter &&
+    requestCountMode !== 'exact' &&
+    requestCountMode !== 'planned';
+
   const isCacheable =
-    STATIC_TABLES.has(table) &&
+    (STATIC_TABLES.has(table) || isProductsListingCacheable) &&
     !id &&
     requestCountMode !== 'exact' &&
     requestCountMode !== 'planned';
