@@ -177,6 +177,14 @@ export function SupabaseConnectionsTab() {
                       onOpenChange={(v) => setTimelineOpenByEnv((cur) => ({ ...cur, [env.key]: v }))}
                     />
                     <RefreshFromDbButton onRefreshed={list} />
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setOverviewOpenByEnv((cur) => ({ ...cur, [env.key]: true }))}
+                      title="Ver status, máscara e última rotação sem expor segredos"
+                    >
+                      <Eye className="h-4 w-4 mr-1" /> Ver detalhes
+                    </Button>
                     <Button size="sm" variant="ghost" asChild>
                       <Link to="/admin/external-db">
                         <ExternalLink className="h-4 w-4 mr-1" /> Ver schema
@@ -220,6 +228,20 @@ export function SupabaseConnectionsTab() {
                     connectionLabel={env.name}
                     envKey={env.envKey!}
                     onViewFullHistory={() => setTimelineOpenByEnv((cur) => ({ ...cur, [env.key]: true }))}
+                  />
+                  <ConnectionDetailsDialog
+                    open={!!overviewOpenByEnv[env.key]}
+                    onOpenChange={(v) => setOverviewOpenByEnv((cur) => ({ ...cur, [env.key]: v }))}
+                    connectionLabel={env.name}
+                    description={env.description}
+                    status={status}
+                    last={last}
+                    fields={[
+                      { label: "URL do projeto", secretName: env.urlSecret!, status: url },
+                      { label: "Anon Key", secretName: env.anonSecret!, status: anon },
+                      { label: "Service Role Key", secretName: env.serviceSecret!, status: svc, sensitive: true },
+                    ]}
+                    onOpenFullHistory={() => setTimelineOpenByEnv((cur) => ({ ...cur, [env.key]: true }))}
                   />
                 </>
               )}
