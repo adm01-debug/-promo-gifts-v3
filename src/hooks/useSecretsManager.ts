@@ -132,12 +132,8 @@ export function useSecretsManager() {
         // Tenta extrair payload estruturado (ex.: { error: { code, message } }) do FunctionsHttpError.
         const ctx = (error as { context?: Response }).context;
         let payload: unknown = null;
-        let httpStatus: number | undefined;
-        if (ctx) {
-          httpStatus = ctx.status;
-          if (typeof ctx.json === "function") {
-            try { payload = await ctx.json(); } catch { /* ignore */ }
-          }
+        if (ctx && typeof ctx.json === "function") {
+          try { payload = await ctx.json(); } catch { /* ignore */ }
         }
         const normalized = normalizeError(payload ?? { message: error.message }, error.message);
         // Mapeia 401/403 para um code amigável quando o backend não enviou um.
