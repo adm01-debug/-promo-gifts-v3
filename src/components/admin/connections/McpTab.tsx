@@ -147,51 +147,21 @@ export function McpTab() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="text-base">Chaves emitidas</CardTitle>
-            <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setGenerated(null); }}>
+            <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>
                 <Button size="sm"><Plus className="h-4 w-4 mr-1" /> Nova chave</Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Gerar nova chave MCP</DialogTitle>
                   <DialogDescription>
-                    A chave será exibida apenas uma vez. Guarde-a em local seguro.
+                    A chave será exibida apenas uma vez. Geração e validação
+                    ocorrem 100% no servidor — apenas administradores podem
+                    emitir, e escopo <code className="font-mono">*</code> exige
+                    expiração + justificativa + confirmação.
                   </DialogDescription>
                 </DialogHeader>
-                {generated ? (
-                  <div className="space-y-3">
-                    <div className="p-3 rounded-md bg-muted font-mono text-xs break-all">{generated}</div>
-                    <Button onClick={() => copy(generated)} className="w-full">
-                      <Copy className="h-4 w-4 mr-1" /> Copiar
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    <div>
-                      <Label>Nome</Label>
-                      <Input value={name} onChange={(e) => setName(e.target.value)}
-                        placeholder="Ex: Claude Desktop - Pedro" />
-                    </div>
-                    <div>
-                      <Label className="block mb-2">Escopos</Label>
-                      <div className="flex flex-wrap gap-2">
-                        {ALL_SCOPES.map((s) => {
-                          const active = scopes.includes(s);
-                          return (
-                            <button key={s} type="button"
-                              onClick={() => setScopes((cur) => cur.includes(s) ? cur.filter((x) => x !== s) : [...cur, s])}
-                              className={`px-2 py-1 rounded text-xs border ${active ? "bg-primary text-primary-foreground border-primary" : "bg-background border-border"}`}>
-                              {s}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </div>
-                )}
-                <DialogFooter>
-                  {!generated && <Button onClick={generate}><Key className="h-4 w-4 mr-1" /> Gerar</Button>}
-                </DialogFooter>
+                <IssueMcpKeyForm onIssued={() => { load(); }} />
               </DialogContent>
             </Dialog>
           </div>
@@ -203,25 +173,51 @@ export function McpTab() {
             <p className="text-sm text-muted-foreground">Nenhuma chave emitida.</p>
           ) : (
             <div className="space-y-2">
-              {keys.map((k) => (
-                <div key={k.id} className="flex items-center justify-between p-3 border border-border rounded-md">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">{k.name}</span>
-                      <code className="text-xs text-muted-foreground">{k.key_prefix}…</code>
-                      {k.revoked_at && <Badge variant="destructive" className="text-xs">Revogada</Badge>}
+              {keys.map((k) => {
+                const full = isFullAccess(k.scopes);
+                const expiresLabel = formatExpiresIn(k.expires_at);
+                const expired = expiresLabel === "expirada";
+                return (
+                  <div key={k.id} className="flex items-center justify-between p-3 border border-border rounded-md">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-medium">{k.name}</span>
+                        <code className="text-xs text-muted-foreground">{k.key_prefix}…</code>
+                        {full && (
+                          <Badge variant="destructive" className="text-xs gap-1">
+                            <ShieldAlert className="h-3 w-3" /> FULL
+                          </Badge>
+                        )}
+                        {k.revoked_at && <Badge variant="destructive" className="text-xs">Revogada</Badge>}
+                        {expiresLabel && !k.revoked_at && (
+                          <Badge
+                            variant={expired ? "destructive" : "outline"}
+                            className="text-xs"
+                          >
+                            {expiresLabel}
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {k.scopes.map((s) => (
+                          <Badge
+                            key={s}
+                            variant={s === "*" ? "destructive" : "secondary"}
+                            className="text-xs font-mono"
+                          >
+                            {s}
+                          </Badge>
+                        ))}
+                      </div>
                     </div>
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {k.scopes.map((s) => <Badge key={s} variant="secondary" className="text-xs">{s}</Badge>)}
-                    </div>
+                    {!k.revoked_at && (
+                      <Button size="sm" variant="ghost" onClick={() => revoke(k.id)} aria-label="Revogar chave">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
-                  {!k.revoked_at && (
-                    <Button size="sm" variant="ghost" onClick={() => revoke(k.id)}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </CardContent>
