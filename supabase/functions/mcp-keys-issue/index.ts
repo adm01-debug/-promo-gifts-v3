@@ -215,31 +215,37 @@ Deno.serve(async (req) => {
     const { name, scopes, expires_at, justification, step_up_token, target_repo, target_tool } = parsed.data;
     const full = isFullAccess(scopes);
 
-    // 4b. Authorization gate for FULL scope: requires explicit grantor permission + step-up token
-    if (full) {
-      // Step-up obrigatório: senha + OTP validados nos últimos 5min, role dev re-checada
-      if (!step_up_token) {
-        await auditFailure("denied", "mcp_key.issue_denied", { reason: "step_up_required" });
-        return jsonResponse(
-          { error: "step_up_required", message: "Confirme sua identidade (senha + código por e-mail) antes de emitir chave full." },
-          403,
-          requestId,
-        );
-      }
-      const { data: stepUpOk, error: stepUpErr } = await userClient.rpc("consume_step_up_token", {
-        _token: step_up_token,
-        _expected_action: "mcp_full_issue",
-        _expected_target: null,
-      });
-      if (stepUpErr || !stepUpOk) {
-        await auditFailure("denied", "mcp_key.issue_denied", { reason: "step_up_invalid", detail: stepUpErr?.message });
-        return jsonResponse(
-          { error: "step_up_invalid", message: "Verificação dupla expirou ou é inválida. Refaça a confirmação." },
-          403,
-          requestId,
-        );
-      }
+    // 4a. Step-up OBRIGATÓRIO para QUALQUER emissão (não apenas full).
+    // Toda chave MCP é credencial sensível; exigimos senha + OTP recentes
+    // (validados em consume_step_up_token, que também re-checa is_dev no consumo).
+    if (!step_up_token) {
+      await auditFailure("denied", "mcp_key.issue_denied", { reason: "step_up_required", scope: full ? "full" : "scoped" });
+      return jsonResponse(
+        { error: "step_up_required", message: "Confirme sua identidade (senha + código por e-mail) antes de emitir uma chave MCP." },
+        403,
+        requestId,
+      );
+    }
+    // Para chaves full mantemos a action mais forte 'mcp_full_issue' (o frontend já a usa).
+    // Para chaves limitadas usamos 'mcp_key_rotate' como ação genérica de mutação de chave —
+    // ambas exigem o mesmo fluxo de senha+OTP, mas auditamos diferente.
+    const expectedStepUp = full ? "mcp_full_issue" : "mcp_key_rotate";
+    const { data: stepUpOk, error: stepUpErr } = await userClient.rpc("consume_step_up_token", {
+      _token: step_up_token,
+      _expected_action: expectedStepUp,
+      _expected_target: null,
+    });
+    if (stepUpErr || !stepUpOk) {
+      await auditFailure("denied", "mcp_key.issue_denied", { reason: "step_up_invalid", detail: stepUpErr?.message, expected_action: expectedStepUp });
+      return jsonResponse(
+        { error: "step_up_invalid", message: "Verificação dupla expirou ou é inválida. Refaça a confirmação." },
+        403,
+        requestId,
+      );
+    }
 
+    // 4b. Authorization gate adicional para FULL scope: precisa estar em mcp_full_grantors.
+    if (full) {
       const { data: canGrant, error: grantErr } = await admin.rpc("can_grant_mcp_full", {
         _user_id: userId,
       });
