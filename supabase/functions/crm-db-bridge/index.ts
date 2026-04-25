@@ -84,6 +84,35 @@ function jsonResponse(body: unknown, status = 200): Response {
   });
 }
 
+/**
+ * Detecta se a request é um ping de diagnóstico.
+ * Aceita GET com `?op=ping` (ou `?ping=1`) ou POST com `{ "operation": "ping" }`.
+ * Não levanta erro nem consome o body se não houver match — preserva o fluxo normal.
+ */
+async function isPingRequest(req: Request): Promise<boolean> {
+  // Query string (funciona para GET e POST)
+  try {
+    const url = new URL(req.url);
+    if (url.searchParams.get("op") === "ping" || url.searchParams.get("ping") === "1") {
+      return true;
+    }
+  } catch { /* ignore */ }
+
+  // Body JSON (apenas POST/PUT/PATCH com content-type JSON).
+  // ATENÇÃO: clonamos a request para não consumir o body original.
+  if (req.method !== "GET" && req.method !== "HEAD") {
+    const ct = req.headers.get("content-type") || "";
+    if (ct.includes("application/json")) {
+      try {
+        const cloned = req.clone();
+        const peek = await cloned.json() as { operation?: unknown };
+        if (peek && peek.operation === "ping") return true;
+      } catch { /* corpo inválido / vazio — não é ping */ }
+    }
+  }
+  return false;
+}
+
 // ============================================
 // CONSTANTS
 // ============================================
