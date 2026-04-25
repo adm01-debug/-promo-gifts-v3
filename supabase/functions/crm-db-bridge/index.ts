@@ -15,6 +15,7 @@ const breaker = getBreaker("crm-db");
 // Profile do dashboard mostrava 2.66s de cold-start no primeiro hit ao CRM.
 let cachedCrmClient: SupabaseClient | null = null;
 let crmWarmupPromise: Promise<void> | null = null;
+let crmWarmupCompleted = false;
 
 function buildCrmClient(url: string, key: string): SupabaseClient {
   return createClient(url, key, {
@@ -55,6 +56,7 @@ function warmupCrmClient(): Promise<void> {
         console.warn(`[crm-boot-warmup] ⚠️ ${error.message} (${ms}ms)`);
       } else {
         console.log(`[crm-boot-warmup] ✅ crm client ready (${ms}ms)`);
+        crmWarmupCompleted = true;
       }
     } catch (e) {
       console.warn(`[crm-boot-warmup] ⚠️ ${e instanceof Error ? e.message : String(e)}`);
@@ -80,6 +82,35 @@ function jsonResponse(body: unknown, status = 200): Response {
     status,
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
+}
+
+/**
+ * Detecta se a request é um ping de diagnóstico.
+ * Aceita GET com `?op=ping` (ou `?ping=1`) ou POST com `{ "operation": "ping" }`.
+ * Não levanta erro nem consome o body se não houver match — preserva o fluxo normal.
+ */
+async function isPingRequest(req: Request): Promise<boolean> {
+  // Query string (funciona para GET e POST)
+  try {
+    const url = new URL(req.url);
+    if (url.searchParams.get("op") === "ping" || url.searchParams.get("ping") === "1") {
+      return true;
+    }
+  } catch { /* ignore */ }
+
+  // Body JSON (apenas POST/PUT/PATCH com content-type JSON).
+  // ATENÇÃO: clonamos a request para não consumir o body original.
+  if (req.method !== "GET" && req.method !== "HEAD") {
+    const ct = req.headers.get("content-type") || "";
+    if (ct.includes("application/json")) {
+      try {
+        const cloned = req.clone();
+        const peek = await cloned.json() as { operation?: unknown };
+        if (peek && peek.operation === "ping") return true;
+      } catch { /* corpo inválido / vazio — não é ping */ }
+    }
+  }
+  return false;
 }
 
 // ============================================
@@ -640,6 +671,27 @@ Deno.serve(async (req) => {
   corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  // ─────────────────────────────────────────────────────────────────
+  // PING — endpoint de diagnóstico SEMPRE disponível.
+  // Faz BYPASS deliberado de:
+  //   • circuit-breaker (queremos inspecionar saúde mesmo com circuito aberto)
+  //   • autenticação JWT (diagnóstico precisa funcionar pré-login)
+  //   • bot protection / rate limit (probes externos podem ser frequentes)
+  //   • acesso ao banco CRM externo (ping não toca o upstream)
+  //
+  // Aceita: GET /?op=ping  ou  POST { "operation": "ping" }
+  // Resposta: { ok: true, ts: <epoch ms>, warm: <boolean> }
+  //   - `warm` = true quando o warmup do isolate concluiu com sucesso
+  //     (singleton CRM client + handshake TLS + schema cache prontos).
+  // ─────────────────────────────────────────────────────────────────
+  if (await isPingRequest(req)) {
+    return jsonResponse({
+      ok: true,
+      ts: Date.now(),
+      warm: crmWarmupCompleted,
+    });
   }
 
   if (!breaker.canRequest()) {
