@@ -16,6 +16,13 @@ import {
   clearBridgeSamples,
   type BridgeCallSample,
 } from '@/lib/telemetry/bridgeCallMetrics';
+import {
+  getLongTaskEvents,
+  subscribeLongTasks,
+  clearLongTaskEvents,
+  describeLongTask,
+  type LongTaskEvent,
+} from '@/lib/telemetry/longTaskWatchdog';
 
 const STORAGE_KEY = 'lov:bridge-metrics-overlay:open';
 const MAX_VISIBLE = 60;
