@@ -62,6 +62,9 @@ const PlatformFailureAlertBanner = lazy(() =>
 const ColdStartRetriesPanel = lazy(() =>
   import('@/components/admin/telemetry/ColdStartRetriesPanel').then((m) => ({ default: m.ColdStartRetriesPanel })),
 );
+const BridgesLiveCard = lazy(() =>
+  import('@/components/admin/telemetry/BridgesLiveCard').then((m) => ({ default: m.BridgesLiveCard })),
+);
 
 
 const getSeverityBadge = (severity: string) => {
@@ -172,6 +175,12 @@ export default function AdminTelemetriaPage() {
         <Suspense fallback={<CardSkeleton height={180} label="Carregando retries de cold-start" />}>
           <ColdStartRetriesPanel />
         </Suspense>
+
+        {/* Telemetria client-side ao vivo das chamadas às bridges (external/CRM) */}
+        <Suspense fallback={<CardSkeleton height={260} label="Carregando telemetria das bridges" />}>
+          <BridgesLiveCard />
+        </Suspense>
+
 
         {/* Métricas das otimizações Onda 2 (cache hit rate + retries evitados) */}
         <Suspense fallback={<GridCardsSkeleton count={3} height={100} />}>
