@@ -2125,6 +2125,7 @@ export type Database = {
           last_used_at: string | null
           name: string
           revoked_at: string | null
+          rotated_from: string | null
           scopes: string[]
           updated_at: string
         }
@@ -2139,6 +2140,7 @@ export type Database = {
           last_used_at?: string | null
           name: string
           revoked_at?: string | null
+          rotated_from?: string | null
           scopes?: string[]
           updated_at?: string
         }
@@ -2153,10 +2155,19 @@ export type Database = {
           last_used_at?: string | null
           name?: string
           revoked_at?: string | null
+          rotated_from?: string | null
           scopes?: string[]
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "mcp_api_keys_rotated_from_fkey"
+            columns: ["rotated_from"]
+            isOneToOne: false
+            referencedRelation: "mcp_api_keys"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       mockup_drafts: {
         Row: {

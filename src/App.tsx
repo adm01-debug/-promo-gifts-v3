@@ -76,6 +76,7 @@ const KitTemplatesMetricsPage = lazyWithRetry(() => import("./pages/admin/KitTem
 const PriceFreshnessSettingsPage = lazyWithRetry(() => import("./pages/admin/PriceFreshnessSettings"));
 
 const AdminSegurancaAcessoPage = lazyWithRetry(() => import("./pages/admin/AdminSegurancaAcessoPage"));
+const AdminSegurancaChavesPage = lazyWithRetry(() => import("./pages/admin/AdminSegurancaChavesPage"));
 const AdminConexoesPage = lazyWithRetry(() => import("./pages/admin/AdminConexoesPage"));
 const AdminConexoesStatusPage = lazyWithRetry(() => import("./pages/admin/AdminConexoesStatusPage"));
 
@@ -234,6 +235,7 @@ const App = () => {
                               <Route path="/admin" element={<Navigate to="/admin/usuarios" replace />} />
                               <Route path="/admin/usuarios" element={<AdminUsuariosPage />} />
                               <Route path="/admin/seguranca" element={<AdminSegurancaPage />} />
+                              <Route path="/admin/seguranca/chaves" element={<AdminSegurancaChavesPage />} />
                               <Route path="/admin/cadastros" element={<AdminCadastrosPage />} />
                               <Route path="/admin/cadastros/produto/:id" element={<AdminProductFormPage />} />
                               <Route path="/admin/prompts-ia" element={<AdminPromptsIAPage />} />
