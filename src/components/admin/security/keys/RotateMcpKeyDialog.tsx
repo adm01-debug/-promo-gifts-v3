@@ -67,11 +67,11 @@ export function RotateMcpKeyDialog({ source, open, onOpenChange, onRotated }: Pr
         },
       });
       if (error) {
-        toast.error("Falha ao rotacionar", { description: error.message });
+        toast.error("Falha ao rotacionar", { description: sanitizeError(error) });
         return;
       }
       if (!data?.ok || !data?.key) {
-        toast.error("Servidor recusou a rotação", { description: data?.message ?? "" });
+        toast.error("Não foi possível rotacionar a chave", { description: sanitizeError(data) });
         return;
       }
       setGenerated(data.key as string);

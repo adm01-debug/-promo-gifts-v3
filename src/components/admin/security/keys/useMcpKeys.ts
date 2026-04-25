@@ -165,8 +165,7 @@ export function useMcpKeys() {
         body: { key_id: id, reason: reason ?? null },
       });
       if (error || (data && (data as { error?: string }).error)) {
-        const msg = error?.message ?? (data as { error?: string; message?: string })?.message ?? "Falha ao revogar";
-        toast.error("Erro ao revogar", { description: msg });
+        toast.error("Erro ao revogar", { description: sanitizeError(error ?? data) });
         return false;
       }
       toast.success("Chave revogada");
