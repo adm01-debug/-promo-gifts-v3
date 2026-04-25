@@ -4,6 +4,7 @@
  */
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from "@/lib/logger";
+import { emitBridgeStatus, isColdStartSignal } from './bridge-status-events';
 
 const MAX_RETRIES = 3;
 const INITIAL_BACKOFF_MS = 800;
