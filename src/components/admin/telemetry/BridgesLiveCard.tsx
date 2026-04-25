@@ -202,8 +202,8 @@ export function BridgesLiveCard() {
                       {formatMs(row.p95Ms)}
                     </td>
                     <td className="p-2 text-right font-mono text-xs tabular-nums">{formatMs(row.maxMs)}</td>
-                    <td className="p-2 text-right font-mono text-xs tabular-nums text-muted-foreground">
-                      {formatBytes(row.totalReqBytes)}
+                    <td className="p-2 text-right font-mono text-xs tabular-nums">
+                      {formatBytes(row.avgRespBytes)}
                     </td>
                     <td className="p-2 text-right font-mono text-xs tabular-nums text-muted-foreground">
                       {formatBytes(row.totalRespBytes)}
