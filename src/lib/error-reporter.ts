@@ -153,6 +153,7 @@ export function reportError(error: Error, metadata?: Record<string, unknown>) {
  * Install global error listeners for unhandled errors and promise rejections.
  */
 export function installGlobalErrorHandlers() {
+  installBridgeListenerOnce();
   window.addEventListener('error', (event) => {
     reportError(event.error || new Error(event.message), {
       type: 'unhandled_error',
