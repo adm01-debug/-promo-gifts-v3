@@ -112,6 +112,8 @@ export function DataSourceDebugTab() {
         (c.status ?? "").toLowerCase().includes(extQuery)
       )
     : extConns ?? [];
+
+  return (
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-start justify-between gap-3 flex-wrap">
