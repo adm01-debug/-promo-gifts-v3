@@ -78,6 +78,7 @@ function correlate(startWall: number, endWall: number): {
 
 export function startLongTaskWatchdog(): void {
   if (started) return;
+  if (isInstrumentationPaused()) return; // kill-switch global
   if (typeof PerformanceObserver === 'undefined') return;
   // Feature-detect: nem todos os browsers suportam 'longtask'.
   const supported = (PerformanceObserver as unknown as { supportedEntryTypes?: string[] })
