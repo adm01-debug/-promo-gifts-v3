@@ -49,6 +49,8 @@ const BodySchema = z
     justification: z.string().trim().max(1000).optional().nullable(),
     confirmation_phrase: z.string().optional().nullable(),
     step_up_token: z.string().min(32).max(256).optional().nullable(),
+    target_repo: z.string().trim().max(200).optional().nullable(),
+    target_tool: z.string().trim().max(100).optional().nullable(),
   })
   .superRefine((data, ctx) => {
     const full = isFullAccess(data.scopes);
