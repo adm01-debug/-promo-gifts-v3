@@ -421,6 +421,7 @@ Deno.serve((req) => {
     if (preflightResponse) return preflightResponse;
 
     const requestStartTime = performance.now();
+    console.log(`[external-db-bridge] [req_id=${requestId}] request_start method=${req.method}`);
 
   try {
     let rawBody: unknown;
