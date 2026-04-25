@@ -109,6 +109,7 @@ export default function AdminTelemetriaPage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <InstrumentationToggleButton />
             <Button variant="outline" size="sm" onClick={() => exportCSV(rows, timeFilter)} disabled={!rows.length}><Download className="h-3.5 w-3.5 mr-1.5" />CSV</Button>
             <Button variant="outline" size="sm" onClick={() => exportPDF(rows, timeFilter, customDateFrom, customDateTo)} disabled={!rows.length}><FileText className="h-3.5 w-3.5 mr-1.5" />PDF</Button>
             <Button variant="outline" size="sm" onClick={handleCleanup}><Trash2 className="h-3.5 w-3.5 mr-1.5" />Limpar +7d</Button>
