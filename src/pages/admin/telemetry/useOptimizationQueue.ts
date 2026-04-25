@@ -8,10 +8,29 @@
  *   - respeita o guardrail (`check_telemetry_regression`): se status = 'regression',
  *     o item é marcado como 'blocked' e a fila pausa.
  */
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { waitForBridgeReady, invalidateBridgeReadyCache } from '@/lib/external-db/health-check';
+
+/** Detecta erros do bridge causados por 503 / cold-start do isolate. */
+const BRIDGE_FAILURE_PATTERNS = [
+  '503',
+  '502',
+  '504',
+  'supabase_edge_runtime_error',
+  'boot_error',
+  'service is temporarily unavailable',
+  'bad gateway',
+  'gateway timeout',
+];
+
+export function isBridgeColdStartError(msg?: string | null): boolean {
+  if (!msg) return false;
+  const m = msg.toLowerCase();
+  return BRIDGE_FAILURE_PATTERNS.some(p => m.includes(p));
+}
 
 export interface OptimizationItem {
   id: string;
