@@ -121,7 +121,7 @@ describe('invokeWithRetry', () => {
 
 describe('invokeWithRetry — classifier edge cases (HTTP word-boundary regex)', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    (mockInvoke as any).mockReset();
   });
 
   it('UUID com "400" no meio NÃO é tratado como HTTP 400 (sem falso positivo)', async () => {
