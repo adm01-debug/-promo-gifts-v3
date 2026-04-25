@@ -50,9 +50,43 @@ function installBridgeListenerOnce() {
   });
 }
 
+/**
+ * Padrões de erros TRANSITÓRIOS de runtime das edge functions:
+ *  - SUPABASE_EDGE_RUNTIME_ERROR
+ *  - service is temporarily unavailable (503)
+ *  - boot_error / function failed to start
+ *  - 502 / 504 (bad gateway / gateway timeout — também são transientes)
+ *
+ * Esses erros NÃO devem ser registrados como "blank screen" / crash de UI,
+ * pois quase sempre são curados pela 2ª tentativa do invoke (cold-start).
+ */
+const TRANSIENT_EDGE_RUNTIME_PATTERNS = [
+  'supabase_edge_runtime_error',
+  'service is temporarily unavailable',
+  'boot_error',
+  'function failed to start',
+  '\\b503\\b',
+  '\\b502\\b',
+  '\\b504\\b',
+  'bad gateway',
+  'gateway timeout',
+];
+
+const TRANSIENT_RE = new RegExp(TRANSIENT_EDGE_RUNTIME_PATTERNS.join('|'), 'i');
+
+export function isTransientEdgeRuntimeError(input: string | Error | null | undefined): boolean {
+  if (!input) return false;
+  const haystack = typeof input === 'string'
+    ? input
+    : `${input.message} ${input.stack ?? ''}`;
+  // isColdStartSignal cobre o vocabulário oficial da bridge; o regex local
+  // amplia para variações que podem chegar do Error Boundary sem passar pela bridge.
+  return isColdStartSignal(haystack) || TRANSIENT_RE.test(haystack);
+}
+
 function isColdStartReport(report: ErrorReport): boolean {
   const haystack = `${report.message} ${report.stack ?? ''}`;
-  return isColdStartSignal(haystack);
+  return isTransientEdgeRuntimeError(haystack);
 }
 
 async function flushErrors() {
