@@ -16,6 +16,8 @@ import { useSecretsManager } from "@/hooks/useSecretsManager";
 import { GitHubCredentialsTester } from "./GitHubCredentialsTester";
 import { IssueMcpKeyForm } from "./IssueMcpKeyForm";
 import { isFullAccess } from "@/lib/mcp/scopes";
+import { useDevChallenge } from "@/contexts/DevChallengeContext";
+import { sanitizeError } from "@/lib/security/sanitize-error";
 
 interface McpKey {
   id: string;
