@@ -4630,6 +4630,19 @@ export type Database = {
         Returns: undefined
       }
       notify_hardening_regression: { Args: never; Returns: Json }
+      record_platform_failure: {
+        Args: {
+          p_duration_ms?: number
+          p_error_message?: string
+          p_is_503?: boolean
+          p_is_cold_start?: boolean
+          p_operation: string
+          p_retry_count?: number
+          p_rpc_name?: string
+          p_table?: string
+        }
+        Returns: string
+      }
       record_public_token_failure: {
         Args: {
           _attempted_token: string
