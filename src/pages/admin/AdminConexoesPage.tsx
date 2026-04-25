@@ -26,6 +26,8 @@ import { ExplainModeToggle } from "@/components/admin/connections/ExplainModeTog
 import { useCallback, useEffect, useState } from "react";
 import { useSecretsManager } from "@/hooks/useSecretsManager";
 import { useSeverityChangeNotifier } from "@/components/admin/connections/useSeverityChangeNotifier";
+import { useZoneVisibility } from "@/components/admin/connections/useZoneVisibility";
+import { ZoneQuickNav } from "@/components/admin/connections/ZoneQuickNav";
 
 /**
  * /admin/conexoes — Hub Central de Integrações
@@ -42,6 +44,7 @@ import { useSeverityChangeNotifier } from "@/components/admin/connections/useSev
 export default function AdminConexoesPage() {
   const { secrets, list } = useSecretsManager();
   const [refreshTick, setRefreshTick] = useState(0);
+  const { visible, toggle, showAll, isolateZone, hiddenCount } = useZoneVisibility();
   useEffect(() => { list(); }, [list]);
   // Toast automático em escaladas P0/P1 — com confirmação para não repetir
   useSeverityChangeNotifier();
@@ -83,26 +86,19 @@ export default function AdminConexoesPage() {
             <ExplainModeToggle />
           </div>
 
-          {/* Quick nav (anchors) — atalho leve sem virar nav primária */}
-          <nav aria-label="Navegação por zonas" className="flex flex-wrap gap-2 text-xs">
-            {[
-              { href: "#zone-health", label: "Saúde" },
-              { href: "#zone-operation", label: "Operação" },
-              { href: "#zone-connections", label: "Conexões" },
-            ].map((z) => (
-              <a
-                key={z.href}
-                href={z.href}
-                className="inline-flex items-center px-2.5 py-1 rounded-full border border-border/60 bg-card hover:bg-muted/60 transition-colors text-muted-foreground hover:text-foreground"
-              >
-                {z.label}
-              </a>
-            ))}
-          </nav>
+          {/* Quick nav (anchors + toggles de visibilidade por zona) */}
+          <ZoneQuickNav
+            visible={visible}
+            onToggle={toggle}
+            onIsolate={isolateZone}
+            onShowAll={showAll}
+            hiddenCount={hiddenCount}
+          />
 
         {/* Zonas semânticas com mais respiro entre elas */}
         <div className="space-y-8">
           {/* ZONA 1 — HEALTH */}
+          {visible.health && (
           <ZoneSection
             id="zone-health"
             icon={Activity}
@@ -112,6 +108,7 @@ export default function AdminConexoesPage() {
           >
             <IntegrationsHealthCard secrets={secrets} />
           </ZoneSection>
+          )}
 
           {/* ZONA 2 — OPERATION */}
           <ZoneSection
