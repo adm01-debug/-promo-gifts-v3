@@ -7,6 +7,67 @@ import { getBreaker, circuitOpenResponse } from '../_shared/circuit-breaker.ts';
 const breaker = getBreaker("crm-db");
 
 // ============================================
+// CRM CLIENT — singleton por isolate + warm-up no boot
+// ============================================
+// Mesma estratégia da external-db-bridge (1 client por isolate, fetch keep-alive
+// mantém socket TLS aberto). Antes desta otimização cada request criava um novo
+// client (linha ~627), pagando handshake TLS + auth a cada chamada paralela.
+// Profile do dashboard mostrava 2.66s de cold-start no primeiro hit ao CRM.
+let cachedCrmClient: SupabaseClient | null = null;
+let crmWarmupPromise: Promise<void> | null = null;
+
+function buildCrmClient(url: string, key: string): SupabaseClient {
+  return createClient(url, key, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+}
+
+function getCrmClient(): SupabaseClient | null {
+  if (cachedCrmClient) return cachedCrmClient;
+  const url = Deno.env.get("CRM_SUPABASE_URL");
+  const key = Deno.env.get("CRM_SUPABASE_SERVICE_KEY") ?? Deno.env.get("CRM_SUPABASE_ANON_KEY");
+  if (!url || !key) return null;
+  cachedCrmClient = buildCrmClient(url, key);
+  return cachedCrmClient;
+}
+
+/**
+ * Warm-up no boot do isolate — abre TLS + handshake PostgREST em paralelo
+ * ao Deno.serve. Não bloqueia o handler; idempotente.
+ *
+ * Faz `select id from companies limit 1` (tabela quente conhecida) — mesmo
+ * shape que o `prewarmExternalDb` chama no front, então o cache HTTP do
+ * PostgREST schema já fica preparado para a primeira request real.
+ */
+function warmupCrmClient(): Promise<void> {
+  if (crmWarmupPromise) return crmWarmupPromise;
+  crmWarmupPromise = (async () => {
+    try {
+      const client = getCrmClient();
+      if (!client) {
+        console.warn('[crm-boot-warmup] ⚠️ CRM_SUPABASE_URL/KEY not configured');
+        return;
+      }
+      const t0 = performance.now();
+      const { error } = await client.from('companies').select('id').limit(1);
+      const ms = Math.round(performance.now() - t0);
+      if (error) {
+        console.warn(`[crm-boot-warmup] ⚠️ ${error.message} (${ms}ms)`);
+      } else {
+        console.log(`[crm-boot-warmup] ✅ crm client ready (${ms}ms)`);
+      }
+    } catch (e) {
+      console.warn(`[crm-boot-warmup] ⚠️ ${e instanceof Error ? e.message : String(e)}`);
+    }
+  })();
+  return crmWarmupPromise;
+}
+
+// Dispara warm-up no boot do isolate (não-bloqueante).
+warmupCrmClient();
+
+
+// ============================================
 // CORS
 // ============================================
 
