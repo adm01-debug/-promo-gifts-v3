@@ -19,6 +19,7 @@ import LoadingScreen from "@/components/LoadingScreen";
 import { useGlobalErrorCatcher } from "@/hooks/useErrorHandler";
 import { getFallback } from "@/components/layout/SkeletonLoaders";
 import { BridgeStatusBanner } from "@/components/BridgeStatusBanner";
+import { CloudStatusBanner } from "@/components/system/CloudStatusBanner";
 import { startBridgeTelemetry } from "@/lib/external-db/bridge-telemetry-client";
 import { startColdStartRecorder } from "@/lib/external-db/cold-start-recorder";
 import "./App.css";
@@ -180,6 +181,7 @@ const App = () => {
                     <AppProviders>
                       <Toaster />
                       <Sonner />
+                      <CloudStatusBanner />
                       <BridgeStatusBanner />
                       <RouteSuspense>
                         <Routes>
