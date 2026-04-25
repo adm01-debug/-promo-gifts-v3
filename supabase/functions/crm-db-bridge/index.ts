@@ -130,10 +130,16 @@ warmupCrmClient();
 let corsHeaders: Record<string, string> = {};
 
 function jsonResponse(body: unknown, status = 200): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-  });
+  const reqId = currentRequestId();
+  // Injeta request_id no body (objeto) e no header — permite ao client
+  // correlacionar com os logs do servidor sem mudar o shape esperado.
+  let finalBody: unknown = body;
+  if (reqId && body && typeof body === "object" && !Array.isArray(body)) {
+    finalBody = { ...(body as Record<string, unknown>), request_id: reqId };
+  }
+  const headers: Record<string, string> = { ...corsHeaders, "Content-Type": "application/json" };
+  if (reqId) headers[REQUEST_ID_HEADER] = reqId;
+  return new Response(JSON.stringify(finalBody), { status, headers });
 }
 
 type DiagOp = "ping" | "diag" | "breaker_status";
