@@ -33,11 +33,24 @@ export interface McpKeyRow {
 export type StatusFilter = "all" | "active" | "expired" | "revoked";
 export type SortKey = "created_desc" | "expires_asc" | "last_used_desc";
 
+export interface CreatorOption {
+  user_id: string;
+  email: string | null;
+  name: string | null;
+  count: number;
+}
+
 interface Filters {
   search: string;
   status: StatusFilter;
   onlyFull: boolean;
   sort: SortKey;
+  /** UUID de `created_by` ou `null` para todos. */
+  creator: string | null;
+  /** ISO date (YYYY-MM-DD) — incluído (>=). */
+  createdFrom: string | null;
+  /** ISO date (YYYY-MM-DD) — incluído (data + 23:59:59 local, <=). */
+  createdTo: string | null;
 }
 
 function deriveStatus(row: { revoked_at: string | null; expires_at: string | null }): McpKeyRow["status"] {
