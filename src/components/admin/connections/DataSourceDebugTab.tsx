@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useSecretsManager } from "@/hooks/useSecretsManager";
+import { ExpectedKeysMatchPanel } from "./ExpectedKeysMatchPanel";
 import { toast } from "sonner";
 
 type ExternalConnRow = {
@@ -14,6 +15,7 @@ type ExternalConnRow = {
   name: string | null;
   type: string | null;
   status: string | null;
+  env_key: string | null;
   last_test_at: string | null;
   updated_at: string | null;
 };
@@ -71,7 +73,7 @@ export function DataSourceDebugTab() {
     setExtError(null);
     const { data, error } = await supabase
       .from("external_connections")
-      .select("id,name,type,status,last_test_at,updated_at")
+      .select("id,name,type,status,env_key,last_test_at,updated_at")
       .order("updated_at", { ascending: false });
     if (error) {
       setExtError(error.message);
@@ -248,6 +250,13 @@ export function DataSourceDebugTab() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Comparação de chaves esperadas × fontes */}
+      <ExpectedKeysMatchPanel
+        secrets={secrets}
+        extConns={(extConns ?? []).map((c) => ({ env_key: c.env_key, type: c.type, name: c.name }))}
+        loading={secretsLoading || extLoading}
+      />
 
       {/* Raw rows */}
       <div className="grid gap-3 lg:grid-cols-2">
