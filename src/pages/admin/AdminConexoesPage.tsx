@@ -54,6 +54,7 @@ export default function AdminConexoesPage() {
   const [refreshTick, setRefreshTick] = useState(0);
   const { visible, toggle, showAll, isolateZone, hiddenCount } = useZoneVisibility();
   const { collapsed, toggle: toggleCollapse, expand: expandZone } = useZoneCollapse();
+  const { open: paletteOpen, setOpen: setPaletteOpen } = useZoneCommandPaletteShortcut();
   const [highlightZone, setHighlightZone] = useState<string | null>(null);
   useEffect(() => { list(); }, [list]);
   // Toast automático em escaladas P0/P1 — com confirmação para não repetir
