@@ -30,6 +30,25 @@ export interface TelemetryMeta {
   userId?: string | null;
   retryCount?: number;
   cacheHit?: boolean;
+  /** True quando a falha veio do isolate booting (SUPABASE_EDGE_RUNTIME_ERROR / boot_error). */
+  isColdStart?: boolean;
+  /** True para qualquer 5xx de plataforma (502/503/504). */
+  is503?: boolean;
+}
+
+const COLD_START_PATTERNS = [
+  'supabase_edge_runtime_error',
+  'service is temporarily unavailable',
+  'boot_error',
+  'function failed to start',
+];
+
+export function detectPlatformFailure(error: string | undefined | null): { is503: boolean; isColdStart: boolean } {
+  if (!error) return { is503: false, isColdStart: false };
+  const msg = error.toLowerCase();
+  const is503 = msg.includes('503') || msg.includes('502') || msg.includes('504') || msg.includes('bad gateway');
+  const isColdStart = COLD_START_PATTERNS.some(p => msg.includes(p));
+  return { is503: is503 || isColdStart, isColdStart };
 }
 
 // Classifica error_message bruto em uma categoria estável.
@@ -58,7 +77,15 @@ export function emitTelemetry(meta: TelemetryMeta) {
   else console.info(line);
 
   // Persist slow/error queries (fire-and-forget) — also persists cache hits & retry savings for analytics.
-  const shouldPersist = meta.status !== 'ok' || meta.cacheHit === true || (meta.retryCount ?? 0) > 0;
+  const platform = detectPlatformFailure(meta.error);
+  const isColdStart = meta.isColdStart ?? platform.isColdStart;
+  const is503 = meta.is503 ?? platform.is503;
+  const shouldPersist =
+    meta.status !== 'ok' ||
+    meta.cacheHit === true ||
+    (meta.retryCount ?? 0) > 0 ||
+    is503 || isColdStart;
+
   if (shouldPersist) {
     try {
       const localUrl = Deno.env.get('SUPABASE_URL');
@@ -83,6 +110,8 @@ export function emitTelemetry(meta: TelemetryMeta) {
           user_id: meta.userId || null,
           retry_count: meta.retryCount ?? 0,
           cache_hit: meta.cacheHit ?? false,
+          is_503: is503,
+          is_cold_start: isColdStart,
         }).then(({ error: insertErr }) => {
           if (insertErr) console.warn('[telemetry-persist] Insert failed:', insertErr.message);
         });

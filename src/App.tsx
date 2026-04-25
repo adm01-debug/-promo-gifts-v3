@@ -19,7 +19,11 @@ import LoadingScreen from "@/components/LoadingScreen";
 import { useGlobalErrorCatcher } from "@/hooks/useErrorHandler";
 import { getFallback } from "@/components/layout/SkeletonLoaders";
 import { BridgeStatusBanner } from "@/components/BridgeStatusBanner";
+import { startBridgeTelemetry } from "@/lib/external-db/bridge-telemetry-client";
 import "./App.css";
+
+// Inicia o bridge telemetry uma única vez por bundle (idempotente).
+startBridgeTelemetry();
 
 // Auth Pages
 const Auth = lazyWithRetry(() => import("./pages/Auth"));

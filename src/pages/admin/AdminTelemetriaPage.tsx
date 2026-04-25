@@ -17,6 +17,7 @@ import { HighLimitTelemetryCard } from '@/components/admin/telemetry/HighLimitTe
 import { OptimizationMetricsCards } from '@/components/admin/telemetry/OptimizationMetricsCards';
 import { RegressionGuardrailBanner } from '@/components/admin/telemetry/RegressionGuardrailBanner';
 import { OptimizationQueuePanel } from '@/components/admin/telemetry/OptimizationQueuePanel';
+import { PlatformFailureCards } from '@/components/admin/telemetry/PlatformFailureCards';
 import { useTelemetryData, formatDuration, formatTime } from './telemetry/useTelemetryData';
 import { useErrorCounters } from './telemetry/useErrorCounters';
 import { exportCSV, exportPDF } from './telemetry/exportHelpers';
@@ -111,6 +112,9 @@ export default function AdminTelemetriaPage() {
             );
           })}
         </div>
+
+        {/* KPIs de falhas de plataforma (503 / cold-start) — janela móvel de 60min */}
+        <PlatformFailureCards windowMinutes={60} />
 
         {/* Métricas das otimizações Onda 2 (cache hit rate + retries evitados) */}
         <OptimizationMetricsCards />

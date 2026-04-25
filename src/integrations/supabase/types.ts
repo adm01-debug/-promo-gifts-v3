@@ -3067,6 +3067,8 @@ export type Database = {
           error_kind: string | null
           error_message: string | null
           id: string
+          is_503: boolean
+          is_cold_start: boolean
           operation: string
           query_limit: number | null
           query_offset: number | null
@@ -3085,6 +3087,8 @@ export type Database = {
           error_kind?: string | null
           error_message?: string | null
           id?: string
+          is_503?: boolean
+          is_cold_start?: boolean
           operation: string
           query_limit?: number | null
           query_offset?: number | null
@@ -3103,6 +3107,8 @@ export type Database = {
           error_kind?: string | null
           error_message?: string | null
           id?: string
+          is_503?: boolean
+          is_cold_start?: boolean
           operation?: string
           query_limit?: number | null
           query_offset?: number | null
@@ -4515,6 +4521,10 @@ export type Database = {
           unique_sellers: number
         }[]
       }
+      get_platform_failure_metrics: {
+        Args: { window_minutes?: number }
+        Returns: Json
+      }
       get_quote_token_by_value: {
         Args: { _token: string }
         Returns: {
@@ -4620,6 +4630,19 @@ export type Database = {
         Returns: undefined
       }
       notify_hardening_regression: { Args: never; Returns: Json }
+      record_platform_failure: {
+        Args: {
+          p_duration_ms?: number
+          p_error_message?: string
+          p_is_503?: boolean
+          p_is_cold_start?: boolean
+          p_operation: string
+          p_retry_count?: number
+          p_rpc_name?: string
+          p_table?: string
+        }
+        Returns: string
+      }
       record_public_token_failure: {
         Args: {
           _attempted_token: string
