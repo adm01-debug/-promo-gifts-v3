@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useSecretsManager } from "@/hooks/useSecretsManager";
+import { ExpectedKeysMatchPanel } from "./ExpectedKeysMatchPanel";
 import { toast } from "sonner";
 
 type ExternalConnRow = {
