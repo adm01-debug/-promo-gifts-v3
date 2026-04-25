@@ -116,19 +116,22 @@ function jsonResponse(body: unknown, status = 200): Response {
   });
 }
 
+type DiagOp = "ping" | "diag" | "breaker_status";
+
 /**
- * Detecta operações de diagnóstico (`ping` | `diag`) sem consumir o body original.
- * Aceita querystring (`?op=ping`, `?op=diag`, `?ping=1`, `?diag=1`) ou
- * body JSON `{ "operation": "ping" | "diag" }`.
+ * Detecta operações de diagnóstico (`ping` | `diag` | `breaker_status`)
+ * sem consumir o body original. Aceita querystring (`?op=…`, `?ping=1`,
+ * `?diag=1`, `?breaker=1`) ou body JSON `{ "operation": "…" }`.
  */
-async function detectDiagOp(req: Request): Promise<"ping" | "diag" | null> {
+async function detectDiagOp(req: Request): Promise<DiagOp | null> {
   // Query string
   try {
     const url = new URL(req.url);
     const op = url.searchParams.get("op");
-    if (op === "ping" || op === "diag") return op;
+    if (op === "ping" || op === "diag" || op === "breaker_status") return op;
     if (url.searchParams.get("ping") === "1") return "ping";
     if (url.searchParams.get("diag") === "1") return "diag";
+    if (url.searchParams.get("breaker") === "1") return "breaker_status";
   } catch { /* ignore */ }
 
   // Body JSON (POST/PUT/PATCH apenas; clonamos para não consumir o original)
@@ -138,7 +141,9 @@ async function detectDiagOp(req: Request): Promise<"ping" | "diag" | null> {
       try {
         const cloned = req.clone();
         const peek = await cloned.json() as { operation?: unknown };
-        if (peek?.operation === "ping" || peek?.operation === "diag") return peek.operation;
+        if (peek?.operation === "ping" || peek?.operation === "diag" || peek?.operation === "breaker_status") {
+          return peek.operation as DiagOp;
+        }
       } catch { /* corpo inválido — não é diag */ }
     }
   }
