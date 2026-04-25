@@ -259,6 +259,13 @@ async function enrichProducts(
   }
 
   const suppliersMap = new Map(suppliersRecords.map(s => [s.id, s.name]));
+  // Popula cache de imutáveis para reaproveitar em telas de detalhe sem ida ao bridge.
+  try {
+    const { putInCacheSafe } = await import('./immutableCache');
+    for (const s of suppliersRecords) {
+      if (s?.id && s?.name) putInCacheSafe('suppliers', { id: s.id, name: s.name, code: s.code });
+    }
+  } catch { /* cache populate is best-effort */ }
   const colorVariationMap = new Map(colorVariationsRecords.map((v) => [v.id as string, { name: v.name as string, slug: v.slug as string, group_id: v.group_id as string }]));
   const colorGroupMap = new Map(colorGroupsRecords.map((g) => [g.id as string, { name: g.name as string, slug: g.slug as string }]));
 
