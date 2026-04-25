@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { resolveSupabaseConnectionStatus } from "./connectionStatus";
+import { resolveSupabaseConnectionStatus } from "@/components/admin/connections/connectionStatus";
 
 /**
  * Garantia de não-regressão para o bug "Sem credenciais" exibido
