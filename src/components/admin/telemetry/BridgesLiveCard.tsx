@@ -108,8 +108,8 @@ export function BridgesLiveCard() {
         </Button>
       </CardHeader>
       <CardContent>
-        {/* Totais */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
+        {/* Totais — KPIs em tempo real */}
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-3 mb-4">
           <div className="p-3 rounded-lg border border-border/50 bg-muted/30">
             <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Chamadas</p>
             <p className="font-display text-2xl font-bold tabular-nums">{totals.total}</p>
@@ -125,12 +125,28 @@ export function BridgesLiveCard() {
             </p>
           </div>
           <div className="p-3 rounded-lg border border-border/50 bg-muted/30">
-            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Latência média</p>
-            <p className="font-display text-2xl font-bold tabular-nums">{formatMs(totals.avgMs)}</p>
+            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">p50 latência</p>
+            <p className="font-display text-2xl font-bold tabular-nums">{formatMs(totals.p50Ms)}</p>
           </div>
           <div className="p-3 rounded-lg border border-border/50 bg-muted/30">
-            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Total enviado</p>
-            <p className="font-display text-2xl font-bold tabular-nums">{formatBytes(totals.reqBytes)}</p>
+            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">p95 latência</p>
+            <p
+              className={`font-display text-2xl font-bold tabular-nums ${
+                totals.p95Ms >= 8000
+                  ? 'text-destructive'
+                  : totals.p95Ms >= 3000
+                    ? 'text-warning'
+                    : ''
+              }`}
+            >
+              {formatMs(totals.p95Ms)}
+            </p>
+          </div>
+          <div className="p-3 rounded-lg border border-border/50 bg-muted/30">
+            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Tam. médio resp.</p>
+            <p className="font-display text-2xl font-bold tabular-nums">
+              {formatBytes(totals.avgRespBytes)}
+            </p>
           </div>
           <div className="p-3 rounded-lg border border-border/50 bg-muted/30">
             <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Total recebido</p>
