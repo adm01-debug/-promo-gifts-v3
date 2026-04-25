@@ -243,5 +243,5 @@ export function useMcpKeys() {
     [load, challenge],
   );
 
-  return { rows: filtered, allRows: rows, loading, filters, setFilters, counts, reload: load, revoke };
+  return { rows: filtered, allRows: rows, loading, filters, setFilters, counts, creators, reload: load, revoke };
 }
