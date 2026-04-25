@@ -34,6 +34,8 @@ const BodySchema = z.object({
   expires_at: z.string().datetime({ offset: true }).nullable().optional(),
   justification: z.string().trim().max(1000).optional().nullable(),
   confirmation_phrase: z.string().optional().nullable(),
+  /** Token de step-up (senha + OTP) — obrigatório para escalar para FULL. */
+  step_up_token: z.string().min(32).max(256).optional().nullable(),
 });
 
 function jsonResponse(body: unknown, status: number, requestId: string) {
@@ -122,7 +124,7 @@ Deno.serve(async (req) => {
       await auditFailure("denied", { reason: "validation_failed", fields });
       return jsonResponse({ error: "validation_failed", fields }, 422, requestId);
     }
-    const { key_id, name, description, scopes, expires_at, justification, confirmation_phrase } = parsed.data;
+    const { key_id, name, description, scopes, expires_at, justification, confirmation_phrase, step_up_token } = parsed.data;
 
     const { data: current, error: fetchErr } = await admin
       .from("mcp_api_keys")
@@ -147,6 +149,29 @@ Deno.serve(async (req) => {
     const escalating = !wasFull && willBeFull;
 
     if (escalating) {
+      // Step-up obrigatório: senha + OTP validados nos últimos 5min, role dev re-checada server-side
+      if (!step_up_token) {
+        await auditFailure("denied", { reason: "step_up_required" }, key_id);
+        return jsonResponse(
+          { error: "step_up_required", message: "Confirme sua identidade (senha + código por e-mail) antes de escalar a chave para escopo total." },
+          403,
+          requestId,
+        );
+      }
+      const { data: stepUpOk, error: stepUpErr } = await userClient.rpc("consume_step_up_token", {
+        _token: step_up_token,
+        _expected_action: "mcp_full_escalate",
+        _expected_target: null,
+      });
+      if (stepUpErr || !stepUpOk) {
+        await auditFailure("denied", { reason: "step_up_invalid", detail: stepUpErr?.message }, key_id);
+        return jsonResponse(
+          { error: "step_up_invalid", message: "Verificação dupla expirou ou é inválida. Refaça a confirmação." },
+          403,
+          requestId,
+        );
+      }
+
       // Authorization gate: only explicit grantors can escalate to FULL
       const { data: canGrant, error: grantErr } = await admin.rpc("can_grant_mcp_full", {
         _user_id: userId,

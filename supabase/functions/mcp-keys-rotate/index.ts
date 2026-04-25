@@ -26,6 +26,8 @@ const BodySchema = z.object({
   source_key_id: z.string().uuid(),
   justification: z.string().trim().max(1000).optional().nullable(),
   confirmation_phrase: z.string().optional().nullable(),
+  /** Token de step-up (senha + OTP) — obrigatório ao rotacionar chave FULL. */
+  step_up_token: z.string().min(32).max(256).optional().nullable(),
 });
 
 function jsonResponse(body: unknown, status: number, requestId: string) {
@@ -124,7 +126,7 @@ Deno.serve(async (req) => {
       await auditFailure("denied", { reason: "validation_failed", fields });
       return jsonResponse({ error: "validation_failed", fields }, 422, requestId);
     }
-    const { source_key_id, justification, confirmation_phrase } = parsed.data;
+    const { source_key_id, justification, confirmation_phrase, step_up_token } = parsed.data;
 
     const { data: source, error: srcErr } = await admin
       .from("mcp_api_keys")
@@ -147,6 +149,29 @@ Deno.serve(async (req) => {
     const full = isFullAccess(source.scopes ?? []);
 
     if (full) {
+      // Step-up obrigatório: senha + OTP validados nos últimos 5min, role dev re-checada server-side
+      if (!step_up_token) {
+        await auditFailure("denied", { reason: "step_up_required" }, source_key_id);
+        return jsonResponse(
+          { error: "step_up_required", message: "Confirme sua identidade (senha + código por e-mail) antes de rotacionar uma chave full." },
+          403,
+          requestId,
+        );
+      }
+      const { data: stepUpOk, error: stepUpErr } = await userClient.rpc("consume_step_up_token", {
+        _token: step_up_token,
+        _expected_action: "mcp_full_issue",
+        _expected_target: null,
+      });
+      if (stepUpErr || !stepUpOk) {
+        await auditFailure("denied", { reason: "step_up_invalid", detail: stepUpErr?.message }, source_key_id);
+        return jsonResponse(
+          { error: "step_up_invalid", message: "Verificação dupla expirou ou é inválida. Refaça a confirmação." },
+          403,
+          requestId,
+        );
+      }
+
       // Authorization gate: only explicit grantors can rotate (re-emit) FULL keys
       const { data: canGrant, error: grantErr } = await admin.rpc("can_grant_mcp_full", {
         _user_id: userId,
