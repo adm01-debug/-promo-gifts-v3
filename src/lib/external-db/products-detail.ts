@@ -4,6 +4,7 @@
 import { logger } from '@/lib/logger';
 import { invokeExternalDb, invokeBatchBridge } from './bridge';
 import type { InvokeResult, BatchQuery } from './bridge';
+import { getCachedByIds, getFreshFromCacheSafe, putInCacheSafe } from './immutableCache';
 import {
   type PromobrindProduct,
   PRODUCT_SELECT_FIELDS_WITH_SALE,
@@ -101,17 +102,30 @@ export async function fetchPromobrindProductById(
   const needsMaterials =
     !product.materials || (Array.isArray(product.materials) && product.materials.length === 0);
 
+  // 1) Tenta servir categoria/fornecedor do cache de entidades imutáveis
+  if (needsCategory && categoryId) {
+    const cached = getFreshFromCacheSafe('categories', categoryId);
+    if (cached?.name) product.category_name = cached.name;
+  }
+  if (needsSupplier && product.supplier_id) {
+    const cached = getFreshFromCacheSafe('suppliers', product.supplier_id);
+    if (cached?.name) product.supplier_name = cached.name;
+  }
+
+  const stillNeedsCategory = !!categoryId && !product.category_name;
+  const stillNeedsSupplier = !!product.supplier_id && !product.supplier_name;
+
   const enrichmentQueries: BatchQuery[] = [];
   const enrichmentSlots: Array<'category' | 'supplier' | 'materials'> = [];
 
-  if (needsCategory) {
+  if (stillNeedsCategory) {
     enrichmentQueries.push({
       table: 'categories', select: 'id, name',
       filters: { id: categoryId as string }, limit: 1,
     });
     enrichmentSlots.push('category');
   }
-  if (needsSupplier) {
+  if (stillNeedsSupplier) {
     enrichmentQueries.push({
       table: 'suppliers', select: 'id, name, code',
       filters: { id: product.supplier_id as string }, limit: 1,
@@ -136,14 +150,19 @@ export async function fetchPromobrindProductById(
         if (!result?.success || !result.data) return;
         const records = result.data.records;
         if (slot === 'category') {
-          const rec = records[0] as { name?: string } | undefined;
-          if (rec?.name) product.category_name = rec.name;
+          const rec = records[0] as { id?: string; name?: string } | undefined;
+          if (rec?.name) {
+            product.category_name = rec.name;
+            if (rec.id) putInCacheSafe('categories', { id: rec.id, name: rec.name });
+          }
         } else if (slot === 'supplier') {
-          const rec = records[0] as { name?: string } | undefined;
-          if (rec?.name) product.supplier_name = rec.name;
+          const rec = records[0] as { id?: string; name?: string; code?: string } | undefined;
+          if (rec?.name) {
+            product.supplier_name = rec.name;
+            if (rec.id) putInCacheSafe('suppliers', { id: rec.id, name: rec.name, code: rec.code });
+          }
         } else if (slot === 'materials') {
           const matRecs = records as Array<{ material_id: string }>;
-          // Dedup preservando ordem (várias partes podem referenciar o mesmo material)
           const seen = new Set<string>();
           for (const m of matRecs) {
             if (m.material_id && !seen.has(m.material_id)) {
@@ -158,22 +177,12 @@ export async function fetchPromobrindProductById(
     }
   }
 
-  // Resolve nomes de material_types em UMA única call (filtro `id=in.(...)`),
-  // substituindo o loop N+1 anterior (1 call por material).
+  // Resolve nomes de material_types através do cache em lote (apenas IDs faltantes vão para o bridge).
   if (materialIds.length > 0) {
     try {
-      const inFilter = `in.(${materialIds.join(',')})`;
-      const typesResult = await invokeExternalDb<{ id: string; name: string }>({
-        table: 'material_types', operation: 'select', select: 'id, name',
-        filters: { id: inFilter }, limit: Math.max(materialIds.length, 20),
-      });
-      // Preserva a ordem original em que os material_ids apareceram
-      const nameById = new Map<string, string>();
-      for (const t of typesResult.records) {
-        if (t?.name) nameById.set(t.id, t.name);
-      }
+      const nameById = await getCachedByIds<{ id: string; name: string }>('material_types', materialIds);
       const materialNames = materialIds
-        .map(id => nameById.get(id))
+        .map(id => nameById.get(id)?.name)
         .filter((n): n is string => !!n);
       if (materialNames.length > 0) product.materials = materialNames;
     } catch (err) {
@@ -293,6 +302,10 @@ export async function fetchPromobrindCategories(): Promise<{ id: string; name: s
       table: 'categories', operation: 'select', select: 'id, name',
       limit: 500, orderBy: { column: 'name', ascending: true }, countMode: 'none',
     });
+    // Popula cache de imutáveis: economiza chamadas posteriores em telas de detalhe.
+    for (const c of result.records) {
+      if (c?.id && c?.name) putInCacheSafe('categories', { id: c.id, name: c.name });
+    }
     return result.records;
   } catch {
     const result = await invokeExternalDb<{ category_id: string; main_category_id: string }>({
