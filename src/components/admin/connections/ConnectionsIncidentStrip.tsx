@@ -15,6 +15,7 @@
 import { useMemo, useState } from "react";
 import { AlertOctagon, AlertTriangle, Info, ArrowRight, X, ChevronDown, ChevronUp } from "lucide-react";
 import { IncidentDetailsDrawer } from "./IncidentDetailsDrawer";
+import { useSeverityFilter } from "./SeverityFilterContext";
 import { formatDistanceToNow, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -129,9 +130,12 @@ export function ConnectionsIncidentStrip() {
   const [collapsed, setCollapsed] = useState(false);
   const [openIncident, setOpenIncident] = useState<IncidentItem | null>(null);
 
+  const { matches, filter } = useSeverityFilter();
+
   const visible = useMemo(
-    () => (data ?? []).filter((i) => !dismissed.has(i.id)),
-    [data, dismissed],
+    () =>
+      (data ?? []).filter((i) => !dismissed.has(i.id) && matches(i.severity)),
+    [data, dismissed, matches],
   );
 
   const counts = useMemo(() => {
@@ -141,7 +145,11 @@ export function ConnectionsIncidentStrip() {
   }, [visible]);
 
   if (isLoading) return null;
-  if (visible.length === 0) return null;
+  // Sem nenhum incidente carregado E sem filtro ativo ⇒ não renderiza nada.
+  // Com filtro ativo, mantém a strip visível para deixar claro que há um filtro
+  // aplicado (mostra mensagem dentro do corpo).
+  const hasAnyData = (data?.length ?? 0) > 0;
+  if (!hasAnyData) return null;
 
   const dismiss = (id: string) => setDismissed((prev) => new Set(prev).add(id));
 
@@ -194,19 +202,25 @@ export function ConnectionsIncidentStrip() {
           </button>
         </header>
         {!collapsed && (
-          <div
-            id="incident-strip-list"
-            className="flex gap-2 p-2 overflow-x-auto snap-x snap-mandatory scrollbar-thin"
-          >
-            {visible.map((incident) => (
-              <IncidentCard
-                key={incident.id}
-                incident={incident}
-                onDismiss={dismiss}
-                onOpen={setOpenIncident}
-              />
-            ))}
-          </div>
+          visible.length === 0 ? (
+            <p className="px-3 py-3 text-[11px] text-muted-foreground italic">
+              Nenhum incidente corresponde ao filtro <span className="font-mono not-italic font-semibold">{filter}</span> no momento.
+            </p>
+          ) : (
+            <div
+              id="incident-strip-list"
+              className="flex gap-2 p-2 overflow-x-auto snap-x snap-mandatory scrollbar-thin"
+            >
+              {visible.map((incident) => (
+                <IncidentCard
+                  key={incident.id}
+                  incident={incident}
+                  onDismiss={dismiss}
+                  onOpen={setOpenIncident}
+                />
+              ))}
+            </div>
+          )
         )}
       </section>
       <IncidentDetailsDrawer

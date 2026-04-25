@@ -18,6 +18,8 @@ import { GlobalRefreshFromDbButton } from "@/components/admin/connections/Global
 import { ConnectionsPulseBar } from "@/components/admin/connections/ConnectionsPulseBar";
 import { ConnectionsIncidentStrip } from "@/components/admin/connections/ConnectionsIncidentStrip";
 import { ZoneSection } from "@/components/admin/connections/ZoneSection";
+import { SeverityFilterProvider } from "@/components/admin/connections/SeverityFilterContext";
+import { SeverityFilterToolbar } from "@/components/admin/connections/SeverityFilterToolbar";
 import { useCallback, useEffect, useState } from "react";
 import { useSecretsManager } from "@/hooks/useSecretsManager";
 
@@ -43,45 +45,49 @@ export default function AdminConexoesPage() {
   }, []);
 
   return (
-    <CredentialsSourceFilterProvider>
-      <div className="container mx-auto py-6 max-w-7xl space-y-6">
-        <PageSEO title="Conexões | Admin" description="Hub central de integrações externas: Supabase, Bitrix24, n8n, MCP, Webhooks." />
+    <SeverityFilterProvider>
+      <CredentialsSourceFilterProvider>
+        <div className="container mx-auto py-6 max-w-7xl space-y-6">
+          <PageSEO title="Conexões | Admin" description="Hub central de integrações externas: Supabase, Bitrix24, n8n, MCP, Webhooks." />
 
-        {/* Pulse Bar sticky + Incident Strip ficam fora das zonas */}
-        <ConnectionsPulseBar />
-        <ConnectionsIncidentStrip />
+          {/* Pulse Bar sticky + Incident Strip ficam fora das zonas */}
+          <ConnectionsPulseBar />
+          <ConnectionsIncidentStrip />
 
-        {/* Page Header */}
-        <header className="flex items-center gap-3 pb-2 border-b border-border/40">
-          <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-            <Plug className="h-5 w-5 text-primary" aria-hidden="true" />
-          </div>
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold tracking-tight">Conexões</h1>
-            <p className="text-sm text-muted-foreground">
-              Hub central de integrações externas e credenciais do sistema.
-            </p>
-          </div>
-          <GlobalRefreshFromDbButton onRefreshed={handleGlobalRefreshed} />
-          <SmokeTestChecklist availableSecrets={secrets} />
-        </header>
+          {/* Page Header */}
+          <header className="flex items-center gap-3 pb-2 border-b border-border/40">
+            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Plug className="h-5 w-5 text-primary" aria-hidden="true" />
+            </div>
+            <div className="flex-1">
+              <h1 className="text-2xl font-bold tracking-tight">Conexões</h1>
+              <p className="text-sm text-muted-foreground">
+                Hub central de integrações externas e credenciais do sistema.
+              </p>
+            </div>
+            <GlobalRefreshFromDbButton onRefreshed={handleGlobalRefreshed} />
+            <SmokeTestChecklist availableSecrets={secrets} />
+          </header>
 
-        {/* Quick nav (anchors) — atalho leve sem virar nav primária */}
-        <nav aria-label="Navegação por zonas" className="flex flex-wrap gap-2 text-xs">
-          {[
-            { href: "#zone-health", label: "Saúde" },
-            { href: "#zone-operation", label: "Operação" },
-            { href: "#zone-connections", label: "Conexões" },
-          ].map((z) => (
-            <a
-              key={z.href}
-              href={z.href}
-              className="inline-flex items-center px-2.5 py-1 rounded-full border border-border/60 bg-card hover:bg-muted/60 transition-colors text-muted-foreground hover:text-foreground"
-            >
-              {z.label}
-            </a>
-          ))}
-        </nav>
+          {/* Filtro global de severidade — persiste em URL + localStorage */}
+          <SeverityFilterToolbar />
+
+          {/* Quick nav (anchors) — atalho leve sem virar nav primária */}
+          <nav aria-label="Navegação por zonas" className="flex flex-wrap gap-2 text-xs">
+            {[
+              { href: "#zone-health", label: "Saúde" },
+              { href: "#zone-operation", label: "Operação" },
+              { href: "#zone-connections", label: "Conexões" },
+            ].map((z) => (
+              <a
+                key={z.href}
+                href={z.href}
+                className="inline-flex items-center px-2.5 py-1 rounded-full border border-border/60 bg-card hover:bg-muted/60 transition-colors text-muted-foreground hover:text-foreground"
+              >
+                {z.label}
+              </a>
+            ))}
+          </nav>
 
         {/* Zonas semânticas com mais respiro entre elas */}
         <div className="space-y-8">
@@ -146,5 +152,6 @@ export default function AdminConexoesPage() {
         </div>
       </div>
     </CredentialsSourceFilterProvider>
+    </SeverityFilterProvider>
   );
 }
