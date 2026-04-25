@@ -113,6 +113,9 @@ export default function AdminTelemetriaPage() {
           })}
         </div>
 
+        {/* KPIs de falhas de plataforma (503 / cold-start) — janela móvel de 60min */}
+        <PlatformFailureCards windowMinutes={60} />
+
         {/* Métricas das otimizações Onda 2 (cache hit rate + retries evitados) */}
         <OptimizationMetricsCards />
 
