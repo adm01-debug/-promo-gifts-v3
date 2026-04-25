@@ -2,7 +2,11 @@
 // Persists values in `integration_credentials` and never returns plaintext to the client.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { z } from "https://deno.land/x/zod@v3.23.8/mod.ts";
-import { invalidateCredentialCache } from "../_shared/credentials.ts";
+import {
+  invalidateCredentialCache,
+  getCredentialCacheMetrics,
+  resetCredentialCacheMetrics,
+} from "../_shared/credentials.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -38,7 +42,17 @@ function isAllowedSecretName(name: string): boolean {
 }
 
 const BodySchema = z.object({
-  action: z.enum(["list", "set", "delete", "status", "rotate", "rotation_history", "refresh_cache"]),
+  action: z.enum([
+    "list",
+    "set",
+    "delete",
+    "status",
+    "rotate",
+    "rotation_history",
+    "refresh_cache",
+    "cache_metrics",
+    "reset_cache_metrics",
+  ]),
   names: z.array(z.string()).optional(),
   name: z.string().optional(),
   value: z.string().optional(),
