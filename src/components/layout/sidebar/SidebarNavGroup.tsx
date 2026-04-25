@@ -15,6 +15,8 @@ export interface NavItem {
   href: string;
   tourId?: string;
   adminOnly?: boolean;
+  /** Restrito ao papel `dev` — rotas técnicas/infra. */
+  devOnly?: boolean;
   requiredPermission?: { action: string; resource: string };
   badge?: string | number;
   isCta?: boolean;
@@ -31,6 +33,8 @@ export interface NavGroup {
   items: NavItem[];
   defaultOpen?: boolean;
   adminOnly?: boolean;
+  /** Grupo inteiro restrito a `dev`. */
+  devOnly?: boolean;
 }
 
 interface SidebarNavGroupProps {
@@ -51,7 +55,7 @@ export const SidebarNavGroup = forwardRef<HTMLDivElement, SidebarNavGroupProps>(
   isMobileSidebarOpen,
 }, _ref) {
   const location = useLocation();
-  const { isAdmin } = useAuth();
+  const { isAdmin, isDev } = useAuth();
   const { hasPermission } = useRBAC();
 
   const isItemActive = (href: string, exact?: boolean) => {
@@ -84,6 +88,7 @@ export const SidebarNavGroup = forwardRef<HTMLDivElement, SidebarNavGroupProps>(
   }, [location.pathname]);
 
   const renderNavLink = (item: NavItem, depth = 0): React.ReactNode => {
+    if (item.devOnly && !isDev) return null;
     if (item.adminOnly && !isAdmin) return null;
     if (item.requiredPermission && !hasPermission(item.requiredPermission.action, item.requiredPermission.resource)) return null;
 
