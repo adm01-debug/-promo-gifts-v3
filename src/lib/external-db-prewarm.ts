@@ -25,6 +25,23 @@ const PREWARM_TABLES = [
 
 let lastPrewarmAt = 0;
 const PREWARM_COOLDOWN_MS = 5 * 60 * 1000; // 5 minutos entre pre-warms
+const SESSION_KEY = '__pg_prewarm_done__';
+
+/**
+ * Acorda o crm-db-bridge em paralelo (cold start ~80–250ms).
+ * Mesma estratégia: ping leve via OPTIONS, falha silenciosa.
+ */
+async function pingCrmBridge(): Promise<{ ok: boolean; ms: number }> {
+  const t0 = performance.now();
+  try {
+    const { error } = await supabase.functions.invoke('crm-db-bridge', {
+      body: { table: 'companies', operation: 'select', select: 'id', limit: 1, countMode: 'none' },
+    });
+    return { ok: !error, ms: Math.round(performance.now() - t0) };
+  } catch {
+    return { ok: false, ms: Math.round(performance.now() - t0) };
+  }
+}
 
 /**
  * Acorda a edge function via health-check compartilhado (`waitForBridgeReady`).
