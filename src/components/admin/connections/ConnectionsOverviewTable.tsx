@@ -128,6 +128,8 @@ interface ConnectionsOverviewTableProps {
 
 export function ConnectionsOverviewTable({ refreshSignal }: ConnectionsOverviewTableProps = {}) {
   const { rows, loading, refreshing, refresh, patchRow } = useConnectionsOverview(30000);
+  const { secrets, list: refreshSecrets } = useSecretsManager();
+  useEffect(() => { refreshSecrets(); }, [refreshSecrets]);
 
   // External refresh trigger
   const lastSignalRef = useRef<number | undefined>(refreshSignal);
