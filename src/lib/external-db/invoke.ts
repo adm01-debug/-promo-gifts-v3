@@ -94,6 +94,23 @@ export async function invokeWithRetry(
   onRetry?: (attempt: number, maxRetries: number, delayMs: number) => void
 ): Promise<{ data: unknown; error: Error | null }> {
   let sawColdStart = false;
+  const startedAt = performance.now();
+  const reqBytes = estimatePayloadBytes(body);
+  const { op, target } = deriveExternalOp(body);
+
+  const finalize = (result: { data: unknown; error: Error | null }) => {
+    recordBridgeCall({
+      bridge: 'external-db-bridge',
+      op,
+      target,
+      durationMs: performance.now() - startedAt,
+      reqBytes,
+      respBytes: result.error ? 0 : estimatePayloadBytes(result.data),
+      ok: !result.error,
+      errorMessage: result.error?.message,
+    });
+    return result;
+  };
 
   // Gate best-effort: só bloqueia se uma sondagem recente confirmou estado ruim.
   // Não força sondagem nova aqui (evita latência extra e dependência em testes mockados);
@@ -106,7 +123,7 @@ export async function invokeWithRetry(
       if (gateErr instanceof CloudNotReadyError) {
         logger.warn(`[external-db] Aborting invoke — cloud ${gateErr.status}`);
         emitBridgeStatus({ type: 'unavailable', reason: gateErr.message, attempts: 0 });
-        return { data: null, error: gateErr };
+        return finalize({ data: null, error: gateErr });
       }
       throw gateErr;
     }
@@ -117,7 +134,7 @@ export async function invokeWithRetry(
 
     if (!error) {
       if (sawColdStart) emitBridgeStatus({ type: 'recovered' });
-      return { data, error: null };
+      return finalize({ data, error: null });
     }
 
     const msg = await extractFunctionErrorMessage(error);
@@ -125,7 +142,7 @@ export async function invokeWithRetry(
     // Fail-fast em erros determinísticos (schema/validação/auth) — retry não muda o resultado.
     if (isNonRetryableError(msg)) {
       logger.warn(`[external-db] Fail-fast (deterministic error, no retry): ${msg}`);
-      return { data, error };
+      return finalize({ data, error });
     }
 
     if (attempt < retries && isRetryableError(msg)) {
@@ -154,7 +171,7 @@ export async function invokeWithRetry(
     if (isColdStartSignal(msg)) {
       emitBridgeStatus({ type: 'unavailable', reason: msg, attempts: attempt + 1 });
     }
-    return { data, error };
+    return finalize({ data, error });
   }
-  return { data: null, error: new Error('Max retries exceeded') };
+  return finalize({ data: null, error: new Error('Max retries exceeded') });
 }
