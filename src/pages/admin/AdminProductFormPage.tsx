@@ -344,6 +344,7 @@ export default function AdminProductFormPage() {
         {/* Breadcrumbs are rendered by MainLayout's PersistentBreadcrumbs */}
 
         {/* Header */}
+        {isEdit && (
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Button
@@ -417,6 +418,7 @@ export default function AdminProductFormPage() {
           )}
           </div>
         </div>
+        )}
 
         {/* Content */}
         <Suspense fallback={<div className="flex items-center justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>}>
