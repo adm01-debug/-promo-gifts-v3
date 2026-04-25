@@ -68,7 +68,23 @@ export function BridgesLiveCard() {
     const reqBytes = samples.reduce((acc, s) => acc + s.reqBytes, 0);
     const respBytes = samples.reduce((acc, s) => acc + s.respBytes, 0);
     const totalMs = samples.reduce((acc, s) => acc + s.durationMs, 0);
-    return { total, errors, reqBytes, respBytes, avgMs: total ? Math.round(totalMs / total) : 0 };
+    const sortedDur = samples.map(s => s.durationMs).sort((a, b) => a - b);
+    const p50 = sortedDur.length
+      ? sortedDur[Math.min(sortedDur.length - 1, Math.floor(0.5 * sortedDur.length))]
+      : 0;
+    const p95 = sortedDur.length
+      ? sortedDur[Math.min(sortedDur.length - 1, Math.floor(0.95 * sortedDur.length))]
+      : 0;
+    return {
+      total,
+      errors,
+      reqBytes,
+      respBytes,
+      avgMs: total ? Math.round(totalMs / total) : 0,
+      p50Ms: p50,
+      p95Ms: p95,
+      avgRespBytes: total ? Math.round(respBytes / total) : 0,
+    };
   }, [samples]);
 
   return (
@@ -92,8 +108,8 @@ export function BridgesLiveCard() {
         </Button>
       </CardHeader>
       <CardContent>
-        {/* Totais */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
+        {/* Totais — KPIs em tempo real */}
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-3 mb-4">
           <div className="p-3 rounded-lg border border-border/50 bg-muted/30">
             <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Chamadas</p>
             <p className="font-display text-2xl font-bold tabular-nums">{totals.total}</p>
@@ -109,12 +125,28 @@ export function BridgesLiveCard() {
             </p>
           </div>
           <div className="p-3 rounded-lg border border-border/50 bg-muted/30">
-            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Latência média</p>
-            <p className="font-display text-2xl font-bold tabular-nums">{formatMs(totals.avgMs)}</p>
+            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">p50 latência</p>
+            <p className="font-display text-2xl font-bold tabular-nums">{formatMs(totals.p50Ms)}</p>
           </div>
           <div className="p-3 rounded-lg border border-border/50 bg-muted/30">
-            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Total enviado</p>
-            <p className="font-display text-2xl font-bold tabular-nums">{formatBytes(totals.reqBytes)}</p>
+            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">p95 latência</p>
+            <p
+              className={`font-display text-2xl font-bold tabular-nums ${
+                totals.p95Ms >= 8000
+                  ? 'text-destructive'
+                  : totals.p95Ms >= 3000
+                    ? 'text-warning'
+                    : ''
+              }`}
+            >
+              {formatMs(totals.p95Ms)}
+            </p>
+          </div>
+          <div className="p-3 rounded-lg border border-border/50 bg-muted/30">
+            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Tam. médio resp.</p>
+            <p className="font-display text-2xl font-bold tabular-nums">
+              {formatBytes(totals.avgRespBytes)}
+            </p>
           </div>
           <div className="p-3 rounded-lg border border-border/50 bg-muted/30">
             <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Total recebido</p>
@@ -142,8 +174,8 @@ export function BridgesLiveCard() {
                   <th className="text-right p-2 font-medium text-muted-foreground text-xs">p50</th>
                   <th className="text-right p-2 font-medium text-muted-foreground text-xs">p95</th>
                   <th className="text-right p-2 font-medium text-muted-foreground text-xs">max</th>
-                  <th className="text-right p-2 font-medium text-muted-foreground text-xs">↑ enviado</th>
-                  <th className="text-right p-2 font-medium text-muted-foreground text-xs">↓ recebido</th>
+                  <th className="text-right p-2 font-medium text-muted-foreground text-xs" title="Tamanho médio de resposta">resp. méd.</th>
+                  <th className="text-right p-2 font-medium text-muted-foreground text-xs" title="Total recebido nesta sessão">resp. total</th>
                   <th className="text-left p-2 font-medium text-muted-foreground text-xs">Última</th>
                 </tr>
               </thead>
@@ -170,8 +202,8 @@ export function BridgesLiveCard() {
                       {formatMs(row.p95Ms)}
                     </td>
                     <td className="p-2 text-right font-mono text-xs tabular-nums">{formatMs(row.maxMs)}</td>
-                    <td className="p-2 text-right font-mono text-xs tabular-nums text-muted-foreground">
-                      {formatBytes(row.totalReqBytes)}
+                    <td className="p-2 text-right font-mono text-xs tabular-nums">
+                      {formatBytes(row.avgRespBytes)}
                     </td>
                     <td className="p-2 text-right font-mono text-xs tabular-nums text-muted-foreground">
                       {formatBytes(row.totalRespBytes)}
