@@ -200,7 +200,7 @@ let currentCtx: AuthCtx | null = null;
 // READ tools
 // ────────────────────────────────────────────────────────────────────────────
 
-defineTool<{ status?: string; limit?: number }, { content: Array<{ type: string; text: string }> }>(
+defineTool<{ status?: string; limit?: number }>(
   "list_quotes",
   { scope: "quotes:read", mode: "read" },
   "Lista os orçamentos mais recentes (limite 50).",
@@ -223,7 +223,7 @@ defineTool<{ status?: string; limit?: number }, { content: Array<{ type: string;
   },
 );
 
-defineTool<{ id: string }, { content: Array<{ type: string; text: string }> }>(
+defineTool<{ id: string }>(
   "get_quote",
   { scope: "quotes:read", mode: "read" },
   "Detalha um orçamento por id.",
@@ -239,7 +239,7 @@ defineTool<{ id: string }, { content: Array<{ type: string; text: string }> }>(
   },
 );
 
-defineTool<{ search?: string; limit?: number }, { content: Array<{ type: string; text: string }> }>(
+defineTool<{ search?: string; limit?: number }>(
   "list_companies",
   { scope: "crm:read", mode: "read" },
   "Lista as últimas empresas/clientes do CRM.",
@@ -258,7 +258,7 @@ defineTool<{ search?: string; limit?: number }, { content: Array<{ type: string;
   },
 );
 
-defineTool<{ limit?: number }, { content: Array<{ type: string; text: string }> }>(
+defineTool<{ limit?: number }>(
   "list_recent_orders",
   { scope: "orders:read", mode: "read" },
   "Lista os pedidos mais recentes.",
