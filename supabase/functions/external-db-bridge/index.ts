@@ -1056,14 +1056,36 @@ async function handleSelect(externalSupabase: any, table: string, opts: any) {
   let selectData, selectError, count;
 
   try {
-    const result = await query;
-    selectData = result.data;
-    selectError = result.error;
-    count = result.count;
+    // Backoff+jitter for connection/transport flakes only. Statement timeouts
+    // skip retry here and fall through to the dedicated degradation fallback.
+    const r = await retrySupabaseCall<unknown>(
+      async () => {
+        const res = await query;
+        return {
+          data: { data: res.data, count: res.count },
+          error: res.error as { message: string; code?: string } | null,
+        };
+      },
+      { maxAttempts: 3, baseMs: 80, capMs: 800, budgetMs: 2000, isTransient: isBridgeTransient, label: `select:${table}` },
+    );
+    const payload = (r.data ?? { data: null, count: null }) as { data: unknown; count: number | null };
+    selectData = payload.data;
+    selectError = null;
+    count = payload.count;
+    if (r.attempts > 1) console.log(`[select] ✅ ${table} recovered after ${r.attempts} attempts in ${r.totalMs}ms`);
   } catch (abortErr) {
-    const selectDuration = Math.round(performance.now() - selectStart);
-    emitTelemetry({ operation: 'select', table, limit: safeLimit, offset: safeOffset, countMode, durationMs: selectDuration, status: 'error', error: 'Query timeout (client-side)' });
-    return jsonResponse({ error: 'Query timeout - tente reduzir o escopo da busca' }, 408, corsHeaders);
+    const msg = abortErr instanceof Error ? abortErr.message : String(abortErr);
+    // If transient retries exhausted but it's actually a Supabase-shaped error,
+    // surface it as selectError so downstream fallbacks (statement timeout,
+    // orderBy column missing) can still kick in.
+    if (isBridgeTransient(abortErr)) {
+      const selectDuration = Math.round(performance.now() - selectStart);
+      emitTelemetry({ operation: 'select', table, limit: safeLimit, offset: safeOffset, countMode, durationMs: selectDuration, status: 'error', error: `transient retries exhausted: ${msg}` });
+      return jsonResponse({ error: 'Backend instável — tente novamente em instantes' }, 503, corsHeaders);
+    }
+    selectData = null;
+    selectError = { message: msg } as { message: string; code?: string };
+    count = null;
   }
 
   const selectDuration = Math.round(performance.now() - selectStart);
