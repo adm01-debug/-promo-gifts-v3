@@ -12,8 +12,16 @@ function getGreeting(): string {
   return "Boa noite";
 }
 
-// Tipos de role conforme app_role enum no banco
-type AppRole = "admin" | "manager" | "vendedor";
+// Tipos de role conforme app_role enum no banco.
+// 'admin', 'manager' e 'vendedor' permanecem por compatibilidade com dados legados,
+// mas a nova hierarquia oficial é: dev > supervisor > agente.
+export type AppRole =
+  | "dev"
+  | "supervisor"
+  | "agente"
+  | "admin"      // legado (alias de supervisor)
+  | "manager"    // legado
+  | "vendedor";  // legado (alias de agente)
 
 // Interface do Profile
 export interface Profile {
@@ -37,19 +45,26 @@ interface AuthContextType {
   session: Session | null;
   profile: Profile | null;
   isLoading: boolean;
-  // Role do user_roles (fonte principal)
+  // Conjunto de todas as roles que o usuário possui em user_roles
+  roles: AppRole[];
+  // Role principal (mais alta na hierarquia) para exibição/legado
   role: AppRole | null;
-  // Helpers de permissão baseados em user_roles
-  isAdmin: boolean;
-  isManager: boolean;
-  isSeller: boolean;
-  canManage: boolean;           // admin ou manager
+  // Helpers da NOVA hierarquia (dev > supervisor > agente)
+  isDev: boolean;
+  isSupervisor: boolean;       // strict: apenas o nível supervisor (não inclui dev)
+  isAgente: boolean;
+  isSupervisorOrAbove: boolean; // dev OR supervisor — equivale ao server-side is_supervisor_or_above
+  // Aliases retrocompatíveis (deprecated — preferir os acima)
+  isAdmin: boolean;            // = isSupervisorOrAbove
+  isManager: boolean;          // legado
+  isSeller: boolean;           // = isAgente
+  canManage: boolean;          // = isSupervisorOrAbove
   isAuthenticated: boolean;
   // MFA / Authenticator Assurance Level
   currentAAL: 'aal1' | 'aal2' | null;
   nextAAL: 'aal1' | 'aal2' | null;
-  hasMFA: boolean;              // true se o user possui ao menos 1 fator TOTP verificado
-  mfaRequired: boolean;         // admin/manager sem aal2
+  hasMFA: boolean;
+  mfaRequired: boolean;
   refreshAAL: () => Promise<void>;
   // Métodos
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: Error | null }>;
