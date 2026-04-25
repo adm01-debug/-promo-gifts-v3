@@ -49,6 +49,7 @@ import {
   isFullAccess,
   type McpScope,
 } from "@/lib/mcp/scopes";
+import { useCanGrantMcpFull } from "@/components/admin/security/keys/useCanGrantMcpFull";
 
 interface Props {
   onIssued: () => void;
