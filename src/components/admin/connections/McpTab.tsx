@@ -4,16 +4,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Plug, Copy, Trash2, Plus, Key, Github } from "lucide-react";
+import { Plug, Copy, Trash2, Plus, Github, ShieldAlert } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger,
 } from "@/components/ui/dialog";
 import { ConnectionTestHistoryPanel } from "./ConnectionTestHistoryPanel";
 import { SecretField } from "./SecretField";
 import { useSecretsManager } from "@/hooks/useSecretsManager";
 import { GitHubCredentialsTester } from "./GitHubCredentialsTester";
+import { IssueMcpKeyForm } from "./IssueMcpKeyForm";
+import { isFullAccess } from "@/lib/mcp/scopes";
 
 interface McpKey {
   id: string;
@@ -26,18 +28,23 @@ interface McpKey {
   created_at: string;
 }
 
-const ALL_SCOPES = ["quotes:read", "orders:read", "crm:read", "products:read", "*"];
-
 const MCP_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/mcp-server`;
+
+function formatExpiresIn(expiresAt: string | null): string | null {
+  if (!expiresAt) return null;
+  const ms = new Date(expiresAt).getTime() - Date.now();
+  if (ms <= 0) return "expirada";
+  const days = Math.floor(ms / (24 * 60 * 60 * 1000));
+  if (days === 0) return "expira hoje";
+  if (days === 1) return "expira em 1d";
+  return `expira em ${days}d`;
+}
 
 export function McpTab() {
   const { secrets, list } = useSecretsManager();
   const [keys, setKeys] = useState<McpKey[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
-  const [name, setName] = useState("");
-  const [scopes, setScopes] = useState<string[]>(["quotes:read"]);
-  const [generated, setGenerated] = useState<string | null>(null);
 
   const getSecret = (n: string) => secrets.find((s) => s.name === n);
 
@@ -53,36 +60,6 @@ export function McpTab() {
   };
 
   useEffect(() => { load(); }, []);
-
-  const generate = async () => {
-    if (!name.trim() || scopes.length === 0) {
-      toast.error("Informe um nome e ao menos um escopo");
-      return;
-    }
-    // Cliente gera chave forte localmente
-    const bytes = new Uint8Array(32);
-    crypto.getRandomValues(bytes);
-    const plain = "mcp_" + Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("");
-    // Hash SHA-256 para armazenar
-    const enc = new TextEncoder().encode(plain);
-    const hashBuf = await crypto.subtle.digest("SHA-256", enc);
-    const hash = Array.from(new Uint8Array(hashBuf)).map((b) => b.toString(16).padStart(2, "0")).join("");
-
-    const { data: u } = await supabase.auth.getUser();
-    if (!u.user) { toast.error("Não autenticado"); return; }
-
-    const { error } = await supabase.from("mcp_api_keys").insert({
-      name: name.trim(),
-      key_hash: hash,
-      key_prefix: plain.slice(0, 12),
-      scopes,
-      created_by: u.user.id,
-    });
-    if (error) { toast.error("Falha ao salvar chave", { description: error.message }); return; }
-    setGenerated(plain);
-    setName(""); setScopes(["quotes:read"]);
-    load();
-  };
 
   const revoke = async (id: string) => {
     const { error } = await supabase.from("mcp_api_keys")
@@ -170,51 +147,21 @@ export function McpTab() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="text-base">Chaves emitidas</CardTitle>
-            <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setGenerated(null); }}>
+            <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>
                 <Button size="sm"><Plus className="h-4 w-4 mr-1" /> Nova chave</Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Gerar nova chave MCP</DialogTitle>
                   <DialogDescription>
-                    A chave será exibida apenas uma vez. Guarde-a em local seguro.
+                    A chave será exibida apenas uma vez. Geração e validação
+                    ocorrem 100% no servidor — apenas administradores podem
+                    emitir, e escopo <code className="font-mono">*</code> exige
+                    expiração + justificativa + confirmação.
                   </DialogDescription>
                 </DialogHeader>
-                {generated ? (
-                  <div className="space-y-3">
-                    <div className="p-3 rounded-md bg-muted font-mono text-xs break-all">{generated}</div>
-                    <Button onClick={() => copy(generated)} className="w-full">
-                      <Copy className="h-4 w-4 mr-1" /> Copiar
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    <div>
-                      <Label>Nome</Label>
-                      <Input value={name} onChange={(e) => setName(e.target.value)}
-                        placeholder="Ex: Claude Desktop - Pedro" />
-                    </div>
-                    <div>
-                      <Label className="block mb-2">Escopos</Label>
-                      <div className="flex flex-wrap gap-2">
-                        {ALL_SCOPES.map((s) => {
-                          const active = scopes.includes(s);
-                          return (
-                            <button key={s} type="button"
-                              onClick={() => setScopes((cur) => cur.includes(s) ? cur.filter((x) => x !== s) : [...cur, s])}
-                              className={`px-2 py-1 rounded text-xs border ${active ? "bg-primary text-primary-foreground border-primary" : "bg-background border-border"}`}>
-                              {s}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </div>
-                )}
-                <DialogFooter>
-                  {!generated && <Button onClick={generate}><Key className="h-4 w-4 mr-1" /> Gerar</Button>}
-                </DialogFooter>
+                <IssueMcpKeyForm onIssued={() => { load(); }} />
               </DialogContent>
             </Dialog>
           </div>
@@ -226,25 +173,51 @@ export function McpTab() {
             <p className="text-sm text-muted-foreground">Nenhuma chave emitida.</p>
           ) : (
             <div className="space-y-2">
-              {keys.map((k) => (
-                <div key={k.id} className="flex items-center justify-between p-3 border border-border rounded-md">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">{k.name}</span>
-                      <code className="text-xs text-muted-foreground">{k.key_prefix}…</code>
-                      {k.revoked_at && <Badge variant="destructive" className="text-xs">Revogada</Badge>}
+              {keys.map((k) => {
+                const full = isFullAccess(k.scopes);
+                const expiresLabel = formatExpiresIn(k.expires_at);
+                const expired = expiresLabel === "expirada";
+                return (
+                  <div key={k.id} className="flex items-center justify-between p-3 border border-border rounded-md">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-medium">{k.name}</span>
+                        <code className="text-xs text-muted-foreground">{k.key_prefix}…</code>
+                        {full && (
+                          <Badge variant="destructive" className="text-xs gap-1">
+                            <ShieldAlert className="h-3 w-3" /> FULL
+                          </Badge>
+                        )}
+                        {k.revoked_at && <Badge variant="destructive" className="text-xs">Revogada</Badge>}
+                        {expiresLabel && !k.revoked_at && (
+                          <Badge
+                            variant={expired ? "destructive" : "outline"}
+                            className="text-xs"
+                          >
+                            {expiresLabel}
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {k.scopes.map((s) => (
+                          <Badge
+                            key={s}
+                            variant={s === "*" ? "destructive" : "secondary"}
+                            className="text-xs font-mono"
+                          >
+                            {s}
+                          </Badge>
+                        ))}
+                      </div>
                     </div>
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {k.scopes.map((s) => <Badge key={s} variant="secondary" className="text-xs">{s}</Badge>)}
-                    </div>
+                    {!k.revoked_at && (
+                      <Button size="sm" variant="ghost" onClick={() => revoke(k.id)} aria-label="Revogar chave">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
-                  {!k.revoked_at && (
-                    <Button size="sm" variant="ghost" onClick={() => revoke(k.id)}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </CardContent>
