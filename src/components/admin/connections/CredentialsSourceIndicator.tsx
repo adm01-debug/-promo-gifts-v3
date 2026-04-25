@@ -15,9 +15,12 @@
  * Importante: é apenas leitura, não dispara invocações novas — recebe os
  * `secrets` já carregados pelo hook `useSecretsManager` do componente pai.
  */
-import { Database, Clock, ShieldCheck } from "lucide-react";
+import { useState } from "react";
+import { Database, Clock, ShieldCheck, RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { toast } from "sonner";
 import { resolveSource } from "./CredentialsSourceFilterContext";
 import type { SecretStatus } from "@/hooks/useSecretsManager";
 
@@ -25,6 +28,13 @@ interface Props {
   secrets: SecretStatus[];
   /** Mostra esqueleto enquanto a primeira carga está em andamento. */
   isLoading?: boolean;
+  /**
+   * Handler de refresh manual: deve invalidar o cache no servidor
+   * (`secrets-manager` action `refresh_cache`) e em seguida re-listar
+   * os secrets para refletir o estado mais recente. Quando ausente,
+   * o botão de refresh não é renderizado.
+   */
+  onRefresh?: () => Promise<void> | void;
   className?: string;
 }
 
