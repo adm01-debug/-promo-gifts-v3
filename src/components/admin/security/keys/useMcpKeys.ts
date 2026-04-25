@@ -75,13 +75,15 @@ export function useMcpKeys() {
     if (ids.length > 0) {
       const { data: profiles } = await supabase
         .from("profiles")
-        .select("id, email, full_name")
-        .in("id", ids);
+        .select("user_id, email, full_name")
+        .in("user_id", ids);
       creators = new Map(
-        (profiles ?? []).map((p: { id: string; email: string | null; full_name: string | null }) => [
-          p.id,
-          { email: p.email, name: p.full_name },
-        ]),
+        (profiles ?? []).map(
+          (p: { user_id: string; email: string | null; full_name: string | null }) => [
+            p.user_id,
+            { email: p.email, name: p.full_name },
+          ],
+        ),
       );
     }
 
