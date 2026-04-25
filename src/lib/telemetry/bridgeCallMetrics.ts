@@ -37,10 +37,25 @@ let nextId = 1;
 const samples: BridgeCallSample[] = [];
 const listeners = new Set<() => void>();
 
+// Throttle de notificações: agrupa rajadas em uma janela curta para evitar
+// re-renders por amostra durante navegação (até dezenas de calls/s em paralelo).
+// Telemetria continua "ao vivo" mas com no máximo ~10 atualizações/s.
+const EMIT_THROTTLE_MS = 100;
+let emitScheduled = false;
+
 function emit() {
-  for (const l of listeners) {
-    try { l(); } catch { /* noop */ }
-  }
+  if (listeners.size === 0) return; // sem subscribers ⇒ custo zero (caso comum)
+  if (emitScheduled) return;
+  emitScheduled = true;
+  const flush = () => {
+    emitScheduled = false;
+    for (const l of listeners) {
+      try { l(); } catch { /* noop */ }
+    }
+  };
+  // setTimeout em vez de requestAnimationFrame: funciona em abas em background
+  // e em ambientes não-DOM (testes). 100ms é imperceptível para "tempo real".
+  setTimeout(flush, EMIT_THROTTLE_MS);
 }
 
 /**
