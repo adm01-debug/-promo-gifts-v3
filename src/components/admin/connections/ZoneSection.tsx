@@ -20,6 +20,8 @@ interface ZoneSectionProps {
   /** Tom semântico do header — afeta apenas o ícone + barra lateral */
   tone?: "primary" | "info" | "neutral";
   actions?: React.ReactNode;
+  /** Quando true, aplica anel + glow temporário (ex: deep-link de incidente) */
+  highlight?: boolean;
   children: React.ReactNode;
   className?: string;
 }
@@ -37,6 +39,7 @@ export function ZoneSection({
   description,
   tone = "primary",
   actions,
+  highlight = false,
   children,
   className,
 }: ZoneSectionProps) {
@@ -47,7 +50,11 @@ export function ZoneSection({
     <section
       id={id}
       aria-labelledby={headingId}
-      className={cn("scroll-mt-24 space-y-4", className)}
+      className={cn(
+        "scroll-mt-24 space-y-4 rounded-xl transition-shadow duration-500 -mx-2 px-2 py-1",
+        highlight && "ring-2 ring-primary/60 ring-offset-2 ring-offset-background shadow-[0_0_0_4px_hsl(var(--primary)/0.15)]",
+        className,
+      )}
     >
       <header className="flex items-start gap-3">
         <span
