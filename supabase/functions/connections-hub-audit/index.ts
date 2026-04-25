@@ -60,7 +60,7 @@ Deno.serve(async (req: Request) => {
 
   try {
     const auth = await authenticateRequest(req);
-    requireRole(auth, "admin");
+    requireDev(auth);
 
     const tableChecks: CheckResult[] = [];
     for (const t of REQUIRED_TABLES) {

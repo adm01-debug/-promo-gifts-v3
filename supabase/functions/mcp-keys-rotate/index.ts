@@ -102,17 +102,16 @@ Deno.serve(async (req) => {
     }
     userId = userData.user.id;
 
-    const { data: roleCheck, error: roleErr } = await admin.rpc("has_role", {
+    const { data: roleCheck, error: roleErr } = await admin.rpc("is_dev", {
       _user_id: userId,
-      _role: "admin",
     });
     if (roleErr) {
       await auditFailure("error", { reason: "role_check_failed", detail: roleErr.message });
       return jsonResponse({ error: "internal_error", detail: roleErr.message }, 500, requestId);
     }
     if (!roleCheck) {
-      await auditFailure("denied", { reason: "not_admin" });
-      return jsonResponse({ error: "forbidden", message: "Apenas administradores podem rotacionar chaves MCP." }, 403, requestId);
+      await auditFailure("denied", { reason: "not_dev" });
+      return jsonResponse({ error: "forbidden", message: "Apenas desenvolvedores podem rotacionar chaves MCP." }, 403, requestId);
     }
 
     try { rawBody = await req.json(); } catch {

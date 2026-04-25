@@ -186,18 +186,17 @@ Deno.serve(async (req) => {
     }
     userId = userData.user.id;
 
-    // 3. Role check
-    const { data: roleCheck, error: roleErr } = await admin.rpc("has_role", {
+    // 3. Role check — apenas DEV pode emitir chaves MCP
+    const { data: roleCheck, error: roleErr } = await admin.rpc("is_dev", {
       _user_id: userId,
-      _role: "admin",
     });
     if (roleErr) {
       await auditFailure("error", "mcp_key.issue_error", { reason: "role_check_failed", detail: roleErr.message });
       return jsonResponse({ error: "internal_error", detail: roleErr.message }, 500, requestId);
     }
     if (!roleCheck) {
-      await auditFailure("denied", "mcp_key.issue_denied", { reason: "not_admin" });
-      return jsonResponse({ error: "forbidden", message: "Apenas administradores podem emitir chaves MCP." }, 403, requestId);
+      await auditFailure("denied", "mcp_key.issue_denied", { reason: "not_dev" });
+      return jsonResponse({ error: "forbidden", message: "Apenas desenvolvedores podem emitir chaves MCP." }, 403, requestId);
     }
 
     // 4. Validate body
