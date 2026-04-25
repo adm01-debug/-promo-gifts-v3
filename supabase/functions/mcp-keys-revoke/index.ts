@@ -109,7 +109,32 @@ Deno.serve(async (req) => {
       await auditFailure("denied", "mcp_key.revoke_denied", { reason: "validation_failed", fields });
       return jsonResponse({ error: "validation_failed", fields }, 422, requestId);
     }
-    const { key_id, reason } = parsed.data;
+    const { key_id, reason, step_up_token } = parsed.data;
+
+    // Step-up OBRIGATÓRIO antes de revogar qualquer chave MCP.
+    // Revogação tem efeito imediato em todas as integrações; exigimos confirmação por
+    // senha + OTP recente (validados em consume_step_up_token, que re-checa is_dev no consumo).
+    if (!step_up_token) {
+      await auditFailure("denied", "mcp_key.revoke_denied", { reason: "step_up_required" }, key_id);
+      return jsonResponse(
+        { error: "step_up_required", message: "Confirme sua identidade (senha + código por e-mail) antes de revogar uma chave MCP." },
+        403,
+        requestId,
+      );
+    }
+    const { data: stepUpOk, error: stepUpErr } = await userClient.rpc("consume_step_up_token", {
+      _token: step_up_token,
+      _expected_action: "mcp_key_revoke",
+      _expected_target: key_id,
+    });
+    if (stepUpErr || !stepUpOk) {
+      await auditFailure("denied", "mcp_key.revoke_denied", { reason: "step_up_invalid", detail: stepUpErr?.message, expected_action: "mcp_key_revoke" }, key_id);
+      return jsonResponse(
+        { error: "step_up_invalid", message: "Verificação dupla expirou ou é inválida. Refaça a confirmação." },
+        403,
+        requestId,
+      );
+    }
 
     const { data: existing, error: fetchErr } = await admin
       .from("mcp_api_keys")
