@@ -15,6 +15,7 @@ import { FailureWindowCard } from "@/components/admin/connections/FailureWindowC
 import { AutoTestJobStatusCard } from "@/components/admin/connections/AutoTestJobStatusCard";
 import { CredentialsSourceFilterProvider } from "@/components/admin/connections/CredentialsSourceFilterContext";
 import { CredentialsSourceFilter } from "@/components/admin/connections/CredentialsSourceFilter";
+import { CredentialsSourceIndicator } from "@/components/admin/connections/CredentialsSourceIndicator";
 import { GlobalRefreshFromDbButton } from "@/components/admin/connections/GlobalRefreshFromDbButton";
 import { ConnectionsPulseBar } from "@/components/admin/connections/ConnectionsPulseBar";
 import { ConnectionsIncidentStrip } from "@/components/admin/connections/ConnectionsIncidentStrip";
@@ -52,7 +53,7 @@ import { useFocusContext } from "@/components/admin/connections/useFocusContext"
  * (space-y-8 entre zonas, space-y-4 dentro de cada zona).
  */
 export default function AdminConexoesPage() {
-  const { secrets, list } = useSecretsManager();
+  const { secrets, list, isLoading: secretsLoading } = useSecretsManager();
   const [refreshTick, setRefreshTick] = useState(0);
   const { visible, toggle, showAll, isolateZone, hiddenCount } = useZoneVisibility();
   const { collapsed, toggle: toggleCollapse, expand: expandZone } = useZoneCollapse();
@@ -262,6 +263,8 @@ export default function AdminConexoesPage() {
               />
             }
           >
+            <CredentialsSourceIndicator secrets={secrets} isLoading={secretsLoading} />
+
             {secrets.length > 0 && (
               <CredentialsSourceFilter
                 secrets={secrets}
