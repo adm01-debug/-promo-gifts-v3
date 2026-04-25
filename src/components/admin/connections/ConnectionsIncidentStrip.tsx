@@ -13,8 +13,8 @@
  * Tom de voz: híbrido com tradução.
  */
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import { AlertOctagon, AlertTriangle, Info, ArrowRight, X, ChevronDown, ChevronUp } from "lucide-react";
+import { IncidentDetailsDrawer } from "./IncidentDetailsDrawer";
 import { formatDistanceToNow, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
