@@ -23,8 +23,34 @@ import {
 import { emitTelemetry, classifyDuration, VERY_SLOW_QUERY_THRESHOLD_MS, SLOW_QUERY_THRESHOLD_MS } from "../_shared/external-db-telemetry.ts";
 import { getCached, setCache } from "../_shared/external-db-cache.ts";
 import { getBreaker, circuitOpenResponse } from "../_shared/circuit-breaker.ts";
+import { retrySupabaseCall } from "../_shared/retry-backoff.ts";
 
 const breaker = getBreaker("external-db");
+
+/**
+ * Transient classifier for the EXTERNAL Postgres bridge.
+ * IMPORTANT: do NOT include "statement timeout" here — that path has a dedicated
+ * degradation fallback (smaller limit, no count) handled downstream. Retrying
+ * the same heavy query verbatim would just burn budget. We only retry true
+ * connection/transport flakes here.
+ */
+function isBridgeTransient(err: unknown): boolean {
+  if (!err) return false;
+  const msg = (err instanceof Error ? err.message : String(err)).toLowerCase();
+  if (msg.includes('statement timeout') || msg.includes('canceling statement')) return false;
+  return (
+    msg.includes('fetch failed') ||
+    msg.includes('network') ||
+    msg.includes('econnreset') ||
+    msg.includes('connection reset') ||
+    msg.includes('connection terminated') ||
+    msg.includes('etimedout') ||
+    msg.includes(' 503') ||
+    msg.includes(' 504') ||
+    msg.includes('503 ') ||
+    msg.includes('504 ')
+  );
+}
 
 // ============================================
 // QUERY HELPERS
@@ -532,9 +558,27 @@ async function handleBatch(body: any, req: Request, corsHeaders: Record<string, 
         if (qOrderBy) query = query.order(qOrderBy.column, { ascending: qOrderBy.ascending ?? false });
         query = query.range(qOffset, qOffset + qLimit - 1);
 
-        const { data: selectData, error: selectError, count } = await query;
-        const duration = Math.round(performance.now() - queryStart);
-
+        // Execute with backoff+jitter ONLY for connection/transport flakes.
+        // Statement timeouts skip retry here and go to the degradation fallback below.
+        const execStart = performance.now();
+        const { data: selectData, error: selectError, count } = await (async () => {
+          try {
+            const r = await retrySupabaseCall<unknown>(
+              async () => {
+                const { data, error, count } = await query;
+                return { data: { data, count }, error: error as { message: string; code?: string } | null };
+              },
+              { maxAttempts: 3, baseMs: 60, capMs: 600, budgetMs: 1500, isTransient: isBridgeTransient, label: `batch:${qTable}` },
+            );
+            const payload = (r.data ?? { data: null, count: null }) as { data: unknown; count: number | null };
+            if (r.attempts > 1) console.log(`[batch] ✅ ${qTable} recovered after ${r.attempts} attempts in ${r.totalMs}ms`);
+            return { data: payload.data as any, error: null, count: payload.count };
+          } catch (e) {
+            const msg = e instanceof Error ? e.message : String(e);
+            return { data: null, error: { message: msg } as { message: string; code?: string }, count: null };
+          }
+        })();
+        const duration = Math.round(performance.now() - execStart);
         if (selectError) {
           if (qTable.startsWith('mv_') && isUnpopulatedMaterializedViewError(selectError.message)) {
             console.warn(`[batch] Query ${idx} (${qTable}) returned unpopulated MV; sending empty result`);
@@ -1012,14 +1056,36 @@ async function handleSelect(externalSupabase: any, table: string, opts: any) {
   let selectData, selectError, count;
 
   try {
-    const result = await query;
-    selectData = result.data;
-    selectError = result.error;
-    count = result.count;
+    // Backoff+jitter for connection/transport flakes only. Statement timeouts
+    // skip retry here and fall through to the dedicated degradation fallback.
+    const r = await retrySupabaseCall<unknown>(
+      async () => {
+        const res = await query;
+        return {
+          data: { data: res.data, count: res.count },
+          error: res.error as { message: string; code?: string } | null,
+        };
+      },
+      { maxAttempts: 3, baseMs: 80, capMs: 800, budgetMs: 2000, isTransient: isBridgeTransient, label: `select:${table}` },
+    );
+    const payload = (r.data ?? { data: null, count: null }) as { data: unknown; count: number | null };
+    selectData = payload.data;
+    selectError = null;
+    count = payload.count;
+    if (r.attempts > 1) console.log(`[select] ✅ ${table} recovered after ${r.attempts} attempts in ${r.totalMs}ms`);
   } catch (abortErr) {
-    const selectDuration = Math.round(performance.now() - selectStart);
-    emitTelemetry({ operation: 'select', table, limit: safeLimit, offset: safeOffset, countMode, durationMs: selectDuration, status: 'error', error: 'Query timeout (client-side)' });
-    return jsonResponse({ error: 'Query timeout - tente reduzir o escopo da busca' }, 408, corsHeaders);
+    const msg = abortErr instanceof Error ? abortErr.message : String(abortErr);
+    // If transient retries exhausted but it's actually a Supabase-shaped error,
+    // surface it as selectError so downstream fallbacks (statement timeout,
+    // orderBy column missing) can still kick in.
+    if (isBridgeTransient(abortErr)) {
+      const selectDuration = Math.round(performance.now() - selectStart);
+      emitTelemetry({ operation: 'select', table, limit: safeLimit, offset: safeOffset, countMode, durationMs: selectDuration, status: 'error', error: `transient retries exhausted: ${msg}` });
+      return jsonResponse({ error: 'Backend instável — tente novamente em instantes' }, 503, corsHeaders);
+    }
+    selectData = null;
+    selectError = { message: msg } as { message: string; code?: string };
+    count = null;
   }
 
   const selectDuration = Math.round(performance.now() - selectStart);
