@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { PageSEO } from '@/components/seo/PageSEO';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,20 +11,58 @@ import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { Activity, AlertTriangle, Clock, Database, RefreshCw, Zap, Trash2, Download, FileText, CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
-import { TelemetryCharts } from '@/components/admin/telemetry/TelemetryCharts';
-import { ProductsListingLatencyAlert } from '@/components/admin/telemetry/ProductsListingLatencyAlert';
-import { ResolveProductsSelectComparisonCard } from '@/components/admin/telemetry/ResolveProductsSelectComparisonCard';
-import { HighLimitTelemetryCard } from '@/components/admin/telemetry/HighLimitTelemetryCard';
-import { OptimizationMetricsCards } from '@/components/admin/telemetry/OptimizationMetricsCards';
-import { RegressionGuardrailBanner } from '@/components/admin/telemetry/RegressionGuardrailBanner';
-import { OptimizationQueuePanel } from '@/components/admin/telemetry/OptimizationQueuePanel';
-import { PlatformFailureCards } from '@/components/admin/telemetry/PlatformFailureCards';
-import { PlatformFailureAlertBanner } from '@/components/admin/telemetry/PlatformFailureAlertBanner';
-import { ColdStartRetriesPanel } from '@/components/admin/telemetry/ColdStartRetriesPanel';
 import { useTelemetryData, formatDuration, formatTime } from './telemetry/useTelemetryData';
 import { useErrorCounters } from './telemetry/useErrorCounters';
 import { exportCSV, exportPDF } from './telemetry/exportHelpers';
 import type { SeverityFilter, TimeFilter } from './telemetry/useTelemetryData';
+import {
+  CardSkeleton,
+  BannerSkeleton,
+  ChartsSkeleton,
+  GridCardsSkeleton,
+} from './telemetry/TelemetrySkeletons';
+
+// ============================================================================
+// CODE-SPLIT: cada card pesado entra como chunk próprio.
+// O shell + KPIs renderizam imediatamente no FCP; cada card aparece ao vivo
+// quando seu chunk JS termina de baixar (Suspense com Skeleton de altura fixa
+// para evitar CLS).
+//
+// Cards selecionados por peso: TelemetryCharts (recharts), HighLimitTelemetryCard
+// (recharts + agregações), ColdStartRetriesPanel, OptimizationQueuePanel
+// (tabela com mutations), ResolveProductsSelectComparisonCard.
+// ============================================================================
+const TelemetryCharts = lazy(() =>
+  import('@/components/admin/telemetry/TelemetryCharts').then((m) => ({ default: m.TelemetryCharts })),
+);
+const ProductsListingLatencyAlert = lazy(() =>
+  import('@/components/admin/telemetry/ProductsListingLatencyAlert').then((m) => ({ default: m.ProductsListingLatencyAlert })),
+);
+const ResolveProductsSelectComparisonCard = lazy(() =>
+  import('@/components/admin/telemetry/ResolveProductsSelectComparisonCard').then((m) => ({ default: m.ResolveProductsSelectComparisonCard })),
+);
+const HighLimitTelemetryCard = lazy(() =>
+  import('@/components/admin/telemetry/HighLimitTelemetryCard').then((m) => ({ default: m.HighLimitTelemetryCard })),
+);
+const OptimizationMetricsCards = lazy(() =>
+  import('@/components/admin/telemetry/OptimizationMetricsCards').then((m) => ({ default: m.OptimizationMetricsCards })),
+);
+const RegressionGuardrailBanner = lazy(() =>
+  import('@/components/admin/telemetry/RegressionGuardrailBanner').then((m) => ({ default: m.RegressionGuardrailBanner })),
+);
+const OptimizationQueuePanel = lazy(() =>
+  import('@/components/admin/telemetry/OptimizationQueuePanel').then((m) => ({ default: m.OptimizationQueuePanel })),
+);
+const PlatformFailureCards = lazy(() =>
+  import('@/components/admin/telemetry/PlatformFailureCards').then((m) => ({ default: m.PlatformFailureCards })),
+);
+const PlatformFailureAlertBanner = lazy(() =>
+  import('@/components/admin/telemetry/PlatformFailureAlertBanner').then((m) => ({ default: m.PlatformFailureAlertBanner })),
+);
+const ColdStartRetriesPanel = lazy(() =>
+  import('@/components/admin/telemetry/ColdStartRetriesPanel').then((m) => ({ default: m.ColdStartRetriesPanel })),
+);
+
 
 const getSeverityBadge = (severity: string) => {
   switch (severity) {
@@ -64,10 +103,14 @@ export default function AdminTelemetriaPage() {
           </div>
         </div>
         {/* Guardrail automático: interrompe regressões antes que afetem usuários */}
-        <RegressionGuardrailBanner />
+        <Suspense fallback={<BannerSkeleton />}>
+          <RegressionGuardrailBanner />
+        </Suspense>
 
         {/* Fila automática de otimizações — executa todas em sequência sem pausas */}
-        <OptimizationQueuePanel />
+        <Suspense fallback={<CardSkeleton height={140} label="Carregando fila de otimizações" />}>
+          <OptimizationQueuePanel />
+        </Suspense>
 
 
         <div className="grid grid-cols-2 gap-4">
@@ -116,25 +159,39 @@ export default function AdminTelemetriaPage() {
         </div>
 
         {/* Banner de alerta + log central quando taxa de 503/cold-start excede o limite configurado */}
-        <PlatformFailureAlertBanner windowMinutes={60} />
+        <Suspense fallback={<BannerSkeleton />}>
+          <PlatformFailureAlertBanner windowMinutes={60} />
+        </Suspense>
 
         {/* KPIs de falhas de plataforma (503 / cold-start) — janela móvel de 60min */}
-        <PlatformFailureCards windowMinutes={60} />
+        <Suspense fallback={<GridCardsSkeleton count={4} height={100} />}>
+          <PlatformFailureCards windowMinutes={60} />
+        </Suspense>
 
         {/* Resumo por tentativa (attempt, base, jitter, delay, motivo) dos cold-starts em tempo real */}
-        <ColdStartRetriesPanel />
+        <Suspense fallback={<CardSkeleton height={180} label="Carregando retries de cold-start" />}>
+          <ColdStartRetriesPanel />
+        </Suspense>
 
         {/* Métricas das otimizações Onda 2 (cache hit rate + retries evitados) */}
-        <OptimizationMetricsCards />
+        <Suspense fallback={<GridCardsSkeleton count={3} height={100} />}>
+          <OptimizationMetricsCards />
+        </Suspense>
 
         {/* Alerta de regressão de latência em listings de products (limit > 50) */}
-        <ProductsListingLatencyAlert />
+        <Suspense fallback={<BannerSkeleton />}>
+          <ProductsListingLatencyAlert />
+        </Suspense>
 
         {/* Comparativo antes vs depois do resolveProductsSelect (lightweight forçado em listings limit>50) */}
-        <ResolveProductsSelectComparisonCard />
+        <Suspense fallback={<CardSkeleton height={160} label="Carregando comparativo" />}>
+          <ResolveProductsSelectComparisonCard />
+        </Suspense>
 
         {/* Gráficos segmentados por endpoint/timestamp/error_kind — escopo limit > 50 */}
-        <HighLimitTelemetryCard />
+        <Suspense fallback={<ChartsSkeleton />}>
+          <HighLimitTelemetryCard />
+        </Suspense>
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -174,7 +231,9 @@ export default function AdminTelemetriaPage() {
           </Card>
         )}
 
-        <TelemetryCharts rows={rows} timeFilter={timeFilter} />
+        <Suspense fallback={<ChartsSkeleton />}>
+          <TelemetryCharts rows={rows} timeFilter={timeFilter} />
+        </Suspense>
 
         {/* Filters */}
         <div className="flex items-center gap-3">
