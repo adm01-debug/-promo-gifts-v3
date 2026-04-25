@@ -191,22 +191,6 @@ export async function prewarmExternalDb(opts: { force?: boolean; oncePerSession?
   );
 }
 
-  const crmInfo =
-    crmPing.status === 'fulfilled'
-      ? `crm=${crmPing.value.ok ? '✅' : '⚠️'} (${crmPing.value.ms}ms)`
-      : 'crm=⚠️ rejected';
-
-  // Marca a sessão como aquecida — evita prewarm duplicado se outro gatilho disparar
-  try {
-    sessionStorage.setItem(SESSION_KEY, '1');
-  } catch {
-    /* ignore */
-  }
-
-  logger.log(
-    `[Prewarm] Done in ${totalMs}ms — ping=${ping.ms}ms (${ping.attempts}x) ${crmInfo} external_ok=${okCount} fail=${failCount}`,
-  );
-}
 
 /**
  * Limpa o flag de sessão. Útil em logout para garantir prewarm no próximo login.
