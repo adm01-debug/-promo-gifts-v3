@@ -17,6 +17,7 @@
  *  - Custo zero quando não há listeners (exatamente como bridgeCallMetrics).
  */
 import { getBridgeSamples, type BridgeCallSample } from './bridgeCallMetrics';
+import { isInstrumentationPaused, subscribeInstrumentationPaused } from './instrumentationControl';
 
 export interface LongTaskEvent {
   id: number;
@@ -77,6 +78,7 @@ function correlate(startWall: number, endWall: number): {
 
 export function startLongTaskWatchdog(): void {
   if (started) return;
+  if (isInstrumentationPaused()) return; // kill-switch global
   if (typeof PerformanceObserver === 'undefined') return;
   // Feature-detect: nem todos os browsers suportam 'longtask'.
   const supported = (PerformanceObserver as unknown as { supportedEntryTypes?: string[] })
@@ -122,6 +124,16 @@ export function stopLongTaskWatchdog(): void {
   observer = null;
   started = false;
 }
+
+// Auto-reage ao kill-switch global: quando pausado desconecta o observer;
+// quando retomado, religa se ainda houver listeners ativos.
+subscribeInstrumentationPaused(() => {
+  if (isInstrumentationPaused()) {
+    stopLongTaskWatchdog();
+  } else if (listeners.size > 0) {
+    startLongTaskWatchdog();
+  }
+});
 
 export function getLongTaskEvents(): readonly LongTaskEvent[] {
   return events;
