@@ -936,13 +936,13 @@ Deno.serve((req) => {
       firstRequestMs = elapsed;
       firstRequestStartedAtMs = Math.round(reqStartedAt - isolateMonoStart);
       console.log(
-        `[crm-runtime] first_request_ms=${elapsed} was_cold=true ` +
+        `[crm-runtime] [req_id=${requestId}] first_request_ms=${elapsed} was_cold=true ` +
           `op=${operation} table=${table ?? '-'} ` +
           `client_build_ms=${clientBuildMs} warmup_ms=${warmupMs} warmup_ok=${warmupOk}`,
       );
     } else {
       console.log(
-        `[crm-runtime] request_ms=${elapsed} was_cold=false ` +
+        `[crm-runtime] [req_id=${requestId}] request_ms=${elapsed} was_cold=false ` +
           `op=${operation} table=${table ?? '-'} ` +
           `request_count=${requestCount}`,
       );
@@ -952,7 +952,7 @@ Deno.serve((req) => {
     breaker.recordFailure();
     const elapsed = Math.round(performance.now() - reqStartedAt);
     console.error(
-      `[crm-runtime] error_ms=${elapsed} was_cold=${wasCold} ` +
+      `[crm-runtime] [req_id=${requestId}] error_ms=${elapsed} was_cold=${wasCold} ` +
         `${error instanceof Error ? error.message : String(error)}`,
     );
     return jsonResponse({ error: error instanceof Error ? error.message : "Internal error" }, 500);
