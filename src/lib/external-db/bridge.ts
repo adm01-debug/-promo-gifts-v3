@@ -98,6 +98,7 @@ export async function invokeBridge<T>(body: Record<string, unknown>): Promise<Br
     throw new Error(`invokeBridge: tabela não informada (operation=${op})`);
   }
 
+  let sawColdStart = false;
   for (let attempt = 1; attempt <= BOOT_RETRY_ATTEMPTS; attempt++) {
     // Explicitly attach the access token to avoid preview proxy issues
     const { data: sessionData } = await supabase.auth.getSession();
@@ -120,14 +121,22 @@ export async function invokeBridge<T>(body: Record<string, unknown>): Promise<Br
         const jitter = Math.floor(Math.random() * 150);
         const delay = Math.min(base + jitter, 4000);
         logger.warn(`[external-db] bridge retry ${attempt}/${BOOT_RETRY_ATTEMPTS - 1} in ${delay}ms: ${parsed.message}`);
+        if (isColdStartSignal(parsed.message)) {
+          sawColdStart = true;
+          emitBridgeStatus({ type: 'degraded', attempt, maxAttempts: BOOT_RETRY_ATTEMPTS, delayMs: delay, reason: parsed.message });
+        }
         await sleep(delay);
         continue;
+      }
+      if (isColdStartSignal(parsed.message)) {
+        emitBridgeStatus({ type: 'unavailable', reason: parsed.message, attempts: attempt });
       }
       throw new Error(parsed.message);
     }
     if (!data?.success) {
       throw new Error(data?.error || 'Erro desconhecido no banco externo');
     }
+    if (sawColdStart) emitBridgeStatus({ type: 'recovered' });
     return data as BridgeResponse<T>;
   }
   throw new Error('Erro na bridge: tentativas esgotadas');
