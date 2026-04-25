@@ -84,11 +84,15 @@ export async function fetchPromobrindProductById(
   };
 
   // ─── (A) Imagens ─────────────────────────────────────────────────────
+  // Limite reduzido de 200 → 80: cobre folgadamente cores (1 supplier_code ×
+  // poucas fotos) + galeria geral. Se atingir o teto, fazemos uma 2ª página
+  // sob demanda (raro). Payload típico cai ~60% para produtos com muitas cores.
+  const IMAGES_PAGE = 80;
   const imagesPromise = invokeExternalDb<ProductImage>({
     table: 'product_images', operation: 'select',
     select: 'url_cdn, url_original, filename, image_type, is_primary, is_og_image, applies_to_color, display_order, alt_text, title_text, supplier_code',
     filters: { product_id: productId, is_active: true },
-    orderBy: { column: 'display_order', ascending: true }, limit: 200,
+    orderBy: { column: 'display_order', ascending: true }, limit: IMAGES_PAGE,
   }).then(r => r.records).catch(err => {
     logger.warn(`[product:${productId}] Não foi possível buscar imagens:`, err);
     return [] as ProductImage[];
@@ -177,15 +181,24 @@ export async function fetchPromobrindProductById(
         });
 
   // ─── (C) Variantes (cores) ───────────────────────────────────────────
+  // ─── (C) Variantes (cores) ───────────────────────────────────────────
+  // Fetch ENXUTO: NÃO traz `images` (text[] potencialmente grande) nem
+  // `selected_thumbnail` por padrão — esses campos só são necessários como
+  // FALLBACK para variantes cujas imagens não foram cobertas por
+  // `supplier_code` em `product_images` (caso atípico). Buscamos esses
+  // campos sob demanda em UMA chamada extra (id=in.(...)) só para quem
+  // realmente precisar, depois do merge inicial.
+  //
+  // Limite 100 → 60: dedupe por color_name raramente excede 20–30; 60
+  // dá folga para kits sem inflar payload.
   type Variant = {
-    id: string; product_id: string; color_name: string | null; color_hex: string | null;
+    id: string; color_name: string | null; color_hex: string | null;
     color_code: string | null; sku: string | null; stock_quantity: number | null;
-    images: string[] | null; selected_thumbnail: string | null;
   };
   const variantsPromise = invokeExternalDb<Variant>({
     table: 'product_variants', operation: 'select',
-    select: 'id, product_id, color_name, color_hex, color_code, sku, stock_quantity, images, selected_thumbnail',
-    filters: { product_id: productId, is_active: true }, limit: 100,
+    select: 'id, color_name, color_hex, color_code, sku, stock_quantity',
+    filters: { product_id: productId, is_active: true }, limit: 60,
   }).then(r => r.records).catch(err => {
     logger.warn(`[product:${productId}] Não foi possível buscar variantes:`, err);
     return [] as Variant[];
@@ -237,9 +250,26 @@ export async function fetchPromobrindProductById(
   // ─── Pós-processamento (ordem importa apenas localmente) ─────────────
 
   // Imagens → primary/og/lista
-  if (allProductImages.length > 0) {
-    const colorImages = allProductImages.filter(img => img.supplier_code && img.image_type !== 'box').sort((a, b) => a.display_order - b.display_order);
-    const generalImages = allProductImages.filter(img => !img.supplier_code && img.image_type !== 'box').sort((a, b) => a.display_order - b.display_order);
+  // Se atingimos exatamente o teto da página, complementa com 1 página extra
+  // (raríssimo). Mantém a quebra suave sem trazer 200 por padrão.
+  let imagesAll: ProductImage[] = allProductImages;
+  if (allProductImages.length === IMAGES_PAGE) {
+    try {
+      const more = await invokeExternalDb<ProductImage>({
+        table: 'product_images', operation: 'select',
+        select: 'url_cdn, url_original, filename, image_type, is_primary, is_og_image, applies_to_color, display_order, alt_text, title_text, supplier_code',
+        filters: { product_id: productId, is_active: true },
+        orderBy: { column: 'display_order', ascending: true },
+        limit: IMAGES_PAGE, offset: IMAGES_PAGE,
+      });
+      if (more.records.length > 0) imagesAll = [...allProductImages, ...more.records];
+    } catch (err) {
+      logger.warn(`[product:${productId}] Falha paginando imagens (página 2):`, err);
+    }
+  }
+  if (imagesAll.length > 0) {
+    const colorImages = imagesAll.filter(img => img.supplier_code && img.image_type !== 'box').sort((a, b) => a.display_order - b.display_order);
+    const generalImages = imagesAll.filter(img => !img.supplier_code && img.image_type !== 'box').sort((a, b) => a.display_order - b.display_order);
     const mainImages = [...colorImages, ...generalImages];
     const primaryImage = mainImages.find(img => img.is_primary) || mainImages[0];
     if (primaryImage) { product.primary_image_url = primaryImage.url_cdn; product.image_url = primaryImage.url_cdn; }
@@ -261,26 +291,72 @@ export async function fetchPromobrindProductById(
     }
   }
 
-  // Variants → cores únicas (precisa de allProductImages para byCode)
+  // Variants → cores únicas. byCode (via product_images.supplier_code) cobre o
+  // caso comum SEM precisar dos campos pesados do variant. Para variantes
+  // sem cobertura, fazemos 1 ÚNICO fetch lazy buscando `images` +
+  // `selected_thumbnail` apenas dos ids necessários.
   if (variants.length > 0) {
-    const uniqueColors: Array<{ name: string; hex: string; code?: string; sku?: string; stock?: number; image?: string; images?: string[] }> = [];
+    type ColorEntry = {
+      name: string; hex: string; code?: string; sku?: string; stock?: number;
+      image?: string; images?: string[];
+      _variantId?: string;
+      _needsFallback?: boolean;
+    };
+    const uniqueColors: ColorEntry[] = [];
+    const fallbackVariantIds: string[] = [];
+
     variants.forEach(variant => {
       if (variant.color_name && !uniqueColors.some(c => c.name === variant.color_name)) {
         const byCode = variant.color_code
-          ? allProductImages.filter(img => img.supplier_code === variant.color_code).sort((a, b) => a.display_order - b.display_order).map(img => img.url_cdn)
+          ? imagesAll.filter(img => img.supplier_code === variant.color_code).sort((a, b) => a.display_order - b.display_order).map(img => img.url_cdn)
           : [];
-        const legacy = variant.images?.length ? variant.images : [];
-        const finalImages = byCode.length > 0 ? byCode : legacy;
-        const thumb = finalImages[0] || variant.selected_thumbnail || product.primary_image_url || product.image_url || null;
-        uniqueColors.push({
+        const finalImages = byCode;
+        const thumb = finalImages[0] || product.primary_image_url || product.image_url || null;
+        const entry: ColorEntry = {
           name: variant.color_name, hex: variant.color_hex || '#CCCCCC',
           code: variant.color_code || '', sku: variant.sku || undefined,
-          stock: variant.stock_quantity ?? undefined, image: thumb || undefined,
+          stock: variant.stock_quantity ?? undefined,
+          image: thumb || undefined,
           images: finalImages.length > 0 ? finalImages : undefined,
-        });
+        };
+        if (finalImages.length === 0) {
+          entry._variantId = variant.id;
+          entry._needsFallback = true;
+          fallbackVariantIds.push(variant.id);
+        }
+        uniqueColors.push(entry);
       }
     });
-    if (uniqueColors.length > 0) product.colors = uniqueColors;
+
+    // Fallback lazy: busca images/selected_thumbnail só dos variants que
+    // realmente ficaram sem cobertura por supplier_code (caso atípico).
+    if (fallbackVariantIds.length > 0) {
+      try {
+        const inFilter = `in.(${fallbackVariantIds.join(',')})`;
+        const fb = await invokeExternalDb<{ id: string; images: string[] | null; selected_thumbnail: string | null }>({
+          table: 'product_variants', operation: 'select',
+          select: 'id, images, selected_thumbnail',
+          filters: { id: inFilter },
+          limit: Math.max(fallbackVariantIds.length, 10),
+        });
+        const byId = new Map(fb.records.map(r => [r.id, r]));
+        for (const c of uniqueColors) {
+          if (!c._needsFallback || !c._variantId) continue;
+          const r = byId.get(c._variantId);
+          if (!r) continue;
+          const legacy = r.images?.length ? r.images : [];
+          const thumb = legacy[0] || r.selected_thumbnail || c.image || null;
+          if (legacy.length > 0) c.images = legacy;
+          if (thumb) c.image = thumb;
+        }
+      } catch (err) {
+        logger.warn(`[product:${productId}] Fallback de imagens de variantes falhou:`, err);
+      }
+    }
+
+    if (uniqueColors.length > 0) {
+      product.colors = uniqueColors.map(({ _variantId: _v, _needsFallback: _n, ...rest }) => rest);
+    }
   }
 
   // Videos
