@@ -160,13 +160,13 @@ export function useMcpKeys() {
   );
 
   const revoke = useCallback(
-    async (id: string) => {
-      const { error } = await supabase
-        .from("mcp_api_keys")
-        .update({ revoked_at: new Date().toISOString() })
-        .eq("id", id);
-      if (error) {
-        toast.error("Erro ao revogar", { description: error.message });
+    async (id: string, reason?: string) => {
+      const { data, error } = await supabase.functions.invoke("mcp-keys-revoke", {
+        body: { key_id: id, reason: reason ?? null },
+      });
+      if (error || (data && (data as { error?: string }).error)) {
+        const msg = error?.message ?? (data as { error?: string; message?: string })?.message ?? "Falha ao revogar";
+        toast.error("Erro ao revogar", { description: msg });
         return false;
       }
       toast.success("Chave revogada");

@@ -4688,6 +4688,7 @@ export type Database = {
         Args: { p_notification_id: string }
         Returns: undefined
       }
+      mcp_audit_actor: { Args: { _fallback: string }; Returns: string }
       notify_hardening_regression: { Args: never; Returns: Json }
       record_platform_failure: {
         Args: {
