@@ -907,14 +907,32 @@ async function handleSelect(externalSupabase: any, table: string, opts: any) {
     return { records: paginated, count: allRecords.length };
   }
 
-  // #7: In-memory TTL cache for static reference tables (10min, see external-db-cache.ts)
-  // Avoids repeated cold queries on small static tables that drive the catalog UI.
+  // #7: In-memory TTL cache.
+  //   - STATIC_TABLES: 10min TTL (categories, suppliers, etc.) — quase imutáveis.
+  //   - PRODUCTS lightweight (lista pública): 60s TTL — só quando o caller
+  //     usa o select lightweight padrão SEM filtros dinâmicos pesados.
+  //     Reduz custo de re-paginação quando usuário troca de filtro/aba rápido.
   const STATIC_TABLES = new Set([
     'categories', 'suppliers', 'tags', 'colors', 'materials',
     'print_techniques', 'print_areas', 'price_tables',
   ]);
+
+  // Detecta listing lightweight de products (sem id, sem search/keyset).
+  // Filtros simples (booleanos / IDs) podem entrar no cache; _search e _keyset não.
+  const hasDynamicFilter =
+    filters && (
+      Object.prototype.hasOwnProperty.call(filters, '_search') ||
+      Object.prototype.hasOwnProperty.call(filters, '_keyset')
+    );
+  const isProductsListingCacheable =
+    table === 'products' &&
+    !id &&
+    !hasDynamicFilter &&
+    requestCountMode !== 'exact' &&
+    requestCountMode !== 'planned';
+
   const isCacheable =
-    STATIC_TABLES.has(table) &&
+    (STATIC_TABLES.has(table) || isProductsListingCacheable) &&
     !id &&
     requestCountMode !== 'exact' &&
     requestCountMode !== 'planned';
@@ -1097,7 +1115,8 @@ async function handleSelect(externalSupabase: any, table: string, opts: any) {
       console.log(`[orderBy-fallback] Selected ${records.length} records from ${table} without orderBy (was: ${orderColumn})`);
 
       const result = { records, count: retryCount ?? null, meta: { orderBy_fallback: orderColumn } };
-      if (cacheKey) setCache(cacheKey, result);
+      // Listings dinâmicos (products) usam TTL curto (60s); estáticos usam default (10min).
+      if (cacheKey) setCache(cacheKey, result, table === 'products' ? 60_000 : undefined);
       return result;
     }
 
@@ -1115,7 +1134,9 @@ async function handleSelect(externalSupabase: any, table: string, opts: any) {
   console.log(`Selected ${records.length} records from ${table} (offset=${safeOffset}, limit=${safeLimit}, count=${count ?? 'n/a'})`);
 
   const result = { records, count: count ?? null };
-  if (cacheKey) setCache(cacheKey, result);
+  // Listings de products: TTL curto (60s) para refletir mudanças no catálogo;
+  // tabelas estáticas (categories, suppliers, etc.): TTL default (10min).
+  if (cacheKey) setCache(cacheKey, result, table === 'products' ? 60_000 : undefined);
   return result;
 }
 
