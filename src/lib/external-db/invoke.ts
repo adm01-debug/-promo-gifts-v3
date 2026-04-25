@@ -6,6 +6,16 @@ import { supabase } from '@/integrations/supabase/client';
 import { logger } from "@/lib/logger";
 import { emitBridgeStatus, isColdStartSignal } from './bridge-status-events';
 import { ensureCloudReady, CloudNotReadyError, getCachedCloudStatus } from '@/lib/cloud-status';
+import { recordBridgeCall, estimatePayloadBytes } from '@/lib/telemetry/bridgeCallMetrics';
+
+function deriveExternalOp(body: Record<string, unknown>): { op: string; target?: string } {
+  const operation = typeof body.operation === 'string' ? body.operation : undefined;
+  const table = typeof body.table === 'string' ? body.table : undefined;
+  const rpc = typeof body.rpc === 'string' ? body.rpc : undefined;
+  if (rpc) return { op: `rpc:${rpc}`, target: rpc };
+  if (operation) return { op: operation, target: table };
+  return { op: 'invoke', target: table };
+}
 
 const MAX_RETRIES = 3;
 const INITIAL_BACKOFF_MS = 800;
