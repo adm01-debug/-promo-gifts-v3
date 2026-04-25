@@ -12,7 +12,7 @@
  *
  * Tom de voz: híbrido com tradução.
  */
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AlertOctagon, AlertTriangle, Info, ArrowRight, X, ChevronDown, ChevronUp, Activity, Settings2 } from "lucide-react";
 import { IncidentDetailsDrawer } from "./IncidentDetailsDrawer";
 import { useSeverityFilter } from "./SeverityFilterContext";
@@ -23,6 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useRecentIncidents, type IncidentSeverity, type IncidentItem } from "./useRecentIncidents";
 import { getIncidentTargetZone, getZoneLabel, navigateToZone } from "./incidentZoneMapping";
+import { readFocusContextOnce } from "./useFocusContext";
 
 const SEV_META: Record<
   IncidentSeverity,
@@ -155,6 +156,7 @@ export function ConnectionsIncidentStrip() {
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
   const [collapsed, setCollapsed] = useState(false);
   const [openIncident, setOpenIncident] = useState<IncidentItem | null>(null);
+  const restoredRef = useRef(false);
 
   const { matches, filter } = useSeverityFilter();
 
@@ -169,6 +171,30 @@ export function ConnectionsIncidentStrip() {
     for (const i of visible) c[i.severity]++;
     return c;
   }, [visible]);
+
+  // Notifica a página sempre que o drawer abre/fecha — para persistir o id.
+  useEffect(() => {
+    window.dispatchEvent(
+      new CustomEvent("connections:incident-open", {
+        detail: { incidentId: openIncident?.id ?? null },
+      }),
+    );
+  }, [openIncident]);
+
+  // Restauração one-shot: ao receber dados, se houver um lastIncidentId persistido
+  // e ele ainda existir na lista, reabre o drawer automaticamente.
+  useEffect(() => {
+    if (restoredRef.current) return;
+    if (!data || data.length === 0) return;
+    const ctx = readFocusContextOnce();
+    if (!ctx.lastIncidentId) {
+      restoredRef.current = true;
+      return;
+    }
+    const found = data.find((i) => i.id === ctx.lastIncidentId);
+    if (found) setOpenIncident(found);
+    restoredRef.current = true;
+  }, [data]);
 
   if (isLoading) return null;
   // Sem nenhum incidente carregado E sem filtro ativo ⇒ não renderiza nada.
