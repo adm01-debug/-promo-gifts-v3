@@ -1,6 +1,12 @@
 import { Database, AlertTriangle, Bug, ShieldAlert, Lock } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { resolveSource } from "./CredentialsSourceFilterContext";
 import { useExplainMode } from "./ExplainModeContext";
 import type { SecretStatus, SecretError } from "@/hooks/useSecretsManager";
