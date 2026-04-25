@@ -9,6 +9,7 @@ import { type ReactNode } from "react";
 import { CollectionsProvider } from "@/contexts/CollectionsContext";
 import { ProductsProvider } from "@/contexts/ProductsContext";
 import { OrganizationProvider } from "@/contexts/OrganizationContext";
+import { DevChallengeProvider } from "@/contexts/DevChallengeContext";
 
 interface AppProvidersProps {
   children: ReactNode;
@@ -24,7 +25,9 @@ export function AppProviders({ children }: AppProvidersProps) {
     <OrganizationProvider>
       <ProductsProvider>
         <CollectionsProvider>
-          {children}
+          <DevChallengeProvider>
+            {children}
+          </DevChallengeProvider>
         </CollectionsProvider>
       </ProductsProvider>
     </OrganizationProvider>
