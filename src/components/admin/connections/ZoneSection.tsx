@@ -128,7 +128,7 @@ export function ZoneSection({
       <div
         id={contentId}
         hidden={collapsed}
-        className={cn("space-y-4", collapsed && "hidden")}
+        className="space-y-4"
       >
         {children}
       </div>
