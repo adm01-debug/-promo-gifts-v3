@@ -251,6 +251,13 @@ export function DataSourceDebugTab() {
         </CardContent>
       </Card>
 
+      {/* Comparação de chaves esperadas × fontes */}
+      <ExpectedKeysMatchPanel
+        secrets={secrets}
+        extConns={(extConns ?? []).map((c) => ({ env_key: c.env_key, type: c.type, name: c.name }))}
+        loading={secretsLoading || extLoading}
+      />
+
       {/* Raw rows */}
       <div className="grid gap-3 lg:grid-cols-2">
         <Card>
