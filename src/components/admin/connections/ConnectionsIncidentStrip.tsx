@@ -13,7 +13,7 @@
  * Tom de voz: híbrido com tradução.
  */
 import { useMemo, useState } from "react";
-import { AlertOctagon, AlertTriangle, Info, ArrowRight, X, ChevronDown, ChevronUp } from "lucide-react";
+import { AlertOctagon, AlertTriangle, Info, ArrowRight, X, ChevronDown, ChevronUp, Activity, Settings2 } from "lucide-react";
 import { IncidentDetailsDrawer } from "./IncidentDetailsDrawer";
 import { useSeverityFilter } from "./SeverityFilterContext";
 import { formatDistanceToNow, format } from "date-fns";
@@ -22,6 +22,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useRecentIncidents, type IncidentSeverity, type IncidentItem } from "./useRecentIncidents";
+import { getIncidentTargetZone, getZoneLabel, navigateToZone } from "./incidentZoneMapping";
 
 const SEV_META: Record<
   IncidentSeverity,
@@ -110,7 +111,32 @@ function IncidentCard({
           <X className="h-3 w-3" />
         </button>
       </header>
-      <footer className="flex items-center justify-end pt-0.5">
+      <footer className="flex items-center justify-between gap-2 pt-0.5">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              onClick={() => {
+                navigateToZone(getIncidentTargetZone(incident));
+                onOpen(incident);
+              }}
+              className="inline-flex items-center gap-1 text-[10px] font-medium text-muted-foreground hover:text-foreground rounded px-1.5 py-0.5 hover:bg-muted/60 transition-colors"
+              aria-label={`Ir para zona ${getZoneLabel(getIncidentTargetZone(incident))} e abrir detalhes`}
+            >
+              {getIncidentTargetZone(incident) === "health" ? (
+                <Activity className="h-3 w-3" />
+              ) : (
+                <Settings2 className="h-3 w-3" />
+              )}
+              <span>Ir para {getZoneLabel(getIncidentTargetZone(incident))}</span>
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom" className="max-w-[220px]">
+            <p className="text-xs">
+              Rola até a zona <span className="font-semibold">{getZoneLabel(getIncidentTargetZone(incident))}</span> e abre os detalhes deste incidente no painel lateral.
+            </p>
+          </TooltipContent>
+        </Tooltip>
         <button
           type="button"
           onClick={() => onOpen(incident)}

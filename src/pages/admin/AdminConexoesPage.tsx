@@ -46,9 +46,33 @@ export default function AdminConexoesPage() {
   const { secrets, list } = useSecretsManager();
   const [refreshTick, setRefreshTick] = useState(0);
   const { visible, toggle, showAll, isolateZone, hiddenCount } = useZoneVisibility();
+  const [highlightZone, setHighlightZone] = useState<string | null>(null);
   useEffect(() => { list(); }, [list]);
   // Toast automático em escaladas P0/P1 — com confirmação para não repetir
   useSeverityChangeNotifier();
+
+  // Listener para "ir até zona" disparado pela Incident Strip:
+  // reabre a zona se estiver oculta, rola até ela e aplica highlight 1.8s.
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<{ zone: "health" | "operation"; anchorId: string }>).detail;
+      if (!detail) return;
+      const { zone, anchorId } = detail;
+      // Reabre zona se estiver oculta
+      if (!visible[zone]) toggle(zone);
+      // Aguarda render para garantir que o nó existe
+      requestAnimationFrame(() => {
+        const el = document.getElementById(anchorId);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "start" });
+          setHighlightZone(anchorId);
+          window.setTimeout(() => setHighlightZone((cur) => (cur === anchorId ? null : cur)), 1800);
+        }
+      });
+    };
+    window.addEventListener("connections:focus-zone", handler);
+    return () => window.removeEventListener("connections:focus-zone", handler);
+  }, [visible, toggle]);
 
   const handleGlobalRefreshed = useCallback(() => {
     setRefreshTick((n) => n + 1);
@@ -107,6 +131,7 @@ export default function AdminConexoesPage() {
             title="Saúde"
             description="Status agregado das integrações em tempo real (health check a cada 60s)."
             tone="primary"
+            highlight={highlightZone === "zone-health"}
           >
             <IntegrationsHealthCard secrets={secrets} />
           </ZoneSection>
@@ -120,6 +145,7 @@ export default function AdminConexoesPage() {
             title="Operação"
             description="Configurações do auto-test (verificação periódica), janela de falha contínua e status do job de monitoramento."
             tone="info"
+            highlight={highlightZone === "zone-operation"}
           >
             <div className="grid gap-3 md:grid-cols-2">
               <AutoTestIntervalCard />
