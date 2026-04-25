@@ -143,6 +143,23 @@ export function useMcpKeys() {
     if (filters.onlyFull) {
       out = out.filter((r) => r.is_full);
     }
+    if (filters.creator) {
+      out = out.filter((r) => r.created_by === filters.creator);
+    }
+    if (filters.createdFrom) {
+      // Inclui o dia inteiro: >= 00:00:00 local
+      const from = new Date(`${filters.createdFrom}T00:00:00`).getTime();
+      if (!Number.isNaN(from)) {
+        out = out.filter((r) => new Date(r.created_at).getTime() >= from);
+      }
+    }
+    if (filters.createdTo) {
+      // Inclui o dia inteiro: <= 23:59:59.999 local
+      const to = new Date(`${filters.createdTo}T23:59:59.999`).getTime();
+      if (!Number.isNaN(to)) {
+        out = out.filter((r) => new Date(r.created_at).getTime() <= to);
+      }
+    }
     const sorted = [...out];
     switch (filters.sort) {
       case "expires_asc":
@@ -166,6 +183,30 @@ export function useMcpKeys() {
     }
     return sorted;
   }, [rows, filters]);
+
+  /** Lista única de criadores presentes nas chaves (para popular o filtro). */
+  const creators = useMemo<CreatorOption[]>(() => {
+    const map = new Map<string, CreatorOption>();
+    for (const r of rows) {
+      if (!r.created_by) continue;
+      const cur = map.get(r.created_by);
+      if (cur) {
+        cur.count += 1;
+      } else {
+        map.set(r.created_by, {
+          user_id: r.created_by,
+          email: r.creator_email,
+          name: r.creator_name,
+          count: 1,
+        });
+      }
+    }
+    return Array.from(map.values()).sort((a, b) => {
+      const an = (a.name ?? a.email ?? a.user_id).toLowerCase();
+      const bn = (b.name ?? b.email ?? b.user_id).toLowerCase();
+      return an.localeCompare(bn);
+    });
+  }, [rows]);
 
   const counts = useMemo(
     () => ({
