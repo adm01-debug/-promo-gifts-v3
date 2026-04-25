@@ -15,6 +15,7 @@ const breaker = getBreaker("crm-db");
 // Profile do dashboard mostrava 2.66s de cold-start no primeiro hit ao CRM.
 let cachedCrmClient: SupabaseClient | null = null;
 let crmWarmupPromise: Promise<void> | null = null;
+let crmWarmupCompleted = false;
 
 function buildCrmClient(url: string, key: string): SupabaseClient {
   return createClient(url, key, {
