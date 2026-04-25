@@ -558,9 +558,27 @@ async function handleBatch(body: any, req: Request, corsHeaders: Record<string, 
         if (qOrderBy) query = query.order(qOrderBy.column, { ascending: qOrderBy.ascending ?? false });
         query = query.range(qOffset, qOffset + qLimit - 1);
 
-        const { data: selectData, error: selectError, count } = await query;
-        const duration = Math.round(performance.now() - queryStart);
-
+        // Execute with backoff+jitter ONLY for connection/transport flakes.
+        // Statement timeouts skip retry here and go to the degradation fallback below.
+        const execStart = performance.now();
+        const { data: selectData, error: selectError, count } = await (async () => {
+          try {
+            const r = await retrySupabaseCall<unknown>(
+              async () => {
+                const { data, error, count } = await query;
+                return { data: { data, count }, error: error as { message: string; code?: string } | null };
+              },
+              { maxAttempts: 3, baseMs: 60, capMs: 600, budgetMs: 1500, isTransient: isBridgeTransient, label: `batch:${qTable}` },
+            );
+            const payload = (r.data ?? { data: null, count: null }) as { data: unknown; count: number | null };
+            if (r.attempts > 1) console.log(`[batch] ✅ ${qTable} recovered after ${r.attempts} attempts in ${r.totalMs}ms`);
+            return { data: payload.data as any, error: null, count: payload.count };
+          } catch (e) {
+            const msg = e instanceof Error ? e.message : String(e);
+            return { data: null, error: { message: msg } as { message: string; code?: string }, count: null };
+          }
+        })();
+        const duration = Math.round(performance.now() - execStart);
         if (selectError) {
           if (qTable.startsWith('mv_') && isUnpopulatedMaterializedViewError(selectError.message)) {
             console.warn(`[batch] Query ${idx} (${qTable}) returned unpopulated MV; sending empty result`);
