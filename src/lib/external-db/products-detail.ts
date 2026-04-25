@@ -84,11 +84,15 @@ export async function fetchPromobrindProductById(
   };
 
   // ─── (A) Imagens ─────────────────────────────────────────────────────
+  // Limite reduzido de 200 → 80: cobre folgadamente cores (1 supplier_code ×
+  // poucas fotos) + galeria geral. Se atingir o teto, fazemos uma 2ª página
+  // sob demanda (raro). Payload típico cai ~60% para produtos com muitas cores.
+  const IMAGES_PAGE = 80;
   const imagesPromise = invokeExternalDb<ProductImage>({
     table: 'product_images', operation: 'select',
     select: 'url_cdn, url_original, filename, image_type, is_primary, is_og_image, applies_to_color, display_order, alt_text, title_text, supplier_code',
     filters: { product_id: productId, is_active: true },
-    orderBy: { column: 'display_order', ascending: true }, limit: 200,
+    orderBy: { column: 'display_order', ascending: true }, limit: IMAGES_PAGE,
   }).then(r => r.records).catch(err => {
     logger.warn(`[product:${productId}] Não foi possível buscar imagens:`, err);
     return [] as ProductImage[];
