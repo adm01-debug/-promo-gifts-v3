@@ -118,3 +118,107 @@ describe('invokeWithRetry', () => {
     expect(mockInvoke).toHaveBeenCalledTimes(2);
   });
 });
+
+describe('invokeWithRetry — classifier edge cases (HTTP word-boundary regex)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('UUID com "400" no meio NÃO é tratado como HTTP 400 (sem falso positivo)', async () => {
+    // Antes da regex de borda, "row 400e1234..." casava com '400' literal e abortava.
+    // Agora deve seguir o fluxo normal: como não casa retryable nem non-retryable, retorna sem retry.
+    const err = new Error('row 400e1234-aaaa-bbbb-cccc-1234567890ab not found');
+    (mockInvoke as any).mockResolvedValueOnce({ data: null, error: err });
+
+    const result = await invokeWithRetry({ table: 'products', operation: 'select' }, 3);
+    expect(result.error).toBe(err);
+    // Não deve ter feito retry (não é retryable), mas também não deve estar sendo
+    // classificado como non-retryable por falso positivo — então 1 invoke só.
+    expect(mockInvoke).toHaveBeenCalledTimes(1);
+  });
+
+  it('Timestamp contendo "401" NÃO é tratado como HTTP 401', async () => {
+    // "2024-01-15T14:01:23" não tem \b401\b porque está colado em "T14:01" — ok.
+    // Caso real: id "abc-401-xyz" → também não tem borda → retryable se for fetch network.
+    const err = new Error('Failed to fetch resource abc-401-xyz at 14:01');
+    (mockInvoke as any)
+      .mockResolvedValueOnce({ data: null, error: err })
+      .mockResolvedValueOnce({ data: { records: [] }, error: null });
+
+    const result = await invokeWithRetry({ table: 'products', operation: 'select' }, 2);
+    // Deveria ter retentado por causa do "Failed to fetch" — não foi fail-fast em "401" acidental.
+    expect(result.error).toBeNull();
+    expect(mockInvoke).toHaveBeenCalledTimes(2);
+  }, 10_000);
+
+  it('HTTP 400 real (Edge function returned 400) → fail-fast', async () => {
+    const err = new Error('Edge function returned 400: Bad Request');
+    (mockInvoke as any).mockResolvedValueOnce({ data: null, error: err });
+
+    const result = await invokeWithRetry({ table: 'products', operation: 'select' }, 3);
+    expect(result.error).toBe(err);
+    expect(mockInvoke).toHaveBeenCalledTimes(1);
+  });
+
+  it('HTTP 401 com prefixo "status:" → fail-fast', async () => {
+    const err = new Error('status: 401 unauthorized token');
+    (mockInvoke as any).mockResolvedValueOnce({ data: null, error: err });
+
+    const result = await invokeWithRetry({ table: 'products', operation: 'select' }, 3);
+    expect(result.error).toBe(err);
+    expect(mockInvoke).toHaveBeenCalledTimes(1);
+  });
+
+  it('HTTP 403 com prefixo "http/" → fail-fast', async () => {
+    const err = new Error('http/403 forbidden by RLS');
+    (mockInvoke as any).mockResolvedValueOnce({ data: null, error: err });
+
+    const result = await invokeWithRetry({ table: 'products', operation: 'select' }, 3);
+    expect(result.error).toBe(err);
+    expect(mockInvoke).toHaveBeenCalledTimes(1);
+  });
+
+  it('"503" sempre vence acidentes (mesmo com "unauthorized" na mensagem)', async () => {
+    // Cenário paranoico: provider retorna 503 com texto que casaria non-retryable.
+    // Regra explícita: 503 é sempre retentável.
+    const err = new Error('503 unauthorized upstream');
+    (mockInvoke as any)
+      .mockResolvedValueOnce({ data: null, error: err })
+      .mockResolvedValueOnce({ data: { records: [] }, error: null });
+
+    const result = await invokeWithRetry({ table: 'products', operation: 'select' }, 2);
+    expect(result.error).toBeNull();
+    expect(mockInvoke).toHaveBeenCalledTimes(2);
+  }, 10_000);
+
+  it('"service is temporarily unavailable" sem código HTTP é retentável', async () => {
+    const err = new Error('Service is temporarily unavailable');
+    (mockInvoke as any)
+      .mockResolvedValueOnce({ data: null, error: err })
+      .mockResolvedValueOnce({ data: { records: [] }, error: null });
+
+    const result = await invokeWithRetry({ table: 'products', operation: 'select' }, 2);
+    expect(result.error).toBeNull();
+    expect(mockInvoke).toHaveBeenCalledTimes(2);
+  }, 10_000);
+
+  it('boot_error é retentável (cold-start)', async () => {
+    const err = new Error('boot_error: function failed to start');
+    (mockInvoke as any)
+      .mockResolvedValueOnce({ data: null, error: err })
+      .mockResolvedValueOnce({ data: { records: [] }, error: null });
+
+    const result = await invokeWithRetry({ table: 'products', operation: 'select' }, 2);
+    expect(result.error).toBeNull();
+    expect(mockInvoke).toHaveBeenCalledTimes(2);
+  }, 10_000);
+
+  it('JWT expired → fail-fast (deterministic auth error)', async () => {
+    const err = new Error('JWT expired, please re-authenticate');
+    (mockInvoke as any).mockResolvedValueOnce({ data: null, error: err });
+
+    const result = await invokeWithRetry({ table: 'products', operation: 'select' }, 3);
+    expect(result.error).toBe(err);
+    expect(mockInvoke).toHaveBeenCalledTimes(1);
+  });
+});
