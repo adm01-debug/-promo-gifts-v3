@@ -250,13 +250,19 @@ export function CredentialsSourceIndicator({ secrets, isLoading, onRefresh, clas
                   ENV · {counts.env}
                 </Badge>
               </TooltipTrigger>
-              <TooltipContent side="top" className="max-w-xs text-xs space-y-1">
-                <p className="font-semibold">Origem: variável de ambiente (legado)</p>
+              <TooltipContent side="top" className="max-w-sm text-xs space-y-1.5">
+                <p className="font-semibold">Origem: variável de ambiente (legado) — {counts.env}</p>
                 <p>
                   Valor lido via <code className="font-mono">Deno.env.get()</code>{" "}
                   porque o registro ainda não existe em{" "}
                   <code className="font-mono">integration_credentials</code>.
                 </p>
+                <div className="border-t pt-1.5">
+                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1">
+                    Secrets resolvidos por ENV
+                  </p>
+                  {renderNameList(grouped.env, "warning")}
+                </div>
                 <p className="text-muted-foreground">
                   ⚠ Abra o card correspondente e clique em <strong>Salvar</strong> para
                   migrar para o banco e liberar rotação/auditoria.
