@@ -53,8 +53,20 @@ interface CrmBatchResult {
  * Executa múltiplas queries SELECT no CRM em uma única invocação.
  */
 export async function invokeCrmBatch(queries: CrmBatchQuery[]): Promise<CrmBatchResult[]> {
-  const { data, error } = await supabase.functions.invoke("crm-db-bridge", {
-    body: { operation: "batch", queries },
+  const startedAt = performance.now();
+  const body = { operation: "batch", queries };
+  const reqBytes = estimatePayloadBytes(body);
+  const { data, error } = await supabase.functions.invoke("crm-db-bridge", { body });
+
+  recordBridgeCall({
+    bridge: "crm-db-bridge",
+    op: "batch",
+    target: queries.map(q => q.table).join(","),
+    durationMs: performance.now() - startedAt,
+    reqBytes,
+    respBytes: error ? 0 : estimatePayloadBytes(data),
+    ok: !error && !!data?.success,
+    errorMessage: error?.message ?? (data?.success ? undefined : data?.error),
   });
 
   if (error) {
