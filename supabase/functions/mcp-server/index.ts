@@ -101,7 +101,17 @@ async function authenticate(req: Request): Promise<AuthCtx | null> {
     req.headers.get("cf-connecting-ip") ??
     null;
   const ua = req.headers.get("user-agent") ?? null;
-  return { keyId: row.key_id, scopes, isFull: scopes.has("*"), ip, ua };
+  const requestId = getOrCreateRequestId(req);
+  return {
+    keyId: row.key_id,
+    scopes,
+    isFull: scopes.has("*"),
+    ip,
+    ua,
+    requestId,
+    startedAt: new Date().toISOString(),
+    startedMs: Date.now(),
+  };
 }
 
 /**
