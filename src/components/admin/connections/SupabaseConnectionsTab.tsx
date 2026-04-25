@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Database, ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ConnectionStatusBadge } from "./ConnectionStatusBadge";
+import { resolveSupabaseConnectionStatus } from "./connectionStatus";
 import { SecretField } from "./SecretField";
 import { useSecretsManager } from "@/hooks/useSecretsManager";
 import { useConnectionTester } from "@/hooks/useConnectionTester";
@@ -112,13 +113,12 @@ export function SupabaseConnectionsTab() {
               { name: env.serviceSecret!, label: "Service Role Key" },
             ])
           : [];
-        const status: "active" | "error" | "unconfigured" = env.readOnly
-          ? "active"
-          : !credsConfigured
-            ? "unconfigured"
-            : last?.ok === false
-              ? "error"
-              : "active";
+        const status = resolveSupabaseConnectionStatus({
+          readOnly: !!env.readOnly,
+          url,
+          service: svc,
+          last,
+        });
         const canTest = !env.readOnly && credsLooksValid && preflightIssues.length === 0;
         return (
           <Card key={env.key} data-retest-scope tabIndex={0} className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
