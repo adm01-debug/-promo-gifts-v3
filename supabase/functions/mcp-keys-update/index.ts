@@ -16,6 +16,7 @@ import {
 } from "../_shared/mcp-scopes.ts";
 import { getOrCreateRequestId, REQUEST_ID_HEADER } from "../_shared/request-id.ts";
 import { writeAuditEntry, summarizePayload, extractRequestMeta } from "../_shared/audit-log.ts";
+import { recordMcpViolation, mapViolationReason } from "../_shared/mcp-violations.ts";
 
 const SOURCE = "mcp-keys-update";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -82,6 +83,17 @@ Deno.serve(async (req) => {
       source: SOURCE,
       details: extra,
     });
+    if (status === "denied") {
+      await recordMcpViolation(admin, {
+        userId,
+        reason: mapViolationReason(extra?.reason),
+        source: SOURCE,
+        operation: "update",
+        targetKeyId: resourceId ?? null,
+        ip, userAgent: ua, requestId,
+        details: extra,
+      });
+    }
   };
 
   try {
