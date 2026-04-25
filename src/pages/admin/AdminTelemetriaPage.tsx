@@ -21,6 +21,7 @@ import {
   ChartsSkeleton,
   GridCardsSkeleton,
 } from './telemetry/TelemetrySkeletons';
+import { InstrumentationToggleButton } from '@/components/admin/telemetry/InstrumentationToggleButton';
 
 // ============================================================================
 // CODE-SPLIT: cada card pesado entra como chunk próprio.
