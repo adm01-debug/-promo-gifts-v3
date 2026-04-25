@@ -25,6 +25,7 @@ import { ExplainModeProvider } from "@/components/admin/connections/ExplainModeC
 import { ExplainModeToggle } from "@/components/admin/connections/ExplainModeToggle";
 import { useCallback, useEffect, useState } from "react";
 import { useSecretsManager } from "@/hooks/useSecretsManager";
+import { useSeverityChangeNotifier } from "@/components/admin/connections/useSeverityChangeNotifier";
 
 /**
  * /admin/conexoes — Hub Central de Integrações
@@ -42,6 +43,8 @@ export default function AdminConexoesPage() {
   const { secrets, list } = useSecretsManager();
   const [refreshTick, setRefreshTick] = useState(0);
   useEffect(() => { list(); }, [list]);
+  // Toast automático em escaladas P0/P1 — com confirmação para não repetir
+  useSeverityChangeNotifier();
 
   const handleGlobalRefreshed = useCallback(() => {
     setRefreshTick((n) => n + 1);
