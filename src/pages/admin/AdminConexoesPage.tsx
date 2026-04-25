@@ -159,6 +159,18 @@ export default function AdminConexoesPage() {
             description="Configurações do auto-test (verificação periódica), janela de falha contínua e status do job de monitoramento."
             tone="info"
             highlight={highlightZone === "zone-operation"}
+            actions={
+              <ZoneRefreshButton
+                label="Atualizar zona Operação (cron, intervalos, janela)"
+                successMessage="Operação atualizada"
+                queryKeys={[
+                  ["auto-test-interval"],
+                  ["failure-window"],
+                  ["auto-test-job-status"],
+                  ["connections-pulse-bar"],
+                ]}
+              />
+            }
           >
             <div className="grid gap-3 md:grid-cols-2">
               <AutoTestIntervalCard />
@@ -176,6 +188,14 @@ export default function AdminConexoesPage() {
             title="Conexões"
             description="Visão consolidada de todas as integrações ativas e gestão por tipo (banco, Bitrix24, n8n, MCP, webhooks)."
             tone="neutral"
+            actions={
+              <ZoneRefreshButton
+                label="Atualizar zona Conexões (tabela e abas)"
+                successMessage="Conexões atualizadas"
+                queryKeys={[["connections-overview"]]}
+                onRefresh={() => setRefreshTick((n) => n + 1)}
+              />
+            }
           >
             {secrets.length > 0 && (
               <CredentialsSourceFilter
