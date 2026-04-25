@@ -25,6 +25,10 @@ export interface BridgeCallSample {
   ok: boolean;
   status?: number;
   errorMessage?: string;
+  /** Correlation-id propagado via X-Request-Id (UUID v4 gerado no client). */
+  requestId?: string;
+  /** Eco do request-id devolvido pelo servidor (deve bater com requestId). */
+  serverRequestId?: string;
 }
 
 const MAX_SAMPLES = 500;
