@@ -208,16 +208,20 @@ export function IssueMcpKeyForm({ onIssued }: Props) {
                     <button
                       type="button"
                       onClick={() => handleScopeToggle(s)}
+                      disabled={isFull && !canGrantFull && !grantorLoading}
                       className={[
                         "px-2 py-1 rounded text-xs border font-mono transition",
-                        active
-                          ? isFull
-                            ? "bg-destructive text-destructive-foreground border-destructive"
-                            : "bg-primary text-primary-foreground border-primary"
-                          : "bg-background border-border hover:border-primary/40",
+                        isFull && !canGrantFull && !grantorLoading
+                          ? "bg-muted text-muted-foreground border-border cursor-not-allowed opacity-60"
+                          : active
+                            ? isFull
+                              ? "bg-destructive text-destructive-foreground border-destructive"
+                              : "bg-primary text-primary-foreground border-primary"
+                            : "bg-background border-border hover:border-primary/40",
                       ].join(" ")}
                     >
                       {s}
+                      {isFull && !canGrantFull && !grantorLoading && " 🔒"}
                     </button>
                   </TooltipTrigger>
                   <TooltipContent side="top" className="max-w-xs">
