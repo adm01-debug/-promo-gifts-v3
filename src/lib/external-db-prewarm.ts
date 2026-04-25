@@ -27,12 +27,19 @@ const PREWARM_COOLDOWN_MS = 5 * 60 * 1000; // 5 minutos entre pre-warms
 
 async function pingBridge(): Promise<number> {
   const t0 = performance.now();
-  try {
-    await supabase.functions.invoke('external-db-bridge', {
-      body: { operation: 'ping' },
-    });
-  } catch {
-    // ping é best-effort
+  // Tenta até 3x com backoff curto. O 1º ping pode receber 503 SUPABASE_EDGE_RUNTIME_ERROR
+  // enquanto o isolate boota; esperar aqui evita que as 6 chamadas paralelas a seguir
+  // peguem a mesma janela de cold start e falhem em cascata.
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const { error } = await supabase.functions.invoke('external-db-bridge', {
+        body: { operation: 'ping' },
+      });
+      if (!error) break;
+    } catch {
+      // continua tentando
+    }
+    if (attempt < 2) await new Promise(r => setTimeout(r, 400 * (attempt + 1)));
   }
   return Math.round(performance.now() - t0);
 }
