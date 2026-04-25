@@ -5,7 +5,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from "@/lib/logger";
 import { emitBridgeStatus, isColdStartSignal } from './bridge-status-events';
-import { ensureCloudReady, CloudNotReadyError } from '@/lib/cloud-status';
+import { ensureCloudReady, CloudNotReadyError, getCachedCloudStatus } from '@/lib/cloud-status';
 
 const MAX_RETRIES = 3;
 const INITIAL_BACKOFF_MS = 800;
@@ -85,17 +85,21 @@ export async function invokeWithRetry(
 ): Promise<{ data: unknown; error: Error | null }> {
   let sawColdStart = false;
 
-  // Gate: aguarda o Cloud estar pronto antes de disparar a query.
-  // Evita cascatas de 503/timeout quando o backend está em cold start ou degradado.
-  try {
-    await ensureCloudReady(8000, true);
-  } catch (gateErr) {
-    if (gateErr instanceof CloudNotReadyError) {
-      logger.warn(`[external-db] Aborting invoke — cloud ${gateErr.status}`);
-      emitBridgeStatus({ type: 'unavailable', reason: gateErr.message, attempts: 0 });
-      return { data: null, error: gateErr };
+  // Gate best-effort: só bloqueia se uma sondagem recente confirmou estado ruim.
+  // Não força sondagem nova aqui (evita latência extra e dependência em testes mockados);
+  // o polling do useCloudStatus mantém o cache atualizado.
+  const cachedSnap = getCachedCloudStatus();
+  if (cachedSnap && (cachedSnap.status === 'down' || cachedSnap.status === 'degraded')) {
+    try {
+      await ensureCloudReady(3000, true);
+    } catch (gateErr) {
+      if (gateErr instanceof CloudNotReadyError) {
+        logger.warn(`[external-db] Aborting invoke — cloud ${gateErr.status}`);
+        emitBridgeStatus({ type: 'unavailable', reason: gateErr.message, attempts: 0 });
+        return { data: null, error: gateErr };
+      }
+      throw gateErr;
     }
-    throw gateErr;
   }
 
   for (let attempt = 0; attempt <= retries; attempt++) {
