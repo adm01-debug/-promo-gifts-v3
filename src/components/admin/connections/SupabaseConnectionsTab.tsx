@@ -5,6 +5,7 @@ import { Database, ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ConnectionStatusBadge } from "./ConnectionStatusBadge";
 import { resolveSupabaseConnectionStatus } from "./connectionStatus";
+import { CardSourceDiagnostic } from "./CardSourceDiagnostic";
 import { SecretField } from "./SecretField";
 import { useSecretsManager } from "@/hooks/useSecretsManager";
 import { useConnectionTester } from "@/hooks/useConnectionTester";
@@ -139,6 +140,13 @@ export function SupabaseConnectionsTab() {
                 </p>
               ) : (
                 <>
+                  <CardSourceDiagnostic
+                    fields={[
+                      { label: "URL do projeto", status: url },
+                      { label: "Anon Key", status: anon },
+                      { label: "Service Role Key", status: svc },
+                    ]}
+                  />
                   <SecretField label="URL do projeto" secretName={env.urlSecret!} status={url} onSaved={list} connectionId={env.key} />
                   <SecretField label="Anon Key" secretName={env.anonSecret!} status={anon} onSaved={list} connectionId={env.key} />
                   <SecretField label="Service Role Key" secretName={env.serviceSecret!} status={svc} onSaved={list} connectionId={env.key}
