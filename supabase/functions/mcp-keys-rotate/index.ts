@@ -148,29 +148,34 @@ Deno.serve(async (req) => {
 
     const full = isFullAccess(source.scopes ?? []);
 
+    // Step-up OBRIGATÓRIO para QUALQUER rotação (full ou limitada).
+    // Rotacionar = emitir nova credencial; trata-se com o mesmo nível de fricção.
+    if (!step_up_token) {
+      await auditFailure("denied", { reason: "step_up_required", scope: full ? "full" : "scoped" }, source_key_id);
+      return jsonResponse(
+        { error: "step_up_required", message: "Confirme sua identidade (senha + código por e-mail) antes de rotacionar uma chave MCP." },
+        403,
+        requestId,
+      );
+    }
+    // Para chaves full mantemos a action mais forte 'mcp_full_issue' (frontend já a usa).
+    // Para chaves limitadas usamos 'mcp_key_rotate' — mesmo fluxo, auditoria distinta.
+    const expectedStepUp = full ? "mcp_full_issue" : "mcp_key_rotate";
+    const { data: stepUpOk, error: stepUpErr } = await userClient.rpc("consume_step_up_token", {
+      _token: step_up_token,
+      _expected_action: expectedStepUp,
+      _expected_target: null,
+    });
+    if (stepUpErr || !stepUpOk) {
+      await auditFailure("denied", { reason: "step_up_invalid", detail: stepUpErr?.message, expected_action: expectedStepUp }, source_key_id);
+      return jsonResponse(
+        { error: "step_up_invalid", message: "Verificação dupla expirou ou é inválida. Refaça a confirmação." },
+        403,
+        requestId,
+      );
+    }
+
     if (full) {
-      // Step-up obrigatório: senha + OTP validados nos últimos 5min, role dev re-checada server-side
-      if (!step_up_token) {
-        await auditFailure("denied", { reason: "step_up_required" }, source_key_id);
-        return jsonResponse(
-          { error: "step_up_required", message: "Confirme sua identidade (senha + código por e-mail) antes de rotacionar uma chave full." },
-          403,
-          requestId,
-        );
-      }
-      const { data: stepUpOk, error: stepUpErr } = await userClient.rpc("consume_step_up_token", {
-        _token: step_up_token,
-        _expected_action: "mcp_full_issue",
-        _expected_target: null,
-      });
-      if (stepUpErr || !stepUpOk) {
-        await auditFailure("denied", { reason: "step_up_invalid", detail: stepUpErr?.message }, source_key_id);
-        return jsonResponse(
-          { error: "step_up_invalid", message: "Verificação dupla expirou ou é inválida. Refaça a confirmação." },
-          403,
-          requestId,
-        );
-      }
 
       // Authorization gate: only explicit grantors can rotate (re-emit) FULL keys
       const { data: canGrant, error: grantErr } = await admin.rpc("can_grant_mcp_full", {
