@@ -64,6 +64,10 @@ export function McpKeysList() {
           status={filters.status}
           onlyFull={filters.onlyFull}
           sort={filters.sort}
+          creator={filters.creator}
+          createdFrom={filters.createdFrom}
+          createdTo={filters.createdTo}
+          creators={creators}
           counts={counts}
           onChange={(patch) => setFilters((cur) => ({ ...cur, ...patch }))}
         />
