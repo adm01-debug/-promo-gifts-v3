@@ -24,8 +24,17 @@ import { emitTelemetry, classifyDuration, VERY_SLOW_QUERY_THRESHOLD_MS, SLOW_QUE
 import { getCached, setCache } from "../_shared/external-db-cache.ts";
 import { getBreaker, circuitOpenResponse } from "../_shared/circuit-breaker.ts";
 import { retrySupabaseCall } from "../_shared/retry-backoff.ts";
+import { AsyncLocalStorage } from "node:async_hooks";
+import { getOrCreateRequestId, REQUEST_ID_HEADER } from "../_shared/request-id.ts";
 
 const breaker = getBreaker("external-db");
+
+// Contexto async por-request — propaga requestId para jsonResponse() sem
+// precisar passar como argumento por toda a árvore de handlers.
+const requestCtx = new AsyncLocalStorage<{ requestId: string }>();
+function currentRequestId(): string | undefined {
+  return requestCtx.getStore()?.requestId;
+}
 
 /**
  * Transient classifier for the EXTERNAL Postgres bridge.
