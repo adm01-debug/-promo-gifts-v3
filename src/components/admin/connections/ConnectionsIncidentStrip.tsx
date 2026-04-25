@@ -15,6 +15,7 @@
 import { useMemo, useState } from "react";
 import { AlertOctagon, AlertTriangle, Info, ArrowRight, X, ChevronDown, ChevronUp } from "lucide-react";
 import { IncidentDetailsDrawer } from "./IncidentDetailsDrawer";
+import { useSeverityFilter } from "./SeverityFilterContext";
 import { formatDistanceToNow, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
