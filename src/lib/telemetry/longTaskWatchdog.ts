@@ -17,6 +17,7 @@
  *  - Custo zero quando não há listeners (exatamente como bridgeCallMetrics).
  */
 import { getBridgeSamples, type BridgeCallSample } from './bridgeCallMetrics';
+import { isInstrumentationPaused, subscribeInstrumentationPaused } from './instrumentationControl';
 
 export interface LongTaskEvent {
   id: number;
