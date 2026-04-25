@@ -4,6 +4,7 @@
 import { logger } from '@/lib/logger';
 import { invokeExternalDb, invokeBatchBridge } from './bridge';
 import type { InvokeResult, BatchQuery } from './bridge';
+import { getCachedById, getCachedByIds } from './immutableCache';
 import {
   type PromobrindProduct,
   PRODUCT_SELECT_FIELDS_WITH_SALE,
