@@ -12,6 +12,9 @@ const RETRYABLE_PATTERNS = [
   'bad gateway', 'FunctionsHttpError',
   'network', 'fetch', 'ECONNRESET', 'socket hang up',
   'AbortError', 'Failed to fetch',
+  // Cold-start / runtime boot do isolate da edge function (plataforma)
+  'supabase_edge_runtime_error', 'service is temporarily unavailable',
+  'boot_error', 'function failed to start',
 ];
 
 // Erros determinísticos do Postgres/PostgREST: retry NUNCA muda o resultado.
