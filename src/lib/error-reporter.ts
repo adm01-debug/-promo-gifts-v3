@@ -5,6 +5,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/lib/logger';
 import { captureException } from '@/lib/sentry';
+import { onBridgeStatus, isColdStartSignal } from '@/lib/external-db/bridge-status-events';
 
 interface ErrorReport {
   message: string;
@@ -21,6 +22,38 @@ const ERROR_QUEUE: ErrorReport[] = [];
 let flushTimer: ReturnType<typeof setTimeout> | null = null;
 const FLUSH_INTERVAL = 5000;
 const MAX_QUEUE = 20;
+
+/**
+ * Buffer de erros suspeitos de "cold-start" (503 / boot_error / function failed to start).
+ * Adia o envio por COLD_START_DEFER_MS para que um evento `recovered` da bridge
+ * possa descartá-los — evitando false positives quando a 2ª tentativa carrega com sucesso.
+ */
+type DeferredColdStart = {
+  report: ErrorReport;
+  timer: ReturnType<typeof setTimeout>;
+};
+const COLD_START_DEFER_MS = 8000;
+const COLD_START_BUFFER: DeferredColdStart[] = [];
+let bridgeListenerInstalled = false;
+
+function installBridgeListenerOnce() {
+  if (bridgeListenerInstalled) return;
+  bridgeListenerInstalled = true;
+  onBridgeStatus((e) => {
+    if (e.type !== 'recovered') return;
+    // Bridge recuperou: descarta todos os 503/boot ainda pendentes na janela.
+    while (COLD_START_BUFFER.length > 0) {
+      const pending = COLD_START_BUFFER.shift()!;
+      clearTimeout(pending.timer);
+      logger.debug('[ErrorReporter] Discarded cold-start false positive after bridge recovery');
+    }
+  });
+}
+
+function isColdStartReport(report: ErrorReport): boolean {
+  const haystack = `${report.message} ${report.stack ?? ''}`;
+  return isColdStartSignal(haystack);
+}
 
 async function flushErrors() {
   if (ERROR_QUEUE.length === 0) return;
@@ -68,10 +101,16 @@ function scheduleFlush() {
   }, FLUSH_INTERVAL);
 }
 
-export function reportError(error: Error, metadata?: Record<string, unknown>) {
-  // Forward to Sentry (no-op if DSN not configured)
-  captureException(error, metadata);
+function enqueueReport(report: ErrorReport) {
+  ERROR_QUEUE.push(report);
+  if (ERROR_QUEUE.length >= MAX_QUEUE) {
+    flushErrors();
+  } else {
+    scheduleFlush();
+  }
+}
 
+export function reportError(error: Error, metadata?: Record<string, unknown>) {
   const report: ErrorReport = {
     message: error.message,
     stack: error.stack,
@@ -81,19 +120,40 @@ export function reportError(error: Error, metadata?: Record<string, unknown>) {
     metadata,
   };
 
-  ERROR_QUEUE.push(report);
-
-  if (ERROR_QUEUE.length >= MAX_QUEUE) {
-    flushErrors();
-  } else {
-    scheduleFlush();
+  // Cold-start (503/boot_error) costuma ser recuperado pela 2ª tentativa.
+  // Adia o envio e descarta se a bridge emitir `recovered` dentro da janela —
+  // evitando false positives. Caller pode forçar registro imediato via
+  // metadata.skipColdStartDefer = true.
+  const skipDefer = metadata?.skipColdStartDefer === true;
+  if (!skipDefer && isColdStartReport(report)) {
+    installBridgeListenerOnce();
+    const entry: DeferredColdStart = {
+      report,
+      timer: setTimeout(() => {
+        const idx = COLD_START_BUFFER.indexOf(entry);
+        if (idx >= 0) COLD_START_BUFFER.splice(idx, 1);
+        // Não recuperou na janela: registra como erro real e encaminha ao Sentry.
+        captureException(error, { ...metadata, cold_start_unrecovered: true });
+        enqueueReport({
+          ...report,
+          metadata: { ...(report.metadata ?? {}), cold_start_unrecovered: true },
+        });
+      }, COLD_START_DEFER_MS),
+    };
+    COLD_START_BUFFER.push(entry);
+    return;
   }
+
+  // Forward to Sentry (no-op if DSN not configured)
+  captureException(error, metadata);
+  enqueueReport(report);
 }
 
 /**
  * Install global error listeners for unhandled errors and promise rejections.
  */
 export function installGlobalErrorHandlers() {
+  installBridgeListenerOnce();
   window.addEventListener('error', (event) => {
     reportError(event.error || new Error(event.message), {
       type: 'unhandled_error',
