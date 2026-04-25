@@ -560,6 +560,12 @@ export function DataSourceDebugTab() {
           </CardContent>
         </Card>
       </div>
+
+      <FieldSourceDrillDownDialog
+        open={drillField !== null}
+        onOpenChange={(o) => { if (!o) setDrillField(null); }}
+        data={drillData}
+      />
     </div>
   );
 }
