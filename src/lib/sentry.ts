@@ -122,10 +122,11 @@ export function setSentryUser(user: { id: string; email?: string } | null): void
 }
 
 /**
- * Lazy ErrorBoundary: enquanto o Sentry não carrega, renderiza children sem boundary.
- * Após carregar, comportamento é idêntico ao Sentry.ErrorBoundary.
- *
- * Em prática, mantemos `EnhancedErrorBoundary` (não-Sentry) como fallback principal
- * em src/main.tsx. Este re-export existe apenas para compat com código legado.
+ * Re-export do ErrorBoundary do Sentry (apenas após o load assíncrono).
+ * Não use diretamente — em produção, prefira `EnhancedErrorBoundary` em src/main.tsx
+ * que funciona desde o paint inicial.
  */
-export const SentryErrorBoundary = ({ children }: { children: React.ReactNode }) => children as React.ReactElement;
+export function getSentryErrorBoundary(): typeof SentryNS.ErrorBoundary | null {
+  return sentryRef?.ErrorBoundary ?? null;
+}
+
