@@ -399,20 +399,23 @@ export function EdgeFunctionLogsPanel() {
                           {row.durationMs} ms
                         </TableCell>
                         <TableCell className="py-1.5">
-                          {row.requestId ? (
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                copyText(row.requestId!, "request_id");
-                              }}
-                              className="inline-flex items-center gap-1 font-mono text-[10px] text-muted-foreground hover:text-foreground"
-                              title={row.requestId}
-                            >
-                              {shortRequestId(row.requestId)}
-                              <Copy className="h-2.5 w-2.5" />
-                            </button>
-                          ) : (
+                          {row.requestId ? (() => {
+                            const rid = row.requestId;
+                            return (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  copyText(rid, "request_id");
+                                }}
+                                className="inline-flex items-center gap-1 font-mono text-[10px] text-muted-foreground hover:text-foreground"
+                                title={rid}
+                              >
+                                {shortRequestId(rid)}
+                                <Copy className="h-2.5 w-2.5" />
+                              </button>
+                            );
+                          })() : (
                             <span className="text-[10px] text-muted-foreground">
                               —
                             </span>
@@ -437,18 +440,19 @@ export function EdgeFunctionLogsPanel() {
                               </dt>
                               <dd className="col-span-2 flex items-center gap-2 font-mono">
                                 {row.requestId ?? "—"}
-                                {row.requestId && (
-                                  <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    className="h-5 w-5"
-                                    onClick={() =>
-                                      copyText(row.requestId!, "request_id")
-                                    }
-                                  >
-                                    <Copy className="h-3 w-3" />
-                                  </Button>
-                                )}
+                                {row.requestId && (() => {
+                                  const rid = row.requestId;
+                                  return (
+                                    <Button
+                                      size="icon"
+                                      variant="ghost"
+                                      className="h-5 w-5"
+                                      onClick={() => copyText(rid, "request_id")}
+                                    >
+                                      <Copy className="h-3 w-3" />
+                                    </Button>
+                                  );
+                                })()}
                               </dd>
                               {row.serverRequestId && (
                                 <>
