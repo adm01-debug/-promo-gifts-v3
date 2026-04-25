@@ -75,6 +75,9 @@ const ColdVsWarmCrmCard = lazy(() =>
 const BreakerStatusCard = lazy(() =>
   import('@/components/admin/telemetry/BreakerStatusCard').then((m) => ({ default: m.BreakerStatusCard })),
 );
+const EdgeFunctionLogsPanel = lazy(() =>
+  import('@/components/admin/telemetry/EdgeFunctionLogsPanel').then((m) => ({ default: m.EdgeFunctionLogsPanel })),
+);
 
 
 const getSeverityBadge = (severity: string) => {
@@ -190,6 +193,11 @@ export default function AdminTelemetriaPage() {
         {/* Telemetria client-side ao vivo das chamadas às bridges (external/CRM) */}
         <Suspense fallback={<CardSkeleton height={260} label="Carregando telemetria das bridges" />}>
           <BridgesLiveCard />
+        </Suspense>
+
+        {/* Logs ao vivo das edge functions com correlação por request_id */}
+        <Suspense fallback={<CardSkeleton height={520} label="Carregando logs edge functions" />}>
+          <EdgeFunctionLogsPanel />
         </Suspense>
 
         {/* Alertas configuráveis por bridge — limiares de p95 e payload */}
