@@ -27,7 +27,7 @@ import {
 } from "../_shared/mcp-scopes.ts";
 import { getOrCreateRequestId, REQUEST_ID_HEADER } from "../_shared/request-id.ts";
 import { writeAuditEntry, summarizePayload, extractRequestMeta } from "../_shared/audit-log.ts";
-import { recordMcpViolation, type McpViolationReason } from "../_shared/mcp-violations.ts";
+import { recordMcpViolation, mapViolationReason } from "../_shared/mcp-violations.ts";
 
 const SOURCE = "mcp-keys-issue";
 
@@ -169,23 +169,9 @@ Deno.serve(async (req) => {
       details: extra,
     });
     if (status === "denied") {
-      const reason = (extra?.reason as string) ?? "other";
-      const allowed: McpViolationReason[] = [
-        "missing_jwt","invalid_jwt","not_admin","stepup_missing","stepup_invalid",
-        "stepup_consume_failed","rate_limited","validation_failed","unauthorized_direct_write","other",
-      ];
-      const mapped: McpViolationReason =
-        reason === "unauthenticated" ? "missing_jwt" :
-        reason === "invalid_jwt" ? "invalid_jwt" :
-        reason === "not_dev" ? "not_admin" :
-        reason === "step_up_required" ? "stepup_missing" :
-        reason === "step_up_invalid" ? "stepup_invalid" :
-        reason === "validation_failed" ? "validation_failed" :
-        reason === "full_grant_forbidden" ? "not_admin" :
-        (allowed.includes(reason as McpViolationReason) ? (reason as McpViolationReason) : "other");
       await recordMcpViolation(admin, {
         userId,
-        reason: mapped,
+        reason: mapViolationReason(extra?.reason),
         source: SOURCE,
         operation: "issue",
         targetKeyId: resourceId ?? null,
