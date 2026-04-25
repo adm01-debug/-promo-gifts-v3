@@ -644,6 +644,27 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // ─────────────────────────────────────────────────────────────────
+  // PING — endpoint de diagnóstico SEMPRE disponível.
+  // Faz BYPASS deliberado de:
+  //   • circuit-breaker (queremos inspecionar saúde mesmo com circuito aberto)
+  //   • autenticação JWT (diagnóstico precisa funcionar pré-login)
+  //   • bot protection / rate limit (probes externos podem ser frequentes)
+  //   • acesso ao banco CRM externo (ping não toca o upstream)
+  //
+  // Aceita: GET /?op=ping  ou  POST { "operation": "ping" }
+  // Resposta: { ok: true, ts: <epoch ms>, warm: <boolean> }
+  //   - `warm` = true quando o warmup do isolate concluiu com sucesso
+  //     (singleton CRM client + handshake TLS + schema cache prontos).
+  // ─────────────────────────────────────────────────────────────────
+  if (await isPingRequest(req)) {
+    return jsonResponse({
+      ok: true,
+      ts: Date.now(),
+      warm: crmWarmupCompleted,
+    });
+  }
+
   if (!breaker.canRequest()) {
     return circuitOpenResponse("crm-db", corsHeaders);
   }
