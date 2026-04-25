@@ -176,6 +176,12 @@ export default function AdminTelemetriaPage() {
           <ColdStartRetriesPanel />
         </Suspense>
 
+        {/* Telemetria client-side ao vivo das chamadas às bridges (external/CRM) */}
+        <Suspense fallback={<CardSkeleton height={260} label="Carregando telemetria das bridges" />}>
+          <BridgesLiveCard />
+        </Suspense>
+
+
         {/* Métricas das otimizações Onda 2 (cache hit rate + retries evitados) */}
         <Suspense fallback={<GridCardsSkeleton count={3} height={100} />}>
           <OptimizationMetricsCards />
