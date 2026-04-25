@@ -4689,6 +4689,7 @@ export type Database = {
         Args: { _response: string; _response_notes?: string; _token: string }
         Returns: boolean
       }
+      sync_external_connections_from_credentials: { Args: never; Returns: Json }
       validate_mcp_key: {
         Args: { _key_plain: string }
         Returns: {
