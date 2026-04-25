@@ -18,6 +18,8 @@ import { GlobalRefreshFromDbButton } from "@/components/admin/connections/Global
 import { ConnectionsPulseBar } from "@/components/admin/connections/ConnectionsPulseBar";
 import { ConnectionsIncidentStrip } from "@/components/admin/connections/ConnectionsIncidentStrip";
 import { ZoneSection } from "@/components/admin/connections/ZoneSection";
+import { SeverityFilterProvider } from "@/components/admin/connections/SeverityFilterContext";
+import { SeverityFilterToolbar } from "@/components/admin/connections/SeverityFilterToolbar";
 import { useCallback, useEffect, useState } from "react";
 import { useSecretsManager } from "@/hooks/useSecretsManager";
 
