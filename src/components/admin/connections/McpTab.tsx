@@ -4,16 +4,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Plug, Copy, Trash2, Plus, Key, Github } from "lucide-react";
+import { Plug, Copy, Trash2, Plus, Github, ShieldAlert } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger,
 } from "@/components/ui/dialog";
 import { ConnectionTestHistoryPanel } from "./ConnectionTestHistoryPanel";
 import { SecretField } from "./SecretField";
 import { useSecretsManager } from "@/hooks/useSecretsManager";
 import { GitHubCredentialsTester } from "./GitHubCredentialsTester";
+import { IssueMcpKeyForm } from "./IssueMcpKeyForm";
+import { isFullAccess } from "@/lib/mcp/scopes";
 
 interface McpKey {
   id: string;
@@ -26,18 +28,23 @@ interface McpKey {
   created_at: string;
 }
 
-const ALL_SCOPES = ["quotes:read", "orders:read", "crm:read", "products:read", "*"];
-
 const MCP_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/mcp-server`;
+
+function formatExpiresIn(expiresAt: string | null): string | null {
+  if (!expiresAt) return null;
+  const ms = new Date(expiresAt).getTime() - Date.now();
+  if (ms <= 0) return "expirada";
+  const days = Math.floor(ms / (24 * 60 * 60 * 1000));
+  if (days === 0) return "expira hoje";
+  if (days === 1) return "expira em 1d";
+  return `expira em ${days}d`;
+}
 
 export function McpTab() {
   const { secrets, list } = useSecretsManager();
   const [keys, setKeys] = useState<McpKey[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
-  const [name, setName] = useState("");
-  const [scopes, setScopes] = useState<string[]>(["quotes:read"]);
-  const [generated, setGenerated] = useState<string | null>(null);
 
   const getSecret = (n: string) => secrets.find((s) => s.name === n);
 
@@ -53,36 +60,6 @@ export function McpTab() {
   };
 
   useEffect(() => { load(); }, []);
-
-  const generate = async () => {
-    if (!name.trim() || scopes.length === 0) {
-      toast.error("Informe um nome e ao menos um escopo");
-      return;
-    }
-    // Cliente gera chave forte localmente
-    const bytes = new Uint8Array(32);
-    crypto.getRandomValues(bytes);
-    const plain = "mcp_" + Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("");
-    // Hash SHA-256 para armazenar
-    const enc = new TextEncoder().encode(plain);
-    const hashBuf = await crypto.subtle.digest("SHA-256", enc);
-    const hash = Array.from(new Uint8Array(hashBuf)).map((b) => b.toString(16).padStart(2, "0")).join("");
-
-    const { data: u } = await supabase.auth.getUser();
-    if (!u.user) { toast.error("Não autenticado"); return; }
-
-    const { error } = await supabase.from("mcp_api_keys").insert({
-      name: name.trim(),
-      key_hash: hash,
-      key_prefix: plain.slice(0, 12),
-      scopes,
-      created_by: u.user.id,
-    });
-    if (error) { toast.error("Falha ao salvar chave", { description: error.message }); return; }
-    setGenerated(plain);
-    setName(""); setScopes(["quotes:read"]);
-    load();
-  };
 
   const revoke = async (id: string) => {
     const { error } = await supabase.from("mcp_api_keys")
