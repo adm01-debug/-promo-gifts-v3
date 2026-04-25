@@ -72,7 +72,7 @@ export function useMcpAuditFeed() {
     setLoading(true);
     let q = supabase
       .from("admin_audit_log")
-      .select("id, action, user_id, resource_id, ip_address, user_agent, details, created_at")
+      .select("id, action, user_id, resource_id, ip_address, user_agent, details, created_at, request_id, started_at, finished_at, duration_ms, status, payload_summary, source")
       .eq("resource_type", "mcp_api_key")
       .order("created_at", { ascending: false })
       .limit(PAGE_SIZE * 4);
