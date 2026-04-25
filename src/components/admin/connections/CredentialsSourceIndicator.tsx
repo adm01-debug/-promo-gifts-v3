@@ -65,7 +65,26 @@ function formatAbsolute(iso: string | null): string | null {
   });
 }
 
-export function CredentialsSourceIndicator({ secrets, isLoading, className }: Props) {
+export function CredentialsSourceIndicator({ secrets, isLoading, onRefresh, className }: Props) {
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    if (!onRefresh || refreshing) return;
+    setRefreshing(true);
+    try {
+      await onRefresh();
+      toast.success("Credenciais recarregadas", {
+        description: "Cache do secrets-manager invalidado e integration_credentials re-listada.",
+      });
+    } catch (err) {
+      toast.error("Falha ao recarregar credenciais", {
+        description: err instanceof Error ? err.message : "Erro desconhecido.",
+      });
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   const counts = secrets.reduce(
     (acc, s) => {
       const src = resolveSource(s);
