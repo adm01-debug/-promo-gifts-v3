@@ -144,7 +144,13 @@ export function useSecretsManager() {
             : "Sem permissão para acessar credenciais (apenas administradores).";
         }
         setListError(normalized);
-        setSecrets([]);
+        // Preserva o snapshot anterior em erros transientes (rede, 5xx, timeout)
+        // para que filtros (DB/ENV/AUSENTE) e zonas selecionadas permaneçam
+        // visíveis em vez de "resetar" a UI durante um refresh manual.
+        // Apenas erros de auth/permissão limpam (estado real desconhecido).
+        if (normalized.code === "unauthenticated" || normalized.code === "forbidden" || normalized.code === "permission_denied") {
+          setSecrets([]);
+        }
         toast.error("Erro ao listar credenciais", { description: normalized.message });
         return [];
       }
