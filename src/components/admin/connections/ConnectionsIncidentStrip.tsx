@@ -52,9 +52,11 @@ const SEV_META: Record<
 function IncidentCard({
   incident,
   onDismiss,
+  onOpen,
 }: {
   incident: IncidentItem;
   onDismiss: (id: string) => void;
+  onOpen: (incident: IncidentItem) => void;
 }) {
   const meta = SEV_META[incident.severity];
   const Icon = meta.icon;
@@ -108,12 +110,14 @@ function IncidentCard({
         </button>
       </header>
       <footer className="flex items-center justify-end pt-0.5">
-        <Link
-          to={incident.detailsHref}
+        <button
+          type="button"
+          onClick={() => onOpen(incident)}
           className="inline-flex items-center gap-0.5 text-[11px] font-medium text-primary hover:underline"
+          aria-label={`Ver métricas e logs do incidente ${incident.title}`}
         >
           Detalhes <ArrowRight className="h-3 w-3" />
-        </Link>
+        </button>
       </footer>
     </article>
   );
