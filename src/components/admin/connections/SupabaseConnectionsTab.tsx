@@ -46,7 +46,7 @@ const ENVS = [
 ] as const;
 
 export function SupabaseConnectionsTab() {
-  const { secrets, list } = useSecretsManager();
+  const { secrets, list, listError } = useSecretsManager();
   const { test, isTesting, fetchLastTest } = useConnectionTester();
   const [lastByEnv, setLastByEnv] = useState<Record<string, LastTestInfo | null>>({});
   const [historyKeyByEnv, setHistoryKeyByEnv] = useState<Record<string, number>>({});
@@ -146,6 +146,7 @@ export function SupabaseConnectionsTab() {
                       { label: "Anon Key", status: anon },
                       { label: "Service Role Key", status: svc },
                     ]}
+                    loadError={listError}
                   />
                   <SecretField label="URL do projeto" secretName={env.urlSecret!} status={url} onSaved={list} connectionId={env.key} />
                   <SecretField label="Anon Key" secretName={env.anonSecret!} status={anon} onSaved={list} connectionId={env.key} />
