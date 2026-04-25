@@ -18,6 +18,7 @@ import { AccessibilityProvider, AriaLiveProvider } from "@/components/a11y";
 import LoadingScreen from "@/components/LoadingScreen";
 import { useGlobalErrorCatcher } from "@/hooks/useErrorHandler";
 import { getFallback } from "@/components/layout/SkeletonLoaders";
+import { BridgeStatusBanner } from "@/components/BridgeStatusBanner";
 import "./App.css";
 
 // Auth Pages
