@@ -103,10 +103,14 @@ export default function AdminTelemetriaPage() {
           </div>
         </div>
         {/* Guardrail automático: interrompe regressões antes que afetem usuários */}
-        <RegressionGuardrailBanner />
+        <Suspense fallback={<BannerSkeleton />}>
+          <RegressionGuardrailBanner />
+        </Suspense>
 
         {/* Fila automática de otimizações — executa todas em sequência sem pausas */}
-        <OptimizationQueuePanel />
+        <Suspense fallback={<CardSkeleton height={140} label="Carregando fila de otimizações" />}>
+          <OptimizationQueuePanel />
+        </Suspense>
 
 
         <div className="grid grid-cols-2 gap-4">
