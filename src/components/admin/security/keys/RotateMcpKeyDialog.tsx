@@ -96,11 +96,18 @@ export function RotateMcpKeyDialog({ source, open, onOpenChange, onRotated }: Pr
         toast.error(`Digite "${FULL_SCOPE_CONFIRMATION}" para confirmar.`);
         return;
       }
-      // Step-up obrigatório para chaves FULL: senha + OTP por e-mail
+      // Step-up obrigatório para chaves FULL: senha + OTP por e-mail (action: mcp_full_issue)
       setStepUpOpen(true);
       return;
     }
-    await performRotate();
+    // Chaves limitadas: também exigem step-up server-side (action: mcp_key_rotate).
+    const token = await challenge({
+      action: "mcp_key_rotate",
+      actionLabel: `Rotacionar chave MCP "${source.name}"`,
+      targetRef: source.id,
+    });
+    if (!token) return; // cancelado
+    await performRotate(token);
   };
 
   const copy = (s: string) => {
