@@ -184,6 +184,11 @@ export default function AdminTelemetriaPage() {
           <BridgesLiveCard />
         </Suspense>
 
+        {/* Cold vs Warm path do isolate atual do crm-db-bridge (poll ?op=diag) */}
+        <Suspense fallback={<CardSkeleton height={260} label="Carregando snapshot cold/warm" />}>
+          <ColdVsWarmCrmCard />
+        </Suspense>
+
 
         {/* Métricas das otimizações Onda 2 (cache hit rate + retries evitados) */}
         <Suspense fallback={<GridCardsSkeleton count={3} height={100} />}>
