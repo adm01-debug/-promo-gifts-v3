@@ -1456,7 +1456,14 @@ async function handleBatchInsert(externalSupabase: any, table: string, opts: any
 // ============================================
 
 function jsonResponse(body: unknown, status: number, corsHeaders: Record<string, string>) {
-  return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+  const reqId = currentRequestId();
+  let finalBody: unknown = body;
+  if (reqId && body && typeof body === "object" && !Array.isArray(body)) {
+    finalBody = { ...(body as Record<string, unknown>), request_id: reqId };
+  }
+  const headers: Record<string, string> = { ...corsHeaders, 'Content-Type': 'application/json' };
+  if (reqId) headers[REQUEST_ID_HEADER] = reqId;
+  return new Response(JSON.stringify(finalBody), { status, headers });
 }
 
 // FNV-1a 32-bit — barato e suficiente para chave de cache (não-criptográfico).
