@@ -23,6 +23,16 @@ interface CacheEntry<T> {
 
 const TTL_MS = 5 * 60 * 1000; // 5 minutes — refs change rarely
 const INFLIGHT = new Map<string, Promise<unknown>>();
+/**
+ * Per-id in-flight tracking. Quando a chamada A pede [a,b,c] e antes dela
+ * resolver chega B pedindo [b,c,d], B reaproveita as promises de b e c em
+ * vez de disparar nova bridge — só `d` vai pra rede.
+ */
+const INFLIGHT_BY_ID: Record<Entity, Map<string, Promise<{ id: string; name: string; code?: string } | undefined>>> = {
+  categories: new Map(),
+  suppliers: new Map(),
+  material_types: new Map(),
+};
 const STORE: Record<Entity, Map<string, CacheEntry<{ id: string; name: string; code?: string }>>> = {
   categories: new Map(),
   suppliers: new Map(),
