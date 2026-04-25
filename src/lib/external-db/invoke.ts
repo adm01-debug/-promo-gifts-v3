@@ -42,8 +42,12 @@ const NON_RETRYABLE_PATTERNS = [
   'syntax error',            // SQL syntax
   'malformed',
   'jwt',                     // auth-related (cliente precisa renovar, não retry)
-  'unauthorized', '401', '403', '400',
+  'unauthorized',
 ];
+
+// Códigos HTTP determinísticos — checados via regex de borda para evitar
+// falsos positivos quando UUIDs/timestamps contêm "400/401/403" como substring.
+const NON_RETRYABLE_HTTP_RE = /\b(?:returned\s+|status[: ]|http[:/ ])?(400|401|403)\b/i;
 
 function matches(msg: string, patterns: string[]): boolean {
   const lower = msg.toLowerCase();
@@ -51,7 +55,10 @@ function matches(msg: string, patterns: string[]): boolean {
 }
 
 function isNonRetryableError(msg: string): boolean {
-  return matches(msg, NON_RETRYABLE_PATTERNS);
+  // 503 é SEMPRE retentável (cold-start de isolate) — vence qualquer match acidental.
+  if (/\b503\b/.test(msg) || /service is temporarily unavailable/i.test(msg)) return false;
+  if (matches(msg, NON_RETRYABLE_PATTERNS)) return true;
+  return NON_RETRYABLE_HTTP_RE.test(msg);
 }
 
 function isRetryableError(msg: string): boolean {
