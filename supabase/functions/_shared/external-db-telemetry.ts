@@ -30,6 +30,25 @@ export interface TelemetryMeta {
   userId?: string | null;
   retryCount?: number;
   cacheHit?: boolean;
+  /** True quando a falha veio do isolate booting (SUPABASE_EDGE_RUNTIME_ERROR / boot_error). */
+  isColdStart?: boolean;
+  /** True para qualquer 5xx de plataforma (502/503/504). */
+  is503?: boolean;
+}
+
+const COLD_START_PATTERNS = [
+  'supabase_edge_runtime_error',
+  'service is temporarily unavailable',
+  'boot_error',
+  'function failed to start',
+];
+
+export function detectPlatformFailure(error: string | undefined | null): { is503: boolean; isColdStart: boolean } {
+  if (!error) return { is503: false, isColdStart: false };
+  const msg = error.toLowerCase();
+  const is503 = msg.includes('503') || msg.includes('502') || msg.includes('504') || msg.includes('bad gateway');
+  const isColdStart = COLD_START_PATTERNS.some(p => msg.includes(p));
+  return { is503: is503 || isColdStart, isColdStart };
 }
 
 // Classifica error_message bruto em uma categoria estável.
