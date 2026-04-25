@@ -685,9 +685,13 @@ Deno.serve(async (req) => {
       console.error(`[DIAG] Raw REST error:`, diagErr);
     }
 
-    const crm = createClient(CRM_URL, CRM_KEY, {
-      auth: { persistSession: false, autoRefreshToken: false },
-    });
+    // Reusa client cacheado no escopo do módulo (singleton por isolate).
+    // Warm-up no boot já abriu TLS+handshake, então a primeira request não
+    // paga cold-start. Em rajada paralela, fetch keep-alive evita re-handshake.
+    const crm = getCrmClient();
+    if (!crm) {
+      return jsonResponse({ error: "CRM database credentials not configured" }, 500);
+    }
 
     // Validate body with Zod schema
     let rawBody: unknown;
