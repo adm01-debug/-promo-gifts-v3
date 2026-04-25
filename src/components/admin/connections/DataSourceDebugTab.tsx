@@ -63,6 +63,8 @@ export function DataSourceDebugTab() {
   const [extConns, setExtConns] = useState<ExternalConnRow[] | null>(null);
   const [extLoading, setExtLoading] = useState(false);
   const [extError, setExtError] = useState<string | null>(null);
+  const [credFilter, setCredFilter] = useState("");
+  const [extFilter, setExtFilter] = useState("");
 
   const loadExternal = useCallback(async () => {
     setExtLoading(true);
