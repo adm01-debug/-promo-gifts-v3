@@ -30,13 +30,14 @@ Deno.test("ping (POST { operation: 'ping' }) bypasses auth and returns ok/ts/war
   assert(typeof body.warm === "boolean");
 });
 
-Deno.test("non-ping POST without auth still requires authentication", async () => {
+Deno.test("non-ping POST without auth is rejected (proves ping bypass is scoped)", async () => {
   const res = await fetch(FN_URL, {
     method: "POST",
     headers: { "content-type": "application/json", apikey: SUPABASE_ANON_KEY },
     body: JSON.stringify({ operation: "select", table: "companies" }),
   });
   const body = await res.json();
-  assertEquals(res.status, 401);
+  // 401 (auth) ou 403 (bot-protection) — ambos provam que o bypass é exclusivo do ping.
+  assert(res.status === 401 || res.status === 403, `expected 401|403, got ${res.status}`);
   assert(typeof body.error === "string");
 });
