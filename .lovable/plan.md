@@ -1,95 +1,76 @@
-## Objetivo
+## Escopo
 
-Garantir que o cliente **só dispare cargas pesadas (catálogo, admin, fan-outs) quando o backend Lovable Cloud estiver `ACTIVE_HEALTHY`**, com retries inteligentes e alerta visual durante estados transitórios (`COMING_UP`, `RESTARTING`, `UPGRADING`, `ACTIVE_UNHEALTHY`, `INACTIVE`).
+Testar **exclusivamente** o que foi implementado nas duas últimas iterações:
 
-Hoje temos `pingHealth` + `waitForBridgeReady` testando apenas o `external-db-bridge`. Falta:
-1. Um sondador genérico de **plataforma** (não só bridge) que distinga "backend pausado/subindo" de "isolate frio".
-2. Gate global aplicado nos pontos de entrada de dados.
-3. Alerta UI quando o estado for transitório/degradado.
+1. `src/lib/external-db/immutableCache.ts` — cache em memória + dedupe por id (piggyback) para `material_types`, `categories`, `suppliers`.
+2. `src/lib/external-db/invoke.ts` — classificação refinada de erros retentáveis (503/cold-start) vs. não-retentáveis (400/401/403 com word boundary).
+
+Sem mudanças em UI/produto; apenas testes automatizados + uma verificação leve em produção via logs.
 
 ---
 
-## Mudanças
+## Parte A — Testes unitários do `immutableCache`
 
-### 1. Novo módulo `src/lib/cloud-status.ts`
-Sondador único de status do Cloud com 3 sinais combinados:
-- `auth.getSession()` (verifica plataforma viva, <500ms quando OK).
-- `pingHealth()` (bridge externo).
-- HEAD em `/rest/v1/` com timeout 2s (Postgres reachable).
+Novo arquivo `tests/lib/external-db-immutable-cache.test.ts` com mock de `invokeExternalDb` (`@/lib/external-db/bridge`).
 
-Mapeia para estados normalizados: `healthy | warming | degraded | down`.
-- 3/3 OK → `healthy`
-- 2/3 OK ou latência >2s → `warming`
-- 1/3 OK → `degraded`
-- 0/3 OK → `down`
+Cenários do dia a dia:
 
-Cache 15s, coalescing de chamadas paralelas, EventTarget para broadcast.
+1. **Cache miss puro** — pede `[a,b,c]` sem nada em cache → 1 chamada bridge com `id=in.(a,b,c)`, retorna map completo.
+2. **Cache hit puro** — pede ids já resolvidos → 0 chamadas bridge.
+3. **Hit parcial** — `a,b` em cache, `c` não → 1 chamada bridge só com `c`.
+4. **TTL** — adianta `Date.now()` 5min+1s → expirou, refaz fetch.
+5. **Dedupe batch idêntico (INFLIGHT)** — duas chamadas concorrentes com `[a,b]` → 1 única chamada bridge, ambas resolvem.
+6. **Piggyback por id (INFLIGHT_BY_ID)** — chamada A pede `[a,b,c]`; antes de resolver, B pede `[b,c,d]` → bridge é chamada 2 vezes, mas a segunda só com `[d]` (b e c reaproveitados).
+7. **Piggyback misto com hit** — A em voo com `[x,y]`; B pede `[x, cached, z]` → segunda bridge só com `[z]`.
+8. **Erro silenciado** — bridge rejeita → `getCachedByIds` resolve com map vazio para os missing, loga warn, **não** envenena cache (próxima chamada tenta de novo).
+9. **Ids duplicados/vazios na entrada** — `['', 'a', 'a', null as any]` → dedup interno, 1 fetch só com `['a']`.
+10. **`invalidateImmutableCache(entity)`** — limpa só a entity alvo; outras permanecem.
+11. **`getFreshFromCacheSafe` / `putInCacheSafe`** — write síncrono entra no cache e é lido por `getCachedById` sem rede.
+12. **`immutableCacheStats`** — reflete contagens corretas após operações.
 
-### 2. Hook `useCloudStatus()` em `src/hooks/useCloudStatus.ts`
-Retorna `{ status, lastChecked, retry() }`. Polling adaptativo:
-- `healthy`: re-checa a cada 60s.
-- `warming/degraded`: re-checa a cada 5s com backoff 5→10→15s.
-- `down`: para automático em 30s e exige retry manual.
+Também checar isolamento entre entities: pedir id `x` em `categories` não deve servir `x` em `suppliers`.
 
-### 3. Gate de fetch em `src/lib/external-db/invoke.ts` e `bridge.ts`
-Antes de toda chamada externa, aguarda `ensureCloudReady(timeoutMs)` (wrapper sobre `waitForBridgeReady` + status check). Se status ≠ `healthy` após orçamento, rejeita com `CloudNotReadyError` tipado em vez de deixar o fetch estourar 503/timeout no meio da query.
+---
 
-### 4. Componente `<CloudStatusBanner />`
-Banner discreto (top, dismissible) renderizado em `App.tsx` quando status é `warming|degraded|down`:
-- `warming`: "Backend reiniciando, aguarde alguns segundos…" (info, com spinner).
-- `degraded`: "Backend instável — algumas operações podem falhar" (warning).
-- `down`: "Backend indisponível" + botão "Tentar novamente" (destructive).
+## Parte B — Testes unitários do `invoke` (retry classifier)
 
-Usa tokens semânticos do design system (`bg-warning`, `bg-destructive`).
+Estender `tests/lib/external-db-invoke.test.ts` (já existe) com casos de borda da nova lógica:
 
-### 5. Retry inteligente no React Query
-Em `src/lib/queryClient.ts` (ou onde o `QueryClient` é instanciado), atualizar `defaultOptions.queries.retry`:
-- Se erro for `CloudNotReadyError` → retry até 5x com delay alinhado ao polling do status.
-- Se erro 5xx do bridge → retry 3x com backoff exponencial.
-- Erros 4xx → não retry.
+13. **UUID com "400"** — mensagem `"row 400e1234-... not found"` **não** deve cair como non-retryable (regex word-boundary com prefixo). Verificar que segue para classificação retryable normal.
+14. **Timestamp com "401"** — `"at 2024-01-15T14:01:23"` não deve disparar non-retryable.
+15. **HTTP 400 real** — `"Edge function returned 400: Bad Request"` → fail-fast (1 invoke, sem retry).
+16. **HTTP 401 com prefixo `status:`** — `"status: 401 unauthorized"` → fail-fast.
+17. **HTTP 403 com `http/`** — `"http/403 forbidden"` → fail-fast.
+18. **503 vence acidentes** — mensagem que contenha `"503"` + `"unauthorized"` → ainda assim retentável (regra "503 sempre retry").
+19. **`service is temporarily unavailable`** sem código → retentável.
+20. **`boot_error` / `function failed to start`** → retentável (cold-start).
+21. **JWT expired** → fail-fast (já coberto via `'jwt'` em NON_RETRYABLE_PATTERNS — confirmar).
 
-### 6. Testes
-- `tests/lib/cloud-status.test.ts`: estados combinados (healthy/warming/degraded/down) e cache.
-- `tests/lib/ensure-cloud-ready.test.ts`: gate rejeita com `CloudNotReadyError` quando status persiste degradado.
+Cada caso valida `mockInvoke.toHaveBeenCalledTimes(N)` esperado.
+
+---
+
+## Parte C — Verificação em produção (read-only, sem mudar código)
+
+Após os unit tests passarem, ainda em modo padrão:
+
+22. Rodar `bunx vitest run tests/lib/external-db-invoke.test.ts tests/lib/external-db-immutable-cache.test.ts`.
+23. Consultar `supabase--edge_function_logs external-db-bridge` filtrando por `material_types` nos últimos minutos para confirmar **redução** de chamadas repetidas durante navegação típica (catálogo → detalhe → catálogo).
+24. Consultar `supabase--analytics_query` em `function_edge_logs` para conferir distribuição de `status_code` 503 (devem ter retry e sucesso final, sem 503 propagados).
 
 ---
 
 ## Detalhes técnicos
 
-- Sem novo edge function — tudo client-side reusando `external-db-bridge` ping + REST endpoint público do Supabase.
-- `CloudNotReadyError extends Error` com `code: 'CLOUD_NOT_READY'` e `status` atual para telemetria.
-- Banner usa `framer-motion` (já no projeto) com `AnimatePresence`.
-- Logger estruturado: `[CloudStatus] state change healthy → warming` em `logger.warn`.
+- Mock do `invokeExternalDb` retorna `{ records: [...], count: n }` no shape que o cache espera (`res.records`).
+- Para INFLIGHT/piggyback, mock implementa promise controlável (`deferred`) para forçar ordem de chegada.
+- Para TTL, usar `vi.useFakeTimers()` + `vi.advanceTimersByTime(TTL_MS + 1000)`.
+- Tests de invoke continuam usando o mock de `supabase.functions.invoke` já presente no arquivo.
 
-## Arquivos
+## Entregáveis
 
-**Criar:**
-- `src/lib/cloud-status.ts`
-- `src/hooks/useCloudStatus.ts`
-- `src/components/system/CloudStatusBanner.tsx`
-- `tests/lib/cloud-status.test.ts`
-- `tests/lib/ensure-cloud-ready.test.ts`
+- `tests/lib/external-db-immutable-cache.test.ts` (novo, ~12 casos)
+- `tests/lib/external-db-invoke.test.ts` (estendido, +9 casos)
+- Relatório curto no chat com: número de testes passados, qualquer regressão encontrada, e amostra dos logs de produção confirmando o efeito do cache.
 
-**Editar:**
-- `src/lib/external-db/invoke.ts` (gate)
-- `src/lib/external-db/bridge.ts` (gate)
-- `src/App.tsx` (montar banner)
-- `src/lib/queryClient.ts` (retry policy)
-- `.lovable/plan.md` (registro)
-
-## Critério de sucesso
-
-- Em cold start do Cloud, o catálogo aguarda o status virar `healthy` antes de disparar 4 queries paralelas (zero 503 em cascata).
-- Usuário vê feedback visual em até 1s quando o backend está degradado.
-- Erros de "backend indisponível" passam a ser categorizados (`CloudNotReadyError`) ao invés de timeouts genéricos.
-## ✅ Implementado (cloud-status gate + retries)
-
-- `src/lib/cloud-status.ts`: sondador unificado (auth + bridge + REST), estados `healthy|warming|degraded|down`, cache 15s, EventTarget broadcast, `ensureCloudReady()` e `CloudNotReadyError`.
-- `src/hooks/useCloudStatus.ts`: hook com polling adaptativo (60s healthy, 5→10→15s warming/degraded, parada automática em 30s para `down`).
-- `src/components/system/CloudStatusBanner.tsx`: banner sticky com tokens semânticos e botão de retry para `down`.
-- `src/lib/external-db/invoke.ts`: gate best-effort (só bloqueia se cache indica `down/degraded`, retornando `CloudNotReadyError`).
-- `src/lib/query-config.ts`: retry policy por tipo de erro (`CLOUD_NOT_READY` → 5x; 5xx → 3x; 4xx → no retry); delay alinhado ao polling.
-- `src/App.tsx`: `<CloudStatusBanner />` montado acima do `<BridgeStatusBanner />`.
-- `tests/lib/cloud-status.test.ts`: 7 testes cobrindo todos os estados, cache e gate.
-
-Validação: 17/17 testes (`cloud-status` + `external-db-invoke`) passam. Cloud atualmente `ACTIVE_HEALTHY`.
+Sem alterações em arquivos de produção, exceto se algum teste expor um bug — nesse caso paro e reporto antes de corrigir.
