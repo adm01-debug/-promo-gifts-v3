@@ -7,6 +7,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { logger } from "@/lib/logger";
+import { recordBridgeCall, estimatePayloadBytes } from "@/lib/telemetry/bridgeCallMetrics";
 
 export interface CrmQuery {
   table: string;
