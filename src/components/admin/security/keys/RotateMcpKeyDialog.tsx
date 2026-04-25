@@ -25,6 +25,7 @@ import {
 } from "@/lib/mcp/scopes";
 import { StepUpAuthDialog } from "@/components/auth/StepUpAuthDialog";
 import type { McpKeyRow } from "./useMcpKeys";
+import { sanitizeError } from "@/lib/security/sanitize-error";
 
 interface Props {
   source: McpKeyRow | null;
