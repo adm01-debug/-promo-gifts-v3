@@ -18,6 +18,7 @@ import {
 import { JustSavedFlash } from "./JustSavedFlash";
 import { RotationHistoryRow } from "./RotationHistoryRow";
 import { CredentialSourceBadge } from "./CredentialSourceBadge";
+import { SecretImpactTooltip } from "./SecretImpactTooltip";
 import { useCredentialsSourceFilter } from "./CredentialsSourceFilterContext";
 import { ArrowDownToLine } from "lucide-react";
 import { RotateSecretConfirmDialog } from "./RotateSecretConfirmDialog";
