@@ -449,6 +449,9 @@ export function DataSourceDebugTab() {
       {/* Métricas de cache da SSOT (resolveCredential) */}
       <CredentialCacheMetricsPanel />
 
+      {/* Pré-visualização paginada dos produtos retornados pelo external-db-bridge */}
+      <BridgeProductsPreviewPanel />
+
       {/* Raw rows */}
       <div className="grid gap-3 lg:grid-cols-2">
         <Card>
