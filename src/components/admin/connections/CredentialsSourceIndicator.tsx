@@ -130,27 +130,81 @@ export function CredentialsSourceIndicator({ secrets, isLoading, className }: Pr
         </p>
 
         <div className="flex items-center gap-1.5 flex-wrap pt-1">
-          <Badge
-            variant="outline"
-            className="text-[10px] font-mono uppercase border-success/40 bg-success/10 text-success"
-            title="Credenciais lidas de integration_credentials (SSOT)"
-          >
-            DB · {counts.db}
-          </Badge>
-          <Badge
-            variant="outline"
-            className="text-[10px] font-mono uppercase border-warning/40 bg-warning/10 text-warning"
-            title="Credenciais resolvidas via fallback Deno.env (legado)"
-          >
-            ENV · {counts.env}
-          </Badge>
-          <Badge
-            variant="outline"
-            className="text-[10px] font-mono uppercase border-destructive/40 bg-destructive/10 text-destructive"
-            title="Credenciais ausentes em DB e em ENV"
-          >
-            AUSENTE · {counts.none}
-          </Badge>
+          <TooltipProvider delayDuration={150}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge
+                  variant="outline"
+                  tabIndex={0}
+                  className="text-[10px] font-mono uppercase border-success/40 bg-success/10 text-success cursor-help focus:outline-none focus:ring-2 focus:ring-ring"
+                  aria-label={`${counts.db} credenciais com origem DB`}
+                >
+                  DB · {counts.db}
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="max-w-xs text-xs space-y-1">
+                <p className="font-semibold">Origem: banco (SSOT)</p>
+                <p>
+                  Valor persistido em{" "}
+                  <code className="font-mono">integration_credentials</code> e
+                  resolvido pelo <code className="font-mono">secrets-manager</code>.
+                </p>
+                <p className="text-muted-foreground">
+                  ✅ Nada a fazer — auditável, rotacionável e versionado pelo painel.
+                </p>
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge
+                  variant="outline"
+                  tabIndex={0}
+                  className="text-[10px] font-mono uppercase border-warning/40 bg-warning/10 text-warning cursor-help focus:outline-none focus:ring-2 focus:ring-ring"
+                  aria-label={`${counts.env} credenciais com origem ENV`}
+                >
+                  ENV · {counts.env}
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="max-w-xs text-xs space-y-1">
+                <p className="font-semibold">Origem: variável de ambiente (legado)</p>
+                <p>
+                  Valor lido via <code className="font-mono">Deno.env.get()</code>{" "}
+                  porque o registro ainda não existe em{" "}
+                  <code className="font-mono">integration_credentials</code>.
+                </p>
+                <p className="text-muted-foreground">
+                  ⚠ Abra o card correspondente e clique em <strong>Salvar</strong> para
+                  migrar para o banco e liberar rotação/auditoria.
+                </p>
+              </TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge
+                  variant="outline"
+                  tabIndex={0}
+                  className="text-[10px] font-mono uppercase border-destructive/40 bg-destructive/10 text-destructive cursor-help focus:outline-none focus:ring-2 focus:ring-ring"
+                  aria-label={`${counts.none} credenciais ausentes`}
+                >
+                  AUSENTE · {counts.none}
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="max-w-xs text-xs space-y-1">
+                <p className="font-semibold">Sem valor em DB nem em ENV</p>
+                <p>
+                  O <code className="font-mono">secrets-manager</code> não encontrou
+                  o segredo em nenhuma das duas fontes — a integração que depende
+                  dele ficará inativa.
+                </p>
+                <p className="text-muted-foreground">
+                  🔧 Preencha o campo correspondente no card e salve para gravar em{" "}
+                  <code className="font-mono">integration_credentials</code>.
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
       </div>
 

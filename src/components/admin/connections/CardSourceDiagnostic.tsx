@@ -1,6 +1,12 @@
 import { Database, AlertTriangle, Bug, ShieldAlert, Lock } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { resolveSource } from "./CredentialsSourceFilterContext";
 import { useExplainMode } from "./ExplainModeContext";
 import type { SecretStatus, SecretError } from "@/hooks/useSecretsManager";
@@ -40,16 +46,31 @@ const SOURCE_META = {
     label: "DB",
     cls: "border-success/40 bg-success/10 text-success",
     description: "integration_credentials",
+    tooltip: {
+      title: "Origem: banco (SSOT)",
+      body: "Valor lido de integration_credentials via secrets-manager. Auditável e rotacionável.",
+      action: "Nada a fazer — basta usar.",
+    },
   },
   env: {
     label: "ENV",
     cls: "border-warning/40 bg-warning/10 text-warning",
     description: "Deno.env (fallback legado)",
+    tooltip: {
+      title: "Origem: variável de ambiente (legado)",
+      body: "Resolvido por Deno.env.get() porque ainda não há registro em integration_credentials.",
+      action: "Edite o campo e clique em Salvar para migrar para o banco.",
+    },
   },
   none: {
     label: "AUSENTE",
     cls: "border-destructive/40 bg-destructive/10 text-destructive",
     description: "não configurado",
+    tooltip: {
+      title: "Sem valor em DB nem em ENV",
+      body: "secrets-manager não encontrou esta credencial em nenhuma fonte. A integração ficará inativa.",
+      action: "Preencha o campo e salve para gravar em integration_credentials.",
+    },
   },
 } as const;
 
@@ -138,26 +159,39 @@ export function CardSourceDiagnostic({ fields, readOnly, loadError, className }:
       <AlertTitle className="text-sm">{title}</AlertTitle>
       <AlertDescription>
         <ul className="mt-2 space-y-1.5 text-xs">
-          {rows.map((r) => {
-            const meta = SOURCE_META[r.source];
-            return (
-              <li key={r.label} className="flex items-center gap-2">
-                <Badge
-                  variant="outline"
-                  className={`text-[10px] font-mono uppercase ${meta.cls}`}
-                >
-                  {meta.label}
-                </Badge>
-                <span className="font-medium">{r.label}</span>
-                <span className="text-muted-foreground">→ {meta.description}</span>
-                {r.suffix && (
-                  <span className="ml-auto font-mono text-muted-foreground">
-                    ••••{r.suffix}
-                  </span>
-                )}
-              </li>
-            );
-          })}
+          <TooltipProvider delayDuration={150}>
+            {rows.map((r) => {
+              const meta = SOURCE_META[r.source];
+              return (
+                <li key={r.label} className="flex items-center gap-2">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Badge
+                        variant="outline"
+                        tabIndex={0}
+                        className={`text-[10px] font-mono uppercase cursor-help focus:outline-none focus:ring-2 focus:ring-ring ${meta.cls}`}
+                        aria-label={`${r.label}: origem ${meta.label}`}
+                      >
+                        {meta.label}
+                      </Badge>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-xs text-xs space-y-1">
+                      <p className="font-semibold">{meta.tooltip.title}</p>
+                      <p>{meta.tooltip.body}</p>
+                      <p className="text-muted-foreground">{meta.tooltip.action}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                  <span className="font-medium">{r.label}</span>
+                  <span className="text-muted-foreground">→ {meta.description}</span>
+                  {r.suffix && (
+                    <span className="ml-auto font-mono text-muted-foreground">
+                      ••••{r.suffix}
+                    </span>
+                  )}
+                </li>
+              );
+            })}
+          </TooltipProvider>
         </ul>
         {hasMissing && (
           <p className="mt-2 text-xs text-muted-foreground">
