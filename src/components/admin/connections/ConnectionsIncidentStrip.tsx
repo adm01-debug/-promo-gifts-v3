@@ -130,9 +130,12 @@ export function ConnectionsIncidentStrip() {
   const [collapsed, setCollapsed] = useState(false);
   const [openIncident, setOpenIncident] = useState<IncidentItem | null>(null);
 
+  const { matches, filter } = useSeverityFilter();
+
   const visible = useMemo(
-    () => (data ?? []).filter((i) => !dismissed.has(i.id)),
-    [data, dismissed],
+    () =>
+      (data ?? []).filter((i) => !dismissed.has(i.id) && matches(i.severity)),
+    [data, dismissed, matches],
   );
 
   const counts = useMemo(() => {
