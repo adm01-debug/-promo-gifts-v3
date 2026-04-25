@@ -18,6 +18,7 @@ import { CredentialsSourceFilterProvider } from "@/components/admin/connections/
 import { CredentialsSourceFilter } from "@/components/admin/connections/CredentialsSourceFilter";
 import { CredentialsSourceIndicator } from "@/components/admin/connections/CredentialsSourceIndicator";
 import { GlobalRefreshFromDbButton } from "@/components/admin/connections/GlobalRefreshFromDbButton";
+import { TestAllConnectionsButton } from "@/components/admin/connections/TestAllConnectionsButton";
 import { ConnectionsPulseBar } from "@/components/admin/connections/ConnectionsPulseBar";
 import { ConnectionsIncidentStrip } from "@/components/admin/connections/ConnectionsIncidentStrip";
 import { IncidentTimeline72h } from "@/components/admin/connections/IncidentTimeline72h";
@@ -163,6 +164,7 @@ export default function AdminConexoesPage() {
             <HeaderSeveritySummary className="mr-1 hidden sm:inline-flex" />
             <ZoneCommandTrigger onOpen={() => setPaletteOpen(true)} />
             <GlobalRefreshFromDbButton onRefreshed={handleGlobalRefreshed} />
+            <TestAllConnectionsButton />
             <SmokeTestChecklist availableSecrets={secrets} />
           </header>
 
