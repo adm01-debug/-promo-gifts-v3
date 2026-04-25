@@ -44,7 +44,14 @@ export function OptimizationQueuePanel() {
   const {
     items, isLoading, enqueue, remove, resetStuck,
     startAuto, stopAuto, isExecuting, counts,
+    requeueLastBridgeFailure, lastBridgeFailure,
   } = useOptimizationQueue();
+  const [requeuing, setRequeuing] = useState(false);
+
+  const handleRequeue = async () => {
+    setRequeuing(true);
+    try { await requeueLastBridgeFailure(); } finally { setRequeuing(false); }
+  };
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [title, setTitle] = useState('');
