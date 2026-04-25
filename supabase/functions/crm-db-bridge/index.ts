@@ -45,13 +45,24 @@ function buildCrmClient(url: string, key: string): SupabaseClient {
   return client;
 }
 
-function getCrmClient(): SupabaseClient | null {
+export function getCrmClient(): SupabaseClient | null {
   if (cachedCrmClient) return cachedCrmClient;
   const url = Deno.env.get("CRM_SUPABASE_URL");
   const key = Deno.env.get("CRM_SUPABASE_SERVICE_KEY") ?? Deno.env.get("CRM_SUPABASE_ANON_KEY");
   if (!url || !key) return null;
   cachedCrmClient = buildCrmClient(url, key);
   return cachedCrmClient;
+}
+
+/**
+ * Test-only: snapshot do estado de boot do client. Usado para asserções em
+ * testes de concorrência (garantir que o singleton é construído uma única vez).
+ */
+export function __getClientBootStateForTests() {
+  return {
+    cached: cachedCrmClient,
+    clientBuildMs,
+  };
 }
 
 /**
