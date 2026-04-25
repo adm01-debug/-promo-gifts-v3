@@ -23,6 +23,7 @@ import {
 } from "@/hooks/useConnectionTestDetails";
 import type { ConnectionType, ErrorKind } from "@/hooks/useConnectionTester";
 import { getErrorCopy, getKindBadgeClass, getKindLabel } from "@/lib/connection-error-copy";
+import { maskSensitiveText } from "@/lib/sensitive-masking";
 
 interface Props {
   open: boolean;
@@ -43,13 +44,15 @@ const TRIGGER_META: Record<TestDetails["triggered_by"], { label: string; Icon: t
   webhook: { label: "Webhook", Icon: WebhookIcon },
 };
 
-/** Mascaramento defensivo client-side (servidor já mascara). */
+/**
+ * Mascaramento defensivo client-side (servidor já mascara).
+ * Delegamos para `maskSensitiveText` (SSOT em `@/lib/sensitive-masking`),
+ * que aplica largura/caracteres uniformes e cobre URL, anon key, service
+ * role e demais padrões sensíveis — evitando que qualquer pedaço apareça
+ * em previews de resposta (incl. listas de produtos retornadas pela API).
+ */
 function defensiveMask(text: string | null): string | null {
-  if (!text) return text;
-  return text
-    .replace(/(\/rest\/\d+\/)[A-Za-z0-9]+(\/)/g, "$1••••$2")
-    .replace(/([?&](?:auth|apikey|api_key|token|access_token|key)=)[^&#\s"']+/gi, "$1••••")
-    .replace(/("(?:authorization|apikey|api_key|token|access_token|password|secret)"\s*:\s*")[^"]+(")/gi, "$1••••$2");
+  return maskSensitiveText(text);
 }
 
 function formatAbsolute(iso: string | null): string {
