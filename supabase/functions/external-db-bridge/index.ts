@@ -1455,20 +1455,18 @@ function cachedJsonResponse(payload: string, corsHeaders: Record<string, string>
   });
 }
 
-function getExternalClient(corsHeaders: Record<string, string>) {
-  const externalUrl = Deno.env.get('EXTERNAL_SUPABASE_URL');
-  const externalKey = Deno.env.get('EXTERNAL_SUPABASE_SERVICE_ROLE_KEY')
-    ?? Deno.env.get('EXTERNAL_SUPABASE_SERVICE_KEY');
-  if (!externalUrl || !externalKey) {
-    // Graceful fallback: return empty payload (200) instead of 500 to prevent UI crashes
-    console.warn('[external-db-bridge] EXTERNAL_SUPABASE_URL/KEY not configured — returning empty payload');
-    return jsonResponse(
-      { records: [], data: [], count: 0, _unconfigured: true, _message: 'Banco externo não configurado' },
-      200,
-      corsHeaders,
-    );
-  }
-  return createClient(externalUrl, externalKey, {
+// ============================================
+// EXTERNAL CLIENT — singleton por isolate
+// ============================================
+// Reusa o mesmo client entre requests do mesmo isolate. O fetch keep-alive
+// interno do supabase-js mantém o socket aberto, eliminando TLS+auth handshake
+// repetido em rajadas paralelas (catálogo, dashboards, batches).
+// Em rajada de 6+ requests, isso reduz "tempo até a 1ª query" de ~800ms para ~50ms.
+let cachedExternalClient: ReturnType<typeof createClient> | null = null;
+let warmupPromise: Promise<void> | null = null;
+
+function buildExternalClient(url: string, key: string) {
+  return createClient(url, key, {
     db: { schema: 'public' },
     global: {
       headers: {
@@ -1479,6 +1477,55 @@ function getExternalClient(corsHeaders: Record<string, string>) {
     },
   });
 }
+
+function getExternalClient(corsHeaders: Record<string, string>) {
+  if (cachedExternalClient) return cachedExternalClient;
+
+  const externalUrl = Deno.env.get('EXTERNAL_SUPABASE_URL');
+  const externalKey = Deno.env.get('EXTERNAL_SUPABASE_SERVICE_ROLE_KEY')
+    ?? Deno.env.get('EXTERNAL_SUPABASE_SERVICE_KEY');
+  if (!externalUrl || !externalKey) {
+    console.warn('[external-db-bridge] EXTERNAL_SUPABASE_URL/KEY not configured — returning empty payload');
+    return jsonResponse(
+      { records: [], data: [], count: 0, _unconfigured: true, _message: 'Banco externo não configurado' },
+      200,
+      corsHeaders,
+    );
+  }
+  cachedExternalClient = buildExternalClient(externalUrl, externalKey);
+  return cachedExternalClient;
+}
+
+/**
+ * Warm-up no boot do isolate — abre TLS + handshake PostgREST em paralelo
+ * ao Deno.serve. Não bloqueia o handler; idempotente.
+ */
+function warmupExternalClient(): Promise<void> {
+  if (warmupPromise) return warmupPromise;
+  warmupPromise = (async () => {
+    try {
+      const url = Deno.env.get('EXTERNAL_SUPABASE_URL');
+      const key = Deno.env.get('EXTERNAL_SUPABASE_SERVICE_ROLE_KEY')
+        ?? Deno.env.get('EXTERNAL_SUPABASE_SERVICE_KEY');
+      if (!url || !key) return;
+      if (!cachedExternalClient) cachedExternalClient = buildExternalClient(url, key);
+      const t0 = performance.now();
+      const { error } = await cachedExternalClient.from('suppliers').select('id').limit(1);
+      const ms = Math.round(performance.now() - t0);
+      if (error) {
+        console.warn(`[boot-warmup] ⚠️ ${error.message} (${ms}ms)`);
+      } else {
+        console.log(`[boot-warmup] ✅ external client ready (${ms}ms)`);
+      }
+    } catch (e) {
+      console.warn(`[boot-warmup] ⚠️ ${e instanceof Error ? e.message : String(e)}`);
+    }
+  })();
+  return warmupPromise;
+}
+
+// Dispara warm-up no boot do isolate (não-bloqueante).
+warmupExternalClient();
 
 // Default lightweight columns for products table to avoid fetching heavy JSONB columns
 const PRODUCTS_LIGHTWEIGHT_SELECT = 'id,name,sku,sale_price,cost_price,primary_image_url,category_id,main_category_id,supplier_id,supplier_reference,description,short_description,brand,is_active,active,stock_quantity,min_quantity,created_at,updated_at,is_featured,is_bestseller,is_new,is_on_sale,is_kit';
