@@ -34,6 +34,8 @@ import { ConnectionTestDetailsDialog } from "./ConnectionTestDetailsDialog";
 import { ConnectionTimelineDrawer } from "./ConnectionTimelineDrawer";
 import { useConsecutiveFailures } from "@/hooks/useConsecutiveFailures";
 import { CONSECUTIVE_FAILURE_THRESHOLD } from "@/lib/connections-config";
+import { useSecretsManager } from "@/hooks/useSecretsManager";
+import { ConnectionRowSourceBadge } from "./ConnectionRowSourceBadge";
 
 const TYPE_META: Record<string, { label: string; Icon: typeof Database }> = {
   supabase: { label: "Banco", Icon: Database },
