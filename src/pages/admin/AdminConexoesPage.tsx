@@ -173,6 +173,9 @@ export default function AdminConexoesPage() {
 
           <ZoneCommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
 
+          {/* Faixa de auto-refresh: aparece quando integration_credentials muda no banco (Realtime) */}
+          <CredentialsChangedBanner onRefreshed={handleGlobalRefreshed} />
+
           {/* Filtro global de severidade + toggle "ver como calculamos" */}
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <SeverityFilterToolbar />
