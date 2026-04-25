@@ -4712,6 +4712,7 @@ export type Database = {
         Returns: undefined
       }
       is_admin: { Args: never; Returns: boolean }
+      is_dev: { Args: { _user_id?: string }; Returns: boolean }
       is_dnd_active: { Args: never; Returns: boolean }
       is_kit_collaborator: {
         Args: { _kit_id: string; _user_id: string }
@@ -4726,6 +4727,7 @@ export type Database = {
         Args: { _org_id: string; _user_id: string }
         Returns: boolean
       }
+      is_supervisor_or_above: { Args: { _user_id?: string }; Returns: boolean }
       mark_all_notifications_read: { Args: never; Returns: undefined }
       mark_notification_read: {
         Args: { p_notification_id: string }
@@ -4811,7 +4813,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "manager" | "vendedor"
+      app_role: "admin" | "manager" | "vendedor" | "supervisor" | "dev"
       org_role: "owner" | "admin" | "member"
     }
     CompositeTypes: {
@@ -4940,7 +4942,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "manager", "vendedor"],
+      app_role: ["admin", "manager", "vendedor", "supervisor", "dev"],
       org_role: ["owner", "admin", "member"],
     },
   },
