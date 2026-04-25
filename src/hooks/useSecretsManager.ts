@@ -60,6 +60,65 @@ function normalizeError(raw: unknown, fallback = "Erro desconhecido"): SecretErr
   return { code: "unexpected", message: fallback };
 }
 
+/**
+ * Wrapper único de invoke ao secrets-manager. Garante:
+ *  - request_id propagado via header X-Request-Id (correlação com edge logs)
+ *  - amostra registrada em `secretsManagerCallMetrics` (alimenta o painel de logs admin)
+ *  - status HTTP extraído do FunctionsHttpError quando aplicável
+ *
+ * Retorno espelha `supabase.functions.invoke` mas inclui sempre `requestId`
+ * para que o caller possa exibir/copiar.
+ */
+type InvokeBody = {
+  action: string;
+  /** Nome do secret quando aplicável — usado como `target` na telemetria. */
+  name?: string;
+  [key: string]: unknown;
+};
+
+async function invokeSecretsManager(body: InvokeBody): Promise<{
+  data: { ok?: boolean; secrets?: unknown; history?: unknown; message?: string; [k: string]: unknown } | null;
+  error: { message: string; context?: Response } | null;
+  requestId: string;
+  status?: number;
+}> {
+  const requestId = newRequestId();
+  const startedAt = performance.now();
+  const { data, error } = await supabase.functions.invoke("secrets-manager", {
+    body,
+    headers: { [REQUEST_ID_HEADER]: requestId },
+  });
+  const durationMs = performance.now() - startedAt;
+  const ctx = (error as { context?: Response } | null)?.context;
+  const status = ctx?.status;
+
+  recordSecretsManagerCall({
+    action: body.action,
+    target: body.name,
+    durationMs,
+    ok: !error && !(data && (data as { ok?: boolean }).ok === false),
+    status,
+    errorMessage: error?.message ?? (data && (data as { ok?: boolean }).ok === false
+      ? (typeof (data as { error?: { message?: string } }).error?.message === "string"
+          ? (data as { error: { message: string } }).error.message
+          : undefined)
+      : undefined),
+    errorCode: data && (data as { ok?: boolean }).ok === false
+      ? (typeof (data as { error?: { code?: string } }).error?.code === "string"
+          ? (data as { error: { code: string } }).error.code
+          : undefined)
+      : undefined,
+    requestId,
+  });
+
+  return {
+    data: data as Record<string, unknown> | null,
+    error: error as { message: string; context?: Response } | null,
+    requestId,
+    status,
+  };
+}
+
 export function useSecretsManager() {
   const [secrets, setSecrets] = useState<SecretStatus[]>([]);
   const [isLoading, setIsLoading] = useState(false);
