@@ -111,8 +111,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     const doFetch = async () => {
       try {
-        // Buscar profile e role em paralelo
-        const [profileResult, roleResult] = await Promise.all([
+        // Buscar profile e TODAS as roles em paralelo (usuário pode ter múltiplas, ex: dev+supervisor)
+        const [profileResult, rolesResult] = await Promise.all([
           supabase
             .from("profiles")
             .select("*")
@@ -122,7 +122,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             .from("user_roles")
             .select("role")
             .eq("user_id", userId)
-            .single()
         ]);
 
         if (!mountedRef.current) return;
@@ -146,20 +145,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             });
         }
 
-        if (roleResult.error) {
+        if (rolesResult.error) {
           if (import.meta.env.DEV) {
-            console.error("Error fetching user role:", roleResult.error);
+            console.error("Error fetching user roles:", rolesResult.error);
           }
-          setUserRole("vendedor");
-        } else if (roleResult.data) {
-          setUserRole(roleResult.data.role as AppRole);
+          setUserRoles(["agente"]);
+        } else if (rolesResult.data) {
+          const roles = rolesResult.data.map((r) => r.role as AppRole);
+          setUserRoles(roles.length > 0 ? roles : ["agente"]);
         }
       } catch (error) {
         if (import.meta.env.DEV) {
           console.error("Error fetching user data:", error);
         }
         if (mountedRef.current) {
-          setUserRole("vendedor");
+          setUserRoles(["agente"]);
         }
       } finally {
         fetchPromiseRef.current = null;
