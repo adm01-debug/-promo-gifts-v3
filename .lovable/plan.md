@@ -82,3 +82,14 @@ Em `src/lib/queryClient.ts` (ou onde o `QueryClient` é instanciado), atualizar 
 - Em cold start do Cloud, o catálogo aguarda o status virar `healthy` antes de disparar 4 queries paralelas (zero 503 em cascata).
 - Usuário vê feedback visual em até 1s quando o backend está degradado.
 - Erros de "backend indisponível" passam a ser categorizados (`CloudNotReadyError`) ao invés de timeouts genéricos.
+## ✅ Implementado (cloud-status gate + retries)
+
+- `src/lib/cloud-status.ts`: sondador unificado (auth + bridge + REST), estados `healthy|warming|degraded|down`, cache 15s, EventTarget broadcast, `ensureCloudReady()` e `CloudNotReadyError`.
+- `src/hooks/useCloudStatus.ts`: hook com polling adaptativo (60s healthy, 5→10→15s warming/degraded, parada automática em 30s para `down`).
+- `src/components/system/CloudStatusBanner.tsx`: banner sticky com tokens semânticos e botão de retry para `down`.
+- `src/lib/external-db/invoke.ts`: gate best-effort (só bloqueia se cache indica `down/degraded`, retornando `CloudNotReadyError`).
+- `src/lib/query-config.ts`: retry policy por tipo de erro (`CLOUD_NOT_READY` → 5x; 5xx → 3x; 4xx → no retry); delay alinhado ao polling.
+- `src/App.tsx`: `<CloudStatusBanner />` montado acima do `<BridgeStatusBanner />`.
+- `tests/lib/cloud-status.test.ts`: 7 testes cobrindo todos os estados, cache e gate.
+
+Validação: 17/17 testes (`cloud-status` + `external-db-invoke`) passam. Cloud atualmente `ACTIVE_HEALTHY`.
