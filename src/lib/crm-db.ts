@@ -8,6 +8,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { logger } from "@/lib/logger";
 import { recordBridgeCall, estimatePayloadBytes } from "@/lib/telemetry/bridgeCallMetrics";
+import { newRequestId, REQUEST_ID_HEADER } from "@/lib/telemetry/requestId";
 
 export interface CrmQuery {
   table: string;
@@ -56,7 +57,16 @@ export async function invokeCrmBatch(queries: CrmBatchQuery[]): Promise<CrmBatch
   const startedAt = performance.now();
   const body = { operation: "batch", queries };
   const reqBytes = estimatePayloadBytes(body);
-  const { data, error } = await supabase.functions.invoke("crm-db-bridge", { body });
+  const requestId = newRequestId();
+  const { data, error } = await supabase.functions.invoke("crm-db-bridge", {
+    body,
+    headers: { [REQUEST_ID_HEADER]: requestId },
+  });
+
+  const serverRequestId =
+    data && typeof data === "object" && "request_id" in data
+      ? String((data as { request_id?: unknown }).request_id ?? "")
+      : undefined;
 
   recordBridgeCall({
     bridge: "crm-db-bridge",
@@ -67,10 +77,12 @@ export async function invokeCrmBatch(queries: CrmBatchQuery[]): Promise<CrmBatch
     respBytes: error ? 0 : estimatePayloadBytes(data),
     ok: !error && !!data?.success,
     errorMessage: error?.message ?? (data?.success ? undefined : data?.error),
+    requestId,
+    serverRequestId: serverRequestId || undefined,
   });
 
   if (error) {
-    console.error("[CRM-DB] Batch error:", error);
+    console.error(`[CRM-DB] Batch error [req_id=${requestId}]:`, error);
     throw new Error(`CRM batch error: ${error.message}`);
   }
 
