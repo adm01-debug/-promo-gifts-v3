@@ -26,11 +26,16 @@ import { ExplainModeToggle } from "@/components/admin/connections/ExplainModeTog
 import { useCallback, useEffect, useState } from "react";
 import { useSecretsManager } from "@/hooks/useSecretsManager";
 import { useSeverityChangeNotifier } from "@/components/admin/connections/useSeverityChangeNotifier";
-import { useZoneVisibility } from "@/components/admin/connections/useZoneVisibility";
+import { useZoneVisibility, type ZoneId } from "@/components/admin/connections/useZoneVisibility";
 import { useZoneCollapse } from "@/components/admin/connections/useZoneCollapse";
 import { ZoneQuickNav } from "@/components/admin/connections/ZoneQuickNav";
 import { HeaderSeveritySummary } from "@/components/admin/connections/HeaderSeveritySummary";
 import { ZoneRefreshButton } from "@/components/admin/connections/ZoneRefreshButton";
+import {
+  ZoneCommandPalette,
+  useZoneCommandPaletteShortcut,
+} from "@/components/admin/connections/ZoneCommandPalette";
+import { ZoneCommandTrigger } from "@/components/admin/connections/ZoneCommandTrigger";
 
 /**
  * /admin/conexoes — Hub Central de Integrações
@@ -49,6 +54,7 @@ export default function AdminConexoesPage() {
   const [refreshTick, setRefreshTick] = useState(0);
   const { visible, toggle, showAll, isolateZone, hiddenCount } = useZoneVisibility();
   const { collapsed, toggle: toggleCollapse, expand: expandZone } = useZoneCollapse();
+  const { open: paletteOpen, setOpen: setPaletteOpen } = useZoneCommandPaletteShortcut();
   const [highlightZone, setHighlightZone] = useState<string | null>(null);
   useEffect(() => { list(); }, [list]);
   // Toast automático em escaladas P0/P1 — com confirmação para não repetir
@@ -58,7 +64,7 @@ export default function AdminConexoesPage() {
   // reabre a zona se estiver oculta, rola até ela e aplica highlight 1.8s.
   useEffect(() => {
     const handler = (e: Event) => {
-      const detail = (e as CustomEvent<{ zone: "health" | "operation"; anchorId: string }>).detail;
+      const detail = (e as CustomEvent<{ zone: ZoneId; anchorId: string }>).detail;
       if (!detail) return;
       const { zone, anchorId } = detail;
       // Reabre zona se estiver oculta
@@ -107,9 +113,12 @@ export default function AdminConexoesPage() {
               </p>
             </div>
             <HeaderSeveritySummary className="mr-1 hidden sm:inline-flex" />
+            <ZoneCommandTrigger onOpen={() => setPaletteOpen(true)} />
             <GlobalRefreshFromDbButton onRefreshed={handleGlobalRefreshed} />
             <SmokeTestChecklist availableSecrets={secrets} />
           </header>
+
+          <ZoneCommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
 
           {/* Filtro global de severidade + toggle "ver como calculamos" */}
           <div className="flex items-center justify-between gap-3 flex-wrap">
