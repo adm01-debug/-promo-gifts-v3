@@ -220,13 +220,19 @@ export function CredentialsSourceIndicator({ secrets, isLoading, onRefresh, clas
                   DB · {counts.db}
                 </Badge>
               </TooltipTrigger>
-              <TooltipContent side="top" className="max-w-xs text-xs space-y-1">
-                <p className="font-semibold">Origem: banco (SSOT)</p>
+              <TooltipContent side="top" className="max-w-sm text-xs space-y-1.5">
+                <p className="font-semibold">Origem: banco (SSOT) — {counts.db}</p>
                 <p>
                   Valor persistido em{" "}
                   <code className="font-mono">integration_credentials</code> e
                   resolvido pelo <code className="font-mono">secrets-manager</code>.
                 </p>
+                <div className="border-t pt-1.5">
+                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1">
+                    Secrets contribuintes
+                  </p>
+                  {renderNameList(grouped.db, "success")}
+                </div>
                 <p className="text-muted-foreground">
                   ✅ Nada a fazer — auditável, rotacionável e versionado pelo painel.
                 </p>
