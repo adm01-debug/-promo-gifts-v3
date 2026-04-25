@@ -65,6 +65,9 @@ const ColdStartRetriesPanel = lazy(() =>
 const BridgesLiveCard = lazy(() =>
   import('@/components/admin/telemetry/BridgesLiveCard').then((m) => ({ default: m.BridgesLiveCard })),
 );
+const BridgeAlertsCard = lazy(() =>
+  import('@/components/admin/telemetry/BridgeAlertsCard').then((m) => ({ default: m.BridgeAlertsCard })),
+);
 const ColdVsWarmCrmCard = lazy(() =>
   import('@/components/admin/telemetry/ColdVsWarmCrmCard').then((m) => ({ default: m.ColdVsWarmCrmCard })),
 );
@@ -185,6 +188,11 @@ export default function AdminTelemetriaPage() {
         {/* Telemetria client-side ao vivo das chamadas às bridges (external/CRM) */}
         <Suspense fallback={<CardSkeleton height={260} label="Carregando telemetria das bridges" />}>
           <BridgesLiveCard />
+        </Suspense>
+
+        {/* Alertas configuráveis por bridge — limiares de p95 e payload */}
+        <Suspense fallback={<CardSkeleton height={200} label="Carregando alertas das bridges" />}>
+          <BridgeAlertsCard />
         </Suspense>
 
         {/* Cold vs Warm path do isolate atual do crm-db-bridge (poll ?op=diag) */}
