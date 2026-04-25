@@ -70,7 +70,7 @@ export async function pingHealth(timeoutMs = 2500): Promise<BridgeHealth> {
  *
  * @param totalTimeoutMs orçamento total de espera (default 8s)
  */
-export async function waitForBridgeReady(totalTimeoutMs = 8000): Promise<BridgeHealth> {
+export async function waitForBridgeReady(totalTimeoutMs = 5000): Promise<BridgeHealth> {
   // Cache hit — bridge já confirmado quente recentemente.
   if (Date.now() - lastReadyAt < READY_CACHE_MS) {
     return { ok: true, ms: 0 };
@@ -86,15 +86,20 @@ export async function waitForBridgeReady(totalTimeoutMs = 8000): Promise<BridgeH
     while (performance.now() - start < totalTimeoutMs) {
       attempt++;
       const remaining = totalTimeoutMs - (performance.now() - start);
-      const perAttempt = Math.min(2500, Math.max(800, remaining));
+      // Ping curto (1.2s default) — boot warm responde em <250ms; budget restante
+      // funciona como teto. Não precisamos de 2.5s por tentativa.
+      const perAttempt = Math.min(1200, Math.max(600, remaining));
       last = await pingHealth(perAttempt);
       if (last.ok) {
         logger.log(`[Health] ✅ bridge ready in ${Math.round(performance.now() - start)}ms (${attempt}x)`);
         return last;
       }
-      // Backoff: 150 → 300 → 600 → 800 → 800 (cap 800ms).
-      // Mais agressivo no início para capitalizar warm-up de boot (~50–250ms).
-      const delay = Math.min(800, 150 * Math.pow(2, attempt - 1));
+      // Backoff acelerado: 80 → 160 → 320 → 500 → 500 (cap 500ms) com jitter ±20%.
+      // Cap menor (era 800ms) acelera a detecção pós-warm sem aumentar carga:
+      // mesmo no pior caso (5 tentativas) ainda são apenas 5 pings totais.
+      const base = Math.min(500, 80 * Math.pow(2, attempt - 1));
+      const jitter = base * (0.8 + Math.random() * 0.4); // 0.8x–1.2x
+      const delay = Math.round(jitter);
       if (performance.now() - start + delay >= totalTimeoutMs) break;
       await new Promise((r) => setTimeout(r, delay));
     }
