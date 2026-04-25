@@ -111,6 +111,7 @@ export default function AdminConexoesPage() {
           )}
 
           {/* ZONA 2 — OPERATION */}
+          {visible.operation && (
           <ZoneSection
             id="zone-operation"
             icon={Settings2}
@@ -124,8 +125,10 @@ export default function AdminConexoesPage() {
             </div>
             <AutoTestJobStatusCard />
           </ZoneSection>
+          )}
 
           {/* ZONA 3 — CONNECTIONS */}
+          {visible.connections && (
           <ZoneSection
             id="zone-connections"
             icon={Network}
@@ -157,6 +160,7 @@ export default function AdminConexoesPage() {
               <TabsContent value="webhooks"><WebhooksTab /></TabsContent>
             </Tabs>
           </ZoneSection>
+          )}
         </div>
       </div>
     </CredentialsSourceFilterProvider>
