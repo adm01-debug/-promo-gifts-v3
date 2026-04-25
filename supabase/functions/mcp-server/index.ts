@@ -69,8 +69,15 @@ async function audit(
   action: "mcp_tool.granted" | "mcp_tool.denied" | "mcp_tool.error",
   ctx: AuthCtx | null,
   details: Record<string, unknown>,
+  opts: {
+    status: "success" | "denied" | "error";
+    payloadSummary?: Record<string, unknown>;
+  },
 ) {
   try {
+    const finishedAt = new Date().toISOString();
+    const startedAt = ctx?.startedAt ?? finishedAt;
+    const duration = ctx ? Date.now() - ctx.startedMs : 0;
     await supabase.from("admin_audit_log").insert({
       user_id: null,
       action,
@@ -78,10 +85,16 @@ async function audit(
       resource_id: ctx?.keyId ?? null,
       ip_address: ctx?.ip ?? null,
       user_agent: ctx?.ua ?? null,
+      request_id: ctx?.requestId ?? null,
+      started_at: startedAt,
+      finished_at: finishedAt,
+      duration_ms: duration,
+      status: opts.status,
+      payload_summary: opts.payloadSummary ?? {},
+      source: SOURCE,
       details: {
         ...details,
         is_full_access: ctx?.isFull ?? false,
-        source: "mcp-server",
       },
     });
   } catch (_) {
