@@ -25,6 +25,23 @@ const PREWARM_TABLES = [
 
 let lastPrewarmAt = 0;
 const PREWARM_COOLDOWN_MS = 5 * 60 * 1000; // 5 minutos entre pre-warms
+const SESSION_KEY = '__pg_prewarm_done__';
+
+/**
+ * Acorda o crm-db-bridge em paralelo (cold start ~80–250ms).
+ * Mesma estratégia: ping leve via OPTIONS, falha silenciosa.
+ */
+async function pingCrmBridge(): Promise<{ ok: boolean; ms: number }> {
+  const t0 = performance.now();
+  try {
+    const { error } = await supabase.functions.invoke('crm-db-bridge', {
+      body: { table: 'companies', operation: 'select', select: 'id', limit: 1, countMode: 'none' },
+    });
+    return { ok: !error, ms: Math.round(performance.now() - t0) };
+  } catch {
+    return { ok: false, ms: Math.round(performance.now() - t0) };
+  }
+}
 
 /**
  * Acorda a edge function via health-check compartilhado (`waitForBridgeReady`).
@@ -61,9 +78,29 @@ async function warmTable(table: string): Promise<{ table: string; ok: boolean; m
   }
 }
 
-export async function prewarmExternalDb() {
+/**
+ * Opções do prewarm.
+ *  - `force`: ignora cooldown E sessionStorage (uso interno/debug)
+ *  - `oncePerSession`: respeita flag em sessionStorage (default true). Quando true,
+ *    o prewarm dispara no máximo 1x por sessão de browser — ideal para gatilho
+ *    no login. Outros call-sites (ex.: navegação) devem passar `false`.
+ */
+export async function prewarmExternalDb(opts: { force?: boolean; oncePerSession?: boolean } = {}) {
+  const { force = false, oncePerSession = false } = opts;
+
+  if (!force && oncePerSession) {
+    try {
+      if (sessionStorage.getItem(SESSION_KEY) === '1') {
+        logger.log('[Prewarm] Skipped — already done this session');
+        return;
+      }
+    } catch {
+      // sessionStorage indisponível (SSR/private mode) — segue adiante
+    }
+  }
+
   const now = Date.now();
-  if (now - lastPrewarmAt < PREWARM_COOLDOWN_MS) {
+  if (!force && now - lastPrewarmAt < PREWARM_COOLDOWN_MS) {
     logger.log('[Prewarm] Skipped — cooldown active');
     return;
   }
@@ -88,8 +125,11 @@ export async function prewarmExternalDb() {
     return;
   }
 
-  // 2) Isolate confirmadamente quente — dispara todas as tabelas em paralelo
-  const results = await Promise.allSettled(PREWARM_TABLES.map(warmTable));
+  // 2) Isolate confirmadamente quente — dispara tabelas + crm-bridge EM PARALELO
+  const [crmPing, ...results] = await Promise.allSettled([
+    pingCrmBridge(),
+    ...PREWARM_TABLES.map(warmTable),
+  ]);
 
   const totalMs = Math.round(performance.now() - totalStart);
   let okCount = 0;
@@ -110,7 +150,31 @@ export async function prewarmExternalDb() {
     }
   }
 
+  const crmInfo =
+    crmPing.status === 'fulfilled'
+      ? `crm=${crmPing.value.ok ? '✅' : '⚠️'} (${crmPing.value.ms}ms)`
+      : 'crm=⚠️ rejected';
+
+  // Marca a sessão como aquecida — evita prewarm duplicado se outro gatilho disparar
+  try {
+    sessionStorage.setItem(SESSION_KEY, '1');
+  } catch {
+    /* ignore */
+  }
+
   logger.log(
-    `[Prewarm] Done in ${totalMs}ms — ping=${ping.ms}ms (${ping.attempts}x) ok=${okCount} fail=${failCount} (parallel; was ~5000ms sequential)`,
+    `[Prewarm] Done in ${totalMs}ms — ping=${ping.ms}ms (${ping.attempts}x) ${crmInfo} external_ok=${okCount} fail=${failCount}`,
   );
+}
+
+/**
+ * Limpa o flag de sessão. Útil em logout para garantir prewarm no próximo login.
+ */
+export function resetPrewarmSession() {
+  try {
+    sessionStorage.removeItem(SESSION_KEY);
+  } catch {
+    /* ignore */
+  }
+  lastPrewarmAt = 0;
 }

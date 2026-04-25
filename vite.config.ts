@@ -73,7 +73,10 @@ export default defineConfig(({ mode }) => ({
           if (id.includes('node_modules/recharts/') || id.includes('node_modules/d3-')) {
             return 'charts-vendor';
           }
-          // Icons — split into separate chunk to allow tree shaking per-route
+          // Icons — chunk único compartilhado entre rotas (cache de longo prazo).
+          // 680KB descomprimido / 118KB gzip carregado UMA vez por usuário.
+          // Otimização futura: migrar para imports `lucide-react/icons/<Name>`
+          // permitiria tree-shaking real por page-chunk.
           if (id.includes('node_modules/lucide-react/')) {
             return 'icons-vendor';
           }
