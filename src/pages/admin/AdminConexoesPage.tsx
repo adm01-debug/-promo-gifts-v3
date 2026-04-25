@@ -113,9 +113,12 @@ export default function AdminConexoesPage() {
               </p>
             </div>
             <HeaderSeveritySummary className="mr-1 hidden sm:inline-flex" />
+            <ZoneCommandTrigger onOpen={() => setPaletteOpen(true)} />
             <GlobalRefreshFromDbButton onRefreshed={handleGlobalRefreshed} />
             <SmokeTestChecklist availableSecrets={secrets} />
           </header>
+
+          <ZoneCommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
 
           {/* Filtro global de severidade + toggle "ver como calculamos" */}
           <div className="flex items-center justify-between gap-3 flex-wrap">
