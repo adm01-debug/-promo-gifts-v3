@@ -74,8 +74,12 @@ function emit() {
  */
 const SAMPLE_SIZE = 10;
 
+import { isInstrumentationPaused } from './instrumentationControl';
+
 export function estimatePayloadBytes(value: unknown): number {
   if (value == null) return 0;
+  // Kill-switch: evita stringify mesmo amostrado quando o dev pausou.
+  if (isInstrumentationPaused()) return 0;
   try {
     if (typeof value === 'string') return value.length;
     // Heurística para arrays grandes (caso comum: { records: [...] }).
