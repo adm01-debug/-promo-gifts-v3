@@ -93,7 +93,11 @@ describe("ZoneCommandPalette — interação", () => {
     const onOpenChange = vi.fn();
     render(<ZoneCommandPalette open onOpenChange={onOpenChange} />);
 
-    const operationItem = screen.getByRole("option", { name: /zona Operação/i });
+    // O grupo "Ir para zona" usa value="zona Operação".
+    const operationItem = screen
+      .getAllByRole("option")
+      .find((el) => el.getAttribute("data-value") === "zona operação")!;
+    expect(operationItem).toBeDefined();
     fireEvent.click(operationItem);
 
     const focusEvents = dispatchSpy.mock.calls
@@ -114,7 +118,10 @@ describe("ZoneCommandPalette — interação", () => {
     render(<ZoneCommandPalette open onOpenChange={() => {}} />);
 
     // Webhooks pertence à zona "connections".
-    const webhookItem = screen.getByRole("option", { name: /Webhooks/i });
+    const webhookItem = screen
+      .getAllByRole("option")
+      .find((el) => /webhooks/i.test(el.getAttribute("data-value") ?? ""))!;
+    expect(webhookItem).toBeDefined();
     fireEvent.click(webhookItem);
 
     const focusEvent = dispatchSpy.mock.calls
