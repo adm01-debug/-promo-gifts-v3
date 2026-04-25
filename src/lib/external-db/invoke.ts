@@ -55,9 +55,13 @@ export async function extractFunctionErrorMessage(error: unknown): Promise<strin
         const raw = await maybeContext.context.clone().text();
         if (raw) {
           try {
-            const parsed = JSON.parse(raw) as { error?: string; details?: string; hint?: string };
-            const detailed = [parsed.error, parsed.details, parsed.hint].filter(Boolean).join(' | ');
-            if (detailed) return detailed;
+            const parsed = JSON.parse(raw) as {
+              error?: string; details?: string; hint?: string;
+              message?: string; code?: string;
+            };
+            const detailed = [parsed.error, parsed.code, parsed.message, parsed.details, parsed.hint]
+              .filter(Boolean).join(' | ');
+            if (detailed) return `${error.message} | ${detailed}`;
           } catch {
             return `${error.message} | ${raw}`;
           }
