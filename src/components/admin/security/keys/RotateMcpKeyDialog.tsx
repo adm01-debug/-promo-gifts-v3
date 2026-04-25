@@ -23,6 +23,7 @@ import {
   FULL_SCOPE_CONFIRMATION,
   FULL_SCOPE_MIN_JUSTIFICATION,
 } from "@/lib/mcp/scopes";
+import { StepUpAuthDialog } from "@/components/auth/StepUpAuthDialog";
 import type { McpKeyRow } from "./useMcpKeys";
 
 interface Props {
@@ -37,12 +38,14 @@ export function RotateMcpKeyDialog({ source, open, onOpenChange, onRotated }: Pr
   const [confirmation, setConfirmation] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [generated, setGenerated] = useState<string | null>(null);
+  const [stepUpOpen, setStepUpOpen] = useState(false);
 
   const reset = () => {
     setJustification("");
     setConfirmation("");
     setGenerated(null);
     setSubmitting(false);
+    setStepUpOpen(false);
   };
 
   const handleOpenChange = (v: boolean) => {
@@ -50,18 +53,9 @@ export function RotateMcpKeyDialog({ source, open, onOpenChange, onRotated }: Pr
     onOpenChange(v);
   };
 
-  const submit = async () => {
+  /** Faz o POST para a edge function. Para FULL, exige token de step-up. */
+  const performRotate = async (stepUpToken?: string) => {
     if (!source) return;
-    if (source.is_full) {
-      if (justification.trim().length < FULL_SCOPE_MIN_JUSTIFICATION) {
-        toast.error(`Justificativa precisa de ao menos ${FULL_SCOPE_MIN_JUSTIFICATION} caracteres.`);
-        return;
-      }
-      if (confirmation !== FULL_SCOPE_CONFIRMATION) {
-        toast.error(`Digite "${FULL_SCOPE_CONFIRMATION}" para confirmar.`);
-        return;
-      }
-    }
     setSubmitting(true);
     try {
       const { data, error } = await supabase.functions.invoke("mcp-keys-rotate", {
@@ -69,6 +63,7 @@ export function RotateMcpKeyDialog({ source, open, onOpenChange, onRotated }: Pr
           source_key_id: source.id,
           justification: source.is_full ? justification.trim() : null,
           confirmation_phrase: source.is_full ? confirmation : null,
+          step_up_token: stepUpToken ?? null,
         },
       });
       if (error) {
@@ -85,6 +80,24 @@ export function RotateMcpKeyDialog({ source, open, onOpenChange, onRotated }: Pr
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const submit = async () => {
+    if (!source) return;
+    if (source.is_full) {
+      if (justification.trim().length < FULL_SCOPE_MIN_JUSTIFICATION) {
+        toast.error(`Justificativa precisa de ao menos ${FULL_SCOPE_MIN_JUSTIFICATION} caracteres.`);
+        return;
+      }
+      if (confirmation !== FULL_SCOPE_CONFIRMATION) {
+        toast.error(`Digite "${FULL_SCOPE_CONFIRMATION}" para confirmar.`);
+        return;
+      }
+      // Step-up obrigatório para chaves FULL: senha + OTP por e-mail
+      setStepUpOpen(true);
+      return;
+    }
+    await performRotate();
   };
 
   const copy = (s: string) => {
