@@ -73,7 +73,7 @@ export function DataSourceDebugTab() {
     setExtError(null);
     const { data, error } = await supabase
       .from("external_connections")
-      .select("id,name,type,status,last_test_at,updated_at")
+      .select("id,name,type,status,env_key,last_test_at,updated_at")
       .order("updated_at", { ascending: false });
     if (error) {
       setExtError(error.message);
