@@ -202,19 +202,25 @@ export function ConnectionsIncidentStrip() {
           </button>
         </header>
         {!collapsed && (
-          <div
-            id="incident-strip-list"
-            className="flex gap-2 p-2 overflow-x-auto snap-x snap-mandatory scrollbar-thin"
-          >
-            {visible.map((incident) => (
-              <IncidentCard
-                key={incident.id}
-                incident={incident}
-                onDismiss={dismiss}
-                onOpen={setOpenIncident}
-              />
-            ))}
-          </div>
+          visible.length === 0 ? (
+            <p className="px-3 py-3 text-[11px] text-muted-foreground italic">
+              Nenhum incidente corresponde ao filtro <span className="font-mono not-italic font-semibold">{filter}</span> no momento.
+            </p>
+          ) : (
+            <div
+              id="incident-strip-list"
+              className="flex gap-2 p-2 overflow-x-auto snap-x snap-mandatory scrollbar-thin"
+            >
+              {visible.map((incident) => (
+                <IncidentCard
+                  key={incident.id}
+                  incident={incident}
+                  onDismiss={dismiss}
+                  onOpen={setOpenIncident}
+                />
+              ))}
+            </div>
+          )
         )}
       </section>
       <IncidentDetailsDrawer
