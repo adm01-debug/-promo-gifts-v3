@@ -34,6 +34,8 @@ import { ConnectionTestDetailsDialog } from "./ConnectionTestDetailsDialog";
 import { ConnectionTimelineDrawer } from "./ConnectionTimelineDrawer";
 import { useConsecutiveFailures } from "@/hooks/useConsecutiveFailures";
 import { CONSECUTIVE_FAILURE_THRESHOLD } from "@/lib/connections-config";
+import { useSecretsManager } from "@/hooks/useSecretsManager";
+import { ConnectionRowSourceBadge } from "./ConnectionRowSourceBadge";
 
 const TYPE_META: Record<string, { label: string; Icon: typeof Database }> = {
   supabase: { label: "Banco", Icon: Database },
@@ -126,6 +128,8 @@ interface ConnectionsOverviewTableProps {
 
 export function ConnectionsOverviewTable({ refreshSignal }: ConnectionsOverviewTableProps = {}) {
   const { rows, loading, refreshing, refresh, patchRow } = useConnectionsOverview(30000);
+  const { secrets, list: refreshSecrets } = useSecretsManager();
+  useEffect(() => { refreshSecrets(); }, [refreshSecrets]);
 
   // External refresh trigger
   const lastSignalRef = useRef<number | undefined>(refreshSignal);
@@ -372,6 +376,16 @@ export function ConnectionsOverviewTable({ refreshSignal }: ConnectionsOverviewT
                 <TableRow>
                   <TableHead className="w-[110px]">Tipo</TableHead>
                   <TableHead>Nome</TableHead>
+                  <TableHead className="w-[90px]">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="cursor-help underline decoration-dotted underline-offset-2">Origem</span>
+                      </TooltipTrigger>
+                      <TooltipContent side="top">
+                        <p className="text-xs max-w-[260px]">De onde vêm as credenciais EXTERNAL_*: <strong>DB</strong> (banco, auditável), <strong>ENV</strong> (variável de ambiente, sem rotação) ou <strong>—</strong> (não configurado).</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TableHead>
                   <TableHead className="w-[140px]">Status</TableHead>
                   <TableHead className="w-[150px]">Última verificação</TableHead>
                   <TableHead className="w-[110px]">Falhas seguidas</TableHead>
@@ -421,6 +435,9 @@ export function ConnectionsOverviewTable({ refreshSignal }: ConnectionsOverviewT
                             {row.env_key}
                           </div>
                         )}
+                      </TableCell>
+                      <TableCell>
+                        <ConnectionRowSourceBadge envKey={row.env_key ?? null} secrets={secrets} />
                       </TableCell>
                       <TableCell>
                         {isTesting ? (
