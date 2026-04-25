@@ -5,6 +5,7 @@ import { Database, ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ConnectionStatusBadge } from "./ConnectionStatusBadge";
 import { resolveSupabaseConnectionStatus } from "./connectionStatus";
+import { CardSourceDiagnostic } from "./CardSourceDiagnostic";
 import { SecretField } from "./SecretField";
 import { useSecretsManager } from "@/hooks/useSecretsManager";
 import { useConnectionTester } from "@/hooks/useConnectionTester";
