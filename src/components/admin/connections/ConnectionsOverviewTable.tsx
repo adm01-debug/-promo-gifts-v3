@@ -376,6 +376,16 @@ export function ConnectionsOverviewTable({ refreshSignal }: ConnectionsOverviewT
                 <TableRow>
                   <TableHead className="w-[110px]">Tipo</TableHead>
                   <TableHead>Nome</TableHead>
+                  <TableHead className="w-[90px]">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="cursor-help underline decoration-dotted underline-offset-2">Origem</span>
+                      </TooltipTrigger>
+                      <TooltipContent side="top">
+                        <p className="text-xs max-w-[260px]">De onde vêm as credenciais EXTERNAL_*: <strong>DB</strong> (banco, auditável), <strong>ENV</strong> (variável de ambiente, sem rotação) ou <strong>—</strong> (não configurado).</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TableHead>
                   <TableHead className="w-[140px]">Status</TableHead>
                   <TableHead className="w-[150px]">Última verificação</TableHead>
                   <TableHead className="w-[110px]">Falhas seguidas</TableHead>
