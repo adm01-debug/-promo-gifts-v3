@@ -151,10 +151,6 @@ Deno.serve(async (req) => {
         ...r,
         rotated_by_email: r.rotated_by ? emailMap.get(r.rotated_by) ?? null : null,
       }));
-      const enriched = rows.map((r) => ({
-        ...r,
-        rotated_by_email: r.rotated_by ? emailMap.get(r.rotated_by) ?? null : null,
-      }));
 
       return new Response(JSON.stringify({ ok: true, history: enriched }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
