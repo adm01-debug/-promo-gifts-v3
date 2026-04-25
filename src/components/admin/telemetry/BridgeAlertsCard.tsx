@@ -67,7 +67,7 @@ export function BridgeAlertsCard() {
     }
     // Remove chaves resolvidas para que voltem a alertar caso reincidam
     const active = new Set(alerts.map(a => a.key));
-    for (const k of [...seenRef.current]) {
+    for (const k of Array.from(seenRef.current)) {
       if (!active.has(k)) seenRef.current.delete(k);
     }
   }, [alerts, thresholds]);
