@@ -1,29 +1,42 @@
-## Mudança única e cirúrgica
+# Corrigir card "Sem credenciais" no /admin/conexoes
 
-Em `src/lib/external-db/invoke.ts`, tornar o prefixo de contexto **obrigatório** na regex de detecção de HTTP determinístico, para eliminar falsos positivos em IDs com hífens.
+## Diagnóstico
 
-### Antes
+A arquitetura **já está correta** — o card lê de `integration_credentials` (a tabela que você apontou) via a edge function `secrets-manager`. O problema é um **bug de código** que quebra a função inteira:
+
+**Arquivo:** `supabase/functions/secrets-manager/index.ts` (linhas 150‑157)
+
 ```ts
-const NON_RETRYABLE_HTTP_RE = /\b(?:returned\s+|status[: ]|http[:/ ])?(400|401|403)\b/i;
+const enriched = rows.map((r) => ({...}));   // linha 150
+const enriched = rows.map((r) => ({...}));   // linha 154 — REDECLARADO
 ```
-O `?` torna o prefixo opcional → `\b401\b` casa em `abc-401-xyz` (hífen é word boundary).
 
-### Depois
-```ts
-const NON_RETRYABLE_HTTP_RE = /(?:returned\s+|status[: ]\s*|http[:/ ])(400|401|403)\b/i;
-```
-Prefixo obrigatório (`returned `, `status:`, `status `, `http/`, `http:`, `http `). Mensagens reais da edge function (`"Edge function returned 400"`, `"status: 401"`, `"http/403"`) continuam sendo fail-fast; IDs/UUIDs/slugs com `400/401/403` deixam de disparar o classifier.
+Variável `enriched` declarada **duas vezes** no mesmo escopo → erro TypeScript em runtime → função não inicializa → frontend recebe erro → `secrets` fica array vazio → todos os campos viram "Não configurado".
 
-## Impacto
+Isso também explica os 503 `SUPABASE_EDGE_RUNTIME_ERROR` que aparecem no `secrets-manager` (cold start falhando).
 
-- 503 e cold-start → continuam retentáveis (regra já vencia tudo).
-- HTTP 400/401/403 vindos da plataforma → continuam fail-fast (todos os formatos reais têm prefixo).
-- IDs como `abc-401-xyz` ou UUIDs `400e1234-...` → não são mais classificados como non-retryable falso.
+## Correção (1 arquivo, ~3 linhas)
 
-## Atualização de teste
+**`supabase/functions/secrets-manager/index.ts`**
+- Remover o bloco duplicado das linhas 154‑157.
+- Manter apenas a primeira declaração de `enriched`.
 
-Em `tests/lib/external-db-invoke.test.ts`, fortalecer o caso `"Dígitos colados em palavra"` para também cobrir o cenário com hífen (`abc-401-xyz`), confirmando que **agora** segue o fluxo normal sem fail-fast falso.
+## Validação pós-fix
 
-## Validação
+1. Abrir `/admin/conexoes`.
+2. Card "Catálogo Promobrind" deve mostrar:
+   - Status: **Ativo** (badge verde)
+   - URL do projeto: `••••••••e.co` (40 chars)
+   - Anon Key: `••••••••QvPc` (208 chars)
+   - Service Role Key: `••••••••68N8` (219 chars)
+3. Card "CRM Promobrind" deve mostrar os 3 campos `EXTERNAL_CRM_*` preenchidos.
+4. Botão "Testar conexão" deve ficar habilitado.
+5. Sem alterações em `external_connections` (essa tabela é só para metadados de teste/histórico, não para credenciais).
 
-Rodar `bunx vitest run tests/lib/external-db-invoke.test.ts tests/lib/external-db-immutable-cache.test.ts` e confirmar 33/33 passando (0 regressão).
+## Por que não preencher `external_connections`?
+
+A separação atual é **correta por design**:
+- `integration_credentials` = segredos (com RLS admin-only, mascaramento, rotation log)
+- `external_connections` = metadados visuais (último teste, latência, status agregado)
+
+Misturar os dois reduziria a segurança. A UI só precisa que o `secrets-manager` volte a funcionar.
