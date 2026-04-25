@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Database, ExternalLink } from "lucide-react";
+import { Database, ExternalLink, Eye } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ConnectionStatusBadge } from "./ConnectionStatusBadge";
 import { resolveSupabaseConnectionStatus } from "./connectionStatus";
@@ -19,6 +19,7 @@ import { hasSuspiciousLength, getPreflightIssues } from "./secretValidators";
 import { ConnectionPreflightAlert } from "./ConnectionPreflightAlert";
 import { TestProgressIndicator, type TestProgressPhase } from "./TestProgressIndicator";
 import { RetestCooldownSelector } from "./RetestCooldownSelector";
+import { ConnectionDetailsDialog } from "./ConnectionDetailsDialog";
 
 const ENVS = [
   {
@@ -54,6 +55,7 @@ export function SupabaseConnectionsTab() {
   const [phaseByEnv, setPhaseByEnv] = useState<Record<string, TestProgressPhase>>({});
   const [pendingByEnv, setPendingByEnv] = useState<Record<string, string | null>>({});
   const [timelineOpenByEnv, setTimelineOpenByEnv] = useState<Record<string, boolean>>({});
+  const [overviewOpenByEnv, setOverviewOpenByEnv] = useState<Record<string, boolean>>({});
 
   useEffect(() => { list(); }, [list]);
 
@@ -175,6 +177,14 @@ export function SupabaseConnectionsTab() {
                       onOpenChange={(v) => setTimelineOpenByEnv((cur) => ({ ...cur, [env.key]: v }))}
                     />
                     <RefreshFromDbButton onRefreshed={list} />
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setOverviewOpenByEnv((cur) => ({ ...cur, [env.key]: true }))}
+                      title="Ver status, máscara e última rotação sem expor segredos"
+                    >
+                      <Eye className="h-4 w-4 mr-1" /> Ver detalhes
+                    </Button>
                     <Button size="sm" variant="ghost" asChild>
                       <Link to="/admin/external-db">
                         <ExternalLink className="h-4 w-4 mr-1" /> Ver schema
@@ -218,6 +228,20 @@ export function SupabaseConnectionsTab() {
                     connectionLabel={env.name}
                     envKey={env.envKey!}
                     onViewFullHistory={() => setTimelineOpenByEnv((cur) => ({ ...cur, [env.key]: true }))}
+                  />
+                  <ConnectionDetailsDialog
+                    open={!!overviewOpenByEnv[env.key]}
+                    onOpenChange={(v) => setOverviewOpenByEnv((cur) => ({ ...cur, [env.key]: v }))}
+                    connectionLabel={env.name}
+                    description={env.description}
+                    status={status}
+                    last={last}
+                    fields={[
+                      { label: "URL do projeto", secretName: env.urlSecret!, status: url },
+                      { label: "Anon Key", secretName: env.anonSecret!, status: anon },
+                      { label: "Service Role Key", secretName: env.serviceSecret!, status: svc, sensitive: true },
+                    ]}
+                    onOpenFullHistory={() => setTimelineOpenByEnv((cur) => ({ ...cur, [env.key]: true }))}
                   />
                 </>
               )}
