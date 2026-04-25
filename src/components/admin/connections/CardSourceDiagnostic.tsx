@@ -46,16 +46,31 @@ const SOURCE_META = {
     label: "DB",
     cls: "border-success/40 bg-success/10 text-success",
     description: "integration_credentials",
+    tooltip: {
+      title: "Origem: banco (SSOT)",
+      body: "Valor lido de integration_credentials via secrets-manager. Auditável e rotacionável.",
+      action: "Nada a fazer — basta usar.",
+    },
   },
   env: {
     label: "ENV",
     cls: "border-warning/40 bg-warning/10 text-warning",
     description: "Deno.env (fallback legado)",
+    tooltip: {
+      title: "Origem: variável de ambiente (legado)",
+      body: "Resolvido por Deno.env.get() porque ainda não há registro em integration_credentials.",
+      action: "Edite o campo e clique em Salvar para migrar para o banco.",
+    },
   },
   none: {
     label: "AUSENTE",
     cls: "border-destructive/40 bg-destructive/10 text-destructive",
     description: "não configurado",
+    tooltip: {
+      title: "Sem valor em DB nem em ENV",
+      body: "secrets-manager não encontrou esta credencial em nenhuma fonte. A integração ficará inativa.",
+      action: "Preencha o campo e salve para gravar em integration_credentials.",
+    },
   },
 } as const;
 
