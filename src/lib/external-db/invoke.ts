@@ -4,6 +4,7 @@
  */
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from "@/lib/logger";
+import { emitBridgeStatus, isColdStartSignal } from './bridge-status-events';
 
 const MAX_RETRIES = 3;
 const INITIAL_BACKOFF_MS = 800;
@@ -81,10 +82,14 @@ export async function invokeWithRetry(
   retries = MAX_RETRIES,
   onRetry?: (attempt: number, maxRetries: number, delayMs: number) => void
 ): Promise<{ data: unknown; error: Error | null }> {
+  let sawColdStart = false;
   for (let attempt = 0; attempt <= retries; attempt++) {
     const { data, error } = await supabase.functions.invoke('external-db-bridge', { body });
 
-    if (!error) return { data, error: null };
+    if (!error) {
+      if (sawColdStart) emitBridgeStatus({ type: 'recovered' });
+      return { data, error: null };
+    }
 
     const msg = await extractFunctionErrorMessage(error);
 
@@ -101,10 +106,17 @@ export async function invokeWithRetry(
       const delay = Math.min(base + jitter, 4000);
       logger.warn(`[external-db] Retry ${attempt + 1}/${retries} after ${delay}ms: ${msg}`);
       onRetry?.(attempt + 1, retries, delay);
+      if (isColdStartSignal(msg)) {
+        sawColdStart = true;
+        emitBridgeStatus({ type: 'degraded', attempt: attempt + 1, maxAttempts: retries, delayMs: delay, reason: msg });
+      }
       await new Promise(r => setTimeout(r, delay));
       continue;
     }
 
+    if (isColdStartSignal(msg)) {
+      emitBridgeStatus({ type: 'unavailable', reason: msg, attempts: attempt + 1 });
+    }
     return { data, error };
   }
   return { data: null, error: new Error('Max retries exceeded') };
