@@ -76,6 +76,7 @@ const KitTemplatesMetricsPage = lazyWithRetry(() => import("./pages/admin/KitTem
 const PriceFreshnessSettingsPage = lazyWithRetry(() => import("./pages/admin/PriceFreshnessSettings"));
 
 const AdminSegurancaAcessoPage = lazyWithRetry(() => import("./pages/admin/AdminSegurancaAcessoPage"));
+const AdminSegurancaChavesPage = lazyWithRetry(() => import("./pages/admin/AdminSegurancaChavesPage"));
 const AdminConexoesPage = lazyWithRetry(() => import("./pages/admin/AdminConexoesPage"));
 const AdminConexoesStatusPage = lazyWithRetry(() => import("./pages/admin/AdminConexoesStatusPage"));
 
