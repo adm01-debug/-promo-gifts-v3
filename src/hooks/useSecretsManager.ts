@@ -1,6 +1,8 @@
 import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { newRequestId, REQUEST_ID_HEADER } from "@/lib/telemetry/requestId";
+import { recordSecretsManagerCall } from "@/lib/telemetry/secretsManagerCallMetrics";
 
 export interface SecretStatus {
   name: string;
