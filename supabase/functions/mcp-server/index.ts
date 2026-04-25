@@ -338,9 +338,10 @@ const httpHandler = transport.bind(mcpServer);
 app.all("/*", async (c) => {
   const ctx = await authenticate(c.req.raw);
   if (!ctx) {
+    const reqId = getOrCreateRequestId(c.req.raw);
     return new Response(
-      JSON.stringify({ error: ERR.UNAUTHENTICATED, message: "Chave MCP inválida ou ausente." }),
-      { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      JSON.stringify({ error: ERR.UNAUTHENTICATED, message: "Chave MCP inválida ou ausente.", request_id: reqId }),
+      { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json", [REQUEST_ID_HEADER]: reqId } },
     );
   }
   currentCtx = ctx;
@@ -348,6 +349,7 @@ app.all("/*", async (c) => {
     const res = await httpHandler(c.req.raw);
     const merged = new Headers(res.headers);
     for (const [k, v] of Object.entries(corsHeaders)) merged.set(k, v);
+    merged.set(REQUEST_ID_HEADER, ctx.requestId);
     return new Response(res.body, { status: res.status, headers: merged });
   } finally {
     currentCtx = null;
