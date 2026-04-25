@@ -92,8 +92,9 @@ export async function waitForBridgeReady(totalTimeoutMs = 8000): Promise<BridgeH
         logger.log(`[Health] ✅ bridge ready in ${Math.round(performance.now() - start)}ms (${attempt}x)`);
         return last;
       }
-      // Backoff: 300ms → 600ms → 1200ms (cap 1500ms)
-      const delay = Math.min(1500, 300 * Math.pow(2, attempt - 1));
+      // Backoff: 150 → 300 → 600 → 800 → 800 (cap 800ms).
+      // Mais agressivo no início para capitalizar warm-up de boot (~50–250ms).
+      const delay = Math.min(800, 150 * Math.pow(2, attempt - 1));
       if (performance.now() - start + delay >= totalTimeoutMs) break;
       await new Promise((r) => setTimeout(r, delay));
     }
