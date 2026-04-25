@@ -152,5 +152,6 @@ export default function AdminConexoesPage() {
         </div>
       </div>
     </CredentialsSourceFilterProvider>
+    </SeverityFilterProvider>
   );
 }
