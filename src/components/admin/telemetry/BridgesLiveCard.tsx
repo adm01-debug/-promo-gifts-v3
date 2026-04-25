@@ -174,8 +174,8 @@ export function BridgesLiveCard() {
                   <th className="text-right p-2 font-medium text-muted-foreground text-xs">p50</th>
                   <th className="text-right p-2 font-medium text-muted-foreground text-xs">p95</th>
                   <th className="text-right p-2 font-medium text-muted-foreground text-xs">max</th>
-                  <th className="text-right p-2 font-medium text-muted-foreground text-xs">↑ enviado</th>
-                  <th className="text-right p-2 font-medium text-muted-foreground text-xs">↓ recebido</th>
+                  <th className="text-right p-2 font-medium text-muted-foreground text-xs" title="Tamanho médio de resposta">resp. méd.</th>
+                  <th className="text-right p-2 font-medium text-muted-foreground text-xs" title="Total recebido nesta sessão">resp. total</th>
                   <th className="text-left p-2 font-medium text-muted-foreground text-xs">Última</th>
                 </tr>
               </thead>
