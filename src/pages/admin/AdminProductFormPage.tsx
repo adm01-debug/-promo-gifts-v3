@@ -354,16 +354,13 @@ export default function AdminProductFormPage() {
             >
               <ArrowLeft className="h-4 w-4" />
             </Button>
-            <div>
-              <h1 className="font-display text-2xl font-bold tracking-tight">
-                {isEdit ? 'Editar Produto' : 'Novo Produto'}
-              </h1>
-              {isEdit && product && (
+            {isEdit && product && (
+              <div>
                 <p className="text-sm text-muted-foreground">
                   {product.sku} — {product.name}
                 </p>
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center gap-2">
