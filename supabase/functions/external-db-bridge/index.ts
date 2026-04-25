@@ -23,8 +23,34 @@ import {
 import { emitTelemetry, classifyDuration, VERY_SLOW_QUERY_THRESHOLD_MS, SLOW_QUERY_THRESHOLD_MS } from "../_shared/external-db-telemetry.ts";
 import { getCached, setCache } from "../_shared/external-db-cache.ts";
 import { getBreaker, circuitOpenResponse } from "../_shared/circuit-breaker.ts";
+import { retrySupabaseCall } from "../_shared/retry-backoff.ts";
 
 const breaker = getBreaker("external-db");
+
+/**
+ * Transient classifier for the EXTERNAL Postgres bridge.
+ * IMPORTANT: do NOT include "statement timeout" here — that path has a dedicated
+ * degradation fallback (smaller limit, no count) handled downstream. Retrying
+ * the same heavy query verbatim would just burn budget. We only retry true
+ * connection/transport flakes here.
+ */
+function isBridgeTransient(err: unknown): boolean {
+  if (!err) return false;
+  const msg = (err instanceof Error ? err.message : String(err)).toLowerCase();
+  if (msg.includes('statement timeout') || msg.includes('canceling statement')) return false;
+  return (
+    msg.includes('fetch failed') ||
+    msg.includes('network') ||
+    msg.includes('econnreset') ||
+    msg.includes('connection reset') ||
+    msg.includes('connection terminated') ||
+    msg.includes('etimedout') ||
+    msg.includes(' 503') ||
+    msg.includes(' 504') ||
+    msg.includes('503 ') ||
+    msg.includes('504 ')
+  );
+}
 
 // ============================================
 // QUERY HELPERS
