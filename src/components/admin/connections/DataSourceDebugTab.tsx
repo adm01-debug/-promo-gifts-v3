@@ -97,7 +97,21 @@ export function DataSourceDebugTab() {
   const externalCount = extConns?.length ?? 0;
   const inSync = !secretsLoading && !extLoading && integrationCount === externalCount;
 
-  return (
+  const credQuery = credFilter.trim().toLowerCase();
+  const filteredSecrets = credQuery
+    ? secrets.filter((s) =>
+        (s.name ?? "").toLowerCase().includes(credQuery) ||
+        (s.source ?? "").toLowerCase().includes(credQuery)
+      )
+    : secrets;
+  const extQuery = extFilter.trim().toLowerCase();
+  const filteredExtConns = extQuery
+    ? (extConns ?? []).filter((c) =>
+        (c.name ?? "").toLowerCase().includes(extQuery) ||
+        (c.type ?? "").toLowerCase().includes(extQuery) ||
+        (c.status ?? "").toLowerCase().includes(extQuery)
+      )
+    : extConns ?? [];
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-start justify-between gap-3 flex-wrap">
