@@ -30,12 +30,17 @@ const ALL_SCOPES = ["quotes:read", "orders:read", "crm:read", "products:read", "
 const MCP_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/mcp-server`;
 
 export function McpTab() {
+  const { secrets, list } = useSecretsManager();
   const [keys, setKeys] = useState<McpKey[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [scopes, setScopes] = useState<string[]>(["quotes:read"]);
   const [generated, setGenerated] = useState<string | null>(null);
+
+  const getSecret = (n: string) => secrets.find((s) => s.name === n);
+
+  useEffect(() => { list(); }, [list]);
 
   const load = async () => {
     setLoading(true);
