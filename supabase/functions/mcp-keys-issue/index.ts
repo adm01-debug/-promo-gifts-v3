@@ -25,6 +25,10 @@ import {
   FULL_SCOPE_MAX_TTL_MS,
   isFullAccess,
 } from "../_shared/mcp-scopes.ts";
+import { getOrCreateRequestId, REQUEST_ID_HEADER } from "../_shared/request-id.ts";
+import { writeAuditEntry, summarizePayload, extractRequestMeta } from "../_shared/audit-log.ts";
+
+const SOURCE = "mcp-keys-issue";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
