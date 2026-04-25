@@ -60,6 +60,7 @@ export default function BridgeMetricsOverlay() {
   });
   const [paused, setPaused] = useState(false);
   const [filter, setFilter] = useState<'all' | 'slow' | 'errors'>('all');
+  const [tab, setTab] = useState<'calls' | 'longtasks'>('calls');
 
   // Subscrição compartilhada (já é throttled em 100ms). Quando colapsado,
   // skipamos o snapshot para zero overhead durante navegação.
@@ -67,6 +68,13 @@ export default function BridgeMetricsOverlay() {
     subscribeBridgeCalls,
     () => (open && !paused ? getBridgeSamples() : EMPTY),
     () => EMPTY,
+  );
+
+  // Long tasks: lazy-start o PerformanceObserver na 1ª subscription.
+  const longTasks = useSyncExternalStore(
+    subscribeLongTasks,
+    () => (open && !paused ? getLongTaskEvents() : EMPTY_LT),
+    () => EMPTY_LT,
   );
 
   const listRef = useRef<HTMLDivElement>(null);
