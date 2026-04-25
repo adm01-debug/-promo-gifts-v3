@@ -1,155 +1,94 @@
-# Tela dedicada de Chaves MCP em /admin/seguranca/chaves
+## Auditoria de chaves MCP — cobertura completa
 
-Substitui o card "Chaves emitidas" do tab MCP por uma tela completa dentro do módulo Segurança, com listagem rica, criação (delegando ao formulário já existente), revogação e rotação por duplicação.
+### Estado atual (já implementado)
+- `mcp_key.issued` — registrado pela edge function `mcp-keys-issue` (com IP, UA, escopos, justificativa, full flag).
+- `mcp_key.rotated` — registrado pela edge function `mcp-keys-rotate` (com origem, escopos, full flag).
+- `mcp_key.revoked` — registrado por trigger DB `trg_log_mcp_key_revocation` ao mudar `revoked_at`.
 
-## O que o usuário verá
+### Lacunas identificadas
+1. **Updates diretos** (nome, descrição, escopos, expiração) feitos via cliente Supabase **não geram log**. Hoje não existe UI para editar, mas um admin com role pode fazê-lo via SQL/API e ficar invisível.
+2. **Trigger de revogação** depende de `auth.uid()`, que é `NULL` quando o update vem da edge function via service-role. Precisa receber o ator real.
+3. **Não há painel central** que liste todos os eventos de chaves (issued/rotated/revoked) com filtros por ator, ação, período. Hoje só existe o histórico por chave dentro do drawer.
+4. **Detalhes do evento de revogação** não capturam IP/UA porque o trigger roda no Postgres sem essa info.
 
-Nova rota **`/admin/seguranca/chaves`**, acessível também como terceira aba dentro de `/admin/seguranca` (ao lado de "Central de Segurança" e "Restrições de Acesso").
+---
 
-Layout:
+### Plano de implementação
 
-```text
-┌─ Chaves MCP ──────────────────────────────── [+ Nova chave] ─┐
-│ Filtros: [Buscar] [Status ▼ ativa/expirada/revogada] [FULL ☐] │
-│                                                                │
-│ ┌──────────────────────────────────────────────────────────┐  │
-│ │ ⚡ Claude Desktop — Pedro            mcp_a1b2c3d4…       │  │
-│ │ [FULL] [expira em 87d]                                   │  │
-│ │ Escopos: * | Criada por joao@... em 12/04 às 14:32       │  │
-│ │ Último uso: há 3 horas                                    │  │
-│ │                          [Rotacionar] [Revogar] [Detalhes]│  │
-│ └──────────────────────────────────────────────────────────┘  │
-└────────────────────────────────────────────────────────────────┘
-```
+#### 1. Migração SQL (auditoria expandida)
 
-Para cada chave:
-- **Status visual**: badge `Ativa` (verde) / `Expirada` (cinza) / `Revogada` (vermelho) / `FULL` (vermelho extra quando scope `*`).
-- **Datas**: criação, expiração com contagem regressiva ("expira em 12d"), último uso ("há 3h" / "nunca usada").
-- **Autor**: email do `created_by` (lookup via `profiles`).
-- **Ações**: Rotacionar (🔄), Revogar (🗑), Detalhes (👁 — abre drawer com audit log filtrado por `resource_id`).
+Criar trigger genérico que registra **toda mudança relevante** em `mcp_api_keys`:
 
-Filtros e ordenação:
-- Busca por nome/prefixo.
-- Filtro de status (`ativa` / `expirada` / `revogada` — combinável).
-- Toggle "somente FULL".
-- Ordenação por criação (default desc), último uso, expiração.
+- `mcp_key.updated` quando `name`, `description`, `scopes` ou `expires_at` mudam (com diff `before`/`after`).
+- Manter `mcp_key.revoked` para mudanças de `revoked_at` (NULL → NOT NULL).
+- Detectar `scope_escalated` quando `*` é adicionado a uma chave que não era full (alerta crítico).
+- Capturar ator real via `current_setting('request.jwt.claims', true)::jsonb->>'sub'` quando disponível, fallback `auth.uid()`, fallback `NEW.created_by`.
 
-## Fluxo de Rotação (duplicação)
+Adicionar índice em `admin_audit_log(resource_type, resource_id, created_at DESC)` para acelerar consultas por chave.
 
-Ao clicar **Rotacionar**:
+#### 2. Nova edge function `mcp-keys-update`
 
-1. Modal de confirmação mostrando: "Será criada uma nova chave com nome `{nome} (rotacionada)`, mesmos escopos e expiração. A chave antiga **continua ativa** — revogue manualmente quando o cliente migrar."
-2. Se a chave original tem scope `*`, exige novamente justificativa + frase `CONCEDER FULL` (igual à emissão original) — não é possível rotacionar uma chave full silenciosamente.
-3. Backend cria nova chave linkada à anterior via campo novo `rotated_from`.
-4. Audit log: `mcp_key.rotated` com `resource_id` = nova chave e `details.rotated_from` = id antigo.
-5. Retorna chave plana **uma vez** (mesmo padrão da emissão).
+Centraliza qualquer alteração em chave existente (rename, mudar descrição, ajustar `expires_at`, alterar escopos). Bloqueia o update direto via cliente para esses campos sensíveis.
 
-Após rotação, a UI mostra um badge "↻ rotação de mcp_xxxx…" na chave nova e um banner amarelo na chave antiga: "Substituída em 12/04. Revogue quando seguro."
+- Valida JWT + role admin.
+- Se a alteração introduzir escopo `*`, exige a mesma fricção do issue (justificativa ≥ 20 chars + frase `CONCEDER FULL`).
+- Registra `mcp_key.updated` com payload `{ before, after, fields_changed[] }`, IP e UA.
 
-## Arquitetura técnica
+A revogação continua server-side: refatorar o front (`useMcpKeys.revoke` e `McpTab.revoke`) para chamar uma nova edge function `mcp-keys-revoke` que faz o update server-side e grava log com IP/UA antes da trigger disparar (a trigger fica como rede de segurança).
 
-### 1. Migração SQL
+#### 3. RLS endurecida em `mcp_api_keys`
 
-```sql
-ALTER TABLE public.mcp_api_keys
-  ADD COLUMN rotated_from uuid REFERENCES public.mcp_api_keys(id) ON DELETE SET NULL;
+- Manter SELECT para admins.
+- Restringir UPDATE direto: política nega update em `name`, `scopes`, `description`, `expires_at`, `revoked_at` para qualquer role exceto `service_role`. Admins passam a operar exclusivamente pelas edge functions.
+- DELETE continua permitido só para admin (operação rara).
 
-CREATE INDEX idx_mcp_api_keys_rotated_from
-  ON public.mcp_api_keys(rotated_from)
-  WHERE rotated_from IS NOT NULL;
-```
+#### 4. Painel de auditoria na página `/admin/seguranca/chaves`
 
-Sem mudança de RLS — as policies criadas na sessão anterior já cobrem (admin lê/atualiza/deleta; INSERT só via service_role na edge function).
+Nova aba/seção "Histórico de auditoria":
+- Lista cronológica de todos os eventos `mcp_key.*` (paginada, 50/página).
+- Filtros: ação (issued/rotated/updated/revoked), ator, período, somente FULL.
+- Cada linha mostra: badge da ação, ator (email + avatar), prefixo da chave, escopos antes/depois (para updated), IP/UA, link para o drawer da chave.
+- Botão "Exportar CSV" (gera no client a partir dos resultados filtrados).
 
-### 2. Edge function `mcp-keys-rotate`
+Componentes novos em `src/components/admin/security/keys/audit/`:
+- `useMcpAuditFeed.ts` — hook com query + filtros.
+- `McpAuditFeed.tsx` — lista virtualizada.
+- `McpAuditRow.tsx` — linha com diff visual para `updated`.
+- `McpAuditFilters.tsx` — toolbar.
 
-Caminho: `supabase/functions/mcp-keys-rotate/index.ts`
+#### 5. Atualizações no Drawer existente
 
-Reusa toda a infraestrutura de `mcp-keys-issue`:
-- CORS, JWT, role check `has_role(uid, 'admin')`.
-- Body Zod: `{ source_key_id: uuid, justification?: string, confirmation_phrase?: string }`.
-- Carrega a chave fonte com service-role (`select * from mcp_api_keys where id = source_key_id and revoked_at is null`).
-- Se `isFullAccess(source.scopes)` → exige justificativa ≥20 chars + frase `CONCEDER FULL` (mesmas regras do `_shared/mcp-scopes.ts`, reusadas).
-- Gera nova chave com mesmos `scopes` e `expires_at` da fonte, `name = "{source.name} (rotacionada)"`, `rotated_from = source.id`.
-- Audit log `mcp_key.rotated` com `details = { source_id, source_prefix, scopes, is_full_access, justification }`.
-- Retorna `{ ok, key, prefix, scopes, expires_at, id, rotated_from }`.
+Mostrar diff visual nos eventos `updated` e exibir IP/UA quando presentes. Adicionar badge "ESCALAÇÃO" nos eventos onde `*` foi adicionado.
 
-A chave antiga **não é revogada** (decisão do usuário: revogação manual). Apenas marcamos visualmente que foi rotacionada.
+---
 
-### 3. Lookup de criador
+### Detalhes técnicos
 
-Hook `useMcpKeysWithCreators` faz join client-side: lista chaves + busca `profiles` por `id IN (created_by[])` em uma query única, monta `Map<userId, { email, display_name }>`.
+**Arquivos novos:**
+- `supabase/migrations/<timestamp>_mcp_audit_expanded.sql`
+- `supabase/functions/mcp-keys-update/index.ts`
+- `supabase/functions/mcp-keys-revoke/index.ts`
+- `src/components/admin/security/keys/audit/useMcpAuditFeed.ts`
+- `src/components/admin/security/keys/audit/McpAuditFeed.tsx`
+- `src/components/admin/security/keys/audit/McpAuditRow.tsx`
+- `src/components/admin/security/keys/audit/McpAuditFilters.tsx`
 
-### 4. Componentes novos (modulares)
+**Arquivos editados:**
+- `src/components/admin/security/keys/useMcpKeys.ts` — `revoke()` chama edge function.
+- `src/components/admin/connections/McpTab.tsx` — `revoke()` chama edge function.
+- `src/components/admin/security/keys/McpKeyDetailsDrawer.tsx` — diff + IP/UA + badge de escalação.
+- `src/pages/admin/AdminSegurancaChavesPage.tsx` — abas: "Chaves" / "Histórico".
 
-```
-src/pages/admin/AdminSegurancaChavesPage.tsx       (rota + layout)
-src/components/admin/security/keys/
-├── McpKeysList.tsx                                 (orquestra filtros + lista)
-├── McpKeysFilters.tsx                              (busca + status + FULL toggle)
-├── McpKeyRow.tsx                                   (linha individual com badges/ações)
-├── McpKeyDetailsDrawer.tsx                         (audit log filtrado por resource_id)
-├── RotateMcpKeyDialog.tsx                          (confirmação + revalidação FULL)
-└── useMcpKeys.ts                                   (hook listagem + filtros + creators)
-```
+**Ações auditadas (resumo):**
 
-`IssueMcpKeyForm.tsx` (já existente) é reusado **sem alteração** dentro do botão "Nova chave".
+| Ação | Origem | Captura |
+|------|--------|---------|
+| `mcp_key.issued` | edge `mcp-keys-issue` | ator, IP, UA, escopos, justificativa, full |
+| `mcp_key.rotated` | edge `mcp-keys-rotate` | ator, IP, UA, origem, escopos, justificativa |
+| `mcp_key.updated` | edge `mcp-keys-update` + trigger | ator, IP, UA, diff before/after, fields_changed |
+| `mcp_key.revoked` | edge `mcp-keys-revoke` + trigger fallback | ator, IP, UA, motivo opcional |
+| `mcp_key.scope_escalated` | trigger (sub-evento de updated) | ator, escopos antes/depois |
 
-### 5. Atualização do MCP tab
-
-Em `src/components/admin/connections/McpTab.tsx`:
-- Remove o card "Chaves emitidas" inteiro (linhas 146-228).
-- No lugar, deixa um card menor: **"Gerenciar chaves"** com link `<Link to="/admin/seguranca/chaves">` + contagem rápida ("3 ativas, 1 expirada"). Evita duplicação e mantém o tab MCP focado em endpoint + GitHub.
-
-### 6. Roteamento
-
-`src/App.tsx`:
-```tsx
-const AdminSegurancaChavesPage = lazyWithRetry(() => import("./pages/admin/AdminSegurancaChavesPage"));
-// ...
-<Route path="/admin/seguranca/chaves" element={<AdminSegurancaChavesPage />} />
-```
-
-A página `AdminSegurancaPage` ganha uma terceira aba que linka para `/admin/seguranca/chaves` (não embutida — usa `<Link>` com `useLocation` para destacar o tab ativo), preservando a rota dedicada como SSOT.
-
-### 7. Audit log
-
-Reusa `admin_audit_log` (já existente). Novas actions:
-- `mcp_key.rotated` (criada agora)
-- `mcp_key.revoked` (passa a ser registrada — hoje a revogação é UPDATE direto no banco sem log; vamos adicionar um trigger ou registrar via wrapper no frontend)
-- `mcp_key.viewed_details` (opcional, baixa prioridade — pode ficar fora desta entrega)
-
-Opto por **trigger PG** em `mcp_api_keys` para `revoked_at IS NOT NULL`, escrevendo no audit log automaticamente — garante log mesmo se chamada vier por outra rota no futuro.
-
-## Arquivos afetados
-
-**Criados:**
-- `supabase/functions/mcp-keys-rotate/index.ts`
-- `src/pages/admin/AdminSegurancaChavesPage.tsx`
-- `src/components/admin/security/keys/McpKeysList.tsx`
-- `src/components/admin/security/keys/McpKeysFilters.tsx`
-- `src/components/admin/security/keys/McpKeyRow.tsx`
-- `src/components/admin/security/keys/McpKeyDetailsDrawer.tsx`
-- `src/components/admin/security/keys/RotateMcpKeyDialog.tsx`
-- `src/components/admin/security/keys/useMcpKeys.ts`
-- Migração SQL (coluna `rotated_from` + trigger de audit em revogação)
-
-**Editados:**
-- `src/App.tsx` (nova rota lazy)
-- `src/pages/admin/AdminSegurancaPage.tsx` (terceira aba apontando para a rota dedicada)
-- `src/components/admin/connections/McpTab.tsx` (substitui card de chaves por link resumido)
-
-## O que NÃO entra
-
-- Rotação automática agendada (cron job para chaves próximas do vencimento).
-- Notificação por email/webhook em rotação ou expiração próxima.
-- Aprovação por dois admins (4-eyes) — fica para evolução futura.
-- Filtros avançados (por escopo específico, range de datas) — só status/FULL/busca nesta entrega.
-
-## Resultado
-
-Após implementação:
-- Tela única e dedicada (`/admin/seguranca/chaves`) substitui o gerenciamento embutido no MCP tab.
-- Status visual claro de cada chave (ativa/expirada/revogada/FULL) + datas + último uso + criador.
-- Rotação por duplicação preserva escopos/expiração e re-exige fricção FULL quando aplicável.
-- Audit log automático em revogação via trigger; rotação registrada pela edge function.
+### Fora de escopo
+- Notificações em tempo real para escalação (pode entrar em onda futura).
+- Retenção/arquivamento dos logs (já há job pg_cron de manutenção).
