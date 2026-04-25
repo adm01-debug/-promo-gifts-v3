@@ -26,7 +26,7 @@ import { ExplainModeToggle } from "@/components/admin/connections/ExplainModeTog
 import { useCallback, useEffect, useState } from "react";
 import { useSecretsManager } from "@/hooks/useSecretsManager";
 import { useSeverityChangeNotifier } from "@/components/admin/connections/useSeverityChangeNotifier";
-import { useZoneVisibility } from "@/components/admin/connections/useZoneVisibility";
+import { useZoneVisibility, type ZoneId } from "@/components/admin/connections/useZoneVisibility";
 import { useZoneCollapse } from "@/components/admin/connections/useZoneCollapse";
 import { ZoneQuickNav } from "@/components/admin/connections/ZoneQuickNav";
 import { HeaderSeveritySummary } from "@/components/admin/connections/HeaderSeveritySummary";
