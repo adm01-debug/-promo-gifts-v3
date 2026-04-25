@@ -77,6 +77,7 @@ const PriceFreshnessSettingsPage = lazyWithRetry(() => import("./pages/admin/Pri
 
 const AdminSegurancaAcessoPage = lazyWithRetry(() => import("./pages/admin/AdminSegurancaAcessoPage"));
 const AdminConexoesPage = lazyWithRetry(() => import("./pages/admin/AdminConexoesPage"));
+const AdminConexoesStatusPage = lazyWithRetry(() => import("./pages/admin/AdminConexoesStatusPage"));
 
 // Tools Pages
 const SimuladorWizard = lazyWithRetry(() => import("./pages/SimuladorWizard"));
@@ -258,6 +259,7 @@ const App = () => {
                               {/* Conexões manipulam credenciais sensíveis — exige admin estrito (não managers) */}
                               <Route element={<ProtectedRoute requireAdmin />}>
                                 <Route path="/admin/conexoes" element={<AdminConexoesPage />} />
+                                <Route path="/admin/conexoes/status" element={<AdminConexoesStatusPage />} />
                               </Route>
                               <Route path="/tendencias" element={<TrendsPage />} />
                               <Route path="/status" element={<SystemStatusPage />} />
