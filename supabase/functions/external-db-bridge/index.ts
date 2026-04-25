@@ -486,9 +486,10 @@ Deno.serve((req) => {
     breaker.recordFailure();
     const totalDuration = Math.round(performance.now() - requestStartTime);
     const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
-    console.error(`❌ [telemetry] Request failed after ${totalDuration}ms: ${errorMessage}`);
+    console.error(`❌ [telemetry] [req_id=${requestId}] Request failed after ${totalDuration}ms: ${errorMessage}`);
     return jsonResponse({ error: errorMessage }, 500, corsHeaders);
   }
+  });
 });
 
 // ============================================
