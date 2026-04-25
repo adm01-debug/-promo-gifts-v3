@@ -2,8 +2,8 @@
  * Product detail fetching — fetchById, bySku, categories, colors.
  */
 import { logger } from '@/lib/logger';
-import { invokeExternalDb } from './bridge';
-import type { InvokeResult } from './bridge';
+import { invokeExternalDb, invokeBatchBridge } from './bridge';
+import type { InvokeResult, BatchQuery } from './bridge';
 import {
   type PromobrindProduct,
   PRODUCT_SELECT_FIELDS_WITH_SALE,
@@ -87,56 +87,97 @@ export async function fetchPromobrindProductById(
     logger.warn('Não foi possível buscar imagens da tabela product_images:', err);
   }
 
-  // Category name enrichment
+  // ─────────────────────────────────────────────────────────────────────
+  // Enriquecimento em LOTE — categories + suppliers + product_materials
+  // numa única ida ao external-db-bridge (em vez de 3 calls sequenciais),
+  // e depois UM batch para todos os material_types referenciados.
+  //
+  // Antes: até 3 + N requests (1 por material) = N+1.
+  // Depois: 1 request + (no máx) 1 request adicional para os material_types.
+  // ─────────────────────────────────────────────────────────────────────
   const categoryId = product.category_id || product.main_category_id;
-  if (categoryId && !product.category_name) {
-    try {
-      const catResult = await invokeExternalDb<{ id: string; name: string }>({
-        table: 'categories', operation: 'select', select: 'id, name',
-        filters: { id: categoryId }, limit: 1, countMode: 'none',
-      });
-      if (catResult.records[0]) product.category_name = catResult.records[0].name;
-    } catch (err) {
-      logger.warn('Não foi possível buscar nome da categoria:', err);
-    }
+  const needsCategory = !!categoryId && !product.category_name;
+  const needsSupplier = !!product.supplier_id;
+  const needsMaterials =
+    !product.materials || (Array.isArray(product.materials) && product.materials.length === 0);
+
+  const enrichmentQueries: BatchQuery[] = [];
+  const enrichmentSlots: Array<'category' | 'supplier' | 'materials'> = [];
+
+  if (needsCategory) {
+    enrichmentQueries.push({
+      table: 'categories', select: 'id, name',
+      filters: { id: categoryId as string }, limit: 1,
+    });
+    enrichmentSlots.push('category');
+  }
+  if (needsSupplier) {
+    enrichmentQueries.push({
+      table: 'suppliers', select: 'id, name, code',
+      filters: { id: product.supplier_id as string }, limit: 1,
+    });
+    enrichmentSlots.push('supplier');
+  }
+  if (needsMaterials) {
+    enrichmentQueries.push({
+      table: 'product_materials', select: 'product_id, material_id, part',
+      filters: { product_id: productId, is_active: true }, limit: 20,
+    });
+    enrichmentSlots.push('materials');
   }
 
-  // Supplier name
-  if (product.supplier_id) {
-    try {
-      const supplierResult = await invokeExternalDb<{ id: string; name: string; code: string }>({
-        table: 'suppliers', operation: 'select', select: 'id, name, code',
-        filters: { id: product.supplier_id }, limit: 1, countMode: 'none',
-      });
-      if (supplierResult.records[0]) product.supplier_name = supplierResult.records[0].name;
-    } catch (err) {
-      logger.warn('Não foi possível buscar nome do fornecedor:', err);
-    }
-  }
+  let materialIds: string[] = [];
 
-  // Materials enrichment
-  if (!product.materials || (Array.isArray(product.materials) && product.materials.length === 0)) {
+  if (enrichmentQueries.length > 0) {
     try {
-      const materialsResult = await invokeExternalDb<{ product_id: string; material_id: string; part: string | null }>({
-        table: 'product_materials', operation: 'select',
-        select: 'product_id, material_id, part',
-        filters: { product_id: productId, is_active: true }, limit: 20,
-      });
-      if (materialsResult.records.length > 0) {
-        const materialNames: string[] = [];
-        for (const mat of materialsResult.records) {
-          try {
-            const typeResult = await invokeExternalDb<{ id: string; name: string }>({
-              table: 'material_types', operation: 'select', select: 'id, name',
-              filters: { id: mat.material_id }, limit: 1,
-            });
-            if (typeResult.records[0]?.name) materialNames.push(typeResult.records[0].name);
-          } catch { /* ignore individual */ }
+      const batchResults = await invokeBatchBridge(enrichmentQueries);
+      enrichmentSlots.forEach((slot, idx) => {
+        const result = batchResults[idx];
+        if (!result?.success || !result.data) return;
+        const records = result.data.records;
+        if (slot === 'category') {
+          const rec = records[0] as { name?: string } | undefined;
+          if (rec?.name) product.category_name = rec.name;
+        } else if (slot === 'supplier') {
+          const rec = records[0] as { name?: string } | undefined;
+          if (rec?.name) product.supplier_name = rec.name;
+        } else if (slot === 'materials') {
+          const matRecs = records as Array<{ material_id: string }>;
+          // Dedup preservando ordem (várias partes podem referenciar o mesmo material)
+          const seen = new Set<string>();
+          for (const m of matRecs) {
+            if (m.material_id && !seen.has(m.material_id)) {
+              seen.add(m.material_id);
+              materialIds.push(m.material_id);
+            }
+          }
         }
-        if (materialNames.length > 0) product.materials = materialNames;
-      }
+      });
     } catch (err) {
-      logger.warn('Não foi possível buscar materiais do produto:', err);
+      logger.warn('Não foi possível enriquecer produto em lote (categoria/fornecedor/materiais):', err);
+    }
+  }
+
+  // Resolve nomes de material_types em UMA única call (filtro `id=in.(...)`),
+  // substituindo o loop N+1 anterior (1 call por material).
+  if (materialIds.length > 0) {
+    try {
+      const inFilter = `in.(${materialIds.join(',')})`;
+      const typesResult = await invokeExternalDb<{ id: string; name: string }>({
+        table: 'material_types', operation: 'select', select: 'id, name',
+        filters: { id: inFilter }, limit: Math.max(materialIds.length, 20),
+      });
+      // Preserva a ordem original em que os material_ids apareceram
+      const nameById = new Map<string, string>();
+      for (const t of typesResult.records) {
+        if (t?.name) nameById.set(t.id, t.name);
+      }
+      const materialNames = materialIds
+        .map(id => nameById.get(id))
+        .filter((n): n is string => !!n);
+      if (materialNames.length > 0) product.materials = materialNames;
+    } catch (err) {
+      logger.warn('Não foi possível buscar nomes dos material_types em lote:', err);
     }
   }
 
