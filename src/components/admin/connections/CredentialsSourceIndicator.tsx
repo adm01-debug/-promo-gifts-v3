@@ -85,14 +85,63 @@ export function CredentialsSourceIndicator({ secrets, isLoading, onRefresh, clas
     }
   };
 
-  const counts = secrets.reduce(
+  // Agrupa secrets por origem resolvida — usado tanto para os contadores
+  // quanto para listar os nomes contribuintes em cada tooltip.
+  const grouped = secrets.reduce(
     (acc, s) => {
       const src = resolveSource(s);
-      acc[src] = (acc[src] ?? 0) + 1;
+      acc[src].push(s);
       return acc;
     },
-    { db: 0, env: 0, none: 0 } as Record<"db" | "env" | "none", number>,
+    { db: [] as SecretStatus[], env: [] as SecretStatus[], none: [] as SecretStatus[] },
   );
+
+  // Ordena alfabeticamente para consistência de leitura nos tooltips.
+  (Object.keys(grouped) as Array<"db" | "env" | "none">).forEach((k) => {
+    grouped[k].sort((a, b) => a.name.localeCompare(b.name));
+  });
+
+  const counts = {
+    db: grouped.db.length,
+    env: grouped.env.length,
+    none: grouped.none.length,
+  };
+
+  // Limita a lista exibida no tooltip para não estourar a viewport
+  // quando houver muitos secrets — o restante aparece como "+ N mais".
+  const TOOLTIP_LIMIT = 12;
+  function renderNameList(items: SecretStatus[], tone: "success" | "warning" | "destructive") {
+    if (items.length === 0) {
+      return (
+        <p className="text-muted-foreground italic">Nenhum secret nesta categoria.</p>
+      );
+    }
+    const visible = items.slice(0, TOOLTIP_LIMIT);
+    const rest = items.length - visible.length;
+    const toneCls =
+      tone === "success"
+        ? "text-success"
+        : tone === "warning"
+          ? "text-warning"
+          : "text-destructive";
+    return (
+      <ul className="font-mono text-[10px] space-y-0.5 max-h-56 overflow-y-auto pr-1">
+        {visible.map((s) => (
+          <li key={s.name} className="flex items-center justify-between gap-2">
+            <span className={`truncate ${toneCls}`}>{s.name}</span>
+            {s.masked_suffix ? (
+              <span className="text-muted-foreground shrink-0">••••{s.masked_suffix}</span>
+            ) : (
+              <span className="text-muted-foreground shrink-0">—</span>
+            )}
+          </li>
+        ))}
+        {rest > 0 && (
+          <li className="text-muted-foreground italic pt-0.5">+ {rest} mais…</li>
+        )}
+      </ul>
+    );
+  }
 
   // Pega o secret mais recentemente atualizado (apenas os com updated_at)
   const latest = secrets
