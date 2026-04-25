@@ -91,7 +91,10 @@ export async function invokeWithRetry(
     }
 
     if (attempt < retries && isRetryableError(msg)) {
-      const delay = Math.min(INITIAL_BACKOFF_MS * Math.pow(2, attempt), 4000); // Cap at 4s
+      // Backoff exponencial com jitter (evita thundering herd em prewarm paralelo)
+      const base = INITIAL_BACKOFF_MS * Math.pow(2, attempt);
+      const jitter = Math.floor(Math.random() * 200);
+      const delay = Math.min(base + jitter, 4000);
       logger.warn(`[external-db] Retry ${attempt + 1}/${retries} after ${delay}ms: ${msg}`);
       onRetry?.(attempt + 1, retries, delay);
       await new Promise(r => setTimeout(r, delay));
