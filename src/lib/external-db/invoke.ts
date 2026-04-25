@@ -45,9 +45,10 @@ const NON_RETRYABLE_PATTERNS = [
   'unauthorized',
 ];
 
-// Códigos HTTP determinísticos — checados via regex de borda para evitar
-// falsos positivos quando UUIDs/timestamps contêm "400/401/403" como substring.
-const NON_RETRYABLE_HTTP_RE = /\b(?:returned\s+|status[: ]|http[:/ ])?(400|401|403)\b/i;
+// Códigos HTTP determinísticos — exigem contexto explícito (returned/status/http)
+// para evitar falsos positivos em IDs com hífens (ex: "abc-401-xyz", onde
+// hífen conta como word boundary e \b401\b casaria por acidente).
+const NON_RETRYABLE_HTTP_RE = /(?:returned\s+|status[: ]\s*|http[:/ ])(400|401|403)\b/i;
 
 function matches(msg: string, patterns: string[]): boolean {
   const lower = msg.toLowerCase();
