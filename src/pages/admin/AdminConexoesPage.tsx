@@ -289,6 +289,7 @@ export default function AdminConexoesPage() {
                 <TabsTrigger value="mcp">MCP (Claude)</TabsTrigger>
                 <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
                 <TabsTrigger value="debug">🐛 Debug</TabsTrigger>
+                <TabsTrigger value="validation">🛡️ Validação</TabsTrigger>
               </TabsList>
               <TabsContent value="databases"><SupabaseConnectionsTab /></TabsContent>
               <TabsContent value="bitrix24"><Bitrix24Tab /></TabsContent>
@@ -296,6 +297,7 @@ export default function AdminConexoesPage() {
               <TabsContent value="mcp"><McpTab /></TabsContent>
               <TabsContent value="webhooks"><WebhooksTab /></TabsContent>
               <TabsContent value="debug"><DataSourceDebugTab /></TabsContent>
+              <TabsContent value="validation"><KeysValidationTab /></TabsContent>
             </Tabs>
           </ZoneSection>
           )}
