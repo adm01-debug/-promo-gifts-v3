@@ -165,9 +165,7 @@ export function useSecretsManager() {
   }, []);
 
   const setSecret = useCallback(async (name: string, value: string): Promise<SecretMutationResult> => {
-    const { data, error } = await supabase.functions.invoke("secrets-manager", {
-      body: { action: "set", name, value },
-    });
+    const { data, error } = await invokeSecretsManager({ action: "set", name, value });
     if (error) {
       // Try to read structured payload from FunctionsHttpError context
       const ctx = (error as { context?: Response }).context;
@@ -191,9 +189,7 @@ export function useSecretsManager() {
   }, []);
 
   const rotateSecret = useCallback(async (name: string, value: string, notes?: string): Promise<SecretMutationResult> => {
-    const { data, error } = await supabase.functions.invoke("secrets-manager", {
-      body: { action: "rotate", name, value, notes },
-    });
+    const { data, error } = await invokeSecretsManager({ action: "rotate", name, value, notes });
     if (error) {
       const ctx = (error as { context?: Response }).context;
       let payload: unknown = null;
@@ -216,9 +212,7 @@ export function useSecretsManager() {
   }, []);
 
   const getRotationHistory = useCallback(async (name?: string): Promise<RotationHistoryEntry[]> => {
-    const { data, error } = await supabase.functions.invoke("secrets-manager", {
-      body: { action: "rotation_history", name },
-    });
+    const { data, error } = await invokeSecretsManager({ action: "rotation_history", name });
     if (error) {
       toast.error("Falha ao carregar histórico", { description: error.message });
       return [];
@@ -227,9 +221,7 @@ export function useSecretsManager() {
   }, []);
 
   const refreshCache = useCallback(async (name?: string): Promise<{ ok: boolean; message?: string; error?: SecretError }> => {
-    const { data, error } = await supabase.functions.invoke("secrets-manager", {
-      body: { action: "refresh_cache", name },
-    });
+    const { data, error } = await invokeSecretsManager({ action: "refresh_cache", name });
     if (error) {
       return { ok: false, error: normalizeError({ message: error.message }, error.message) };
     }
