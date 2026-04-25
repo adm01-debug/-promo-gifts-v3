@@ -97,6 +97,8 @@ export interface BridgeAggregateRow {
   maxMs: number;
   totalReqBytes: number;
   totalRespBytes: number;
+  avgReqBytes: number;
+  avgRespBytes: number;
   lastTs: number;
 }
 
@@ -135,6 +137,8 @@ export function aggregateByEndpoint(input: readonly BridgeCallSample[]): BridgeA
       maxMs: durations[durations.length - 1] ?? 0,
       totalReqBytes: totalReq,
       totalRespBytes: totalResp,
+      avgReqBytes: Math.round(totalReq / arr.length),
+      avgRespBytes: Math.round(totalResp / arr.length),
       lastTs,
     });
   }
