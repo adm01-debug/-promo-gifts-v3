@@ -12,6 +12,9 @@ const RETRYABLE_PATTERNS = [
   'bad gateway', 'FunctionsHttpError',
   'network', 'fetch', 'ECONNRESET', 'socket hang up',
   'AbortError', 'Failed to fetch',
+  // Cold-start / runtime boot do isolate da edge function (plataforma)
+  'supabase_edge_runtime_error', 'service is temporarily unavailable',
+  'boot_error', 'function failed to start',
 ];
 
 // Erros determinísticos do Postgres/PostgREST: retry NUNCA muda o resultado.
@@ -52,9 +55,13 @@ export async function extractFunctionErrorMessage(error: unknown): Promise<strin
         const raw = await maybeContext.context.clone().text();
         if (raw) {
           try {
-            const parsed = JSON.parse(raw) as { error?: string; details?: string; hint?: string };
-            const detailed = [parsed.error, parsed.details, parsed.hint].filter(Boolean).join(' | ');
-            if (detailed) return detailed;
+            const parsed = JSON.parse(raw) as {
+              error?: string; details?: string; hint?: string;
+              message?: string; code?: string;
+            };
+            const detailed = [parsed.error, parsed.code, parsed.message, parsed.details, parsed.hint]
+              .filter(Boolean).join(' | ');
+            if (detailed) return `${error.message} | ${detailed}`;
           } catch {
             return `${error.message} | ${raw}`;
           }
@@ -88,7 +95,10 @@ export async function invokeWithRetry(
     }
 
     if (attempt < retries && isRetryableError(msg)) {
-      const delay = Math.min(INITIAL_BACKOFF_MS * Math.pow(2, attempt), 4000); // Cap at 4s
+      // Backoff exponencial com jitter (evita thundering herd em prewarm paralelo)
+      const base = INITIAL_BACKOFF_MS * Math.pow(2, attempt);
+      const jitter = Math.floor(Math.random() * 200);
+      const delay = Math.min(base + jitter, 4000);
       logger.warn(`[external-db] Retry ${attempt + 1}/${retries} after ${delay}ms: ${msg}`);
       onRetry?.(attempt + 1, retries, delay);
       await new Promise(r => setTimeout(r, delay));

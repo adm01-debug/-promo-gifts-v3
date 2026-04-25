@@ -49,7 +49,8 @@ export interface BatchResult {
   fromCache?: boolean;
 }
 
-const BOOT_RETRY_ATTEMPTS = 3;
+const BOOT_RETRY_ATTEMPTS = 4;
+const BOOT_INITIAL_BACKOFF_MS = 400;
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 async function buildBridgeError(error: unknown): Promise<{ message: string; retryable: boolean }> {
@@ -76,7 +77,13 @@ async function buildBridgeError(error: unknown): Promise<{ message: string; retr
     diagnostic.includes('function failed to start') ||
     diagnostic.includes('statement timeout') ||
     diagnostic.includes('canceling statement due to statement timeout') ||
-    diagnostic.includes('57014');
+    diagnostic.includes('57014') ||
+    // Cold start / runtime crash transitório do isolate
+    diagnostic.includes('supabase_edge_runtime_error') ||
+    diagnostic.includes('service is temporarily unavailable') ||
+    diagnostic.includes('functionshttperror') ||
+    diagnostic.includes('failed to fetch') ||
+    diagnostic.includes('network');
 
   const details = responseBody ? `${baseMessage} | ${responseBody}` : baseMessage;
   return { message: `Erro na bridge: ${details}`, retryable };
@@ -107,7 +114,12 @@ export async function invokeBridge<T>(body: Record<string, unknown>): Promise<Br
     if (error) {
       const parsed = await buildBridgeError(error);
       if (parsed.retryable && attempt < BOOT_RETRY_ATTEMPTS) {
-        await sleep(250 * attempt);
+        // Backoff exponencial com jitter: 400ms, 800ms, 1600ms
+        const base = BOOT_INITIAL_BACKOFF_MS * Math.pow(2, attempt - 1);
+        const jitter = Math.floor(Math.random() * 150);
+        const delay = Math.min(base + jitter, 4000);
+        logger.warn(`[external-db] bridge retry ${attempt}/${BOOT_RETRY_ATTEMPTS - 1} in ${delay}ms: ${parsed.message}`);
+        await sleep(delay);
         continue;
       }
       throw new Error(parsed.message);

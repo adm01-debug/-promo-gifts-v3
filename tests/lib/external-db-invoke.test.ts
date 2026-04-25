@@ -100,12 +100,21 @@ describe('invokeWithRetry', () => {
     expect(mockInvoke).toHaveBeenCalledTimes(1);
   });
 
-  it('fails fast on PGRST error', async () => {
-    const pgrstError = new Error('PGRST204: column not found');
-    (mockInvoke as any).mockResolvedValue({ data: null, error: pgrstError });
+  it('retries on SUPABASE_EDGE_RUNTIME_ERROR cold-start (503) and succeeds', async () => {
+    const responseBody = JSON.stringify({
+      code: 'SUPABASE_EDGE_RUNTIME_ERROR',
+      message: 'Service is temporarily unavailable',
+    });
+    const coldStartError = new Error('Edge function returned 503: Error') as Error & { context: Response };
+    coldStartError.context = new Response(responseBody, { status: 503 });
 
-    const result = await invokeWithRetry({ table: 'products', operation: 'select' }, 3);
-    expect(result.error).toBe(pgrstError);
-    expect(mockInvoke).toHaveBeenCalledTimes(1);
+    (mockInvoke as any)
+      .mockResolvedValueOnce({ data: null, error: coldStartError })
+      .mockResolvedValueOnce({ data: { records: [{ id: '1' }] }, error: null });
+
+    const result = await invokeWithRetry({ table: 'products', operation: 'select' }, 2);
+    expect(result.error).toBeNull();
+    expect(result.data).toEqual({ records: [{ id: '1' }] });
+    expect(mockInvoke).toHaveBeenCalledTimes(2);
   });
 });
