@@ -29,6 +29,7 @@ import { useSeverityChangeNotifier } from "@/components/admin/connections/useSev
 import { useZoneVisibility } from "@/components/admin/connections/useZoneVisibility";
 import { ZoneQuickNav } from "@/components/admin/connections/ZoneQuickNav";
 import { HeaderSeveritySummary } from "@/components/admin/connections/HeaderSeveritySummary";
+import { ZoneRefreshButton } from "@/components/admin/connections/ZoneRefreshButton";
 
 /**
  * /admin/conexoes — Hub Central de Integrações
@@ -132,6 +133,18 @@ export default function AdminConexoesPage() {
             description="Status agregado das integrações em tempo real (health check a cada 60s)."
             tone="primary"
             highlight={highlightZone === "zone-health"}
+            actions={
+              <ZoneRefreshButton
+                label="Atualizar zona Saúde"
+                successMessage="Saúde atualizada"
+                queryKeys={[
+                  ["integrations-health"],
+                  ["connections-pulse-bar"],
+                  ["connections-recent-incidents"],
+                  ["connections-incident-timeline-72h"],
+                ]}
+              />
+            }
           >
             <IntegrationsHealthCard secrets={secrets} />
           </ZoneSection>
