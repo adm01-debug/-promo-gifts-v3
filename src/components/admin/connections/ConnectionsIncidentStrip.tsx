@@ -127,6 +127,7 @@ export function ConnectionsIncidentStrip() {
   const { data, isLoading } = useRecentIncidents();
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
   const [collapsed, setCollapsed] = useState(false);
+  const [openIncident, setOpenIncident] = useState<IncidentItem | null>(null);
 
   const visible = useMemo(
     () => (data ?? []).filter((i) => !dismissed.has(i.id)),
@@ -198,11 +199,21 @@ export function ConnectionsIncidentStrip() {
             className="flex gap-2 p-2 overflow-x-auto snap-x snap-mandatory scrollbar-thin"
           >
             {visible.map((incident) => (
-              <IncidentCard key={incident.id} incident={incident} onDismiss={dismiss} />
+              <IncidentCard
+                key={incident.id}
+                incident={incident}
+                onDismiss={dismiss}
+                onOpen={setOpenIncident}
+              />
             ))}
           </div>
         )}
       </section>
+      <IncidentDetailsDrawer
+        incident={openIncident}
+        open={!!openIncident}
+        onOpenChange={(o) => { if (!o) setOpenIncident(null); }}
+      />
     </TooltipProvider>
   );
 }
