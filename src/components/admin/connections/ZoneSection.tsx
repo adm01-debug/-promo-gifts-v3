@@ -10,7 +10,10 @@
  *   - Suporte opcional a actions à direita do header
  */
 import type { LucideIcon } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface ZoneSectionProps {
   id: string;
@@ -22,6 +25,10 @@ interface ZoneSectionProps {
   actions?: React.ReactNode;
   /** Quando true, aplica anel + glow temporário (ex: deep-link de incidente) */
   highlight?: boolean;
+  /** Estado colapsado (oculta conteúdo, mantém header). */
+  collapsed?: boolean;
+  /** Handler para alternar colapso. Se ausente, botão de toggle é omitido. */
+  onToggleCollapse?: () => void;
   children: React.ReactNode;
   className?: string;
 }
@@ -40,10 +47,13 @@ export function ZoneSection({
   tone = "primary",
   actions,
   highlight = false,
+  collapsed = false,
+  onToggleCollapse,
   children,
   className,
 }: ZoneSectionProps) {
   const headingId = `${id}-heading`;
+  const contentId = `${id}-content`;
   const tcls = TONE_CLS[tone];
 
   return (
