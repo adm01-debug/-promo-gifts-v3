@@ -281,13 +281,19 @@ export function CredentialsSourceIndicator({ secrets, isLoading, onRefresh, clas
                   AUSENTE · {counts.none}
                 </Badge>
               </TooltipTrigger>
-              <TooltipContent side="top" className="max-w-xs text-xs space-y-1">
-                <p className="font-semibold">Sem valor em DB nem em ENV</p>
+              <TooltipContent side="top" className="max-w-sm text-xs space-y-1.5">
+                <p className="font-semibold">Sem valor em DB nem em ENV — {counts.none}</p>
                 <p>
                   O <code className="font-mono">secrets-manager</code> não encontrou
                   o segredo em nenhuma das duas fontes — a integração que depende
                   dele ficará inativa.
                 </p>
+                <div className="border-t pt-1.5">
+                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1">
+                    Secrets ausentes
+                  </p>
+                  {renderNameList(grouped.none, "destructive")}
+                </div>
                 <p className="text-muted-foreground">
                   🔧 Preencha o campo correspondente no card e salve para gravar em{" "}
                   <code className="font-mono">integration_credentials</code>.
