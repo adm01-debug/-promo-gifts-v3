@@ -184,34 +184,39 @@ function defineTool<I>(
     handler: async (input: I): Promise<ToolResult> => {
       const ctx = currentCtx;
       const startedAt = Date.now();
+      const payloadSummary = summarizePayload(input);
       try {
         const authed = authorizeTool(ctx, name, guard);
         const result = await handler(input, authed);
-        await audit("mcp_tool.granted", authed, {
-          tool: name,
-          scope: guard.scope,
-          mode: guard.mode,
-          duration_ms: Date.now() - startedAt,
-        });
+        await audit(
+          "mcp_tool.granted",
+          authed,
+          { tool: name, scope: guard.scope, mode: guard.mode, duration_ms: Date.now() - startedAt },
+          { status: "success", payloadSummary },
+        );
         return result;
       } catch (err) {
         if (err instanceof McpAuthError) {
-          await audit("mcp_tool.denied", ctx, {
+          await audit(
+            "mcp_tool.denied",
+            ctx,
+            { tool: name, scope: guard.scope, mode: guard.mode, error_code: err.code, ...err.meta },
+            { status: "denied", payloadSummary },
+          );
+          throw new Error(`[${err.code}] ${err.message}`);
+        }
+        await audit(
+          "mcp_tool.error",
+          ctx,
+          {
             tool: name,
             scope: guard.scope,
             mode: guard.mode,
-            error_code: err.code,
-            ...err.meta,
-          });
-          throw new Error(`[${err.code}] ${err.message}`);
-        }
-        await audit("mcp_tool.error", ctx, {
-          tool: name,
-          scope: guard.scope,
-          mode: guard.mode,
-          error_code: ERR.INTERNAL,
-          message: err instanceof Error ? err.message : String(err),
-        });
+            error_code: ERR.INTERNAL,
+            message: err instanceof Error ? err.message : String(err),
+          },
+          { status: "error", payloadSummary },
+        );
         throw err instanceof Error ? err : new Error(String(err));
       }
     },
