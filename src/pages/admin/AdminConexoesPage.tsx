@@ -137,6 +137,8 @@ export default function AdminConexoesPage() {
             description="Status agregado das integrações em tempo real (health check a cada 60s)."
             tone="primary"
             highlight={highlightZone === "zone-health"}
+            collapsed={collapsed.health}
+            onToggleCollapse={() => toggleCollapse("health")}
             actions={
               <ZoneRefreshButton
                 label="Atualizar zona Saúde"
@@ -163,6 +165,8 @@ export default function AdminConexoesPage() {
             description="Configurações do auto-test (verificação periódica), janela de falha contínua e status do job de monitoramento."
             tone="info"
             highlight={highlightZone === "zone-operation"}
+            collapsed={collapsed.operation}
+            onToggleCollapse={() => toggleCollapse("operation")}
             actions={
               <ZoneRefreshButton
                 label="Atualizar zona Operação (cron, intervalos, janela)"
@@ -192,6 +196,8 @@ export default function AdminConexoesPage() {
             title="Conexões"
             description="Visão consolidada de todas as integrações ativas e gestão por tipo (banco, Bitrix24, n8n, MCP, webhooks)."
             tone="neutral"
+            collapsed={collapsed.connections}
+            onToggleCollapse={() => toggleCollapse("connections")}
             actions={
               <ZoneRefreshButton
                 label="Atualizar zona Conexões (tabela e abas)"
