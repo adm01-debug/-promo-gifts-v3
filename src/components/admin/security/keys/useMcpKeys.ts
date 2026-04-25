@@ -47,6 +47,7 @@ function deriveStatus(row: { revoked_at: string | null; expires_at: string | nul
 }
 
 export function useMcpKeys() {
+  const { challenge } = useDevChallenge();
   const [rows, setRows] = useState<McpKeyRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<Filters>({
