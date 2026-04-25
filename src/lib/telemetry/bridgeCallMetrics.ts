@@ -67,6 +67,8 @@ export function recordBridgeCall(sample: Omit<BridgeCallSample, 'id' | 'ts'> & {
     ok: sample.ok,
     status: sample.status,
     errorMessage: sample.errorMessage,
+    requestId: sample.requestId,
+    serverRequestId: sample.serverRequestId,
   };
   samples.push(entry);
   if (samples.length > MAX_SAMPLES) samples.splice(0, samples.length - MAX_SAMPLES);
