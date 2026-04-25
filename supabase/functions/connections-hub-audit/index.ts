@@ -4,7 +4,7 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { getCorsHeaders, handleCorsPreflightIfNeeded } from "../_shared/cors.ts";
-import { authenticateRequest, requireRole, authErrorResponse } from "../_shared/auth.ts";
+import { authenticateRequest, requireDev, authErrorResponse } from "../_shared/auth.ts";
 
 interface CheckResult {
   name: string;
