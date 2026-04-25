@@ -138,19 +138,20 @@ function authorizeTool(ctx: AuthCtx | null, toolName: string, guard: ToolGuard):
 // Tool wrapper: gate + audit + error normalization
 // ────────────────────────────────────────────────────────────────────────────
 
-type ToolHandler<I, O> = (input: I, ctx: AuthCtx) => Promise<O> | O;
+type ToolResult = { content: Array<{ type: "text"; text: string }> };
+type ToolHandler<I> = (input: I, ctx: AuthCtx) => Promise<ToolResult> | ToolResult;
 
-function defineTool<I, O>(
+function defineTool<I>(
   name: string,
   guard: ToolGuard,
   description: string,
   inputSchema: Record<string, unknown>,
-  handler: ToolHandler<I, O>,
+  handler: ToolHandler<I>,
 ) {
   mcpServer.tool(name, {
     description: `${description} [scope: ${guard.scope} | mode: ${guard.mode}]`,
     inputSchema,
-    handler: async (input: I) => {
+    handler: async (input: I): Promise<ToolResult> => {
       const ctx = currentCtx;
       const startedAt = Date.now();
       try {
@@ -162,7 +163,7 @@ function defineTool<I, O>(
           mode: guard.mode,
           duration_ms: Date.now() - startedAt,
         });
-        return result as { content: Array<{ type: string; text: string }> };
+        return result;
       } catch (err) {
         if (err instanceof McpAuthError) {
           await audit("mcp_tool.denied", ctx, {
@@ -172,7 +173,6 @@ function defineTool<I, O>(
             error_code: err.code,
             ...err.meta,
           });
-          // Return a structured, consistent payload AND throw so MCP client sees an error.
           throw new Error(`[${err.code}] ${err.message}`);
         }
         await audit("mcp_tool.error", ctx, {
