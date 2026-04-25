@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSecretsManager } from "@/hooks/useSecretsManager";
 import { ExpectedKeysMatchPanel } from "./ExpectedKeysMatchPanel";
 import { LastSyncRunPanel } from "./LastSyncRunPanel";
+import { CredentialCacheMetricsPanel } from "./CredentialCacheMetricsPanel";
 import { FieldSourceDrillDownDialog, type FieldDrillDownData } from "./FieldSourceDrillDownDialog";
 import { toast } from "sonner";
 
@@ -443,6 +444,9 @@ export function DataSourceDebugTab() {
 
       {/* Última execução do trigger de sync */}
       <LastSyncRunPanel />
+
+      {/* Métricas de cache da SSOT (resolveCredential) */}
+      <CredentialCacheMetricsPanel />
 
       {/* Raw rows */}
       <div className="grid gap-3 lg:grid-cols-2">
