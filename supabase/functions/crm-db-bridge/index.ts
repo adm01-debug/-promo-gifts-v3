@@ -56,6 +56,7 @@ function warmupCrmClient(): Promise<void> {
         console.warn(`[crm-boot-warmup] ⚠️ ${error.message} (${ms}ms)`);
       } else {
         console.log(`[crm-boot-warmup] ✅ crm client ready (${ms}ms)`);
+        crmWarmupCompleted = true;
       }
     } catch (e) {
       console.warn(`[crm-boot-warmup] ⚠️ ${e instanceof Error ? e.message : String(e)}`);
