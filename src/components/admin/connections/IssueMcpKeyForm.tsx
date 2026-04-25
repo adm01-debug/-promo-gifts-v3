@@ -51,6 +51,7 @@ import {
 } from "@/lib/mcp/scopes";
 import { useCanGrantMcpFull } from "@/components/admin/security/keys/useCanGrantMcpFull";
 import { StepUpAuthDialog } from "@/components/auth/StepUpAuthDialog";
+import { useDevChallenge } from "@/contexts/DevChallengeContext";
 import { sanitizeError } from "@/lib/security/sanitize-error";
 
 interface Props {
