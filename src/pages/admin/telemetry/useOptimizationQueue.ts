@@ -186,10 +186,12 @@ export function useOptimizationQueue() {
     setAutoRun(false);
   }, []);
 
+  useEffect(() => () => { stopRef.current = true; }, []);
+
   /**
- * Última execução do optimization/bridge que falhou com 503 ou
- * SUPABASE_EDGE_RUNTIME_ERROR. Usado para habilitar o botão de re-enfileirar.
- */
+   * Última execução do optimization/bridge que falhou com 503 ou
+   * SUPABASE_EDGE_RUNTIME_ERROR. Usado para habilitar o botão de re-enfileirar.
+   */
   const lastBridgeFailure = useMemo(() => {
     const candidates = items
       .filter(i => (i.status === 'failed' || i.status === 'blocked') && isBridgeColdStartError(i.error))
