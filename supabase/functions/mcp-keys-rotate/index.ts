@@ -148,6 +148,26 @@ Deno.serve(async (req) => {
     const full = isFullAccess(source.scopes ?? []);
 
     if (full) {
+      // Authorization gate: only explicit grantors can rotate (re-emit) FULL keys
+      const { data: canGrant, error: grantErr } = await admin.rpc("can_grant_mcp_full", {
+        _user_id: userId,
+      });
+      if (grantErr) {
+        await auditFailure("error", { reason: "grant_check_failed", detail: grantErr.message }, source_key_id);
+        return jsonResponse({ error: "internal_error", detail: grantErr.message }, 500, requestId);
+      }
+      if (!canGrant) {
+        await auditFailure("denied", { reason: "full_grant_forbidden" }, source_key_id);
+        return jsonResponse(
+          {
+            error: "full_grant_forbidden",
+            message: "Você não tem permissão para rotacionar chaves MCP com escopo total (*). Solicite a inclusão em mcp_full_grantors.",
+          },
+          403,
+          requestId,
+        );
+      }
+
       const fieldErrors: Record<string, string[]> = {};
       if (!justification || justification.trim().length < FULL_SCOPE_MIN_JUSTIFICATION) {
         fieldErrors.justification = [`Justificativa obrigatória (mín. ${FULL_SCOPE_MIN_JUSTIFICATION} caracteres) para rotacionar chave full.`];

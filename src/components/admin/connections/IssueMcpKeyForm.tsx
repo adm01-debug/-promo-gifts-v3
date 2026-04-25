@@ -49,6 +49,7 @@ import {
   isFullAccess,
   type McpScope,
 } from "@/lib/mcp/scopes";
+import { useCanGrantMcpFull } from "@/components/admin/security/keys/useCanGrantMcpFull";
 
 interface Props {
   onIssued: () => void;
@@ -74,6 +75,7 @@ export function IssueMcpKeyForm({ onIssued }: Props) {
   const [rootNameEcho, setRootNameEcho] = useState("");
 
   const full = isFullAccess(scopes);
+  const { canGrant: canGrantFull, loading: grantorLoading } = useCanGrantMcpFull();
 
   // Auto-popula expires com default de 90 dias quando FULL é marcado.
   const handleScopeToggle = (s: McpScope) => {
@@ -206,16 +208,20 @@ export function IssueMcpKeyForm({ onIssued }: Props) {
                     <button
                       type="button"
                       onClick={() => handleScopeToggle(s)}
+                      disabled={isFull && !canGrantFull && !grantorLoading}
                       className={[
                         "px-2 py-1 rounded text-xs border font-mono transition",
-                        active
-                          ? isFull
-                            ? "bg-destructive text-destructive-foreground border-destructive"
-                            : "bg-primary text-primary-foreground border-primary"
-                          : "bg-background border-border hover:border-primary/40",
+                        isFull && !canGrantFull && !grantorLoading
+                          ? "bg-muted text-muted-foreground border-border cursor-not-allowed opacity-60"
+                          : active
+                            ? isFull
+                              ? "bg-destructive text-destructive-foreground border-destructive"
+                              : "bg-primary text-primary-foreground border-primary"
+                            : "bg-background border-border hover:border-primary/40",
                       ].join(" ")}
                     >
                       {s}
+                      {isFull && !canGrantFull && !grantorLoading && " 🔒"}
                     </button>
                   </TooltipTrigger>
                   <TooltipContent side="top" className="max-w-xs">
@@ -234,6 +240,12 @@ export function IssueMcpKeyForm({ onIssued }: Props) {
             })}
           </div>
         </TooltipProvider>
+        {!grantorLoading && !canGrantFull && (
+          <p className="mt-2 text-[11px] text-muted-foreground">
+            🔒 Você não está autorizado a conceder o escopo <code className="font-mono">*</code> (FULL).
+            Solicite a um admin já listado em <code className="font-mono">mcp_full_grantors</code> para te incluir.
+          </p>
+        )}
       </div>
 
       {full && (

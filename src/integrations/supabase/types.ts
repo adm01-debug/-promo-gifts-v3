@@ -2190,6 +2190,27 @@ export type Database = {
           },
         ]
       }
+      mcp_full_grantors: {
+        Row: {
+          granted_at: string
+          granted_by: string | null
+          reason: string | null
+          user_id: string
+        }
+        Insert: {
+          granted_at?: string
+          granted_by?: string | null
+          reason?: string | null
+          user_id: string
+        }
+        Update: {
+          granted_at?: string
+          granted_by?: string | null
+          reason?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       mockup_drafts: {
         Row: {
           client_id: string | null
@@ -4408,6 +4429,7 @@ export type Database = {
         Returns: Json
       }
       auto_block_extreme_offenders: { Args: never; Returns: Json }
+      can_grant_mcp_full: { Args: { _user_id: string }; Returns: boolean }
       check_ai_quota: { Args: { _user_id: string }; Returns: Json }
       check_hardening_status: { Args: never; Returns: Json }
       check_ip_access: { Args: { _ip: string }; Returns: string }
