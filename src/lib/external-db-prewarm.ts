@@ -25,23 +25,34 @@ const PREWARM_TABLES = [
 let lastPrewarmAt = 0;
 const PREWARM_COOLDOWN_MS = 5 * 60 * 1000; // 5 minutos entre pre-warms
 
-async function pingBridge(): Promise<number> {
+/**
+ * Acorda a edge function com um ping leve antes do leque paralelo.
+ *
+ * O 1º ping pode receber 503 `SUPABASE_EDGE_RUNTIME_ERROR` enquanto o isolate
+ * está bootando — esperar aqui (com backoff exponencial) evita que as 6
+ * chamadas paralelas a seguir peguem a mesma janela de cold start e falhem
+ * em cascata. Retorna `{ ok, ms }` para o caller decidir se segue em frente.
+ */
+async function pingBridge(): Promise<{ ok: boolean; ms: number; attempts: number }> {
   const t0 = performance.now();
-  // Tenta até 3x com backoff curto. O 1º ping pode receber 503 SUPABASE_EDGE_RUNTIME_ERROR
-  // enquanto o isolate boota; esperar aqui evita que as 6 chamadas paralelas a seguir
-  // peguem a mesma janela de cold start e falhem em cascata.
-  for (let attempt = 0; attempt < 3; attempt++) {
+  const MAX_ATTEMPTS = 3;
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     try {
       const { error } = await supabase.functions.invoke('external-db-bridge', {
         body: { operation: 'ping' },
       });
-      if (!error) break;
+      if (!error) {
+        return { ok: true, ms: Math.round(performance.now() - t0), attempts: attempt };
+      }
     } catch {
       // continua tentando
     }
-    if (attempt < 2) await new Promise(r => setTimeout(r, 400 * (attempt + 1)));
+    if (attempt < MAX_ATTEMPTS) {
+      // Backoff exponencial: 400ms, 800ms (suficiente para o isolate bootar).
+      await new Promise(r => setTimeout(r, 400 * Math.pow(2, attempt - 1)));
+    }
   }
-  return Math.round(performance.now() - t0);
+  return { ok: false, ms: Math.round(performance.now() - t0), attempts: MAX_ATTEMPTS };
 }
 
 async function warmTable(table: string): Promise<{ table: string; ok: boolean; ms: number; err?: string }> {
