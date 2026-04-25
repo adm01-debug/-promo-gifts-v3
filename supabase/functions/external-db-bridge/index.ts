@@ -1115,7 +1115,8 @@ async function handleSelect(externalSupabase: any, table: string, opts: any) {
       console.log(`[orderBy-fallback] Selected ${records.length} records from ${table} without orderBy (was: ${orderColumn})`);
 
       const result = { records, count: retryCount ?? null, meta: { orderBy_fallback: orderColumn } };
-      if (cacheKey) setCache(cacheKey, result);
+      // Listings dinâmicos (products) usam TTL curto (60s); estáticos usam default (10min).
+      if (cacheKey) setCache(cacheKey, result, table === 'products' ? 60_000 : undefined);
       return result;
     }
 
