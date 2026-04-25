@@ -98,10 +98,12 @@ const BodySchema = z
     }
   });
 
-function jsonResponse(body: unknown, status: number) {
-  return new Response(JSON.stringify(body), {
+function jsonResponse(body: unknown, status: number, requestId?: string) {
+  const headers: Record<string, string> = { ...corsHeaders, "Content-Type": "application/json" };
+  if (requestId) headers[REQUEST_ID_HEADER] = requestId;
+  return new Response(JSON.stringify(requestId ? { ...(body as object), request_id: requestId } : body), {
     status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
+    headers,
   });
 }
 
