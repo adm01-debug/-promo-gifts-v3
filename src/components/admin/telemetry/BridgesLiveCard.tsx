@@ -65,6 +65,21 @@ export function BridgesLiveCard() {
 
   const rows = useMemo(() => aggregateByEndpoint(samples), [samples]);
 
+  // Últimas N chamadas (mais recentes primeiro) para visualização individual
+  // por request_id — permite drill-down em uma chamada específica.
+  const RECENT_LIMIT = 20;
+  const recent = useMemo(
+    () => samples.slice(-RECENT_LIMIT).reverse(),
+    [samples],
+  );
+
+  const [selected, setSelected] = useState<BridgeCallSample | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const openDetail = (s: BridgeCallSample) => {
+    setSelected(s);
+    setDrawerOpen(true);
+  };
+
   const totals = useMemo(() => {
     const total = samples.length;
     const errors = samples.reduce((acc, s) => acc + (s.ok ? 0 : 1), 0);
