@@ -64,7 +64,7 @@ export default function AdminConexoesPage() {
   // reabre a zona se estiver oculta, rola até ela e aplica highlight 1.8s.
   useEffect(() => {
     const handler = (e: Event) => {
-      const detail = (e as CustomEvent<{ zone: "health" | "operation"; anchorId: string }>).detail;
+      const detail = (e as CustomEvent<{ zone: ZoneId; anchorId: string }>).detail;
       if (!detail) return;
       const { zone, anchorId } = detail;
       // Reabre zona se estiver oculta
