@@ -5,6 +5,10 @@
 import { Hono } from "hono";
 import { McpServer, StreamableHttpTransport } from "mcp-lite";
 import { createClient } from "@supabase/supabase-js";
+import { getOrCreateRequestId, REQUEST_ID_HEADER } from "../_shared/request-id.ts";
+import { summarizePayload } from "../_shared/audit-log.ts";
+
+const SOURCE = "mcp-server";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -29,6 +33,9 @@ interface AuthCtx {
   isFull: boolean;
   ip: string | null;
   ua: string | null;
+  requestId: string;
+  startedAt: string;
+  startedMs: number;
 }
 
 interface ToolGuard {
@@ -62,8 +69,15 @@ async function audit(
   action: "mcp_tool.granted" | "mcp_tool.denied" | "mcp_tool.error",
   ctx: AuthCtx | null,
   details: Record<string, unknown>,
+  opts: {
+    status: "success" | "denied" | "error";
+    payloadSummary?: Record<string, unknown>;
+  },
 ) {
   try {
+    const finishedAt = new Date().toISOString();
+    const startedAt = ctx?.startedAt ?? finishedAt;
+    const duration = ctx ? Date.now() - ctx.startedMs : 0;
     await supabase.from("admin_audit_log").insert({
       user_id: null,
       action,
@@ -71,10 +85,16 @@ async function audit(
       resource_id: ctx?.keyId ?? null,
       ip_address: ctx?.ip ?? null,
       user_agent: ctx?.ua ?? null,
+      request_id: ctx?.requestId ?? null,
+      started_at: startedAt,
+      finished_at: finishedAt,
+      duration_ms: duration,
+      status: opts.status,
+      payload_summary: opts.payloadSummary ?? {},
+      source: SOURCE,
       details: {
         ...details,
         is_full_access: ctx?.isFull ?? false,
-        source: "mcp-server",
       },
     });
   } catch (_) {
@@ -94,7 +114,17 @@ async function authenticate(req: Request): Promise<AuthCtx | null> {
     req.headers.get("cf-connecting-ip") ??
     null;
   const ua = req.headers.get("user-agent") ?? null;
-  return { keyId: row.key_id, scopes, isFull: scopes.has("*"), ip, ua };
+  const requestId = getOrCreateRequestId(req);
+  return {
+    keyId: row.key_id,
+    scopes,
+    isFull: scopes.has("*"),
+    ip,
+    ua,
+    requestId,
+    startedAt: new Date().toISOString(),
+    startedMs: Date.now(),
+  };
 }
 
 /**
@@ -154,34 +184,39 @@ function defineTool<I>(
     handler: async (input: I): Promise<ToolResult> => {
       const ctx = currentCtx;
       const startedAt = Date.now();
+      const payloadSummary = summarizePayload(input);
       try {
         const authed = authorizeTool(ctx, name, guard);
         const result = await handler(input, authed);
-        await audit("mcp_tool.granted", authed, {
-          tool: name,
-          scope: guard.scope,
-          mode: guard.mode,
-          duration_ms: Date.now() - startedAt,
-        });
+        await audit(
+          "mcp_tool.granted",
+          authed,
+          { tool: name, scope: guard.scope, mode: guard.mode, duration_ms: Date.now() - startedAt },
+          { status: "success", payloadSummary },
+        );
         return result;
       } catch (err) {
         if (err instanceof McpAuthError) {
-          await audit("mcp_tool.denied", ctx, {
+          await audit(
+            "mcp_tool.denied",
+            ctx,
+            { tool: name, scope: guard.scope, mode: guard.mode, error_code: err.code, ...err.meta },
+            { status: "denied", payloadSummary },
+          );
+          throw new Error(`[${err.code}] ${err.message}`);
+        }
+        await audit(
+          "mcp_tool.error",
+          ctx,
+          {
             tool: name,
             scope: guard.scope,
             mode: guard.mode,
-            error_code: err.code,
-            ...err.meta,
-          });
-          throw new Error(`[${err.code}] ${err.message}`);
-        }
-        await audit("mcp_tool.error", ctx, {
-          tool: name,
-          scope: guard.scope,
-          mode: guard.mode,
-          error_code: ERR.INTERNAL,
-          message: err instanceof Error ? err.message : String(err),
-        });
+            error_code: ERR.INTERNAL,
+            message: err instanceof Error ? err.message : String(err),
+          },
+          { status: "error", payloadSummary },
+        );
         throw err instanceof Error ? err : new Error(String(err));
       }
     },
@@ -303,9 +338,10 @@ const httpHandler = transport.bind(mcpServer);
 app.all("/*", async (c) => {
   const ctx = await authenticate(c.req.raw);
   if (!ctx) {
+    const reqId = getOrCreateRequestId(c.req.raw);
     return new Response(
-      JSON.stringify({ error: ERR.UNAUTHENTICATED, message: "Chave MCP inválida ou ausente." }),
-      { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      JSON.stringify({ error: ERR.UNAUTHENTICATED, message: "Chave MCP inválida ou ausente.", request_id: reqId }),
+      { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json", [REQUEST_ID_HEADER]: reqId } },
     );
   }
   currentCtx = ctx;
@@ -313,6 +349,7 @@ app.all("/*", async (c) => {
     const res = await httpHandler(c.req.raw);
     const merged = new Headers(res.headers);
     for (const [k, v] of Object.entries(corsHeaders)) merged.set(k, v);
+    merged.set(REQUEST_ID_HEADER, ctx.requestId);
     return new Response(res.body, { status: res.status, headers: merged });
   } finally {
     currentCtx = null;

@@ -2,7 +2,7 @@
  * mcp-keys-update
  *
  * Atualiza campos sensíveis de uma chave MCP (name, description, scopes, expires_at).
- * Toda mudança é auditada via trigger DB; edge function adiciona IP/UA + valida fricção FULL.
+ * Toda mudança é auditada com request_id, payload_summary, duração e status.
  */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
 import { corsHeaders } from "https://esm.sh/@supabase/supabase-js@2.95.0/cors";
@@ -14,7 +14,10 @@ import {
   FULL_SCOPE_MAX_TTL_MS,
   isFullAccess,
 } from "../_shared/mcp-scopes.ts";
+import { getOrCreateRequestId, REQUEST_ID_HEADER } from "../_shared/request-id.ts";
+import { writeAuditEntry, summarizePayload, extractRequestMeta } from "../_shared/audit-log.ts";
 
+const SOURCE = "mcp-keys-update";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
@@ -33,47 +36,92 @@ const BodySchema = z.object({
   confirmation_phrase: z.string().optional().nullable(),
 });
 
-function jsonResponse(body: unknown, status: number) {
-  return new Response(JSON.stringify(body), {
+function jsonResponse(body: unknown, status: number, requestId: string) {
+  return new Response(JSON.stringify({ ...(body as object), request_id: requestId }), {
     status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
+    headers: { ...corsHeaders, "Content-Type": "application/json", [REQUEST_ID_HEADER]: requestId },
   });
 }
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
-  if (req.method !== "POST") return jsonResponse({ error: "method_not_allowed" }, 405);
+  const requestId = getOrCreateRequestId(req);
+  const startedAt = new Date().toISOString();
+  const startedMs = Date.now();
+  const { ip, ua } = extractRequestMeta(req);
+
+  if (req.method !== "POST") return jsonResponse({ error: "method_not_allowed" }, 405, requestId);
+
+  const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+
+  let userId: string | null = null;
+  let rawBody: unknown = null;
+
+  const auditFailure = async (
+    status: "error" | "denied",
+    extra: Record<string, unknown>,
+    resourceId?: string | null,
+  ) => {
+    await writeAuditEntry(admin, {
+      user_id: userId,
+      action: status === "denied" ? "mcp_key.update_denied" : "mcp_key.update_error",
+      resource_type: "mcp_api_key",
+      resource_id: resourceId ?? null,
+      ip_address: ip,
+      user_agent: ua,
+      request_id: requestId,
+      started_at: startedAt,
+      finished_at: new Date().toISOString(),
+      duration_ms: Date.now() - startedMs,
+      status,
+      payload_summary: summarizePayload(rawBody),
+      source: SOURCE,
+      details: extra,
+    });
+  };
 
   try {
     const authHeader = req.headers.get("Authorization") ?? "";
     const jwt = authHeader.replace(/^Bearer\s+/i, "");
-    if (!jwt) return jsonResponse({ error: "unauthenticated" }, 401);
+    if (!jwt) {
+      await auditFailure("denied", { reason: "unauthenticated" });
+      return jsonResponse({ error: "unauthenticated" }, 401, requestId);
+    }
 
     const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       global: { headers: { Authorization: `Bearer ${jwt}` } },
     });
     const { data: userData, error: userErr } = await userClient.auth.getUser();
-    if (userErr || !userData.user) return jsonResponse({ error: "unauthenticated" }, 401);
-    const userId = userData.user.id;
-
-    const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-      auth: { persistSession: false, autoRefreshToken: false },
-    });
+    if (userErr || !userData.user) {
+      await auditFailure("denied", { reason: "invalid_jwt" });
+      return jsonResponse({ error: "unauthenticated" }, 401, requestId);
+    }
+    userId = userData.user.id;
 
     const { data: roleCheck, error: roleErr } = await admin.rpc("has_role", {
       _user_id: userId,
       _role: "admin",
     });
-    if (roleErr) return jsonResponse({ error: "internal_error", detail: roleErr.message }, 500);
+    if (roleErr) {
+      await auditFailure("error", { reason: "role_check_failed", detail: roleErr.message });
+      return jsonResponse({ error: "internal_error", detail: roleErr.message }, 500, requestId);
+    }
     if (!roleCheck) {
-      return jsonResponse({ error: "forbidden", message: "Apenas administradores podem editar chaves MCP." }, 403);
+      await auditFailure("denied", { reason: "not_admin" });
+      return jsonResponse({ error: "forbidden", message: "Apenas administradores podem editar chaves MCP." }, 403, requestId);
     }
 
-    let raw: unknown;
-    try { raw = await req.json(); } catch { return jsonResponse({ error: "invalid_json" }, 400); }
-    const parsed = BodySchema.safeParse(raw);
+    try { rawBody = await req.json(); } catch {
+      await auditFailure("error", { reason: "invalid_json" });
+      return jsonResponse({ error: "invalid_json" }, 400, requestId);
+    }
+    const parsed = BodySchema.safeParse(rawBody);
     if (!parsed.success) {
-      return jsonResponse({ error: "validation_failed", fields: parsed.error.flatten().fieldErrors }, 422);
+      const fields = parsed.error.flatten().fieldErrors;
+      await auditFailure("denied", { reason: "validation_failed", fields });
+      return jsonResponse({ error: "validation_failed", fields }, 422, requestId);
     }
     const { key_id, name, description, scopes, expires_at, justification, confirmation_phrase } = parsed.data;
 
@@ -82,11 +130,19 @@ Deno.serve(async (req) => {
       .select("id, name, description, scopes, expires_at, revoked_at, key_prefix")
       .eq("id", key_id)
       .maybeSingle();
-    if (fetchErr) return jsonResponse({ error: "internal_error", detail: fetchErr.message }, 500);
-    if (!current) return jsonResponse({ error: "not_found" }, 404);
-    if (current.revoked_at) return jsonResponse({ error: "policy_violation", message: "Chave revogada não pode ser editada." }, 422);
+    if (fetchErr) {
+      await auditFailure("error", { reason: "fetch_failed", detail: fetchErr.message }, key_id);
+      return jsonResponse({ error: "internal_error", detail: fetchErr.message }, 500, requestId);
+    }
+    if (!current) {
+      await auditFailure("denied", { reason: "not_found" }, key_id);
+      return jsonResponse({ error: "not_found" }, 404, requestId);
+    }
+    if (current.revoked_at) {
+      await auditFailure("denied", { reason: "revoked_key" }, key_id);
+      return jsonResponse({ error: "policy_violation", message: "Chave revogada não pode ser editada." }, 422, requestId);
+    }
 
-    // Detecta escalação para FULL
     const wasFull = isFullAccess(current.scopes ?? []);
     const willBeFull = scopes ? isFullAccess(scopes) : wasFull;
     const escalating = !wasFull && willBeFull;
@@ -108,7 +164,8 @@ Deno.serve(async (req) => {
         else if (ms > FULL_SCOPE_MAX_TTL_MS) fieldErrors.expires_at = [...(fieldErrors.expires_at ?? []), "Janela máxima 180 dias."];
       }
       if (Object.keys(fieldErrors).length > 0) {
-        return jsonResponse({ error: "validation_failed", fields: fieldErrors }, 422);
+        await auditFailure("denied", { reason: "full_escalation_blocked", fields: fieldErrors }, key_id);
+        return jsonResponse({ error: "validation_failed", fields: fieldErrors }, 422, requestId);
       }
     }
 
@@ -119,11 +176,9 @@ Deno.serve(async (req) => {
     if (expires_at !== undefined) patch.expires_at = expires_at;
 
     if (Object.keys(patch).length === 0) {
-      return jsonResponse({ error: "no_changes" }, 400);
+      await auditFailure("denied", { reason: "no_changes" }, key_id);
+      return jsonResponse({ error: "no_changes" }, 400, requestId);
     }
-
-    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? req.headers.get("cf-connecting-ip") ?? null;
-    const ua = req.headers.get("user-agent") ?? null;
 
     const { data: updated, error: updErr } = await admin
       .from("mcp_api_keys")
@@ -131,16 +186,25 @@ Deno.serve(async (req) => {
       .eq("id", key_id)
       .select("id, name, description, scopes, expires_at, key_prefix")
       .single();
-    if (updErr || !updated) return jsonResponse({ error: "update_failed", detail: updErr?.message ?? "unknown" }, 500);
+    if (updErr || !updated) {
+      await auditFailure("error", { reason: "update_failed", detail: updErr?.message ?? "unknown" }, key_id);
+      return jsonResponse({ error: "update_failed", detail: updErr?.message ?? "unknown" }, 500, requestId);
+    }
 
-    // Log enriquecido (complementa trigger DB com IP/UA)
-    await admin.from("admin_audit_log").insert({
+    await writeAuditEntry(admin, {
       user_id: userId,
       action: "mcp_key.updated",
       resource_type: "mcp_api_key",
       resource_id: updated.id,
       ip_address: ip,
       user_agent: ua,
+      request_id: requestId,
+      started_at: startedAt,
+      finished_at: new Date().toISOString(),
+      duration_ms: Date.now() - startedMs,
+      status: "success",
+      payload_summary: summarizePayload(rawBody),
+      source: SOURCE,
       details: {
         key_prefix: updated.key_prefix,
         fields_changed: Object.keys(patch),
@@ -158,15 +222,13 @@ Deno.serve(async (req) => {
         },
         escalated_to_full: escalating,
         justification: escalating ? (justification ?? null) : null,
-        source: "edge_function",
       },
     });
 
-    return jsonResponse({ ok: true, key: updated, escalated_to_full: escalating }, 200);
+    return jsonResponse({ ok: true, key: updated, escalated_to_full: escalating }, 200, requestId);
   } catch (err) {
-    return jsonResponse(
-      { error: "internal_error", detail: err instanceof Error ? err.message : String(err) },
-      500,
-    );
+    const detail = err instanceof Error ? err.message : String(err);
+    await auditFailure("error", { reason: "uncaught", detail });
+    return jsonResponse({ error: "internal_error", detail }, 500, requestId);
   }
 });

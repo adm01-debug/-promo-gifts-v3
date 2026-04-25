@@ -25,6 +25,10 @@ import {
   FULL_SCOPE_MAX_TTL_MS,
   isFullAccess,
 } from "../_shared/mcp-scopes.ts";
+import { getOrCreateRequestId, REQUEST_ID_HEADER } from "../_shared/request-id.ts";
+import { writeAuditEntry, summarizePayload, extractRequestMeta } from "../_shared/audit-log.ts";
+
+const SOURCE = "mcp-keys-issue";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -94,10 +98,12 @@ const BodySchema = z
     }
   });
 
-function jsonResponse(body: unknown, status: number) {
-  return new Response(JSON.stringify(body), {
+function jsonResponse(body: unknown, status: number, requestId?: string) {
+  const headers: Record<string, string> = { ...corsHeaders, "Content-Type": "application/json" };
+  if (requestId) headers[REQUEST_ID_HEADER] = requestId;
+  return new Response(JSON.stringify(requestId ? { ...(body as object), request_id: requestId } : body), {
     status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
+    headers,
   });
 }
 
@@ -119,29 +125,63 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
+  const requestId = getOrCreateRequestId(req);
+  const startedAt = new Date().toISOString();
+  const startedMs = Date.now();
+  const { ip, ua } = extractRequestMeta(req);
+
   if (req.method !== "POST") {
-    return jsonResponse({ error: "method_not_allowed" }, 405);
+    return jsonResponse({ error: "method_not_allowed" }, 405, requestId);
   }
+
+  // Cliente service-role inicializado cedo para auditoria de erros
+  const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+
+  let userId: string | null = null;
+  let rawBody: unknown = null;
+
+  const auditFailure = async (
+    status: "error" | "denied",
+    action: string,
+    extra: Record<string, unknown>,
+  ) => {
+    await writeAuditEntry(admin, {
+      user_id: userId,
+      action,
+      resource_type: "mcp_api_key",
+      ip_address: ip,
+      user_agent: ua,
+      request_id: requestId,
+      started_at: startedAt,
+      finished_at: new Date().toISOString(),
+      duration_ms: Date.now() - startedMs,
+      status,
+      payload_summary: summarizePayload(rawBody),
+      source: SOURCE,
+      details: extra,
+    });
+  };
 
   try {
     // 1. JWT
     const authHeader = req.headers.get("Authorization") ?? "";
     const jwt = authHeader.replace(/^Bearer\s+/i, "");
-    if (!jwt) return jsonResponse({ error: "unauthenticated" }, 401);
+    if (!jwt) {
+      await auditFailure("denied", "mcp_key.issue_denied", { reason: "unauthenticated" });
+      return jsonResponse({ error: "unauthenticated" }, 401, requestId);
+    }
 
     const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       global: { headers: { Authorization: `Bearer ${jwt}` } },
     });
     const { data: userData, error: userErr } = await userClient.auth.getUser();
     if (userErr || !userData.user) {
-      return jsonResponse({ error: "unauthenticated" }, 401);
+      await auditFailure("denied", "mcp_key.issue_denied", { reason: "invalid_jwt" });
+      return jsonResponse({ error: "unauthenticated" }, 401, requestId);
     }
-    const userId = userData.user.id;
-
-    // 2. Service-role client
-    const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-      auth: { persistSession: false, autoRefreshToken: false },
-    });
+    userId = userData.user.id;
 
     // 3. Role check
     const { data: roleCheck, error: roleErr } = await admin.rpc("has_role", {
@@ -149,28 +189,26 @@ Deno.serve(async (req) => {
       _role: "admin",
     });
     if (roleErr) {
-      return jsonResponse({ error: "internal_error", detail: roleErr.message }, 500);
+      await auditFailure("error", "mcp_key.issue_error", { reason: "role_check_failed", detail: roleErr.message });
+      return jsonResponse({ error: "internal_error", detail: roleErr.message }, 500, requestId);
     }
     if (!roleCheck) {
-      return jsonResponse({ error: "forbidden", message: "Apenas administradores podem emitir chaves MCP." }, 403);
+      await auditFailure("denied", "mcp_key.issue_denied", { reason: "not_admin" });
+      return jsonResponse({ error: "forbidden", message: "Apenas administradores podem emitir chaves MCP." }, 403, requestId);
     }
 
     // 4. Validate body
-    let raw: unknown;
     try {
-      raw = await req.json();
+      rawBody = await req.json();
     } catch {
-      return jsonResponse({ error: "invalid_json" }, 400);
+      await auditFailure("error", "mcp_key.issue_error", { reason: "invalid_json" });
+      return jsonResponse({ error: "invalid_json" }, 400, requestId);
     }
-    const parsed = BodySchema.safeParse(raw);
+    const parsed = BodySchema.safeParse(rawBody);
     if (!parsed.success) {
-      return jsonResponse(
-        {
-          error: "validation_failed",
-          fields: parsed.error.flatten().fieldErrors,
-        },
-        422,
-      );
+      const fields = parsed.error.flatten().fieldErrors;
+      await auditFailure("denied", "mcp_key.issue_denied", { reason: "validation_failed", fields });
+      return jsonResponse({ error: "validation_failed", fields }, 422, requestId);
     }
     const { name, scopes, expires_at, justification } = parsed.data;
     const full = isFullAccess(scopes);
@@ -193,26 +231,25 @@ Deno.serve(async (req) => {
       .select("id, key_prefix, scopes, expires_at, created_at")
       .single();
     if (insertErr || !inserted) {
-      return jsonResponse(
-        { error: "insert_failed", detail: insertErr?.message ?? "unknown" },
-        500,
-      );
+      await auditFailure("error", "mcp_key.issue_error", { reason: "insert_failed", detail: insertErr?.message });
+      return jsonResponse({ error: "insert_failed", detail: insertErr?.message ?? "unknown" }, 500, requestId);
     }
 
-    // 7. Audit log
-    const ip =
-      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-      req.headers.get("cf-connecting-ip") ??
-      null;
-    const ua = req.headers.get("user-agent") ?? null;
-
-    await admin.from("admin_audit_log").insert({
+    // 7. Audit log (success)
+    await writeAuditEntry(admin, {
       user_id: userId,
       action: "mcp_key.issued",
       resource_type: "mcp_api_key",
       resource_id: inserted.id,
       ip_address: ip,
       user_agent: ua,
+      request_id: requestId,
+      started_at: startedAt,
+      finished_at: new Date().toISOString(),
+      duration_ms: Date.now() - startedMs,
+      status: "success",
+      payload_summary: summarizePayload(rawBody),
+      source: SOURCE,
       details: {
         key_prefix: inserted.key_prefix,
         scopes: inserted.scopes,
@@ -227,7 +264,7 @@ Deno.serve(async (req) => {
     return jsonResponse(
       {
         ok: true,
-        key: plain, // exibida ao usuário UMA vez; nunca persistida em texto puro
+        key: plain,
         prefix: inserted.key_prefix,
         scopes: inserted.scopes,
         expires_at: inserted.expires_at,
@@ -235,11 +272,11 @@ Deno.serve(async (req) => {
         is_full_access: full,
       },
       200,
+      requestId,
     );
   } catch (err) {
-    return jsonResponse(
-      { error: "internal_error", detail: err instanceof Error ? err.message : String(err) },
-      500,
-    );
+    const detail = err instanceof Error ? err.message : String(err);
+    await auditFailure("error", "mcp_key.issue_error", { reason: "uncaught", detail });
+    return jsonResponse({ error: "internal_error", detail }, 500, requestId);
   }
 });

@@ -1,13 +1,16 @@
 /**
  * mcp-keys-revoke
  *
- * Revoga uma chave MCP server-side, registrando IP/UA antes do trigger DB.
- * Bloqueia revogações de chaves já revogadas (idempotente).
+ * Revoga uma chave MCP server-side, registrando IP/UA + request_id +
+ * payload_summary antes do trigger DB.
  */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
 import { corsHeaders } from "https://esm.sh/@supabase/supabase-js@2.95.0/cors";
 import { z } from "https://esm.sh/zod@3.23.8";
+import { getOrCreateRequestId, REQUEST_ID_HEADER } from "../_shared/request-id.ts";
+import { writeAuditEntry, summarizePayload, extractRequestMeta } from "../_shared/audit-log.ts";
 
+const SOURCE = "mcp-keys-revoke";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
@@ -17,53 +20,93 @@ const BodySchema = z.object({
   reason: z.string().trim().max(500).optional().nullable(),
 });
 
-function jsonResponse(body: unknown, status: number) {
-  return new Response(JSON.stringify(body), {
+function jsonResponse(body: unknown, status: number, requestId: string) {
+  return new Response(JSON.stringify({ ...(body as object), request_id: requestId }), {
     status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
+    headers: { ...corsHeaders, "Content-Type": "application/json", [REQUEST_ID_HEADER]: requestId },
   });
 }
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
-  if (req.method !== "POST") return jsonResponse({ error: "method_not_allowed" }, 405);
+  const requestId = getOrCreateRequestId(req);
+  const startedAt = new Date().toISOString();
+  const startedMs = Date.now();
+  const { ip, ua } = extractRequestMeta(req);
+
+  if (req.method !== "POST") return jsonResponse({ error: "method_not_allowed" }, 405, requestId);
+
+  const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+
+  let userId: string | null = null;
+  let rawBody: unknown = null;
+
+  const auditFailure = async (
+    status: "error" | "denied",
+    action: string,
+    extra: Record<string, unknown>,
+    resourceId?: string | null,
+  ) => {
+    await writeAuditEntry(admin, {
+      user_id: userId,
+      action,
+      resource_type: "mcp_api_key",
+      resource_id: resourceId ?? null,
+      ip_address: ip,
+      user_agent: ua,
+      request_id: requestId,
+      started_at: startedAt,
+      finished_at: new Date().toISOString(),
+      duration_ms: Date.now() - startedMs,
+      status,
+      payload_summary: summarizePayload(rawBody),
+      source: SOURCE,
+      details: extra,
+    });
+  };
 
   try {
     const authHeader = req.headers.get("Authorization") ?? "";
     const jwt = authHeader.replace(/^Bearer\s+/i, "");
-    if (!jwt) return jsonResponse({ error: "unauthenticated" }, 401);
+    if (!jwt) {
+      await auditFailure("denied", "mcp_key.revoke_denied", { reason: "unauthenticated" });
+      return jsonResponse({ error: "unauthenticated" }, 401, requestId);
+    }
 
     const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       global: { headers: { Authorization: `Bearer ${jwt}` } },
     });
     const { data: userData, error: userErr } = await userClient.auth.getUser();
-    if (userErr || !userData.user) return jsonResponse({ error: "unauthenticated" }, 401);
-    const userId = userData.user.id;
-
-    const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-      auth: { persistSession: false, autoRefreshToken: false },
-    });
+    if (userErr || !userData.user) {
+      await auditFailure("denied", "mcp_key.revoke_denied", { reason: "invalid_jwt" });
+      return jsonResponse({ error: "unauthenticated" }, 401, requestId);
+    }
+    userId = userData.user.id;
 
     const { data: roleCheck, error: roleErr } = await admin.rpc("has_role", {
       _user_id: userId,
       _role: "admin",
     });
-    if (roleErr) return jsonResponse({ error: "internal_error", detail: roleErr.message }, 500);
+    if (roleErr) {
+      await auditFailure("error", "mcp_key.revoke_error", { reason: "role_check_failed", detail: roleErr.message });
+      return jsonResponse({ error: "internal_error", detail: roleErr.message }, 500, requestId);
+    }
     if (!roleCheck) {
-      return jsonResponse(
-        { error: "forbidden", message: "Apenas administradores podem revogar chaves MCP." },
-        403,
-      );
+      await auditFailure("denied", "mcp_key.revoke_denied", { reason: "not_admin" });
+      return jsonResponse({ error: "forbidden", message: "Apenas administradores podem revogar chaves MCP." }, 403, requestId);
     }
 
-    let raw: unknown;
-    try { raw = await req.json(); } catch { return jsonResponse({ error: "invalid_json" }, 400); }
-    const parsed = BodySchema.safeParse(raw);
+    try { rawBody = await req.json(); } catch {
+      await auditFailure("error", "mcp_key.revoke_error", { reason: "invalid_json" });
+      return jsonResponse({ error: "invalid_json" }, 400, requestId);
+    }
+    const parsed = BodySchema.safeParse(rawBody);
     if (!parsed.success) {
-      return jsonResponse(
-        { error: "validation_failed", fields: parsed.error.flatten().fieldErrors },
-        422,
-      );
+      const fields = parsed.error.flatten().fieldErrors;
+      await auditFailure("denied", "mcp_key.revoke_denied", { reason: "validation_failed", fields });
+      return jsonResponse({ error: "validation_failed", fields }, 422, requestId);
     }
     const { key_id, reason } = parsed.data;
 
@@ -72,19 +115,19 @@ Deno.serve(async (req) => {
       .select("id, key_prefix, name, scopes, revoked_at")
       .eq("id", key_id)
       .maybeSingle();
-    if (fetchErr) return jsonResponse({ error: "internal_error", detail: fetchErr.message }, 500);
-    if (!existing) return jsonResponse({ error: "not_found" }, 404);
+    if (fetchErr) {
+      await auditFailure("error", "mcp_key.revoke_error", { reason: "fetch_failed", detail: fetchErr.message }, key_id);
+      return jsonResponse({ error: "internal_error", detail: fetchErr.message }, 500, requestId);
+    }
+    if (!existing) {
+      await auditFailure("denied", "mcp_key.revoke_denied", { reason: "not_found" }, key_id);
+      return jsonResponse({ error: "not_found" }, 404, requestId);
+    }
     if (existing.revoked_at) {
-      return jsonResponse({ error: "already_revoked" }, 409);
+      await auditFailure("denied", "mcp_key.revoke_denied", { reason: "already_revoked" }, key_id);
+      return jsonResponse({ error: "already_revoked" }, 409, requestId);
     }
 
-    const ip =
-      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-      req.headers.get("cf-connecting-ip") ??
-      null;
-    const ua = req.headers.get("user-agent") ?? null;
-
-    // Sinaliza ator real para o trigger via setting custom
     await admin.rpc("set_config" as never, { setting_name: "request.mcp_actor", new_value: userId, is_local: true } as never).catch(() => {});
 
     const revokedAt = new Date().toISOString();
@@ -92,16 +135,25 @@ Deno.serve(async (req) => {
       .from("mcp_api_keys")
       .update({ revoked_at: revokedAt })
       .eq("id", key_id);
-    if (updErr) return jsonResponse({ error: "update_failed", detail: updErr.message }, 500);
+    if (updErr) {
+      await auditFailure("error", "mcp_key.revoke_error", { reason: "update_failed", detail: updErr.message }, key_id);
+      return jsonResponse({ error: "update_failed", detail: updErr.message }, 500, requestId);
+    }
 
-    // Log explícito com IP/UA (complementa o trigger)
-    await admin.from("admin_audit_log").insert({
+    await writeAuditEntry(admin, {
       user_id: userId,
       action: "mcp_key.revoked",
       resource_type: "mcp_api_key",
       resource_id: existing.id,
       ip_address: ip,
       user_agent: ua,
+      request_id: requestId,
+      started_at: startedAt,
+      finished_at: new Date().toISOString(),
+      duration_ms: Date.now() - startedMs,
+      status: "success",
+      payload_summary: summarizePayload(rawBody),
+      source: SOURCE,
       details: {
         key_prefix: existing.key_prefix,
         name: existing.name,
@@ -109,15 +161,13 @@ Deno.serve(async (req) => {
         is_full_access: (existing.scopes ?? []).includes("*"),
         revoked_at: revokedAt,
         reason: reason ?? null,
-        source: "edge_function",
       },
     });
 
-    return jsonResponse({ ok: true, id: existing.id, revoked_at: revokedAt }, 200);
+    return jsonResponse({ ok: true, id: existing.id, revoked_at: revokedAt }, 200, requestId);
   } catch (err) {
-    return jsonResponse(
-      { error: "internal_error", detail: err instanceof Error ? err.message : String(err) },
-      500,
-    );
+    const detail = err instanceof Error ? err.message : String(err);
+    await auditFailure("error", "mcp_key.revoke_error", { reason: "uncaught", detail });
+    return jsonResponse({ error: "internal_error", detail }, 500, requestId);
   }
 });

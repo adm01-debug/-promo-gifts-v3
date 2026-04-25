@@ -78,8 +78,30 @@ export function McpAuditRow({ row }: Props) {
         </div>
       )}
 
+      {(row.request_id || row.duration_ms != null || row.status || row.source) && (
+        <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[10px] text-muted-foreground font-mono">
+          {row.status && (
+            <Badge
+              variant={
+                row.status === "success" ? "outline"
+                : row.status === "denied" ? "secondary"
+                : "destructive"
+              }
+              className="text-[10px] uppercase"
+            >
+              {row.status}
+            </Badge>
+          )}
+          {row.source && <span>src: {row.source}</span>}
+          {row.duration_ms != null && <span>· {row.duration_ms}ms</span>}
+          {row.request_id && (
+            <span title={row.request_id}>· req: {row.request_id.slice(0, 8)}…</span>
+          )}
+        </div>
+      )}
+
       {row.ip_address && (
-        <div className="mt-2 text-[10px] text-muted-foreground font-mono">
+        <div className="mt-1 text-[10px] text-muted-foreground font-mono">
           IP: {row.ip_address}
           {row.user_agent && <span className="ml-2 truncate inline-block max-w-[300px] align-middle">UA: {row.user_agent}</span>}
         </div>

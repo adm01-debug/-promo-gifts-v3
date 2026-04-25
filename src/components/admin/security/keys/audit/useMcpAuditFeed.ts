@@ -11,7 +11,18 @@ export type AuditAction =
   | "mcp_key.rotated"
   | "mcp_key.updated"
   | "mcp_key.revoked"
-  | "mcp_key.scope_escalated";
+  | "mcp_key.scope_escalated"
+  | "mcp_key.issue_denied"
+  | "mcp_key.issue_error"
+  | "mcp_key.revoke_denied"
+  | "mcp_key.revoke_error"
+  | "mcp_key.update_denied"
+  | "mcp_key.update_error"
+  | "mcp_key.rotate_denied"
+  | "mcp_key.rotate_error"
+  | "mcp_tool.granted"
+  | "mcp_tool.denied"
+  | "mcp_tool.error";
 
 export interface AuditFeedRow {
   id: string;
@@ -22,6 +33,15 @@ export interface AuditFeedRow {
   user_agent: string | null;
   details: Record<string, unknown> | null;
   created_at: string;
+  // Novos campos enriquecidos
+  request_id?: string | null;
+  started_at?: string | null;
+  finished_at?: string | null;
+  duration_ms?: number | null;
+  status?: "success" | "error" | "denied" | "partial" | null;
+  payload_summary?: Record<string, unknown> | null;
+  source?: string | null;
+  // Derivados
   actor_email?: string | null;
   actor_name?: string | null;
   key_prefix?: string | null;
@@ -52,7 +72,7 @@ export function useMcpAuditFeed() {
     setLoading(true);
     let q = supabase
       .from("admin_audit_log")
-      .select("id, action, user_id, resource_id, ip_address, user_agent, details, created_at")
+      .select("id, action, user_id, resource_id, ip_address, user_agent, details, created_at, request_id, started_at, finished_at, duration_ms, status, payload_summary, source")
       .eq("resource_type", "mcp_api_key")
       .order("created_at", { ascending: false })
       .limit(PAGE_SIZE * 4);
