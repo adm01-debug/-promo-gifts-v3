@@ -819,6 +819,7 @@ Deno.serve((req) => {
   const wasCold = requestCount === 0;
   requestCount++;
   if (wasCold) coldRequestCount++;
+  console.log(`[crm-db-bridge] [req_id=${requestId}] request_start method=${req.method} was_cold=${wasCold}`);
 
   if (!breaker.canRequest()) {
     return circuitOpenResponse("crm-db", corsHeaders);
