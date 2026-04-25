@@ -65,6 +65,9 @@ const ColdStartRetriesPanel = lazy(() =>
 const BridgesLiveCard = lazy(() =>
   import('@/components/admin/telemetry/BridgesLiveCard').then((m) => ({ default: m.BridgesLiveCard })),
 );
+const ColdVsWarmCrmCard = lazy(() =>
+  import('@/components/admin/telemetry/ColdVsWarmCrmCard').then((m) => ({ default: m.ColdVsWarmCrmCard })),
+);
 
 
 const getSeverityBadge = (severity: string) => {
