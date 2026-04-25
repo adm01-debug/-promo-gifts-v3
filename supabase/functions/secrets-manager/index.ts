@@ -231,6 +231,28 @@ Deno.serve(async (req) => {
       );
     }
 
+    if (action === "cache_metrics") {
+      const snapshot = getCredentialCacheMetrics();
+      return new Response(JSON.stringify({ ok: true, metrics: snapshot }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (action === "reset_cache_metrics") {
+      resetCredentialCacheMetrics();
+      await service.from("admin_audit_log").insert({
+        user_id: userData.user.id,
+        action: "secret_cache_metrics_reset",
+        resource_type: "secret",
+        resource_id: "*",
+        details: {},
+      });
+      return new Response(
+        JSON.stringify({ ok: true, message: "Métricas do cache reiniciadas neste isolate." }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
     if (action === "set" || action === "rotate") {
       if (!name || !isAllowedSecretName(name)) {
         return new Response(
