@@ -385,10 +385,6 @@ Deno.serve(async (req) => {
 
   const requestStartTime = performance.now();
 
-  if (!breaker.canRequest()) {
-    return circuitOpenResponse("external-db", corsHeaders);
-  }
-
   try {
     let rawBody: unknown;
     try {
@@ -405,10 +401,16 @@ Deno.serve(async (req) => {
     const body = parsed.data as Record<string, unknown>;
 
     // ============================================
-    // PING (keep-alive — no DB I/O, no auth)
+    // PING (keep-alive — sem DB I/O, sem auth, sem breaker)
+    // Ping é diagnóstico/warm-up — deve responder mesmo com circuito aberto.
     // ============================================
     if (body.operation === 'ping') {
       return jsonResponse({ ok: true, ts: Date.now(), warm: true }, 200, corsHeaders);
+    }
+
+    // Circuit breaker só barra operações reais (após parse do body).
+    if (!breaker.canRequest()) {
+      return circuitOpenResponse("external-db", corsHeaders);
     }
 
     // ============================================
