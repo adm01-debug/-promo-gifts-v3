@@ -125,6 +125,16 @@ export function stopLongTaskWatchdog(): void {
   started = false;
 }
 
+// Auto-reage ao kill-switch global: quando pausado desconecta o observer;
+// quando retomado, religa se ainda houver listeners ativos.
+subscribeInstrumentationPaused(() => {
+  if (isInstrumentationPaused()) {
+    stopLongTaskWatchdog();
+  } else if (listeners.size > 0) {
+    startLongTaskWatchdog();
+  }
+});
+
 export function getLongTaskEvents(): readonly LongTaskEvent[] {
   return events;
 }
