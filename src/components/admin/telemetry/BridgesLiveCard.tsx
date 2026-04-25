@@ -235,7 +235,78 @@ export function BridgesLiveCard() {
             </table>
           </div>
         )}
+
+        {/* Últimas chamadas — drill-down individual por request_id */}
+        {recent.length > 0 && (
+          <div className="mt-6">
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
+                Últimas chamadas (request-id)
+              </h4>
+              <span className="text-[10px] text-muted-foreground">
+                {recent.length} de {samples.length}
+              </span>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b bg-muted/30">
+                    <th className="text-left p-2 font-medium text-muted-foreground text-xs">Bridge</th>
+                    <th className="text-left p-2 font-medium text-muted-foreground text-xs">Operação</th>
+                    <th className="text-left p-2 font-medium text-muted-foreground text-xs">request_id</th>
+                    <th className="text-right p-2 font-medium text-muted-foreground text-xs">Latência</th>
+                    <th className="text-right p-2 font-medium text-muted-foreground text-xs">Resp.</th>
+                    <th className="text-left p-2 font-medium text-muted-foreground text-xs">Quando</th>
+                    <th className="text-right p-2 font-medium text-muted-foreground text-xs">Status</th>
+                    <th className="p-2"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recent.map(s => (
+                    <tr
+                      key={s.id}
+                      className="border-b border-border/30 hover:bg-muted/20 transition-colors cursor-pointer"
+                      onClick={() => openDetail(s)}
+                    >
+                      <td className="p-2">{bridgeBadge(s.bridge)}</td>
+                      <td className="p-2 font-mono text-xs">{s.op}</td>
+                      <td className="p-2">
+                        <code className="font-mono text-[11px] text-primary hover:underline">
+                          {shortRequestId(s.requestId)}
+                        </code>
+                      </td>
+                      <td className="p-2 text-right font-mono text-xs tabular-nums">
+                        {formatMs(s.durationMs)}
+                      </td>
+                      <td className="p-2 text-right font-mono text-xs tabular-nums text-muted-foreground">
+                        {formatBytes(s.respBytes)}
+                      </td>
+                      <td className="p-2 text-xs text-muted-foreground whitespace-nowrap">
+                        {formatRelative(s.ts)}
+                      </td>
+                      <td className="p-2 text-right">
+                        {s.ok ? (
+                          <Badge variant="secondary" className="text-[10px]">OK</Badge>
+                        ) : (
+                          <Badge variant="destructive" className="text-[10px]">ERRO</Badge>
+                        )}
+                      </td>
+                      <td className="p-2 text-right">
+                        <Search className="h-3.5 w-3.5 text-muted-foreground" />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </CardContent>
+      <BridgeCallDetailDrawer
+        sample={selected}
+        open={drawerOpen}
+        onOpenChange={setDrawerOpen}
+      />
     </Card>
   );
 }
