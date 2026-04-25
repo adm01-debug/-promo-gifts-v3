@@ -18,6 +18,8 @@ const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const BodySchema = z.object({
   key_id: z.string().uuid(),
   reason: z.string().trim().max(500).optional().nullable(),
+  /** Token de step-up (senha + OTP) — obrigatório para revogar qualquer chave MCP. */
+  step_up_token: z.string().min(32).max(256).optional().nullable(),
 });
 
 function jsonResponse(body: unknown, status: number, requestId: string) {
