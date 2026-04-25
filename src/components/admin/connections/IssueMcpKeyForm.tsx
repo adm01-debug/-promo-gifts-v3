@@ -70,6 +70,8 @@ export function IssueMcpKeyForm({ onIssued }: Props) {
   const [confirmation, setConfirmation] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [generated, setGenerated] = useState<string | null>(null);
+  const [confirmRootOpen, setConfirmRootOpen] = useState(false);
+  const [rootNameEcho, setRootNameEcho] = useState("");
 
   const full = isFullAccess(scopes);
 
@@ -104,11 +106,21 @@ export function IssueMcpKeyForm({ onIssued }: Props) {
     return null;
   }, [name, scopes, full, expiresLocal, justification, confirmation]);
 
-  const submit = async () => {
+  const requestSubmit = () => {
     if (validation) {
       toast.error(validation);
       return;
     }
+    if (full) {
+      // Gate extra para acesso root
+      setRootNameEcho("");
+      setConfirmRootOpen(true);
+      return;
+    }
+    void doSubmit();
+  };
+
+  const doSubmit = async () => {
     setSubmitting(true);
     try {
       const { data, error } = await supabase.functions.invoke("mcp-keys-issue", {
@@ -130,12 +142,16 @@ export function IssueMcpKeyForm({ onIssued }: Props) {
         return;
       }
       setGenerated(data.key as string);
+      setConfirmRootOpen(false);
       toast.success("Chave emitida com sucesso");
       onIssued();
     } finally {
       setSubmitting(false);
     }
   };
+
+  const rootNameMatches =
+    rootNameEcho.trim() === name.trim() && name.trim().length >= 3;
 
   const copy = (s: string) => {
     navigator.clipboard.writeText(s);
