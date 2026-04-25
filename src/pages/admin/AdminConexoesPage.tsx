@@ -9,6 +9,7 @@ import { McpTab } from "@/components/admin/connections/McpTab";
 import { WebhooksTab } from "@/components/admin/connections/WebhooksTab";
 import { IntegrationsHealthCard } from "@/components/admin/connections/IntegrationsHealthCard";
 import { SecretsManagerHealthPanel } from "@/components/admin/connections/SecretsManagerHealthPanel";
+import { ExternalConnectionsSyncLogPanel } from "@/components/admin/connections/ExternalConnectionsSyncLogPanel";
 import { ConnectionsOverviewTable } from "@/components/admin/connections/ConnectionsOverviewTable";
 import { SmokeTestChecklist } from "@/components/admin/connections/SmokeTestChecklist";
 import { AutoTestIntervalCard } from "@/components/admin/connections/AutoTestIntervalCard";
@@ -213,6 +214,7 @@ export default function AdminConexoesPage() {
           >
             <IntegrationsHealthCard secrets={secrets} />
             <SecretsManagerHealthPanel />
+            <ExternalConnectionsSyncLogPanel />
           </ZoneSection>
           )}
 

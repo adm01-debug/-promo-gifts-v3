@@ -948,6 +948,54 @@ export type Database = {
         }
         Relationships: []
       }
+      external_connections_sync_log: {
+        Row: {
+          created_at: string
+          created_count: number
+          details: Json | null
+          duration_ms: number | null
+          error_message: string | null
+          id: string
+          processed: number
+          ran_at: string
+          status: string
+          trigger_op: string | null
+          triggered_by_secret_name: string | null
+          triggered_by_user_id: string | null
+          updated_count: number
+        }
+        Insert: {
+          created_at?: string
+          created_count?: number
+          details?: Json | null
+          duration_ms?: number | null
+          error_message?: string | null
+          id?: string
+          processed?: number
+          ran_at?: string
+          status?: string
+          trigger_op?: string | null
+          triggered_by_secret_name?: string | null
+          triggered_by_user_id?: string | null
+          updated_count?: number
+        }
+        Update: {
+          created_at?: string
+          created_count?: number
+          details?: Json | null
+          duration_ms?: number | null
+          error_message?: string | null
+          id?: string
+          processed?: number
+          ran_at?: string
+          status?: string
+          trigger_op?: string | null
+          triggered_by_secret_name?: string | null
+          triggered_by_user_id?: string | null
+          updated_count?: number
+        }
+        Relationships: []
+      }
       favorite_item_reactions: {
         Row: {
           anon_id: string
@@ -4689,7 +4737,16 @@ export type Database = {
         Args: { _response: string; _response_notes?: string; _token: string }
         Returns: boolean
       }
-      sync_external_connections_from_credentials: { Args: never; Returns: Json }
+      sync_external_connections_from_credentials:
+        | { Args: never; Returns: Json }
+        | {
+            Args: {
+              _trigger_op?: string
+              _trigger_secret_name?: string
+              _trigger_user_id?: string
+            }
+            Returns: Json
+          }
       validate_mcp_key: {
         Args: { _key_plain: string }
         Returns: {
