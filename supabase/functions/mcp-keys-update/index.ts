@@ -148,6 +148,26 @@ Deno.serve(async (req) => {
     const escalating = !wasFull && willBeFull;
 
     if (escalating) {
+      // Authorization gate: only explicit grantors can escalate to FULL
+      const { data: canGrant, error: grantErr } = await admin.rpc("can_grant_mcp_full", {
+        _user_id: userId,
+      });
+      if (grantErr) {
+        await auditFailure("error", { reason: "grant_check_failed", detail: grantErr.message }, key_id);
+        return jsonResponse({ error: "internal_error", detail: grantErr.message }, 500, requestId);
+      }
+      if (!canGrant) {
+        await auditFailure("denied", { reason: "full_grant_forbidden" }, key_id);
+        return jsonResponse(
+          {
+            error: "full_grant_forbidden",
+            message: "Você não tem permissão para escalar chaves MCP para escopo total (*). Solicite a inclusão em mcp_full_grantors.",
+          },
+          403,
+          requestId,
+        );
+      }
+
       const fieldErrors: Record<string, string[]> = {};
       if (!justification || justification.trim().length < FULL_SCOPE_MIN_JUSTIFICATION) {
         fieldErrors.justification = [`Justificativa obrigatória (mín. ${FULL_SCOPE_MIN_JUSTIFICATION} caracteres) para escalar para FULL.`];
