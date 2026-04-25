@@ -117,33 +117,65 @@ function jsonResponse(body: unknown, status = 200): Response {
 }
 
 /**
- * Detecta se a request é um ping de diagnóstico.
- * Aceita GET com `?op=ping` (ou `?ping=1`) ou POST com `{ "operation": "ping" }`.
- * Não levanta erro nem consome o body se não houver match — preserva o fluxo normal.
+ * Detecta operações de diagnóstico (`ping` | `diag`) sem consumir o body original.
+ * Aceita querystring (`?op=ping`, `?op=diag`, `?ping=1`, `?diag=1`) ou
+ * body JSON `{ "operation": "ping" | "diag" }`.
  */
-async function isPingRequest(req: Request): Promise<boolean> {
-  // Query string (funciona para GET e POST)
+async function detectDiagOp(req: Request): Promise<"ping" | "diag" | null> {
+  // Query string
   try {
     const url = new URL(req.url);
-    if (url.searchParams.get("op") === "ping" || url.searchParams.get("ping") === "1") {
-      return true;
-    }
+    const op = url.searchParams.get("op");
+    if (op === "ping" || op === "diag") return op;
+    if (url.searchParams.get("ping") === "1") return "ping";
+    if (url.searchParams.get("diag") === "1") return "diag";
   } catch { /* ignore */ }
 
-  // Body JSON (apenas POST/PUT/PATCH com content-type JSON).
-  // ATENÇÃO: clonamos a request para não consumir o body original.
+  // Body JSON (POST/PUT/PATCH apenas; clonamos para não consumir o original)
   if (req.method !== "GET" && req.method !== "HEAD") {
     const ct = req.headers.get("content-type") || "";
     if (ct.includes("application/json")) {
       try {
         const cloned = req.clone();
         const peek = await cloned.json() as { operation?: unknown };
-        if (peek && peek.operation === "ping") return true;
-      } catch { /* corpo inválido / vazio — não é ping */ }
+        if (peek?.operation === "ping" || peek?.operation === "diag") return peek.operation;
+      } catch { /* corpo inválido — não é diag */ }
     }
   }
-  return false;
+  return null;
 }
+
+/**
+ * Snapshot completo de métricas de boot/runtime do isolate atual.
+ * Cada isolate tem sua própria vida — quando o runtime descarta o isolate
+ * por ociosidade, o próximo cold start gera novos valores.
+ */
+function buildDiagSnapshot() {
+  const now = Date.now();
+  return {
+    ok: true,
+    ts: now,
+    warm: crmWarmupCompleted,
+    isolate: {
+      booted_at: isolateBootedAt,
+      age_ms: now - isolateBootedAt,
+      request_count: requestCount,
+      cold_request_count: coldRequestCount,
+    },
+    boot: {
+      client_build_ms: clientBuildMs,
+      warmup_started_at_ms: warmupStartedAtMs,
+      warmup_ms: warmupMs,
+      warmup_ok: warmupOk,
+      warmup_error: warmupError,
+    },
+    runtime: {
+      first_request_started_at_ms: firstRequestStartedAtMs,
+      first_request_ms: firstRequestMs,
+    },
+  };
+}
+
 
 // ============================================
 // CONSTANTS
