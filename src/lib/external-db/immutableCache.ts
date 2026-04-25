@@ -119,6 +119,20 @@ export function invalidateImmutableCache(entity?: Entity) {
   else { STORE.categories.clear(); STORE.suppliers.clear(); STORE.material_types.clear(); }
 }
 
+/** Synchronous cache peek (no fetch). Returns undefined if missing or stale. */
+export function getFreshFromCacheSafe<T extends { id: string; name: string; code?: string }>(
+  entity: Entity, id: string,
+): T | undefined {
+  return getFresh<T>(entity, id);
+}
+
+/** Synchronous cache write (used after a successful bridge fetch). */
+export function putInCacheSafe(
+  entity: Entity, rec: { id: string; name: string; code?: string },
+) {
+  if (rec?.id && rec?.name) put(entity, rec);
+}
+
 /** Debug snapshot. */
 export function immutableCacheStats() {
   return {
