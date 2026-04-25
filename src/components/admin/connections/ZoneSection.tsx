@@ -93,11 +93,45 @@ export function ZoneSection({
             </p>
           )}
         </div>
-        {actions && (
-          <div className="flex items-center gap-2 shrink-0">{actions}</div>
+        {(actions || onToggleCollapse) && (
+          <div className="flex items-center gap-2 shrink-0">
+            {actions}
+            {onToggleCollapse && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                    onClick={onToggleCollapse}
+                    aria-expanded={!collapsed}
+                    aria-controls={contentId}
+                    aria-label={collapsed ? `Expandir ${title}` : `Colapsar ${title}`}
+                  >
+                    <ChevronDown
+                      className={cn(
+                        "h-4 w-4 transition-transform duration-200",
+                        collapsed && "-rotate-90",
+                      )}
+                    />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  {collapsed ? "Expandir zona" : "Colapsar zona"}
+                </TooltipContent>
+              </Tooltip>
+            )}
+          </div>
         )}
       </header>
-      <div className="space-y-4">{children}</div>
+      <div
+        id={contentId}
+        hidden={collapsed}
+        className={cn("space-y-4", collapsed && "hidden")}
+      >
+        {children}
+      </div>
     </section>
   );
 }
