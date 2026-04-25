@@ -95,7 +95,7 @@ function warmupCrmClient(): Promise<void> {
   crmWarmupPromise = (async () => {
     const t0 = performance.now();
     try {
-      const client = getCrmClient();
+      const client = await getCrmClient();
       if (!client) {
         warmupError = 'CRM_SUPABASE_URL/KEY not configured';
         console.warn(`[crm-boot-warmup] ⚠️ ${warmupError}`);
@@ -874,7 +874,7 @@ Deno.serve((req) => {
     // Reusa client cacheado no escopo do módulo (singleton por isolate).
     // Warm-up no boot já abriu TLS+handshake, então a primeira request não
     // paga cold-start. Em rajada paralela, fetch keep-alive evita re-handshake.
-    const crm = getCrmClient();
+    const crm = await getCrmClient();
     if (!crm) {
       return jsonResponse({ error: "CRM database credentials not configured" }, 500);
     }
