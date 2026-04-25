@@ -56,3 +56,23 @@ export async function recordMcpViolation(
     );
   }
 }
+
+/**
+ * Mapeia um motivo livre (string usada no audit log) para um McpViolationReason
+ * estável. Mantém todos os reasons centralizados.
+ */
+export function mapViolationReason(rawReason: unknown): McpViolationReason {
+  const r = typeof rawReason === "string" ? rawReason : "";
+  switch (r) {
+    case "unauthenticated": return "missing_jwt";
+    case "invalid_jwt": return "invalid_jwt";
+    case "not_dev":
+    case "not_admin":
+    case "full_grant_forbidden":
+      return "not_admin";
+    case "step_up_required": return "stepup_missing";
+    case "step_up_invalid": return "stepup_invalid";
+    case "validation_failed": return "validation_failed";
+    default: return "other";
+  }
+}
