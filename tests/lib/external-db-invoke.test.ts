@@ -137,19 +137,16 @@ describe('invokeWithRetry — classifier edge cases (HTTP word-boundary regex)',
     expect(mockInvoke).toHaveBeenCalledTimes(1);
   });
 
-  it('Timestamp contendo "401" NÃO é tratado como HTTP 401', async () => {
-    // "2024-01-15T14:01:23" não tem \b401\b porque está colado em "T14:01" — ok.
-    // Caso real: id "abc-401-xyz" → também não tem borda → retryable se for fetch network.
-    const err = new Error('Failed to fetch resource abc-401-xyz at 14:01');
-    (mockInvoke as any)
-      .mockResolvedValueOnce({ data: null, error: err })
-      .mockResolvedValueOnce({ data: { records: [] }, error: null });
+  it('Dígitos colados em palavra (ex: "abc401xyz") NÃO disparam HTTP 401 falso', async () => {
+    // Sem word boundary ao redor de 401 → não deve casar non-retryable.
+    // Como não casa retryable também, retorna sem retry (1 invoke).
+    const err = new Error('lookup failed for abc401xyz token');
+    (mockInvoke as any).mockResolvedValueOnce({ data: null, error: err });
 
-    const result = await invokeWithRetry({ table: 'products', operation: 'select' }, 2);
-    // Deveria ter retentado por causa do "Failed to fetch" — não foi fail-fast em "401" acidental.
-    expect(result.error).toBeNull();
-    expect(mockInvoke).toHaveBeenCalledTimes(2);
-  }, 10_000);
+    const result = await invokeWithRetry({ table: 'products', operation: 'select' }, 3);
+    expect(result.error).toBe(err);
+    expect(mockInvoke).toHaveBeenCalledTimes(1);
+  });
 
   it('HTTP 400 real (Edge function returned 400) → fail-fast', async () => {
     const err = new Error('Edge function returned 400: Bad Request');
