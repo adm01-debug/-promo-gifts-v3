@@ -12,6 +12,7 @@
  */
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/lib/logger';
+import { waitForBridgeReady } from '@/lib/external-db/health-check';
 
 const PREWARM_TABLES = [
   'products',
