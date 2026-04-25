@@ -144,8 +144,13 @@ export async function invokeCrmDb<T>(query: CrmQuery): Promise<CrmResponse<T>> {
   const startedAt = performance.now();
   const reqBytes = estimatePayloadBytes(query);
   const opLabel = query.operation || "invoke";
+  const requestId = newRequestId();
 
   const record = (ok: boolean, data: unknown, errMsg?: string) => {
+    const serverRequestId =
+      data && typeof data === "object" && "request_id" in data
+        ? String((data as { request_id?: unknown }).request_id ?? "")
+        : "";
     recordBridgeCall({
       bridge: "crm-db-bridge",
       op: opLabel,
@@ -155,12 +160,15 @@ export async function invokeCrmDb<T>(query: CrmQuery): Promise<CrmResponse<T>> {
       respBytes: ok ? estimatePayloadBytes(data) : 0,
       ok,
       errorMessage: errMsg,
+      requestId,
+      serverRequestId: serverRequestId || undefined,
     });
   };
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     const { data, error } = await supabase.functions.invoke("crm-db-bridge", {
       body: query,
+      headers: { [REQUEST_ID_HEADER]: requestId },
     });
 
     if (!error && !data?.error) {
@@ -174,7 +182,7 @@ export async function invokeCrmDb<T>(query: CrmQuery): Promise<CrmResponse<T>> {
 
     if (attempt < MAX_RETRIES && isRetryableCrmError(msg)) {
       const delay = INITIAL_BACKOFF_MS * Math.pow(2, attempt);
-      logger.warn(`[CRM-DB] Retry ${attempt + 1}/${MAX_RETRIES} after ${delay}ms: ${msg}`);
+      logger.warn(`[CRM-DB] Retry ${attempt + 1}/${MAX_RETRIES} after ${delay}ms [req_id=${requestId}]: ${msg}`);
       await new Promise(r => setTimeout(r, delay));
       continue;
     }
@@ -183,11 +191,11 @@ export async function invokeCrmDb<T>(query: CrmQuery): Promise<CrmResponse<T>> {
 
     // Final attempt failed
     if (error) {
-      console.error("[CRM-DB] Edge function error:", msg);
+      console.error(`[CRM-DB] Edge function error [req_id=${requestId}]:`, msg);
       throw new Error(`CRM DB error: ${msg}`);
     }
 
-    console.error("[CRM-DB] Query error:", msg);
+    console.error(`[CRM-DB] Query error [req_id=${requestId}]:`, msg);
     throw new Error(`CRM query error: ${msg}`);
   }
 
