@@ -20,6 +20,9 @@ export const ALLOWED_SECRET_NAMES: ReadonlySet<string> = new Set([
   "N8N_BASE_URL",
   "N8N_API_KEY",
   "MCP_SHARED_SECRET",
+  "GITHUB_TOKEN",
+  "GITHUB_REPO",
+  "GITHUB_DEFAULT_BRANCH",
 ]);
 
 export const ALLOWED_SECRET_PREFIXES: readonly string[] = [

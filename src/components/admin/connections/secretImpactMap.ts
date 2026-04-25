@@ -152,6 +152,36 @@ export const SECRET_IMPACT_MAP: Readonly<Record<string, SecretImpact>> = {
     ],
     severity: "medium",
   },
+
+  // GitHub (código-fonte do app via MCP full)
+  GITHUB_TOKEN: {
+    system: "GitHub — código-fonte do app (MCP full)",
+    screens: ["/admin/conexoes → aba MCP", "Tools de código do MCP server"],
+    flows: [
+      "list_repo_files / read_repo_file / write_repo_file via MCP",
+      "Edições de código solicitadas por agentes com chave '*'",
+      "Commits automáticos em branches mcp-edits/*",
+    ],
+    severity: "critical",
+  },
+  GITHUB_REPO: {
+    system: "GitHub — repositório alvo (owner/repo)",
+    screens: ["/admin/conexoes → aba MCP"],
+    flows: [
+      "Resolução do repositório para todas as tools de código do MCP",
+      "Sem este valor, list/read/write_repo_file falham com 'repo undefined'",
+    ],
+    severity: "critical",
+  },
+  GITHUB_DEFAULT_BRANCH: {
+    system: "GitHub — branch padrão para escrita",
+    screens: ["/admin/conexoes → aba MCP"],
+    flows: [
+      "Define o branch alvo de write_repo_file (recomendado: mcp-edits/*)",
+      "Se ausente, escritas caem direto em 'main' — risco alto de quebrar produção",
+    ],
+    severity: "medium",
+  },
 };
 
 /** Fallback para nomes prefixados (OUTBOUND_WEBHOOK_SECRET_*, INBOUND_WEBHOOK_HMAC_*). */
