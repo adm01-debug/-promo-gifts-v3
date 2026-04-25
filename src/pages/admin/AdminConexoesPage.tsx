@@ -274,7 +274,17 @@ export default function AdminConexoesPage() {
               />
             }
           >
-            <CredentialsSourceIndicator secrets={secrets} isLoading={secretsLoading} />
+            <CredentialsSourceIndicator
+              secrets={secrets}
+              isLoading={secretsLoading}
+              onRefresh={async () => {
+                const result = await refreshCache();
+                if (!result.ok) {
+                  throw new Error(result.error?.message ?? "Falha no refresh_cache");
+                }
+                await list();
+              }}
+            />
 
             {secrets.length > 0 && (
               <CredentialsSourceFilter
