@@ -875,10 +875,32 @@ Deno.serve(async (req) => {
       default: return jsonResponse({ error: `Operation '${operation}' not supported.` }, 400);
     }
     if (response.status >= 500) breaker.recordFailure(); else breaker.recordSuccess();
+
+    // Captura métricas de cold vs warm path para a 1ª request real do isolate.
+    const elapsed = Math.round(performance.now() - reqStartedAt);
+    if (wasCold) {
+      firstRequestMs = elapsed;
+      firstRequestStartedAtMs = Math.round(reqStartedAt - isolateMonoStart);
+      console.log(
+        `[crm-runtime] first_request_ms=${elapsed} was_cold=true ` +
+          `op=${operation} table=${table ?? '-'} ` +
+          `client_build_ms=${clientBuildMs} warmup_ms=${warmupMs} warmup_ok=${warmupOk}`,
+      );
+    } else {
+      console.log(
+        `[crm-runtime] request_ms=${elapsed} was_cold=false ` +
+          `op=${operation} table=${table ?? '-'} ` +
+          `request_count=${requestCount}`,
+      );
+    }
     return response;
   } catch (error: unknown) {
     breaker.recordFailure();
-    console.error("CRM Bridge error:", error);
+    const elapsed = Math.round(performance.now() - reqStartedAt);
+    console.error(
+      `[crm-runtime] error_ms=${elapsed} was_cold=${wasCold} ` +
+        `${error instanceof Error ? error.message : String(error)}`,
+    );
     return jsonResponse({ error: error instanceof Error ? error.message : "Internal error" }, 500);
   }
 });
