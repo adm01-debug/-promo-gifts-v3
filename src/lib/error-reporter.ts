@@ -101,10 +101,16 @@ function scheduleFlush() {
   }, FLUSH_INTERVAL);
 }
 
-export function reportError(error: Error, metadata?: Record<string, unknown>) {
-  // Forward to Sentry (no-op if DSN not configured)
-  captureException(error, metadata);
+function enqueueReport(report: ErrorReport) {
+  ERROR_QUEUE.push(report);
+  if (ERROR_QUEUE.length >= MAX_QUEUE) {
+    flushErrors();
+  } else {
+    scheduleFlush();
+  }
+}
 
+export function reportError(error: Error, metadata?: Record<string, unknown>) {
   const report: ErrorReport = {
     message: error.message,
     stack: error.stack,
@@ -114,13 +120,33 @@ export function reportError(error: Error, metadata?: Record<string, unknown>) {
     metadata,
   };
 
-  ERROR_QUEUE.push(report);
-
-  if (ERROR_QUEUE.length >= MAX_QUEUE) {
-    flushErrors();
-  } else {
-    scheduleFlush();
+  // Cold-start (503/boot_error) costuma ser recuperado pela 2ª tentativa.
+  // Adia o envio e descarta se a bridge emitir `recovered` dentro da janela —
+  // evitando false positives. Caller pode forçar registro imediato via
+  // metadata.skipColdStartDefer = true.
+  const skipDefer = metadata?.skipColdStartDefer === true;
+  if (!skipDefer && isColdStartReport(report)) {
+    installBridgeListenerOnce();
+    const entry: DeferredColdStart = {
+      report,
+      timer: setTimeout(() => {
+        const idx = COLD_START_BUFFER.indexOf(entry);
+        if (idx >= 0) COLD_START_BUFFER.splice(idx, 1);
+        // Não recuperou na janela: registra como erro real e encaminha ao Sentry.
+        captureException(error, { ...metadata, cold_start_unrecovered: true });
+        enqueueReport({
+          ...report,
+          metadata: { ...(report.metadata ?? {}), cold_start_unrecovered: true },
+        });
+      }, COLD_START_DEFER_MS),
+    };
+    COLD_START_BUFFER.push(entry);
+    return;
   }
+
+  // Forward to Sentry (no-op if DSN not configured)
+  captureException(error, metadata);
+  enqueueReport(report);
 }
 
 /**
