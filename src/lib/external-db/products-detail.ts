@@ -302,6 +302,10 @@ export async function fetchPromobrindCategories(): Promise<{ id: string; name: s
       table: 'categories', operation: 'select', select: 'id, name',
       limit: 500, orderBy: { column: 'name', ascending: true }, countMode: 'none',
     });
+    // Popula cache de imutáveis: economiza chamadas posteriores em telas de detalhe.
+    for (const c of result.records) {
+      if (c?.id && c?.name) putInCacheSafe('categories', { id: c.id, name: c.name });
+    }
     return result.records;
   } catch {
     const result = await invokeExternalDb<{ category_id: string; main_category_id: string }>({
