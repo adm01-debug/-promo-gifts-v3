@@ -1134,7 +1134,9 @@ async function handleSelect(externalSupabase: any, table: string, opts: any) {
   console.log(`Selected ${records.length} records from ${table} (offset=${safeOffset}, limit=${safeLimit}, count=${count ?? 'n/a'})`);
 
   const result = { records, count: count ?? null };
-  if (cacheKey) setCache(cacheKey, result);
+  // Listings de products: TTL curto (60s) para refletir mudanças no catálogo;
+  // tabelas estáticas (categories, suppliers, etc.): TTL default (10min).
+  if (cacheKey) setCache(cacheKey, result, table === 'products' ? 60_000 : undefined);
   return result;
 }
 
