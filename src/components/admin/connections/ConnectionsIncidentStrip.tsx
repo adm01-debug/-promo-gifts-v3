@@ -12,7 +12,7 @@
  *
  * Tom de voz: híbrido com tradução.
  */
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AlertOctagon, AlertTriangle, Info, ArrowRight, X, ChevronDown, ChevronUp, Activity, Settings2 } from "lucide-react";
 import { IncidentDetailsDrawer } from "./IncidentDetailsDrawer";
 import { useSeverityFilter } from "./SeverityFilterContext";
