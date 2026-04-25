@@ -4111,6 +4111,146 @@ export type Database = {
         }
         Relationships: []
       }
+      step_up_audit_log: {
+        Row: {
+          action: Database["public"]["Enums"]["step_up_action"] | null
+          challenge_id: string | null
+          created_at: string
+          event_type: string
+          id: string
+          ip_address: unknown
+          metadata: Json | null
+          target_ref: string | null
+          token_id: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action?: Database["public"]["Enums"]["step_up_action"] | null
+          challenge_id?: string | null
+          created_at?: string
+          event_type: string
+          id?: string
+          ip_address?: unknown
+          metadata?: Json | null
+          target_ref?: string | null
+          token_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: Database["public"]["Enums"]["step_up_action"] | null
+          challenge_id?: string | null
+          created_at?: string
+          event_type?: string
+          id?: string
+          ip_address?: unknown
+          metadata?: Json | null
+          target_ref?: string | null
+          token_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      step_up_challenges: {
+        Row: {
+          action: Database["public"]["Enums"]["step_up_action"]
+          attempts: number
+          consumed: boolean
+          created_at: string
+          expires_at: string
+          id: string
+          ip_address: unknown
+          max_attempts: number
+          otp_hash: string
+          otp_verified: boolean
+          password_verified: boolean
+          target_ref: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          action: Database["public"]["Enums"]["step_up_action"]
+          attempts?: number
+          consumed?: boolean
+          created_at?: string
+          expires_at?: string
+          id?: string
+          ip_address?: unknown
+          max_attempts?: number
+          otp_hash: string
+          otp_verified?: boolean
+          password_verified?: boolean
+          target_ref?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: Database["public"]["Enums"]["step_up_action"]
+          attempts?: number
+          consumed?: boolean
+          created_at?: string
+          expires_at?: string
+          id?: string
+          ip_address?: unknown
+          max_attempts?: number
+          otp_hash?: string
+          otp_verified?: boolean
+          password_verified?: boolean
+          target_ref?: string | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      step_up_tokens: {
+        Row: {
+          action: Database["public"]["Enums"]["step_up_action"]
+          challenge_id: string
+          consumed: boolean
+          consumed_at: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          target_ref: string | null
+          token_hash: string
+          user_id: string
+        }
+        Insert: {
+          action: Database["public"]["Enums"]["step_up_action"]
+          challenge_id: string
+          consumed?: boolean
+          consumed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          target_ref?: string | null
+          token_hash: string
+          user_id: string
+        }
+        Update: {
+          action?: Database["public"]["Enums"]["step_up_action"]
+          challenge_id?: string
+          consumed?: boolean
+          consumed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          target_ref?: string | null
+          token_hash?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "step_up_tokens_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "step_up_challenges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       system_settings: {
         Row: {
           key: string
@@ -4473,6 +4613,7 @@ export type Database = {
       cleanup_expired_collection_trash: { Args: never; Returns: number }
       cleanup_expired_favorite_trash: { Args: never; Returns: number }
       cleanup_expired_public_comparisons: { Args: never; Returns: number }
+      cleanup_expired_step_up: { Args: never; Returns: undefined }
       cleanup_old_notifications: { Args: never; Returns: undefined }
       cleanup_rate_limits: { Args: never; Returns: undefined }
       cleanup_security_logs: { Args: never; Returns: Json }
@@ -4508,6 +4649,14 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      consume_step_up_token: {
+        Args: {
+          _expected_action: Database["public"]["Enums"]["step_up_action"]
+          _expected_target?: string
+          _token: string
+        }
+        Returns: boolean
       }
       create_organization_with_owner: {
         Args: { _name: string; _slug: string }
@@ -4733,6 +4882,10 @@ export type Database = {
         Args: { p_notification_id: string }
         Returns: undefined
       }
+      mark_step_up_password_verified: {
+        Args: { _challenge_id: string }
+        Returns: boolean
+      }
       mcp_audit_actor: { Args: { _fallback: string }; Returns: string }
       notify_hardening_regression: { Args: never; Returns: Json }
       record_platform_failure: {
@@ -4758,6 +4911,19 @@ export type Database = {
           _ua: string
         }
         Returns: undefined
+      }
+      request_step_up_challenge: {
+        Args: {
+          _action: Database["public"]["Enums"]["step_up_action"]
+          _ip?: unknown
+          _target_ref?: string
+          _user_agent?: string
+        }
+        Returns: {
+          challenge_id: string
+          expires_at: string
+          otp_plain: string
+        }[]
       }
       reset_optimization_queue: {
         Args: { _only_running?: boolean }
@@ -4811,10 +4977,24 @@ export type Database = {
           scopes: string[]
         }[]
       }
+      verify_step_up_otp: {
+        Args: { _challenge_id: string; _otp: string }
+        Returns: {
+          expires_at: string
+          token: string
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "manager" | "vendedor" | "supervisor" | "dev"
       org_role: "owner" | "admin" | "member"
+      step_up_action:
+        | "promote_dev"
+        | "demote_dev"
+        | "mcp_full_issue"
+        | "mcp_full_escalate"
+        | "secret_rotation"
+        | "secret_revoke"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -4944,6 +5124,14 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "manager", "vendedor", "supervisor", "dev"],
       org_role: ["owner", "admin", "member"],
+      step_up_action: [
+        "promote_dev",
+        "demote_dev",
+        "mcp_full_issue",
+        "mcp_full_escalate",
+        "secret_rotation",
+        "secret_revoke",
+      ],
     },
   },
 } as const

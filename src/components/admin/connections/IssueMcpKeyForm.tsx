@@ -50,6 +50,7 @@ import {
   type McpScope,
 } from "@/lib/mcp/scopes";
 import { useCanGrantMcpFull } from "@/components/admin/security/keys/useCanGrantMcpFull";
+import { StepUpAuthDialog } from "@/components/auth/StepUpAuthDialog";
 
 interface Props {
   onIssued: () => void;
@@ -73,6 +74,7 @@ export function IssueMcpKeyForm({ onIssued }: Props) {
   const [generated, setGenerated] = useState<string | null>(null);
   const [confirmRootOpen, setConfirmRootOpen] = useState(false);
   const [rootNameEcho, setRootNameEcho] = useState("");
+  const [stepUpOpen, setStepUpOpen] = useState(false);
 
   const full = isFullAccess(scopes);
   const { canGrant: canGrantFull, loading: grantorLoading } = useCanGrantMcpFull();
@@ -122,7 +124,7 @@ export function IssueMcpKeyForm({ onIssued }: Props) {
     void doSubmit();
   };
 
-  const doSubmit = async () => {
+  const doSubmit = async (stepUpToken?: string) => {
     setSubmitting(true);
     try {
       const { data, error } = await supabase.functions.invoke("mcp-keys-issue", {
@@ -132,6 +134,7 @@ export function IssueMcpKeyForm({ onIssued }: Props) {
           expires_at: expiresLocal ? new Date(expiresLocal).toISOString() : null,
           justification: justification.trim() || null,
           confirmation_phrase: full ? confirmation : null,
+          step_up_token: stepUpToken ?? null,
         },
       });
       if (error) {
@@ -150,6 +153,12 @@ export function IssueMcpKeyForm({ onIssued }: Props) {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleRootConfirmed = () => {
+    // Após confirmar nome (gate visual), abre verificação dupla
+    setConfirmRootOpen(false);
+    setStepUpOpen(true);
   };
 
   const rootNameMatches =
@@ -376,15 +385,23 @@ export function IssueMcpKeyForm({ onIssued }: Props) {
               disabled={!rootNameMatches || submitting}
               onClick={(e) => {
                 e.preventDefault();
-                if (rootNameMatches) void doSubmit();
+                if (rootNameMatches) handleRootConfirmed();
               }}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {submitting ? "Emitindo…" : "Emitir chave ROOT"}
+              Avançar para verificação dupla
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <StepUpAuthDialog
+        open={stepUpOpen}
+        onOpenChange={setStepUpOpen}
+        action="mcp_full_issue"
+        actionLabel={`Emitir chave MCP FULL "${name}"`}
+        onVerified={(token) => doSubmit(token)}
+      />
     </div>
   );
 }
