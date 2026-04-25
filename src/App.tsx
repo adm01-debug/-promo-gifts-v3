@@ -11,6 +11,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ProtectedRoute } from "@/components/layout/ProtectedRoute";
 import { AdminRoute } from "@/components/layout/AdminRoute";
+import { DevRoute } from "@/components/layout/DevRoute";
 import { DeprecatedRoute } from "@/components/layout/DeprecatedRoute";
 import { AppProviders } from "@/components/providers/AppProviders";
 import { RouteErrorBoundary } from "@/components/errors/RouteErrorBoundary";
@@ -230,26 +231,19 @@ const App = () => {
                             <Route path="/orcamentos/:id/editar" element={<QuoteBuilderPage />} />
                             <Route path="/orcamentos/:id" element={<QuoteViewPage />} />
 
-                            {/* Admin Layout Route */}
+                            {/* Admin Layout Route — supervisor + dev (gestão de negócio) */}
                             <Route element={<AdminRoute />} errorElement={<RouteErrorBoundary />}>
                               <Route path="/admin" element={<Navigate to="/admin/usuarios" replace />} />
                               <Route path="/admin/usuarios" element={<AdminUsuariosPage />} />
                               <Route path="/admin/seguranca" element={<AdminSegurancaPage />} />
-                              <Route path="/admin/seguranca/chaves" element={<AdminSegurancaChavesPage />} />
                               <Route path="/admin/cadastros" element={<AdminCadastrosPage />} />
                               <Route path="/admin/cadastros/produto/:id" element={<AdminProductFormPage />} />
                               <Route path="/admin/prompts-ia" element={<AdminPromptsIAPage />} />
-                              <Route path="/admin/telemetria" element={<AdminTelemetriaPage />} />
                               <Route path="/admin/permissoes" element={<PermissionsPage />} />
                               <Route path="/admin/roles" element={<RolesPage />} />
                               <Route path="/admin/role-permissoes" element={<RolePermissionsPage />} />
-                              <Route path="/admin/rate-limit" element={<RateLimitDashboard />} />
                               <Route path="/admin/temas" element={<AdminTemasPage />} />
-                              <Route path="/admin/workflows" element={<AdminWorkflowsPage />} />
-                              <Route path="/admin/login-attempts" element={<AdminLoginAttemptsPage />} />
-                              <Route path="/admin/external-db" element={<AdminExternalDbPage />} />
                               <Route path="/admin/video-variantes" element={<AdminVideoVariantsPage />} />
-                              <Route path="/admin/consumo-ia" element={<AdminAiUsagePage />} />
                               <Route path="/admin/kit-templates" element={<KitTemplatesAdminPage />} />
                               <Route path="/admin/kit-templates/metricas" element={<KitTemplatesMetricsPage />} />
                               <Route path="/admin/validade-precos" element={<PriceFreshnessSettingsPage />} />
@@ -258,14 +252,22 @@ const App = () => {
                               <Route path="/admin/performance-comercial" element={<DeprecatedRoute message="O módulo de Performance Comercial foi descontinuado. Use o BI Comercial para análises." redirectTo="/ferramentas/bi" />} />
                               <Route path="/admin/comissoes" element={<DeprecatedRoute message="O módulo de Comissões foi descontinuado nesta plataforma." redirectTo="/admin/usuarios" />} />
                               <Route path="/admin/seguranca-acesso" element={<AdminSegurancaAcessoPage />} />
-                              {/* Conexões manipulam credenciais sensíveis — exige admin estrito (não managers) */}
-                              <Route element={<ProtectedRoute requireAdmin />}>
+                              <Route path="/tendencias" element={<TrendsPage />} />
+
+                              {/* DEV-ONLY — páginas técnicas com risco elevado (telemetria, conexões, secrets, MCP, audit técnico) */}
+                              <Route element={<DevRoute />} errorElement={<RouteErrorBoundary />}>
+                                <Route path="/admin/seguranca/chaves" element={<AdminSegurancaChavesPage />} />
+                                <Route path="/admin/telemetria" element={<AdminTelemetriaPage />} />
+                                <Route path="/admin/rate-limit" element={<RateLimitDashboard />} />
+                                <Route path="/admin/workflows" element={<AdminWorkflowsPage />} />
+                                <Route path="/admin/login-attempts" element={<AdminLoginAttemptsPage />} />
+                                <Route path="/admin/external-db" element={<AdminExternalDbPage />} />
+                                <Route path="/admin/consumo-ia" element={<AdminAiUsagePage />} />
                                 <Route path="/admin/conexoes" element={<AdminConexoesPage />} />
                                 <Route path="/admin/conexoes/status" element={<AdminConexoesStatusPage />} />
+                                <Route path="/status" element={<SystemStatusPage />} />
+                                <Route path="/external-db-test" element={<ExternalDatabaseTest />} />
                               </Route>
-                              <Route path="/tendencias" element={<TrendsPage />} />
-                              <Route path="/status" element={<SystemStatusPage />} />
-                              <Route path="/external-db-test" element={<ExternalDatabaseTest />} />
                             </Route>
 
                             {/* Redirects */}

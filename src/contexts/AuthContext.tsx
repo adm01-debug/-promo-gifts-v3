@@ -12,8 +12,16 @@ function getGreeting(): string {
   return "Boa noite";
 }
 
-// Tipos de role conforme app_role enum no banco
-type AppRole = "admin" | "manager" | "vendedor";
+// Tipos de role conforme app_role enum no banco.
+// 'admin', 'manager' e 'vendedor' permanecem por compatibilidade com dados legados,
+// mas a nova hierarquia oficial é: dev > supervisor > agente.
+export type AppRole =
+  | "dev"
+  | "supervisor"
+  | "agente"
+  | "admin"      // legado (alias de supervisor)
+  | "manager"    // legado
+  | "vendedor";  // legado (alias de agente)
 
 // Interface do Profile
 export interface Profile {
@@ -37,19 +45,26 @@ interface AuthContextType {
   session: Session | null;
   profile: Profile | null;
   isLoading: boolean;
-  // Role do user_roles (fonte principal)
+  // Conjunto de todas as roles que o usuário possui em user_roles
+  roles: AppRole[];
+  // Role principal (mais alta na hierarquia) para exibição/legado
   role: AppRole | null;
-  // Helpers de permissão baseados em user_roles
-  isAdmin: boolean;
-  isManager: boolean;
-  isSeller: boolean;
-  canManage: boolean;           // admin ou manager
+  // Helpers da NOVA hierarquia (dev > supervisor > agente)
+  isDev: boolean;
+  isSupervisor: boolean;       // strict: apenas o nível supervisor (não inclui dev)
+  isAgente: boolean;
+  isSupervisorOrAbove: boolean; // dev OR supervisor — equivale ao server-side is_supervisor_or_above
+  // Aliases retrocompatíveis (deprecated — preferir os acima)
+  isAdmin: boolean;            // = isSupervisorOrAbove
+  isManager: boolean;          // legado
+  isSeller: boolean;           // = isAgente
+  canManage: boolean;          // = isSupervisorOrAbove
   isAuthenticated: boolean;
   // MFA / Authenticator Assurance Level
   currentAAL: 'aal1' | 'aal2' | null;
   nextAAL: 'aal1' | 'aal2' | null;
-  hasMFA: boolean;              // true se o user possui ao menos 1 fator TOTP verificado
-  mfaRequired: boolean;         // admin/manager sem aal2
+  hasMFA: boolean;
+  mfaRequired: boolean;
   refreshAAL: () => Promise<void>;
   // Métodos
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: Error | null }>;
@@ -64,7 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [userRole, setUserRole] = useState<AppRole | null>(null);
+  const [userRoles, setUserRoles] = useState<AppRole[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentAAL, setCurrentAAL] = useState<'aal1' | 'aal2' | null>(null);
   const [nextAAL, setNextAAL] = useState<'aal1' | 'aal2' | null>(null);
@@ -96,8 +111,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     const doFetch = async () => {
       try {
-        // Buscar profile e role em paralelo
-        const [profileResult, roleResult] = await Promise.all([
+        // Buscar profile e TODAS as roles em paralelo (usuário pode ter múltiplas, ex: dev+supervisor)
+        const [profileResult, rolesResult] = await Promise.all([
           supabase
             .from("profiles")
             .select("*")
@@ -107,7 +122,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             .from("user_roles")
             .select("role")
             .eq("user_id", userId)
-            .single()
         ]);
 
         if (!mountedRef.current) return;
@@ -131,20 +145,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             });
         }
 
-        if (roleResult.error) {
+        if (rolesResult.error) {
           if (import.meta.env.DEV) {
-            console.error("Error fetching user role:", roleResult.error);
+            console.error("Error fetching user roles:", rolesResult.error);
           }
-          setUserRole("vendedor");
-        } else if (roleResult.data) {
-          setUserRole(roleResult.data.role as AppRole);
+          setUserRoles(["agente"]);
+        } else if (rolesResult.data) {
+          const roles = rolesResult.data.map((r) => r.role as AppRole);
+          setUserRoles(roles.length > 0 ? roles : ["agente"]);
         }
       } catch (error) {
         if (import.meta.env.DEV) {
           console.error("Error fetching user data:", error);
         }
         if (mountedRef.current) {
-          setUserRole("vendedor");
+          setUserRoles(["agente"]);
         }
       } finally {
         fetchPromiseRef.current = null;
@@ -202,7 +217,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }, 0);
         } else {
           setProfile(null);
-          setUserRole(null);
+          setUserRoles([]);
           setCurrentAAL(null);
           setNextAAL(null);
           setHasMFA(false);
@@ -304,7 +319,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     setSession(null);
     setProfile(null);
-    setUserRole(null);
+    setUserRoles([]);
     setCurrentAAL(null);
     setNextAAL(null);
     setHasMFA(false);
@@ -319,12 +334,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Helpers de permissão baseados em user_roles (fonte principal)
-  const isAdmin = userRole === "admin";
-  const isManager = userRole === "manager";
-  const isSeller = userRole === "vendedor";
-  const canManage = isAdmin || isManager;
-  // MFA exigido para qualquer admin/manager que ainda não autenticou em aal2
+  // Helpers da NOVA hierarquia (fonte: array userRoles).
+  // 'admin' legado mapeia para supervisor; 'vendedor' legado mapeia para agente.
+  const has = (r: AppRole) => userRoles.includes(r);
+  const isDev = has("dev");
+  const isSupervisor = has("supervisor") || has("admin"); // admin legado = supervisor
+  const isAgente = has("agente") || has("vendedor");      // vendedor legado = agente
+  const isSupervisorOrAbove = isDev || isSupervisor;
+
+  // Role principal para exibição (mais alta na hierarquia)
+  const primaryRole: AppRole | null = isDev
+    ? "dev"
+    : isSupervisor
+    ? "supervisor"
+    : isAgente
+    ? "agente"
+    : userRoles[0] ?? null;
+
+  // Aliases legados (deprecated, mantidos para componentes ainda não migrados)
+  const isAdmin = isSupervisorOrAbove;
+  const isManager = has("manager");
+  const isSeller = isAgente;
+  const canManage = isSupervisorOrAbove;
+  // MFA exigido para qualquer supervisor/dev que ainda não autenticou em aal2
   const mfaRequired = canManage && currentAAL !== 'aal2';
 
   const value: AuthContextType = {
@@ -332,7 +364,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     session,
     profile,
     isLoading,
-    role: userRole,
+    roles: userRoles,
+    role: primaryRole,
+    isDev,
+    isSupervisor,
+    isAgente,
+    isSupervisorOrAbove,
     isAdmin,
     isManager,
     isSeller,
