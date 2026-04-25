@@ -68,6 +68,9 @@ export function useMcpKeys() {
     status: "all",
     onlyFull: false,
     sort: "created_desc",
+    creator: null,
+    createdFrom: null,
+    createdTo: null,
   });
 
   const load = useCallback(async () => {
