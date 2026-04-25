@@ -62,6 +62,9 @@ const PlatformFailureAlertBanner = lazy(() =>
 const ColdStartRetriesPanel = lazy(() =>
   import('@/components/admin/telemetry/ColdStartRetriesPanel').then((m) => ({ default: m.ColdStartRetriesPanel })),
 );
+const BridgesLiveCard = lazy(() =>
+  import('@/components/admin/telemetry/BridgesLiveCard').then((m) => ({ default: m.BridgesLiveCard })),
+);
 
 
 const getSeverityBadge = (severity: string) => {
