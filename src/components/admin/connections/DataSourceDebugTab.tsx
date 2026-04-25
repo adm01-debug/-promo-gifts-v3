@@ -244,9 +244,19 @@ export function DataSourceDebugTab() {
             ) : (
               <ul className="space-y-1.5 text-xs font-mono">
                 {secrets.map((s) => (
-                  <li key={s.id} className="flex items-center justify-between gap-2 border-b pb-1.5 last:border-0">
-                    <span className="truncate">{s.name ?? s.id}</span>
-                    <Badge variant="secondary" className="text-[10px]">{s.kind ?? "—"}</Badge>
+                  <li key={s.name} className="flex items-center justify-between gap-2 border-b pb-1.5 last:border-0">
+                    <span className="truncate">{s.name}</span>
+                    <div className="flex items-center gap-1.5">
+                      {s.masked_suffix && (
+                        <span className="text-[10px] text-muted-foreground">••••{s.masked_suffix}</span>
+                      )}
+                      <Badge
+                        variant={s.has_value ? "default" : "secondary"}
+                        className={`text-[10px] ${s.has_value ? "bg-green-600" : ""}`}
+                      >
+                        {s.has_value ? (s.source ?? "db") : "vazio"}
+                      </Badge>
+                    </div>
                   </li>
                 ))}
               </ul>
