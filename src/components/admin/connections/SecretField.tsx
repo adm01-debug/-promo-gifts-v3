@@ -491,7 +491,12 @@ export function SecretField({ label, secretName, status, helperText, onSaved, co
     >
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
-          <Label className="text-sm font-medium">{label}</Label>
+          <SecretImpactTooltip
+            secretName={secretName}
+            isMissing={!status?.has_value}
+          >
+            <Label className="text-sm font-medium cursor-help">{label}</Label>
+          </SecretImpactTooltip>
           <CredentialSourceBadge status={status} />
           {status?.env_fallback_active && !editing && (
             <span
