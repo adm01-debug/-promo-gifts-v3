@@ -29,6 +29,9 @@ const ALLOWED_SECRETS = new Set<string>([
   "N8N_BASE_URL",
   "N8N_API_KEY",
   "MCP_SHARED_SECRET",
+  "GITHUB_TOKEN",
+  "GITHUB_REPO",
+  "GITHUB_DEFAULT_BRANCH",
 ]);
 
 const ALLOWED_PREFIXES = [

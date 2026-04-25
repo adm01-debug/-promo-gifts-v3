@@ -4,13 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Plug, Copy, Trash2, Plus, Key } from "lucide-react";
+import { Plug, Copy, Trash2, Plus, Key, Github } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger,
 } from "@/components/ui/dialog";
 import { ConnectionTestHistoryPanel } from "./ConnectionTestHistoryPanel";
+import { SecretField } from "./SecretField";
+import { useSecretsManager } from "@/hooks/useSecretsManager";
 
 interface McpKey {
   id: string;
@@ -28,12 +30,17 @@ const ALL_SCOPES = ["quotes:read", "orders:read", "crm:read", "products:read", "
 const MCP_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/mcp-server`;
 
 export function McpTab() {
+  const { secrets, list } = useSecretsManager();
   const [keys, setKeys] = useState<McpKey[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [scopes, setScopes] = useState<string[]>(["quotes:read"]);
   const [generated, setGenerated] = useState<string | null>(null);
+
+  const getSecret = (n: string) => secrets.find((s) => s.name === n);
+
+  useEffect(() => { list(); }, [list]);
 
   const load = async () => {
     setLoading(true);
@@ -111,6 +118,49 @@ export function McpTab() {
             </p>
           </div>
           <ConnectionTestHistoryPanel type="mcp" label="Servidor MCP" />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Github className="h-5 w-5 text-primary" />
+            <CardTitle>GitHub — código-fonte do app</CardTitle>
+          </div>
+          <CardDescription>
+            Credenciais usadas pelas tools de código do MCP server
+            (<code className="bg-muted px-1 rounded text-xs">list_repo_files</code>,{" "}
+            <code className="bg-muted px-1 rounded text-xs">read_repo_file</code>,{" "}
+            <code className="bg-muted px-1 rounded text-xs">write_repo_file</code>).
+            Necessárias quando uma chave com escopo <code className="bg-muted px-1 rounded text-xs">*</code>{" "}
+            (full access) precisa editar o repositório.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4 max-w-2xl">
+          <SecretField
+            label="Personal Access Token"
+            secretName="GITHUB_TOKEN"
+            status={getSecret("GITHUB_TOKEN")}
+            onSaved={list}
+            connectionId="mcp"
+            helperText="Fine-grained PAT com permissões: Contents (read & write), Metadata (read). Gere em github.com/settings/tokens?type=beta"
+          />
+          <SecretField
+            label="Repositório (owner/repo)"
+            secretName="GITHUB_REPO"
+            status={getSecret("GITHUB_REPO")}
+            onSaved={list}
+            connectionId="mcp"
+            helperText="Ex: minha-org/promo-gifts"
+          />
+          <SecretField
+            label="Branch padrão para escrita"
+            secretName="GITHUB_DEFAULT_BRANCH"
+            status={getSecret("GITHUB_DEFAULT_BRANCH")}
+            onSaved={list}
+            connectionId="mcp"
+            helperText="Recomendado: mcp-edits/main (evita commits diretos em main). Aceita qualquer branch existente."
+          />
         </CardContent>
       </Card>
 
