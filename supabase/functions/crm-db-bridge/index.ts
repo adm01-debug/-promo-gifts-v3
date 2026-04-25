@@ -957,4 +957,5 @@ Deno.serve((req) => {
     );
     return jsonResponse({ error: error instanceof Error ? error.message : "Internal error" }, 500);
   }
+  });
 });
