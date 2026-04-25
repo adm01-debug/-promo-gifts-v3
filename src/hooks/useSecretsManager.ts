@@ -127,9 +127,7 @@ export function useSecretsManager() {
   const list = useCallback(async (names?: string[]) => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke("secrets-manager", {
-        body: { action: "list", names },
-      });
+      const { data, error, status: httpStatus } = await invokeSecretsManager({ action: "list", names });
       if (error) {
         // Tenta extrair payload estruturado (ex.: { error: { code, message } }) do FunctionsHttpError.
         const ctx = (error as { context?: Response }).context;
