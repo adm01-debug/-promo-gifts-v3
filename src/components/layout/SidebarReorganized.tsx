@@ -124,18 +124,18 @@ const navGroups: NavGroup[] = [
     items: [
       { icon: Users, label: "Usuários", href: "/admin/usuarios", adminOnly: true },
       { icon: Settings, label: "Configurações", href: "/configuracoes", adminOnly: true },
-      { icon: ShieldCheck, label: "Segurança", href: "/admin/seguranca", adminOnly: true },
-      { icon: ShieldCheck, label: "Acesso & Bots", href: "/admin/seguranca-acesso", adminOnly: true },
-      { icon: Plug, label: "Conexões", href: "/admin/conexoes", adminOnly: true },
+      { icon: ShieldCheck, label: "Segurança", href: "/admin/seguranca", devOnly: true },
+      { icon: ShieldCheck, label: "Acesso & Bots", href: "/admin/seguranca-acesso", devOnly: true },
+      { icon: Plug, label: "Conexões", href: "/admin/conexoes", devOnly: true },
       { icon: FolderOpen, label: "Cadastros", href: "/admin/cadastros", adminOnly: true, children: [
         { icon: Package, label: "Produtos", href: "/admin/cadastros?tab=products" },
         { icon: Truck, label: "Fornecedores", href: "/admin/cadastros?tab=suppliers" },
         { icon: Palette, label: "Gravação", href: "/admin/cadastros?tab=personalizacao" },
       ]},
-      { icon: Sparkles, label: "Prompts IA", href: "/admin/prompts-ia", adminOnly: true },
-      { icon: Workflow, label: "Workflows IA", href: "/admin/workflows", adminOnly: true },
-      { icon: Activity, label: "Telemetria", href: "/admin/telemetria", adminOnly: true },
-      { icon: DollarSign, label: "Validade de Preços", href: "/admin/validade-precos", adminOnly: true },
+      { icon: Sparkles, label: "Prompts IA", href: "/admin/prompts-ia", devOnly: true },
+      { icon: Workflow, label: "Workflows IA", href: "/admin/workflows", devOnly: true },
+      { icon: Activity, label: "Telemetria", href: "/admin/telemetria", devOnly: true },
+      { icon: DollarSign, label: "Validade de Preços", href: "/admin/validade-precos", devOnly: true },
     ],
   },
 ];
@@ -158,7 +158,7 @@ export const SidebarReorganized = React.forwardRef<HTMLElement, SidebarProps>(
     });
     return initial;
   });
-  const { isAdmin } = useAuth();
+  const { isAdmin, isDev } = useAuth();
 
   // Pending discount approval count for admin badge
   const { data: pendingApprovalCount } = useQuery({
@@ -246,8 +246,17 @@ export const SidebarReorganized = React.forwardRef<HTMLElement, SidebarProps>(
   };
 
   const filteredGroups = useMemo(
-    () => enrichedNavGroups.filter((g) => !g.adminOnly || isAdmin),
-    [isAdmin, enrichedNavGroups]
+    () =>
+      enrichedNavGroups
+        .filter((g) => (!g.adminOnly || isAdmin) && (!g.devOnly || isDev))
+        .map((g) => ({
+          ...g,
+          items: g.items.filter(
+            (i) => (!i.adminOnly || isAdmin) && (!i.devOnly || isDev)
+          ),
+        }))
+        .filter((g) => g.items.length > 0),
+    [isAdmin, isDev, enrichedNavGroups]
   );
 
   return (
