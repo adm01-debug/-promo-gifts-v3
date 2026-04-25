@@ -2134,6 +2134,48 @@ export type Database = {
           },
         ]
       }
+      mcp_access_violations: {
+        Row: {
+          created_at: string
+          details: Json
+          id: string
+          ip_address: string | null
+          operation: string | null
+          reason: string
+          request_id: string | null
+          source: string
+          target_key_id: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          details?: Json
+          id?: string
+          ip_address?: string | null
+          operation?: string | null
+          reason: string
+          request_id?: string | null
+          source: string
+          target_key_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          details?: Json
+          id?: string
+          ip_address?: string | null
+          operation?: string | null
+          reason?: string
+          request_id?: string | null
+          source?: string
+          target_key_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       mcp_api_keys: {
         Row: {
           created_at: string
@@ -4595,6 +4637,10 @@ export type Database = {
       check_ai_quota: { Args: { _user_id: string }; Returns: Json }
       check_hardening_status: { Args: never; Returns: Json }
       check_ip_access: { Args: { _ip: string }; Returns: string }
+      check_mcp_abuse_threshold: {
+        Args: { _ip: string; _user_id: string }
+        Returns: undefined
+      }
       check_rate_limit: {
         Args: {
           _block_duration_seconds?: number
@@ -4929,6 +4975,20 @@ export type Database = {
       }
       mcp_audit_actor: { Args: { _fallback: string }; Returns: string }
       notify_hardening_regression: { Args: never; Returns: Json }
+      record_mcp_access_violation: {
+        Args: {
+          _details?: Json
+          _ip?: string
+          _operation?: string
+          _reason: string
+          _request_id?: string
+          _source: string
+          _target_key_id?: string
+          _user_agent?: string
+          _user_id: string
+        }
+        Returns: string
+      }
       record_platform_failure: {
         Args: {
           p_duration_ms?: number
