@@ -86,10 +86,23 @@ export async function prewarmExternalDb() {
   const totalStart = performance.now();
   logger.log('[Prewarm] Warming up external DB connections (parallel)...');
 
-  // 1) Acorda a edge function com um ping leve (sem BD)
-  const pingMs = await pingBridge();
+  // 1) Acorda a edge function com um ping leve (sem BD). Aguardamos
+  //    explicitamente até receber 200 — só então liberamos o leque paralelo.
+  const ping = await pingBridge();
 
-  // 2) Dispara todas as tabelas em paralelo
+  if (!ping.ok) {
+    // Isolate não respondeu nem após 3 tentativas. Disparar 6 chamadas paralelas
+    // agora só amplificaria o problema — aborta e libera o cooldown para um
+    // novo prewarm na próxima navegação.
+    lastPrewarmAt = 0;
+    const totalMs = Math.round(performance.now() - totalStart);
+    logger.warn(
+      `[Prewarm] ⛔ Aborted — bridge ping failed after ${ping.attempts} attempts in ${ping.ms}ms (total ${totalMs}ms). Skipping parallel fan-out.`,
+    );
+    return;
+  }
+
+  // 2) Isolate confirmadamente quente — dispara todas as tabelas em paralelo
   const results = await Promise.allSettled(PREWARM_TABLES.map(warmTable));
 
   const totalMs = Math.round(performance.now() - totalStart);
@@ -112,6 +125,6 @@ export async function prewarmExternalDb() {
   }
 
   logger.log(
-    `[Prewarm] Done in ${totalMs}ms — ping=${pingMs}ms ok=${okCount} fail=${failCount} (parallel; was ~5000ms sequential)`,
+    `[Prewarm] Done in ${totalMs}ms — ping=${ping.ms}ms (${ping.attempts}x) ok=${okCount} fail=${failCount} (parallel; was ~5000ms sequential)`,
   );
 }
