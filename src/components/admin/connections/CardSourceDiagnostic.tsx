@@ -1,9 +1,9 @@
-import { Database, AlertTriangle, Bug, ShieldAlert } from "lucide-react";
+import { Database, AlertTriangle, Bug, ShieldAlert, Lock } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { resolveSource } from "./CredentialsSourceFilterContext";
 import { useExplainMode } from "./ExplainModeContext";
-import type { SecretStatus } from "@/hooks/useSecretsManager";
+import type { SecretStatus, SecretError } from "@/hooks/useSecretsManager";
 
 /**
  * CardSourceDiagnostic — modo debug por card.
@@ -13,8 +13,12 @@ import type { SecretStatus } from "@/hooks/useSecretsManager";
  *   - ENV       → Deno.env.get fallback (legado / bootstrap)
  *   - AUSENTE   → nem DB nem ENV — card aparecerá como "Sem credenciais"
  *
+ * Estado de erro de carga (loadError):
+ *   - Quando `secrets-manager` falha (401/403/rede), exibe alerta dedicado
+ *     com mensagem clara — em vez de mostrar tudo como "AUSENTE" (false positive).
+ *
  * Visibilidade:
- *   - Sempre visível quando há credencial AUSENTE (ajuda a debugar config faltante)
+ *   - Sempre visível quando há credencial AUSENTE ou erro de carga
  *   - Visível quando o "Explain Mode" estiver ligado (toggle no header)
  *   - Oculto em estado normal (não polui o card)
  */
@@ -26,6 +30,8 @@ interface Props {
   fields: Field[];
   /** readOnly (gerenciado) — se true, não mostra nada. */
   readOnly?: boolean;
+  /** Erro do hook ao listar segredos (sem permissão / sessão expirada / rede). */
+  loadError?: SecretError | null;
   className?: string;
 }
 
@@ -47,10 +53,55 @@ const SOURCE_META = {
   },
 } as const;
 
-export function CardSourceDiagnostic({ fields, readOnly, className }: Props) {
+function describeLoadError(err: SecretError): { title: string; hint: string } {
+  switch (err.code) {
+    case "unauthenticated":
+      return {
+        title: "Sessão expirada — não foi possível ler as credenciais",
+        hint: "Faça login novamente para que o secrets-manager possa retornar o status real.",
+      };
+    case "forbidden":
+    case "permission_denied":
+      return {
+        title: "Sem permissão para ler credenciais",
+        hint: "Apenas administradores podem visualizar/editar credenciais. Solicite acesso ou peça a alguém com papel de admin para configurar este card.",
+      };
+    default:
+      return {
+        title: "Falha ao carregar credenciais do secrets-manager",
+        hint: err.message || "Tente novamente em instantes. Se persistir, verifique os logs da função secrets-manager.",
+      };
+  }
+}
+
+export function CardSourceDiagnostic({ fields, readOnly, loadError, className }: Props) {
   const { enabled: explainOn } = useExplainMode();
 
   if (readOnly) return null;
+
+  // Estado de erro de carga vence todos os outros — não dá para inferir origem
+  // sem resposta do secrets-manager. Sem isso, todos os campos apareceriam como
+  // "AUSENTE" e o usuário receberia um diagnóstico enganoso.
+  if (loadError) {
+    const { title, hint } = describeLoadError(loadError);
+    return (
+      <Alert
+        variant="destructive"
+        className={className}
+        role="alert"
+        aria-live="polite"
+      >
+        <Lock className="h-4 w-4" />
+        <AlertTitle className="text-sm">{title}</AlertTitle>
+        <AlertDescription>
+          <p className="text-xs">{hint}</p>
+          <p className="mt-2 text-[10px] font-mono text-muted-foreground">
+            código: {loadError.code}
+          </p>
+        </AlertDescription>
+      </Alert>
+    );
+  }
 
   const rows = fields.map((f) => ({
     label: f.label,
