@@ -252,17 +252,44 @@ export function DataSourceDebugTab() {
       {/* Raw rows */}
       <div className="grid gap-3 lg:grid-cols-2">
         <Card>
-          <CardHeader>
-            <CardTitle className="text-sm">integration_credentials (linhas)</CardTitle>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <CardTitle className="text-sm">integration_credentials (linhas)</CardTitle>
+              <span className="text-[10px] text-muted-foreground tabular-nums">
+                {credQuery ? `${filteredSecrets.length}/${secrets.length}` : `${secrets.length}`} linha(s)
+              </span>
+            </div>
+            <div className="relative mt-2">
+              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
+              <Input
+                value={credFilter}
+                onChange={(e) => setCredFilter(e.target.value)}
+                placeholder="Filtrar por nome (ex.: PROMOBRIND, CRM)…"
+                className="h-8 text-xs pl-7 pr-7"
+                aria-label="Filtrar credenciais por nome"
+              />
+              {credFilter && (
+                <button
+                  type="button"
+                  onClick={() => setCredFilter("")}
+                  className="absolute right-1.5 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-muted"
+                  aria-label="Limpar filtro de credenciais"
+                >
+                  <X className="h-3 w-3 text-muted-foreground" />
+                </button>
+              )}
+            </div>
           </CardHeader>
           <CardContent>
             {secretsLoading ? (
               <Skeleton className="h-32 w-full" />
             ) : secrets.length === 0 ? (
               <p className="text-xs text-muted-foreground">Nenhuma credencial encontrada.</p>
+            ) : filteredSecrets.length === 0 ? (
+              <p className="text-xs text-muted-foreground">Nenhum resultado para “{credFilter}”.</p>
             ) : (
               <ul className="space-y-1.5 text-xs font-mono">
-                {secrets.map((s) => (
+                {filteredSecrets.map((s) => (
                   <li key={s.name} className="flex items-center justify-between gap-2 border-b pb-1.5 last:border-0">
                     <span className="truncate">{s.name}</span>
                     <div className="flex items-center gap-1.5">
@@ -284,8 +311,33 @@ export function DataSourceDebugTab() {
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle className="text-sm">external_connections (linhas)</CardTitle>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <CardTitle className="text-sm">external_connections (linhas)</CardTitle>
+              <span className="text-[10px] text-muted-foreground tabular-nums">
+                {extQuery ? `${filteredExtConns.length}/${extConns?.length ?? 0}` : `${extConns?.length ?? 0}`} linha(s)
+              </span>
+            </div>
+            <div className="relative mt-2">
+              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
+              <Input
+                value={extFilter}
+                onChange={(e) => setExtFilter(e.target.value)}
+                placeholder="Filtrar por nome, tipo ou status…"
+                className="h-8 text-xs pl-7 pr-7"
+                aria-label="Filtrar conexões externas"
+              />
+              {extFilter && (
+                <button
+                  type="button"
+                  onClick={() => setExtFilter("")}
+                  className="absolute right-1.5 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-muted"
+                  aria-label="Limpar filtro de conexões"
+                >
+                  <X className="h-3 w-3 text-muted-foreground" />
+                </button>
+              )}
+            </div>
           </CardHeader>
           <CardContent>
             {extLoading ? (
@@ -294,9 +346,11 @@ export function DataSourceDebugTab() {
               <p className="text-xs text-destructive">Erro: {extError}</p>
             ) : !extConns || extConns.length === 0 ? (
               <p className="text-xs text-muted-foreground">Nenhuma linha encontrada.</p>
+            ) : filteredExtConns.length === 0 ? (
+              <p className="text-xs text-muted-foreground">Nenhum resultado para “{extFilter}”.</p>
             ) : (
               <ul className="space-y-1.5 text-xs font-mono">
-                {extConns.map((c) => (
+                {filteredExtConns.map((c) => (
                   <li key={c.id} className="flex items-center justify-between gap-2 border-b pb-1.5 last:border-0">
                     <span className="truncate">{c.name ?? c.id}</span>
                     <div className="flex items-center gap-1.5">
