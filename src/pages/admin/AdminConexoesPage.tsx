@@ -20,6 +20,7 @@ import { CredentialsSourceFilterProvider } from "@/components/admin/connections/
 import { CredentialsSourceFilter } from "@/components/admin/connections/CredentialsSourceFilter";
 import { CredentialsSourceIndicator } from "@/components/admin/connections/CredentialsSourceIndicator";
 import { GlobalRefreshFromDbButton } from "@/components/admin/connections/GlobalRefreshFromDbButton";
+import { CredentialsChangedBanner } from "@/components/admin/connections/CredentialsChangedBanner";
 import { TestAllConnectionsButton } from "@/components/admin/connections/TestAllConnectionsButton";
 import { ConnectionsPulseBar } from "@/components/admin/connections/ConnectionsPulseBar";
 import { ConnectionsIncidentStrip } from "@/components/admin/connections/ConnectionsIncidentStrip";
@@ -171,6 +172,9 @@ export default function AdminConexoesPage() {
           </header>
 
           <ZoneCommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
+
+          {/* Faixa de auto-refresh: aparece quando integration_credentials muda no banco (Realtime) */}
+          <CredentialsChangedBanner onRefreshed={handleGlobalRefreshed} />
 
           {/* Filtro global de severidade + toggle "ver como calculamos" */}
           <div className="flex items-center justify-between gap-3 flex-wrap">
