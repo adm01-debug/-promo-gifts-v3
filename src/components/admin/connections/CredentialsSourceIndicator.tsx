@@ -262,6 +262,39 @@ export function CredentialsSourceIndicator({ secrets, isLoading, onRefresh, clas
           </span>
         )}
       </div>
+
+      {onRefresh && (
+        <TooltipProvider delayDuration={200}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleRefresh}
+                disabled={refreshing || isLoading}
+                aria-label="Forçar atualização dos secrets"
+                aria-busy={refreshing}
+                data-testid="credentials-source-refresh"
+                className="shrink-0 self-start"
+              >
+                <RefreshCw
+                  className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`}
+                  aria-hidden="true"
+                />
+                <span className="ml-1.5 text-xs">
+                  {refreshing ? "Atualizando…" : "Atualizar"}
+                </span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="max-w-xs text-xs">
+              Invalida o cache do <code className="font-mono">secrets-manager</code>{" "}
+              e recarrega <code className="font-mono">integration_credentials</code>{" "}
+              imediatamente. Útil após editar secrets em outra aba.
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )}
     </div>
   );
 }
