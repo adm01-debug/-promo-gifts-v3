@@ -137,10 +137,10 @@ describe('invokeWithRetry — classifier edge cases (HTTP word-boundary regex)',
     expect(mockInvoke).toHaveBeenCalledTimes(1);
   });
 
-  it('Dígitos colados em palavra (ex: "abc401xyz") NÃO disparam HTTP 401 falso', async () => {
-    // Sem word boundary ao redor de 401 → não deve casar non-retryable.
-    // Como não casa retryable também, retorna sem retry (1 invoke).
-    const err = new Error('lookup failed for abc401xyz token');
+  it('IDs com hífen ao redor de dígitos (ex: "abc-401-xyz") NÃO disparam HTTP 401 falso', async () => {
+    // Hífen conta como word boundary, mas a regex agora exige prefixo explícito
+    // (returned/status/http) → ids/UUIDs/slugs com 400/401/403 não casam mais.
+    const err = new Error('lookup failed for abc-401-xyz token');
     (mockInvoke as any).mockResolvedValueOnce({ data: null, error: err });
 
     const result = await invokeWithRetry({ table: 'products', operation: 'select' }, 3);
