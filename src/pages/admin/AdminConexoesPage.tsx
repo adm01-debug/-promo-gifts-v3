@@ -58,7 +58,7 @@ import { useFocusContext } from "@/components/admin/connections/useFocusContext"
  * (space-y-8 entre zonas, space-y-4 dentro de cada zona).
  */
 export default function AdminConexoesPage() {
-  const { secrets, list, isLoading: secretsLoading } = useSecretsManager();
+  const { secrets, list, refreshCache, isLoading: secretsLoading } = useSecretsManager();
   const [refreshTick, setRefreshTick] = useState(0);
   const { visible, toggle, showAll, isolateZone, hiddenCount } = useZoneVisibility();
   const { collapsed, toggle: toggleCollapse, expand: expandZone } = useZoneCollapse();
@@ -274,7 +274,17 @@ export default function AdminConexoesPage() {
               />
             }
           >
-            <CredentialsSourceIndicator secrets={secrets} isLoading={secretsLoading} />
+            <CredentialsSourceIndicator
+              secrets={secrets}
+              isLoading={secretsLoading}
+              onRefresh={async () => {
+                const result = await refreshCache();
+                if (!result.ok) {
+                  throw new Error(result.error?.message ?? "Falha no refresh_cache");
+                }
+                await list();
+              }}
+            />
 
             {secrets.length > 0 && (
               <CredentialsSourceFilter

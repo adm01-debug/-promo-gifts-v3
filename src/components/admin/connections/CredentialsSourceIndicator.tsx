@@ -15,9 +15,12 @@
  * Importante: é apenas leitura, não dispara invocações novas — recebe os
  * `secrets` já carregados pelo hook `useSecretsManager` do componente pai.
  */
-import { Database, Clock, ShieldCheck } from "lucide-react";
+import { useState } from "react";
+import { Database, Clock, ShieldCheck, RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { toast } from "sonner";
 import { resolveSource } from "./CredentialsSourceFilterContext";
 import type { SecretStatus } from "@/hooks/useSecretsManager";
 
@@ -25,6 +28,13 @@ interface Props {
   secrets: SecretStatus[];
   /** Mostra esqueleto enquanto a primeira carga está em andamento. */
   isLoading?: boolean;
+  /**
+   * Handler de refresh manual: deve invalidar o cache no servidor
+   * (`secrets-manager` action `refresh_cache`) e em seguida re-listar
+   * os secrets para refletir o estado mais recente. Quando ausente,
+   * o botão de refresh não é renderizado.
+   */
+  onRefresh?: () => Promise<void> | void;
   className?: string;
 }
 
@@ -55,7 +65,26 @@ function formatAbsolute(iso: string | null): string | null {
   });
 }
 
-export function CredentialsSourceIndicator({ secrets, isLoading, className }: Props) {
+export function CredentialsSourceIndicator({ secrets, isLoading, onRefresh, className }: Props) {
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    if (!onRefresh || refreshing) return;
+    setRefreshing(true);
+    try {
+      await onRefresh();
+      toast.success("Credenciais recarregadas", {
+        description: "Cache do secrets-manager invalidado e integration_credentials re-listada.",
+      });
+    } catch (err) {
+      toast.error("Falha ao recarregar credenciais", {
+        description: err instanceof Error ? err.message : "Erro desconhecido.",
+      });
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   const counts = secrets.reduce(
     (acc, s) => {
       const src = resolveSource(s);
@@ -233,6 +262,39 @@ export function CredentialsSourceIndicator({ secrets, isLoading, className }: Pr
           </span>
         )}
       </div>
+
+      {onRefresh && (
+        <TooltipProvider delayDuration={200}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleRefresh}
+                disabled={refreshing || isLoading}
+                aria-label="Forçar atualização dos secrets"
+                aria-busy={refreshing}
+                data-testid="credentials-source-refresh"
+                className="shrink-0 self-start"
+              >
+                <RefreshCw
+                  className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`}
+                  aria-hidden="true"
+                />
+                <span className="ml-1.5 text-xs">
+                  {refreshing ? "Atualizando…" : "Atualizar"}
+                </span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="max-w-xs text-xs">
+              Invalida o cache do <code className="font-mono">secrets-manager</code>{" "}
+              e recarrega <code className="font-mono">integration_credentials</code>{" "}
+              imediatamente. Útil após editar secrets em outra aba.
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )}
     </div>
   );
 }
