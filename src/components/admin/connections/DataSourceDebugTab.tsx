@@ -440,6 +440,9 @@ export function DataSourceDebugTab() {
         loading={secretsLoading || extLoading}
       />
 
+      {/* Última execução do trigger de sync */}
+      <LastSyncRunPanel />
+
       {/* Raw rows */}
       <div className="grid gap-3 lg:grid-cols-2">
         <Card>
