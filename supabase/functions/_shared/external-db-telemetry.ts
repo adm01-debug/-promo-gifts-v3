@@ -77,7 +77,15 @@ export function emitTelemetry(meta: TelemetryMeta) {
   else console.info(line);
 
   // Persist slow/error queries (fire-and-forget) — also persists cache hits & retry savings for analytics.
-  const shouldPersist = meta.status !== 'ok' || meta.cacheHit === true || (meta.retryCount ?? 0) > 0;
+  const platform = detectPlatformFailure(meta.error);
+  const isColdStart = meta.isColdStart ?? platform.isColdStart;
+  const is503 = meta.is503 ?? platform.is503;
+  const shouldPersist =
+    meta.status !== 'ok' ||
+    meta.cacheHit === true ||
+    (meta.retryCount ?? 0) > 0 ||
+    is503 || isColdStart;
+
   if (shouldPersist) {
     try {
       const localUrl = Deno.env.get('SUPABASE_URL');
@@ -102,6 +110,8 @@ export function emitTelemetry(meta: TelemetryMeta) {
           user_id: meta.userId || null,
           retry_count: meta.retryCount ?? 0,
           cache_hit: meta.cacheHit ?? false,
+          is_503: is503,
+          is_cold_start: isColdStart,
         }).then(({ error: insertErr }) => {
           if (insertErr) console.warn('[telemetry-persist] Insert failed:', insertErr.message);
         });
