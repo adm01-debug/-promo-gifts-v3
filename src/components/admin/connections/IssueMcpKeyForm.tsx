@@ -69,6 +69,8 @@ export function IssueMcpKeyForm({ onIssued }: Props) {
   const [scopes, setScopes] = useState<McpScope[]>(["quotes:read"]);
   const [expiresLocal, setExpiresLocal] = useState<string>("");
   const [justification, setJustification] = useState("");
+  const [targetRepo, setTargetRepo] = useState("");
+  const [targetTool, setTargetTool] = useState("");
   const [confirmation, setConfirmation] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [generated, setGenerated] = useState<string | null>(null);
@@ -135,6 +137,8 @@ export function IssueMcpKeyForm({ onIssued }: Props) {
           justification: justification.trim() || null,
           confirmation_phrase: full ? confirmation : null,
           step_up_token: stepUpToken ?? null,
+          target_repo: targetRepo.trim() || null,
+          target_tool: targetTool.trim() || null,
         },
       });
       if (error) {
