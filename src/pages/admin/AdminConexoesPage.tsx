@@ -17,6 +17,7 @@ import { CredentialsSourceFilter } from "@/components/admin/connections/Credenti
 import { GlobalRefreshFromDbButton } from "@/components/admin/connections/GlobalRefreshFromDbButton";
 import { ConnectionsPulseBar } from "@/components/admin/connections/ConnectionsPulseBar";
 import { ConnectionsIncidentStrip } from "@/components/admin/connections/ConnectionsIncidentStrip";
+import { IncidentTimeline72h } from "@/components/admin/connections/IncidentTimeline72h";
 import { ZoneSection } from "@/components/admin/connections/ZoneSection";
 import { SeverityFilterProvider } from "@/components/admin/connections/SeverityFilterContext";
 import { SeverityFilterToolbar } from "@/components/admin/connections/SeverityFilterToolbar";
@@ -50,8 +51,9 @@ export default function AdminConexoesPage() {
         <div className="container mx-auto py-6 max-w-7xl space-y-6">
           <PageSEO title="Conexões | Admin" description="Hub central de integrações externas: Supabase, Bitrix24, n8n, MCP, Webhooks." />
 
-          {/* Pulse Bar sticky + Incident Strip ficam fora das zonas */}
+          {/* Pulse Bar sticky + Timeline 72h + Incident Strip ficam fora das zonas */}
           <ConnectionsPulseBar />
+          <IncidentTimeline72h />
           <ConnectionsIncidentStrip />
 
           {/* Page Header */}
