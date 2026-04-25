@@ -78,13 +78,30 @@ const defaultQueryOptions: DefaultOptions = {
     
     // Retry configuration
     retry: (failureCount, error) => {
-      // Não retry em erros 4xx (client errors)
-      if (error instanceof Error && error.message.includes('4')) {
-        return false;
+      if (error instanceof Error) {
+        const msg = error.message.toLowerCase();
+        // CloudNotReady → tentar mais vezes (backend ainda subindo)
+        if ((error as { code?: string }).code === 'CLOUD_NOT_READY' || msg.includes('cloud_not_ready')) {
+          return failureCount < 5;
+        }
+        // 4xx determinísticos → não retry
+        if (/\b(400|401|403|404|409|422)\b/.test(msg)) {
+          return false;
+        }
+        // 5xx / network → até 3
+        if (/\b(500|502|503|504)\b/.test(msg) || msg.includes('network') || msg.includes('failed to fetch')) {
+          return failureCount < 3;
+        }
       }
       return failureCount < 2;
     },
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    retryDelay: (attemptIndex, error) => {
+      // CloudNotReady alinha com o polling adaptativo do status (5→10→15s)
+      if (error instanceof Error && (error as { code?: string }).code === 'CLOUD_NOT_READY') {
+        return [3000, 5000, 8000, 12000, 15000][Math.min(attemptIndex, 4)];
+      }
+      return Math.min(1000 * 2 ** attemptIndex, 30000);
+    },
     
     // Refetch behavior
     refetchOnWindowFocus: false,
