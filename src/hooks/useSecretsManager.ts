@@ -61,6 +61,7 @@ function normalizeError(raw: unknown, fallback = "Erro desconhecido"): SecretErr
 export function useSecretsManager() {
   const [secrets, setSecrets] = useState<SecretStatus[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [listError, setListError] = useState<SecretError | null>(null);
 
   const list = useCallback(async (names?: string[]) => {
     setIsLoading(true);
@@ -68,13 +69,40 @@ export function useSecretsManager() {
       const { data, error } = await supabase.functions.invoke("secrets-manager", {
         body: { action: "list", names },
       });
-      if (error) throw error;
+      if (error) {
+        // Tenta extrair payload estruturado (ex.: { error: { code, message } }) do FunctionsHttpError.
+        const ctx = (error as { context?: Response }).context;
+        let payload: unknown = null;
+        let httpStatus: number | undefined;
+        if (ctx) {
+          httpStatus = ctx.status;
+          if (typeof ctx.json === "function") {
+            try { payload = await ctx.json(); } catch { /* ignore */ }
+          }
+        }
+        const normalized = normalizeError(payload ?? { message: error.message }, error.message);
+        // Mapeia 401/403 para um code amigável quando o backend não enviou um.
+        if ((!payload || normalized.code === "unexpected") && (httpStatus === 401 || httpStatus === 403)) {
+          normalized.code = httpStatus === 401 ? "unauthenticated" : "forbidden";
+          normalized.message = httpStatus === 401
+            ? "Sessão expirada — faça login novamente para ver as credenciais."
+            : "Sem permissão para acessar credenciais (apenas administradores).";
+        }
+        setListError(normalized);
+        setSecrets([]);
+        toast.error("Erro ao listar credenciais", { description: normalized.message });
+        return [];
+      }
+      setListError(null);
       setSecrets((data?.secrets ?? []) as SecretStatus[]);
       return data?.secrets as SecretStatus[];
     } catch (err) {
-      toast.error("Erro ao listar credenciais", {
-        description: err instanceof Error ? err.message : "Erro",
-      });
+      const normalized = normalizeError(
+        err instanceof Error ? { message: err.message } : err,
+        "Falha de rede ao carregar credenciais.",
+      );
+      setListError(normalized);
+      toast.error("Erro ao listar credenciais", { description: normalized.message });
       return [];
     } finally {
       setIsLoading(false);
