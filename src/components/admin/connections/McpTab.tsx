@@ -62,10 +62,13 @@ export function McpTab() {
   useEffect(() => { load(); }, []);
 
   const revoke = async (id: string) => {
-    const { error } = await supabase.from("mcp_api_keys")
-      .update({ revoked_at: new Date().toISOString() }).eq("id", id);
-    if (error) toast.error("Erro ao revogar", { description: error.message });
-    else { toast.success("Chave revogada"); load(); }
+    const { data, error } = await supabase.functions.invoke("mcp-keys-revoke", {
+      body: { key_id: id },
+    });
+    if (error || (data && (data as { error?: string }).error)) {
+      const msg = error?.message ?? (data as { error?: string; message?: string })?.message ?? "Falha ao revogar";
+      toast.error("Erro ao revogar", { description: msg });
+    } else { toast.success("Chave revogada"); load(); }
   };
 
   const copy = (s: string) => { navigator.clipboard.writeText(s); toast.success("Copiado!"); };
