@@ -85,14 +85,63 @@ export function CredentialsSourceIndicator({ secrets, isLoading, onRefresh, clas
     }
   };
 
-  const counts = secrets.reduce(
+  // Agrupa secrets por origem resolvida — usado tanto para os contadores
+  // quanto para listar os nomes contribuintes em cada tooltip.
+  const grouped = secrets.reduce(
     (acc, s) => {
       const src = resolveSource(s);
-      acc[src] = (acc[src] ?? 0) + 1;
+      acc[src].push(s);
       return acc;
     },
-    { db: 0, env: 0, none: 0 } as Record<"db" | "env" | "none", number>,
+    { db: [] as SecretStatus[], env: [] as SecretStatus[], none: [] as SecretStatus[] },
   );
+
+  // Ordena alfabeticamente para consistência de leitura nos tooltips.
+  (Object.keys(grouped) as Array<"db" | "env" | "none">).forEach((k) => {
+    grouped[k].sort((a, b) => a.name.localeCompare(b.name));
+  });
+
+  const counts = {
+    db: grouped.db.length,
+    env: grouped.env.length,
+    none: grouped.none.length,
+  };
+
+  // Limita a lista exibida no tooltip para não estourar a viewport
+  // quando houver muitos secrets — o restante aparece como "+ N mais".
+  const TOOLTIP_LIMIT = 12;
+  function renderNameList(items: SecretStatus[], tone: "success" | "warning" | "destructive") {
+    if (items.length === 0) {
+      return (
+        <p className="text-muted-foreground italic">Nenhum secret nesta categoria.</p>
+      );
+    }
+    const visible = items.slice(0, TOOLTIP_LIMIT);
+    const rest = items.length - visible.length;
+    const toneCls =
+      tone === "success"
+        ? "text-success"
+        : tone === "warning"
+          ? "text-warning"
+          : "text-destructive";
+    return (
+      <ul className="font-mono text-[10px] space-y-0.5 max-h-56 overflow-y-auto pr-1">
+        {visible.map((s) => (
+          <li key={s.name} className="flex items-center justify-between gap-2">
+            <span className={`truncate ${toneCls}`}>{s.name}</span>
+            {s.masked_suffix ? (
+              <span className="text-muted-foreground shrink-0">••••{s.masked_suffix}</span>
+            ) : (
+              <span className="text-muted-foreground shrink-0">—</span>
+            )}
+          </li>
+        ))}
+        {rest > 0 && (
+          <li className="text-muted-foreground italic pt-0.5">+ {rest} mais…</li>
+        )}
+      </ul>
+    );
+  }
 
   // Pega o secret mais recentemente atualizado (apenas os com updated_at)
   const latest = secrets
@@ -171,13 +220,19 @@ export function CredentialsSourceIndicator({ secrets, isLoading, onRefresh, clas
                   DB · {counts.db}
                 </Badge>
               </TooltipTrigger>
-              <TooltipContent side="top" className="max-w-xs text-xs space-y-1">
-                <p className="font-semibold">Origem: banco (SSOT)</p>
+              <TooltipContent side="top" className="max-w-sm text-xs space-y-1.5">
+                <p className="font-semibold">Origem: banco (SSOT) — {counts.db}</p>
                 <p>
                   Valor persistido em{" "}
                   <code className="font-mono">integration_credentials</code> e
                   resolvido pelo <code className="font-mono">secrets-manager</code>.
                 </p>
+                <div className="border-t pt-1.5">
+                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1">
+                    Secrets contribuintes
+                  </p>
+                  {renderNameList(grouped.db, "success")}
+                </div>
                 <p className="text-muted-foreground">
                   ✅ Nada a fazer — auditável, rotacionável e versionado pelo painel.
                 </p>
@@ -195,13 +250,19 @@ export function CredentialsSourceIndicator({ secrets, isLoading, onRefresh, clas
                   ENV · {counts.env}
                 </Badge>
               </TooltipTrigger>
-              <TooltipContent side="top" className="max-w-xs text-xs space-y-1">
-                <p className="font-semibold">Origem: variável de ambiente (legado)</p>
+              <TooltipContent side="top" className="max-w-sm text-xs space-y-1.5">
+                <p className="font-semibold">Origem: variável de ambiente (legado) — {counts.env}</p>
                 <p>
                   Valor lido via <code className="font-mono">Deno.env.get()</code>{" "}
                   porque o registro ainda não existe em{" "}
                   <code className="font-mono">integration_credentials</code>.
                 </p>
+                <div className="border-t pt-1.5">
+                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1">
+                    Secrets resolvidos por ENV
+                  </p>
+                  {renderNameList(grouped.env, "warning")}
+                </div>
                 <p className="text-muted-foreground">
                   ⚠ Abra o card correspondente e clique em <strong>Salvar</strong> para
                   migrar para o banco e liberar rotação/auditoria.
@@ -220,13 +281,19 @@ export function CredentialsSourceIndicator({ secrets, isLoading, onRefresh, clas
                   AUSENTE · {counts.none}
                 </Badge>
               </TooltipTrigger>
-              <TooltipContent side="top" className="max-w-xs text-xs space-y-1">
-                <p className="font-semibold">Sem valor em DB nem em ENV</p>
+              <TooltipContent side="top" className="max-w-sm text-xs space-y-1.5">
+                <p className="font-semibold">Sem valor em DB nem em ENV — {counts.none}</p>
                 <p>
                   O <code className="font-mono">secrets-manager</code> não encontrou
                   o segredo em nenhuma das duas fontes — a integração que depende
                   dele ficará inativa.
                 </p>
+                <div className="border-t pt-1.5">
+                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1">
+                    Secrets ausentes
+                  </p>
+                  {renderNameList(grouped.none, "destructive")}
+                </div>
                 <p className="text-muted-foreground">
                   🔧 Preencha o campo correspondente no card e salve para gravar em{" "}
                   <code className="font-mono">integration_credentials</code>.
