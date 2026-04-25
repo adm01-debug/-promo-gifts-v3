@@ -413,12 +413,14 @@ const TopLevelBodySchema = z.object({
   return !!data.table;
 }, { message: "Field 'table' is required for CRUD operations, 'rpcName' for RPC" });
 
-Deno.serve(async (req) => {
-  const corsHeaders = getCorsHeaders(req);
-  const preflightResponse = handleCorsPreflightIfNeeded(req);
-  if (preflightResponse) return preflightResponse;
+Deno.serve((req) => {
+  const requestId = getOrCreateRequestId(req);
+  return requestCtx.run({ requestId }, async () => {
+    const corsHeaders = getCorsHeaders(req);
+    const preflightResponse = handleCorsPreflightIfNeeded(req);
+    if (preflightResponse) return preflightResponse;
 
-  const requestStartTime = performance.now();
+    const requestStartTime = performance.now();
 
   try {
     let rawBody: unknown;
