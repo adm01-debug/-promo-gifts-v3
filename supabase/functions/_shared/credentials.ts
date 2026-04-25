@@ -28,16 +28,6 @@ export interface CredentialResolution {
 const CACHE = new Map<string, CacheEntry>();
 const TTL_MS = 60_000;
 
-/**
- * Aliases: map legacy / alternate env-var names to the canonical
- * `integration_credentials.secret_name` used by /admin/conexoes.
- *
- * Lookup order for an alias chain is:
- *   canonical → DB hit?  → use it.
- *   canonical → env hit? → use it.
- *   alias[0]  → env hit? → use it.   (legacy fallback)
- *   alias[1]  → env hit? → use it.   (older legacy fallback)
- */
 const ALIASES: Record<string, string[]> = {
   EXTERNAL_PROMOBRIND_URL: ["EXTERNAL_SUPABASE_URL"],
   EXTERNAL_PROMOBRIND_SERVICE_ROLE_KEY: [
@@ -53,7 +43,6 @@ const ALIASES: Record<string, string[]> = {
 export function invalidateCredentialCache(name?: string): void {
   if (name) {
     CACHE.delete(name);
-    // Also clear any aliases pointing at this canonical name
     for (const [canonical] of Object.entries(ALIASES)) {
       if (canonical === name) CACHE.delete(canonical);
     }
@@ -62,10 +51,6 @@ export function invalidateCredentialCache(name?: string): void {
   }
 }
 
-/**
- * Lazily build a service-role client for credential lookups when the caller
- * does not supply one. Each isolate creates at most one client.
- */
 let internalServiceClient: SupabaseClient | null = null;
 function getInternalServiceClient(): SupabaseClient | null {
   if (internalServiceClient) return internalServiceClient;
@@ -79,6 +64,34 @@ function getInternalServiceClient(): SupabaseClient | null {
 }
 
 /**
+ * Structured log for credential resolution. NEVER includes the secret value —
+ * only metadata (name, resolved_name, source, has_value, value_length, cached, duration_ms).
+ *
+ * Set LOG_CREDENTIAL_RESOLUTION=off to silence (default: on).
+ */
+interface ResolutionLogPayload {
+  event: "credential_resolved";
+  name: string;
+  resolved_name: string;
+  source: CredentialSource;
+  has_value: boolean;
+  value_length: number;
+  cached: boolean;
+  duration_ms: number;
+  via_alias: boolean;
+  error?: string;
+}
+
+function logResolution(payload: ResolutionLogPayload): void {
+  if (Deno.env.get("LOG_CREDENTIAL_RESOLUTION") === "off") return;
+  try {
+    console.log("[credentials] " + JSON.stringify(payload));
+  } catch {
+    // Never let logging break credential resolution
+  }
+}
+
+/**
  * Resolve a credential by name with full provenance metadata.
  * Always prefers DB; falls back to env (and to legacy env aliases).
  */
@@ -86,14 +99,28 @@ export async function resolveCredential(
   name: string,
   serviceClient?: SupabaseClient | null,
 ): Promise<CredentialResolution> {
+  const startedAt = Date.now();
   const cached = CACHE.get(name);
   if (cached && cached.expires_at > Date.now()) {
-    return { value: cached.value, source: cached.source, resolved_name: name };
+    const value = cached.value;
+    logResolution({
+      event: "credential_resolved",
+      name,
+      resolved_name: name,
+      source: cached.source,
+      has_value: value !== null,
+      value_length: value ? value.length : 0,
+      cached: true,
+      duration_ms: Date.now() - startedAt,
+      via_alias: false,
+    });
+    return { value, source: cached.source, resolved_name: name };
   }
 
   const client = serviceClient ?? getInternalServiceClient();
+  let dbError: string | undefined;
 
-  // 1) DB (canonical name only — `integration_credentials` stores canonical names)
+  // 1) DB (canonical name only)
   if (client) {
     try {
       const { data, error } = await client
@@ -104,9 +131,22 @@ export async function resolveCredential(
       if (!error && data?.secret_value) {
         const value = data.secret_value as string;
         CACHE.set(name, { value, source: "db", expires_at: Date.now() + TTL_MS });
+        logResolution({
+          event: "credential_resolved",
+          name,
+          resolved_name: name,
+          source: "db",
+          has_value: true,
+          value_length: value.length,
+          cached: false,
+          duration_ms: Date.now() - startedAt,
+          via_alias: false,
+        });
         return { value, source: "db", resolved_name: name };
       }
+      if (error) dbError = error.message;
     } catch (err) {
+      dbError = err instanceof Error ? err.message : String(err);
       console.error("[credentials] DB read failed for", name, err);
     }
   }
@@ -115,6 +155,18 @@ export async function resolveCredential(
   const envCanonical = Deno.env.get(name);
   if (envCanonical) {
     CACHE.set(name, { value: envCanonical, source: "env", expires_at: Date.now() + TTL_MS });
+    logResolution({
+      event: "credential_resolved",
+      name,
+      resolved_name: name,
+      source: "env",
+      has_value: true,
+      value_length: envCanonical.length,
+      cached: false,
+      duration_ms: Date.now() - startedAt,
+      via_alias: false,
+      error: dbError,
+    });
     return { value: envCanonical, source: "env", resolved_name: name };
   }
 
@@ -123,11 +175,35 @@ export async function resolveCredential(
     const v = Deno.env.get(alias);
     if (v) {
       CACHE.set(name, { value: v, source: "env", expires_at: Date.now() + TTL_MS });
+      logResolution({
+        event: "credential_resolved",
+        name,
+        resolved_name: alias,
+        source: "env",
+        has_value: true,
+        value_length: v.length,
+        cached: false,
+        duration_ms: Date.now() - startedAt,
+        via_alias: true,
+        error: dbError,
+      });
       return { value: v, source: "env", resolved_name: alias };
     }
   }
 
   CACHE.set(name, { value: null, source: "none", expires_at: Date.now() + TTL_MS });
+  logResolution({
+    event: "credential_resolved",
+    name,
+    resolved_name: name,
+    source: "none",
+    has_value: false,
+    value_length: 0,
+    cached: false,
+    duration_ms: Date.now() - startedAt,
+    via_alias: false,
+    error: dbError,
+  });
   return { value: null, source: "none", resolved_name: name };
 }
 
