@@ -213,6 +213,31 @@ Deno.serve(async (req) => {
     const { name, scopes, expires_at, justification } = parsed.data;
     const full = isFullAccess(scopes);
 
+    // 4b. Authorization gate for FULL scope: requires explicit grantor permission
+    if (full) {
+      const { data: canGrant, error: grantErr } = await admin.rpc("can_grant_mcp_full", {
+        _user_id: userId,
+      });
+      if (grantErr) {
+        await auditFailure("error", "mcp_key.issue_error", { reason: "grant_check_failed", detail: grantErr.message });
+        return jsonResponse({ error: "internal_error", detail: grantErr.message }, 500, requestId);
+      }
+      if (!canGrant) {
+        await auditFailure("denied", "mcp_key.issue_denied", {
+          reason: "full_grant_forbidden",
+          required_permission: "mcp_full_grantors",
+        });
+        return jsonResponse(
+          {
+            error: "full_grant_forbidden",
+            message: "Você não tem permissão para emitir chaves MCP com escopo total (*). Solicite a um admin já autorizado para incluir você em mcp_full_grantors.",
+          },
+          403,
+          requestId,
+        );
+      }
+    }
+
     // 5. Generate key
     const { plain, hash, prefix } = await generateKey();
 
