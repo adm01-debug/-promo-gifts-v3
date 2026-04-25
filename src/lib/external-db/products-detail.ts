@@ -260,7 +260,7 @@ export async function fetchPromobrindProductById(
         select: 'url_cdn, url_original, filename, image_type, is_primary, is_og_image, applies_to_color, display_order, alt_text, title_text, supplier_code',
         filters: { product_id: productId, is_active: true },
         orderBy: { column: 'display_order', ascending: true },
-        range: [IMAGES_PAGE, IMAGES_PAGE + IMAGES_PAGE - 1],
+        limit: IMAGES_PAGE, offset: IMAGES_PAGE,
       });
       if (more.records.length > 0) imagesAll = [...allProductImages, ...more.records];
     } catch (err) {
