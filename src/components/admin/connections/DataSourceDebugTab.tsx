@@ -116,6 +116,170 @@ export function DataSourceDebugTab() {
       )
     : extConns ?? [];
 
+  // Drill-down: dialog do campo selecionado
+  const [drillField, setDrillField] = useState<string | null>(null);
+  const fmtTs = (iso: string | null | undefined) =>
+    iso ? new Date(iso).toLocaleString("pt-BR") : "—";
+
+  const drillData: FieldDrillDownData | null = useMemo(() => {
+    if (!drillField) return null;
+    const row = FIELD_MAP.find((r) => r.field === drillField);
+    if (!row) return null;
+
+    const externalSecrets = secrets.filter((s) => s.name.startsWith("EXTERNAL_"));
+
+    const base = {
+      field: row.field,
+      description: row.description,
+      source: row.source,
+      notes: row.notes,
+    };
+
+    switch (row.field) {
+      case "URL / API Key (valor mascarado)":
+        return {
+          ...base,
+          technicalSource: {
+            kind: "edge_function" as const,
+            name: "secrets-manager (action: list)",
+            snippet:
+              "supabase.functions.invoke('secrets-manager', {\n  body: { action: 'list' }\n})\n// retorna: [{ name, has_value, masked_suffix, source, updated_at }]",
+          },
+          samples: externalSecrets.map((s) => ({
+            label: s.name,
+            display: s.has_value
+              ? s.masked_suffix
+                ? `••••${s.masked_suffix}`
+                : "(valor presente, sem sufixo)"
+              : "(vazio)",
+            badge: {
+              text: s.has_value ? (s.source ?? "db") : "vazio",
+              tone: s.has_value ? "ok" : "warn",
+            } as const,
+          })),
+          emptyMessage: "Nenhum secret EXTERNAL_* retornado pela edge function.",
+        };
+
+      case "Status (Ativo/Inativo)":
+        return {
+          ...base,
+          technicalSource: {
+            kind: "trigger" as const,
+            name: "sync_external_connections_from_credentials()",
+            snippet:
+              "-- SSOT: integration_credentials.length > 0\n-- Espelho: external_connections.status\n--   = 'active' se URL e SERVICE_ROLE_KEY presentes,\n--   senão 'unconfigured'.\nINSERT INTO external_connections(...) ON CONFLICT (env_key, type) DO UPDATE\n  SET status = EXCLUDED.status, updated_at = now();",
+          },
+          samples: (extConns ?? []).map((c) => ({
+            label: `${c.name ?? c.id} (env_key=${c.env_key ?? "—"})`,
+            display: `status = ${c.status ?? "—"}`,
+            badge: {
+              text: c.status ?? "—",
+              tone: c.status === "active" ? "ok" : c.status === "unconfigured" ? "warn" : "neutral",
+            } as const,
+          })),
+        };
+
+      case "Histórico de testes (last_test_at, latência)":
+        return {
+          ...base,
+          technicalSource: {
+            kind: "table_query" as const,
+            name: "external_connections.last_test_at",
+            snippet:
+              "supabase\n  .from('external_connections')\n  .select('id,name,status,last_test_at,updated_at')\n  .order('updated_at', { ascending: false })",
+          },
+          samples: (extConns ?? []).map((c) => ({
+            label: c.name ?? c.id,
+            display: `last_test_at = ${fmtTs(c.last_test_at)}`,
+            badge: {
+              text: c.last_test_at ? "registrado" : "nunca testado",
+              tone: c.last_test_at ? "ok" : "warn",
+            } as const,
+          })),
+        };
+
+      case "Health agregado (Pulse Bar, Saúde)": {
+        const total = extConns?.length ?? 0;
+        const active = (extConns ?? []).filter((c) => c.status === "active").length;
+        return {
+          ...base,
+          technicalSource: {
+            kind: "hook" as const,
+            name: "derived from external_connections",
+            snippet:
+              "// Cálculo no client\nconst total  = rows.length;\nconst active = rows.filter(r => r.status === 'active').length;\nconst health = total === 0 ? 0 : active / total; // 0..1",
+          },
+          samples: [
+            {
+              label: "Conexões totais",
+              display: `${total} linha(s) em external_connections`,
+              badge: { text: String(total), tone: "neutral" },
+            },
+            {
+              label: "Conexões ativas",
+              display: `${active} com status = 'active'`,
+              badge: {
+                text: total > 0 && active === total ? "100%" : `${total === 0 ? 0 : Math.round((active / total) * 100)}%`,
+                tone: total > 0 && active === total ? "ok" : active === 0 ? "error" : "warn",
+              },
+            },
+            ...(extConns ?? []).map((c) => ({
+              label: c.name ?? c.id,
+              display: `status=${c.status ?? "—"} • last_test=${fmtTs(c.last_test_at)}`,
+              badge: {
+                text: c.status ?? "—",
+                tone: (c.status === "active" ? "ok" : "warn") as "ok" | "warn",
+              },
+            })),
+          ],
+        };
+      }
+
+      case "Lista de produtos (catálogo)": {
+        const url = secrets.find((s) => s.name === "EXTERNAL_PROMOBRIND_URL");
+        const svc = secrets.find((s) => s.name === "EXTERNAL_PROMOBRIND_SERVICE_ROLE_KEY");
+        return {
+          ...base,
+          technicalSource: {
+            kind: "edge_function" as const,
+            name: "external-db-bridge (op: select_products)",
+            snippet:
+              "// Edge function lê EXTERNAL_PROMOBRIND_URL + _SERVICE_ROLE_KEY\n// (de integration_credentials, via secrets-manager interno)\n// e cria um client Supabase apontando para o BD do catálogo.\nconst client = createClient(URL, SERVICE_ROLE_KEY);\nawait client.from('products').select(...);",
+          },
+          samples: [
+            {
+              label: "EXTERNAL_PROMOBRIND_URL",
+              display: url?.has_value
+                ? url.masked_suffix
+                  ? `••••${url.masked_suffix}`
+                  : "(valor presente)"
+                : "(vazio)",
+              badge: {
+                text: url?.has_value ? (url.source ?? "db") : "vazio",
+                tone: url?.has_value ? "ok" : "error",
+              } as const,
+            },
+            {
+              label: "EXTERNAL_PROMOBRIND_SERVICE_ROLE_KEY",
+              display: svc?.has_value
+                ? svc.masked_suffix
+                  ? `••••${svc.masked_suffix}`
+                  : "(valor presente)"
+                : "(vazio)",
+              badge: {
+                text: svc?.has_value ? (svc.source ?? "db") : "vazio",
+                tone: svc?.has_value ? "ok" : "error",
+              } as const,
+            },
+          ],
+        };
+      }
+
+      default:
+        return { ...base, technicalSource: { kind: "table_query" as const, name: "—", snippet: "—" }, samples: [] };
+    }
+  }, [drillField, secrets, extConns]);
+
   return (
     <div className="space-y-4">
       {/* Header */}
