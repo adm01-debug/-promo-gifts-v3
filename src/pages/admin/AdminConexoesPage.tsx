@@ -27,6 +27,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useSecretsManager } from "@/hooks/useSecretsManager";
 import { useSeverityChangeNotifier } from "@/components/admin/connections/useSeverityChangeNotifier";
 import { useZoneVisibility } from "@/components/admin/connections/useZoneVisibility";
+import { useZoneCollapse } from "@/components/admin/connections/useZoneCollapse";
 import { ZoneQuickNav } from "@/components/admin/connections/ZoneQuickNav";
 import { HeaderSeveritySummary } from "@/components/admin/connections/HeaderSeveritySummary";
 import { ZoneRefreshButton } from "@/components/admin/connections/ZoneRefreshButton";
@@ -47,6 +48,7 @@ export default function AdminConexoesPage() {
   const { secrets, list } = useSecretsManager();
   const [refreshTick, setRefreshTick] = useState(0);
   const { visible, toggle, showAll, isolateZone, hiddenCount } = useZoneVisibility();
+  const { collapsed, toggle: toggleCollapse, expand: expandZone } = useZoneCollapse();
   const [highlightZone, setHighlightZone] = useState<string | null>(null);
   useEffect(() => { list(); }, [list]);
   // Toast automático em escaladas P0/P1 — com confirmação para não repetir
@@ -61,6 +63,8 @@ export default function AdminConexoesPage() {
       const { zone, anchorId } = detail;
       // Reabre zona se estiver oculta
       if (!visible[zone]) toggle(zone);
+      // Garante que esteja expandida (não colapsada)
+      expandZone(zone);
       // Aguarda render para garantir que o nó existe
       requestAnimationFrame(() => {
         const el = document.getElementById(anchorId);
@@ -73,7 +77,7 @@ export default function AdminConexoesPage() {
     };
     window.addEventListener("connections:focus-zone", handler);
     return () => window.removeEventListener("connections:focus-zone", handler);
-  }, [visible, toggle]);
+  }, [visible, toggle, expandZone]);
 
   const handleGlobalRefreshed = useCallback(() => {
     setRefreshTick((n) => n + 1);
@@ -133,6 +137,8 @@ export default function AdminConexoesPage() {
             description="Status agregado das integrações em tempo real (health check a cada 60s)."
             tone="primary"
             highlight={highlightZone === "zone-health"}
+            collapsed={collapsed.health}
+            onToggleCollapse={() => toggleCollapse("health")}
             actions={
               <ZoneRefreshButton
                 label="Atualizar zona Saúde"
@@ -159,6 +165,8 @@ export default function AdminConexoesPage() {
             description="Configurações do auto-test (verificação periódica), janela de falha contínua e status do job de monitoramento."
             tone="info"
             highlight={highlightZone === "zone-operation"}
+            collapsed={collapsed.operation}
+            onToggleCollapse={() => toggleCollapse("operation")}
             actions={
               <ZoneRefreshButton
                 label="Atualizar zona Operação (cron, intervalos, janela)"
@@ -188,6 +196,8 @@ export default function AdminConexoesPage() {
             title="Conexões"
             description="Visão consolidada de todas as integrações ativas e gestão por tipo (banco, Bitrix24, n8n, MCP, webhooks)."
             tone="neutral"
+            collapsed={collapsed.connections}
+            onToggleCollapse={() => toggleCollapse("connections")}
             actions={
               <ZoneRefreshButton
                 label="Atualizar zona Conexões (tabela e abas)"
