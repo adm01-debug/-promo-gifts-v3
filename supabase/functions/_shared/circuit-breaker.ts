@@ -64,6 +64,47 @@ class CircuitBreaker {
   getState(): State {
     return this.state;
   }
+
+  /**
+   * Snapshot serializável do estado do breaker para endpoints de diagnóstico.
+   *  - state        : CLOSED | OPEN | HALF_OPEN
+   *  - failures     : nº de falhas dentro da janela móvel atual (windowMs)
+   *  - failureThreshold / windowMs / openDurationMs : config aplicada
+   *  - openedAt     : epoch ms em que abriu (0 se nunca abriu nesta vida)
+   *  - willResetAt  : epoch ms em que sairá de OPEN (null se não está aberto)
+   */
+  getStatus(): {
+    name: string;
+    state: State;
+    failures: number;
+    failureThreshold: number;
+    windowMs: number;
+    openDurationMs: number;
+    openedAt: number;
+    willResetAt: number | null;
+  } {
+    const now = Date.now();
+    // Recalcula janela móvel: descarta falhas antigas (mesma lógica do recordFailure).
+    const liveFailures = this.failures.filter((t) => now - t < this.cfg.windowMs).length;
+    return {
+      name: this.name,
+      state: this.state,
+      failures: liveFailures,
+      failureThreshold: this.cfg.failureThreshold,
+      windowMs: this.cfg.windowMs,
+      openDurationMs: this.cfg.openDurationMs,
+      openedAt: this.openedAt,
+      willResetAt: this.state === "OPEN" ? this.openedAt + this.cfg.openDurationMs : null,
+    };
+  }
+}
+
+/**
+ * Snapshot de TODOS os breakers registrados no isolate atual.
+ * Útil para endpoints de diagnóstico expor um único payload.
+ */
+export function getAllBreakerStatuses(): ReturnType<CircuitBreaker["getStatus"]>[] {
+  return Array.from(registry.values()).map((b) => b.getStatus());
 }
 
 const registry = new Map<string, CircuitBreaker>();

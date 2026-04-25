@@ -68,6 +68,9 @@ const BridgesLiveCard = lazy(() =>
 const ColdVsWarmCrmCard = lazy(() =>
   import('@/components/admin/telemetry/ColdVsWarmCrmCard').then((m) => ({ default: m.ColdVsWarmCrmCard })),
 );
+const BreakerStatusCard = lazy(() =>
+  import('@/components/admin/telemetry/BreakerStatusCard').then((m) => ({ default: m.BreakerStatusCard })),
+);
 
 
 const getSeverityBadge = (severity: string) => {
@@ -187,6 +190,11 @@ export default function AdminTelemetriaPage() {
         {/* Cold vs Warm path do isolate atual do crm-db-bridge (poll ?op=diag) */}
         <Suspense fallback={<CardSkeleton height={260} label="Carregando snapshot cold/warm" />}>
           <ColdVsWarmCrmCard />
+        </Suspense>
+
+        {/* Estado do circuit-breaker do crm-db-bridge (poll ?op=breaker_status) */}
+        <Suspense fallback={<CardSkeleton height={200} label="Carregando estado do breaker" />}>
+          <BreakerStatusCard />
         </Suspense>
 
 

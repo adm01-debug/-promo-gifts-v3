@@ -2,7 +2,7 @@ import { getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts'
 import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { z } from "https://esm.sh/zod@3.23.8";
 import { runBotProtection } from '../_shared/bot-protection.ts';
-import { getBreaker, circuitOpenResponse } from '../_shared/circuit-breaker.ts';
+import { getBreaker, circuitOpenResponse, getAllBreakerStatuses } from '../_shared/circuit-breaker.ts';
 
 const breaker = getBreaker("crm-db");
 
@@ -116,19 +116,22 @@ function jsonResponse(body: unknown, status = 200): Response {
   });
 }
 
+type DiagOp = "ping" | "diag" | "breaker_status";
+
 /**
- * Detecta operações de diagnóstico (`ping` | `diag`) sem consumir o body original.
- * Aceita querystring (`?op=ping`, `?op=diag`, `?ping=1`, `?diag=1`) ou
- * body JSON `{ "operation": "ping" | "diag" }`.
+ * Detecta operações de diagnóstico (`ping` | `diag` | `breaker_status`)
+ * sem consumir o body original. Aceita querystring (`?op=…`, `?ping=1`,
+ * `?diag=1`, `?breaker=1`) ou body JSON `{ "operation": "…" }`.
  */
-async function detectDiagOp(req: Request): Promise<"ping" | "diag" | null> {
+async function detectDiagOp(req: Request): Promise<DiagOp | null> {
   // Query string
   try {
     const url = new URL(req.url);
     const op = url.searchParams.get("op");
-    if (op === "ping" || op === "diag") return op;
+    if (op === "ping" || op === "diag" || op === "breaker_status") return op;
     if (url.searchParams.get("ping") === "1") return "ping";
     if (url.searchParams.get("diag") === "1") return "diag";
+    if (url.searchParams.get("breaker") === "1") return "breaker_status";
   } catch { /* ignore */ }
 
   // Body JSON (POST/PUT/PATCH apenas; clonamos para não consumir o original)
@@ -138,7 +141,9 @@ async function detectDiagOp(req: Request): Promise<"ping" | "diag" | null> {
       try {
         const cloned = req.clone();
         const peek = await cloned.json() as { operation?: unknown };
-        if (peek?.operation === "ping" || peek?.operation === "diag") return peek.operation;
+        if (peek?.operation === "ping" || peek?.operation === "diag" || peek?.operation === "breaker_status") {
+          return peek.operation as DiagOp;
+        }
       } catch { /* corpo inválido — não é diag */ }
     }
   }
@@ -757,6 +762,24 @@ Deno.serve(async (req) => {
   }
   if (diagOp === "diag") {
     return jsonResponse(buildDiagSnapshot());
+  }
+  if (diagOp === "breaker_status") {
+    // Status de TODOS os breakers registrados neste isolate (atualmente: "crm-db").
+    // Bypass total (igual a ping/diag) — precisa funcionar mesmo com breaker OPEN.
+    const all = getAllBreakerStatuses();
+    const primary = all.find((b) => b.name === "crm-db") ?? all[0] ?? null;
+    return jsonResponse({
+      ok: true,
+      ts: Date.now(),
+      // Forma "achatada" pedida pelo painel (estado primário do crm-db).
+      state: primary?.state ?? "UNKNOWN",
+      failures: primary?.failures ?? 0,
+      openedAt: primary?.openedAt ?? 0,
+      willResetAt: primary?.willResetAt ?? null,
+      // Bloco completo + lista de todos (futuro-prova caso outro breaker seja adicionado).
+      breaker: primary,
+      all,
+    });
   }
 
   // Marca início da request real (pós-diag) para medir cold vs warm path.
