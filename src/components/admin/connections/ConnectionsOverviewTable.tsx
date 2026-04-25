@@ -437,6 +437,9 @@ export function ConnectionsOverviewTable({ refreshSignal }: ConnectionsOverviewT
                         )}
                       </TableCell>
                       <TableCell>
+                        <ConnectionRowSourceBadge envKey={row.env_key ?? null} secrets={secrets} />
+                      </TableCell>
+                      <TableCell>
                         {isTesting ? (
                           <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
                             <Loader2 className="h-3.5 w-3.5 animate-spin" />
