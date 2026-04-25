@@ -129,12 +129,30 @@ async function extractCrmErrorMessage(error: unknown): Promise<string> {
  * Invoca o crm-db-bridge para acessar dados do CRM externo (com retry automático)
  */
 export async function invokeCrmDb<T>(query: CrmQuery): Promise<CrmResponse<T>> {
+  const startedAt = performance.now();
+  const reqBytes = estimatePayloadBytes(query);
+  const opLabel = query.operation || "invoke";
+
+  const record = (ok: boolean, data: unknown, errMsg?: string) => {
+    recordBridgeCall({
+      bridge: "crm-db-bridge",
+      op: opLabel,
+      target: query.table,
+      durationMs: performance.now() - startedAt,
+      reqBytes,
+      respBytes: ok ? estimatePayloadBytes(data) : 0,
+      ok,
+      errorMessage: errMsg,
+    });
+  };
+
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     const { data, error } = await supabase.functions.invoke("crm-db-bridge", {
       body: query,
     });
 
     if (!error && !data?.error) {
+      record(true, data);
       return data as CrmResponse<T>;
     }
 
@@ -149,6 +167,8 @@ export async function invokeCrmDb<T>(query: CrmQuery): Promise<CrmResponse<T>> {
       continue;
     }
 
+    record(false, null, msg);
+
     // Final attempt failed
     if (error) {
       console.error("[CRM-DB] Edge function error:", msg);
@@ -159,6 +179,7 @@ export async function invokeCrmDb<T>(query: CrmQuery): Promise<CrmResponse<T>> {
     throw new Error(`CRM query error: ${msg}`);
   }
 
+  record(false, null, "max retries exceeded");
   throw new Error("CRM DB: max retries exceeded");
 }
 
