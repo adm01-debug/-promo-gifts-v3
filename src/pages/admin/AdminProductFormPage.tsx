@@ -344,6 +344,7 @@ export default function AdminProductFormPage() {
         {/* Breadcrumbs are rendered by MainLayout's PersistentBreadcrumbs */}
 
         {/* Header */}
+        {isEdit && (
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Button
