@@ -213,7 +213,7 @@ Deno.serve(async (req) => {
       await auditFailure("denied", "mcp_key.issue_denied", { reason: "validation_failed", fields });
       return jsonResponse({ error: "validation_failed", fields }, 422, requestId);
     }
-    const { name, scopes, expires_at, justification, step_up_token } = parsed.data;
+    const { name, scopes, expires_at, justification, step_up_token, target_repo, target_tool } = parsed.data;
     const full = isFullAccess(scopes);
 
     // 4b. Authorization gate for FULL scope: requires explicit grantor permission + step-up token
@@ -308,6 +308,9 @@ Deno.serve(async (req) => {
         is_full_access: full,
         justification: justification ?? null,
         name,
+        target_repo: target_repo ?? null,
+        target_tool: target_tool ?? null,
+        step_up_verified: full ? true : null,
       },
     });
 
