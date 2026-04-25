@@ -78,6 +78,41 @@ export function McpAuditRow({ row }: Props) {
         </div>
       )}
 
+      {(d.target_repo || d.target_tool || d.expires_at || (row.is_full && d.justification)) && (
+        <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-1 text-xs">
+          {d.target_repo ? (
+            <div>
+              <span className="text-muted-foreground">Repo: </span>
+              <span className="font-mono text-foreground">{String(d.target_repo)}</span>
+            </div>
+          ) : null}
+          {d.target_tool ? (
+            <div>
+              <span className="text-muted-foreground">Tool: </span>
+              <span className="font-mono text-foreground">{String(d.target_tool)}</span>
+            </div>
+          ) : null}
+          {d.expires_at ? (
+            <div>
+              <span className="text-muted-foreground">Expira: </span>
+              <span className="font-mono text-foreground">
+                {format(new Date(String(d.expires_at)), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+              </span>
+            </div>
+          ) : null}
+          {d.step_up_verified === true ? (
+            <div>
+              <Badge variant="outline" className="text-[10px]">✓ Verificação dupla</Badge>
+            </div>
+          ) : null}
+          {row.is_full && d.justification ? (
+            <div className="sm:col-span-2 text-muted-foreground italic">
+              "{String(d.justification)}"
+            </div>
+          ) : null}
+        </div>
+      )}
+
       {(row.request_id || row.duration_ms != null || row.status || row.source) && (
         <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[10px] text-muted-foreground font-mono">
           {row.status && (

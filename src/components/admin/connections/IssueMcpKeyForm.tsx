@@ -69,6 +69,8 @@ export function IssueMcpKeyForm({ onIssued }: Props) {
   const [scopes, setScopes] = useState<McpScope[]>(["quotes:read"]);
   const [expiresLocal, setExpiresLocal] = useState<string>("");
   const [justification, setJustification] = useState("");
+  const [targetRepo, setTargetRepo] = useState("");
+  const [targetTool, setTargetTool] = useState("");
   const [confirmation, setConfirmation] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [generated, setGenerated] = useState<string | null>(null);
@@ -135,6 +137,8 @@ export function IssueMcpKeyForm({ onIssued }: Props) {
           justification: justification.trim() || null,
           confirmation_phrase: full ? confirmation : null,
           step_up_token: stepUpToken ?? null,
+          target_repo: targetRepo.trim() || null,
+          target_tool: targetTool.trim() || null,
         },
       });
       if (error) {
@@ -290,6 +294,29 @@ export function IssueMcpKeyForm({ onIssued }: Props) {
 
       {full && (
         <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <Label htmlFor="mcp-key-target-repo">Repo / sistema alvo</Label>
+              <Input
+                id="mcp-key-target-repo"
+                value={targetRepo}
+                onChange={(e) => setTargetRepo(e.target.value)}
+                placeholder="ex: org/promo-gifts ou n8n-prod"
+                maxLength={200}
+              />
+            </div>
+            <div>
+              <Label htmlFor="mcp-key-target-tool">Ferramenta consumidora</Label>
+              <Input
+                id="mcp-key-target-tool"
+                value={targetTool}
+                onChange={(e) => setTargetTool(e.target.value)}
+                placeholder="ex: Claude Desktop, Cursor, n8n"
+                maxLength={100}
+              />
+            </div>
+          </div>
+
           <div>
             <Label htmlFor="mcp-key-just">
               Justificativa <span className="text-destructive">*</span>
