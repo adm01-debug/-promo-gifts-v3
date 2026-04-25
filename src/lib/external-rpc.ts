@@ -13,9 +13,12 @@ import { logger } from "@/lib/logger";
 const MAX_RETRIES = 3;
 const INITIAL_BACKOFF_MS = 800;
 const RETRYABLE_PATTERNS = [
-  'statement timeout', '57014', '503', 'FunctionsHttpError',
+  'statement timeout', '57014', '502', '503', '504', 'FunctionsHttpError',
   'network', 'fetch', 'ECONNRESET', 'socket hang up',
   'AbortError', 'Failed to fetch',
+  // Cold-start / runtime boot do isolate (plataforma)
+  'supabase_edge_runtime_error', 'service is temporarily unavailable',
+  'boot_error', 'function failed to start', 'bad gateway',
 ];
 
 function isRetryableError(msg: string): boolean {
