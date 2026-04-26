@@ -1,3 +1,17 @@
+/**
+ * RouteErrorBoundary — usa `useRouteError()` do React Router e SÓ funciona
+ * dentro de um data router (`createBrowserRouter` + `<RouterProvider />`).
+ *
+ * Este projeto usa `<BrowserRouter>` + `<Routes>` declarativo em src/App.tsx,
+ * onde `errorElement` é silenciosamente ignorado pelo React Router 6. Por isso
+ * NÃO use este componente como `errorElement` em rotas declarativas — o
+ * `EnhancedErrorBoundary` global em src/main.tsx já cobre todos os erros
+ * de render. O checker `scripts/check-route-error-element.mjs` falha o CI se
+ * essa regressão for reintroduzida.
+ *
+ * Mantemos este componente disponível para uma futura migração ao data
+ * router; não removê-lo.
+ */
 import { useRouteError, isRouteErrorResponse, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
