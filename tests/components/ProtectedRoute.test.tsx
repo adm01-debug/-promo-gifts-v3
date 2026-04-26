@@ -21,19 +21,30 @@ function renderWithRouter(ui: React.ReactElement, initialRoute = '/protected') {
   );
 }
 
+function authMock(overrides: Record<string, unknown> = {}) {
+  return {
+    user: null,
+    isLoading: false,
+    isDev: false,
+    isSupervisor: false,
+    isSupervisorOrAbove: false,
+    isAgente: false,
+    ...overrides,
+  };
+}
+
 describe('ProtectedRoute', () => {
   it('shows loader while auth is loading', () => {
-    mockUseAuth.mockReturnValue({ user: null, isAdmin: false, isLoading: true });
+    mockUseAuth.mockReturnValue(authMock({ isLoading: true }));
     renderWithRouter(
       <ProtectedRoute><div>Secret</div></ProtectedRoute>
     );
     expect(screen.queryByText('Secret')).not.toBeInTheDocument();
-    // Loader should be present (svg animate-spin)
     expect(document.querySelector('.animate-spin')).toBeTruthy();
   });
 
   it('redirects to /login when user is not authenticated', () => {
-    mockUseAuth.mockReturnValue({ user: null, isAdmin: false, isLoading: false });
+    mockUseAuth.mockReturnValue(authMock());
     renderWithRouter(
       <ProtectedRoute><div>Secret</div></ProtectedRoute>
     );
@@ -42,15 +53,15 @@ describe('ProtectedRoute', () => {
   });
 
   it('renders children when user is authenticated', () => {
-    mockUseAuth.mockReturnValue({ user: { id: '123' }, isAdmin: false, isLoading: false });
+    mockUseAuth.mockReturnValue(authMock({ user: { id: '123' } }));
     renderWithRouter(
       <ProtectedRoute><div>Secret Content</div></ProtectedRoute>
     );
     expect(screen.getByText('Secret Content')).toBeInTheDocument();
   });
 
-  it('redirects to / when requireAdmin=true and user is not admin', () => {
-    mockUseAuth.mockReturnValue({ user: { id: '123' }, isAdmin: false, isLoading: false });
+  it('redirects to / when requireAdmin=true and user is not supervisor', () => {
+    mockUseAuth.mockReturnValue(authMock({ user: { id: '123' } }));
     renderWithRouter(
       <ProtectedRoute requireAdmin><div>Admin Only</div></ProtectedRoute>
     );
@@ -58,11 +69,33 @@ describe('ProtectedRoute', () => {
     expect(screen.queryByText('Admin Only')).not.toBeInTheDocument();
   });
 
-  it('renders children when requireAdmin=true and user is admin', () => {
-    mockUseAuth.mockReturnValue({ user: { id: '123' }, isAdmin: true, isLoading: false });
+  it('renders children when requireAdmin=true and user is supervisor', () => {
+    mockUseAuth.mockReturnValue(
+      authMock({ user: { id: '123' }, isSupervisor: true, isSupervisorOrAbove: true })
+    );
     renderWithRouter(
       <ProtectedRoute requireAdmin><div>Admin Content</div></ProtectedRoute>
     );
     expect(screen.getByText('Admin Content')).toBeInTheDocument();
+  });
+
+  it('redirects when requiredRole="dev" and user is only supervisor', () => {
+    mockUseAuth.mockReturnValue(
+      authMock({ user: { id: '123' }, isSupervisor: true, isSupervisorOrAbove: true })
+    );
+    renderWithRouter(
+      <ProtectedRoute requiredRole="dev"><div>Dev Only</div></ProtectedRoute>
+    );
+    expect(screen.getByText('Home Page')).toBeInTheDocument();
+  });
+
+  it('renders when requiredRole="dev" and user is dev', () => {
+    mockUseAuth.mockReturnValue(
+      authMock({ user: { id: '123' }, isDev: true, isSupervisorOrAbove: true })
+    );
+    renderWithRouter(
+      <ProtectedRoute requiredRole="dev"><div>Dev Content</div></ProtectedRoute>
+    );
+    expect(screen.getByText('Dev Content')).toBeInTheDocument();
   });
 });
