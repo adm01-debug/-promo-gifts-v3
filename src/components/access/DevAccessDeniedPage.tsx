@@ -310,6 +310,7 @@ export function DevAccessDeniedPage({
       </Helmet>
       <div
         role="alert"
+        data-testid="app-access-denied"
         aria-labelledby="dev-access-denied-title"
         data-http-status="403"
         data-blocked-path={blockedPath}

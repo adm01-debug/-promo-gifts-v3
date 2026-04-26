@@ -242,7 +242,7 @@ export default function Auth() {
                         />
                       </div>
                       {loginForm.formState.errors.email && (
-                        <p className="text-sm text-destructive">
+                        <p className="text-sm text-destructive" data-testid="login-error-msg">
                           {loginForm.formState.errors.email.message}
                         </p>
                       )}

@@ -25,6 +25,8 @@ interface OrderCardProps {
 export function OrderCard({ order, onClick }: OrderCardProps) {
   return (
     <Card
+      data-testid="order-card"
+      data-order-id={order.id}
       role={onClick ? "button" : undefined}
       tabIndex={onClick ? 0 : undefined}
       onClick={onClick}

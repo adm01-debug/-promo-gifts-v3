@@ -1,29 +1,26 @@
 /**
  * P0 — Catálogo: DB externo (Promobrind) offline.
- *
- * Esperado: app NÃO quebra, exibe cache + banner "modo degradado",
- * desabilita ações que escrevem (orçamento, pedido).
+ * Política: SSOT em e2e/fixtures/selectors.ts — somente data-testid.
  */
 import { test, expect } from "../../fixtures/test-base";
+import { Sel } from "../../fixtures/selectors";
 import { mockExternalDbOffline } from "./_mocks";
 
 test.describe("P0 — Catálogo degradado", () => {
   test.skip("external-db-bridge 503: catálogo serve cache e mostra banner", async ({ page }) => {
     await mockExternalDbOffline(page);
     await page.goto("/catalogo");
-    await expect(page.getByRole("alert")).toContainText(/modo degradado|atualizado.+há/i);
-    // Cache local ainda renderiza algum produto (ou estado vazio amigável).
-    const empty = page.getByText(/nenhum produto|cache indispon/i);
-    const hasProducts = page.locator('[data-testid="product-card"]').first();
-    await expect(empty.or(hasProducts)).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator(Sel.app.errorBanner).first()).toBeVisible();
+    const hasProducts = page.locator(Sel.product.card).first();
+    await expect(hasProducts.or(page.locator(Sel.app.errorBanner))).toBeVisible({ timeout: 10_000 });
   });
 
   test.skip("ações de escrita ficam desabilitadas em modo degradado", async ({ page }) => {
     await mockExternalDbOffline(page);
     await page.goto("/catalogo");
-    const addToQuote = page.getByRole("button", { name: /adicionar.*orçamento/i }).first();
-    if (await addToQuote.isVisible().catch(() => false)) {
-      await expect(addToQuote).toBeDisabled();
+    const addToCart = page.locator(Sel.product.cardAddToCart).first();
+    if (await addToCart.isVisible().catch(() => false)) {
+      await expect(addToCart).toBeDisabled();
     }
   });
 

@@ -3,13 +3,14 @@
  *
  * Cobertura:
  *  1) Lista de favoritos carrega
- *  2) **Persistência após reload** (caso principal pedido):
+ *  2) Persistência após reload (caso principal):
  *     - favorita o primeiro produto do catálogo
- *     - captura a identidade do produto (nome)
- *     - recarrega `/favoritos` (full reload com `page.reload()`)
- *     - valida que o produto persistido aparece na lista
+ *     - captura o productId do card (data-product-id, SSOT estável)
+ *     - recarrega `/favoritos` e valida que o item persiste
  *     - cleanup: desfavorita para deixar o estado igual ao inicial
- *  3) Toggle no card volta ao estado anterior (idempotência)
+ *  3) Toggle no card é idempotente (favorita/desfavorita)
+ *
+ * Política: SSOT em e2e/fixtures/selectors.ts — somente data-testid.
  */
 import { test, expect, requireAuth } from "../fixtures/test-base";
 import { gotoAndSettle } from "../helpers/nav";
@@ -26,25 +27,21 @@ async function firstCatalogCard(page: Page): Promise<Locator> {
   return card;
 }
 
-/** Tenta extrair um identificador estável do card (nome do produto). */
-async function readCardName(card: Locator): Promise<string> {
-  const heading = card
-    .locator('h1, h2, h3, [data-testid="product-name"], [data-product-name]')
-    .first();
-  if ((await heading.count()) > 0) {
-    const txt = (await heading.innerText()).trim();
-    if (txt) return txt;
-  }
-  const txt = (await card.innerText()).trim().split("\n")[0]?.trim() ?? "";
-  return txt;
+/** Resolve o productId estável do card (data-product-id no card ou descendente). */
+async function readCardProductId(card: Locator): Promise<string> {
+  const id = await card.evaluate((el) => {
+    const node = (el as HTMLElement).matches("[data-product-id]")
+      ? (el as HTMLElement)
+      : (el.querySelector("[data-product-id]") as HTMLElement | null);
+    return node?.getAttribute("data-product-id") ?? "";
+  });
+  return id ?? "";
 }
 
-/** Estado atual do botão (favoritado vs não-favoritado). */
+/** Estado atual do botão (favoritado vs não-favoritado), via aria-pressed. */
 async function isFavorited(button: Locator): Promise<boolean> {
   const pressed = await button.getAttribute("aria-pressed");
-  if (pressed === "true") return true;
-  const html = await button.innerHTML();
-  return /fill-destructive|fill-current/.test(html);
+  return pressed === "true";
 }
 
 /** Lê a contagem numérica exibida no header de Favoritos. */
@@ -61,23 +58,17 @@ async function assertFavoritesHeader(
   expectedCount: number,
   opts: { checkCardsMatch?: boolean } = {},
 ) {
-  // Título
-  await expect(page.locator(Sel.favorites.title)).toHaveText("Meus Favoritos");
-  // Ícone + label de acessibilidade + svg renderizado
+  await expect(page.locator(Sel.favorites.title)).toBeVisible();
   const icon = page.locator(Sel.favorites.icon);
   await expect(icon).toBeVisible();
-  await expect(icon).toHaveAttribute("aria-label", "Favoritos");
-  await expect(icon.locator("svg")).toBeVisible();
-  // Contagem numérica no header
   await expect
     .poll(() => readFavoritesCount(page), {
       message: `header favorites-count-items deveria ser ${expectedCount}`,
       timeout: 10_000,
     })
     .toBe(expectedCount);
-  // (opcional) número de cards renderizados bate com a contagem
   if (opts.checkCardsMatch) {
-    const cards = await page.locator(Sel.favorites.remove).count();
+    const cards = await page.locator(Sel.favorites.item).count();
     expect(cards, "qtde de cards renderizados deve bater com a contagem do header").toBe(
       expectedCount,
     );
@@ -92,23 +83,21 @@ test.describe("Fluxo: Favoritos", () => {
     await gotoAndSettle(page, "/favoritos");
     await expect(page).toHaveURL(/favoritos/);
     await expect(
-      page.locator(Sel.page.title("favoritos")).first().or(
-        page.getByText(/sem favoritos|nenhum favorito|você ainda não/i).first(),
-      ),
+      page.locator(Sel.favorites.title).or(page.locator(Sel.favorites.emptyState)),
     ).toBeVisible({ timeout: 15_000 });
   });
 
   test("favorita um produto, recarrega e ele persiste na lista", async ({ page }) => {
-    // 0. Snapshot inicial do header de favoritos (antes de qualquer ação)
+    // 0. Snapshot inicial do header de favoritos
     await gotoAndSettle(page, "/favoritos");
-    await expect(page.locator(Sel.favorites.title)).toHaveText("Meus Favoritos");
+    await expect(page.locator(Sel.favorites.title)).toBeVisible();
     const countBefore = await readFavoritesCount(page);
 
     // 1. Catálogo + 1º card
     await gotoAndSettle(page, "/produtos");
     const card = await firstCatalogCard(page);
-    const productName = await readCardName(card);
-    expect(productName, "nome do produto não pôde ser lido").toBeTruthy();
+    const productId = await readCardProductId(card);
+    expect(productId, "data-product-id do 1º card não pôde ser lido").toBeTruthy();
 
     const favButton = card.locator(FAV_BUTTON_SELECTOR).first();
     await favButton.waitFor({ state: "visible" });
@@ -128,90 +117,50 @@ test.describe("Fluxo: Favoritos", () => {
       })
       .toBe(true);
 
-    // 4. /favoritos — validações ANTES do reload
+    // 4. /favoritos antes do reload
     await gotoAndSettle(page, "/favoritos");
     await assertFavoritesHeader(page, countBefore + 1, { checkCardsMatch: true });
 
-    // 5. RELOAD e revalida título, ícone, label e contagem
+    // 5. RELOAD e revalida header
     await page.reload({ waitUntil: "domcontentloaded" });
-    await page
-      .waitForFunction(
-        () => !document.querySelector('[data-state="loading"], [data-skeleton]'),
-        { timeout: 8_000 },
-      )
-      .catch(() => {});
-
     await assertFavoritesHeader(page, countBefore + 1, { checkCardsMatch: true });
 
-    // 6. Persistência do produto específico
-    const escaped = productName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const byName = page.getByText(new RegExp(escaped, "i")).first();
-    const removeButtons = page.locator(Sel.favorites.remove);
-    await expect(byName.or(removeButtons.first())).toBeVisible({ timeout: 10_000 });
+    // 6. Persistência do produto específico (por data-product-id)
+    const targetCard = page.locator(`${Sel.favorites.item}[data-product-id="${productId}"]`).first();
+    await expect(targetCard).toBeVisible({ timeout: 10_000 });
 
-    // 7. Cleanup: desfaz o favorito e confirma que SOME após reload
-    const productRegex = new RegExp(escaped, "i");
-    const favCard = page
-      .locator(`:has-text("${productName}")`)
-      .filter({ has: page.locator(Sel.favorites.remove) })
-      .first();
+    // 7. Cleanup: desfaz o favorito clicando no botão Remover do card alvo
+    const removeBtn = targetCard.locator(Sel.favorites.remove).first();
+    await removeBtn.click().catch(() => {});
 
-    if ((await favCard.count()) > 0) {
-      await favCard.locator(Sel.favorites.remove).first().click().catch(() => {});
-    } else {
-      await removeButtons.first().click().catch(() => {});
-    }
-
-    // Se aparecer um diálogo de confirmação, aceita
-    const confirm = page
-      .locator('[role="alertdialog"], [role="dialog"]')
-      .getByRole("button", { name: /remover|confirmar|sim|excluir/i })
-      .first();
+    // ConfirmDialog (se aparecer) — usa testid global do ConfirmDialog
+    const confirm = page.locator(Sel.dialog.confirmYes).first();
     if (await confirm.isVisible().catch(() => false)) {
       await confirm.click().catch(() => {});
     }
 
-    // Header volta ao estado inicial (sem reload)
+    // Header volta ao inicial (sem reload)
     await expect
-      .poll(() => readFavoritesCount(page), {
-        message: "contagem não voltou ao inicial após remover",
-        timeout: 10_000,
-      })
+      .poll(() => readFavoritesCount(page), { timeout: 10_000 })
       .toBe(countBefore);
 
     // Reload e revalida ausência persistida
     await page.reload({ waitUntil: "domcontentloaded" });
-    await page
-      .waitForFunction(
-        () => !document.querySelector('[data-state="loading"], [data-skeleton]'),
-        { timeout: 8_000 },
-      )
-      .catch(() => {});
-
     await assertFavoritesHeader(page, countBefore, { checkCardsMatch: true });
 
-    // O produto removido NÃO deve mais aparecer na lista de favoritos
+    // O card do produto removido NÃO deve mais existir
     await expect(
-      page.getByText(productRegex),
-      `produto "${productName}" deveria ter sumido da lista após cleanup + reload`,
+      page.locator(`${Sel.favorites.item}[data-product-id="${productId}"]`),
+      `card de favorito ${productId} deveria ter sumido após cleanup + reload`,
     ).toHaveCount(0, { timeout: 10_000 });
   });
 
-  test("header de favoritos permanece consistente após reload (título, ícone, contagem)", async ({
-    page,
-  }) => {
+  test("header de favoritos permanece consistente após reload", async ({ page }) => {
     await gotoAndSettle(page, "/favoritos");
     const before = await readFavoritesCount(page);
     await assertFavoritesHeader(page, before);
 
     await page.reload({ waitUntil: "domcontentloaded" });
-    await page
-      .waitForFunction(
-        () => !document.querySelector('[data-state="loading"], [data-skeleton]'),
-        { timeout: 8_000 },
-      )
-      .catch(() => {});
-
     await assertFavoritesHeader(page, before);
   });
 

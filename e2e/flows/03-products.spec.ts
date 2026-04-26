@@ -17,9 +17,7 @@ test.describe("Fluxo: Produtos", () => {
 
   test("busca por termo filtra resultados", async ({ page }) => {
     await gotoAndSettle(page, "/produtos");
-    const search = page
-      .locator('input[type="search"], input[placeholder*="busc" i]')
-      .first();
+    const search = page.locator(Sel.catalog.searchInput).first();
     if (await search.count()) {
       await search.fill("caneta");
       await page.waitForTimeout(1500);

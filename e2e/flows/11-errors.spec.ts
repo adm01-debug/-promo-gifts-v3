@@ -27,12 +27,8 @@ test.describe("Fluxo: Tratamento de erro", () => {
     await expect(page.locator("body")).toBeVisible();
     // Esperamos algum indicador (toast, banner, empty)
     const hasFeedback =
-      (await page
-        .locator(
-          'text=/erro|indispon[ií]vel|tente novamente|n[aã]o foi poss[ií]vel/i',
-        )
-        .count()) > 0 ||
-      (await page.locator(Sel.app.anyToast).count()) > 0;
+      (await page.locator(Sel.app.toast).count()) > 0 ||
+      (await page.locator(Sel.app.errorBanner).count()) > 0;
     expect(
       hasFeedback,
       "Esperava toast/alerta/empty state ao receber 503 do bridge",

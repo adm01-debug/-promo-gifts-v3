@@ -49,6 +49,8 @@ export const ProductCardActions = memo(function ProductCardActions({
       {/* Main FAB */}
       <button
         type="button"
+        data-testid="product-card-actions-toggle"
+        data-actions-open={actionsOpen ? "true" : "false"}
         className={cn(
           "flex items-center justify-center h-9 w-9 md:h-11 md:w-11 rounded-full shadow-lg",
           "transition-all duration-300 ease-out",

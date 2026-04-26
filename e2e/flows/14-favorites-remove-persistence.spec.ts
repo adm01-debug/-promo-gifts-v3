@@ -56,12 +56,9 @@ async function isFavorited(button: Locator): Promise<boolean> {
   return /fill-destructive|fill-current/.test(html);
 }
 
-/** Aceita diálogo de confirmação se aparecer (best-effort). */
+/** Aceita diálogo de confirmação se aparecer (best-effort, via testid global). */
 async function acceptConfirmIfAny(page: Page): Promise<void> {
-  const confirm = page
-    .locator('[role="alertdialog"], [role="dialog"]')
-    .getByRole("button", { name: /remover|confirmar|sim|excluir/i })
-    .first();
+  const confirm = page.locator(Sel.dialog.confirmYes).first();
   if (await confirm.isVisible().catch(() => false)) {
     await confirm.click().catch(() => {});
   }
@@ -120,25 +117,10 @@ test.describe("Fluxo: remover favorito persiste após reload", () => {
     const targetCard = page.locator(`[data-product-id="${addedId}"]`).first();
     await targetCard.waitFor({ state: "visible", timeout: 10_000 });
 
-    // Captura o nome (heading dentro do card, com fallback para 1ª linha de texto)
-    const productName = await targetCard
-      .evaluate((el) => {
-        const h =
-          el.querySelector('[data-testid="product-card-name"]') ??
-          el.querySelector("h1, h2, h3, [data-product-name]");
-        const text = (h?.textContent ?? el.textContent ?? "").trim();
-        return text.split("\n")[0]?.trim() ?? "";
-      })
-      .catch(() => "");
-    expect(productName, "nome do produto recém-favoritado não pôde ser lido").toBeTruthy();
-
-    const escaped = productName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const productRegex = new RegExp(escaped, "i");
-
-    // Confirma que o nome aparece ANTES da remoção
+    // Confirma que o card alvo está visível ANTES da remoção (via data-product-id)
     await expect(
-      page.getByText(productRegex).first(),
-      `produto "${productName}" deveria estar visível antes da remoção`,
+      targetCard,
+      `card de favorito ${addedId} deveria estar visível antes da remoção`,
     ).toBeVisible({ timeout: 10_000 });
 
     // 3. Remove via botão "Remover favorito" do card alvo
@@ -178,19 +160,13 @@ test.describe("Fluxo: remover favorito persiste após reload", () => {
       })
       .toBe(countBefore);
 
-    // 6. Card do produto removido NÃO existe mais
+    // 6. Card do produto removido NÃO existe mais (verificação SSOT por data-product-id)
     await expect(
-      page.locator(`[data-product-id="${addedId}"]`),
+      page.locator(`${Sel.favorites.item}[data-product-id="${addedId}"]`),
       `card do produto ${addedId} não deveria existir após reload`,
     ).toHaveCount(0, { timeout: 10_000 });
 
-    // 7. E o NOME do produto não aparece mais no texto da página
-    await expect(
-      page.getByText(productRegex),
-      `texto "${productName}" não deveria mais aparecer em /favoritos após reload`,
-    ).toHaveCount(0, { timeout: 10_000 });
-
-    // 8. Cleanup defensivo — garante que o storage está no estado original
+    // 7. Cleanup defensivo — garante que o storage está no estado original
     await writeStorage(page, original);
   });
 });
