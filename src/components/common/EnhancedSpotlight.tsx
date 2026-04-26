@@ -38,7 +38,11 @@ export function EnhancedSpotlight() {
     localStorage.setItem("spotlight-recent", JSON.stringify(updated));
   };
 
-  const items: SpotlightItem[] = useMemo(() => buildSpotlightItems(navigate), [navigate]);
+  const items: SpotlightItem[] = useMemo(() => {
+    const all = buildSpotlightItems(navigate);
+    // Esconde itens cujas rotas exigem papel que o usuário não tem.
+    return filterByRoutePermission(all, (i) => i.path, { isDev, isAdmin });
+  }, [navigate, isDev, isAdmin]);
 
   // Fuse.js para busca fuzzy
   const fuse = useMemo(() => {
