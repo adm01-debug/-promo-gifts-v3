@@ -24,6 +24,19 @@ interface ReportDetail {
   missing_user_count: number;
 }
 
+type RlsSeverity = "critical" | "high" | "medium" | "ok";
+interface RlsCoverageEntry {
+  table: string;
+  rls_enabled: boolean;
+  policy_count: number;
+  has_select: boolean;
+  has_insert: boolean;
+  has_update: boolean;
+  has_delete: boolean;
+  missing_ops: Array<"SELECT" | "INSERT" | "UPDATE" | "DELETE">;
+  severity: RlsSeverity;
+}
+
 interface ReportRow {
   id: string;
   generated_at: string;
@@ -34,6 +47,8 @@ interface ReportRow {
   details: ReportDetail[];
   triggered_by: string;
   duration_ms: number | null;
+  rls_coverage: RlsCoverageEntry[];
+  rls_gaps_count: number;
 }
 
 export default function OwnershipAuditAdminPage() {
