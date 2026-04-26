@@ -101,13 +101,20 @@ export function CustomizableDashboard() {
 
   const orgId = useCurrentOrgId();
   
-  // Fetch real metrics
+  const salesScope = useSalesScope();
+
+  // Fetch real metrics — RLS faz o isolamento; só filtramos manualmente quando o escopo é "self".
   useEffect(() => {
     if (!user) return;
     const fetchMetrics = async () => {
-      let quotesQ = supabase.from('quotes').select('id', { count: 'exact', head: true }).eq('seller_id', user.id);
-      let ordersQ = supabase.from('orders').select('id', { count: 'exact', head: true }).eq('seller_id', user.id).eq('status', 'pending');
-      let draftQ = supabase.from('quotes').select('id', { count: 'exact', head: true }).eq('seller_id', user.id).eq('status', 'draft');
+      let quotesQ = supabase.from('quotes').select('id', { count: 'exact', head: true });
+      let ordersQ = supabase.from('orders').select('id', { count: 'exact', head: true }).eq('status', 'pending');
+      let draftQ = supabase.from('quotes').select('id', { count: 'exact', head: true }).eq('status', 'draft');
+      if (salesScope === 'self') {
+        quotesQ = quotesQ.eq('seller_id', user.id);
+        ordersQ = ordersQ.eq('seller_id', user.id);
+        draftQ = draftQ.eq('seller_id', user.id);
+      }
       if (orgId) {
         quotesQ = quotesQ.eq('organization_id', orgId);
         ordersQ = ordersQ.eq('organization_id', orgId);

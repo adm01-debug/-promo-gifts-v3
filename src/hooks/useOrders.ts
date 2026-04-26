@@ -31,16 +31,19 @@ export interface OrderRow {
   updated_at: string;
 }
 
-export function useOrdersList(sellerId?: string) {
+/**
+ * Lista pedidos respeitando RLS. Quando `scope === "self"`, aplica filtro
+ * adicional por seller_id (defesa em profundidade); para "team"/"all" deixa
+ * o RLS decidir o que aparece.
+ */
+export function useOrdersList(sellerId?: string, scope: "self" | "team" | "all" = "self") {
   return useQuery({
-    queryKey: ["orders", "list", sellerId],
+    queryKey: ["orders", "list", sellerId, scope],
     enabled: !!sellerId,
     queryFn: async (): Promise<OrderRow[]> => {
-      const { data, error } = await supabase
-        .from("orders")
-        .select("*")
-        .eq("seller_id", sellerId!)
-        .order("created_at", { ascending: false });
+      let q = supabase.from("orders").select("*").order("created_at", { ascending: false });
+      if (scope === "self" && sellerId) q = q.eq("seller_id", sellerId);
+      const { data, error } = await q;
       if (error) throw error;
       return (data ?? []) as OrderRow[];
     },
