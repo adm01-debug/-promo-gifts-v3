@@ -52,15 +52,55 @@ async function readFavoritesCount(page: Page): Promise<number> {
   return Number.parseInt(txt, 10) || 0;
 }
 
+/**
+ * Asserções "pré-interação" do header de Favoritos:
+ *  - h1 (page-title-favoritos) visível com texto "Meus Favoritos"
+ *  - container favorites-icon visível
+ *  - <svg> do lucide Heart presente DENTRO do container
+ *  - classes `fill-destructive` e `text-destructive` aplicadas no <svg> Heart
+ *
+ * Deve ser chamada ANTES de qualquer interação com a lista para garantir
+ * que a página renderizou o header correto e o estilo destrutivo do ícone.
+ */
+async function assertFavoritesHeaderVisuals(page: Page) {
+  // 1. Título h1
+  const title = page.locator(Sel.favorites.title);
+  await expect(title, "h1 page-title-favoritos deve estar visível").toBeVisible({
+    timeout: 15_000,
+  });
+  await expect(title, "h1 deve ter o texto 'Meus Favoritos'").toHaveText(/Meus Favoritos/);
+  expect(
+    await title.evaluate((el) => el.tagName.toLowerCase()),
+    "page-title-favoritos deve ser um <h1>",
+  ).toBe("h1");
+
+  // 2. Container do ícone
+  const iconBox = page.locator(Sel.favorites.icon);
+  await expect(iconBox, "container favorites-icon deve estar visível").toBeVisible();
+
+  // 3. <svg> do Heart dentro do container (lucide injeta <svg class="lucide lucide-heart ...">)
+  const heartSvg = iconBox.locator("svg").first();
+  await expect(heartSvg, "ícone Heart (svg) deve existir dentro do favorites-icon").toBeVisible();
+
+  // 4. Classes destrutivas aplicadas no svg
+  const svgClass = (await heartSvg.getAttribute("class")) ?? "";
+  expect(
+    /\bfill-destructive\b/.test(svgClass),
+    `ícone Heart deve ter a classe 'fill-destructive' (class atual: "${svgClass}")`,
+  ).toBe(true);
+  expect(
+    /\btext-destructive\b/.test(svgClass),
+    `ícone Heart deve ter a classe 'text-destructive' (class atual: "${svgClass}")`,
+  ).toBe(true);
+}
+
 /** Valida título, ícone/label e contagem do header de Favoritos. */
 async function assertFavoritesHeader(
   page: Page,
   expectedCount: number,
   opts: { checkCardsMatch?: boolean } = {},
 ) {
-  await expect(page.locator(Sel.favorites.title)).toBeVisible();
-  const icon = page.locator(Sel.favorites.icon);
-  await expect(icon).toBeVisible();
+  await assertFavoritesHeaderVisuals(page);
   await expect
     .poll(() => readFavoritesCount(page), {
       message: `header favorites-count-items deveria ser ${expectedCount}`,
@@ -82,15 +122,20 @@ test.describe("Fluxo: Favoritos", () => {
   test("lista de favoritos carrega", async ({ page }) => {
     await gotoAndSettle(page, "/favoritos");
     await expect(page).toHaveURL(/favoritos/);
+    // Header visível em qualquer estado (com itens ou empty state)
     await expect(
       page.locator(Sel.favorites.title).or(page.locator(Sel.favorites.emptyState)),
     ).toBeVisible({ timeout: 15_000 });
+    // Quando o título aparece, valida h1 + Heart + fill-destructive antes de qualquer leitura
+    if (await page.locator(Sel.favorites.title).isVisible().catch(() => false)) {
+      await assertFavoritesHeaderVisuals(page);
+    }
   });
 
   test("favorita um produto, recarrega e ele persiste na lista", async ({ page }) => {
     // 0. Snapshot inicial do header de favoritos
     await gotoAndSettle(page, "/favoritos");
-    await expect(page.locator(Sel.favorites.title)).toBeVisible();
+    await assertFavoritesHeaderVisuals(page);
     const countBefore = await readFavoritesCount(page);
 
     // 1. Catálogo + 1º card
@@ -157,6 +202,7 @@ test.describe("Fluxo: Favoritos", () => {
 
   test("header de favoritos permanece consistente após reload", async ({ page }) => {
     await gotoAndSettle(page, "/favoritos");
+    await assertFavoritesHeaderVisuals(page);
     const before = await readFavoritesCount(page);
     await assertFavoritesHeader(page, before);
 
