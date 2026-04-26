@@ -3,10 +3,20 @@
  *
  * Camadas de segurança:
  *  1. Header `x-e2e-cleanup-token` precisa bater com E2E_CLEANUP_TOKEN (timing-safe).
- *  2. `email` do body precisa estar em E2E_CLEANUP_ALLOWED_EMAILS (CSV).
- *  3. user_id é resolvido server-side via auth.admin (cliente nunca passa UUID).
- *  4. dryRun = true por default — exige opt-in explícito {"dryRun": false}.
- *  5. Apaga apenas dados de aplicação por user_id/seller_id. NUNCA apaga auth.users.
+ *  2. Rate limit por IP (default 30 req / 60s) via RPC atômica
+ *     `e2e_cleanup_check_rate_limit`. Configurável via env:
+ *        E2E_CLEANUP_RATE_LIMIT_MAX (default 30)
+ *        E2E_CLEANUP_RATE_LIMIT_WINDOW_SECONDS (default 60)
+ *  3. `email` do body precisa estar em E2E_CLEANUP_ALLOWED_EMAILS (CSV).
+ *  4. user_id é resolvido server-side via auth.admin (cliente nunca passa UUID).
+ *  5. dryRun = true por default — exige opt-in explícito {"dryRun": false}.
+ *  6. Apaga apenas dados de aplicação por user_id/seller_id. NUNCA apaga auth.users.
+ *
+ * Auditoria:
+ *  - Cada chamada (sucesso, falha, rate-limit, erro de auth) grava uma linha
+ *    em `public.e2e_cleanup_audit` com IP, status, motivo, totais e duração.
+ *  - Logs estruturados no console (Edge Function logs) replicam o registro
+ *    para correlação rápida.
  *
  * Body:
  *   { "email": "e2e@...", "dryRun": false }
@@ -23,10 +33,10 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-function jsonResponse(body: unknown, status = 200) {
+function jsonResponse(body: unknown, status = 200, extraHeaders: Record<string, string> = {}) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
+    headers: { ...corsHeaders, "Content-Type": "application/json", ...extraHeaders },
   });
 }
 
@@ -37,32 +47,37 @@ function timingSafeEqual(a: string, b: string): boolean {
   return diff === 0;
 }
 
+function clientIp(req: Request): string {
+  const fwd = req.headers.get("x-forwarded-for") ?? "";
+  const first = fwd.split(",")[0]?.trim();
+  return (
+    first ||
+    req.headers.get("cf-connecting-ip") ||
+    req.headers.get("x-real-ip") ||
+    "unknown"
+  );
+}
+
 /** Tabelas filtradas por user_id (filhos primeiro, depois pais). */
 const USER_ID_TABLES = [
-  // favoritos
   "favorite_item_reactions",
   "favorite_items_trash",
   "favorite_items",
   "favorite_lists",
-  // coleções
   "collection_item_reactions",
   "collection_items_trash",
   "collection_items",
   "collections",
-  // carrinhos
   "seller_cart_items",
   "seller_carts",
   "cart_templates",
-  // comparador
   "comparison_reactions",
   "user_comparisons",
-  // mockups / kits
   "generated_mockups",
   "mockup_drafts",
   "custom_kits",
 ] as const;
 
-/** Tabelas de quote são filtradas via seller_id. quotes é a "raiz". */
 const QUOTE_CHILD_TABLES_BY_QUOTE_ID = [
   "quote_item_personalizations",
   "quote_items",
@@ -70,6 +85,41 @@ const QUOTE_CHILD_TABLES_BY_QUOTE_ID = [
   "quote_comments",
   "quote_approval_tokens",
 ] as const;
+
+interface AuditPayload {
+  email: string;
+  user_id: string | null;
+  dry_run: boolean;
+  status:
+    | "ok"
+    | "error"
+    | "rate_limited"
+    | "unauthorized"
+    | "forbidden"
+    | "not_found"
+    | "invalid";
+  reason?: string | null;
+  ip: string;
+  user_agent: string | null;
+  total_deleted: number;
+  deleted_by_table: Record<string, number>;
+  errors: Record<string, string>;
+  duration_ms: number;
+}
+
+async function writeAudit(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  admin: any,
+  payload: AuditPayload,
+): Promise<void> {
+  // Log estruturado sempre (mesmo se a tabela falhar).
+  console.log(JSON.stringify({ tag: "e2e_cleanup_audit", ...payload }));
+  try {
+    await admin.from("e2e_cleanup_audit").insert(payload);
+  } catch (err) {
+    console.warn(JSON.stringify({ tag: "e2e_cleanup_audit_insert_failed", error: String(err) }));
+  }
+}
 
 // @ts-ignore - Deno runtime
 Deno.serve(async (req: Request) => {
@@ -81,12 +131,72 @@ Deno.serve(async (req: Request) => {
   }
 
   const startedAt = Date.now();
+  const ip = clientIp(req);
+  const userAgent = req.headers.get("user-agent");
+
+  // service-role client (precisamos cedo para rate limit + audit)
+  // @ts-ignore - Deno runtime
+  const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+  // @ts-ignore - Deno runtime
+  const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const admin = createClient(SUPABASE_URL, SERVICE_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+
+  // --- rate limit por IP (antes de tudo, exceto CORS) ---------------------
+  // @ts-ignore - Deno runtime
+  const rlMax = Number(Deno.env.get("E2E_CLEANUP_RATE_LIMIT_MAX") ?? "30");
+  // @ts-ignore - Deno runtime
+  const rlWindow = Number(Deno.env.get("E2E_CLEANUP_RATE_LIMIT_WINDOW_SECONDS") ?? "60");
+  try {
+    const { data: rl, error: rlErr } = await admin.rpc(
+      "e2e_cleanup_check_rate_limit",
+      { p_key: `ip:${ip}`, p_max: rlMax, p_window_seconds: rlWindow },
+    );
+    if (!rlErr && Array.isArray(rl) && rl[0] && rl[0].allowed === false) {
+      const resetIn = rl[0].reset_in_seconds ?? rlWindow;
+      await writeAudit(admin, {
+        email: "",
+        user_id: null,
+        dry_run: true,
+        status: "rate_limited",
+        reason: `ip ${ip} excedeu ${rlMax}/${rlWindow}s (count=${rl[0].current_count})`,
+        ip,
+        user_agent: userAgent,
+        total_deleted: 0,
+        deleted_by_table: {},
+        errors: {},
+        duration_ms: Date.now() - startedAt,
+      });
+      return jsonResponse(
+        { error: "rate_limited", retry_after_seconds: resetIn },
+        429,
+        { "Retry-After": String(resetIn) },
+      );
+    }
+  } catch (err) {
+    // Falha do rate-limit não bloqueia a requisição, mas é registrada.
+    console.warn(JSON.stringify({ tag: "e2e_cleanup_rate_limit_failed", error: String(err) }));
+  }
 
   // --- camada 1: token compartilhado --------------------------------------
   // @ts-ignore - Deno runtime
   const expectedToken = Deno.env.get("E2E_CLEANUP_TOKEN") ?? "";
   const providedToken = req.headers.get("x-e2e-cleanup-token") ?? "";
   if (!expectedToken || !providedToken || !timingSafeEqual(expectedToken, providedToken)) {
+    await writeAudit(admin, {
+      email: "",
+      user_id: null,
+      dry_run: true,
+      status: "unauthorized",
+      reason: "invalid_cleanup_token",
+      ip,
+      user_agent: userAgent,
+      total_deleted: 0,
+      deleted_by_table: {},
+      errors: {},
+      duration_ms: Date.now() - startedAt,
+    });
     return jsonResponse({ error: "invalid_cleanup_token" }, 401);
   }
 
@@ -95,12 +205,39 @@ Deno.serve(async (req: Request) => {
   try {
     body = await req.json();
   } catch {
+    await writeAudit(admin, {
+      email: "",
+      user_id: null,
+      dry_run: true,
+      status: "invalid",
+      reason: "invalid_json",
+      ip,
+      user_agent: userAgent,
+      total_deleted: 0,
+      deleted_by_table: {},
+      errors: {},
+      duration_ms: Date.now() - startedAt,
+    });
     return jsonResponse({ error: "invalid_json" }, 400);
   }
   const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
-  // dryRun default = true → ato destrutivo precisa de opt-in explícito
   const dryRun = body.dryRun === false ? false : true;
-  if (!email) return jsonResponse({ error: "email_required" }, 400);
+  if (!email) {
+    await writeAudit(admin, {
+      email: "",
+      user_id: null,
+      dry_run: dryRun,
+      status: "invalid",
+      reason: "email_required",
+      ip,
+      user_agent: userAgent,
+      total_deleted: 0,
+      deleted_by_table: {},
+      errors: {},
+      duration_ms: Date.now() - startedAt,
+    });
+    return jsonResponse({ error: "email_required" }, 400);
+  }
 
   // --- camada 2: allow-list ------------------------------------------------
   // @ts-ignore - Deno runtime
@@ -110,23 +247,39 @@ Deno.serve(async (req: Request) => {
     .map((s) => s.trim().toLowerCase())
     .filter(Boolean);
   if (allowed.length === 0) {
+    await writeAudit(admin, {
+      email,
+      user_id: null,
+      dry_run: dryRun,
+      status: "forbidden",
+      reason: "allow_list_not_configured",
+      ip,
+      user_agent: userAgent,
+      total_deleted: 0,
+      deleted_by_table: {},
+      errors: {},
+      duration_ms: Date.now() - startedAt,
+    });
     return jsonResponse({ error: "allow_list_not_configured" }, 403);
   }
   if (!allowed.includes(email)) {
+    await writeAudit(admin, {
+      email,
+      user_id: null,
+      dry_run: dryRun,
+      status: "forbidden",
+      reason: "email_not_in_allow_list",
+      ip,
+      user_agent: userAgent,
+      total_deleted: 0,
+      deleted_by_table: {},
+      errors: {},
+      duration_ms: Date.now() - startedAt,
+    });
     return jsonResponse({ error: "email_not_in_allow_list" }, 403);
   }
 
-  // --- service-role client -------------------------------------------------
-  // @ts-ignore - Deno runtime
-  const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-  // @ts-ignore - Deno runtime
-  const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-  const admin = createClient(SUPABASE_URL, SERVICE_KEY, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-
   // --- camada 3: resolver user_id ------------------------------------------
-  // listUsers não tem busca por email exato no v2 → paginar leve.
   let userId: string | null = null;
   try {
     let page = 1;
@@ -134,7 +287,8 @@ Deno.serve(async (req: Request) => {
       const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 200 });
       if (error) throw error;
       const found = data.users.find(
-        (u) => (u.email ?? "").toLowerCase() === email,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (u: any) => (u.email ?? "").toLowerCase() === email,
       );
       if (found) {
         userId = found.id;
@@ -144,19 +298,44 @@ Deno.serve(async (req: Request) => {
       page++;
     }
   } catch (err) {
+    await writeAudit(admin, {
+      email,
+      user_id: null,
+      dry_run: dryRun,
+      status: "error",
+      reason: "user_lookup_failed",
+      ip,
+      user_agent: userAgent,
+      total_deleted: 0,
+      deleted_by_table: {},
+      errors: { user_lookup: String(err) },
+      duration_ms: Date.now() - startedAt,
+    });
     return jsonResponse(
       { error: "user_lookup_failed", details: String(err) },
       500,
     );
   }
   if (!userId) {
+    await writeAudit(admin, {
+      email,
+      user_id: null,
+      dry_run: dryRun,
+      status: "not_found",
+      reason: "user_not_found",
+      ip,
+      user_agent: userAgent,
+      total_deleted: 0,
+      deleted_by_table: {},
+      errors: {},
+      duration_ms: Date.now() - startedAt,
+    });
     return jsonResponse({ error: "user_not_found", email }, 404);
   }
 
   const deleted: Record<string, number> = {};
   const errors: Record<string, string> = {};
 
-  // helper genérico
   async function purgeByUserId(table: string) {
     if (dryRun) {
       const { count, error } = await admin
@@ -175,12 +354,11 @@ Deno.serve(async (req: Request) => {
     else deleted[table] = count ?? 0;
   }
 
-  // 1) Tabelas user_id
   for (const t of USER_ID_TABLES) {
     await purgeByUserId(t);
   }
 
-  // 2) Quotes (seller_id) — apaga filhos via quote_id, depois quotes
+  // Quotes
   try {
     const { data: quoteRows, error: qErr } = await admin
       .from("quotes")
@@ -189,7 +367,8 @@ Deno.serve(async (req: Request) => {
     if (qErr) {
       errors["quotes_lookup"] = qErr.message;
     } else {
-      const quoteIds = (quoteRows ?? []).map((r) => r.id);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const quoteIds = (quoteRows ?? []).map((r: any) => r.id);
       if (quoteIds.length > 0) {
         for (const child of QUOTE_CHILD_TABLES_BY_QUOTE_ID) {
           if (dryRun) {
@@ -226,37 +405,32 @@ Deno.serve(async (req: Request) => {
     errors["quotes_block"] = String(err);
   }
 
-  // 3) Audit log (best-effort, não crítico)
-  try {
-    await admin.from("admin_audit_log").insert({
-      action: "e2e_cleanup",
-      target_type: "user",
-      target_id: userId,
-      details: { email, dryRun, deleted, errors },
-    });
-  } catch {
-    /* ignora se a tabela tiver schema diferente */
-  }
+  const totalDeleted = Object.values(deleted).reduce((a, b) => a + b, 0);
+  const status: AuditPayload["status"] =
+    Object.keys(errors).length === 0 ? "ok" : "error";
+  const duration = Date.now() - startedAt;
 
-  console.log(
-    JSON.stringify({
-      tag: "e2e_cleanup",
-      email,
-      userId,
-      dryRun,
-      deleted,
-      errors,
-      ms: Date.now() - startedAt,
-    }),
-  );
+  await writeAudit(admin, {
+    email,
+    user_id: userId,
+    dry_run: dryRun,
+    status,
+    reason: status === "ok" ? null : "partial_or_failed_purge",
+    ip,
+    user_agent: userAgent,
+    total_deleted: totalDeleted,
+    deleted_by_table: deleted,
+    errors,
+    duration_ms: duration,
+  });
 
   return jsonResponse({
-    ok: Object.keys(errors).length === 0,
+    ok: status === "ok",
     dryRun,
     userId,
     email,
     deleted,
     errors,
-    totalMs: Date.now() - startedAt,
+    totalMs: duration,
   });
 });
