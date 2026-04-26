@@ -57,6 +57,7 @@ export function DevRoute({ children }: DevRouteProps) {
     currentAAL,
     hasMFA,
     mfaRequired,
+    role,
   } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
