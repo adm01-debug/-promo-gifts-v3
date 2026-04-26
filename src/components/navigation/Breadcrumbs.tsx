@@ -1,6 +1,8 @@
 import { ChevronRight, Home } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
+import { canNavigateTo, isDevOnlyPath } from "@/lib/navigation/restricted-routes";
 
 export interface BreadcrumbItem {
   label: string;
