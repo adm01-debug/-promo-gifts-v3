@@ -231,6 +231,17 @@ export default function AdminUsuariosPage() {
           onClose={() => setDeleteDialogUser(null)}
           onConfirm={handleDeleteUser}
         />
+        <PromotionDialog
+          user={promoteDialogUser}
+          targetRole="supervisor"
+          open={!!promoteDialogUser}
+          onOpenChange={(open) => {
+            if (!open) setPromoteDialogUser(null);
+          }}
+          onSuccess={() => {
+            void fetchUsers();
+          }}
+        />
       </div>
     </MainLayout>
   );
