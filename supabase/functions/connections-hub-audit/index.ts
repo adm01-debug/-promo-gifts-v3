@@ -62,9 +62,61 @@ Deno.serve(async (req: Request) => {
   if (preflight) return preflight;
   const corsHeaders = getCorsHeaders(req);
 
+  const requestId = getOrCreateRequestId(req);
+  const startedAt = new Date().toISOString();
+  const startedMs = Date.now();
+  const { ip, ua } = extractRequestMeta(req);
+
+  // Service-role client p/ auditar tentativas negadas mesmo antes do auth resolver
+  const adminClient = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+  );
+
+  let userId: string | null = null;
   try {
-    const auth = await authenticateRequest(req);
-    requireDev(auth);
+    let auth;
+    try {
+      auth = await authenticateRequest(req);
+      userId = auth.userId;
+    } catch (authErr) {
+      await writeAuditEntry(adminClient, {
+        user_id: null,
+        action: "connections_hub_audit.access_denied",
+        resource_type: "edge_function",
+        resource_id: SOURCE,
+        ip_address: ip, user_agent: ua,
+        request_id: requestId,
+        started_at: startedAt,
+        finished_at: new Date().toISOString(),
+        duration_ms: Date.now() - startedMs,
+        status: "denied",
+        payload_summary: {},
+        source: SOURCE,
+        details: { reason: (authErr as { status?: number })?.status === 401 ? "unauthenticated" : "auth_failed", detail: (authErr as { message?: string })?.message },
+      });
+      throw authErr;
+    }
+    try {
+      requireDev(auth);
+    } catch (roleErr) {
+      await writeAuditEntry(adminClient, {
+        user_id: userId,
+        action: "connections_hub_audit.access_denied",
+        resource_type: "edge_function",
+        resource_id: SOURCE,
+        ip_address: ip, user_agent: ua,
+        request_id: requestId,
+        started_at: startedAt,
+        finished_at: new Date().toISOString(),
+        duration_ms: Date.now() - startedMs,
+        status: "denied",
+        payload_summary: {},
+        source: SOURCE,
+        details: { reason: "not_dev", roles: auth.userRoles },
+      });
+      throw roleErr;
+    }
 
     const tableChecks: CheckResult[] = [];
     for (const t of REQUIRED_TABLES) {
