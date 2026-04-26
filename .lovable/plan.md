@@ -96,3 +96,15 @@ Criar/editar:
 - Não rodar o suite (ambiente atual não executa Playwright); validação será feita pelo usuário.
 - Não criar novos specs.
 - Não mexer em lógica de cleanup, auth.setup ou edge functions.
+
+---
+
+## Status: data-testid hardening (2026-04-26)
+
+Implementado:
+- SSOT `e2e/fixtures/selectors.ts` reescrito (login, sidebar, page, product, quote, favorites, cart, app).
+- `data-testid` adicionados em: `Auth.tsx` (login form/email/password/submit/toggle/forgot), `ProductCard.tsx` (`product-card` no `<article>` + `data-product-id`), e headings das páginas: `SellerCartsPage`, `OrdersPage`, `FavoritesPage`, `QuotesListPage`, `CollectionsPage` (`page-title-{slug}`).
+- Specs migrados para `Sel.*`: 01-auth, 03-products, 04-quotes, 05-orders, 07-collections, 08-favorites, 10-admin, 11-errors, 12-cart-checkout. (02-navigation, 06-kit-builder e 09-simulator não dependiam de seletores frágeis específicos.)
+- README atualizado com seção "Convenção de seletores".
+
+Fallbacks legados (`#login-email`, `, h1, h2`, etc.) mantidos no SSOT durante transição. Podem ser removidos quando 100% dos componentes-alvo tiverem testids.
