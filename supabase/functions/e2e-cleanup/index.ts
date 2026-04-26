@@ -96,8 +96,8 @@ const QUOTE_CHILD_TABLES_BY_QUOTE_ID = [
 interface AuditPayload {
   email: string;
   user_id: string | null;
-  seller_id: string | null;
-  seller_scope: "self" | "explicit";
+  seller_id?: string | null;
+  seller_scope?: "self" | "explicit";
   dry_run: boolean;
   status:
     | "ok"
