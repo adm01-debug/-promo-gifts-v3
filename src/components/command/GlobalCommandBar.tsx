@@ -34,6 +34,7 @@ export function GlobalCommandBar({ children, showTrigger = false }: GlobalComman
   const [recentItems, setRecentItems] = useState<RecentItem[]>([]);
   const navigate = useNavigate();
   const { actualTheme, setTheme } = useTheme();
+  const { isDev, isAdmin } = useAuth();
 
   // Load recent items
   useEffect(() => {
