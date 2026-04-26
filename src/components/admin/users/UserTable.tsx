@@ -4,7 +4,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Crown, ShieldCheck, Loader2, Pencil, Trash2 } from "lucide-react";
+import { Crown, ShieldCheck, Loader2, Pencil, Trash2, ArrowUpCircle } from "lucide-react";
 import { type UserWithRole, roleConfig } from "./types";
 
 interface UserTableProps {
@@ -14,6 +14,8 @@ interface UserTableProps {
   onEditUser: (user: UserWithRole) => void;
   onChangeRole: (user: UserWithRole) => void;
   onDeleteUser: (user: UserWithRole) => void;
+  /** Atalho de promoção rápida (só aparece para agentes ativos). */
+  onPromoteUser?: (user: UserWithRole) => void;
 }
 
 export function UserTable({ users, currentUserId, updatingUserId, onEditUser, onChangeRole, onDeleteUser }: UserTableProps) {
