@@ -4953,6 +4953,15 @@ export type Database = {
         Returns: boolean
       }
       is_supervisor_or_above: { Args: { _user_id?: string }; Returns: boolean }
+      log_access_denied: {
+        Args: {
+          _blocked_path: string
+          _reason?: string
+          _required_role: string
+          _user_role?: string
+        }
+        Returns: undefined
+      }
       log_full_scope_grant: {
         Args: {
           _challenge_id?: string
