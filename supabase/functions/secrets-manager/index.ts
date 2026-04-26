@@ -7,7 +7,7 @@ import {
   getCredentialCacheMetrics,
   resetCredentialCacheMetrics,
 } from "../_shared/credentials.ts";
-import { writeAuditEntry, extractRequestMeta, summarizePayload } from "../_shared/audit-log.ts";
+import { writeAuditEntry, extractRequestMeta } from "../_shared/audit-log.ts";
 import { getOrCreateRequestId } from "../_shared/request-id.ts";
 
 const SOURCE = "secrets-manager";
