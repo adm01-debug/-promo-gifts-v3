@@ -1600,11 +1600,11 @@ function cachedJsonResponse(payload: string, corsHeaders: Record<string, string>
 // interno do supabase-js mantém o socket aberto, eliminando TLS+auth handshake
 // repetido em rajadas paralelas (catálogo, dashboards, batches).
 // Em rajada de 6+ requests, isso reduz "tempo até a 1ª query" de ~800ms para ~50ms.
-let cachedExternalClient: ReturnType<typeof createClient> | null = null;
+let cachedExternalClient: ServiceClient | null = null;
 let warmupPromise: Promise<void> | null = null;
 
-function buildExternalClient(url: string, key: string) {
-  return createClient(url, key, {
+function buildExternalClient(url: string, key: string): ServiceClient {
+  return castSupabaseClient(createClient(url, key, {
     db: { schema: 'public' },
     global: {
       headers: {
@@ -1613,7 +1613,7 @@ function buildExternalClient(url: string, key: string) {
         'Prefer': 'max-affected=1000',
       },
     },
-  });
+  }));
 }
 
 async function getExternalClient(corsHeaders: Record<string, string>) {
