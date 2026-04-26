@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { isFullAccess } from "@/lib/mcp/scopes";
 import { sanitizeError } from "@/lib/security/sanitize-error";
 import { useDevChallenge } from "@/contexts/DevChallengeContext";
+import { handleStepUpError } from "@/lib/auth/step-up-error";
 
 export interface McpKeyRow {
   id: string;
