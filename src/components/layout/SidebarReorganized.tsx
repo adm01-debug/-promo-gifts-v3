@@ -248,18 +248,42 @@ export const SidebarReorganized = React.forwardRef<HTMLElement, SidebarProps>(
     }));
   };
 
+  // Defense-in-depth: além das flags declarativas (`devOnly`/`adminOnly`),
+  // o SSOT `restricted-routes.ts` é consultado por `href`. Assim:
+  //  - rota dev-only ⇒ visível só p/ isDev (mesmo se faltou marcar a flag)
+  //  - rota admin-only ⇒ visível só p/ isAdmin (= supervisor OU dev)
+  //  - supervisor SEM dev nunca enxerga itens técnicos, mesmo que outro
+  //    desenvolvedor os marque erroneamente como `adminOnly`.
+  const isItemVisible = useCallback(
+    (
+      item: { href?: string; adminOnly?: boolean; devOnly?: boolean },
+    ): boolean => {
+      const href = item.href ?? "";
+      // 1) Flags declarativas
+      if (item.devOnly && !isDev) return false;
+      if (item.adminOnly && !isAdmin) return false;
+      // 2) SSOT por path (defesa contra flags faltantes/erradas)
+      if (href && isDevOnlyPath(href) && !isDev) return false;
+      if (href && isAdminOnlyPath(href) && !isAdmin) return false;
+      return true;
+    },
+    [isDev, isAdmin],
+  );
+
   const filteredGroups = useMemo(
     () =>
       enrichedNavGroups
         .filter((g) => (!g.adminOnly || isAdmin) && (!g.devOnly || isDev))
         .map((g) => ({
           ...g,
-          items: g.items.filter(
-            (i) => (!i.adminOnly || isAdmin) && (!i.devOnly || isDev)
-          ),
+          items: g.items.filter(isItemVisible).map((i) => ({
+            ...i,
+            // Filtra também os filhos (ex.: subitens de Cadastros)
+            children: i.children?.filter(isItemVisible),
+          })),
         }))
         .filter((g) => g.items.length > 0),
-    [isAdmin, isDev, enrichedNavGroups]
+    [isAdmin, isDev, enrichedNavGroups, isItemVisible]
   );
 
   return (
