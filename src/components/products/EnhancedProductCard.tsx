@@ -307,6 +307,7 @@ export function EnhancedProductCard({
                   +
                 </Button>
                 <Button
+                  data-testid="product-card-quick-add"
                   size="sm"
                   className="flex-1 rounded-full gap-2"
                   onClick={() => onQuickAdd(product, quickAddQuantity)}

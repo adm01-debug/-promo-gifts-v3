@@ -297,7 +297,7 @@ export const ProductTableView = memo(function ProductTableView({
                 </td>
                 {/* Name */}
                 <td className="px-3 py-1.5">
-                  <p className="font-medium text-foreground group-hover:text-primary transition-colors line-clamp-1 text-[13px]">
+                  <p data-testid="product-row-name" className="font-medium text-foreground group-hover:text-primary transition-colors line-clamp-1 text-[13px]">
                     {product.name}
                   </p>
                   <div className="flex items-center gap-1">

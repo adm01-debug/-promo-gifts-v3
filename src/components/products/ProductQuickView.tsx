@@ -276,7 +276,7 @@ export const ProductQuickView = forwardRef<HTMLDivElement, ProductQuickViewProps
                 </span>
               </div>
 
-              <h2 className="text-2xl font-display font-bold text-foreground leading-tight">
+              <h2 data-testid="product-quickview-name" className="text-2xl font-display font-bold text-foreground leading-tight">
                 {product.name}
               </h2>
 
@@ -420,6 +420,7 @@ export const ProductQuickView = forwardRef<HTMLDivElement, ProductQuickViewProps
                 </Tooltip>
 
                 <Button
+                  data-testid="product-quickview-add-to-quote"
                   variant="orange"
                   className="flex-1 h-11"
                   onClick={() => {

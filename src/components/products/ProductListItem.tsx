@@ -335,7 +335,7 @@ export const ProductListItem = memo(function ProductListItem({
           </div>
 
           {/* Product name */}
-          <h3 className="font-display font-semibold text-foreground text-sm sm:text-[15px] leading-snug line-clamp-1 group-hover:text-primary transition-colors">
+          <h3 data-testid="product-list-name" className="font-display font-semibold text-foreground text-sm sm:text-[15px] leading-snug line-clamp-1 group-hover:text-primary transition-colors">
             {product.name}
           </h3>
 
