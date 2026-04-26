@@ -50,7 +50,6 @@ import {
   type McpScope,
 } from "@/lib/mcp/scopes";
 import { useCanGrantMcpFull } from "@/components/admin/security/keys/useCanGrantMcpFull";
-import { StepUpAuthDialog } from "@/components/auth/StepUpAuthDialog";
 import { useDevChallenge } from "@/contexts/DevChallengeContext";
 import { sanitizeError } from "@/lib/security/sanitize-error";
 
@@ -78,7 +77,6 @@ export function IssueMcpKeyForm({ onIssued }: Props) {
   const [generated, setGenerated] = useState<string | null>(null);
   const [confirmRootOpen, setConfirmRootOpen] = useState(false);
   const [rootNameEcho, setRootNameEcho] = useState("");
-  const [stepUpOpen, setStepUpOpen] = useState(false);
 
   const full = isFullAccess(scopes);
   const { canGrant: canGrantFull, loading: grantorLoading } = useCanGrantMcpFull();
@@ -168,10 +166,16 @@ export function IssueMcpKeyForm({ onIssued }: Props) {
     }
   };
 
-  const handleRootConfirmed = () => {
-    // Após confirmar nome (gate visual), abre verificação dupla
+  const handleRootConfirmed = async () => {
+    // Após confirmar nome (gate visual), abre verificação dupla via DevChallenge
     setConfirmRootOpen(false);
-    setStepUpOpen(true);
+    const token = await challenge({
+      action: "mcp_full_issue",
+      actionLabel: `Emitir chave MCP FULL "${name}"`,
+      targetRef: null,
+    });
+    if (!token) return; // cancelado/falhou
+    void doSubmit(token);
   };
 
   const rootNameMatches =
