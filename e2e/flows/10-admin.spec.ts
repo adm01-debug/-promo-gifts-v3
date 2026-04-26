@@ -1,9 +1,11 @@
 /**
  * Fluxo: Admin — guards de role.
  * Para usuário comum: deve negar acesso. Para admin: deve carregar.
+ * Seletores: Sel.login (SSOT).
  */
 import { test, expect, requireAuth, requireAdmin } from "../fixtures/test-base";
 import { gotoAndSettle } from "../helpers/nav";
+import { Sel } from "../fixtures/selectors";
 
 test.describe("Fluxo: Admin guards", () => {
   test("usuário sem role admin não acessa /admin/usuarios", async ({ page }) => {
@@ -13,7 +15,6 @@ test.describe("Fluxo: Admin guards", () => {
       "Usuário de teste é admin — verificação de bloqueio não aplicável",
     );
     await page.goto("/admin/usuarios");
-    // Pode redirecionar para / ou exibir 403 — aceitamos qualquer não-acesso
     await page.waitForTimeout(1500);
     const ok =
       !/\/admin\/usuarios/.test(page.url()) ||
@@ -23,11 +24,10 @@ test.describe("Fluxo: Admin guards", () => {
 
   test("admin acessa /admin/usuarios", async ({ page }) => {
     requireAdmin();
-    // Re-login como admin
     await page.goto("/login");
-    await page.fill("#login-email", process.env.E2E_ADMIN_EMAIL!);
-    await page.fill("#login-password", process.env.E2E_ADMIN_PASSWORD!);
-    await page.click('button[type="submit"]');
+    await page.fill(Sel.login.email, process.env.E2E_ADMIN_EMAIL!);
+    await page.fill(Sel.login.password, process.env.E2E_ADMIN_PASSWORD!);
+    await page.locator(Sel.login.submit).first().click();
     await expect(page).not.toHaveURL(/\/login/, { timeout: 15_000 });
     await gotoAndSettle(page, "/admin/usuarios");
     await expect(page).toHaveURL(/admin\/usuarios/);

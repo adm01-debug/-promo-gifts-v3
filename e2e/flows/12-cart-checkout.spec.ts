@@ -15,12 +15,11 @@
  */
 import { test, expect, requireAuth } from "../fixtures/test-base";
 import { gotoAndSettle } from "../helpers/nav";
+import { Sel } from "../fixtures/selectors";
 import type { Locator, Page } from "@playwright/test";
 
-const CARD_SELECTOR =
-  '[data-testid="product-card"], article:has(button[aria-label*="favorit" i]), [role="article"]:has(button[aria-label*="favorit" i])';
-
-const TOAST_SELECTOR = '[data-sonner-toast], [role="status"], [role="alert"]';
+const CARD_SELECTOR = Sel.product.card;
+const TOAST_SELECTOR = Sel.app.anyToast;
 
 async function firstCatalogCard(page: Page): Promise<Locator> {
   const card = page.locator(CARD_SELECTOR).first();
@@ -49,7 +48,7 @@ async function ensureActiveCart(page: Page): Promise<boolean> {
 
   // Já tem carrinho? Procura indícios: tabs com contador ou item de carrinho.
   const hasCart = await page
-    .locator('[role="tab"], [data-testid="cart-tab"]')
+    .locator(Sel.cart.drawer)
     .first()
     .isVisible()
     .catch(() => false);
@@ -95,9 +94,7 @@ async function addFirstProductToCart(page: Page): Promise<string | null> {
   }
 
   // Botão/popover do carrinho dentro do card
-  const cartTrigger = card
-    .locator('button[aria-label="ShoppingCart" i], button:has(svg.lucide-shopping-cart)')
-    .first();
+  const cartTrigger = card.locator(Sel.product.cartTrigger).first();
   if (!(await cartTrigger.isVisible().catch(() => false))) return null;
   await cartTrigger.click();
 
@@ -269,7 +266,7 @@ test.describe("Fluxo: Carrinho → Checkout", () => {
 
     // 2) UI não quebrou — heading da página continua visível e URL não foi para tela em branco
     await expect(
-      page.getByRole("heading", { name: /carrinhos/i }).first().or(
+      page.locator(Sel.page.title("carrinhos")).first().or(
         page.getByText(/carrinho/i).first(),
       ),
     ).toBeVisible({ timeout: 5_000 });
