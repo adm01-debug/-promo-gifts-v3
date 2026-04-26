@@ -186,6 +186,7 @@ export function DeleteConfirmDialog({
   onConfirm,
   loading,
   affectedItems,
+  testId,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -194,6 +195,8 @@ export function DeleteConfirmDialog({
   onConfirm: () => void | Promise<void>;
   loading?: boolean;
   affectedItems?: string[];
+  /** Optional testid scope. Defaults to `delete-confirm-dialog`. */
+  testId?: string;
 }) {
   return (
     <ConfirmDialog
@@ -210,6 +213,7 @@ export function DeleteConfirmDialog({
       cancelLabel="Cancelar"
       onConfirm={onConfirm}
       loading={loading}
+      testId={testId ?? "delete-confirm-dialog"}
       impactPreview={
         affectedItems && affectedItems.length > 0
           ? {
