@@ -30,16 +30,16 @@ interface RolePermission {
 }
 
 const ROLES: { value: AppRole; label: string; description: string; icon: React.ReactNode }[] = [
-  { 
-    value: 'admin', 
-    label: 'Administrador', 
-    description: 'Acesso total ao sistema',
+  {
+    value: 'supervisor',
+    label: 'Supervisor',
+    description: 'Gestão comercial, descontos e cadastros',
     icon: <Shield className="h-5 w-5 text-primary" />
   },
-  { 
-    value: 'vendedor', 
-    label: 'Vendedor', 
-    description: 'Acesso às funcionalidades de vendas',
+  {
+    value: 'vendedor',
+    label: 'Agente',
+    description: 'Acesso somente aos próprios dados',
     icon: <Users className="h-5 w-5 text-primary" />
   },
 ];
@@ -47,7 +47,7 @@ const ROLES: { value: AppRole; label: string; description: string; icon: React.R
 export default function RolePermissionsPage() {
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [rolePermissions, setRolePermissions] = useState<RolePermission[]>([]);
-  const [selectedRole, setSelectedRole] = useState<AppRole>('admin');
+  const [selectedRole, setSelectedRole] = useState<AppRole>('supervisor');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [pendingChanges, setPendingChanges] = useState<Map<string, boolean>>(new Map());

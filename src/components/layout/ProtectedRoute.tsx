@@ -3,13 +3,25 @@ import { Navigate, useLocation, Outlet } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
+type RequiredRole = "dev" | "supervisor" | "agente";
+
 interface ProtectedRouteProps {
   children?: ReactNode;
+  /** Hierarquia: 'dev' (somente dev), 'supervisor' (dev OU supervisor), 'agente' (qualquer autenticado). */
+  requiredRole?: RequiredRole;
+  /** @deprecated Use requiredRole="supervisor" — mantido para compatibilidade. */
   requireAdmin?: boolean;
+  /** Marca rotas técnicas (telemetria, MCP, hardening, etc.) — equivale a requiredRole="dev". */
+  requireDev?: boolean;
 }
 
-export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRouteProps) {
-  const { user, isAdmin, isLoading } = useAuth();
+export function ProtectedRoute({
+  children,
+  requiredRole,
+  requireAdmin = false,
+  requireDev = false,
+}: ProtectedRouteProps) {
+  const { user, isDev, isSupervisorOrAbove, isLoading } = useAuth();
   const location = useLocation();
 
   if (isLoading) {
@@ -24,10 +36,17 @@ export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRout
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (requireAdmin && !isAdmin) {
+  // Resolução do nível exigido (props mais explícitas têm prioridade)
+  const required: RequiredRole | undefined =
+    requiredRole ?? (requireDev ? "dev" : requireAdmin ? "supervisor" : undefined);
+
+  if (required === "dev" && !isDev) {
     return <Navigate to="/" replace />;
   }
+  if (required === "supervisor" && !isSupervisorOrAbove) {
+    return <Navigate to="/" replace />;
+  }
+  // 'agente' = qualquer usuário autenticado, sem checagem extra.
 
-  // Suporta tanto nested routes (Outlet) quanto children diretos
   return children ? <>{children}</> : <Outlet />;
 }

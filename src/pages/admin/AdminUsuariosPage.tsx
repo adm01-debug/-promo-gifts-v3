@@ -74,9 +74,12 @@ export default function AdminUsuariosPage() {
 
   useEffect(() => { fetchUsers(); }, [fetchUsers]);
 
-  const adminCount = useMemo(() => users.filter((u) => u.role === "admin").length, [users]);
-  const managerCount = useMemo(() => users.filter((u) => u.role === "manager").length, [users]);
-  const vendedorCount = useMemo(() => users.filter((u) => u.role === "vendedor").length, [users]);
+  const devCount = useMemo(() => users.filter((u) => u.role === "dev").length, [users]);
+  const supervisorCount = useMemo(
+    () => users.filter((u) => u.role === "supervisor" || u.role === "admin" || u.role === "manager").length,
+    [users]
+  );
+  const agenteCount = useMemo(() => users.filter((u) => u.role === "vendedor").length, [users]);
 
   const filteredUsers = users
     .sort((a, b) => (a.full_name || "").localeCompare(b.full_name || "", "pt-BR", { sensitivity: "base" }))
@@ -102,9 +105,9 @@ export default function AdminUsuariosPage() {
 
         <UserStatsCards
           total={users.length}
-          adminCount={adminCount}
-          managerCount={managerCount}
-          vendedorCount={vendedorCount}
+          devCount={devCount}
+          supervisorCount={supervisorCount}
+          agenteCount={agenteCount}
           pendingCount={pendingCount}
         />
 

@@ -8,7 +8,13 @@ import { Settings2, Save } from "lucide-react";
 import { useAiQuotas, useUpdateQuota } from "@/hooks/useAiUsage";
 import { toast } from "sonner";
 
-const ROLE_LABELS: Record<string, string> = { admin: "Administrador", manager: "Gerente", vendedor: "Vendedor" };
+const ROLE_LABELS: Record<string, string> = {
+  dev: "Dev",
+  supervisor: "Supervisor",
+  vendedor: "Agente",
+  admin: "Supervisor",   // legado
+  manager: "Supervisor", // legado
+};
 
 export function AiQuotaManager() {
   const { data: quotas, isLoading } = useAiQuotas();
