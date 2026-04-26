@@ -145,14 +145,16 @@ export function PersonalizationSummary({
                     <AlertDialog>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-6 w-6 text-muted-foreground hover:text-destructive"
-                             aria-label="Excluir"><Trash2 className="h-3.5 w-3.5" />
-                            </Button>
-                          </AlertDialogTrigger>
+                          <span className="inline-flex">
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 text-muted-foreground hover:text-destructive"
+                               aria-label="Excluir"><Trash2 className="h-3.5 w-3.5" />
+                              </Button>
+                            </AlertDialogTrigger>
+                          </span>
                         </TooltipTrigger>
                         <TooltipContent side="bottom" className="text-xs">Remover todas</TooltipContent>
                       </Tooltip>
