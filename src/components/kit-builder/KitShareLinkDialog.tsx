@@ -60,18 +60,20 @@ export function KitShareLinkDialog({ kitId, kitName }: Props) {
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <DialogTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={disabled}
-                className="gap-2"
-                aria-label="Compartilhar kit"
-              >
-                <Share2 className="h-4 w-4" />
-                <span className="hidden md:inline">Compartilhar</span>
-              </Button>
-            </DialogTrigger>
+            <span className="inline-flex">
+              <DialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={disabled}
+                  className="gap-2"
+                  aria-label="Compartilhar kit"
+                >
+                  <Share2 className="h-4 w-4" />
+                  <span className="hidden md:inline">Compartilhar</span>
+                </Button>
+              </DialogTrigger>
+            </span>
           </TooltipTrigger>
           <TooltipContent>
             {disabled ? 'Salve o kit antes de compartilhar' : 'Gerar link público do kit'}
