@@ -179,6 +179,54 @@ export function DevAccessDeniedPage({
     role === "agente" || role === "agent" || role === "vendedor";
   const isSupervisor = role === "supervisor";
 
+  // ---- Telemetria de UX (sem PII) -----------------------------------------
+  // Marca o instante em que a tela apareceu para calcular o tempo até a ação
+  // final (back/retry/fallback/request_access/abandon).
+  const viewedAtRef = useRef<number>(Date.now());
+  const finalizedRef = useRef<boolean>(false);
+  const sinceView = () => Date.now() - viewedAtRef.current;
+  const emit = (event: Parameters<typeof recordDevRouteTelemetry>[0]["event"]) =>
+    void recordDevRouteTelemetry({
+      event,
+      blockedPath,
+      userRole: typeof role === "string" ? role : null,
+      durationMs: sinceView(),
+    });
+  const finalize = (
+    event: Parameters<typeof recordDevRouteTelemetry>[0]["event"],
+  ) => {
+    if (finalizedRef.current) return;
+    finalizedRef.current = true;
+    emit(event);
+  };
+
+  // 1) Registra "view" uma única vez ao montar (sem duration).
+  useEffect(() => {
+    viewedAtRef.current = Date.now();
+    void recordDevRouteTelemetry({
+      event: "view",
+      blockedPath,
+      userRole: typeof role === "string" ? role : null,
+      durationMs: null,
+    });
+  }, [blockedPath, role]);
+
+  // 2) "abandon" via beacon ao desmontar/fechar a aba sem decisão registrada.
+  useEffect(() => {
+    const onHide = () => {
+      if (document.visibilityState === "hidden" && !finalizedRef.current) {
+        // Best-effort: a request pode não terminar — coalescing server-side cobre.
+        finalize("abandon");
+      }
+    };
+    document.addEventListener("visibilitychange", onHide);
+    return () => {
+      document.removeEventListener("visibilitychange", onHide);
+      if (!finalizedRef.current) finalize("abandon");
+    };
+  }, []);
+  // -------------------------------------------------------------------------
+
   const handleRequestAccess = async () => {
     const throttle = getThrottleStatus(user.id);
     if (throttle.throttled) {
