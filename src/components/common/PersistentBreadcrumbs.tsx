@@ -2,6 +2,8 @@ import { forwardRef, useCallback } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { ChevronRight, Home } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
+import { canNavigateTo, isDevOnlyPath } from "@/lib/navigation/restricted-routes";
 
 interface BreadcrumbItem {
   label: string;
@@ -47,6 +49,7 @@ export const PersistentBreadcrumbs = forwardRef<HTMLElement, PersistentBreadcrum
 }, ref) {
   const location = useLocation();
   const navigate = useNavigate();
+  const { isDev, isAdmin } = useAuth();
   
   const handleBack = useCallback(() => {
     if (window.history.length > 2) {
@@ -83,15 +86,22 @@ export const PersistentBreadcrumbs = forwardRef<HTMLElement, PersistentBreadcrum
         }
         items.push({ label: `#${part.slice(0, 8)}...` });
       } else {
+        // Esconder segmentos técnicos do breadcrumb para não-dev
+        // (defesa em profundidade — DevRoute também bloqueia o acesso).
+        if (!isDev && isDevOnlyPath(currentPath)) {
+          return;
+        }
+
         const label = routeLabels[currentPath] || part.charAt(0).toUpperCase() + part.slice(1);
         const nextPart = pathParts[index + 1];
         const nextIsSkippedId = nextPart && (
           /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(nextPart) ||
           /^\d+$/.test(nextPart)
         ) && (part === "produto" || part === "produtos" || part === "orcamentos");
-        
+
+        const navigable = canNavigateTo(currentPath, { isDev, isAdmin });
         const isLastVisible = index >= pathParts.length - 1 || nextIsSkippedId;
-        items.push(isLastVisible ? { label } : { label, href: currentPath });
+        items.push(isLastVisible || !navigable ? { label } : { label, href: currentPath });
       }
     });
     
