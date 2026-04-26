@@ -8,6 +8,7 @@
  * comportem como em produção.
  */
 import { describe, it, beforeEach, afterEach, vi } from "vitest";
+import * as React from "react";
 import { render, cleanup, fireEvent, screen } from "@testing-library/react";
 import { MemoryRouter, Routes, Route, Outlet } from "react-router-dom";
 import { ErrorBoundary } from "@/components/errors/ErrorBoundary";
