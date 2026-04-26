@@ -856,6 +856,75 @@ export type Database = {
           },
         ]
       }
+      e2e_cleanup_audit: {
+        Row: {
+          created_at: string
+          deleted_by_table: Json
+          dry_run: boolean
+          duration_ms: number
+          email: string
+          errors: Json
+          id: string
+          ip: string | null
+          reason: string | null
+          status: string
+          total_deleted: number
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          deleted_by_table?: Json
+          dry_run?: boolean
+          duration_ms?: number
+          email: string
+          errors?: Json
+          id?: string
+          ip?: string | null
+          reason?: string | null
+          status: string
+          total_deleted?: number
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          deleted_by_table?: Json
+          dry_run?: boolean
+          duration_ms?: number
+          email?: string
+          errors?: Json
+          id?: string
+          ip?: string | null
+          reason?: string | null
+          status?: string
+          total_deleted?: number
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      e2e_cleanup_rate_limit: {
+        Row: {
+          count: number
+          key: string
+          updated_at: string
+          window_start: string
+        }
+        Insert: {
+          count?: number
+          key: string
+          updated_at?: string
+          window_start?: string
+        }
+        Update: {
+          count?: number
+          key?: string
+          updated_at?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
       expert_conversations: {
         Row: {
           client_id: string | null
@@ -5048,6 +5117,14 @@ export type Database = {
       create_organization_with_owner: {
         Args: { _name: string; _slug: string }
         Returns: string
+      }
+      e2e_cleanup_check_rate_limit: {
+        Args: { p_key: string; p_max: number; p_window_seconds: number }
+        Returns: {
+          allowed: boolean
+          current_count: number
+          reset_in_seconds: number
+        }[]
       }
       enqueue_optimization: {
         Args: {
