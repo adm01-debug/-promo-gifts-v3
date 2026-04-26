@@ -9,6 +9,7 @@ import { McpAuditFeed } from "@/components/admin/security/keys/audit/McpAuditFee
 import { StepUpAttemptsPanel } from "@/components/admin/security/keys/audit/StepUpAttemptsPanel";
 import { AutoRevocationsPanel } from "@/components/admin/security/keys/audit/AutoRevocationsPanel";
 import { FullOpDiagnosticsPanel } from "@/components/admin/security/keys/diagnostics/FullOpDiagnosticsPanel";
+import { RlsAuditPanel } from "@/components/admin/security/RlsAuditPanel";
 
 export default function AdminSegurancaChavesPage() {
   return (
@@ -46,6 +47,7 @@ export default function AdminSegurancaChavesPage() {
             <TabsTrigger value="stepup">Tentativas FULL bloqueadas</TabsTrigger>
             <TabsTrigger value="auto-revoke">Auto-revogações</TabsTrigger>
             <TabsTrigger value="diagnostics">Diagnóstico</TabsTrigger>
+            <TabsTrigger value="rls-audit">Auditoria RLS</TabsTrigger>
           </TabsList>
           <TabsContent value="keys" className="m-0">
             <McpKeysList />
@@ -61,6 +63,9 @@ export default function AdminSegurancaChavesPage() {
           </TabsContent>
           <TabsContent value="diagnostics" className="m-0">
             <FullOpDiagnosticsPanel />
+          </TabsContent>
+          <TabsContent value="rls-audit" className="m-0">
+            <RlsAuditPanel />
           </TabsContent>
         </Tabs>
       </div>
