@@ -16,6 +16,8 @@ interface State {
   showDetails: boolean;
   retryCount: number;
   isAutoRecovering: boolean;
+  isClearingCache: boolean;
+  copied: boolean;
 }
 
 const MAX_AUTO_RETRIES = 2;
