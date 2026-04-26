@@ -56,13 +56,34 @@ export default defineConfig({
     {
       name: "chromium-public",
       use: { ...devices["Desktop Chrome"] },
-      testIgnore: [/fixtures\/auth\.setup\.ts/, /flows\//],
+      testIgnore: [/fixtures\/auth\.setup\.ts/, /flows\//, /routes\//],
     },
     {
       name: "chromium-authed",
       use: { ...devices["Desktop Chrome"], storageState: STORAGE_STATE },
       dependencies: ["setup"],
       testMatch: /flows\/.*\.spec\.ts/,
+    },
+    {
+      // Specs por rota — área pública (sem auth). Ex.: routes/public/*.spec.ts
+      name: "routes-public",
+      use: { ...devices["Desktop Chrome"] },
+      testMatch: /routes\/public\/.*\.spec\.ts/,
+    },
+    {
+      // Specs por rota — áreas autenticadas (app, quotes, admin).
+      name: "routes-authed",
+      use: { ...devices["Desktop Chrome"], storageState: STORAGE_STATE },
+      dependencies: ["setup"],
+      testMatch: /routes\/(app|quotes|admin)\/.*\.spec\.ts/,
+    },
+    {
+      // Versão mobile dos mesmos specs (apenas testes marcados @mobile rodam aqui).
+      name: "routes-mobile",
+      use: { ...devices["iPhone 13"], storageState: STORAGE_STATE },
+      dependencies: ["setup"],
+      testMatch: /routes\/(app|quotes|admin)\/.*\.spec\.ts/,
+      grep: /@mobile/,
     },
   ],
   webServer: process.env.E2E_BASE_URL
