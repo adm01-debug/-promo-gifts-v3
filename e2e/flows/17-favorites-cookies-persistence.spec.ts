@@ -141,7 +141,10 @@ test.describe("Fluxo: cookies/sessão e persistência de favoritos", () => {
     const storageBeforeReloadJson = JSON.stringify(storageBeforeReload);
 
     await page.reload({ waitUntil: "load" });
-    await page.waitForLoadState("networkidle", { timeout: 4_000 }).catch(() => {});
+    await page
+      .locator(Sel.favorites.title)
+      .first()
+      .waitFor({ state: "visible", timeout: 10_000 });
 
     // Cookies devem continuar IDÊNTICOS após o reload (sessão preservada)
     const cookiesAfterReload = await snapshotCookies(context);
