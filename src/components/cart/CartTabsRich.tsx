@@ -55,16 +55,20 @@ export function CartTabsRich({ carts, activeCartId, canCreateCart, onSelect, onN
                 <span className="text-[10px] text-muted-foreground">{statusCfg.label}</span>
               </div>
             </div>
-            <span className={cn(
-              "ml-1 inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-semibold tabular-nums",
-              hasItems
-                ? (isActive ? "bg-primary text-primary-foreground" : "bg-primary/15 text-primary")
-                : "bg-muted text-muted-foreground"
-            )}>
+            <span
+              data-testid="cart-tab-count"
+              data-count={cart.items.length}
+              className={cn(
+                "ml-1 inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-semibold tabular-nums",
+                hasItems
+                  ? (isActive ? "bg-primary text-primary-foreground" : "bg-primary/15 text-primary")
+                  : "bg-muted text-muted-foreground"
+              )}>
               {cart.items.length}
             </span>
             {needsFollowUp && (
               <span
+                data-testid="cart-tab-followup"
                 className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-warning text-warning-foreground flex items-center justify-center"
                 title={`Sem movimento há ${ageDays} dias`}
               >
@@ -77,6 +81,7 @@ export function CartTabsRich({ carts, activeCartId, canCreateCart, onSelect, onN
 
       {canCreateCart && (
         <button
+          data-testid="cart-tab-new"
           onClick={onNew}
           className={cn(
             "flex items-center gap-1.5 px-3 py-2 rounded-xl border border-dashed border-border/60",

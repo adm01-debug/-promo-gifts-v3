@@ -103,6 +103,7 @@ export const SortableCartItem = memo(function SortableCartItem({
           </button>
 
           <div
+            data-testid="cart-item-image"
             className="w-full h-full cursor-pointer"
             onClick={() => onNavigate(`/produto/${item.product_id}`)}
           >
@@ -118,6 +119,7 @@ export const SortableCartItem = memo(function SortableCartItem({
 
           {/* Quick view overlay */}
           <div
+            data-testid="cart-item-view"
             className="absolute inset-0 bg-background/60 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
             onClick={() => onNavigate(`/produto/${item.product_id}`)}
           >
@@ -131,39 +133,39 @@ export const SortableCartItem = memo(function SortableCartItem({
           <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="h-7 w-7 flex items-center justify-center rounded-lg bg-card/80 backdrop-blur-sm text-muted-foreground hover:text-foreground" aria-label="Mais opções">
+                <button data-testid="cart-item-menu-trigger" className="h-7 w-7 flex items-center justify-center rounded-lg bg-card/80 backdrop-blur-sm text-muted-foreground hover:text-foreground" aria-label="Mais opções">
                   <MoreHorizontal className="h-3.5 w-3.5" />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-52">
-                <DropdownMenuItem onClick={() => onNavigate(`/produto/${item.product_id}`)}>
+                <DropdownMenuItem data-testid="cart-item-action-view" onClick={() => onNavigate(`/produto/${item.product_id}`)}>
                   <Eye className="h-3.5 w-3.5 mr-2" /> Ver Produto
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onNavigate(`/simulador?product=${item.product_id}`)}>
+                <DropdownMenuItem data-testid="cart-item-action-simulate" onClick={() => onNavigate(`/simulador?product=${item.product_id}`)}>
                   <Calculator className="h-3.5 w-3.5 mr-2" /> Simular Personalização
                 </DropdownMenuItem>
                 {otherCarts.length > 0 && (
                   <>
                     <DropdownMenuSeparator />
                     <DropdownMenuSub>
-                      <DropdownMenuSubTrigger>
+                      <DropdownMenuSubTrigger data-testid="cart-item-action-move">
                         <MoveRight className="h-3.5 w-3.5 mr-2" /> Mover para...
                       </DropdownMenuSubTrigger>
                       <DropdownMenuSubContent>
                         {otherCarts.map(c => (
-                          <DropdownMenuItem key={c.id} onClick={() => onMoveToCart(item.id, c.id)}>
+                          <DropdownMenuItem key={c.id} data-testid="cart-item-move-target" data-target-cart-id={c.id} onClick={() => onMoveToCart(item.id, c.id)}>
                             {c.company_name}
                           </DropdownMenuItem>
                         ))}
                       </DropdownMenuSubContent>
                     </DropdownMenuSub>
                     <DropdownMenuSub>
-                      <DropdownMenuSubTrigger>
+                      <DropdownMenuSubTrigger data-testid="cart-item-action-duplicate">
                         <CopyPlus className="h-3.5 w-3.5 mr-2" /> Duplicar para...
                       </DropdownMenuSubTrigger>
                       <DropdownMenuSubContent>
                         {otherCarts.map(c => (
-                          <DropdownMenuItem key={c.id} onClick={() => onDuplicateToCart(item.id, c.id)}>
+                          <DropdownMenuItem key={c.id} data-testid="cart-item-duplicate-target" data-target-cart-id={c.id} onClick={() => onDuplicateToCart(item.id, c.id)}>
                             {c.company_name}
                           </DropdownMenuItem>
                         ))}
@@ -173,6 +175,7 @@ export const SortableCartItem = memo(function SortableCartItem({
                 )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
+                  data-testid="cart-item-action-remove"
                   className="text-destructive focus:text-destructive"
                   onClick={() => onRemove(item.id, item.product_name)}
                 >
@@ -184,12 +187,15 @@ export const SortableCartItem = memo(function SortableCartItem({
 
           {/* Stock alert badge */}
           {(isLowStock || isOutOfStock) && (
-            <div className={cn(
-              "absolute bottom-2 right-2 flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-medium",
-              isOutOfStock
-                ? "bg-destructive/90 text-destructive-foreground"
-                : "bg-warning/90 text-warning-foreground"
-            )}>
+            <div
+              data-testid={isOutOfStock ? "cart-item-stock-out" : "cart-item-stock-low"}
+              className={cn(
+                "absolute bottom-2 right-2 flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-medium",
+                isOutOfStock
+                  ? "bg-destructive/90 text-destructive-foreground"
+                  : "bg-warning/90 text-warning-foreground",
+              )}
+            >
               <AlertTriangle className="h-3 w-3" />
               {isOutOfStock ? "Sem estoque" : `Estoque: ${stock}`}
             </div>
@@ -197,9 +203,9 @@ export const SortableCartItem = memo(function SortableCartItem({
 
           {/* Color badge */}
           {item.color_name && (
-            <div className="absolute bottom-2 left-2 flex items-center gap-1.5 bg-card/90 backdrop-blur-sm rounded-full px-2 py-1">
+            <div data-testid="cart-item-color" className="absolute bottom-2 left-2 flex items-center gap-1.5 bg-card/90 backdrop-blur-sm rounded-full px-2 py-1">
               <div className="w-3 h-3 rounded-full border border-border/50" style={{ backgroundColor: item.color_hex || undefined }} />
-              <span className="text-[10px] font-medium">{item.color_name}</span>
+              <span data-testid="cart-item-color-name" className="text-[10px] font-medium">{item.color_name}</span>
             </div>
           )}
         </div>
@@ -207,21 +213,21 @@ export const SortableCartItem = memo(function SortableCartItem({
         {/* Product info */}
         <div className="p-3 space-y-2">
           {item.product_sku && (
-            <span className="text-[10px] text-muted-foreground font-mono">{item.product_sku}</span>
+            <span data-testid="cart-item-sku" className="text-[10px] text-muted-foreground font-mono">{item.product_sku}</span>
           )}
-          <h4 className="text-sm font-medium leading-tight line-clamp-2 min-h-[2.5rem]">
+          <h4 data-testid="cart-item-name" className="text-sm font-medium leading-tight line-clamp-2 min-h-[2.5rem]">
             {item.product_name}
           </h4>
 
           <div className="flex items-center justify-between">
-            <span className="text-sm font-bold text-primary tabular-nums">
+            <span data-testid="cart-item-unit-price" className="text-sm font-bold text-primary tabular-nums">
               {formatCurrency(item.product_price)}
             </span>
           </div>
 
           {/* Quantity stepper */}
           <div className="flex items-center justify-between pt-1 border-t border-border/30">
-            <div className="flex items-center gap-0 border border-border/50 rounded-lg overflow-hidden">
+            <div data-testid="cart-item-qty-stepper" className="flex items-center gap-0 border border-border/50 rounded-lg overflow-hidden">
               <button
                 data-testid="cart-qty-decrement"
                 aria-label="Diminuir quantidade"
@@ -235,12 +241,16 @@ export const SortableCartItem = memo(function SortableCartItem({
                 }}
               >
                 {item.quantity <= 1 ? (
-                  <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                  <Trash2 data-testid="cart-qty-remove-icon" className="h-3.5 w-3.5 text-destructive" />
                 ) : (
-                  <Minus className="h-3.5 w-3.5" />
+                  <Minus data-testid="cart-qty-decrement-icon" className="h-3.5 w-3.5" />
                 )}
               </button>
-              <span data-testid="cart-qty-badge" className="h-8 min-w-[40px] flex items-center justify-center text-xs font-bold tabular-nums bg-muted/20 border-x border-border/30">
+              <span
+                data-testid="cart-qty-badge"
+                data-qty={item.quantity}
+                className="h-8 min-w-[40px] flex items-center justify-center text-xs font-bold tabular-nums bg-muted/20 border-x border-border/30"
+              >
                 {item.quantity.toLocaleString("pt-BR")}
               </span>
               <button
@@ -252,7 +262,7 @@ export const SortableCartItem = memo(function SortableCartItem({
                 <Plus className="h-3.5 w-3.5" />
               </button>
             </div>
-            <span className="text-sm font-bold text-foreground tabular-nums">
+            <span data-testid="cart-item-total" className="text-sm font-bold text-foreground tabular-nums">
               {formatCurrency(itemTotal)}
             </span>
           </div>
@@ -260,7 +270,7 @@ export const SortableCartItem = memo(function SortableCartItem({
           {/* Collapsible notes */}
           <Collapsible open={notesOpen} onOpenChange={setNotesOpen}>
             <CollapsibleTrigger asChild>
-              <button className="flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors w-full" aria-label="Recolher">
+              <button data-testid="cart-item-notes-toggle" className="flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors w-full" aria-label="Recolher">
                 <MessageSquare className="h-3 w-3" />
                 {item.notes ? "Observações" : "Adicionar observação"}
                 <ChevronDown className={cn("h-3 w-3 ml-auto transition-transform", notesOpen && "rotate-180")} />
@@ -268,6 +278,7 @@ export const SortableCartItem = memo(function SortableCartItem({
             </CollapsibleTrigger>
             <CollapsibleContent className="pt-1.5">
               <Textarea
+                data-testid="cart-item-notes-input"
                 value={localNotes}
                 onChange={(e) => handleNotesChange(e.target.value)}
                 placeholder="Ex: personalizar com logo do cliente..."
