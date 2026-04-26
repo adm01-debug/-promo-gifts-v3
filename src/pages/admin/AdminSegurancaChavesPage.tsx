@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { McpKeysList } from "@/components/admin/security/keys/McpKeysList";
 import { McpAuditFeed } from "@/components/admin/security/keys/audit/McpAuditFeed";
+import { StepUpAttemptsPanel } from "@/components/admin/security/keys/audit/StepUpAttemptsPanel";
 
 export default function AdminSegurancaChavesPage() {
   return (
@@ -40,12 +41,16 @@ export default function AdminSegurancaChavesPage() {
           <TabsList>
             <TabsTrigger value="keys">Chaves</TabsTrigger>
             <TabsTrigger value="audit">Histórico de auditoria</TabsTrigger>
+            <TabsTrigger value="stepup">Tentativas FULL bloqueadas</TabsTrigger>
           </TabsList>
           <TabsContent value="keys" className="m-0">
             <McpKeysList />
           </TabsContent>
           <TabsContent value="audit" className="m-0">
             <McpAuditFeed />
+          </TabsContent>
+          <TabsContent value="stepup" className="m-0">
+            <StepUpAttemptsPanel />
           </TabsContent>
         </Tabs>
       </div>
