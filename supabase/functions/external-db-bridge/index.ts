@@ -2,6 +2,10 @@
 // Lean orchestrator — delegates config, aliases, telemetry and cache to shared modules.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
+import {
+  type ServiceClient,
+  castSupabaseClient,
+} from "../_shared/supabase-client-adapter.ts";
 import { z } from "https://deno.land/x/zod@v3.23.8/mod.ts";
 import { getCorsHeaders, handleCorsPreflightIfNeeded } from "../_shared/cors.ts";
 import {
