@@ -193,7 +193,16 @@ export function OptimizationQueuePanel() {
                     <td className="p-2"><StatusBadge status={it.status} /></td>
                     <td className="p-2 text-xs text-muted-foreground">{it.guardrail_status ?? '—'}</td>
                     <td className="p-2 text-[11px] text-muted-foreground whitespace-nowrap">
-                      {formatDistanceToNow(new Date(it.updated_at), { addSuffix: true, locale: ptBR })}
+                      {(() => {
+                        if (!it.updated_at) return '—';
+                        const d = new Date(it.updated_at);
+                        if (Number.isNaN(d.getTime())) return '—';
+                        try {
+                          return formatDistanceToNow(d, { addSuffix: true, locale: ptBR });
+                        } catch {
+                          return '—';
+                        }
+                      })()}
                     </td>
                     <td className="p-2 text-right">
                       <Button

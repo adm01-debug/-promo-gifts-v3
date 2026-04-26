@@ -1,122 +1,60 @@
-## Objetivo
+# Diagnóstico Completo — Relatório Priorizado
 
-Expandir a suíte E2E existente (Playwright) para cobrir fluxos críticos de cada módulo: **login**, **navegação**, **criação/edição**, **submissão** e **tratamento de erro** — com **evidências automáticas** (screenshot + vídeo + trace + DOM dump) gravadas em `e2e-artifacts/` quando um teste falha.
+Execução concluída em paralelo: `tsc`, `eslint`, `vitest`, 5 checkers customizados, typecheck de edge functions. Linter Supabase e security scan ficam para a execução em modo build (exigem tools deferidas com aprovação).
 
-A plataforma é fechada (sem signup público), então E2E que exercitam rotas protegidas dependem de um **usuário de teste seedado** via `storageState` autenticado uma única vez no `globalSetup`.
+## Resumo executivo
 
-## Arquitetura
+| Camada | Status | Métrica |
+|---|---|---|
+| TypeScript (`tsc --noEmit`) | ✅ Passou | 0 erros |
+| Checkers customizados (4) | ✅ Passou | asChild (1012), route-error, seller-scope, route-ref |
+| Vitest | 🔴 Falhou | **17 arquivos / 53 testes falhando** (270/4848 ok) |
+| Edge functions typecheck | 🔴 Falhou | **19/83 funções com erros TS** |
+| ESLint | 🟡 Débito | **1818 erros + 507 warnings** (muitos parsing errors em E2E/scripts) |
+| Linter Supabase | ⏸️ Pendente | requer tool deferida |
+| Security scan | ⏸️ Pendente | requer tool deferida |
 
-```text
-e2e/
-├── fixtures/
-│   ├── auth.setup.ts          # Login uma vez, salva storageState.json
-│   ├── test-base.ts           # Fixture custom: page autenticada + helpers
-│   └── selectors.ts           # SSOT de data-testid / roles
-├── helpers/
-│   ├── evidence.ts            # Captura screenshot+DOM+console em falha
-│   ├── nav.ts                 # Navegação resiliente (waits robustos)
-│   └── forms.ts               # Helpers de preenchimento + validação
-├── flows/
-│   ├── 01-auth.spec.ts        # Login OK / inválido / lockout / reset
-│   ├── 02-navigation.spec.ts  # Sidebar, deep-links, 404, voltar
-│   ├── 03-products.spec.ts    # Listar, filtrar, abrir detalhe, favoritar
-│   ├── 04-quotes.spec.ts      # Criar → editar → submeter → erro
-│   ├── 05-orders.spec.ts      # Listar, abrir, atualizar status
-│   ├── 06-kit-builder.spec.ts # Wizard 4 etapas + validação + salvar
-│   ├── 07-collections.spec.ts # CRUD coleção + share público
-│   ├── 08-favorites.spec.ts   # Adicionar, remover, lista pública
-│   ├── 09-simulator.spec.ts   # Simulação de preço + erro
-│   ├── 10-admin.spec.ts       # Acesso admin + guards de role
-│   └── 11-errors.spec.ts      # 503 edge, offline, RLS denial
-└── (existentes mantidos: protected-routes, login, auth, etc.)
+## P0 — Bloqueadores de produção
 
-playwright.config.ts            # Atualizado: reporters, evidências, projects
-.github/workflows/e2e.yml       # Job CI dedicado (opcional, gated)
-```
+### 1. `OptimizationQueuePanel.tsx:196` — RangeError: Invalid time value
+`formatDistanceToNow(new Date(it.updated_at))` quebra quando `updated_at` é null/inválido. Causa **uncaught exception** repetida no AdminTelemetriaPage e derruba múltiplos cenários do dia-a-dia (fila de otimização vazia, item recém-criado sem timestamp, dados legados).
+**Fix:** guard `it.updated_at ? new Date(it.updated_at) : null` + fallback "—".
 
-## Mudanças principais
+### 2. 19 edge functions com erros de typecheck
+Padrão recorrente: `'error' is of type 'unknown'` em catches (ex: `send-transactional-email:197`). Risco real: deploy pode falhar e respostas de erro vazam `undefined`.
+**Fix:** `error instanceof Error ? error.message : String(error)` em todos os catches afetados. Lista completa via `node scripts/typecheck-edge-functions.mjs`.
 
-### 1. `playwright.config.ts`
-- Reporters em paralelo: `html` + `list` + `json` (para CI parsing) + `junit`
-- `use`: `trace: 'retain-on-failure'`, `screenshot: 'only-on-failure'`, `video: 'retain-on-failure'`
-- `outputDir: 'e2e-artifacts/'` para evidências consolidadas
-- 2 projects:
-  - `setup` (roda `auth.setup.ts`, sem auth)
-  - `chromium-authed` (depende de setup, usa `storageState.json`)
-- `globalTimeout` e `expect.timeout` ajustados
+### 3. 53 testes falhando em 17 arquivos
+Além do Telemetria, há regressões pendentes das ondas anteriores (MagicUp sem `AriaLiveProvider`, TechniqueCard timeout, MockupHistoryPanel). Precisa varredura completa do output para enumerar todos.
 
-### 2. `fixtures/auth.setup.ts`
-- Lê `E2E_USER_EMAIL` / `E2E_USER_PASSWORD` (secrets) ou pula com `test.skip` se ausentes
-- Faz login real, aguarda redirect para `/`, salva `storageState.json`
-- Se secrets faltarem, todos os specs autenticados são marcados `skip` com mensagem clara — CI verde, dev local pode rodar com `.env.e2e`
+## P1 — Alta prioridade
 
-### 3. `fixtures/test-base.ts`
-Estende `test` do Playwright com:
-- `authedPage` — página com sessão pronta
-- `evidence` — handle que registra screenshot+console+network ao falhar
-- `afterEach` global: se `testInfo.status !== testInfo.expectedStatus`, dispara `evidence.capture()`
+### 4. ESLint com parsing errors em E2E e scripts
+Arquivos `.ts` em `e2e/`, `scripts/`, `tests/` não estão cobertos pelo parser TS do `eslint.config.js` → ~290 `no-undef` falsos + parsing errors mascaram problemas reais. **Fix:** estender `parserOptions.project` ou adicionar override para esses globs.
 
-### 4. `helpers/evidence.ts`
-Em falha, grava em `e2e-artifacts/<spec>/<test>/`:
-- `screenshot.png` (full page)
-- `dom.html` (snapshot)
-- `console.json` (logs capturados)
-- `network.har` (já automático via `recordHar`)
-- `meta.json` (URL, viewport, user agent, timestamp)
+### 5. Top regras violadas (técnico, não bloqueia)
+- 513 `@typescript-eslint/no-unused-vars`
+- 293 `@typescript-eslint/no-non-null-assertion`
+- 257 `@typescript-eslint/no-explicit-any`
+- 147 `react-hooks/exhaustive-deps` ⚠️ (pode causar bugs sutis de stale closure)
 
-Anexa todos via `testInfo.attach()` para aparecerem no relatório HTML.
+## P2 — Pendente de execução (requer modo build)
 
-### 5. Specs de fluxo (11 arquivos)
-Cada spec segue o mesmo template:
-- `describe(modulo)` com 5 blocos: navegação → carregamento → criação/edição → submissão → erro
-- Usa `getByRole`/`getByTestId` (não selectors frágeis)
-- Cada teste é independente (limpa estado se necessário) e **idempotente** (deletar entidades criadas no `afterEach`)
-- Casos de erro: forçar 503 via `page.route()` mockando `external-db-bridge`, validar UI de erro
+### 6. Linter Supabase (`supabase--linter`)
+Verifica RLS desabilitado, policies permissivas, índices ausentes em FKs. Não rodado nesta passagem.
 
-### 6. CI (`.github/workflows/e2e.yml`)
-Job opcional (não-bloqueante inicialmente):
-- Instala Playwright browsers (cache)
-- Build do app + serve estático
-- Roda suite `chromium-authed` se `E2E_USER_EMAIL` secret existir, senão só specs públicos
-- Upload de `e2e-artifacts/` e `playwright-report/` como artifacts (retention 7 dias)
+### 7. Security scan (`security--run_security_scan`)
+Detecção de exposição de dados, RLS faltante, misconfigs.
 
-### 7. `package.json` — novos scripts
-- `test:e2e:ui` — modo UI
-- `test:e2e:headed` — com browser visível
-- `test:e2e:debug` — com inspector
-- `test:e2e:report` — abre relatório HTML
+### 8. Dependency/CVE scan
+`npm audit --production` + cross-check com lockfile.
 
-## Cobertura por módulo
+## Plano de execução pós-aprovação
 
-| Módulo | Login | Nav | Criar | Editar | Submeter | Erro |
-|---|---|---|---|---|---|---|
-| Auth | ✓ | — | — | — | ✓ | ✓ |
-| Produtos | — | ✓ | — | — | ✓ filtros | ✓ |
-| Orçamentos | — | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Pedidos | — | ✓ | — | ✓ status | ✓ | ✓ |
-| Kit Builder | — | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Coleções | — | ✓ | ✓ | ✓ | ✓ share | ✓ |
-| Favoritos | — | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Simulador | — | ✓ | ✓ | — | ✓ | ✓ |
-| Admin | — | ✓ guards | — | — | — | ✓ 403 |
-| Erros globais | — | — | — | — | — | ✓ 503/offline |
+Após aprovar este plano, em modo build vou:
 
-## Pontos a confirmar antes de implementar
+1. **Onda P0** — corrigir `OptimizationQueuePanel` + as 19 edge functions (loop nos catches) + enumerar e corrigir os 53 testes em batches por arquivo. Revalidar com `vitest run` e `typecheck-edge-functions.mjs` até verde.
+2. **Onda P1** — ajustar `eslint.config.js` para cobrir e2e/scripts/tests, rodar `eslint --fix`, atacar manualmente `exhaustive-deps` (real risco de bug) deixando `any`/`non-null-assertion`/`unused-vars` como débito mensurado.
+3. **Onda P2** — executar `supabase--linter` + `security--run_security_scan` + `npm audit`, abrir findings priorizados e remediar críticos.
 
-1. **Credenciais de teste**: posso adicionar pedido de secrets `E2E_USER_EMAIL` e `E2E_USER_PASSWORD` (e opcional `E2E_ADMIN_EMAIL`/`E2E_ADMIN_PASSWORD` para specs admin)? Sem eles os specs autenticados ficam `skip`.
-2. **Cleanup**: posso usar service-role via edge function dedicada `e2e-cleanup` (gated por header secreto) para apagar entidades criadas pelos testes? Alternativa: criar tudo em rascunho e descartar.
-3. **CI gate**: o job E2E deve **falhar o build** ou rodar como informativo (artifacts only) na primeira versão?
-
-## Não-objetivos (escopo fora)
-
-- Visual regression (screenshots-as-source-of-truth) — ficar para depois
-- Mobile viewports — adicionar em onda futura
-- Cross-browser (Firefox/WebKit) — começar só Chromium
-- Testes contra produção — só preview/staging
-
-## Resultado esperado
-
-- ~60–80 testes E2E novos cobrindo os 10 módulos críticos
-- Relatório HTML navegável (`playwright-report/index.html`)
-- Pasta `e2e-artifacts/` com evidências completas em qualquer falha
-- Job CI opcional pronto para ser ligado quando secrets forem configuradas
+Entrego ao final um relatório final com diff de severidade (antes/depois) e gate verde para produção.
