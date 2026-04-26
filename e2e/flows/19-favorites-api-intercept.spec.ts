@@ -232,12 +232,51 @@ test.describe("Fluxo: interceptação API favorite_items + validação pós-relo
       const apiCallsBeforeReload = spy.captured.length;
       await page.reload({ waitUntil: "load" });
       await page.waitForLoadState("networkidle", { timeout: 5_000 }).catch(() => {});
+
+      // 6.1. Header — contagem (countItems) reidratada
       await expect
         .poll(() => readFavoritesCount(page), {
-          message: "header deveria reidratar para original.length + 1 após reload",
+          message: "header countItems deveria reidratar para original.length + 1 após reload",
           timeout: 10_000,
         })
         .toBe(original.length + 1);
+
+      // 6.2. Header — ícone visível e badge `count` (se exibido) coerente
+      const headerIcon = page.locator(Sel.favorites.icon).first();
+      if (await headerIcon.count()) {
+        await expect(headerIcon, "ícone de favoritos no header deveria estar visível").toBeVisible();
+      }
+      const headerCount = page.locator(Sel.favorites.count).first();
+      if (await headerCount.count()) {
+        await expect
+          .poll(
+            async () => Number.parseInt((await headerCount.innerText()).trim(), 10) || 0,
+            {
+              message: "badge `favorites-count` no header deveria refletir o total pós-reload",
+              timeout: 8_000,
+            },
+          )
+          .toBe(original.length + 1);
+      }
+
+      // 6.3. Lista /favoritos — container e cards renderizados
+      await expect(
+        page.locator(Sel.favorites.list).first(),
+        "container `favorites-list` deveria estar visível pós-reload",
+      ).toBeVisible({ timeout: 10_000 });
+      await expect
+        .poll(() => page.locator(Sel.favorites.item).count(), {
+          message: "qtd. de cards `favorite-item` deveria igualar storage pós-reload",
+          timeout: 10_000,
+        })
+        .toBe(original.length + 1);
+
+      // 6.4. Card específico do item recém-favoritado deve estar presente
+      await expect(
+        page.locator(`[data-product-id="${addedId}"]`).first(),
+        `card do produto ${addedId} deveria estar renderizado em /favoritos pós-reload`,
+      ).toBeVisible({ timeout: 10_000 });
+
       const reloadCalls = spy.captured.slice(apiCallsBeforeReload);
 
       // ============================================================
