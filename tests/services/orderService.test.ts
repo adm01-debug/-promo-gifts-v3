@@ -7,7 +7,7 @@
  * `quotes` aplica filtro `id = quoteId` (não amplia escopo).
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createSupabaseMock } from "@/../tests/helpers/supabase-mock";
+import { createSupabaseMock } from "../helpers/supabase-mock";
 
 vi.mock("@/lib/logger", () => ({ logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn() } }));
 
