@@ -5144,6 +5144,8 @@ export type Database = {
       validate_mcp_key: {
         Args: { _key_plain: string }
         Returns: {
+          block_reason: string
+          created_by: string
           key_id: string
           scopes: string[]
         }[]
