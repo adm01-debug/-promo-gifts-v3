@@ -535,8 +535,10 @@ async function handleBatch(body: any, req: Request, corsHeaders: Record<string, 
     return jsonResponse({ error: 'Batch limited to 10 queries max' }, 400, corsHeaders);
   }
 
-  const externalSupabase = await getExternalClient(corsHeaders);
-  if (externalSupabase instanceof Response) return externalSupabase;
+  const externalSupabaseOrResp = await getExternalClient(corsHeaders);
+  if (externalSupabaseOrResp instanceof Response) return externalSupabaseOrResp;
+  // Narrow estável dentro de closures async (TS perde narrow em vars que mudam globalmente).
+  const externalSupabase: ServiceClient = externalSupabaseOrResp;
 
   const results = await Promise.all(
     queries.map(async (q, idx) => {
