@@ -1555,7 +1555,7 @@ function getCachedResponse(key: string): string | null {
   return entry.payload;
 }
 
-function setCached(key: string, payload: string): void {
+function setCachedResponse(key: string, payload: string): void {
   if (responseCache.size >= CACHE_MAX_ENTRIES) {
     // Evict o mais antigo (primeiro no Map)
     const oldestKey = responseCache.keys().next().value;
