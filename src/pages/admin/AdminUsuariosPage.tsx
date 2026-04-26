@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
@@ -7,7 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, UserCog, Loader2, KeyRound, Plus, Search, Percent } from "lucide-react";
+import { Users, UserCog, Loader2, KeyRound, Plus, Search, Percent, ArrowUpCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +22,7 @@ import { RoleChangeDialog } from "@/components/admin/users/RoleChangeDialog";
 import { EditUserDialog } from "@/components/admin/users/EditUserDialog";
 import { CreateUserDialog } from "@/components/admin/users/CreateUserDialog";
 import { DeleteUserDialog } from "@/components/admin/users/DeleteUserDialog";
+import { PromotionDialog } from "@/components/admin/users/PromotionDialog";
 import { type UserWithRole } from "@/components/admin/users/types";
 
 const VALID_TABS = ["users", "password-reset", "discounts"] as const;
