@@ -506,7 +506,14 @@ Deno.serve((req) => {
     const totalDuration = Math.round(performance.now() - requestStartTime);
     const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
     console.error(`❌ [telemetry] [req_id=${requestId}] Request failed after ${totalDuration}ms: ${errorMessage}`);
-    return jsonResponse({ error: errorMessage }, 500, corsHeaders);
+    // Devolve 200 + flag fallback para o cliente acionar retry/degradação
+    // sem que o supabase-js trate como exceção fatal e a UI quebre.
+    return jsonResponse({
+      error: 'SERVICE_FAILED',
+      message: errorMessage,
+      fallback: true,
+      request_id: requestId,
+    }, 200, corsHeaders);
   }
   });
 });
