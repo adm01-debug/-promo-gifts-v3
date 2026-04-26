@@ -1,65 +1,27 @@
 // connections-auto-test: cron-driven (every 30min). Re-tests every active
 // connection in `external_connections` and updates last_test_* fields +
 // inserts a row in `connection_test_history` with triggered_by='cron'.
-import { createClient, type SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { runConnectionTest, type ConnectionType, isTransientFailure } from "../_shared/connection-test-runner.ts";
 import { resolveTimeout } from "../_shared/connection-timeouts.ts";
+import {
+  type CompatibleSupabaseClient,
+  type ServiceClient,
+  assertServiceClient as sharedAssertServiceClient,
+  castSupabaseClient,
+} from "../_shared/supabase-client-adapter.ts";
 
 // ────────────────────────────────────────────────────────────────────────────
-// Schema-validated service client
+// Schema-validated service client (re-exports do adapter compartilhado)
 // ────────────────────────────────────────────────────────────────────────────
-// `runConnectionTest` exige um `SupabaseClient` com schema 'public' (default).
-// Antes processBatch aceitava `any`, o que silenciava `TS2345 ('public' not
-// assignable to never)` mas removia toda validação. Agora processBatch é
-// GENÉRICO em (Database, SchemaName) — o caller pode passar
-// `SupabaseClient<MyDB, 'public'>` ou variações, desde que mantenha a forma
-// estrutural de SupabaseClient. Internamente narrow para o alias
-// `ServiceClient` (default `SupabaseClient`) antes de repassar para
-// runConnectionTest, preservando compatibilidade total.
-
-/** Alias canônico do client esperado por runConnectionTest (schema 'public'). */
-export type ServiceClient = SupabaseClient;
-
-/**
- * Tipo aceito por processBatch — genérico para evitar `any` mas
- * estruturalmente compatível com SupabaseClient (schema 'public' por padrão).
- *
- * @template Database  Tipo gerado do schema (default `any` mantém retro-compat).
- * @template SchemaName Nome do schema; default `"public"` cobre 100% do uso atual.
- */
-export type CompatibleSupabaseClient<
-  // deno-lint-ignore no-explicit-any
-  Database = any,
-  SchemaName extends string & keyof Database = "public" extends keyof Database
-    ? "public" & string
-    : string & keyof Database,
-> = SupabaseClient<Database, SchemaName>;
-
-/**
- * Runtime guard: garante que o objeto recebido é um SupabaseClient válido
- * com a forma esperada (`.from`, `.rpc`, `.auth`). Lança erro descritivo
- * se a forma divergir — protege contra:
- *   - createClient chamado com genéricos diferentes (mismatch de schema)
- *   - mock/stub passado por engano em testes
- *   - objeto undefined/null por bug de inicialização
- */
+// As definições agora vivem em `_shared/supabase-client-adapter.ts` para que
+// outras edge functions possam reusar o mesmo padrão sem duplicação.
+// Re-exportamos aqui para preservar a API pública desta função (callers
+// internos continuam importando `ServiceClient` / `CompatibleSupabaseClient` /
+// `assertServiceClient` deste módulo).
+export type { CompatibleSupabaseClient, ServiceClient };
 export function assertServiceClient(client: unknown): asserts client is ServiceClient {
-  if (!client || typeof client !== "object") {
-    throw new TypeError(
-      `[connections-auto-test] service client inválido: esperado SupabaseClient, recebeu ${client === null ? "null" : typeof client}`,
-    );
-  }
-  const c = client as Record<string, unknown>;
-  const missing: string[] = [];
-  if (typeof c.from !== "function") missing.push(".from()");
-  if (typeof c.rpc !== "function") missing.push(".rpc()");
-  if (typeof c.auth !== "object" || c.auth === null) missing.push(".auth");
-  if (missing.length > 0) {
-    throw new TypeError(
-      `[connections-auto-test] service client não satisfaz a forma de SupabaseClient — faltando: ${missing.join(", ")}. ` +
-      `Verifique se createClient<Database, 'public'> está alinhado com o schema esperado por runConnectionTest.`,
-    );
-  }
+  sharedAssertServiceClient(client, "connections-auto-test");
 }
 
 const corsHeaders = {
@@ -94,9 +56,8 @@ export async function processBatch<
   batch: ActiveConnection[],
 ) {
   // runConnectionTest exige `SupabaseClient` com schema 'public' (default).
-  // Como CompatibleSupabaseClient<_, 'public'> é estruturalmente equivalente,
-  // narrow uma única vez aqui — evita repetir cast em cada call site.
-  const serviceForRunner = service as unknown as ServiceClient;
+  // O adapter compartilhado faz o narrow estruturalmente seguro uma única vez.
+  const serviceForRunner = castSupabaseClient(service);
 
   return Promise.all(batch.map(async (conn) => {
     const t0 = Date.now();
