@@ -695,8 +695,9 @@ async function handleRpc(body: any, corsHeaders: Record<string, string>) {
 
   console.log(`RPC: ${rpcName}`, rpcParams);
   const rpcStart = performance.now();
-  const { data: rpcData, error: rpcError } = await externalSupabase.rpc(rpcName, rpcParams || {});
+  const { data: rpcDataRaw, error: rpcError } = await externalSupabase.rpc(rpcName, rpcParams || {});
   const rpcDuration = Math.round(performance.now() - rpcStart);
+  const rpcData = rpcDataRaw as Record<string, unknown> | unknown[] | null;
 
   if (rpcError) {
     emitTelemetry({ operation: 'rpc', rpcName, durationMs: rpcDuration, status: 'error', error: rpcError.message });
@@ -706,10 +707,11 @@ async function handleRpc(body: any, corsHeaders: Record<string, string>) {
   emitTelemetry({ operation: 'rpc', rpcName, durationMs: rpcDuration, status: classifyDuration(rpcDuration), recordCount: Array.isArray(rpcData) ? rpcData.length : 1 });
 
   // Enrich legacy flat responses from fn_get_customization_price
-  let enrichedData = rpcData;
-  const isLegacyFlat = rpcData?.success && rpcData?.tabela_codigo && !rpcData?.tabela;
-  if (rpcName === 'fn_get_customization_price' && isLegacyFlat) {
-    enrichedData = await enrichCustomizationPrice(externalSupabase, rpcData);
+  let enrichedData: unknown = rpcData;
+  const flat = (rpcData && !Array.isArray(rpcData)) ? rpcData as Record<string, unknown> : null;
+  const isLegacyFlat = !!(flat && flat.success && flat.tabela_codigo && !flat.tabela);
+  if (rpcName === 'fn_get_customization_price' && isLegacyFlat && flat) {
+    enrichedData = await enrichCustomizationPrice(externalSupabase, flat);
   }
 
   return jsonResponse({ success: true, data: enrichedData }, 200, corsHeaders);
