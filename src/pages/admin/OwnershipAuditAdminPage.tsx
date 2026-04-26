@@ -151,6 +151,7 @@ export default function OwnershipAuditAdminPage() {
                 {current?.triggered_by ?? "—"} · {current?.duration_ms ?? 0} ms
               </p>
             </CardContent>
+          </Card>
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-2">
