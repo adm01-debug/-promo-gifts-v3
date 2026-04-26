@@ -101,7 +101,7 @@ export function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="forgot-password-screen">
       <div className="text-center space-y-1">
         <h2 className="font-display text-xl font-semibold text-foreground">Esqueceu sua senha?</h2>
         <p className="text-sm text-muted-foreground">
