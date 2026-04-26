@@ -233,9 +233,7 @@ test.describe("Fluxo: Carrinho → Checkout", () => {
       },
     );
 
-    const checkoutBtn = page
-      .getByRole("button", { name: /gerar orçamento/i })
-      .first();
+    const checkoutBtn = page.locator(Sel.cart.checkoutCta).first();
 
     if (!(await checkoutBtn.isVisible().catch(() => false))) {
       test.skip(true, "Sem item/carrinho disponível para testar checkout com falha");
@@ -245,7 +243,7 @@ test.describe("Fluxo: Carrinho → Checkout", () => {
     await checkoutBtn.click();
 
     const confirmBtn = page
-      .locator('[role="alertdialog"], [role="dialog"]')
+      .locator(Sel.cart.confirmDialog)
       .last()
       .getByRole("button", { name: /confirmar|gerar|continuar|ok/i })
       .first();
