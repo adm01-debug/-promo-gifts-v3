@@ -67,7 +67,7 @@ export type InvokeFullScopeResult<TData> =
    * Erro de step-up que não pôde ser auto-resolvido. Toast com CTA já foi
    * exibido pelo helper; caller normalmente apenas faz `return`.
    */
-  | { status: "step_up_error"; kind: "step_up_required" | "step_up_invalid" }
+  | { status: "step_up_error"; kind: "step_up_required" | "step_up_invalid" | "dev_role_required" }
   /** Erro genérico (rede, validação, 500). Caller decide UI. */
   | { status: "error"; error: unknown; data: unknown };
 
@@ -96,7 +96,7 @@ export async function invokeFullScopeFunction<
     });
 
     // Detecta step-up errors e exibe toast com CTA "Refazer verificação".
-    let stepUpKind: "step_up_required" | "step_up_invalid" | null = null;
+    let stepUpKind: "step_up_required" | "step_up_invalid" | "dev_role_required" | null = null;
     const handled = handleStepUpError(data, error, () => {
       // Quando o usuário clica em "Refazer verificação", refaz o fluxo
       // completo (novo challenge + novo invoke). Resultado descartado —
@@ -108,7 +108,19 @@ export async function invokeFullScopeFunction<
 
     if (handled) {
       // `handleStepUpError` já consumiu o erro; identifica o tipo p/ retry automático.
-      const errStr = (data as { error?: string } | null | undefined)?.error;
+      const errStr = (data as { error?: string; reason?: string } | null | undefined)?.error;
+      const reasonStr = (data as { reason?: string } | null | undefined)?.reason;
+      if (
+        reasonStr === "dev_role_required" ||
+        reasonStr === "not_dev" ||
+        reasonStr === "not_dev_at_edge" ||
+        errStr === "MCP_KEY_AUTO_REVOKED_DEV_LOST" ||
+        errStr === "dev_role_required"
+      ) {
+        // Perda de role dev: NUNCA auto-retry. O usuário precisa
+        // recuperar o papel manualmente antes de tentar novamente.
+        return { status: "step_up_error", kind: "dev_role_required" };
+      }
       stepUpKind = errStr === "step_up_invalid" ? "step_up_invalid" : "step_up_required";
 
       if (stepUpKind === "step_up_invalid" && autoRetryOnInvalid && retriesLeft > 0) {
