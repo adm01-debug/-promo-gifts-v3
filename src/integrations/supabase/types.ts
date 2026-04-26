@@ -2893,6 +2893,62 @@ export type Database = {
         }
         Relationships: []
       }
+      ownership_repair_logs: {
+        Row: {
+          action: string
+          created_at: string
+          dry_run: boolean
+          error_message: string | null
+          id: string
+          issue_type: string
+          notes: string | null
+          owner_column: string
+          report_id: string | null
+          rows_affected: number
+          table_name: string
+          triggered_by: string | null
+          triggered_by_label: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          dry_run?: boolean
+          error_message?: string | null
+          id?: string
+          issue_type: string
+          notes?: string | null
+          owner_column: string
+          report_id?: string | null
+          rows_affected?: number
+          table_name: string
+          triggered_by?: string | null
+          triggered_by_label?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          dry_run?: boolean
+          error_message?: string | null
+          id?: string
+          issue_type?: string
+          notes?: string | null
+          owner_column?: string
+          report_id?: string | null
+          rows_affected?: number
+          table_name?: string
+          triggered_by?: string | null
+          triggered_by_label?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ownership_repair_logs_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "ownership_audit_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       permissions: {
         Row: {
           category: string
@@ -5319,6 +5375,14 @@ export type Database = {
           _ua: string
         }
         Returns: undefined
+      }
+      repair_ownership_orphans: {
+        Args: {
+          _dry_run?: boolean
+          _report_id?: string
+          _triggered_by_label?: string
+        }
+        Returns: Json
       }
       request_step_up_challenge: {
         Args: {
