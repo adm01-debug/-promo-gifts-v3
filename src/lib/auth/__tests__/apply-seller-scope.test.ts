@@ -36,9 +36,9 @@ describe("applySellerScope", () => {
     expect(b.eq).not.toHaveBeenCalled();
   });
 
-  it("NÃO aplica filtro quando escopo é supervisor (delegado ao RLS)", () => {
+  it("NÃO aplica filtro quando escopo é team (delegado ao RLS por organization_id)", () => {
     const b = makeBuilder();
-    applySellerScope(b, { scope: "supervisor", userId: "user-1" });
+    applySellerScope(b, { scope: "team", userId: "user-1" });
     expect(b.eq).not.toHaveBeenCalled();
   });
 
