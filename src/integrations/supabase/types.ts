@@ -4863,6 +4863,7 @@ export type Database = {
       }
     }
     Functions: {
+      _can_act_on_behalf_of_others: { Args: never; Returns: boolean }
       acquire_ai_quota: {
         Args: { _function_name: string; _model: string; _user_id: string }
         Returns: Json
