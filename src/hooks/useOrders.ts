@@ -4,6 +4,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { logRlsDenial } from "@/lib/security/rls-denial-logger";
 
 export interface OrderRow {
   id: string;
@@ -44,7 +45,15 @@ export function useOrdersList(sellerId?: string, scope: "self" | "team" | "all" 
       let q = supabase.from("orders").select("*").order("created_at", { ascending: false });
       if (scope === "self" && sellerId) q = q.eq("seller_id", sellerId);
       const { data, error } = await q;
-      if (error) throw error;
+      if (error) {
+        await logRlsDenial(error, {
+          table: "orders", op: "SELECT",
+          endpoint: "useOrdersList",
+          querySummary: `scope=${scope} sellerId=${sellerId ?? "?"}`,
+          policyHint: "orders_select_scope",
+        });
+        throw error;
+      }
       return (data ?? []) as OrderRow[];
     },
   });
@@ -76,7 +85,15 @@ export function useUpdateOrder(orderId?: string) {
         .from("orders")
         .update({ ...patch, updated_at: new Date().toISOString() })
         .eq("id", orderId!);
-      if (error) throw error;
+      if (error) {
+        await logRlsDenial(error, {
+          table: "orders", op: "UPDATE",
+          endpoint: "useUpdateOrder",
+          targetId: orderId,
+          policyHint: "orders_update_scope",
+        });
+        throw error;
+      }
     },
     onSuccess: () => {
       toast.success("Pedido atualizado");

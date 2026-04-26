@@ -5,6 +5,7 @@ import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { logRlsDenial } from "@/lib/security/rls-denial-logger";
 
 export interface DiscountApprovalRequest {
   id: string;
@@ -58,7 +59,17 @@ export function useDiscountApproval() {
           max_allowed_percent: maxAllowedPercent,
           seller_notes: sellerNotes || null,
         });
-      if (error) throw error;
+      if (error) {
+        await logRlsDenial(error, {
+          table: "discount_approval_requests", op: "INSERT",
+          endpoint: "useDiscountApproval.requestApproval",
+          targetId: quoteId,
+          targetSellerId: user.id,
+          policyHint: "dar_insert_scope",
+          querySummary: `requestedPct=${requestedPercent}`,
+        });
+        throw error;
+      }
 
       // Set quote status to pending_approval so UI shows correct state
       await supabase
@@ -165,7 +176,16 @@ export function useDiscountApproval() {
         .eq("id", requestId)
         .select()
         .single();
-      if (updateError) throw updateError;
+      if (updateError) {
+        await logRlsDenial(updateError, {
+          table: "discount_approval_requests", op: "UPDATE",
+          endpoint: "useDiscountApproval.respondToApproval",
+          targetId: requestId,
+          policyHint: "dar_update_scope",
+          querySummary: `decision=${approved ? "approved" : "rejected"}`,
+        });
+        throw updateError;
+      }
 
       const typedReq = request as DiscountApprovalRequest;
 
@@ -229,7 +249,14 @@ export function useDiscountApproval() {
         .from("discount_approval_requests")
         .select("*")
         .order("created_at", { ascending: false });
-      if (error) throw error;
+      if (error) {
+        await logRlsDenial(error, {
+          table: "discount_approval_requests", op: "SELECT",
+          endpoint: "useDiscountApproval.fetchPendingRequests",
+          policyHint: "dar_select_scope",
+        });
+        throw error;
+      }
       const requests = (data || []) as DiscountApprovalRequest[];
 
       if (requests.length === 0) { setPendingRequests([]); return; }
