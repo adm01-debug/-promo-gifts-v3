@@ -13,6 +13,8 @@ import { AlertTriangle, Loader2, RefreshCw, WifiOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCloudStatus } from '@/hooks/useCloudStatus';
 
+type CloudStatusVariant = 'warming' | 'degraded' | 'down';
+
 export function CloudStatusBanner() {
   const { status, retry, isChecking } = useCloudStatus();
   const visible = status === 'warming' || status === 'degraded' || status === 'down';
@@ -31,7 +33,7 @@ export function CloudStatusBanner() {
           className={getContainerClass(status)}
         >
           <div className="container mx-auto flex items-center gap-3 px-4 py-2 text-sm">
-            <Icon status={status} />
+            {renderIcon(status)}
             <span className="flex-1">{getMessage(status)}</span>
             {status === 'down' && (
               <Button
@@ -65,7 +67,12 @@ function getMessage(status: 'warming' | 'degraded' | 'down' | string): string {
   return 'Backend reiniciando, aguarde alguns segundos…';
 }
 
-function Icon({ status }: { status: string }) {
+/**
+ * Renderiza o ícone correto sem criar um function component intermediário
+ * (lucide-react já é forwardRef, então deixamos o ref fluir naturalmente
+ * caso framer-motion / motion.div o injete em descendentes).
+ */
+function renderIcon(status: CloudStatusVariant | string) {
   if (status === 'down') return <WifiOff className="h-4 w-4 shrink-0" aria-hidden />;
   if (status === 'degraded') return <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden />;
   return <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden />;
