@@ -20,6 +20,7 @@ export function DiscountApprovalQueue() {
     queryKey: ["discount-approval-queue"],
     queryFn: async () => {
       const { data, error } = await supabase
+        // rls-allow: admin-only via has_role; RLS filtra
         .from("discount_approval_requests")
         .select("*, quotes:quote_id(quote_number, client_name, client_company, total, subtotal, discount_percent, negotiation_markup_percent, real_subtotal, real_discount_percent)")
         .eq("status", "pending")
@@ -33,6 +34,7 @@ export function DiscountApprovalQueue() {
     mutationFn: async ({ id, approved }: { id: string; approved: boolean }) => {
       const { data: u } = await supabase.auth.getUser();
       const { error } = await supabase
+        // rls-allow: admin-only via has_role; RLS filtra
         .from("discount_approval_requests")
         .update({
           status: approved ? "approved" : "rejected",

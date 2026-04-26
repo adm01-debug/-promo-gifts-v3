@@ -168,6 +168,7 @@ export const SidebarReorganized = React.forwardRef<HTMLElement, SidebarProps>(
     queryKey: ["pending-discount-approvals-count"],
     queryFn: async () => {
       const { count } = await supabase
+        // rls-allow: admin-only badge; RLS filtra
         .from("discount_approval_requests")
         .select("*", { count: "exact", head: true })
         .eq("status", "pending");

@@ -104,9 +104,13 @@ export function useCommercialKPIs(days = 30, categoryId?: string | null, supplie
         };
       }
 
+      // rls-allow: respeita can_view_all_sales server-side
       let q1 = supabase.from('quotes').select('id, total, status, created_at').gte('created_at', since);
+      // rls-allow: respeita can_view_all_sales server-side
       let o1 = supabase.from('orders').select('id, total, status, created_at').gte('created_at', since);
+      // rls-allow: respeita can_view_all_sales server-side
       let q2 = supabase.from('quotes').select('id, total').gte('created_at', startOfMonth);
+      // rls-allow: respeita can_view_all_sales server-side
       let o2 = supabase.from('orders').select('id, total').gte('created_at', startOfMonth);
       if (orgId) { q1 = q1.eq('organization_id', orgId); o1 = o1.eq('organization_id', orgId); q2 = q2.eq('organization_id', orgId); o2 = o2.eq('organization_id', orgId); }
       // Defesa em profundidade: vendedor (scope === "self") só pede os próprios dados.
@@ -193,9 +197,11 @@ export function useSegmentAnalysis(days = 30, categoryId?: string | null, suppli
         const { data: oi } = await supabase.from('order_items').select('order_id').gte('created_at', since).in('product_id', pids);
         const orderIds = [...new Set((oi || []).map(o => o.order_id).filter(Boolean))] as string[];
         if (!orderIds.length) return [];
+        // rls-allow: respeita can_view_all_sales server-side
         const { data: orders } = await supabase.from('orders').select('id, client_company, total').in('id', orderIds.slice(0, 200));
         return aggregateSegments(orders || []);
       }
+      // rls-allow: respeita can_view_all_sales server-side
       const { data: orders } = await supabase.from('orders').select('client_company, total').gte('created_at', since);
       return aggregateSegments(orders || []);
     },
@@ -270,7 +276,9 @@ export function useRevenueTrend(days = 30, categoryId?: string | null, supplierI
         ]);
         orderData = oi || []; quoteData = qi || [];
       } else {
+        // rls-allow: respeita can_view_all_sales server-side
         let oq = supabase.from('orders').select('total, created_at').gte('created_at', sinceStr).order('created_at');
+        // rls-allow: respeita can_view_all_sales server-side
         let qq = supabase.from('quotes').select('total, created_at').gte('created_at', sinceStr).order('created_at');
         if (orgId) { oq = oq.eq('organization_id', orgId); qq = qq.eq('organization_id', orgId); }
         oq = applySellerScope(oq, { scope, userId: user?.id });
@@ -308,9 +316,11 @@ export function useTopClients(days = 30, categoryId?: string | null, supplierId?
         const { data: oi } = await supabase.from('order_items').select('order_id, quantity, unit_price').gte('created_at', since).in('product_id', pids);
         const orderIds = [...new Set((oi || []).map(o => o.order_id).filter(Boolean))] as string[];
         if (!orderIds.length) return [];
+        // rls-allow: respeita can_view_all_sales server-side
         const { data: orders } = await supabase.from('orders').select('id, client_name, client_company, total').in('id', orderIds.slice(0, 200));
         return aggregateClients(orders || []);
       }
+      // rls-allow: respeita can_view_all_sales server-side
       const { data: orders } = await supabase.from('orders').select('client_name, client_company, total').gte('created_at', since);
       return aggregateClients(orders || []);
     },

@@ -117,8 +117,11 @@ export function CustomizableDashboard() {
   useEffect(() => {
     if (!user) return;
     const fetchMetrics = async () => {
+      // rls-allow: respeita can_view_all_sales; RLS filtra por seller
       let quotesQ = supabase.from('quotes').select('id', { count: 'exact', head: true });
+      // rls-allow: respeita can_view_all_sales; RLS filtra por seller
       let ordersQ = supabase.from('orders').select('id', { count: 'exact', head: true }).eq('status', 'pending');
+      // rls-allow: respeita can_view_all_sales; RLS filtra por seller
       let draftQ = supabase.from('quotes').select('id', { count: 'exact', head: true }).eq('status', 'draft');
       if (salesScope === 'self') {
         quotesQ = quotesQ.eq('seller_id', user.id);

@@ -105,6 +105,7 @@ export default function SellerDiscountLimitsAdminPage() {
     queryKey: ["admin-discount-impact"],
     queryFn: async (): Promise<Map<string, ImpactRow>> => {
       const { data, error } = await supabase
+        // rls-allow: admin-only; RLS filtra
         .from("discount_approval_requests")
         .select("seller_id, status, requested_discount_percent");
       if (error) throw error;
@@ -137,6 +138,7 @@ export default function SellerDiscountLimitsAdminPage() {
     queryKey: ["admin-discount-exceeded"],
     queryFn: async (): Promise<ExceededRequest[]> => {
       const { data, error } = await supabase
+        // rls-allow: admin-only; RLS filtra
         .from("discount_approval_requests")
         .select("id, seller_id, requested_discount_percent, max_allowed_percent, status, created_at, quote_id")
         .order("created_at", { ascending: false })

@@ -19,6 +19,7 @@ export function QuoteVersionsList({ quoteId, parentQuoteId }: QuoteVersionsListP
     queryKey: ["quote-versions", rootId],
     queryFn: async () => {
       const { data, error } = await supabase
+        // rls-allow: lookup por quote.id; RLS valida ownership
         .from("quotes")
         .select("id, quote_number, version, status, created_at, is_latest_version")
         .or(`id.eq.${rootId},parent_quote_id.eq.${rootId}`)

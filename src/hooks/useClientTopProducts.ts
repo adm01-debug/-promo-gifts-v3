@@ -17,6 +17,7 @@ export function useClientTopProducts(clientId?: string) {
       if (!clientId) return [];
 
       const { data: orders } = await supabase
+        // rls-allow: filtrado por client_id; RLS aplica seller scope
         .from('orders')
         .select('id')
         .eq('client_id', clientId);

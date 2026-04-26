@@ -51,6 +51,7 @@ export function useDiscountApproval() {
     if (!user) return false;
     try {
       const { error } = await supabase
+        // rls-allow: fluxo de aprovação admin/seller; RLS filtra por papel
         .from("discount_approval_requests")
         .insert({
           quote_id: quoteId,
@@ -73,12 +74,14 @@ export function useDiscountApproval() {
 
       // Set quote status to pending_approval so UI shows correct state
       await supabase
+        // rls-allow: fluxo de aprovação admin/seller; RLS filtra por papel
         .from("quotes")
         .update({ status: "pending_approval" })
         .eq("id", quoteId);
 
       // Buscar contexto do orçamento (markup + aparente) para auditoria e história
       const { data: quoteCtx } = await supabase
+        // rls-allow: fluxo de aprovação admin/seller; RLS filtra por papel
         .from("quotes")
         .select("discount_percent, negotiation_markup_percent, real_discount_percent")
         .eq("id", quoteId)
@@ -166,6 +169,7 @@ export function useDiscountApproval() {
     if (!user) return false;
     try {
       const { data: request, error: updateError } = await supabase
+        // rls-allow: fluxo de aprovação admin/seller; RLS filtra por papel
         .from("discount_approval_requests")
         .update({
           status: approved ? "approved" : "rejected",
@@ -193,6 +197,7 @@ export function useDiscountApproval() {
       const newStatus = approved ? "pending" : "draft";
       const [quoteUpdateResult, historyResult] = await Promise.all([
         supabase
+          // rls-allow: fluxo de aprovação admin/seller; RLS filtra por papel
           .from("quotes")
           .update({ status: newStatus })
           .eq("id", typedReq.quote_id),
@@ -246,6 +251,7 @@ export function useDiscountApproval() {
     setIsLoading(true);
     try {
       const { data, error } = await supabase
+        // rls-allow: fluxo de aprovação admin/seller; RLS filtra por papel
         .from("discount_approval_requests")
         .select("*")
         .order("created_at", { ascending: false });
@@ -266,6 +272,7 @@ export function useDiscountApproval() {
       const sellerIds = [...new Set(requests.map(r => r.seller_id))];
 
       const [quotesRes, sellersRes] = await Promise.all([
+        // rls-allow: fluxo de aprovação admin/seller; RLS filtra por papel
         supabase.from("quotes").select("id, quote_number, client_name, client_company, total, subtotal").in("id", quoteIds),
         supabase.from("profiles").select("user_id, full_name, email").in("user_id", sellerIds),
       ]);
@@ -291,6 +298,7 @@ export function useDiscountApproval() {
   const getApprovalStatus = useCallback(async (quoteId: string): Promise<DiscountApprovalRequest | null> => {
     try {
       const { data } = await supabase
+        // rls-allow: fluxo de aprovação admin/seller; RLS filtra por papel
         .from("discount_approval_requests")
         .select("*")
         .eq("quote_id", quoteId)

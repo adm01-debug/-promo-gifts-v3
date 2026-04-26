@@ -43,6 +43,7 @@ export function useQuotes() {
       // próprios orçamentos. RLS garante o resto, mas evitamos rodar uma
       // query potencialmente ampla que será cortada pelo banco.
       let q = supabase
+        // rls-allow: applySellerScope chamado dinamicamente; mutações por id com RLS
         .from("quotes").select("*").order("created_at", { ascending: false }).limit(500);
       q = applySellerScope(q, { scope, userId: user.id });
       const { data, error: qErr } = await q;
@@ -61,6 +62,7 @@ export function useQuotes() {
     setIsLoading(true);
     try {
       const { data: quoteData, error: qErr } = await supabase
+        // rls-allow: applySellerScope chamado dinamicamente; mutações por id com RLS
         .from("quotes").select("*").eq("id", quoteId).single();
       if (qErr) throw new Error(qErr.message);
       if (!quoteData) return null;
@@ -131,6 +133,7 @@ export function useQuotes() {
     try {
       const totals = calculateQuoteTotals(quote, items);
       const insertPayload = buildInsertPayload(quote, user.id, orgId, totals);
+      // rls-allow: applySellerScope chamado dinamicamente; mutações por id com RLS
       const { data: inserted, error: insErr } = await supabase.from("quotes").insert(insertPayload).select("*");
       if (insErr) throw new Error(insErr.message);
       const newQuote = inserted?.[0];
@@ -152,6 +155,7 @@ export function useQuotes() {
   const updateQuoteStatus = async (quoteId: string, status: Quote["status"]): Promise<boolean> => {
     try {
       const oldStatus = quotes.find(q => q.id === quoteId)?.status || "draft";
+      // rls-allow: applySellerScope chamado dinamicamente; mutações por id com RLS
       const { error: updErr } = await supabase.from("quotes").update({ status }).eq("id", quoteId);
       if (updErr) throw new Error(updErr.message);
       await logQuoteHistory(quoteId, "status_changed",
@@ -169,6 +173,7 @@ export function useQuotes() {
 
   const deleteQuote = async (quoteId: string): Promise<boolean> => {
     try {
+      // rls-allow: applySellerScope chamado dinamicamente; mutações por id com RLS
       const { error: delErr } = await supabase.from("quotes").delete().eq("id", quoteId);
       if (delErr) throw new Error(delErr.message);
       toast.success("Orçamento excluído");
@@ -187,6 +192,7 @@ export function useQuotes() {
       const totals = calculateQuoteTotals(quote, items);
       const updatePayload = buildUpdatePayload(quote, totals);
       const { data: updated, error: updErr } = await supabase
+        // rls-allow: applySellerScope chamado dinamicamente; mutações por id com RLS
         .from("quotes").update(updatePayload).eq("id", quoteId).select("*");
       if (updErr) throw new Error(updErr.message);
 

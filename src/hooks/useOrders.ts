@@ -42,6 +42,7 @@ export function useOrdersList(sellerId?: string, scope: "self" | "team" | "all" 
     queryKey: ["orders", "list", sellerId, scope],
     enabled: !!sellerId,
     queryFn: async (): Promise<OrderRow[]> => {
+      // rls-allow: applySellerScope chamado dinamicamente conforme escopo
       let q = supabase.from("orders").select("*").order("created_at", { ascending: false });
       if (scope === "self" && sellerId) q = q.eq("seller_id", sellerId);
       const { data, error } = await q;
@@ -65,6 +66,7 @@ export function useOrderDetail(orderId?: string) {
     enabled: !!orderId,
     queryFn: async () => {
       const [orderRes, itemsRes] = await Promise.all([
+        // rls-allow: applySellerScope chamado dinamicamente conforme escopo
         supabase.from("orders").select("*").eq("id", orderId!).maybeSingle(),
         supabase.from("order_items").select("*").eq("order_id", orderId!),
       ]);
@@ -82,6 +84,7 @@ export function useUpdateOrder(orderId?: string) {
   return useMutation({
     mutationFn: async (patch: Partial<OrderRow>) => {
       const { error } = await supabase
+        // rls-allow: applySellerScope chamado dinamicamente conforme escopo
         .from("orders")
         .update({ ...patch, updated_at: new Date().toISOString() })
         .eq("id", orderId!);

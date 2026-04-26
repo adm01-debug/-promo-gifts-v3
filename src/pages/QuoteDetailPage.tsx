@@ -25,6 +25,7 @@ export default function QuoteDetailPage() {
     queryKey: ["quote", id],
     enabled: !!id,
     queryFn: async () => {
+      // rls-allow: lookup por id; RLS valida ownership
       const { data, error } = await supabase.from("quotes").select("*").eq("id", id!).single();
       if (error) throw error;
       return data;
