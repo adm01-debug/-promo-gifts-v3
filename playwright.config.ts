@@ -24,6 +24,7 @@ const ARTIFACTS_DIR = path.resolve(__dirname, "e2e-artifacts");
 
 export default defineConfig({
   testDir: "./e2e",
+  globalTeardown: path.resolve(__dirname, "e2e/global-teardown.ts"),
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
