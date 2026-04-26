@@ -45,6 +45,7 @@ export default function AdminSegurancaChavesPage() {
             <TabsTrigger value="audit">Histórico de auditoria</TabsTrigger>
             <TabsTrigger value="stepup">Tentativas FULL bloqueadas</TabsTrigger>
             <TabsTrigger value="auto-revoke">Auto-revogações</TabsTrigger>
+            <TabsTrigger value="diagnostics">Diagnóstico</TabsTrigger>
           </TabsList>
           <TabsContent value="keys" className="m-0">
             <McpKeysList />
@@ -57,6 +58,9 @@ export default function AdminSegurancaChavesPage() {
           </TabsContent>
           <TabsContent value="auto-revoke" className="m-0">
             <AutoRevocationsPanel />
+          </TabsContent>
+          <TabsContent value="diagnostics" className="m-0">
+            <FullOpDiagnosticsPanel />
           </TabsContent>
         </Tabs>
       </div>
