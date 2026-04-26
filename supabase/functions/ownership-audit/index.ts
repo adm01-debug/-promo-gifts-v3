@@ -72,8 +72,11 @@ Deno.serve(async (req) => {
         missing_user_count: report.missing_user_count,
         duration_ms: report.duration_ms,
         affected_tables: (report.details as unknown[]).length,
+        rls_gaps_count: report.rls_gaps_count ?? 0,
+        rls_tables_with_gaps: Array.isArray(report.rls_coverage) ? report.rls_coverage.length : 0,
       },
       details: report.details,
+      rls_coverage: report.rls_coverage ?? [],
     });
   } catch (e) {
     console.error("[ownership-audit] uncaught", e);
