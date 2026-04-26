@@ -65,22 +65,40 @@ export function DevRoute({ children }: DevRouteProps) {
     }
   }, [isLoading, user, isDev, hasMFA]);
 
-  // Notifica uma vez ao bloquear (telemetria de UX + clareza) e
-  // registra a tentativa para auditoria (RLS-safe, throttled).
+  // Toast informativo ao bloquear — coalescido por janela de 60s/usuário
+  // para não disparar repetidamente quando o usuário navega entre rotas
+  // técnicas (ex.: /telemetria → /conexoes → /seguranca). O `id` estável
+  // já evita empilhamento dentro da mesma sessão de Sonner; a janela em
+  // sessionStorage cobre o caso de remontagem por mudança de rota.
   useEffect(() => {
-    if (!isLoading && user && !isDev) {
-      toast.error("Acesso negado (403)", {
-        description:
-          "Esta área exige o papel Desenvolvedor. Solicite acesso ao time técnico.",
-        id: "dev-route-blocked",
-      });
-      void logAccessDenied({
-        userId: user.id,
-        blockedPath,
-        requiredRole: "dev",
-        userRole: role,
+    if (isLoading || !user || isDev) return;
+
+    const TOAST_ID = "dev-route-blocked";
+    const STORAGE_KEY = `dev-route-toast:${user.id}`;
+    const WINDOW_MS = 60_000;
+    let shouldShow = true;
+    try {
+      const last = Number(sessionStorage.getItem(STORAGE_KEY) ?? "0");
+      if (last && Date.now() - last < WINDOW_MS) shouldShow = false;
+      else sessionStorage.setItem(STORAGE_KEY, String(Date.now()));
+    } catch {
+      // sessionStorage indisponível (modo privado etc.) — segue mostrando.
+    }
+
+    if (shouldShow) {
+      toast.error("Acesso restrito", {
+        id: TOAST_ID,
+        description: "Área exclusiva da equipe técnica.",
+        duration: 4000,
       });
     }
+
+    void logAccessDenied({
+      userId: user.id,
+      blockedPath,
+      requiredRole: "dev",
+      userRole: role,
+    });
   }, [isLoading, user, isDev, blockedPath, role]);
 
   if (isLoading) {
