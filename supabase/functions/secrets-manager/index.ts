@@ -79,7 +79,6 @@ function maskValue(v: string | undefined | null): {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
-  try {
   const requestId = getOrCreateRequestId(req);
   const startedAt = new Date().toISOString();
   const startedMs = Date.now();
