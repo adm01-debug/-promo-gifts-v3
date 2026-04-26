@@ -173,7 +173,9 @@ Deno.serve(async (req) => {
       const { data: stepUpOk, error: stepUpErr } = await userClient.rpc("consume_step_up_token", {
         _token: step_up_token,
         _expected_action: "mcp_full_escalate",
-        _expected_target: null,
+        // Vincula o token consumido à chave alvo (frontend já registra `target_ref = key_id`
+        // no challenge). NULL continua aceito server-side para fluxos legados.
+        _expected_target: key_id,
       });
       if (stepUpErr || !stepUpOk) {
         await auditFailure("denied", { reason: "step_up_invalid", detail: stepUpErr?.message }, key_id);
