@@ -854,7 +854,7 @@ async function handleCrud(body: any, req: Request, corsHeaders: Record<string, s
   let cacheKey: string | null = null;
   if (isCacheable) {
     cacheKey = buildCacheKey(table, body);
-    const cached = getCached(cacheKey);
+    const cached = getCachedResponse(cacheKey);
     if (cached !== null) {
       cacheHitsTotal++;
       const totalDuration = Math.round(performance.now() - requestStartTime);
