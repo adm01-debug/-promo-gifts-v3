@@ -87,14 +87,13 @@ Deno.serve(async (req) => {
       return jsonRes(corsHeaders, { error: 'Não autorizado' }, 401);
     }
 
-    const { data: callerRole } = await supabaseAdmin
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', caller.id)
-      .single();
-
-    if (callerRole?.role !== 'admin') {
-      return jsonRes(corsHeaders, { error: 'Apenas administradores podem gerenciar usuários' }, 403);
+    // Verificação de papel via SECURITY DEFINER (compat com hierarquia atual).
+    const { data: isSupOrAbove, error: sopErr } = await supabaseAdmin.rpc(
+      'is_supervisor_or_above',
+      { _user_id: caller.id }
+    );
+    if (sopErr || !isSupOrAbove) {
+      return jsonRes(corsHeaders, { error: 'Apenas supervisores podem gerenciar usuários' }, 403);
     }
 
     // Validate input with Zod
