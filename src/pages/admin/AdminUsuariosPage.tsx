@@ -7,7 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, UserCog, Loader2, KeyRound, Plus, Search, Percent, ArrowUpCircle } from "lucide-react";
+import { Users, UserCog, Loader2, KeyRound, Plus, Search, Percent, ArrowUpCircle, History } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,13 +23,14 @@ import { EditUserDialog } from "@/components/admin/users/EditUserDialog";
 import { CreateUserDialog } from "@/components/admin/users/CreateUserDialog";
 import { DeleteUserDialog } from "@/components/admin/users/DeleteUserDialog";
 import { PromotionDialog } from "@/components/admin/users/PromotionDialog";
+import { RoleAuditLogPanel } from "@/components/admin/users/RoleAuditLogPanel";
 import { type UserWithRole } from "@/components/admin/users/types";
 
-const VALID_TABS = ["users", "password-reset", "discounts"] as const;
+const VALID_TABS = ["users", "password-reset", "discounts", "audit"] as const;
 type TabValue = (typeof VALID_TABS)[number];
 
 export default function AdminUsuariosPage() {
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, isDev } = useAuth();
   const { pendingCount } = usePasswordResetRequests();
   const {
     users, isLoading, updatingUserId,
@@ -139,6 +140,12 @@ export default function AdminUsuariosPage() {
                 )}
               </TabsTrigger>
             )}
+            {isDev && (
+              <TabsTrigger value="audit" className="gap-2">
+                <History className="h-4 w-4" />
+                Auditoria de Roles
+              </TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="users">
@@ -204,6 +211,12 @@ export default function AdminUsuariosPage() {
           {isAdmin && (
             <TabsContent value="discounts">
               <DiscountManagementPanel />
+            </TabsContent>
+          )}
+
+          {isDev && (
+            <TabsContent value="audit">
+              <RoleAuditLogPanel />
             </TabsContent>
           )}
         </Tabs>
