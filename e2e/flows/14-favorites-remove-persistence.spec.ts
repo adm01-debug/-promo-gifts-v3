@@ -42,6 +42,12 @@ async function writeStorage(page: Page, items: FavoriteItem[]): Promise<void> {
   );
 }
 
+async function readFavoritesTitle(page: Page): Promise<string> {
+  const loc = page.locator(Sel.favorites.title).first();
+  await loc.waitFor({ state: "visible", timeout: 10_000 });
+  return (await loc.innerText()).trim();
+}
+
 async function readFavoritesCount(page: Page): Promise<number> {
   const loc = page.locator(Sel.favorites.countItems);
   await loc.first().waitFor({ state: "visible", timeout: 10_000 });
@@ -59,6 +65,44 @@ async function readFavoritesCountText(page: Page): Promise<string> {
 /** Conta cards renderizados na lista de favoritos. */
 async function readFavoritesListSize(page: Page): Promise<number> {
   return page.locator(Sel.favorites.item).count();
+}
+
+interface FavoritesSnapshot {
+  title: string;
+  count: number;
+  countText: string;
+  listSize: number;
+}
+
+/** Lê título + contadores + tamanho da lista em paralelo (snapshot reutilizável). */
+async function readFavoritesSnapshot(page: Page): Promise<FavoritesSnapshot> {
+  const [title, count, countText, listSize] = await Promise.all([
+    readFavoritesTitle(page),
+    readFavoritesCount(page),
+    readFavoritesCountText(page),
+    readFavoritesListSize(page),
+  ]);
+  return { title, count, countText, listSize };
+}
+
+/** Asserta que o snapshot atual bate com `expected` (uso pré e pós-reload). */
+async function expectFavoritesSnapshot(
+  page: Page,
+  expected: FavoritesSnapshot,
+  label: string,
+): Promise<FavoritesSnapshot> {
+  await expect
+    .poll(() => readFavoritesCount(page), {
+      message: `[${label}] favorites-count-items deveria ser ${expected.count}`,
+      timeout: 10_000,
+    })
+    .toBe(expected.count);
+
+  const actual = await readFavoritesSnapshot(page);
+  expect(actual.title, `[${label}] título mudou`).toBe(expected.title);
+  expect(actual.countText, `[${label}] favorites-count text mudou`).toBe(expected.countText);
+  expect(actual.listSize, `[${label}] tamanho da lista mudou`).toBe(expected.listSize);
+  return actual;
 }
 
 async function isFavorited(button: Locator): Promise<boolean> {
@@ -85,9 +129,10 @@ test.describe("Fluxo: remover favorito persiste após reload", () => {
   }) => {
     // 0. Snapshot inicial
     await gotoAndSettle(page, "/favoritos");
-    await expect(page.locator(Sel.favorites.title)).toHaveText("Meus Favoritos");
+    const baselineSnapshot = await readFavoritesSnapshot(page);
+    expect(baselineSnapshot.title).toBe("Meus Favoritos");
     const original = await readStorage(page);
-    const countBefore = await readFavoritesCount(page);
+    const countBefore = baselineSnapshot.count;
 
     // 1. Garante que existe um item para remover — favorita o 1º card do catálogo
     await gotoAndSettle(page, "/produtos");
@@ -119,22 +164,19 @@ test.describe("Fluxo: remover favorito persiste após reload", () => {
     const addedId = afterAdd.find((f) => !beforeIds.has(f.productId))?.productId;
     expect(addedId, "productId recém-adicionado não pôde ser identificado").toBeTruthy();
 
-    // 2. /favoritos: confirma +1 no header e captura snapshots ANTES da remoção
+    // 2. /favoritos: confirma +1 no header e captura snapshot ANTES da remoção
     await gotoAndSettle(page, "/favoritos");
     await expect
       .poll(() => readFavoritesCount(page), { timeout: 10_000 })
       .toBe(countBefore + 1);
 
-    // Snapshot do bloco favorites-count (texto humano) e tamanho da lista
-    const countTextWithItem = await readFavoritesCountText(page);
-    const listSizeWithItem = await readFavoritesListSize(page);
-    expect(listSizeWithItem, "lista deveria conter ao menos 1 card visível").toBeGreaterThan(0);
+    const snapshotWithItem = await readFavoritesSnapshot(page);
+    expect(snapshotWithItem.title).toBe(baselineSnapshot.title);
+    expect(snapshotWithItem.listSize, "lista deveria conter ao menos 1 card visível").toBeGreaterThan(0);
 
     // Localiza o card do produto adicionado por data-product-id (presente em ProductCard)
     const targetCard = page.locator(`[data-product-id="${addedId}"]`).first();
     await targetCard.waitFor({ state: "visible", timeout: 10_000 });
-
-    // Confirma que o card alvo está visível ANTES da remoção (via data-product-id)
     await expect(
       targetCard,
       `card de favorito ${addedId} deveria estar visível antes da remoção`,
@@ -147,13 +189,22 @@ test.describe("Fluxo: remover favorito persiste após reload", () => {
     await acceptConfirmIfAny(page);
     await settleAfterAction(page);
 
-    // 4. Header volta ao baseline SEM reload
+    // 4. Calcula o snapshot ESPERADO após remoção e valida ANTES do reload
     await expect
       .poll(() => readFavoritesCount(page), {
         message: "contagem deveria voltar a countBefore após remover",
         timeout: 10_000,
       })
       .toBe(countBefore);
+
+    const expectedAfterRemove = await readFavoritesSnapshot(page);
+    expect(expectedAfterRemove.count).toBe(countBefore);
+    expect(expectedAfterRemove.listSize).toBe(snapshotWithItem.listSize - 1);
+    expect(expectedAfterRemove.countText).not.toBe(snapshotWithItem.countText);
+    expect(
+      expectedAfterRemove.countText.startsWith(`${countBefore} `),
+      `favorites-count deveria começar com "${countBefore} " (got "${expectedAfterRemove.countText}")`,
+    ).toBe(true);
 
     // Storage também caiu para o baseline
     await expect
@@ -169,26 +220,8 @@ test.describe("Fluxo: remover favorito persiste após reload", () => {
       )
       .catch(() => {});
 
-    // Header continua no baseline após reload
-    await expect
-      .poll(() => readFavoritesCount(page), {
-        message: "contagem deveria continuar em countBefore após reload",
-        timeout: 10_000,
-      })
-      .toBe(countBefore);
-
-    // 6. favorites-count (texto humano) reflete o baseline e MUDOU em relação ao estado +1
-    const countTextAfterReload = await readFavoritesCountText(page);
-    expect(
-      countTextAfterReload,
-      `favorites-count após reload deveria diferir do estado com item adicionado ` +
-        `(antes="${countTextWithItem}", depois="${countTextAfterReload}")`,
-    ).not.toBe(countTextWithItem);
-    // Texto deve começar com o número de itens do baseline ("0 item", "3 itens", ...)
-    expect(
-      countTextAfterReload.startsWith(`${countBefore} `),
-      `favorites-count deveria começar com "${countBefore} " (got "${countTextAfterReload}")`,
-    ).toBe(true);
+    // 6. Reusa o MESMO snapshot esperado para validar pós-reload
+    await expectFavoritesSnapshot(page, expectedAfterRemove, "pós-reload");
 
     // 7. Card do produto removido NÃO existe mais (SSOT por data-product-id)
     await expect(
@@ -196,15 +229,7 @@ test.describe("Fluxo: remover favorito persiste após reload", () => {
       `card do produto ${addedId} não deveria existir após reload`,
     ).toHaveCount(0, { timeout: 10_000 });
 
-    // 8. Tamanho da lista caiu exatamente em 1 (de listSizeWithItem para listSizeWithItem-1)
-    const listSizeAfterReload = await readFavoritesListSize(page);
-    expect(
-      listSizeAfterReload,
-      `tamanho da lista deveria ser ${listSizeWithItem - 1} após reload ` +
-        `(antes da remoção=${listSizeWithItem}, depois=${listSizeAfterReload})`,
-    ).toBe(listSizeWithItem - 1);
-
-    // 9. Cleanup defensivo — garante que o storage está no estado original
+    // 8. Cleanup defensivo — restaura storage original
     await writeStorage(page, original);
   });
 });
