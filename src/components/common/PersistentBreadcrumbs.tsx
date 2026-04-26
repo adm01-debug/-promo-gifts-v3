@@ -86,15 +86,22 @@ export const PersistentBreadcrumbs = forwardRef<HTMLElement, PersistentBreadcrum
         }
         items.push({ label: `#${part.slice(0, 8)}...` });
       } else {
+        // Esconder segmentos técnicos do breadcrumb para não-dev
+        // (defesa em profundidade — DevRoute também bloqueia o acesso).
+        if (!isDev && isDevOnlyPath(currentPath)) {
+          return;
+        }
+
         const label = routeLabels[currentPath] || part.charAt(0).toUpperCase() + part.slice(1);
         const nextPart = pathParts[index + 1];
         const nextIsSkippedId = nextPart && (
           /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(nextPart) ||
           /^\d+$/.test(nextPart)
         ) && (part === "produto" || part === "produtos" || part === "orcamentos");
-        
+
+        const navigable = canNavigateTo(currentPath, { isDev, isAdmin });
         const isLastVisible = index >= pathParts.length - 1 || nextIsSkippedId;
-        items.push(isLastVisible ? { label } : { label, href: currentPath });
+        items.push(isLastVisible || !navigable ? { label } : { label, href: currentPath });
       }
     });
     
