@@ -185,7 +185,18 @@ test.describe("Fluxo: cookies/sessão e persistência de favoritos", () => {
     await writeStorage(page, storageBeforeReload);
 
     await page.reload({ waitUntil: "load" });
-    await page.waitForLoadState("networkidle", { timeout: 4_000 }).catch(() => {});
+    // Após clearCookies a app pode redirecionar para /login (plataforma fechada).
+    // Em vez de `networkidle` (flaky), aguardamos um estado terminal por SELETOR:
+    // /favoritos hidratado OU /login renderizado.
+    await page
+      .waitForFunction(
+        () =>
+          !!document.querySelector('[data-testid="page-title-favoritos"]') ||
+          !!document.querySelector('[data-testid="login-form"], [data-testid="page-title-login"]') ||
+          location.pathname.startsWith("/login"),
+        { timeout: 10_000 },
+      )
+      .catch(() => {});
 
     // O storage local DEVE estar intacto, INDEPENDENTE de cookies/sessão
     const rawAfterClear = await readStorageRaw(page);
