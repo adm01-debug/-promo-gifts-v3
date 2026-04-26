@@ -1,42 +1,51 @@
-# Cleanup E2E de Favoritos com confirmação pós-reload
+# E2E: favoritar a partir da página de detalhe e validar persistência
 
 ## Objetivo
 
-No spec `e2e/flows/08-favorites.spec.ts`, transformar o passo de cleanup do teste de reload em uma **etapa de teste de verdade**: desfavorita o produto, recarrega a página e confirma que ele **sumiu** da lista (e que a contagem do header voltou ao estado inicial).
+Criar um spec Playwright dedicado que **favorita um produto na rota de detalhe** (`/produto/:id`) e depois confirma que ele aparece em `/favoritos` antes e **após reload**.
 
 ## Diagnóstico
 
-Hoje o cleanup no final do teste "favorita um produto, recarrega e ele persiste":
-1. Remove o favorito clicando no botão correspondente.
-2. Verifica que `countItems` voltou a `countBefore`.
+- `08-favorites.spec.ts` cobre o fluxo a partir do **card do catálogo**.
+- Falta cobrir o caminho a partir do **detalhe**, que tem 3 entradas para o botão Favoritar:
+  - `ProductDetailHero` — botão com texto "Favoritar"/"Favoritado".
+  - `ProductStickyHeader` — `aria-label="Favoritar"`.
+  - `MobileProductActions` — `aria-label="Favoritar"`.
+- Quando NÃO está favoritado, clicar abre `VariantPickerDialog` (mode `favorite`). Para tornar o teste estável, escolhemos **"Sem cor específica"** (opção do `SingleVariantPicker`).
+- Para desfavoritar, o detalhe remove direto (sem dialog); cleanup é feito pela lista usando `Sel.favorites.remove`.
 
-Falta:
-- Aceitar eventual diálogo de confirmação do `DeleteConfirmDialog`.
-- **Recarregar** `/favoritos`.
-- Confirmar que o produto removido **não aparece** mais na lista após o reload (persistência da remoção, não só do estado em memória).
+## Arquivo novo
 
-## Mudanças
+### `e2e/flows/09-favorite-from-detail.spec.ts`
 
-### `e2e/flows/08-favorites.spec.ts` — bloco de cleanup (linhas ~151–168)
+Estrutura:
 
-Substituir o bloco atual por:
-
-1. Clicar no botão "Remover favorito" do card que casa com `productName` (fallback: primeiro botão de remover).
-2. Se um `[role="alertdialog"]` ou `[role="dialog"]` aparecer com botão "Remover/Confirmar/Sim/Excluir", clicar nele.
-3. `expect.poll` para `readFavoritesCount(page) === countBefore` (com timeout 10s).
-4. `page.reload({ waitUntil: "domcontentloaded" })` + espera por skeletons sumirem.
-5. `assertFavoritesHeader(page, countBefore, { checkCardsMatch: true })` para revalidar título, ícone, label e contagem.
-6. `expect(page.getByText(productRegex)).toHaveCount(0)` — o produto removido não deve mais aparecer.
-
-`productRegex` reaproveita o `escaped` já calculado no teste.
+1. `requireAuth()` no `beforeEach`.
+2. Snapshot inicial: `gotoAndSettle("/favoritos")` → `countBefore = readFavoritesCount(page)`.
+3. `gotoAndSettle("/produtos")` → pega 1º card → resolve `href` de `a[href^="/produto/"]` (fallback: `card.click()` + `waitForURL(/\/produto\/[^/]+/)`).
+4. `gotoAndSettle(detailHref)` + espera por `[data-state="loading"]` sumir; assert `/produto/<id>` na URL.
+5. `productName` lido do `h1`/`h2` do detalhe.
+6. Localiza o botão Favoritar via seletor combinado (`aria-label` + texto). Garante estado inicial = não-favoritado (se "Favoritado", clica para desfazer).
+7. Clica em Favoritar; se aparecer `[role="dialog"]` com texto `/sem cor específica/i`, clica nele.
+8. `expect.poll` no texto do botão para confirmar que virou "Favoritado".
+9. `gotoAndSettle("/favoritos")`:
+   - `readFavoritesCount === countBefore + 1`
+   - `getByText(productRegex)` visível.
+10. `page.reload()` + revalida contagem e visibilidade do produto.
+11. **Cleanup**: clica em `favorite-remove` no card que casa com `productName` (fallback: primeiro), aceita eventual `[role="alertdialog"]`, espera contagem voltar a `countBefore`, recarrega e confirma `toHaveCount(0)` para `productRegex`.
 
 ## Detalhes técnicos
 
-- Diálogo de confirmação: o componente `DeleteConfirmDialog` é usado para "Limpar Tudo", mas a remoção individual via `aria-label="Remover favorito"` normalmente é direta. O `if (visible)` torna o passo defensivo sem quebrar quando não há diálogo.
-- `toHaveCount(0)` é assertivo o bastante para detectar tanto o sumiço do card quanto qualquer texto residual do produto na lista.
-- Mantém o `{ checkCardsMatch: true }` para garantir que `removeButtons.count() === countBefore`.
+- Reutiliza `Sel.favorites.*`, `Sel.product.card`, `gotoAndSettle`, `requireAuth`, `test-base`.
+- Helper local `readFavoritesCount` espelha o do spec 08 (não vale extrair agora — apenas dois usos).
+- Detecção de "Favoritado" usa `el.textContent` para cobrir Hero (texto) e `aria-pressed` opcional para os outros.
+- Sem alterações em `src/` ou em `selectors.ts` — o `aria-label="Favoritar"` já existe nos componentes Sticky/Mobile e o texto "Favoritar"/"Favoritado" cobre o Hero.
+
+## Validação
+
+`npx tsc --noEmit -p tsconfig.json` para checar tipos do novo spec.
 
 ## Fora de escopo
 
-- Não mexer nos demais testes do arquivo.
-- Não alterar `src/` nem `selectors.ts` (já têm tudo que é preciso).
+- Não cobrir variant picker com seleção de cor real (o "sem cor" mantém o teste determinístico).
+- Não criar abstração compartilhada entre os specs 08 e 09 ainda — fazer só quando surgir um terceiro caso.
