@@ -48,8 +48,40 @@ export const Sel = {
 
   // ---------- Headings de páginas ----------
   page: {
-    /** Title proxy de uma página por slug. Ex.: orcamentos, pedidos, favoritos, colecoes, carrinhos. */
-    title: (slug: string) => TID(`page-title-${slug}`),
+    /**
+     * Title proxy de uma página por slug. Convenção: `data-testid="page-title-<slug>"`
+     * no `<h1>` (ou `<h2>` principal) da página. Os specs SEMPRE devem usar este
+     * helper — nunca `getByRole("heading", { name })` ou `getByText`.
+     *
+     * Slugs canônicos atualmente cobertos pela UI:
+     *   - "produtos"                     → /produtos (FiltersPage)
+     *   - "favoritos"                    → /favoritos
+     *   - "colecoes"                     → /colecoes
+     *   - "carrinhos"                    → /carrinhos
+     *   - "pedidos"                      → /pedidos
+     *   - "clientes"                     → /clientes
+     *   - "comparador"                   → /comparar
+     *   - "tendencias"                   → /tendencias
+     *   - "kits"                         → /kits
+     *   - "magic-up"                     → /magic-up
+     *   - "mockup-historico"             → /mockup-historico
+     *   - "simulador"                    → /simulador (wizard)
+     *   - "simulador-precos"             → /simulador-precos
+     *   - "simulador-personalizacao"     → /simulador-personalizacao
+     *   - "busca-avancada-preco"         → /busca-avancada-preco
+     *   - "dashboard"                    → /
+     *   - "dropbox"                      → /dropbox
+     *   - "inteligencia-mercado"         → /inteligencia-mercado
+     *   - "bi"                           → /bi
+     *   - "match-produtos"               → /match-produtos
+     *   - "orcamentos"                   → /orcamentos
+     *   - "orcamentos-dashboard"         → /orcamentos/dashboard
+     *   - "orcamentos-funil"             → /orcamentos/funil
+     *   - "orcamentos-templates"         → /orcamentos/templates
+     *   - "orcamento-novo"               → /orcamentos/novo
+     *   - "404"                          → NotFound
+     */
+    title: (slug: PageSlug | string) => TID(`page-title-${slug}`),
   },
 
   // ---------- Catálogo / Produto ----------
