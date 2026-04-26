@@ -28,6 +28,8 @@ interface ConfirmDialogProps {
     title: string;
     items: string[];
   };
+  /** Optional stable testid forwarded to AlertDialogContent for E2E selectors. */
+  testId?: string;
 }
 
 const variantConfig = {
