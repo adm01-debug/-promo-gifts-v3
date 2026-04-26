@@ -191,8 +191,21 @@ export function DevRoute({ children }: DevRouteProps) {
 
   if (!isDev) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background px-4 py-8">
-        <div className="w-full max-w-md flex flex-col items-center gap-5 text-center">
+      <>
+        {/* Sinal semântico 403 (SPA não emite HTTP real, mas alimenta crawlers/bots/QA). */}
+        <Helmet>
+          <title>403 — Acesso negado</title>
+          <meta name="robots" content="noindex, nofollow" />
+          <meta name="x-http-status" content="403" />
+        </Helmet>
+        <div
+          role="alert"
+          aria-labelledby="dev-route-403-title"
+          data-http-status="403"
+          data-blocked-path={blockedPath}
+          className="min-h-screen flex items-center justify-center bg-background px-4 py-8"
+        >
+          <div className="w-full max-w-md flex flex-col items-center gap-5 text-center">
           <ShieldAlert
             className="h-12 w-12 text-destructive"
             aria-hidden="true"
