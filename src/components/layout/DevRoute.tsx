@@ -1,4 +1,5 @@
 import { type ReactNode, useEffect, useState } from "react";
+import { Helmet } from "react-helmet-async";
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
   Loader2,
@@ -20,6 +21,7 @@ import {
   getThrottleStatus,
   DEV_ACCESS_CONTACT_EMAIL,
 } from "@/lib/access/request-dev-access";
+import { logAccessDenied } from "@/lib/access/log-access-denied";
 
 interface DevRouteProps {
   children?: ReactNode;
@@ -55,6 +57,7 @@ export function DevRoute({ children }: DevRouteProps) {
     currentAAL,
     hasMFA,
     mfaRequired,
+    role,
   } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -73,16 +76,23 @@ export function DevRoute({ children }: DevRouteProps) {
     }
   }, [isLoading, user, isDev, hasMFA]);
 
-  // Notifica uma vez ao bloquear (telemetria de UX + clareza)
+  // Notifica uma vez ao bloquear (telemetria de UX + clareza) e
+  // registra a tentativa para auditoria (RLS-safe, throttled).
   useEffect(() => {
     if (!isLoading && user && !isDev) {
-      toast.error("Acesso restrito", {
+      toast.error("Acesso negado (403)", {
         description:
           "Esta área exige o papel Desenvolvedor. Solicite acesso ao time técnico.",
         id: "dev-route-blocked",
       });
+      void logAccessDenied({
+        userId: user.id,
+        blockedPath,
+        requiredRole: "dev",
+        userRole: role,
+      });
     }
-  }, [isLoading, user, isDev]);
+  }, [isLoading, user, isDev, blockedPath, role]);
 
   const handleRequestAccess = async () => {
     if (!user) return;
@@ -181,15 +191,28 @@ export function DevRoute({ children }: DevRouteProps) {
 
   if (!isDev) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background px-4 py-8">
-        <div className="w-full max-w-md flex flex-col items-center gap-5 text-center">
+      <>
+        {/* Sinal semântico 403 (SPA não emite HTTP real, mas alimenta crawlers/bots/QA). */}
+        <Helmet>
+          <title>403 — Acesso negado</title>
+          <meta name="robots" content="noindex, nofollow" />
+          <meta name="x-http-status" content="403" />
+        </Helmet>
+        <div
+          role="alert"
+          aria-labelledby="dev-route-403-title"
+          data-http-status="403"
+          data-blocked-path={blockedPath}
+          className="min-h-screen flex items-center justify-center bg-background px-4 py-8"
+        >
+          <div className="w-full max-w-md flex flex-col items-center gap-5 text-center">
           <ShieldAlert
             className="h-12 w-12 text-destructive"
             aria-hidden="true"
           />
           <div className="space-y-2">
-            <h1 className="text-xl font-semibold">
-              Área restrita ao papel Desenvolvedor
+            <h1 id="dev-route-403-title" className="text-xl font-semibold">
+              403 — Área restrita ao papel Desenvolvedor
             </h1>
             <p className="text-sm text-muted-foreground">
               Esta página contém ferramentas técnicas (telemetria, conexões,
@@ -291,7 +314,8 @@ export function DevRoute({ children }: DevRouteProps) {
             </Button>
           </div>
         </div>
-      </div>
+        </div>
+      </>
     );
   }
 
