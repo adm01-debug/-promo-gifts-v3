@@ -64,6 +64,7 @@ export function SingleVariantPicker({ productId, onSelect, compact, className }:
       {/* Skip option */}
       <button
         type="button"
+        data-testid="variant-picker-no-variant"
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
