@@ -74,8 +74,10 @@ Deno.serve(async (req) => {
     }
     const service = createClient(supabaseUrl, serviceKey);
     const { data: roles } = await service.from("user_roles").select("role").eq("user_id", u.user.id);
-    if (!(roles ?? []).some((r: { role: string }) => r.role === "admin")) {
-      return new Response(JSON.stringify({ error: "Admin only" }), {
+    // Aceita admin OU dev — alinhado com a guarda <DevRoute /> que protege /admin/conexoes.
+    const elevated = (roles ?? []).some((r: { role: string }) => r.role === "admin" || r.role === "dev");
+    if (!elevated) {
+      return new Response(JSON.stringify({ error: "Admin or dev role required" }), {
         status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
