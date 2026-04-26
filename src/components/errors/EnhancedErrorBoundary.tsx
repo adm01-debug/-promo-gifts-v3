@@ -189,6 +189,11 @@ class EnhancedErrorBoundary extends Component<Props, State> {
     }
 
     if (this.state.hasError) {
+      // Custom fallback (modo inline) — auto-recovery acima continua ativo.
+      if (this.props.fallback !== undefined) {
+        return this.props.fallback;
+      }
+
       const { error, errorInfo, showDetails, retryCount, isClearingCache, copied } = this.state;
       const isChunk = error ? this.isChunkError(error) : false;
       const currentPath = typeof window !== 'undefined' ? window.location.pathname + window.location.search : '';
