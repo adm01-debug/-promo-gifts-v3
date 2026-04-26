@@ -661,6 +661,7 @@ export default function FavoritesPage() {
                                   variant="secondary"
                                   size="icon"
                                   aria-label="Remover favorito"
+                                  data-testid="favorite-remove"
                                   className="h-8 w-8 bg-card/90 backdrop-blur-sm hover:bg-destructive/20"
                                   onClick={(e) => { e.stopPropagation(); handleRemoveFavorite(product.id, product.name); }}
                                 >

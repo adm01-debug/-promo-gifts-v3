@@ -99,6 +99,8 @@ export function ProductStickyHeader({
                   size="icon"
                   className="h-9 w-9 rounded-full"
                   onClick={onToggleFavorite}
+                  data-testid="product-favorite"
+                  aria-pressed={isFavorite}
                  aria-label="Favoritar"><Heart className={cn("h-4 w-4", isFavorite && "fill-destructive text-destructive")} />
                 </Button>
 

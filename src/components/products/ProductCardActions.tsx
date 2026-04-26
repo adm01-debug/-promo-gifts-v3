@@ -70,6 +70,8 @@ export const ProductCardActions = memo(function ProductCardActions({
       )}>
         {/* Favorite */}
         <ActionButton icon={Heart} label={isFavorited ? "Remover dos favoritos" : "Adicionar aos favoritos"}
+          testId="product-card-favorite"
+          ariaPressed={isFavorited}
           className={cn(btnClass, isFavorited && "bg-destructive/10 border-destructive/30")}
           iconClassName={cn(isFavorited && "fill-destructive text-destructive scale-110 animate-heart-fill")}
           onClick={onFavorite} />
@@ -111,17 +113,21 @@ export const ProductCardActions = memo(function ProductCardActions({
 
 // Tiny helper to reduce repetition
 function ActionButton({
-  icon: Icon, label, className, iconClassName, disabled, onClick,
+  icon: Icon, label, className, iconClassName, disabled, onClick, testId, ariaPressed,
 }: {
   icon: React.ComponentType<{ className?: string }>;
   label: string; className?: string; iconClassName?: string;
   disabled?: boolean; onClick: (e: React.MouseEvent) => void;
+  testId?: string;
+  ariaPressed?: boolean;
 }) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
         <Button variant="secondary" size="icon" className={className} disabled={disabled}
-          onClick={onClick} aria-label={label}>
+          onClick={onClick} aria-label={label}
+          data-testid={testId}
+          aria-pressed={ariaPressed}>
           <Icon className={cn("h-4 w-4 md:h-5 md:w-5 transition-all duration-300", iconClassName)} />
         </Button>
       </TooltipTrigger>

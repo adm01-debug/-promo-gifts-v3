@@ -187,6 +187,8 @@ export function EnhancedProductCard({
               <Button
                 variant="secondary"
                 size="icon" aria-label="Favoritar"
+                data-testid="product-card-favorite"
+                aria-pressed={isFavorited}
                 className={cn(
                   "h-10 w-10 rounded-full bg-card/95 backdrop-blur-md shadow-lg",
                   "hover:scale-110 transition-all",

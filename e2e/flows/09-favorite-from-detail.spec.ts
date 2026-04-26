@@ -37,6 +37,7 @@ function detailFavoriteButton(page: Page): Locator {
   return page
     .locator(
       [
+        '[data-testid="product-favorite"]',
         'button[aria-label="Favoritar" i]',
         'button[aria-label*="favorit" i]',
         'button:has-text("Favoritar")',
