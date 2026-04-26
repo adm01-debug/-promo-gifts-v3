@@ -232,8 +232,7 @@ test.describe("Fluxo: remover favorito persiste após reload", () => {
     ).toBeVisible({ timeout: 10_000 });
 
     // 3. Remove via botão "Remover favorito" do card alvo
-    const removeBtn = targetCard.locator(Sel.favorites.remove).first();
-    await removeBtn.waitFor({ state: "visible", timeout: 10_000 });
+    const removeBtn = await resolveRemoveButton(targetCard);
     await removeBtn.click();
     await acceptConfirmIfAny(page);
     await settleAfterAction(page);
