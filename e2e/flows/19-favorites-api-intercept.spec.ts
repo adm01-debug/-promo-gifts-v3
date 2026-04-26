@@ -231,7 +231,11 @@ test.describe("Fluxo: interceptação API favorite_items + validação pós-relo
       // 6. Reload com captura
       const apiCallsBeforeReload = spy.captured.length;
       await page.reload({ waitUntil: "load" });
-      await page.waitForLoadState("networkidle", { timeout: 5_000 }).catch(() => {});
+      // Sinal SSOT por SELETOR (substitui networkidle — flaky com polling/realtime/spy)
+      await page
+        .locator(Sel.favorites.title)
+        .first()
+        .waitFor({ state: "visible", timeout: 10_000 });
 
       // 6.1. Header — contagem (countItems) reidratada
       await expect

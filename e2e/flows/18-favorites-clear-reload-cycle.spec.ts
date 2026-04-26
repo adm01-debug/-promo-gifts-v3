@@ -79,7 +79,6 @@ async function isFavorited(button: Locator): Promise<boolean> {
 /** Reload + espera explícita do header reidratar para `expectedCount`. */
 async function reloadAndAwaitCount(page: Page, expectedCount: number): Promise<void> {
   await page.reload({ waitUntil: "load" });
-  await page.waitForLoadState("networkidle", { timeout: 4_000 }).catch(() => {});
   await page
     .locator(Sel.favorites.title)
     .first()

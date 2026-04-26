@@ -80,7 +80,10 @@ async function isFavorited(button: Locator): Promise<boolean> {
  */
 async function reloadAndAwaitHydration(page: Page, expectedCount: number): Promise<void> {
   await page.reload({ waitUntil: "load" });
-  await page.waitForLoadState("networkidle", { timeout: 4_000 }).catch(() => {});
+  await page
+    .locator(Sel.favorites.title)
+    .first()
+    .waitFor({ state: "visible", timeout: 10_000 });
   await expect
     .poll(() => readFavoritesCount(page), {
       message: `header favorites-count-items deveria reidratar para ${expectedCount}`,
