@@ -13,6 +13,8 @@ import { AlertTriangle, Loader2, RefreshCw, WifiOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCloudStatus } from '@/hooks/useCloudStatus';
 
+type CloudStatusVariant = 'warming' | 'degraded' | 'down';
+
 export function CloudStatusBanner() {
   const { status, retry, isChecking } = useCloudStatus();
   const visible = status === 'warming' || status === 'degraded' || status === 'down';
