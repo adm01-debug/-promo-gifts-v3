@@ -81,6 +81,7 @@ const AdminSegurancaAcessoPage = lazyWithRetry(() => import("./pages/admin/Admin
 const AdminSegurancaChavesPage = lazyWithRetry(() => import("./pages/admin/AdminSegurancaChavesPage"));
 const AdminConexoesPage = lazyWithRetry(() => import("./pages/admin/AdminConexoesPage"));
 const AdminConexoesStatusPage = lazyWithRetry(() => import("./pages/admin/AdminConexoesStatusPage"));
+const AdminRbacRoutesPage = lazyWithRetry(() => import("./pages/admin/AdminRbacRoutesPage"));
 
 // Tools Pages
 const SimuladorWizard = lazyWithRetry(() => import("./pages/SimuladorWizard"));
