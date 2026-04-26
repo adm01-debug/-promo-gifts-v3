@@ -486,12 +486,12 @@ Deno.serve(async (req: Request) => {
     await purgeBySellerId(t);
   }
 
-  // Quotes
+  // 4) Quotes (seller_id) — apaga filhos via quote_id, depois quotes
   try {
     const { data: quoteRows, error: qErr } = await admin
       .from("quotes")
       .select("id")
-      .eq("seller_id", userId);
+      .eq("seller_id", sellerId);
     if (qErr) {
       errors["quotes_lookup"] = qErr.message;
     } else {
@@ -521,7 +521,7 @@ Deno.serve(async (req: Request) => {
           const { error, count } = await admin
             .from("quotes")
             .delete({ count: "exact" })
-            .eq("seller_id", userId);
+            .eq("seller_id", sellerId);
           if (error) errors["quotes"] = error.message;
           else deleted["quotes"] = count ?? 0;
         }
@@ -541,6 +541,8 @@ Deno.serve(async (req: Request) => {
   await writeAudit(admin, {
     email,
     user_id: userId,
+    seller_id: sellerId,
+    seller_scope: sellerScope,
     dry_run: dryRun,
     status,
     reason: status === "ok" ? null : "partial_or_failed_purge",
@@ -556,6 +558,8 @@ Deno.serve(async (req: Request) => {
     ok: status === "ok",
     dryRun,
     userId,
+    sellerId,
+    sellerScope,
     email,
     deleted,
     errors,
