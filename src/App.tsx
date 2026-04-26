@@ -80,6 +80,7 @@ const PriceFreshnessSettingsPage = lazyWithRetry(() => import("./pages/admin/Pri
 const AdminSegurancaAcessoPage = lazyWithRetry(() => import("./pages/admin/AdminSegurancaAcessoPage"));
 const AdminSegurancaChavesPage = lazyWithRetry(() => import("./pages/admin/AdminSegurancaChavesPage"));
 const DevChallengeExamplesPage = lazyWithRetry(() => import("./pages/admin/DevChallengeExamplesPage"));
+const AdminMigracaoPapeisPage = lazyWithRetry(() => import("./pages/admin/AdminMigracaoPapeisPage"));
 const AdminConexoesPage = lazyWithRetry(() => import("./pages/admin/AdminConexoesPage"));
 const AdminConexoesStatusPage = lazyWithRetry(() => import("./pages/admin/AdminConexoesStatusPage"));
 const AdminRbacRoutesPage = lazyWithRetry(() => import("./pages/admin/AdminRbacRoutesPage"));
@@ -260,6 +261,7 @@ const App = () => {
                                 <Route path="/admin/seguranca-acesso" element={<AdminSegurancaAcessoPage />} />
                                 <Route path="/admin/seguranca/chaves" element={<AdminSegurancaChavesPage />} />
                                 <Route path="/admin/seguranca/exemplos-challenge" element={<DevChallengeExamplesPage />} />
+                                <Route path="/admin/seguranca/migracao-papeis" element={<AdminMigracaoPapeisPage />} />
                                 <Route path="/admin/prompts-ia" element={<AdminPromptsIAPage />} />
                                 <Route path="/admin/validade-precos" element={<PriceFreshnessSettingsPage />} />
                                 <Route path="/admin/telemetria" element={<AdminTelemetriaPage />} />
