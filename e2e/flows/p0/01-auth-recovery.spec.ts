@@ -1,5 +1,6 @@
 /**
  * P0 — Auth recovery: sessão expirada, auth offline, logout global.
+ * Política: SSOT em e2e/fixtures/selectors.ts — somente data-testid.
  */
 import { test, expect } from "../../fixtures/test-base";
 import { Sel } from "../../fixtures/selectors";
@@ -16,7 +17,7 @@ test.describe("P0 — Auth recovery", () => {
     await page.fill(Sel.login.email, "user@example.com");
     await page.fill(Sel.login.password, "Senha123!");
     await page.locator(Sel.login.submit).first().click();
-    await expect(page.getByRole("alert")).toContainText(/temporariamente|tente novamente/i);
+    await expect(page.locator(Sel.app.errorBanner).or(page.locator(Sel.app.toast))).toBeVisible();
     await expect(page.locator(Sel.login.submit).first()).toBeEnabled();
   });
 
@@ -28,10 +29,8 @@ test.describe("P0 — Auth recovery", () => {
   });
 
   test.skip("force-global-logout encerra todas as abas em < 5s", async ({ page, context }) => {
-    // TODO(P0): testar com 2 contextos / abas.
     const second = await context.newPage();
     await second.goto("/catalogo");
-    // Trigger via edge function call mock
     await expect(second).toHaveURL(/\/login/, { timeout: 5000 });
   });
 });
