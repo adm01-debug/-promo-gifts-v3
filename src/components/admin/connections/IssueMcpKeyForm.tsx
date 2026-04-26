@@ -30,8 +30,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Copy, Key, ShieldAlert, AlertTriangle } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { invokeFullScopeFunction } from "@/lib/auth/invoke-full-scope";
 import {
   Tooltip,
   TooltipContent,
@@ -113,51 +113,45 @@ export function IssueMcpKeyForm({ onIssued }: Props) {
     return null;
   }, [name, scopes, full, expiresLocal, justification, confirmation]);
 
-  const requestSubmit = async () => {
-    if (validation) {
-      toast.error(validation);
-      return;
-    }
-    if (full) {
-      // Gate extra para acesso root: confirmação por nome → modal step-up dedicado (mcp_full_issue).
-      setRootNameEcho("");
-      setConfirmRootOpen(true);
-      return;
-    }
-    // Chaves limitadas: também exigem step-up server-side (action: mcp_key_rotate).
-    const token = await challenge({
-      action: "mcp_key_rotate",
-      actionLabel: `Emitir chave MCP "${name}"`,
-      targetRef: null,
-    });
-    if (!token) return; // cancelado
-    void doSubmit(token);
-  };
-
-  const doSubmit = async (stepUpToken?: string) => {
+  const submitWithChallenge = async (action: "mcp_full_issue" | "mcp_key_rotate") => {
     setSubmitting(true);
     try {
-      const { data, error } = await supabase.functions.invoke("mcp-keys-issue", {
+      const result = await invokeFullScopeFunction<
+        Record<string, unknown>,
+        { ok: boolean; key?: string }
+      >({
+        challenge,
+        functionName: "mcp-keys-issue",
+        action,
+        actionLabel: full
+          ? `Emitir chave MCP FULL "${name}"`
+          : `Emitir chave MCP "${name}"`,
+        targetRef: null, // chave ainda não existe
         body: {
           name: name.trim(),
           scopes,
           expires_at: expiresLocal ? new Date(expiresLocal).toISOString() : null,
           justification: justification.trim() || null,
           confirmation_phrase: full ? confirmation : null,
-          step_up_token: stepUpToken ?? null,
           target_repo: targetRepo.trim() || null,
           target_tool: targetTool.trim() || null,
         },
       });
-      if (error) {
-        toast.error("Falha ao emitir chave", { description: sanitizeError(error) });
+
+      if (result.status === "cancelled" || result.status === "step_up_error") return;
+      if (result.status === "error") {
+        toast.error("Falha ao emitir chave", {
+          description: sanitizeError(result.error ?? result.data),
+        });
         return;
       }
-      if (!data?.ok || !data?.key) {
-        toast.error("Não foi possível emitir a chave", { description: sanitizeError(data) });
+      if (!result.data.key) {
+        toast.error("Não foi possível emitir a chave", {
+          description: sanitizeError(result.data),
+        });
         return;
       }
-      setGenerated(data.key as string);
+      setGenerated(result.data.key);
       setConfirmRootOpen(false);
       toast.success("Chave emitida com sucesso");
       onIssued();
@@ -166,16 +160,25 @@ export function IssueMcpKeyForm({ onIssued }: Props) {
     }
   };
 
+  const requestSubmit = async () => {
+    if (validation) {
+      toast.error(validation);
+      return;
+    }
+    if (full) {
+      // Gate extra para acesso root: confirmação por nome → modal step-up dedicado.
+      setRootNameEcho("");
+      setConfirmRootOpen(true);
+      return;
+    }
+    // Chaves limitadas: step-up server-side com action: mcp_key_rotate.
+    await submitWithChallenge("mcp_key_rotate");
+  };
+
   const handleRootConfirmed = async () => {
-    // Após confirmar nome (gate visual), abre verificação dupla via DevChallenge
+    // Após confirmar nome (gate visual), dispara verificação dupla via helper.
     setConfirmRootOpen(false);
-    const token = await challenge({
-      action: "mcp_full_issue",
-      actionLabel: `Emitir chave MCP FULL "${name}"`,
-      targetRef: null,
-    });
-    if (!token) return; // cancelado/falhou
-    void doSubmit(token);
+    await submitWithChallenge("mcp_full_issue");
   };
 
   const rootNameMatches =
