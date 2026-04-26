@@ -176,7 +176,16 @@ export function useDiscountApproval() {
         .eq("id", requestId)
         .select()
         .single();
-      if (updateError) throw updateError;
+      if (updateError) {
+        await logRlsDenial(updateError, {
+          table: "discount_approval_requests", op: "UPDATE",
+          endpoint: "useDiscountApproval.respondToApproval",
+          targetId: requestId,
+          policyHint: "dar_update_scope",
+          querySummary: `decision=${approved ? "approved" : "rejected"}`,
+        });
+        throw updateError;
+      }
 
       const typedReq = request as DiscountApprovalRequest;
 
