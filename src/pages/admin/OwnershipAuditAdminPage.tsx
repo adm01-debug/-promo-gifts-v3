@@ -105,10 +105,18 @@ export default function OwnershipAuditAdminPage() {
               Detecta registros sem dono ou cujo dono não existe mais. Roda automaticamente todos os dias.
             </p>
           </div>
-          <Button onClick={runNow} disabled={running} className="gap-2">
-            <RefreshCw className={`h-4 w-4 ${running ? "animate-spin" : ""}`} />
-            Rodar agora
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => exportMatrix("csv")} className="gap-2">
+              <Download className="h-4 w-4" /> Matriz CSV
+            </Button>
+            <Button variant="outline" onClick={() => exportMatrix("pdf")} className="gap-2">
+              <FileText className="h-4 w-4" /> Matriz PDF
+            </Button>
+            <Button onClick={runNow} disabled={running} className="gap-2">
+              <RefreshCw className={`h-4 w-4 ${running ? "animate-spin" : ""}`} />
+              Rodar agora
+            </Button>
+          </div>
         </header>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
