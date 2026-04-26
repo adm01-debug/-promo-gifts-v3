@@ -328,4 +328,5 @@ class EnhancedErrorBoundary extends Component<Props, State> {
   }
 }
 
+export { EnhancedErrorBoundary };
 export default EnhancedErrorBoundary;
