@@ -217,6 +217,87 @@ export default function OwnershipAuditAdminPage() {
 
         <Card>
           <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Lock className="h-4 w-4 text-primary" />
+              Cobertura RLS — tabelas críticas sem política por operação
+            </CardTitle>
+            <p className="text-xs text-muted-foreground mt-1">
+              Lista as tabelas que possuem coluna de dono (seller_id, user_id, owner_id, created_by, assigned_to)
+              e que <strong>não têm política RLS</strong> para uma ou mais operações. Cada lacuna significa que a
+              operação só funciona via service_role / cron — usuários autenticados ficam bloqueados ou, pior,
+              expostos se o RLS estiver desabilitado.
+            </p>
+          </CardHeader>
+          <CardContent>
+            {!current || !Array.isArray(current.rls_coverage) || current.rls_coverage.length === 0 ? (
+              <div className="flex items-center gap-2 text-sm text-success py-6">
+                <CheckCircle2 className="h-4 w-4" />
+                Todas as tabelas críticas possuem políticas RLS para SELECT, INSERT, UPDATE e DELETE.
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Tabela</TableHead>
+                    <TableHead className="text-center">RLS</TableHead>
+                    <TableHead className="text-center">Políticas</TableHead>
+                    <TableHead>Operações sem política</TableHead>
+                    <TableHead className="text-right">Severidade</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {current.rls_coverage.map((r) => (
+                    <TableRow key={r.table}>
+                      <TableCell className="font-mono text-xs">{r.table}</TableCell>
+                      <TableCell className="text-center">
+                        {r.rls_enabled ? (
+                          <Badge variant="secondary" className="text-[10px]">ON</Badge>
+                        ) : (
+                          <Badge variant="destructive" className="text-[10px]">OFF</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-center text-xs">{r.policy_count}</TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1">
+                          {r.missing_ops.length === 0 ? (
+                            <span className="text-xs text-muted-foreground">—</span>
+                          ) : (
+                            r.missing_ops.map((op) => (
+                              <Badge
+                                key={op}
+                                variant={op === "SELECT" ? "destructive" : "outline"}
+                                className="text-[10px] font-mono"
+                              >
+                                {op}
+                              </Badge>
+                            ))
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Badge
+                          variant={
+                            r.severity === "critical" || r.severity === "high"
+                              ? "destructive"
+                              : r.severity === "medium"
+                              ? "outline"
+                              : "secondary"
+                          }
+                          className="text-[10px] uppercase"
+                        >
+                          {r.severity}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
             <CardTitle className="text-base">Histórico (últimas 50 execuções)</CardTitle>
           </CardHeader>
           <CardContent>
