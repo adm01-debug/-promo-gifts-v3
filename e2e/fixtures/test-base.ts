@@ -9,9 +9,16 @@
  */
 import { test as base, expect } from "@playwright/test";
 import { attachConsoleCapture, type EvidenceCollector } from "../helpers/evidence";
+import { loadCleanupConfig, purgeAll } from "../helpers/cleanup-client";
 
 type Fixtures = {
   evidence: EvidenceCollector;
+  /**
+   * Auto-fixture: dispara purge da edge `e2e-cleanup` quando o teste falha,
+   * para que o teste seguinte não herde lixo. Pode ser desligada via
+   * `E2E_CLEANUP_ON_FAILURE=0` (default ligado quando há config válida).
+   */
+  cleanupOnFailure: void;
 };
 
 export const test = base.extend<Fixtures>({
@@ -22,6 +29,20 @@ export const test = base.extend<Fixtures>({
       await collector.attachAll(page, testInfo);
     }
   },
+  cleanupOnFailure: [
+    async ({}, use, testInfo) => {
+      await use();
+      if (process.env.E2E_CLEANUP_ON_FAILURE === "0") return;
+      if (testInfo.status === testInfo.expectedStatus) return;
+      const cfg = loadCleanupConfig();
+      if (!cfg) return;
+      await purgeAll(cfg, {
+        quiet: true,
+        reason: `failure:${testInfo.title}`,
+      }).catch(() => {});
+    },
+    { auto: true },
+  ],
 });
 
 export { expect };
