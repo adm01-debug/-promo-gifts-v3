@@ -85,7 +85,15 @@ export function useUpdateOrder(orderId?: string) {
         .from("orders")
         .update({ ...patch, updated_at: new Date().toISOString() })
         .eq("id", orderId!);
-      if (error) throw error;
+      if (error) {
+        await logRlsDenial(error, {
+          table: "orders", op: "UPDATE",
+          endpoint: "useUpdateOrder",
+          targetId: orderId,
+          policyHint: "orders_update_scope",
+        });
+        throw error;
+      }
     },
     onSuccess: () => {
       toast.success("Pedido atualizado");
