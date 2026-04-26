@@ -61,8 +61,22 @@ export const Sel = {
     card: TID("product-card"),
     /** Nome no card do catálogo (ProductCard / EnhancedProductCard). */
     cardName: TID("product-card-name"),
+    /** Nome na linha da view de tabela (ProductTableView). */
+    rowName: TID("product-row-name"),
+    /** Nome no item da view de lista (ProductListItem). */
+    listName: TID("product-list-name"),
+    /** Nome no QuickView (ProductQuickView). */
+    quickViewName: TID("product-quickview-name"),
     /** Nome no detalhe do produto (ProductDetailHero h1). */
     name: TID("product-name"),
+    /** Qualquer nome de produto (catálogo + detalhe + lista + tabela + quickview). */
+    anyName: [
+      TID("product-card-name"),
+      TID("product-row-name"),
+      TID("product-list-name"),
+      TID("product-quickview-name"),
+      TID("product-name"),
+    ].join(", "),
     /**
      * Botão de favoritar — testid estável presente em:
      *  - card do catálogo (ProductCardActions: product-card-favorite)
@@ -78,6 +92,16 @@ export const Sel = {
     actionsToggle: TID("product-card-actions-toggle"),
     /** Botão final "Adicionar ao Carrinho" dentro do popover QuickAddToQuote. */
     cardAddToCart: TID("product-card-add-to-cart"),
+    /** Botão "Adicionar" no quick-add inline do EnhancedProductCard. */
+    cardQuickAdd: TID("product-card-quick-add"),
+    /** Botão "Adicionar ao Orçamento" do QuickView. */
+    quickViewAddToQuote: TID("product-quickview-add-to-quote"),
+    /** Qualquer CTA de adicionar ao carrinho/orçamento em superfícies de produto. */
+    anyAddToCart: [
+      TID("product-card-add-to-cart"),
+      TID("product-card-quick-add"),
+      TID("product-quickview-add-to-quote"),
+    ].join(", "),
   },
 
   // ---------- Variant Picker ----------
