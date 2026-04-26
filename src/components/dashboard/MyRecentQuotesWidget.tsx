@@ -1,13 +1,13 @@
 /**
- * MyRecentQuotesWidget — lista propostas recentes do usuário logado, com
- * busca textual, filtro de status e intervalo de datas.
- * Aplica filtro explícito por seller_id = auth.uid() (defesa em profundidade
+ * MyRecentQuotesWidget — propostas recentes do usuário com busca, filtros
+ * e infinite scroll (carrega lotes adicionais conforme o usuário rola).
+ * Filtro explícito por seller_id = auth.uid() (defesa em profundidade
  * sobre a RLS já existente).
  */
-import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMemo, useState, useCallback } from "react";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { FileText, ArrowRight, Clock } from "lucide-react";
+import { FileText, ArrowRight, Clock, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,6 +22,9 @@ import {
   withinDateRange,
   type WidgetFiltersValue,
 } from "./widget-filters/WidgetFiltersBar";
+import { useInfiniteScroll } from "./widget-filters/useInfiniteScroll";
+
+const PAGE_SIZE = 20;
 
 const STATUS_LABELS: Record<string, string> = {
   draft: "Rascunho",
@@ -40,34 +43,53 @@ export function MyRecentQuotesWidget() {
   const navigate = useNavigate();
   const [filters, setFilters] = useState<WidgetFiltersValue>(EMPTY_FILTERS);
 
-  const { data = [] } = useQuery({
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+  } = useInfiniteQuery({
     queryKey: ["my-recent-quotes-widget", user?.id],
     enabled: !!user?.id,
     staleTime: 30_000,
-    queryFn: async () => {
-      const { data, error } = await supabase
+    initialPageParam: null as string | null,
+    queryFn: async ({ pageParam }) => {
+      let q = supabase
         .from("quotes")
         .select("id, quote_number, status, total, client_name, client_company, updated_at")
         .eq("seller_id", user!.id)
         .order("updated_at", { ascending: false })
-        .limit(50);
+        .limit(PAGE_SIZE);
+      if (pageParam) q = q.lt("updated_at", pageParam);
+      const { data, error } = await q;
       if (error) throw error;
       return data ?? [];
     },
+    getNextPageParam: (last) =>
+      last.length < PAGE_SIZE ? undefined : last[last.length - 1]?.updated_at ?? undefined,
   });
 
+  const all = useMemo(() => data?.pages.flat() ?? [], [data]);
+
   const filtered = useMemo(() => {
-    return data.filter(
+    return all.filter(
       (q) =>
         (filters.status === "all" || q.status === filters.status) &&
         withinDateRange(q.updated_at, filters.dateRange) &&
         matchesSearch([q.quote_number, q.client_name, q.client_company], filters.search),
     );
-  }, [data, filters]);
+  }, [all, filters]);
 
-  const visible = filtered.slice(0, 5);
+  const handleLoadMore = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) fetchNextPage();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  if (data.length === 0) return null;
+  const sentinelRef = useInfiniteScroll<HTMLDivElement>(handleLoadMore, {
+    enabled: !!hasNextPage,
+  });
+
+  if (!isLoading && all.length === 0) return null;
 
   return (
     <Card>
@@ -89,47 +111,56 @@ export function MyRecentQuotesWidget() {
         />
       </CardHeader>
       <CardContent className="space-y-2">
-        {visible.length === 0 ? (
-          <p className="text-xs text-muted-foreground py-4 text-center">
-            Nenhuma proposta encontrada com os filtros atuais.
-          </p>
-        ) : (
-          visible.map((q) => (
-            <button
-              key={q.id}
-              onClick={() => navigate(`/orcamentos/${q.id}`)}
-              className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-secondary/50 transition-colors text-left"
-            >
-              <div className="w-8 h-8 rounded-md bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <FileText className="h-4 w-4 text-primary" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">
-                  #{q.quote_number} · {q.client_company || q.client_name || "Sem cliente"}
-                </p>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <Badge variant={q.status === "draft" ? "secondary" : "outline"} className="text-[10px] px-1.5 py-0">
-                    {STATUS_LABELS[q.status] ?? q.status}
-                  </Badge>
-                  <span className="flex items-center gap-0.5">
-                    <Clock className="h-2.5 w-2.5" />
-                    {formatDistanceToNow(new Date(q.updated_at), { addSuffix: true, locale: ptBR })}
-                  </span>
+        <div className="max-h-[420px] overflow-y-auto space-y-2 pr-1">
+          {filtered.length === 0 ? (
+            <p className="text-xs text-muted-foreground py-4 text-center">
+              Nenhuma proposta encontrada com os filtros atuais.
+            </p>
+          ) : (
+            filtered.map((q) => (
+              <button
+                key={q.id}
+                onClick={() => navigate(`/orcamentos/${q.id}`)}
+                className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-secondary/50 transition-colors text-left"
+              >
+                <div className="w-8 h-8 rounded-md bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <FileText className="h-4 w-4 text-primary" />
                 </div>
-              </div>
-              {q.total != null && (
-                <p className="text-sm font-semibold text-primary flex-shrink-0">
-                  {Number(q.total).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-                </p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">
+                    #{q.quote_number} · {q.client_company || q.client_name || "Sem cliente"}
+                  </p>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <Badge variant={q.status === "draft" ? "secondary" : "outline"} className="text-[10px] px-1.5 py-0">
+                      {STATUS_LABELS[q.status] ?? q.status}
+                    </Badge>
+                    <span className="flex items-center gap-0.5">
+                      <Clock className="h-2.5 w-2.5" />
+                      {formatDistanceToNow(new Date(q.updated_at), { addSuffix: true, locale: ptBR })}
+                    </span>
+                  </div>
+                </div>
+                {q.total != null && (
+                  <p className="text-sm font-semibold text-primary flex-shrink-0">
+                    {Number(q.total).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                  </p>
+                )}
+              </button>
+            ))
+          )}
+          {hasNextPage && (
+            <div ref={sentinelRef} className="flex items-center justify-center py-3">
+              {isFetchingNextPage ? (
+                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+              ) : (
+                <span className="text-[10px] text-muted-foreground">Role para carregar mais</span>
               )}
-            </button>
-          ))
-        )}
-        {filtered.length > visible.length && (
-          <p className="text-[10px] text-muted-foreground text-center pt-1">
-            Exibindo {visible.length} de {filtered.length} resultado(s).
-          </p>
-        )}
+            </div>
+          )}
+        </div>
+        <p className="text-[10px] text-muted-foreground text-center pt-1">
+          Exibindo {filtered.length} de {all.length} carregado(s){hasNextPage ? "+" : ""}.
+        </p>
       </CardContent>
     </Card>
   );

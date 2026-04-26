@@ -1,12 +1,11 @@
 /**
- * MyPendingOrdersWidget — lista pedidos pendentes do usuário logado, com
- * busca textual, filtro de status e intervalo de datas.
- * Filtro explícito por seller_id = auth.uid() sobre a RLS existente.
+ * MyPendingOrdersWidget — pedidos do usuário com busca, filtros e
+ * infinite scroll. Filtro explícito por seller_id = auth.uid().
  */
-import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMemo, useState, useCallback } from "react";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { Package, ArrowRight, Clock } from "lucide-react";
+import { Package, ArrowRight, Clock, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,6 +20,9 @@ import {
   withinDateRange,
   type WidgetFiltersValue,
 } from "./widget-filters/WidgetFiltersBar";
+import { useInfiniteScroll } from "./widget-filters/useInfiniteScroll";
+
+const PAGE_SIZE = 20;
 
 const STATUS_LABELS: Record<string, string> = {
   pending: "Pendente",
@@ -39,38 +41,54 @@ export function MyPendingOrdersWidget() {
   const navigate = useNavigate();
   const [filters, setFilters] = useState<WidgetFiltersValue>(EMPTY_FILTERS);
 
-  const { data = [] } = useQuery({
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+  } = useInfiniteQuery({
     queryKey: ["my-pending-orders-widget", user?.id],
     enabled: !!user?.id,
     staleTime: 30_000,
-    queryFn: async () => {
-      // Mantém o foco em pedidos em andamento, mas cobre status adicionais
-      // para que a busca textual e o filtro local possam alcançar o que o
-      // usuário espera ("Confirmado", "Em transporte").
-      const { data, error } = await supabase
+    initialPageParam: null as string | null,
+    queryFn: async ({ pageParam }) => {
+      let q = supabase
         .from("orders")
         .select("id, order_number, status, total, client_name, client_company, updated_at")
         .eq("seller_id", user!.id)
         .in("status", ["pending", "confirmed", "in_production", "shipping", "shipped"])
         .order("updated_at", { ascending: false })
-        .limit(50);
+        .limit(PAGE_SIZE);
+      if (pageParam) q = q.lt("updated_at", pageParam);
+      const { data, error } = await q;
       if (error) throw error;
       return data ?? [];
     },
+    getNextPageParam: (last) =>
+      last.length < PAGE_SIZE ? undefined : last[last.length - 1]?.updated_at ?? undefined,
   });
 
+  const all = useMemo(() => data?.pages.flat() ?? [], [data]);
+
   const filtered = useMemo(() => {
-    return data.filter(
+    return all.filter(
       (o) =>
         (filters.status === "all" || o.status === filters.status) &&
         withinDateRange(o.updated_at, filters.dateRange) &&
         matchesSearch([o.order_number, o.client_name, o.client_company], filters.search),
     );
-  }, [data, filters]);
+  }, [all, filters]);
 
-  const visible = filtered.slice(0, 5);
+  const handleLoadMore = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) fetchNextPage();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  if (data.length === 0) return null;
+  const sentinelRef = useInfiniteScroll<HTMLDivElement>(handleLoadMore, {
+    enabled: !!hasNextPage,
+  });
+
+  if (!isLoading && all.length === 0) return null;
 
   return (
     <Card>
@@ -92,47 +110,56 @@ export function MyPendingOrdersWidget() {
         />
       </CardHeader>
       <CardContent className="space-y-2">
-        {visible.length === 0 ? (
-          <p className="text-xs text-muted-foreground py-4 text-center">
-            Nenhum pedido encontrado com os filtros atuais.
-          </p>
-        ) : (
-          visible.map((o) => (
-            <button
-              key={o.id}
-              onClick={() => navigate(`/pedidos/${o.id}`)}
-              className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-secondary/50 transition-colors text-left"
-            >
-              <div className="w-8 h-8 rounded-md bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <Package className="h-4 w-4 text-primary" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">
-                  #{o.order_number} · {o.client_company || o.client_name || "Sem cliente"}
-                </p>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                    {STATUS_LABELS[o.status] ?? o.status}
-                  </Badge>
-                  <span className="flex items-center gap-0.5">
-                    <Clock className="h-2.5 w-2.5" />
-                    {formatDistanceToNow(new Date(o.updated_at), { addSuffix: true, locale: ptBR })}
-                  </span>
+        <div className="max-h-[420px] overflow-y-auto space-y-2 pr-1">
+          {filtered.length === 0 ? (
+            <p className="text-xs text-muted-foreground py-4 text-center">
+              Nenhum pedido encontrado com os filtros atuais.
+            </p>
+          ) : (
+            filtered.map((o) => (
+              <button
+                key={o.id}
+                onClick={() => navigate(`/pedidos/${o.id}`)}
+                className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-secondary/50 transition-colors text-left"
+              >
+                <div className="w-8 h-8 rounded-md bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <Package className="h-4 w-4 text-primary" />
                 </div>
-              </div>
-              {o.total != null && (
-                <p className="text-sm font-semibold text-primary flex-shrink-0">
-                  {Number(o.total).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-                </p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">
+                    #{o.order_number} · {o.client_company || o.client_name || "Sem cliente"}
+                  </p>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                      {STATUS_LABELS[o.status] ?? o.status}
+                    </Badge>
+                    <span className="flex items-center gap-0.5">
+                      <Clock className="h-2.5 w-2.5" />
+                      {formatDistanceToNow(new Date(o.updated_at), { addSuffix: true, locale: ptBR })}
+                    </span>
+                  </div>
+                </div>
+                {o.total != null && (
+                  <p className="text-sm font-semibold text-primary flex-shrink-0">
+                    {Number(o.total).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                  </p>
+                )}
+              </button>
+            ))
+          )}
+          {hasNextPage && (
+            <div ref={sentinelRef} className="flex items-center justify-center py-3">
+              {isFetchingNextPage ? (
+                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+              ) : (
+                <span className="text-[10px] text-muted-foreground">Role para carregar mais</span>
               )}
-            </button>
-          ))
-        )}
-        {filtered.length > visible.length && (
-          <p className="text-[10px] text-muted-foreground text-center pt-1">
-            Exibindo {visible.length} de {filtered.length} resultado(s).
-          </p>
-        )}
+            </div>
+          )}
+        </div>
+        <p className="text-[10px] text-muted-foreground text-center pt-1">
+          Exibindo {filtered.length} de {all.length} carregado(s){hasNextPage ? "+" : ""}.
+        </p>
       </CardContent>
     </Card>
   );

@@ -1,12 +1,11 @@
 /**
- * MyDiscountRequestsWidget — solicitações de desconto do usuário logado, com
- * busca textual (por percentual ou ID), filtro de status e intervalo de datas.
- * Filtro explícito por seller_id = auth.uid() sobre a RLS existente.
+ * MyDiscountRequestsWidget — solicitações de desconto do usuário com busca,
+ * filtros e infinite scroll. Filtro explícito por seller_id = auth.uid().
  */
-import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMemo, useState, useCallback } from "react";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { Percent, ArrowRight, Clock } from "lucide-react";
+import { Percent, ArrowRight, Clock, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,6 +20,9 @@ import {
   withinDateRange,
   type WidgetFiltersValue,
 } from "./widget-filters/WidgetFiltersBar";
+import { useInfiniteScroll } from "./widget-filters/useInfiniteScroll";
+
+const PAGE_SIZE = 20;
 
 const STATUS_VARIANT: Record<string, "secondary" | "outline" | "default" | "destructive"> = {
   pending: "secondary",
@@ -41,24 +43,37 @@ export function MyDiscountRequestsWidget() {
   const navigate = useNavigate();
   const [filters, setFilters] = useState<WidgetFiltersValue>(EMPTY_FILTERS);
 
-  const { data = [] } = useQuery({
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+  } = useInfiniteQuery({
     queryKey: ["my-discount-requests-widget", user?.id],
     enabled: !!user?.id,
     staleTime: 30_000,
-    queryFn: async () => {
-      const { data, error } = await supabase
+    initialPageParam: null as string | null,
+    queryFn: async ({ pageParam }) => {
+      let q = supabase
         .from("discount_approval_requests")
         .select("id, status, requested_discount_percent, quote_id, created_at")
         .eq("seller_id", user!.id)
         .order("created_at", { ascending: false })
-        .limit(50);
+        .limit(PAGE_SIZE);
+      if (pageParam) q = q.lt("created_at", pageParam);
+      const { data, error } = await q;
       if (error) throw error;
       return data ?? [];
     },
+    getNextPageParam: (last) =>
+      last.length < PAGE_SIZE ? undefined : last[last.length - 1]?.created_at ?? undefined,
   });
 
+  const all = useMemo(() => data?.pages.flat() ?? [], [data]);
+
   const filtered = useMemo(() => {
-    return data.filter(
+    return all.filter(
       (r) =>
         (filters.status === "all" || r.status === filters.status) &&
         withinDateRange(r.created_at, filters.dateRange) &&
@@ -70,11 +85,17 @@ export function MyDiscountRequestsWidget() {
           filters.search,
         ),
     );
-  }, [data, filters]);
+  }, [all, filters]);
 
-  const visible = filtered.slice(0, 5);
+  const handleLoadMore = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) fetchNextPage();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  if (data.length === 0) return null;
+  const sentinelRef = useInfiniteScroll<HTMLDivElement>(handleLoadMore, {
+    enabled: !!hasNextPage,
+  });
+
+  if (!isLoading && all.length === 0) return null;
 
   return (
     <Card>
@@ -96,41 +117,50 @@ export function MyDiscountRequestsWidget() {
         />
       </CardHeader>
       <CardContent className="space-y-2">
-        {visible.length === 0 ? (
-          <p className="text-xs text-muted-foreground py-4 text-center">
-            Nenhuma solicitação encontrada com os filtros atuais.
-          </p>
-        ) : (
-          visible.map((r) => (
-            <div
-              key={r.id}
-              className="flex items-center gap-3 p-2 rounded-lg hover:bg-secondary/50 transition-colors"
-            >
-              <div className="w-8 h-8 rounded-md bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <Percent className="h-4 w-4 text-primary" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">
-                  Desconto solicitado: {Number(r.requested_discount_percent ?? 0).toFixed(1)}%
-                </p>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <Badge variant={STATUS_VARIANT[r.status] ?? "outline"} className="text-[10px] px-1.5 py-0">
-                    {STATUS_LABELS[r.status] ?? r.status}
-                  </Badge>
-                  <span className="flex items-center gap-0.5">
-                    <Clock className="h-2.5 w-2.5" />
-                    {formatDistanceToNow(new Date(r.created_at), { addSuffix: true, locale: ptBR })}
-                  </span>
+        <div className="max-h-[420px] overflow-y-auto space-y-2 pr-1">
+          {filtered.length === 0 ? (
+            <p className="text-xs text-muted-foreground py-4 text-center">
+              Nenhuma solicitação encontrada com os filtros atuais.
+            </p>
+          ) : (
+            filtered.map((r) => (
+              <div
+                key={r.id}
+                className="flex items-center gap-3 p-2 rounded-lg hover:bg-secondary/50 transition-colors"
+              >
+                <div className="w-8 h-8 rounded-md bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <Percent className="h-4 w-4 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">
+                    Desconto solicitado: {Number(r.requested_discount_percent ?? 0).toFixed(1)}%
+                  </p>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <Badge variant={STATUS_VARIANT[r.status] ?? "outline"} className="text-[10px] px-1.5 py-0">
+                      {STATUS_LABELS[r.status] ?? r.status}
+                    </Badge>
+                    <span className="flex items-center gap-0.5">
+                      <Clock className="h-2.5 w-2.5" />
+                      {formatDistanceToNow(new Date(r.created_at), { addSuffix: true, locale: ptBR })}
+                    </span>
+                  </div>
                 </div>
               </div>
+            ))
+          )}
+          {hasNextPage && (
+            <div ref={sentinelRef} className="flex items-center justify-center py-3">
+              {isFetchingNextPage ? (
+                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+              ) : (
+                <span className="text-[10px] text-muted-foreground">Role para carregar mais</span>
+              )}
             </div>
-          ))
-        )}
-        {filtered.length > visible.length && (
-          <p className="text-[10px] text-muted-foreground text-center pt-1">
-            Exibindo {visible.length} de {filtered.length} resultado(s).
-          </p>
-        )}
+          )}
+        </div>
+        <p className="text-[10px] text-muted-foreground text-center pt-1">
+          Exibindo {filtered.length} de {all.length} carregado(s){hasNextPage ? "+" : ""}.
+        </p>
       </CardContent>
     </Card>
   );
