@@ -156,22 +156,64 @@ function ruleNoRefProp(file, source) {
   }
 }
 
-/** Regra 3: página em src/pages/** com forwardRef no export top-level. */
+/**
+ * Regra 3: página em src/pages/** com forwardRef no export TOP-LEVEL da
+ * própria página (default export OU export cujo nome bate com o nome do
+ * arquivo). Sub-componentes auxiliares no mesmo arquivo são ignorados —
+ * eles podem usar forwardRef legitimamente.
+ */
 function rulePagesNoForwardRef(file, source) {
   const isPage = ROUTE_DIRS.some((d) => file.startsWith(d + path.sep));
   if (!isPage) return;
-  // Procura `export const PageX = forwardRef` ou `export default forwardRef`
-  const re =
-    /export\s+(?:default\s+)?(?:const\s+[A-Z][A-Za-z0-9_]*\s*=\s*)?(?:React\.)?forwardRef\s*[<(]/g;
+  const baseName = path.basename(file, path.extname(file));
+
+  // Casos que importam:
+  //   export default forwardRef(...)
+  //   export default React.forwardRef(...)
+  //   const NAME = forwardRef(...); export default NAME;
+  //   export const NAME = forwardRef(...);   // onde NAME === baseName
+  const patterns = [
+    {
+      re: /export\s+default\s+(?:React\.)?forwardRef\s*[<(]/g,
+      why: "default export usa forwardRef",
+    },
+    {
+      re: new RegExp(
+        `export\\s+const\\s+${baseName}\\s*=\\s*(?:React\\.)?forwardRef\\s*[<(]`,
+        "g",
+      ),
+      why: `export const ${baseName} (top-level da página) usa forwardRef`,
+    },
+  ];
+
+  for (const { re, why } of patterns) {
+    let m;
+    while ((m = re.exec(source))) {
+      const line = lineOf(source, m.index);
+      if (hasAllowComment(source, line)) continue;
+      violations.push({
+        rule: "pages-no-forwardRef",
+        file: path.relative(ROOT, file),
+        line,
+        detail: `Page '${path.relative(SRC, file)}': ${why} — Router não fornece ref; remova o forwardRef.`,
+      });
+    }
+  }
+
+  // Padrão `const NAME = forwardRef(...); export default NAME;`
+  const namedDef = /const\s+([A-Z][A-Za-z0-9_]*)\s*=\s*(?:React\.)?forwardRef\s*[<(]/g;
   let m;
-  while ((m = re.exec(source))) {
+  while ((m = namedDef.exec(source))) {
+    const name = m[1];
+    const defaultExportRe = new RegExp(`export\\s+default\\s+${name}\\b`);
+    if (!defaultExportRe.test(source)) continue;
     const line = lineOf(source, m.index);
     if (hasAllowComment(source, line)) continue;
     violations.push({
       rule: "pages-no-forwardRef",
       file: path.relative(ROOT, file),
       line,
-      detail: `Page component em '${path.relative(SRC, file)}' usa forwardRef — Router não fornece ref; provável dead code.`,
+      detail: `Page '${path.relative(SRC, file)}': '${name}' (export default) usa forwardRef — Router não fornece ref.`,
     });
   }
 }
