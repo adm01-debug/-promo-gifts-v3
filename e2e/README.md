@@ -166,3 +166,29 @@ Edite `supabase/functions/e2e-cleanup/index.ts`:
 
 A function nunca toca em `auth.users`, no catálogo externo nem em tabelas
 globais (admin_settings, ai_usage_*, etc.).
+
+## Convenção de seletores (anti-flakiness)
+
+Os specs evitam strings frágeis (texto traduzido, `h1, h2`, `article`).
+Toda referência a elementos passa pelo SSOT em `e2e/fixtures/selectors.ts`:
+
+```ts
+import { Sel } from "../fixtures/selectors";
+await page.fill(Sel.login.email, "x@y.com");
+await page.locator(Sel.login.submit).first().click();
+await expect(page.locator(Sel.page.title("orcamentos")).first()).toBeVisible();
+```
+
+Grupos disponíveis: `Sel.login`, `Sel.sidebar`, `Sel.page`, `Sel.product`,
+`Sel.quote`, `Sel.favorites`, `Sel.cart`, `Sel.app`.
+
+### Adicionando um novo seletor
+
+1. No componente React, adicione `data-testid="kebab-case"` (sufixos
+   recomendados: `-input`, `-submit`, `-toggle`, `-list`, `-item`, `-card`).
+2. No `selectors.ts`, exponha como `[data-testid="..."]` — opcionalmente com
+   um fallback de transição (`, h1, h2`, `, #id`, role-based).
+3. Use `Sel.<grupo>.<chave>` no spec; nunca hard-code o seletor.
+
+Quando todos os componentes-alvo já têm o testid, remova o fallback do SSOT
+para evitar matches espúrios.
