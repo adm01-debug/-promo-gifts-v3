@@ -18,6 +18,7 @@ export function EnhancedSpotlight() {
   const [recentActions, setRecentActions] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
+  const { isDev, isAdmin } = useAuth();
 
   // Load recent actions from localStorage
   useEffect(() => {
