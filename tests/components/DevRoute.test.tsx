@@ -163,7 +163,8 @@ describe('DevRoute — SUPERVISOR é bloqueado com copy específica', () => {
       expect(
         screen.getByText(/Área técnica restrita à equipe de Desenvolvimento/i),
       ).toBeInTheDocument();
-      expect(screen.getByText(/Supervisor/i)).toBeInTheDocument();
+      // badge "Supervisor · 403"
+      expect(screen.getByText(/Supervisor · 403/i)).toBeInTheDocument();
 
       // página técnica NÃO renderiza
       expect(screen.queryByText(label)).not.toBeInTheDocument();
