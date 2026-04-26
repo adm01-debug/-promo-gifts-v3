@@ -9,12 +9,15 @@ import { useNavigate } from "react-router-dom";
 import { useOrdersList } from "@/hooks/useOrders";
 import { OrderCard } from "@/components/orders/OrderCard";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useSalesScope } from "@/lib/auth/visibility-scope";
+import { ScopeBadge } from "@/components/common/ScopeBadge";
 
 export default function OrdersPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
-  const { data: orders = [], isLoading } = useOrdersList(user?.id);
+  const scope = useSalesScope();
+  const { data: orders = [], isLoading } = useOrdersList(user?.id, scope);
 
   const filtered = orders.filter((o) => {
     const q = searchQuery.toLowerCase();
