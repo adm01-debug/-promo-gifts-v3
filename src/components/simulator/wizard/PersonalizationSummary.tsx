@@ -404,14 +404,16 @@ function PersonalizationRow({
           <DropdownMenu>
             <Tooltip>
               <TooltipTrigger asChild>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6 text-muted-foreground hover:text-foreground"
-                   aria-label="Copiar"><Copy className="h-3 w-3" />
-                  </Button>
-                </DropdownMenuTrigger>
+                <span className="inline-flex">
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                     aria-label="Copiar"><Copy className="h-3 w-3" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                </span>
               </TooltipTrigger>
               <TooltipContent side="bottom" className="text-xs">Duplicar</TooltipContent>
             </Tooltip>
