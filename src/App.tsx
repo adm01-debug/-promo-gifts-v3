@@ -14,7 +14,6 @@ import { AdminRoute } from "@/components/layout/AdminRoute";
 import { DevRoute } from "@/components/layout/DevRoute";
 import { DeprecatedRoute } from "@/components/layout/DeprecatedRoute";
 import { AppProviders } from "@/components/providers/AppProviders";
-import { RouteErrorBoundary } from "@/components/errors/RouteErrorBoundary";
 import { AccessibilityProvider, AriaLiveProvider } from "@/components/a11y";
 import LoadingScreen from "@/components/LoadingScreen";
 import { useGlobalErrorCatcher } from "@/hooks/useErrorHandler";
@@ -200,19 +199,19 @@ const App = () => {
                       <RouteSuspense>
                         <Routes>
                           {/* Public Routes */}
-                          <Route path="/login" element={<Auth />} errorElement={<RouteErrorBoundary />} />
-                          <Route path="/reset-password" element={<ResetPassword />} errorElement={<RouteErrorBoundary />} />
-                          <Route path="/approve/:token" element={<PublicQuoteApproval />} errorElement={<RouteErrorBoundary />} />
-                          <Route path="/proposta/:token" element={<PublicQuoteApproval />} errorElement={<RouteErrorBoundary />} />
-                          <Route path="/kit/:token" element={<PublicKitView />} errorElement={<RouteErrorBoundary />} />
-                          <Route path="/lista-publica/:token" element={<PublicFavoriteList />} errorElement={<RouteErrorBoundary />} />
-                          <Route path="/colecao-publica/:token" element={<PublicCollectionPage />} errorElement={<RouteErrorBoundary />} />
-                          <Route path="/comparar-publica/:token" element={<PublicComparisonPage />} errorElement={<RouteErrorBoundary />} />
-                          <Route path="/dossie/:token" element={<PublicDossierPage />} errorElement={<RouteErrorBoundary />} />
-                          <Route path="/auth/callback" element={<SSOCallbackPage />} errorElement={<RouteErrorBoundary />} />
+                          <Route path="/login" element={<Auth />} />
+                          <Route path="/reset-password" element={<ResetPassword />} />
+                          <Route path="/approve/:token" element={<PublicQuoteApproval />} />
+                          <Route path="/proposta/:token" element={<PublicQuoteApproval />} />
+                          <Route path="/kit/:token" element={<PublicKitView />} />
+                          <Route path="/lista-publica/:token" element={<PublicFavoriteList />} />
+                          <Route path="/colecao-publica/:token" element={<PublicCollectionPage />} />
+                          <Route path="/comparar-publica/:token" element={<PublicComparisonPage />} />
+                          <Route path="/dossie/:token" element={<PublicDossierPage />} />
+                          <Route path="/auth/callback" element={<SSOCallbackPage />} />
 
                           {/* Protected Layout Route */}
-                          <Route element={<ProtectedRoute />} errorElement={<RouteErrorBoundary />}>
+                          <Route element={<ProtectedRoute />}>
                             {/* Home */}
                             <Route path="/" element={<Index />} />
                             <Route path="/dashboard" element={<CustomizableDashboard />} />
@@ -243,7 +242,7 @@ const App = () => {
                             <Route path="/orcamentos/:id" element={<QuoteViewPage />} />
 
                             {/* Admin Layout Route — supervisor + dev (gestão de negócio) */}
-                            <Route element={<AdminRoute />} errorElement={<RouteErrorBoundary />}>
+                            <Route element={<AdminRoute />}>
                               <Route path="/admin" element={<Navigate to="/admin/usuarios" replace />} />
                               <Route path="/admin/usuarios" element={<AdminUsuariosPage />} />
                               <Route path="/admin/usuarios/promover" element={<AdminPromoverUsuarioPage />} />
@@ -266,7 +265,7 @@ const App = () => {
                               <Route path="/tendencias" element={<TrendsPage />} />
 
                               {/* DEV-ONLY — páginas técnicas com risco elevado (telemetria, conexões, secrets, MCP, audit técnico, prompts IA) */}
-                              <Route element={<DevRoute />} errorElement={<RouteErrorBoundary />}>
+                              <Route element={<DevRoute />}>
                                 <Route path="/admin/seguranca" element={<AdminSegurancaPage />} />
                                 <Route path="/admin/seguranca-acesso" element={<AdminSegurancaAcessoPage />} />
                                 <Route path="/admin/seguranca/chaves" element={<AdminSegurancaChavesPage />} />
