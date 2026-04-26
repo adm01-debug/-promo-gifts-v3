@@ -224,12 +224,57 @@ test.describe("Fluxo: remover favorito persiste após reload", () => {
     await expectFavoritesSnapshot(page, expectedAfterRemove, "pós-reload");
 
     // 7. Card do produto removido NÃO existe mais (SSOT por data-product-id)
+    const removedCardLocator = page.locator(
+      `${Sel.favorites.item}[data-product-id="${addedId}"]`,
+    );
     await expect(
-      page.locator(`${Sel.favorites.item}[data-product-id="${addedId}"]`),
+      removedCardLocator,
       `card do produto ${addedId} não deveria existir após reload`,
     ).toHaveCount(0, { timeout: 10_000 });
 
-    // 8. Cleanup defensivo — restaura storage original
+    // 8. CLEANUP ROBUSTO — restaura o storage para o estado inicial e valida o ciclo completo
+    //    (além do afterEach do installFavoritesCleanup, fazemos a restauração in-test
+    //     para poder asseverar pós-reload que o baseline foi efetivamente restaurado.)
     await writeStorage(page, original);
+
+    // 8.1. Storage está idêntico ao snapshot inicial (mesmos productIds, mesmo length)
+    await expect
+      .poll(async () => (await readStorage(page)).length, {
+        message: "cleanup: storage deveria ter o mesmo length do baseline original",
+        timeout: 8_000,
+      })
+      .toBe(original.length);
+    const restored = await readStorage(page);
+    expect(
+      new Set(restored.map((f) => f.productId)),
+      "cleanup: conjunto de productIds restaurados deve igualar o original",
+    ).toEqual(new Set(original.map((f) => f.productId)));
+
+    // 8.2. Reload final — o estado restaurado precisa SOBREVIVER ao reload
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await page
+      .waitForFunction(
+        () => !document.querySelector('[data-state="loading"], [data-skeleton]'),
+        { timeout: 8_000 },
+      )
+      .catch(() => {});
+
+    // 8.3. Header voltou ao baseline ABSOLUTO (countBefore), não ao snapshot intermediário
+    await expect
+      .poll(() => readFavoritesCount(page), {
+        message: `cleanup: contagem deveria voltar ao baseline inicial (${countBefore}) após reload final`,
+        timeout: 10_000,
+      })
+      .toBe(countBefore);
+
+    // 8.4. Snapshot final bate com o baseline (título + count + countText + listSize)
+    await expectFavoritesSnapshot(page, baselineSnapshot, "cleanup pós-reload");
+
+    // 8.5. Produto removido CONTINUA ausente após o reload de cleanup
+    //      (garante que o restore não ressuscitou o item alvo)
+    await expect(
+      removedCardLocator,
+      `cleanup: card do produto ${addedId} não deveria reaparecer após restore + reload`,
+    ).toHaveCount(0, { timeout: 10_000 });
   });
 });
