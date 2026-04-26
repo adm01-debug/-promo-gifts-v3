@@ -5,7 +5,7 @@
  */
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ShieldAlert, RefreshCw, Database, Clock, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { ShieldAlert, RefreshCw, Database, Clock, AlertTriangle, CheckCircle2, Lock } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,19 @@ interface ReportDetail {
   missing_user_count: number;
 }
 
+type RlsSeverity = "critical" | "high" | "medium" | "ok";
+interface RlsCoverageEntry {
+  table: string;
+  rls_enabled: boolean;
+  policy_count: number;
+  has_select: boolean;
+  has_insert: boolean;
+  has_update: boolean;
+  has_delete: boolean;
+  missing_ops: Array<"SELECT" | "INSERT" | "UPDATE" | "DELETE">;
+  severity: RlsSeverity;
+}
+
 interface ReportRow {
   id: string;
   generated_at: string;
@@ -34,6 +47,8 @@ interface ReportRow {
   details: ReportDetail[];
   triggered_by: string;
   duration_ms: number | null;
+  rls_coverage: RlsCoverageEntry[];
+  rls_gaps_count: number;
 }
 
 export default function OwnershipAuditAdminPage() {
@@ -96,7 +111,7 @@ export default function OwnershipAuditAdminPage() {
           </Button>
         </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-2">
@@ -134,6 +149,21 @@ export default function OwnershipAuditAdminPage() {
               </p>
               <p className="text-xs text-muted-foreground mt-1">
                 {current?.triggered_by ?? "—"} · {current?.duration_ms ?? 0} ms
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-2">
+                <Lock className="h-3.5 w-3.5" /> Lacunas RLS
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className={`text-3xl font-bold ${current && current.rls_gaps_count > 0 ? "text-destructive" : "text-success"}`}>
+                {current?.rls_gaps_count ?? "—"}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {Array.isArray(current?.rls_coverage) ? current?.rls_coverage.length : 0} tabelas afetadas
               </p>
             </CardContent>
           </Card>
@@ -177,6 +207,87 @@ export default function OwnershipAuditAdminPage() {
                         ) : (
                           <span className="text-muted-foreground">0</span>
                         )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Lock className="h-4 w-4 text-primary" />
+              Cobertura RLS — tabelas críticas sem política por operação
+            </CardTitle>
+            <p className="text-xs text-muted-foreground mt-1">
+              Lista as tabelas que possuem coluna de dono (seller_id, user_id, owner_id, created_by, assigned_to)
+              e que <strong>não têm política RLS</strong> para uma ou mais operações. Cada lacuna significa que a
+              operação só funciona via service_role / cron — usuários autenticados ficam bloqueados ou, pior,
+              expostos se o RLS estiver desabilitado.
+            </p>
+          </CardHeader>
+          <CardContent>
+            {!current || !Array.isArray(current.rls_coverage) || current.rls_coverage.length === 0 ? (
+              <div className="flex items-center gap-2 text-sm text-success py-6">
+                <CheckCircle2 className="h-4 w-4" />
+                Todas as tabelas críticas possuem políticas RLS para SELECT, INSERT, UPDATE e DELETE.
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Tabela</TableHead>
+                    <TableHead className="text-center">RLS</TableHead>
+                    <TableHead className="text-center">Políticas</TableHead>
+                    <TableHead>Operações sem política</TableHead>
+                    <TableHead className="text-right">Severidade</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {current.rls_coverage.map((r) => (
+                    <TableRow key={r.table}>
+                      <TableCell className="font-mono text-xs">{r.table}</TableCell>
+                      <TableCell className="text-center">
+                        {r.rls_enabled ? (
+                          <Badge variant="secondary" className="text-[10px]">ON</Badge>
+                        ) : (
+                          <Badge variant="destructive" className="text-[10px]">OFF</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-center text-xs">{r.policy_count}</TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1">
+                          {r.missing_ops.length === 0 ? (
+                            <span className="text-xs text-muted-foreground">—</span>
+                          ) : (
+                            r.missing_ops.map((op) => (
+                              <Badge
+                                key={op}
+                                variant={op === "SELECT" ? "destructive" : "outline"}
+                                className="text-[10px] font-mono"
+                              >
+                                {op}
+                              </Badge>
+                            ))
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Badge
+                          variant={
+                            r.severity === "critical" || r.severity === "high"
+                              ? "destructive"
+                              : r.severity === "medium"
+                              ? "outline"
+                              : "secondary"
+                          }
+                          className="text-[10px] uppercase"
+                        >
+                          {r.severity}
+                        </Badge>
                       </TableCell>
                     </TableRow>
                   ))}
