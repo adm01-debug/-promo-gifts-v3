@@ -164,6 +164,9 @@ const App = () => {
     const mode = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
     applyThemePreset(cfg.presetId, mode);
     applyRadius(cfg.radius);
+    // Limpa o marcador de chunk-recovery após boot bem-sucedido,
+    // para que reloads anteriores não contem como "tentativas restantes".
+    markBootSuccessful();
   }, []);
 
   useEffect(() => {
