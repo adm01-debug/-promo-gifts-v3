@@ -250,12 +250,12 @@ export function useOpportunities(days = 30, categoryId?: string | null, supplier
 // Revenue Trend
 // ============================================
 export function useRevenueTrend(days = 30, categoryId?: string | null, supplierId?: string | null, productId?: string | null) {
-  const { user } = useAuth(); const orgId = useCurrentOrgId();
+  const { user } = useAuth(); const orgId = useCurrentOrgId(); const scope = useSalesScope();
   const { data: productIds } = useFilteredProductIds(categoryId, supplierId, productId);
   const hasFilter = !!(categoryId || supplierId || productId);
 
   return useQuery({
-    queryKey: ['commercial-revenue-trend', user?.id, orgId, days, categoryId, supplierId],
+    queryKey: ['commercial-revenue-trend', user?.id, orgId, scope, days, categoryId, supplierId],
     queryFn: async (): Promise<RevenuePoint[]> => {
       const since = new Date(); since.setDate(since.getDate() - days); const sinceStr = since.toISOString();
       let orderData: Array<{ quantity?: number | null; unit_price?: number | null; created_at: string }> = [];
@@ -273,6 +273,8 @@ export function useRevenueTrend(days = 30, categoryId?: string | null, supplierI
         let oq = supabase.from('orders').select('total, created_at').gte('created_at', sinceStr).order('created_at');
         let qq = supabase.from('quotes').select('total, created_at').gte('created_at', sinceStr).order('created_at');
         if (orgId) { oq = oq.eq('organization_id', orgId); qq = qq.eq('organization_id', orgId); }
+        oq = applySellerScope(oq, { scope, userId: user?.id });
+        qq = applySellerScope(qq, { scope, userId: user?.id });
         const [{ data: orders }, { data: quotes }] = await Promise.all([oq, qq]);
         orderData = (orders || []).map(o => ({ quantity: 1, unit_price: o.total, created_at: o.created_at }));
         quoteData = quotes || [];
