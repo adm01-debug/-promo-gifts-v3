@@ -64,10 +64,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
   };
 
   const displayName = profile?.full_name || user?.email?.split("@")[0] || "Usuário";
-  const roleLabel =
-    role === "dev" ? "Dev"
-    : role === "supervisor" || role === "admin" || role === "manager" ? "Supervisor"
-    : "Agente";
+  const roleLabel = getRoleLabel(role);
 
   // #10 — Truncate inteligente: "Joaquim Ataides" → "Joaquim A."
   const truncatedName = (() => {

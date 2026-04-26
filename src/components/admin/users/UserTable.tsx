@@ -4,8 +4,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Crown, ShieldCheck, Loader2, Pencil, Trash2, ArrowUpCircle } from "lucide-react";
-import { type UserWithRole, roleConfig } from "./types";
+import { Loader2, Pencil, Trash2, ArrowUpCircle } from "lucide-react";
+import { RoleBadge } from "@/components/RoleBadge";
+import { type UserWithRole } from "./types";
 
 interface UserTableProps {
   users: UserWithRole[];
@@ -33,7 +34,6 @@ export function UserTable({ users, currentUserId, updatingUserId, onEditUser, on
       </TableHeader>
       <TableBody>
         {users.map((userItem) => {
-          const config = roleConfig[userItem.role];
           return (
             <TableRow key={userItem.id}>
               <TableCell className="font-medium">
@@ -45,8 +45,6 @@ export function UserTable({ users, currentUserId, updatingUserId, onEditUser, on
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex items-center gap-2">
-                    {userItem.role === "admin" && <Crown className="h-4 w-4 text-primary" />}
-                    {userItem.role === "manager" && <ShieldCheck className="h-4 w-4 text-muted-foreground" />}
                     {userItem.full_name || "Sem nome"}
                     {userItem.user_id === currentUserId && (
                       <Badge variant="outline" className="text-xs">Você</Badge>
@@ -56,10 +54,7 @@ export function UserTable({ users, currentUserId, updatingUserId, onEditUser, on
               </TableCell>
               <TableCell className="text-muted-foreground">{userItem.email || "-"}</TableCell>
               <TableCell>
-                <Badge variant={config.variant} className={`gap-1 ${config.color}`}>
-                  {config.icon}
-                  {config.label}
-                </Badge>
+                <RoleBadge role={userItem.role} />
               </TableCell>
               <TableCell>
                 <Badge variant={userItem.is_active !== false ? "outline" : "secondary"}>

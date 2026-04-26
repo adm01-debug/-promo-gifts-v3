@@ -1,12 +1,12 @@
-import React from "react";
-import { Code2, ShieldCheck, Shield } from "lucide-react";
-
 /**
- * Hierarquia oficial: dev > supervisor > vendedor (=agente no UI).
- * Mantemos 'admin' e 'manager' como aliases legados para evitar quebras
- * em dados antigos — o backend já normaliza ambos para supervisor.
+ * Tipos do módulo de gestão de usuários.
+ *
+ * A configuração visual de roles foi movida para `@/lib/roles`
+ * (use `RoleBadge` ou `getRoleVisual` em vez de `roleConfig`).
  */
-export type AppRole = "dev" | "supervisor" | "vendedor" | "admin" | "manager";
+import { ROLE_VISUAL, type AppRole } from "@/lib/roles";
+
+export type { AppRole };
 
 export interface UserWithRole {
   id: string;
@@ -19,43 +19,5 @@ export interface UserWithRole {
   is_active: boolean | null;
 }
 
-type RoleMeta = {
-  label: string;
-  icon: React.ReactNode;
-  variant: "default" | "secondary" | "outline";
-  color: string;
-};
-
-export const roleConfig: Record<AppRole, RoleMeta> = {
-  dev: {
-    label: "Dev",
-    icon: <Code2 className="h-3 w-3" />,
-    variant: "default",
-    color: "bg-purple-600 text-white",
-  },
-  supervisor: {
-    label: "Supervisor",
-    icon: <ShieldCheck className="h-3 w-3" />,
-    variant: "default",
-    color: "bg-primary text-primary-foreground",
-  },
-  vendedor: {
-    label: "Agente",
-    icon: <Shield className="h-3 w-3" />,
-    variant: "secondary",
-    color: "",
-  },
-  // Aliases legados — exibidos como Supervisor por compatibilidade
-  admin: {
-    label: "Supervisor",
-    icon: <ShieldCheck className="h-3 w-3" />,
-    variant: "default",
-    color: "bg-primary text-primary-foreground",
-  },
-  manager: {
-    label: "Supervisor",
-    icon: <ShieldCheck className="h-3 w-3" />,
-    variant: "default",
-    color: "bg-primary text-primary-foreground",
-  },
-};
+/** @deprecated Use `RoleBadge` ou `getRoleVisual` de `@/lib/roles`. */
+export const roleConfig = ROLE_VISUAL;
