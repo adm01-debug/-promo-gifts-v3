@@ -86,6 +86,7 @@ async function assertFavoritesHeader(
 
 test.describe("Fluxo: Favoritos", () => {
   test.beforeEach(() => requireAuth());
+  installFavoritesCleanup(test);
 
   test("lista de favoritos carrega", async ({ page }) => {
     await gotoAndSettle(page, "/favoritos");
