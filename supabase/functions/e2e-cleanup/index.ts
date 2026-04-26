@@ -58,7 +58,10 @@ function clientIp(req: Request): string {
   );
 }
 
-/** Tabelas filtradas por user_id (filhos primeiro, depois pais). */
+/**
+ * Tabelas filtradas por user_id (escopo do dono lógico do recurso).
+ * NÃO inclui carrinhos/mockups com seller_id direto — esses vão em SELLER_ID_TABLES.
+ */
 const USER_ID_TABLES = [
   "favorite_item_reactions",
   "favorite_items_trash",
@@ -68,16 +71,20 @@ const USER_ID_TABLES = [
   "collection_items_trash",
   "collection_items",
   "collections",
-  "seller_cart_items",
-  "seller_carts",
   "cart_templates",
   "comparison_reactions",
   "user_comparisons",
-  "generated_mockups",
   "mockup_drafts",
   "custom_kits",
 ] as const;
 
+/**
+ * Tabelas filtradas por seller_id (escopo de tenant). NUNCA misturar com
+ * user_id — em apps multi-tenant um user pode atuar em vários sellers.
+ */
+const SELLER_ID_TABLES = ["seller_carts", "generated_mockups"] as const;
+
+/** seller_cart_items é resolvida via cart_id ∈ seller_carts(seller_id). */
 const QUOTE_CHILD_TABLES_BY_QUOTE_ID = [
   "quote_item_personalizations",
   "quote_items",
@@ -89,6 +96,8 @@ const QUOTE_CHILD_TABLES_BY_QUOTE_ID = [
 interface AuditPayload {
   email: string;
   user_id: string | null;
+  seller_id: string | null;
+  seller_scope: "self" | "explicit";
   dry_run: boolean;
   status:
     | "ok"
@@ -97,7 +106,8 @@ interface AuditPayload {
     | "unauthorized"
     | "forbidden"
     | "not_found"
-    | "invalid";
+    | "invalid"
+    | "scope_mismatch";
   reason?: string | null;
   ip: string;
   user_agent: string | null;
