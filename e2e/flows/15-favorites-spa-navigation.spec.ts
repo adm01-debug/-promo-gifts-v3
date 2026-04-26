@@ -65,20 +65,14 @@ async function isFavorited(button: Locator): Promise<boolean> {
  * Falha o teste se nenhuma navegação SPA acontecer.
  */
 async function navigateToFavoritesInApp(page: Page): Promise<void> {
-  // 1. Sidebar
-  const sidebar = page.locator(Sel.sidebar.link("favoritos", "Favoritos")).first();
+  // 1. Sidebar (testid SSOT)
+  const sidebar = page.locator(Sel.sidebar.link("favoritos")).first();
   if (await sidebar.isVisible().catch(() => false)) {
     await sidebar.click();
   } else {
-    // 2. Qualquer link <a href="/favoritos"> visível
-    const anyLink = page.locator('a[href="/favoritos"], a[href$="/favoritos"]').first();
-    if (await anyLink.isVisible().catch(() => false)) {
-      await anyLink.click();
-    } else {
-      // 3. Último recurso: navegação SPA via history (sem reload)
-      await page.evaluate(() => window.history.pushState({}, "", "/favoritos"));
-      await page.evaluate(() => window.dispatchEvent(new PopStateEvent("popstate")));
-    }
+    // 2. Último recurso: navegação SPA via history (sem reload)
+    await page.evaluate(() => window.history.pushState({}, "", "/favoritos"));
+    await page.evaluate(() => window.dispatchEvent(new PopStateEvent("popstate")));
   }
 
   await page.waitForURL(/\/favoritos(\?|#|$)/, { timeout: 10_000 });
@@ -180,10 +174,7 @@ test.describe("Fluxo: favoritar reflete via navegação (sem reload)", () => {
     const removeBtn = targetCard.locator(Sel.favorites.remove).first();
     if (await removeBtn.isVisible().catch(() => false)) {
       await removeBtn.click().catch(() => {});
-      const confirm = page
-        .locator('[role="alertdialog"], [role="dialog"]')
-        .getByRole("button", { name: /remover|confirmar|sim|excluir/i })
-        .first();
+      const confirm = page.locator(Sel.dialog.confirmYes).first();
       if (await confirm.isVisible().catch(() => false)) {
         await confirm.click().catch(() => {});
       }
