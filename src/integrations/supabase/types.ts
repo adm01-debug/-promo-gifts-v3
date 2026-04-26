@@ -3832,6 +3832,110 @@ export type Database = {
         }
         Relationships: []
       }
+      role_migration_batches: {
+        Row: {
+          created_at: string
+          dry_run: boolean
+          duration_ms: number | null
+          failed_count: number
+          finished_at: string | null
+          id: string
+          initiated_by: string
+          label: string
+          reason: string
+          skipped_count: number
+          started_at: string | null
+          status: Database["public"]["Enums"]["role_migration_status"]
+          success_count: number
+          total_items: number
+        }
+        Insert: {
+          created_at?: string
+          dry_run?: boolean
+          duration_ms?: number | null
+          failed_count?: number
+          finished_at?: string | null
+          id?: string
+          initiated_by: string
+          label: string
+          reason: string
+          skipped_count?: number
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["role_migration_status"]
+          success_count?: number
+          total_items?: number
+        }
+        Update: {
+          created_at?: string
+          dry_run?: boolean
+          duration_ms?: number | null
+          failed_count?: number
+          finished_at?: string | null
+          id?: string
+          initiated_by?: string
+          label?: string
+          reason?: string
+          skipped_count?: number
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["role_migration_status"]
+          success_count?: number
+          total_items?: number
+        }
+        Relationships: []
+      }
+      role_migration_items: {
+        Row: {
+          batch_id: string
+          created_at: string
+          duration_ms: number | null
+          error_message: string | null
+          from_role: Database["public"]["Enums"]["app_role"] | null
+          id: string
+          operation: string
+          processed_at: string | null
+          status: Database["public"]["Enums"]["role_migration_item_status"]
+          to_role: Database["public"]["Enums"]["app_role"]
+          user_email: string | null
+          user_id: string
+        }
+        Insert: {
+          batch_id: string
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          from_role?: Database["public"]["Enums"]["app_role"] | null
+          id?: string
+          operation: string
+          processed_at?: string | null
+          status?: Database["public"]["Enums"]["role_migration_item_status"]
+          to_role: Database["public"]["Enums"]["app_role"]
+          user_email?: string | null
+          user_id: string
+        }
+        Update: {
+          batch_id?: string
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          from_role?: Database["public"]["Enums"]["app_role"] | null
+          id?: string
+          operation?: string
+          processed_at?: string | null
+          status?: Database["public"]["Enums"]["role_migration_item_status"]
+          to_role?: Database["public"]["Enums"]["app_role"]
+          user_email?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "role_migration_items_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "role_migration_batches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       role_permissions: {
         Row: {
           created_at: string
@@ -4795,6 +4899,15 @@ export type Database = {
         Args: { _user_id: string }
         Returns: string
       }
+      execute_role_migration_batch: {
+        Args: {
+          _dry_run?: boolean
+          _items: Json
+          _label: string
+          _reason: string
+        }
+        Returns: string
+      }
       get_auto_test_job_status: {
         Args: { _limit?: number }
         Returns: {
@@ -5162,6 +5275,19 @@ export type Database = {
     Enums: {
       app_role: "admin" | "manager" | "vendedor" | "supervisor" | "dev"
       org_role: "owner" | "admin" | "member"
+      role_migration_item_status:
+        | "pending"
+        | "success"
+        | "failed"
+        | "skipped"
+        | "dry_run"
+      role_migration_status:
+        | "pending"
+        | "running"
+        | "completed"
+        | "failed"
+        | "partial"
+        | "dry_run"
       step_up_action:
         | "promote_dev"
         | "demote_dev"
@@ -5300,6 +5426,21 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "manager", "vendedor", "supervisor", "dev"],
       org_role: ["owner", "admin", "member"],
+      role_migration_item_status: [
+        "pending",
+        "success",
+        "failed",
+        "skipped",
+        "dry_run",
+      ],
+      role_migration_status: [
+        "pending",
+        "running",
+        "completed",
+        "failed",
+        "partial",
+        "dry_run",
+      ],
       step_up_action: [
         "promote_dev",
         "demote_dev",
