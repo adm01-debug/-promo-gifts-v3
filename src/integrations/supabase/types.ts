@@ -2253,6 +2253,44 @@ export type Database = {
         }
         Relationships: []
       }
+      mcp_key_auto_revocations: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          key_id: string
+          reason: string
+          revoked_at: string
+          source: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          key_id: string
+          reason?: string
+          revoked_at?: string
+          source: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          key_id?: string
+          reason?: string
+          revoked_at?: string
+          source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mcp_key_auto_revocations_key_id_fkey"
+            columns: ["key_id"]
+            isOneToOne: false
+            referencedRelation: "mcp_api_keys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mockup_drafts: {
         Row: {
           client_id: string | null
@@ -4633,6 +4671,14 @@ export type Database = {
         Returns: Json
       }
       auto_block_extreme_offenders: { Args: never; Returns: Json }
+      auto_revoke_orphan_full_keys: {
+        Args: { _source?: string }
+        Returns: {
+          created_by: string
+          key_id: string
+          revoked_at: string
+        }[]
+      }
       can_approve_discount: { Args: { _user_id?: string }; Returns: boolean }
       can_grant_mcp_full: { Args: { _user_id: string }; Returns: boolean }
       can_manage_connections: { Args: { _user_id?: string }; Returns: boolean }

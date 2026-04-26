@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { McpKeysList } from "@/components/admin/security/keys/McpKeysList";
 import { McpAuditFeed } from "@/components/admin/security/keys/audit/McpAuditFeed";
 import { StepUpAttemptsPanel } from "@/components/admin/security/keys/audit/StepUpAttemptsPanel";
+import { AutoRevocationsPanel } from "@/components/admin/security/keys/audit/AutoRevocationsPanel";
 
 export default function AdminSegurancaChavesPage() {
   return (
@@ -42,6 +43,7 @@ export default function AdminSegurancaChavesPage() {
             <TabsTrigger value="keys">Chaves</TabsTrigger>
             <TabsTrigger value="audit">Histórico de auditoria</TabsTrigger>
             <TabsTrigger value="stepup">Tentativas FULL bloqueadas</TabsTrigger>
+            <TabsTrigger value="auto-revoke">Auto-revogações</TabsTrigger>
           </TabsList>
           <TabsContent value="keys" className="m-0">
             <McpKeysList />
@@ -51,6 +53,9 @@ export default function AdminSegurancaChavesPage() {
           </TabsContent>
           <TabsContent value="stepup" className="m-0">
             <StepUpAttemptsPanel />
+          </TabsContent>
+          <TabsContent value="auto-revoke" className="m-0">
+            <AutoRevocationsPanel />
           </TabsContent>
         </Tabs>
       </div>
