@@ -3832,6 +3832,63 @@ export type Database = {
         }
         Relationships: []
       }
+      rls_denial_log: {
+        Row: {
+          created_at: string
+          endpoint: string | null
+          error_code: string | null
+          error_message: string | null
+          id: string
+          ip_address: unknown
+          operation: string
+          policy_hint: string | null
+          query_summary: string | null
+          table_name: string
+          target_id: string | null
+          target_seller_id: string | null
+          user_agent: string | null
+          user_email: string | null
+          user_id: string
+          user_role: string | null
+        }
+        Insert: {
+          created_at?: string
+          endpoint?: string | null
+          error_code?: string | null
+          error_message?: string | null
+          id?: string
+          ip_address?: unknown
+          operation: string
+          policy_hint?: string | null
+          query_summary?: string | null
+          table_name: string
+          target_id?: string | null
+          target_seller_id?: string | null
+          user_agent?: string | null
+          user_email?: string | null
+          user_id: string
+          user_role?: string | null
+        }
+        Update: {
+          created_at?: string
+          endpoint?: string | null
+          error_code?: string | null
+          error_message?: string | null
+          id?: string
+          ip_address?: unknown
+          operation?: string
+          policy_hint?: string | null
+          query_summary?: string | null
+          table_name?: string
+          target_id?: string | null
+          target_seller_id?: string | null
+          user_agent?: string | null
+          user_email?: string | null
+          user_id?: string
+          user_role?: string | null
+        }
+        Relationships: []
+      }
       role_migration_batches: {
         Row: {
           created_at: string
@@ -5138,6 +5195,21 @@ export type Database = {
           _request_id?: string
           _token_id?: string
           _user_agent?: string
+        }
+        Returns: string
+      }
+      log_rls_denial: {
+        Args: {
+          p_endpoint?: string
+          p_error_code?: string
+          p_error_message?: string
+          p_operation: string
+          p_policy_hint?: string
+          p_query_summary?: string
+          p_table_name: string
+          p_target_id?: string
+          p_target_seller_id?: string
+          p_user_agent?: string
         }
         Returns: string
       }
