@@ -93,6 +93,9 @@ export function McpKeyRow({ row, onRotate, onRevoke, onDetails, onEdit }: Props)
         </Button>
         {row.status === "active" && (
           <>
+            <Button size="sm" variant="ghost" onClick={() => onEdit(row)} aria-label="Editar chave">
+              <Pencil className="h-4 w-4" />
+            </Button>
             <Button size="sm" variant="ghost" onClick={() => onRotate(row)} aria-label="Rotacionar chave">
               <RefreshCw className="h-4 w-4" />
             </Button>
