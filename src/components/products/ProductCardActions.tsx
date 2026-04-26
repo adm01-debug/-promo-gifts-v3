@@ -70,6 +70,8 @@ export const ProductCardActions = memo(function ProductCardActions({
       )}>
         {/* Favorite */}
         <ActionButton icon={Heart} label={isFavorited ? "Remover dos favoritos" : "Adicionar aos favoritos"}
+          testId="product-card-favorite"
+          ariaPressed={isFavorited}
           className={cn(btnClass, isFavorited && "bg-destructive/10 border-destructive/30")}
           iconClassName={cn(isFavorited && "fill-destructive text-destructive scale-110 animate-heart-fill")}
           onClick={onFavorite} />
