@@ -2,6 +2,7 @@ import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { AlertTriangle, RefreshCw, Home, Bug, ChevronDown, ChevronUp, RotateCcw } from 'lucide-react';
 import { logger } from '@/lib/logger';
 import { reportError } from '@/lib/error-reporter';
+import { attemptChunkRecovery, isChunkLoadError } from '@/lib/chunk-recovery';
 
 interface Props {
   children: ReactNode;
@@ -18,7 +19,6 @@ interface State {
 }
 
 const MAX_AUTO_RETRIES = 2;
-const AUTO_RETRY_DELAY = 1500;
 
 /**
  * EnhancedErrorBoundary — Global error boundary wrapping <App />.
@@ -66,25 +66,25 @@ class EnhancedErrorBoundary extends Component<Props, State> {
     });
     if (this.isChunkError(error) && this.state.retryCount < MAX_AUTO_RETRIES) {
       this.setState({ isAutoRecovering: true });
-      setTimeout(() => {
-        this.setState(prev => ({
-          hasError: false,
-          error: null,
-          errorInfo: null,
-          retryCount: prev.retryCount + 1,
-          isAutoRecovering: false,
-        }));
-      }, AUTO_RETRY_DELAY * (this.state.retryCount + 1));
+      // Aciona recovery agressivo (hard reload + cache bust + purga SW).
+      // Se o recovery atingir o limite de reloads na janela de 30s, ele
+      // resolve com `false` — caímos no fallback estático abaixo em vez
+      // de loop infinito (= tela branca).
+      void attemptChunkRecovery(error).then((reloaded) => {
+        if (!reloaded) {
+          // Recovery desistiu: mostra a tela de erro com CTA manual.
+          this.setState({ isAutoRecovering: false });
+          return;
+        }
+        // Reload em andamento — mantém estado de "recuperando" até a
+        // navegação substituir o documento.
+        this.setState((prev) => ({ retryCount: prev.retryCount + 1 }));
+      });
     }
   }
 
   private isChunkError(error: Error): boolean {
-    return (
-      error.message.includes('Failed to fetch dynamically imported module') ||
-      error.message.includes('Loading chunk') ||
-      error.message.includes('ChunkLoadError') ||
-      error.message.includes('Importing a module script failed')
-    );
+    return isChunkLoadError(error);
   }
 
   handleRetry = () => {
@@ -105,13 +105,9 @@ class EnhancedErrorBoundary extends Component<Props, State> {
   };
 
   handleClearCacheReload = () => {
-    // Clear service worker caches if available
-    if ('caches' in window) {
-      caches.keys().then(names => {
-        names.forEach(name => caches.delete(name));
-      });
-    }
-    window.location.reload();
+    // Reaproveita o pipeline de recovery (Cache API + SW + cache-bust no URL).
+    // Ignora o limite de reloads aqui pois é uma ação manual do usuário.
+    void attemptChunkRecovery(this.state.error ?? new Error('manual cache reload'));
   };
 
   override render() {

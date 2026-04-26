@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { AlertTriangle, Home, RefreshCw, ArrowLeft, WifiOff, Lock, FileQuestion, Gift } from "lucide-react";
 import { motion } from "framer-motion";
+import { attemptChunkRecovery, isChunkLoadError } from "@/lib/chunk-recovery";
 
 interface ErrorDetails {
   icon: React.ReactNode;
@@ -62,13 +63,8 @@ const getErrorDetails = (error: unknown): ErrorDetails => {
     };
   }
 
-  // Dynamic import / chunk loading errors (stale cache)
-  if (
-    error instanceof Error && 
-    (error.message.includes("Failed to fetch dynamically imported module") ||
-     error.message.includes("Loading chunk") ||
-     error.message.includes("ChunkLoadError"))
-  ) {
+  // Dynamic import / chunk loading errors (stale cache, Vite 502, etc.)
+  if (isChunkLoadError(error)) {
     return {
       icon: <RefreshCw className="h-16 w-16 text-warning" />,
       title: "Atualização disponível",
@@ -90,11 +86,17 @@ export function RouteErrorBoundary() {
   const error = useRouteError();
   const navigate = useNavigate();
   const errorDetails = getErrorDetails(error);
+  const isChunk = isChunkLoadError(error);
 
   const handleAction = () => {
     switch (errorDetails.action) {
       case "reload":
-        window.location.reload();
+        if (isChunk) {
+          // Hard reload com cache-bust + purga de SW (defesa contra Vite 502).
+          void attemptChunkRecovery(error);
+        } else {
+          window.location.reload();
+        }
         break;
       case "home":
         navigate("/");
