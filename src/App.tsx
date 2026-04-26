@@ -18,6 +18,7 @@ import { RouteErrorBoundary } from "@/components/errors/RouteErrorBoundary";
 import { AccessibilityProvider, AriaLiveProvider } from "@/components/a11y";
 import LoadingScreen from "@/components/LoadingScreen";
 import { useGlobalErrorCatcher } from "@/hooks/useErrorHandler";
+import { markBootSuccessful } from "@/lib/chunk-recovery";
 import { getFallback } from "@/components/layout/SkeletonLoaders";
 import { BridgeStatusBanner } from "@/components/BridgeStatusBanner";
 import { CloudStatusBanner } from "@/components/system/CloudStatusBanner";
