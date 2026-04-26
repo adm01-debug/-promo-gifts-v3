@@ -169,6 +169,28 @@ async function resolveRemoveButton(card: Locator): Promise<Locator> {
   );
 }
 
+/**
+ * Reload + espera explícita de navegação para evitar flakiness:
+ *   1. `page.reload({ waitUntil: "load" })` — DOM pronto
+ *   2. `waitForLoadState("networkidle")` com fallback (4s) — requests assentam
+ *   3. Aguarda o `Sel.favorites.title` ficar visível — sinal SSOT da hidratação
+ *   4. Skeletons sumiram (best-effort)
+ */
+async function reloadAndSettle(page: Page): Promise<void> {
+  await page.reload({ waitUntil: "load" });
+  await page.waitForLoadState("networkidle", { timeout: 4_000 }).catch(() => {});
+  await page
+    .locator(Sel.favorites.title)
+    .first()
+    .waitFor({ state: "visible", timeout: 10_000 });
+  await page
+    .waitForFunction(
+      () => !document.querySelector('[data-state="loading"], [data-skeleton]'),
+      { timeout: 6_000 },
+    )
+    .catch(() => {});
+}
+
 test.describe("Fluxo: remover favorito persiste após reload", () => {
   test.beforeEach(() => requireAuth());
   installFavoritesCleanup(test);
