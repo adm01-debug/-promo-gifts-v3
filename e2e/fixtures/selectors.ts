@@ -118,11 +118,46 @@ export const Sel = {
   cart: {
     trigger: TID("cart-trigger"),
     drawer: TID("cart-drawer"),
+    /** Aba/empresa do carrinho. */
     tab: TID("cart-tab"),
+    /** Contador de itens dentro da aba (data-count=N). */
+    tabCount: TID("cart-tab-count"),
+    /** Indicador de follow-up (sem movimento há X dias). */
+    tabFollowUp: TID("cart-tab-followup"),
+    /** Botão "+ Novo" para criar um novo carrinho. */
+    tabNew: TID("cart-tab-new"),
+    /** Card de item no carrinho. Tem também `data-cart-item-id` e `data-product-id`. */
     item: TID("cart-item"),
+    /** Subcomponentes do item. */
+    itemName: TID("cart-item-name"),
+    itemSku: TID("cart-item-sku"),
+    itemImage: TID("cart-item-image"),
+    itemView: TID("cart-item-view"),
+    itemColor: TID("cart-item-color"),
+    itemColorName: TID("cart-item-color-name"),
+    itemUnitPrice: TID("cart-item-unit-price"),
+    itemTotal: TID("cart-item-total"),
+    itemStockLow: TID("cart-item-stock-low"),
+    itemStockOut: TID("cart-item-stock-out"),
+    itemQtyStepper: TID("cart-item-qty-stepper"),
+    itemNotesToggle: TID("cart-item-notes-toggle"),
+    itemNotesInput: TID("cart-item-notes-input"),
+    /** Menu de ações do item (Ver/Simular/Mover/Duplicar/Remover). */
+    itemMenuTrigger: TID("cart-item-menu-trigger"),
+    itemActionView: TID("cart-item-action-view"),
+    itemActionSimulate: TID("cart-item-action-simulate"),
+    itemActionMove: TID("cart-item-action-move"),
+    itemActionDuplicate: TID("cart-item-action-duplicate"),
+    itemActionRemove: TID("cart-item-action-remove"),
+    /** Alvos dos submenus Mover/Duplicar — usam `data-target-cart-id`. */
+    itemMoveTarget: TID("cart-item-move-target"),
+    itemDuplicateTarget: TID("cart-item-duplicate-target"),
+    /** Stepper de quantidade. `cart-qty-badge` expõe `data-qty=N`. */
     qtyBadge: TID("cart-qty-badge"),
     increment: TID("cart-qty-increment"),
     decrement: TID("cart-qty-decrement"),
+    qtyDecrementIcon: TID("cart-qty-decrement-icon"),
+    qtyRemoveIcon: TID("cart-qty-remove-icon"),
     checkoutCta: TID("cart-checkout-cta"),
     confirmDialog: TID("cart-confirm-dialog"),
     /** Botão de seleção de empresa no CartCompanyPickerDialog. */
