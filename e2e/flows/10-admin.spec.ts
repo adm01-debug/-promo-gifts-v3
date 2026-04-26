@@ -18,7 +18,7 @@ test.describe("Fluxo: Admin guards", () => {
     await page.waitForTimeout(1500);
     const ok =
       !/\/admin\/usuarios/.test(page.url()) ||
-      (await page.locator("text=/acesso negado|403|sem permiss/i").count()) > 0;
+      (await page.locator(Sel.app.accessDenied).count()) > 0;
     expect(ok).toBeTruthy();
   });
 
