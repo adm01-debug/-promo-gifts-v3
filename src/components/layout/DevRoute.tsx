@@ -33,6 +33,12 @@ interface DevRouteProps {
  *
  * Hierarquia: dev > supervisor > agente. Apenas `dev` passa.
  *
+ * Hardening (paridade com AdminRoute): exige sessão em **AAL2** para `dev`.
+ *  - Dev sem MFA cadastrado → abre fluxo de enrollment obrigatório.
+ *  - Dev com MFA mas sessão em `aal1` → abre challenge para elevar sessão.
+ *  - Não-dev nunca chega na exigência de MFA aqui — vê a tela de bloqueio
+ *    com ações contextuais (solicitar acesso, copiar link, e-mail).
+ *
  * Comportamento ao bloquear:
  *  - Não autenticado → redireciona para /login preservando `from`.
  *  - Autenticado sem `dev` → exibe tela de aviso com:
@@ -41,15 +47,31 @@ interface DevRouteProps {
  *      • Retorno para destino seguro (supervisor → /admin/usuarios, agente → /).
  */
 export function DevRoute({ children }: DevRouteProps) {
-  const { user, isDev, isSupervisorOrAbove, isLoading } = useAuth();
+  const {
+    user,
+    isDev,
+    isSupervisorOrAbove,
+    isLoading,
+    currentAAL,
+    hasMFA,
+    mfaRequired,
+  } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [reason, setReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [enrollOpen, setEnrollOpen] = useState(false);
 
   const safeFallback = isSupervisorOrAbove ? "/admin/usuarios" : "/";
   const blockedPath = location.pathname;
+
+  // Abre enrollment automaticamente para dev sem MFA cadastrado.
+  useEffect(() => {
+    if (!isLoading && user && isDev && !hasMFA) {
+      setEnrollOpen(true);
+    }
+  }, [isLoading, user, isDev, hasMFA]);
 
   // Notifica uma vez ao bloquear (telemetria de UX + clareza)
   useEffect(() => {
