@@ -63,13 +63,8 @@ const getErrorDetails = (error: unknown): ErrorDetails => {
     };
   }
 
-  // Dynamic import / chunk loading errors (stale cache)
-  if (
-    error instanceof Error && 
-    (error.message.includes("Failed to fetch dynamically imported module") ||
-     error.message.includes("Loading chunk") ||
-     error.message.includes("ChunkLoadError"))
-  ) {
+  // Dynamic import / chunk loading errors (stale cache, Vite 502, etc.)
+  if (isChunkLoadError(error)) {
     return {
       icon: <RefreshCw className="h-16 w-16 text-warning" />,
       title: "Atualização disponível",
