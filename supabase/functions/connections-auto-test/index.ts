@@ -56,9 +56,8 @@ export async function processBatch<
   batch: ActiveConnection[],
 ) {
   // runConnectionTest exige `SupabaseClient` com schema 'public' (default).
-  // Como CompatibleSupabaseClient<_, 'public'> é estruturalmente equivalente,
-  // narrow uma única vez aqui — evita repetir cast em cada call site.
-  const serviceForRunner = service as unknown as ServiceClient;
+  // O adapter compartilhado faz o narrow estruturalmente seguro uma única vez.
+  const serviceForRunner = castSupabaseClient(service);
 
   return Promise.all(batch.map(async (conn) => {
     const t0 = Date.now();
