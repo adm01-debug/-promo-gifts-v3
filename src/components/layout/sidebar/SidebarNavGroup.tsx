@@ -89,8 +89,14 @@ export const SidebarNavGroup = forwardRef<HTMLDivElement, SidebarNavGroupProps>(
   }, [location.pathname]);
 
   const renderNavLink = (item: NavItem, depth = 0): React.ReactNode => {
+    // 1) Flags declarativas
     if (item.devOnly && !isDev) return null;
     if (item.adminOnly && !isAdmin) return null;
+    // 2) Defense-in-depth: SSOT por path. Garante que mesmo um item sem flag
+    //    devOnly/adminOnly seja escondido se sua rota for técnica/admin e o
+    //    usuário não tiver o papel — supervisor sem dev nunca enxerga rotas dev.
+    if (item.href && isDevOnlyPath(item.href) && !isDev) return null;
+    if (item.href && isAdminOnlyPath(item.href) && !isAdmin) return null;
     if (item.requiredPermission && !hasPermission(item.requiredPermission.action, item.requiredPermission.resource)) return null;
 
     // If item has children, render as expandable sub-menu
