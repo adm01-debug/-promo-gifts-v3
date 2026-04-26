@@ -27,6 +27,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Seller-scope checker (RLS defesa em profundidade)
+        run: node scripts/check-seller-scope.mjs
+
       - name: ESLint
         run: npx eslint . --max-warnings=500
 
