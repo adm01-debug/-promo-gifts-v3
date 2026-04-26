@@ -120,6 +120,55 @@ async function acceptConfirmIfAny(page: Page): Promise<void> {
   }
 }
 
+/**
+ * Resolve o botão "Remover favorito" do CARD do produto com cascata de fallbacks,
+ * para tolerar pequenas mudanças de layout (header overlay vs. botão interno do
+ * ProductCard, mudança de aria-label, etc.).
+ *
+ * Ordem (do mais específico ao mais genérico):
+ *   1. SSOT: `[data-testid="favorite-remove"]` dentro do card alvo
+ *   2. Botão de favorito do próprio ProductCard (`Sel.product.favorite`) —
+ *      em /favoritos ele atua como toggle de remoção
+ *   3. Fallback A11y: `[aria-label="Remover favorito"]` dentro do card
+ *   4. Fallback heurístico: qualquer `button` contendo um SVG com
+ *      `fill-destructive` (ícone Heart preenchido) dentro do card
+ *
+ * Lança erro descritivo se nenhum candidato existir.
+ */
+async function resolveRemoveButton(card: Locator): Promise<Locator> {
+  const candidates: Array<{ name: string; locator: Locator }> = [
+    { name: "data-testid=favorite-remove", locator: card.locator(Sel.favorites.remove).first() },
+    { name: "ProductCard favorite toggle", locator: card.locator(Sel.product.favorite).first() },
+    {
+      name: 'aria-label="Remover favorito"',
+      locator: card.locator('[aria-label="Remover favorito"]').first(),
+    },
+    {
+      name: "button > svg.fill-destructive",
+      locator: card.locator('button:has(svg[class*="fill-destructive"])').first(),
+    },
+  ];
+
+  for (const { name, locator } of candidates) {
+    const count = await locator.count().catch(() => 0);
+    if (count > 0) {
+      const visible = await locator
+        .waitFor({ state: "visible", timeout: 3_000 })
+        .then(() => true)
+        .catch(() => false);
+      if (visible) {
+        // eslint-disable-next-line no-console
+        console.log(`[resolveRemoveButton] usando fallback: ${name}`);
+        return locator;
+      }
+    }
+  }
+  throw new Error(
+    "resolveRemoveButton: nenhum botão de remover encontrado no card " +
+      "(tentou: favorite-remove, product.favorite, aria-label, svg.fill-destructive)",
+  );
+}
+
 test.describe("Fluxo: remover favorito persiste após reload", () => {
   test.beforeEach(() => requireAuth());
   installFavoritesCleanup(test);
@@ -183,8 +232,7 @@ test.describe("Fluxo: remover favorito persiste após reload", () => {
     ).toBeVisible({ timeout: 10_000 });
 
     // 3. Remove via botão "Remover favorito" do card alvo
-    const removeBtn = targetCard.locator(Sel.favorites.remove).first();
-    await removeBtn.waitFor({ state: "visible", timeout: 10_000 });
+    const removeBtn = await resolveRemoveButton(targetCard);
     await removeBtn.click();
     await acceptConfirmIfAny(page);
     await settleAfterAction(page);
