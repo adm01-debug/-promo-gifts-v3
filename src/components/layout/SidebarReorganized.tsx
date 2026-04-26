@@ -47,6 +47,7 @@ import { SidebarBrandHeader } from "./sidebar/SidebarBrandHeader";
 
 import { SidebarNavGroup, type NavGroup } from "./sidebar/SidebarNavGroup";
 import { RestrictedRouteNotice } from "./sidebar/RestrictedRouteNotice";
+import { isDevOnlyPath, isAdminOnlyPath } from "@/lib/navigation/restricted-routes";
 
 interface SidebarProps {
   isOpen: boolean;
