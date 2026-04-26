@@ -345,16 +345,27 @@ export default function FavoritesPage() {
         {/* Header global */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-destructive/10 flex items-center justify-center">
+            <div
+              data-testid="favorites-icon"
+              aria-label="Favoritos"
+              className="w-12 h-12 rounded-xl bg-destructive/10 flex items-center justify-center"
+            >
               <Heart className="h-6 w-6 text-destructive fill-destructive" />
             </div>
             <div>
               <h1 data-testid="page-title-favoritos" className="text-2xl lg:text-3xl font-display font-bold text-foreground">
                 Meus Favoritos
               </h1>
-              <p className="text-muted-foreground text-sm">
-                {headerTotalCount} {headerTotalCount === 1 ? "item" : "itens"}
-                {lists.length > 0 && ` • ${lists.length} ${lists.length === 1 ? "lista" : "listas"}`}
+              <p data-testid="favorites-count" className="text-muted-foreground text-sm">
+                <span data-testid="favorites-count-items">{headerTotalCount}</span>{" "}
+                {headerTotalCount === 1 ? "item" : "itens"}
+                {lists.length > 0 && (
+                  <>
+                    {" • "}
+                    <span data-testid="favorites-count-lists">{lists.length}</span>{" "}
+                    {lists.length === 1 ? "lista" : "listas"}
+                  </>
+                )}
               </p>
             </div>
           </div>
