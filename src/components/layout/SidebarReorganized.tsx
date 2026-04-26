@@ -136,6 +136,7 @@ const navGroups: NavGroup[] = [
       { icon: Workflow, label: "Workflows IA", href: "/admin/workflows", devOnly: true },
       { icon: Activity, label: "Telemetria", href: "/admin/telemetria", devOnly: true },
       { icon: DollarSign, label: "Validade de Preços", href: "/admin/validade-precos", devOnly: true },
+      { icon: ShieldCheck, label: "Auditoria RBAC", href: "/admin/rbac-rotas", devOnly: true },
     ],
   },
 ];
