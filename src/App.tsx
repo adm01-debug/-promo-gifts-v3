@@ -61,6 +61,7 @@ const QuotesKanbanPage = lazyWithRetry(() => import("./pages/QuotesKanbanPage"))
 
 // Admin Pages
 const AdminUsuariosPage = lazyWithRetry(() => import("./pages/admin/AdminUsuariosPage"));
+const AdminPromoverUsuarioPage = lazyWithRetry(() => import("./pages/admin/AdminPromoverUsuarioPage"));
 const AdminSegurancaPage = lazyWithRetry(() => import("./pages/admin/AdminSegurancaPage"));
 const AdminCadastrosPage = lazyWithRetry(() => import("./pages/admin/AdminCadastrosPage"));
 const AdminPromptsIAPage = lazyWithRetry(() => import("./pages/admin/AdminPromptsIAPage"));
