@@ -47,8 +47,14 @@ export const Sel = {
   product: {
     card: `${TID("product-card")}, article:has(button[aria-label*="favorit" i]), [role="article"]:has(button[aria-label*="favorit" i])`,
     name: `${TID("product-card-name")}, h1, h2, h3, [data-product-name]`,
-    favorite: `button[aria-label="Favoritar" i], button[aria-label*="favorit" i]`,
-    favoriteRemove: `button[aria-label="Remover favorito" i]`,
+    /**
+     * Botão de favoritar — testid estável presente em:
+     *  - card do catálogo (ProductCardActions: product-card-favorite)
+     *  - detalhe Hero/Sticky/Mobile, QuickView, ListItem, TableRow (product-favorite)
+     * Fallback por aria-label só durante transição.
+     */
+    favorite: `${TID("product-card-favorite")}, ${TID("product-favorite")}, button[aria-label="Favoritar" i], button[aria-label*="favorit" i]`,
+    favoriteRemove: `${TID("favorite-remove")}, button[aria-label="Remover favorito" i]`,
     cartTrigger: `button[aria-label="ShoppingCart" i], button:has(svg.lucide-shopping-cart)`,
     addCartConfirm: 'button:has-text("Adicionar ao Carrinho")',
   },
