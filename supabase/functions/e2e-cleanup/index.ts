@@ -238,7 +238,13 @@ Deno.serve(async (req: Request) => {
   }
 
   // --- parse body ---------------------------------------------------------
-  let body: { email?: unknown; dryRun?: unknown; sellerScope?: unknown; sellerId?: unknown };
+  let body: {
+    email?: unknown;
+    dryRun?: unknown;
+    sellerScope?: unknown;
+    sellerId?: unknown;
+    nameFilterPrefix?: unknown;
+  };
   try {
     body = await req.json();
   } catch {
@@ -271,6 +277,21 @@ Deno.serve(async (req: Request) => {
     typeof body.sellerId === "string" && body.sellerId.length > 0
       ? body.sellerId
       : null;
+
+  // nameFilterPrefix: quando presente, restringe DELETEs a recursos cujo
+  // nome começa com o prefixo (ex.: "[E2E]"). Garante isolamento contra
+  // dados criados manualmente fora do escopo dos testes — apenas tabelas
+  // listadas em NAMEABLE_COLUMNS são filtradas; demais permanecem
+  // escopadas apenas por user_id/seller_id (são internas/órfãs por
+  // construção).
+  const nameFilterPrefix =
+    typeof body.nameFilterPrefix === "string" && body.nameFilterPrefix.length > 0
+      ? body.nameFilterPrefix
+      : null;
+  // Sanitiza % e _ (LIKE wildcards) para evitar match acidental amplo.
+  const sanitizedPrefix = nameFilterPrefix
+    ? nameFilterPrefix.replace(/[\\%_]/g, (m) => `\\${m}`)
+    : null;
 
   if (!email) {
     await writeAudit(admin, {
