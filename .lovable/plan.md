@@ -1,51 +1,67 @@
-# E2E: favoritar a partir da página de detalhe e validar persistência
+# E2E: persistência de favoritos via leitura de localStorage
 
 ## Objetivo
 
-Criar um spec Playwright dedicado que **favorita um produto na rota de detalhe** (`/produto/:id`) e depois confirma que ele aparece em `/favoritos` antes e **após reload**.
+Validar a **persistência real** dos favoritos lendo o estado da sessão (`localStorage["product-favorites"]`) e confirmando que, após `page.reload()`, o favorito é restaurado tanto no storage quanto na UI. Também valida o caminho inverso: pré-popular o storage e confirmar que a UI hidrata corretamente.
 
 ## Diagnóstico
 
-- `08-favorites.spec.ts` cobre o fluxo a partir do **card do catálogo**.
-- Falta cobrir o caminho a partir do **detalhe**, que tem 3 entradas para o botão Favoritar:
-  - `ProductDetailHero` — botão com texto "Favoritar"/"Favoritado".
-  - `ProductStickyHeader` — `aria-label="Favoritar"`.
-  - `MobileProductActions` — `aria-label="Favoritar"`.
-- Quando NÃO está favoritado, clicar abre `VariantPickerDialog` (mode `favorite`). Para tornar o teste estável, escolhemos **"Sem cor específica"** (opção do `SingleVariantPicker`).
-- Para desfavoritar, o detalhe remove direto (sem dialog); cleanup é feito pela lista usando `Sel.favorites.remove`.
+- `src/hooks/useFavorites.ts` persiste em `localStorage` com chave `product-favorites` no formato `[{ productId: string, addedAt: ISOString }]`.
+- O hook hidrata o estado a partir do storage no mount (`useEffect` com `isLoaded`).
+- Não há backend para favoritos — toda a persistência é client-side.
+- Specs existentes (`08-favorites`, `09-favorite-from-detail`) validam pela UI mas não inspecionam o storage.
 
 ## Arquivo novo
 
-### `e2e/flows/09-favorite-from-detail.spec.ts`
+### `e2e/flows/10-favorites-persistence-storage.spec.ts`
 
-Estrutura:
+Helpers locais:
+- `STORAGE_KEY = "product-favorites"`
+- `readStorage(page)` → `JSON.parse(localStorage[STORAGE_KEY] || "[]")` via `page.evaluate`
+- `writeStorage(page, items)` → `localStorage.setItem(...)` via `page.evaluate`
+- `clearStorage(page)` → remove a chave
+- `readFavoritesCount(page)` (mesmo do spec 08)
 
-1. `requireAuth()` no `beforeEach`.
-2. Snapshot inicial: `gotoAndSettle("/favoritos")` → `countBefore = readFavoritesCount(page)`.
-3. `gotoAndSettle("/produtos")` → pega 1º card → resolve `href` de `a[href^="/produto/"]` (fallback: `card.click()` + `waitForURL(/\/produto\/[^/]+/)`).
-4. `gotoAndSettle(detailHref)` + espera por `[data-state="loading"]` sumir; assert `/produto/<id>` na URL.
-5. `productName` lido do `h1`/`h2` do detalhe.
-6. Localiza o botão Favoritar via seletor combinado (`aria-label` + texto). Garante estado inicial = não-favoritado (se "Favoritado", clica para desfazer).
-7. Clica em Favoritar; se aparecer `[role="dialog"]` com texto `/sem cor específica/i`, clica nele.
-8. `expect.poll` no texto do botão para confirmar que virou "Favoritado".
-9. `gotoAndSettle("/favoritos")`:
-   - `readFavoritesCount === countBefore + 1`
-   - `getByText(productRegex)` visível.
-10. `page.reload()` + revalida contagem e visibilidade do produto.
-11. **Cleanup**: clica em `favorite-remove` no card que casa com `productName` (fallback: primeiro), aceita eventual `[role="alertdialog"]`, espera contagem voltar a `countBefore`, recarrega e confirma `toHaveCount(0)` para `productRegex`.
+### Teste 1 — favoritar pela UI persiste no storage e sobrevive ao reload
+
+1. `requireAuth()`.
+2. `gotoAndSettle("/produtos")`.
+3. Lê snapshot inicial via `readStorage(page)` (`before`).
+4. Favorita o 1º card (clica em `Sel.product.favorite`).
+5. **Antes do reload** valida:
+   - `readStorage(page)` tem **exatamente 1 item a mais** que `before`.
+   - O novo item tem `productId` (string não-vazia) e `addedAt` parseável como `Date`.
+6. `page.reload()` no `/produtos`.
+7. **Após reload** valida que `readStorage(page)` é igual ao snapshot pós-favoritar (mesmo `productId`).
+8. `gotoAndSettle("/favoritos")` + `readFavoritesCount === before.length + 1`.
+9. Cleanup: `clearStorage` ou remove só o item adicionado e revalida via UI.
+
+### Teste 2 — pré-popular storage hidrata a UI após reload (round-trip)
+
+1. `requireAuth()`.
+2. `gotoAndSettle("/produtos")` para garantir que algum produto é conhecido.
+3. Lê o `productId` do 1º card (atributo `data-product-id` se existir, senão extrai do `href` `/produto/<id>` do `a` interno).
+4. `clearStorage(page)` + `writeStorage(page, [{ productId, addedAt: new Date().toISOString() }])`.
+5. `gotoAndSettle("/favoritos")` (carregamento fresco — força hidratação a partir do storage).
+6. Valida que:
+   - `readFavoritesCount(page) === 1`
+   - Existe pelo menos um `Sel.favorites.remove` visível.
+7. `page.reload()` e revalida o mesmo (persistência sobrevive a reload sem nenhuma ação de UI).
+8. Cleanup: `clearStorage(page)`.
 
 ## Detalhes técnicos
 
-- Reutiliza `Sel.favorites.*`, `Sel.product.card`, `gotoAndSettle`, `requireAuth`, `test-base`.
-- Helper local `readFavoritesCount` espelha o do spec 08 (não vale extrair agora — apenas dois usos).
-- Detecção de "Favoritado" usa `el.textContent` para cobrir Hero (texto) e `aria-pressed` opcional para os outros.
-- Sem alterações em `src/` ou em `selectors.ts` — o `aria-label="Favoritar"` já existe nos componentes Sticky/Mobile e o texto "Favoritar"/"Favoritado" cobre o Hero.
+- Captura de `productId` no card: tentar `data-product-id` em qualquer ancestral; fallback para regex no `href` (`/^\/produto\/([^/?#]+)/`).
+- `writeStorage` antes de navegar para `/favoritos` precisa rodar **na mesma origin** — por isso navegamos primeiro para `/produtos` (mesma origin do app), depois escrevemos, depois vamos para `/favoritos`.
+- Validações de tipo no item do storage usam `expect(typeof item.productId).toBe("string")` e `expect(Number.isFinite(Date.parse(item.addedAt))).toBe(true)`.
+- Sem mudanças em `src/`, `selectors.ts` ou config.
 
 ## Validação
 
-`npx tsc --noEmit -p tsconfig.json` para checar tipos do novo spec.
+`npx tsc --noEmit -p tsconfig.json` para checar tipos.
 
 ## Fora de escopo
 
-- Não cobrir variant picker com seleção de cor real (o "sem cor" mantém o teste determinístico).
-- Não criar abstração compartilhada entre os specs 08 e 09 ainda — fazer só quando surgir um terceiro caso.
+- Não cobre listas de favoritos (`useFavoriteLists`) — é outra chave de storage.
+- Não cobre cookies/sessão Supabase (favoritos não usam backend).
+- Sem mudanças no `08-favorites` ou `09-favorite-from-detail`.
