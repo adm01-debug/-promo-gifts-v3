@@ -232,9 +232,12 @@ export function CustomizableDashboard() {
               <LayoutDashboard className="h-6 w-6" />
               Dashboard
             </h1>
-            <p className="text-muted-foreground mt-1 text-sm">
-              {isCustomizing ? 'Personalize seu dashboard' : 'Arraste widgets para reorganizar'}
-            </p>
+            <div className="flex items-center gap-2 mt-1 flex-wrap">
+              <p className="text-muted-foreground text-sm">
+                {isCustomizing ? 'Personalize seu dashboard' : 'Arraste widgets para reorganizar'}
+              </p>
+              <ScopeBadge />
+            </div>
           </div>
           <div className="flex items-center gap-2">
             {isCustomizing && (
