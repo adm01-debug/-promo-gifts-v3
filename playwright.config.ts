@@ -1,35 +1,75 @@
 /**
  * E2E Test Configuration — Playwright
- * 
- * Para executar:
- *   npx playwright test
- *   npx playwright test --ui  (modo visual)
+ *
+ * Estrutura:
+ *  - project "setup": roda e2e/fixtures/auth.setup.ts UMA VEZ e gera storageState.json
+ *  - project "chromium-public": specs sem auth (login, públicos)
+ *  - project "chromium-authed": specs autenticados (depende de setup)
+ *
+ * Evidências em falha (auto): screenshot, vídeo, trace, HAR de rede + DOM dump
+ * gravados em e2e-artifacts/ e anexados via testInfo.attach() pelo evidence helper.
+ *
+ * Comandos:
+ *   npm run test:e2e          # headless
+ *   npm run test:e2e:ui       # modo visual
+ *   npm run test:e2e:headed   # browser visível
+ *   npm run test:e2e:debug    # com inspector
+ *   npm run test:e2e:report   # abre o relatório HTML
  */
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig, devices } from "@playwright/test";
+import path from "node:path";
+
+const STORAGE_STATE = path.resolve(__dirname, "e2e/.auth/storageState.json");
+const ARTIFACTS_DIR = path.resolve(__dirname, "e2e-artifacts");
 
 export default defineConfig({
-  testDir: './e2e',
+  testDir: "./e2e",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  reporter: 'html',
-  timeout: 30_000,
+  timeout: 45_000,
+  expect: { timeout: 10_000 },
+  outputDir: ARTIFACTS_DIR,
+  reporter: process.env.CI
+    ? [
+        ["list"],
+        ["html", { outputFolder: "playwright-report", open: "never" }],
+        ["json", { outputFile: "playwright-report/results.json" }],
+        ["junit", { outputFile: "playwright-report/results.xml" }],
+      ]
+    : [["list"], ["html", { outputFolder: "playwright-report", open: "never" }]],
   use: {
-    baseURL: 'http://localhost:5173',
-    trace: 'on-first-retry',
-    screenshot: 'only-on-failure',
+    baseURL: process.env.E2E_BASE_URL ?? "http://localhost:5173",
+    trace: "retain-on-failure",
+    screenshot: "only-on-failure",
+    video: "retain-on-failure",
+    actionTimeout: 10_000,
+    navigationTimeout: 20_000,
   },
   projects: [
     {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      name: "setup",
+      testMatch: /fixtures\/auth\.setup\.ts/,
+    },
+    {
+      name: "chromium-public",
+      use: { ...devices["Desktop Chrome"] },
+      testIgnore: [/fixtures\/auth\.setup\.ts/, /flows\//],
+    },
+    {
+      name: "chromium-authed",
+      use: { ...devices["Desktop Chrome"], storageState: STORAGE_STATE },
+      dependencies: ["setup"],
+      testMatch: /flows\/.*\.spec\.ts/,
     },
   ],
-  webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:5173',
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
-  },
+  webServer: process.env.E2E_BASE_URL
+    ? undefined
+    : {
+        command: "npm run dev",
+        url: "http://localhost:5173",
+        reuseExistingServer: !process.env.CI,
+        timeout: 120_000,
+      },
 });
