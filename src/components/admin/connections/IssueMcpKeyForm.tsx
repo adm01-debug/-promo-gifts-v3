@@ -30,8 +30,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Copy, Key, ShieldAlert, AlertTriangle } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { invokeFullScopeFunction } from "@/lib/auth/invoke-full-scope";
 import {
   Tooltip,
   TooltipContent,
