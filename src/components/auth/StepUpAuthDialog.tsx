@@ -17,20 +17,26 @@ interface Props {
 }
 
 export function StepUpAuthDialog({ open, onOpenChange, action, targetRef, actionLabel, onVerified }: Props) {
-  const { state, reset, requestChallenge, verifyPassword, verifyOtp } = useStepUpAuth();
+  const { state, reset, requestChallenge, verifyPassword, verifyOtp, cancel } = useStepUpAuth();
   const [password, setPassword] = useState("");
   const [otp, setOtp] = useState("");
+  const verifiedRef = useState({ done: false })[0];
 
   useEffect(() => {
     if (open && !state.challengeId) {
-      requestChallenge({ action, targetRef });
+      verifiedRef.done = false;
+      requestChallenge({ action, targetRef, actionLabel });
     }
     if (!open) {
+      // Se o modal fechou sem token emitido, registra cancelamento server-side.
+      if (!verifiedRef.done) {
+        void cancel("user_closed_dialog");
+      }
       reset();
       setPassword("");
       setOtp("");
     }
-  }, [open, action, targetRef, state.challengeId, requestChallenge, reset]);
+  }, [open, action, targetRef, actionLabel, state.challengeId, requestChallenge, reset, cancel, verifiedRef]);
 
   const handlePassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,6 +47,7 @@ export function StepUpAuthDialog({ open, onOpenChange, action, targetRef, action
     e.preventDefault();
     const token = await verifyOtp(otp);
     if (token) {
+      verifiedRef.done = true;
       await onVerified(token);
       onOpenChange(false);
     }
