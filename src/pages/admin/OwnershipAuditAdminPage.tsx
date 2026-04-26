@@ -91,6 +91,42 @@ export default function OwnershipAuditAdminPage() {
     }
   }
 
+  async function exportMatrix(format: "csv" | "pdf") {
+    try {
+      const { data: sess } = await supabase.auth.getSession();
+      const token = sess.session?.access_token;
+      if (!token) {
+        toast.error("Sessão expirada — faça login novamente.");
+        return;
+      }
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/rls-matrix-export?format=${format}`;
+      const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+      if (!res.ok) {
+        const msg = await res.text().catch(() => res.statusText);
+        throw new Error(msg || `HTTP ${res.status}`);
+      }
+      const blob = await res.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      if (format === "pdf") {
+        // HTML printável → abre em nova aba para Imprimir → Salvar como PDF
+        window.open(objectUrl, "_blank", "noopener,noreferrer");
+        setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
+      } else {
+        const a = document.createElement("a");
+        a.href = objectUrl;
+        a.download = `rls-matrix-${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(objectUrl);
+      }
+      toast.success(`Matriz RLS exportada (${format.toUpperCase()}).`);
+    } catch (e) {
+      console.error(e);
+      toast.error(`Falha ao exportar matriz: ${(e as Error).message}`);
+    }
+  }
+
   return (
     <MainLayout>
       <PageSEO title="Auditoria de Propriedade" description="Auditoria periódica de registros órfãos e sem dono." path="/admin/auditoria-propriedade" />
