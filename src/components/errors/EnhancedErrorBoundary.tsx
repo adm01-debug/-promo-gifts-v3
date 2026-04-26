@@ -40,6 +40,8 @@ class EnhancedErrorBoundary extends Component<Props, State> {
       showDetails: false,
       retryCount: 0,
       isAutoRecovering: false,
+      isClearingCache: false,
+      copied: false,
     };
   }
 
