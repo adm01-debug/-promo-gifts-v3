@@ -101,7 +101,7 @@ function SellerCartsContent() {
             <ShoppingCart className="h-4.5 w-4.5 text-primary" />
           </div>
           <div className="min-w-0">
-            <h1 className="text-xl lg:text-2xl font-display font-bold text-foreground leading-tight">Carrinhos</h1>
+            <h1 data-testid="page-title-carrinhos" className="text-xl lg:text-2xl font-display font-bold text-foreground leading-tight">Carrinhos</h1>
             <p className="text-xs text-muted-foreground flex items-center gap-1.5 flex-wrap">
               <span className="tabular-nums">{s.carts.length}</span>
               <span className="text-muted-foreground/50">·</span>
