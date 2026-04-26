@@ -147,13 +147,21 @@ export default function AdminUsuariosPage() {
                 <div>
                   <CardTitle>Gerenciamento de Usuários e Roles</CardTitle>
                   <CardDescription>
-                    Atribua roles aos usuários: Admin (acesso total), Gerente (acesso intermediário) ou Vendedor (acesso básico)
+                    Atribua roles aos usuários: Dev (técnico), Supervisor (gestão comercial) ou Agente (acesso básico)
                   </CardDescription>
                 </div>
-                <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
-                  <Plus className="h-4 w-4" />
-                  Novo Usuário
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button asChild variant="outline" className="gap-2">
+                    <Link to="/admin/usuarios/promover">
+                      <ArrowUpCircle className="h-4 w-4" />
+                      Promover Agente
+                    </Link>
+                  </Button>
+                  <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
+                    <Plus className="h-4 w-4" />
+                    Novo Usuário
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="relative max-w-sm">
