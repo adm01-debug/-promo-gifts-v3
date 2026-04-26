@@ -119,41 +119,50 @@ export function Breadcrumbs({ items, className, showHome = true }: BreadcrumbsPr
   );
 }
 
-function generateBreadcrumbs(pathname: string): BreadcrumbItem[] {
+function generateBreadcrumbs(
+  pathname: string,
+  roles: { isDev: boolean; isAdmin: boolean } = { isDev: false, isAdmin: false },
+): BreadcrumbItem[] {
   const segments = pathname.split("/").filter(Boolean);
-  
+
   if (segments.length === 0) return [];
-  
+
   const breadcrumbs: BreadcrumbItem[] = [];
   let currentPath = "";
-  
+
   for (let i = 0; i < segments.length; i++) {
     const segment = segments[i];
     currentPath += `/${segment}`;
-    
+
     // Skip UUIDs or numeric IDs in breadcrumbs display
     const isId = /^[0-9a-f-]{36}$/.test(segment) || /^\d+$/.test(segment);
-    
+
     if (isId) {
-      // For IDs, we might want to show a shortened version or skip
       breadcrumbs.push({
         label: `#${segment.slice(0, 8)}...`,
         href: i < segments.length - 1 ? currentPath : undefined,
       });
     } else {
+      // Esconde segmentos técnicos para não-dev
+      if (!roles.isDev && isDevOnlyPath(currentPath)) {
+        continue;
+      }
       const label = routeLabels[segment] || segment.charAt(0).toUpperCase() + segment.slice(1);
+      const navigable = canNavigateTo(currentPath, roles);
+      const isLast = i >= segments.length - 1;
       breadcrumbs.push({
         label,
-        href: i < segments.length - 1 ? currentPath : undefined,
+        href: !isLast && navigable ? currentPath : undefined,
       });
     }
   }
-  
+
   return breadcrumbs;
 }
 
 // Hook for custom breadcrumbs
 export function useBreadcrumbs() {
   const location = useLocation();
-  return generateBreadcrumbs(location.pathname);
+  const { isDev, isAdmin } = useAuth();
+  return generateBreadcrumbs(location.pathname, { isDev, isAdmin });
 }
