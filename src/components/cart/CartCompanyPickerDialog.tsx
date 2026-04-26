@@ -155,6 +155,8 @@ export function CartCompanyPickerDialog({ open, onOpenChange, onCreated }: CartC
     <button
       key={company.id}
       type="button"
+      data-testid="cart-company-picker-select"
+      data-company-id={company.id}
       className={cn(
         "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left",
         "hover:bg-accent/60 transition-colors group"
