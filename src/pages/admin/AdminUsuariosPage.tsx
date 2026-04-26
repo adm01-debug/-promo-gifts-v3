@@ -140,6 +140,12 @@ export default function AdminUsuariosPage() {
                 )}
               </TabsTrigger>
             )}
+            {isDev && (
+              <TabsTrigger value="audit" className="gap-2">
+                <History className="h-4 w-4" />
+                Auditoria de Roles
+              </TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="users">
@@ -205,6 +211,12 @@ export default function AdminUsuariosPage() {
           {isAdmin && (
             <TabsContent value="discounts">
               <DiscountManagementPanel />
+            </TabsContent>
+          )}
+
+          {isDev && (
+            <TabsContent value="audit">
+              <RoleAuditLogPanel />
             </TabsContent>
           )}
         </Tabs>
