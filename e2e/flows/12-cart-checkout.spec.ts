@@ -13,7 +13,7 @@ import { Sel } from "../fixtures/selectors";
 import type { Locator, Page } from "@playwright/test";
 
 const CARD_SELECTOR = Sel.product.card;
-const TOAST_SELECTOR = Sel.app.anyToast;
+const TOAST_SELECTOR = Sel.app.toast;
 
 async function firstCatalogCard(page: Page): Promise<Locator> {
   const card = page.locator(CARD_SELECTOR).first();
