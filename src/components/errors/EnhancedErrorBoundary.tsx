@@ -6,7 +6,22 @@ import { attemptChunkRecovery, isChunkLoadError } from '@/lib/chunk-recovery';
 
 interface Props {
   children: ReactNode;
+  /**
+   * Callback opcional disparado em `componentDidCatch`, antes do logging
+   * estruturado e do `reportError`.
+   */
   onError?: (error: Error, errorInfo: ErrorInfo) => void;
+  /**
+   * Fallback custom (ReactNode) a ser renderizado quando ocorrer erro,
+   * **em vez** da UI padrão full-screen. Use para casos em que o boundary
+   * está embutido numa região da página (ex.: card, painel) e a UI rica
+   * global seria desproporcional.
+   *
+   * Quando informado, todo o pipeline de auto-recovery (chunk reload,
+   * cache bust, retry counter) **continua** funcionando — apenas a tela
+   * final do erro é substituída.
+   */
+  fallback?: ReactNode;
 }
 
 interface State {
@@ -23,12 +38,28 @@ interface State {
 const MAX_AUTO_RETRIES = 2;
 
 /**
- * EnhancedErrorBoundary — Global error boundary wrapping <App />.
+ * EnhancedErrorBoundary — **único** error boundary canônico do projeto.
+ *
+ * Cobre dois cenários:
+ *  1. **Global** — instalado uma vez em `src/main.tsx` envolvendo `<App />`.
+ *     Captura qualquer throw em render/effect que escapou de boundaries
+ *     locais e mostra a UI rica full-screen com auto-recovery.
+ *  2. **Local/inline** — pode ser reusado em torno de regiões específicas
+ *     (cards, painéis, widgets) passando `fallback={<...>}` para uma UI
+ *     mais discreta. O auto-recovery continua ativo.
+ *
+ * Não usar `RouteErrorBoundary` (data router) — o projeto roda com
+ * `<BrowserRouter>` declarativo, onde `errorElement` é silenciosamente
+ * ignorado. Veja `scripts/check-route-error-element.mjs`.
+ *
+ * Especializações de feature (ex.: `SimulatorErrorBoundary`) com UI/CTAs
+ * próprios são permitidas — não são duplicidade do global.
+ *
  * Features:
  * - Auto-recovery for chunk/import errors (stale cache)
  * - Retry counter with exponential backoff
  * - Structured error logging
- * - Elegant full-screen fallback
+ * - Elegant full-screen fallback (ou custom via `fallback` prop)
  */
 class EnhancedErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
