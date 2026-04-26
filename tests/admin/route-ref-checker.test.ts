@@ -45,12 +45,8 @@ describe("route-ref checker — detecta padrões problemáticos", () => {
   /** Monta uma cópia mínima do esqueleto que o checker precisa varrer. */
   beforeEach(() => {
     work = mkdtempSync(path.join(tmpdir(), "route-ref-check-"));
-    // Estrutura mínima: scripts/ (copy do checker) + src/components/layout +
-    // src/pages para a varredura ter alvos.
-    mkdirSync(path.join(work, "scripts"), { recursive: true });
     mkdirSync(path.join(work, "src/components/layout"), { recursive: true });
     mkdirSync(path.join(work, "src/pages"), { recursive: true });
-    cpSync(SCRIPT, path.join(work, "scripts/check-route-ref-usage.mjs"));
   });
 
   afterEach(() => {
