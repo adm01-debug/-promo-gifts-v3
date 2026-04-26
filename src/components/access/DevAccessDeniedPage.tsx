@@ -259,6 +259,7 @@ export function DevAccessDeniedPage({
     toast.success("Solicitação enviada", {
       description: `Avisamos o time técnico (${DEV_ACCESS_CONTACT_EMAIL}). Você receberá uma notificação quando o acesso for revisado.`,
     });
+    finalize("request_access");
     if (result.mailtoUrl) {
       window.location.href = result.mailtoUrl;
     }
@@ -272,6 +273,7 @@ export function DevAccessDeniedPage({
       toast.success("Link copiado", {
         description: "Envie ao time técnico para liberar o acesso.",
       });
+      emit("copy_link");
       setTimeout(() => setCopied(false), 2000);
     } catch {
       toast.error("Não foi possível copiar o link");
