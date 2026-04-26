@@ -4,6 +4,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { logRlsDenial } from "@/lib/security/rls-denial-logger";
 
 export interface OrderRow {
   id: string;
