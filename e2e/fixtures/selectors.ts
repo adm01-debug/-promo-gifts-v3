@@ -34,6 +34,10 @@ export const Sel = {
     submit: TID("login-submit"),
     toggle: TID("login-password-toggle"),
     forgot: TID("login-forgot-link"),
+    /** Mensagem de erro de validação (email inválido, etc.) */
+    errorMsg: TID("login-error-msg"),
+    /** Tela de "Esqueceu sua senha?" (após clicar em forgot). */
+    forgotScreen: TID("forgot-password-screen"),
   },
 
   // ---------- Sidebar / Navegação ----------
@@ -49,6 +53,10 @@ export const Sel = {
   },
 
   // ---------- Catálogo / Produto ----------
+  catalog: {
+    /** Input da busca global do catálogo (SmartSearchInput). */
+    searchInput: TID("catalog-search-input"),
+  },
   product: {
     card: TID("product-card"),
     /** Nome no card do catálogo (ProductCard / EnhancedProductCard). */
@@ -61,9 +69,21 @@ export const Sel = {
      *  - detalhe Hero/Sticky/Mobile, QuickView, ListItem, TableRow (product-favorite)
      */
     favorite: `${TID("product-card-favorite")}, ${TID("product-favorite")}`,
+    /** Apenas o botão do detalhe do produto. */
+    detailFavorite: TID("product-favorite"),
     favoriteRemove: TID("favorite-remove"),
     /** Trigger de adicionar ao carrinho (atualmente o botão do header). */
     cartTrigger: TID("cart-trigger"),
+    /** Toggle "Ações rápidas" do card do catálogo (ProductCardActions). */
+    actionsToggle: TID("product-card-actions-toggle"),
+    /** Botão final "Adicionar ao Carrinho" dentro do popover QuickAddToQuote. */
+    cardAddToCart: TID("product-card-add-to-cart"),
+  },
+
+  // ---------- Variant Picker ----------
+  variant: {
+    /** Botão "Sem cor específica" do SingleVariantPicker. */
+    noVariant: TID("variant-picker-no-variant"),
   },
 
   // ---------- Orçamentos ----------
@@ -97,8 +117,19 @@ export const Sel = {
     item: TID("cart-item"),
     qtyBadge: TID("cart-qty-badge"),
     increment: TID("cart-qty-increment"),
+    decrement: TID("cart-qty-decrement"),
     checkoutCta: TID("cart-checkout-cta"),
     confirmDialog: TID("cart-confirm-dialog"),
+    /** Botão de seleção de empresa no CartCompanyPickerDialog. */
+    companyPickerSelect: TID("cart-company-picker-select"),
+  },
+
+  // ---------- Diálogos genéricos (ConfirmDialog) ----------
+  dialog: {
+    /** Botão Confirmar/Sim/Excluir (AlertDialogAction do ConfirmDialog). */
+    confirmYes: TID("confirm-dialog-yes"),
+    /** Botão Cancelar (AlertDialogCancel do ConfirmDialog). */
+    confirmNo: TID("confirm-dialog-no"),
   },
 
   // ---------- App genérico ----------
@@ -111,6 +142,10 @@ export const Sel = {
     /** Alias histórico — equivalente a `toast`. */
     anyToast: `${TID("app-toast")}, [data-sonner-toast]`,
     errorBanner: TID("app-error-banner"),
+    /** Tela 404 (NotFound page). */
+    notFound: TID("app-not-found"),
+    /** Tela de acesso negado (DevAccessDeniedPage). */
+    accessDenied: TID("app-access-denied"),
   },
 
   // ---------- Bibliotecas externas (contratos estáveis) ----------
