@@ -46,6 +46,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { SidebarBrandHeader } from "./sidebar/SidebarBrandHeader";
 
 import { SidebarNavGroup, type NavGroup } from "./sidebar/SidebarNavGroup";
+import { RestrictedRouteNotice } from "./sidebar/RestrictedRouteNotice";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -319,6 +320,9 @@ export const SidebarReorganized = React.forwardRef<HTMLElement, SidebarProps>(
               )}
             </Button>
           </div>
+
+          {/* Aviso quando vendedor/admin tenta abrir rota técnica via URL/histórico */}
+          <RestrictedRouteNotice isCollapsed={isCollapsed} />
 
           {/* Navigation Groups */}
           <nav
