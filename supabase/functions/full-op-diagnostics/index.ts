@@ -45,7 +45,7 @@ function jsonResponse(body: unknown, status: number, req: Request): Response {
   });
 }
 
-async function timed<T>(fn: () => Promise<T>): Promise<{ value: T; ms: number }> {
+async function timed<T>(fn: () => PromiseLike<T>): Promise<{ value: T; ms: number }> {
   const t0 = performance.now();
   const value = await fn();
   return { value, ms: Math.round(performance.now() - t0) };
