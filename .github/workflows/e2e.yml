@@ -1,0 +1,72 @@
+name: E2E (Playwright)
+
+# Job opcional: roda os specs públicos sempre; specs autenticados só se
+# E2E_USER_EMAIL/E2E_USER_PASSWORD estiverem configurados como secrets do repo.
+# Artefatos (relatório HTML, screenshots, vídeos, traces) são publicados.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CI: "true"
+      E2E_USER_EMAIL: ${{ secrets.E2E_USER_EMAIL }}
+      E2E_USER_PASSWORD: ${{ secrets.E2E_USER_PASSWORD }}
+      E2E_ADMIN_EMAIL: ${{ secrets.E2E_ADMIN_EMAIL }}
+      E2E_ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install deps
+        run: npm ci --no-audit --no-fund
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: playwright-${{ runner.os }}-
+
+      - name: Install Playwright (chromium)
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E
+        run: npx playwright test
+        continue-on-error: true
+        id: e2e_run
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report
+          retention-days: 7
+
+      - name: Upload evidence artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-evidence
+          path: |
+            e2e-artifacts
+            test-results
+          retention-days: 7
+
+      - name: Fail job if tests failed
+        if: steps.e2e_run.outcome == 'failure'
+        run: |
+          echo "::error::Playwright tests failed — veja artifacts 'playwright-report' e 'e2e-evidence'"
+          exit 1

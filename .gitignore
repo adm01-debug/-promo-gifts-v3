@@ -32,3 +32,9 @@ pnpm-debug.log*
 storybook-static/
 yarn-debug.log*
 yarn-error.log*
+
+# Playwright E2E
+playwright-report/
+e2e-artifacts/
+test-results/
+e2e/.auth/

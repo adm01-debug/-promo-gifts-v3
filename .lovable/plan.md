@@ -1,106 +1,122 @@
 ## Objetivo
 
-Garantir que o **vendedor** (papel "agente") só visualize e gerencie **suas próprias** propostas, clientes vinculados, pedidos, itens e solicitações de desconto. **Supervisor** vê o time (mesma organização). **Admin/manager/dev** veem tudo. Isolamento aplicado no banco (RLS) e refletido nos filtros de UI/queries.
+Expandir a suíte E2E existente (Playwright) para cobrir fluxos críticos de cada módulo: **login**, **navegação**, **criação/edição**, **submissão** e **tratamento de erro** — com **evidências automáticas** (screenshot + vídeo + trace + DOM dump) gravadas em `e2e-artifacts/` quando um teste falha.
 
-## Diagnóstico do estado atual
+A plataforma é fechada (sem signup público), então E2E que exercitam rotas protegidas dependem de um **usuário de teste seedado** via `storageState` autenticado uma única vez no `globalSetup`.
 
-| Tabela | Coluna de dono | Policy hoje | Problema |
-|---|---|---|---|
-| `quotes` | `seller_id` | OK (seller próprio + manager) | Falta clausula `WITH CHECK` em INSERT/UPDATE |
-| `quote_items` / `quote_history` / `quote_item_personalizations` | via `quote_id` | OK (herdado de quotes) | OK |
-| `quote_comments` | `user_id` + via quote | OK | Sem `WITH CHECK` em INSERT |
-| `quote_templates` | `seller_id` | OK | Falta `WITH CHECK` |
-| `quote_approval_tokens` | `seller_id` | OK | Falta `WITH CHECK` |
-| `orders` | `seller_id` + `organization_id` | OK | Falta `WITH CHECK` |
-| `order_items` | `organization_id` + via order | OK | INSERT sem `WITH CHECK` |
-| `discount_approval_requests` | `seller_id` | **3 policies SELECT redundantes**, 2 INSERT vazios, supervisor é `can_approve_discount` (= manager/admin/supervisor) | Limpar duplicatas e exigir `seller_id = auth.uid()` no INSERT |
-| `seller_discount_limits` | `user_id` | Vendedor lê o seu, supervisor gerencia | OK |
-| `seller_carts` / `seller_cart_items` | `seller_id` | (auditar) | Conferir |
+## Arquitetura
 
-**Não existe** tabela `clients` separada — clientes estão embutidos em `quotes`/`orders` (campos `client_*`). O isolamento por cliente sai automaticamente do isolamento de quote/order.
+```text
+e2e/
+├── fixtures/
+│   ├── auth.setup.ts          # Login uma vez, salva storageState.json
+│   ├── test-base.ts           # Fixture custom: page autenticada + helpers
+│   └── selectors.ts           # SSOT de data-testid / roles
+├── helpers/
+│   ├── evidence.ts            # Captura screenshot+DOM+console em falha
+│   ├── nav.ts                 # Navegação resiliente (waits robustos)
+│   └── forms.ts               # Helpers de preenchimento + validação
+├── flows/
+│   ├── 01-auth.spec.ts        # Login OK / inválido / lockout / reset
+│   ├── 02-navigation.spec.ts  # Sidebar, deep-links, 404, voltar
+│   ├── 03-products.spec.ts    # Listar, filtrar, abrir detalhe, favoritar
+│   ├── 04-quotes.spec.ts      # Criar → editar → submeter → erro
+│   ├── 05-orders.spec.ts      # Listar, abrir, atualizar status
+│   ├── 06-kit-builder.spec.ts # Wizard 4 etapas + validação + salvar
+│   ├── 07-collections.spec.ts # CRUD coleção + share público
+│   ├── 08-favorites.spec.ts   # Adicionar, remover, lista pública
+│   ├── 09-simulator.spec.ts   # Simulação de preço + erro
+│   ├── 10-admin.spec.ts       # Acesso admin + guards de role
+│   └── 11-errors.spec.ts      # 503 edge, offline, RLS denial
+└── (existentes mantidos: protected-routes, login, auth, etc.)
 
-**Hierarquia já modelada**: `is_admin_strict` (admin), `can_manage_quotes` (supervisor/manager/admin), `get_user_org_ids` (escopo de time via organização).
-
-## Mudanças (migração SQL)
-
-### 1. Helpers consolidados
-
-```sql
--- Helper explícito para "é vendedor" (apenas vendedor, sem privilégio extra)
-CREATE OR REPLACE FUNCTION public.is_seller_only(_user_id uuid DEFAULT auth.uid())
-RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public AS $$
-  SELECT has_role(_user_id,'vendedor')
-     AND NOT can_manage_quotes(_user_id)
-     AND NOT is_admin_strict(_user_id)
-$$;
-
--- Helper "vê tudo" (admin/manager/dev)
-CREATE OR REPLACE FUNCTION public.can_view_all_sales(_user_id uuid DEFAULT auth.uid())
-RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public AS $$
-  SELECT is_admin_strict(_user_id)
-      OR has_role(_user_id,'manager')
-      OR has_role(_user_id,'dev')
-$$;
+playwright.config.ts            # Atualizado: reporters, evidências, projects
+.github/workflows/e2e.yml       # Job CI dedicado (opcional, gated)
 ```
 
-### 2. Reescrita de policies (padrão por tabela)
+## Mudanças principais
 
-Para cada tabela com `seller_id`:
-- **SELECT**: `can_view_all_sales() OR (has_role(auth.uid(),'supervisor') AND organization_id IN get_user_org_ids(auth.uid())) OR seller_id = auth.uid()`
-- **INSERT** (`WITH CHECK`): `seller_id = auth.uid() OR can_view_all_sales()`
-- **UPDATE/DELETE**: `seller_id = auth.uid() OR can_view_all_sales() OR (supervisor AND mesma org)`
+### 1. `playwright.config.ts`
+- Reporters em paralelo: `html` + `list` + `json` (para CI parsing) + `junit`
+- `use`: `trace: 'retain-on-failure'`, `screenshot: 'only-on-failure'`, `video: 'retain-on-failure'`
+- `outputDir: 'e2e-artifacts/'` para evidências consolidadas
+- 2 projects:
+  - `setup` (roda `auth.setup.ts`, sem auth)
+  - `chromium-authed` (depende de setup, usa `storageState.json`)
+- `globalTimeout` e `expect.timeout` ajustados
 
-Aplicado em: `quotes`, `orders`, `quote_templates`, `quote_approval_tokens`, `discount_approval_requests`, `seller_carts`, `seller_cart_items`.
+### 2. `fixtures/auth.setup.ts`
+- Lê `E2E_USER_EMAIL` / `E2E_USER_PASSWORD` (secrets) ou pula com `test.skip` se ausentes
+- Faz login real, aguarda redirect para `/`, salva `storageState.json`
+- Se secrets faltarem, todos os specs autenticados são marcados `skip` com mensagem clara — CI verde, dev local pode rodar com `.env.e2e`
 
-Para tabelas-filhas (`quote_items`, `order_items`, `quote_history`, `quote_comments`, `quote_item_personalizations`): manter padrão `EXISTS (parent WHERE owner check)` mas adicionar **WITH CHECK** simétrico no INSERT/UPDATE.
+### 3. `fixtures/test-base.ts`
+Estende `test` do Playwright com:
+- `authedPage` — página com sessão pronta
+- `evidence` — handle que registra screenshot+console+network ao falhar
+- `afterEach` global: se `testInfo.status !== testInfo.expectedStatus`, dispara `evidence.capture()`
 
-### 3. Limpeza de policies duplicadas em `discount_approval_requests`
+### 4. `helpers/evidence.ts`
+Em falha, grava em `e2e-artifacts/<spec>/<test>/`:
+- `screenshot.png` (full page)
+- `dom.html` (snapshot)
+- `console.json` (logs capturados)
+- `network.har` (já automático via `recordHar`)
+- `meta.json` (URL, viewport, user agent, timestamp)
 
-Drop de:
-- `Sellers can create approval requests` (sem WITH CHECK)
-- `Sellers can read own approval requests` (duplicada)
+Anexa todos via `testInfo.attach()` para aparecerem no relatório HTML.
 
-Recriar como bloco único: vendedor vê/cria os seus, supervisor (mesma org) gerencia, admin tudo.
+### 5. Specs de fluxo (11 arquivos)
+Cada spec segue o mesmo template:
+- `describe(modulo)` com 5 blocos: navegação → carregamento → criação/edição → submissão → erro
+- Usa `getByRole`/`getByTestId` (não selectors frágeis)
+- Cada teste é independente (limpa estado se necessário) e **idempotente** (deletar entidades criadas no `afterEach`)
+- Casos de erro: forçar 503 via `page.route()` mockando `external-db-bridge`, validar UI de erro
 
-### 4. Trigger de auto-preenchimento
+### 6. CI (`.github/workflows/e2e.yml`)
+Job opcional (não-bloqueante inicialmente):
+- Instala Playwright browsers (cache)
+- Build do app + serve estático
+- Roda suite `chromium-authed` se `E2E_USER_EMAIL` secret existir, senão só specs públicos
+- Upload de `e2e-artifacts/` e `playwright-report/` como artifacts (retention 7 dias)
 
-```sql
-CREATE OR REPLACE FUNCTION public.set_seller_id_default()
-RETURNS trigger LANGUAGE plpgsql AS $$
-BEGIN
-  IF NEW.seller_id IS NULL THEN NEW.seller_id := auth.uid(); END IF;
-  RETURN NEW;
-END $$;
-```
-Aplicado em INSERT de `quotes`, `orders`, `quote_templates`, `quote_approval_tokens`, `discount_approval_requests`.
+### 7. `package.json` — novos scripts
+- `test:e2e:ui` — modo UI
+- `test:e2e:headed` — com browser visível
+- `test:e2e:debug` — com inspector
+- `test:e2e:report` — abre relatório HTML
 
-## Mudanças no frontend
+## Cobertura por módulo
 
-Como RLS já filtra no banco, queries existentes continuam corretas — porém precisam **deixar de tentar filtrar manualmente** quando o usuário é admin/supervisor (caso contrário não verão dados de outros). Auditar:
+| Módulo | Login | Nav | Criar | Editar | Submeter | Erro |
+|---|---|---|---|---|---|---|
+| Auth | ✓ | — | — | — | ✓ | ✓ |
+| Produtos | — | ✓ | — | — | ✓ filtros | ✓ |
+| Orçamentos | — | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Pedidos | — | ✓ | — | ✓ status | ✓ | ✓ |
+| Kit Builder | — | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Coleções | — | ✓ | ✓ | ✓ | ✓ share | ✓ |
+| Favoritos | — | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Simulador | — | ✓ | ✓ | — | ✓ | ✓ |
+| Admin | — | ✓ guards | — | — | — | ✓ 403 |
+| Erros globais | — | — | — | — | — | ✓ 503/offline |
 
-- `src/hooks/useQuotes.ts`, `src/hooks/useOrders.ts`, `src/hooks/useDiscountApprovals.ts` (e equivalentes)
-- Remover `.eq('seller_id', user.id)` em queries quando o role permitir ver mais (delegar ao RLS)
-- Adicionar **badge "Apenas seus dados"** no header das listas quando `is_seller_only` for true (já temos hook `useUserRole`)
-- Garantir que combos de "atribuir vendedor" só apareçam para supervisor/admin
+## Pontos a confirmar antes de implementar
 
-Arquivos previstos:
-- `src/lib/auth/visibility-scope.ts` (novo) — helper client `getSalesScope()` retornando `'self' | 'team' | 'all'`
-- Ajustes em hooks de listagem (≤6 arquivos)
-- `src/components/common/ScopeBadge.tsx` (novo)
+1. **Credenciais de teste**: posso adicionar pedido de secrets `E2E_USER_EMAIL` e `E2E_USER_PASSWORD` (e opcional `E2E_ADMIN_EMAIL`/`E2E_ADMIN_PASSWORD` para specs admin)? Sem eles os specs autenticados ficam `skip`.
+2. **Cleanup**: posso usar service-role via edge function dedicada `e2e-cleanup` (gated por header secreto) para apagar entidades criadas pelos testes? Alternativa: criar tudo em rascunho e descartar.
+3. **CI gate**: o job E2E deve **falhar o build** ou rodar como informativo (artifacts only) na primeira versão?
 
-## Verificação pós-migração
+## Não-objetivos (escopo fora)
 
-1. **Testes SQL** com `SET request.jwt.claim.sub` simulando 3 usuários (vendedor A, vendedor B, supervisor, admin) sobre cada tabela.
-2. **Painel de Diagnóstico** existente (`FullOpDiagnosticsPanel`) ganha aba "Visibilidade" mostrando contagem de registros visíveis por escopo.
-3. Linter Supabase deve continuar 0 issues.
-4. Smoke no preview: login como vendedor → /orcamentos só mostra dele; /pedidos idem; /descontos idem.
+- Visual regression (screenshots-as-source-of-truth) — ficar para depois
+- Mobile viewports — adicionar em onda futura
+- Cross-browser (Firefox/WebKit) — começar só Chromium
+- Testes contra produção — só preview/staging
 
-## Rollback
+## Resultado esperado
 
-Migração reversível: cada `DROP POLICY ... CREATE POLICY` em bloco transacional. Caso problema, recriar policies anteriores a partir do snapshot SQL incluído no comentário do arquivo de migração.
-
-## Fora de escopo
-
-- Não cria papel novo `agente` (papel existente `vendedor` é o agente).
-- Não cria tabela `clients` separada (clientes seguem embutidos).
-- Não altera `seller_carts` schema, apenas policies.
+- ~60–80 testes E2E novos cobrindo os 10 módulos críticos
+- Relatório HTML navegável (`playwright-report/index.html`)
+- Pasta `e2e-artifacts/` com evidências completas em qualquer falha
+- Job CI opcional pronto para ser ligado quando secrets forem configuradas
