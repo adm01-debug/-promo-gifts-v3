@@ -11,6 +11,10 @@ import { PageSEO } from "@/components/seo/PageSEO";
 import { UpcomingDatesWidget } from '@/components/dashboard/UpcomingDatesWidget';
 import { QuickActionsPanel } from '@/components/dashboard/QuickActionsPanel';
 import { RecentKitsWidget } from '@/components/dashboard/RecentKitsWidget';
+import { MyRecentQuotesWidget } from '@/components/dashboard/MyRecentQuotesWidget';
+import { MyPendingOrdersWidget } from '@/components/dashboard/MyPendingOrdersWidget';
+import { MyDiscountRequestsWidget } from '@/components/dashboard/MyDiscountRequestsWidget';
+import { ScopeBadge } from '@/components/common/ScopeBadge';
 import { ScheduledReportsManager } from '@/components/reports/ScheduledReportsManager';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -29,10 +33,13 @@ const DEFAULT_WIDGETS: WidgetConfig[] = [
   { id: 'quick-actions', title: 'Ações Rápidas', visible: true, order: 0 },
   { id: 'upcoming-dates', title: 'Datas Comemorativas', visible: true, order: 1 },
   { id: 'recent-kits', title: 'Kits Recentes', visible: true, order: 2 },
-  { id: 'vendas', title: 'Vendas do Mês', visible: true, order: 3 },
-  { id: 'orcamentos', title: 'Orçamentos', visible: true, order: 4 },
-  { id: 'pedidos', title: 'Pedidos Pendentes', visible: true, order: 5 },
-  { id: 'scheduled-reports', title: 'Relatórios Agendados', visible: true, order: 6 },
+  { id: 'my-quotes', title: 'Minhas Propostas Recentes', visible: true, order: 3 },
+  { id: 'my-orders', title: 'Meus Pedidos em Andamento', visible: true, order: 4 },
+  { id: 'my-discounts', title: 'Minhas Solicitações de Desconto', visible: true, order: 5 },
+  { id: 'vendas', title: 'Total de Orçamentos', visible: true, order: 6 },
+  { id: 'orcamentos', title: 'Rascunhos', visible: true, order: 7 },
+  { id: 'pedidos', title: 'Pedidos Pendentes', visible: true, order: 8 },
+  { id: 'scheduled-reports', title: 'Relatórios Agendados', visible: true, order: 9 },
 ];
 
 const LAYOUT_KEY = 'dashboard_layout';
@@ -172,6 +179,12 @@ export function CustomizableDashboard() {
         return <UpcomingDatesWidget variant="compact" daysAhead={60} maxItems={6} />;
       case 'recent-kits':
         return <RecentKitsWidget />;
+      case 'my-quotes':
+        return <MyRecentQuotesWidget />;
+      case 'my-orders':
+        return <MyPendingOrdersWidget />;
+      case 'my-discounts':
+        return <MyDiscountRequestsWidget />;
       case 'scheduled-reports':
         return <ScheduledReportsManager />;
       case 'vendas':
@@ -207,7 +220,7 @@ export function CustomizableDashboard() {
   };
 
   // Widgets that render as full-width vs metric cards
-  const fullWidthIds = new Set(['quick-actions', 'upcoming-dates', 'recent-kits']);
+  const fullWidthIds = new Set(['quick-actions', 'upcoming-dates', 'recent-kits', 'my-quotes', 'my-orders', 'my-discounts']);
 
   return (
     <MainLayout>
@@ -219,9 +232,12 @@ export function CustomizableDashboard() {
               <LayoutDashboard className="h-6 w-6" />
               Dashboard
             </h1>
-            <p className="text-muted-foreground mt-1 text-sm">
-              {isCustomizing ? 'Personalize seu dashboard' : 'Arraste widgets para reorganizar'}
-            </p>
+            <div className="flex items-center gap-2 mt-1 flex-wrap">
+              <p className="text-muted-foreground text-sm">
+                {isCustomizing ? 'Personalize seu dashboard' : 'Arraste widgets para reorganizar'}
+              </p>
+              <ScopeBadge />
+            </div>
           </div>
           <div className="flex items-center gap-2">
             {isCustomizing && (
