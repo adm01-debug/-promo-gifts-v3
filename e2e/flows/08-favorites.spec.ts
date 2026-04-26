@@ -147,25 +147,52 @@ test.describe("Fluxo: Favoritos", () => {
     const removeButtons = page.locator(Sel.favorites.remove);
     await expect(byName.or(removeButtons.first())).toBeVisible({ timeout: 10_000 });
 
-    // 7. Cleanup + revalida que o header voltou ao estado inicial
+    // 7. Cleanup: desfaz o favorito e confirma que SOME após reload
+    const productRegex = new RegExp(escaped, "i");
     const favCard = page
       .locator(`:has-text("${productName}")`)
       .filter({ has: page.locator(Sel.favorites.remove) })
       .first();
 
     if ((await favCard.count()) > 0) {
-      await favCard
-        .locator(Sel.favorites.remove)
-        .first()
-        .click()
-        .catch(() => {});
+      await favCard.locator(Sel.favorites.remove).first().click().catch(() => {});
     } else {
       await removeButtons.first().click().catch(() => {});
     }
+
+    // Se aparecer um diálogo de confirmação, aceita
+    const confirm = page
+      .locator('[role="alertdialog"], [role="dialog"]')
+      .getByRole("button", { name: /remover|confirmar|sim|excluir/i })
+      .first();
+    if (await confirm.isVisible().catch(() => false)) {
+      await confirm.click().catch(() => {});
+    }
+
+    // Header volta ao estado inicial (sem reload)
     await expect
-      .poll(() => readFavoritesCount(page), { timeout: 8_000 })
+      .poll(() => readFavoritesCount(page), {
+        message: "contagem não voltou ao inicial após remover",
+        timeout: 10_000,
+      })
       .toBe(countBefore);
-    await assertFavoritesHeader(page, countBefore);
+
+    // Reload e revalida ausência persistida
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await page
+      .waitForFunction(
+        () => !document.querySelector('[data-state="loading"], [data-skeleton]'),
+        { timeout: 8_000 },
+      )
+      .catch(() => {});
+
+    await assertFavoritesHeader(page, countBefore, { checkCardsMatch: true });
+
+    // O produto removido NÃO deve mais aparecer na lista de favoritos
+    await expect(
+      page.getByText(productRegex),
+      `produto "${productName}" deveria ter sumido da lista após cleanup + reload`,
+    ).toHaveCount(0, { timeout: 10_000 });
   });
 
   test("header de favoritos permanece consistente após reload (título, ícone, contagem)", async ({
