@@ -76,7 +76,7 @@ export default function ProductMatchPage() {
               <Zap className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <h1 className="font-display text-xl font-bold text-foreground">Match de Produtos</h1>
+              <h1 data-testid="page-title-match-produtos" className="font-display text-xl font-bold text-foreground">Match de Produtos</h1>
               <p className="text-xs text-muted-foreground">
                 Encontre produtos idênticos, semelhantes e complementares
               </p>

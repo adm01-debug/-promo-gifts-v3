@@ -92,7 +92,7 @@ export default function BusinessIntelligencePage() {
               <Brain className="h-5 w-5 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="font-display text-xl font-bold text-foreground">Business Analytic</h1>
+              <h1 data-testid="page-title-bi" className="font-display text-xl font-bold text-foreground">Business Analytic</h1>
               <p className="text-xs text-muted-foreground">
                 Inteligência comercial 360° · histórico, afinidade, tendência setorial
               </p>

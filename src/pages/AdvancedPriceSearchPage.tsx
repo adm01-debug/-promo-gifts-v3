@@ -51,7 +51,7 @@ export default function AdvancedPriceSearchPage() {
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-lg bg-primary/10"><Search className="h-6 w-6 text-primary" /></div>
           <div>
-            <h1 className="font-display text-2xl font-bold">Busca Avançada por Preço</h1>
+            <h1 data-testid="page-title-busca-avancada-preco" className="font-display text-2xl font-bold">Busca Avançada por Preço</h1>
             <p className="text-muted-foreground text-sm">Encontre produtos que atendam ao orçamento do cliente</p>
           </div>
         </div>

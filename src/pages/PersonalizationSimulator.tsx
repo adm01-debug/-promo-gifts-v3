@@ -25,7 +25,7 @@ export default function PersonalizationSimulator() {
     <div className="container mx-auto max-w-3xl p-6 space-y-6">
       <PageSEO title="Simulador de Personalização" description="Estime custos de personalização rapidamente." />
       <header className="space-y-1">
-        <h1 className="font-display text-2xl font-semibold flex items-center gap-2">
+        <h1 data-testid="page-title-simulador-personalizacao" className="font-display text-2xl font-semibold flex items-center gap-2">
           <Calculator className="h-6 w-6 text-primary" /> Simulador de Personalização
         </h1>
         <p className="text-sm text-muted-foreground">Calcule estimativas de custo de gravação por área, cores e quantidade.</p>

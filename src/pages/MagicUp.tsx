@@ -46,7 +46,7 @@ function MagicUpHeader({ variationsCount, historyCount, summary }: { variationsC
             <Sparkles className="h-7 w-7 text-primary animate-pulse" />
           </div>
           <div>
-            <h1 className="font-display text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">Magic Up</h1>
+            <h1 data-testid="page-title-magic-up" className="font-display text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">Magic Up</h1>
             <p className="text-muted-foreground mt-1">Crie imagens publicitárias profissionais com IA ✨</p>
             <p className="text-xs text-muted-foreground mt-2">{summary}</p>
           </div>

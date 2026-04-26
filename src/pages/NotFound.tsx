@@ -26,7 +26,7 @@ const NotFound = () => {
         </div>
 
         <div className="space-y-3">
-          <h1 className="text-7xl font-bold font-display bg-gradient-to-br from-foreground via-foreground to-muted-foreground bg-clip-text text-transparent">
+          <h1 data-testid="page-title-404" className="text-7xl font-bold font-display bg-gradient-to-br from-foreground via-foreground to-muted-foreground bg-clip-text text-transparent">
             404
           </h1>
           <p className="text-xl font-medium text-foreground">

@@ -139,7 +139,7 @@ export default function SimuladorWizard() {
             <div className="p-2 rounded-lg bg-gradient-to-br from-primary to-primary/80 shadow-md shadow-primary/25">
               <Calculator className="h-4 w-4 text-primary-foreground" />
             </div>
-            <h1 className="font-display text-lg font-bold tracking-tight">
+            <h1 data-testid="page-title-simulador" className="font-display text-lg font-bold tracking-tight">
               Simulador
             </h1>
           </div>

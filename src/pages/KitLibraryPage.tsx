@@ -229,7 +229,7 @@ export default function KitLibraryPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="font-display text-3xl font-bold tracking-tight flex items-center gap-2">
+          <h1 data-testid="page-title-kits" className="font-display text-3xl font-bold tracking-tight flex items-center gap-2">
             <Library className="h-7 w-7 text-primary" />
             Biblioteca de Kits
           </h1>
