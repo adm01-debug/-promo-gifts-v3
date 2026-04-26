@@ -7,7 +7,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { ShieldAlert, RefreshCw, Trash2, Eye, ArrowDownLeft } from "lucide-react";
+import { ShieldAlert, RefreshCw, Trash2, Eye, ArrowDownLeft, Pencil } from "lucide-react";
 import type { McpKeyRow } from "./useMcpKeys";
 
 function formatExpiresIn(expiresAt: string | null): string | null {
