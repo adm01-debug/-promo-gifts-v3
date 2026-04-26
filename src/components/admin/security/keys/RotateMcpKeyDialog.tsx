@@ -23,7 +23,6 @@ import {
   FULL_SCOPE_CONFIRMATION,
   FULL_SCOPE_MIN_JUSTIFICATION,
 } from "@/lib/mcp/scopes";
-import { StepUpAuthDialog } from "@/components/auth/StepUpAuthDialog";
 import type { McpKeyRow } from "./useMcpKeys";
 import { sanitizeError } from "@/lib/security/sanitize-error";
 import { useDevChallenge } from "@/contexts/DevChallengeContext";
@@ -41,7 +40,6 @@ export function RotateMcpKeyDialog({ source, open, onOpenChange, onRotated }: Pr
   const [confirmation, setConfirmation] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [generated, setGenerated] = useState<string | null>(null);
-  const [stepUpOpen, setStepUpOpen] = useState(false);
   const { challenge } = useDevChallenge();
 
   const reset = () => {
@@ -49,7 +47,6 @@ export function RotateMcpKeyDialog({ source, open, onOpenChange, onRotated }: Pr
     setConfirmation("");
     setGenerated(null);
     setSubmitting(false);
-    setStepUpOpen(false);
   };
 
   const handleOpenChange = (v: boolean) => {
@@ -57,18 +54,21 @@ export function RotateMcpKeyDialog({ source, open, onOpenChange, onRotated }: Pr
     onOpenChange(v);
   };
 
-  /** Reabre o fluxo de step-up adequado (FULL → dialog dedicado, limitado → DevChallenge). */
-  const retryStepUp = async () => {
-    if (!source) return;
-    if (source.is_full) {
-      setStepUpOpen(true);
-      return;
-    }
-    const token = await challenge({
-      action: "mcp_key_rotate",
-      actionLabel: `Rotacionar chave MCP "${source.name}"`,
+  /** Solicita challenge apropriado (FULL → mcp_full_issue, limitado → mcp_key_rotate). */
+  const requestStepUpToken = async (): Promise<string | null> => {
+    if (!source) return null;
+    return await challenge({
+      action: source.is_full ? "mcp_full_issue" : "mcp_key_rotate",
+      actionLabel: source.is_full
+        ? `Rotacionar chave MCP FULL "${source.name}"`
+        : `Rotacionar chave MCP "${source.name}"`,
       targetRef: source.id,
     });
+  };
+
+  /** Reabre o challenge e re-tenta a rotação após erro de step-up. */
+  const retryStepUp = async () => {
+    const token = await requestStepUpToken();
     if (!token) return;
     await performRotate(token);
   };
@@ -117,16 +117,8 @@ export function RotateMcpKeyDialog({ source, open, onOpenChange, onRotated }: Pr
         toast.error(`Digite "${FULL_SCOPE_CONFIRMATION}" para confirmar.`);
         return;
       }
-      // Step-up obrigatório para chaves FULL: senha + OTP por e-mail (action: mcp_full_issue)
-      setStepUpOpen(true);
-      return;
     }
-    // Chaves limitadas: também exigem step-up server-side (action: mcp_key_rotate).
-    const token = await challenge({
-      action: "mcp_key_rotate",
-      actionLabel: `Rotacionar chave MCP "${source.name}"`,
-      targetRef: source.id,
-    });
+    const token = await requestStepUpToken();
     if (!token) return; // cancelado
     await performRotate(token);
   };
@@ -241,17 +233,6 @@ export function RotateMcpKeyDialog({ source, open, onOpenChange, onRotated }: Pr
           ) : null}
         </DialogContent>
       </Dialog>
-
-      <StepUpAuthDialog
-        open={stepUpOpen}
-        onOpenChange={setStepUpOpen}
-        action="mcp_full_issue"
-        targetRef={source?.id ?? null}
-        actionLabel={
-          source ? `Rotacionar chave MCP FULL "${source.name}"` : "Rotacionar chave MCP FULL"
-        }
-        onVerified={(token) => performRotate(token)}
-      />
     </>
   );
 }
