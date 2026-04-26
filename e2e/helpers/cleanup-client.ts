@@ -106,6 +106,9 @@ export async function purgeOne(
         dryRun: cfg.dryRun,
         sellerScope: cfg.sellerScope ?? "self",
         ...(cfg.sellerId ? { sellerId: cfg.sellerId } : {}),
+        ...(cfg.nameFilterPrefix
+          ? { nameFilterPrefix: cfg.nameFilterPrefix }
+          : {}),
       }),
       signal: ctrl.signal,
     });
