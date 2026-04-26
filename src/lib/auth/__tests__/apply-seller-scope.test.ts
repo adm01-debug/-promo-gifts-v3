@@ -61,6 +61,6 @@ describe("shouldShortCircuitForSelf", () => {
 
   it("retorna false para escopos amplos (independente de userId)", () => {
     expect(shouldShortCircuitForSelf("all", null)).toBe(false);
-    expect(shouldShortCircuitForSelf("supervisor", null)).toBe(false);
+    expect(shouldShortCircuitForSelf("team", null)).toBe(false);
   });
 });
