@@ -102,13 +102,43 @@ async function audit(
   }
 }
 
-async function authenticate(req: Request): Promise<AuthCtx | null> {
+/** Resultado detalhado de autenticação para suportar auditoria diferenciada. */
+type AuthResult =
+  | { kind: "ok"; ctx: AuthCtx }
+  | {
+      kind: "blocked";
+      reason: "grantor_lost_dev" | "revoked" | "expired";
+      keyId: string | null;
+      createdBy: string | null;
+    }
+  | { kind: "no_key" }
+  | { kind: "invalid_key" };
+
+async function authenticate(req: Request): Promise<AuthResult> {
   const key = req.headers.get("x-mcp-key") || "";
-  if (!key || key.length < 16) return null;
+  if (!key || key.length < 16) return { kind: "no_key" };
+
   const { data, error } = await supabase.rpc("validate_mcp_key", { _key_plain: key });
-  if (error || !data || (Array.isArray(data) && data.length === 0)) return null;
-  const row = Array.isArray(data) ? data[0] : data;
-  const scopes = new Set<string>(row.scopes ?? []);
+  if (error) return { kind: "invalid_key" };
+
+  const rows = Array.isArray(data) ? data : (data ? [data] : []);
+  if (rows.length === 0) return { kind: "invalid_key" };
+  const row = rows[0] as {
+    key_id: string;
+    scopes: string[] | null;
+    block_reason: string | null;
+    created_by: string | null;
+  };
+
+  // Block reasons explícitos do RPC: chave existe mas foi rejeitada.
+  if (row.block_reason) {
+    const reason = row.block_reason as "grantor_lost_dev" | "revoked" | "expired";
+    return { kind: "blocked", reason, keyId: row.key_id ?? null, createdBy: row.created_by ?? null };
+  }
+
+  if (!row.scopes) return { kind: "invalid_key" };
+
+  const scopes = new Set<string>(row.scopes);
   const ip =
     req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
     req.headers.get("cf-connecting-ip") ??
@@ -116,14 +146,17 @@ async function authenticate(req: Request): Promise<AuthCtx | null> {
   const ua = req.headers.get("user-agent") ?? null;
   const requestId = getOrCreateRequestId(req);
   return {
-    keyId: row.key_id,
-    scopes,
-    isFull: scopes.has("*"),
-    ip,
-    ua,
-    requestId,
-    startedAt: new Date().toISOString(),
-    startedMs: Date.now(),
+    kind: "ok",
+    ctx: {
+      keyId: row.key_id,
+      scopes,
+      isFull: scopes.has("*"),
+      ip,
+      ua,
+      requestId,
+      startedAt: new Date().toISOString(),
+      startedMs: Date.now(),
+    },
   };
 }
 
