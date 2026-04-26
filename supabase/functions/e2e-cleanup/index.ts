@@ -374,6 +374,33 @@ Deno.serve(async (req: Request) => {
     return jsonResponse({ error: "user_not_found", email }, 404);
   }
 
+  // --- camada 4: resolução do seller_id e guarda anti-mismatch -----------
+  // No modelo atual seller_id == user_id resolvido por email. Em "explicit",
+  // exigimos que o sellerId enviado bata exatamente com esse user_id —
+  // qualquer divergência aborta a operação ANTES de qualquer DELETE.
+  const sellerId = userId;
+  if (sellerScope === "explicit" && requestedSellerId !== sellerId) {
+    await writeAudit(admin, {
+      email,
+      user_id: userId,
+      seller_id: sellerId,
+      seller_scope: sellerScope,
+      dry_run: dryRun,
+      status: "scope_mismatch",
+      reason: `requested sellerId ${requestedSellerId} != resolved ${sellerId}`,
+      ip,
+      user_agent: userAgent,
+      total_deleted: 0,
+      deleted_by_table: {},
+      errors: {},
+      duration_ms: Date.now() - startedAt,
+    });
+    return jsonResponse(
+      { error: "seller_scope_mismatch", expected: sellerId },
+      409,
+    );
+  }
+
   const deleted: Record<string, number> = {};
   const errors: Record<string, string> = {};
 
@@ -395,8 +422,68 @@ Deno.serve(async (req: Request) => {
     else deleted[table] = count ?? 0;
   }
 
+  async function purgeBySellerId(table: string) {
+    if (dryRun) {
+      const { count, error } = await admin
+        .from(table)
+        .select("id", { count: "exact", head: true })
+        .eq("seller_id", sellerId!);
+      if (error) errors[table] = error.message;
+      else deleted[table] = count ?? 0;
+      return;
+    }
+    const { error, count } = await admin
+      .from(table)
+      .delete({ count: "exact" })
+      .eq("seller_id", sellerId!);
+    if (error) errors[table] = error.message;
+    else deleted[table] = count ?? 0;
+  }
+
+  // 1) user_id-scoped
   for (const t of USER_ID_TABLES) {
     await purgeByUserId(t);
+  }
+
+  // 2) seller_cart_items via cart_id ∈ seller_carts(seller_id) — precisa
+  //    rodar ANTES de purgar seller_carts.
+  try {
+    const { data: cartRows, error: cErr } = await admin
+      .from("seller_carts")
+      .select("id")
+      .eq("seller_id", sellerId);
+    if (cErr) {
+      errors["seller_carts_lookup"] = cErr.message;
+    } else {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const cartIds = (cartRows ?? []).map((r: any) => r.id);
+      if (cartIds.length > 0) {
+        if (dryRun) {
+          const { count, error } = await admin
+            .from("seller_cart_items")
+            .select("id", { count: "exact", head: true })
+            .in("cart_id", cartIds);
+          if (error) errors["seller_cart_items"] = error.message;
+          else deleted["seller_cart_items"] = count ?? 0;
+        } else {
+          const { error, count } = await admin
+            .from("seller_cart_items")
+            .delete({ count: "exact" })
+            .in("cart_id", cartIds);
+          if (error) errors["seller_cart_items"] = error.message;
+          else deleted["seller_cart_items"] = count ?? 0;
+        }
+      } else {
+        deleted["seller_cart_items"] = 0;
+      }
+    }
+  } catch (err) {
+    errors["seller_cart_items_block"] = String(err);
+  }
+
+  // 3) seller_id-scoped (carts, mockups gerados, etc.)
+  for (const t of SELLER_ID_TABLES) {
+    await purgeBySellerId(t);
   }
 
   // Quotes
