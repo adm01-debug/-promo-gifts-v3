@@ -53,10 +53,11 @@ const routeLabels: Record<string, string> = {
 
 export function Breadcrumbs({ items, className, showHome = true }: BreadcrumbsProps) {
   const location = useLocation();
-  
+  const { isDev, isAdmin } = useAuth();
+
   // Generate breadcrumbs from route if not provided
-  const breadcrumbItems: BreadcrumbItem[] = items || generateBreadcrumbs(location.pathname);
-  
+  const breadcrumbItems: BreadcrumbItem[] = items || generateBreadcrumbs(location.pathname, { isDev, isAdmin });
+
   if (breadcrumbItems.length === 0) return null;
   
   return (
