@@ -32,11 +32,14 @@ export default function OrdersPage() {
     <MainLayout>
       <PageSEO title="Gestão de Pedidos" description="Acompanhe e gerencie todos os seus pedidos em um só lugar." path="/pedidos" />
       <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-4 pb-24 md:pb-6 animate-fade-in">
-        <div>
-          <h1 className="text-2xl font-bold font-display text-foreground flex items-center gap-2">
-            <Package className="h-6 w-6 text-primary" /> Gestão de Pedidos
-          </h1>
-          <p className="text-muted-foreground text-sm mt-1">Acompanhe e gerencie seus pedidos</p>
+        <div className="flex items-start justify-between gap-3 flex-wrap">
+          <div>
+            <h1 className="text-2xl font-bold font-display text-foreground flex items-center gap-2">
+              <Package className="h-6 w-6 text-primary" /> Gestão de Pedidos
+            </h1>
+            <p className="text-muted-foreground text-sm mt-1">Acompanhe e gerencie seus pedidos</p>
+          </div>
+          <ScopeBadge />
         </div>
 
         <div className="relative max-w-md">
