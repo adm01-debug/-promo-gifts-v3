@@ -68,6 +68,7 @@ async function isFavoritedDetail(btn: Locator): Promise<boolean> {
 
 test.describe("Fluxo: Favoritar a partir da página de detalhe", () => {
   test.beforeEach(() => requireAuth());
+  installFavoritesCleanup(test);
 
   test("favorita no detalhe, recarrega /favoritos e o produto aparece na lista", async ({
     page,
