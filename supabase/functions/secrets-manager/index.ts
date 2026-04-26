@@ -7,6 +7,10 @@ import {
   getCredentialCacheMetrics,
   resetCredentialCacheMetrics,
 } from "../_shared/credentials.ts";
+import { writeAuditEntry, extractRequestMeta } from "../_shared/audit-log.ts";
+import { getOrCreateRequestId } from "../_shared/request-id.ts";
+
+const SOURCE = "secrets-manager";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -75,35 +79,67 @@ function maskValue(v: string | undefined | null): {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
+  const requestId = getOrCreateRequestId(req);
+  const startedAt = new Date().toISOString();
+  const startedMs = Date.now();
+  const { ip, ua } = extractRequestMeta(req);
+
+  // Service-role client iniciado cedo p/ permitir auditoria mesmo em falhas de auth
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const service = createClient(supabaseUrl, serviceKey);
+
+  const auditDenied = async (
+    userId: string | null,
+    reason: string,
+    extra: Record<string, unknown> = {},
+  ) => {
+    await writeAuditEntry(service, {
+      user_id: userId,
+      action: "secrets_manager.access_denied",
+      resource_type: "secret",
+      resource_id: null,
+      ip_address: ip,
+      user_agent: ua,
+      request_id: requestId,
+      started_at: startedAt,
+      finished_at: new Date().toISOString(),
+      duration_ms: Date.now() - startedMs,
+      status: "denied",
+      payload_summary: {},
+      source: SOURCE,
+      details: { reason, ...extra },
+    });
+  };
+
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
+      await auditDenied(null, "missing_token");
       return new Response(JSON.stringify({ error: "Token de autenticação ausente" }), {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
     const userClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
     });
     const { data: userData, error: userErr } = await userClient.auth.getUser();
     if (userErr || !userData?.user) {
+      await auditDenied(null, "invalid_jwt", { detail: userErr?.message });
       return new Response(JSON.stringify({ error: "Token inválido" }), {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const service = createClient(supabaseUrl, serviceKey);
     const { data: roles } = await service
       .from("user_roles").select("role").eq("user_id", userData.user.id);
     // Hardening: gerência de credenciais técnicas (rota /admin/conexoes é devOnly)
     // exige perfil `dev`. Admin/supervisor não têm mais acesso a secrets.
     const isDev = (roles ?? []).some((r: { role: string }) => r.role === "dev");
     if (!isDev) {
+      await auditDenied(userData.user.id, "not_dev", { roles: (roles ?? []).map((r: { role: string }) => r.role) });
       return new Response(
         JSON.stringify({ ok: false, error: { code: "forbidden", message: "Apenas desenvolvedores (dev) podem gerenciar credenciais técnicas" } }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } },

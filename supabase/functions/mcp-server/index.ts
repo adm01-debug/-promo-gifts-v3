@@ -339,6 +339,36 @@ app.all("/*", async (c) => {
   const ctx = await authenticate(c.req.raw);
   if (!ctx) {
     const reqId = getOrCreateRequestId(c.req.raw);
+    // Audita tentativa de acesso com chave ausente/inválida (não-dev / não-autorizado)
+    try {
+      const ip =
+        c.req.raw.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+        c.req.raw.headers.get("cf-connecting-ip") ??
+        null;
+      const ua = c.req.raw.headers.get("user-agent") ?? null;
+      const keyHeader = c.req.raw.headers.get("x-mcp-key") || "";
+      await supabase.from("admin_audit_log").insert({
+        user_id: null,
+        action: "mcp_tool.denied",
+        resource_type: "mcp_api_key",
+        resource_id: null,
+        ip_address: ip,
+        user_agent: ua,
+        request_id: reqId,
+        started_at: new Date().toISOString(),
+        finished_at: new Date().toISOString(),
+        duration_ms: 0,
+        status: "denied",
+        payload_summary: {},
+        source: SOURCE,
+        details: {
+          error_code: ERR.UNAUTHENTICATED,
+          reason: keyHeader ? "invalid_key" : "missing_key",
+          key_length: keyHeader.length,
+          method: c.req.raw.method,
+        },
+      });
+    } catch (_) { /* never block on audit */ }
     return new Response(
       JSON.stringify({ error: ERR.UNAUTHENTICATED, message: "Chave MCP inválida ou ausente.", request_id: reqId }),
       { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json", [REQUEST_ID_HEADER]: reqId } },

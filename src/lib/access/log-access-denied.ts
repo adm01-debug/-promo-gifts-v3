@@ -51,7 +51,8 @@ export async function logAccessDenied(input: LogAccessDeniedInput): Promise<void
   map[key] = Date.now();
   saveThrottle(map);
 
-  await supabase
+  // 1) Notificação visível ao próprio usuário (UX)
+  const notify = supabase
     .from("workspace_notifications")
     .insert({
       user_id: input.userId,
@@ -68,5 +69,18 @@ export async function logAccessDenied(input: LogAccessDeniedInput): Promise<void
         http_status_equivalent: 403,
       },
     })
-    .then(() => undefined, () => undefined); // best-effort
+    .then(() => undefined, () => undefined);
+
+  // 2) Trilha server-side em admin_audit_log via RPC security-definer
+  //    (essencial para tentativas a /admin/telemetria, /admin/seguranca, /admin/conexoes etc.)
+  const audit = supabase
+    .rpc("log_access_denied", {
+      _blocked_path: input.blockedPath,
+      _required_role: input.requiredRole,
+      _user_role: input.userRole ?? null,
+      _reason: "frontend_guard_block",
+    })
+    .then(() => undefined, () => undefined);
+
+  await Promise.all([notify, audit]);
 }
