@@ -4,7 +4,10 @@ import { z } from "npm:zod@3.23.8";
 
 const uuidSchema = z.string().uuid();
 const emailSchema = z.string().email().max(255);
-const roleSchema = z.enum(['admin', 'manager', 'vendedor']);
+// Hierarquia atual: dev > supervisor > vendedor (=agente). admin/manager
+// permanecem aceitos como aliases legados de supervisor.
+const roleSchema = z.enum(['dev', 'supervisor', 'vendedor', 'admin', 'manager']);
+const promotionRoleSchema = z.enum(['supervisor', 'vendedor']);
 
 const CreateSchema = z.object({
   action: z.literal('create'),
@@ -31,11 +34,24 @@ const DeleteSchema = z.object({
   user_id: uuidSchema,
 });
 
+/**
+ * Promoção de papel (agente <-> supervisor) com step-up:
+ * exige a senha do próprio caller + justificativa que vai para auditoria.
+ */
+const PromoteRoleSchema = z.object({
+  action: z.literal('promote_role'),
+  user_id: uuidSchema,
+  new_role: promotionRoleSchema,
+  caller_password: z.string().min(1).max(128),
+  reason: z.string().trim().min(10, 'Justificativa muito curta').max(500),
+});
+
 const PayloadSchema = z.discriminatedUnion('action', [
   CreateSchema,
   UpdateEmailSchema,
   UpdatePasswordSchema,
   DeleteSchema,
+  PromoteRoleSchema,
 ]);
 
 function jsonRes(corsHeaders: Record<string, string>, body: unknown, status = 200) {
