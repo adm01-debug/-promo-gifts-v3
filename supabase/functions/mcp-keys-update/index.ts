@@ -17,6 +17,9 @@ import {
 import { getOrCreateRequestId, REQUEST_ID_HEADER } from "../_shared/request-id.ts";
 import { writeAuditEntry, summarizePayload, extractRequestMeta } from "../_shared/audit-log.ts";
 import { recordMcpViolation, mapViolationReason } from "../_shared/mcp-violations.ts";
+import { castRpcResult } from "../_shared/supabase-client-adapter.ts";
+
+type RpcEnvelope<T> = { data: T | null; error: { message: string } | null };
 
 const SOURCE = "mcp-keys-update";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -114,9 +117,9 @@ Deno.serve(async (req) => {
     }
     userId = userData.user.id;
 
-    const { data: roleCheck, error: roleErr } = await admin.rpc("is_dev", {
-      _user_id: userId,
-    });
+    const { data: roleCheck, error: roleErr } = await castRpcResult<RpcEnvelope<boolean>>(
+      admin.rpc("is_dev", { _user_id: userId }),
+    );
     if (roleErr) {
       await auditFailure("error", { reason: "role_check_failed", detail: roleErr.message });
       return jsonResponse({ error: "internal_error", detail: roleErr.message }, 500, requestId);
@@ -170,13 +173,13 @@ Deno.serve(async (req) => {
           requestId,
         );
       }
-      const { data: stepUpOk, error: stepUpErr } = await userClient.rpc("consume_step_up_token", {
-        _token: step_up_token,
-        _expected_action: "mcp_full_escalate",
-        // Vincula o token consumido à chave alvo (frontend já registra `target_ref = key_id`
-        // no challenge). NULL continua aceito server-side para fluxos legados.
-        _expected_target: key_id,
-      });
+      const { data: stepUpOk, error: stepUpErr } = await castRpcResult<RpcEnvelope<boolean>>(
+        userClient.rpc("consume_step_up_token", {
+          _token: step_up_token,
+          _expected_action: "mcp_full_escalate",
+          _expected_target: key_id,
+        }),
+      );
       if (stepUpErr || !stepUpOk) {
         await auditFailure("denied", { reason: "step_up_invalid", detail: stepUpErr?.message }, key_id);
         return jsonResponse(
@@ -187,9 +190,9 @@ Deno.serve(async (req) => {
       }
 
       // Authorization gate: only explicit grantors can escalate to FULL
-      const { data: canGrant, error: grantErr } = await admin.rpc("can_grant_mcp_full", {
-        _user_id: userId,
-      });
+      const { data: canGrant, error: grantErr } = await castRpcResult<RpcEnvelope<boolean>>(
+        admin.rpc("can_grant_mcp_full", { _user_id: userId }),
+      );
       if (grantErr) {
         await auditFailure("error", { reason: "grant_check_failed", detail: grantErr.message }, key_id);
         return jsonResponse({ error: "internal_error", detail: grantErr.message }, 500, requestId);

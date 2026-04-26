@@ -10,6 +10,9 @@ import { z } from "https://esm.sh/zod@3.23.8";
 import { getOrCreateRequestId, REQUEST_ID_HEADER } from "../_shared/request-id.ts";
 import { writeAuditEntry, summarizePayload, extractRequestMeta } from "../_shared/audit-log.ts";
 import { recordMcpViolation, mapViolationReason } from "../_shared/mcp-violations.ts";
+import { castRpcResult } from "../_shared/supabase-client-adapter.ts";
+
+type RpcEnvelope<T> = { data: T | null; error: { message: string } | null };
 
 const SOURCE = "mcp-keys-revoke";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -99,9 +102,9 @@ Deno.serve(async (req) => {
     }
     userId = userData.user.id;
 
-    const { data: roleCheck, error: roleErr } = await admin.rpc("is_dev", {
-      _user_id: userId,
-    });
+    const { data: roleCheck, error: roleErr } = await castRpcResult<RpcEnvelope<boolean>>(
+      admin.rpc("is_dev", { _user_id: userId }),
+    );
     if (roleErr) {
       await auditFailure("error", "mcp_key.revoke_error", { reason: "role_check_failed", detail: roleErr.message });
       return jsonResponse({ error: "internal_error", detail: roleErr.message }, 500, requestId);
@@ -134,11 +137,13 @@ Deno.serve(async (req) => {
         requestId,
       );
     }
-    const { data: stepUpOk, error: stepUpErr } = await userClient.rpc("consume_step_up_token", {
-      _token: step_up_token,
-      _expected_action: "mcp_key_revoke",
-      _expected_target: key_id,
-    });
+    const { data: stepUpOk, error: stepUpErr } = await castRpcResult<RpcEnvelope<boolean>>(
+      userClient.rpc("consume_step_up_token", {
+        _token: step_up_token,
+        _expected_action: "mcp_key_revoke",
+        _expected_target: key_id,
+      }),
+    );
     if (stepUpErr || !stepUpOk) {
       await auditFailure("denied", "mcp_key.revoke_denied", { reason: "step_up_invalid", detail: stepUpErr?.message, expected_action: "mcp_key_revoke" }, key_id);
       return jsonResponse(
