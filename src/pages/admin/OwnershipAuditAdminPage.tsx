@@ -143,6 +143,7 @@ export default function OwnershipAuditAdminPage() {
             </p>
           </div>
           <div className="flex items-center gap-2">
+            <RlsIntegrationTestsDialog />
             <Button variant="outline" onClick={() => exportMatrix("csv")} className="gap-2">
               <Download className="h-4 w-4" /> Matriz CSV
             </Button>
