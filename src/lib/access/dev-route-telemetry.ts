@@ -59,11 +59,11 @@ export async function recordDevRouteTelemetry(
     await supabase.rpc("record_dev_route_telemetry", {
       _event_type: params.event,
       _blocked_path: params.blockedPath,
-      _user_role: params.userRole ?? null,
+      _user_role: params.userRole ?? undefined,
       _duration_ms:
         typeof params.durationMs === "number"
           ? Math.round(params.durationMs)
-          : null,
+          : undefined,
     });
   } catch {
     // Telemetria não pode quebrar UX — engole erro silenciosamente.
