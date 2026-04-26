@@ -101,3 +101,55 @@ export function installFavoritesCleanup(
     }
   });
 }
+
+/**
+ * Reload + espera SSOT baseada em SELETOR (sem `networkidle`, sem sleeps).
+ *
+ * Sinais aguardados (todos via locator/expect):
+ *   1. `Sel.favorites.title` visível         → página /favoritos hidratada
+ *   2. `Sel.favorites.list` OU `Sel.favorites.emptyState` visível
+ *      → árvore renderizada (lista populada ou empty-state explícito)
+ *   3. `Sel.favorites.countItems` exibe `expectedCount`
+ *      → estado reidratado (storage/remote sincronizado com a UI)
+ *
+ * Vantagens vs. `waitForLoadState("networkidle")`:
+ *   - Imune a polling/keepalive/realtime que mantêm a rede "ativa"
+ *   - Falha rápido com mensagem útil quando a UI não reidrata
+ */
+export async function reloadAndAwaitFavoritesPage(
+  page: Page,
+  expectedCount: number,
+): Promise<void> {
+  await page.reload({ waitUntil: "load" });
+
+  await page
+    .locator(Sel.favorites.title)
+    .first()
+    .waitFor({ state: "visible", timeout: 10_000 });
+
+  const list = page.locator(Sel.favorites.list).first();
+  const empty = page.locator(Sel.favorites.emptyState).first();
+  await expect
+    .poll(
+      async () =>
+        ((await list.count()) > 0 && (await list.isVisible())) ||
+        ((await empty.count()) > 0 && (await empty.isVisible())),
+      {
+        message: "favorites-list ou favorites-empty-state deveriam estar visíveis pós-reload",
+        timeout: 10_000,
+      },
+    )
+    .toBe(true);
+
+  const countLoc = page.locator(Sel.favorites.countItems).first();
+  await countLoc.waitFor({ state: "visible", timeout: 10_000 });
+  await expect
+    .poll(
+      async () => Number.parseInt((await countLoc.innerText()).trim(), 10) || 0,
+      {
+        message: `header favorites-count-items deveria reidratar para ${expectedCount}`,
+        timeout: 10_000,
+      },
+    )
+    .toBe(expectedCount);
+}
