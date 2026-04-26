@@ -75,7 +75,12 @@ export async function purgeOne(
         "Content-Type": "application/json",
         "x-e2e-cleanup-token": cfg.token,
       },
-      body: JSON.stringify({ email, dryRun: cfg.dryRun }),
+      body: JSON.stringify({
+        email,
+        dryRun: cfg.dryRun,
+        sellerScope: cfg.sellerScope ?? "self",
+        ...(cfg.sellerId ? { sellerId: cfg.sellerId } : {}),
+      }),
       signal: ctrl.signal,
     });
     const json = (await res.json().catch(() => ({}))) as CleanupResponse;
