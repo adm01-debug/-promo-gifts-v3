@@ -48,6 +48,7 @@ const ERR = {
   UNAUTHENTICATED: "MCP_UNAUTHENTICATED",
   KEY_REVOKED: "MCP_KEY_REVOKED",
   KEY_EXPIRED: "MCP_KEY_EXPIRED",
+  KEY_AUTO_REVOKED_DEV: "MCP_KEY_AUTO_REVOKED_DEV_LOST",
   SCOPE_MISSING: "MCP_SCOPE_MISSING",
   WRITE_FORBIDDEN: "MCP_WRITE_FORBIDDEN",
   INTERNAL: "MCP_INTERNAL_ERROR",
@@ -369,16 +370,90 @@ app.options("/*", (c) => new Response(null, { headers: corsHeaders }));
 const httpHandler = transport.bind(mcpServer);
 
 app.all("/*", async (c) => {
-  const ctx = await authenticate(c.req.raw);
-  if (!ctx) {
-    const reqId = getOrCreateRequestId(c.req.raw);
-    // Audita tentativa de acesso com chave ausente/inválida (não-dev / não-autorizado)
+  const auth = await authenticate(c.req.raw);
+  const reqId = getOrCreateRequestId(c.req.raw);
+  const ip =
+    c.req.raw.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    c.req.raw.headers.get("cf-connecting-ip") ??
+    null;
+  const ua = c.req.raw.headers.get("user-agent") ?? null;
+
+  // ── Caminho 1: chave FULL bloqueada por perda de role dev (auto-revogada na validação)
+  if (auth.kind === "blocked" && auth.reason === "grantor_lost_dev") {
+    const nowIso = new Date().toISOString();
     try {
-      const ip =
-        c.req.raw.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-        c.req.raw.headers.get("cf-connecting-ip") ??
-        null;
-      const ua = c.req.raw.headers.get("user-agent") ?? null;
+      await supabase.from("admin_audit_log").insert({
+        user_id: auth.createdBy,
+        action: "mcp_tool.denied_dev_revoked",
+        resource_type: "mcp_api_key",
+        resource_id: auth.keyId,
+        ip_address: ip,
+        user_agent: ua,
+        request_id: reqId,
+        started_at: nowIso,
+        finished_at: nowIso,
+        duration_ms: 0,
+        status: "denied",
+        payload_summary: {},
+        source: SOURCE,
+        details: {
+          error_code: ERR.KEY_AUTO_REVOKED_DEV,
+          reason: "grantor_lost_dev_at_use",
+          is_full_access: true,
+          created_by: auth.createdBy,
+          key_id: auth.keyId,
+          revoked_at: nowIso,
+          method: c.req.raw.method,
+        },
+      });
+    } catch (_) { /* never block on audit */ }
+    return new Response(
+      JSON.stringify({
+        error: ERR.KEY_AUTO_REVOKED_DEV,
+        message: "Chave MCP de escopo total revogada: emissor original perdeu o papel dev.",
+        request_id: reqId,
+      }),
+      { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json", [REQUEST_ID_HEADER]: reqId } },
+    );
+  }
+
+  // ── Caminho 2: chave revogada/expirada por outros motivos (audit leve)
+  if (auth.kind === "blocked") {
+    const nowIso = new Date().toISOString();
+    const code = auth.reason === "expired" ? ERR.KEY_EXPIRED : ERR.KEY_REVOKED;
+    try {
+      await supabase.from("admin_audit_log").insert({
+        user_id: auth.createdBy,
+        action: "mcp_tool.denied",
+        resource_type: "mcp_api_key",
+        resource_id: auth.keyId,
+        ip_address: ip,
+        user_agent: ua,
+        request_id: reqId,
+        started_at: nowIso,
+        finished_at: nowIso,
+        duration_ms: 0,
+        status: "denied",
+        payload_summary: {},
+        source: SOURCE,
+        details: {
+          error_code: code,
+          reason: auth.reason,
+          key_id: auth.keyId,
+          created_by: auth.createdBy,
+          method: c.req.raw.method,
+        },
+      });
+    } catch (_) { /* never block on audit */ }
+    return new Response(
+      JSON.stringify({ error: code, message: `Chave MCP ${auth.reason}.`, request_id: reqId }),
+      { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json", [REQUEST_ID_HEADER]: reqId } },
+    );
+  }
+
+  // ── Caminho 3: chave inexistente ou ausente
+  if (auth.kind !== "ok") {
+    try {
       const keyHeader = c.req.raw.headers.get("x-mcp-key") || "";
       await supabase.from("admin_audit_log").insert({
         user_id: null,
@@ -396,7 +471,7 @@ app.all("/*", async (c) => {
         source: SOURCE,
         details: {
           error_code: ERR.UNAUTHENTICATED,
-          reason: keyHeader ? "invalid_key" : "missing_key",
+          reason: auth.kind === "no_key" ? "missing_key" : "invalid_key",
           key_length: keyHeader.length,
           method: c.req.raw.method,
         },
@@ -407,6 +482,9 @@ app.all("/*", async (c) => {
       { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json", [REQUEST_ID_HEADER]: reqId } },
     );
   }
+
+  // ── Caminho feliz
+  const ctx = auth.ctx;
   currentCtx = ctx;
   try {
     const res = await httpHandler(c.req.raw);
