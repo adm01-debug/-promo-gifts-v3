@@ -106,3 +106,63 @@ Workflow em `.github/workflows/e2e.yml`:
 evitar criação de dados de teste no BD compartilhado. Para suíte completa
 com cleanup, configure uma edge function `e2e-cleanup` gated por header
 secreto.
+
+## Cleanup automático (pós-suite)
+
+Para evitar acúmulo de favoritos, carrinhos, coleções, comparações e
+orçamentos criados pelos testes, o `globalTeardown` chama a edge function
+`e2e-cleanup` ao final da suite.
+
+### Configuração
+
+Defina os secrets no projeto e como variáveis no CI:
+
+| Variável                       | Onde                  | Descrição                                                     |
+|--------------------------------|-----------------------|---------------------------------------------------------------|
+| `E2E_CLEANUP_TOKEN`            | Backend + CI          | Token compartilhado (gere com `openssl rand -hex 32`).        |
+| `E2E_CLEANUP_ALLOWED_EMAILS`   | Backend (CSV)         | Lista de emails permitidos. Defesa em profundidade.           |
+| `E2E_USER_EMAIL`               | CI                    | Email do usuário de teste — alvo do cleanup.                  |
+| `E2E_ADMIN_EMAIL`              | CI (opcional)         | Email do admin de teste — também é limpo.                     |
+| `VITE_SUPABASE_URL`            | CI                    | URL do backend (já preenchida em `.env`).                     |
+| `E2E_CLEANUP_DRY_RUN`          | CI (opcional)         | `1` = só conta, não apaga.                                    |
+
+### Como funciona (camadas de segurança)
+
+1. **Token** — `x-e2e-cleanup-token` precisa bater com `E2E_CLEANUP_TOKEN`.
+2. **Allow-list** — o `email` do body precisa estar em
+   `E2E_CLEANUP_ALLOWED_EMAILS`. Sem isso, mesmo com o token correto, 403.
+3. **Lookup server-side** — `user_id` é resolvido via `auth.admin`; o
+   cliente nunca passa UUID.
+4. **Dry-run default** — body sem `dryRun: false` apenas conta linhas.
+
+### Rodar manualmente
+
+```bash
+curl -X POST "$VITE_SUPABASE_URL/functions/v1/e2e-cleanup" \
+  -H "x-e2e-cleanup-token: $E2E_CLEANUP_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"email":"e2e-tester@promogifts.com.br","dryRun":true}'
+```
+
+Resposta:
+
+```json
+{
+  "ok": true,
+  "dryRun": true,
+  "userId": "…",
+  "deleted": { "favorite_items": 12, "seller_carts": 2, "quotes": 1 },
+  "totalMs": 184
+}
+```
+
+### Adicionar novas tabelas
+
+Edite `supabase/functions/e2e-cleanup/index.ts`:
+
+- Tabela com `user_id` → adicione em `USER_ID_TABLES` (filhos antes dos pais).
+- Tabela filha de `quotes` (FK `quote_id`) → adicione em
+  `QUOTE_CHILD_TABLES_BY_QUOTE_ID`.
+
+A function nunca toca em `auth.users`, no catálogo externo nem em tabelas
+globais (admin_settings, ai_usage_*, etc.).
