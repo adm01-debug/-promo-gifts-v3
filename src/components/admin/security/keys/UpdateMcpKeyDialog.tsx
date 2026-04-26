@@ -38,6 +38,7 @@ import {
 import { StepUpAuthDialog } from "@/components/auth/StepUpAuthDialog";
 import { useCanGrantMcpFull } from "./useCanGrantMcpFull";
 import { sanitizeError } from "@/lib/security/sanitize-error";
+import { handleStepUpError } from "@/lib/auth/step-up-error";
 import type { McpKeyRow } from "./useMcpKeys";
 
 interface Props {
@@ -143,6 +144,10 @@ export function UpdateMcpKeyDialog({ source, open, onOpenChange, onUpdated }: Pr
           step_up_token: stepUpToken ?? null,
         },
       });
+      // Tratamento dedicado para falhas de step-up: mensagem específica + CTA "Refazer verificação".
+      if (handleStepUpError(data, error, () => setStepUpOpen(true))) {
+        return;
+      }
       if (error) {
         toast.error("Falha ao atualizar chave", { description: sanitizeError(error) });
         return;
