@@ -4879,6 +4879,7 @@ export type Database = {
         Returns: string
       }
       audit_rls_coverage: { Args: never; Returns: Json }
+      audit_rls_matrix: { Args: never; Returns: Json }
       auto_block_extreme_offenders: { Args: never; Returns: Json }
       auto_revoke_orphan_full_keys: {
         Args: { _source?: string }
