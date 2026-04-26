@@ -42,6 +42,8 @@ interface Props {
   searchPlaceholder?: string;
   /** Texto exibido como item "Todos" no Select de status. */
   allStatusLabel?: string;
+  /** Quando false, oculta o seletor de intervalo de datas. Default: true. */
+  showDateRange?: boolean;
 }
 
 export const EMPTY_FILTERS: WidgetFiltersValue = {
@@ -56,6 +58,7 @@ export function WidgetFiltersBar({
   statusOptions,
   searchPlaceholder = "Buscar…",
   allStatusLabel = "Todos os status",
+  showDateRange = true,
 }: Props) {
   const [open, setOpen] = useState(false);
 
@@ -100,32 +103,34 @@ export function WidgetFiltersBar({
         </SelectContent>
       </Select>
 
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            size="sm"
-            className={cn(
-              "h-8 px-2 text-xs gap-1.5 font-normal",
-              !value.dateRange?.from && "text-muted-foreground",
-            )}
-          >
-            <CalendarIcon className="h-3.5 w-3.5" />
-            {dateLabel}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="end">
-          <Calendar
-            mode="range"
-            numberOfMonths={2}
-            selected={value.dateRange}
-            onSelect={(r) => onChange({ ...value, dateRange: r })}
-            locale={ptBR}
-            initialFocus
-            className={cn("p-3 pointer-events-auto")}
-          />
-        </PopoverContent>
-      </Popover>
+      {showDateRange && (
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className={cn(
+                "h-8 px-2 text-xs gap-1.5 font-normal",
+                !value.dateRange?.from && "text-muted-foreground",
+              )}
+            >
+              <CalendarIcon className="h-3.5 w-3.5" />
+              {dateLabel}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="end">
+            <Calendar
+              mode="range"
+              numberOfMonths={2}
+              selected={value.dateRange}
+              onSelect={(r) => onChange({ ...value, dateRange: r })}
+              locale={ptBR}
+              initialFocus
+              className={cn("p-3 pointer-events-auto")}
+            />
+          </PopoverContent>
+        </Popover>
+      )}
 
       {hasAnyFilter && (
         <Button
