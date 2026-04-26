@@ -107,6 +107,8 @@ export default function AdminUsuariosPage() {
           </div>
         </div>
 
+        <DevAccessAuditAlert />
+
         <UserStatsCards
           total={users.length}
           devCount={devCount}
