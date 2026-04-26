@@ -231,11 +231,42 @@ test.describe("Fluxo: remover favorito persiste após reload", () => {
       `card de favorito ${addedId} deveria estar visível antes da remoção`,
     ).toBeVisible({ timeout: 10_000 });
 
+    // Captura o nome do produto ANTES da remoção (data-product-name é SSOT no card)
+    const targetName = (await targetCard.getAttribute("data-product-name"))?.trim() ?? "";
+    expect(targetName, "data-product-name do card alvo deveria estar presente").not.toBe("");
+
     // 3. Remove via botão "Remover favorito" do card alvo
     const removeBtn = await resolveRemoveButton(targetCard);
     await removeBtn.click();
     await acceptConfirmIfAny(page);
+
+    // 3.1. FEEDBACK — toast (sonner) com nome do produto removido
+    //      Contrato do FavoritesPage: toast.success(`"${name}" removido dos favoritos`)
+    const toast = page.locator(Sel.toast.sonnerToast).filter({
+      hasText: new RegExp(
+        `${targetName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}.*removido dos favoritos`,
+        "i",
+      ),
+    });
+    await expect(
+      toast.first(),
+      `toast de confirmação contendo "${targetName}" removido dos favoritos não apareceu`,
+    ).toBeVisible({ timeout: 5_000 });
+
+    // 3.2. FEEDBACK A11y — aria-live region anuncia a remoção (role=status)
+    const ariaLive = page.locator('[role="status"][aria-live="polite"]').filter({
+      hasText: new RegExp(
+        `${targetName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s+removido dos favoritos`,
+        "i",
+      ),
+    });
+    await expect(
+      ariaLive.first(),
+      "região aria-live deveria anunciar a remoção do produto",
+    ).toHaveCount(1, { timeout: 5_000 });
+
     await settleAfterAction(page);
+
 
     // 4. Calcula o snapshot ESPERADO após remoção e valida ANTES do reload
     await expect
