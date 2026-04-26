@@ -37,7 +37,6 @@ export function DevRoute({ children }: DevRouteProps) {
   const {
     user,
     isDev,
-    isSupervisorOrAbove,
     isLoading,
     currentAAL,
     hasMFA,
@@ -45,13 +44,8 @@ export function DevRoute({ children }: DevRouteProps) {
     role,
   } = useAuth();
   const location = useLocation();
-  const navigate = useNavigate();
-  const [reason, setReason] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [copied, setCopied] = useState(false);
   const [enrollOpen, setEnrollOpen] = useState(false);
 
-  const safeFallback = isSupervisorOrAbove ? "/admin/usuarios" : "/";
   const blockedPath = location.pathname;
   // Snapshot da rota bloqueada (path + search + hash + state) capturado na
   // primeira renderização, para que "Tentar novamente" preserve o location
@@ -88,61 +82,6 @@ export function DevRoute({ children }: DevRouteProps) {
       });
     }
   }, [isLoading, user, isDev, blockedPath, role]);
-
-  const handleRequestAccess = async () => {
-    if (!user) return;
-    const throttle = getThrottleStatus(user.id);
-    if (throttle.throttled) {
-      toast.warning("Aguarde antes de tentar novamente", {
-        description: `Você poderá enviar uma nova solicitação em ${throttle.retryInSeconds}s.`,
-      });
-      return;
-    }
-    setSubmitting(true);
-    const result = await requestDevAccess({
-      userId: user.id,
-      userEmail: user.email,
-      blockedPath,
-      reason,
-    });
-    setSubmitting(false);
-
-    if (result.throttled) {
-      toast.warning("Aguarde antes de tentar novamente", {
-        description: `Você poderá enviar uma nova solicitação em ${result.retryInSeconds ?? 60}s.`,
-      });
-      return;
-    }
-
-    if (!result.ok) {
-      toast.error("Não foi possível registrar a solicitação", {
-        description: result.error ?? "Tente novamente em instantes.",
-      });
-      return;
-    }
-
-    toast.success("Solicitação enviada", {
-      description: `Avisamos o time técnico (${DEV_ACCESS_CONTACT_EMAIL}). Você receberá uma notificação quando o acesso for revisado.`,
-    });
-    if (result.mailtoUrl) {
-      // Abre o cliente de email para registro adicional fora do sistema.
-      window.location.href = result.mailtoUrl;
-    }
-  };
-
-  const handleCopyLink = async () => {
-    try {
-      const url = `${window.location.origin}${blockedPath}`;
-      await navigator.clipboard.writeText(url);
-      setCopied(true);
-      toast.success("Link copiado", {
-        description: "Envie ao time técnico para liberar o acesso.",
-      });
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      toast.error("Não foi possível copiar o link");
-    }
-  };
 
   if (isLoading) {
     return (
