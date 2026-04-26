@@ -109,6 +109,11 @@ export function useCommercialKPIs(days = 30, categoryId?: string | null, supplie
       let q2 = supabase.from('quotes').select('id, total').gte('created_at', startOfMonth);
       let o2 = supabase.from('orders').select('id, total').gte('created_at', startOfMonth);
       if (orgId) { q1 = q1.eq('organization_id', orgId); o1 = o1.eq('organization_id', orgId); q2 = q2.eq('organization_id', orgId); o2 = o2.eq('organization_id', orgId); }
+      // Defesa em profundidade: vendedor (scope === "self") só pede os próprios dados.
+      q1 = applySellerScope(q1, { scope, userId: user?.id });
+      o1 = applySellerScope(o1, { scope, userId: user?.id });
+      q2 = applySellerScope(q2, { scope, userId: user?.id });
+      o2 = applySellerScope(o2, { scope, userId: user?.id });
 
       const [qr, or, qmr, omr] = await Promise.all([q1, o1, q2, o2]);
       const quotes = qr.data || []; const orders = or.data || [];
