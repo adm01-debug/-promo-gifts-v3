@@ -227,13 +227,14 @@ export default function Auth() {
               </CardHeader>
 
               <CardContent className="pt-2 space-y-6">
-                  <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-4">
+                  <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-4" data-testid="login-form">
                     <div className="space-y-2">
                       <Label htmlFor="login-email" className="text-foreground">Email</Label>
                       <div className="relative">
                         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
                           id="login-email"
+                          data-testid="login-email-input"
                           type="email"
                           placeholder="seu@email.com"
                           className="pl-10 bg-input border-border focus:border-orange focus:ring-orange"
@@ -253,6 +254,7 @@ export default function Auth() {
                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
                           id="login-password"
+                          data-testid="login-password-input"
                           type={showPassword ? "text" : "password"}
                           placeholder="••••••••"
                           className="pl-10 pr-10 bg-input border-border focus:border-orange focus:ring-orange"
@@ -260,6 +262,7 @@ export default function Auth() {
                         />
                         <button
                           type="button"
+                          data-testid="login-password-toggle"
                           onClick={() => setShowPassword(!showPassword)}
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-orange transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center -mr-2"
                           aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
@@ -277,6 +280,7 @@ export default function Auth() {
                     <div className="flex items-center justify-end">
                       <Button
                         type="button"
+                        data-testid="login-forgot-link"
                         variant="link"
                         className="p-0 h-auto text-sm text-orange hover:text-orange/80"
                         onClick={() => setShowForgotPassword(true)}
@@ -287,6 +291,7 @@ export default function Auth() {
 
                     <Button 
                       type="submit" 
+                      data-testid="login-submit"
                       variant="orange"
                       className="w-full h-12 text-base font-semibold shadow-lg shadow-orange/25 hover:shadow-xl hover:shadow-orange/30 transition-all duration-300" 
                       disabled={isSubmitting}
