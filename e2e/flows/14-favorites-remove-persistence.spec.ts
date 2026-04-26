@@ -361,14 +361,8 @@ test.describe("Fluxo: remover favorito persiste após reload", () => {
       .poll(async () => (await readStorage(page)).length, { timeout: 8_000 })
       .toBe(original.length);
 
-    // 5. page.reload() — remoção é persistida
-    await page.reload({ waitUntil: "domcontentloaded" });
-    await page
-      .waitForFunction(
-        () => !document.querySelector('[data-state="loading"], [data-skeleton]'),
-        { timeout: 8_000 },
-      )
-      .catch(() => {});
+    // 5. Reload com espera explícita de navegação (load + networkidle + título)
+    await reloadAndSettle(page);
 
     // 6. Reusa o MESMO snapshot esperado para validar pós-reload
     await expectFavoritesSnapshot(page, expectedAfterRemove, "pós-reload");
