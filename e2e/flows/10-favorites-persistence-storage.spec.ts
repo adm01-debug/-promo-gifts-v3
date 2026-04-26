@@ -91,6 +91,7 @@ async function firstCardProductId(page: Page): Promise<string> {
 
 test.describe("Persistência de favoritos via localStorage", () => {
   test.beforeEach(() => requireAuth());
+  installFavoritesCleanup(test);
 
   test("favoritar pela UI grava no localStorage e persiste após reload", async ({ page }) => {
     await gotoAndSettle(page, "/produtos");
