@@ -58,7 +58,8 @@ const routeLabels: Record<string, string> = {
 export function DynamicBreadcrumbs({ customItems, className }: DynamicBreadcrumbsProps) {
   const location = useLocation();
   const params = useParams();
-  
+  const { isDev, isAdmin } = useAuth();
+
   const breadcrumbs = useMemo(() => {
     if (customItems) return customItems;
     
