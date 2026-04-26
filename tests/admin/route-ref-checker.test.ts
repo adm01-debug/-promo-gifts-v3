@@ -21,8 +21,9 @@ const REPO_ROOT = path.resolve(__dirname, "../..");
 const SCRIPT = path.join(REPO_ROOT, "scripts/check-route-ref-usage.mjs");
 
 function runChecker(cwd: string): { code: number; stdout: string; stderr: string } {
+  const env = { ...process.env, ROUTE_REF_ROOT: cwd };
   try {
-    const stdout = execSync(`node ${SCRIPT}`, { cwd, encoding: "utf8" });
+    const stdout = execSync(`node ${SCRIPT}`, { cwd, encoding: "utf8", env });
     return { code: 0, stdout, stderr: "" };
   } catch (err) {
     const e = err as { status?: number; stdout?: string; stderr?: string };
