@@ -30,7 +30,7 @@ export function RestrictedRouteNotice({
   isCollapsed,
 }: RestrictedRouteNoticeProps) {
   const location = useLocation();
-  const { isAdmin, isDev, user } = useAuth();
+  const { isAdmin, isDev } = useAuth();
   const path = location.pathname;
 
   const isDevRoute = isDevOnlyPath(path);
