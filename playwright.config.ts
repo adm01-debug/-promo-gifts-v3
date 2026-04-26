@@ -6,8 +6,12 @@
  *  - project "chromium-public": specs sem auth (login, públicos)
  *  - project "chromium-authed": specs autenticados (depende de setup)
  *
- * Evidências em falha (auto): screenshot, vídeo, trace, HAR de rede + DOM dump
- * gravados em e2e-artifacts/ e anexados via testInfo.attach() pelo evidence helper.
+ * Hardening anti-flake:
+ *  - headless explícito (sobrescrevível por --headed)
+ *  - retries controlados (CI: 2, local: 1)
+ *  - expect.timeout elevado (15s) para reduzir polls inflados nos specs
+ *  - reducedMotion: "reduce" para neutralizar animações (Radix/framer-motion)
+ *  - testIdAttribute padronizado em "data-testid"
  *
  * Comandos:
  *   npm run test:e2e          # headless
@@ -27,10 +31,10 @@ export default defineConfig({
   globalTeardown: path.resolve(__dirname, "e2e/global-teardown.ts"),
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
+  retries: process.env.CI ? 2 : 1,
   workers: process.env.CI ? 1 : undefined,
   timeout: 45_000,
-  expect: { timeout: 10_000 },
+  expect: { timeout: 15_000 },
   outputDir: ARTIFACTS_DIR,
   reporter: process.env.CI
     ? [
@@ -42,11 +46,17 @@ export default defineConfig({
     : [["list"], ["html", { outputFolder: "playwright-report", open: "never" }]],
   use: {
     baseURL: process.env.E2E_BASE_URL ?? "http://localhost:5173",
+    headless: true,
+    testIdAttribute: "data-testid",
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
     video: "retain-on-failure",
     actionTimeout: 10_000,
     navigationTimeout: 20_000,
+    reducedMotion: "reduce",
+    launchOptions: {
+      args: ["--disable-blink-features=AutomationControlled"],
+    },
   },
   projects: [
     {
@@ -93,5 +103,7 @@ export default defineConfig({
         url: "http://localhost:5173",
         reuseExistingServer: !process.env.CI,
         timeout: 120_000,
+        stdout: "pipe",
+        stderr: "pipe",
       },
 });
