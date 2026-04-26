@@ -216,7 +216,7 @@ export default function CollectionsPage() {
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <FolderHeart className="h-4 w-4 text-primary" />
-            <h2 className="font-display text-lg font-semibold">Minhas Coleções</h2>
+            <h2 data-testid="page-title-colecoes" className="font-display text-lg font-semibold">Minhas Coleções</h2>
             <Badge variant="secondary" className="text-xs">{localCollections.length}</Badge>
           </div>
 

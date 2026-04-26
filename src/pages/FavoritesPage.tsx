@@ -349,7 +349,7 @@ export default function FavoritesPage() {
               <Heart className="h-6 w-6 text-destructive fill-destructive" />
             </div>
             <div>
-              <h1 className="text-2xl lg:text-3xl font-display font-bold text-foreground">
+              <h1 data-testid="page-title-favoritos" className="text-2xl lg:text-3xl font-display font-bold text-foreground">
                 Meus Favoritos
               </h1>
               <p className="text-muted-foreground text-sm">
