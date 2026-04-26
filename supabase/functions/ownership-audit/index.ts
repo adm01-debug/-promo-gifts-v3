@@ -1,0 +1,89 @@
+/**
+ * ownership-audit — executa a varredura de propriedade de registros.
+ *
+ * Invocada via cron diário (pg_cron + pg_net) ou manualmente por admin.
+ * Usa a service_role para bypassar RLS na invocação da RPC. A RPC em si
+ * (`audit_ownership_orphans`) verifica permissão internamente quando
+ * chamada por usuário autenticado.
+ */
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
+};
+
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+
+  try {
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+    const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
+      return json({ error: "missing_env" }, 500);
+    }
+
+    let triggeredBy = "cron";
+    try {
+      const body = await req.json();
+      if (body && typeof body.triggered_by === "string") triggeredBy = body.triggered_by;
+    } catch {
+      // sem body — ok, usa default "cron"
+    }
+
+    const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+
+    const t0 = Date.now();
+    const { data: reportId, error } = await admin.rpc("audit_ownership_orphans", {
+      _triggered_by: triggeredBy,
+    });
+    if (error) {
+      console.error("[ownership-audit] rpc error", error);
+      return json({ error: error.message }, 500);
+    }
+
+    const { data: report, error: fetchErr } = await admin
+      .from("ownership_audit_reports")
+      .select("*")
+      .eq("id", reportId)
+      .single();
+
+    if (fetchErr) {
+      console.error("[ownership-audit] fetch report error", fetchErr);
+      return json({ report_id: reportId, warning: "report saved but fetch failed" }, 200);
+    }
+
+    console.log(
+      `[ownership-audit] ${triggeredBy} done in ${Date.now() - t0}ms — ` +
+        `${report.total_tables_scanned} tables, ${report.total_issues_found} issues`,
+    );
+
+    return json({
+      ok: true,
+      report_id: reportId,
+      summary: {
+        generated_at: report.generated_at,
+        total_tables_scanned: report.total_tables_scanned,
+        total_issues_found: report.total_issues_found,
+        null_owner_count: report.null_owner_count,
+        missing_user_count: report.missing_user_count,
+        duration_ms: report.duration_ms,
+        affected_tables: (report.details as unknown[]).length,
+      },
+      details: report.details,
+    });
+  } catch (e) {
+    console.error("[ownership-audit] uncaught", e);
+    return json({ error: (e as Error).message }, 500);
+  }
+});
+
+function json(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
