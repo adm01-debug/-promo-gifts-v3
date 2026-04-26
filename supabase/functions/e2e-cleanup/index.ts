@@ -122,6 +122,7 @@ interface AuditPayload {
   user_id: string | null;
   seller_id?: string | null;
   seller_scope?: "self" | "explicit";
+  name_filter_prefix?: string | null;
   dry_run: boolean;
   status:
     | "ok"
