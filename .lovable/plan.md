@@ -1,67 +1,74 @@
-# E2E: persistência de favoritos via leitura de localStorage
+# E2E hardening: headless + retries controlados + waits anti-flake
 
 ## Objetivo
 
-Validar a **persistência real** dos favoritos lendo o estado da sessão (`localStorage["product-favorites"]`) e confirmando que, após `page.reload()`, o favorito é restaurado tanto no storage quanto na UI. Também valida o caminho inverso: pré-popular o storage e confirmar que a UI hidrata corretamente.
+Tornar a suíte E2E resiliente em headless, com retries controlados e helpers de espera que removam as principais fontes de flakiness (skeletons, hidratação, animações, race com `goto`).
 
 ## Diagnóstico
 
-- `src/hooks/useFavorites.ts` persiste em `localStorage` com chave `product-favorites` no formato `[{ productId: string, addedAt: ISOString }]`.
-- O hook hidrata o estado a partir do storage no mount (`useEffect` com `isLoaded`).
-- Não há backend para favoritos — toda a persistência é client-side.
-- Specs existentes (`08-favorites`, `09-favorite-from-detail`) validam pela UI mas não inspecionam o storage.
+- `playwright.config.ts` já roda headless por padrão (Playwright default), mas:
+  - `retries` é 0 fora de CI — instabilidades locais não são absorvidas.
+  - Sem `expect.timeout` global mais largo nem `testIdAttribute` configurado.
+  - `webServer` sem `stdout: "pipe"` nem reuso fora de CI bem definido.
+- `gotoAndSettle` faz só `domcontentloaded` + wait curto de skeleton (5s). Falta:
+  - aguardar `networkidle` curto (best-effort), animações terminarem (`prefers-reduced-motion`), e React ter hidratado o `#root`.
+  - desligar animações via CSS injetado para reduzir jitter visual.
+- Não há helper para esperas baseadas em **selector**: hoje os specs usam `expect.poll` ad-hoc, `waitFor` genérico e `.catch(() => {})`, que mascaram falhas reais.
 
-## Arquivo novo
+## Mudanças
 
-### `e2e/flows/10-favorites-persistence-storage.spec.ts`
+### 1) `playwright.config.ts`
 
-Helpers locais:
-- `STORAGE_KEY = "product-favorites"`
-- `readStorage(page)` → `JSON.parse(localStorage[STORAGE_KEY] || "[]")` via `page.evaluate`
-- `writeStorage(page, items)` → `localStorage.setItem(...)` via `page.evaluate`
-- `clearStorage(page)` → remove a chave
-- `readFavoritesCount(page)` (mesmo do spec 08)
+- Forçar headless explícito: `use.headless: true` (com override possível por `--headed`).
+- Retries controlados:
+  - CI: `retries: 2` (mantém)
+  - Local: `retries: 1` (novo) — só absorve flake de 1ª execução, sem mascarar bug real.
+- `expect.timeout: 15_000` (eleva o default de assertions, evita `expect.poll` inflados nos specs).
+- `use.testIdAttribute: "data-testid"` (Playwright reconhece `getByTestId`).
+- `use.launchOptions: { args: ["--disable-blink-features=AutomationControlled"] }` — reduz detecção/throttling.
+- `use.contextOptions: { reducedMotion: "reduce" }` — desliga animações no Chromium.
+- `webServer.stdout: "pipe"` + `stderr: "pipe"` para capturar logs do Vite no relatório.
+- Adicionar `globalSetup` opcional? **Não** — manteremos só `setup` project (já existe).
 
-### Teste 1 — favoritar pela UI persiste no storage e sobrevive ao reload
+### 2) `e2e/helpers/nav.ts` — novo `gotoAndSettle` mais robusto
 
-1. `requireAuth()`.
-2. `gotoAndSettle("/produtos")`.
-3. Lê snapshot inicial via `readStorage(page)` (`before`).
-4. Favorita o 1º card (clica em `Sel.product.favorite`).
-5. **Antes do reload** valida:
-   - `readStorage(page)` tem **exatamente 1 item a mais** que `before`.
-   - O novo item tem `productId` (string não-vazia) e `addedAt` parseável como `Date`.
-6. `page.reload()` no `/produtos`.
-7. **Após reload** valida que `readStorage(page)` é igual ao snapshot pós-favoritar (mesmo `productId`).
-8. `gotoAndSettle("/favoritos")` + `readFavoritesCount === before.length + 1`.
-9. Cleanup: `clearStorage` ou remove só o item adicionado e revalida via UI.
+Substituir corpo por uma sequência determinística:
 
-### Teste 2 — pré-popular storage hidrata a UI após reload (round-trip)
+1. `page.goto(path, { waitUntil: "domcontentloaded" })`
+2. `page.waitForLoadState("networkidle", { timeout: 5_000 }).catch(() => {})` — best-effort
+3. Esperar React hidratar: `page.waitForFunction(() => document.querySelector("#root")?.children.length > 0, { timeout: 10_000 }).catch(() => {})`
+4. Esperar skeletons sumirem (mantém atual, eleva timeout para 8_000).
+5. Esperar `body` ter `aria-busy="false"` se presente (best-effort).
+6. Injetar uma vez por contexto CSS que neutraliza animações longas (via `page.addStyleTag` envolto em try/catch — só se ainda não existir).
 
-1. `requireAuth()`.
-2. `gotoAndSettle("/produtos")` para garantir que algum produto é conhecido.
-3. Lê o `productId` do 1º card (atributo `data-product-id` se existir, senão extrai do `href` `/produto/<id>` do `a` interno).
-4. `clearStorage(page)` + `writeStorage(page, [{ productId, addedAt: new Date().toISOString() }])`.
-5. `gotoAndSettle("/favoritos")` (carregamento fresco — força hidratação a partir do storage).
-6. Valida que:
-   - `readFavoritesCount(page) === 1`
-   - Existe pelo menos um `Sel.favorites.remove` visível.
-7. `page.reload()` e revalida o mesmo (persistência sobrevive a reload sem nenhuma ação de UI).
-8. Cleanup: `clearStorage(page)`.
+Adicionar helpers exportados:
+
+- `waitForVisible(page, selector, timeout?)` — wrapper centralizado que evita o padrão `.first().waitFor({state:"visible"})` espalhado.
+- `waitForCount(locator, expected, timeout?)` — `expect.poll(() => locator.count())` com mensagem.
+- `settleAfterAction(page)` — aguarda `networkidle` curto + skeleton ausente. Usado depois de cliques que disparam fetch.
+
+### 3) Ruído de console
+
+Em `expectNoConsoleErrors`, ampliar a lista de filtros conhecidos para reduzir falsos positivos: `Download the React DevTools`, `ResizeObserver loop`, `Failed to load resource: the server responded with a status of 401` (esperado em specs públicos), `chunk` (ChunkLoadError quando há retry), `analytics` no-ops.
+
+### 4) Sem mudanças nos specs
+
+A intenção é melhorar o **núcleo** (config + helpers). Os specs já existentes herdam o ganho automaticamente porque usam `gotoAndSettle` e `expect`.
 
 ## Detalhes técnicos
 
-- Captura de `productId` no card: tentar `data-product-id` em qualquer ancestral; fallback para regex no `href` (`/^\/produto\/([^/?#]+)/`).
-- `writeStorage` antes de navegar para `/favoritos` precisa rodar **na mesma origin** — por isso navegamos primeiro para `/produtos` (mesma origin do app), depois escrevemos, depois vamos para `/favoritos`.
-- Validações de tipo no item do storage usam `expect(typeof item.productId).toBe("string")` e `expect(Number.isFinite(Date.parse(item.addedAt))).toBe(true)`.
-- Sem mudanças em `src/`, `selectors.ts` ou config.
+- `headless: true` explícito coexiste com `npm run test:e2e:headed` (CLI vence).
+- `reducedMotion: "reduce"` é nativo do Playwright e pega componentes que respeitam `prefers-reduced-motion` (Radix, framer-motion com `useReducedMotion`).
+- CSS injetado (kill-switch animações) é defensivo para libs que não respeitam media query — só aplica `* { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }`.
+- `waitForFunction` para hidratação observa `#root.children.length > 0`, suficiente para detectar SPA pronta.
 
 ## Validação
 
-`npx tsc --noEmit -p tsconfig.json` para checar tipos.
+- `npx tsc --noEmit -p tsconfig.json` — type-check.
+- `npx playwright test --list` — confirma que a config carrega sem erro e os projects continuam descobertos.
 
 ## Fora de escopo
 
-- Não cobre listas de favoritos (`useFavoriteLists`) — é outra chave de storage.
-- Não cobre cookies/sessão Supabase (favoritos não usam backend).
-- Sem mudanças no `08-favorites` ou `09-favorite-from-detail`.
+- Não tocar nos specs em `e2e/flows/**` ou `e2e/routes/**`.
+- Não alterar `auth.setup.ts` ou storage state.
+- Não introduzir bibliotecas novas.
