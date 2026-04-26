@@ -43,6 +43,8 @@ export function TableRowActions({
               }
             }}
             aria-label="Favoritar"
+            data-testid="product-favorite"
+            aria-pressed={fav}
           >
             <Heart className={cn("h-3 w-3", fav && "fill-current")} />
           </Button>
