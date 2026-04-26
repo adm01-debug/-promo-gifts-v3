@@ -103,6 +103,7 @@ export const SortableCartItem = memo(function SortableCartItem({
           </button>
 
           <div
+            data-testid="cart-item-image"
             className="w-full h-full cursor-pointer"
             onClick={() => onNavigate(`/produto/${item.product_id}`)}
           >
@@ -118,6 +119,7 @@ export const SortableCartItem = memo(function SortableCartItem({
 
           {/* Quick view overlay */}
           <div
+            data-testid="cart-item-view"
             className="absolute inset-0 bg-background/60 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
             onClick={() => onNavigate(`/produto/${item.product_id}`)}
           >
@@ -131,7 +133,7 @@ export const SortableCartItem = memo(function SortableCartItem({
           <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="h-7 w-7 flex items-center justify-center rounded-lg bg-card/80 backdrop-blur-sm text-muted-foreground hover:text-foreground" aria-label="Mais opções">
+                <button data-testid="cart-item-menu-trigger" className="h-7 w-7 flex items-center justify-center rounded-lg bg-card/80 backdrop-blur-sm text-muted-foreground hover:text-foreground" aria-label="Mais opções">
                   <MoreHorizontal className="h-3.5 w-3.5" />
                 </button>
               </DropdownMenuTrigger>
