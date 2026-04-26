@@ -24,6 +24,7 @@ import { CreateUserDialog } from "@/components/admin/users/CreateUserDialog";
 import { DeleteUserDialog } from "@/components/admin/users/DeleteUserDialog";
 import { PromotionDialog } from "@/components/admin/users/PromotionDialog";
 import { RoleAuditLogPanel } from "@/components/admin/users/RoleAuditLogPanel";
+import { DevAccessAuditAlert } from "@/components/admin/DevAccessAuditAlert";
 import { type UserWithRole } from "@/components/admin/users/types";
 
 const VALID_TABS = ["users", "password-reset", "discounts", "audit"] as const;
