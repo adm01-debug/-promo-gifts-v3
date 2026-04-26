@@ -64,6 +64,11 @@ export const Sel = {
     list: `${TID("favorites-list")}`,
     item: `${TID("favorite-item")}`,
     remove: `${TID("favorite-remove")}, button[aria-label="Remover favorito" i]`,
+    title: TID("page-title-favoritos"),
+    icon: TID("favorites-icon"),
+    count: TID("favorites-count"),
+    countItems: TID("favorites-count-items"),
+    countLists: TID("favorites-count-lists"),
   },
 
   // ---------- Carrinho ----------
