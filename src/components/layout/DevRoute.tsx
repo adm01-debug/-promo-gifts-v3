@@ -13,6 +13,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { MfaEnrollmentDialog } from "@/components/security/MfaEnrollmentDialog";
+import { MfaChallengeDialog } from "@/components/security/MfaChallengeDialog";
 import {
   requestDevAccess,
   getThrottleStatus,
