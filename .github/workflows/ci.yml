@@ -45,6 +45,27 @@ jobs:
       - name: Run tests
         run: npm run test
 
+      - name: Strict ref-warning gate (suite completa)
+        # Roda toda a suite com STRICT_REF_WARNINGS=1: o setup global
+        # (tests/setup-ref-warning-capture.ts) intercepta console.error/warn
+        # em TODOS os testes, persiste snapshots por-worker em coverage/
+        # e falha o job se algum ref warning escapar dos guards locais.
+        env:
+          STRICT_REF_WARNINGS: "1"
+          CONSOLE_SNAPSHOT_PATH: "coverage/console-snapshot.json"
+        run: npm run test:strict-ref
+
+      - name: Upload console snapshot (auditoria)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: console-snapshot-${{ github.run_id }}
+          path: |
+            coverage/console-snapshot.json
+            coverage/console-snapshot.*.json
+          retention-days: 14
+          if-no-files-found: ignore
+
       - name: Run tests with coverage
         run: npm run test:coverage
 
