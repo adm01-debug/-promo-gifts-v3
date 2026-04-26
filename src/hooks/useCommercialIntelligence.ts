@@ -6,6 +6,8 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCurrentOrgId } from '@/hooks/useCurrentOrgId';
+import { useSalesScope } from '@/lib/auth/visibility-scope';
+import { applySellerScope } from '@/lib/auth/apply-seller-scope';
 import { logger } from '@/lib/logger';
 import { getSinceDate, aggregateSegments, aggregateClients } from './intelligence/intelligenceHelpers';
 
