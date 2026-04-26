@@ -409,6 +409,7 @@ export function DevAccessDeniedPage({
                 asChild
                 className="w-full"
                 title={`Enviar e-mail para ${DEV_ACCESS_CONTACT_EMAIL}`}
+                onClick={() => emit("mail")}
               >
                 <a
                   href={`mailto:${DEV_ACCESS_CONTACT_EMAIL}?subject=${encodeURIComponent(
@@ -428,6 +429,7 @@ export function DevAccessDeniedPage({
               size="sm"
               asChild
               className="text-xs"
+              onClick={() => emit("mail")}
             >
               <a
                 href={`mailto:${DEV_ACCESS_CONTACT_EMAIL}?subject=${encodeURIComponent(
@@ -446,7 +448,10 @@ export function DevAccessDeniedPage({
           <div className="flex w-full flex-wrap gap-2 pt-2 border-t border-border/40">
             <Button
               variant="ghost"
-              onClick={() => navigate(-1)}
+              onClick={() => {
+                finalize("back");
+                navigate(-1);
+              }}
               className="flex-1 min-w-[8rem]"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
@@ -454,12 +459,13 @@ export function DevAccessDeniedPage({
             </Button>
             <Button
               variant="outline"
-              onClick={() =>
+              onClick={() => {
+                finalize("retry");
                 navigate(blockedFullPath, {
                   replace: true,
                   state: blockedState,
-                })
-              }
+                });
+              }}
               className="flex-1 min-w-[8rem]"
               title={`Reabrir ${blockedFullPath} preservando o contexto original`}
             >
@@ -468,9 +474,10 @@ export function DevAccessDeniedPage({
             </Button>
             <Button
               variant="secondary"
-              onClick={() =>
-                navigate(copy.contextualCtaPath, { replace: true })
-              }
+              onClick={() => {
+                finalize("fallback");
+                navigate(copy.contextualCtaPath, { replace: true });
+              }}
               className="flex-1 min-w-[8rem]"
             >
               {copy.contextualCtaIcon}
