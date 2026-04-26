@@ -76,16 +76,23 @@ export function DevRoute({ children }: DevRouteProps) {
     }
   }, [isLoading, user, isDev, hasMFA]);
 
-  // Notifica uma vez ao bloquear (telemetria de UX + clareza)
+  // Notifica uma vez ao bloquear (telemetria de UX + clareza) e
+  // registra a tentativa para auditoria (RLS-safe, throttled).
   useEffect(() => {
     if (!isLoading && user && !isDev) {
-      toast.error("Acesso restrito", {
+      toast.error("Acesso negado (403)", {
         description:
           "Esta área exige o papel Desenvolvedor. Solicite acesso ao time técnico.",
         id: "dev-route-blocked",
       });
+      void logAccessDenied({
+        userId: user.id,
+        blockedPath,
+        requiredRole: "dev",
+        userRole: role,
+      });
     }
-  }, [isLoading, user, isDev]);
+  }, [isLoading, user, isDev, blockedPath, role]);
 
   const handleRequestAccess = async () => {
     if (!user) return;
