@@ -74,6 +74,8 @@ export const MobileProductActions = React.forwardRef<HTMLDivElement, MobileProdu
               "h-10 w-10 shrink-0 rounded-full transition-colors",
               isFavorite && "bg-destructive/10 border-destructive/50 text-destructive"
             )}
+            data-testid="product-favorite"
+            aria-pressed={isFavorite}
            aria-label="Favoritar"><Heart
               className={cn(
                 "h-4 w-4",
