@@ -106,13 +106,9 @@ class EnhancedErrorBoundary extends Component<Props, State> {
   };
 
   handleClearCacheReload = () => {
-    // Clear service worker caches if available
-    if ('caches' in window) {
-      caches.keys().then(names => {
-        names.forEach(name => caches.delete(name));
-      });
-    }
-    window.location.reload();
+    // Reaproveita o pipeline de recovery (Cache API + SW + cache-bust no URL).
+    // Ignora o limite de reloads aqui pois é uma ação manual do usuário.
+    void attemptChunkRecovery(this.state.error ?? new Error('manual cache reload'));
   };
 
   override render() {
