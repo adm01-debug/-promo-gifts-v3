@@ -8,6 +8,7 @@ import { McpKeysList } from "@/components/admin/security/keys/McpKeysList";
 import { McpAuditFeed } from "@/components/admin/security/keys/audit/McpAuditFeed";
 import { StepUpAttemptsPanel } from "@/components/admin/security/keys/audit/StepUpAttemptsPanel";
 import { AutoRevocationsPanel } from "@/components/admin/security/keys/audit/AutoRevocationsPanel";
+import { FullOpDiagnosticsPanel } from "@/components/admin/security/keys/diagnostics/FullOpDiagnosticsPanel";
 
 export default function AdminSegurancaChavesPage() {
   return (
@@ -44,6 +45,7 @@ export default function AdminSegurancaChavesPage() {
             <TabsTrigger value="audit">Histórico de auditoria</TabsTrigger>
             <TabsTrigger value="stepup">Tentativas FULL bloqueadas</TabsTrigger>
             <TabsTrigger value="auto-revoke">Auto-revogações</TabsTrigger>
+            <TabsTrigger value="diagnostics">Diagnóstico</TabsTrigger>
           </TabsList>
           <TabsContent value="keys" className="m-0">
             <McpKeysList />
@@ -56,6 +58,9 @@ export default function AdminSegurancaChavesPage() {
           </TabsContent>
           <TabsContent value="auto-revoke" className="m-0">
             <AutoRevocationsPanel />
+          </TabsContent>
+          <TabsContent value="diagnostics" className="m-0">
+            <FullOpDiagnosticsPanel />
           </TabsContent>
         </Tabs>
       </div>
