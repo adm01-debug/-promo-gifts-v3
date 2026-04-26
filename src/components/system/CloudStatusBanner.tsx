@@ -33,7 +33,7 @@ export function CloudStatusBanner() {
           className={getContainerClass(status)}
         >
           <div className="container mx-auto flex items-center gap-3 px-4 py-2 text-sm">
-            <Icon status={status} />
+            {renderIcon(status)}
             <span className="flex-1">{getMessage(status)}</span>
             {status === 'down' && (
               <Button
