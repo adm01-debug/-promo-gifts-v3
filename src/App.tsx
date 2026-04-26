@@ -61,6 +61,7 @@ const QuotesKanbanPage = lazyWithRetry(() => import("./pages/QuotesKanbanPage"))
 
 // Admin Pages
 const AdminUsuariosPage = lazyWithRetry(() => import("./pages/admin/AdminUsuariosPage"));
+const AdminPromoverUsuarioPage = lazyWithRetry(() => import("./pages/admin/AdminPromoverUsuarioPage"));
 const AdminSegurancaPage = lazyWithRetry(() => import("./pages/admin/AdminSegurancaPage"));
 const AdminCadastrosPage = lazyWithRetry(() => import("./pages/admin/AdminCadastrosPage"));
 const AdminPromptsIAPage = lazyWithRetry(() => import("./pages/admin/AdminPromptsIAPage"));
@@ -235,6 +236,7 @@ const App = () => {
                             <Route element={<AdminRoute />} errorElement={<RouteErrorBoundary />}>
                               <Route path="/admin" element={<Navigate to="/admin/usuarios" replace />} />
                               <Route path="/admin/usuarios" element={<AdminUsuariosPage />} />
+                              <Route path="/admin/usuarios/promover" element={<AdminPromoverUsuarioPage />} />
                               <Route path="/admin/cadastros" element={<AdminCadastrosPage />} />
                               <Route path="/admin/cadastros/produto/:id" element={<AdminProductFormPage />} />
                               <Route path="/admin/permissoes" element={<PermissionsPage />} />
