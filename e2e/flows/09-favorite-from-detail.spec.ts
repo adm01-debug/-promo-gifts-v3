@@ -11,6 +11,7 @@
  */
 import { test, expect, requireAuth } from "../fixtures/test-base";
 import { gotoAndSettle } from "../helpers/nav";
+import { installFavoritesCleanup } from "../helpers/favorites";
 import { Sel } from "../fixtures/selectors";
 import type { Locator, Page } from "@playwright/test";
 
@@ -67,6 +68,7 @@ async function isFavoritedDetail(btn: Locator): Promise<boolean> {
 
 test.describe("Fluxo: Favoritar a partir da página de detalhe", () => {
   test.beforeEach(() => requireAuth());
+  installFavoritesCleanup(test);
 
   test("favorita no detalhe, recarrega /favoritos e o produto aparece na lista", async ({
     page,

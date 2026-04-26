@@ -13,6 +13,7 @@
  */
 import { test, expect, requireAuth } from "../fixtures/test-base";
 import { gotoAndSettle } from "../helpers/nav";
+import { installFavoritesCleanup } from "../helpers/favorites";
 import { Sel } from "../fixtures/selectors";
 import type { Locator, Page } from "@playwright/test";
 
@@ -85,6 +86,7 @@ async function assertFavoritesHeader(
 
 test.describe("Fluxo: Favoritos", () => {
   test.beforeEach(() => requireAuth());
+  installFavoritesCleanup(test);
 
   test("lista de favoritos carrega", async ({ page }) => {
     await gotoAndSettle(page, "/favoritos");

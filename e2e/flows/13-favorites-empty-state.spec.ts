@@ -15,6 +15,7 @@
  */
 import { test, expect, requireAuth } from "../fixtures/test-base";
 import { gotoAndSettle } from "../helpers/nav";
+import { installFavoritesCleanup } from "../helpers/favorites";
 import { Sel } from "../fixtures/selectors";
 import type { Page } from "@playwright/test";
 
@@ -66,6 +67,7 @@ async function readFavoritesCount(page: Page): Promise<number> {
 
 test.describe("Fluxo: /favoritos com lista vazia", () => {
   test.beforeEach(() => requireAuth());
+  installFavoritesCleanup(test);
 
   test("mostra empty state e mantém botão de favoritar consistente no catálogo", async ({
     page,

@@ -13,6 +13,7 @@
  */
 import { test, expect, requireAuth } from "../fixtures/test-base";
 import { gotoAndSettle } from "../helpers/nav";
+import { installFavoritesCleanup } from "../helpers/favorites";
 import { Sel } from "../fixtures/selectors";
 import type { Page } from "@playwright/test";
 
@@ -90,6 +91,7 @@ async function firstCardProductId(page: Page): Promise<string> {
 
 test.describe("Persistência de favoritos via localStorage", () => {
   test.beforeEach(() => requireAuth());
+  installFavoritesCleanup(test);
 
   test("favoritar pela UI grava no localStorage e persiste após reload", async ({ page }) => {
     await gotoAndSettle(page, "/produtos");

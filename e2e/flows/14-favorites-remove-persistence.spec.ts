@@ -13,6 +13,7 @@
  */
 import { test, expect, requireAuth } from "../fixtures/test-base";
 import { gotoAndSettle, settleAfterAction } from "../helpers/nav";
+import { installFavoritesCleanup } from "../helpers/favorites";
 import { Sel } from "../fixtures/selectors";
 import type { Locator, Page } from "@playwright/test";
 
@@ -68,6 +69,7 @@ async function acceptConfirmIfAny(page: Page): Promise<void> {
 
 test.describe("Fluxo: remover favorito persiste após reload", () => {
   test.beforeEach(() => requireAuth());
+  installFavoritesCleanup(test);
 
   test("remove em /favoritos, page.reload() e item some da lista (e do texto)", async ({
     page,
