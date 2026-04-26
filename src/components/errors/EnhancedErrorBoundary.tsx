@@ -19,7 +19,6 @@ interface State {
 }
 
 const MAX_AUTO_RETRIES = 2;
-const AUTO_RETRY_DELAY = 1500;
 
 /**
  * EnhancedErrorBoundary — Global error boundary wrapping <App />.
