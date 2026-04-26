@@ -2,19 +2,24 @@
  * SSOT de seletores E2E.
  *
  * Política (10/10):
- *  - **Apenas `data-testid`**. Não use texto, role, aria-label, classes ou ids
- *    de DOM como seletor. Esses são frágeis e quebram em refactors de UI/i18n.
+ *  - **Apenas `data-testid`** para elementos do nosso app. Não use texto, role,
+ *    aria-label, classes ou ids de DOM como seletor — são frágeis e quebram
+ *    em refactors de UI/i18n.
+ *  - **Exceção controlada**: bibliotecas externas que expõem data-attributes
+ *    estáveis como contrato público (ex.: `data-sonner-toast` da lib `sonner`)
+ *    são aceitos. Estão isolados em `Sel.ext.*`.
  *  - Convenção de nomes: `kebab-case` + sufixo do papel
  *    (`-input`, `-submit`, `-toggle`, `-list`, `-item`, `-card`, `-cta`).
- *  - Para grupos dinâmicos (ex.: itens indexados) use prefixo: `quote-item-${i}`.
- *    No spec consulte com `[data-testid^="quote-item"]` ou via helper.
- *  - Sempre que adicionar um seletor novo, adicione antes o `data-testid` no
- *    componente React correspondente.
+ *  - Para grupos dinâmicos (ex.: itens indexados) use prefixo:
+ *    `quote-item-${i}`. No spec consulte com `Sel.quote.items` (prefix match)
+ *    ou `Sel.quote.item(i)` para um índice específico.
+ *  - Sempre que adicionar um seletor novo, primeiro adicione o `data-testid`
+ *    no componente React correspondente.
  *
  * Uso:
  *   import { Sel, TID } from "../fixtures/selectors";
  *   await page.fill(Sel.login.email, "user@x.com");
- *   await page.click(Sel.login.submit);
+ *   await page.locator(Sel.login.submit).click();
  */
 
 export const TID = (id: string): string => `[data-testid="${id}"]`;
@@ -57,6 +62,8 @@ export const Sel = {
      */
     favorite: `${TID("product-card-favorite")}, ${TID("product-favorite")}`,
     favoriteRemove: TID("favorite-remove"),
+    /** Trigger de adicionar ao carrinho (atualmente o botão do header). */
+    cartTrigger: TID("cart-trigger"),
   },
 
   // ---------- Orçamentos ----------
@@ -91,13 +98,24 @@ export const Sel = {
     qtyBadge: TID("cart-qty-badge"),
     increment: TID("cart-qty-increment"),
     checkoutCta: TID("cart-checkout-cta"),
-    /** Diálogos de confirmação seguem o padrão de testid. */
     confirmDialog: TID("cart-confirm-dialog"),
   },
 
   // ---------- App genérico ----------
   app: {
-    toast: TID("app-toast"),
+    /**
+     * Toast genérico. Combina `data-sonner-toast` (contrato estável da lib
+     * `sonner`) com nosso wrapper `app-toast` quando aplicável.
+     */
+    toast: `${TID("app-toast")}, [data-sonner-toast]`,
+    /** Alias histórico — equivalente a `toast`. */
+    anyToast: `${TID("app-toast")}, [data-sonner-toast]`,
     errorBanner: TID("app-error-banner"),
+  },
+
+  // ---------- Bibliotecas externas (contratos estáveis) ----------
+  ext: {
+    /** Toast da lib `sonner` — atributo público da lib. */
+    sonnerToast: "[data-sonner-toast]",
   },
 } as const;
