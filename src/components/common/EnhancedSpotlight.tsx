@@ -6,6 +6,8 @@ import { Search, ArrowRight, Command, Clock, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { buildSpotlightItems, type SpotlightItem } from "./spotlight/SpotlightItems";
+import { useAuth } from "@/contexts/AuthContext";
+import { filterByRoutePermission } from "@/lib/navigation/filter-restricted-items";
 
 // SpotlightItem type imported from ./spotlight/SpotlightItems
 
@@ -16,6 +18,7 @@ export function EnhancedSpotlight() {
   const [recentActions, setRecentActions] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
+  const { isDev, isAdmin } = useAuth();
 
   // Load recent actions from localStorage
   useEffect(() => {
@@ -35,7 +38,11 @@ export function EnhancedSpotlight() {
     localStorage.setItem("spotlight-recent", JSON.stringify(updated));
   };
 
-  const items: SpotlightItem[] = useMemo(() => buildSpotlightItems(navigate), [navigate]);
+  const items: SpotlightItem[] = useMemo(() => {
+    const all = buildSpotlightItems(navigate);
+    // Esconde itens cujas rotas exigem papel que o usuário não tem.
+    return filterByRoutePermission(all, (i) => i.path, { isDev, isAdmin });
+  }, [navigate, isDev, isAdmin]);
 
   // Fuse.js para busca fuzzy
   const fuse = useMemo(() => {

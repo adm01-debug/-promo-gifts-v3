@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/command";
 import { Search, Sparkles, Clock } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { filterByRoutePermission } from "@/lib/navigation/filter-restricted-items";
 import { CommandActionGroup } from "./CommandActionGroup";
 import {
   buildActions,
@@ -32,6 +34,7 @@ export function GlobalCommandBar({ children, showTrigger = false }: GlobalComman
   const [recentItems, setRecentItems] = useState<RecentItem[]>([]);
   const navigate = useNavigate();
   const { actualTheme, setTheme } = useTheme();
+  const { isDev, isAdmin } = useAuth();
 
   // Load recent items
   useEffect(() => {
@@ -76,10 +79,11 @@ export function GlobalCommandBar({ children, showTrigger = false }: GlobalComman
     [navigate, addToRecent]
   );
 
-  const actions = useMemo(
-    () => buildActions({ goTo, actualTheme, setTheme, setOpen }),
-    [goTo, actualTheme, setTheme]
-  );
+  const actions = useMemo(() => {
+    const all = buildActions({ goTo, actualTheme, setTheme, setOpen });
+    // Filtra ações que apontam para rotas restritas (admin/dev) sem papel.
+    return filterByRoutePermission(all, (a) => a.path, { isDev, isAdmin });
+  }, [goTo, actualTheme, setTheme, isDev, isAdmin]);
 
   // Filter
   const filteredActions = useMemo(() => {
@@ -100,10 +104,16 @@ export function GlobalCommandBar({ children, showTrigger = false }: GlobalComman
     return g;
   }, [filteredActions]);
 
-  // Recents
+  // Recents — também filtrados por permissão (recente pode ter sido
+  // salvo quando o usuário tinha role mais alta).
   const recentActions: CommandAction[] = useMemo(() => {
     if (search) return [];
-    return recentItems.map((item) => ({
+    const visible = filterByRoutePermission(
+      recentItems,
+      (i) => i.path,
+      { isDev, isAdmin },
+    );
+    return visible.map((item) => ({
       id: `recent-${item.id}`,
       label: item.label,
       description: "Acessado recentemente",
@@ -111,8 +121,9 @@ export function GlobalCommandBar({ children, showTrigger = false }: GlobalComman
       action: () => goTo(item.path, item.label, item.type),
       category: "recent" as const,
       keywords: [],
+      path: item.path,
     }));
-  }, [recentItems, search, goTo]);
+  }, [recentItems, search, goTo, isDev, isAdmin]);
 
   return (
     <>
