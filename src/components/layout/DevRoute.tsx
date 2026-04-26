@@ -1,4 +1,5 @@
 import { type ReactNode, useEffect, useState } from "react";
+import { Helmet } from "react-helmet-async";
 import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
   Loader2,
@@ -20,6 +21,7 @@ import {
   getThrottleStatus,
   DEV_ACCESS_CONTACT_EMAIL,
 } from "@/lib/access/request-dev-access";
+import { logAccessDenied } from "@/lib/access/log-access-denied";
 
 interface DevRouteProps {
   children?: ReactNode;
