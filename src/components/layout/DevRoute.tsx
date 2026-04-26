@@ -9,6 +9,7 @@ import {
   Copy,
   Check,
   Mail,
+  RotateCw,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -68,6 +69,16 @@ export function DevRoute({ children }: DevRouteProps) {
 
   const safeFallback = isSupervisorOrAbove ? "/admin/usuarios" : "/";
   const blockedPath = location.pathname;
+  // Snapshot da rota bloqueada (path + search + hash + state) capturado na
+  // primeira renderização, para que "Tentar novamente" preserve o location
+  // state original mesmo após re-renders ou depois de abrir/fechar diálogos.
+  const [blockedTarget] = useState(() => ({
+    pathname: location.pathname,
+    search: location.search,
+    hash: location.hash,
+    state: location.state,
+  }));
+  const blockedFullPath = `${blockedTarget.pathname}${blockedTarget.search}${blockedTarget.hash}`;
 
   // Abre enrollment automaticamente para dev sem MFA cadastrado.
   useEffect(() => {
@@ -296,19 +307,33 @@ export function DevRoute({ children }: DevRouteProps) {
             </div>
           </div>
 
-          <div className="flex w-full gap-2 pt-2 border-t border-border/40">
+          <div className="flex w-full flex-wrap gap-2 pt-2 border-t border-border/40">
             <Button
               variant="ghost"
               onClick={() => navigate(-1)}
-              className="flex-1"
+              className="flex-1 min-w-[8rem]"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Voltar
             </Button>
             <Button
+              variant="outline"
+              onClick={() =>
+                navigate(blockedFullPath, {
+                  replace: true,
+                  state: blockedTarget.state,
+                })
+              }
+              className="flex-1 min-w-[8rem]"
+              title={`Reabrir ${blockedFullPath} preservando o contexto original`}
+            >
+              <RotateCw className="h-4 w-4 mr-2" />
+              Tentar novamente
+            </Button>
+            <Button
               variant="secondary"
               onClick={() => navigate(safeFallback, { replace: true })}
-              className="flex-1"
+              className="flex-1 min-w-[8rem]"
             >
               Ir para {isSupervisorOrAbove ? "Usuários" : "Início"}
             </Button>
