@@ -199,7 +199,11 @@ describe('ANON — bloqueado em telemetria, logs e conexões', () => {
 // ---------- Regressão específica: nenhuma policy ainda usa 'admin' literal ----------
 describe('Regressão pós-migration — papel "admin" literal', () => {
   it('nenhuma policy desta matriz aponta para gate inexistente "has_role admin"', () => {
-    const validGates: Gate[] = ['is_admin', 'is_supervisor_or_above', 'is_dev', 'public_select'];
+    const validGates: Gate[] = [
+      'is_admin', 'is_supervisor_or_above', 'is_dev', 'public_select',
+      'can_view_audit_logs', 'can_view_telemetry',
+      'can_view_connections', 'can_manage_connections',
+    ];
     POLICIES.forEach((p) => {
       expect(validGates).toContain(p.gate);
     });
