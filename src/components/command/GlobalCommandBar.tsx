@@ -104,10 +104,16 @@ export function GlobalCommandBar({ children, showTrigger = false }: GlobalComman
     return g;
   }, [filteredActions]);
 
-  // Recents
+  // Recents — também filtrados por permissão (recente pode ter sido
+  // salvo quando o usuário tinha role mais alta).
   const recentActions: CommandAction[] = useMemo(() => {
     if (search) return [];
-    return recentItems.map((item) => ({
+    const visible = filterByRoutePermission(
+      recentItems,
+      (i) => i.path,
+      { isDev, isAdmin },
+    );
+    return visible.map((item) => ({
       id: `recent-${item.id}`,
       label: item.label,
       description: "Acessado recentemente",
@@ -115,8 +121,9 @@ export function GlobalCommandBar({ children, showTrigger = false }: GlobalComman
       action: () => goTo(item.path, item.label, item.type),
       category: "recent" as const,
       keywords: [],
+      path: item.path,
     }));
-  }, [recentItems, search, goTo]);
+  }, [recentItems, search, goTo, isDev, isAdmin]);
 
   return (
     <>
