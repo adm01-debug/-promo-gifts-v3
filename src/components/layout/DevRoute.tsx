@@ -1,28 +1,12 @@
 import { type ReactNode, useEffect, useState } from "react";
-import { Helmet } from "react-helmet-async";
-import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
-import {
-  Loader2,
-  ShieldAlert,
-  ArrowLeft,
-  Send,
-  Copy,
-  Check,
-  Mail,
-  RotateCw,
-} from "lucide-react";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { MfaEnrollmentDialog } from "@/components/security/MfaEnrollmentDialog";
 import { MfaChallengeDialog } from "@/components/security/MfaChallengeDialog";
-import {
-  requestDevAccess,
-  getThrottleStatus,
-  DEV_ACCESS_CONTACT_EMAIL,
-} from "@/lib/access/request-dev-access";
 import { logAccessDenied } from "@/lib/access/log-access-denied";
+import { DevAccessDeniedPage } from "@/components/access/DevAccessDeniedPage";
 
 interface DevRouteProps {
   children?: ReactNode;
@@ -53,7 +37,6 @@ export function DevRoute({ children }: DevRouteProps) {
   const {
     user,
     isDev,
-    isSupervisorOrAbove,
     isLoading,
     currentAAL,
     hasMFA,
@@ -61,13 +44,8 @@ export function DevRoute({ children }: DevRouteProps) {
     role,
   } = useAuth();
   const location = useLocation();
-  const navigate = useNavigate();
-  const [reason, setReason] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [copied, setCopied] = useState(false);
   const [enrollOpen, setEnrollOpen] = useState(false);
 
-  const safeFallback = isSupervisorOrAbove ? "/admin/usuarios" : "/";
   const blockedPath = location.pathname;
   // Snapshot da rota bloqueada (path + search + hash + state) capturado na
   // primeira renderização, para que "Tentar novamente" preserve o location
@@ -104,61 +82,6 @@ export function DevRoute({ children }: DevRouteProps) {
       });
     }
   }, [isLoading, user, isDev, blockedPath, role]);
-
-  const handleRequestAccess = async () => {
-    if (!user) return;
-    const throttle = getThrottleStatus(user.id);
-    if (throttle.throttled) {
-      toast.warning("Aguarde antes de tentar novamente", {
-        description: `Você poderá enviar uma nova solicitação em ${throttle.retryInSeconds}s.`,
-      });
-      return;
-    }
-    setSubmitting(true);
-    const result = await requestDevAccess({
-      userId: user.id,
-      userEmail: user.email,
-      blockedPath,
-      reason,
-    });
-    setSubmitting(false);
-
-    if (result.throttled) {
-      toast.warning("Aguarde antes de tentar novamente", {
-        description: `Você poderá enviar uma nova solicitação em ${result.retryInSeconds ?? 60}s.`,
-      });
-      return;
-    }
-
-    if (!result.ok) {
-      toast.error("Não foi possível registrar a solicitação", {
-        description: result.error ?? "Tente novamente em instantes.",
-      });
-      return;
-    }
-
-    toast.success("Solicitação enviada", {
-      description: `Avisamos o time técnico (${DEV_ACCESS_CONTACT_EMAIL}). Você receberá uma notificação quando o acesso for revisado.`,
-    });
-    if (result.mailtoUrl) {
-      // Abre o cliente de email para registro adicional fora do sistema.
-      window.location.href = result.mailtoUrl;
-    }
-  };
-
-  const handleCopyLink = async () => {
-    try {
-      const url = `${window.location.origin}${blockedPath}`;
-      await navigator.clipboard.writeText(url);
-      setCopied(true);
-      toast.success("Link copiado", {
-        description: "Envie ao time técnico para liberar o acesso.",
-      });
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      toast.error("Não foi possível copiar o link");
-    }
-  };
 
   if (isLoading) {
     return (
@@ -202,145 +125,13 @@ export function DevRoute({ children }: DevRouteProps) {
 
   if (!isDev) {
     return (
-      <>
-        {/* Sinal semântico 403 (SPA não emite HTTP real, mas alimenta crawlers/bots/QA). */}
-        <Helmet>
-          <title>403 — Acesso negado</title>
-          <meta name="robots" content="noindex, nofollow" />
-          <meta name="x-http-status" content="403" />
-        </Helmet>
-        <div
-          role="alert"
-          aria-labelledby="dev-route-403-title"
-          data-http-status="403"
-          data-blocked-path={blockedPath}
-          className="min-h-screen flex items-center justify-center bg-background px-4 py-8"
-        >
-          <div className="w-full max-w-md flex flex-col items-center gap-5 text-center">
-          <ShieldAlert
-            className="h-12 w-12 text-destructive"
-            aria-hidden="true"
-          />
-          <div className="space-y-2">
-            <h1 id="dev-route-403-title" className="text-xl font-semibold">
-              403 — Área restrita ao papel Desenvolvedor
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Esta página contém ferramentas técnicas (telemetria, conexões,
-              secrets, MCP, auditoria de baixo nível) e exige o papel{" "}
-              <code className="font-mono px-1 py-0.5 rounded bg-muted">
-                dev
-              </code>
-              .
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Rota bloqueada:{" "}
-              <code className="font-mono px-1 py-0.5 rounded bg-muted">
-                {blockedPath}
-              </code>
-            </p>
-          </div>
-
-          <div className="w-full text-left space-y-2">
-            <label
-              htmlFor="dev-access-reason"
-              className="text-xs font-medium text-foreground"
-            >
-              Motivo (opcional)
-            </label>
-            <Textarea
-              id="dev-access-reason"
-              value={reason}
-              onChange={(e) => setReason(e.target.value.slice(0, 500))}
-              placeholder="Ex.: preciso investigar lentidão no catálogo após a release de hoje."
-              rows={3}
-              className="resize-none"
-              disabled={submitting}
-            />
-            <div className="text-[10px] text-muted-foreground text-right">
-              {reason.length}/500
-            </div>
-          </div>
-
-          <div className="flex flex-col w-full gap-2">
-            <Button
-              onClick={handleRequestAccess}
-              disabled={submitting}
-              className="w-full"
-            >
-              {submitting ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Send className="h-4 w-4 mr-2" />
-              )}
-              Solicitar acesso a Dev
-            </Button>
-
-            <div className="grid grid-cols-2 gap-2">
-              <Button
-                variant="outline"
-                onClick={handleCopyLink}
-                className="w-full"
-              >
-                {copied ? (
-                  <Check className="h-4 w-4 mr-2" />
-                ) : (
-                  <Copy className="h-4 w-4 mr-2" />
-                )}
-                Copiar link
-              </Button>
-              <Button
-                variant="outline"
-                asChild
-                className="w-full"
-                title={`Enviar e-mail para ${DEV_ACCESS_CONTACT_EMAIL}`}
-              >
-                <a
-                  href={`mailto:${DEV_ACCESS_CONTACT_EMAIL}?subject=${encodeURIComponent(
-                    `[Promo Gifts] Acesso técnico — ${blockedPath}`,
-                  )}`}
-                >
-                  <Mail className="h-4 w-4 mr-2" />
-                  E-mail
-                </a>
-              </Button>
-            </div>
-          </div>
-
-          <div className="flex w-full flex-wrap gap-2 pt-2 border-t border-border/40">
-            <Button
-              variant="ghost"
-              onClick={() => navigate(-1)}
-              className="flex-1 min-w-[8rem]"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Voltar
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() =>
-                navigate(blockedFullPath, {
-                  replace: true,
-                  state: blockedTarget.state,
-                })
-              }
-              className="flex-1 min-w-[8rem]"
-              title={`Reabrir ${blockedFullPath} preservando o contexto original`}
-            >
-              <RotateCw className="h-4 w-4 mr-2" />
-              Tentar novamente
-            </Button>
-            <Button
-              variant="secondary"
-              onClick={() => navigate(safeFallback, { replace: true })}
-              className="flex-1 min-w-[8rem]"
-            >
-              Ir para {isSupervisorOrAbove ? "Usuários" : "Início"}
-            </Button>
-          </div>
-        </div>
-        </div>
-      </>
+      <DevAccessDeniedPage
+        user={{ id: user.id, email: user.email }}
+        role={role}
+        blockedPath={blockedPath}
+        blockedFullPath={blockedFullPath}
+        blockedState={blockedTarget.state}
+      />
     );
   }
 
