@@ -69,6 +69,16 @@ export function DevRoute({ children }: DevRouteProps) {
 
   const safeFallback = isSupervisorOrAbove ? "/admin/usuarios" : "/";
   const blockedPath = location.pathname;
+  // Snapshot da rota bloqueada (path + search + hash + state) capturado na
+  // primeira renderização, para que "Tentar novamente" preserve o location
+  // state original mesmo após re-renders ou depois de abrir/fechar diálogos.
+  const [blockedTarget] = useState(() => ({
+    pathname: location.pathname,
+    search: location.search,
+    hash: location.hash,
+    state: location.state,
+  }));
+  const blockedFullPath = `${blockedTarget.pathname}${blockedTarget.search}${blockedTarget.hash}`;
 
   // Abre enrollment automaticamente para dev sem MFA cadastrado.
   useEffect(() => {
