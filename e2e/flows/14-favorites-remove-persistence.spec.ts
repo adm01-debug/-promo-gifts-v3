@@ -281,6 +281,17 @@ test.describe("Fluxo: remover favorito persiste após reload", () => {
     const snapshotWithItem = await readFavoritesSnapshot(page);
     expect(snapshotWithItem.title).toBe(baselineSnapshot.title);
     expect(snapshotWithItem.listSize, "lista deveria conter ao menos 1 card visível").toBeGreaterThan(0);
+    expect(
+      snapshotWithItem.items.length,
+      "snapshot.items deve ter o mesmo length que listSize",
+    ).toBe(snapshotWithItem.listSize);
+
+    // Confirma via SSOT (readFavoritesItems) que o produto adicionado está na lista renderizada
+    const addedItem = snapshotWithItem.items.find((i) => i.productId === addedId);
+    expect(
+      addedItem,
+      `addedId=${addedId} deveria aparecer em readFavoritesItems() antes da remoção`,
+    ).toBeTruthy();
 
     // Localiza o card do produto adicionado por data-product-id (presente em ProductCard)
     const targetCard = page.locator(`[data-product-id="${addedId}"]`).first();
@@ -290,8 +301,8 @@ test.describe("Fluxo: remover favorito persiste após reload", () => {
       `card de favorito ${addedId} deveria estar visível antes da remoção`,
     ).toBeVisible({ timeout: 10_000 });
 
-    // Captura o nome do produto ANTES da remoção (data-product-name é SSOT no card)
-    const targetName = (await targetCard.getAttribute("data-product-name"))?.trim() ?? "";
+    // Nome alvo vem do snapshot SSOT (mesma fonte que será usada nas asserções)
+    const targetName = addedItem?.productName?.trim() ?? "";
     expect(targetName, "data-product-name do card alvo deveria estar presente").not.toBe("");
 
     // 3. Remove via botão "Remover favorito" do card alvo
