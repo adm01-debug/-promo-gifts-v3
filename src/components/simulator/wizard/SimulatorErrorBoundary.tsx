@@ -1,6 +1,16 @@
 /**
- * SimulatorErrorBoundary - Error boundary para falhas de RPC no simulador
- * 
+ * SimulatorErrorBoundary — Error boundary LOCAL do wizard de simulador.
+ *
+ * **Não é duplicidade** do `EnhancedErrorBoundary` global. É uma
+ * especialização de feature com:
+ *   - UI inline (não full-screen) para caber dentro do card do wizard;
+ *   - callbacks `onReset` / `onGoBack` integrados ao stepper do simulador;
+ *   - contagem de retries com mensagem específica após 3 falhas.
+ *
+ * Erros que escapam deste boundary continuam sendo capturados pelo
+ * `EnhancedErrorBoundary` global instalado em `src/main.tsx` (com
+ * auto-recovery de chunk, logging estruturado e CTAs globais).
+ *
  * Captura erros de renderização e oferece retry com feedback visual.
  */
 
