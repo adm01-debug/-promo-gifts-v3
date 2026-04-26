@@ -8,6 +8,7 @@ import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRBAC } from "@/hooks/useRBAC";
 import { getPrefetchHandlers } from "@/lib/routePrefetch";
+import { isDevOnlyPath, isAdminOnlyPath } from "@/lib/navigation/restricted-routes";
 
 export interface NavItem {
   icon: React.ComponentType<{ className?: string }>;
