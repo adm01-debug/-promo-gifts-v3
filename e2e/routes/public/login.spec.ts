@@ -79,7 +79,7 @@ test.describe("/login", () => {
     await page.fill(Sel.login.email, "u@x.com");
     await page.fill(Sel.login.password, "Senha123!");
     await page.locator(Sel.login.submit).first().click();
-    await expect(page.getByRole("alert").or(page.locator(Sel.app.toast)).first()).toBeVisible({ timeout: 8000 });
+    await expect(page.locator(`${Sel.login.errorMsg}, ${Sel.app.toast}`).first()).toBeVisible({ timeout: 8000 });
   });
 
   test("@a11y básico", async ({ page }) => {

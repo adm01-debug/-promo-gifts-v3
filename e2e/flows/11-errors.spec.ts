@@ -1,7 +1,7 @@
 /**
  * Fluxo: Tratamento de erro — 503 do bridge, offline, RLS denial.
  * Usa page.route para forçar respostas e validar a UI de erro.
- * Seletores: Sel.app.anyToast (SSOT).
+ * Seletores: Sel.app.toast (SSOT).
  */
 import { test, expect, requireAuth } from "../fixtures/test-base";
 import { gotoAndSettle } from "../helpers/nav";
