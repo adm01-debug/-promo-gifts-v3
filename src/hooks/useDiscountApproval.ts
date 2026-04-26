@@ -59,7 +59,17 @@ export function useDiscountApproval() {
           max_allowed_percent: maxAllowedPercent,
           seller_notes: sellerNotes || null,
         });
-      if (error) throw error;
+      if (error) {
+        await logRlsDenial(error, {
+          table: "discount_approval_requests", op: "INSERT",
+          endpoint: "useDiscountApproval.requestApproval",
+          targetId: quoteId,
+          targetSellerId: user.id,
+          policyHint: "dar_insert_scope",
+          querySummary: `requestedPct=${requestedPercent}`,
+        });
+        throw error;
+      }
 
       // Set quote status to pending_approval so UI shows correct state
       await supabase
