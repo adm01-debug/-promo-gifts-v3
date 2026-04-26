@@ -1,4 +1,5 @@
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
+import { recordDevRouteTelemetry } from "@/lib/access/dev-route-telemetry";
 import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
 import {
@@ -178,6 +179,54 @@ export function DevAccessDeniedPage({
     role === "agente" || role === "agent" || role === "vendedor";
   const isSupervisor = role === "supervisor";
 
+  // ---- Telemetria de UX (sem PII) -----------------------------------------
+  // Marca o instante em que a tela apareceu para calcular o tempo até a ação
+  // final (back/retry/fallback/request_access/abandon).
+  const viewedAtRef = useRef<number>(Date.now());
+  const finalizedRef = useRef<boolean>(false);
+  const sinceView = () => Date.now() - viewedAtRef.current;
+  const emit = (event: Parameters<typeof recordDevRouteTelemetry>[0]["event"]) =>
+    void recordDevRouteTelemetry({
+      event,
+      blockedPath,
+      userRole: typeof role === "string" ? role : null,
+      durationMs: sinceView(),
+    });
+  const finalize = (
+    event: Parameters<typeof recordDevRouteTelemetry>[0]["event"],
+  ) => {
+    if (finalizedRef.current) return;
+    finalizedRef.current = true;
+    emit(event);
+  };
+
+  // 1) Registra "view" uma única vez ao montar (sem duration).
+  useEffect(() => {
+    viewedAtRef.current = Date.now();
+    void recordDevRouteTelemetry({
+      event: "view",
+      blockedPath,
+      userRole: typeof role === "string" ? role : null,
+      durationMs: null,
+    });
+  }, [blockedPath, role]);
+
+  // 2) "abandon" via beacon ao desmontar/fechar a aba sem decisão registrada.
+  useEffect(() => {
+    const onHide = () => {
+      if (document.visibilityState === "hidden" && !finalizedRef.current) {
+        // Best-effort: a request pode não terminar — coalescing server-side cobre.
+        finalize("abandon");
+      }
+    };
+    document.addEventListener("visibilitychange", onHide);
+    return () => {
+      document.removeEventListener("visibilitychange", onHide);
+      if (!finalizedRef.current) finalize("abandon");
+    };
+  }, []);
+  // -------------------------------------------------------------------------
+
   const handleRequestAccess = async () => {
     const throttle = getThrottleStatus(user.id);
     if (throttle.throttled) {
@@ -210,6 +259,7 @@ export function DevAccessDeniedPage({
     toast.success("Solicitação enviada", {
       description: `Avisamos o time técnico (${DEV_ACCESS_CONTACT_EMAIL}). Você receberá uma notificação quando o acesso for revisado.`,
     });
+    finalize("request_access");
     if (result.mailtoUrl) {
       window.location.href = result.mailtoUrl;
     }
@@ -223,6 +273,7 @@ export function DevAccessDeniedPage({
       toast.success("Link copiado", {
         description: "Envie ao time técnico para liberar o acesso.",
       });
+      emit("copy_link");
       setTimeout(() => setCopied(false), 2000);
     } catch {
       toast.error("Não foi possível copiar o link");
@@ -358,6 +409,7 @@ export function DevAccessDeniedPage({
                 asChild
                 className="w-full"
                 title={`Enviar e-mail para ${DEV_ACCESS_CONTACT_EMAIL}`}
+                onClick={() => emit("mail")}
               >
                 <a
                   href={`mailto:${DEV_ACCESS_CONTACT_EMAIL}?subject=${encodeURIComponent(
@@ -377,6 +429,7 @@ export function DevAccessDeniedPage({
               size="sm"
               asChild
               className="text-xs"
+              onClick={() => emit("mail")}
             >
               <a
                 href={`mailto:${DEV_ACCESS_CONTACT_EMAIL}?subject=${encodeURIComponent(
@@ -395,7 +448,10 @@ export function DevAccessDeniedPage({
           <div className="flex w-full flex-wrap gap-2 pt-2 border-t border-border/40">
             <Button
               variant="ghost"
-              onClick={() => navigate(-1)}
+              onClick={() => {
+                finalize("back");
+                navigate(-1);
+              }}
               className="flex-1 min-w-[8rem]"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
@@ -403,12 +459,13 @@ export function DevAccessDeniedPage({
             </Button>
             <Button
               variant="outline"
-              onClick={() =>
+              onClick={() => {
+                finalize("retry");
                 navigate(blockedFullPath, {
                   replace: true,
                   state: blockedState,
-                })
-              }
+                });
+              }}
               className="flex-1 min-w-[8rem]"
               title={`Reabrir ${blockedFullPath} preservando o contexto original`}
             >
@@ -417,9 +474,10 @@ export function DevAccessDeniedPage({
             </Button>
             <Button
               variant="secondary"
-              onClick={() =>
-                navigate(copy.contextualCtaPath, { replace: true })
-              }
+              onClick={() => {
+                finalize("fallback");
+                navigate(copy.contextualCtaPath, { replace: true });
+              }}
               className="flex-1 min-w-[8rem]"
             >
               {copy.contextualCtaIcon}
