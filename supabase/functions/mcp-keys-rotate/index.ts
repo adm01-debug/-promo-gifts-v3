@@ -176,7 +176,9 @@ Deno.serve(async (req) => {
     const { data: stepUpOk, error: stepUpErr } = await userClient.rpc("consume_step_up_token", {
       _token: step_up_token,
       _expected_action: expectedStepUp,
-      _expected_target: null,
+      // Vincula o token à chave de origem da rotação. NULL continua aceito para
+      // compatibilidade com clientes legados que não enviam target_ref no challenge.
+      _expected_target: source_key_id,
     });
     if (stepUpErr || !stepUpOk) {
       await auditFailure("denied", { reason: "step_up_invalid", detail: stepUpErr?.message, expected_action: expectedStepUp }, source_key_id);

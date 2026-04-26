@@ -225,6 +225,7 @@ export function RotateMcpKeyDialog({ source, open, onOpenChange, onRotated }: Pr
         open={stepUpOpen}
         onOpenChange={setStepUpOpen}
         action="mcp_full_issue"
+        targetRef={source?.id ?? null}
         actionLabel={
           source ? `Rotacionar chave MCP FULL "${source.name}"` : "Rotacionar chave MCP FULL"
         }
