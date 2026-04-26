@@ -38,6 +38,7 @@ import {
 import { StepUpAuthDialog } from "@/components/auth/StepUpAuthDialog";
 import { useCanGrantMcpFull } from "./useCanGrantMcpFull";
 import { sanitizeError } from "@/lib/security/sanitize-error";
+import { handleStepUpError } from "@/lib/auth/step-up-error";
 import type { McpKeyRow } from "./useMcpKeys";
 
 interface Props {
