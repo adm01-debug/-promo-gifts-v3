@@ -13,18 +13,14 @@
  */
 import { test, expect, requireAuth } from "../fixtures/test-base";
 import { gotoAndSettle } from "../helpers/nav";
+import { Sel } from "../fixtures/selectors";
 import type { Locator, Page } from "@playwright/test";
 
-const FAV_BUTTON_SELECTOR =
-  'button[aria-label="Favoritar" i], button[aria-label*="favorit" i]';
+const FAV_BUTTON_SELECTOR = Sel.product.favorite;
 
 /** Encontra o primeiro card do catálogo com botão de favoritar visível. */
 async function firstCatalogCard(page: Page): Promise<Locator> {
-  const card = page
-    .locator(
-      '[data-testid="product-card"], article:has(button[aria-label*="favorit" i]), [role="article"]:has(button[aria-label*="favorit" i])',
-    )
-    .first();
+  const card = page.locator(Sel.product.card).first();
   await card.waitFor({ state: "visible", timeout: 15_000 });
   return card;
 }
@@ -57,7 +53,7 @@ test.describe("Fluxo: Favoritos", () => {
     await gotoAndSettle(page, "/favoritos");
     await expect(page).toHaveURL(/favoritos/);
     await expect(
-      page.getByRole("heading", { name: /favoritos/i }).first().or(
+      page.locator(Sel.page.title("favoritos")).first().or(
         page.getByText(/sem favoritos|nenhum favorito|você ainda não/i).first(),
       ),
     ).toBeVisible({ timeout: 15_000 });
@@ -101,7 +97,7 @@ test.describe("Fluxo: Favoritos", () => {
     // 5. Valida persistência
     const escaped = productName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const byName = page.getByText(new RegExp(escaped, "i")).first();
-    const removeButtons = page.locator('button[aria-label="Remover favorito" i]');
+    const removeButtons = page.locator(Sel.favorites.remove);
 
     await expect(byName.or(removeButtons.first())).toBeVisible({ timeout: 10_000 });
     expect(
@@ -112,12 +108,12 @@ test.describe("Fluxo: Favoritos", () => {
     // 6. Cleanup
     const favCard = page
       .locator(`:has-text("${productName}")`)
-      .filter({ has: page.locator('button[aria-label="Remover favorito" i]') })
+      .filter({ has: page.locator(Sel.favorites.remove) })
       .first();
 
     if ((await favCard.count()) > 0) {
       await favCard
-        .locator('button[aria-label="Remover favorito" i]')
+        .locator(Sel.favorites.remove)
         .first()
         .click()
         .catch(() => {});

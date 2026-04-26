@@ -1,96 +1,110 @@
 ## Objetivo
 
-Eliminar acúmulo de favoritos, carrinhos, coleções, comparações e orçamentos criados pelos testes E2E, removendo automaticamente toda vez que o pipeline rodar.
+Reduzir flakiness dos 11 specs E2E substituindo seletores frágeis (texto traduzido, `h1, h2`, `article`, fallbacks `text=...`) por `data-testid` estáveis. Também ampliar e padronizar `e2e/fixtures/selectors.ts` como SSOT, e atualizar specs/helpers para consumi-lo.
 
-## Arquitetura
+## Diagnóstico atual
+
+- `e2e/fixtures/selectors.ts` cobre apenas 3 áreas (login, app, quotes) — subutilizado.
+- Cobertura de `data-testid` no `src/` é mínima (~12 ocorrências, todas em Magic Up / Admin Connections).
+- Specs usam padrões frágeis recorrentes:
+  - `page.locator("h1, h2").first()` (04-quotes, 05-orders, etc.)
+  - `text=/favoritos|carrinhos|sem.../i` (08, 12)
+  - Cadeias longas `'[data-testid="product-card"], article:has(...), [role="article"]:has(...)'`
+  - `button[type="submit"]` global em login
+  - `nav >> text=Label` para sidebar
+  - `input, [role="tablist"], [data-testid*="step"]` (04-quotes)
+
+## Mudanças propostas
+
+### 1. Adicionar `data-testid` no `src/` (apenas pontos críticos consumidos pelos testes)
+
+| Componente | testid | Usado por |
+|---|---|---|
+| `LoginForm` (form, email, password, submit, toggle senha, link "esqueci") | `login-form`, `login-email-input`, `login-password-input`, `login-submit`, `login-password-toggle`, `login-forgot-link` | 01-auth, login.spec, auth.spec |
+| `AppSidebar` link items (cada `NavLink`) | `sidebar-link-{slug}` | 02-navigation |
+| Page headings das rotas principais (`Catálogo`, `Orçamentos`, `Pedidos`, `Coleções`, `Favoritos`, `Kit Builder`, `Simulador`, `Carrinhos`) | `page-title-{slug}` | 03–09 |
+| `ProductCard` (raiz, nome, botão favorito, botão carrinho, link detalhe) | `product-card`, `product-card-name`, `product-card-favorite`, `product-card-add-cart`, `product-card-link` | 03, 08, 12 |
+| Wizard de orçamento (stepper + cada step) | `quote-wizard`, `quote-step-{n}` | 04 |
+| Lista de favoritos + item + botão remover | `favorites-list`, `favorite-item`, `favorite-remove` | 08 |
+| Carrinho/checkout (drawer, item qty, increment, checkout cta, dialog confirm) | `cart-drawer`, `cart-item`, `cart-qty-input`, `cart-qty-increment`, `cart-checkout-cta`, `cart-confirm-dialog` | 12 |
+| Toast/erro genérico (já cobertos por sonner/role=alert — manter) | — | 11 |
+
+### 2. Refatorar `e2e/fixtures/selectors.ts`
+
+Reescrever como SSOT completo, agrupado por domínio, retornando objetos `Locator`-friendly (strings padronizadas `[data-testid="..."]` com fallback documentado em comentário). Estrutura:
 
 ```text
-playwright.config.ts
-   └─ globalTeardown ─► e2e/global-teardown.ts
-                            │
-                            └─► POST /functions/v1/e2e-cleanup
-                                 headers: x-e2e-cleanup-token: $E2E_CLEANUP_TOKEN
-                                 body:    { email: $E2E_USER_EMAIL, dryRun?: bool }
-                                          │
-                                          ▼
-                          supabase/functions/e2e-cleanup/index.ts
-                          (service-role, 3 camadas de segurança)
-                            1. token compartilhado (E2E_CLEANUP_TOKEN)
-                            2. allow-list de e-mails (E2E_CLEANUP_ALLOWED_EMAILS)
-                            3. resolve user_id via auth.admin.listUsers
-                            4. DELETE em cascata por user_id/seller_id
-                            5. retorna contagem por tabela
+Sel.login.{form,email,password,submit,toggle,forgot}
+Sel.sidebar.link(slug)
+Sel.page.title(slug)
+Sel.product.{card,name,favorite,addCart,link}
+Sel.quote.{wizard,step(n),newButton}
+Sel.favorites.{list,item,remove}
+Sel.cart.{drawer,item,qty,increment,checkoutCta,confirmDialog}
+Sel.app.{toast,errorBanner}
 ```
 
-## Componentes
+Manter `Sel.app.toast`/`errorBanner` como estão (já robustos por role).
 
-### 1. Edge function `supabase/functions/e2e-cleanup/index.ts` (nova)
+### 3. Atualizar os 11 specs + helpers
 
-- **Auth**: `verify_jwt = false` + validação manual:
-  - Header obrigatório `x-e2e-cleanup-token` deve bater com `Deno.env.get("E2E_CLEANUP_TOKEN")` (timing-safe compare).
-  - Email do body precisa estar em `E2E_CLEANUP_ALLOWED_EMAILS` (CSV). Sem isso, **rejeita 403**, garantindo que ninguém apaga dados de um usuário real mesmo com o token vazado.
-- Resolve `user_id` via `supabase.auth.admin.listUsers({ filter })` usando service role.
-- Modo `dryRun: true` retorna apenas as contagens sem apagar (default em ambiente local).
-- Apaga, em ordem segura (filhos → pais), filtrando por `user_id` ou `seller_id`:
-  - `favorite_item_reactions` (via `favorite_items.id`), `favorite_items`, `favorite_items_trash`, `favorite_lists`
-  - `collection_item_reactions`, `collection_items`, `collection_items_trash`, `collections`
-  - `seller_cart_items` (via `seller_carts.id`), `seller_carts`, `cart_templates`
-  - `user_comparisons`, `comparison_reactions` (via cascade)
-  - `quote_items`, `quote_item_personalizations`, `quote_history`, `quote_comments`, `quote_approval_tokens`, `quotes` (filtra `seller_id = user_id`)
-  - `kit_comments`, `custom_kits`, `kit_variants`, `kit_collaborators` (quando ownerless: skip)
-  - `generated_mockups`, `mockup_drafts`
-- Retorna `{ ok, dryRun, userId, deleted: { table: count }, totalMs }`.
-- Usa CORS padrão. Logs estruturados (sem PII além do email).
+Substituir literais frágeis por `Sel.*` em:
 
-### 2. `e2e/global-teardown.ts` (novo)
+- `e2e/flows/01-auth.spec.ts` … `12-cart-checkout.spec.ts` (12 arquivos — os "11 specs" + o novo `12-cart-checkout`)
+- `e2e/auth.spec.ts`, `e2e/login.spec.ts`, `e2e/navigation.spec.ts`, `e2e/quote-create.spec.ts`, `e2e/quote-approval.spec.ts`, `e2e/discount-approval.spec.ts`, `e2e/mockup-generate.spec.ts`, `e2e/protected-routes.spec.ts` (se compartilharem padrões)
+- `e2e/helpers/forms.ts` e `e2e/helpers/nav.ts` para usar `Sel`
 
-- Usa `fetch` global (Node 18+). Sem deps novas.
-- Lê `E2E_USER_EMAIL`, `E2E_CLEANUP_TOKEN`, `VITE_SUPABASE_URL` do env.
-- Skip silencioso (sem falhar a suite) se qualquer variável faltar — assim devs locais sem token não quebram.
-- Em CI, se `CI=true && E2E_CLEANUP_TOKEN ausente`, loga warning amarelo mas não falha.
-- Faz a chamada com timeout 15s e imprime tabela de contagens.
-- Repete para `E2E_ADMIN_EMAIL` se também estiver definido.
+Padrão de migração (exemplo):
 
-### 3. `playwright.config.ts` (edição mínima)
+```ts
+// antes
+await page.fill("#login-email", email);
+await page.click('button[type="submit"]');
+await expect(page.locator("h1, h2").first()).toBeVisible();
 
-- Adicionar `globalTeardown: require.resolve("./e2e/global-teardown.ts")`.
+// depois
+await page.fill(Sel.login.email, email);
+await page.click(Sel.login.submit);
+await expect(page.locator(Sel.page.title("orcamentos"))).toBeVisible();
+```
 
-### 4. `supabase/config.toml` (edição mínima)
+### 4. Documentação
 
-- Adicionar bloco `[functions.e2e-cleanup]` apenas se necessário; default JWT desligado já é o padrão do projeto.
+Atualizar `e2e/README.md` com seção "Convenção de seletores":
+- Regra: sempre via `Sel` do `selectors.ts`.
+- Quando criar novo componente testado por E2E, adicionar `data-testid` seguindo o padrão `kebab-case` por domínio.
 
-### 5. Secrets (necessários)
+## Detalhes técnicos
 
-Pedirei via `add_secret` depois da aprovação:
-- **`E2E_CLEANUP_TOKEN`** — token aleatório longo (gerado pelo usuário, ex: `openssl rand -hex 32`). Usado pela function e pelo CI.
-- **`E2E_CLEANUP_ALLOWED_EMAILS`** — CSV com os emails permitidos (ex: `e2e-tester@promogifts.com.br,e2e-admin@promogifts.com.br`). Defesa em profundidade.
+- Não alterar comportamento visual nem props públicas — apenas atributos `data-testid` adicionais.
+- `data-testid` permanece em produção (decisão deliberada — overhead trivial, ganha estabilidade).
+- Manter fallbacks `or(...)` somente onde o componente ainda não tem testid (transição gradual). Marcar com `// TODO: remover fallback após adicionar testid em <Componente>`.
+- Sem mudanças em rotas, RLS, edge functions ou banco.
 
-`SUPABASE_SERVICE_ROLE_KEY` e `SUPABASE_URL` já existem no ambiente das edge functions.
+## Arquivos afetados
 
-### 6. Documentação
+Criar/editar:
+- `e2e/fixtures/selectors.ts` (reescrever)
+- `e2e/README.md` (seção nova)
+- `e2e/helpers/forms.ts`, `e2e/helpers/nav.ts`
+- 12 specs em `e2e/flows/*.spec.ts`
+- 8 specs legados em `e2e/*.spec.ts` (passagem mais leve, só onde se aplica)
+- ~10 componentes em `src/` para adicionar `data-testid` (LoginForm, AppSidebar, ProductCard, headings das páginas-alvo, wizard de orçamento, drawer de carrinho, lista de favoritos)
 
-Atualizo `e2e/README.md` com seção **"Cleanup automático"** explicando:
-- Como configurar os 2 secrets em CI/local.
-- Como rodar o cleanup manualmente: `curl -H "x-e2e-cleanup-token: …" -d '{"email":"…","dryRun":true}' …/e2e-cleanup`
-- Como adicionar novas tabelas à lista (passo único na function).
+## Fora de escopo
 
-## Segurança (camadas)
+- Não rodar o suite (ambiente atual não executa Playwright); validação será feita pelo usuário.
+- Não criar novos specs.
+- Não mexer em lógica de cleanup, auth.setup ou edge functions.
 
-1. Token compartilhado fora do código (secret).
-2. Allow-list de emails — sem ela, mesmo com o token correto, retorna 403.
-3. Apaga apenas pelo `user_id` resolvido server-side (cliente nunca passa UUID).
-4. Logs em `admin_audit_log` (entry `event = "e2e_cleanup"`) com email + contagens — auditável.
-5. `dryRun` é default verdadeiro se body não enviar — exige opt-in explícito para deletar.
+---
 
-## Não-objetivos
+## Status: data-testid hardening (2026-04-26)
 
-- Não tocar em `auth.users` (não apagar a conta — só dados de aplicação).
-- Não tocar em tabelas globais (catálogo externo, ai_usage_*, admin_settings).
-- Não rodar entre testes (só após a suite inteira) para não interferir em assertions cruzadas.
+Implementado:
+- SSOT `e2e/fixtures/selectors.ts` reescrito (login, sidebar, page, product, quote, favorites, cart, app).
+- `data-testid` adicionados em: `Auth.tsx` (login form/email/password/submit/toggle/forgot), `ProductCard.tsx` (`product-card` no `<article>` + `data-product-id`), e headings das páginas: `SellerCartsPage`, `OrdersPage`, `FavoritesPage`, `QuotesListPage`, `CollectionsPage` (`page-title-{slug}`).
+- Specs migrados para `Sel.*`: 01-auth, 03-products, 04-quotes, 05-orders, 07-collections, 08-favorites, 10-admin, 11-errors, 12-cart-checkout. (02-navigation, 06-kit-builder e 09-simulator não dependiam de seletores frágeis específicos.)
+- README atualizado com seção "Convenção de seletores".
 
-## Arquivos
-
-- **Novo**: `supabase/functions/e2e-cleanup/index.ts`
-- **Novo**: `e2e/global-teardown.ts`
-- **Editado**: `playwright.config.ts` (+1 linha `globalTeardown`)
-- **Editado**: `e2e/README.md` (seção nova)
+Fallbacks legados (`#login-email`, `, h1, h2`, etc.) mantidos no SSOT durante transição. Podem ser removidos quando 100% dos componentes-alvo tiverem testids.

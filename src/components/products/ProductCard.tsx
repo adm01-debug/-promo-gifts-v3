@@ -167,6 +167,8 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
   return (
     <article
       ref={ref}
+      data-testid="product-card"
+      data-product-id={product.id}
       className={cn(
         "group relative overflow-hidden rounded-xl sm:rounded-2xl bg-card cursor-pointer card-lift",
         "transition-all duration-300 ease-out active:scale-[0.98] active:transition-transform active:duration-100 touch-manipulation",

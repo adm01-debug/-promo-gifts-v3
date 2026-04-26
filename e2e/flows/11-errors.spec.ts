@@ -1,9 +1,11 @@
 /**
  * Fluxo: Tratamento de erro — 503 do bridge, offline, RLS denial.
  * Usa page.route para forçar respostas e validar a UI de erro.
+ * Seletores: Sel.app.anyToast (SSOT).
  */
 import { test, expect, requireAuth } from "../fixtures/test-base";
 import { gotoAndSettle } from "../helpers/nav";
+import { Sel } from "../fixtures/selectors";
 
 test.describe("Fluxo: Tratamento de erro", () => {
   test.beforeEach(() => requireAuth());
@@ -30,7 +32,7 @@ test.describe("Fluxo: Tratamento de erro", () => {
           'text=/erro|indispon[ií]vel|tente novamente|n[aã]o foi poss[ií]vel/i',
         )
         .count()) > 0 ||
-      (await page.locator('[role="alert"], [data-sonner-toast]').count()) > 0;
+      (await page.locator(Sel.app.anyToast).count()) > 0;
     expect(
       hasFeedback,
       "Esperava toast/alerta/empty state ao receber 503 do bridge",
