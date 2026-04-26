@@ -56,12 +56,9 @@ async function isFavorited(button: Locator): Promise<boolean> {
   return /fill-destructive|fill-current/.test(html);
 }
 
-/** Aceita diálogo de confirmação se aparecer (best-effort). */
+/** Aceita diálogo de confirmação se aparecer (best-effort, via testid global). */
 async function acceptConfirmIfAny(page: Page): Promise<void> {
-  const confirm = page
-    .locator('[role="alertdialog"], [role="dialog"]')
-    .getByRole("button", { name: /remover|confirmar|sim|excluir/i })
-    .first();
+  const confirm = page.locator(Sel.dialog.confirmYes).first();
   if (await confirm.isVisible().catch(() => false)) {
     await confirm.click().catch(() => {});
   }
