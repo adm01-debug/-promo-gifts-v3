@@ -153,13 +153,13 @@ test.describe("Fluxo: Carrinho → Checkout", () => {
     });
 
     // 4) Lê quantidade atual e incrementa 2x
-    const qtyBadge = itemCard.locator(".tabular-nums").first();
+    const qtyBadge = itemCard.locator(Sel.cart.qtyBadge).first();
     const qtyBefore = parseInt(
       ((await qtyBadge.innerText().catch(() => "1")) || "1").replace(/\D/g, ""),
       10,
     ) || 1;
 
-    const plusBtn = itemCard.locator("button:has(svg.lucide-plus)").first();
+    const plusBtn = itemCard.locator(Sel.cart.increment).first();
     await plusBtn.click();
     await page.waitForTimeout(250);
     await plusBtn.click();
@@ -175,14 +175,12 @@ test.describe("Fluxo: Carrinho → Checkout", () => {
       .toBeGreaterThanOrEqual(qtyBefore + 1);
 
     // 5) Abre checkout — botão "Gerar Orçamento"
-    const checkoutBtn = page
-      .getByRole("button", { name: /gerar orçamento/i })
-      .first();
+    const checkoutBtn = page.locator(Sel.cart.checkoutCta).first();
     await expect(checkoutBtn).toBeVisible({ timeout: 10_000 });
     await checkoutBtn.click();
 
     // ConfirmDialog
-    const confirmDialog = page.locator('[role="alertdialog"], [role="dialog"]').last();
+    const confirmDialog = page.locator(Sel.cart.confirmDialog).last();
     const confirmBtn = confirmDialog
       .getByRole("button", { name: /confirmar|gerar|continuar|ok/i })
       .first();
