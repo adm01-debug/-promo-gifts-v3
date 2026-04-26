@@ -27,6 +27,8 @@ import { CartHeaderButton } from "@/components/cart/CartHeaderButton";
 import { useIsScrolled } from "@/hooks/useScroll";
 import { useCurrentSection } from "@/hooks/useCurrentSection";
 import { cn } from "@/lib/utils";
+import { getRoleLabel } from "@/lib/roles";
+import { RoleBadge } from "@/components/RoleBadge";
 
 interface HeaderProps {
   onMenuToggle: () => void;
@@ -262,21 +264,16 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
                   <span className="text-sm font-medium text-foreground leading-tight truncate max-w-[120px]">
                     {truncatedName}
                   </span>
-                  <span className="text-[10px] text-muted-foreground leading-tight">
-                    {roleLabel}
-                  </span>
+                  <RoleBadge role={role} className="h-4 px-1.5 text-[9px] leading-none" />
                 </div>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 bg-card border-border">
               <DropdownMenuLabel>
-                <div className="flex flex-col">
+                <div className="flex flex-col gap-1">
                   <span className="font-medium">{displayName}</span>
                   <span className="text-xs text-muted-foreground">{user?.email}</span>
-                  <div className="flex items-center gap-1.5 mt-0.5">
-                    {isAdmin && <Shield className="h-3 w-3 text-primary" />}
-                    <span className="text-[11px] text-muted-foreground">{roleLabel}</span>
-                  </div>
+                  <RoleBadge role={role} className="self-start mt-1" />
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator className="bg-border" />
