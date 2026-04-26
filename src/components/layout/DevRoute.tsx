@@ -1,28 +1,12 @@
 import { type ReactNode, useEffect, useState } from "react";
-import { Helmet } from "react-helmet-async";
-import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
-import {
-  Loader2,
-  ShieldAlert,
-  ArrowLeft,
-  Send,
-  Copy,
-  Check,
-  Mail,
-  RotateCw,
-} from "lucide-react";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { MfaEnrollmentDialog } from "@/components/security/MfaEnrollmentDialog";
 import { MfaChallengeDialog } from "@/components/security/MfaChallengeDialog";
-import {
-  requestDevAccess,
-  getThrottleStatus,
-  DEV_ACCESS_CONTACT_EMAIL,
-} from "@/lib/access/request-dev-access";
 import { logAccessDenied } from "@/lib/access/log-access-denied";
+import { DevAccessDeniedPage } from "@/components/access/DevAccessDeniedPage";
 
 interface DevRouteProps {
   children?: ReactNode;
