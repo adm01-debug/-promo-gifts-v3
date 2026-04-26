@@ -16,6 +16,7 @@ import { PageSEO } from "@/components/seo/PageSEO";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
+import { RlsIntegrationTestsDialog } from "@/components/admin/RlsIntegrationTestsDialog";
 
 interface ReportDetail {
   table: string;
