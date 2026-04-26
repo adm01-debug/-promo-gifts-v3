@@ -14,6 +14,7 @@ import { RecentKitsWidget } from '@/components/dashboard/RecentKitsWidget';
 import { MyRecentQuotesWidget } from '@/components/dashboard/MyRecentQuotesWidget';
 import { MyPendingOrdersWidget } from '@/components/dashboard/MyPendingOrdersWidget';
 import { MyDiscountRequestsWidget } from '@/components/dashboard/MyDiscountRequestsWidget';
+import { MyClientsWidget } from '@/components/dashboard/MyClientsWidget';
 import { ScopeBadge } from '@/components/common/ScopeBadge';
 import { ScheduledReportsManager } from '@/components/reports/ScheduledReportsManager';
 import { supabase } from '@/integrations/supabase/client';
@@ -36,6 +37,7 @@ const DEFAULT_WIDGETS: WidgetConfig[] = [
   { id: 'my-quotes', title: 'Minhas Propostas Recentes', visible: true, order: 3 },
   { id: 'my-orders', title: 'Meus Pedidos em Andamento', visible: true, order: 4 },
   { id: 'my-discounts', title: 'Minhas Solicitações de Desconto', visible: true, order: 5 },
+  { id: 'my-clients', title: 'Meus Clientes', visible: true, order: 6 },
   { id: 'vendas', title: 'Total de Orçamentos', visible: true, order: 6 },
   { id: 'orcamentos', title: 'Rascunhos', visible: true, order: 7 },
   { id: 'pedidos', title: 'Pedidos Pendentes', visible: true, order: 8 },
@@ -185,6 +187,8 @@ export function CustomizableDashboard() {
         return <MyPendingOrdersWidget />;
       case 'my-discounts':
         return <MyDiscountRequestsWidget />;
+      case 'my-clients':
+        return <MyClientsWidget />;
       case 'scheduled-reports':
         return <ScheduledReportsManager />;
       case 'vendas':
