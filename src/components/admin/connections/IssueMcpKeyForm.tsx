@@ -434,14 +434,6 @@ export function IssueMcpKeyForm({ onIssued }: Props) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      <StepUpAuthDialog
-        open={stepUpOpen}
-        onOpenChange={setStepUpOpen}
-        action="mcp_full_issue"
-        actionLabel={`Emitir chave MCP FULL "${name}"`}
-        onVerified={(token) => doSubmit(token)}
-      />
     </div>
   );
 }
