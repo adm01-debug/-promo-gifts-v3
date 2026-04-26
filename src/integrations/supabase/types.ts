@@ -4787,6 +4787,7 @@ export type Database = {
       can_grant_mcp_full: { Args: { _user_id: string }; Returns: boolean }
       can_manage_connections: { Args: { _user_id?: string }; Returns: boolean }
       can_manage_quotes: { Args: { _user_id?: string }; Returns: boolean }
+      can_view_all_sales: { Args: { _user_id?: string }; Returns: boolean }
       can_view_audit_logs: { Args: { _user_id?: string }; Returns: boolean }
       can_view_connections: { Args: { _user_id?: string }; Returns: boolean }
       can_view_telemetry: { Args: { _user_id?: string }; Returns: boolean }
@@ -5112,6 +5113,7 @@ export type Database = {
         Args: { _org_id: string; _user_id: string }
         Returns: boolean
       }
+      is_seller_only: { Args: { _user_id?: string }; Returns: boolean }
       is_supervisor_or_above: { Args: { _user_id?: string }; Returns: boolean }
       log_access_denied: {
         Args: {
