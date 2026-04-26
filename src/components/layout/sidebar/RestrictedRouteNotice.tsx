@@ -5,14 +5,12 @@ import {
   isDevOnlyPath,
   isAdminOnlyPath,
 } from "@/lib/navigation/restricted-routes";
-import { requestDevAccess } from "@/lib/access/request-dev-access";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 interface RestrictedRouteNoticeProps {
@@ -50,16 +48,8 @@ export function RestrictedRouteNotice({
   const requiredRole = isDevRoute ? "dev" : "admin";
   const title = "Rota restrita";
   const description = isDevRoute
-    ? "Esta área é exclusiva da equipe técnica (dev). Você foi redirecionado por não ter permissão."
-    : "Esta área exige perfil administrativo. Você foi redirecionado por não ter permissão.";
-
-  const handleRequest = () => {
-    requestDevAccess({
-      path,
-      requesterEmail: user?.email ?? null,
-      requiredRole,
-    });
-  };
+    ? "Esta área é exclusiva da equipe técnica (dev). Você não tem permissão para abri-la."
+    : "Esta área exige perfil administrativo. Você não tem permissão para abri-la.";
 
   if (isCollapsed) {
     return (
@@ -115,16 +105,6 @@ export function RestrictedRouteNotice({
             Papel exigido:{" "}
             <span className="font-mono font-semibold">{requiredRole}</span>
           </p>
-          {isDevRoute && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="mt-2 h-7 text-[11px] border-destructive/40 text-destructive hover:bg-destructive/15 hover:text-destructive"
-              onClick={handleRequest}
-            >
-              Solicitar acesso ao dev
-            </Button>
-          )}
         </div>
       </div>
     </div>
