@@ -69,6 +69,7 @@ async function acceptConfirmIfAny(page: Page): Promise<void> {
 
 test.describe("Fluxo: remover favorito persiste após reload", () => {
   test.beforeEach(() => requireAuth());
+  installFavoritesCleanup(test);
 
   test("remove em /favoritos, page.reload() e item some da lista (e do texto)", async ({
     page,
