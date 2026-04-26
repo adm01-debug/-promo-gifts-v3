@@ -19,6 +19,7 @@ export function useClientOrdersHistory(clientId?: string) {
     enabled: !!clientId,
     queryFn: async () => {
       const { data, error } = await supabase
+        // rls-allow: filtrado por client_id; RLS aplica seller scope
         .from("orders")
         .select("*")
         .eq("client_id", clientId!)

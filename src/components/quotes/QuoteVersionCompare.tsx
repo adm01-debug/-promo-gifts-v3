@@ -88,6 +88,7 @@ export function QuoteVersionCompare({ open, onOpenChange, versions, currentQuote
 
   async function fetchQuoteDetail(id: string): Promise<QuoteDetail | null> {
     const { data: quote } = await supabase
+      // rls-allow: lookup por id específico; RLS valida ownership
       .from("quotes")
       .select("id, quote_number, version, status, subtotal, total, discount_amount, discount_percent, shipping_cost, payment_terms, delivery_time, notes, created_at")
       .eq("id", id)

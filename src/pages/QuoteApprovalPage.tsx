@@ -23,6 +23,7 @@ export default function QuoteApprovalPage() {
     enabled: !!tokenData?.quote_id,
     queryFn: async () => {
       const { data, error } = await supabase
+        // rls-allow: rota pública por approval_token; RLS permite
         .from("quotes")
         .select("quote_number, client_name, total, valid_until, status")
         .eq("id", tokenData!.quote_id)

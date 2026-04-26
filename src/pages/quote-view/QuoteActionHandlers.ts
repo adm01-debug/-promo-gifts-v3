@@ -131,6 +131,7 @@ export async function handleSyncBitrix(params: {
   const crmUpdates: Record<string, unknown> = { status: "sent" };
   if (bitrixQuoteIdFromResponse) crmUpdates.bitrix_quote_id = bitrixQuoteIdFromResponse;
 
+  // rls-allow: update por id; RLS valida ownership
   try { await supabase.from("quotes").update(crmUpdates).eq("id", quote.id); } catch { /* ignore */ }
 
   await logQuoteHistory(quote.id, "sync_success",

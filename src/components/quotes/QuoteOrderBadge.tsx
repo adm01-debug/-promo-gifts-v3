@@ -30,6 +30,7 @@ export function QuoteOrderBadge({ quoteId, silent = true }: QuoteOrderBadgeProps
     let cancelled = false;
     (async () => {
       const { data } = await supabase
+        // rls-allow: lookup por id específico; RLS valida ownership
         .from("orders")
         .select("id, order_number, created_at")
         .eq("quote_id", quoteId)

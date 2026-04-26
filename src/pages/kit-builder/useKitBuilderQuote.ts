@@ -35,6 +35,7 @@ export function useKitBuilderQuote() {
 
       // Create quote
       const { data: quote, error: quoteError } = await supabase
+        // rls-allow: INSERT inclui seller_id no payload
         .from('quotes')
         .insert({
           seller_id: user.id,

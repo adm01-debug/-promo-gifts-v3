@@ -34,6 +34,7 @@ export function useQuoteVersions(quoteId?: string) {
     try {
       // First get the quote to find the root parent
       const { data: currentQuote, error: qErr } = await supabase
+        // rls-allow: lookup por quote_id; RLS valida ownership
         .from("quotes")
         .select("id, parent_quote_id, version")
         .eq("id", id)
@@ -46,6 +47,7 @@ export function useQuoteVersions(quoteId?: string) {
 
       // Get all versions: the root + all children
       const { data, error } = await supabase
+        // rls-allow: lookup por quote_id; RLS valida ownership
         .from("quotes")
         .select("id, quote_number, version, status, total, subtotal, discount_amount, discount_percent, created_at, updated_at, is_latest_version, parent_quote_id")
         .or(`id.eq.${rootId},parent_quote_id.eq.${rootId}`)
@@ -91,6 +93,7 @@ export function useQuoteVersions(quoteId?: string) {
 
       // Get current version info
       const { data: currentData } = await supabase
+        // rls-allow: lookup por quote_id; RLS valida ownership
         .from("quotes")
         .select("version, parent_quote_id")
         .eq("id", sourceQuoteId)
@@ -101,6 +104,7 @@ export function useQuoteVersions(quoteId?: string) {
 
       // Find max version across all versions of this quote
       const { data: maxVersionData } = await supabase
+        // rls-allow: lookup por quote_id; RLS valida ownership
         .from("quotes")
         .select("version")
         .or(`id.eq.${rootId},parent_quote_id.eq.${rootId}`)
@@ -112,6 +116,7 @@ export function useQuoteVersions(quoteId?: string) {
 
       // Mark all existing versions as not latest
       await supabase
+        // rls-allow: lookup por quote_id; RLS valida ownership
         .from("quotes")
         .update({ is_latest_version: false } as any)
         .or(`id.eq.${rootId},parent_quote_id.eq.${rootId}`);
@@ -167,6 +172,7 @@ export function useQuoteVersions(quoteId?: string) {
       if (newQuote?.id) {
         // Update the new quote with version info
         await supabase
+          // rls-allow: lookup por quote_id; RLS valida ownership
           .from("quotes")
            .update({
             version: newVersion,

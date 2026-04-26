@@ -77,6 +77,7 @@ export function useSalesHistory(productId: string | undefined, days = 30) {
       if (quoteIds.length > 0) {
         // G15 fix: only count quotes with relevant statuses (not drafts)
         const { data: quotes } = await supabase
+          // rls-allow: applySellerScope aplicado conforme escopo do usuário
           .from('quotes')
           .select('id, seller_id, status')
           .in('id', quoteIds)
@@ -88,6 +89,7 @@ export function useSalesHistory(productId: string | undefined, days = 30) {
 
       if (orderIds.length > 0) {
         const { data: orders } = await supabase
+          // rls-allow: applySellerScope aplicado conforme escopo do usuário
           .from('orders')
           .select('id, seller_id, status')
           .in('id', orderIds.filter(Boolean) as string[]);

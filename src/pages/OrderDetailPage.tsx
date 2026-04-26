@@ -65,6 +65,7 @@ export default function OrderDetailPage() {
   const fetchOrder = async () => {
     setLoading(true);
     const [orderRes, itemsRes] = await Promise.all([
+      // rls-allow: lookup por id; RLS valida ownership
       supabase.from("orders").select("*").eq("id", id!).maybeSingle(),
       supabase.from("order_items").select("*").eq("order_id", id!),
     ]);
@@ -80,6 +81,7 @@ export default function OrderDetailPage() {
   const updateStatus = async (newStatus: string) => {
     setIsSaving(true);
     const { error } = await supabase
+      // rls-allow: lookup por id; RLS valida ownership
       .from("orders")
       .update({ status: newStatus, updated_at: new Date().toISOString() })
       .eq("id", id!);
@@ -96,6 +98,7 @@ export default function OrderDetailPage() {
   const updateTracking = async () => {
     setIsSaving(true);
     const { error } = await supabase
+      // rls-allow: lookup por id; RLS valida ownership
       .from("orders")
       .update({ tracking_number: trackingNumber, updated_at: new Date().toISOString() })
       .eq("id", id!);

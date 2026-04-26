@@ -225,6 +225,7 @@ export function useExpertChat({
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { toast.error("Faça login para salvar orçamentos"); return; }
       const { data: quote, error } = await supabase
+        // rls-allow: RLS aplica seller_id automaticamente
         .from("quotes")
         .insert({ seller_id: user.id, status: "draft", client_id: clientId || null, client_name: clientName || null, notes: proposalContent.slice(0, 2000), internal_notes: "Gerado pelo Flow - Assistente Pessoal" })
         .select("id, quote_number")

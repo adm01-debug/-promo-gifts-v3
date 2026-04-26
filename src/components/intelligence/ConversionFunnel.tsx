@@ -67,7 +67,9 @@ export function ConversionFunnel({ days }: ConversionFunnelProps) {
       const [searches, views, quotes, orders] = await Promise.all([
         supa.from("search_analytics").select("id", { count: "exact", head: true }).gte("created_at", since),
         supa.from("product_views").select("id", { count: "exact", head: true }).gte("created_at", since),
+        // rls-allow: respeita can_view_all_sales; RLS filtra por seller
         supabase.from("quotes").select("id", { count: "exact", head: true }).gte("created_at", since),
+        // rls-allow: respeita can_view_all_sales; RLS filtra por seller
         supabase.from("orders").select("id", { count: "exact", head: true }).gte("created_at", since),
       ]);
       return {

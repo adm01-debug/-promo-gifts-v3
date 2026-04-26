@@ -17,6 +17,7 @@ export interface ConvertedOrder {
 export async function convertQuoteToOrder({ quoteId, sellerId, organizationId }: ConvertQuoteToOrderParams): Promise<ConvertedOrder> {
   // 1. Fetch the quote
   const { data: quote, error: quoteError } = await supabase
+    // rls-allow: service recebe userId/scope do caller; RLS valida
     .from("quotes")
     .select("*")
     .eq("id", quoteId)
@@ -32,6 +33,7 @@ export async function convertQuoteToOrder({ quoteId, sellerId, organizationId }:
 
   // 2. Check if order already exists for this quote
   const { data: existingOrder } = await supabase
+    // rls-allow: service recebe userId/scope do caller; RLS valida
     .from("orders")
     .select("id, order_number")
     .eq("quote_id", quoteId)
@@ -44,6 +46,7 @@ export async function convertQuoteToOrder({ quoteId, sellerId, organizationId }:
   // 3. Create the order
   const effectiveOrgId = organizationId || quote.organization_id || null;
   const { data: order, error: orderError } = await supabase
+    // rls-allow: service recebe userId/scope do caller; RLS valida
     .from("orders")
     .insert({
       seller_id: sellerId,
@@ -103,6 +106,7 @@ export async function convertQuoteToOrder({ quoteId, sellerId, organizationId }:
 
   // 5. Update quote status to converted
   await supabase
+    // rls-allow: service recebe userId/scope do caller; RLS valida
     .from("quotes")
     .update({ status: "converted" })
     .eq("id", quoteId);

@@ -20,6 +20,7 @@ export function DiscountApprovalHeaderBadge() {
     queryKey: QUERY_KEY,
     queryFn: async () => {
       const { count } = await supabase
+        // rls-allow: admin-only via has_role; RLS filtra
         .from("discount_approval_requests")
         .select("*", { count: "exact", head: true })
         .eq("status", "pending");

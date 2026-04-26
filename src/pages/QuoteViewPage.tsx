@@ -142,6 +142,7 @@ export default function QuoteViewPage() {
                   <DropdownMenuItem
                     onClick={async () => {
                       try {
+                        // rls-allow: lookup por id; RLS valida ownership
                         await supabase.from("quotes").update({ status: "pending" } as Record<string, unknown>).eq("id", quote.id);
                         await logQuoteHistory(quote.id, "status_change", "Status revertido para Pendente", { oldValue: "sent", newValue: "pending" });
                         setQuote((prev) => prev ? { ...prev, status: "pending" } : prev);

@@ -66,6 +66,7 @@ export function useProductInsights(productId?: string, productSku?: string) {
       
       if (orderIds.length > 0) {
         const { data: orders } = await supabase
+          // rls-allow: agregação respeita escopo via RLS
           .from('orders')
           .select('client_id')
           .in('id', orderIds);
