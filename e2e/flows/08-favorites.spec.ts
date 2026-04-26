@@ -46,6 +46,43 @@ async function isFavorited(button: Locator): Promise<boolean> {
   return /fill-destructive|fill-current/.test(html);
 }
 
+/** Lê a contagem numérica exibida no header de Favoritos. */
+async function readFavoritesCount(page: Page): Promise<number> {
+  const loc = page.locator(Sel.favorites.countItems);
+  await loc.first().waitFor({ state: "visible", timeout: 10_000 });
+  const txt = (await loc.first().innerText()).trim();
+  return Number.parseInt(txt, 10) || 0;
+}
+
+/** Valida título, ícone/label e contagem do header de Favoritos. */
+async function assertFavoritesHeader(
+  page: Page,
+  expectedCount: number,
+  opts: { checkCardsMatch?: boolean } = {},
+) {
+  // Título
+  await expect(page.locator(Sel.favorites.title)).toHaveText("Meus Favoritos");
+  // Ícone + label de acessibilidade + svg renderizado
+  const icon = page.locator(Sel.favorites.icon);
+  await expect(icon).toBeVisible();
+  await expect(icon).toHaveAttribute("aria-label", "Favoritos");
+  await expect(icon.locator("svg")).toBeVisible();
+  // Contagem numérica no header
+  await expect
+    .poll(() => readFavoritesCount(page), {
+      message: `header favorites-count-items deveria ser ${expectedCount}`,
+      timeout: 10_000,
+    })
+    .toBe(expectedCount);
+  // (opcional) número de cards renderizados bate com a contagem
+  if (opts.checkCardsMatch) {
+    const cards = await page.locator(Sel.favorites.remove).count();
+    expect(cards, "qtde de cards renderizados deve bater com a contagem do header").toBe(
+      expectedCount,
+    );
+  }
+}
+
 test.describe("Fluxo: Favoritos", () => {
   test.beforeEach(() => requireAuth());
 
