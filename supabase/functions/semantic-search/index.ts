@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { getCorsHeaders } from '../_shared/cors.ts';
+import { castRpcResult } from "../_shared/supabase-client-adapter.ts";
 import { authenticateRequest, authErrorResponse } from '../_shared/auth.ts';
 import { callAiWithTracking, QuotaExceededError } from '../_shared/ai-usage.ts';
 import { z } from '../_shared/zod-validate.ts';
@@ -25,16 +26,19 @@ async function rerankProducts(
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     if (!url || !serviceKey) return [];
     const client = createClient(url, serviceKey);
-    const { data, error } = await client.rpc("search_products_semantic", {
+    const { data, error } = await castRpcResult<{
+      data: RankResult[] | null;
+      error: { message: string } | null;
+    }>(client.rpc("search_products_semantic", {
       _query: query,
       _products: products,
       _limit: limit,
-    });
+    }));
     if (error) {
       console.warn("[rerank] RPC error:", error.message);
       return [];
     }
-    return (data ?? []) as RankResult[];
+    return data ?? [];
   } catch (e) {
     console.warn("[rerank] exception:", (e as Error).message);
     return [];

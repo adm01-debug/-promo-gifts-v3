@@ -3,6 +3,11 @@
 // password_failed, otp_failed, issued, cancelled, unauthorized) com action,
 // target_ref e action_label para rastreabilidade humana.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
+import { castRpcResult } from "../_shared/supabase-client-adapter.ts";
+
+type RpcEnvelope<T> = { data: T | null; error: { message: string } | null };
+type StepUpChallengeRow = { challenge_id: string; otp_plain: string; expires_at: string };
+type StepUpOtpRow = { token: string; expires_at: string };
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -118,7 +123,9 @@ Deno.serve(async (req) => {
     const actionLabel = safeLabel(body.action_label);
 
     // Re-checagem server-side de role dev
-    const { data: isDev } = await admin.rpc("is_dev", { _user_id: user.id });
+    const { data: isDev } = await castRpcResult<RpcEnvelope<boolean>>(
+      admin.rpc("is_dev", { _user_id: user.id }),
+    );
     if (!isDev) {
       await audit({
         user_id: user.id,
@@ -145,12 +152,14 @@ Deno.serve(async (req) => {
         return json({ error: "action_required" }, 400);
       }
 
-      const { data, error } = await userClient.rpc("request_step_up_challenge", {
+      const { data, error } = await castRpcResult<
+        RpcEnvelope<StepUpChallengeRow | StepUpChallengeRow[]>
+      >(userClient.rpc("request_step_up_challenge", {
         _action: action,
         _target_ref: targetRef,
         _ip: ip,
         _user_agent: ua,
-      });
+      }));
       if (error) {
         await audit({
           user_id: user.id,
@@ -251,9 +260,11 @@ Deno.serve(async (req) => {
         return json({ error: "invalid_password" }, 401);
       }
 
-      const { data: ok, error } = await userClient.rpc("mark_step_up_password_verified", {
-        _challenge_id: body.challenge_id,
-      });
+      const { data: ok, error } = await castRpcResult<RpcEnvelope<boolean>>(
+        userClient.rpc("mark_step_up_password_verified", {
+          _challenge_id: body.challenge_id,
+        }),
+      );
       if (error || !ok) {
         await audit({
           user_id: user.id,
@@ -294,10 +305,12 @@ Deno.serve(async (req) => {
         return json({ error: "missing_fields" }, 400);
       }
 
-      const { data, error } = await userClient.rpc("verify_step_up_otp", {
+      const { data, error } = await castRpcResult<
+        RpcEnvelope<StepUpOtpRow | StepUpOtpRow[]>
+      >(userClient.rpc("verify_step_up_otp", {
         _challenge_id: body.challenge_id,
         _otp: body.otp,
-      });
+      }));
       if (error) {
         await audit({
           user_id: user.id,

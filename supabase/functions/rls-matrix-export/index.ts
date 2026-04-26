@@ -8,6 +8,7 @@
  * (SECURITY DEFINER), mas validamos aqui também para resposta 401 amigável.
  */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
+import { castRpcResult } from "../_shared/supabase-client-adapter.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -50,23 +51,32 @@ Deno.serve(async (req) => {
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
       auth: { persistSession: false, autoRefreshToken: false },
     });
-    const { data: isAdmin } = await admin.rpc("has_role", {
+    const { data: isAdmin } = await castRpcResult<{
+      data: boolean | null;
+      error: { message: string } | null;
+    }>(admin.rpc("has_role", {
       _user_id: userRes.user.id,
       _role: "admin",
-    });
-    const { data: isDev } = await admin.rpc("has_role", {
+    }));
+    const { data: isDev } = await castRpcResult<{
+      data: boolean | null;
+      error: { message: string } | null;
+    }>(admin.rpc("has_role", {
       _user_id: userRes.user.id,
       _role: "dev",
-    });
+    }));
     if (!isAdmin && !isDev) return json({ error: "forbidden" }, 403);
 
-    const { data: matrix, error: matErr } = await admin.rpc("audit_rls_matrix");
+    const { data: matrix, error: matErr } = await castRpcResult<{
+      data: MatrixRow[] | null;
+      error: { message: string } | null;
+    }>(admin.rpc("audit_rls_matrix"));
     if (matErr) {
       console.error("[rls-matrix-export] rpc error", matErr);
       return json({ error: matErr.message }, 500);
     }
 
-    const rows = (matrix ?? []) as MatrixRow[];
+    const rows: MatrixRow[] = matrix ?? [];
     const url = new URL(req.url);
     const format = (url.searchParams.get("format") ?? "csv").toLowerCase();
     const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");

@@ -25,6 +25,13 @@
  */
 // @ts-ignore - Deno runtime
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { castRpcResult } from "../_shared/supabase-client-adapter.ts";
+
+type E2ERateLimitRow = {
+  allowed: boolean;
+  reset_in_seconds?: number;
+  current_count?: number;
+};
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -159,10 +166,13 @@ Deno.serve(async (req: Request) => {
   // @ts-ignore - Deno runtime
   const rlWindow = Number(Deno.env.get("E2E_CLEANUP_RATE_LIMIT_WINDOW_SECONDS") ?? "60");
   try {
-    const { data: rl, error: rlErr } = await admin.rpc(
+    const { data: rl, error: rlErr } = await castRpcResult<{
+      data: E2ERateLimitRow[] | null;
+      error: { message: string } | null;
+    }>(admin.rpc(
       "e2e_cleanup_check_rate_limit",
       { p_key: `ip:${ip}`, p_max: rlMax, p_window_seconds: rlWindow },
-    );
+    ));
     if (!rlErr && Array.isArray(rl) && rl[0] && rl[0].allowed === false) {
       const resetIn = rl[0].reset_in_seconds ?? rlWindow;
       await writeAudit(admin, {

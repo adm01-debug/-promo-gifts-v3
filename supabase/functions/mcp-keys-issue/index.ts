@@ -28,6 +28,9 @@ import {
 import { getOrCreateRequestId, REQUEST_ID_HEADER } from "../_shared/request-id.ts";
 import { writeAuditEntry, summarizePayload, extractRequestMeta } from "../_shared/audit-log.ts";
 import { recordMcpViolation, mapViolationReason } from "../_shared/mcp-violations.ts";
+import { castRpcResult } from "../_shared/supabase-client-adapter.ts";
+
+type RpcEnvelope<T> = { data: T | null; error: { message: string } | null };
 
 const SOURCE = "mcp-keys-issue";
 
@@ -201,9 +204,9 @@ Deno.serve(async (req) => {
     userId = userData.user.id;
 
     // 3. Role check — apenas DEV pode emitir chaves MCP
-    const { data: roleCheck, error: roleErr } = await admin.rpc("is_dev", {
-      _user_id: userId,
-    });
+    const { data: roleCheck, error: roleErr } = await castRpcResult<RpcEnvelope<boolean>>(
+      admin.rpc("is_dev", { _user_id: userId }),
+    );
     if (roleErr) {
       await auditFailure("error", "mcp_key.issue_error", { reason: "role_check_failed", detail: roleErr.message });
       return jsonResponse({ error: "internal_error", detail: roleErr.message }, 500, requestId);
@@ -244,11 +247,13 @@ Deno.serve(async (req) => {
     // Para chaves limitadas usamos 'mcp_key_rotate' como ação genérica de mutação de chave —
     // ambas exigem o mesmo fluxo de senha+OTP, mas auditamos diferente.
     const expectedStepUp = full ? "mcp_full_issue" : "mcp_key_rotate";
-    const { data: stepUpOk, error: stepUpErr } = await userClient.rpc("consume_step_up_token", {
-      _token: step_up_token,
-      _expected_action: expectedStepUp,
-      _expected_target: null,
-    });
+    const { data: stepUpOk, error: stepUpErr } = await castRpcResult<RpcEnvelope<boolean>>(
+      userClient.rpc("consume_step_up_token", {
+        _token: step_up_token,
+        _expected_action: expectedStepUp,
+        _expected_target: null,
+      }),
+    );
     if (stepUpErr || !stepUpOk) {
       await auditFailure("denied", "mcp_key.issue_denied", { reason: "step_up_invalid", detail: stepUpErr?.message, expected_action: expectedStepUp });
       return jsonResponse(
@@ -260,9 +265,9 @@ Deno.serve(async (req) => {
 
     // 4b. Authorization gate adicional para FULL scope: precisa estar em mcp_full_grantors.
     if (full) {
-      const { data: canGrant, error: grantErr } = await admin.rpc("can_grant_mcp_full", {
-        _user_id: userId,
-      });
+      const { data: canGrant, error: grantErr } = await castRpcResult<RpcEnvelope<boolean>>(
+        admin.rpc("can_grant_mcp_full", { _user_id: userId }),
+      );
       if (grantErr) {
         await auditFailure("error", "mcp_key.issue_error", { reason: "grant_check_failed", detail: grantErr.message });
         return jsonResponse({ error: "internal_error", detail: grantErr.message }, 500, requestId);

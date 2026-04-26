@@ -5,6 +5,7 @@
 // a continuous-failure window (configurable via RPC
 // `set_connection_failure_window_minutes`, default 30min) to suppress flapping.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
+import { castRpcResult } from "../_shared/supabase-client-adapter.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -124,7 +125,10 @@ Deno.serve(async (req) => {
     //    transient flaps that already recovered are ignored.
     let failureWindowMin = DEFAULT_FAILURE_WINDOW_MINUTES;
     try {
-      const { data: rpcData } = await service.rpc("get_connection_failure_window_minutes");
+      const { data: rpcData } = await castRpcResult<{
+        data: number | null;
+        error: { message: string } | null;
+      }>(service.rpc("get_connection_failure_window_minutes"));
       if (typeof rpcData === "number" && rpcData >= 0) failureWindowMin = rpcData;
     } catch (_) { /* keep default */ }
 
