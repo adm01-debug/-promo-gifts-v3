@@ -247,17 +247,44 @@ export const Sel = {
     qtyDecrementIcon: TID("cart-qty-decrement-icon"),
     qtyRemoveIcon: TID("cart-qty-remove-icon"),
     checkoutCta: TID("cart-checkout-cta"),
+    /**
+     * Diálogo de confirmação do checkout (Gerar Orçamento). Renderizado pelo
+     * ConfirmDialog com `testId="cart-confirm-dialog"` — o wrapper deriva
+     * automaticamente os testids escopados abaixo.
+     */
     confirmDialog: TID("cart-confirm-dialog"),
+    confirmDialogTitle: TID("cart-confirm-dialog-title"),
+    confirmDialogDescription: TID("cart-confirm-dialog-description"),
+    confirmDialogYes: TID("cart-confirm-dialog-yes"),
+    confirmDialogNo: TID("cart-confirm-dialog-no"),
+    /** Diálogo "Limpar todos os itens?" do carrinho ativo. */
+    clearDialog: TID("cart-clear-dialog"),
+    clearDialogYes: TID("cart-clear-dialog-yes"),
+    clearDialogNo: TID("cart-clear-dialog-no"),
+    /** Diálogo "Excluir carrinho?" (DeleteConfirmDialog escopado). */
+    deleteDialog: TID("cart-delete-dialog"),
+    deleteDialogYes: TID("cart-delete-dialog-yes"),
+    deleteDialogNo: TID("cart-delete-dialog-no"),
     /** Botão de seleção de empresa no CartCompanyPickerDialog. */
     companyPickerSelect: TID("cart-company-picker-select"),
   },
 
   // ---------- Diálogos genéricos (ConfirmDialog) ----------
   dialog: {
-    /** Botão Confirmar/Sim/Excluir (AlertDialogAction do ConfirmDialog). */
+    /**
+     * Botões/título genéricos. Use APENAS quando o diálogo for criado sem
+     * `testId` próprio. Quando o consumidor passar `testId="x"`, prefira os
+     * derivados `x-yes` / `x-no` / `x-title` / `x-description`.
+     */
     confirmYes: TID("confirm-dialog-yes"),
-    /** Botão Cancelar (AlertDialogCancel do ConfirmDialog). */
     confirmNo: TID("confirm-dialog-no"),
+    confirmTitle: TID("confirm-dialog-title"),
+    confirmDescription: TID("confirm-dialog-description"),
+    /** Helpers para diálogos escopados — combinam com qualquer `testId`. */
+    yesFor: (testId: string) => TID(`${testId}-yes`),
+    noFor: (testId: string) => TID(`${testId}-no`),
+    titleFor: (testId: string) => TID(`${testId}-title`),
+    descriptionFor: (testId: string) => TID(`${testId}-description`),
   },
 
   // ---------- App genérico ----------

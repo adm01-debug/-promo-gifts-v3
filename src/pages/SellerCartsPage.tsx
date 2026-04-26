@@ -314,6 +314,7 @@ function SellerCartsContent() {
         open={s.confirmDeleteCart} onOpenChange={s.setConfirmDeleteCart}
         entityName="carrinho" itemName={s.activeCart?.company_name}
         onConfirm={() => { if (s.activeCart) s.deleteCart(s.activeCart.id); s.setConfirmDeleteCart(false); }}
+        testId="cart-delete-dialog"
       />
       <ConfirmDialog
         open={s.confirmClearCart} onOpenChange={s.setConfirmClearCart}
@@ -321,6 +322,7 @@ function SellerCartsContent() {
         description={`${s.activeCart?.items.length || 0} itens serão removidos do carrinho de ${s.activeCart?.company_name}.`}
         confirmLabel="Limpar" cancelLabel="Cancelar"
         onConfirm={() => { s.activeCart?.items.forEach(i => s.removeItem(i.id)); toast.success("Carrinho limpo"); s.setConfirmClearCart(false); }}
+        testId="cart-clear-dialog"
       />
     </div>
   );

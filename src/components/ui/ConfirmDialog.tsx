@@ -89,6 +89,17 @@ export function ConfirmDialog({
     onOpenChange(false);
   };
 
+  // Quando o consumidor passa um `testId` (ex.: "cart-confirm-dialog"),
+  // derivamos testids específicos para os botões e título — ex.:
+  // "cart-confirm-dialog-yes" / "cart-confirm-dialog-no" / "cart-confirm-dialog-title".
+  // Isso elimina o uso do testid genérico "confirm-dialog-yes" quando vários
+  // diálogos podem coexistir na mesma tela. Os genéricos continuam disponíveis
+  // como fallback para compatibilidade com specs já existentes.
+  const yesTestId = testId ? `${testId}-yes` : "confirm-dialog-yes";
+  const noTestId = testId ? `${testId}-no` : "confirm-dialog-no";
+  const titleTestId = testId ? `${testId}-title` : "confirm-dialog-title";
+  const descriptionTestId = testId ? `${testId}-description` : "confirm-dialog-description";
+
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className="max-w-md" data-testid={testId}>
@@ -106,11 +117,11 @@ export function ConfirmDialog({
               <Icon className={cn("w-6 h-6", config.iconColor)} />
             </motion.div>
             <div className="space-y-2">
-              <AlertDialogTitle className="text-lg">
+              <AlertDialogTitle className="text-lg" data-testid={titleTestId}>
                 {title}
               </AlertDialogTitle>
               {description && (
-                <AlertDialogDescription>
+                <AlertDialogDescription data-testid={descriptionTestId}>
                   {description}
                 </AlertDialogDescription>
               )}
@@ -125,6 +136,7 @@ export function ConfirmDialog({
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
             className="my-4 p-4 rounded-lg bg-muted/50 border border-border"
+            data-testid={testId ? `${testId}-impact` : "confirm-dialog-impact"}
           >
             <h4 className="text-sm font-medium mb-2">{impactPreview.title}</h4>
             <ul className="space-y-1">
@@ -145,18 +157,18 @@ export function ConfirmDialog({
         )}
 
         <AlertDialogFooter>
-          <AlertDialogCancel onClick={handleCancel} disabled={loading} data-testid="confirm-dialog-no">
+          <AlertDialogCancel onClick={handleCancel} disabled={loading} data-testid={noTestId}>
             {cancelLabel}
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={handleConfirm}
             disabled={loading}
-            data-testid="confirm-dialog-yes"
+            data-testid={yesTestId}
             className={cn(
               variant === "destructive" && "bg-destructive text-destructive-foreground hover:bg-destructive/90"
             )}
           >
-            {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+            {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" data-testid={testId ? `${testId}-loading` : "confirm-dialog-loading"} />}
             {confirmLabel}
           </AlertDialogAction>
         </AlertDialogFooter>
@@ -174,6 +186,7 @@ export function DeleteConfirmDialog({
   onConfirm,
   loading,
   affectedItems,
+  testId,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -182,6 +195,8 @@ export function DeleteConfirmDialog({
   onConfirm: () => void | Promise<void>;
   loading?: boolean;
   affectedItems?: string[];
+  /** Optional testid scope. Defaults to `delete-confirm-dialog`. */
+  testId?: string;
 }) {
   return (
     <ConfirmDialog
@@ -198,6 +213,7 @@ export function DeleteConfirmDialog({
       cancelLabel="Cancelar"
       onConfirm={onConfirm}
       loading={loading}
+      testId={testId ?? "delete-confirm-dialog"}
       impactPreview={
         affectedItems && affectedItems.length > 0
           ? {

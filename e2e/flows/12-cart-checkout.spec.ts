@@ -150,11 +150,13 @@ test.describe("Fluxo: Carrinho → Checkout", () => {
     await expect(checkoutBtn).toBeVisible({ timeout: 10_000 });
     await checkoutBtn.click();
 
-    // ConfirmDialog (testid SSOT global)
-    const confirmBtn = page.locator(Sel.dialog.confirmYes).first();
-    if (await confirmBtn.isVisible().catch(() => false)) {
-      await confirmBtn.click();
-    }
+    // ConfirmDialog do checkout (testid escopado: cart-confirm-dialog-yes)
+    await expect(page.locator(Sel.cart.confirmDialog).first()).toBeVisible({
+      timeout: 8_000,
+    });
+    const confirmBtn = page.locator(Sel.cart.confirmDialogYes).first();
+    await expect(confirmBtn).toBeVisible({ timeout: 5_000 });
+    await confirmBtn.click();
 
     // Valida transição para /orcamentos/novo OU toast de sucesso
     const navigated = await page
@@ -204,7 +206,7 @@ test.describe("Fluxo: Carrinho → Checkout", () => {
 
     await checkoutBtn.click();
 
-    const confirmBtn = page.locator(Sel.dialog.confirmYes).first();
+    const confirmBtn = page.locator(Sel.cart.confirmDialogYes).first();
     if (await confirmBtn.isVisible().catch(() => false)) {
       await confirmBtn.click();
     }
