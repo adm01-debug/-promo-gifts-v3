@@ -86,6 +86,7 @@ const AdminConexoesStatusPage = lazyWithRetry(() => import("./pages/admin/AdminC
 const AdminRbacRoutesPage = lazyWithRetry(() => import("./pages/admin/AdminRbacRoutesPage"));
 const SellerDiscountLimitsAdminPage = lazyWithRetry(() => import("./pages/admin/SellerDiscountLimitsAdminPage"));
 const RlsDenialsAdminPage = lazyWithRetry(() => import("./pages/admin/RlsDenialsAdminPage"));
+const OwnershipAuditAdminPage = lazyWithRetry(() => import("./pages/admin/OwnershipAuditAdminPage"));
 
 // Tools Pages
 const SimuladorWizard = lazyWithRetry(() => import("./pages/SimuladorWizard"));
@@ -244,6 +245,7 @@ const App = () => {
                               <Route path="/admin/usuarios/promover" element={<AdminPromoverUsuarioPage />} />
                               <Route path="/admin/limites-desconto" element={<SellerDiscountLimitsAdminPage />} />
                               <Route path="/admin/rls-denials" element={<RlsDenialsAdminPage />} />
+                              <Route path="/admin/auditoria-propriedade" element={<OwnershipAuditAdminPage />} />
                               <Route path="/admin/cadastros" element={<AdminCadastrosPage />} />
                               <Route path="/admin/cadastros/produto/:id" element={<AdminProductFormPage />} />
                               <Route path="/admin/permissoes" element={<PermissionsPage />} />
