@@ -929,7 +929,7 @@ async function handleCrud(body: any, req: Request, corsHeaders: Record<string, s
   // CACHE WRITE: armazena resposta para próximas requisições
   if (isCacheable && cacheKey) {
     const payload = JSON.stringify({ data: result, success: true });
-    setCached(cacheKey, payload);
+    setCachedResponse(cacheKey, payload);
     return cachedJsonResponse(payload, corsHeaders, false);
   }
 
