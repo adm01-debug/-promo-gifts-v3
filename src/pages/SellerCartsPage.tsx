@@ -308,6 +308,7 @@ function SellerCartsContent() {
         description={`Os ${s.confirmQuoteCart?.items.length || 0} itens serão transferidos para um novo orçamento e o carrinho será removido.`}
         confirmLabel="Gerar Orçamento" cancelLabel="Cancelar"
         onConfirm={s.confirmGenerateQuote}
+        testId="cart-confirm-dialog"
       />
       <DeleteConfirmDialog
         open={s.confirmDeleteCart} onOpenChange={s.setConfirmDeleteCart}

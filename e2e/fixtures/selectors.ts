@@ -1,75 +1,85 @@
 /**
  * SSOT de seletores E2E.
  *
- * Convenção:
- *  - Sempre prefira `data-testid` para elementos críticos.
- *  - Cada string aqui pode incluir um fallback (ex.: `id=...`, role) durante
- *    a transição. Quando todos os componentes-alvo já tiverem o testid, o
- *    fallback pode ser removido.
- *  - Para criar novo selector: padrão `kebab-case` + sufixo do papel
- *    (`-input`, `-submit`, `-toggle`, `-list`, `-item`, `-card`).
+ * Política (10/10):
+ *  - **Apenas `data-testid`** para elementos do nosso app. Não use texto, role,
+ *    aria-label, classes ou ids de DOM como seletor — são frágeis e quebram
+ *    em refactors de UI/i18n.
+ *  - **Exceção controlada**: bibliotecas externas que expõem data-attributes
+ *    estáveis como contrato público (ex.: `data-sonner-toast` da lib `sonner`)
+ *    são aceitos. Estão isolados em `Sel.ext.*`.
+ *  - Convenção de nomes: `kebab-case` + sufixo do papel
+ *    (`-input`, `-submit`, `-toggle`, `-list`, `-item`, `-card`, `-cta`).
+ *  - Para grupos dinâmicos (ex.: itens indexados) use prefixo:
+ *    `quote-item-${i}`. No spec consulte com `Sel.quote.items` (prefix match)
+ *    ou `Sel.quote.item(i)` para um índice específico.
+ *  - Sempre que adicionar um seletor novo, primeiro adicione o `data-testid`
+ *    no componente React correspondente.
  *
  * Uso:
- *   import { Sel } from "../fixtures/selectors";
+ *   import { Sel, TID } from "../fixtures/selectors";
  *   await page.fill(Sel.login.email, "user@x.com");
- *   await page.click(Sel.login.submit);
+ *   await page.locator(Sel.login.submit).click();
  */
 
-const TID = (id: string) => `[data-testid="${id}"]`;
+export const TID = (id: string): string => `[data-testid="${id}"]`;
+export const TID_PREFIX = (prefix: string): string => `[data-testid^="${prefix}"]`;
 
 export const Sel = {
   // ---------- Login ----------
   login: {
-    form: `${TID("login-form")}, form:has(#login-email)`,
-    email: `${TID("login-email-input")}, #login-email`,
-    password: `${TID("login-password-input")}, #login-password`,
-    submit: `${TID("login-submit")}, button[type="submit"]`,
-    toggle: `${TID("login-password-toggle")}, button[aria-label*="senha" i]`,
-    forgot: `${TID("login-forgot-link")}, text=/Esqueci.*senha/i`,
+    form: TID("login-form"),
+    email: TID("login-email-input"),
+    password: TID("login-password-input"),
+    submit: TID("login-submit"),
+    toggle: TID("login-password-toggle"),
+    forgot: TID("login-forgot-link"),
   },
 
   // ---------- Sidebar / Navegação ----------
   sidebar: {
-    /** Link da sidebar por slug (ex.: "produtos") com fallback para texto. */
-    link: (slug: string, label?: string) =>
-      label
-        ? `${TID(`sidebar-link-${slug}`)}, nav >> text=${label}`
-        : `${TID(`sidebar-link-${slug}`)}`,
+    /** Link da sidebar por slug (ex.: "produtos"). */
+    link: (slug: string) => TID(`sidebar-link-${slug}`),
   },
 
   // ---------- Headings de páginas ----------
   page: {
-    /** Title proxy de uma página por slug. Cobertos: orcamentos, pedidos, favoritos, colecoes, carrinhos. */
-    title: (slug: string) => `${TID(`page-title-${slug}`)}, h1, h2`,
+    /** Title proxy de uma página por slug. Ex.: orcamentos, pedidos, favoritos, colecoes, carrinhos. */
+    title: (slug: string) => TID(`page-title-${slug}`),
   },
 
   // ---------- Catálogo / Produto ----------
   product: {
-    card: `${TID("product-card")}, article:has(button[aria-label*="favorit" i]), [role="article"]:has(button[aria-label*="favorit" i])`,
-    name: `${TID("product-card-name")}, h1, h2, h3, [data-product-name]`,
+    card: TID("product-card"),
+    /** Nome no card do catálogo (ProductCard / EnhancedProductCard). */
+    cardName: TID("product-card-name"),
+    /** Nome no detalhe do produto (ProductDetailHero h1). */
+    name: TID("product-name"),
     /**
      * Botão de favoritar — testid estável presente em:
      *  - card do catálogo (ProductCardActions: product-card-favorite)
      *  - detalhe Hero/Sticky/Mobile, QuickView, ListItem, TableRow (product-favorite)
-     * Fallback por aria-label só durante transição.
      */
-    favorite: `${TID("product-card-favorite")}, ${TID("product-favorite")}, button[aria-label="Favoritar" i], button[aria-label*="favorit" i]`,
-    favoriteRemove: `${TID("favorite-remove")}, button[aria-label="Remover favorito" i]`,
-    cartTrigger: `button[aria-label="ShoppingCart" i], button:has(svg.lucide-shopping-cart)`,
-    addCartConfirm: 'button:has-text("Adicionar ao Carrinho")',
+    favorite: `${TID("product-card-favorite")}, ${TID("product-favorite")}`,
+    favoriteRemove: TID("favorite-remove"),
+    /** Trigger de adicionar ao carrinho (atualmente o botão do header). */
+    cartTrigger: TID("cart-trigger"),
   },
 
   // ---------- Orçamentos ----------
   quote: {
-    newButton: `${TID("quote-new-button")}, a[href="/orcamentos/novo"], a[href*="orcamentos/novo"]`,
-    wizard: `${TID("quote-wizard")}, input, [role="tablist"], [data-testid*="step"]`,
+    newButton: TID("quote-new-button"),
+    wizard: TID("quote-wizard"),
+    /** Itens do wizard são indexados: quote-item-0, quote-item-1, ... */
+    items: TID_PREFIX("quote-item"),
+    item: (index: number) => TID(`quote-item-${index}`),
   },
 
   // ---------- Favoritos ----------
   favorites: {
-    list: `${TID("favorites-list")}`,
-    item: `${TID("favorite-item")}`,
-    remove: `${TID("favorite-remove")}, button[aria-label="Remover favorito" i]`,
+    list: TID("favorites-list"),
+    item: TID("favorite-item"),
+    remove: TID("favorite-remove"),
     title: TID("page-title-favoritos"),
     icon: TID("favorites-icon"),
     count: TID("favorites-count"),
@@ -81,18 +91,31 @@ export const Sel = {
 
   // ---------- Carrinho ----------
   cart: {
-    drawer: `${TID("cart-drawer")}, [role="tab"], [data-testid="cart-tab"]`,
-    item: `${TID("cart-item")}`,
-    qtyBadge: `${TID("cart-qty-badge")}, .tabular-nums`,
-    increment: `${TID("cart-qty-increment")}, button:has(svg.lucide-plus)`,
-    checkoutCta: `${TID("cart-checkout-cta")}, button:has-text("Gerar Orçamento")`,
-    confirmDialog: '[role="alertdialog"], [role="dialog"]',
+    trigger: TID("cart-trigger"),
+    drawer: TID("cart-drawer"),
+    tab: TID("cart-tab"),
+    item: TID("cart-item"),
+    qtyBadge: TID("cart-qty-badge"),
+    increment: TID("cart-qty-increment"),
+    checkoutCta: TID("cart-checkout-cta"),
+    confirmDialog: TID("cart-confirm-dialog"),
   },
 
   // ---------- App genérico ----------
   app: {
-    toast: '[data-sonner-toast], [role="status"]',
-    errorBanner: '[role="alert"]',
-    anyToast: '[data-sonner-toast], [role="status"], [role="alert"]',
+    /**
+     * Toast genérico. Combina `data-sonner-toast` (contrato estável da lib
+     * `sonner`) com nosso wrapper `app-toast` quando aplicável.
+     */
+    toast: `${TID("app-toast")}, [data-sonner-toast]`,
+    /** Alias histórico — equivalente a `toast`. */
+    anyToast: `${TID("app-toast")}, [data-sonner-toast]`,
+    errorBanner: TID("app-error-banner"),
+  },
+
+  // ---------- Bibliotecas externas (contratos estáveis) ----------
+  ext: {
+    /** Toast da lib `sonner` — atributo público da lib. */
+    sonnerToast: "[data-sonner-toast]",
   },
 } as const;
