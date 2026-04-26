@@ -8,7 +8,7 @@
  * Razão: em react-router-dom v6 o prop `errorElement` SÓ é honrado dentro
  * de um data router (createBrowserRouter + RouterProvider). Em <Routes>
  * declarativo ele é silenciosamente ignorado — vira dead code que dá falsa
- * sensação de robustez. Use o ErrorBoundary global do React (src/main.tsx).
+ * sensação de robustez. Use o EnhancedErrorBoundary global (src/main.tsx).
  *
  * Allowlist:
  *   - arquivos que usem `createBrowserRouter`/`createMemoryRouter`/`RouterProvider`

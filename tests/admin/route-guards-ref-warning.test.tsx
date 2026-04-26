@@ -11,7 +11,7 @@ import { describe, it, beforeEach, afterEach, vi } from "vitest";
 import * as React from "react";
 import { render, cleanup, fireEvent, screen } from "@testing-library/react";
 import { MemoryRouter, Routes, Route, Outlet } from "react-router-dom";
-import { ErrorBoundary } from "@/components/errors/ErrorBoundary";
+import { EnhancedErrorBoundary } from "@/components/errors/EnhancedErrorBoundary";
 import { installReactWarningGuard } from "../helpers/react-warning-guard";
 
 // Mock do AuthContext: retorna estado controlável por teste.
@@ -140,13 +140,13 @@ describe("Route guards — React ref warning guard", () => {
 
 /**
  * Cenários de erro: garantem que quando um filho lança durante render
- * (sync ou em effect), o ErrorBoundary captura o erro e renderiza seu
+ * (sync ou em effect), o EnhancedErrorBoundary captura o erro e renderiza seu
  * fallback SEM emitir o warning de "Function components cannot be given refs".
  *
  * Cobre os 3 padrões mais comuns de fallback:
- *   1. ErrorBoundary global envolvendo <MemoryRouter>;
- *   2. ErrorBoundary com fallback custom (ReactNode) — análogo a errorElement;
- *   3. ErrorBoundary aninhado dentro de uma rota protegida.
+ *   1. EnhancedErrorBoundary global envolvendo <MemoryRouter>;
+ *   2. EnhancedErrorBoundary com fallback custom (ReactNode) — análogo a errorElement;
+ *   3. EnhancedErrorBoundary aninhado dentro de uma rota protegida.
  */
 
 /** Componente que lança imediatamente — simula crash de render. */
@@ -157,7 +157,7 @@ function Boom({ message = "boom" }: { message?: string }): never {
 /** Componente que lança ao montar (efeito de pós-render). */
 function BoomOnMount({ message = "mount-boom" }: { message?: string }) {
   // Lançar no body do componente cobre o caminho síncrono — suficiente
-  // para acionar getDerivedStateFromError do ErrorBoundary.
+  // para acionar getDerivedStateFromError do EnhancedErrorBoundary.
   throw new Error(message);
 }
 
@@ -166,7 +166,7 @@ function CustomFallback() {
   return <div role="alert">custom-error-fallback</div>;
 }
 
-describe("Route guards + ErrorBoundary — sem warning de ref ao falhar", () => {
+describe("Route guards + EnhancedErrorBoundary — sem warning de ref ao falhar", () => {
   let guard: ReturnType<typeof installReactWarningGuard>;
   // Silencia o console.error que React emite ao capturar o erro no boundary
   // — ele não é um ref warning e não deve poluir o output do teste.
@@ -189,24 +189,24 @@ describe("Route guards + ErrorBoundary — sem warning de ref ao falhar", () => 
     cleanup();
   });
 
-  it("ErrorBoundary global captura throw em rota não-protegida — sem warning", () => {
+  it("EnhancedErrorBoundary global captura throw em rota não-protegida — sem warning", () => {
     render(
-      <ErrorBoundary fallback={<CustomFallback />}>
+      <EnhancedErrorBoundary fallback={<CustomFallback />}>
         <MemoryRouter initialEntries={["/x"]}>
           <Routes>
             <Route path="/x" element={<Boom />} />
           </Routes>
         </MemoryRouter>
-      </ErrorBoundary>,
+      </EnhancedErrorBoundary>,
     );
     // Confirma que o fallback renderizou (boundary funcionou).
     screen.getByText("custom-error-fallback");
-    guard.expectNoRefWarning("ErrorBoundary global + Boom");
+    guard.expectNoRefWarning("EnhancedErrorBoundary global + Boom");
   });
 
   it("AdminRoute envolve filho que lança — fallback sem warning", () => {
     render(
-      <ErrorBoundary fallback={<CustomFallback />}>
+      <EnhancedErrorBoundary fallback={<CustomFallback />}>
         <MemoryRouter initialEntries={["/admin"]}>
           <Routes>
             <Route element={<AdminRoute />}>
@@ -214,7 +214,7 @@ describe("Route guards + ErrorBoundary — sem warning de ref ao falhar", () => 
             </Route>
           </Routes>
         </MemoryRouter>
-      </ErrorBoundary>,
+      </EnhancedErrorBoundary>,
     );
     screen.getByText("custom-error-fallback");
     guard.expectNoRefWarning("AdminRoute child Boom");
@@ -222,7 +222,7 @@ describe("Route guards + ErrorBoundary — sem warning de ref ao falhar", () => 
 
   it("DevRoute envolve filho que lança — fallback sem warning", () => {
     render(
-      <ErrorBoundary fallback={<CustomFallback />}>
+      <EnhancedErrorBoundary fallback={<CustomFallback />}>
         <MemoryRouter initialEntries={["/dev"]}>
           <Routes>
             <Route element={<DevRoute />}>
@@ -230,7 +230,7 @@ describe("Route guards + ErrorBoundary — sem warning de ref ao falhar", () => 
             </Route>
           </Routes>
         </MemoryRouter>
-      </ErrorBoundary>,
+      </EnhancedErrorBoundary>,
     );
     screen.getByText("custom-error-fallback");
     guard.expectNoRefWarning("DevRoute child BoomOnMount");
@@ -238,7 +238,7 @@ describe("Route guards + ErrorBoundary — sem warning de ref ao falhar", () => 
 
   it("ProtectedRoute envolve filho que lança — fallback sem warning", () => {
     render(
-      <ErrorBoundary fallback={<CustomFallback />}>
+      <EnhancedErrorBoundary fallback={<CustomFallback />}>
         <MemoryRouter initialEntries={["/p"]}>
           <Routes>
             <Route element={<ProtectedRoute />}>
@@ -246,13 +246,13 @@ describe("Route guards + ErrorBoundary — sem warning de ref ao falhar", () => 
             </Route>
           </Routes>
         </MemoryRouter>
-      </ErrorBoundary>,
+      </EnhancedErrorBoundary>,
     );
     screen.getByText("custom-error-fallback");
     guard.expectNoRefWarning("ProtectedRoute child Boom");
   });
 
-  it("ErrorBoundary aninhado dentro de rota protegida — fallback sem warning", () => {
+  it("EnhancedErrorBoundary aninhado dentro de rota protegida — fallback sem warning", () => {
     // Padrão real do projeto: cada página crítica envolve seu próprio boundary.
     render(
       <MemoryRouter initialEntries={["/admin"]}>
@@ -261,9 +261,9 @@ describe("Route guards + ErrorBoundary — sem warning de ref ao falhar", () => 
             <Route
               path="/admin"
               element={
-                <ErrorBoundary fallback={<CustomFallback />}>
+                <EnhancedErrorBoundary fallback={<CustomFallback />}>
                   <Boom message="nested-boom" />
-                </ErrorBoundary>
+                </EnhancedErrorBoundary>
               }
             />
           </Route>
@@ -271,15 +271,15 @@ describe("Route guards + ErrorBoundary — sem warning de ref ao falhar", () => 
       </MemoryRouter>,
     );
     screen.getByText("custom-error-fallback");
-    guard.expectNoRefWarning("AdminRoute > nested ErrorBoundary");
+    guard.expectNoRefWarning("AdminRoute > nested EnhancedErrorBoundary");
   });
 
-  it("ErrorBoundary com fallback padrão (UI completa) — sem warning de ref", () => {
-    // Sem `fallback` custom: o ErrorBoundary renderiza sua UI rica
+  it("EnhancedErrorBoundary com fallback padrão (UI completa) — sem warning de ref", () => {
+    // Sem `fallback` custom: o EnhancedErrorBoundary renderiza sua UI rica
     // (Card + Button + Collapsible). Esse caminho exercita componentes
     // shadcn/Radix sob o boundary — exatamente o padrão do main.tsx global.
     render(
-      <ErrorBoundary>
+      <EnhancedErrorBoundary>
         <MemoryRouter initialEntries={["/x"]}>
           <Routes>
             <Route element={<Outlet />}>
@@ -287,16 +287,16 @@ describe("Route guards + ErrorBoundary — sem warning de ref ao falhar", () => 
             </Route>
           </Routes>
         </MemoryRouter>
-      </ErrorBoundary>,
+      </EnhancedErrorBoundary>,
     );
     // A UI default contém o título "Algo deu errado" / botões — basta
     // confirmar que renderizou alguma role="alert" ou botão "Tentar novamente".
     // (Não dependemos do texto exato para não acoplar ao copy.)
     const buttons = screen.queryAllByRole("button");
     if (buttons.length === 0) {
-      throw new Error("ErrorBoundary default UI não renderizou botões.");
+      throw new Error("EnhancedErrorBoundary default UI não renderizou botões.");
     }
-    guard.expectNoRefWarning("ErrorBoundary default UI");
+    guard.expectNoRefWarning("EnhancedErrorBoundary default UI");
   });
 
   it("Recover via remount após erro (key bump) — sem warning de ref", () => {
@@ -306,9 +306,9 @@ describe("Route guards + ErrorBoundary — sem warning de ref ao falhar", () => 
       return (
         <>
           <button onClick={() => setK((v) => v + 1)}>retry</button>
-          <ErrorBoundary key={k} fallback={<CustomFallback />}>
+          <EnhancedErrorBoundary key={k} fallback={<CustomFallback />}>
             <Boom message="retry-boom" />
-          </ErrorBoundary>
+          </EnhancedErrorBoundary>
         </>
       );
     };
@@ -317,6 +317,6 @@ describe("Route guards + ErrorBoundary — sem warning de ref ao falhar", () => 
     fireEvent.click(screen.getByText("retry"));
     // Após remount, o boundary captura novamente e exibe fallback.
     screen.getByText("custom-error-fallback");
-    guard.expectNoRefWarning("ErrorBoundary remount cycle");
+    guard.expectNoRefWarning("EnhancedErrorBoundary remount cycle");
   });
 });
