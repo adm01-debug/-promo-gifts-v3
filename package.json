@@ -22,7 +22,8 @@
     "prepare": "husky",
     "test:e2e": "npx playwright test",
     "test:e2e:ui": "npx playwright test --ui",
-    "check:seller-scope": "node scripts/check-seller-scope.mjs"
+    "check:seller-scope": "node scripts/check-seller-scope.mjs",
+    "check:route-error-element": "node scripts/check-route-error-element.mjs"
   },
   "lint-staged": {
     "src/**/*.{ts,tsx}": [
