@@ -108,10 +108,41 @@ class EnhancedErrorBoundary extends Component<Props, State> {
     window.location.href = '/';
   };
 
-  handleClearCacheReload = () => {
+  handleClearCacheReload = async () => {
     // Reaproveita o pipeline de recovery (Cache API + SW + cache-bust no URL).
     // Ignora o limite de reloads aqui pois é uma ação manual do usuário.
-    void attemptChunkRecovery(this.state.error ?? new Error('manual cache reload'));
+    this.setState({ isClearingCache: true });
+    try {
+      // Best-effort: limpa storages locais que podem estar com dados corrompidos
+      try { sessionStorage.clear(); } catch { /* noop */ }
+      // Preserva tokens auth do supabase para não deslogar; remove apenas chaves de cache de app
+      try {
+        for (const key of Object.keys(localStorage)) {
+          if (!key.startsWith('sb-') && !key.startsWith('supabase')) {
+            localStorage.removeItem(key);
+          }
+        }
+      } catch { /* noop */ }
+      await attemptChunkRecovery(this.state.error ?? new Error('manual cache reload'));
+    } finally {
+      // Se attemptChunkRecovery não navegar, libera o botão
+      this.setState({ isClearingCache: false });
+    }
+  };
+
+  handleCopyError = async () => {
+    const { error, errorInfo } = this.state;
+    const payload = [
+      `URL: ${typeof window !== 'undefined' ? window.location.href : 'n/a'}`,
+      `Mensagem: ${error?.message ?? 'n/a'}`,
+      `Stack:\n${error?.stack ?? 'n/a'}`,
+      `Component Stack:${errorInfo?.componentStack ?? '\nn/a'}`,
+    ].join('\n\n');
+    try {
+      await navigator.clipboard.writeText(payload);
+      this.setState({ copied: true });
+      setTimeout(() => this.setState({ copied: false }), 2000);
+    } catch { /* noop */ }
   };
 
   override render() {
