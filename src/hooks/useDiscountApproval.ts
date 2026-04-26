@@ -5,6 +5,7 @@ import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { logRlsDenial } from "@/lib/security/rls-denial-logger";
 
 export interface DiscountApprovalRequest {
   id: string;
