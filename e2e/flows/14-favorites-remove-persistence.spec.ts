@@ -169,6 +169,28 @@ async function resolveRemoveButton(card: Locator): Promise<Locator> {
   );
 }
 
+/**
+ * Reload + espera explícita de navegação para evitar flakiness:
+ *   1. `page.reload({ waitUntil: "load" })` — DOM pronto
+ *   2. `waitForLoadState("networkidle")` com fallback (4s) — requests assentam
+ *   3. Aguarda o `Sel.favorites.title` ficar visível — sinal SSOT da hidratação
+ *   4. Skeletons sumiram (best-effort)
+ */
+async function reloadAndSettle(page: Page): Promise<void> {
+  await page.reload({ waitUntil: "load" });
+  await page.waitForLoadState("networkidle", { timeout: 4_000 }).catch(() => {});
+  await page
+    .locator(Sel.favorites.title)
+    .first()
+    .waitFor({ state: "visible", timeout: 10_000 });
+  await page
+    .waitForFunction(
+      () => !document.querySelector('[data-state="loading"], [data-skeleton]'),
+      { timeout: 6_000 },
+    )
+    .catch(() => {});
+}
+
 test.describe("Fluxo: remover favorito persiste após reload", () => {
   test.beforeEach(() => requireAuth());
   installFavoritesCleanup(test);
@@ -237,8 +259,57 @@ test.describe("Fluxo: remover favorito persiste após reload", () => {
 
     // 3. Remove via botão "Remover favorito" do card alvo
     const removeBtn = await resolveRemoveButton(targetCard);
-    await removeBtn.click();
-    await acceptConfirmIfAny(page);
+
+    // 3.0. ESPERA EXPLÍCITA — anti-flakiness:
+    //   (a) Se for fluxo REMOTO (isRemoteListView), o app dispara
+    //       `DELETE /rest/v1/favorite_items?id=eq.<uuid>` (PostgREST → 200/204).
+    //       Armamos um `waitForResponse` ANTES do clique, com timeout curto e
+    //       tolerância (catch → null) para também suportar o fluxo LEGACY local
+    //       (puro localStorage, sem network).
+    //   (b) Em paralelo, garantimos que o storage local caiu para `length-1`
+    //       — esse é o sinal SSOT de que o estado propagou (cobre legacy +
+    //       remoto, já que o store local é a fonte da UI legacy).
+    const expectedStorageLen = (await readStorage(page)).length - 1;
+    const removeResponsePromise = page
+      .waitForResponse(
+        (resp) => {
+          const u = resp.url();
+          return (
+            /\/rest\/v1\/favorite_items/.test(u) &&
+            resp.request().method() === "DELETE"
+          );
+        },
+        { timeout: 4_000 },
+      )
+      .catch(() => null);
+
+    const [removeResponse] = await Promise.all([
+      removeResponsePromise,
+      (async () => {
+        await removeBtn.click();
+        await acceptConfirmIfAny(page);
+      })(),
+    ]);
+
+    // Se a request foi observada (fluxo remoto), valida status 2xx (PostgREST
+    // costuma retornar 204 No Content em DELETE).
+    if (removeResponse) {
+      const status = removeResponse.status();
+      expect(
+        status,
+        `DELETE favorite_items deveria responder 2xx (got ${status})`,
+      ).toBeGreaterThanOrEqual(200);
+      expect(status).toBeLessThan(300);
+    }
+
+    // 3.0.1. Aguarda explicitamente o storage refletir a remoção (sinal SSOT
+    //        independente de toast/aria-live e tolerante a re-renders lentos).
+    await expect
+      .poll(async () => (await readStorage(page)).length, {
+        message: "storage local não caiu para length-1 após o clique de remoção",
+        timeout: 8_000,
+      })
+      .toBe(expectedStorageLen);
 
     // 3.1. FEEDBACK — toast (sonner) com nome do produto removido
     //      Contrato do FavoritesPage: toast.success(`"${name}" removido dos favoritos`)
@@ -290,14 +361,8 @@ test.describe("Fluxo: remover favorito persiste após reload", () => {
       .poll(async () => (await readStorage(page)).length, { timeout: 8_000 })
       .toBe(original.length);
 
-    // 5. page.reload() — remoção é persistida
-    await page.reload({ waitUntil: "domcontentloaded" });
-    await page
-      .waitForFunction(
-        () => !document.querySelector('[data-state="loading"], [data-skeleton]'),
-        { timeout: 8_000 },
-      )
-      .catch(() => {});
+    // 5. Reload com espera explícita de navegação (load + networkidle + título)
+    await reloadAndSettle(page);
 
     // 6. Reusa o MESMO snapshot esperado para validar pós-reload
     await expectFavoritesSnapshot(page, expectedAfterRemove, "pós-reload");
@@ -330,13 +395,7 @@ test.describe("Fluxo: remover favorito persiste após reload", () => {
     ).toEqual(new Set(original.map((f) => f.productId)));
 
     // 8.2. Reload final — o estado restaurado precisa SOBREVIVER ao reload
-    await page.reload({ waitUntil: "domcontentloaded" });
-    await page
-      .waitForFunction(
-        () => !document.querySelector('[data-state="loading"], [data-skeleton]'),
-        { timeout: 8_000 },
-      )
-      .catch(() => {});
+    await reloadAndSettle(page);
 
     // 8.3. Header voltou ao baseline ABSOLUTO (countBefore), não ao snapshot intermediário
     await expect
