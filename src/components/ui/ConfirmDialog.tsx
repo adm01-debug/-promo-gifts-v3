@@ -72,6 +72,7 @@ export function ConfirmDialog({
   icon: CustomIcon,
   loading = false,
   impactPreview,
+  testId,
 }: ConfirmDialogProps) {
   const config = variantConfig[variant];
   const Icon = CustomIcon || config.icon;
@@ -90,7 +91,7 @@ export function ConfirmDialog({
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="max-w-md">
+      <AlertDialogContent className="max-w-md" data-testid={testId}>
         <AlertDialogHeader>
           <div className="flex items-start gap-4">
             <motion.div
