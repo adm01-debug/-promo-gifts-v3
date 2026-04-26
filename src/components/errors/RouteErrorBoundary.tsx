@@ -86,11 +86,17 @@ export function RouteErrorBoundary() {
   const error = useRouteError();
   const navigate = useNavigate();
   const errorDetails = getErrorDetails(error);
+  const isChunk = isChunkLoadError(error);
 
   const handleAction = () => {
     switch (errorDetails.action) {
       case "reload":
-        window.location.reload();
+        if (isChunk) {
+          // Hard reload com cache-bust + purga de SW (defesa contra Vite 502).
+          void attemptChunkRecovery(error);
+        } else {
+          window.location.reload();
+        }
         break;
       case "home":
         navigate("/");
