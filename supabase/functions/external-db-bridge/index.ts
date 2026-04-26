@@ -1238,11 +1238,12 @@ async function handleSelect(externalSupabase: any, table: string, opts: any) {
     return jsonResponse({ error: selectError.message }, 400, corsHeaders);
   }
 
-  let records = selectData || [];
+  let records: unknown[] = (selectData ?? []) as unknown[];
 
   // Apply legacy row transforms for aliased tables
-  if (aliasType === 'technique') records = records.map(mapTechniqueRowToLegacyShape);
-  if (aliasType === 'priceTable') records = records.map(mapPriceTableRowToLegacyShape);
+  const rowsAsRecords = () => records as Record<string, unknown>[];
+  if (aliasType === 'technique') records = rowsAsRecords().map(mapTechniqueRowToLegacyShape);
+  if (aliasType === 'priceTable') records = rowsAsRecords().map(mapPriceTableRowToLegacyShape);
 
   emitTelemetry({ operation: 'select', table, limit: safeLimit, offset: safeOffset, countMode, durationMs: selectDuration, status: classifyDuration(selectDuration), recordCount: records.length });
   console.log(`Selected ${records.length} records from ${table} (offset=${safeOffset}, limit=${safeLimit}, count=${count ?? 'n/a'})`);
