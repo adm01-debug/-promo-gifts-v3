@@ -32,7 +32,7 @@ test.describe("Fluxo: Auth", () => {
     await page.fill(Sel.login.email, "naoehemail");
     await page.fill(Sel.login.password, "Senha123");
     await page.locator(Sel.login.submit).first().click();
-    await expect(page.locator("text=/Email inválido|inválido/i").first()).toBeVisible({
+    await expect(page.locator(Sel.login.errorMsg).first()).toBeVisible({
       timeout: 4000,
     });
   });
@@ -53,7 +53,7 @@ test.describe("Fluxo: Auth", () => {
     const link = page.locator(Sel.login.forgot).first();
     if (await link.count()) {
       await link.click();
-      await expect(page.locator("text=/Recuperar senha/i")).toBeVisible({ timeout: 3000 });
+      await expect(page.locator(Sel.login.forgotScreen)).toBeVisible({ timeout: 3000 });
     }
   });
 
