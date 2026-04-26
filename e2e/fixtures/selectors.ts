@@ -75,6 +75,8 @@ export const Sel = {
     count: TID("favorites-count"),
     countItems: TID("favorites-count-items"),
     countLists: TID("favorites-count-lists"),
+    emptyState: TID("favorites-empty-state"),
+    emptyCta: TID("favorites-empty-cta"),
   },
 
   // ---------- Carrinho ----------
