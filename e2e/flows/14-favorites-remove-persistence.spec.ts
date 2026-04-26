@@ -67,22 +67,46 @@ async function readFavoritesListSize(page: Page): Promise<number> {
   return page.locator(Sel.favorites.item).count();
 }
 
+interface FavoriteRenderedItem {
+  productId: string;
+  productName: string;
+}
+
+/**
+ * Lista os itens renderizados em `[data-testid="favorite-item"]` extraindo
+ * `data-product-id` e `data-product-name` (SSOT do card).
+ *
+ * Retorna a lista na ORDEM DOM atual (preserva a ordem de renderização para
+ * permitir comparações estritas com `toEqual`). Usar essa lista é mais robusto
+ * que apenas contar cards: detecta swaps, duplicatas e ordering issues.
+ */
+async function readFavoritesItems(page: Page): Promise<FavoriteRenderedItem[]> {
+  return page.locator(Sel.favorites.item).evaluateAll((nodes) =>
+    nodes.map((el) => ({
+      productId: (el as HTMLElement).dataset.productId ?? "",
+      productName: (el as HTMLElement).dataset.productName ?? "",
+    })),
+  );
+}
+
 interface FavoritesSnapshot {
   title: string;
   count: number;
   countText: string;
   listSize: number;
+  items: FavoriteRenderedItem[];
 }
 
-/** Lê título + contadores + tamanho da lista em paralelo (snapshot reutilizável). */
+/** Lê título + contadores + lista de itens em paralelo (snapshot reutilizável). */
 async function readFavoritesSnapshot(page: Page): Promise<FavoritesSnapshot> {
-  const [title, count, countText, listSize] = await Promise.all([
+  const [title, count, countText, listSize, items] = await Promise.all([
     readFavoritesTitle(page),
     readFavoritesCount(page),
     readFavoritesCountText(page),
     readFavoritesListSize(page),
+    readFavoritesItems(page),
   ]);
-  return { title, count, countText, listSize };
+  return { title, count, countText, listSize, items };
 }
 
 /** Asserta que o snapshot atual bate com `expected` (uso pré e pós-reload). */
@@ -98,10 +122,23 @@ async function expectFavoritesSnapshot(
     })
     .toBe(expected.count);
 
+  // Aguarda a quantidade de cards estabilizar antes de comparar a lista de itens
+  await expect
+    .poll(() => readFavoritesListSize(page), {
+      message: `[${label}] tamanho da lista deveria estabilizar em ${expected.listSize}`,
+      timeout: 10_000,
+    })
+    .toBe(expected.listSize);
+
   const actual = await readFavoritesSnapshot(page);
   expect(actual.title, `[${label}] título mudou`).toBe(expected.title);
   expect(actual.countText, `[${label}] favorites-count text mudou`).toBe(expected.countText);
   expect(actual.listSize, `[${label}] tamanho da lista mudou`).toBe(expected.listSize);
+  // Comparação estrita: mesmo conjunto de productIds (independente da ordem)
+  expect(
+    new Set(actual.items.map((i) => i.productId)),
+    `[${label}] conjunto de productIds renderizados divergiu`,
+  ).toEqual(new Set(expected.items.map((i) => i.productId)));
   return actual;
 }
 
