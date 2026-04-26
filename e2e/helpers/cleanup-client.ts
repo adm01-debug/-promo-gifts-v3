@@ -41,6 +41,13 @@ export interface CleanupConfig {
   sellerScope?: "self" | "explicit";
   /** Quando sellerScope === "explicit", deve bater com o user_id real do email. */
   sellerId?: string;
+  /**
+   * Quando definido, restringe DELETEs a recursos cujo nome começa com este
+   * prefixo (ex.: "[E2E]"). Por padrão usa `getTestPrefix()` para evitar
+   * apagar dados criados manualmente fora do escopo dos testes.
+   * Para purga total (sem filtro), defina E2E_CLEANUP_NO_NAME_FILTER=1.
+   */
+  nameFilterPrefix?: string | null;
 }
 
 export function loadCleanupConfig(): CleanupConfig | null {
@@ -54,10 +61,29 @@ export function loadCleanupConfig(): CleanupConfig | null {
     process.env.E2E_CLEANUP_SELLER_SCOPE === "explicit" ? "explicit" : "self";
   const sellerId = process.env.E2E_CLEANUP_SELLER_ID || undefined;
 
+  // Filtro por prefixo de nome — ATIVO POR PADRÃO. Use o mesmo prefixo
+  // usado por `e2eName(label)` para garantir paridade.
+  const noNameFilter = process.env.E2E_CLEANUP_NO_NAME_FILTER === "1";
+  const explicitPrefix = process.env.E2E_TEST_PREFIX?.trim();
+  const nameFilterPrefix = noNameFilter
+    ? null
+    : explicitPrefix && explicitPrefix.length > 0
+      ? explicitPrefix
+      : "[E2E]"; // fallback alinhado ao DEFAULT_PREFIX de test-user.ts
+
   if (!baseUrl || !token) return null;
   if (!userEmail && !adminEmail) return null;
 
-  return { baseUrl, token, userEmail, adminEmail, dryRun, sellerScope, sellerId };
+  return {
+    baseUrl,
+    token,
+    userEmail,
+    adminEmail,
+    dryRun,
+    sellerScope,
+    sellerId,
+    nameFilterPrefix,
+  };
 }
 
 export async function purgeOne(
