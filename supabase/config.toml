@@ -26,3 +26,6 @@ verify_jwt = false
 
 [functions.connections-auto-test]
 verify_jwt = false
+
+[functions.e2e-cleanup]
+verify_jwt = false
