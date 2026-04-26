@@ -24,7 +24,6 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Pencil, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import {
   KNOWN_SCOPES,
   FULL_SCOPE,
@@ -35,9 +34,11 @@ import {
   isFullAccess,
   type McpScope,
 } from "@/lib/mcp/scopes";
-import { StepUpAuthDialog } from "@/components/auth/StepUpAuthDialog";
 import { useCanGrantMcpFull } from "./useCanGrantMcpFull";
 import { sanitizeError } from "@/lib/security/sanitize-error";
+import { useDevChallenge } from "@/contexts/DevChallengeContext";
+import { invokeFullScopeFunction } from "@/lib/auth/invoke-full-scope";
+import { supabase } from "@/integrations/supabase/client";
 import { handleStepUpError } from "@/lib/auth/step-up-error";
 import type { McpKeyRow } from "./useMcpKeys";
 
@@ -71,9 +72,9 @@ export function UpdateMcpKeyDialog({ source, open, onOpenChange, onUpdated }: Pr
   const [justification, setJustification] = useState("");
   const [confirmation, setConfirmation] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [stepUpOpen, setStepUpOpen] = useState(false);
 
   const { canGrant: canGrantFull, loading: grantorLoading } = useCanGrantMcpFull();
+  const { challenge } = useDevChallenge();
 
   // Hidrata estado quando o diálogo abre com nova fonte
   useEffect(() => {
@@ -85,7 +86,6 @@ export function UpdateMcpKeyDialog({ source, open, onOpenChange, onUpdated }: Pr
     setJustification("");
     setConfirmation("");
     setSubmitting(false);
-    setStepUpOpen(false);
   }, [open, source]);
 
   const wasFull = useMemo(() => (source ? source.is_full : false), [source]);
@@ -123,49 +123,25 @@ export function UpdateMcpKeyDialog({ source, open, onOpenChange, onUpdated }: Pr
     return null;
   }, [source, name, scopes, escalating, expiresLocal, justification, confirmation]);
 
-  /** Faz o POST. Para escalada a FULL, exige `stepUpToken`. */
-  const performUpdate = async (stepUpToken?: string) => {
-    if (!source) return;
-    setSubmitting(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("mcp-keys-update", {
-        body: {
-          key_id: source.id,
-          name: name.trim() !== source.name ? name.trim() : undefined,
-          description: description.trim() !== (source.description ?? "")
-            ? (description.trim() || null)
-            : undefined,
-          scopes,
-          expires_at: expiresLocal
-            ? new Date(expiresLocal).toISOString()
-            : null,
-          justification: escalating ? justification.trim() : null,
-          confirmation_phrase: escalating ? confirmation : null,
-          step_up_token: stepUpToken ?? null,
-        },
-      });
-      // Tratamento dedicado para falhas de step-up: mensagem específica + CTA "Refazer verificação".
-      if (handleStepUpError(data, error, () => setStepUpOpen(true))) {
-        return;
-      }
-      if (error) {
-        toast.error("Falha ao atualizar chave", { description: sanitizeError(error) });
-        return;
-      }
-      if (!data?.ok) {
-        toast.error("Não foi possível atualizar a chave", { description: sanitizeError(data) });
-        return;
-      }
-      toast.success(
-        data?.escalated_to_full
-          ? "Chave atualizada e escalada para FULL"
-          : "Chave atualizada",
-      );
-      onUpdated();
-      onOpenChange(false);
-    } finally {
-      setSubmitting(false);
-    }
+  /** Body comum enviado para mcp-keys-update. */
+  const buildBody = (): Record<string, unknown> => ({
+    key_id: source!.id,
+    name: name.trim() !== source!.name ? name.trim() : undefined,
+    description: description.trim() !== (source!.description ?? "")
+      ? (description.trim() || null)
+      : undefined,
+    scopes,
+    expires_at: expiresLocal ? new Date(expiresLocal).toISOString() : null,
+    justification: escalating ? justification.trim() : null,
+    confirmation_phrase: escalating ? confirmation : null,
+  });
+
+  const handleSuccess = (data: { ok?: boolean; escalated_to_full?: boolean }) => {
+    toast.success(
+      data?.escalated_to_full ? "Chave atualizada e escalada para FULL" : "Chave atualizada",
+    );
+    onUpdated();
+    onOpenChange(false);
   };
 
   const handleSubmit = async () => {
@@ -173,13 +149,47 @@ export function UpdateMcpKeyDialog({ source, open, onOpenChange, onUpdated }: Pr
       toast.error(validation);
       return;
     }
-    if (escalating) {
-      // Antes de chamar mcp-keys-update precisamos de step_up_token de
-      // `mcp_full_escalate`. O backend re-valida + consome o token.
-      setStepUpOpen(true);
-      return;
+    if (!source) return;
+    setSubmitting(true);
+    try {
+      if (escalating) {
+        // Escalada → step-up obrigatório (mcp_full_escalate).
+        const result = await invokeFullScopeFunction<
+          Record<string, unknown>,
+          { ok: boolean; escalated_to_full?: boolean }
+        >({
+          challenge,
+          functionName: "mcp-keys-update",
+          action: "mcp_full_escalate",
+          actionLabel: `Escalar chave MCP "${source.name}" para FULL`,
+          targetRef: source.id,
+          body: buildBody(),
+        });
+        if (result.status === "cancelled" || result.status === "step_up_error") return;
+        if (result.status === "error") {
+          toast.error("Falha ao atualizar chave", { description: sanitizeError(result.error ?? result.data) });
+          return;
+        }
+        handleSuccess(result.data);
+      } else {
+        // Edição comum: chamada direta (sem step-up).
+        const { data, error } = await supabase.functions.invoke("mcp-keys-update", {
+          body: { ...buildBody(), step_up_token: null },
+        });
+        if (handleStepUpError(data, error, () => { void handleSubmit(); })) return;
+        if (error) {
+          toast.error("Falha ao atualizar chave", { description: sanitizeError(error) });
+          return;
+        }
+        if (!data?.ok) {
+          toast.error("Não foi possível atualizar a chave", { description: sanitizeError(data) });
+          return;
+        }
+        handleSuccess(data);
+      }
+    } finally {
+      setSubmitting(false);
     }
-    await performUpdate();
   };
 
   if (!source) return null;
@@ -343,15 +353,6 @@ export function UpdateMcpKeyDialog({ source, open, onOpenChange, onUpdated }: Pr
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      <StepUpAuthDialog
-        open={stepUpOpen}
-        onOpenChange={setStepUpOpen}
-        action="mcp_full_escalate"
-        targetRef={source.id}
-        actionLabel={`Escalar chave MCP "${source.name}" para FULL`}
-        onVerified={(token) => performUpdate(token)}
-      />
     </>
   );
 }
