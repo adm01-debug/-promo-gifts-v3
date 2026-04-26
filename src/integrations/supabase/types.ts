@@ -2851,6 +2851,42 @@ export type Database = {
         }
         Relationships: []
       }
+      ownership_audit_reports: {
+        Row: {
+          details: Json
+          duration_ms: number | null
+          generated_at: string
+          id: string
+          missing_user_count: number
+          null_owner_count: number
+          total_issues_found: number
+          total_tables_scanned: number
+          triggered_by: string
+        }
+        Insert: {
+          details?: Json
+          duration_ms?: number | null
+          generated_at?: string
+          id?: string
+          missing_user_count?: number
+          null_owner_count?: number
+          total_issues_found?: number
+          total_tables_scanned?: number
+          triggered_by?: string
+        }
+        Update: {
+          details?: Json
+          duration_ms?: number | null
+          generated_at?: string
+          id?: string
+          missing_user_count?: number
+          null_owner_count?: number
+          total_issues_found?: number
+          total_tables_scanned?: number
+          triggered_by?: string
+        }
+        Relationships: []
+      }
       permissions: {
         Row: {
           category: string
@@ -4830,6 +4866,10 @@ export type Database = {
       acquire_ai_quota: {
         Args: { _function_name: string; _model: string; _user_id: string }
         Returns: Json
+      }
+      audit_ownership_orphans: {
+        Args: { _triggered_by?: string }
+        Returns: string
       }
       auto_block_extreme_offenders: { Args: never; Returns: Json }
       auto_revoke_orphan_full_keys: {
