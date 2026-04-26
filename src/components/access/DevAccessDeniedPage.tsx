@@ -230,8 +230,9 @@ export function DevAccessDeniedPage({
   const handleRequestAccess = async () => {
     const throttle = getThrottleStatus(user.id);
     if (throttle.throttled) {
-      toast.warning("Aguarde antes de tentar novamente", {
-        description: `Você poderá enviar uma nova solicitação em ${throttle.retryInSeconds}s.`,
+      toast.warning("Aguarde um instante", {
+        id: "dev-access-throttle",
+        description: `Tente novamente em ${throttle.retryInSeconds}s.`,
       });
       return;
     }
@@ -245,19 +246,22 @@ export function DevAccessDeniedPage({
     setSubmitting(false);
 
     if (result.throttled) {
-      toast.warning("Aguarde antes de tentar novamente", {
-        description: `Você poderá enviar uma nova solicitação em ${result.retryInSeconds ?? 60}s.`,
+      toast.warning("Aguarde um instante", {
+        id: "dev-access-throttle",
+        description: `Tente novamente em ${result.retryInSeconds ?? 60}s.`,
       });
       return;
     }
     if (!result.ok) {
-      toast.error("Não foi possível registrar a solicitação", {
+      toast.error("Falha ao enviar solicitação", {
+        id: "dev-access-error",
         description: result.error ?? "Tente novamente em instantes.",
       });
       return;
     }
     toast.success("Solicitação enviada", {
-      description: `Avisamos o time técnico (${DEV_ACCESS_CONTACT_EMAIL}). Você receberá uma notificação quando o acesso for revisado.`,
+      id: "dev-access-sent",
+      description: `Time técnico avisado (${DEV_ACCESS_CONTACT_EMAIL}).`,
     });
     finalize("request_access");
     if (result.mailtoUrl) {
@@ -271,12 +275,13 @@ export function DevAccessDeniedPage({
       await navigator.clipboard.writeText(url);
       setCopied(true);
       toast.success("Link copiado", {
-        description: "Envie ao time técnico para liberar o acesso.",
+        id: "dev-access-link-copied",
+        description: "Envie ao time técnico.",
       });
       emit("copy_link");
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast.error("Não foi possível copiar o link");
+      toast.error("Falha ao copiar link", { id: "dev-access-link-error" });
     }
   };
 
