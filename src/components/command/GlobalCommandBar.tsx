@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/command";
 import { Search, Sparkles, Clock } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { filterByRoutePermission } from "@/lib/navigation/filter-restricted-items";
 import { CommandActionGroup } from "./CommandActionGroup";
 import {
   buildActions,
