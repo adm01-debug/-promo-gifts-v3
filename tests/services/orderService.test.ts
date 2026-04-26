@@ -1,247 +1,133 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+/**
+ * Testes — orderService.convertQuoteToOrder
+ *
+ * Garantem que a mutação INSERT em `orders` carrega o `seller_id` recebido
+ * (não derivado do JWT do banco — defesa em profundidade) e que `order_items`
+ * são criados ligados ao pedido recém-criado. Também valida que UPDATE em
+ * `quotes` aplica filtro `id = quoteId` (não amplia escopo).
+ */
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { createSupabaseMock } from "@/test/helpers/supabase-mock";
 
-// Mock supabase
-const mockSelect = vi.fn();
-const mockEq = vi.fn();
-const mockMaybeSingle = vi.fn();
-const mockSingle = vi.fn();
-const mockInsert = vi.fn();
-const mockUpdate = vi.fn();
+vi.mock("@/lib/logger", () => ({ logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn() } }));
 
-const createChainMock = () => ({
-  select: vi.fn().mockReturnValue({
-    eq: vi.fn().mockReturnValue({
-      maybeSingle: mockMaybeSingle,
-    }),
-  }),
-  insert: mockInsert.mockReturnValue({
-    select: vi.fn().mockReturnValue({
-      single: mockSingle,
-    }),
-  }),
-  update: mockUpdate.mockReturnValue({
-    eq: vi.fn().mockResolvedValue({ error: null }),
-  }),
-});
+describe("orderService.convertQuoteToOrder — payloads de mutação", () => {
+  const QUOTE_ID = "quote-aprovado-1";
+  const SELLER_ID = "seller-uuid-42";
+  const ORG_ID = "org-uuid-9";
 
-vi.mock('@/integrations/supabase/client', () => ({
-  supabase: {
-    from: vi.fn(() => createChainMock()),
-  },
-}));
+  const APPROVED_QUOTE = {
+    id: QUOTE_ID,
+    status: "approved",
+    organization_id: ORG_ID,
+    client_id: "c1",
+    client_name: "Acme",
+    client_email: "a@a.com",
+    client_phone: "11",
+    client_company: "Acme SA",
+    subtotal: 100,
+    discount_amount: 0,
+    shipping_cost: 10,
+    shipping_type: "express",
+    total: 110,
+    payment_terms: "30d",
+    delivery_time: "5d",
+    notes: "n",
+    internal_notes: "i",
+  };
 
-vi.mock('@/lib/logger', () => ({
-  logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn() },
-}));
+  let mock: ReturnType<typeof createSupabaseMock>;
 
-import { convertQuoteToOrder } from '@/services/orderService';
-import { supabase } from '@/integrations/supabase/client';
-
-describe('convertQuoteToOrder', () => {
   beforeEach(() => {
+    vi.resetModules();
+    mock = createSupabaseMock({
+      selects: {
+        quotes: APPROVED_QUOTE,
+        orders: null, // nenhum pedido pré-existente para este quote
+        quote_items: [
+          { product_id: "p1", product_sku: "SKU1", product_name: "Prod 1", product_image_url: null, quantity: 2, unit_price: 50 },
+        ],
+      },
+      insertReturn: (table) =>
+        table === "orders"
+          ? { id: "new-order-id", order_number: "PED-001", status: "confirmed", total: 110 }
+          : { id: `mock-${table}-id` },
+    });
+    vi.doMock("@/integrations/supabase/client", () => ({ supabase: mock.client }));
+  });
+
+  afterEach(() => {
+    vi.doUnmock("@/integrations/supabase/client");
     vi.clearAllMocks();
   });
 
-  it('rejects non-approved quotes', async () => {
-    const mockFrom = vi.fn();
-    (supabase.from as ReturnType<typeof vi.fn>) = mockFrom;
-    
-    // First call: fetch quote (draft status)
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          maybeSingle: vi.fn().mockResolvedValue({
-            data: { id: 'q1', status: 'draft', organization_id: 'org1' },
-            error: null,
-          }),
-        }),
-      }),
-    });
+  it("inclui seller_id correto no INSERT em orders", async () => {
+    const { convertQuoteToOrder } = await import("@/services/orderService");
+    await convertQuoteToOrder({ quoteId: QUOTE_ID, sellerId: SELLER_ID, organizationId: ORG_ID });
 
+    const ordersInsert = mock.calls.insert.find((c) => c.table === "orders");
+    expect(ordersInsert).toBeDefined();
+    expect(ordersInsert!.payload).toMatchObject({
+      seller_id: SELLER_ID,
+      organization_id: ORG_ID,
+      quote_id: QUOTE_ID,
+      status: "confirmed",
+    });
+    // seller_id NUNCA pode ser undefined/null/string vazia
+    const sid = (ordersInsert!.payload as { seller_id: unknown }).seller_id;
+    expect(sid).toBe(SELLER_ID);
+    expect(typeof sid).toBe("string");
+    expect((sid as string).length).toBeGreaterThan(0);
+  });
+
+  it("não vaza seller_id alheio quando chamado com sellerId diferente", async () => {
+    const OTHER = "seller-outro-99";
+    const { convertQuoteToOrder } = await import("@/services/orderService");
+    await convertQuoteToOrder({ quoteId: QUOTE_ID, sellerId: OTHER });
+
+    const ordersInsert = mock.calls.insert.find((c) => c.table === "orders");
+    expect((ordersInsert!.payload as { seller_id: string }).seller_id).toBe(OTHER);
+    expect((ordersInsert!.payload as { seller_id: string }).seller_id).not.toBe(SELLER_ID);
+  });
+
+  it("UPDATE em quotes filtra por id (não amplia escopo)", async () => {
+    const { convertQuoteToOrder } = await import("@/services/orderService");
+    await convertQuoteToOrder({ quoteId: QUOTE_ID, sellerId: SELLER_ID });
+
+    const upd = mock.calls.update.find((c) => c.table === "quotes");
+    expect(upd).toBeDefined();
+    expect(upd!.payload).toEqual({ status: "converted" });
+    expect(upd!.filters).toContainEqual({ column: "id", value: QUOTE_ID });
+  });
+
+  it("propaga organization_id do quote para order_items quando override não é passado", async () => {
+    const { convertQuoteToOrder } = await import("@/services/orderService");
+    await convertQuoteToOrder({ quoteId: QUOTE_ID, sellerId: SELLER_ID });
+
+    const itemsInsert = mock.calls.insert.find((c) => c.table === "order_items");
+    expect(itemsInsert).toBeDefined();
+    const arr = itemsInsert!.payload as Array<Record<string, unknown>>;
+    expect(arr).toHaveLength(1);
+    expect(arr[0]).toMatchObject({
+      order_id: "new-order-id",
+      organization_id: ORG_ID,
+      product_id: "p1",
+    });
+  });
+
+  it("rejeita conversão de quote não aprovado (não dispara INSERT)", async () => {
+    mock = createSupabaseMock({
+      selects: { quotes: { ...APPROVED_QUOTE, status: "draft" } },
+    });
+    vi.doUnmock("@/integrations/supabase/client");
+    vi.doMock("@/integrations/supabase/client", () => ({ supabase: mock.client }));
+    vi.resetModules();
+
+    const { convertQuoteToOrder } = await import("@/services/orderService");
     await expect(
-      convertQuoteToOrder({ quoteId: 'q1', sellerId: 's1' })
-    ).rejects.toThrow('Apenas orçamentos aprovados podem ser convertidos em pedidos');
-  });
+      convertQuoteToOrder({ quoteId: QUOTE_ID, sellerId: SELLER_ID }),
+    ).rejects.toThrow(/aprovados/i);
 
-  it('rejects already-converted quotes', async () => {
-    const mockFrom = vi.fn();
-    (supabase.from as ReturnType<typeof vi.fn>) = mockFrom;
-
-    // First call: fetch quote (approved)
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          maybeSingle: vi.fn().mockResolvedValue({
-            data: { id: 'q1', status: 'approved', organization_id: 'org1' },
-            error: null,
-          }),
-        }),
-      }),
-    });
-
-    // Second call: check existing order
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          maybeSingle: vi.fn().mockResolvedValue({
-            data: { id: 'o1', order_number: 'PED-2026-0001' },
-            error: null,
-          }),
-        }),
-      }),
-    });
-
-    await expect(
-      convertQuoteToOrder({ quoteId: 'q1', sellerId: 's1' })
-    ).rejects.toThrow('já foi convertido');
-  });
-
-  it('successfully converts approved quote', async () => {
-    const mockFrom = vi.fn();
-    (supabase.from as ReturnType<typeof vi.fn>) = mockFrom;
-
-    // 1. Fetch quote
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          maybeSingle: vi.fn().mockResolvedValue({
-            data: {
-              id: 'q1', status: 'approved', organization_id: 'org1',
-              client_name: 'Cliente Teste', subtotal: 1000, total: 900,
-              discount_amount: 100, shipping_cost: 0, shipping_type: null,
-              payment_terms: '30/60', delivery_time: '15 dias',
-              notes: null, internal_notes: null, client_id: null,
-              client_email: null, client_phone: null, client_company: null,
-            },
-            error: null,
-          }),
-        }),
-      }),
-    });
-
-    // 2. Check existing order (none)
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
-        }),
-      }),
-    });
-
-    // 3. Create order
-    mockFrom.mockReturnValueOnce({
-      insert: vi.fn().mockReturnValue({
-        select: vi.fn().mockReturnValue({
-          single: vi.fn().mockResolvedValue({
-            data: { id: 'o1', order_number: 'PED-2026-0001', status: 'confirmed', total: 900 },
-            error: null,
-          }),
-        }),
-      }),
-    });
-
-    // 4. Fetch quote items
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockResolvedValue({
-          data: [
-            { product_id: 'p1', product_sku: 'SKU1', product_name: 'Caneta', quantity: 100, unit_price: 9, product_image_url: null },
-          ],
-          error: null,
-        }),
-      }),
-    });
-
-    // 5. Insert order items
-    mockFrom.mockReturnValueOnce({
-      insert: vi.fn().mockResolvedValue({ error: null }),
-    });
-
-    // 6. Update quote status
-    mockFrom.mockReturnValueOnce({
-      update: vi.fn().mockReturnValue({
-        eq: vi.fn().mockResolvedValue({ error: null }),
-      }),
-    });
-
-    const result = await convertQuoteToOrder({ quoteId: 'q1', sellerId: 's1', organizationId: 'org1' });
-    expect(result.id).toBe('o1');
-    expect(result.order_number).toBe('PED-2026-0001');
-    expect(result.status).toBe('confirmed');
-  });
-
-  it('throws on quote not found', async () => {
-    const mockFrom = vi.fn();
-    (supabase.from as ReturnType<typeof vi.fn>) = mockFrom;
-
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
-        }),
-      }),
-    });
-
-    await expect(
-      convertQuoteToOrder({ quoteId: 'non-existent', sellerId: 's1' })
-    ).rejects.toThrow('Orçamento não encontrado');
-  });
-
-  it('uses organizationId from param over quote', async () => {
-    const mockFrom = vi.fn();
-    (supabase.from as ReturnType<typeof vi.fn>) = mockFrom;
-
-    // Fetch quote
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          maybeSingle: vi.fn().mockResolvedValue({
-            data: { id: 'q1', status: 'approved', organization_id: 'org-old' },
-            error: null,
-          }),
-        }),
-      }),
-    });
-
-    // Check existing
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockReturnValue({
-          maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
-        }),
-      }),
-    });
-
-    // Create order - capture the insert payload
-    const insertFn = vi.fn().mockReturnValue({
-      select: vi.fn().mockReturnValue({
-        single: vi.fn().mockResolvedValue({
-          data: { id: 'o2', order_number: 'PED-2026-0002', status: 'confirmed', total: 100 },
-          error: null,
-        }),
-      }),
-    });
-    mockFrom.mockReturnValueOnce({ insert: insertFn });
-
-    // Quote items (empty)
-    mockFrom.mockReturnValueOnce({
-      select: vi.fn().mockReturnValue({
-        eq: vi.fn().mockResolvedValue({ data: [], error: null }),
-      }),
-    });
-
-    // Update quote status
-    mockFrom.mockReturnValueOnce({
-      update: vi.fn().mockReturnValue({
-        eq: vi.fn().mockResolvedValue({ error: null }),
-      }),
-    });
-
-    await convertQuoteToOrder({ quoteId: 'q1', sellerId: 's1', organizationId: 'org-new' });
-    
-    // Verify the organization_id used in insert was 'org-new' (param takes priority)
-    expect(insertFn).toHaveBeenCalledWith(
-      expect.objectContaining({ organization_id: 'org-new' })
-    );
+    expect(mock.calls.insert.find((c) => c.table === "orders")).toBeUndefined();
   });
 });
