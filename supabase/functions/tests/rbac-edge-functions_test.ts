@@ -90,10 +90,15 @@ for (const { fn, patterns, description } of PRIVILEGED_FUNCTIONS) {
           `Sem este gate, supervisor/agente conseguiriam invocar ${description}.`,
       );
 
-      // Defesa adicional: deve retornar 403 em algum caminho
+      // Defesa adicional: deve retornar 403 em algum caminho (literal ou via
+      // helper que propaga `status: 403` lançado por requireDev).
+      const has403Path =
+        /\b403\b/.test(source) ||
+        /requireDev\s*\(/.test(source) ||
+        /authErrorResponse/.test(source);
       assert(
-        /\b403\b/.test(source),
-        `Edge function "${fn}" não retorna 403 em nenhum caminho — ` +
+        has403Path,
+        `Edge function "${fn}" não tem caminho que retorne 403 — ` +
           `verifique se o role check responde adequadamente.`,
       );
     },
