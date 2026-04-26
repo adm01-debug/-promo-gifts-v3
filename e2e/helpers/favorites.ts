@@ -9,6 +9,8 @@
  * assertion em try/catch.
  */
 import type { Page, TestType } from "@playwright/test";
+import { expect } from "@playwright/test";
+import { Sel } from "../fixtures/selectors";
 
 const STORAGE_KEY = "product-favorites";
 
