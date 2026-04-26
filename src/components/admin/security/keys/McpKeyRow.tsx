@@ -37,9 +37,10 @@ interface Props {
   onRotate: (row: McpKeyRow) => void;
   onRevoke: (row: McpKeyRow) => void;
   onDetails: (row: McpKeyRow) => void;
+  onEdit: (row: McpKeyRow) => void;
 }
 
-export function McpKeyRow({ row, onRotate, onRevoke, onDetails }: Props) {
+export function McpKeyRow({ row, onRotate, onRevoke, onDetails, onEdit }: Props) {
   const expiresLabel = formatExpiresIn(row.expires_at);
 
   return (
