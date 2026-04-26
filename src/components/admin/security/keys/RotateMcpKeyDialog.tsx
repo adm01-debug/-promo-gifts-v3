@@ -18,7 +18,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { RefreshCw, ShieldAlert, Copy, Key } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import {
   FULL_SCOPE_CONFIRMATION,
   FULL_SCOPE_MIN_JUSTIFICATION,
@@ -26,7 +25,7 @@ import {
 import type { McpKeyRow } from "./useMcpKeys";
 import { sanitizeError } from "@/lib/security/sanitize-error";
 import { useDevChallenge } from "@/contexts/DevChallengeContext";
-import { handleStepUpError } from "@/lib/auth/step-up-error";
+import { invokeFullScopeFunction } from "@/lib/auth/invoke-full-scope";
 
 interface Props {
   source: McpKeyRow | null;
@@ -54,58 +53,6 @@ export function RotateMcpKeyDialog({ source, open, onOpenChange, onRotated }: Pr
     onOpenChange(v);
   };
 
-  /** Solicita challenge apropriado (FULL → mcp_full_issue, limitado → mcp_key_rotate). */
-  const requestStepUpToken = async (): Promise<string | null> => {
-    if (!source) return null;
-    return await challenge({
-      action: source.is_full ? "mcp_full_issue" : "mcp_key_rotate",
-      actionLabel: source.is_full
-        ? `Rotacionar chave MCP FULL "${source.name}"`
-        : `Rotacionar chave MCP "${source.name}"`,
-      targetRef: source.id,
-    });
-  };
-
-  /** Reabre o challenge e re-tenta a rotação após erro de step-up. */
-  const retryStepUp = async () => {
-    const token = await requestStepUpToken();
-    if (!token) return;
-    await performRotate(token);
-  };
-
-  /** Faz o POST para a edge function. Para FULL, exige token de step-up. */
-  const performRotate = async (stepUpToken?: string) => {
-    if (!source) return;
-    setSubmitting(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("mcp-keys-rotate", {
-        body: {
-          source_key_id: source.id,
-          justification: source.is_full ? justification.trim() : null,
-          confirmation_phrase: source.is_full ? confirmation : null,
-          step_up_token: stepUpToken ?? null,
-        },
-      });
-      // Tratamento dedicado de step-up: mostra toast com CTA "Refazer verificação".
-      if (handleStepUpError(data, error, () => { void retryStepUp(); })) {
-        return;
-      }
-      if (error) {
-        toast.error("Falha ao rotacionar", { description: sanitizeError(error) });
-        return;
-      }
-      if (!data?.ok || !data?.key) {
-        toast.error("Não foi possível rotacionar a chave", { description: sanitizeError(data) });
-        return;
-      }
-      setGenerated(data.key as string);
-      toast.success("Chave rotacionada — antiga ainda ativa, revogue manualmente quando seguro");
-      onRotated();
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
   const submit = async () => {
     if (!source) return;
     if (source.is_full) {
@@ -118,9 +65,42 @@ export function RotateMcpKeyDialog({ source, open, onOpenChange, onRotated }: Pr
         return;
       }
     }
-    const token = await requestStepUpToken();
-    if (!token) return; // cancelado
-    await performRotate(token);
+
+    setSubmitting(true);
+    try {
+      const result = await invokeFullScopeFunction<
+        { source_key_id: string; justification: string | null; confirmation_phrase: string | null },
+        { ok: boolean; key?: string }
+      >({
+        challenge,
+        functionName: "mcp-keys-rotate",
+        action: source.is_full ? "mcp_full_issue" : "mcp_key_rotate",
+        actionLabel: source.is_full
+          ? `Rotacionar chave MCP FULL "${source.name}"`
+          : `Rotacionar chave MCP "${source.name}"`,
+        targetRef: source.id,
+        body: {
+          source_key_id: source.id,
+          justification: source.is_full ? justification.trim() : null,
+          confirmation_phrase: source.is_full ? confirmation : null,
+        },
+      });
+
+      if (result.status === "cancelled" || result.status === "step_up_error") return;
+      if (result.status === "error") {
+        toast.error("Falha ao rotacionar", { description: sanitizeError(result.error ?? result.data) });
+        return;
+      }
+      if (!result.data.key) {
+        toast.error("Não foi possível rotacionar a chave", { description: sanitizeError(result.data) });
+        return;
+      }
+      setGenerated(result.data.key);
+      toast.success("Chave rotacionada — antiga ainda ativa, revogue manualmente quando seguro");
+      onRotated();
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const copy = (s: string) => {
