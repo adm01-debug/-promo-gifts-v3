@@ -15,6 +15,7 @@ import { ScheduledReportsManager } from '@/components/reports/ScheduledReportsMa
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCurrentOrgId } from '@/hooks/useCurrentOrgId';
+import { useSalesScope } from '@/lib/auth/visibility-scope';
 import { toast } from 'sonner';
 
 interface WidgetConfig {
