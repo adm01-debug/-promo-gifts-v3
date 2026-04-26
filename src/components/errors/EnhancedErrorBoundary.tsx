@@ -67,25 +67,25 @@ class EnhancedErrorBoundary extends Component<Props, State> {
     });
     if (this.isChunkError(error) && this.state.retryCount < MAX_AUTO_RETRIES) {
       this.setState({ isAutoRecovering: true });
-      setTimeout(() => {
-        this.setState(prev => ({
-          hasError: false,
-          error: null,
-          errorInfo: null,
-          retryCount: prev.retryCount + 1,
-          isAutoRecovering: false,
-        }));
-      }, AUTO_RETRY_DELAY * (this.state.retryCount + 1));
+      // Aciona recovery agressivo (hard reload + cache bust + purga SW).
+      // Se o recovery atingir o limite de reloads na janela de 30s, ele
+      // resolve com `false` — caímos no fallback estático abaixo em vez
+      // de loop infinito (= tela branca).
+      void attemptChunkRecovery(error).then((reloaded) => {
+        if (!reloaded) {
+          // Recovery desistiu: mostra a tela de erro com CTA manual.
+          this.setState({ isAutoRecovering: false });
+          return;
+        }
+        // Reload em andamento — mantém estado de "recuperando" até a
+        // navegação substituir o documento.
+        this.setState((prev) => ({ retryCount: prev.retryCount + 1 }));
+      });
     }
   }
 
   private isChunkError(error: Error): boolean {
-    return (
-      error.message.includes('Failed to fetch dynamically imported module') ||
-      error.message.includes('Loading chunk') ||
-      error.message.includes('ChunkLoadError') ||
-      error.message.includes('Importing a module script failed')
-    );
+    return isChunkLoadError(error);
   }
 
   handleRetry = () => {
