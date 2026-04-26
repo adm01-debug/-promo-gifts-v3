@@ -211,8 +211,8 @@ export function DevRoute({ children }: DevRouteProps) {
             aria-hidden="true"
           />
           <div className="space-y-2">
-            <h1 className="text-xl font-semibold">
-              Área restrita ao papel Desenvolvedor
+            <h1 id="dev-route-403-title" className="text-xl font-semibold">
+              403 — Área restrita ao papel Desenvolvedor
             </h1>
             <p className="text-sm text-muted-foreground">
               Esta página contém ferramentas técnicas (telemetria, conexões,
