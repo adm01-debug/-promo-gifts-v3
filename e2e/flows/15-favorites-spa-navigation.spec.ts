@@ -87,6 +87,7 @@ async function navigateToFavoritesInApp(page: Page): Promise<void> {
 
 test.describe("Fluxo: favoritar reflete via navegação (sem reload)", () => {
   test.beforeEach(() => requireAuth());
+  installFavoritesCleanup(test);
 
   test("favoritar em /produtos aparece imediatamente em /favoritos via link (sem reload)", async ({
     page,
