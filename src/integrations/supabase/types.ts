@@ -2859,6 +2859,8 @@ export type Database = {
           id: string
           missing_user_count: number
           null_owner_count: number
+          rls_coverage: Json
+          rls_gaps_count: number
           total_issues_found: number
           total_tables_scanned: number
           triggered_by: string
@@ -2870,6 +2872,8 @@ export type Database = {
           id?: string
           missing_user_count?: number
           null_owner_count?: number
+          rls_coverage?: Json
+          rls_gaps_count?: number
           total_issues_found?: number
           total_tables_scanned?: number
           triggered_by?: string
@@ -2881,6 +2885,8 @@ export type Database = {
           id?: string
           missing_user_count?: number
           null_owner_count?: number
+          rls_coverage?: Json
+          rls_gaps_count?: number
           total_issues_found?: number
           total_tables_scanned?: number
           triggered_by?: string
@@ -4872,6 +4878,7 @@ export type Database = {
         Args: { _triggered_by?: string }
         Returns: string
       }
+      audit_rls_coverage: { Args: never; Returns: Json }
       auto_block_extreme_offenders: { Args: never; Returns: Json }
       auto_revoke_orphan_full_keys: {
         Args: { _source?: string }
