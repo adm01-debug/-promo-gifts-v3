@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { AlertTriangle, Home, RefreshCw, ArrowLeft, WifiOff, Lock, FileQuestion, Gift } from "lucide-react";
 import { motion } from "framer-motion";
+import { attemptChunkRecovery, isChunkLoadError } from "@/lib/chunk-recovery";
 
 interface ErrorDetails {
   icon: React.ReactNode;
