@@ -249,7 +249,14 @@ export function useDiscountApproval() {
         .from("discount_approval_requests")
         .select("*")
         .order("created_at", { ascending: false });
-      if (error) throw error;
+      if (error) {
+        await logRlsDenial(error, {
+          table: "discount_approval_requests", op: "SELECT",
+          endpoint: "useDiscountApproval.fetchPendingRequests",
+          policyHint: "dar_select_scope",
+        });
+        throw error;
+      }
       const requests = (data || []) as DiscountApprovalRequest[];
 
       if (requests.length === 0) { setPendingRequests([]); return; }
