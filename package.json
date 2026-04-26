@@ -25,6 +25,7 @@
     "check:seller-scope": "node scripts/check-seller-scope.mjs",
     "check:route-error-element": "node scripts/check-route-error-element.mjs",
     "check:aschild-nesting": "node scripts/check-aschild-nesting.mjs",
+    "check:route-ref-usage": "node scripts/check-route-ref-usage.mjs",
     "test:strict-ref": "STRICT_REF_WARNINGS=1 vitest run && node scripts/consolidate-console-snapshot.mjs"
   },
   "lint-staged": {

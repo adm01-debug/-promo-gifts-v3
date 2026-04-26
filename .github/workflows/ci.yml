@@ -36,6 +36,9 @@ jobs:
       - name: Radix asChild nesting checker (forwardRef safety)
         run: node scripts/check-aschild-nesting.mjs
 
+      - name: Route ref usage checker (guards + pages)
+        run: node scripts/check-route-ref-usage.mjs
+
       - name: ESLint
         run: npx eslint . --max-warnings=500
 
