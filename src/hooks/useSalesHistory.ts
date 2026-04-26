@@ -209,7 +209,7 @@ function newDailyPoint(date: string): DailySalesPoint {
   return { date, quotedQty: 0, orderedQty: 0, quotedValue: 0, orderedValue: 0, quoteCount: 0, orderCount: 0 };
 }
 
-function emptyKpis(): SalesKpis {
+export function emptyKpis(): SalesKpis {
   return {
     totalQuotedQty: 0, totalOrderedQty: 0,
     totalQuotedValue: 0, totalOrderedValue: 0,

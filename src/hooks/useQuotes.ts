@@ -7,6 +7,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { invokeExternalDb } from "@/lib/external-db";
 import { useAuth } from "@/contexts/AuthContext";
 import { useOrganization } from "@/contexts/OrganizationContext";
+import { useSalesScope } from "@/lib/auth/visibility-scope";
+import { applySellerScope } from "@/lib/auth/apply-seller-scope";
 import { toast } from "sonner";
 import type { TablesInsert } from "@/integrations/supabase/types";
 import type { Quote, QuoteItem, QuoteItemPersonalization, PersonalizationTechnique } from "./quotes/quoteTypes";
@@ -26,6 +28,7 @@ export function useQuotes() {
   const { user } = useAuth();
   const { currentOrg } = useOrganization();
   const orgId = currentOrg?.id || null;
+  const scope = useSalesScope();
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [techniques, setTechniques] = useState<PersonalizationTechnique[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -36,8 +39,13 @@ export function useQuotes() {
     setIsLoading(true);
     setError(null);
     try {
-      const { data, error: qErr } = await supabase
+      // Defesa em profundidade: vendedor (scope === "self") só pede os
+      // próprios orçamentos. RLS garante o resto, mas evitamos rodar uma
+      // query potencialmente ampla que será cortada pelo banco.
+      let q = supabase
         .from("quotes").select("*").order("created_at", { ascending: false }).limit(500);
+      q = applySellerScope(q, { scope, userId: user.id });
+      const { data, error: qErr } = await q;
       if (qErr) throw new Error(qErr.message);
       setQuotes((data || []) as Quote[]);
     } catch (err) {

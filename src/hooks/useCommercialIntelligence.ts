@@ -6,6 +6,8 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCurrentOrgId } from '@/hooks/useCurrentOrgId';
+import { useSalesScope } from '@/lib/auth/visibility-scope';
+import { applySellerScope } from '@/lib/auth/apply-seller-scope';
 import { logger } from '@/lib/logger';
 import { getSinceDate, aggregateSegments, aggregateClients } from './intelligence/intelligenceHelpers';
 
@@ -65,12 +67,13 @@ function useFilteredProductIds(categoryId?: string | null, supplierId?: string |
 export function useCommercialKPIs(days = 30, categoryId?: string | null, supplierId?: string | null, productId?: string | null) {
   const { user } = useAuth();
   const orgId = useCurrentOrgId();
+  const scope = useSalesScope();
   const since = getSinceDate(days);
   const { data: productIds } = useFilteredProductIds(categoryId, supplierId, productId);
   const hasFilter = !!(categoryId || supplierId || productId);
 
   return useQuery({
-    queryKey: ['commercial-intelligence-kpis', user?.id, orgId, days, categoryId, supplierId, productIds ? Array.from(productIds).length : null],
+    queryKey: ['commercial-intelligence-kpis', user?.id, orgId, scope, days, categoryId, supplierId, productIds ? Array.from(productIds).length : null],
     queryFn: async (): Promise<IntelligenceKPI> => {
       const now = new Date();
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
@@ -106,6 +109,11 @@ export function useCommercialKPIs(days = 30, categoryId?: string | null, supplie
       let q2 = supabase.from('quotes').select('id, total').gte('created_at', startOfMonth);
       let o2 = supabase.from('orders').select('id, total').gte('created_at', startOfMonth);
       if (orgId) { q1 = q1.eq('organization_id', orgId); o1 = o1.eq('organization_id', orgId); q2 = q2.eq('organization_id', orgId); o2 = o2.eq('organization_id', orgId); }
+      // Defesa em profundidade: vendedor (scope === "self") só pede os próprios dados.
+      q1 = applySellerScope(q1, { scope, userId: user?.id });
+      o1 = applySellerScope(o1, { scope, userId: user?.id });
+      q2 = applySellerScope(q2, { scope, userId: user?.id });
+      o2 = applySellerScope(o2, { scope, userId: user?.id });
 
       const [qr, or, qmr, omr] = await Promise.all([q1, o1, q2, o2]);
       const quotes = qr.data || []; const orders = or.data || [];
@@ -242,12 +250,12 @@ export function useOpportunities(days = 30, categoryId?: string | null, supplier
 // Revenue Trend
 // ============================================
 export function useRevenueTrend(days = 30, categoryId?: string | null, supplierId?: string | null, productId?: string | null) {
-  const { user } = useAuth(); const orgId = useCurrentOrgId();
+  const { user } = useAuth(); const orgId = useCurrentOrgId(); const scope = useSalesScope();
   const { data: productIds } = useFilteredProductIds(categoryId, supplierId, productId);
   const hasFilter = !!(categoryId || supplierId || productId);
 
   return useQuery({
-    queryKey: ['commercial-revenue-trend', user?.id, orgId, days, categoryId, supplierId],
+    queryKey: ['commercial-revenue-trend', user?.id, orgId, scope, days, categoryId, supplierId],
     queryFn: async (): Promise<RevenuePoint[]> => {
       const since = new Date(); since.setDate(since.getDate() - days); const sinceStr = since.toISOString();
       let orderData: Array<{ quantity?: number | null; unit_price?: number | null; created_at: string }> = [];
@@ -265,6 +273,8 @@ export function useRevenueTrend(days = 30, categoryId?: string | null, supplierI
         let oq = supabase.from('orders').select('total, created_at').gte('created_at', sinceStr).order('created_at');
         let qq = supabase.from('quotes').select('total, created_at').gte('created_at', sinceStr).order('created_at');
         if (orgId) { oq = oq.eq('organization_id', orgId); qq = qq.eq('organization_id', orgId); }
+        oq = applySellerScope(oq, { scope, userId: user?.id });
+        qq = applySellerScope(qq, { scope, userId: user?.id });
         const [{ data: orders }, { data: quotes }] = await Promise.all([oq, qq]);
         orderData = (orders || []).map(o => ({ quantity: 1, unit_price: o.total, created_at: o.created_at }));
         quoteData = quotes || [];

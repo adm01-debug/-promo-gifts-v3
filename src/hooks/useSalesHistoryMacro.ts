@@ -5,33 +5,52 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import type { DailySalesPoint, SalesKpis, SellerRanking } from './useSalesHistory';
+import { useSalesScope } from '@/lib/auth/visibility-scope';
+import { emptyKpis, type DailySalesPoint, type SalesKpis, type SellerRanking } from './useSalesHistory';
 
 export function useSalesHistoryMacro(days = 30) {
   const { user } = useAuth();
+  const scope = useSalesScope();
 
   return useQuery({
-    queryKey: ['sales-history-macro', days],
+    queryKey: ['sales-history-macro', days, scope, user?.id],
     queryFn: async (): Promise<{ daily: DailySalesPoint[]; kpis: SalesKpis }> => {
       const cutoff = new Date();
       cutoff.setDate(cutoff.getDate() - days);
       const cutoffStr = cutoff.toISOString();
 
-      // Fetch ALL quote_items and order_items in parallel
-      const [{ data: quoteItems }, { data: orderItems }] = await Promise.all([
-        supabase
-          .from('quote_items')
-          .select('quantity, unit_price, subtotal, created_at, quote_id')
-          .gte('created_at', cutoffStr)
-          .order('created_at', { ascending: true })
-          .limit(5000),
-        supabase
-          .from('order_items')
-          .select('quantity, unit_price, created_at, order_id')
-          .gte('created_at', cutoffStr)
-          .order('created_at', { ascending: true })
-          .limit(5000),
-      ]);
+      // Vendedor: pré-filtrar quotes/orders pelo seller_id e só então buscar
+      // os items relacionados, evitando baixar 5000 linhas de outros vendedores.
+      let scopedQuoteIds: string[] | null = null;
+      let scopedOrderIds: string[] | null = null;
+      if (scope === 'self' && user?.id) {
+        const [myQuotes, myOrders] = await Promise.all([
+          supabase.from('quotes').select('id').eq('seller_id', user.id).gte('created_at', cutoffStr).limit(2000),
+          supabase.from('orders').select('id').eq('seller_id', user.id).gte('created_at', cutoffStr).limit(2000),
+        ]);
+        scopedQuoteIds = (myQuotes.data ?? []).map(r => r.id);
+        scopedOrderIds = (myOrders.data ?? []).map(r => r.id);
+        if (scopedQuoteIds.length === 0 && scopedOrderIds.length === 0) {
+          return { daily: [], kpis: emptyKpis() };
+        }
+      }
+
+      // Fetch quote_items and order_items in parallel — restritos aos ids do vendedor quando aplicável
+      let qiQuery = supabase
+        .from('quote_items')
+        .select('quantity, unit_price, subtotal, created_at, quote_id')
+        .gte('created_at', cutoffStr)
+        .order('created_at', { ascending: true })
+        .limit(5000);
+      let oiQuery = supabase
+        .from('order_items')
+        .select('quantity, unit_price, created_at, order_id')
+        .gte('created_at', cutoffStr)
+        .order('created_at', { ascending: true })
+        .limit(5000);
+      if (scopedQuoteIds) qiQuery = qiQuery.in('quote_id', scopedQuoteIds.length ? scopedQuoteIds : ['__none__']);
+      if (scopedOrderIds) oiQuery = oiQuery.in('order_id', scopedOrderIds.length ? scopedOrderIds : ['__none__']);
+      const [{ data: quoteItems }, { data: orderItems }] = await Promise.all([qiQuery, oiQuery]);
 
       // Fetch quotes/orders for seller info + status
       const quoteIds = [...new Set((quoteItems || []).map(q => q.quote_id))];
