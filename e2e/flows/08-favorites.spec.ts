@@ -44,12 +44,36 @@ async function isFavorited(button: Locator): Promise<boolean> {
   return pressed === "true";
 }
 
-/** Lê a contagem numérica exibida no header de Favoritos. */
+/** Lê a contagem numérica de ITENS exibida no header de Favoritos. */
 async function readFavoritesCount(page: Page): Promise<number> {
   const loc = page.locator(Sel.favorites.countItems);
   await loc.first().waitFor({ state: "visible", timeout: 10_000 });
   const txt = (await loc.first().innerText()).trim();
   return Number.parseInt(txt, 10) || 0;
+}
+
+/**
+ * Lê a contagem numérica de LISTAS exibida no header de Favoritos.
+ * Retorna `null` quando o usuário não tem nenhuma lista (o nó nem é renderizado).
+ */
+async function readFavoritesListsCount(page: Page): Promise<number | null> {
+  const loc = page.locator(Sel.favorites.countLists).first();
+  if (await loc.count() === 0) return null;
+  if (!(await loc.isVisible().catch(() => false))) return null;
+  const txt = (await loc.innerText()).trim();
+  const n = Number.parseInt(txt, 10);
+  return Number.isFinite(n) ? n : null;
+}
+
+/** Lê itens + listas em paralelo. */
+async function readFavoritesCounters(
+  page: Page,
+): Promise<{ items: number; lists: number | null }> {
+  const [items, lists] = await Promise.all([
+    readFavoritesCount(page),
+    readFavoritesListsCount(page),
+  ]);
+  return { items, lists };
 }
 
 /**
@@ -200,14 +224,30 @@ test.describe("Fluxo: Favoritos", () => {
     ).toHaveCount(0, { timeout: 10_000 });
   });
 
-  test("header de favoritos permanece consistente após reload", async ({ page }) => {
+  test("header de favoritos: itens + listas permanecem consistentes após reload", async ({ page }) => {
     await gotoAndSettle(page, "/favoritos");
     await assertFavoritesHeaderVisuals(page);
-    const before = await readFavoritesCount(page);
-    await assertFavoritesHeader(page, before);
 
+    // Snapshot ANTES do reload (itens + listas)
+    const before = await readFavoritesCounters(page);
+    await assertFavoritesHeader(page, before.items);
+
+    // RELOAD
     await page.reload({ waitUntil: "domcontentloaded" });
-    await assertFavoritesHeader(page, before);
+    await assertFavoritesHeaderVisuals(page);
+
+    // Snapshot DEPOIS do reload — precisa bater com o anterior
+    const after = await readFavoritesCounters(page);
+    await assertFavoritesHeader(page, before.items);
+
+    expect(
+      after.items,
+      `contador de ITENS deveria permanecer ${before.items} após reload (got ${after.items})`,
+    ).toBe(before.items);
+    expect(
+      after.lists,
+      `contador de LISTAS deveria permanecer ${before.lists} após reload (got ${after.lists})`,
+    ).toBe(before.lists);
   });
 
   test("toggle do favorito é idempotente (favorita e desfavorita)", async ({ page }) => {
