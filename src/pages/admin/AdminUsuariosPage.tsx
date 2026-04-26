@@ -72,6 +72,7 @@ export default function AdminUsuariosPage() {
   const [roleDialogUser, setRoleDialogUser] = useState<UserWithRole | null>(null);
   const [editDialogUser, setEditDialogUser] = useState<UserWithRole | null>(null);
   const [deleteDialogUser, setDeleteDialogUser] = useState<UserWithRole | null>(null);
+  const [promoteDialogUser, setPromoteDialogUser] = useState<UserWithRole | null>(null);
 
   useEffect(() => { fetchUsers(); }, [fetchUsers]);
 
