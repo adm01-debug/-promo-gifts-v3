@@ -151,6 +151,34 @@ export function DevRoute({ children }: DevRouteProps) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
+  // Hardening MFA/AAL2 — só aplicável a usuários `dev` (que efetivamente passariam).
+  // Não-dev segue para a tela de bloqueio com ações contextuais (sem pedir MFA).
+  if (isDev && !hasMFA) {
+    return (
+      <>
+        <div className="min-h-screen flex items-center justify-center bg-background">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+        <MfaEnrollmentDialog
+          open={enrollOpen}
+          onOpenChange={setEnrollOpen}
+          enforce
+        />
+      </>
+    );
+  }
+
+  if (isDev && mfaRequired && currentAAL === "aal1") {
+    return (
+      <>
+        <div className="min-h-screen flex items-center justify-center bg-background">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+        <MfaChallengeDialog open />
+      </>
+    );
+  }
+
   if (!isDev) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background px-4 py-8">
