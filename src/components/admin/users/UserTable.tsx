@@ -18,7 +18,7 @@ interface UserTableProps {
   onPromoteUser?: (user: UserWithRole) => void;
 }
 
-export function UserTable({ users, currentUserId, updatingUserId, onEditUser, onChangeRole, onDeleteUser }: UserTableProps) {
+export function UserTable({ users, currentUserId, updatingUserId, onEditUser, onChangeRole, onDeleteUser, onPromoteUser }: UserTableProps) {
   return (
     <Table>
       <TableHeader>
