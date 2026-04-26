@@ -16,6 +16,7 @@
  */
 import { test, expect, requireAuth } from "../fixtures/test-base";
 import { gotoAndSettle, settleAfterAction } from "../helpers/nav";
+import { installFavoritesCleanup } from "../helpers/favorites";
 import { Sel } from "../fixtures/selectors";
 import type { Locator, Page } from "@playwright/test";
 
