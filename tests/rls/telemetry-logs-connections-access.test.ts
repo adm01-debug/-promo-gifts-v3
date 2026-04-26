@@ -37,8 +37,24 @@ const isAdmin = (r: Role) => isSupervisorOrAbove(r);
 // public.is_dev(_user_id) → role = 'dev'
 const isDev = (r: Role) => r === 'dev';
 
+// ---------- Helpers semânticos (espelho 1:1 das funções no BD) ----------
+// Aliases bem-nomeados que devem ser preferidos em novas policies, em vez
+// de `has_role(...,'admin')` ou checagens diretas de papel.
+const canViewAuditLogs   = (r: Role) => isDev(r);
+const canViewTelemetry   = (r: Role) => isSupervisorOrAbove(r);
+const canViewConnections = (r: Role) => isSupervisorOrAbove(r);
+const canManageConnections = (r: Role) => isSupervisorOrAbove(r);
+
 // ---------- Matriz de policies (telemetria / logs / conexões) ----------
-type Gate = 'is_admin' | 'is_supervisor_or_above' | 'is_dev' | 'public_select';
+type Gate =
+  | 'is_admin'
+  | 'is_supervisor_or_above'
+  | 'is_dev'
+  | 'public_select'
+  | 'can_view_audit_logs'
+  | 'can_view_telemetry'
+  | 'can_view_connections'
+  | 'can_manage_connections';
 
 interface PolicyRow {
   table: string;
@@ -86,16 +102,48 @@ const POLICIES: PolicyRow[] = [
 function evaluateGate(gate: Gate, role: Role): boolean {
   if (role === 'anon') return false;
   switch (gate) {
-    case 'is_dev':
-      return isDev(role);
-    case 'is_supervisor_or_above':
-      return isSupervisorOrAbove(role);
-    case 'is_admin':
-      return isAdmin(role);
-    case 'public_select':
-      return true;
+    case 'is_dev': return isDev(role);
+    case 'is_supervisor_or_above': return isSupervisorOrAbove(role);
+    case 'is_admin': return isAdmin(role);
+    case 'can_view_audit_logs': return canViewAuditLogs(role);
+    case 'can_view_telemetry': return canViewTelemetry(role);
+    case 'can_view_connections': return canViewConnections(role);
+    case 'can_manage_connections': return canManageConnections(role);
+    case 'public_select': return true;
   }
 }
+
+// ---------- Helpers semânticos: equivalência com gates primitivos ----------
+describe('Helpers semânticos — alinhamento com gates primitivos', () => {
+  ROLES.forEach((r) => {
+    it(`can_view_audit_logs(${r}) === is_dev(${r})`, () => {
+      expect(canViewAuditLogs(r)).toBe(isDev(r));
+    });
+    it(`can_view_telemetry(${r}) === is_supervisor_or_above(${r})`, () => {
+      expect(canViewTelemetry(r)).toBe(isSupervisorOrAbove(r));
+    });
+    it(`can_view_connections(${r}) === is_supervisor_or_above(${r})`, () => {
+      expect(canViewConnections(r)).toBe(isSupervisorOrAbove(r));
+    });
+    it(`can_manage_connections(${r}) === is_supervisor_or_above(${r})`, () => {
+      expect(canManageConnections(r)).toBe(isSupervisorOrAbove(r));
+    });
+  });
+
+  it('agente é bloqueado em todos os helpers', () => {
+    expect(canViewAuditLogs('agente')).toBe(false);
+    expect(canViewTelemetry('agente')).toBe(false);
+    expect(canViewConnections('agente')).toBe(false);
+    expect(canManageConnections('agente')).toBe(false);
+  });
+
+  it('dev passa em todos os helpers', () => {
+    expect(canViewAuditLogs('dev')).toBe(true);
+    expect(canViewTelemetry('dev')).toBe(true);
+    expect(canViewConnections('dev')).toBe(true);
+    expect(canManageConnections('dev')).toBe(true);
+  });
+});
 
 // ---------- Sanidade dos gates ----------
 describe('Gate functions — sanidade pós-migration', () => {
