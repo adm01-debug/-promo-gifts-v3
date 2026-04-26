@@ -168,6 +168,90 @@ Deno.serve(async (req) => {
       return jsonRes(corsHeaders, { success: true });
     }
 
+    if (payload.action === 'promote_role') {
+      // Não pode alterar a si mesmo (evita rebaixamento acidental do único supervisor).
+      if (payload.user_id === caller.id) {
+        return jsonRes(corsHeaders, { error: 'Você não pode alterar seu próprio papel' }, 400);
+      }
+
+      // Step-up: revalida a senha do caller via signInWithPassword usando anon client isolado.
+      if (!caller.email) {
+        return jsonRes(corsHeaders, { error: 'Conta sem e-mail — step-up indisponível' }, 400);
+      }
+      const stepUpClient = createClient(supabaseUrl, anonKey);
+      const { error: stepUpErr } = await stepUpClient.auth.signInWithPassword({
+        email: caller.email,
+        password: payload.caller_password,
+      });
+      if (stepUpErr) {
+        return jsonRes(corsHeaders, { error: 'Senha incorreta' }, 401);
+      }
+
+      // Carrega papel atual do alvo para validar e auditar a transição.
+      const { data: targetRows, error: targetErr } = await supabaseAdmin
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', payload.user_id);
+      if (targetErr) {
+        return jsonRes(corsHeaders, { error: targetErr.message }, 500);
+      }
+      const previousRole = targetRows?.[0]?.role ?? 'vendedor';
+      const normalizedPrev =
+        previousRole === 'admin' || previousRole === 'manager' ? 'supervisor' : previousRole;
+      if (normalizedPrev === 'dev') {
+        return jsonRes(
+          corsHeaders,
+          { error: 'O papel Dev só pode ser alterado por outro Dev em fluxo dedicado' },
+          403
+        );
+      }
+      if (normalizedPrev === payload.new_role) {
+        return jsonRes(corsHeaders, { error: 'Usuário já possui esse papel' }, 400);
+      }
+
+      // Aplica a mudança via service role (bypassa RLS de forma controlada).
+      let upsertErr;
+      if (targetRows && targetRows.length > 0) {
+        ({ error: upsertErr } = await supabaseAdmin
+          .from('user_roles')
+          .update({ role: payload.new_role })
+          .eq('user_id', payload.user_id));
+      } else {
+        ({ error: upsertErr } = await supabaseAdmin
+          .from('user_roles')
+          .insert({ user_id: payload.user_id, role: payload.new_role }));
+      }
+      if (upsertErr) {
+        return jsonRes(corsHeaders, { error: upsertErr.message }, 500);
+      }
+
+      // Auditoria
+      await supabaseAdmin.from('admin_audit_log').insert({
+        user_id: caller.id,
+        action: payload.new_role === 'supervisor' ? 'role.promote' : 'role.demote',
+        resource_type: 'user_roles',
+        resource_id: payload.user_id,
+        status: 'success',
+        source: 'manage-users.promote_role',
+        details: {
+          previous_role: previousRole,
+          new_role: payload.new_role,
+          reason: payload.reason,
+        },
+        ip_address:
+          req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
+          req.headers.get('x-real-ip') ??
+          null,
+        user_agent: req.headers.get('user-agent') ?? null,
+      });
+
+      return jsonRes(corsHeaders, {
+        success: true,
+        previous_role: previousRole,
+        new_role: payload.new_role,
+      });
+    }
+
     return jsonRes(corsHeaders, { error: 'Ação inválida' }, 400);
 
   } catch (error: unknown) {
