@@ -49,6 +49,18 @@ async function readFavoritesCount(page: Page): Promise<number> {
   return Number.parseInt(txt, 10) || 0;
 }
 
+/** Lê o texto completo do bloco `favorites-count` (ex.: "3 itens • 2 listas"). */
+async function readFavoritesCountText(page: Page): Promise<string> {
+  const loc = page.locator(Sel.favorites.count).first();
+  await loc.waitFor({ state: "visible", timeout: 10_000 });
+  return (await loc.innerText()).trim().replace(/\s+/g, " ");
+}
+
+/** Conta cards renderizados na lista de favoritos. */
+async function readFavoritesListSize(page: Page): Promise<number> {
+  return page.locator(Sel.favorites.item).count();
+}
+
 async function isFavorited(button: Locator): Promise<boolean> {
   const pressed = await button.getAttribute("aria-pressed");
   if (pressed === "true") return true;
