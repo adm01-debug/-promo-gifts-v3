@@ -25,6 +25,38 @@
 export const TID = (id: string): string => `[data-testid="${id}"]`;
 export const TID_PREFIX = (prefix: string): string => `[data-testid^="${prefix}"]`;
 
+/**
+ * Slugs canônicos das páginas com `data-testid="page-title-<slug>"`.
+ * Mantenha em sincronia com a JSDoc de `Sel.page.title` e os componentes de página.
+ */
+export type PageSlug =
+  | "produtos"
+  | "favoritos"
+  | "colecoes"
+  | "carrinhos"
+  | "pedidos"
+  | "clientes"
+  | "comparador"
+  | "tendencias"
+  | "kits"
+  | "magic-up"
+  | "mockup-historico"
+  | "simulador"
+  | "simulador-precos"
+  | "simulador-personalizacao"
+  | "busca-avancada-preco"
+  | "dashboard"
+  | "dropbox"
+  | "inteligencia-mercado"
+  | "bi"
+  | "match-produtos"
+  | "orcamentos"
+  | "orcamentos-dashboard"
+  | "orcamentos-funil"
+  | "orcamentos-templates"
+  | "orcamento-novo"
+  | "404";
+
 export const Sel = {
   // ---------- Login ----------
   login: {
