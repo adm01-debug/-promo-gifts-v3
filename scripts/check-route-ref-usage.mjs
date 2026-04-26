@@ -30,7 +30,11 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const ROOT = path.resolve(__dirname, "..");
+// ROOT honra ROUTE_REF_ROOT (usado por testes com fixtures); padrão é o
+// diretório-pai do script (raiz do repositório).
+const ROOT = process.env.ROUTE_REF_ROOT
+  ? path.resolve(process.env.ROUTE_REF_ROOT)
+  : path.resolve(__dirname, "..");
 const SRC = path.join(ROOT, "src");
 
 // --- Configuração ---------------------------------------------------------
