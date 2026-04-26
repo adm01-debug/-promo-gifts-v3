@@ -5,6 +5,10 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { getCorsHeaders, handleCorsPreflightIfNeeded } from "../_shared/cors.ts";
 import { authenticateRequest, requireDev, authErrorResponse } from "../_shared/auth.ts";
+import { writeAuditEntry, extractRequestMeta } from "../_shared/audit-log.ts";
+import { getOrCreateRequestId } from "../_shared/request-id.ts";
+
+const SOURCE = "connections-hub-audit";
 
 interface CheckResult {
   name: string;
