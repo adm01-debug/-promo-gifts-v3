@@ -190,6 +190,7 @@ export default function AdminUsuariosPage() {
                     onEditUser={setEditDialogUser}
                     onChangeRole={setRoleDialogUser}
                     onDeleteUser={setDeleteDialogUser}
+                    onPromoteUser={setPromoteDialogUser}
                   />
                 )}
               </CardContent>
