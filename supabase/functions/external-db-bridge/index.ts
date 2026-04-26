@@ -2,6 +2,10 @@
 // Lean orchestrator — delegates config, aliases, telemetry and cache to shared modules.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
+import {
+  type ServiceClient,
+  castSupabaseClient,
+} from "../_shared/supabase-client-adapter.ts";
 import { z } from "https://deno.land/x/zod@v3.23.8/mod.ts";
 import { getCorsHeaders, handleCorsPreflightIfNeeded } from "../_shared/cors.ts";
 import {
@@ -531,8 +535,10 @@ async function handleBatch(body: any, req: Request, corsHeaders: Record<string, 
     return jsonResponse({ error: 'Batch limited to 10 queries max' }, 400, corsHeaders);
   }
 
-  const externalSupabase = await getExternalClient(corsHeaders);
-  if (externalSupabase instanceof Response) return externalSupabase;
+  const externalSupabaseOrResp = await getExternalClient(corsHeaders);
+  if (externalSupabaseOrResp instanceof Response) return externalSupabaseOrResp;
+  // Narrow estável dentro de closures async (TS perde narrow em vars que mudam globalmente).
+  const externalSupabase: ServiceClient = externalSupabaseOrResp;
 
   const results = await Promise.all(
     queries.map(async (q, idx) => {
@@ -691,8 +697,9 @@ async function handleRpc(body: any, corsHeaders: Record<string, string>) {
 
   console.log(`RPC: ${rpcName}`, rpcParams);
   const rpcStart = performance.now();
-  const { data: rpcData, error: rpcError } = await externalSupabase.rpc(rpcName, rpcParams || {});
+  const { data: rpcDataRaw, error: rpcError } = await externalSupabase.rpc(rpcName, rpcParams || {});
   const rpcDuration = Math.round(performance.now() - rpcStart);
+  const rpcData = rpcDataRaw as Record<string, unknown> | unknown[] | null;
 
   if (rpcError) {
     emitTelemetry({ operation: 'rpc', rpcName, durationMs: rpcDuration, status: 'error', error: rpcError.message });
@@ -702,10 +709,11 @@ async function handleRpc(body: any, corsHeaders: Record<string, string>) {
   emitTelemetry({ operation: 'rpc', rpcName, durationMs: rpcDuration, status: classifyDuration(rpcDuration), recordCount: Array.isArray(rpcData) ? rpcData.length : 1 });
 
   // Enrich legacy flat responses from fn_get_customization_price
-  let enrichedData = rpcData;
-  const isLegacyFlat = rpcData?.success && rpcData?.tabela_codigo && !rpcData?.tabela;
-  if (rpcName === 'fn_get_customization_price' && isLegacyFlat) {
-    enrichedData = await enrichCustomizationPrice(externalSupabase, rpcData);
+  let enrichedData: unknown = rpcData;
+  const flat = (rpcData && !Array.isArray(rpcData)) ? rpcData as Record<string, unknown> : null;
+  const isLegacyFlat = !!(flat && flat.success && flat.tabela_codigo && !flat.tabela);
+  if (rpcName === 'fn_get_customization_price' && isLegacyFlat && flat) {
+    enrichedData = await enrichCustomizationPrice(externalSupabase, flat);
   }
 
   return jsonResponse({ success: true, data: enrichedData }, 200, corsHeaders);
@@ -850,7 +858,7 @@ async function handleCrud(body: any, req: Request, corsHeaders: Record<string, s
   let cacheKey: string | null = null;
   if (isCacheable) {
     cacheKey = buildCacheKey(table, body);
-    const cached = getCached(cacheKey);
+    const cached = getCachedResponse(cacheKey);
     if (cached !== null) {
       cacheHitsTotal++;
       const totalDuration = Math.round(performance.now() - requestStartTime);
@@ -925,7 +933,7 @@ async function handleCrud(body: any, req: Request, corsHeaders: Record<string, s
   // CACHE WRITE: armazena resposta para próximas requisições
   if (isCacheable && cacheKey) {
     const payload = JSON.stringify({ data: result, success: true });
-    setCached(cacheKey, payload);
+    setCachedResponse(cacheKey, payload);
     return cachedJsonResponse(payload, corsHeaders, false);
   }
 
@@ -1091,7 +1099,9 @@ async function handleSelect(externalSupabase: any, table: string, opts: any) {
   query = query.range(safeOffset, safeOffset + safeLimit - 1);
 
   const selectStart = performance.now();
-  let selectData, selectError, count;
+  let selectData: unknown[] | null;
+  let selectError: { message: string; code?: string } | null;
+  let count: number | null;
 
   try {
     // Backoff+jitter for connection/transport flakes only. Statement timeouts
@@ -1106,7 +1116,7 @@ async function handleSelect(externalSupabase: any, table: string, opts: any) {
       },
       { maxAttempts: 3, baseMs: 80, capMs: 800, budgetMs: 2000, isTransient: isBridgeTransient, label: `select:${table}` },
     );
-    const payload = (r.data ?? { data: null, count: null }) as { data: unknown; count: number | null };
+    const payload = (r.data ?? { data: null, count: null }) as { data: unknown[] | null; count: number | null };
     selectData = payload.data;
     selectError = null;
     count = payload.count;
@@ -1228,11 +1238,12 @@ async function handleSelect(externalSupabase: any, table: string, opts: any) {
     return jsonResponse({ error: selectError.message }, 400, corsHeaders);
   }
 
-  let records = selectData || [];
+  let records: unknown[] = (selectData ?? []) as unknown[];
 
   // Apply legacy row transforms for aliased tables
-  if (aliasType === 'technique') records = records.map(mapTechniqueRowToLegacyShape);
-  if (aliasType === 'priceTable') records = records.map(mapPriceTableRowToLegacyShape);
+  const rowsAsRecords = () => records as Record<string, unknown>[];
+  if (aliasType === 'technique') records = rowsAsRecords().map(mapTechniqueRowToLegacyShape);
+  if (aliasType === 'priceTable') records = rowsAsRecords().map(mapPriceTableRowToLegacyShape);
 
   emitTelemetry({ operation: 'select', table, limit: safeLimit, offset: safeOffset, countMode, durationMs: selectDuration, status: classifyDuration(selectDuration), recordCount: records.length });
   console.log(`Selected ${records.length} records from ${table} (offset=${safeOffset}, limit=${safeLimit}, count=${count ?? 'n/a'})`);
@@ -1538,7 +1549,7 @@ function buildCacheKey(table: string, body: any): string {
   return `t:${table}|${fnv1aHash(raw)}`;
 }
 
-function getCached(key: string): string | null {
+function getCachedResponse(key: string): string | null {
   const entry = responseCache.get(key);
   if (!entry) return null;
   if (entry.expiresAt < Date.now()) {
@@ -1551,7 +1562,7 @@ function getCached(key: string): string | null {
   return entry.payload;
 }
 
-function setCached(key: string, payload: string): void {
+function setCachedResponse(key: string, payload: string): void {
   if (responseCache.size >= CACHE_MAX_ENTRIES) {
     // Evict o mais antigo (primeiro no Map)
     const oldestKey = responseCache.keys().next().value;
@@ -1596,11 +1607,11 @@ function cachedJsonResponse(payload: string, corsHeaders: Record<string, string>
 // interno do supabase-js mantém o socket aberto, eliminando TLS+auth handshake
 // repetido em rajadas paralelas (catálogo, dashboards, batches).
 // Em rajada de 6+ requests, isso reduz "tempo até a 1ª query" de ~800ms para ~50ms.
-let cachedExternalClient: ReturnType<typeof createClient> | null = null;
+let cachedExternalClient: ServiceClient | null = null;
 let warmupPromise: Promise<void> | null = null;
 
-function buildExternalClient(url: string, key: string) {
-  return createClient(url, key, {
+function buildExternalClient(url: string, key: string): ServiceClient {
+  return castSupabaseClient(createClient(url, key, {
     db: { schema: 'public' },
     global: {
       headers: {
@@ -1609,7 +1620,7 @@ function buildExternalClient(url: string, key: string) {
         'Prefer': 'max-affected=1000',
       },
     },
-  });
+  }));
 }
 
 async function getExternalClient(corsHeaders: Record<string, string>) {
@@ -1646,9 +1657,9 @@ function warmupExternalClient(): Promise<void> {
         resolveCredential("EXTERNAL_PROMOBRIND_SERVICE_ROLE_KEY"),
       ]);
       if (!url || !key) return;
-      if (!cachedExternalClient) cachedExternalClient = buildExternalClient(url, key);
+      const client: ServiceClient = cachedExternalClient ?? (cachedExternalClient = buildExternalClient(url, key));
       const t0 = performance.now();
-      const { error } = await cachedExternalClient.from('suppliers').select('id').limit(1);
+      const { error } = await client.from('suppliers').select('id').limit(1);
       const ms = Math.round(performance.now() - t0);
       if (error) {
         console.warn(`[boot-warmup] ⚠️ ${error.message} (${ms}ms)`);
