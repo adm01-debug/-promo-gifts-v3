@@ -404,6 +404,16 @@ test.describe("Fluxo: remover favorito persiste após reload", () => {
       `favorites-count deveria começar com "${countBefore} " (got "${expectedAfterRemove.countText}")`,
     ).toBe(true);
 
+    // Lista renderizada via SSOT (readFavoritesItems): removed sumiu, baseline preservado
+    expect(
+      expectedAfterRemove.items.find((i) => i.productId === addedId),
+      `pré-reload: addedId=${addedId} NÃO deveria existir em readFavoritesItems()`,
+    ).toBeUndefined();
+    expect(
+      expectedAfterRemove.items.length,
+      "pré-reload: items.length deveria igualar listSize",
+    ).toBe(expectedAfterRemove.listSize);
+
     // Storage também caiu para o baseline
     await expect
       .poll(async () => (await readStorage(page)).length, { timeout: 8_000 })
@@ -413,7 +423,19 @@ test.describe("Fluxo: remover favorito persiste após reload", () => {
     await reloadAndSettle(page);
 
     // 6. Reusa o MESMO snapshot esperado para validar pós-reload
+    //    (expectFavoritesSnapshot já compara items por Set de productIds)
     await expectFavoritesSnapshot(page, expectedAfterRemove, "pós-reload");
+
+    // 6.1. Reafirma via readFavoritesItems direto pós-reload — produto removido ausente
+    const itemsAfterReload = await readFavoritesItems(page);
+    expect(
+      itemsAfterReload.find((i) => i.productId === addedId),
+      `pós-reload: addedId=${addedId} reapareceu em readFavoritesItems()`,
+    ).toBeUndefined();
+    expect(
+      new Set(itemsAfterReload.map((i) => i.productId)),
+      "pós-reload: conjunto de productIds renderizados divergiu do estado pré-reload",
+    ).toEqual(new Set(expectedAfterRemove.items.map((i) => i.productId)));
 
     // 7. Card do produto removido NÃO existe mais (SSOT por data-product-id)
     const removedCardLocator = page.locator(
