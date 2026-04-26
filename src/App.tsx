@@ -84,6 +84,7 @@ const AdminMigracaoPapeisPage = lazyWithRetry(() => import("./pages/admin/AdminM
 const AdminConexoesPage = lazyWithRetry(() => import("./pages/admin/AdminConexoesPage"));
 const AdminConexoesStatusPage = lazyWithRetry(() => import("./pages/admin/AdminConexoesStatusPage"));
 const AdminRbacRoutesPage = lazyWithRetry(() => import("./pages/admin/AdminRbacRoutesPage"));
+const SellerDiscountLimitsAdminPage = lazyWithRetry(() => import("./pages/admin/SellerDiscountLimitsAdminPage"));
 
 // Tools Pages
 const SimuladorWizard = lazyWithRetry(() => import("./pages/SimuladorWizard"));
