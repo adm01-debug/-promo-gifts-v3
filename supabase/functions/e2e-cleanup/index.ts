@@ -291,6 +291,7 @@ Deno.serve(async (req: Request) => {
     await writeAudit(admin, {
       email,
       user_id: null,
+      seller_scope: sellerScope,
       dry_run: dryRun,
       status: "forbidden",
       reason: "allow_list_not_configured",
@@ -307,6 +308,7 @@ Deno.serve(async (req: Request) => {
     await writeAudit(admin, {
       email,
       user_id: null,
+      seller_scope: sellerScope,
       dry_run: dryRun,
       status: "forbidden",
       reason: "email_not_in_allow_list",
@@ -342,6 +344,7 @@ Deno.serve(async (req: Request) => {
     await writeAudit(admin, {
       email,
       user_id: null,
+      seller_scope: sellerScope,
       dry_run: dryRun,
       status: "error",
       reason: "user_lookup_failed",
@@ -361,6 +364,7 @@ Deno.serve(async (req: Request) => {
     await writeAudit(admin, {
       email,
       user_id: null,
+      seller_scope: sellerScope,
       dry_run: dryRun,
       status: "not_found",
       reason: "user_not_found",
