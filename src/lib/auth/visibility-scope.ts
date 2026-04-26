@@ -11,17 +11,17 @@
  * badge "Apenas seus dados".
  */
 import { useMemo } from "react";
-import { useUserRole } from "@/hooks/useUserRole";
+import { useAuth } from "@/contexts/AuthContext";
 
 export type SalesScope = "all" | "team" | "self";
 
 export function useSalesScope(): SalesScope {
-  const { role, isAdmin } = useUserRole();
+  const { role, isDev, isSupervisorOrAbove } = useAuth();
   return useMemo<SalesScope>(() => {
-    if (isAdmin || role === "manager" || role === "dev") return "all";
-    if (role === "supervisor") return "team";
+    if (isDev || role === "admin" || role === "manager") return "all";
+    if (isSupervisorOrAbove || role === "supervisor") return "team";
     return "self";
-  }, [role, isAdmin]);
+  }, [role, isDev, isSupervisorOrAbove]);
 }
 
 export function isOnlySelf(scope: SalesScope): boolean {
