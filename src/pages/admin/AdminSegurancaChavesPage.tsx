@@ -9,6 +9,7 @@ import { McpAuditFeed } from "@/components/admin/security/keys/audit/McpAuditFee
 import { StepUpAttemptsPanel } from "@/components/admin/security/keys/audit/StepUpAttemptsPanel";
 import { AutoRevocationsPanel } from "@/components/admin/security/keys/audit/AutoRevocationsPanel";
 import { FullOpDiagnosticsPanel } from "@/components/admin/security/keys/diagnostics/FullOpDiagnosticsPanel";
+import { RlsAuditPanel } from "@/components/admin/security/RlsAuditPanel";
 
 export default function AdminSegurancaChavesPage() {
   return (
