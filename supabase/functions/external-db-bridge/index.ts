@@ -1112,7 +1112,7 @@ async function handleSelect(externalSupabase: any, table: string, opts: any) {
       },
       { maxAttempts: 3, baseMs: 80, capMs: 800, budgetMs: 2000, isTransient: isBridgeTransient, label: `select:${table}` },
     );
-    const payload = (r.data ?? { data: null, count: null }) as { data: unknown; count: number | null };
+    const payload = (r.data ?? { data: null, count: null }) as { data: unknown[] | null; count: number | null };
     selectData = payload.data;
     selectError = null;
     count = payload.count;
