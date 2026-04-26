@@ -211,7 +211,7 @@ Deno.serve(async (req: Request) => {
   }
 
   // --- parse body ---------------------------------------------------------
-  let body: { email?: unknown; dryRun?: unknown };
+  let body: { email?: unknown; dryRun?: unknown; sellerScope?: unknown; sellerId?: unknown };
   try {
     body = await req.json();
   } catch {
@@ -232,10 +232,24 @@ Deno.serve(async (req: Request) => {
   }
   const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
   const dryRun = body.dryRun === false ? false : true;
+
+  // sellerScope: "self" (default) usa o user_id resolvido como seller_id.
+  // "explicit" exige sellerId no body — porém o sellerId DEVE bater com o
+  // user_id resolvido por email. Isso impede um cliente comprometido de
+  // pedir cleanup de outro tenant, mantendo a porta aberta para futuras
+  // separações user/seller sem mudar contrato.
+  const sellerScope: "self" | "explicit" =
+    body.sellerScope === "explicit" ? "explicit" : "self";
+  const requestedSellerId =
+    typeof body.sellerId === "string" && body.sellerId.length > 0
+      ? body.sellerId
+      : null;
+
   if (!email) {
     await writeAudit(admin, {
       email: "",
       user_id: null,
+      seller_scope: sellerScope,
       dry_run: dryRun,
       status: "invalid",
       reason: "email_required",
@@ -247,6 +261,23 @@ Deno.serve(async (req: Request) => {
       duration_ms: Date.now() - startedAt,
     });
     return jsonResponse({ error: "email_required" }, 400);
+  }
+  if (sellerScope === "explicit" && !requestedSellerId) {
+    await writeAudit(admin, {
+      email,
+      user_id: null,
+      seller_scope: sellerScope,
+      dry_run: dryRun,
+      status: "invalid",
+      reason: "sellerId_required_for_explicit_scope",
+      ip,
+      user_agent: userAgent,
+      total_deleted: 0,
+      deleted_by_table: {},
+      errors: {},
+      duration_ms: Date.now() - startedAt,
+    });
+    return jsonResponse({ error: "sellerId_required_for_explicit_scope" }, 400);
   }
 
   // --- camada 2: allow-list ------------------------------------------------
