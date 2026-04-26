@@ -1095,7 +1095,9 @@ async function handleSelect(externalSupabase: any, table: string, opts: any) {
   query = query.range(safeOffset, safeOffset + safeLimit - 1);
 
   const selectStart = performance.now();
-  let selectData, selectError, count;
+  let selectData: unknown[] | null;
+  let selectError: { message: string; code?: string } | null;
+  let count: number | null;
 
   try {
     // Backoff+jitter for connection/transport flakes only. Statement timeouts
