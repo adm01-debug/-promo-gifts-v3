@@ -7,18 +7,23 @@
  *  - project "chromium-authed": specs autenticados (depende de setup)
  *
  * Hardening anti-flake:
- *  - headless explícito (sobrescrevível por --headed)
- *  - retries controlados (CI: 2, local: 1)
+ *  - headless POR PADRÃO (sobrescrevível por --headed ou E2E_HEADLESS=false)
+ *  - retries controlados: CI=2, local=1 (override por E2E_RETRIES=N)
  *  - expect.timeout elevado (15s) para reduzir polls inflados nos specs
  *  - reducedMotion: "reduce" para neutralizar animações (Radix/framer-motion)
  *  - testIdAttribute padronizado em "data-testid"
  *
  * Comandos:
- *   npm run test:e2e          # headless
+ *   npm run test:e2e          # headless (default)
  *   npm run test:e2e:ui       # modo visual
  *   npm run test:e2e:headed   # browser visível
  *   npm run test:e2e:debug    # com inspector
  *   npm run test:e2e:report   # abre o relatório HTML
+ *
+ * Envs:
+ *   E2E_BASE_URL    URL do servidor já rodando (pula webServer)
+ *   E2E_HEADLESS    "false" para forçar headed; default true
+ *   E2E_RETRIES     número absoluto de retries (sobrescreve CI/local)
  */
 import { defineConfig, devices } from "@playwright/test";
 import path from "node:path";
@@ -26,13 +31,23 @@ import path from "node:path";
 const STORAGE_STATE = path.resolve(__dirname, "e2e/.auth/storageState.json");
 const ARTIFACTS_DIR = path.resolve(__dirname, "e2e-artifacts");
 
+const HEADLESS = process.env.E2E_HEADLESS
+  ? process.env.E2E_HEADLESS.toLowerCase() !== "false"
+  : true;
+
+const RETRIES = process.env.E2E_RETRIES
+  ? Math.max(0, Number.parseInt(process.env.E2E_RETRIES, 10) || 0)
+  : process.env.CI
+    ? 2
+    : 1;
+
 export default defineConfig({
   testDir: "./e2e",
   globalSetup: path.resolve(__dirname, "e2e/global-setup.ts"),
   globalTeardown: path.resolve(__dirname, "e2e/global-teardown.ts"),
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 1,
+  retries: RETRIES,
   workers: process.env.CI ? 1 : undefined,
   timeout: 45_000,
   expect: { timeout: 15_000 },
@@ -47,7 +62,7 @@ export default defineConfig({
     : [["list"], ["html", { outputFolder: "playwright-report", open: "never" }]],
   use: {
     baseURL: process.env.E2E_BASE_URL ?? "http://localhost:5173",
-    headless: true,
+    headless: HEADLESS,
     testIdAttribute: "data-testid",
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
