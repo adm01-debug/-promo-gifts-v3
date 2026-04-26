@@ -42,6 +42,12 @@ async function writeStorage(page: Page, items: FavoriteItem[]): Promise<void> {
   );
 }
 
+async function readFavoritesTitle(page: Page): Promise<string> {
+  const loc = page.locator(Sel.favorites.title).first();
+  await loc.waitFor({ state: "visible", timeout: 10_000 });
+  return (await loc.innerText()).trim();
+}
+
 async function readFavoritesCount(page: Page): Promise<number> {
   const loc = page.locator(Sel.favorites.countItems);
   await loc.first().waitFor({ state: "visible", timeout: 10_000 });
@@ -59,6 +65,44 @@ async function readFavoritesCountText(page: Page): Promise<string> {
 /** Conta cards renderizados na lista de favoritos. */
 async function readFavoritesListSize(page: Page): Promise<number> {
   return page.locator(Sel.favorites.item).count();
+}
+
+interface FavoritesSnapshot {
+  title: string;
+  count: number;
+  countText: string;
+  listSize: number;
+}
+
+/** Lê título + contadores + tamanho da lista em paralelo (snapshot reutilizável). */
+async function readFavoritesSnapshot(page: Page): Promise<FavoritesSnapshot> {
+  const [title, count, countText, listSize] = await Promise.all([
+    readFavoritesTitle(page),
+    readFavoritesCount(page),
+    readFavoritesCountText(page),
+    readFavoritesListSize(page),
+  ]);
+  return { title, count, countText, listSize };
+}
+
+/** Asserta que o snapshot atual bate com `expected` (uso pré e pós-reload). */
+async function expectFavoritesSnapshot(
+  page: Page,
+  expected: FavoritesSnapshot,
+  label: string,
+): Promise<FavoritesSnapshot> {
+  await expect
+    .poll(() => readFavoritesCount(page), {
+      message: `[${label}] favorites-count-items deveria ser ${expected.count}`,
+      timeout: 10_000,
+    })
+    .toBe(expected.count);
+
+  const actual = await readFavoritesSnapshot(page);
+  expect(actual.title, `[${label}] título mudou`).toBe(expected.title);
+  expect(actual.countText, `[${label}] favorites-count text mudou`).toBe(expected.countText);
+  expect(actual.listSize, `[${label}] tamanho da lista mudou`).toBe(expected.listSize);
+  return actual;
 }
 
 async function isFavorited(button: Locator): Promise<boolean> {
