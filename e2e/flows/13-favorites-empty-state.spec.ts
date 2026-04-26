@@ -67,6 +67,7 @@ async function readFavoritesCount(page: Page): Promise<number> {
 
 test.describe("Fluxo: /favoritos com lista vazia", () => {
   test.beforeEach(() => requireAuth());
+  installFavoritesCleanup(test);
 
   test("mostra empty state e mantém botão de favoritar consistente no catálogo", async ({
     page,
