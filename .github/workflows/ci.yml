@@ -30,6 +30,9 @@ jobs:
       - name: Seller-scope checker (RLS defesa em profundidade)
         run: node scripts/check-seller-scope.mjs
 
+      - name: Route errorElement checker (modo declarativo)
+        run: node scripts/check-route-error-element.mjs
+
       - name: ESLint
         run: npx eslint . --max-warnings=500
 
