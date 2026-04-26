@@ -76,6 +76,18 @@ export function UserTable({ users, currentUserId, updatingUserId, onEditUser, on
                   </Button>
                   {userItem.user_id !== currentUserId && (
                     <>
+                      {onPromoteUser && userItem.role === "vendedor" && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="gap-1 text-primary hover:text-primary"
+                          onClick={() => onPromoteUser(userItem)}
+                          title="Promover a Supervisor"
+                        >
+                          <ArrowUpCircle className="h-4 w-4" />
+                          Promover
+                        </Button>
+                      )}
                       <Button variant="outline" size="sm" onClick={() => onChangeRole(userItem)} disabled={updatingUserId === userItem.user_id}>
                         {updatingUserId === userItem.user_id ? <Loader2 className="h-4 w-4 animate-spin" /> : "Alterar Role"}
                       </Button>
