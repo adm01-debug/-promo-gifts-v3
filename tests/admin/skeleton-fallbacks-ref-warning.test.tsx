@@ -11,6 +11,7 @@
 import { describe, it, afterEach } from "vitest";
 import { render, cleanup } from "@testing-library/react";
 import { Suspense } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { installReactWarningGuard } from "../helpers/react-warning-guard";
 import {
   CatalogSkeleton,
@@ -24,6 +25,35 @@ import {
   GenericSkeleton,
   getFallback,
 } from "@/components/layout/SkeletonLoaders";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 afterEach(() => cleanup());
 
