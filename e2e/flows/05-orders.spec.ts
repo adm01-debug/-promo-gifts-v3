@@ -19,7 +19,7 @@ test.describe("Fluxo: Pedidos", () => {
 
   test("abre primeiro pedido se existir", async ({ page }) => {
     await gotoAndSettle(page, "/pedidos");
-    const row = page.locator('a[href*="/pedidos/"], tr[role="row"]').first();
+    const row = page.locator(Sel.order.card).first();
     if ((await row.count()) > 0) {
       await row.click().catch(() => {});
       await page.waitForTimeout(1000);

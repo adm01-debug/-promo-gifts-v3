@@ -95,6 +95,11 @@ export const Sel = {
     item: (index: number) => TID(`quote-item-${index}`),
   },
 
+  // ---------- Pedidos ----------
+  order: {
+    card: TID("order-card"),
+  },
+
   // ---------- Favoritos ----------
   favorites: {
     list: TID("favorites-list"),
