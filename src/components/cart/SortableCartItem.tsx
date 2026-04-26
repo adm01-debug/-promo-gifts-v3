@@ -138,34 +138,34 @@ export const SortableCartItem = memo(function SortableCartItem({
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-52">
-                <DropdownMenuItem onClick={() => onNavigate(`/produto/${item.product_id}`)}>
+                <DropdownMenuItem data-testid="cart-item-action-view" onClick={() => onNavigate(`/produto/${item.product_id}`)}>
                   <Eye className="h-3.5 w-3.5 mr-2" /> Ver Produto
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onNavigate(`/simulador?product=${item.product_id}`)}>
+                <DropdownMenuItem data-testid="cart-item-action-simulate" onClick={() => onNavigate(`/simulador?product=${item.product_id}`)}>
                   <Calculator className="h-3.5 w-3.5 mr-2" /> Simular Personalização
                 </DropdownMenuItem>
                 {otherCarts.length > 0 && (
                   <>
                     <DropdownMenuSeparator />
                     <DropdownMenuSub>
-                      <DropdownMenuSubTrigger>
+                      <DropdownMenuSubTrigger data-testid="cart-item-action-move">
                         <MoveRight className="h-3.5 w-3.5 mr-2" /> Mover para...
                       </DropdownMenuSubTrigger>
                       <DropdownMenuSubContent>
                         {otherCarts.map(c => (
-                          <DropdownMenuItem key={c.id} onClick={() => onMoveToCart(item.id, c.id)}>
+                          <DropdownMenuItem key={c.id} data-testid="cart-item-move-target" data-target-cart-id={c.id} onClick={() => onMoveToCart(item.id, c.id)}>
                             {c.company_name}
                           </DropdownMenuItem>
                         ))}
                       </DropdownMenuSubContent>
                     </DropdownMenuSub>
                     <DropdownMenuSub>
-                      <DropdownMenuSubTrigger>
+                      <DropdownMenuSubTrigger data-testid="cart-item-action-duplicate">
                         <CopyPlus className="h-3.5 w-3.5 mr-2" /> Duplicar para...
                       </DropdownMenuSubTrigger>
                       <DropdownMenuSubContent>
                         {otherCarts.map(c => (
-                          <DropdownMenuItem key={c.id} onClick={() => onDuplicateToCart(item.id, c.id)}>
+                          <DropdownMenuItem key={c.id} data-testid="cart-item-duplicate-target" data-target-cart-id={c.id} onClick={() => onDuplicateToCart(item.id, c.id)}>
                             {c.company_name}
                           </DropdownMenuItem>
                         ))}
@@ -175,6 +175,7 @@ export const SortableCartItem = memo(function SortableCartItem({
                 )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
+                  data-testid="cart-item-action-remove"
                   className="text-destructive focus:text-destructive"
                   onClick={() => onRemove(item.id, item.product_name)}
                 >
