@@ -94,6 +94,7 @@ export function McpKeysList() {
                 onRotate={setRotateTarget}
                 onRevoke={(row) => void revoke(row.id)}
                 onDetails={setDetailsTarget}
+                onEdit={setEditTarget}
               />
             ))}
           </div>
@@ -105,6 +106,13 @@ export function McpKeysList() {
         open={rotateTarget !== null}
         onOpenChange={(v) => { if (!v) setRotateTarget(null); }}
         onRotated={reload}
+      />
+
+      <UpdateMcpKeyDialog
+        source={editTarget}
+        open={editTarget !== null}
+        onOpenChange={(v) => { if (!v) setEditTarget(null); }}
+        onUpdated={reload}
       />
 
       <McpKeyDetailsDrawer
