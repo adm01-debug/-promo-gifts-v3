@@ -100,11 +100,29 @@ const QUOTE_CHILD_TABLES_BY_QUOTE_ID = [
   "quote_approval_tokens",
 ] as const;
 
+/**
+ * Para cada tabela com recurso nomeável, qual coluna serve para filtrar
+ * por prefixo `name LIKE '<prefix>%'`. Tabelas omitidas não têm coluna
+ * textual e são purgadas sem filtro de nome (apenas user_id/seller_id).
+ *
+ * Importante: filtros de itens-filhos (`favorite_items`, `collection_items`,
+ * `quote_items`, etc.) propagam o filtro do PAI via lookup de IDs.
+ */
+const NAMEABLE_COLUMNS: Record<string, string> = {
+  favorite_lists: "name",
+  collections: "name",
+  cart_templates: "name",
+  custom_kits: "name",
+  // quotes: filtra por client_name
+  quotes: "client_name",
+};
+
 interface AuditPayload {
   email: string;
   user_id: string | null;
   seller_id?: string | null;
   seller_scope?: "self" | "explicit";
+  name_filter_prefix?: string | null;
   dry_run: boolean;
   status:
     | "ok"
@@ -221,7 +239,13 @@ Deno.serve(async (req: Request) => {
   }
 
   // --- parse body ---------------------------------------------------------
-  let body: { email?: unknown; dryRun?: unknown; sellerScope?: unknown; sellerId?: unknown };
+  let body: {
+    email?: unknown;
+    dryRun?: unknown;
+    sellerScope?: unknown;
+    sellerId?: unknown;
+    nameFilterPrefix?: unknown;
+  };
   try {
     body = await req.json();
   } catch {
@@ -254,6 +278,21 @@ Deno.serve(async (req: Request) => {
     typeof body.sellerId === "string" && body.sellerId.length > 0
       ? body.sellerId
       : null;
+
+  // nameFilterPrefix: quando presente, restringe DELETEs a recursos cujo
+  // nome começa com o prefixo (ex.: "[E2E]"). Garante isolamento contra
+  // dados criados manualmente fora do escopo dos testes — apenas tabelas
+  // listadas em NAMEABLE_COLUMNS são filtradas; demais permanecem
+  // escopadas apenas por user_id/seller_id (são internas/órfãs por
+  // construção).
+  const nameFilterPrefix =
+    typeof body.nameFilterPrefix === "string" && body.nameFilterPrefix.length > 0
+      ? body.nameFilterPrefix
+      : null;
+  // Sanitiza % e _ (LIKE wildcards) para evitar match acidental amplo.
+  const sanitizedPrefix = nameFilterPrefix
+    ? nameFilterPrefix.replace(/[\\%_]/g, (m) => `\\${m}`)
+    : null;
 
   if (!email) {
     await writeAudit(admin, {
@@ -418,45 +457,85 @@ Deno.serve(async (req: Request) => {
   const deleted: Record<string, number> = {};
   const errors: Record<string, string> = {};
 
+  /**
+   * Aplica filtro `name LIKE '<prefix>%'` quando:
+   *   (a) `sanitizedPrefix` foi enviado pelo cliente, e
+   *   (b) a tabela está em `NAMEABLE_COLUMNS`.
+   * Caso contrário, executa sem filtro de nome (apenas owner-scope).
+   *
+   * Tabelas órfãs/internas (sem coluna textual visível ao usuário) NÃO
+   * recebem filtro — elas são purgadas integralmente por owner. O contrato
+   * é: "se você nomeou, devia ter usado e2eName()".
+   */
+  function maybeApplyNameFilter<Q>(
+    qb: Q,
+    table: string,
+  ): Q {
+    if (!sanitizedPrefix) return qb;
+    const col = NAMEABLE_COLUMNS[table];
+    if (!col) return qb;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (qb as any).like(col, `${sanitizedPrefix}%`) as Q;
+  }
+
   async function purgeByUserId(table: string) {
     if (dryRun) {
-      const { count, error } = await admin
+      const q = admin
         .from(table)
         .select("id", { count: "exact", head: true })
         .eq("user_id", userId!);
+      const { count, error } = await maybeApplyNameFilter(q, table);
       if (error) errors[table] = error.message;
       else deleted[table] = count ?? 0;
       return;
     }
-    const { error, count } = await admin
+    const q = admin
       .from(table)
       .delete({ count: "exact" })
       .eq("user_id", userId!);
+    const { error, count } = await maybeApplyNameFilter(q, table);
     if (error) errors[table] = error.message;
     else deleted[table] = count ?? 0;
   }
 
   async function purgeBySellerId(table: string) {
     if (dryRun) {
-      const { count, error } = await admin
+      const q = admin
         .from(table)
         .select("id", { count: "exact", head: true })
         .eq("seller_id", sellerId!);
+      const { count, error } = await maybeApplyNameFilter(q, table);
       if (error) errors[table] = error.message;
       else deleted[table] = count ?? 0;
       return;
     }
-    const { error, count } = await admin
+    const q = admin
       .from(table)
       .delete({ count: "exact" })
       .eq("seller_id", sellerId!);
+    const { error, count } = await maybeApplyNameFilter(q, table);
     if (error) errors[table] = error.message;
     else deleted[table] = count ?? 0;
   }
 
   // 1) user_id-scoped
-  for (const t of USER_ID_TABLES) {
-    await purgeByUserId(t);
+  //    Quando há prefixo de nome, processamos PRIMEIRO os pais nomeáveis
+  //    (favorite_lists, collections, custom_kits) coletando seus IDs e
+  //    apagando seus filhos via FK; assim os filhos ficam corretamente
+  //    isolados ao escopo do prefixo. Tabelas sem nome (favorite_items,
+  //    collection_items, etc.) só são purgadas-em-bloco quando NÃO há
+  //    prefixo — caso contrário ficariam "soltas" do filtro.
+  if (sanitizedPrefix) {
+    const SCOPED_OWNER_TABLES = Object.keys(NAMEABLE_COLUMNS).filter((t) =>
+      (USER_ID_TABLES as readonly string[]).includes(t),
+    );
+    for (const t of SCOPED_OWNER_TABLES) {
+      await purgeByUserId(t);
+    }
+  } else {
+    for (const t of USER_ID_TABLES) {
+      await purgeByUserId(t);
+    }
   }
 
   // 2) seller_cart_items via cart_id ∈ seller_carts(seller_id) — precisa
@@ -500,12 +579,18 @@ Deno.serve(async (req: Request) => {
     await purgeBySellerId(t);
   }
 
-  // 4) Quotes (seller_id) — apaga filhos via quote_id, depois quotes
+  // 4) Quotes (seller_id) — apaga filhos via quote_id, depois quotes.
+  //    Quando há prefixo de nome, restringimos por `client_name LIKE` tanto
+  //    no lookup de IDs quanto no DELETE final.
   try {
-    const { data: quoteRows, error: qErr } = await admin
+    let quoteLookup = admin
       .from("quotes")
       .select("id")
       .eq("seller_id", sellerId);
+    if (sanitizedPrefix) {
+      quoteLookup = quoteLookup.like(NAMEABLE_COLUMNS["quotes"], `${sanitizedPrefix}%`);
+    }
+    const { data: quoteRows, error: qErr } = await quoteLookup;
     if (qErr) {
       errors["quotes_lookup"] = qErr.message;
     } else {
@@ -532,10 +617,12 @@ Deno.serve(async (req: Request) => {
         if (dryRun) {
           deleted["quotes"] = quoteIds.length;
         } else {
+          // DELETE final SEMPRE limitado aos quoteIds resolvidos acima —
+          // garante que o filtro por prefixo é honrado.
           const { error, count } = await admin
             .from("quotes")
             .delete({ count: "exact" })
-            .eq("seller_id", sellerId);
+            .in("id", quoteIds);
           if (error) errors["quotes"] = error.message;
           else deleted["quotes"] = count ?? 0;
         }
@@ -557,6 +644,7 @@ Deno.serve(async (req: Request) => {
     user_id: userId,
     seller_id: sellerId,
     seller_scope: sellerScope,
+    name_filter_prefix: nameFilterPrefix,
     dry_run: dryRun,
     status,
     reason: status === "ok" ? null : "partial_or_failed_purge",
@@ -574,6 +662,7 @@ Deno.serve(async (req: Request) => {
     userId,
     sellerId,
     sellerScope,
+    nameFilterPrefix,
     email,
     deleted,
     errors,

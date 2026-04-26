@@ -866,6 +866,7 @@ export type Database = {
           errors: Json
           id: string
           ip: string | null
+          name_filter_prefix: string | null
           reason: string | null
           seller_id: string | null
           seller_scope: string | null
@@ -883,6 +884,7 @@ export type Database = {
           errors?: Json
           id?: string
           ip?: string | null
+          name_filter_prefix?: string | null
           reason?: string | null
           seller_id?: string | null
           seller_scope?: string | null
@@ -900,6 +902,7 @@ export type Database = {
           errors?: Json
           id?: string
           ip?: string | null
+          name_filter_prefix?: string | null
           reason?: string | null
           seller_id?: string | null
           seller_scope?: string | null
