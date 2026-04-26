@@ -1542,7 +1542,7 @@ function buildCacheKey(table: string, body: any): string {
   return `t:${table}|${fnv1aHash(raw)}`;
 }
 
-function getCached(key: string): string | null {
+function getCachedResponse(key: string): string | null {
   const entry = responseCache.get(key);
   if (!entry) return null;
   if (entry.expiresAt < Date.now()) {
