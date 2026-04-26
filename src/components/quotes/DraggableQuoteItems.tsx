@@ -110,6 +110,8 @@ function SortableItem({
     <motion.div
       ref={setNodeRef}
       style={style}
+      data-testid={`quote-item-${index}`}
+      data-quote-item-id={item.id}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, x: -100 }}

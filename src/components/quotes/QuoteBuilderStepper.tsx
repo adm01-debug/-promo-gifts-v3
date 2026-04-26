@@ -35,7 +35,7 @@ export function QuoteBuilderStepper({
   className,
 }: QuoteBuilderStepperProps) {
   return (
-    <div className={cn("w-full", className)}>
+    <div data-testid="quote-wizard" role="tablist" className={cn("w-full", className)}>
       <div className="flex items-center justify-between">
         {STEPS.map((step, index) => {
           const isCompleted = completedSteps.includes(step.id);

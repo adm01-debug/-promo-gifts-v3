@@ -610,7 +610,7 @@ export default function FavoritesPage() {
                       })}
                     </div>
                   ) : (
-                    <div className={`grid ${getGridColsClass(gridColumns)} ${getGridGapClass(gridColumns)}`}>
+                    <div data-testid="favorites-list" className={`grid ${getGridColsClass(gridColumns)} ${getGridGapClass(gridColumns)}`}>
                       {filteredProducts.map((product, index) => {
                         const variant = variantMap.get(product.id);
                         const isSelected = selectedIds.has(product.id);
@@ -619,6 +619,9 @@ export default function FavoritesPage() {
                         return (
                           <div
                             key={product.id}
+                            data-testid="favorite-item"
+                            data-product-id={product.id}
+                            data-product-name={product.name}
                             className={cn(
                               "animate-fade-in relative rounded-xl transition-all",
                               selectionMode && "cursor-pointer",

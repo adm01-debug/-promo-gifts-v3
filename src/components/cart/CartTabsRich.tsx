@@ -29,6 +29,11 @@ export function CartTabsRich({ carts, activeCartId, canCreateCart, onSelect, onN
           <button
             key={cart.id}
             onClick={() => onSelect(cart.id)}
+            data-testid="cart-tab"
+            data-cart-id={cart.id}
+            data-active={isActive ? "true" : "false"}
+            role="tab"
+            aria-selected={isActive}
             className={cn(
               "group relative flex items-center gap-2.5 px-3.5 py-2 rounded-xl border transition-all whitespace-nowrap flex-shrink-0",
               isActive

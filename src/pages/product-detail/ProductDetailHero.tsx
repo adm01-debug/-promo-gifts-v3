@@ -132,7 +132,11 @@ export function ProductDetailHero({
               onClick={onOpenPackagingModal}
             />
           </div>
-          <h1 className="font-display text-lg sm:text-xl lg:text-2xl xl:text-3xl 2xl:text-4xl font-bold text-foreground leading-tight tracking-tight">
+          <h1
+            data-testid="product-name"
+            data-product-name={product.name}
+            className="font-display text-lg sm:text-xl lg:text-2xl xl:text-3xl 2xl:text-4xl font-bold text-foreground leading-tight tracking-tight"
+          >
             {product.name}
           </h1>
           <ProductInfoBar
