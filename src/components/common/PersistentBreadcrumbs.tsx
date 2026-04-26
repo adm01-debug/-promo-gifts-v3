@@ -49,6 +49,7 @@ export const PersistentBreadcrumbs = forwardRef<HTMLElement, PersistentBreadcrum
 }, ref) {
   const location = useLocation();
   const navigate = useNavigate();
+  const { isDev, isAdmin } = useAuth();
   
   const handleBack = useCallback(() => {
     if (window.history.length > 2) {
