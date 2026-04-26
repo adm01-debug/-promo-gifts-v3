@@ -6,6 +6,8 @@ import { Search, ArrowRight, Command, Clock, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { buildSpotlightItems, type SpotlightItem } from "./spotlight/SpotlightItems";
+import { useAuth } from "@/contexts/AuthContext";
+import { filterByRoutePermission } from "@/lib/navigation/filter-restricted-items";
 
 // SpotlightItem type imported from ./spotlight/SpotlightItems
 
