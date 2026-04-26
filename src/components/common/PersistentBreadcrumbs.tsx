@@ -2,6 +2,8 @@ import { forwardRef, useCallback } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { ChevronRight, Home } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
+import { canNavigateTo, isDevOnlyPath } from "@/lib/navigation/restricted-routes";
 
 interface BreadcrumbItem {
   label: string;
