@@ -16,6 +16,7 @@ import { useMcpKeys, type McpKeyRow as McpKeyRowType } from "./useMcpKeys";
 import { McpKeysFilters } from "./McpKeysFilters";
 import { McpKeyRow } from "./McpKeyRow";
 import { RotateMcpKeyDialog } from "./RotateMcpKeyDialog";
+import { UpdateMcpKeyDialog } from "./UpdateMcpKeyDialog";
 import { McpKeyDetailsDrawer } from "./McpKeyDetailsDrawer";
 import { IssueMcpKeyForm } from "@/components/admin/connections/IssueMcpKeyForm";
 
@@ -23,6 +24,7 @@ export function McpKeysList() {
   const { rows, loading, filters, setFilters, counts, creators, reload, revoke } = useMcpKeys();
   const [issueOpen, setIssueOpen] = useState(false);
   const [rotateTarget, setRotateTarget] = useState<McpKeyRowType | null>(null);
+  const [editTarget, setEditTarget] = useState<McpKeyRowType | null>(null);
   const [detailsTarget, setDetailsTarget] = useState<McpKeyRowType | null>(null);
 
   return (
@@ -92,6 +94,7 @@ export function McpKeysList() {
                 onRotate={setRotateTarget}
                 onRevoke={(row) => void revoke(row.id)}
                 onDetails={setDetailsTarget}
+                onEdit={setEditTarget}
               />
             ))}
           </div>
@@ -103,6 +106,13 @@ export function McpKeysList() {
         open={rotateTarget !== null}
         onOpenChange={(v) => { if (!v) setRotateTarget(null); }}
         onRotated={reload}
+      />
+
+      <UpdateMcpKeyDialog
+        source={editTarget}
+        open={editTarget !== null}
+        onOpenChange={(v) => { if (!v) setEditTarget(null); }}
+        onUpdated={reload}
       />
 
       <McpKeyDetailsDrawer
