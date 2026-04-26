@@ -57,6 +57,22 @@ export function RotateMcpKeyDialog({ source, open, onOpenChange, onRotated }: Pr
     onOpenChange(v);
   };
 
+  /** Reabre o fluxo de step-up adequado (FULL → dialog dedicado, limitado → DevChallenge). */
+  const retryStepUp = async () => {
+    if (!source) return;
+    if (source.is_full) {
+      setStepUpOpen(true);
+      return;
+    }
+    const token = await challenge({
+      action: "mcp_key_rotate",
+      actionLabel: `Rotacionar chave MCP "${source.name}"`,
+      targetRef: source.id,
+    });
+    if (!token) return;
+    await performRotate(token);
+  };
+
   /** Faz o POST para a edge function. Para FULL, exige token de step-up. */
   const performRotate = async (stepUpToken?: string) => {
     if (!source) return;
@@ -70,6 +86,10 @@ export function RotateMcpKeyDialog({ source, open, onOpenChange, onRotated }: Pr
           step_up_token: stepUpToken ?? null,
         },
       });
+      // Tratamento dedicado de step-up: mostra toast com CTA "Refazer verificação".
+      if (handleStepUpError(data, error, () => { void retryStepUp(); })) {
+        return;
+      }
       if (error) {
         toast.error("Falha ao rotacionar", { description: sanitizeError(error) });
         return;
