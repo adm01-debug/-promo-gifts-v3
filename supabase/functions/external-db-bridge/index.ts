@@ -1650,9 +1650,9 @@ function warmupExternalClient(): Promise<void> {
         resolveCredential("EXTERNAL_PROMOBRIND_SERVICE_ROLE_KEY"),
       ]);
       if (!url || !key) return;
-      if (!cachedExternalClient) cachedExternalClient = buildExternalClient(url, key);
+      const client: ServiceClient = cachedExternalClient ?? (cachedExternalClient = buildExternalClient(url, key));
       const t0 = performance.now();
-      const { error } = await cachedExternalClient.from('suppliers').select('id').limit(1);
+      const { error } = await client.from('suppliers').select('id').limit(1);
       const ms = Math.round(performance.now() - t0);
       if (error) {
         console.warn(`[boot-warmup] ⚠️ ${error.message} (${ms}ms)`);
