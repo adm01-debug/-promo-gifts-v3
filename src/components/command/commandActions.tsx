@@ -19,6 +19,12 @@ export interface CommandAction {
   category: "navigation" | "action" | "recent" | "quick" | "settings" | "help";
   badge?: string;
   badgeVariant?: "default" | "secondary" | "destructive" | "outline";
+  /**
+   * Path da rota associada (quando aplicável). Permite que
+   * `filterByRoutePermission` esconda a ação para usuários que não
+   * podem navegar até a rota (ver `RBAC_ROUTES`).
+   */
+  path?: string;
 }
 
 export interface RecentItem {
