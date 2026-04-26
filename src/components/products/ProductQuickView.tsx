@@ -377,6 +377,8 @@ export const ProductQuickView = forwardRef<HTMLDivElement, ProductQuickViewProps
                         isFavorited && "bg-destructive/10 border-destructive/30 text-destructive"
                       )}
                       onClick={handleFavorite}
+                      data-testid="product-favorite"
+                      aria-pressed={isFavorited}
                      aria-label="Favoritar"><Heart className={cn("h-5 w-5", isFavorited && "fill-current")} />
                     </Button>
                   </TooltipTrigger>
