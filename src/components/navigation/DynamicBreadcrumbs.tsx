@@ -107,16 +107,25 @@ export function DynamicBreadcrumbs({ customItems, className }: DynamicBreadcrumb
         ) && (segment === "produto" || segment === "produtos");
         
         const isLastVisible = index >= pathSegments.length - 1 || nextIsSkippedId;
-        
-        items.push({ 
-          label, 
-          href: isLastVisible ? undefined : currentPath 
+
+        // Esconder link para rotas técnicas quando o usuário não tiver papel.
+        // Para rotas devOnly, ocultamos o item completamente para não-dev
+        // (defesa em profundidade — DevRoute também bloqueia o acesso).
+        if (!isDev && isDevOnlyPath(currentPath)) {
+          return;
+        }
+
+        const navigable = canNavigateTo(currentPath, { isDev, isAdmin });
+
+        items.push({
+          label,
+          href: isLastVisible || !navigable ? undefined : currentPath,
         });
       }
     });
-    
+
     return items;
-  }, [location.pathname, customItems]);
+  }, [location.pathname, customItems, isDev, isAdmin]);
   
   // Don't show breadcrumbs on home or login pages
   if (location.pathname === "/" || location.pathname === "/login") {
