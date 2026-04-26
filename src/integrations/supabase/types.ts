@@ -4990,6 +4990,15 @@ export type Database = {
       }
       mcp_audit_actor: { Args: { _fallback: string }; Returns: string }
       notify_hardening_regression: { Args: never; Returns: Json }
+      record_dev_route_telemetry: {
+        Args: {
+          _blocked_path: string
+          _duration_ms?: number
+          _event_type: string
+          _user_role?: string
+        }
+        Returns: undefined
+      }
       record_mcp_access_violation: {
         Args: {
           _details?: Json
