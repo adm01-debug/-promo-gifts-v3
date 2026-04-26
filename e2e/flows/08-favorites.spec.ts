@@ -122,15 +122,20 @@ test.describe("Fluxo: Favoritos", () => {
   test("lista de favoritos carrega", async ({ page }) => {
     await gotoAndSettle(page, "/favoritos");
     await expect(page).toHaveURL(/favoritos/);
+    // Header visível em qualquer estado (com itens ou empty state)
     await expect(
       page.locator(Sel.favorites.title).or(page.locator(Sel.favorites.emptyState)),
     ).toBeVisible({ timeout: 15_000 });
+    // Quando o título aparece, valida h1 + Heart + fill-destructive antes de qualquer leitura
+    if (await page.locator(Sel.favorites.title).isVisible().catch(() => false)) {
+      await assertFavoritesHeaderVisuals(page);
+    }
   });
 
   test("favorita um produto, recarrega e ele persiste na lista", async ({ page }) => {
     // 0. Snapshot inicial do header de favoritos
     await gotoAndSettle(page, "/favoritos");
-    await expect(page.locator(Sel.favorites.title)).toBeVisible();
+    await assertFavoritesHeaderVisuals(page);
     const countBefore = await readFavoritesCount(page);
 
     // 1. Catálogo + 1º card
@@ -197,6 +202,7 @@ test.describe("Fluxo: Favoritos", () => {
 
   test("header de favoritos permanece consistente após reload", async ({ page }) => {
     await gotoAndSettle(page, "/favoritos");
+    await assertFavoritesHeaderVisuals(page);
     const before = await readFavoritesCount(page);
     await assertFavoritesHeader(page, before);
 
