@@ -7,6 +7,7 @@
  * chamada por usuário autenticado.
  */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
+import { castRpcResult } from "../_shared/supabase-client-adapter.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -37,9 +38,12 @@ Deno.serve(async (req) => {
     });
 
     const t0 = Date.now();
-    const { data: reportId, error } = await admin.rpc("audit_ownership_orphans", {
+    const { data: reportId, error } = await castRpcResult<{
+      data: string | null;
+      error: { message: string } | null;
+    }>(admin.rpc("audit_ownership_orphans", {
       _triggered_by: triggeredBy,
-    });
+    }));
     if (error) {
       console.error("[ownership-audit] rpc error", error);
       return json({ error: error.message }, 500);

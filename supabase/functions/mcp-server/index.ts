@@ -7,6 +7,14 @@ import { McpServer, StreamableHttpTransport } from "mcp-lite";
 import { createClient } from "@supabase/supabase-js";
 import { getOrCreateRequestId, REQUEST_ID_HEADER } from "../_shared/request-id.ts";
 import { summarizePayload } from "../_shared/audit-log.ts";
+import { castRpcResult } from "../_shared/supabase-client-adapter.ts";
+
+type ValidateMcpKeyRow = {
+  key_id: string;
+  scopes: string[] | null;
+  block_reason: string | null;
+  created_by: string | null;
+};
 
 const SOURCE = "mcp-server";
 
@@ -119,17 +127,15 @@ async function authenticate(req: Request): Promise<AuthResult> {
   const key = req.headers.get("x-mcp-key") || "";
   if (!key || key.length < 16) return { kind: "no_key" };
 
-  const { data, error } = await supabase.rpc("validate_mcp_key", { _key_plain: key });
+  const { data, error } = await castRpcResult<{
+    data: ValidateMcpKeyRow | ValidateMcpKeyRow[] | null;
+    error: { message: string } | null;
+  }>(supabase.rpc("validate_mcp_key", { _key_plain: key }));
   if (error) return { kind: "invalid_key" };
 
-  const rows = Array.isArray(data) ? data : (data ? [data] : []);
+  const rows: ValidateMcpKeyRow[] = Array.isArray(data) ? data : (data ? [data] : []);
   if (rows.length === 0) return { kind: "invalid_key" };
-  const row = rows[0] as {
-    key_id: string;
-    scopes: string[] | null;
-    block_reason: string | null;
-    created_by: string | null;
-  };
+  const row = rows[0];
 
   // Block reasons explícitos do RPC: chave existe mas foi rejeitada.
   if (row.block_reason) {

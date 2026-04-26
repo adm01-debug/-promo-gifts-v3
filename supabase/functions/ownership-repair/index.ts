@@ -8,6 +8,12 @@
  * Retorna o resumo da RPC `repair_ownership_orphans` + os logs gravados.
  */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
+import { castRpcResult } from "../_shared/supabase-client-adapter.ts";
+
+type RepairOrphansResult = {
+  report_id?: string;
+  totals?: Record<string, unknown>;
+} & Record<string, unknown>;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -40,18 +46,21 @@ Deno.serve(async (req) => {
     const triggeredBy = (body.triggered_by ?? "manual_admin").slice(0, 64);
 
     const t0 = Date.now();
-    const { data: result, error: rpcErr } = await userClient.rpc("repair_ownership_orphans", {
+    const { data: result, error: rpcErr } = await castRpcResult<{
+      data: RepairOrphansResult | null;
+      error: { message: string } | null;
+    }>(userClient.rpc("repair_ownership_orphans", {
       _report_id: body.report_id ?? null,
       _dry_run: dryRun,
       _triggered_by_label: triggeredBy,
-    });
+    }));
     if (rpcErr) {
       console.error("[ownership-repair] rpc error", rpcErr);
       return json({ error: rpcErr.message }, 400);
     }
 
     // Carrega os logs gerados (mesmo report_id e mesmo dry_run, últimos N segundos)
-    const reportId = (result as { report_id?: string })?.report_id;
+    const reportId = result?.report_id;
     const { data: logs } = await userClient
       .from("ownership_repair_logs")
       .select("*")
@@ -62,7 +71,7 @@ Deno.serve(async (req) => {
 
     console.log(
       `[ownership-repair] ${dryRun ? "DRY-RUN" : "APPLIED"} in ${Date.now() - t0}ms — ` +
-        `report ${reportId}, totals=${JSON.stringify((result as Record<string, unknown>)?.totals)}`,
+        `report ${reportId}, totals=${JSON.stringify(result?.totals)}`,
     );
 
     return json({ ok: true, result, logs: logs ?? [] });

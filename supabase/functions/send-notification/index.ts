@@ -1,6 +1,7 @@
 import { getCorsHeaders } from '../_shared/cors.ts';
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { z } from "npm:zod@3.23.8";
+import { castRpcResult } from "../_shared/supabase-client-adapter.ts";
 
 const NotificationSchema = z.object({
   user_id: z.string().uuid(),
@@ -40,7 +41,10 @@ Deno.serve(async (req) => {
     const payload = parsed.data;
 
     // Check DND status
-    const { data: isDND } = await supabase.rpc('is_dnd_active');
+    const { data: isDND } = await castRpcResult<{
+      data: boolean | null;
+      error: { message: string } | null;
+    }>(supabase.rpc('is_dnd_active'));
 
     // If DND is active and not urgent, skip
     if (isDND && payload.type !== 'urgent') {

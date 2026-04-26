@@ -1,6 +1,7 @@
 import { getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts';
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { z } from "npm:zod@3.23.8";
+import { castRpcResult } from "../_shared/supabase-client-adapter.ts";
 
 const uuidSchema = z.string().uuid();
 const emailSchema = z.string().email().max(255);
@@ -88,10 +89,13 @@ Deno.serve(async (req) => {
     }
 
     // Verificação de papel via SECURITY DEFINER (compat com hierarquia atual).
-    const { data: isSupOrAbove, error: sopErr } = await supabaseAdmin.rpc(
+    const { data: isSupOrAbove, error: sopErr } = await castRpcResult<{
+      data: boolean | null;
+      error: { message: string } | null;
+    }>(supabaseAdmin.rpc(
       'is_supervisor_or_above',
       { _user_id: caller.id }
-    );
+    ));
     if (sopErr || !isSupOrAbove) {
       return jsonRes(corsHeaders, { error: 'Apenas supervisores podem gerenciar usuários' }, 403);
     }
