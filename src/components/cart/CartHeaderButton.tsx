@@ -57,19 +57,21 @@ export function CartHeaderButton() {
     <Popover open={open} onOpenChange={setOpen}>
       <Tooltip>
         <TooltipTrigger asChild>
-          <PopoverTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="relative h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-all duration-200"
-             aria-label="Carrinho"><ShoppingCart className="h-[17px] w-[17px]" strokeWidth={1.75} />
-              {totalItems > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-1 flex items-center justify-center text-[9px] font-bold rounded-full bg-primary text-primary-foreground shadow-sm animate-in zoom-in-50">
-                  {totalItems > 99 ? "99+" : totalItems}
-                </span>
-              )}
-            </Button>
-          </PopoverTrigger>
+          <span className="inline-flex">
+            <PopoverTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-all duration-200"
+               aria-label="Carrinho"><ShoppingCart className="h-[17px] w-[17px]" strokeWidth={1.75} />
+                {totalItems > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-1 flex items-center justify-center text-[9px] font-bold rounded-full bg-primary text-primary-foreground shadow-sm animate-in zoom-in-50">
+                    {totalItems > 99 ? "99+" : totalItems}
+                  </span>
+                )}
+              </Button>
+            </PopoverTrigger>
+          </span>
         </TooltipTrigger>
         <TooltipContent className="bg-card border-border text-xs">
           Carrinho de Orçamentos <kbd className="ml-1.5 px-1 py-0.5 bg-muted rounded text-[9px] font-mono">Alt+O</kbd>
