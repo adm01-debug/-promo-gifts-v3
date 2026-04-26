@@ -10,6 +10,7 @@
  */
 import { describe, it, afterEach } from "vitest";
 import { render, cleanup } from "@testing-library/react";
+import * as React from "react";
 import { Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { installReactWarningGuard } from "../helpers/react-warning-guard";
