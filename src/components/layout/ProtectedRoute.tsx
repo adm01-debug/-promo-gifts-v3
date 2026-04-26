@@ -48,5 +48,7 @@ export function ProtectedRoute({
   }
   // 'agente' = qualquer usuário autenticado, sem checagem extra.
 
+  // Retorno único: Outlet (Layout Route) ou children. Sem forwardRef:
+  // Router não passa refs para `element={<ProtectedRoute />}`.
   return children ? <>{children}</> : <Outlet />;
 }

@@ -66,5 +66,7 @@ export function AdminRoute({ children }: AdminRouteProps) {
     );
   }
 
+  // Retorno único: Outlet (Layout Route) ou children. Sem forwardRef:
+  // Router não passa refs para `element={<AdminRoute />}`.
   return children ? <>{children}</> : <Outlet />;
 }

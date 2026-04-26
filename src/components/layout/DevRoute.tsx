@@ -153,5 +153,7 @@ export function DevRoute({ children }: DevRouteProps) {
     );
   }
 
+  // Retorno único: Outlet (Layout Route) ou children. Sem forwardRef:
+  // Router não passa refs para `element={<DevRoute />}`.
   return children ? <>{children}</> : <Outlet />;
 }
