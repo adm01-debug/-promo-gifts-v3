@@ -45,7 +45,15 @@ export function useOrdersList(sellerId?: string, scope: "self" | "team" | "all" 
       let q = supabase.from("orders").select("*").order("created_at", { ascending: false });
       if (scope === "self" && sellerId) q = q.eq("seller_id", sellerId);
       const { data, error } = await q;
-      if (error) throw error;
+      if (error) {
+        await logRlsDenial(error, {
+          table: "orders", op: "SELECT",
+          endpoint: "useOrdersList",
+          querySummary: `scope=${scope} sellerId=${sellerId ?? "?"}`,
+          policyHint: "orders_select_scope",
+        });
+        throw error;
+      }
       return (data ?? []) as OrderRow[];
     },
   });
