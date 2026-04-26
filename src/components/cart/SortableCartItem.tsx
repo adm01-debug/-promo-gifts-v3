@@ -77,6 +77,7 @@ export const SortableCartItem = memo(function SortableCartItem({
       style={style}
       data-testid="cart-item"
       data-cart-item-id={item.id}
+      data-product-id={item.product_id}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95 }}
