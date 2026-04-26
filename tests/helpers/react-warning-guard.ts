@@ -68,8 +68,8 @@ const NOISE_ALLOWLIST: RegExp[] = [
   // jsdom sem layout — irrelevante para o gate de ref.
   /useLayoutEffect does nothing on the server/i,
   // Aviso de Radix quando Dialog é montado sem DialogTitle em mocks.
-  /DialogContent.*requires a DialogTitle/i,
-  /Missing `Description`/i,
+  /DialogContent[^]*requires a[^]*DialogTitle/i,
+  /Missing `?Description`?/i,
 ];
 
 export interface ReactWarningGuard {
