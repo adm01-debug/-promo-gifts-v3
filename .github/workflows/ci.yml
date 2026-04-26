@@ -33,6 +33,9 @@ jobs:
       - name: Route errorElement checker (modo declarativo)
         run: node scripts/check-route-error-element.mjs
 
+      - name: Radix asChild nesting checker (forwardRef safety)
+        run: node scripts/check-aschild-nesting.mjs
+
       - name: ESLint
         run: npx eslint . --max-warnings=500
 
