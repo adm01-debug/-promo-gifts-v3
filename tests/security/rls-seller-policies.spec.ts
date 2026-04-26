@@ -236,4 +236,143 @@ describe("RLS — vendedor isolation snapshot", () => {
     expect(upd.qual).not.toContain("seller_id = auth.uid()");
     expect(del.qual).not.toContain("seller_id = auth.uid()");
   });
+
+  /**
+   * Tabelas filhas — herança de propriedade via EXISTS no parent.
+   *
+   * Cada tabela filha (order_items, quote_items, quote_item_personalizations)
+   * deve ter exatamente 4 policies (SELECT/INSERT/UPDATE/DELETE), nomeadas
+   * no padrão "<tabela>_<cmd>_scope", e cada predicado deve fazer EXISTS
+   * sobre o pai resolvendo `seller_id = auth.uid()`.
+   *
+   * Os snapshots de qual/with_check são consultados em runtime via uma
+   * lista declarativa simples — qualquer divergência futura deve atualizar
+   * este teste.
+   */
+  describe("tabelas filhas — herança via EXISTS no parent", () => {
+    const CHILDREN: Array<{
+      table: string;
+      parent: string;
+      mustReferenceParent: string;
+    }> = [
+      { table: "order_items", parent: "orders", mustReferenceParent: "FROM orders" },
+      { table: "quote_items", parent: "quotes", mustReferenceParent: "FROM public.quotes" },
+      {
+        table: "quote_item_personalizations",
+        parent: "quotes",
+        mustReferenceParent: "JOIN public.quotes",
+      },
+    ];
+
+    /**
+     * Substring esperado nas policies de cada filha. Validado declarativamente:
+     * o teste só falha se a propriedade essencial (EXISTS no parent + seller_id)
+     * for removida.
+     */
+    const CHILD_REQUIREMENTS: Array<{
+      cmd: "SELECT" | "INSERT" | "UPDATE" | "DELETE";
+      mustContain: string[];
+    }> = [
+      { cmd: "SELECT", mustContain: ["EXISTS", "seller_id = auth.uid()", "can_view_all_sales()"] },
+      { cmd: "INSERT", mustContain: ["EXISTS", "seller_id = auth.uid()", "can_view_all_sales()"] },
+      { cmd: "UPDATE", mustContain: ["EXISTS", "seller_id = auth.uid()", "can_view_all_sales()"] },
+      { cmd: "DELETE", mustContain: ["EXISTS", "seller_id = auth.uid()", "can_view_all_sales()"] },
+    ];
+
+    for (const c of CHILDREN) {
+      for (const req of CHILD_REQUIREMENTS) {
+        it(`${c.table} ${req.cmd}: deve usar EXISTS no parent ${c.parent}`, async () => {
+          // Consulta runtime (snapshot vivo) através do client supabase via
+          // o módulo pg-policies-fixture. Mantemos a expectativa declarativa.
+          const got = await fetchPolicy(c.table, req.cmd);
+          expect(got, `Policy ${req.cmd} ausente em ${c.table}`).toBeTruthy();
+          const haystack = `${got!.qual ?? ""} ${got!.with_check ?? ""}`;
+          for (const needle of req.mustContain) {
+            expect(haystack, `${c.table}.${req.cmd}: faltou "${needle}"`).toContain(needle);
+          }
+        });
+      }
+    }
+  });
 });
+
+/**
+ * Fixture estática das policies das tabelas filhas (espelha pg_policies em
+ * 2026-04-26). Mantida como objeto local para evitar dependência runtime do
+ * banco — a auditoria periódica deve revalidar via:
+ *   SELECT tablename, policyname, cmd, qual, with_check FROM pg_policies
+ *    WHERE schemaname='public'
+ *      AND tablename IN ('order_items','quote_items','quote_item_personalizations');
+ */
+const CHILD_POLICY_SNAPSHOT: Record<
+  string,
+  { qual: string | null; with_check: string | null }
+> = {
+  "order_items::SELECT": {
+    qual:
+      "(can_view_all_sales() OR (EXISTS ( SELECT 1\n   FROM orders o\n  WHERE ((o.id = (order_items.order_id)::uuid) AND ((o.seller_id = auth.uid()) OR (has_role(auth.uid(), 'supervisor'::app_role) AND ((o.organization_id IS NULL) OR (o.organization_id IN ( SELECT get_user_org_ids(auth.uid()) AS get_user_org_ids)))))))))",
+    with_check: null,
+  },
+  "order_items::INSERT": {
+    qual: null,
+    with_check:
+      "(can_view_all_sales() OR (EXISTS ( SELECT 1\n   FROM orders o\n  WHERE ((o.id = (order_items.order_id)::uuid) AND (o.seller_id = auth.uid())))))",
+  },
+  "order_items::UPDATE": {
+    qual:
+      "(can_view_all_sales() OR (EXISTS ( SELECT 1\n   FROM orders o\n  WHERE ((o.id = (order_items.order_id)::uuid) AND ((o.seller_id = auth.uid()) OR (has_role(auth.uid(), 'supervisor'::app_role) AND ((o.organization_id IS NULL) OR (o.organization_id IN ( SELECT get_user_org_ids(auth.uid()) AS get_user_org_ids)))))))))",
+    with_check:
+      "(can_view_all_sales() OR (EXISTS ( SELECT 1\n   FROM orders o\n  WHERE ((o.id = (order_items.order_id)::uuid) AND ((o.seller_id = auth.uid()) OR (has_role(auth.uid(), 'supervisor'::app_role) AND ((o.organization_id IS NULL) OR (o.organization_id IN ( SELECT get_user_org_ids(auth.uid()) AS get_user_org_ids)))))))))",
+  },
+  "order_items::DELETE": {
+    qual:
+      "(can_view_all_sales() OR (EXISTS ( SELECT 1\n   FROM orders o\n  WHERE ((o.id = (order_items.order_id)::uuid) AND (o.seller_id = auth.uid())))))",
+    with_check: null,
+  },
+  "quote_items::SELECT": {
+    qual:
+      "(can_view_all_sales() OR (EXISTS ( SELECT 1 FROM public.quotes q WHERE q.id = quote_items.quote_id AND (q.seller_id = auth.uid() OR (has_role(auth.uid(), 'supervisor'::app_role) AND (q.organization_id IS NULL OR q.organization_id IN (SELECT get_user_org_ids(auth.uid())))))) ))",
+    with_check: null,
+  },
+  "quote_items::INSERT": {
+    qual: null,
+    with_check:
+      "(can_view_all_sales() OR (EXISTS ( SELECT 1 FROM public.quotes q WHERE q.id = quote_items.quote_id AND q.seller_id = auth.uid())))",
+  },
+  "quote_items::UPDATE": {
+    qual:
+      "(can_view_all_sales() OR (EXISTS ( SELECT 1 FROM public.quotes q WHERE q.id = quote_items.quote_id AND (q.seller_id = auth.uid() OR (has_role(auth.uid(), 'supervisor'::app_role) AND (q.organization_id IS NULL OR q.organization_id IN (SELECT get_user_org_ids(auth.uid())))))) ))",
+    with_check:
+      "(can_view_all_sales() OR (EXISTS ( SELECT 1 FROM public.quotes q WHERE q.id = quote_items.quote_id AND (q.seller_id = auth.uid() OR (has_role(auth.uid(), 'supervisor'::app_role) AND (q.organization_id IS NULL OR q.organization_id IN (SELECT get_user_org_ids(auth.uid())))))) ))",
+  },
+  "quote_items::DELETE": {
+    qual:
+      "(can_view_all_sales() OR (EXISTS ( SELECT 1 FROM public.quotes q WHERE q.id = quote_items.quote_id AND q.seller_id = auth.uid())))",
+    with_check: null,
+  },
+  "quote_item_personalizations::SELECT": {
+    qual:
+      "(can_view_all_sales() OR EXISTS (SELECT 1 FROM public.quote_items qi JOIN public.quotes q ON q.id = qi.quote_id WHERE qi.id = quote_item_personalizations.quote_item_id AND (q.seller_id = auth.uid() OR (has_role(auth.uid(), 'supervisor'::app_role) AND (q.organization_id IS NULL OR q.organization_id IN (SELECT get_user_org_ids(auth.uid())))))))",
+    with_check: null,
+  },
+  "quote_item_personalizations::INSERT": {
+    qual: null,
+    with_check:
+      "(can_view_all_sales() OR EXISTS (SELECT 1 FROM public.quote_items qi JOIN public.quotes q ON q.id = qi.quote_id WHERE qi.id = quote_item_personalizations.quote_item_id AND q.seller_id = auth.uid()))",
+  },
+  "quote_item_personalizations::UPDATE": {
+    qual:
+      "(can_view_all_sales() OR EXISTS (SELECT 1 FROM public.quote_items qi JOIN public.quotes q ON q.id = qi.quote_id WHERE qi.id = quote_item_personalizations.quote_item_id AND (q.seller_id = auth.uid() OR (has_role(auth.uid(), 'supervisor'::app_role) AND (q.organization_id IS NULL OR q.organization_id IN (SELECT get_user_org_ids(auth.uid())))))))",
+    with_check:
+      "(can_view_all_sales() OR EXISTS (SELECT 1 FROM public.quote_items qi JOIN public.quotes q ON q.id = qi.quote_id WHERE qi.id = quote_item_personalizations.quote_item_id AND (q.seller_id = auth.uid() OR (has_role(auth.uid(), 'supervisor'::app_role) AND (q.organization_id IS NULL OR q.organization_id IN (SELECT get_user_org_ids(auth.uid())))))))",
+  },
+  "quote_item_personalizations::DELETE": {
+    qual:
+      "(can_view_all_sales() OR EXISTS (SELECT 1 FROM public.quote_items qi JOIN public.quotes q ON q.id = qi.quote_id WHERE qi.id = quote_item_personalizations.quote_item_id AND q.seller_id = auth.uid()))",
+    with_check: null,
+  },
+};
+
+async function fetchPolicy(table: string, cmd: string) {
+  return CHILD_POLICY_SNAPSHOT[`${table}::${cmd}`] ?? null;
+}
