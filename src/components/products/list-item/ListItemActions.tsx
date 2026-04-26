@@ -37,6 +37,8 @@ export function ListItemActions({
             variant="ghost" size="icon"
             className={cn("h-8 w-8 rounded-full", isFavorited ? "text-destructive bg-destructive/10" : "text-muted-foreground hover:text-destructive")}
             onClick={onFavorite} aria-label="Favoritar"
+            data-testid="product-favorite"
+            aria-pressed={isFavorited}
           >
             <Heart className={cn("h-3.5 w-3.5", isFavorited && "fill-current")} />
           </Button>
