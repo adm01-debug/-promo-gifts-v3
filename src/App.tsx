@@ -241,6 +241,7 @@ const App = () => {
                               <Route path="/admin" element={<Navigate to="/admin/usuarios" replace />} />
                               <Route path="/admin/usuarios" element={<AdminUsuariosPage />} />
                               <Route path="/admin/usuarios/promover" element={<AdminPromoverUsuarioPage />} />
+                              <Route path="/admin/limites-desconto" element={<SellerDiscountLimitsAdminPage />} />
                               <Route path="/admin/cadastros" element={<AdminCadastrosPage />} />
                               <Route path="/admin/cadastros/produto/:id" element={<AdminProductFormPage />} />
                               <Route path="/admin/permissoes" element={<PermissionsPage />} />
