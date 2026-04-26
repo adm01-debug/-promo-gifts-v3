@@ -100,10 +100,12 @@ Deno.serve(async (req) => {
     const service = createClient(supabaseUrl, serviceKey);
     const { data: roles } = await service
       .from("user_roles").select("role").eq("user_id", userData.user.id);
-    const isAdmin = (roles ?? []).some((r: { role: string }) => r.role === "admin");
-    if (!isAdmin) {
+    // Hardening: gerência de credenciais técnicas (rota /admin/conexoes é devOnly)
+    // exige perfil `dev`. Admin/supervisor não têm mais acesso a secrets.
+    const isDev = (roles ?? []).some((r: { role: string }) => r.role === "dev");
+    if (!isDev) {
       return new Response(
-        JSON.stringify({ ok: false, error: { code: "forbidden", message: "Apenas administradores podem gerenciar credenciais" } }),
+        JSON.stringify({ ok: false, error: { code: "forbidden", message: "Apenas desenvolvedores (dev) podem gerenciar credenciais técnicas" } }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
