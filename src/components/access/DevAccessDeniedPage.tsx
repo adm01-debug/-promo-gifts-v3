@@ -1,4 +1,5 @@
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
+import { recordDevRouteTelemetry } from "@/lib/access/dev-route-telemetry";
 import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
 import {
