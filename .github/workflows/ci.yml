@@ -86,6 +86,66 @@ jobs:
         run: npx vitest run tests/rls/ --reporter=verbose
         continue-on-error: true
 
+  ref-warning-suite:
+    name: Ref-warning suite (skeletons + guards + rotas)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Job dedicado: roda APENAS os testes que exercitam o warning canônico do React
+      # "Function components cannot be given refs" em modo estrito. Falha rápido se
+      # qualquer skeleton/guard/rota voltar a disparar o aviso, com visibilidade
+      # própria no PR (separado da suite geral). O setup global
+      # (tests/setup-ref-warning-capture.ts) intercepta console.error e falha o
+      # processo se houver warnings não interceptados pelos guards locais.
+      - name: Strict ref-warning tests (skeletons + guards + rotas)
+        env:
+          STRICT_REF_WARNINGS: "1"
+          CONSOLE_SNAPSHOT_PATH: "coverage/console-snapshot-ref.json"
+        shell: bash
+        run: |
+          set -euo pipefail
+          files=(
+            tests/admin/skeleton-fallbacks-ref-warning.test.tsx
+            tests/admin/skeleton-navigation-integration.test.tsx
+            tests/admin/skeleton-snapshots.test.tsx
+            tests/admin/admin-ref-warning-guard.test.tsx
+            tests/admin/route-guards-ref-warning.test.tsx
+            tests/admin/react-warning-guard-sanity.test.ts
+            tests/admin/route-ref-checker.test.ts
+            tests/admin/route-error-element-checker.test.ts
+          )
+          echo "Arquivos detectados:"
+          printf '  - %s\n' "${files[@]}"
+          npx vitest run "${files[@]}" --reporter=verbose
+
+      - name: Static checkers (route ref usage + asChild nesting + route data-router APIs)
+        run: |
+          node scripts/check-route-ref-usage.mjs
+          node scripts/check-aschild-nesting.mjs
+          node scripts/check-route-error-element.mjs
+
+      - name: Upload ref-warning console snapshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: console-snapshot-ref-${{ github.run_id }}
+          path: |
+            coverage/console-snapshot-ref.json
+            coverage/console-snapshot-ref.*.json
+          retention-days: 14
+          if-no-files-found: ignore
+
   hooks-tests:
     name: Hook tests (smoke + funcionais)
     runs-on: ubuntu-latest
