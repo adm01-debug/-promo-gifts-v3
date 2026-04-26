@@ -100,6 +100,23 @@ const QUOTE_CHILD_TABLES_BY_QUOTE_ID = [
   "quote_approval_tokens",
 ] as const;
 
+/**
+ * Para cada tabela com recurso nomeável, qual coluna serve para filtrar
+ * por prefixo `name LIKE '<prefix>%'`. Tabelas omitidas não têm coluna
+ * textual e são purgadas sem filtro de nome (apenas user_id/seller_id).
+ *
+ * Importante: filtros de itens-filhos (`favorite_items`, `collection_items`,
+ * `quote_items`, etc.) propagam o filtro do PAI via lookup de IDs.
+ */
+const NAMEABLE_COLUMNS: Record<string, string> = {
+  favorite_lists: "name",
+  collections: "name",
+  cart_templates: "name",
+  custom_kits: "name",
+  // quotes: filtra por client_name
+  quotes: "client_name",
+};
+
 interface AuditPayload {
   email: string;
   user_id: string | null;
