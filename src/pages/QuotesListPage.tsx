@@ -237,7 +237,7 @@ export default function QuotesListPage() {
                   <p>Modelos pré-configurados para agilizar orçamentos</p>
                 </TooltipContent>
               </Tooltip>
-              <Button onClick={() => navigate("/orcamentos/novo")}>
+              <Button data-testid="quote-new-button" onClick={() => navigate("/orcamentos/novo")}>
                 <Plus className="h-4 w-4 mr-2" />
                 Novo Orçamento
               </Button>

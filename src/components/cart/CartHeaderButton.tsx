@@ -62,6 +62,7 @@ export function CartHeaderButton() {
               <Button
                 variant="ghost"
                 size="icon"
+                data-testid="cart-trigger"
                 className="relative h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-all duration-200"
                aria-label="Carrinho"><ShoppingCart className="h-[17px] w-[17px]" strokeWidth={1.75} />
                 {totalItems > 0 && (
@@ -79,6 +80,7 @@ export function CartHeaderButton() {
       </Tooltip>
 
       <PopoverContent
+        data-testid="cart-drawer"
         className="w-[420px] p-0 rounded-xl border-border/50 shadow-xl overflow-hidden"
         align="end"
         sideOffset={8}
