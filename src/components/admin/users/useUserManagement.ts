@@ -49,7 +49,11 @@ export function useUserManagement() {
       if (error) throw error;
 
       setUsers((prev) => prev.map((u) => (u.user_id === userId ? { ...u, role: newRole } : u)));
-      toast.success(`Usuário alterado para ${newRole === "admin" ? "Administrador" : newRole === "manager" ? "Gerente" : "Vendedor"}`);
+      const label =
+        newRole === "dev" ? "Dev"
+        : newRole === "supervisor" || newRole === "admin" || newRole === "manager" ? "Supervisor"
+        : "Agente";
+      toast.success(`Usuário alterado para ${label}`);
     } catch (error) {
       console.error("Error updating role:", error);
       toast.error("Erro ao atualizar permissão");

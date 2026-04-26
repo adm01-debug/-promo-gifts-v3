@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/select";
 import { Loader2, Plus, Eye, EyeOff } from "lucide-react";
 import { PasswordStrengthIndicator } from "@/components/auth/PasswordStrengthIndicator";
+import { useAuth } from "@/contexts/AuthContext";
 import { type AppRole } from "./types";
 
 interface CreateUserDialogProps {
@@ -19,6 +20,7 @@ interface CreateUserDialogProps {
 }
 
 export function CreateUserDialog({ open, onOpenChange, onCreate }: CreateUserDialogProps) {
+  const { isDev } = useAuth();
   const [form, setForm] = useState({ full_name: "", email: "", password: "", role: "vendedor" as AppRole });
   const [isCreating, setIsCreating] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -66,9 +68,9 @@ export function CreateUserDialog({ open, onOpenChange, onCreate }: CreateUserDia
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="vendedor">Vendedor</SelectItem>
-                <SelectItem value="manager">Gerente</SelectItem>
-                <SelectItem value="admin">Administrador</SelectItem>
+                <SelectItem value="vendedor">Agente</SelectItem>
+                <SelectItem value="supervisor">Supervisor</SelectItem>
+                {isDev && <SelectItem value="dev">Dev</SelectItem>}
               </SelectContent>
             </Select>
           </div>

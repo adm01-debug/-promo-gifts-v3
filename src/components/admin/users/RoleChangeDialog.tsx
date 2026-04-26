@@ -6,7 +6,8 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Crown, ShieldCheck, Shield } from "lucide-react";
+import { Code2, ShieldCheck, Shield } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 import { type AppRole, type UserWithRole } from "./types";
 
 interface RoleChangeDialogProps {
@@ -16,6 +17,7 @@ interface RoleChangeDialogProps {
 }
 
 export function RoleChangeDialog({ user, onClose, onConfirm }: RoleChangeDialogProps) {
+  const { isDev } = useAuth();
   const [selectedRole, setSelectedRole] = useState<AppRole | null>(user?.role ?? null);
 
   // Sync when user changes
@@ -32,32 +34,35 @@ export function RoleChangeDialog({ user, onClose, onConfirm }: RoleChangeDialogP
     <AlertDialog open={!!user} onOpenChange={(open) => !open && handleClose()}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Alterar Role do Usuário</AlertDialogTitle>
+          <AlertDialogTitle>Alterar papel do usuário</AlertDialogTitle>
           <AlertDialogDescription>
-            Selecione o novo role para <span className="font-semibold">{user?.full_name || "este usuário"}</span>
+            Selecione o novo papel para <span className="font-semibold">{user?.full_name || "este usuário"}</span>
           </AlertDialogDescription>
         </AlertDialogHeader>
         <div className="py-4">
           <Select value={selectedRole || undefined} onValueChange={(value) => setSelectedRole(value as AppRole)}>
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Selecione um role" />
+              <SelectValue placeholder="Selecione um papel" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="admin">
-                <div className="flex items-center gap-2">
-                  <Crown className="h-4 w-4 text-primary" />
-                  <div>
-                    <div className="font-medium">Administrador</div>
-                    <div className="text-xs text-muted-foreground">Acesso total ao sistema</div>
+              {/* Dev só pode ser concedido por outro Dev */}
+              {isDev && (
+                <SelectItem value="dev">
+                  <div className="flex items-center gap-2">
+                    <Code2 className="h-4 w-4 text-purple-600" />
+                    <div>
+                      <div className="font-medium">Dev</div>
+                      <div className="text-xs text-muted-foreground">Acesso total, incluindo área técnica</div>
+                    </div>
                   </div>
-                </div>
-              </SelectItem>
-              <SelectItem value="manager">
+                </SelectItem>
+              )}
+              <SelectItem value="supervisor">
                 <div className="flex items-center gap-2">
-                  <ShieldCheck className="h-4 w-4 text-muted-foreground" />
+                  <ShieldCheck className="h-4 w-4 text-primary" />
                   <div>
-                    <div className="font-medium">Gerente</div>
-                    <div className="text-xs text-muted-foreground">Gerencia equipes e relatórios</div>
+                    <div className="font-medium">Supervisor</div>
+                    <div className="text-xs text-muted-foreground">Gestão comercial, descontos e cadastros</div>
                   </div>
                 </div>
               </SelectItem>
@@ -65,8 +70,8 @@ export function RoleChangeDialog({ user, onClose, onConfirm }: RoleChangeDialogP
                 <div className="flex items-center gap-2">
                   <Shield className="h-4 w-4" />
                   <div>
-                    <div className="font-medium">Vendedor</div>
-                    <div className="text-xs text-muted-foreground">Acesso às funcionalidades de vendas</div>
+                    <div className="font-medium">Agente</div>
+                    <div className="text-xs text-muted-foreground">Acesso somente aos próprios dados</div>
                   </div>
                 </div>
               </SelectItem>
@@ -84,7 +89,7 @@ export function RoleChangeDialog({ user, onClose, onConfirm }: RoleChangeDialogP
               }
             }}
           >
-            Confirmar Alteração
+            Confirmar alteração
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

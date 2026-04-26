@@ -1,7 +1,12 @@
 import React from "react";
-import { Crown, ShieldCheck, Shield } from "lucide-react";
+import { Code2, ShieldCheck, Shield } from "lucide-react";
 
-export type AppRole = "admin" | "manager" | "vendedor";
+/**
+ * Hierarquia oficial: dev > supervisor > vendedor (=agente no UI).
+ * Mantemos 'admin' e 'manager' como aliases legados para evitar quebras
+ * em dados antigos — o backend já normaliza ambos para supervisor.
+ */
+export type AppRole = "dev" | "supervisor" | "vendedor" | "admin" | "manager";
 
 export interface UserWithRole {
   id: string;
@@ -14,23 +19,43 @@ export interface UserWithRole {
   is_active: boolean | null;
 }
 
-export const roleConfig: Record<AppRole, { label: string; icon: React.ReactNode; variant: "default" | "secondary" | "outline"; color: string }> = {
-  admin: {
-    label: "Administrador",
-    icon: <Crown className="h-3 w-3" />,
+type RoleMeta = {
+  label: string;
+  icon: React.ReactNode;
+  variant: "default" | "secondary" | "outline";
+  color: string;
+};
+
+export const roleConfig: Record<AppRole, RoleMeta> = {
+  dev: {
+    label: "Dev",
+    icon: <Code2 className="h-3 w-3" />,
     variant: "default",
-    color: "bg-primary text-primary-foreground",
+    color: "bg-purple-600 text-white",
   },
-  manager: {
-    label: "Gerente",
+  supervisor: {
+    label: "Supervisor",
     icon: <ShieldCheck className="h-3 w-3" />,
     variant: "default",
     color: "bg-primary text-primary-foreground",
   },
   vendedor: {
-    label: "Vendedor",
+    label: "Agente",
     icon: <Shield className="h-3 w-3" />,
     variant: "secondary",
     color: "",
+  },
+  // Aliases legados — exibidos como Supervisor por compatibilidade
+  admin: {
+    label: "Supervisor",
+    icon: <ShieldCheck className="h-3 w-3" />,
+    variant: "default",
+    color: "bg-primary text-primary-foreground",
+  },
+  manager: {
+    label: "Supervisor",
+    icon: <ShieldCheck className="h-3 w-3" />,
+    variant: "default",
+    color: "bg-primary text-primary-foreground",
   },
 };
