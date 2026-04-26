@@ -67,7 +67,12 @@ function getMessage(status: 'warming' | 'degraded' | 'down' | string): string {
   return 'Backend reiniciando, aguarde alguns segundos…';
 }
 
-function Icon({ status }: { status: string }) {
+/**
+ * Renderiza o ícone correto sem criar um function component intermediário
+ * (lucide-react já é forwardRef, então deixamos o ref fluir naturalmente
+ * caso framer-motion / motion.div o injete em descendentes).
+ */
+function renderIcon(status: CloudStatusVariant | string) {
   if (status === 'down') return <WifiOff className="h-4 w-4 shrink-0" aria-hidden />;
   if (status === 'degraded') return <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden />;
   return <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden />;
