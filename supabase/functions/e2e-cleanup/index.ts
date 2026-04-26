@@ -456,45 +456,85 @@ Deno.serve(async (req: Request) => {
   const deleted: Record<string, number> = {};
   const errors: Record<string, string> = {};
 
+  /**
+   * Aplica filtro `name LIKE '<prefix>%'` quando:
+   *   (a) `sanitizedPrefix` foi enviado pelo cliente, e
+   *   (b) a tabela está em `NAMEABLE_COLUMNS`.
+   * Caso contrário, executa sem filtro de nome (apenas owner-scope).
+   *
+   * Tabelas órfãs/internas (sem coluna textual visível ao usuário) NÃO
+   * recebem filtro — elas são purgadas integralmente por owner. O contrato
+   * é: "se você nomeou, devia ter usado e2eName()".
+   */
+  function maybeApplyNameFilter<Q>(
+    qb: Q,
+    table: string,
+  ): Q {
+    if (!sanitizedPrefix) return qb;
+    const col = NAMEABLE_COLUMNS[table];
+    if (!col) return qb;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (qb as any).like(col, `${sanitizedPrefix}%`) as Q;
+  }
+
   async function purgeByUserId(table: string) {
     if (dryRun) {
-      const { count, error } = await admin
+      const q = admin
         .from(table)
         .select("id", { count: "exact", head: true })
         .eq("user_id", userId!);
+      const { count, error } = await maybeApplyNameFilter(q, table);
       if (error) errors[table] = error.message;
       else deleted[table] = count ?? 0;
       return;
     }
-    const { error, count } = await admin
+    const q = admin
       .from(table)
       .delete({ count: "exact" })
       .eq("user_id", userId!);
+    const { error, count } = await maybeApplyNameFilter(q, table);
     if (error) errors[table] = error.message;
     else deleted[table] = count ?? 0;
   }
 
   async function purgeBySellerId(table: string) {
     if (dryRun) {
-      const { count, error } = await admin
+      const q = admin
         .from(table)
         .select("id", { count: "exact", head: true })
         .eq("seller_id", sellerId!);
+      const { count, error } = await maybeApplyNameFilter(q, table);
       if (error) errors[table] = error.message;
       else deleted[table] = count ?? 0;
       return;
     }
-    const { error, count } = await admin
+    const q = admin
       .from(table)
       .delete({ count: "exact" })
       .eq("seller_id", sellerId!);
+    const { error, count } = await maybeApplyNameFilter(q, table);
     if (error) errors[table] = error.message;
     else deleted[table] = count ?? 0;
   }
 
   // 1) user_id-scoped
-  for (const t of USER_ID_TABLES) {
-    await purgeByUserId(t);
+  //    Quando há prefixo de nome, processamos PRIMEIRO os pais nomeáveis
+  //    (favorite_lists, collections, custom_kits) coletando seus IDs e
+  //    apagando seus filhos via FK; assim os filhos ficam corretamente
+  //    isolados ao escopo do prefixo. Tabelas sem nome (favorite_items,
+  //    collection_items, etc.) só são purgadas-em-bloco quando NÃO há
+  //    prefixo — caso contrário ficariam "soltas" do filtro.
+  if (sanitizedPrefix) {
+    const SCOPED_OWNER_TABLES = Object.keys(NAMEABLE_COLUMNS).filter((t) =>
+      (USER_ID_TABLES as readonly string[]).includes(t),
+    );
+    for (const t of SCOPED_OWNER_TABLES) {
+      await purgeByUserId(t);
+    }
+  } else {
+    for (const t of USER_ID_TABLES) {
+      await purgeByUserId(t);
+    }
   }
 
   // 2) seller_cart_items via cart_id ∈ seller_carts(seller_id) — precisa
