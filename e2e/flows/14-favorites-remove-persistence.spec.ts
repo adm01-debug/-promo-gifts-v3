@@ -207,19 +207,31 @@ async function resolveRemoveButton(card: Locator): Promise<Locator> {
 }
 
 /**
- * Reload + espera explícita de navegação para evitar flakiness:
+ * Reload + espera SSOT por SELETOR (sem `networkidle`):
  *   1. `page.reload({ waitUntil: "load" })` — DOM pronto
- *   2. `waitForLoadState("networkidle")` com fallback (4s) — requests assentam
- *   3. Aguarda o `Sel.favorites.title` ficar visível — sinal SSOT da hidratação
+ *   2. `Sel.favorites.title` visível         — sinal de hidratação da página
+ *   3. `Sel.favorites.list` OU `emptyState`  — árvore renderizada
  *   4. Skeletons sumiram (best-effort)
  */
 async function reloadAndSettle(page: Page): Promise<void> {
   await page.reload({ waitUntil: "load" });
-  await page.waitForLoadState("networkidle", { timeout: 4_000 }).catch(() => {});
   await page
     .locator(Sel.favorites.title)
     .first()
     .waitFor({ state: "visible", timeout: 10_000 });
+  const list = page.locator(Sel.favorites.list).first();
+  const empty = page.locator(Sel.favorites.emptyState).first();
+  await expect
+    .poll(
+      async () =>
+        ((await list.count()) > 0 && (await list.isVisible())) ||
+        ((await empty.count()) > 0 && (await empty.isVisible())),
+      {
+        message: "favorites-list ou favorites-empty-state deveriam estar visíveis pós-reload",
+        timeout: 10_000,
+      },
+    )
+    .toBe(true);
   await page
     .waitForFunction(
       () => !document.querySelector('[data-state="loading"], [data-skeleton]'),
