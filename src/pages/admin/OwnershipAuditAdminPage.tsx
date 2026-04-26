@@ -151,6 +151,20 @@ export default function OwnershipAuditAdminPage() {
                 {current?.triggered_by ?? "—"} · {current?.duration_ms ?? 0} ms
               </p>
             </CardContent>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs font-medium text-muted-foreground flex items-center gap-2">
+                <Lock className="h-3.5 w-3.5" /> Lacunas RLS
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className={`text-3xl font-bold ${current && current.rls_gaps_count > 0 ? "text-destructive" : "text-success"}`}>
+                {current?.rls_gaps_count ?? "—"}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {Array.isArray(current?.rls_coverage) ? current?.rls_coverage.length : 0} tabelas afetadas
+              </p>
+            </CardContent>
           </Card>
         </div>
 
