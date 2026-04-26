@@ -1,5 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
-import { AlertTriangle, RefreshCw, Home, Bug, ChevronDown, ChevronUp, RotateCcw } from 'lucide-react';
+import { AlertTriangle, RefreshCw, Home, Bug, ChevronDown, ChevronUp, RotateCcw, Trash2, Copy, Check } from 'lucide-react';
 import { logger } from '@/lib/logger';
 import { reportError } from '@/lib/error-reporter';
 import { attemptChunkRecovery, isChunkLoadError } from '@/lib/chunk-recovery';
@@ -16,6 +16,8 @@ interface State {
   showDetails: boolean;
   retryCount: number;
   isAutoRecovering: boolean;
+  isClearingCache: boolean;
+  copied: boolean;
 }
 
 const MAX_AUTO_RETRIES = 2;
@@ -38,6 +40,8 @@ class EnhancedErrorBoundary extends Component<Props, State> {
       showDetails: false,
       retryCount: 0,
       isAutoRecovering: false,
+      isClearingCache: false,
+      copied: false,
     };
   }
 
@@ -104,10 +108,41 @@ class EnhancedErrorBoundary extends Component<Props, State> {
     window.location.href = '/';
   };
 
-  handleClearCacheReload = () => {
+  handleClearCacheReload = async () => {
     // Reaproveita o pipeline de recovery (Cache API + SW + cache-bust no URL).
     // Ignora o limite de reloads aqui pois é uma ação manual do usuário.
-    void attemptChunkRecovery(this.state.error ?? new Error('manual cache reload'));
+    this.setState({ isClearingCache: true });
+    try {
+      // Best-effort: limpa storages locais que podem estar com dados corrompidos
+      try { sessionStorage.clear(); } catch { /* noop */ }
+      // Preserva tokens auth do supabase para não deslogar; remove apenas chaves de cache de app
+      try {
+        for (const key of Object.keys(localStorage)) {
+          if (!key.startsWith('sb-') && !key.startsWith('supabase')) {
+            localStorage.removeItem(key);
+          }
+        }
+      } catch { /* noop */ }
+      await attemptChunkRecovery(this.state.error ?? new Error('manual cache reload'));
+    } finally {
+      // Se attemptChunkRecovery não navegar, libera o botão
+      this.setState({ isClearingCache: false });
+    }
+  };
+
+  handleCopyError = async () => {
+    const { error, errorInfo } = this.state;
+    const payload = [
+      `URL: ${typeof window !== 'undefined' ? window.location.href : 'n/a'}`,
+      `Mensagem: ${error?.message ?? 'n/a'}`,
+      `Stack:\n${error?.stack ?? 'n/a'}`,
+      `Component Stack:${errorInfo?.componentStack ?? '\nn/a'}`,
+    ].join('\n\n');
+    try {
+      await navigator.clipboard.writeText(payload);
+      this.setState({ copied: true });
+      setTimeout(() => this.setState({ copied: false }), 2000);
+    } catch { /* noop */ }
   };
 
   override render() {
@@ -123,8 +158,9 @@ class EnhancedErrorBoundary extends Component<Props, State> {
     }
 
     if (this.state.hasError) {
-      const { error, errorInfo, showDetails, retryCount } = this.state;
+      const { error, errorInfo, showDetails, retryCount, isClearingCache, copied } = this.state;
       const isChunk = error ? this.isChunkError(error) : false;
+      const currentPath = typeof window !== 'undefined' ? window.location.pathname + window.location.search : '';
 
       return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/30 p-4">
@@ -148,9 +184,14 @@ class EnhancedErrorBoundary extends Component<Props, State> {
               </h1>
               <p className="text-muted-foreground text-sm leading-relaxed max-w-sm mx-auto">
                 {isChunk
-                  ? 'Uma nova versão do aplicativo está disponível. Recarregue para atualizar.'
-                  : 'Ocorreu um erro inesperado na aplicação. Tente recarregar a página ou voltar ao início.'}
+                  ? 'Uma nova versão do aplicativo está disponível. Recarregue para atualizar — seus dados não serão perdidos.'
+                  : 'Ocorreu um erro inesperado nesta tela. Tente recarregar, limpar o cache ou voltar ao início.'}
               </p>
+              {currentPath && (
+                <p className="text-[11px] text-muted-foreground/70 font-mono break-all">
+                  rota: {currentPath}
+                </p>
+              )}
               {retryCount > 0 && (
                 <p className="text-xs text-muted-foreground/60">
                   Tentativas de recuperação: {retryCount}/{MAX_AUTO_RETRIES}
@@ -158,16 +199,29 @@ class EnhancedErrorBoundary extends Component<Props, State> {
               )}
             </div>
 
-            {/* Error message */}
-            {error && !isChunk && (
-              <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-4">
+            {/* Error message — sempre visível para o usuário entender o que houve */}
+            {error?.message && (
+              <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-4 space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[11px] uppercase tracking-wider text-destructive/80 font-semibold">
+                    Mensagem do erro
+                  </span>
+                  <button
+                    onClick={this.handleCopyError}
+                    className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+                    aria-label="Copiar detalhes do erro"
+                  >
+                    {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                    {copied ? 'Copiado' : 'Copiar'}
+                  </button>
+                </div>
                 <p className="text-sm font-mono text-destructive break-words">
-                  {error.message || 'Erro desconhecido'}
+                  {error.message}
                 </p>
               </div>
             )}
 
-            {/* Actions */}
+            {/* Actions principais */}
             <div className="flex gap-3">
               <button
                 onClick={this.handleGoHome}
@@ -176,16 +230,29 @@ class EnhancedErrorBoundary extends Component<Props, State> {
                 <Home className="h-4 w-4" />
                 Início
               </button>
-              <button aria-label="Atualizar"
-                onClick={isChunk ? this.handleClearCacheReload : this.handleReload}
+              <button
+                aria-label="Recarregar"
+                onClick={this.handleReload}
                 className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <RefreshCw className="h-4 w-4" />
-                {isChunk ? 'Atualizar' : 'Recarregar'}
+                Recarregar
               </button>
             </div>
 
-            {/* Retry button (separate from reload) */}
+            {/* Limpar cache (ação destrutiva-light) */}
+            <button
+              onClick={this.handleClearCacheReload}
+              disabled={isClearingCache}
+              className="w-full inline-flex items-center justify-center gap-2 rounded-xl border border-border/60 bg-background px-4 py-2.5 text-sm font-medium text-foreground hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-60 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              {isClearingCache
+                ? <RotateCcw className="h-4 w-4 animate-spin" />
+                : <Trash2 className="h-4 w-4" />}
+              {isClearingCache ? 'Limpando cache…' : 'Limpar cache e recarregar'}
+            </button>
+
+            {/* Retry sem reload (apenas erros de render) */}
             {!isChunk && (
               <button
                 onClick={this.handleRetry}
@@ -197,7 +264,7 @@ class EnhancedErrorBoundary extends Component<Props, State> {
             )}
 
             {/* Technical details toggle */}
-            {errorInfo && (
+            {(errorInfo || error?.stack) && (
               <div className="pt-2">
                 <button
                   onClick={() => this.setState(prev => ({ showDetails: !prev.showDetails }))}
@@ -211,8 +278,7 @@ class EnhancedErrorBoundary extends Component<Props, State> {
                 {showDetails && (
                   <pre className="mt-2 max-h-48 overflow-auto rounded-lg bg-muted p-4 text-[11px] leading-relaxed text-muted-foreground font-mono">
                     {error?.stack || 'Stack trace não disponível'}
-                    {'\n\nComponent Stack:\n'}
-                    {errorInfo.componentStack}
+                    {errorInfo?.componentStack ? `\n\nComponent Stack:${errorInfo.componentStack}` : ''}
                   </pre>
                 )}
               </div>
