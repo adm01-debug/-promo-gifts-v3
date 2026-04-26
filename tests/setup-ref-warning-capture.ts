@@ -36,9 +36,15 @@ const SNAPSHOT_PATH = resolve(
   process.env.CONSOLE_SNAPSHOT_PATH ?? "coverage/console-snapshot.json",
 );
 
+/**
+ * Padrão ÚNICO que aciona o gate estrito. Mantemos alinhado ao
+ * `react-warning-guard` local: apenas a frase canônica do React causa
+ * falha. A linha de contexto "Attempts to access this ref will fail"
+ * NÃO é trigger isolado (era falso positivo em testes que logam contexto
+ * sem reproduzir o aviso real).
+ */
 const REF_PATTERNS = [
   /Function components cannot be given refs/i,
-  /Attempts to access this ref will fail/i,
 ];
 
 interface CapturedEntry {
