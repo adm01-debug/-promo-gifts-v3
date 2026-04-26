@@ -578,12 +578,18 @@ Deno.serve(async (req: Request) => {
     await purgeBySellerId(t);
   }
 
-  // 4) Quotes (seller_id) — apaga filhos via quote_id, depois quotes
+  // 4) Quotes (seller_id) — apaga filhos via quote_id, depois quotes.
+  //    Quando há prefixo de nome, restringimos por `client_name LIKE` tanto
+  //    no lookup de IDs quanto no DELETE final.
   try {
-    const { data: quoteRows, error: qErr } = await admin
+    let quoteLookup = admin
       .from("quotes")
       .select("id")
       .eq("seller_id", sellerId);
+    if (sanitizedPrefix) {
+      quoteLookup = quoteLookup.like(NAMEABLE_COLUMNS["quotes"], `${sanitizedPrefix}%`);
+    }
+    const { data: quoteRows, error: qErr } = await quoteLookup;
     if (qErr) {
       errors["quotes_lookup"] = qErr.message;
     } else {
@@ -610,10 +616,12 @@ Deno.serve(async (req: Request) => {
         if (dryRun) {
           deleted["quotes"] = quoteIds.length;
         } else {
+          // DELETE final SEMPRE limitado aos quoteIds resolvidos acima —
+          // garante que o filtro por prefixo é honrado.
           const { error, count } = await admin
             .from("quotes")
             .delete({ count: "exact" })
-            .eq("seller_id", sellerId);
+            .in("id", quoteIds);
           if (error) errors["quotes"] = error.message;
           else deleted["quotes"] = count ?? 0;
         }
