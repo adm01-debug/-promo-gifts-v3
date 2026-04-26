@@ -8,8 +8,9 @@
  * comportem como em produção.
  */
 import { describe, it, beforeEach, afterEach, vi } from "vitest";
-import { render, cleanup } from "@testing-library/react";
-import { MemoryRouter, Routes, Route } from "react-router-dom";
+import { render, cleanup, fireEvent, screen } from "@testing-library/react";
+import { MemoryRouter, Routes, Route, Outlet } from "react-router-dom";
+import { ErrorBoundary } from "@/components/errors/ErrorBoundary";
 import { installReactWarningGuard } from "../helpers/react-warning-guard";
 
 // Mock do AuthContext: retorna estado controlável por teste.
