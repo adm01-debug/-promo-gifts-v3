@@ -1,111 +1,42 @@
-# Validações adicionais no E2E de Favoritos
+# Cleanup E2E de Favoritos com confirmação pós-reload
 
 ## Objetivo
 
-Estender o spec `e2e/flows/08-favorites.spec.ts` com asserts robustos sobre **título**, **ícone/label** e **contagem** da lista de favoritos, validando o estado **antes e depois do reload**.
+No spec `e2e/flows/08-favorites.spec.ts`, transformar o passo de cleanup do teste de reload em uma **etapa de teste de verdade**: desfavorita o produto, recarrega a página e confirma que ele **sumiu** da lista (e que a contagem do header voltou ao estado inicial).
 
 ## Diagnóstico
 
-O header de `/favoritos` (`src/pages/FavoritesPage.tsx` linhas 347–360) já expõe:
+Hoje o cleanup no final do teste "favorita um produto, recarrega e ele persiste":
+1. Remove o favorito clicando no botão correspondente.
+2. Verifica que `countItems` voltou a `countBefore`.
 
-- `h1[data-testid="page-title-favoritos"]` com texto "Meus Favoritos"
-- Ícone `Heart` (lucide) dentro de um `div` com `bg-destructive/10` (sem testid)
-- Parágrafo com contagem: `{n} item(s) • {n} lista(s)` (sem testid)
-- Botões de remover: `aria-label="Remover favorito"`
-
-Para asserts estáveis (sem depender de regex frágil de texto), adiciono **testids** no ícone e nos contadores.
+Falta:
+- Aceitar eventual diálogo de confirmação do `DeleteConfirmDialog`.
+- **Recarregar** `/favoritos`.
+- Confirmar que o produto removido **não aparece** mais na lista após o reload (persistência da remoção, não só do estado em memória).
 
 ## Mudanças
 
-### 1. `src/pages/FavoritesPage.tsx` — adicionar testids no header
+### `e2e/flows/08-favorites.spec.ts` — bloco de cleanup (linhas ~151–168)
 
-Substituir o bloco do header (linhas 347–360) por uma versão com:
+Substituir o bloco atual por:
 
-- `data-testid="favorites-icon"` + `aria-label="Favoritos"` no wrapper do ícone Heart
-- `data-testid="favorites-count"` no parágrafo do contador
-- `data-testid="favorites-count-items"` em `<span>` envolvendo o número de itens
-- `data-testid="favorites-count-lists"` em `<span>` envolvendo o número de listas (quando presente)
+1. Clicar no botão "Remover favorito" do card que casa com `productName` (fallback: primeiro botão de remover).
+2. Se um `[role="alertdialog"]` ou `[role="dialog"]` aparecer com botão "Remover/Confirmar/Sim/Excluir", clicar nele.
+3. `expect.poll` para `readFavoritesCount(page) === countBefore` (com timeout 10s).
+4. `page.reload({ waitUntil: "domcontentloaded" })` + espera por skeletons sumirem.
+5. `assertFavoritesHeader(page, countBefore, { checkCardsMatch: true })` para revalidar título, ícone, label e contagem.
+6. `expect(page.getByText(productRegex)).toHaveCount(0)` — o produto removido não deve mais aparecer.
 
-Sem mudanças visuais ou comportamentais — apenas atributos.
-
-### 2. `e2e/fixtures/selectors.ts` — adicionar entradas em `Sel.favorites`
-
-```ts
-favorites: {
-  // ... existente ...
-  title: '[data-testid="page-title-favoritos"]',
-  icon: '[data-testid="favorites-icon"]',
-  count: '[data-testid="favorites-count"]',
-  countItems: '[data-testid="favorites-count-items"]',
-  countLists: '[data-testid="favorites-count-lists"]',
-}
-```
-
-### 3. `e2e/flows/08-favorites.spec.ts` — novos asserts
-
-**Helper novo** (dentro do mesmo arquivo):
-
-```ts
-async function readFavoritesCount(page: Page): Promise<number> {
-  const txt = (await page.locator(Sel.favorites.countItems).innerText()).trim();
-  return Number.parseInt(txt, 10) || 0;
-}
-```
-
-**Assert reutilizável** para cada checagem do header:
-
-```ts
-async function assertHeaderConsistency(page: Page, expectedCount: number) {
-  // título
-  await expect(page.locator(Sel.favorites.title)).toHaveText("Meus Favoritos");
-  // ícone + label
-  await expect(page.locator(Sel.favorites.icon)).toBeVisible();
-  await expect(page.locator(Sel.favorites.icon)).toHaveAttribute("aria-label", "Favoritos");
-  await expect(page.locator(`${Sel.favorites.icon} svg`)).toBeVisible();
-  // contagem visível e numérica
-  const count = await readFavoritesCount(page);
-  expect(count).toBe(expectedCount);
-  // contagem de itens deve bater com o número de cards renderizados
-  const cards = await page.locator(Sel.favorites.remove).count();
-  expect(cards).toBe(expectedCount);
-}
-```
-
-**Modificar o teste "favorita um produto, recarrega e ele persiste"**:
-
-Inserir 3 pontos de validação:
-
-1. **Antes de favoritar** — visita `/favoritos`, lê `countBefore`.
-2. **Depois de favoritar, antes do reload** — após voltar a `/favoritos`, valida:
-   - título = "Meus Favoritos"
-   - ícone visível com `aria-label="Favoritos"` e svg renderizado
-   - `countItems == countBefore + 1`
-   - número de botões "Remover favorito" == `countBefore + 1`
-3. **Depois do `page.reload()`** — repete `assertHeaderConsistency(page, countBefore + 1)`.
-4. **Após cleanup** (remover o favorito) — `assertHeaderConsistency(page, countBefore)`.
-
-**Novo teste "header de favoritos é consistente em estado vazio"** (extra):
-
-- Limpa todos os favoritos (se houver) com botão "Limpar Tudo" ou via store.
-- Recarrega `/favoritos`.
-- Valida: título visível, ícone visível com label, `countItems == 0`, mensagem "sem favoritos / nenhum favorito".
+`productRegex` reaproveita o `escaped` já calculado no teste.
 
 ## Detalhes técnicos
 
-- `Sel.favorites.title/icon/count/countItems/countLists` são adicionados sem remover seletores existentes (zero impacto nos testes legados).
-- Os testids no `src/` são puros atributos — sem mudança de layout, props ou estilo.
-- Asserts usam `expect(...).toHaveText(...)` exato para o título e `Number.parseInt` para a contagem, evitando falsos positivos por texto traduzido.
-- A consistência **contagem ↔ número de cards** é verificada nos dois snapshots (pré-reload e pós-reload), validando que o estado persistido bate com o renderizado.
-
-## Arquivos afetados
-
-Editar:
-- `src/pages/FavoritesPage.tsx` (linhas 347–360 — adicionar 4 testids + aria-label)
-- `e2e/fixtures/selectors.ts` (estender `Sel.favorites` com 5 entradas)
-- `e2e/flows/08-favorites.spec.ts` (helper `readFavoritesCount` + `assertHeaderConsistency` + 4 pontos de validação no teste de reload + 1 teste novo "estado vazio")
+- Diálogo de confirmação: o componente `DeleteConfirmDialog` é usado para "Limpar Tudo", mas a remoção individual via `aria-label="Remover favorito"` normalmente é direta. O `if (visible)` torna o passo defensivo sem quebrar quando não há diálogo.
+- `toHaveCount(0)` é assertivo o bastante para detectar tanto o sumiço do card quanto qualquer texto residual do produto na lista.
+- Mantém o `{ checkCardsMatch: true }` para garantir que `removeButtons.count() === countBefore`.
 
 ## Fora de escopo
 
-- Não alterar `FavoritesViewHeader` (header da lista remota selecionada — é outro componente).
-- Não mexer em `useFavoritesStore` ou nos hooks de migração.
-- Não rodar a suíte (Playwright não está instalado neste sandbox); validação fica para o usuário via `npm run test:e2e -- e2e/flows/08-favorites.spec.ts`.
+- Não mexer nos demais testes do arquivo.
+- Não alterar `src/` nem `selectors.ts` (já têm tudo que é preciso).
