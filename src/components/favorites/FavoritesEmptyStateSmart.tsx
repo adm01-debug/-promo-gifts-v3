@@ -32,7 +32,7 @@ export function FavoritesEmptyStateSmart({ onAddProduct }: Props) {
 
   if (products.length === 0) {
     return (
-      <div className="text-center py-16 bg-muted/20 rounded-xl border-[1.5px] border-dashed border-primary/10">
+      <div data-testid="favorites-empty-state" className="text-center py-16 bg-muted/20 rounded-xl border-[1.5px] border-dashed border-primary/10">
         <Sparkles className="h-12 w-12 text-primary/40 mx-auto mb-3" />
         <h3 className="font-display text-lg font-semibold text-foreground mb-1">
           Comece a salvar seus favoritos
@@ -40,7 +40,7 @@ export function FavoritesEmptyStateSmart({ onAddProduct }: Props) {
         <p className="text-muted-foreground text-sm mb-4 max-w-md mx-auto">
           Explore o catálogo e clique no coração para criar listas curadas para seus clientes.
         </p>
-        <Button onClick={() => navigate("/")}>
+        <Button data-testid="favorites-empty-cta" onClick={() => navigate("/")}>
           Explorar Catálogo
           <ArrowRight className="h-4 w-4 ml-1.5" />
         </Button>
@@ -49,7 +49,7 @@ export function FavoritesEmptyStateSmart({ onAddProduct }: Props) {
   }
 
   return (
-    <div className="space-y-4 py-4">
+    <div data-testid="favorites-empty-state" className="space-y-4 py-4">
       <div className="flex items-center gap-2 px-1">
         <Sparkles className="h-4 w-4 text-primary" />
         <h3 className="font-display text-sm font-semibold text-foreground">
