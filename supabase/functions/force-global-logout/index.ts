@@ -34,14 +34,19 @@ Deno.serve(async (req) => {
     const { data: { user: caller }, error: callerError } = await callerClient.auth.getUser();
     if (callerError || !caller) return jsonRes({ error: "Não autorizado" }, 401);
 
-    const { data: callerRole } = await supabaseAdmin
+    const { data: callerRoles } = await supabaseAdmin
       .from("user_roles")
       .select("role")
-      .eq("user_id", caller.id)
-      .single();
+      .eq("user_id", caller.id);
 
-    if (callerRole?.role !== "admin") {
-      return jsonRes({ error: "Apenas administradores podem forçar logout global" }, 403);
+    const roles = (callerRoles ?? []).map((r: { role: string }) => r.role);
+    const isPrivileged =
+      roles.includes("admin") ||
+      roles.includes("supervisor") ||
+      roles.includes("dev");
+
+    if (!isPrivileged) {
+      return jsonRes({ error: "Apenas administradores ou desenvolvedores podem forçar logout global" }, 403);
     }
 
     // Parse confirmation
