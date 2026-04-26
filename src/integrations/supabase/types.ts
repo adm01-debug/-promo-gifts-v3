@@ -4770,12 +4770,6 @@ export type Database = {
       }
     }
     Functions: {
-      _rls_test_as: {
-        Args: { _q: string; _uid: string }
-        Returns: {
-          result: string
-        }[]
-      }
       acquire_ai_quota: {
         Args: { _function_name: string; _model: string; _user_id: string }
         Returns: Json
