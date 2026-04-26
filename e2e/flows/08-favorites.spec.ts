@@ -46,6 +46,43 @@ async function isFavorited(button: Locator): Promise<boolean> {
   return /fill-destructive|fill-current/.test(html);
 }
 
+/** Lê a contagem numérica exibida no header de Favoritos. */
+async function readFavoritesCount(page: Page): Promise<number> {
+  const loc = page.locator(Sel.favorites.countItems);
+  await loc.first().waitFor({ state: "visible", timeout: 10_000 });
+  const txt = (await loc.first().innerText()).trim();
+  return Number.parseInt(txt, 10) || 0;
+}
+
+/** Valida título, ícone/label e contagem do header de Favoritos. */
+async function assertFavoritesHeader(
+  page: Page,
+  expectedCount: number,
+  opts: { checkCardsMatch?: boolean } = {},
+) {
+  // Título
+  await expect(page.locator(Sel.favorites.title)).toHaveText("Meus Favoritos");
+  // Ícone + label de acessibilidade + svg renderizado
+  const icon = page.locator(Sel.favorites.icon);
+  await expect(icon).toBeVisible();
+  await expect(icon).toHaveAttribute("aria-label", "Favoritos");
+  await expect(icon.locator("svg")).toBeVisible();
+  // Contagem numérica no header
+  await expect
+    .poll(() => readFavoritesCount(page), {
+      message: `header favorites-count-items deveria ser ${expectedCount}`,
+      timeout: 10_000,
+    })
+    .toBe(expectedCount);
+  // (opcional) número de cards renderizados bate com a contagem
+  if (opts.checkCardsMatch) {
+    const cards = await page.locator(Sel.favorites.remove).count();
+    expect(cards, "qtde de cards renderizados deve bater com a contagem do header").toBe(
+      expectedCount,
+    );
+  }
+}
+
 test.describe("Fluxo: Favoritos", () => {
   test.beforeEach(() => requireAuth());
 
@@ -60,6 +97,11 @@ test.describe("Fluxo: Favoritos", () => {
   });
 
   test("favorita um produto, recarrega e ele persiste na lista", async ({ page }) => {
+    // 0. Snapshot inicial do header de favoritos (antes de qualquer ação)
+    await gotoAndSettle(page, "/favoritos");
+    await expect(page.locator(Sel.favorites.title)).toHaveText("Meus Favoritos");
+    const countBefore = await readFavoritesCount(page);
+
     // 1. Catálogo + 1º card
     await gotoAndSettle(page, "/produtos");
     const card = await firstCatalogCard(page);
@@ -84,8 +126,11 @@ test.describe("Fluxo: Favoritos", () => {
       })
       .toBe(true);
 
-    // 4. /favoritos + RELOAD
+    // 4. /favoritos — validações ANTES do reload
     await gotoAndSettle(page, "/favoritos");
+    await assertFavoritesHeader(page, countBefore + 1, { checkCardsMatch: true });
+
+    // 5. RELOAD e revalida título, ícone, label e contagem
     await page.reload({ waitUntil: "domcontentloaded" });
     await page
       .waitForFunction(
@@ -94,18 +139,15 @@ test.describe("Fluxo: Favoritos", () => {
       )
       .catch(() => {});
 
-    // 5. Valida persistência
+    await assertFavoritesHeader(page, countBefore + 1, { checkCardsMatch: true });
+
+    // 6. Persistência do produto específico
     const escaped = productName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const byName = page.getByText(new RegExp(escaped, "i")).first();
     const removeButtons = page.locator(Sel.favorites.remove);
-
     await expect(byName.or(removeButtons.first())).toBeVisible({ timeout: 10_000 });
-    expect(
-      await removeButtons.count(),
-      "lista de favoritos veio vazia após reload",
-    ).toBeGreaterThan(0);
 
-    // 6. Cleanup
+    // 7. Cleanup + revalida que o header voltou ao estado inicial
     const favCard = page
       .locator(`:has-text("${productName}")`)
       .filter({ has: page.locator(Sel.favorites.remove) })
@@ -120,7 +162,28 @@ test.describe("Fluxo: Favoritos", () => {
     } else {
       await removeButtons.first().click().catch(() => {});
     }
-    await page.waitForTimeout(500);
+    await expect
+      .poll(() => readFavoritesCount(page), { timeout: 8_000 })
+      .toBe(countBefore);
+    await assertFavoritesHeader(page, countBefore);
+  });
+
+  test("header de favoritos permanece consistente após reload (título, ícone, contagem)", async ({
+    page,
+  }) => {
+    await gotoAndSettle(page, "/favoritos");
+    const before = await readFavoritesCount(page);
+    await assertFavoritesHeader(page, before);
+
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await page
+      .waitForFunction(
+        () => !document.querySelector('[data-state="loading"], [data-skeleton]'),
+        { timeout: 8_000 },
+      )
+      .catch(() => {});
+
+    await assertFavoritesHeader(page, before);
   });
 
   test("toggle do favorito é idempotente (favorita e desfavorita)", async ({ page }) => {

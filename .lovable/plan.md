@@ -1,110 +1,111 @@
+# Validações adicionais no E2E de Favoritos
+
 ## Objetivo
 
-Reduzir flakiness dos 11 specs E2E substituindo seletores frágeis (texto traduzido, `h1, h2`, `article`, fallbacks `text=...`) por `data-testid` estáveis. Também ampliar e padronizar `e2e/fixtures/selectors.ts` como SSOT, e atualizar specs/helpers para consumi-lo.
+Estender o spec `e2e/flows/08-favorites.spec.ts` com asserts robustos sobre **título**, **ícone/label** e **contagem** da lista de favoritos, validando o estado **antes e depois do reload**.
 
-## Diagnóstico atual
+## Diagnóstico
 
-- `e2e/fixtures/selectors.ts` cobre apenas 3 áreas (login, app, quotes) — subutilizado.
-- Cobertura de `data-testid` no `src/` é mínima (~12 ocorrências, todas em Magic Up / Admin Connections).
-- Specs usam padrões frágeis recorrentes:
-  - `page.locator("h1, h2").first()` (04-quotes, 05-orders, etc.)
-  - `text=/favoritos|carrinhos|sem.../i` (08, 12)
-  - Cadeias longas `'[data-testid="product-card"], article:has(...), [role="article"]:has(...)'`
-  - `button[type="submit"]` global em login
-  - `nav >> text=Label` para sidebar
-  - `input, [role="tablist"], [data-testid*="step"]` (04-quotes)
+O header de `/favoritos` (`src/pages/FavoritesPage.tsx` linhas 347–360) já expõe:
 
-## Mudanças propostas
+- `h1[data-testid="page-title-favoritos"]` com texto "Meus Favoritos"
+- Ícone `Heart` (lucide) dentro de um `div` com `bg-destructive/10` (sem testid)
+- Parágrafo com contagem: `{n} item(s) • {n} lista(s)` (sem testid)
+- Botões de remover: `aria-label="Remover favorito"`
 
-### 1. Adicionar `data-testid` no `src/` (apenas pontos críticos consumidos pelos testes)
+Para asserts estáveis (sem depender de regex frágil de texto), adiciono **testids** no ícone e nos contadores.
 
-| Componente | testid | Usado por |
-|---|---|---|
-| `LoginForm` (form, email, password, submit, toggle senha, link "esqueci") | `login-form`, `login-email-input`, `login-password-input`, `login-submit`, `login-password-toggle`, `login-forgot-link` | 01-auth, login.spec, auth.spec |
-| `AppSidebar` link items (cada `NavLink`) | `sidebar-link-{slug}` | 02-navigation |
-| Page headings das rotas principais (`Catálogo`, `Orçamentos`, `Pedidos`, `Coleções`, `Favoritos`, `Kit Builder`, `Simulador`, `Carrinhos`) | `page-title-{slug}` | 03–09 |
-| `ProductCard` (raiz, nome, botão favorito, botão carrinho, link detalhe) | `product-card`, `product-card-name`, `product-card-favorite`, `product-card-add-cart`, `product-card-link` | 03, 08, 12 |
-| Wizard de orçamento (stepper + cada step) | `quote-wizard`, `quote-step-{n}` | 04 |
-| Lista de favoritos + item + botão remover | `favorites-list`, `favorite-item`, `favorite-remove` | 08 |
-| Carrinho/checkout (drawer, item qty, increment, checkout cta, dialog confirm) | `cart-drawer`, `cart-item`, `cart-qty-input`, `cart-qty-increment`, `cart-checkout-cta`, `cart-confirm-dialog` | 12 |
-| Toast/erro genérico (já cobertos por sonner/role=alert — manter) | — | 11 |
+## Mudanças
 
-### 2. Refatorar `e2e/fixtures/selectors.ts`
+### 1. `src/pages/FavoritesPage.tsx` — adicionar testids no header
 
-Reescrever como SSOT completo, agrupado por domínio, retornando objetos `Locator`-friendly (strings padronizadas `[data-testid="..."]` com fallback documentado em comentário). Estrutura:
+Substituir o bloco do header (linhas 347–360) por uma versão com:
 
-```text
-Sel.login.{form,email,password,submit,toggle,forgot}
-Sel.sidebar.link(slug)
-Sel.page.title(slug)
-Sel.product.{card,name,favorite,addCart,link}
-Sel.quote.{wizard,step(n),newButton}
-Sel.favorites.{list,item,remove}
-Sel.cart.{drawer,item,qty,increment,checkoutCta,confirmDialog}
-Sel.app.{toast,errorBanner}
-```
+- `data-testid="favorites-icon"` + `aria-label="Favoritos"` no wrapper do ícone Heart
+- `data-testid="favorites-count"` no parágrafo do contador
+- `data-testid="favorites-count-items"` em `<span>` envolvendo o número de itens
+- `data-testid="favorites-count-lists"` em `<span>` envolvendo o número de listas (quando presente)
 
-Manter `Sel.app.toast`/`errorBanner` como estão (já robustos por role).
+Sem mudanças visuais ou comportamentais — apenas atributos.
 
-### 3. Atualizar os 11 specs + helpers
-
-Substituir literais frágeis por `Sel.*` em:
-
-- `e2e/flows/01-auth.spec.ts` … `12-cart-checkout.spec.ts` (12 arquivos — os "11 specs" + o novo `12-cart-checkout`)
-- `e2e/auth.spec.ts`, `e2e/login.spec.ts`, `e2e/navigation.spec.ts`, `e2e/quote-create.spec.ts`, `e2e/quote-approval.spec.ts`, `e2e/discount-approval.spec.ts`, `e2e/mockup-generate.spec.ts`, `e2e/protected-routes.spec.ts` (se compartilharem padrões)
-- `e2e/helpers/forms.ts` e `e2e/helpers/nav.ts` para usar `Sel`
-
-Padrão de migração (exemplo):
+### 2. `e2e/fixtures/selectors.ts` — adicionar entradas em `Sel.favorites`
 
 ```ts
-// antes
-await page.fill("#login-email", email);
-await page.click('button[type="submit"]');
-await expect(page.locator("h1, h2").first()).toBeVisible();
-
-// depois
-await page.fill(Sel.login.email, email);
-await page.click(Sel.login.submit);
-await expect(page.locator(Sel.page.title("orcamentos"))).toBeVisible();
+favorites: {
+  // ... existente ...
+  title: '[data-testid="page-title-favoritos"]',
+  icon: '[data-testid="favorites-icon"]',
+  count: '[data-testid="favorites-count"]',
+  countItems: '[data-testid="favorites-count-items"]',
+  countLists: '[data-testid="favorites-count-lists"]',
+}
 ```
 
-### 4. Documentação
+### 3. `e2e/flows/08-favorites.spec.ts` — novos asserts
 
-Atualizar `e2e/README.md` com seção "Convenção de seletores":
-- Regra: sempre via `Sel` do `selectors.ts`.
-- Quando criar novo componente testado por E2E, adicionar `data-testid` seguindo o padrão `kebab-case` por domínio.
+**Helper novo** (dentro do mesmo arquivo):
+
+```ts
+async function readFavoritesCount(page: Page): Promise<number> {
+  const txt = (await page.locator(Sel.favorites.countItems).innerText()).trim();
+  return Number.parseInt(txt, 10) || 0;
+}
+```
+
+**Assert reutilizável** para cada checagem do header:
+
+```ts
+async function assertHeaderConsistency(page: Page, expectedCount: number) {
+  // título
+  await expect(page.locator(Sel.favorites.title)).toHaveText("Meus Favoritos");
+  // ícone + label
+  await expect(page.locator(Sel.favorites.icon)).toBeVisible();
+  await expect(page.locator(Sel.favorites.icon)).toHaveAttribute("aria-label", "Favoritos");
+  await expect(page.locator(`${Sel.favorites.icon} svg`)).toBeVisible();
+  // contagem visível e numérica
+  const count = await readFavoritesCount(page);
+  expect(count).toBe(expectedCount);
+  // contagem de itens deve bater com o número de cards renderizados
+  const cards = await page.locator(Sel.favorites.remove).count();
+  expect(cards).toBe(expectedCount);
+}
+```
+
+**Modificar o teste "favorita um produto, recarrega e ele persiste"**:
+
+Inserir 3 pontos de validação:
+
+1. **Antes de favoritar** — visita `/favoritos`, lê `countBefore`.
+2. **Depois de favoritar, antes do reload** — após voltar a `/favoritos`, valida:
+   - título = "Meus Favoritos"
+   - ícone visível com `aria-label="Favoritos"` e svg renderizado
+   - `countItems == countBefore + 1`
+   - número de botões "Remover favorito" == `countBefore + 1`
+3. **Depois do `page.reload()`** — repete `assertHeaderConsistency(page, countBefore + 1)`.
+4. **Após cleanup** (remover o favorito) — `assertHeaderConsistency(page, countBefore)`.
+
+**Novo teste "header de favoritos é consistente em estado vazio"** (extra):
+
+- Limpa todos os favoritos (se houver) com botão "Limpar Tudo" ou via store.
+- Recarrega `/favoritos`.
+- Valida: título visível, ícone visível com label, `countItems == 0`, mensagem "sem favoritos / nenhum favorito".
 
 ## Detalhes técnicos
 
-- Não alterar comportamento visual nem props públicas — apenas atributos `data-testid` adicionais.
-- `data-testid` permanece em produção (decisão deliberada — overhead trivial, ganha estabilidade).
-- Manter fallbacks `or(...)` somente onde o componente ainda não tem testid (transição gradual). Marcar com `// TODO: remover fallback após adicionar testid em <Componente>`.
-- Sem mudanças em rotas, RLS, edge functions ou banco.
+- `Sel.favorites.title/icon/count/countItems/countLists` são adicionados sem remover seletores existentes (zero impacto nos testes legados).
+- Os testids no `src/` são puros atributos — sem mudança de layout, props ou estilo.
+- Asserts usam `expect(...).toHaveText(...)` exato para o título e `Number.parseInt` para a contagem, evitando falsos positivos por texto traduzido.
+- A consistência **contagem ↔ número de cards** é verificada nos dois snapshots (pré-reload e pós-reload), validando que o estado persistido bate com o renderizado.
 
 ## Arquivos afetados
 
-Criar/editar:
-- `e2e/fixtures/selectors.ts` (reescrever)
-- `e2e/README.md` (seção nova)
-- `e2e/helpers/forms.ts`, `e2e/helpers/nav.ts`
-- 12 specs em `e2e/flows/*.spec.ts`
-- 8 specs legados em `e2e/*.spec.ts` (passagem mais leve, só onde se aplica)
-- ~10 componentes em `src/` para adicionar `data-testid` (LoginForm, AppSidebar, ProductCard, headings das páginas-alvo, wizard de orçamento, drawer de carrinho, lista de favoritos)
+Editar:
+- `src/pages/FavoritesPage.tsx` (linhas 347–360 — adicionar 4 testids + aria-label)
+- `e2e/fixtures/selectors.ts` (estender `Sel.favorites` com 5 entradas)
+- `e2e/flows/08-favorites.spec.ts` (helper `readFavoritesCount` + `assertHeaderConsistency` + 4 pontos de validação no teste de reload + 1 teste novo "estado vazio")
 
 ## Fora de escopo
 
-- Não rodar o suite (ambiente atual não executa Playwright); validação será feita pelo usuário.
-- Não criar novos specs.
-- Não mexer em lógica de cleanup, auth.setup ou edge functions.
-
----
-
-## Status: data-testid hardening (2026-04-26)
-
-Implementado:
-- SSOT `e2e/fixtures/selectors.ts` reescrito (login, sidebar, page, product, quote, favorites, cart, app).
-- `data-testid` adicionados em: `Auth.tsx` (login form/email/password/submit/toggle/forgot), `ProductCard.tsx` (`product-card` no `<article>` + `data-product-id`), e headings das páginas: `SellerCartsPage`, `OrdersPage`, `FavoritesPage`, `QuotesListPage`, `CollectionsPage` (`page-title-{slug}`).
-- Specs migrados para `Sel.*`: 01-auth, 03-products, 04-quotes, 05-orders, 07-collections, 08-favorites, 10-admin, 11-errors, 12-cart-checkout. (02-navigation, 06-kit-builder e 09-simulator não dependiam de seletores frágeis específicos.)
-- README atualizado com seção "Convenção de seletores".
-
-Fallbacks legados (`#login-email`, `, h1, h2`, etc.) mantidos no SSOT durante transição. Podem ser removidos quando 100% dos componentes-alvo tiverem testids.
+- Não alterar `FavoritesViewHeader` (header da lista remota selecionada — é outro componente).
+- Não mexer em `useFavoritesStore` ou nos hooks de migração.
+- Não rodar a suíte (Playwright não está instalado neste sandbox); validação fica para o usuário via `npm run test:e2e -- e2e/flows/08-favorites.spec.ts`.
