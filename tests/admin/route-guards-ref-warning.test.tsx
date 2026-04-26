@@ -299,26 +299,8 @@ describe("Route guards + ErrorBoundary — sem warning de ref ao falhar", () => 
   });
 
   it("Recover via remount após erro (key bump) — sem warning de ref", () => {
-    // Simula o fluxo "Tentar novamente" que reinicia a árvore.
-    function Harness() {
-      const [k, setK] = (globalThis as { useState?: typeof import("react").useState })
-        .useState
-        ? // pseudo — usado para silenciar lint; abaixo está o real:
-          [0, () => {}]
-        : [0, () => {}];
-      return (
-        <>
-          <button onClick={() => setK(k + 1)}>retry</button>
-          <ErrorBoundary key={k} fallback={<CustomFallback />}>
-            <Boom message="retry-boom" />
-          </ErrorBoundary>
-        </>
-      );
-    }
-    // Usa hook real de React via import dinâmico para manter o test simples.
-    // Reescrita inline para garantir hooks corretos:
-    const Real = () => {
-      const React = require("react") as typeof import("react");
+    // Simula o fluxo "Tentar novamente" que reinicia a árvore via key bump.
+    const Harness = () => {
       const [k, setK] = React.useState(0);
       return (
         <>
@@ -329,8 +311,7 @@ describe("Route guards + ErrorBoundary — sem warning de ref ao falhar", () => 
         </>
       );
     };
-    void Harness; // mantém referência (lint)
-    render(<Real />);
+    render(<Harness />);
     screen.getByText("custom-error-fallback");
     fireEvent.click(screen.getByText("retry"));
     // Após remount, o boundary captura novamente e exibe fallback.
