@@ -67,7 +67,7 @@ export type InvokeFullScopeResult<TData> =
    * Erro de step-up que não pôde ser auto-resolvido. Toast com CTA já foi
    * exibido pelo helper; caller normalmente apenas faz `return`.
    */
-  | { status: "step_up_error"; kind: "step_up_required" | "step_up_invalid" }
+  | { status: "step_up_error"; kind: "step_up_required" | "step_up_invalid" | "dev_role_required" }
   /** Erro genérico (rede, validação, 500). Caller decide UI. */
   | { status: "error"; error: unknown; data: unknown };
 
