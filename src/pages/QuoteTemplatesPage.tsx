@@ -47,7 +47,7 @@ export default function QuoteTemplatesPage() {
             </Button>
           )}
           <div>
-            <h1 className="font-display text-2xl font-bold tracking-tight">
+            <h1 data-testid="page-title-orcamentos-templates" className="font-display text-2xl font-bold tracking-tight">
               {viewMode === "list" && "Templates de Orçamento"}
               {viewMode === "create" && "Novo Template"}
               {viewMode === "edit" && "Editar Template"}

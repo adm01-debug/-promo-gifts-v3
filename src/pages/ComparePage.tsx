@@ -130,7 +130,7 @@ export default function ComparePage() {
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="icon" aria-label="Voltar" onClick={() => navigate(-1)}><ArrowLeft className="h-5 w-5" /></Button>
             <div>
-              <h1 className="text-2xl lg:text-3xl font-display font-bold text-foreground">Comparador de Produtos</h1>
+              <h1 data-testid="page-title-comparador" className="text-2xl lg:text-3xl font-display font-bold text-foreground">Comparador de Produtos</h1>
               <p className="text-muted-foreground">
                 Comparando {compareCount} produtos
                 {client && <> · <span className="text-primary font-medium">{client.name}</span></>}

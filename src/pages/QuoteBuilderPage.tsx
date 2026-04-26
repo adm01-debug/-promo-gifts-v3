@@ -81,7 +81,7 @@ export default function QuoteBuilderPage() {
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>
-              <h1 className="font-display text-2xl font-bold text-foreground flex items-center gap-3">
+              <h1 data-testid="page-title-orcamento-novo" className="font-display text-2xl font-bold text-foreground flex items-center gap-3">
                 <div className="p-2 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10">
                   {s.isEditMode ? <Edit className="h-6 w-6 text-primary" /> : <FileText className="h-6 w-6 text-primary" />}
                 </div>

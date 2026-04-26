@@ -71,7 +71,7 @@ export default function MockupHistoryPage() {
     <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
       <PageSEO title="Histórico de Mockups" description="Visualize todos os mockups gerados anteriormente." path="/mockup-historico" noIndex />
       <div>
-        <h1 className="font-display text-2xl font-bold text-foreground flex items-center gap-2">
+        <h1 data-testid="page-title-mockup-historico" className="font-display text-2xl font-bold text-foreground flex items-center gap-2">
           <Image className="h-6 w-6" />
           Histórico de Mockups
         </h1>
