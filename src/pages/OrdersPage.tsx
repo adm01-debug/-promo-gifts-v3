@@ -9,12 +9,15 @@ import { useNavigate } from "react-router-dom";
 import { useOrdersList } from "@/hooks/useOrders";
 import { OrderCard } from "@/components/orders/OrderCard";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useSalesScope } from "@/lib/auth/visibility-scope";
+import { ScopeBadge } from "@/components/common/ScopeBadge";
 
 export default function OrdersPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
-  const { data: orders = [], isLoading } = useOrdersList(user?.id);
+  const scope = useSalesScope();
+  const { data: orders = [], isLoading } = useOrdersList(user?.id, scope);
 
   const filtered = orders.filter((o) => {
     const q = searchQuery.toLowerCase();
@@ -29,11 +32,14 @@ export default function OrdersPage() {
     <MainLayout>
       <PageSEO title="Gestão de Pedidos" description="Acompanhe e gerencie todos os seus pedidos em um só lugar." path="/pedidos" />
       <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-4 pb-24 md:pb-6 animate-fade-in">
-        <div>
-          <h1 className="text-2xl font-bold font-display text-foreground flex items-center gap-2">
-            <Package className="h-6 w-6 text-primary" /> Gestão de Pedidos
-          </h1>
-          <p className="text-muted-foreground text-sm mt-1">Acompanhe e gerencie seus pedidos</p>
+        <div className="flex items-start justify-between gap-3 flex-wrap">
+          <div>
+            <h1 className="text-2xl font-bold font-display text-foreground flex items-center gap-2">
+              <Package className="h-6 w-6 text-primary" /> Gestão de Pedidos
+            </h1>
+            <p className="text-muted-foreground text-sm mt-1">Acompanhe e gerencie seus pedidos</p>
+          </div>
+          <ScopeBadge />
         </div>
 
         <div className="relative max-w-md">
