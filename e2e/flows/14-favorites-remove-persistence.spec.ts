@@ -395,13 +395,7 @@ test.describe("Fluxo: remover favorito persiste após reload", () => {
     ).toEqual(new Set(original.map((f) => f.productId)));
 
     // 8.2. Reload final — o estado restaurado precisa SOBREVIVER ao reload
-    await page.reload({ waitUntil: "domcontentloaded" });
-    await page
-      .waitForFunction(
-        () => !document.querySelector('[data-state="loading"], [data-skeleton]'),
-        { timeout: 8_000 },
-      )
-      .catch(() => {});
+    await reloadAndSettle(page);
 
     // 8.3. Header voltou ao baseline ABSOLUTO (countBefore), não ao snapshot intermediário
     await expect
