@@ -79,10 +79,11 @@ export function GlobalCommandBar({ children, showTrigger = false }: GlobalComman
     [navigate, addToRecent]
   );
 
-  const actions = useMemo(
-    () => buildActions({ goTo, actualTheme, setTheme, setOpen }),
-    [goTo, actualTheme, setTheme]
-  );
+  const actions = useMemo(() => {
+    const all = buildActions({ goTo, actualTheme, setTheme, setOpen });
+    // Filtra ações que apontam para rotas restritas (admin/dev) sem papel.
+    return filterByRoutePermission(all, (a) => a.path, { isDev, isAdmin });
+  }, [goTo, actualTheme, setTheme, isDev, isAdmin]);
 
   // Filter
   const filteredActions = useMemo(() => {
