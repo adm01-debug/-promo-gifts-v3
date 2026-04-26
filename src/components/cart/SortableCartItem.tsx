@@ -237,10 +237,12 @@ export const SortableCartItem = memo(function SortableCartItem({
                   <Minus className="h-3.5 w-3.5" />
                 )}
               </button>
-              <span className="h-8 min-w-[40px] flex items-center justify-center text-xs font-bold tabular-nums bg-muted/20 border-x border-border/30">
+              <span data-testid="cart-qty-badge" className="h-8 min-w-[40px] flex items-center justify-center text-xs font-bold tabular-nums bg-muted/20 border-x border-border/30">
                 {item.quantity.toLocaleString("pt-BR")}
               </span>
               <button
+                data-testid="cart-qty-increment"
+                aria-label="Aumentar quantidade"
                 className="h-8 w-8 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
                 onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
               >

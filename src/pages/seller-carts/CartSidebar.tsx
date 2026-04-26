@@ -107,6 +107,7 @@ export function CartSidebar({
 
         {/* ZONE 2 — Ação primária */}
         <Button
+          data-testid="cart-checkout-cta"
           className="w-full gap-2 h-11 font-semibold bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl"
           onClick={() => onGenerateQuote(cart)}
         >

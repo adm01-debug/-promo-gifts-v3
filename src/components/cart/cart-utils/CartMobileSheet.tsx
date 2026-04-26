@@ -66,6 +66,7 @@ export function MobileSummarySheet({
 
         <div className="px-5 pb-1">
           <Button
+            data-testid="cart-checkout-cta"
             className="w-full gap-2 h-11 font-semibold bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl"
             onClick={onGenerateQuote}
           >
