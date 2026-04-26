@@ -58,7 +58,10 @@ function clientIp(req: Request): string {
   );
 }
 
-/** Tabelas filtradas por user_id (filhos primeiro, depois pais). */
+/**
+ * Tabelas filtradas por user_id (escopo do dono lógico do recurso).
+ * NÃO inclui carrinhos/mockups com seller_id direto — esses vão em SELLER_ID_TABLES.
+ */
 const USER_ID_TABLES = [
   "favorite_item_reactions",
   "favorite_items_trash",
@@ -68,16 +71,20 @@ const USER_ID_TABLES = [
   "collection_items_trash",
   "collection_items",
   "collections",
-  "seller_cart_items",
-  "seller_carts",
   "cart_templates",
   "comparison_reactions",
   "user_comparisons",
-  "generated_mockups",
   "mockup_drafts",
   "custom_kits",
 ] as const;
 
+/**
+ * Tabelas filtradas por seller_id (escopo de tenant). NUNCA misturar com
+ * user_id — em apps multi-tenant um user pode atuar em vários sellers.
+ */
+const SELLER_ID_TABLES = ["seller_carts", "generated_mockups"] as const;
+
+/** seller_cart_items é resolvida via cart_id ∈ seller_carts(seller_id). */
 const QUOTE_CHILD_TABLES_BY_QUOTE_ID = [
   "quote_item_personalizations",
   "quote_items",
@@ -89,6 +96,8 @@ const QUOTE_CHILD_TABLES_BY_QUOTE_ID = [
 interface AuditPayload {
   email: string;
   user_id: string | null;
+  seller_id?: string | null;
+  seller_scope?: "self" | "explicit";
   dry_run: boolean;
   status:
     | "ok"
@@ -97,7 +106,8 @@ interface AuditPayload {
     | "unauthorized"
     | "forbidden"
     | "not_found"
-    | "invalid";
+    | "invalid"
+    | "scope_mismatch";
   reason?: string | null;
   ip: string;
   user_agent: string | null;
@@ -201,7 +211,7 @@ Deno.serve(async (req: Request) => {
   }
 
   // --- parse body ---------------------------------------------------------
-  let body: { email?: unknown; dryRun?: unknown };
+  let body: { email?: unknown; dryRun?: unknown; sellerScope?: unknown; sellerId?: unknown };
   try {
     body = await req.json();
   } catch {
@@ -222,10 +232,24 @@ Deno.serve(async (req: Request) => {
   }
   const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
   const dryRun = body.dryRun === false ? false : true;
+
+  // sellerScope: "self" (default) usa o user_id resolvido como seller_id.
+  // "explicit" exige sellerId no body — porém o sellerId DEVE bater com o
+  // user_id resolvido por email. Isso impede um cliente comprometido de
+  // pedir cleanup de outro tenant, mantendo a porta aberta para futuras
+  // separações user/seller sem mudar contrato.
+  const sellerScope: "self" | "explicit" =
+    body.sellerScope === "explicit" ? "explicit" : "self";
+  const requestedSellerId =
+    typeof body.sellerId === "string" && body.sellerId.length > 0
+      ? body.sellerId
+      : null;
+
   if (!email) {
     await writeAudit(admin, {
       email: "",
       user_id: null,
+      seller_scope: sellerScope,
       dry_run: dryRun,
       status: "invalid",
       reason: "email_required",
@@ -237,6 +261,23 @@ Deno.serve(async (req: Request) => {
       duration_ms: Date.now() - startedAt,
     });
     return jsonResponse({ error: "email_required" }, 400);
+  }
+  if (sellerScope === "explicit" && !requestedSellerId) {
+    await writeAudit(admin, {
+      email,
+      user_id: null,
+      seller_scope: sellerScope,
+      dry_run: dryRun,
+      status: "invalid",
+      reason: "sellerId_required_for_explicit_scope",
+      ip,
+      user_agent: userAgent,
+      total_deleted: 0,
+      deleted_by_table: {},
+      errors: {},
+      duration_ms: Date.now() - startedAt,
+    });
+    return jsonResponse({ error: "sellerId_required_for_explicit_scope" }, 400);
   }
 
   // --- camada 2: allow-list ------------------------------------------------
@@ -250,6 +291,7 @@ Deno.serve(async (req: Request) => {
     await writeAudit(admin, {
       email,
       user_id: null,
+      seller_scope: sellerScope,
       dry_run: dryRun,
       status: "forbidden",
       reason: "allow_list_not_configured",
@@ -266,6 +308,7 @@ Deno.serve(async (req: Request) => {
     await writeAudit(admin, {
       email,
       user_id: null,
+      seller_scope: sellerScope,
       dry_run: dryRun,
       status: "forbidden",
       reason: "email_not_in_allow_list",
@@ -301,6 +344,7 @@ Deno.serve(async (req: Request) => {
     await writeAudit(admin, {
       email,
       user_id: null,
+      seller_scope: sellerScope,
       dry_run: dryRun,
       status: "error",
       reason: "user_lookup_failed",
@@ -320,6 +364,7 @@ Deno.serve(async (req: Request) => {
     await writeAudit(admin, {
       email,
       user_id: null,
+      seller_scope: sellerScope,
       dry_run: dryRun,
       status: "not_found",
       reason: "user_not_found",
@@ -331,6 +376,33 @@ Deno.serve(async (req: Request) => {
       duration_ms: Date.now() - startedAt,
     });
     return jsonResponse({ error: "user_not_found", email }, 404);
+  }
+
+  // --- camada 4: resolução do seller_id e guarda anti-mismatch -----------
+  // No modelo atual seller_id == user_id resolvido por email. Em "explicit",
+  // exigimos que o sellerId enviado bata exatamente com esse user_id —
+  // qualquer divergência aborta a operação ANTES de qualquer DELETE.
+  const sellerId = userId;
+  if (sellerScope === "explicit" && requestedSellerId !== sellerId) {
+    await writeAudit(admin, {
+      email,
+      user_id: userId,
+      seller_id: sellerId,
+      seller_scope: sellerScope,
+      dry_run: dryRun,
+      status: "scope_mismatch",
+      reason: `requested sellerId ${requestedSellerId} != resolved ${sellerId}`,
+      ip,
+      user_agent: userAgent,
+      total_deleted: 0,
+      deleted_by_table: {},
+      errors: {},
+      duration_ms: Date.now() - startedAt,
+    });
+    return jsonResponse(
+      { error: "seller_scope_mismatch", expected: sellerId },
+      409,
+    );
   }
 
   const deleted: Record<string, number> = {};
@@ -354,16 +426,76 @@ Deno.serve(async (req: Request) => {
     else deleted[table] = count ?? 0;
   }
 
+  async function purgeBySellerId(table: string) {
+    if (dryRun) {
+      const { count, error } = await admin
+        .from(table)
+        .select("id", { count: "exact", head: true })
+        .eq("seller_id", sellerId!);
+      if (error) errors[table] = error.message;
+      else deleted[table] = count ?? 0;
+      return;
+    }
+    const { error, count } = await admin
+      .from(table)
+      .delete({ count: "exact" })
+      .eq("seller_id", sellerId!);
+    if (error) errors[table] = error.message;
+    else deleted[table] = count ?? 0;
+  }
+
+  // 1) user_id-scoped
   for (const t of USER_ID_TABLES) {
     await purgeByUserId(t);
   }
 
-  // Quotes
+  // 2) seller_cart_items via cart_id ∈ seller_carts(seller_id) — precisa
+  //    rodar ANTES de purgar seller_carts.
+  try {
+    const { data: cartRows, error: cErr } = await admin
+      .from("seller_carts")
+      .select("id")
+      .eq("seller_id", sellerId);
+    if (cErr) {
+      errors["seller_carts_lookup"] = cErr.message;
+    } else {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const cartIds = (cartRows ?? []).map((r: any) => r.id);
+      if (cartIds.length > 0) {
+        if (dryRun) {
+          const { count, error } = await admin
+            .from("seller_cart_items")
+            .select("id", { count: "exact", head: true })
+            .in("cart_id", cartIds);
+          if (error) errors["seller_cart_items"] = error.message;
+          else deleted["seller_cart_items"] = count ?? 0;
+        } else {
+          const { error, count } = await admin
+            .from("seller_cart_items")
+            .delete({ count: "exact" })
+            .in("cart_id", cartIds);
+          if (error) errors["seller_cart_items"] = error.message;
+          else deleted["seller_cart_items"] = count ?? 0;
+        }
+      } else {
+        deleted["seller_cart_items"] = 0;
+      }
+    }
+  } catch (err) {
+    errors["seller_cart_items_block"] = String(err);
+  }
+
+  // 3) seller_id-scoped (carts, mockups gerados, etc.)
+  for (const t of SELLER_ID_TABLES) {
+    await purgeBySellerId(t);
+  }
+
+  // 4) Quotes (seller_id) — apaga filhos via quote_id, depois quotes
   try {
     const { data: quoteRows, error: qErr } = await admin
       .from("quotes")
       .select("id")
-      .eq("seller_id", userId);
+      .eq("seller_id", sellerId);
     if (qErr) {
       errors["quotes_lookup"] = qErr.message;
     } else {
@@ -393,7 +525,7 @@ Deno.serve(async (req: Request) => {
           const { error, count } = await admin
             .from("quotes")
             .delete({ count: "exact" })
-            .eq("seller_id", userId);
+            .eq("seller_id", sellerId);
           if (error) errors["quotes"] = error.message;
           else deleted["quotes"] = count ?? 0;
         }
@@ -413,6 +545,8 @@ Deno.serve(async (req: Request) => {
   await writeAudit(admin, {
     email,
     user_id: userId,
+    seller_id: sellerId,
+    seller_scope: sellerScope,
     dry_run: dryRun,
     status,
     reason: status === "ok" ? null : "partial_or_failed_purge",
@@ -428,6 +562,8 @@ Deno.serve(async (req: Request) => {
     ok: status === "ok",
     dryRun,
     userId,
+    sellerId,
+    sellerScope,
     email,
     deleted,
     errors,

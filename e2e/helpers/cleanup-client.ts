@@ -37,6 +37,10 @@ export interface CleanupConfig {
   userEmail?: string;
   adminEmail?: string;
   dryRun: boolean;
+  /** "explicit" exige que sellerId resolvido bata com o user_id resolvido por email. */
+  sellerScope?: "self" | "explicit";
+  /** Quando sellerScope === "explicit", deve bater com o user_id real do email. */
+  sellerId?: string;
 }
 
 export function loadCleanupConfig(): CleanupConfig | null {
@@ -46,11 +50,14 @@ export function loadCleanupConfig(): CleanupConfig | null {
   const userEmail = process.env.E2E_USER_EMAIL || "";
   const adminEmail = process.env.E2E_ADMIN_EMAIL || "";
   const dryRun = process.env.E2E_CLEANUP_DRY_RUN === "1";
+  const sellerScope: "self" | "explicit" =
+    process.env.E2E_CLEANUP_SELLER_SCOPE === "explicit" ? "explicit" : "self";
+  const sellerId = process.env.E2E_CLEANUP_SELLER_ID || undefined;
 
   if (!baseUrl || !token) return null;
   if (!userEmail && !adminEmail) return null;
 
-  return { baseUrl, token, userEmail, adminEmail, dryRun };
+  return { baseUrl, token, userEmail, adminEmail, dryRun, sellerScope, sellerId };
 }
 
 export async function purgeOne(
@@ -68,7 +75,12 @@ export async function purgeOne(
         "Content-Type": "application/json",
         "x-e2e-cleanup-token": cfg.token,
       },
-      body: JSON.stringify({ email, dryRun: cfg.dryRun }),
+      body: JSON.stringify({
+        email,
+        dryRun: cfg.dryRun,
+        sellerScope: cfg.sellerScope ?? "self",
+        ...(cfg.sellerId ? { sellerId: cfg.sellerId } : {}),
+      }),
       signal: ctrl.signal,
     });
     const json = (await res.json().catch(() => ({}))) as CleanupResponse;

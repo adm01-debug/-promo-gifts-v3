@@ -867,6 +867,8 @@ export type Database = {
           id: string
           ip: string | null
           reason: string | null
+          seller_id: string | null
+          seller_scope: string | null
           status: string
           total_deleted: number
           user_agent: string | null
@@ -882,6 +884,8 @@ export type Database = {
           id?: string
           ip?: string | null
           reason?: string | null
+          seller_id?: string | null
+          seller_scope?: string | null
           status: string
           total_deleted?: number
           user_agent?: string | null
@@ -897,6 +901,8 @@ export type Database = {
           id?: string
           ip?: string | null
           reason?: string | null
+          seller_id?: string | null
+          seller_scope?: string | null
           status?: string
           total_deleted?: number
           user_agent?: string | null
