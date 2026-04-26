@@ -79,8 +79,9 @@ export function createSupabaseMock(opts: MockOptions = {}): SupabaseMock {
       return api;
     });
 
-    const resolveData = () => {
-      const sel = opts.selects?.[table];
+    const rawSelect = () => opts.selects?.[table];
+    const firstOrNull = () => {
+      const sel = rawSelect();
       if (Array.isArray(sel)) return sel[0] ?? null;
       return sel ?? null;
     };
@@ -90,7 +91,7 @@ export function createSupabaseMock(opts: MockOptions = {}): SupabaseMock {
         ? { message: opts.errorOn.message }
         : null;
 
-    api.maybeSingle = vi.fn(async () => ({ data: resolveData(), error: null }));
+    api.maybeSingle = vi.fn(async () => ({ data: firstOrNull(), error: null }));
     api.single = vi.fn(async () => {
       if (pendingOp === "insert") {
         const err = errorFor("insert");
@@ -100,11 +101,12 @@ export function createSupabaseMock(opts: MockOptions = {}): SupabaseMock {
           : { id: `mock-${table}-id`, ...(pendingPayload as object) };
         return { data: ret, error: null };
       }
-      return { data: resolveData(), error: null };
+      return { data: firstOrNull(), error: null };
     });
 
-    // Quando .update(...).eq(...) é "thenable" (sem .single), retornamos
-    // a partir do then() para registrar a chamada.
+    // `.from(...).insert(...).select(...)` resolve via then com o registro inserido.
+    // `.from(...).select(...).eq(...)` resolve via then com array (multi-row).
+    // `.from(...).update(...).eq(...)` / `.delete().eq(...)` registram a chamada.
     api.then = vi.fn(async (resolve: (r: unknown) => void) => {
       if (pendingOp === "update") {
         calls.update.push({ table, payload: pendingPayload, filters: [...filters] });
@@ -118,7 +120,22 @@ export function createSupabaseMock(opts: MockOptions = {}): SupabaseMock {
         resolve({ data: null, error: err });
         return;
       }
-      resolve({ data: resolveData(), error: null });
+      if (pendingOp === "insert") {
+        const err = errorFor("insert");
+        if (err) {
+          resolve({ data: null, error: err });
+          return;
+        }
+        const ret = opts.insertReturn
+          ? opts.insertReturn(table, pendingPayload)
+          : { id: `mock-${table}-id`, ...(pendingPayload as object) };
+        resolve({ data: ret, error: null });
+        return;
+      }
+      // select sem terminal — devolve array se houver, senão []
+      const sel = rawSelect();
+      const data = Array.isArray(sel) ? sel : sel ? [sel] : [];
+      resolve({ data, error: null });
     });
 
     return api;
