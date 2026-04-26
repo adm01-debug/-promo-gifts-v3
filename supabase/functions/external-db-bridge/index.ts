@@ -415,11 +415,28 @@ const TopLevelBodySchema = z.object({
 }, { message: "Field 'table' is required for CRUD operations, 'rpcName' for RPC" });
 
 Deno.serve((req) => {
-  const requestId = getOrCreateRequestId(req);
+  // Guard raiz: nada lançado a partir daqui pode escapar ao runtime,
+  // ou o edge-runtime devolve 503 SUPABASE_EDGE_RUNTIME_ERROR genérico
+  // (sem CORS, sem JSON) que trava a UI ("blank screen").
+  let requestId = "unknown";
+  try {
+    requestId = getOrCreateRequestId(req);
+  } catch {
+    // ignora — vamos usar "unknown"
+  }
   return requestCtx.run({ requestId }, async () => {
-    const corsHeaders = getCorsHeaders(req);
-    const preflightResponse = handleCorsPreflightIfNeeded(req);
-    if (preflightResponse) return preflightResponse;
+    let corsHeaders: Record<string, string> = {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
+    };
+    try {
+      corsHeaders = getCorsHeaders(req);
+      const preflightResponse = handleCorsPreflightIfNeeded(req);
+      if (preflightResponse) return preflightResponse;
+    } catch (e) {
+      console.error(`[external-db-bridge] CORS init failed: ${(e as Error).message}`);
+    }
 
     const requestStartTime = performance.now();
     console.log(`[external-db-bridge] [req_id=${requestId}] request_start method=${req.method}`);
@@ -489,7 +506,14 @@ Deno.serve((req) => {
     const totalDuration = Math.round(performance.now() - requestStartTime);
     const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
     console.error(`❌ [telemetry] [req_id=${requestId}] Request failed after ${totalDuration}ms: ${errorMessage}`);
-    return jsonResponse({ error: errorMessage }, 500, corsHeaders);
+    // Devolve 200 + flag fallback para o cliente acionar retry/degradação
+    // sem que o supabase-js trate como exceção fatal e a UI quebre.
+    return jsonResponse({
+      error: 'SERVICE_FAILED',
+      message: errorMessage,
+      fallback: true,
+      request_id: requestId,
+    }, 200, corsHeaders);
   }
   });
 });
