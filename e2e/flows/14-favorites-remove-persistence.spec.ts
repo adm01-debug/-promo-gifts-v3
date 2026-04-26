@@ -49,6 +49,18 @@ async function readFavoritesCount(page: Page): Promise<number> {
   return Number.parseInt(txt, 10) || 0;
 }
 
+/** Lê o texto completo do bloco `favorites-count` (ex.: "3 itens • 2 listas"). */
+async function readFavoritesCountText(page: Page): Promise<string> {
+  const loc = page.locator(Sel.favorites.count).first();
+  await loc.waitFor({ state: "visible", timeout: 10_000 });
+  return (await loc.innerText()).trim().replace(/\s+/g, " ");
+}
+
+/** Conta cards renderizados na lista de favoritos. */
+async function readFavoritesListSize(page: Page): Promise<number> {
+  return page.locator(Sel.favorites.item).count();
+}
+
 async function isFavorited(button: Locator): Promise<boolean> {
   const pressed = await button.getAttribute("aria-pressed");
   if (pressed === "true") return true;
@@ -107,11 +119,16 @@ test.describe("Fluxo: remover favorito persiste após reload", () => {
     const addedId = afterAdd.find((f) => !beforeIds.has(f.productId))?.productId;
     expect(addedId, "productId recém-adicionado não pôde ser identificado").toBeTruthy();
 
-    // 2. /favoritos: confirma +1 no header e captura o nome do produto adicionado
+    // 2. /favoritos: confirma +1 no header e captura snapshots ANTES da remoção
     await gotoAndSettle(page, "/favoritos");
     await expect
       .poll(() => readFavoritesCount(page), { timeout: 10_000 })
       .toBe(countBefore + 1);
+
+    // Snapshot do bloco favorites-count (texto humano) e tamanho da lista
+    const countTextWithItem = await readFavoritesCountText(page);
+    const listSizeWithItem = await readFavoritesListSize(page);
+    expect(listSizeWithItem, "lista deveria conter ao menos 1 card visível").toBeGreaterThan(0);
 
     // Localiza o card do produto adicionado por data-product-id (presente em ProductCard)
     const targetCard = page.locator(`[data-product-id="${addedId}"]`).first();
@@ -160,13 +177,34 @@ test.describe("Fluxo: remover favorito persiste após reload", () => {
       })
       .toBe(countBefore);
 
-    // 6. Card do produto removido NÃO existe mais (verificação SSOT por data-product-id)
+    // 6. favorites-count (texto humano) reflete o baseline e MUDOU em relação ao estado +1
+    const countTextAfterReload = await readFavoritesCountText(page);
+    expect(
+      countTextAfterReload,
+      `favorites-count após reload deveria diferir do estado com item adicionado ` +
+        `(antes="${countTextWithItem}", depois="${countTextAfterReload}")`,
+    ).not.toBe(countTextWithItem);
+    // Texto deve começar com o número de itens do baseline ("0 item", "3 itens", ...)
+    expect(
+      countTextAfterReload.startsWith(`${countBefore} `),
+      `favorites-count deveria começar com "${countBefore} " (got "${countTextAfterReload}")`,
+    ).toBe(true);
+
+    // 7. Card do produto removido NÃO existe mais (SSOT por data-product-id)
     await expect(
       page.locator(`${Sel.favorites.item}[data-product-id="${addedId}"]`),
       `card do produto ${addedId} não deveria existir após reload`,
     ).toHaveCount(0, { timeout: 10_000 });
 
-    // 7. Cleanup defensivo — garante que o storage está no estado original
+    // 8. Tamanho da lista caiu exatamente em 1 (de listSizeWithItem para listSizeWithItem-1)
+    const listSizeAfterReload = await readFavoritesListSize(page);
+    expect(
+      listSizeAfterReload,
+      `tamanho da lista deveria ser ${listSizeWithItem - 1} após reload ` +
+        `(antes da remoção=${listSizeWithItem}, depois=${listSizeAfterReload})`,
+    ).toBe(listSizeWithItem - 1);
+
+    // 9. Cleanup defensivo — garante que o storage está no estado original
     await writeStorage(page, original);
   });
 });
