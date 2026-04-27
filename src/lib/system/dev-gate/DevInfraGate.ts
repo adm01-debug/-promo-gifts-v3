@@ -26,8 +26,13 @@ class DefaultAccessPolicy implements AccessPolicy {
   }
 
   hasAccess(userRoles: AppRole[]): boolean {
-    if (!userRoles || userRoles.length === 0) return false;
-    return userRoles.some(role => this.allowedRoles.has(role));
+    const len = userRoles.length;
+    if (len === 0) return false;
+    // Otimização: Loop for tradicional é ligeiramente mais rápido que .some() em arrays pequenos
+    for (let i = 0; i < len; i++) {
+      if (this.allowedRoles.has(userRoles[i])) return true;
+    }
+    return false;
   }
 }
 
@@ -114,8 +119,19 @@ export class DevInfraGate {
    * Gera uma chave de cache otimizada para performance.
    */
   private generateCacheKey(roles: AppRole[]): string {
-    if (roles.length === 1) return roles[0];
-    return [...roles].sort().join(',');
+    const len = roles.length;
+    if (len === 0) return '';
+    if (len === 1) return roles[0];
+    // Otimização: Evitar sort se o array já estiver ordenado (caso comum em orquestração de roles)
+    // Se precisarmos ordenar, fazemos uma cópia para não mutar o input
+    let isSorted = true;
+    for (let i = 0; i < len - 1; i++) {
+      if (roles[i] > roles[i + 1]) {
+        isSorted = false;
+        break;
+      }
+    }
+    return isSorted ? roles.join(',') : [...roles].sort().join(',');
   }
 
   /**
