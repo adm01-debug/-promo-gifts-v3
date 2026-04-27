@@ -8,6 +8,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { validateFile } from "@/lib/security/file-validation";
 
 interface ImageUploadButtonProps {
   currentImageUrl: string | null;
@@ -31,15 +32,15 @@ export function ImageUploadButton({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
-    if (!file.type.startsWith("image/")) {
-      toast.error("Por favor, selecione uma imagem");
-      return;
-    }
+    // 🛡️ Camada de Segurança V2.0: Validação de integridade e tipo real
+    const validation = await validateFile(file, {
+      maxSizeMb: 5,
+      allowedExtensions: [".jpg", ".jpeg", ".png", ".webp"],
+      allowedMimeTypes: ["image/jpeg", "image/png", "image/webp"],
+    });
 
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Imagem muito grande. Máximo 5MB");
+    if (!validation.valid) {
+      toast.error(validation.error || "Arquivo inválido");
       return;
     }
 
