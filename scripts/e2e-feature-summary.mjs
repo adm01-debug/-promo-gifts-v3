@@ -310,6 +310,21 @@ if (failedFeatures.length === 0) {
   }
 }
 
+if (failedByE2eName.length > 0) {
+  mdLines.push(`## Failures by e2eName`);
+  mdLines.push(``);
+  mdLines.push(`Recursos nomeados via \`e2eName(...)\` que apareceram em falhas. Útil para rastrear leaks de cleanup ou conflitos cross-spec.`);
+  mdLines.push(``);
+  mdLines.push(`| Resource | Failures | Affected features |`);
+  mdLines.push(`|---|---:|---|`);
+  for (const r of failedByE2eName) {
+    mdLines.push(
+      `| \`${r.e2eName}\` | ${r.failures.length} | ${[...r.features].map((f) => `\`${f}\``).join(", ")} |`,
+    );
+  }
+  mdLines.push(``);
+}
+
 if (skippedRows.length > 0) {
   mdLines.push(`## Skipped (${skippedRows.length})`);
   for (const s of skippedRows) mdLines.push(`- \`${s.feature}\` — ${s.title}`);
