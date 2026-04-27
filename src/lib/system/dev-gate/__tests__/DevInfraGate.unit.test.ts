@@ -41,6 +41,7 @@ describe('DevInfraGate Unit Tests', () => {
       providers[1].value = true;
       expect(gate.shouldShow(devRoles)).toBe(false);
 
+      gate.invalidateCache();
       providers[0].value = 'auto';
       expect(gate.shouldShow(devRoles)).toBe(true);
     });
