@@ -29,7 +29,11 @@ serve(async (req) => {
     const folder = formData.get('folder') as string || 'uploads'
     
     const authHeader = req.headers.get('Authorization')
-    const { data: { user } } = await supabaseAdmin.auth.getUser(authHeader?.replace('Bearer ', '') ?? '')
+    let user = null
+    if (authHeader) {
+      const { data: { user: authUser } } = await supabaseAdmin.auth.getUser(authHeader.replace('Bearer ', ''))
+      user = authUser
+    }
 
     if (!file) throw new Error('Arquivo obrigatório')
 
@@ -60,6 +64,7 @@ serve(async (req) => {
           throw new Error('Segurança indisponível')
         }
       } catch (err) {
+        console.error('VT Error:', err.message)
         return new Response(JSON.stringify({ error: 'Erro na verificação de malware' }), {
           status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         })
@@ -97,18 +102,9 @@ serve(async (req) => {
     })
 
   } catch (error: any) {
+    console.error('Final Error:', error.message)
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500
-    })
-  }
-})
-
-
-  } catch (error) {
-    console.error('Upload Error:', error.message)
-    return new Response(JSON.stringify({ error: error.message }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 500,
     })
   }
 })
