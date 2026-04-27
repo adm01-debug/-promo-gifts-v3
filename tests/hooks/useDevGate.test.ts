@@ -13,6 +13,10 @@ describe('useDevGate', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     devInfraGate.invalidateCache();
+    // Limpar localStorage para garantir isolamento
+    localStorage.clear();
+    // Reset any spying on devInfraGate.shouldShow
+    vi.restoreAllMocks();
   });
 
   it('should reflect changes from devInfraGate automatically', () => {
@@ -23,19 +27,12 @@ describe('useDevGate', () => {
     // Inicialmente false (não dev e sem override)
     expect(result.current.isAllowed).toBe(false);
 
-    // Simular mudança externa (ex: localStorage alterado em outra aba)
+    // Simular mudança externa via evento de storage
     act(() => {
-      // Forçamos o gate a retornar true via mock interno ou simulando o evento que o gate escuta
-      // Como o useDevGate usa useSyncExternalStore conectado ao devInfraGate, 
-      // basta disparar o evento que o devInfraGate escuta.
-      
-      // Mockamos o provider do gate real para este teste se necessário, 
-      // mas aqui vamos testar a REATIVIDADE do hook à invalidação do gate.
-      
-      // Vamos espionar o shouldShow para retornar true no próximo ciclo
+      // Mockamos o shouldShow para simular o comportamento após a mudança no storage
       vi.spyOn(devInfraGate, 'shouldShow').mockReturnValue(true);
       
-      // Disparar o evento que causa a re-notificação
+      // Disparar o evento que o DevInfraGate escuta
       window.dispatchEvent(new StorageEvent('storage', {
         key: 'show_dev_infra_messages',
         newValue: 'true'
@@ -47,6 +44,9 @@ describe('useDevGate', () => {
   });
 
   it('should react to isDev changes from auth context', () => {
+    // Garantir que não há overrides bloqueando
+    localStorage.removeItem('show_dev_infra_messages');
+
     const { rerender, result } = renderHook(
       ({ isDev }) => {
         (useAuth as any).mockReturnValue({ isDev });
@@ -55,6 +55,7 @@ describe('useDevGate', () => {
       { initialProps: { isDev: false } }
     );
 
+    // Sem override, isAllowed deve seguir isDev
     expect(result.current.isAllowed).toBe(false);
 
     rerender({ isDev: true });
