@@ -31,14 +31,8 @@ describe('useDevGate Hook — Unit Tests', () => {
 
     const { result } = renderHook(() => useDevGate());
     
-    // Na montagem inicial (useEffect ainda não rodou), mounted é false
-    expect(result.current.isAllowed).toBe(false);
-
-    // Após o efeito de montagem
-    await act(async () => {
-      // useEffect roda automaticamente no renderHook
-    });
-
+    // O RTL renderHook já executa o useEffect na montagem inicial
+    // Então mounted já será true
     expect(result.current.isAllowed).toBe(true);
     expect(result.current.isDev).toBe(true);
   });
