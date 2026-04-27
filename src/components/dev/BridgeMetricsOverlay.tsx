@@ -159,7 +159,7 @@ const InfoModal = memo(({ open, onOpenChange }: { open: boolean, onOpenChange: (
           </p>
           <div className="space-y-2 text-xs">
             <p><strong>• Calls:</strong> Lista de requisições disparadas. Fique atento a status 4xx/5xx e latências altas.</p>
-            <p><strong>• Long Tasks:</strong> Identifica tarefas pesadas no thread principal que podem travar a UI (bloqueios >50ms).</p>
+            <p><strong>• Long Tasks:</strong> Identifica tarefas pesadas no thread principal que podem travar a UI (bloqueios &gt;50ms).</p>
             <p><strong>• Cores:</strong> Verde (Rápido), Amarelo (Moderado), Vermelho (Lento - requer atenção).</p>
           </div>
           <p className="text-[10px] opacity-70 italic border-t border-white/5 pt-2">
