@@ -109,6 +109,13 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: node scripts/check-security-definer-acl.mjs
 
+      # Gate estático: toda edge function deve estar declarada no
+      # manifest _shared/edge-authz-manifest.ts; edges supervisor/dev
+      # devem usar authorize() do _shared/authorize.ts ou marcar
+      # enforcedBy: "custom" com rationale explícito.
+      - name: 🛡️ Edge authorization manifest gate
+        run: node scripts/check-edge-authorization.mjs
+
       - name: RLS policy tests (optional)
         if: env.TEST_SELLER_PASSWORD != '' && env.TEST_ADMIN_PASSWORD != ''
         env:
