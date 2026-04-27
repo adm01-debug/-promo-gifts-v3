@@ -37,15 +37,23 @@ export class DevInfraGate {
 
   /**
    * Avalia se as mensagens devem ser exibidas.
-   * Resultados são cacheados por parâmetro isDev para performance.
+   * O parâmetro isDev é o GATE REAL: se for false, NUNCA exibe nada,
+   * independente de localStorage ou environment variables.
    */
   shouldShow(isDev: boolean): boolean {
+    // SECURITY GATE: Se o usuário não é dev na AuthContext (banco),
+    // bloqueia imediatamente. Isso garante que usuários comuns
+    // não consigam habilitar via devtools/console.
+    if (!isDev) return false;
+
     const cacheKey = String(isDev);
     if (this.cache.has(cacheKey)) {
       return this.cache.get(cacheKey)!;
     }
 
-    let result: boolean = isDev;
+    // Se for dev, permitimos que os providers (env/localStorage)
+    // sobrescrevam o comportamento padrão se necessário.
+    let result: boolean = true;
     for (const provider of this.providers) {
       const value = provider.getFlag();
       if (value !== 'auto') {
