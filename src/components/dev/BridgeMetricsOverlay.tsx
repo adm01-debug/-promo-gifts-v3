@@ -57,6 +57,13 @@ export default function BridgeMetricsOverlay() {
   // Hard guard: nunca renderiza em build de produção.
   if (import.meta.env.PROD) return null;
 
+  // Defesa em profundidade — gate SSOT (env > localStorage > role `dev`).
+  // Mesmo que alguém monte o overlay fora do <DevOnlyBridgeOverlay />,
+  // usuários comuns (agente/supervisor) NÃO veem o painel nem podem
+  // ativar o atalho `` ` ``.
+  const { isDev } = useAuth();
+  const allowed = shouldShowDevInfraMessages(isDev);
+
   const [open, setOpen] = useState<boolean>(() => {
     try { return localStorage.getItem(STORAGE_KEY) === '1'; } catch { return false; }
   });
@@ -81,8 +88,9 @@ export default function BridgeMetricsOverlay() {
 
   const listRef = useRef<HTMLDivElement>(null);
 
-  // Toggle por teclado: ` (backtick).
+  // Toggle por teclado: ` (backtick). Só registra o listener quando o gate aprova.
   useEffect(() => {
+    if (!allowed) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== '`' || e.metaKey || e.ctrlKey || e.altKey) return;
       const target = e.target as HTMLElement | null;
@@ -97,7 +105,7 @@ export default function BridgeMetricsOverlay() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, []);
+  }, [allowed]);
 
   // Resumo agregado das amostras visíveis (últimas N).
   const { visible, summary } = useMemo(() => {
