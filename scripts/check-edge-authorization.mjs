@@ -82,6 +82,10 @@ for (const fn of fns) {
   if (!entry) continue;
   if (!ROLE_REQUIRED[entry.category]) continue; // só validamos supervisor/dev
 
+  // Edges com enforcedBy: "custom" têm validação inline própria (has_role,
+  // is_dev, scope MCP). O manifest documenta a decisão; o gate aceita.
+  if (entry.enforcedBy === "custom") continue;
+
   const path = join(FN_DIR, fn, "index.ts");
   let src;
   try {
