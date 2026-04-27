@@ -106,7 +106,7 @@ export function ChatMessageList({
                         : "bg-muted/50 text-foreground rounded-bl-lg border border-border/20")}>
                     {message.role === "assistant" ? (
                       <div className="prose prose-sm prose-neutral dark:prose-invert max-w-none [&>p]:my-1 [&>ul]:my-1 [&>ol]:my-1 [&>h1]:text-sm [&>h2]:text-sm [&>h3]:text-xs [&>p]:text-[13px] [&>p]:leading-relaxed [&_li]:text-[13px] [&_li]:leading-relaxed [&>pre]:text-xs [&>pre]:bg-background/50 [&>pre]:rounded-lg [&>pre]:border [&>pre]:border-border/20 [&_code]:text-xs [&_code]:bg-background/50 [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_a]:text-primary [&_a]:no-underline [&_a]:font-medium hover:[&_a]:underline [&_strong]:font-semibold [&_table]:text-xs [&_table]:w-full [&_table]:border-collapse [&_th]:bg-muted/80 [&_th]:px-2 [&_th]:py-1.5 [&_th]:text-left [&_th]:font-semibold [&_th]:border [&_th]:border-border/30 [&_th]:text-[11px] [&_th]:uppercase [&_th]:tracking-wider [&_td]:px-2 [&_td]:py-1.5 [&_td]:border [&_td]:border-border/20 [&_td]:text-[12px] [&_tr:hover]:bg-muted/30 [&_blockquote]:border-l-2 [&_blockquote]:border-primary/30 [&_blockquote]:pl-3 [&_blockquote]:italic [&_blockquote]:text-muted-foreground [&_blockquote]:my-2">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ a: ProductAwareLink }}>
+                        <ReactMarkdown remarkPlugins={[remarkGfm]} components={{ a: ProductAwareLink }} skipHtml>
                           {preprocessProductLinks(message.content)}
                         </ReactMarkdown>
                       </div>
