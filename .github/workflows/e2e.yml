@@ -59,14 +59,32 @@ jobs:
         run: npx playwright test --project=chromium-smoke --max-failures=3
         continue-on-error: true
 
+      # ─── SMOKE: fail-fast agressivo ─────────────────────────────────────
+      # `--max-failures=1` para na PRIMEIRA falha (gate determinístico —
+      # qualquer falha do smoke invalida o run; rodar mais é desperdício).
+      # `--forbid-only` falha se algum spec tem `test.only` esquecido.
+      # Reporter `github` emite annotations clicáveis no PR; `list` é
+      # human-friendly no log; `json` alimenta o summary script.
+      - name: Run E2E smoke (gate — para na 1ª falha)
+        id: e2e_smoke
+        run: |
+          npx playwright test \
+            --project=chromium-smoke \
+            --max-failures=1 \
+            --forbid-only \
+            --reporter=github,list,json
+        env:
+          PLAYWRIGHT_JSON_OUTPUT_NAME: playwright-report/results.json
+        continue-on-error: true
+
       # Resumo dedicado do smoke: 1 linha por funcionalidade no log do step,
       # `::error file=...::` por falha (anotação inline no PR), `::group::`
       # colapsável para diagnóstico, e bloco "FINAL SUMMARY" sem ANSI no fim.
-      - name: Generate SMOKE summary (sempre — log final + annotations)
+      - name: 📋 Generate SMOKE summary (sempre — log final + annotations)
         if: always()
         run: node scripts/e2e-smoke-summary.mjs || true
 
-      - name: Append SMOKE summary to GitHub UI
+      - name: 📤 Append SMOKE summary to GitHub UI
         if: always() && hashFiles('playwright-report/smoke-summary.md') != ''
         run: |
           {
@@ -75,27 +93,40 @@ jobs:
             cat playwright-report/smoke-summary.md
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Fail-fast se smoke falhou (gate)
+      - name: 🛑 Fail-fast se smoke falhou (gate)
         if: steps.e2e_smoke.outcome != 'success'
         run: |
-          echo "::error::Smoke gate falhou — veja '🚦 E2E Smoke Summary' acima e artifact 'playwright-report'"
+          echo "::error title=Smoke gate failed::Smoke parou na 1ª falha — veja '🚦 E2E Smoke Summary' acima e o artifact 'playwright-report' (screenshots+vídeos+trace)."
           exit 1
 
-      - name: Run E2E full (cobertura completa)
+      # ─── REGRESSION: registra TUDO ──────────────────────────────────────
+      # SEM --max-failures: queremos diagnóstico completo. SEM --forbid-only
+      # (já validado no smoke). Reporter `line` é compacto e mostra todos
+      # os resultados; `html` para drill-down; `json`/`junit` para tooling.
+      # `--pass-with-no-tests` evita falhar se nenhum spec casar (ex: PR só
+      # mexe em smoke).
+      - name: Run E2E regression (cobertura completa — registra todas as falhas)
         if: steps.e2e_smoke.outcome == 'success'
-        run: npx playwright test
+        run: |
+          npx playwright test \
+            --grep-invert @smoke \
+            --pass-with-no-tests \
+            --reporter=github,line,html,json,junit
+        env:
+          PLAYWRIGHT_JSON_OUTPUT_NAME: playwright-report/results.json
+          PLAYWRIGHT_JUNIT_OUTPUT_NAME: playwright-report/results.xml
         continue-on-error: true
         id: e2e_run
 
-      - name: Generate feature summary
+      - name: 📋 Generate feature summary (regression)
         if: always()
         run: node scripts/e2e-feature-summary.mjs || true
 
-      - name: Append feature summary to GitHub UI
+      - name: 📤 Append feature summary to GitHub UI
         if: always() && hashFiles('playwright-report/feature-summary.md') != ''
         run: |
           {
-            echo "## E2E Feature Summary"
+            echo "## 🧪 E2E Feature Summary (regression)"
             echo ""
             cat playwright-report/feature-summary.md
           } >> "$GITHUB_STEP_SUMMARY"
