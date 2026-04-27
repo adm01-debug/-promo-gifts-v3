@@ -11,6 +11,7 @@ import type { ScenePrompt } from "@/components/magic-up/PromptBank";
 import type { GenerationHistoryItem } from "@/components/magic-up/AdImageResult";
 import type { ProductColor } from "./useMagicUpState";
 import { buildQualityDiagnosis, type MagicUpBatchVariant, type MagicUpBrandKit, type MagicUpBrief, type MagicUpCampaign, type MagicUpCopyPack, type MagicUpCreativeControls, type MagicUpCurationStatus, type MagicUpQualityDiagnosis, type MagicUpQualityScore, type MagicUpRefinement } from "@/pages/magic-up/magicUpStrategy";
+import { createClientLogger } from "@/lib/telemetry/structuredLogger";
 
 const toJson = (value: unknown): Json => value as Json;
 const toJsonRecord = (value: Json | null | undefined): Record<string, Json> => (value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, Json> : {});
@@ -50,14 +51,18 @@ export function useMagicUpGeneration(deps: GenerationDeps) {
 
   const analyzeQuality = useCallback(async (imageUrl: string, variantBrief: MagicUpBrief, variantControls: MagicUpCreativeControls): Promise<MagicUpQualityDiagnosis> => {
     const fallback = buildQualityDiagnosis(deps.qualityScore);
+    const log = createClientLogger('magicUp.score');
+    log.info('score_start', { channel: variantBrief.channel });
     try {
       const { data, error } = await supabase.functions.invoke<MagicUpQualityDiagnosis>("magic-up-score", {
         body: { imageUrl, productName: deps.selectedProduct?.name, clientName: deps.selectedClient?.name || deps.activeCampaign?.clientName, campaignBrief: variantBrief, brandKit: deps.brandKit, creativeControls: variantControls, promptText: deps.fullPromptPreview || deps.effectivePrompt, channel: variantBrief.channel, aspectRatio: variantControls.aspectRatio },
+        headers: log.headers(),
       });
       if (error || !data) throw error || new Error("Score indisponível");
+      log.info('score_ok', { total: data.total, source: data.source });
       return { ...data, source: data.source || "ai" };
     } catch (error) {
-      console.warn("Magic Up score fallback:", error);
+      log.warn('score_fallback', { err: error });
       return fallback;
     }
   }, [deps]);
@@ -65,12 +70,15 @@ export function useMagicUpGeneration(deps: GenerationDeps) {
   const handleGenerate = useCallback(async (batchVariant?: MagicUpBatchVariant) => {
     if (!canGenerate) return;
     setGenerating(true);
+    const log = createClientLogger('magicUp.generate', { base: { productId: deps.selectedProduct?.id, channel: deps.brief.channel } });
+    log.info('generate_start', { batch: batchVariant?.id ?? null });
     try {
       const isLogoUrl = deps.logoPreview!.startsWith("http");
       const variantBrief = batchVariant ? { ...deps.brief, channel: batchVariant.channel || deps.brief.channel, tone: batchVariant.tone || deps.brief.tone } : deps.brief;
       const variantControls = batchVariant?.aspectRatio ? { ...deps.creativeControls, aspectRatio: batchVariant.aspectRatio } : deps.creativeControls;
       const variantPrompt = [batchVariant?.scenePrompt || deps.effectivePrompt, batchVariant?.refinementInstruction || deps.activeRefinement?.instruction].filter(Boolean).join("\n\nREFINEMENT INSTRUCTION: ");
       const { data, error } = await supabase.functions.invoke("generate-ad-image", {
+        headers: log.headers(),
         body: {
           productImageUrl: deps.currentImage,
           logoBase64: isLogoUrl ? undefined : deps.logoPreview,
@@ -140,12 +148,13 @@ export function useMagicUpGeneration(deps: GenerationDeps) {
           setActiveVariation(prev.length);
           return [...prev, newVariation];
         });
+        log.info('generate_ok', { qualityScore: diagnosis.total, hasGenId: !!genId });
         toast.success("🎉 Imagem publicitária gerada com sucesso!");
       } else {
         throw new Error(data?.error || "Nenhuma imagem retornada");
       }
     } catch (err: unknown) {
-      console.error("Magic Up error:", err);
+      log.error('generate_failed', { err });
       toast.error(err instanceof Error ? err.message : "Erro ao gerar imagem");
     } finally {
       setGenerating(false);
