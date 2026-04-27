@@ -10,20 +10,41 @@
  * publica eventos, sem dependências de UI.
  */
 
+export type BridgeStatusType = 'degraded' | 'unavailable' | 'recovered';
+
+export interface BridgeStatusEventBase {
+  type: BridgeStatusType;
+  /** Timestamp do evento para correlação em logs. */
+  ts: number;
+}
+
+export interface BridgeDegradedEvent extends BridgeStatusEventBase {
+  type: 'degraded';
+  attempt: number;
+  maxAttempts: number;
+  delayMs: number;
+  /** Backoff base (sem jitter). */
+  baseDelayMs?: number;
+  /** Componente aleatório. */
+  jitterMs?: number;
+  /** Motivo amigável (ex: "Cold start detectado"). */
+  reason: string;
+}
+
+export interface BridgeUnavailableEvent extends BridgeStatusEventBase {
+  type: 'unavailable';
+  reason: string;
+  attempts: number;
+}
+
+export interface BridgeRecoveredEvent extends BridgeStatusEventBase {
+  type: 'recovered';
+}
+
 export type BridgeStatusEvent =
-  | {
-      type: 'degraded';
-      attempt: number;
-      maxAttempts: number;
-      delayMs: number;
-      /** Backoff base (sem jitter) — útil para telemetria mostrar a fórmula. */
-      baseDelayMs?: number;
-      /** Componente aleatório aplicado em cima do base. */
-      jitterMs?: number;
-      reason: string;
-    }
-  | { type: 'unavailable'; reason: string; attempts: number }
-  | { type: 'recovered' };
+  | BridgeDegradedEvent
+  | BridgeUnavailableEvent
+  | BridgeRecoveredEvent;
 
 type Listener = (e: BridgeStatusEvent) => void;
 const listeners = new Set<Listener>();
@@ -33,9 +54,14 @@ export function onBridgeStatus(fn: Listener): () => void {
   return () => listeners.delete(fn);
 }
 
-export function emitBridgeStatus(e: BridgeStatusEvent): void {
+export function emitBridgeStatus(e: Omit<BridgeStatusEvent, 'ts'> & { ts?: number }): void {
+  const event: BridgeStatusEvent = {
+    ...e,
+    ts: e.ts ?? Date.now(),
+  } as BridgeStatusEvent;
+
   for (const fn of listeners) {
-    try { fn(e); } catch { /* listener errors must not break invoke flow */ }
+    try { fn(event); } catch { /* noop */ }
   }
 }
 

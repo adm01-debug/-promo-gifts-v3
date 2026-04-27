@@ -19,19 +19,24 @@
 import { getBridgeSamples, type BridgeCallSample } from './bridgeCallMetrics';
 import { isInstrumentationPaused, subscribeInstrumentationPaused } from './instrumentationControl';
 
+/** Causa provável do bloqueio da main thread. */
+export type LongTaskAttribution = 'self' | 'same-origin-ancestor' | 'other' | string;
+
 export interface LongTaskEvent {
+  /** Identificador sequencial único na sessão. */
   id: number;
-  /** ms desde timeOrigin (performance.now scale). */
+  /** ms desde timeOrigin (escala performance.now()). */
   startTime: number;
+  /** Duração total do bloqueio em ms. */
   durationMs: number;
-  /** Date.now equivalente do INÍCIO da long task (escala wall-clock). */
+  /** Date.now() equivalente do INÍCIO da task. */
   startedAtWallMs: number;
-  /** Tipo reportado pelo browser (ex: "self", "same-origin-ancestor"). */
-  attribution: string[];
-  /** Bridges em voo durante o bloqueio (correlation forte). */
-  overlappingCalls: BridgeCallSample[];
-  /** Bridges que terminaram dentro da janela do bloqueio (correlation média). */
-  recentlyCompletedCalls: BridgeCallSample[];
+  /** Atribuição reportada pelo browser. */
+  attribution: LongTaskAttribution[];
+  /** Chamadas de bridge que estavam ativas durante TODO ou PARTE do bloqueio. */
+  overlappingCalls: readonly BridgeCallSample[];
+  /** Chamadas de bridge que terminaram imediatamente antes (janela de cooldown). */
+  recentlyCompletedCalls: readonly BridgeCallSample[];
 }
 
 const MAX_EVENTS = 100;

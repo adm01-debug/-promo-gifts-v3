@@ -11,23 +11,37 @@
 
 export type BridgeName = 'external-db-bridge' | 'crm-db-bridge';
 
+/** Operações permitidas para cada bridge, garantindo consistência em compile-time. */
+export type BridgeOperation = 
+  | 'select' | 'insert' | 'update' | 'delete' | 'upsert' | 'batch' | 'rpc'
+  | `rpc:${string}` 
+  | `auth:${string}`
+  | 'handshake'
+  | 'health';
+
 export interface BridgeCallSample {
   id: number;
+  /** Timestamp wall-clock (Date.now()). */
   ts: number;
   bridge: BridgeName;
-  /** Operação lógica (ex: "select", "batch", "rpc:get_categories"). */
-  op: string;
-  /** Tabela/RPC alvo quando aplicável, para agrupamento mais fino. */
+  /** Operação lógica. */
+  op: BridgeOperation;
+  /** Tabela, RPC ou entidade alvo. */
   target?: string;
   durationMs: number;
+  /** Tamanho estimado do request em bytes. */
   reqBytes: number;
+  /** Tamanho estimado do response em bytes. */
   respBytes: number;
+  /** Indica se a chamada foi completada com sucesso (status 2xx). */
   ok: boolean;
+  /** HTTP Status Code se disponível. */
   status?: number;
+  /** Mensagem de erro amigável ou técnica. */
   errorMessage?: string;
-  /** Correlation-id propagado via X-Request-Id (UUID v4 gerado no client). */
+  /** Correlation-id propagado via X-Request-Id (UUID v4). */
   requestId?: string;
-  /** Eco do request-id devolvido pelo servidor (deve bater com requestId). */
+  /** Echo do request-id devolvido pelo servidor. */
   serverRequestId?: string;
 }
 
