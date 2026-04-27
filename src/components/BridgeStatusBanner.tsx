@@ -65,7 +65,7 @@ export function BridgeStatusBanner() {
     return () => {
       unsubscribe();
     };
-  }, [unavailable, isAllowed]);
+  }, [isAllowed]); // Removido 'unavailable' das dependências para evitar re-subscrição desnecessária
 
   if (!isAllowed || !unavailable) return null;
 
