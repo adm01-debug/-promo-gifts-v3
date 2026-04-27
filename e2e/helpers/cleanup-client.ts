@@ -208,16 +208,32 @@ function computeBackoff(
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+export interface PurgeOpts {
+  quiet?: boolean;
+  reason?: string;
+  retryPolicy?: RetryPolicy;
+  /**
+   * Sobrescreve `cfg.nameFilterPrefix` apenas para esta chamada. Use para
+   * cleanup escopado por spec (ex.: prefixo `[E2E:quote-create]` derivado
+   * de `e2eScope`). Passe `null` para forçar purga sem filtro de nome.
+   */
+  nameFilterPrefix?: string | null;
+}
+
 export async function purgeOne(
   cfg: CleanupConfig,
   email: string,
-  opts: { quiet?: boolean; reason?: string; retryPolicy?: RetryPolicy } = {},
+  opts: PurgeOpts = {},
 ): Promise<CleanupResponse | null> {
   const policy = opts.retryPolicy ?? loadRetryPolicy();
+  const effectiveCfg: CleanupConfig =
+    opts.nameFilterPrefix !== undefined
+      ? { ...cfg, nameFilterPrefix: opts.nameFilterPrefix }
+      : cfg;
   let lastOutcome: AttemptOutcome | null = null;
 
   for (let attempt = 0; attempt < policy.attempts; attempt++) {
-    const outcome = await attemptCleanupRequest(cfg, email, policy);
+    const outcome = await attemptCleanupRequest(effectiveCfg, email, policy);
     lastOutcome = outcome;
 
     const isLastAttempt = attempt === policy.attempts - 1;
@@ -264,8 +280,11 @@ export async function purgeOne(
     const total = Object.values(deleted).reduce((a, b) => a + b, 0);
     const tag = json.dryRun ? "DRY-RUN" : "DELETED";
     const reason = opts.reason ? ` ${DIM}[${opts.reason}]${RESET}` : "";
+    const scope = effectiveCfg.nameFilterPrefix
+      ? ` ${DIM}<${effectiveCfg.nameFilterPrefix}>${RESET}`
+      : "";
     console.log(
-      `${GREEN}[e2e-cleanup] ${tag} ${total} linha(s) para ${email}${RESET}${reason} ${DIM}(${json.totalMs ?? 0}ms)${RESET}`,
+      `${GREEN}[e2e-cleanup] ${tag} ${total} linha(s) para ${email}${RESET}${reason}${scope} ${DIM}(${json.totalMs ?? 0}ms)${RESET}`,
     );
     const rows = Object.entries(deleted)
       .filter(([, n]) => n > 0)
@@ -285,10 +304,11 @@ export async function purgeOne(
 
 /**
  * Purga TODOS os usuários configurados (user + admin se distintos).
+ * Aceita `nameFilterPrefix` para escopar por spec — propaga para `purgeOne`.
  */
 export async function purgeAll(
   cfg: CleanupConfig,
-  opts: { quiet?: boolean; reason?: string } = {},
+  opts: PurgeOpts = {},
 ): Promise<void> {
   const seen = new Set<string>();
   if (cfg.userEmail) {
