@@ -105,7 +105,15 @@ export default defineConfig({
       // Executar isoladamente: `npm run test:e2e:smoke` ou
       // `npx playwright test --project=chromium-smoke --max-failures=3`.
       name: "chromium-smoke",
-      use: { ...devices["Desktop Chrome"], storageState: STORAGE_STATE },
+      use: {
+        ...devices["Desktop Chrome"],
+        storageState: STORAGE_STATE,
+        // Captura forçada por teste em falhas — independente do default global.
+        // Garante diagnóstico visual completo no CI sem depender de retries.
+        screenshot: { mode: "only-on-failure", fullPage: true },
+        video: { mode: "retain-on-failure", size: { width: 1280, height: 720 } },
+        trace: "retain-on-failure",
+      },
       dependencies: ["setup"],
       testMatch: /flows\/20-all-features-smoke\.spec\.ts/,
       fullyParallel: false,
