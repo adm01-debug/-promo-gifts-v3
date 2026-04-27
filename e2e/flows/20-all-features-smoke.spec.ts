@@ -93,10 +93,27 @@ async function assertFeatureLoads(
   await expect(page.locator("body")).toBeVisible();
 
   // ── Validação de estabilidade de URL (anti redirect-loop) ───────────────
-  // Aguarda 800ms para detectar redirects tardios (`useEffect` que dispara
-  // navigate após mount). Não usa networkidle pra não acoplar a fetches.
-  await page.waitForTimeout(800);
-  const urlSettled = page.url();
+  // Em vez de sleep fixo (proibido pelo ESLint guard-rail), fazemos polling
+  // ativo: confirmamos que a URL permanece IDÊNTICA por 3 leituras
+  // consecutivas espaçadas em ~250ms (~750ms total). Se houver redirect
+  // tardio nesse intervalo, o `pollUntil` falha imediatamente após detectar.
+  let stableUrl = urlAfterLoad;
+  let stableCount = 0;
+  await pollUntil(
+    async () => {
+      const cur = page.url();
+      if (cur === stableUrl) {
+        stableCount++;
+      } else {
+        // URL mudou — reseta a contagem com a nova URL.
+        stableUrl = cur;
+        stableCount = 1;
+      }
+      return stableCount >= 3 ? true : false;
+    },
+    { timeout: 3_000, intervalMs: 250, message: `aguardando URL estabilizar em ${path}` },
+  );
+  const urlSettled = stableUrl;
   const historyAfter = await page
     .evaluate(() => window.history.length)
     .catch(() => historyBefore);
