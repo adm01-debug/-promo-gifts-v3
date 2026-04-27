@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { DevInfraGate } from './DevInfraGate';
-import { GateFlagProvider } from './types';
+import { DevInfraGate } from '@/lib/system/dev-gate/DevInfraGate';
+import { GateFlagProvider } from '@/lib/system/dev-gate/types';
 
 describe('DevInfraGate', () => {
   let gate: DevInfraGate;
