@@ -50,7 +50,7 @@ serve(async (req) => {
     auditData = {
       user_id: user?.id ?? null,
       bucket: 'personalization-images',
-      path: `${folder}/${file.name}`,
+      path: `verified/${folder}/${file.name}`,
       hash: hashHex,
       status_code: 200,
       scan_result: { message: 'Arquivo recebido para análise' }
@@ -59,6 +59,7 @@ serve(async (req) => {
     let isSuspicious = false
     let scanDetails: any = { source: 'VirusTotal', checked_at: new Date().toISOString() }
     let targetBucket = 'personalization-images'
+    let targetPrefix = 'verified'
     const vtApiKey = Deno.env.get('VIRUSTOTAL_API_KEY')
 
     if (vtApiKey) {
@@ -101,9 +102,12 @@ serve(async (req) => {
       }
     }
 
-    if (isSuspicious) targetBucket = 'quarantine'
+    if (isSuspicious) {
+      targetBucket = 'quarantine'
+      targetPrefix = 'suspect'
+    }
 
-    const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).substring(7)}.${file.name.split('.').pop()}`
+    const fileName = `${targetPrefix}/${folder}/${Date.now()}-${Math.random().toString(36).substring(7)}.${file.name.split('.').pop()}`
     const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
       .from(targetBucket)
       .upload(fileName, fileBuffer, { contentType: file.type, upsert: false })
