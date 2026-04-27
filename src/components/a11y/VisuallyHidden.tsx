@@ -1,15 +1,16 @@
-import { type ReactNode } from "react";
+import React, { type ReactNode } from "react";
 
 interface VisuallyHiddenProps {
   children: ReactNode;
-  as?: keyof JSX.IntrinsicElements;
+  as?: keyof React.JSX.IntrinsicElements;
 }
 
 /**
  * Visually hides content while keeping it accessible to screen readers.
  * Use for descriptive text that provides context for assistive technologies.
  */
-export function VisuallyHidden({ children, as: Component = "span" }: VisuallyHiddenProps) {
+export function VisuallyHidden({ children, as: component = "span" }: VisuallyHiddenProps) {
+  const Component = component;
   return (
     <Component className="sr-only">
       {children}
