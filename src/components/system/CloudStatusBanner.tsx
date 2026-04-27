@@ -13,17 +13,18 @@ import { AlertTriangle, Loader2, RefreshCw, WifiOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCloudStatus } from '@/hooks/useCloudStatus';
 import { useAuth } from '@/contexts/AuthContext';
+import { shouldShowDevInfraMessages } from '@/lib/system/dev-infra-messages';
 
 type CloudStatusVariant = 'warming' | 'degraded' | 'down';
 
 export function CloudStatusBanner() {
   const { isDev } = useAuth();
   const { status, retry, isChecking } = useCloudStatus();
-  // Mensagens técnicas de infraestrutura ficam restritas a usuários `dev`.
-  // Usuários comuns não devem ver detalhes de reinício/instabilidade do backend —
-  // a app já tem skeletons + retries automáticos para mascarar a recuperação.
+  // Mensagens técnicas de infraestrutura passam pelo gate SSOT
+  // (env VITE_SHOW_DEV_INFRA_MESSAGES > localStorage > role dev).
+  const allowed = shouldShowDevInfraMessages(isDev);
   const visible =
-    isDev && (status === 'warming' || status === 'degraded' || status === 'down');
+    allowed && (status === 'warming' || status === 'degraded' || status === 'down');
 
   return (
     <AnimatePresence>
