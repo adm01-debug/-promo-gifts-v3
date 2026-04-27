@@ -53,9 +53,11 @@ export const CloudStatusBanner = memo(function CloudStatusBanner() {
         aria-live="polite"
         className={`sticky top-0 z-50 w-full border-b ${config.className}`}
       >
-        <div className="container mx-auto flex items-center gap-3 px-4 py-2 text-sm">
-          <Icon className={`h-4 w-4 shrink-0 ${status === 'warming' ? 'animate-spin' : ''}`} aria-hidden />
-          <span className="flex-1">{config.message}</span>
+        <div className="container mx-auto flex flex-col sm:flex-row items-start sm:items-center gap-3 px-4 py-2 text-sm">
+          <div className="flex items-start sm:items-center gap-3 flex-1">
+            <Icon className={`h-4 w-4 shrink-0 mt-0.5 sm:mt-0 ${status === 'warming' ? 'animate-spin' : ''}`} aria-hidden />
+            <span className="flex-1 leading-tight">{config.message}</span>
+          </div>
           
           {status === 'down' && (
             <Button
