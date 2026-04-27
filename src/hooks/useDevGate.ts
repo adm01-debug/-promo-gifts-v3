@@ -15,17 +15,15 @@ export function useDevGate() {
     setMounted(true);
   }, []);
   
-  // Memoizamos a store evaluation para evitar re-renders se a lista de roles for igual
-  // O uso de useSyncExternalStore já garante consistência externa
+  // Otimização: Estabilizamos a referência das roles se o conteúdo for idêntico
+  const stableRoles = useMemo(() => roles, [roles.join(',')]);
+
   const isAllowedStore = useSyncExternalStore(
     (onStoreChange) => devInfraGate.subscribe(onStoreChange),
-    () => devInfraGate.shouldShow(roles),
+    () => devInfraGate.shouldShow(stableRoles),
     () => false
   );
 
-  // Otimização de UI: Calculamos o estado final e memoizamos o objeto de retorno
-  // para evitar que hooks dependentes do useDevGate re-renderizem se o resultado for o mesmo.
-  // Note que isLoading e mounted mudam pouco, o gargalo costumava ser o processamento das roles.
   const isAllowed = mounted && !isLoading && isAllowedStore;
   const isDevFinal = mounted && isDev;
 
