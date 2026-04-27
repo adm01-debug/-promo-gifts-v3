@@ -11,6 +11,7 @@ import type { ScenePrompt } from "@/components/magic-up/PromptBank";
 import type { GenerationHistoryItem } from "@/components/magic-up/AdImageResult";
 import type { ProductColor } from "./useMagicUpState";
 import { buildQualityDiagnosis, type MagicUpBatchVariant, type MagicUpBrandKit, type MagicUpBrief, type MagicUpCampaign, type MagicUpCopyPack, type MagicUpCreativeControls, type MagicUpCurationStatus, type MagicUpQualityDiagnosis, type MagicUpQualityScore, type MagicUpRefinement } from "@/pages/magic-up/magicUpStrategy";
+import { createClientLogger } from "@/lib/telemetry/structuredLogger";
 
 const toJson = (value: unknown): Json => value as Json;
 const toJsonRecord = (value: Json | null | undefined): Record<string, Json> => (value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, Json> : {});
