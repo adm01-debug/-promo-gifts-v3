@@ -94,8 +94,8 @@ const Header = memo(({ paused, onTogglePause, onClear, onClose }: any) => (
   <div className="flex items-center justify-between gap-2 border-b border-white/10 bg-zinc-900/80 px-3 py-2">
     <div className="flex items-center gap-2">
       <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
-      <span className="font-semibold">Bridge metrics</span>
-      <span className="text-zinc-500">· preview only</span>
+      <span className="font-semibold">Métricas de Bridge</span>
+      <span className="text-zinc-500">· modo dev</span>
     </div>
     <div className="flex items-center gap-1">
       <button
