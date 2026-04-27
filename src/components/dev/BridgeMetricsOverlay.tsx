@@ -3,7 +3,7 @@
  * em tempo real — latência, payload de resposta, status e request-id.
  */
 
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore, memo } from 'react';
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore, memo, useCallback } from 'react';
 import { useDevGate } from '@/hooks/useDevGate';
 import {
   getBridgeSamples,
@@ -84,13 +84,13 @@ export default function BridgeMetricsOverlay() {
 
   const samples = useSyncExternalStore(
     subscribeBridgeCalls,
-    () => (open && !paused ? getBridgeSamples() : EMPTY),
+    useCallback(() => (open && !paused ? getBridgeSamples() : EMPTY), [open, paused]),
     () => EMPTY,
   );
 
   const longTasks = useSyncExternalStore(
     subscribeLongTasks,
-    () => (open && !paused ? getLongTaskEvents() : EMPTY_LT),
+    useCallback(() => (open && !paused ? getLongTaskEvents() : EMPTY_LT), [open, paused]),
     () => EMPTY_LT,
   );
 

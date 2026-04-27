@@ -8,6 +8,7 @@ import { EnvGateProvider, LocalStorageGateProvider } from './providers';
 export class DevInfraGate {
   private providers: GateFlagProvider[];
   private cache: Map<string, boolean> = new Map();
+  private listeners: Set<() => void> = new Set();
 
   constructor(providers?: GateFlagProvider[]) {
     this.providers = providers ?? [
@@ -15,7 +16,7 @@ export class DevInfraGate {
       new LocalStorageGateProvider()
     ];
     
-    // Invalida cache se houver mudança no localStorage de outra aba
+    // Invalida cache e notifica ouvintes se houver mudança no localStorage
     if (typeof window !== 'undefined') {
       window.addEventListener('storage', (e) => {
         if (e.key === 'show_dev_infra_messages' || e.key === 'lov:bridge-metrics-overlay:open') {
@@ -23,6 +24,14 @@ export class DevInfraGate {
         }
       });
     }
+  }
+
+  /**
+   * Inscreve um ouvinte para mudanças no estado do gate.
+   */
+  subscribe(listener: () => void): () => void {
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
   }
 
   /**
@@ -53,6 +62,7 @@ export class DevInfraGate {
    */
   invalidateCache(): void {
     this.cache.clear();
+    this.listeners.forEach(l => l());
   }
 }
 

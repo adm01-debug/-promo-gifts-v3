@@ -55,7 +55,7 @@ export const BridgeStatusBanner = memo(function BridgeStatusBanner() {
         toast.error(title, {
           id: TOAST_ID_UNAVAILABLE,
           description,
-          duration: 10000,
+          duration: Infinity,
           action: {
             label: 'Recarregar',
             onClick: () => window.location.reload(),
@@ -71,14 +71,22 @@ export const BridgeStatusBanner = memo(function BridgeStatusBanner() {
           });
           setUnavailable(false);
           setReason('');
+        } else {
+          // Feedback de sucesso para transições de degradação
+          toast.success('Conexão normalizada', {
+            id: TOAST_ID_DEGRADED,
+            duration: 3000,
+          });
         }
       }
     });
 
     return () => {
       unsubscribe();
+      // Cleanup de segurança
+      toast.dismiss(TOAST_ID_DEGRADED);
     };
-  }, [isAllowed]); // Removido 'unavailable' das dependências para evitar re-subscrição desnecessária
+  }, [isAllowed]);
 
   if (!unavailable) return null;
 
@@ -116,7 +124,10 @@ export const BridgeStatusBanner = memo(function BridgeStatusBanner() {
             size="icon"
             variant="ghost"
             className="h-7 w-7 text-destructive-foreground hover:bg-destructive-foreground/10"
-            onClick={() => setUnavailable(false)}
+            onClick={() => {
+              setUnavailable(false);
+              toast.dismiss(TOAST_ID_UNAVAILABLE);
+            }}
             aria-label="Fechar aviso"
             title={reason}
           >
