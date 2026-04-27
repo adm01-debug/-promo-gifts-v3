@@ -40,12 +40,24 @@ export class EnvGateProvider implements GateFlagProvider {
  * Provedor de flag baseado em localStorage.
  */
 export class LocalStorageGateProvider implements GateFlagProvider {
+  private lastValue: GateValue | null = null;
+  private lastRaw: string | null = null;
+
   constructor(private readonly key: string = 'show_dev_infra_messages') {}
 
   getFlag(): GateValue {
+    if (typeof window === 'undefined' || !window.localStorage) return 'auto';
+    
     try {
-      if (typeof window === 'undefined' || !window.localStorage) return 'auto';
-      return parseGateFlag(window.localStorage.getItem(this.key));
+      const raw = window.localStorage.getItem(this.key);
+      // Otimização: Evitar parsing se o valor bruto no localStorage não mudou
+      if (raw === this.lastRaw && this.lastValue !== null) {
+        return this.lastValue;
+      }
+      
+      this.lastRaw = raw;
+      this.lastValue = parseGateFlag(raw);
+      return this.lastValue;
     } catch {
       return 'auto';
     }

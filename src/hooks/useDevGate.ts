@@ -15,8 +15,10 @@ export function useDevGate() {
     setMounted(true);
   }, []);
   
-  // Otimização: Estabilizamos a referência das roles se o conteúdo for idêntico
-  const stableRoles = useMemo(() => roles, [roles.join(',')]);
+  // Otimização: Estabilizamos a referência das roles usando uma stringificação leve.
+  // Isso evita que o hook dispare re-renders se o AuthContext retornar uma nova instância de array com os mesmos dados.
+  const rolesKey = roles.join(',');
+  const stableRoles = useMemo(() => roles, [rolesKey]);
 
   const isAllowedStore = useSyncExternalStore(
     (onStoreChange) => devInfraGate.subscribe(onStoreChange),
@@ -24,11 +26,14 @@ export function useDevGate() {
     () => false
   );
 
-  const isAllowed = mounted && !isLoading && isAllowedStore;
-  const isDevFinal = mounted && isDev;
-
-  return useMemo(() => ({
-    isAllowed,
-    isDev: isDevFinal
-  }), [isAllowed, isDevFinal]);
+  // Memoização do resultado final para evitar propagação de re-renders em componentes consumidores
+  return useMemo(() => {
+    const isAllowed = mounted && !isLoading && isAllowedStore;
+    const isDevFinal = mounted && isDev;
+    
+    return {
+      isAllowed,
+      isDev: isDevFinal
+    };
+  }, [mounted, isLoading, isAllowedStore, isDev]);
 }
