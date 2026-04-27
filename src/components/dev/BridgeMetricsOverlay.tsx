@@ -2,7 +2,7 @@
  * Overlay flutuante (somente preview/dev) que mostra cada chamada de bridge
  * em tempo real — latência, payload de resposta, status e request-id.
  */
-import { memo } from 'react';
+import { memo, useCallback } from 'react';
 import { useDevGate } from '@/hooks/useDevGate';
 import { useBridgeMetrics, type BridgeMetricsFilter, type BridgeMetricsTab } from '@/hooks/dev/useBridgeMetrics';
 import { BridgeCallItem } from './metrics/BridgeCallItem';
@@ -32,6 +32,9 @@ export default function BridgeMetricsOverlay() {
     clear
   } = useBridgeMetrics(isAllowed);
 
+  const handleTogglePause = useCallback(() => setPaused(prev => !prev), [setPaused]);
+  const handleClose = useCallback(() => setOpen(false), [setOpen]);
+
   if (!open) {
     return (
       <button
@@ -54,9 +57,9 @@ export default function BridgeMetricsOverlay() {
     >
       <Header 
         paused={paused} 
-        onTogglePause={() => setPaused(!paused)} 
+        onTogglePause={handleTogglePause} 
         onClear={clear} 
-        onClose={() => setOpen(false)} 
+        onClose={handleClose} 
       />
 
       <BridgeMetricsSummary summary={summary} />
