@@ -1,17 +1,23 @@
+import { useMemo, useSyncExternalStore } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { devInfraGate } from '@/lib/system/dev-gate/DevInfraGate';
 
 /**
  * Hook customizado para encapsular a lógica de acesso ao Gate.
- * Simplifica o uso nos componentes e facilita testes.
+ * Reativo a mudanças de ambiente e configurações manuais (localStorage).
  */
 export function useDevGate() {
   const { isDev } = useAuth();
   
-  // Memoizamos o resultado para evitar acessos repetidos ao localStorage/Providers
-  // durante re-renders do componente pai.
+  // Usamos useSyncExternalStore para reagir a mudanças no devInfraGate (ex: storage events)
+  const isAllowed = useSyncExternalStore(
+    (onStoreChange) => devInfraGate.subscribe(onStoreChange),
+    () => devInfraGate.shouldShow(isDev),
+    () => isDev // Fallback para SSR
+  );
+
   return useMemo(() => ({
-    isAllowed: devInfraGate.shouldShow(isDev),
+    isAllowed,
     isDev
-  }), [isDev]);
+  }), [isAllowed, isDev]);
 }
