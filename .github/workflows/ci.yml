@@ -122,6 +122,14 @@ jobs:
       - name: 📜 Edge structured-logging gate
         run: node scripts/check-edge-structured-logging.mjs
 
+      # Para as edges CRÍTICAS (CRITICAL_EDGES no script), valida que:
+      #  (A) importam createStructuredLogger ou getOrCreateRequestId,
+      #  (B) propagam X-Request-Id em TODA resposta (log.respond/withRequestIdHeader/REQUEST_ID_HEADER),
+      #  (C) propagam X-Request-Id em TODA chamada interna (fetch /functions/v1 ou supabase.functions.invoke).
+      # ver scripts/check-edge-request-id-propagation.mjs.
+      - name: 🔗 Edge X-Request-Id propagation gate (rotas críticas)
+        run: node scripts/check-edge-request-id-propagation.mjs
+
       - name: RLS policy tests (optional)
         if: env.TEST_SELLER_PASSWORD != '' && env.TEST_ADMIN_PASSWORD != ''
         env:
