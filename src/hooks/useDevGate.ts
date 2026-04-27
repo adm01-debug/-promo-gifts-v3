@@ -7,13 +7,13 @@ import { devInfraGate } from '@/lib/system/dev-gate/DevInfraGate';
  * Reativo a mudanças de ambiente e configurações manuais (localStorage).
  */
 export function useDevGate() {
-  const { isDev } = useAuth();
+  const { roles, isDev } = useAuth();
   
   // Usamos useSyncExternalStore para reagir a mudanças no devInfraGate (ex: storage events)
   const isAllowed = useSyncExternalStore(
     (onStoreChange) => devInfraGate.subscribe(onStoreChange),
-    () => devInfraGate.shouldShow(isDev),
-    () => isDev // Fallback para SSR
+    () => devInfraGate.shouldShow(roles),
+    () => devInfraGate.hasAccess(roles) // Fallback seguro para SSR
   );
 
   return useMemo(() => ({
