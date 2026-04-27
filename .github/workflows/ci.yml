@@ -116,6 +116,12 @@ jobs:
       - name: 🛡️ Edge authorization manifest gate
         run: node scripts/check-edge-authorization.mjs
 
+      # Garante que toda NOVA edge function adote o logger estruturado SSOT
+      # (createStructuredLogger). Allowlist congelada em snapshot 2026-04-27;
+      # ver scripts/check-edge-structured-logging.mjs.
+      - name: 📜 Edge structured-logging gate
+        run: node scripts/check-edge-structured-logging.mjs
+
       - name: RLS policy tests (optional)
         if: env.TEST_SELLER_PASSWORD != '' && env.TEST_ADMIN_PASSWORD != ''
         env:
