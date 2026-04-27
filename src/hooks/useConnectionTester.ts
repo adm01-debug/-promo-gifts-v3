@@ -58,9 +58,12 @@ export function useConnectionTester() {
     }
 
     setIsTesting(true);
+    const log = createClientLogger('connections.testCredentials', { base: { type, env_key, connection_id } });
+    log.info('test_start');
     try {
       const { data, error } = await supabase.functions.invoke("connection-tester", {
         body: { action: "test", type, config, connection_id, env_key },
+        headers: log.headers(),
       });
       if (error) throw error;
       const r = (data?.result ?? {}) as TestResult;
@@ -75,6 +78,11 @@ export function useConnectionTester() {
         tested_at: r.tested_at ?? new Date().toISOString(),
       };
       setLastResult(normalized);
+      if (normalized.ok) {
+        log.info('test_ok', { status: normalized.status, latency_ms: normalized.latency_ms });
+      } else {
+        log.warn('test_failed', { status: normalized.status, error_kind: normalized.error_kind, error: normalized.error });
+      }
       if (!silent) {
         if (normalized.ok) {
           toast.success("Conexão OK", {
@@ -92,6 +100,7 @@ export function useConnectionTester() {
       const msg = err instanceof Error ? err.message : "Erro";
       const failed: TestResult = { ok: false, error: msg, error_kind: "unknown", tested_at: new Date().toISOString() };
       setLastResult(failed);
+      log.error('test_exception', { err });
       if (!silent) toast.error("Erro ao testar conexão", { description: msg });
       return failed;
     } finally {
