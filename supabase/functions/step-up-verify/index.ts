@@ -6,6 +6,9 @@ import { getCorsHeaders } from "../_shared/cors.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { castRpcResult } from "../_shared/supabase-client-adapter.ts";
 
+// Module-scope CORS headers — atribuído per-request no handler.
+let corsHeaders: Record<string, string> = {};
+
 type RpcEnvelope<T> = { data: T | null; error: { message: string } | null };
 type StepUpChallengeRow = { challenge_id: string; otp_plain: string; expires_at: string };
 type StepUpOtpRow = { token: string; expires_at: string };
@@ -52,6 +55,7 @@ function safeLabel(label: string | undefined | null, max = 200): string | null {
 }
 
 Deno.serve(async (req) => {
+  corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") return new Response(null, { headers: getCorsHeaders(req) });
 
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;

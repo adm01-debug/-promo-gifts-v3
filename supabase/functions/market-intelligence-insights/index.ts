@@ -209,6 +209,7 @@ async function aggregateData(
 }
 
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
   const t0 = Date.now();
   if (req.method === "OPTIONS") return new Response(null, { headers: getCorsHeaders(req) });
 

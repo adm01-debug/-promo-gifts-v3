@@ -1,3 +1,4 @@
+import { getCorsHeaders } from "../_shared/cors.ts";
 /**
  * bi-share-dossier — gera token assinado HMAC para compartilhamento público
  * do dossiê BI (read-only, expira em 7 dias).
@@ -9,7 +10,6 @@
  *   → { valid, payload }  (read-only para a página pública)
  */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
-import { corsHeaders } from "https://esm.sh/@supabase/supabase-js@2.95.0/cors";
 
 const SHARE_SECRET = Deno.env.get("BI_SHARE_SECRET") ?? Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
@@ -77,6 +77,7 @@ async function verifyToken(token: string): Promise<Payload | null> {
 }
 
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }

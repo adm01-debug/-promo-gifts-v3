@@ -89,6 +89,8 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: getCorsHeaders(req) });
   }
 
+  const corsHeaders = getCorsHeaders(req);
+
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
   try {

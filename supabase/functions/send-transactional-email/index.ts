@@ -130,6 +130,8 @@ serve(async (req) => {
     return new Response("ok", { headers: getCorsHeaders(req) });
   }
 
+  const corsHeaders = getCorsHeaders(req);
+
   try {
     const authHeader = req.headers.get("authorization");
     if (!authHeader) {

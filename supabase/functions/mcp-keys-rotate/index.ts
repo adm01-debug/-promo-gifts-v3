@@ -1,3 +1,4 @@
+import { getCorsHeaders } from "../_shared/cors.ts";
 /**
  * mcp-keys-rotate
  *
@@ -7,7 +8,6 @@
  */
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
-import { corsHeaders } from "https://esm.sh/@supabase/supabase-js@2.95.0/cors";
 import { z } from "https://esm.sh/zod@3.23.8";
 import {
   FULL_SCOPE_CONFIRMATION,
@@ -18,6 +18,9 @@ import { getOrCreateRequestId, REQUEST_ID_HEADER } from "../_shared/request-id.t
 import { writeAuditEntry, summarizePayload, extractRequestMeta } from "../_shared/audit-log.ts";
 import { recordMcpViolation, mapViolationReason } from "../_shared/mcp-violations.ts";
 import { castRpcResult } from "../_shared/supabase-client-adapter.ts";
+
+// Module-scope CORS headers — atribuído per-request no handler.
+let corsHeaders: Record<string, string> = {};
 
 type RpcEnvelope<T> = { data: T | null; error: { message: string } | null };
 
@@ -52,6 +55,7 @@ async function generateKey() {
 }
 
 Deno.serve(async (req) => {
+  corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   const requestId = getOrCreateRequestId(req);
   const startedAt = new Date().toISOString();

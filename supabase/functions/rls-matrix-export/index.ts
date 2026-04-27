@@ -11,6 +11,9 @@ import { getCorsHeaders } from "../_shared/cors.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { castRpcResult } from "../_shared/supabase-client-adapter.ts";
 
+// Module-scope CORS headers — atribuído per-request no handler.
+let corsHeaders: Record<string, string> = {};
+
 interface MatrixRow {
   table: string;
   rls_enabled: boolean;
@@ -23,6 +26,7 @@ interface MatrixRow {
 }
 
 Deno.serve(async (req) => {
+  corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") return new Response(null, { headers: getCorsHeaders(req) });
 
   try {

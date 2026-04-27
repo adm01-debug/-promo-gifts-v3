@@ -419,6 +419,7 @@ const TopLevelBodySchema = z.object({
 }, { message: "Field 'table' is required for CRUD operations, 'rpcName' for RPC" });
 
 Deno.serve((req) => {
+  const corsHeaders = getCorsHeaders(req);
   // Guard raiz: nada lançado a partir daqui pode escapar ao runtime,
   // ou o edge-runtime devolve 503 SUPABASE_EDGE_RUNTIME_ERROR genérico
   // (sem CORS, sem JSON) que trava a UI ("blank screen").

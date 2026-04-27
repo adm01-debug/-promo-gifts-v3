@@ -1,8 +1,8 @@
+import { getCorsHeaders } from "../_shared/cors.ts";
 // RLS Audit: testa SELECT/INSERT/UPDATE/DELETE em quotes, orders e
 // discount_approval_requests usando o JWT do usuário logado (vendedor).
 // Cada cenário retorna ✅/❌ + detalhe para evidência de auditoria.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
-import { corsHeaders } from "https://esm.sh/@supabase/supabase-js@2.95.0/cors";
 
 interface ScenarioResult {
   table: string;
@@ -15,6 +15,7 @@ interface ScenarioResult {
 }
 
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
