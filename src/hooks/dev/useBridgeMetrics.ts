@@ -27,15 +27,17 @@ export function useBridgeMetrics(isAllowed: boolean) {
   const [filter, setFilter] = useState<BridgeMetricsFilter>('all');
   const [tab, setTab] = useState<BridgeMetricsTab>('calls');
 
+  const getSamplesSnapshot = useCallback(() => (open && !paused ? getBridgeSamples() : EMPTY), [open, paused]);
   const samples = useSyncExternalStore(
     subscribeBridgeCalls,
-    useCallback(() => (open && !paused ? getBridgeSamples() : EMPTY), [open, paused]),
+    getSamplesSnapshot,
     () => EMPTY,
   );
 
+  const getLongTasksSnapshot = useCallback(() => (open && !paused ? getLongTaskEvents() : EMPTY_LT), [open, paused]);
   const longTasks = useSyncExternalStore(
     subscribeLongTasks,
-    useCallback(() => (open && !paused ? getLongTaskEvents() : EMPTY_LT), [open, paused]),
+    getLongTasksSnapshot,
     () => EMPTY_LT,
   );
 

@@ -87,16 +87,20 @@ describe('BridgeMetricsOverlay', () => {
 
   it('deve exibir filtros apenas na aba de chamadas', () => {
     render(<BridgeMetricsOverlay />);
-    expect(screen.getByText('all')).toBeInTheDocument();
-    expect(screen.getByText('≥600ms')).toBeInTheDocument();
-    expect(screen.getByText('errors')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'all' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '≥600ms' })).toBeInTheDocument();
+    
+    // O erro anterior era "Found multiple elements with text: errors"
+    // Temos o label do summary ("errors") e o botão de filtro ("errors")
+    const errorFilters = screen.getAllByText('errors');
+    expect(errorFilters.length).toBeGreaterThan(0);
 
     (useBridgeMetrics as any).mockReturnValue({
       ...defaultMockValues,
       tab: 'longtasks',
     });
     render(<BridgeMetricsOverlay />);
-    expect(screen.queryByText('all')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'all' })).not.toBeInTheDocument();
   });
 
   it('deve chamar setFilter ao clicar nos botões de filtro', () => {
