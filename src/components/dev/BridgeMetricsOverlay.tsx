@@ -84,13 +84,13 @@ export default function BridgeMetricsOverlay() {
 
   const samples = useSyncExternalStore(
     subscribeBridgeCalls,
-    () => (open && !paused ? getBridgeSamples() : EMPTY),
+    useCallback(() => (open && !paused ? getBridgeSamples() : EMPTY), [open, paused]),
     () => EMPTY,
   );
 
   const longTasks = useSyncExternalStore(
     subscribeLongTasks,
-    () => (open && !paused ? getLongTaskEvents() : EMPTY_LT),
+    useCallback(() => (open && !paused ? getLongTaskEvents() : EMPTY_LT), [open, paused]),
     () => EMPTY_LT,
   );
 
