@@ -1,3 +1,4 @@
+import { getCorsHeaders } from "../_shared/cors.ts";
 // Admin-only secrets manager for the Conexões hub.
 // Persists values in `integration_credentials` and never returns plaintext to the client.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
@@ -11,13 +12,6 @@ import { writeAuditEntry, extractRequestMeta } from "../_shared/audit-log.ts";
 import { getOrCreateRequestId } from "../_shared/request-id.ts";
 
 const SOURCE = "secrets-manager";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
 
 const ALLOWED_SECRETS = new Set<string>([
   "EXTERNAL_PROMOBRIND_URL",
@@ -77,7 +71,7 @@ function maskValue(v: string | undefined | null): {
 }
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  if (req.method === "OPTIONS") return new Response(null, { headers: getCorsHeaders(req) });
 
   const requestId = getOrCreateRequestId(req);
   const startedAt = new Date().toISOString();

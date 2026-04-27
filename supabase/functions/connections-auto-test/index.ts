@@ -1,3 +1,4 @@
+import { getCorsHeaders } from "../_shared/cors.ts";
 // connections-auto-test: cron-driven (every 30min). Re-tests every active
 // connection in `external_connections` and updates last_test_* fields +
 // inserts a row in `connection_test_history` with triggered_by='cron'.
@@ -23,12 +24,6 @@ export type { CompatibleSupabaseClient, ServiceClient };
 export function assertServiceClient(client: unknown): asserts client is ServiceClient {
   sharedAssertServiceClient(client, "connections-auto-test");
 }
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
 
 const BATCH_SIZE = 5;
 // Backoff schedule between attempts. Length defines max attempts (3 = 1 try + 2 retries).
@@ -121,7 +116,7 @@ export async function processBatch<
 }
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  if (req.method === "OPTIONS") return new Response(null, { headers: getCorsHeaders(req) });
 
   const startedAt = Date.now();
   try {

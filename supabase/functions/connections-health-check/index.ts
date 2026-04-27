@@ -1,3 +1,4 @@
+import { getCorsHeaders } from "../_shared/cors.ts";
 // connections-health-check: cron-driven (every 15min). Re-tests every active
 // connection, notifies admins on transitions (active→error), on auto-disabled
 // outbound webhooks and on stale secrets (>90 days). Dedupe 4h per (key) to
@@ -6,12 +7,6 @@
 // `set_connection_failure_window_minutes`, default 30min) to suppress flapping.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { castRpcResult } from "../_shared/supabase-client-adapter.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
 
 const DEDUPE_WINDOW_HOURS = 4;
 const STALE_SECRET_DAYS = 90;
@@ -62,7 +57,7 @@ async function notifyAdmins(
 }
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  if (req.method === "OPTIONS") return new Response(null, { headers: getCorsHeaders(req) });
 
   try {
     const service = createClient(

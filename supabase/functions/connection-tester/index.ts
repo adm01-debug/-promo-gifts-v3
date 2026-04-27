@@ -1,15 +1,10 @@
+import { getCorsHeaders } from "../_shared/cors.ts";
 // connection-tester: pings external systems to verify connectivity. Admin-only.
 // Reads credentials from `integration_credentials` (DB-first) with env fallback.
 // Core ping/persistence logic lives in `_shared/connection-test-runner.ts`.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { z } from "https://deno.land/x/zod@v3.23.8/mod.ts";
 import { runConnectionTest } from "../_shared/connection-test-runner.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
 
 const BodySchema = z.object({
   action: z.enum(["test", "last_test", "test_history", "last_test_full", "consecutive_failures_overview"]).optional().default("test"),
@@ -51,7 +46,7 @@ function maskBody(body: string | null | undefined): string | null {
 }
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  if (req.method === "OPTIONS") return new Response(null, { headers: getCorsHeaders(req) });
 
   try {
     const authHeader = req.headers.get("Authorization");

@@ -1,3 +1,4 @@
+import { getCorsHeaders } from "../_shared/cors.ts";
 // ============================================================
 // EDGE FUNCTION: kit-identity-suggest
 // Recebe nome + lista de itens do kit e sugere identidade visual
@@ -7,12 +8,6 @@
 // ============================================================
 import { z } from '../_shared/zod-validate.ts';
 import { runBotProtection } from '../_shared/bot-protection.ts';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers':
-    'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
 
 const PALETTE = [
   '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6',
@@ -40,7 +35,7 @@ const BodySchema = z.object({
 });
 
 Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
+  if (req.method === 'OPTIONS') return new Response(null, { headers: getCorsHeaders(req) });
 
   try {
     // Bot protection + rate limit (10 req / 60s, block 1h)
@@ -50,7 +45,7 @@ Deno.serve(async (req: Request) => {
       windowSeconds: 60,
       blockSeconds: 3600,
       allowSearchBots: false,
-    }, corsHeaders);
+    }, getCorsHeaders(req));
     if (!protection.allowed) return protection.blockResponse!;
 
     const raw = await req.json().catch(() => ({}));

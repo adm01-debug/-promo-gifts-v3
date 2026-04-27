@@ -1,13 +1,8 @@
+import { getCorsHeaders } from "../_shared/cors.ts";
 /// <reference lib="deno.ns" />
 import { createClient } from "npm:@supabase/supabase-js@2.49.1";
 import { z } from "https://esm.sh/zod@3.23.8";
 import { parseBodyWithSchema } from "../_shared/zod-validate.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -91,14 +86,14 @@ interface PersonalizationData {
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: getCorsHeaders(req) });
   }
 
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
   try {
     // Validate body with Zod
-    const parsed = await parseBodyWithSchema(req, RequestSchema, corsHeaders);
+    const parsed = await parseBodyWithSchema(req, RequestSchema, getCorsHeaders(req));
     if ('error' in parsed) return parsed.error;
 
     const { action, data } = parsed.data;
