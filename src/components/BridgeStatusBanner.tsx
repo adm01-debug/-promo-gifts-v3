@@ -74,7 +74,7 @@ export function BridgeStatusBanner() {
     };
   }, [isAllowed]); // Removido 'unavailable' das dependências para evitar re-subscrição desnecessária
 
-  if (!isAllowed || !unavailable) return null;
+  if (!unavailable) return null;
 
   return (
     <div
