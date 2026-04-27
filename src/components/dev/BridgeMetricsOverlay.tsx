@@ -32,6 +32,9 @@ export default function BridgeMetricsOverlay() {
     clear
   } = useBridgeMetrics(isAllowed);
 
+  const handleTogglePause = useCallback(() => setPaused(prev => !prev), [setPaused]);
+  const handleClose = useCallback(() => setOpen(false), [setOpen]);
+
   if (!open) {
     return (
       <button
@@ -54,9 +57,9 @@ export default function BridgeMetricsOverlay() {
     >
       <Header 
         paused={paused} 
-        onTogglePause={() => setPaused(!paused)} 
+        onTogglePause={handleTogglePause} 
         onClear={clear} 
-        onClose={() => setOpen(false)} 
+        onClose={handleClose} 
       />
 
       <BridgeMetricsSummary summary={summary} />
