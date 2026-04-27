@@ -18,11 +18,10 @@ describe('useDevGate Hook — Unit Tests', () => {
     } as any);
 
     const { result } = renderHook(() => useDevGate());
-    
     expect(result.current.isAllowed).toBe(false);
   });
 
-  it('retorna isAllowed: true quando montado e autorizado', async () => {
+  it('retorna isAllowed: true quando montado e autorizado', () => {
     vi.mocked(useAuth).mockReturnValue({
       roles: ['dev'],
       isDev: true,
@@ -30,9 +29,6 @@ describe('useDevGate Hook — Unit Tests', () => {
     } as any);
 
     const { result } = renderHook(() => useDevGate());
-    
-    // O RTL renderHook já executa o useEffect na montagem inicial
-    // Então mounted já será true
     expect(result.current.isAllowed).toBe(true);
     expect(result.current.isDev).toBe(true);
   });
@@ -47,19 +43,18 @@ describe('useDevGate Hook — Unit Tests', () => {
     const { result } = renderHook(() => useDevGate());
     expect(result.current.isAllowed).toBe(true);
 
-    // O hook usa devInfraGate.shouldShow(roles)
-    // Precisamos mockar o protótipo ou a instância exportada que o hook usa
+    // Mock do retorno da store
     const spy = vi.spyOn(devInfraGate, 'shouldShow').mockReturnValue(false);
     
-    // Dispara a mudança
+    vi.useFakeTimers();
     await act(async () => {
       devInfraGate.invalidateCache();
+      vi.advanceTimersByTime(100);
     });
 
-    // O useSyncExternalStore deve ser notificado e re-renderizar o hook
     expect(result.current.isAllowed).toBe(false);
-    spy.mockRestore();
     
-    vi.restoreAllMocks();
+    spy.mockRestore();
+    vi.useRealTimers();
   });
 });
