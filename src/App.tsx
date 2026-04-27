@@ -285,9 +285,10 @@ const App = () => {
                                 <Route path="/admin/conexoes" element={<AdminConexoesPage />} />
                                 <Route path="/admin/conexoes/status" element={<AdminConexoesStatusPage />} />
                                 <Route path="/status" element={<SystemStatusPage />} />
-                                <Route path="/external-db-test" element={<ExternalDatabaseTest />} />
-                                <Route path="/admin/rbac-rotas" element={<AdminRbacRoutesPage />} />
-                              </Route>
+                                 <Route path="/external-db-test" element={<ExternalDatabaseTest />} />
+                                 <Route path="/admin/rbac-rotas" element={<AdminRbacRoutesPage />} />
+                                 <Route path="/admin/qa" element={<QAPage />} />
+                               </Route>
                             </Route>
 
                             {/* Redirects */}
