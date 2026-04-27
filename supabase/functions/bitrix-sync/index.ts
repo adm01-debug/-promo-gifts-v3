@@ -50,6 +50,16 @@ Deno.serve(async (req) => {
       );
     }
     const { action, data } = parsed.data;
+    // Helper para extrair número de `data?.<key>` (Zod tipa data como
+    // Record<string, unknown> | undefined — sem narrow seguro inline).
+    const numField = (key: string, fallback: number): number => {
+      const v = data?.[key];
+      return typeof v === "number" ? v : fallback;
+    };
+    const stringField = (key: string): string | undefined => {
+      const v = data?.[key];
+      return typeof v === "string" ? v : undefined;
+    };
 
     let result;
 
