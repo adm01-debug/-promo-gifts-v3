@@ -242,7 +242,26 @@ if (failedFeatures.length === 0) {
   console.log("");
 }
 
-if (skippedRows.length > 0) {
+if (failedByE2eName.length > 0) {
+  console.log(
+    `${C.bold}Failures by e2eName (${failedByE2eName.length} recurso(s) afetado(s)):${C.reset}`,
+  );
+  for (const r of failedByE2eName) {
+    const featList = [...r.features].slice(0, 3).join(", ") + (r.features.size > 3 ? ` +${r.features.size - 3}` : "");
+    console.log(
+      `  ${C.cyan}◆${C.reset} ${C.bold}${r.e2eName}${C.reset}  ` +
+        `${C.red}${r.failures.length} fail${C.reset}  ${C.dim}[${featList}]${C.reset}`,
+    );
+    for (const fr of r.failures.slice(0, 3)) {
+      console.log(`      ${C.dim}·${C.reset} ${fr.feature} › ${fr.title}`);
+    }
+    if (r.failures.length > 3) {
+      console.log(`      ${C.dim}… +${r.failures.length - 3} mais${C.reset}`);
+    }
+  }
+  console.log("");
+}
+
   console.log(`${C.bold}Skipped (${skippedRows.length}):${C.reset}`);
   for (const s of skippedRows.slice(0, 8)) {
     console.log(`  ${C.yellow}⊘${C.reset} ${s.feature}  ${C.dim}${s.title}${C.reset}`);
