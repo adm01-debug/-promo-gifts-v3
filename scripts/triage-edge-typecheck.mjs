@@ -200,11 +200,17 @@ function checkFunction(fn) {
   }
 
   const started = Date.now();
-  // --no-config evita herdar deno.json de raiz que possa mascarar erros.
+  // Se a função possui `deno.json` local (ex: mcp-server com import map para
+  // hono/mcp-lite), respeitamos o config — caso contrário usamos --no-config
+  // para evitar herdar um deno.json de raiz que possa mascarar erros.
   // --reload força revalidação do cache desta função (isolamento).
+  const localConfig = join(fnDir, "deno.json");
+  const configArgs = existsSync(localConfig)
+    ? ["--config", localConfig]
+    : ["--no-config"];
   const result = spawnSync(
     "deno",
-    ["check", "--no-config", "--reload", ...files],
+    ["check", ...configArgs, "--reload", ...files],
     { encoding: "utf8" },
   );
   const elapsedMs = Date.now() - started;
