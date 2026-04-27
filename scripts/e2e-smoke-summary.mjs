@@ -78,9 +78,9 @@ function classify(num, parentTitles) {
   return "auth";
 }
 
-function walkSuites(suites = [], parentTitles = []) {
+function walkSuites(suites = [], parentTitles = [], inheritedFile = "") {
   for (const suite of suites) {
-    const file = suite.file || "";
+    const file = suite.file || inheritedFile || "";
     const titles = suite.title ? [...parentTitles, suite.title] : parentTitles;
 
     const isSmokeFile = SMOKE_FILE_RE.test(file);
@@ -100,7 +100,7 @@ function walkSuites(suites = [], parentTitles = []) {
           const errorMsg =
             (last.error?.message || last.errors?.[0]?.message || "")
               .toString()
-              .replace(/\u001b\[[0-9;]*m/g, "") // strip ANSI
+              .replace(/\u001b\[[0-9;]*m/g, "")
               .trim();
           const errorFirstLine = errorMsg.split("\n")[0].slice(0, 220);
 
@@ -119,7 +119,7 @@ function walkSuites(suites = [], parentTitles = []) {
         }
       }
     }
-    if (suite.suites) walkSuites(suite.suites, titles);
+    if (suite.suites) walkSuites(suite.suites, titles, file);
   }
 }
 walkSuites(raw.suites);
