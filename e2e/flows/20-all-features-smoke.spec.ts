@@ -1,17 +1,14 @@
 /**
- * SMOKE SUITE — um teste por funcionalidade principal do sistema.
- *
- * Objetivo: gate rápido de CI. Cada teste valida que a feature **sobe sem
- * quebrar** (rota carrega, sem `pageerror` fatal, sem redirect inesperado
- * para `/login`, sem loaders persistentes).
+ * SMOKE SUITE — gate determinístico de CI.
  *
  * Política:
- *  - Um `test()` por funcionalidade → fácil de ler no relatório do CI.
- *  - Roda em ordem fixa (`test.describe.configure({ mode: "serial" })`).
- *  - Project dedicado `chromium-smoke` no `playwright.config.ts` com
- *    `workers: 1`, `retries: 0` (CI: 1) e `fullyParallel: false`.
- *  - Sem rede mockada — valida o app real autenticado com `E2E_USER_*`.
- *  - Skip silencioso quando faltam credenciais (não trava CI público).
+ *  - 1 `test()` por funcionalidade principal (~31 testes + 3 públicos).
+ *  - Numeração `NN · Nome` no título → ORDEM VISÍVEL em qualquer reporter.
+ *  - Roda em `mode: "serial"` no project `chromium-smoke` (workers:1, retries:0).
+ *  - Test 00 é health check da sessão — falha cedo se auth quebrou em vez
+ *    de gastar minutos vendo 30 redirects pra /login.
+ *  - CI dispara com `--max-failures=3` (3 features quebradas = problema sistêmico).
+ *  - Tag `@smoke` em todos os describes para `--grep @smoke` opcional.
  *
  * Complementar a:
  *  - `e2e/routes/**` — 8 casos por rota (render/happy/erro/a11y/mobile)
@@ -25,7 +22,6 @@ test.describe.configure({ mode: "serial" });
 
 /**
  * Asserções básicas que TODA tela autenticada deve atender.
- * Mantemos a função enxuta para que cada `test()` continue legível.
  */
 async function assertFeatureLoads(
   page: import("@playwright/test").Page,
@@ -62,140 +58,132 @@ async function assertFeatureLoads(
 test.describe("@smoke Funcionalidades principais (gate de CI)", () => {
   test.beforeEach(() => requireAuth());
 
-  // ----- Núcleo do app -----
-  test("Dashboard inicial", async ({ page }) => {
-    await assertFeatureLoads(page, "/");
+  // ----- Health check -----
+  test("00 · Sessão autenticada carregada", async ({ page }) => {
+    await page.goto("/produtos");
+    await page.waitForLoadState("domcontentloaded");
+    expect(/\/login/.test(page.url()), "storageState não autenticou").toBe(false);
+    const hasToken = await page.evaluate(() =>
+      Object.keys(localStorage).some(
+        (k) => k.startsWith("sb-") && k.endsWith("-auth-token"),
+      ),
+    );
+    expect(hasToken, "auth token ausente no storageState").toBe(true);
   });
 
-  test("Dashboard customizável", async ({ page }) => {
+  // ----- Núcleo do app -----
+  test("01 · Dashboard inicial", async ({ page }) => {
+    await assertFeatureLoads(page, "/");
+  });
+  test("02 · Dashboard customizável", async ({ page }) => {
     await assertFeatureLoads(page, "/dashboard");
   });
 
   // ----- Catálogo / Produtos -----
-  test("Catálogo de produtos", async ({ page }) => {
+  test("03 · Catálogo de produtos", async ({ page }) => {
     await assertFeatureLoads(page, "/produtos");
     await expect(page.locator(Sel.catalog.searchInput).first()).toBeAttached({
       timeout: 8_000,
     });
   });
-
-  test("Filtros avançados de produtos", async ({ page }) => {
+  test("04 · Filtros avançados de produtos", async ({ page }) => {
     await assertFeatureLoads(page, "/filtros");
   });
-
-  test("Novidades", async ({ page }) => {
+  test("05 · Novidades", async ({ page }) => {
     await assertFeatureLoads(page, "/novidades");
   });
-
-  test("Tendências", async ({ page }) => {
+  test("06 · Tendências", async ({ page }) => {
     await assertFeatureLoads(page, "/tendencias");
   });
 
   // ----- Engajamento -----
-  test("Favoritos", async ({ page }) => {
+  test("07 · Favoritos", async ({ page }) => {
     await assertFeatureLoads(page, "/favoritos");
   });
-
-  test("Coleções", async ({ page }) => {
+  test("08 · Coleções", async ({ page }) => {
     await assertFeatureLoads(page, "/colecoes");
   });
-
-  test("Comparador de produtos", async ({ page }) => {
+  test("09 · Comparador de produtos", async ({ page }) => {
     await assertFeatureLoads(page, "/comparar");
   });
 
   // ----- Carrinho / Pedidos -----
-  test("Carrinhos do vendedor", async ({ page }) => {
+  test("10 · Carrinhos do vendedor", async ({ page }) => {
     await assertFeatureLoads(page, "/carrinhos");
   });
-
-  test("Pedidos", async ({ page }) => {
+  test("11 · Pedidos", async ({ page }) => {
     await assertFeatureLoads(page, "/pedidos");
   });
 
   // ----- Orçamentos -----
-  test("Lista de orçamentos", async ({ page }) => {
+  test("12 · Lista de orçamentos", async ({ page }) => {
     await assertFeatureLoads(page, "/orcamentos");
   });
-
-  test("Dashboard de orçamentos", async ({ page }) => {
+  test("13 · Dashboard de orçamentos", async ({ page }) => {
     await assertFeatureLoads(page, "/orcamentos/dashboard");
   });
-
-  test("Funil (Kanban) de orçamentos", async ({ page }) => {
+  test("14 · Funil (Kanban) de orçamentos", async ({ page }) => {
     await assertFeatureLoads(page, "/orcamentos/kanban");
   });
-
-  test("Templates de orçamento", async ({ page }) => {
+  test("15 · Templates de orçamento", async ({ page }) => {
     await assertFeatureLoads(page, "/orcamentos/templates");
   });
-
-  test("Criar novo orçamento (wizard)", async ({ page }) => {
+  test("16 · Criar novo orçamento (wizard)", async ({ page }) => {
     await assertFeatureLoads(page, "/orcamentos/novo");
   });
 
   // ----- Ferramentas / Simulação -----
-  test("Simulador (wizard)", async ({ page }) => {
+  test("17 · Simulador (wizard)", async ({ page }) => {
     await assertFeatureLoads(page, "/simulador");
   });
-
-  test("Simulador de preços", async ({ page }) => {
+  test("18 · Simulador de preços", async ({ page }) => {
     await assertFeatureLoads(page, "/simulador-precos");
   });
-
-  test("Busca avançada de preço", async ({ page }) => {
+  test("19 · Busca avançada de preço", async ({ page }) => {
     await assertFeatureLoads(page, "/busca-preco");
   });
-
-  test("Estoque", async ({ page }) => {
+  test("20 · Estoque", async ({ page }) => {
     await assertFeatureLoads(page, "/estoque");
   });
-
-  test("Reposição", async ({ page }) => {
+  test("21 · Reposição", async ({ page }) => {
     await assertFeatureLoads(page, "/reposicao");
   });
 
   // ----- Kits -----
-  test("Kit Builder", async ({ page }) => {
+  test("22 · Kit Builder", async ({ page }) => {
     await assertFeatureLoads(page, "/montar-kit");
   });
-
-  test("Meus Kits", async ({ page }) => {
+  test("23 · Meus Kits", async ({ page }) => {
     await assertFeatureLoads(page, "/meus-kits");
   });
 
   // ----- Mockup / Magic Up -----
-  test("Gerador de Mockup", async ({ page }) => {
+  test("24 · Gerador de Mockup", async ({ page }) => {
     await assertFeatureLoads(page, "/mockup-generator");
   });
-
-  test("Histórico de Mockups", async ({ page }) => {
+  test("25 · Histórico de Mockups", async ({ page }) => {
     await assertFeatureLoads(page, "/mockups/historico");
   });
-
-  test("Magic Up (publicidade IA)", async ({ page }) => {
+  test("26 · Magic Up (publicidade IA)", async ({ page }) => {
     await assertFeatureLoads(page, "/magic-up");
   });
 
   // ----- Inteligência -----
-  test("Inteligência comercial", async ({ page }) => {
+  test("27 · Inteligência comercial", async ({ page }) => {
     await assertFeatureLoads(page, "/inteligencia-comercial");
   });
-
-  test("Business Intelligence", async ({ page }) => {
+  test("28 · Business Intelligence", async ({ page }) => {
     await assertFeatureLoads(page, "/ferramentas/bi");
   });
-
-  test("BI — Comparador de clientes", async ({ page }) => {
+  test("29 · BI — Comparador de clientes", async ({ page }) => {
     await assertFeatureLoads(page, "/ferramentas/bi/comparar");
   });
-
-  test("Match de produtos", async ({ page }) => {
+  test("30 · Match de produtos", async ({ page }) => {
     await assertFeatureLoads(page, "/match");
   });
 
   // ----- Integrações -----
-  test("Dropbox browser", async ({ page }) => {
+  test("31 · Dropbox browser", async ({ page }) => {
     await assertFeatureLoads(page, "/dropbox");
   });
 });
@@ -207,14 +195,14 @@ test.describe("@smoke Rotas públicas (gate de CI)", () => {
   test.use({ storageState: { cookies: [], origins: [] } });
   test.describe.configure({ mode: "serial" });
 
-  test("Tela de login renderiza", async ({ page }) => {
+  test("90 · Tela de login renderiza", async ({ page }) => {
     await page.goto("/login");
     await expect(page.locator(Sel.login.email)).toBeVisible();
     await expect(page.locator(Sel.login.password)).toBeVisible();
     await expect(page.locator(Sel.login.submit).first()).toBeVisible();
   });
 
-  test("Reset de senha renderiza", async ({ page }) => {
+  test("91 · Reset de senha renderiza", async ({ page }) => {
     const errors: string[] = [];
     page.on("pageerror", (e) => {
       if (!/ResizeObserver|loading chunk/i.test(e.message)) errors.push(e.message);
@@ -225,7 +213,7 @@ test.describe("@smoke Rotas públicas (gate de CI)", () => {
     expect(errors, `pageerrors: ${errors.join(" | ")}`).toHaveLength(0);
   });
 
-  test("404 (rota inexistente)", async ({ page }) => {
+  test("92 · 404 (rota inexistente)", async ({ page }) => {
     await page.goto("/rota-inexistente-smoke-xyz");
     await expect(page.locator(Sel.app.notFound).first()).toBeVisible({ timeout: 8_000 });
   });

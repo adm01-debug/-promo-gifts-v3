@@ -101,14 +101,16 @@ export default defineConfig({
     },
     {
       // Smoke gate — 1 teste por funcionalidade, ordem fixa, workers=1.
-      // Executar isoladamente: `npx playwright test --project=chromium-smoke`
+      // SEM retries: gate determinístico — flakiness deve falhar visível.
+      // Executar isoladamente: `npm run test:e2e:smoke` ou
+      // `npx playwright test --project=chromium-smoke --max-failures=3`.
       name: "chromium-smoke",
       use: { ...devices["Desktop Chrome"], storageState: STORAGE_STATE },
       dependencies: ["setup"],
       testMatch: /flows\/20-all-features-smoke\.spec\.ts/,
       fullyParallel: false,
       workers: 1,
-      retries: process.env.CI ? 1 : 0,
+      retries: 0,
     },
     {
       // Specs por rota — área pública (sem auth). Ex.: routes/public/*.spec.ts
