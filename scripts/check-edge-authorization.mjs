@@ -33,11 +33,12 @@ const MANIFEST_PATH = `${FN_DIR}/_shared/edge-authz-manifest.ts`;
 const manifestSrc = readFileSync(MANIFEST_PATH, "utf8");
 const entries = new Map();
 {
+  // Captura name + category + (opcional) enforcedBy
   const re =
-    /^\s+"([a-z0-9-]+)":\s*\{\s*category:\s*"([a-z]+)",\s*rationale:\s*"[^"]*"\s*(?:,[^}]*)?\}/gm;
+    /^\s+"([a-z0-9-]+)":\s*\{\s*category:\s*"([a-z]+)",[^}]*?(?:enforcedBy:\s*"([a-z-]+)")?[^}]*\}/gm;
   let m;
   while ((m = re.exec(manifestSrc)) !== null) {
-    entries.set(m[1], { category: m[2] });
+    entries.set(m[1], { category: m[2], enforcedBy: m[3] ?? "shared-authorize" });
   }
 }
 
