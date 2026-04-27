@@ -50,22 +50,18 @@ export function ImageUploadButton({
       const fileExt = file.name.split(".").pop();
       const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
 
-      const { data, error } = await supabase.storage
-        .from("personalization-images")
-        .upload(fileName, file, {
-          cacheControl: "3600",
-          upsert: false,
-        });
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("folder", folder);
+
+      const { data, error } = await supabase.functions.invoke("secure-upload", {
+        body: formData,
+      });
 
       if (error) throw error;
 
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from("personalization-images")
-        .getPublicUrl(data.path);
-
-      onUpload(urlData.publicUrl);
-      toast.success("Imagem enviada!");
+      onUpload(data.url);
+      toast.success("Imagem enviada com segurança!");
     } catch (error) {
       console.error("Upload error:", error);
       toast.error("Erro ao enviar imagem");
