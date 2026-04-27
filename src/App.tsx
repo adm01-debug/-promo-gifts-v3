@@ -134,6 +134,7 @@ const RolePermissionsPage = lazyWithRetry(() => import("./pages/RolePermissionsP
 const CustomizableDashboard = lazyWithRetry(() => import("./pages/CustomizableDashboard"));
 
 // Auth Callbacks
+const QAPage = lazyWithRetry(() => import("./pages/QAPage"));
 const SSOCallbackPage = lazyWithRetry(() => import("./pages/SSOCallbackPage"));
 
 const queryClient = createQueryClient();
