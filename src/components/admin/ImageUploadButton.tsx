@@ -55,14 +55,39 @@ export function ImageUploadButton({
       formData.append("file", file);
       formData.append("folder", folder);
 
-      const { data, error } = await supabase.functions.invoke("secure-upload", {
-        body: formData,
-      });
+      let retryCount = 0;
+      const maxRetries = 3;
+      let uploadSuccess = false;
+      let lastError = null;
 
-      if (error) throw error;
+      while (retryCount < maxRetries && !uploadSuccess) {
+        try {
+          const { data, error } = await supabase.functions.invoke("secure-upload", {
+            body: formData,
+          });
 
-      onUpload(data.url);
-      toast.success("Imagem enviada com segurança!");
+          if (error) {
+            // Se for erro 403 (bloqueio por malware), não tentamos novamente
+            if (error.status === 403) throw error;
+            throw error;
+          }
+
+          onUpload(data.url);
+          toast.success("Imagem enviada com segurança!");
+          uploadSuccess = true;
+        } catch (error: any) {
+          lastError = error;
+          retryCount++;
+          if (retryCount < maxRetries && error.status !== 403) {
+            console.log(`Tentativa ${retryCount} falhou, tentando novamente...`);
+            await new Promise(resolve => setTimeout(resolve, 1000 * retryCount)); // Exponential backoff
+          }
+        }
+      }
+
+      if (!uploadSuccess) {
+        throw lastError;
+      }
     } catch (error) {
       console.error("Upload error:", error);
       toast.error("Erro ao enviar imagem");

@@ -17,87 +17,82 @@ serve(async (req) => {
     const folder = formData.get('folder') as string || 'uploads'
 
     if (!file) {
-      return new Response(JSON.stringify({ error: 'Nenhum arquivo enviado' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
+      throw new Error('Nenhum arquivo enviado')
     }
 
-    // 1. Validação Básica
-    const MAX_SIZE = 5 * 1024 * 1024 // 5MB
-    if (file.size > MAX_SIZE) {
-      return new Response(JSON.stringify({ error: 'Arquivo excede o limite de 5MB' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
-    }
-
-    // 2. Scan Antivírus (VirusTotal)
     const vtApiKey = Deno.env.get('VIRUSTOTAL_API_KEY')
-    if (vtApiKey) {
-      const fileBuffer = await file.arrayBuffer()
-      const hashBuffer = await crypto.subtle.digest('SHA-256', fileBuffer)
-      const hashArray = Array.from(new Uint8Array(hashBuffer))
-      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
-
-      console.log(`Verificando hash no VirusTotal: ${hashHex}`)
-
-      // Verificar se o arquivo já é conhecido e malicioso
-      const vtCheckResponse = await fetch(`https://www.virustotal.com/api/v3/files/${hashHex}`, {
-        headers: { 'x-apikey': vtApiKey }
-      })
-
-      if (vtCheckResponse.ok) {
-        const vtData = await vtCheckResponse.json()
-        const stats = vtData.data.attributes.last_analysis_stats
-        if (stats.malicious > 0 || stats.suspicious > 0) {
-          console.error(`Arquivo malicioso detectado! Malicious: ${stats.malicious}, Suspicious: ${stats.suspicious}`)
-          return new Response(JSON.stringify({ error: 'Arquivo bloqueado por motivos de segurança (malware detectado)' }), {
-            status: 403,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          })
-        }
-        console.log('Arquivo já conhecido e limpo.')
-      } else if (vtCheckResponse.status === 404) {
-        // Arquivo novo, enviar para análise
-        console.log('Arquivo novo, enviando para análise no VirusTotal...')
-        const vtFormData = new FormData()
-        vtFormData.append('file', file)
-        
-        await fetch('https://www.virustotal.com/api/v3/files', {
-          method: 'POST',
-          headers: { 'x-apikey': vtApiKey },
-          body: vtFormData,
-        })
-        // Como é um arquivo novo, não temos o resultado imediato. 
-        // Em um sistema crítico, poderíamos bloquear até a análise terminar,
-        // mas aqui permitiremos e logaremos para auditoria posterior.
-      }
-    }
-
-    // 3. Upload para Supabase Storage
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
+    let isSuspicious = false;
+    let targetBucket = 'personalization-images';
+
+    if (vtApiKey) {
+      try {
+        const fileBuffer = await file.arrayBuffer()
+        const hashBuffer = await crypto.subtle.digest('SHA-256', fileBuffer)
+        const hashArray = Array.from(new Uint8Array(hashBuffer))
+        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+
+        console.log(`Verificando VirusTotal: ${hashHex}`)
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
+        const vtCheckResponse = await fetch(`https://www.virustotal.com/api/v3/files/${hashHex}`, {
+          headers: { 'x-apikey': vtApiKey },
+          signal: controller.signal
+        })
+        clearTimeout(timeoutId);
+
+        if (vtCheckResponse.ok) {
+          const vtData = await vtCheckResponse.json()
+          const stats = vtData.data.attributes.last_analysis_stats
+          if (stats.malicious > 0 || stats.suspicious > 0) {
+            isSuspicious = true;
+          }
+        } else if (vtCheckResponse.status === 404) {
+          // Arquivo novo, ignorar bloqueio imediato (esperar análise assíncrona se necessário)
+          console.log('Arquivo não encontrado no VirusTotal. Permitindo upload inicial.');
+        } else {
+          throw new Error('Falha na resposta da API de segurança')
+        }
+      } catch (err) {
+        console.error('Erro na análise de segurança:', err.message)
+        return new Response(JSON.stringify({ error: 'Bloqueio de segurança: Verificação de malware falhou ou expirou.' }), {
+          status: 403,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+    }
+
+    if (isSuspicious) {
+      targetBucket = 'quarantine';
+      console.warn(`Arquivo suspeito detectado: ${file.name}`);
+    }
+
     const fileExt = file.name.split('.').pop()
     const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
 
     const { data, error: uploadError } = await supabaseAdmin.storage
-      .from('personalization-images')
+      .from(targetBucket)
       .upload(fileName, await file.arrayBuffer(), {
         contentType: file.type,
         upsert: false,
       })
 
-    if (uploadError) {
-      throw uploadError
+    if (uploadError) throw uploadError
+
+    if (isSuspicious) {
+      return new Response(JSON.stringify({ error: 'Arquivo bloqueado por malware detectado.' }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
     }
 
-    const { data: { publicUrl } } = supabaseAdmin.storage
-      .from('personalization-images')
-      .getPublicUrl(data.path)
+    const { data: { publicUrl } } = supabaseAdmin.storage.from(targetBucket).getPublicUrl(data.path)
 
     return new Response(JSON.stringify({ url: publicUrl, path: data.path }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -105,7 +100,7 @@ serve(async (req) => {
     })
 
   } catch (error) {
-    console.error('Erro no processamento do upload:', error)
+    console.error('Upload Error:', error.message)
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500,
