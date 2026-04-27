@@ -204,3 +204,152 @@ export async function expectVisibleByTestId(
   await expect(loc, opts.message ?? `testid="${testId}" deveria estar visível`)
     .toBeVisible({ timeout });
 }
+
+/* ============================================================
+ * Helpers de navegação anti-flake (smoke / CI)
+ * ============================================================ */
+
+/** Erros transitórios que JUSTIFICAM um retry de navegação. */
+const TRANSIENT_NAV_ERRORS =
+  /(net::ERR_|chunk|loading css chunk|loading dynamic import|Failed to fetch|Navigation timeout|interrupted|aborted)/i;
+
+export interface GotoRetryOpts {
+  /** Tentativas totais. Default: 2 (1ª + 1 retry). */
+  attempts?: number;
+  /** Timeout por tentativa (passado ao `page.goto`). Default: 25_000. */
+  perAttemptTimeout?: number;
+  /** Estado de load aguardado pelo `goto`. Default: "domcontentloaded". */
+  waitUntil?: "load" | "domcontentloaded" | "networkidle" | "commit";
+  /** Espera entre tentativas (ms). Default: 500. */
+  intervalMs?: number;
+}
+
+/**
+ * `page.goto` com retry automático em erros transitórios típicos do CI
+ * (chunks 502/503/504, navigation timeout, ERR_NETWORK_CHANGED, etc).
+ *
+ * Erros NÃO transitórios (assertion, sintaxe) propagam imediatamente para
+ * preservar diagnóstico. NÃO retenta status HTTP — use mocks/fixtures.
+ */
+export async function gotoWithRetry(
+  page: Page,
+  url: string,
+  opts: GotoRetryOpts = {},
+): Promise<void> {
+  const attempts = opts.attempts ?? 2;
+  const timeout = opts.perAttemptTimeout ?? 25_000;
+  const waitUntil = opts.waitUntil ?? "domcontentloaded";
+  const interval = opts.intervalMs ?? 500;
+
+  let lastErr: unknown;
+  for (let i = 1; i <= attempts; i++) {
+    try {
+      await page.goto(url, { waitUntil, timeout });
+      return;
+    } catch (err) {
+      lastErr = err;
+      const msg = (err as Error)?.message ?? String(err);
+      const transient = TRANSIENT_NAV_ERRORS.test(msg);
+      if (!transient || i === attempts) {
+        throw new Error(
+          `[gotoWithRetry] falhou ao navegar para "${url}" após ${i} tentativa(s) — ${msg}`,
+        );
+      }
+      await new Promise((r) => setTimeout(r, interval));
+    }
+  }
+  throw lastErr ?? new Error(`[gotoWithRetry] estado inválido em ${url}`);
+}
+
+export interface PageReadyOpts {
+  /** Timeout total da fase de readiness. Default: 20_000. */
+  timeout?: number;
+  /**
+   * `data-testid` que indica conteúdo significativo renderizado.
+   * Quando informado, é o gate principal de "pronto".
+   */
+  readyTestId?: string;
+  /**
+   * Slug de página esperado (`page-title-<slug>`) — atalho conveniente para
+   * rotas com título canônico no SSOT de selectors.
+   */
+  pageSlug?: string;
+  /** Aguardar `networkidle` adicional após o ready. Default: false. */
+  networkIdle?: boolean;
+}
+
+/**
+ * **Espera robusta de "página pronta"** — combinação de:
+ *  1. `domcontentloaded` (idempotente).
+ *  2. `readyTestId` ou `page-title-<slug>` visível (conteúdo real).
+ *  3. Ausência de loaders pendurados (`[data-state="loading"]`).
+ *  4. Opcional: `networkidle`.
+ *
+ * Use sempre no smoke/CI em vez de `waitForLoadState("domcontentloaded")` solto.
+ */
+export async function waitForPageReady(
+  page: Page,
+  opts: PageReadyOpts = {},
+): Promise<void> {
+  const timeout = opts.timeout ?? 20_000;
+  const deadline = Date.now() + timeout;
+  const remaining = () => Math.max(500, deadline - Date.now());
+
+  // 1. domcontentloaded (idempotente).
+  await page.waitForLoadState("domcontentloaded", { timeout: remaining() });
+
+  // 2. Conteúdo significativo: prioridade readyTestId → pageSlug → heurística.
+  if (opts.readyTestId) {
+    await waitForTestIdVisible(page, opts.readyTestId, {
+      timeout: remaining(),
+      message: `waitForPageReady aguardando readyTestId`,
+    });
+  } else if (opts.pageSlug) {
+    await waitForTestIdVisible(page, `page-title-${opts.pageSlug}`, {
+      timeout: remaining(),
+      message: `waitForPageReady aguardando page-title-${opts.pageSlug}`,
+    });
+  } else {
+    // Heurística: qualquer `page-title-*` OU body com altura > 0.
+    await page
+      .waitForFunction(
+        () => {
+          const hasTitle = !!document.querySelector('[data-testid^="page-title-"]');
+          const bodyOk = (document.body?.scrollHeight ?? 0) > 0;
+          return hasTitle || bodyOk;
+        },
+        undefined,
+        { timeout: remaining() },
+      )
+      .catch(() => {
+        /* fallback silencioso */
+      });
+  }
+
+  // 3. Sem loaders pendurados (best-effort, cap em 5s).
+  await page
+    .waitForFunction(
+      () => !document.querySelector('[data-state="loading"]:not([data-allow-loading])'),
+      undefined,
+      { timeout: Math.min(5_000, remaining()) },
+    )
+    .catch(() => {});
+
+  // 4. networkidle opcional.
+  if (opts.networkIdle) {
+    await page.waitForLoadState("networkidle", { timeout: remaining() }).catch(() => {});
+  }
+}
+
+/**
+ * **Atalho preferido para smoke**: navega com retry + espera readiness completa.
+ * Combina `gotoWithRetry` + `waitForPageReady` em chamada determinística.
+ */
+export async function gotoAndWaitReady(
+  page: Page,
+  url: string,
+  opts: GotoRetryOpts & PageReadyOpts = {},
+): Promise<void> {
+  await gotoWithRetry(page, url, opts);
+  await waitForPageReady(page, opts);
+}
