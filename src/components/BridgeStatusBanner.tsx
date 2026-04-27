@@ -4,7 +4,7 @@
  * Escuta o event bus de bridge-status-events e exibe avisos contextuais.
  * Restrito ao gate de infra dev para evitar vazamento de mensagens técnicas em prod.
  */
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, memo } from 'react';
 import { toast } from 'sonner';
 import { AlertTriangle, X, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -14,7 +14,7 @@ import { useDevGate } from '@/hooks/useDevGate';
 const TOAST_ID_DEGRADED = 'bridge-degraded';
 const TOAST_ID_UNAVAILABLE = 'bridge-unavailable';
 
-export function BridgeStatusBanner() {
+export const BridgeStatusBanner = memo(function BridgeStatusBanner() {
   const { isAllowed } = useDevGate();
   const [unavailable, setUnavailable] = useState(false);
   const unavailableRef = useRef(false);
@@ -126,4 +126,4 @@ export function BridgeStatusBanner() {
       </div>
     </div>
   );
-}
+});
