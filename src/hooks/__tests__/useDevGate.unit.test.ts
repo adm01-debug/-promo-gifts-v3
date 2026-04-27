@@ -46,17 +46,16 @@ describe('useDevGate Hook — Unit Tests', () => {
 
     const { result } = renderHook(() => useDevGate());
 
-    // Forçar montagem
-    await act(async () => {});
-
     expect(result.current.isAllowed).toBe(true);
 
     // Simular mudança no store (ex: desabilitar via gate)
-    vi.spyOn(devInfraGate, 'shouldShow').mockReturnValue(false);
+    const shouldShowSpy = vi.spyOn(devInfraGate, 'shouldShow').mockReturnValue(false);
     
     await act(async () => {
       devInfraGate.invalidateCache();
-      // useSyncExternalStore deve capturar a mudança
+      vi.useFakeTimers();
+      vi.runAllTimers();
+      vi.useRealTimers();
     });
 
     expect(result.current.isAllowed).toBe(false);
