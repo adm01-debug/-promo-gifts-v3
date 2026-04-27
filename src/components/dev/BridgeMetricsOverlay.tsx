@@ -251,22 +251,7 @@ export default function BridgeMetricsOverlay() {
           ) : (
             <ul className="divide-y divide-white/5">
               {visible.map(s => (
-                <li key={s.id} className="px-3 py-1.5 hover:bg-white/5">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex min-w-0 items-center gap-1.5">
-                      <span className={`shrink-0 rounded border px-1 text-[9px] uppercase ${bridgeBadge(s.bridge)}`}>
-                        {s.bridge === 'external-db-bridge' ? 'ext' : 'crm'}
-                      </span>
-                      <span className="truncate text-zinc-200">{s.op}</span>
-                      {s.target && <span className="truncate text-zinc-500">·{s.target}</span>}
-                    </div>
-                    <div className="flex shrink-0 items-center gap-2 tabular-nums">
-                      <span className={latencyClass(s.durationMs)}>{s.durationMs}ms</span>
-                      <span className="text-zinc-400">{formatBytes(s.respBytes)}</span>
-                      {!s.ok && <span className="rounded bg-red-500/20 px-1 text-[9px] text-red-300">{s.status ?? 'err'}</span>}
-                    </div>
-                  </div>
-                </li>
+                <BridgeCallItem key={s.id} sample={s} />
               ))}
             </ul>
           )
