@@ -16,33 +16,39 @@ vi.mock('@/components/dev/BridgeMetricsOverlay', () => ({
 }));
 
 describe('DevInfraGate SSR & Hydration Integration', () => {
-  it('garante que o overlay é omitido no SSR e só aparece após montagem no cliente', async () => {
-    // --- FASE 1: SSR (Servidor) ---
+  it('garante que o overlay é omitido no SSR (mesmo com isLoading true) e só aparece após hidratação completa no cliente', async () => {
+    // --- FASE 1: SSR (Servidor - Simula estado inicial de carregamento) ---
+    // No servidor, isAllowed é sempre false por segurança
     vi.mocked(useDevGate).mockReturnValue({
       isAllowed: false,
       isDev: false
     });
 
     const ssrHtml = renderToString(<DevOnlyBridgeOverlay />);
+    
     // O HTML gerado pelo servidor DEVE ser absolutamente vazio
     // Não deve conter nem wrappers de Suspense (comentários <!--$-->) nem qualquer rastro do overlay
     expect(ssrHtml).toBe('');
     expect(ssrHtml).not.toContain('<!--');
+    expect(ssrHtml).not.toContain('bridge-metrics-overlay');
 
-    // --- FASE 2: Hidratação simulada (Cliente) ---
-    // Em vez de hydrateRoot manual (complexo com mocks), usamos render do RTL 
-    // que simula o ciclo de vida completo do cliente.
-    
-    // Primeiro render (simula montagem inicial onde mounted=false no hook real)
-    // Mas o mock nos permite ditar o estado.
-    
+    // --- FASE 2: Hidratação simulada (Cliente - Fase de Carregamento) ---
+    // Simula o momento em que o código roda no cliente, mas o AuthContext ainda está isLoading: true
+    // e o componente ainda não disparou o useEffect de montagem.
+    vi.mocked(useDevGate).mockReturnValue({
+      isAllowed: false,
+      isDev: false
+    });
+
     const { rerender } = render(<DevOnlyBridgeOverlay />);
-    // Garante que o HTML inicial renderizado no cliente (antes do useEffect/Auth) 
+    
+    // Garante que o HTML renderizado no cliente durante o carregamento 
     // é absolutamente vazio, sem placeholders ou wrappers
     expect(document.body.innerHTML).not.toContain('bridge-metrics-overlay');
     expect(screen.queryByTestId('bridge-metrics-overlay-real')).not.toBeInTheDocument();
 
-    // Simula a resolução do Auth (isLoading=false) e montagem final (mounted=true)
+    // --- FASE 3: Cliente (Finalizado e Autorizado) ---
+    // Simula a resolução do Auth (isLoading=false) e permissão concedida
     vi.mocked(useDevGate).mockReturnValue({
       isAllowed: true,
       isDev: true
@@ -52,6 +58,7 @@ describe('DevInfraGate SSR & Hydration Integration', () => {
       rerender(<DevOnlyBridgeOverlay />);
     });
 
+    // O overlay deve aparecer agora
     expect(await screen.findByTestId('bridge-metrics-overlay-real')).toBeInTheDocument();
   });
 });
