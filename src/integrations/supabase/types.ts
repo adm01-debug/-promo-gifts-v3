@@ -5220,6 +5220,7 @@ export type Database = {
         }
         Returns: string
       }
+      get_app_health_summary: { Args: { _minutes?: number }; Returns: Json }
       get_auto_test_job_status: {
         Args: { _limit?: number }
         Returns: {
@@ -5479,6 +5480,7 @@ export type Database = {
         }
         Returns: string
       }
+      lookup_request_id: { Args: { _request_id: string }; Returns: Json }
       mark_all_notifications_read: { Args: never; Returns: undefined }
       mark_notification_read: {
         Args: { p_notification_id: string }

@@ -60,6 +60,9 @@ const PlatformFailureCards = lazy(() =>
 const PlatformFailureAlertBanner = lazy(() =>
   import('@/components/admin/telemetry/PlatformFailureAlertBanner').then((m) => ({ default: m.PlatformFailureAlertBanner })),
 );
+const AppHealthDashboard = lazy(() =>
+  import('@/components/admin/telemetry/AppHealthDashboard').then((m) => ({ default: m.AppHealthDashboard })),
+);
 const ColdStartRetriesPanel = lazy(() =>
   import('@/components/admin/telemetry/ColdStartRetriesPanel').then((m) => ({ default: m.ColdStartRetriesPanel })),
 );
@@ -119,6 +122,12 @@ export default function AdminTelemetriaPage() {
             <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isRefetching}><RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${isRefetching ? 'animate-spin' : ''}`} />Atualizar</Button>
           </div>
         </div>
+
+        {/* Saúde da Aplicação — KPIs 4xx/5xx por rota, webhooks, latência por edge fn + lookup por request-id */}
+        <Suspense fallback={<CardSkeleton height={520} label="Carregando saúde da aplicação" />}>
+          <AppHealthDashboard />
+        </Suspense>
+
         {/* Guardrail automático: interrompe regressões antes que afetem usuários */}
         <Suspense fallback={<BannerSkeleton />}>
           <RegressionGuardrailBanner />
