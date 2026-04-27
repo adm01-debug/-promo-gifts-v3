@@ -30,6 +30,9 @@ import { writeAuditEntry, summarizePayload, extractRequestMeta } from "../_share
 import { recordMcpViolation, mapViolationReason } from "../_shared/mcp-violations.ts";
 import { castRpcResult } from "../_shared/supabase-client-adapter.ts";
 
+// Module-scope CORS headers — atribuído per-request no handler.
+let corsHeaders: Record<string, string> = {};
+
 type RpcEnvelope<T> = { data: T | null; error: { message: string } | null };
 
 const SOURCE = "mcp-keys-issue";
@@ -129,7 +132,7 @@ async function generateKey(): Promise<{ plain: string; hash: string; prefix: str
 }
 
 Deno.serve(async (req) => {
-  const corsHeaders = getCorsHeaders(req);
+  corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
