@@ -12,12 +12,18 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { AlertTriangle, Loader2, RefreshCw, WifiOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCloudStatus } from '@/hooks/useCloudStatus';
+import { useAuth } from '@/contexts/AuthContext';
 
 type CloudStatusVariant = 'warming' | 'degraded' | 'down';
 
 export function CloudStatusBanner() {
+  const { isDev } = useAuth();
   const { status, retry, isChecking } = useCloudStatus();
-  const visible = status === 'warming' || status === 'degraded' || status === 'down';
+  // Mensagens técnicas de infraestrutura ficam restritas a usuários `dev`.
+  // Usuários comuns não devem ver detalhes de reinício/instabilidade do backend —
+  // a app já tem skeletons + retries automáticos para mascarar a recuperação.
+  const visible =
+    isDev && (status === 'warming' || status === 'degraded' || status === 'down');
 
   return (
     <AnimatePresence>
