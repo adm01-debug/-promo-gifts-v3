@@ -16,20 +16,21 @@ export function useDevGate() {
   }, []);
   
   // Memoizamos a store evaluation para evitar re-renders se a lista de roles for igual
+  // O uso de useSyncExternalStore já garante consistência externa
   const isAllowedStore = useSyncExternalStore(
     (onStoreChange) => devInfraGate.subscribe(onStoreChange),
     () => devInfraGate.shouldShow(roles),
-    () => false // No servidor, sempre retorna false por segurança
+    () => false
   );
 
-  // Só permitimos acesso se:
-  // 1. O componente estiver montado no cliente (evita SSR mismatch)
-  // 2. O AuthContext não estiver mais carregando (evita flash antes da role carregar)
-  // 3. O gate de infraestrutura autorizar
+  // Otimização de UI: Calculamos o estado final e memoizamos o objeto de retorno
+  // para evitar que hooks dependentes do useDevGate re-renderizem se o resultado for o mesmo.
+  // Note que isLoading e mounted mudam pouco, o gargalo costumava ser o processamento das roles.
   const isAllowed = mounted && !isLoading && isAllowedStore;
+  const isDevFinal = mounted && isDev;
 
   return useMemo(() => ({
     isAllowed,
-    isDev: mounted && isDev
-  }), [isAllowed, isDev, mounted, isLoading]);
+    isDev: isDevFinal
+  }), [isAllowed, isDevFinal]);
 }

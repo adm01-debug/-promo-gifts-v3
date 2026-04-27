@@ -25,8 +25,10 @@ export class EnvGateProvider implements GateFlagProvider {
     if (EnvGateProvider.cachedValue !== null) return EnvGateProvider.cachedValue;
 
     try {
-      const env = (import.meta as unknown as { env?: Record<string, unknown> })?.env;
-      EnvGateProvider.cachedValue = parseGateFlag(env?.VITE_SHOW_DEV_INFRA_MESSAGES);
+      // Otimização: Acesso direto ao import.meta.env (Vite substitui em build-time)
+      // O cache estático evita parsing de string em cada chamada.
+      const raw = import.meta.env.VITE_SHOW_DEV_INFRA_MESSAGES;
+      EnvGateProvider.cachedValue = parseGateFlag(raw);
       return EnvGateProvider.cachedValue;
     } catch {
       return 'auto';
