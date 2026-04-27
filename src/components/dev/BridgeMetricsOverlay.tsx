@@ -10,6 +10,8 @@
  * • Zero custo quando colapsado: usa o mesmo `subscribeBridgeCalls` já throttled.
  */
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { shouldShowDevInfraMessages } from '@/lib/system/dev-infra-messages';
 import {
   getBridgeSamples,
   subscribeBridgeCalls,
@@ -55,6 +57,13 @@ export default function BridgeMetricsOverlay() {
   // Hard guard: nunca renderiza em build de produção.
   if (import.meta.env.PROD) return null;
 
+  // Defesa em profundidade — gate SSOT (env > localStorage > role `dev`).
+  // Mesmo que alguém monte o overlay fora do <DevOnlyBridgeOverlay />,
+  // usuários comuns (agente/supervisor) NÃO veem o painel nem podem
+  // ativar o atalho `` ` ``.
+  const { isDev } = useAuth();
+  const allowed = shouldShowDevInfraMessages(isDev);
+
   const [open, setOpen] = useState<boolean>(() => {
     try { return localStorage.getItem(STORAGE_KEY) === '1'; } catch { return false; }
   });
@@ -79,8 +88,9 @@ export default function BridgeMetricsOverlay() {
 
   const listRef = useRef<HTMLDivElement>(null);
 
-  // Toggle por teclado: ` (backtick).
+  // Toggle por teclado: ` (backtick). Só registra o listener quando o gate aprova.
   useEffect(() => {
+    if (!allowed) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== '`' || e.metaKey || e.ctrlKey || e.altKey) return;
       const target = e.target as HTMLElement | null;
@@ -95,7 +105,7 @@ export default function BridgeMetricsOverlay() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, []);
+  }, [allowed]);
 
   // Resumo agregado das amostras visíveis (últimas N).
   const { visible, summary } = useMemo(() => {
@@ -116,6 +126,9 @@ export default function BridgeMetricsOverlay() {
       summary: { total: all.length, avg, totalResp, errors, last20: last20.length },
     };
   }, [samples, filter]);
+
+  // Gate SSOT: usuários sem permissão não veem botão flutuante nem painel.
+  if (!allowed) return null;
 
   if (!open) {
     return (
