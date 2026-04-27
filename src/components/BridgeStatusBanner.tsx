@@ -4,89 +4,15 @@
  * Escuta o event bus de bridge-status-events e exibe avisos contextuais.
  * Restrito ao gate de infra dev para evitar vazamento de mensagens técnicas em prod.
  */
-import { useEffect, useState, useRef, memo } from 'react';
-import { toast } from 'sonner';
+import { memo } from 'react';
 import { AlertTriangle, X, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { onBridgeStatus, type BridgeStatusEvent } from '@/lib/external-db/bridge-status-events';
 import { useDevGate } from '@/hooks/useDevGate';
-
-const TOAST_ID_DEGRADED = 'bridge-degraded';
-const TOAST_ID_UNAVAILABLE = 'bridge-unavailable';
+import { useBridgeStatusBanner } from '@/hooks/useBridgeStatusBanner';
 
 export const BridgeStatusBanner = memo(function BridgeStatusBanner() {
   const { isAllowed } = useDevGate();
-  const [unavailable, setUnavailable] = useState(false);
-  const unavailableRef = useRef(false);
-  const [reason, setReason] = useState<string>('');
-  const lastDegradedAt = useRef(0);
-
-  // Sincroniza o ref para uso no listener sem re-subscrição
-  useEffect(() => {
-    unavailableRef.current = unavailable;
-  }, [unavailable]);
-
-  useEffect(() => {
-    const unsubscribe = onBridgeStatus((e: BridgeStatusEvent) => {
-      if (e.type === 'degraded') {
-        // Toasts de "degraded" (reconectando) são mensagens de infra, mostramos apenas para devs.
-        if (!isAllowed) return;
-
-        const now = Date.now();
-        if (now - lastDegradedAt.current < 8000) return;
-        lastDegradedAt.current = now;
-        
-        toast.loading('Reconectando ao catálogo externo…', {
-          id: TOAST_ID_DEGRADED,
-          description: `Tentativa ${e.attempt}/${e.maxAttempts}. O sistema está se recuperando automaticamente.`,
-          duration: 4000,
-        });
-      } else if (e.type === 'unavailable') {
-        setUnavailable(true);
-        setReason(e.reason);
-        toast.dismiss(TOAST_ID_DEGRADED);
-        
-        // Se não for dev, usamos uma mensagem menos técnica.
-        const title = 'Catálogo temporariamente indisponível';
-        const description = isAllowed 
-          ? 'O serviço está reiniciando. Aguarde alguns segundos e tente novamente.'
-          : 'Estamos com uma instabilidade momentânea no acesso ao catálogo. Tente recarregar a página em instantes.';
-
-        toast.error(title, {
-          id: TOAST_ID_UNAVAILABLE,
-          description,
-          duration: Infinity,
-          action: {
-            label: 'Recarregar',
-            onClick: () => window.location.reload(),
-          },
-        });
-      } else if (e.type === 'recovered') {
-        toast.dismiss(TOAST_ID_DEGRADED);
-        if (unavailableRef.current) {
-          toast.success('Conexão restabelecida', {
-            id: TOAST_ID_UNAVAILABLE,
-            description: 'O catálogo voltou a responder normalmente.',
-            duration: 4000,
-          });
-          setUnavailable(false);
-          setReason('');
-        } else {
-          // Feedback de sucesso para transições de degradação
-          toast.success('Conexão normalizada', {
-            id: TOAST_ID_DEGRADED,
-            duration: 3000,
-          });
-        }
-      }
-    });
-
-    return () => {
-      unsubscribe();
-      // Cleanup de segurança
-      toast.dismiss(TOAST_ID_DEGRADED);
-    };
-  }, [isAllowed]);
+  const { unavailable, reason, closeUnavailable, reload } = useBridgeStatusBanner(isAllowed);
 
   if (!unavailable) return null;
 
@@ -115,7 +41,7 @@ export const BridgeStatusBanner = memo(function BridgeStatusBanner() {
             size="sm"
             variant="secondary"
             className="h-7 gap-1.5"
-            onClick={() => window.location.reload()}
+            onClick={reload}
           >
             <RefreshCw className="h-3.5 w-3.5" aria-hidden />
             Recarregar
@@ -124,10 +50,7 @@ export const BridgeStatusBanner = memo(function BridgeStatusBanner() {
             size="icon"
             variant="ghost"
             className="h-7 w-7 text-destructive-foreground hover:bg-destructive-foreground/10"
-            onClick={() => {
-              setUnavailable(false);
-              toast.dismiss(TOAST_ID_UNAVAILABLE);
-            }}
+            onClick={closeUnavailable}
             aria-label="Fechar aviso"
             title={reason}
           >
