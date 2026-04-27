@@ -142,6 +142,14 @@ export default [
           message:
             'Proibido `page.goto(...)` direto em specs — use `gotoAndSettle(page, path)` ou `loginAs(page)` (e2e/helpers/nav.ts | auth.ts).',
         },
+        {
+          // page.fill(<sel>, "literal-sem-prefixo-E2E")
+          // Detecta literais que NÃO começam com "[E2E" (cobre "[E2E]" global e "[E2E:slug]" escopado).
+          selector:
+            "CallExpression[callee.property.name='fill'] > Literal[value=/^(?!\\[E2E).+/]",
+          message:
+            'Proibido `.fill("literal")` em campos de specs — use `resources.createX()` (fixture) ou `e2eName(label, { prefix })` para garantir cleanup escopado por spec.',
+        },
       ],
     },
   },
