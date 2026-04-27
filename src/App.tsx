@@ -1,4 +1,4 @@
-import { useEffect, useState, type FC } from "react";
+import { useEffect, useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -15,7 +15,6 @@ import { DevRoute } from "@/components/layout/DevRoute";
 import { DeprecatedRoute } from "@/components/layout/DeprecatedRoute";
 import { AppProviders } from "@/components/providers/AppProviders";
 import { AccessibilityProvider, AriaLiveProvider } from "@/components/a11y";
-import LoadingScreen from "@/components/LoadingScreen";
 import { useGlobalErrorCatcher } from "@/hooks/useErrorHandler";
 import { markBootSuccessful } from "@/lib/chunk-recovery";
 import { getFallback } from "@/components/layout/SkeletonLoaders";
@@ -156,7 +155,6 @@ function RouteSuspense({ children }: { children: React.ReactNode }) {
 }
 
 const App = () => {
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
   useGlobalErrorCatcher();
 
   // Apply saved theme on boot (ThemeInitializer handles re-apply on mode change)
