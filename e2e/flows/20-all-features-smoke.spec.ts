@@ -2,12 +2,13 @@
  * SMOKE SUITE — gate determinístico de CI.
  *
  * Política:
- *  - 1 `test()` por funcionalidade principal (~31 testes + 3 públicos).
+ *  - 1 `test()` por funcionalidade marcada `smoke: true` no `_catalog.ts`.
  *  - Numeração `NN · Nome` no título → ORDEM VISÍVEL em qualquer reporter.
  *  - Roda em `mode: "serial"` no project `chromium-smoke` (workers:1, retries:0).
- *  - Test 00 é health check da sessão — falha cedo se auth quebrou em vez
- *    de gastar minutos vendo 30 redirects pra /login.
- *  - CI dispara com `--max-failures=3` (3 features quebradas = problema sistêmico).
+ *  - Test 00 é health check da sessão — falha cedo se auth quebrou.
+ *  - Test 99 é GOVERNANÇA: falha se alguma feature `smoke:true` do catálogo
+ *    não está coberta aqui (fecha lacunas automaticamente).
+ *  - CI dispara com `--max-failures=3`.
  *  - Tag `@smoke` em todos os describes para `--grep @smoke` opcional.
  *
  * Complementar a:
@@ -16,6 +17,11 @@
  */
 import { test, expect, requireAuth } from "../fixtures/test-base";
 import { Sel } from "../fixtures/selectors";
+import {
+  SMOKE_ROUTES,
+  findSmokeCoverageGaps,
+  findUnknownCoveredFeatures,
+} from "../routes/_catalog";
 
 /** Ordem fixa: garante mesmo relatório em todo run do CI. */
 test.describe.configure({ mode: "serial" });
@@ -37,23 +43,56 @@ async function assertFeatureLoads(
   await page.goto(path);
   await page.waitForLoadState("domcontentloaded");
 
-  // 1. Não pode redirecionar para /login (sessão válida).
   expect(/\/login/.test(page.url()), `redirect inesperado para login em ${path}`).toBe(false);
-
-  // 2. Body visível.
   await expect(page.locator("body")).toBeVisible();
-
-  // 3. Sem loaders pendurados após 5s (best-effort).
   await page
     .waitForFunction(
       () => !document.querySelector('[data-state="loading"]:not([data-allow-loading])'),
       { timeout: 5_000 },
     )
     .catch(() => {});
-
-  // 4. Sem `pageerror` fatal coletado durante o carregamento.
   expect(errors, `pageerrors em ${path}: ${errors.join(" | ")}`).toHaveLength(0);
 }
+
+/* ============================================================
+ * SMOKE_COVERAGE — features autenticadas cobertas neste arquivo.
+ * Mantido em ordem visível p/ revisão. Validado contra catálogo em test 99.
+ * ============================================================ */
+const SMOKE_COVERAGE = [
+  "dashboard-home",
+  "dashboard-custom",
+  "catalog",
+  "catalog-filters",
+  "news",
+  "trends",
+  "favorites",
+  "collections",
+  "comparison",
+  "carts",
+  "quotes-list",
+  "quotes-dashboard",
+  "quotes-kanban",
+  "quotes-templates",
+  "quote-new",
+  "simulator",
+  "price-simulator",
+  "price-search",
+  "stock",
+  "restock",
+  "kit-builder",
+  "my-kits",
+  "mockup-generator",
+  "mockup-history",
+  "magic-up",
+  "commercial-intel",
+  "bi",
+  "bi-compare",
+  "match",
+  "dropbox",
+] as const;
+
+/** Map feature → entry do catálogo (lookup determinístico). */
+const ROUTE_BY_FEATURE = new Map(SMOKE_ROUTES.map((r) => [r.feature!, r]));
 
 test.describe("@smoke Funcionalidades principais (gate de CI)", () => {
   test.beforeEach(() => requireAuth());
@@ -71,125 +110,51 @@ test.describe("@smoke Funcionalidades principais (gate de CI)", () => {
     expect(hasToken, "auth token ausente no storageState").toBe(true);
   });
 
-  // ----- Núcleo do app -----
-  test("01 · Dashboard inicial", async ({ page }) => {
-    await assertFeatureLoads(page, "/");
-  });
-  test("02 · Dashboard customizável", async ({ page }) => {
-    await assertFeatureLoads(page, "/dashboard");
-  });
-
-  // ----- Catálogo / Produtos -----
-  test("03 · Catálogo de produtos", async ({ page }) => {
-    await assertFeatureLoads(page, "/produtos");
-    await expect(page.locator(Sel.catalog.searchInput).first()).toBeAttached({
-      timeout: 8_000,
+  // ----- Geração automática a partir do catálogo -----
+  SMOKE_COVERAGE.forEach((feature, idx) => {
+    const entry = ROUTE_BY_FEATURE.get(feature);
+    if (!entry) {
+      // Feature listada aqui mas ausente do catálogo → test de governança pega.
+      // Skip silencioso evita ruído duplicado.
+      return;
+    }
+    const num = String(idx + 1).padStart(2, "0");
+    const label = entry.description ?? entry.feature!;
+    test(`${num} · ${label}`, async ({ page }) => {
+      await assertFeatureLoads(page, entry.path);
+      // Asserções extras específicas por feature.
+      if (feature === "catalog") {
+        await expect(page.locator(Sel.catalog.searchInput).first()).toBeAttached({
+          timeout: 8_000,
+        });
+      }
     });
   });
-  test("04 · Filtros avançados de produtos", async ({ page }) => {
-    await assertFeatureLoads(page, "/filtros");
-  });
-  test("05 · Novidades", async ({ page }) => {
-    await assertFeatureLoads(page, "/novidades");
-  });
-  test("06 · Tendências", async ({ page }) => {
-    await assertFeatureLoads(page, "/tendencias");
-  });
 
-  // ----- Engajamento -----
-  test("07 · Favoritos", async ({ page }) => {
-    await assertFeatureLoads(page, "/favoritos");
-  });
-  test("08 · Coleções", async ({ page }) => {
-    await assertFeatureLoads(page, "/colecoes");
-  });
-  test("09 · Comparador de produtos", async ({ page }) => {
-    await assertFeatureLoads(page, "/comparar");
-  });
+  // ----- Governança (último teste) -----
+  test("99 · Cobertura smoke ↔ catálogo está sincronizada", async () => {
+    const gaps = findSmokeCoverageGaps(SMOKE_COVERAGE);
+    const unknown = findUnknownCoveredFeatures(SMOKE_COVERAGE);
 
-  // ----- Carrinho / Pedidos -----
-  test("10 · Carrinhos do vendedor", async ({ page }) => {
-    await assertFeatureLoads(page, "/carrinhos");
-  });
-  test("11 · Pedidos", async ({ page }) => {
-    await assertFeatureLoads(page, "/pedidos");
-  });
-
-  // ----- Orçamentos -----
-  test("12 · Lista de orçamentos", async ({ page }) => {
-    await assertFeatureLoads(page, "/orcamentos");
-  });
-  test("13 · Dashboard de orçamentos", async ({ page }) => {
-    await assertFeatureLoads(page, "/orcamentos/dashboard");
-  });
-  test("14 · Funil (Kanban) de orçamentos", async ({ page }) => {
-    await assertFeatureLoads(page, "/orcamentos/kanban");
-  });
-  test("15 · Templates de orçamento", async ({ page }) => {
-    await assertFeatureLoads(page, "/orcamentos/templates");
-  });
-  test("16 · Criar novo orçamento (wizard)", async ({ page }) => {
-    await assertFeatureLoads(page, "/orcamentos/novo");
-  });
-
-  // ----- Ferramentas / Simulação -----
-  test("17 · Simulador (wizard)", async ({ page }) => {
-    await assertFeatureLoads(page, "/simulador");
-  });
-  test("18 · Simulador de preços", async ({ page }) => {
-    await assertFeatureLoads(page, "/simulador-precos");
-  });
-  test("19 · Busca avançada de preço", async ({ page }) => {
-    await assertFeatureLoads(page, "/busca-preco");
-  });
-  test("20 · Estoque", async ({ page }) => {
-    await assertFeatureLoads(page, "/estoque");
-  });
-  test("21 · Reposição", async ({ page }) => {
-    await assertFeatureLoads(page, "/reposicao");
-  });
-
-  // ----- Kits -----
-  test("22 · Kit Builder", async ({ page }) => {
-    await assertFeatureLoads(page, "/montar-kit");
-  });
-  test("23 · Meus Kits", async ({ page }) => {
-    await assertFeatureLoads(page, "/meus-kits");
-  });
-
-  // ----- Mockup / Magic Up -----
-  test("24 · Gerador de Mockup", async ({ page }) => {
-    await assertFeatureLoads(page, "/mockup-generator");
-  });
-  test("25 · Histórico de Mockups", async ({ page }) => {
-    await assertFeatureLoads(page, "/mockups/historico");
-  });
-  test("26 · Magic Up (publicidade IA)", async ({ page }) => {
-    await assertFeatureLoads(page, "/magic-up");
-  });
-
-  // ----- Inteligência -----
-  test("27 · Inteligência comercial", async ({ page }) => {
-    await assertFeatureLoads(page, "/inteligencia-comercial");
-  });
-  test("28 · Business Intelligence", async ({ page }) => {
-    await assertFeatureLoads(page, "/ferramentas/bi");
-  });
-  test("29 · BI — Comparador de clientes", async ({ page }) => {
-    await assertFeatureLoads(page, "/ferramentas/bi/comparar");
-  });
-  test("30 · Match de produtos", async ({ page }) => {
-    await assertFeatureLoads(page, "/match");
-  });
-
-  // ----- Integrações -----
-  test("31 · Dropbox browser", async ({ page }) => {
-    await assertFeatureLoads(page, "/dropbox");
+    const messages: string[] = [];
+    if (gaps.length > 0) {
+      messages.push(
+        `⚠ ${gaps.length} feature(s) marcada(s) \`smoke:true\` no catálogo SEM teste correspondente em SMOKE_COVERAGE:\n  - ${gaps.join("\n  - ")}\n` +
+          `→ adicione a feature ao array \`SMOKE_COVERAGE\` ou remova \`smoke:true\` no catálogo.`,
+      );
+    }
+    if (unknown.length > 0) {
+      messages.push(
+        `⚠ ${unknown.length} feature(s) em SMOKE_COVERAGE não existe(m) (ou não está \`smoke:true\`) no catálogo:\n  - ${unknown.join("\n  - ")}\n` +
+          `→ corrija o nome ou marque a rota \`smoke:true\` em \`e2e/routes/_catalog.ts\`.`,
+      );
+    }
+    expect(messages.join("\n\n"), "Lacunas de cobertura smoke detectadas").toBe("");
   });
 });
 
 /* ============================================================
- * Smoke público (sem auth) — 1 teste por rota pública chave.
+ * Smoke público (sem auth) — derivado do catálogo `PUBLIC_ROUTES`.
  * ============================================================ */
 test.describe("@smoke Rotas públicas (gate de CI)", () => {
   test.use({ storageState: { cookies: [], origins: [] } });
@@ -218,3 +183,4 @@ test.describe("@smoke Rotas públicas (gate de CI)", () => {
     await expect(page.locator(Sel.app.notFound).first()).toBeVisible({ timeout: 8_000 });
   });
 });
+
