@@ -95,7 +95,7 @@ Deno.serve(async (req) => {
     for (const [userId, drops] of userDrops.entries()) {
       const dayKey = new Date().toISOString().slice(0, 10);
       const incidentKey = `collections_drop:${dayKey}`;
-      if (await alreadyNotified(service, userId, incidentKey)) continue;
+      if (await alreadyNotified(castSupabaseClient(service), userId, incidentKey)) continue;
 
       const top = drops.sort((a, b) => b.pct - a.pct).slice(0, 3);
       const message = drops.length === 1
