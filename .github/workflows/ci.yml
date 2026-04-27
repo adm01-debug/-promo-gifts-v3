@@ -99,6 +99,16 @@ jobs:
         run: npm audit --audit-level=high || true
         continue-on-error: true
 
+      # Gate crítico: funções SECURITY DEFINER em public NÃO podem ser
+      # executáveis por PUBLIC/anon (fora da whitelist público-intencional)
+      # nem por authenticated em trigger functions. Lints Supabase 0028/0029.
+      # Se o ambiente não tem credenciais, o script faz skip silencioso.
+      - name: 🔐 SECURITY DEFINER ACL gate
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: node scripts/check-security-definer-acl.mjs
+
       - name: RLS policy tests (optional)
         if: env.TEST_SELLER_PASSWORD != '' && env.TEST_ADMIN_PASSWORD != ''
         env:

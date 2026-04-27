@@ -5014,6 +5014,15 @@ export type Database = {
       }
       audit_rls_coverage: { Args: never; Returns: Json }
       audit_rls_matrix: { Args: never; Returns: Json }
+      audit_security_definer_acl: {
+        Args: never
+        Returns: {
+          arguments: string
+          function_name: string
+          granted_to: string
+          problem: string
+        }[]
+      }
       auto_block_extreme_offenders: { Args: never; Returns: Json }
       auto_revoke_orphan_full_keys: {
         Args: { _source?: string }
