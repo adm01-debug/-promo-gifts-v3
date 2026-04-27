@@ -9,8 +9,8 @@ interface BridgeCallItemProps {
 export const BridgeCallItem = memo(({ sample }: BridgeCallItemProps) => {
   return (
     <li className="px-3 py-1.5 hover:bg-white/5">
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex min-w-0 items-center gap-1.5">
+      <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-1 sm:gap-2">
+        <div className="flex min-w-0 flex-1 items-center gap-1.5">
           <span className={`shrink-0 rounded border px-1 text-[9px] uppercase ${bridgeBadge(sample.bridge)}`}>
             {sample.bridge === 'external-db-bridge' ? 'ext' : 'crm'}
           </span>
