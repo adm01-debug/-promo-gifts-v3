@@ -1,4 +1,5 @@
 import { getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts';
+import { authorize } from '../_shared/authorize.ts';
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { z } from "npm:zod@3.23.8";
 import { fetchWithBreaker, CircuitOpenError, circuitOpenResponse } from "../_shared/external-fetch.ts";
@@ -27,8 +28,13 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // AuthZ: bitrix-sync escreve no CRM externo — supervisor (admin) ou dev.
+    // Server-side double-check via has_role() para defesa em profundidade.
+    const auth = await authorize(req, { requireRole: 'supervisor', enforceServerSide: true });
+    if (!auth.ok) return auth.response;
+
     const bitrixWebhookUrl = Deno.env.get('BITRIX24_WEBHOOK_URL');
-    
+
     if (!bitrixWebhookUrl) {
       return new Response(
         JSON.stringify({ error: 'Bitrix24 webhook URL not configured' }),
