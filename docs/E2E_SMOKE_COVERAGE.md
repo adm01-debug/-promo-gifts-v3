@@ -55,8 +55,8 @@ Ordem do array `SMOKE_COVERAGE`. Numeração bate com os títulos `NN · Nome` n
 
 | # | Feature | Descrição | Rota |
 |---|---|---|---|
-| `99` | `login` | Tela de login | `/login` |
-| `90` | `reset-password` | Recuperação de senha | `/reset-password` |
+| `90` | `login` | Tela de login | `/login` |
+| `91` | `reset-password` | Recuperação de senha | `/reset-password` |
 
 ## Governança
 
