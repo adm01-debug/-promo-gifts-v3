@@ -124,7 +124,7 @@ export function QuickQuoteFAB({ productId, productName }: QuickQuoteFABProps) {
 
   return (
     <>
-      <div className="fixed bottom-6 right-6 z-40 hidden lg:block">
+      <div className="fixed bottom-20 sm:bottom-24 lg:bottom-6 right-6 z-40 hidden lg:block">
         <AnimatePresence>
           {isOpen && (
             <motion.div
