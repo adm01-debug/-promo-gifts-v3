@@ -54,36 +54,39 @@ export function assertE2eName(
 /**
  * Preenche um campo de nome de recurso APLICANDO a guarda `assertE2eName`.
  * Aceita o locator do input (já resolvido pelo spec) e o valor.
+ *
+ * Quando `expectedPrefix` é fornecido, faz validação estrita (deve bater
+ * exatamente com esse sub-prefixo) — usado pela fixture `e2eResources`.
  */
 export async function fillResourceNameField(
   field: Locator,
   value: string,
   context = "resource",
+  expectedPrefix?: string,
 ): Promise<void> {
-  assertE2eName(value, context);
+  assertE2eName(value, context, expectedPrefix);
   await field.waitFor({ state: "visible", timeout: 8_000 });
   await field.fill(value);
 }
 
 // ─────────────────────────────────────────────────────────────────────────
 // Atalhos por domínio — geram o nome internamente para impedir engano.
+// Cada um aceita `prefix?` opcional para scoping por spec via fixture.
 // ─────────────────────────────────────────────────────────────────────────
 
-/**
- * Cria um orçamento via UI usando um nome E2E. Retorna o nome efetivamente
- * usado para o spec poder buscar/limpar pontualmente.
- *
- * Pré-condições:
- *   - O spec já navegou para `/orcamentos/novo` e o wizard está visível.
- *   - O input de cliente (data-testid="quote-client-name") existe na etapa atual.
- */
+interface CreateOpts {
+  label?: string;
+  submit?: boolean;
+  prefix?: string;
+}
+
 export async function createE2eQuote(
   page: Page,
-  opts: { label?: string; submit?: boolean } = {},
+  opts: CreateOpts = {},
 ): Promise<{ name: string }> {
-  const name = e2eName(opts.label ?? "orcamento");
+  const name = e2eName(opts.label ?? "orcamento", { prefix: opts.prefix });
   const field = page.locator('[data-testid="quote-client-name"]').first();
-  await fillResourceNameField(field, name, "quote.client_name");
+  await fillResourceNameField(field, name, "quote.client_name", opts.prefix);
   if (opts.submit) {
     const submit = page
       .locator('[data-testid="quote-submit"], [data-testid="quote-save"]')
@@ -94,17 +97,13 @@ export async function createE2eQuote(
   return { name };
 }
 
-/**
- * Cria uma coleção via UI usando um nome E2E.
- * Pré-condição: o spec abriu o modal/dialog de "Nova Coleção".
- */
 export async function createE2eCollection(
   page: Page,
-  opts: { label?: string; submit?: boolean } = {},
+  opts: CreateOpts = {},
 ): Promise<{ name: string }> {
-  const name = e2eName(opts.label ?? "colecao");
+  const name = e2eName(opts.label ?? "colecao", { prefix: opts.prefix });
   const field = page.locator('[data-testid="collection-name-input"]').first();
-  await fillResourceNameField(field, name, "collection.name");
+  await fillResourceNameField(field, name, "collection.name", opts.prefix);
   if (opts.submit) {
     const submit = page.locator('[data-testid="collection-create-submit"]').first();
     await submit.waitFor({ state: "visible", timeout: 8_000 });
@@ -113,17 +112,13 @@ export async function createE2eCollection(
   return { name };
 }
 
-/**
- * Cria uma lista de favoritos via UI usando um nome E2E.
- * Pré-condição: o spec abriu o modal/dialog de "Nova Lista" em /favoritos.
- */
 export async function createE2eFavoriteList(
   page: Page,
-  opts: { label?: string; submit?: boolean } = {},
+  opts: CreateOpts = {},
 ): Promise<{ name: string }> {
-  const name = e2eName(opts.label ?? "favorite-list");
+  const name = e2eName(opts.label ?? "favorite-list", { prefix: opts.prefix });
   const field = page.locator('[data-testid="favorite-list-name-input"]').first();
-  await fillResourceNameField(field, name, "favorite_lists.name");
+  await fillResourceNameField(field, name, "favorite_lists.name", opts.prefix);
   if (opts.submit) {
     const submit = page.locator('[data-testid="favorite-list-create-submit"]').first();
     await submit.waitFor({ state: "visible", timeout: 8_000 });
@@ -132,16 +127,13 @@ export async function createE2eFavoriteList(
   return { name };
 }
 
-/**
- * Cria um cart template via UI usando um nome E2E.
- */
 export async function createE2eCartTemplate(
   page: Page,
-  opts: { label?: string; submit?: boolean } = {},
+  opts: CreateOpts = {},
 ): Promise<{ name: string }> {
-  const name = e2eName(opts.label ?? "cart-template");
+  const name = e2eName(opts.label ?? "cart-template", { prefix: opts.prefix });
   const field = page.locator('[data-testid="cart-template-name-input"]').first();
-  await fillResourceNameField(field, name, "cart_templates.name");
+  await fillResourceNameField(field, name, "cart_templates.name", opts.prefix);
   if (opts.submit) {
     const submit = page.locator('[data-testid="cart-template-save"]').first();
     await submit.waitFor({ state: "visible", timeout: 8_000 });
@@ -150,16 +142,13 @@ export async function createE2eCartTemplate(
   return { name };
 }
 
-/**
- * Cria um custom kit (Kit Maker) via UI usando um nome E2E.
- */
 export async function createE2eCustomKit(
   page: Page,
-  opts: { label?: string; submit?: boolean } = {},
+  opts: CreateOpts = {},
 ): Promise<{ name: string }> {
-  const name = e2eName(opts.label ?? "custom-kit");
+  const name = e2eName(opts.label ?? "custom-kit", { prefix: opts.prefix });
   const field = page.locator('[data-testid="custom-kit-name-input"]').first();
-  await fillResourceNameField(field, name, "custom_kits.name");
+  await fillResourceNameField(field, name, "custom_kits.name", opts.prefix);
   if (opts.submit) {
     const submit = page.locator('[data-testid="custom-kit-save"]').first();
     await submit.waitFor({ state: "visible", timeout: 8_000 });
@@ -169,16 +158,16 @@ export async function createE2eCustomKit(
 }
 
 /**
- * Espera que um recurso de nome E2E apareça na lista correspondente,
- * usando um seletor de container (ex.: Sel.collections.list ou
- * Sel.favorites.list). Útil em asserts pós-criação.
+ * Espera que um recurso de nome E2E apareça na lista correspondente.
+ * Aceita opcionalmente um `expectedPrefix` para validação estrita.
  */
 export async function expectE2eResourceVisible(
   page: Page,
   containerSelector: string,
   resourceName: string,
+  expectedPrefix?: string,
 ): Promise<void> {
-  assertE2eName(resourceName, "resource (assert)");
+  assertE2eName(resourceName, "resource (assert)", expectedPrefix);
   void Sel; // mantém referência para garantir consistência de import
   await expect(
     page.locator(`${containerSelector} :text("${resourceName}")`).first(),
