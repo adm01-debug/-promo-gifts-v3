@@ -183,6 +183,24 @@ const slowestFeatures = [...byFeature.values()]
 
 const skippedRows = rows.filter((r) => r.status === "skipped");
 
+// ── Agregação por e2eName (recurso nomeado SSOT) ──────────────────────────
+// Agrupa falhas por recurso identificado via `e2eName(...)`. Permite ver,
+// por exemplo, que 3 falhas distintas em features diferentes compartilham
+// o mesmo recurso (ex: cleanup vazou um orçamento órfão entre specs).
+const byE2eName = new Map();
+for (const r of rows) {
+  if (!r.e2eName || r.status === "passed" || r.status === "skipped") continue;
+  if (!byE2eName.has(r.e2eName)) {
+    byE2eName.set(r.e2eName, { e2eName: r.e2eName, failures: [], features: new Set() });
+  }
+  const b = byE2eName.get(r.e2eName);
+  b.failures.push(r);
+  b.features.add(r.feature);
+}
+const failedByE2eName = [...byE2eName.values()].sort(
+  (a, b) => b.failures.length - a.failures.length || a.e2eName.localeCompare(b.e2eName),
+);
+
 // ── Render console ────────────────────────────────────────────────────────
 const startedAt = raw.stats?.startTime
   ? new Date(raw.stats.startTime).toISOString().replace("T", " ").slice(0, 16)
