@@ -24,7 +24,10 @@ describe('DevInfraGate SSR & Hydration Integration', () => {
     });
 
     const ssrHtml = renderToString(<DevOnlyBridgeOverlay />);
+    // O HTML gerado pelo servidor DEVE ser absolutamente vazio
+    // Não deve conter nem wrappers de Suspense (comentários <!--$-->) nem qualquer rastro do overlay
     expect(ssrHtml).toBe('');
+    expect(ssrHtml).not.toContain('<!--');
 
     // --- FASE 2: Hidratação simulada (Cliente) ---
     // Em vez de hydrateRoot manual (complexo com mocks), usamos render do RTL 
