@@ -21,6 +21,23 @@ export interface RouteEntry {
   requiresAdmin?: boolean;
   /** Marca rotas que requerem role dev. */
   requiresDev?: boolean;
+  /**
+   * Identificador estável da feature — usado como CHAVE pela suíte smoke
+   * para garantir cobertura. DEVE ser único entre rotas marcadas `smoke: true`.
+   * Convenção: kebab-case, escopo no domínio (ex: "catalog", "quotes-list").
+   */
+  feature?: string;
+  /**
+   * `true` se a rota é parte do gate smoke determinístico (1 teste/feature).
+   * O test de governança em `flows/20-all-features-smoke.spec.ts` falha se
+   * alguma rota com `smoke: true` não estiver coberta pelo `SMOKE_COVERAGE`.
+   */
+  smoke?: boolean;
+  /**
+   * Descrição humana curta — usada no relatório de governança e em logs
+   * de falha do gate (ex: "Catálogo de produtos com busca e filtros").
+   */
+  description?: string;
 }
 
 /* ============================================================
