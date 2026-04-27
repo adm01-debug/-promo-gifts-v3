@@ -1,14 +1,14 @@
 /**
  * Overlay flutuante (somente preview/dev) que mostra cada chamada de bridge
- * em tempo real — latência, payload de resposta, status e request-id — para
- * identificar rapidamente quais queries estão causando o gargalo, sem
- * precisar abrir o painel /admin/telemetria.
+ * em tempo real — latência, payload de resposta, status e request-id.
  *
- * • Não é montado em produção (`import.meta.env.PROD === true` → render null).
- * • Toggle: tecla **`** (acento grave) ou clique no botão flutuante.
- * • Estado de visibilidade persiste em localStorage entre reloads.
- * • Zero custo quando colapsado: usa o mesmo `subscribeBridgeCalls` já throttled.
+ * PRECEDÊNCIA DE ACESSO:
+ * 1. Hard gate: import.meta.env.PROD === true -> render null (segurança de build)
+ * 2. Soft gate: shouldShowDevInfraMessages(isDev) -> render null (segurança de runtime)
+ *
+ * Toggle: tecla ` (acento grave) ou clique no botão flutuante.
  */
+
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { shouldShowDevInfraMessages } from '@/lib/system/dev-infra-messages';
@@ -25,6 +25,7 @@ import {
   describeLongTask,
   type LongTaskEvent,
 } from '@/lib/telemetry/longTaskWatchdog';
+
 
 const STORAGE_KEY = 'lov:bridge-metrics-overlay:open';
 const MAX_VISIBLE = 60;
@@ -54,8 +55,14 @@ function shortReqId(id?: string): string {
 }
 
 export default function BridgeMetricsOverlay() {
+  const { isDev } = useAuth();
+  const allowed = shouldShowDevInfraMessages(isDev);
+
   // Hard guard: nunca renderiza em build de produção.
   if (import.meta.env.PROD) return null;
+  // Gate SSOT
+  if (!allowed) return null;
+
 
   // Defesa em profundidade — gate SSOT (env > localStorage > role `dev`).
   // Mesmo que alguém monte o overlay fora do <DevOnlyBridgeOverlay />,
