@@ -148,12 +148,13 @@ export function useMagicUpGeneration(deps: GenerationDeps) {
           setActiveVariation(prev.length);
           return [...prev, newVariation];
         });
+        log.info('generate_ok', { qualityScore: diagnosis.total, hasGenId: !!genId });
         toast.success("🎉 Imagem publicitária gerada com sucesso!");
       } else {
         throw new Error(data?.error || "Nenhuma imagem retornada");
       }
     } catch (err: unknown) {
-      console.error("Magic Up error:", err);
+      log.error('generate_failed', { err });
       toast.error(err instanceof Error ? err.message : "Erro ao gerar imagem");
     } finally {
       setGenerating(false);
