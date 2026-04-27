@@ -1,3 +1,4 @@
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
 import { getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts';
 import { authenticateRequest, authErrorResponse } from '../_shared/auth.ts';
 import { z } from "npm:zod@3.23.8";
@@ -102,7 +103,11 @@ Deno.serve(async (req) => {
     const horizontalPos = positionX < 25 ? "far left" : positionX < 40 ? "left of center" : positionX > 75 ? "far right" : positionX > 60 ? "right of center" : "horizontally centered";
     const verticalPos = positionY < 25 ? "near the very top" : positionY < 40 ? "in the upper third" : positionY > 75 ? "near the very bottom" : positionY > 60 ? "in the lower third" : "vertically centered";
     const positionDesc = `${verticalPos}, ${horizontalPos}`;
-    const relativeSize = ((logoWidthCm + logoHeightCm) / 2) / 30;
+    // logoWidthCm/logoHeightCm são opcionais no schema; usar fallback de 10cm
+    // (tamanho médio típico de área de gravação) quando ausentes.
+    const safeLogoWidthCm = logoWidthCm ?? 10;
+    const safeLogoHeightCm = logoHeightCm ?? 10;
+    const relativeSize = ((safeLogoWidthCm + safeLogoHeightCm) / 2) / 30;
     const sizeDesc = relativeSize < 0.15 ? "small" : relativeSize < 0.3 ? "medium-sized" : "large";
 
     const scaleInstruction = logoScale < 100 
@@ -158,10 +163,11 @@ Deno.serve(async (req) => {
     let prompt: string;
     
     if (promptTemplate) {
-      // Replace template variables
+      // Replace template variables — todos os valores são coagidos para string
+      // (productName/techniquePrompt são opcionais no schema; default '').
       prompt = promptTemplate
-        .replace(/\{\{productName\}\}/g, productName)
-        .replace(/\{\{techniquePrompt\}\}/g, techniquePrompt)
+        .replace(/\{\{productName\}\}/g, productName ?? '')
+        .replace(/\{\{techniquePrompt\}\}/g, techniquePrompt ?? '')
         .replace(/\{\{positionX\}\}/g, String(positionX))
         .replace(/\{\{positionY\}\}/g, String(positionY))
         .replace(/\{\{horizontalPos\}\}/g, horizontalPos)
