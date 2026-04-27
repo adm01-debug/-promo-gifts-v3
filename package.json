@@ -35,9 +35,10 @@
     "test:e2e:smoke": "npx playwright test --project=chromium-smoke",
     "test:e2e:regression": "npx playwright test --project=chromium-public --project=chromium-authed --project=routes-public --project=routes-authed",
     "test:e2e:mobile": "npx playwright test --project=routes-mobile",
-    "test:e2e:smoke:report": "npm run test:e2e:smoke; node scripts/e2e-feature-summary.mjs",
+    "test:e2e:smoke:report": "npm run test:e2e:smoke; node scripts/e2e-smoke-summary.mjs; node scripts/e2e-feature-summary.mjs",
     "test:e2e:regression:report": "npm run test:e2e:regression; node scripts/e2e-feature-summary.mjs",
-    "e2e:summary": "node scripts/e2e-feature-summary.mjs"
+    "e2e:summary": "node scripts/e2e-feature-summary.mjs",
+    "e2e:smoke-summary": "node scripts/e2e-smoke-summary.mjs"
   },
   "lint-staged": {
     "src/**/*.{ts,tsx}": [
