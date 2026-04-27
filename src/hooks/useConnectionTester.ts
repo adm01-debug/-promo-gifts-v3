@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { getErrorCopy } from "@/lib/connection-error-copy";
+import { createClientLogger } from "@/lib/telemetry/structuredLogger";
 
 export type ConnectionType = "supabase" | "bitrix24" | "n8n" | "mcp" | "webhook_outbound";
 export type ErrorKind =
