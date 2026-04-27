@@ -11,6 +11,7 @@ import { isFullAccess } from "@/lib/mcp/scopes";
 import { sanitizeError } from "@/lib/security/sanitize-error";
 import { useDevChallenge } from "@/contexts/DevChallengeContext";
 import { handleStepUpError } from "@/lib/auth/step-up-error";
+import { createClientLogger } from "@/lib/telemetry/structuredLogger";
 
 export interface McpKeyRow {
   id: string;
@@ -223,6 +224,9 @@ export function useMcpKeys() {
   const revoke = useCallback(
     async (id: string, reason?: string) => {
       // Step-up obrigatório: senha + OTP recentes antes de revogar.
+      const log = createClientLogger('mcp.revokeKey', { base: { keyId: id } });
+      log.info('start');
+
       const requestStepUp = () =>
         challenge({
           action: "mcp_key_revoke",
@@ -230,11 +234,12 @@ export function useMcpKeys() {
           targetRef: id,
         });
       const token = await requestStepUp();
-      if (!token) return false; // cancelado pelo usuário
+      if (!token) { log.warn('cancelled_by_user'); return false; }
 
       const attempt = async (tk: string): Promise<boolean> => {
         const { data, error } = await supabase.functions.invoke("mcp-keys-revoke", {
           body: { key_id: id, reason: reason ?? null, step_up_token: tk },
+          headers: log.headers(),
         });
         // Tratamento dedicado de step-up: mostra toast com CTA "Refazer verificação".
         if (handleStepUpError(data, error, () => {
@@ -243,12 +248,15 @@ export function useMcpKeys() {
             if (fresh) await attempt(fresh);
           })();
         })) {
+          log.warn('step_up_required');
           return false;
         }
         if (error || (data && (data as { error?: string }).error)) {
+          log.error('failed', { err: error ?? data });
           toast.error("Erro ao revogar", { description: sanitizeError(error ?? data) });
           return false;
         }
+        log.info('ok');
         toast.success("Chave revogada");
         await load();
         return true;

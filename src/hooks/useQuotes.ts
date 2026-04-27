@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useOrganization } from "@/contexts/OrganizationContext";
 import { useSalesScope } from "@/lib/auth/visibility-scope";
 import { applySellerScope } from "@/lib/auth/apply-seller-scope";
+import { createClientLogger } from "@/lib/telemetry/structuredLogger";
 import { toast } from "sonner";
 import type { TablesInsert } from "@/integrations/supabase/types";
 import type { Quote, QuoteItem, QuoteItemPersonalization, PersonalizationTechnique } from "./quotes/quoteTypes";
@@ -261,31 +262,41 @@ export function useQuotes() {
   };
 
   const syncQuoteToBitrix = async (quoteId: string): Promise<boolean> => {
+    const log = createClientLogger('quote.syncBitrix', { base: { quoteId } });
+    log.info('start');
     try {
       const { data, error: fnError } = await supabase.functions.invoke("quote-sync", {
         body: { action: "sync_quote", data: { quoteId } },
+        headers: log.headers(),
       });
       if (fnError) throw new Error(fnError.message);
       if (data.error) throw new Error(data.error);
+      log.info('ok', { bitrix_deal_id: data.bitrix_deal_id ?? null });
       toast.success("Sincronizado com Bitrix!", { description: `Deal ID: ${data.bitrix_deal_id || "N/A"}` });
       await fetchQuotes();
       return true;
     } catch (err) {
+      log.error('failed', { err });
       toast.error("Erro ao sincronizar", { description: err instanceof Error ? err.message : "Erro" });
       return false;
     }
   };
 
   const testWebhookConnection = async (): Promise<boolean> => {
+    const log = createClientLogger('quote.testWebhook');
+    log.info('start');
     try {
       const { data, error: fnError } = await supabase.functions.invoke("quote-sync", {
         body: { action: "test_webhook", data: {} },
+        headers: log.headers(),
       });
       if (fnError) throw new Error(fnError.message);
-      if (data.success) { toast.success("Conexão com N8N estabelecida!"); return true; }
+      if (data.success) { log.info('ok'); toast.success("Conexão com N8N estabelecida!"); return true; }
+      log.warn('not_ok');
       toast.error("Falha na conexão com N8N");
       return false;
     } catch (err) {
+      log.error('failed', { err });
       toast.error("Erro ao testar webhook", { description: err instanceof Error ? err.message : "Erro" });
       return false;
     }
