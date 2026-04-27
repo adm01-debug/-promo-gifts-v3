@@ -4937,6 +4937,60 @@ export type Database = {
           },
         ]
       }
+      webhook_delivery_metrics: {
+        Row: {
+          attempt: number
+          direction: string
+          duration_ms: number | null
+          endpoint: string | null
+          error_class: string | null
+          error_message: string | null
+          event_type: string | null
+          http_status: number | null
+          id: string
+          metadata: Json
+          occurred_at: string
+          payload_bytes: number | null
+          request_id: string
+          source: string
+          success: boolean
+        }
+        Insert: {
+          attempt?: number
+          direction: string
+          duration_ms?: number | null
+          endpoint?: string | null
+          error_class?: string | null
+          error_message?: string | null
+          event_type?: string | null
+          http_status?: number | null
+          id?: string
+          metadata?: Json
+          occurred_at?: string
+          payload_bytes?: number | null
+          request_id: string
+          source: string
+          success: boolean
+        }
+        Update: {
+          attempt?: number
+          direction?: string
+          duration_ms?: number | null
+          endpoint?: string | null
+          error_class?: string | null
+          error_message?: string | null
+          event_type?: string | null
+          http_status?: number | null
+          id?: string
+          metadata?: Json
+          occurred_at?: string
+          payload_bytes?: number | null
+          request_id?: string
+          source?: string
+          success?: boolean
+        }
+        Relationships: []
+      }
       workspace_notifications: {
         Row: {
           action_url: string | null
@@ -5330,6 +5384,18 @@ export type Database = {
           items: Json
           name: string
           updated_at: string
+        }[]
+      }
+      get_webhook_delivery_summary: {
+        Args: { _minutes?: number }
+        Returns: {
+          direction: string
+          failures: number
+          last_failure_at: string
+          p95_ms: number
+          source: string
+          status_class: string
+          total: number
         }[]
       }
       has_org_role: {
