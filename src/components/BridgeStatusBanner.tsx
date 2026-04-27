@@ -86,9 +86,13 @@ export function BridgeStatusBanner() {
         <div className="flex items-center gap-2 min-w-0">
           <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden />
           <div className="min-w-0">
-            <span className="font-medium">Catálogo externo indisponível.</span>{' '}
+            <span className="font-medium">
+              {isAllowed ? 'Catálogo externo indisponível.' : 'Catálogo temporariamente indisponível.'}
+            </span>{' '}
             <span className="opacity-90 hidden sm:inline">
-              Tentativas automáticas esgotadas. Aguarde alguns segundos enquanto o serviço reinicia, ou recarregue a página.
+              {isAllowed 
+                ? 'Tentativas automáticas esgotadas. Aguarde alguns segundos enquanto o serviço reinicia, ou recarregue a página.'
+                : 'Estamos com uma instabilidade momentânea no catálogo. Tente recarregar a página em alguns instantes.'}
             </span>
           </div>
         </div>
