@@ -770,6 +770,7 @@ async function handleSearch(crm: SupabaseClient, body: CrmQuery): Promise<Respon
 // ============================================
 
 Deno.serve((req) => {
+  const corsHeaders = getCorsHeaders(req);
   // Extrai/gera o request-id e roda todo o resto dentro do AsyncLocalStorage,
   // garantindo que jsonResponse() o injete em todas as respostas e logs
   // possam prefixá-lo via currentRequestId().

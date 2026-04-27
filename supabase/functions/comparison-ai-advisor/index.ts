@@ -5,6 +5,9 @@ import { getCorsHeaders } from "../_shared/cors.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
+// Fallback CORS headers (injected by recovery codemod) — substituído per-request quando aplicável.
+let corsHeaders: Record<string, string> = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type" };
+
 const ProductSchema = z.object({
   id: z.union([z.string(), z.number()]).transform(String),
   name: z.string().min(1).max(300),
