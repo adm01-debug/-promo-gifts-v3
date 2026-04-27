@@ -42,15 +42,28 @@ jobs:
       - name: Install Playwright (chromium)
         run: npx playwright install --with-deps chromium
 
-      - name: Run E2E smoke (gate — 1 teste por funcionalidade, sequencial)
-        run: npx playwright test --project=chromium-smoke
+      - name: Run E2E smoke (gate determinístico — 1 teste/feature, sequencial)
         id: e2e_smoke
+        run: npx playwright test --project=chromium-smoke --max-failures=3
 
       - name: Run E2E full (cobertura completa)
         if: steps.e2e_smoke.outcome == 'success'
         run: npx playwright test
         continue-on-error: true
         id: e2e_run
+
+      - name: Generate feature summary
+        if: always()
+        run: node scripts/e2e-feature-summary.mjs || true
+
+      - name: Append feature summary to GitHub UI
+        if: always() && hashFiles('playwright-report/feature-summary.md') != ''
+        run: |
+          {
+            echo "## E2E Feature Summary"
+            echo ""
+            cat playwright-report/feature-summary.md
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload Playwright report
         if: always()
@@ -59,6 +72,15 @@ jobs:
           name: playwright-report
           path: playwright-report
           retention-days: 7
+
+      - name: Upload feature summary (markdown)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-feature-summary
+          path: playwright-report/feature-summary.md
+          retention-days: 30
+          if-no-files-found: ignore
 
       - name: Upload evidence artifacts
         if: always()
@@ -73,5 +95,5 @@ jobs:
       - name: Fail job if tests failed
         if: steps.e2e_smoke.outcome == 'failure' || steps.e2e_run.outcome == 'failure'
         run: |
-          echo "::error::Playwright tests failed — veja artifacts 'playwright-report' e 'e2e-evidence'"
+          echo "::error::Playwright tests failed — veja artifacts 'playwright-report' e 'e2e-feature-summary'"
           exit 1
