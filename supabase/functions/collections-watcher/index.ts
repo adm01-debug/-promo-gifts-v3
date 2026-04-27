@@ -2,6 +2,7 @@ import { getCorsHeaders } from "../_shared/cors.ts";
 // collections-watcher: cron diário que detecta quedas de preço em itens de coleções
 // e gera workspace_notifications (categoria "collections") com dedupe 24h.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
+import { castSupabaseClient } from "../_shared/supabase-client-adapter.ts";
 
 
 const DEDUPE_WINDOW_HOURS = 24;
