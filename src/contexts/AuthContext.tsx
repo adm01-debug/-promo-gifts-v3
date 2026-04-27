@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, useRef, useCallback, ty
 import { type User, type Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { logger } from "@/lib/logger";
+import { createClientLogger } from "@/lib/telemetry/structuredLogger";
 import { checkLoginAllowed, recordFailedAttempt, clearLoginAttempts } from "@/hooks/useLoginRateLimit";
 import { toast } from "sonner";
 
@@ -264,10 +265,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signIn = async (email: string, password: string) => {
+    const log = createClientLogger('auth.signIn', { base: { email_domain: email.split('@')[1] ?? 'unknown' } });
+    log.info('start');
+
     // Client-side brute force protection
     const { allowed, remainingSeconds } = checkLoginAllowed(email);
     if (!allowed) {
       const minutes = Math.ceil(remainingSeconds / 60);
+      log.warn('rate_limited_client', { remaining_seconds: remainingSeconds });
       return {
         error: {
           message: `Conta temporariamente bloqueada por excesso de tentativas. Tente novamente em ${minutes} minuto(s).`,
@@ -284,6 +289,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (error) {
       const { locked, remainingSeconds: lockSecs } = recordFailedAttempt(email);
+      log.warn('signin_failed', { reason: error.message, locked });
       if (locked) {
         const mins = Math.ceil(lockSecs / 60);
         return {
@@ -297,9 +303,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } else {
       // Successful login — clear attempts
       clearLoginAttempts(email);
+      log.info('signin_ok');
     }
 
-    // Log attempt server-side (fire-and-forget)
+    // Log attempt server-side (fire-and-forget) — propaga X-Request-Id
     supabase.functions.invoke('log-login-attempt', {
       body: {
         email,
@@ -309,22 +316,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         failure_reason: error?.message || null,
         user_agent: navigator.userAgent,
       },
+      headers: log.headers(),
     }).catch(() => {});
 
     return { error };
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-    setSession(null);
-    setProfile(null);
-    setUserRoles([]);
-    setCurrentAAL(null);
-    setNextAAL(null);
-    setHasMFA(false);
-    // Permite prewarm no próximo login (mesma aba)
-    import('@/lib/external-db-prewarm').then(m => m.resetPrewarmSession()).catch(() => {});
+    const log = createClientLogger('auth.signOut');
+    log.info('start');
+    try {
+      await supabase.auth.signOut();
+      setUser(null);
+      setSession(null);
+      setProfile(null);
+      setUserRoles([]);
+      setCurrentAAL(null);
+      setNextAAL(null);
+      setHasMFA(false);
+      // Permite prewarm no próximo login (mesma aba)
+      import('@/lib/external-db-prewarm').then(m => m.resetPrewarmSession()).catch(() => {});
+      log.info('ok');
+    } catch (err) {
+      log.error('failed', { err });
+      throw err;
+    }
   };
 
   const refreshProfile = async () => {
