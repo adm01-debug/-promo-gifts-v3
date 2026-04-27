@@ -60,6 +60,9 @@ const PlatformFailureCards = lazy(() =>
 const PlatformFailureAlertBanner = lazy(() =>
   import('@/components/admin/telemetry/PlatformFailureAlertBanner').then((m) => ({ default: m.PlatformFailureAlertBanner })),
 );
+const AppHealthDashboard = lazy(() =>
+  import('@/components/admin/telemetry/AppHealthDashboard').then((m) => ({ default: m.AppHealthDashboard })),
+);
 const ColdStartRetriesPanel = lazy(() =>
   import('@/components/admin/telemetry/ColdStartRetriesPanel').then((m) => ({ default: m.ColdStartRetriesPanel })),
 );
