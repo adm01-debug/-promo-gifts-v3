@@ -80,6 +80,21 @@ export default defineConfig({
       args: ["--disable-blink-features=AutomationControlled"],
     },
   },
+  // ───────────────────────────────────────────────────────────
+  // ISOLAMENTO @smoke (defesa em profundidade)
+  //
+  // Apenas o project `chromium-smoke` executa testes marcados `@smoke`.
+  // Demais projects aplicam `grepInvert: /@smoke/` para ignorar qualquer
+  // `@smoke` que vaze para outro arquivo (ex.: alguém adicionar
+  // `test.describe("@smoke ...")` num spec de regression por engano).
+  //
+  // Combinado com `testMatch`/`testIgnore` por path, isso garante 3 camadas:
+  //   1. Path-based: smoke spec só casa em `chromium-smoke`.
+  //   2. Tag-based:  qualquer `@smoke` em outro spec é silenciosamente
+  //                  pulado em todos os outros projects.
+  //   3. Comando:    `npm run test:e2e` (geral) NÃO inclui chromium-smoke
+  //                  por padrão — vide `npm run test:e2e:all` para encadear.
+  // ───────────────────────────────────────────────────────────
   projects: [
     {
       name: "setup",
@@ -89,6 +104,7 @@ export default defineConfig({
       name: "chromium-public",
       use: { ...devices["Desktop Chrome"] },
       testIgnore: [/fixtures\/auth\.setup\.ts/, /flows\//, /routes\//],
+      grepInvert: /@smoke/,
     },
     {
       name: "chromium-authed",
@@ -98,6 +114,7 @@ export default defineConfig({
       // Smoke roda no project dedicado abaixo (chromium-smoke) para evitar
       // execução duplicada e garantir ordem sequencial determinística.
       testIgnore: [/flows\/20-all-features-smoke\.spec\.ts/],
+      grepInvert: /@smoke/,
     },
     {
       // Smoke gate — 1 teste por funcionalidade, ordem fixa, workers=1.
@@ -116,6 +133,10 @@ export default defineConfig({
       },
       dependencies: ["setup"],
       testMatch: /flows\/20-all-features-smoke\.spec\.ts/,
+      // Exige tag @smoke explícita — qualquer test() sem a tag no
+      // describe é ignorado, mesmo no spec do smoke. Garante que apenas
+      // testes intencionalmente marcados @smoke rodem aqui.
+      grep: /@smoke/,
       fullyParallel: false,
       workers: 1,
       retries: 0,
@@ -125,6 +146,7 @@ export default defineConfig({
       name: "routes-public",
       use: { ...devices["Desktop Chrome"] },
       testMatch: /routes\/public\/.*\.spec\.ts/,
+      grepInvert: /@smoke/,
     },
     {
       // Specs por rota — áreas autenticadas (app, quotes, admin).
@@ -132,6 +154,7 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"], storageState: STORAGE_STATE },
       dependencies: ["setup"],
       testMatch: /routes\/(app|quotes|admin)\/.*\.spec\.ts/,
+      grepInvert: /@smoke/,
     },
     {
       // Versão mobile dos mesmos specs (apenas testes marcados @mobile rodam aqui).
@@ -140,6 +163,7 @@ export default defineConfig({
       dependencies: ["setup"],
       testMatch: /routes\/(app|quotes|admin)\/.*\.spec\.ts/,
       grep: /@mobile/,
+      grepInvert: /@smoke/,
     },
   ],
   webServer: process.env.E2E_BASE_URL
