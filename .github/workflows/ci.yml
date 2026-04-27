@@ -217,8 +217,24 @@ jobs:
         run: npm ci
 
       # Smoke primeiro: falha rápido se algum hook não monta sequer com providers padrão.
+      # NOTA: convivem dois padrões de naming históricos (*-smoke.test.ts e *.smoke.test.ts).
+      # Expandimos os globs no bash (com globstar) e passamos os PATHS REAIS ao Vitest;
+      # se o array vier vazio, falhamos com mensagem explícita (regressão de cobertura
+      # de smoke, não flake de runner — antes o Vitest morria com exit 1 silencioso).
       - name: Smoke tests (hooks)
-        run: npx vitest run "tests/hooks/**/*-smoke.test.*" --reporter=verbose
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s globstar nullglob
+          files=( tests/hooks/**/*-smoke.test.* tests/hooks/**/*.smoke.test.* )
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "❌ Nenhum arquivo de smoke encontrado em tests/hooks/." >&2
+            echo "   Convenção: '*-smoke.test.ts(x)' ou '*.smoke.test.ts(x)'." >&2
+            exit 1
+          fi
+          echo "Smokes detectados (${#files[@]}):"
+          printf '  - %s\n' "${files[@]}"
+          npx vitest run "${files[@]}" --reporter=verbose
 
       # Suíte funcional completa de hooks (separada do job principal para visibilidade dedicada no PR).
       - name: Hook test suite (funcionais)
