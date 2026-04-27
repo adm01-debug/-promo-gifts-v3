@@ -42,7 +42,12 @@ jobs:
       - name: Install Playwright (chromium)
         run: npx playwright install --with-deps chromium
 
-      - name: Run E2E
+      - name: Run E2E smoke (gate — 1 teste por funcionalidade, sequencial)
+        run: npx playwright test --project=chromium-smoke
+        id: e2e_smoke
+
+      - name: Run E2E full (cobertura completa)
+        if: steps.e2e_smoke.outcome == 'success'
         run: npx playwright test
         continue-on-error: true
         id: e2e_run
@@ -66,7 +71,7 @@ jobs:
           retention-days: 7
 
       - name: Fail job if tests failed
-        if: steps.e2e_run.outcome == 'failure'
+        if: steps.e2e_smoke.outcome == 'failure' || steps.e2e_run.outcome == 'failure'
         run: |
           echo "::error::Playwright tests failed — veja artifacts 'playwright-report' e 'e2e-evidence'"
           exit 1
