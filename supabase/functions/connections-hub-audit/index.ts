@@ -60,9 +60,10 @@ const TRIGGER_NAME_PATTERN = "dispatch_quote_webhook_event";
 Deno.serve(async (req: Request) => {
   const preflight = handleCorsPreflightIfNeeded(req);
   if (preflight) return preflight;
-  const corsHeaders = getCorsHeaders(req);
 
   const requestId = getOrCreateRequestId(req);
+  // X-Request-Id propagado em TODA resposta via spread de corsHeaders.
+  const corsHeaders = { ...getCorsHeaders(req), [REQUEST_ID_HEADER]: requestId };
   const startedAt = new Date().toISOString();
   const startedMs = Date.now();
   const { ip, ua } = extractRequestMeta(req);
