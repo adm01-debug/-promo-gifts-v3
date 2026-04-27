@@ -1,23 +1,35 @@
-import { useMemo, useSyncExternalStore } from 'react';
+import { useMemo, useSyncExternalStore, useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { devInfraGate } from '@/lib/system/dev-gate/DevInfraGate';
 
 /**
  * Hook customizado para encapsular a lógica de acesso ao Gate.
  * Reativo a mudanças de ambiente e configurações manuais (localStorage).
+ * Garante que nada seja exibido até que o componente seja montado no cliente.
  */
 export function useDevGate() {
-  const { roles, isDev } = useAuth();
+  const { roles, isDev, isLoading } = useAuth();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   
   // Usamos useSyncExternalStore para reagir a mudanças no devInfraGate (ex: storage events)
-  const isAllowed = useSyncExternalStore(
+  const isAllowedStore = useSyncExternalStore(
     (onStoreChange) => devInfraGate.subscribe(onStoreChange),
     () => devInfraGate.shouldShow(roles),
-    () => devInfraGate.hasAccess(roles) // Fallback seguro para SSR
+    () => false // No servidor, sempre retorna false por segurança
   );
+
+  // Só permitimos acesso se:
+  // 1. O componente estiver montado no cliente (evita SSR mismatch)
+  // 2. O AuthContext não estiver mais carregando (evita flash antes da role carregar)
+  // 3. O gate de infraestrutura autorizar
+  const isAllowed = mounted && !isLoading && isAllowedStore;
 
   return useMemo(() => ({
     isAllowed,
-    isDev
-  }), [isAllowed, isDev]);
+    isDev: mounted && isDev
+  }), [isAllowed, isDev, mounted, isLoading]);
 }
