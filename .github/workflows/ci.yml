@@ -253,28 +253,20 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Roda APENAS os testes de price freshness (utils + componente).
-      # Falha rápido se algum cenário pt-BR/threshold/timezone regredir.
+      # Roda a suite de price freshness UMA única vez já com coverage instrumentado.
+      # Antes rodávamos duas vezes (suite + coverage), o que dobrava a janela de
+      # flake e custava ~37s extras sem ganho de assertividade.
       # Bash expande os globs em paths reais antes de chamar o Vitest
       # (passar "glob" entre aspas faz o Vitest tratar como literal e não achar nada).
-      - name: Run price freshness suite
+      - name: Run price freshness suite + coverage
         shell: bash
         run: |
           set -euo pipefail
           files=( tests/utils/price-freshness*.test.ts tests/components/PriceFreshnessBadge*.test.tsx )
           echo "Arquivos detectados:"
           printf '  - %s\n' "${files[@]}"
-          npx vitest run "${files[@]}" --reporter=verbose
-
-      # Gera coverage focado nos arquivos de price freshness para alimentar o gate.
-      # --coverage.include isola o cálculo: mudanças em arquivos não-relacionados
-      # não afetam este job.
-      - name: Coverage (price freshness only)
-        shell: bash
-        run: |
-          set -euo pipefail
-          files=( tests/utils/price-freshness*.test.ts tests/components/PriceFreshnessBadge*.test.tsx )
           npx vitest run "${files[@]}" \
+            --reporter=verbose \
             --coverage \
             --coverage.reporter=text \
             --coverage.reporter=json-summary \
