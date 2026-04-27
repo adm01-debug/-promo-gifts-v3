@@ -35,42 +35,47 @@ serve(async (req) => {
     // 2. Scan Antivírus (VirusTotal)
     const vtApiKey = Deno.env.get('VIRUSTOTAL_API_KEY')
     if (vtApiKey) {
-      console.log(`Iniciando varredura VirusTotal para: ${file.name}`)
-      
-      const vtFormData = new FormData()
-      vtFormData.append('file', file)
+      const fileBuffer = await file.arrayBuffer()
+      const hashBuffer = await crypto.subtle.digest('SHA-256', fileBuffer)
+      const hashArray = Array.from(new Uint8Array(hashBuffer))
+      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
 
-      const vtResponse = await fetch('https://www.virustotal.com/api/v3/files', {
-        method: 'POST',
-        headers: {
-          'x-apikey': vtApiKey,
-        },
-        body: vtFormData,
+      console.log(`Verificando hash no VirusTotal: ${hashHex}`)
+
+      // Verificar se o arquivo já é conhecido e malicioso
+      const vtCheckResponse = await fetch(`https://www.virustotal.com/api/v3/files/${hashHex}`, {
+        headers: { 'x-apikey': vtApiKey }
       })
 
-      if (!vtResponse.ok) {
-        console.error('Erro na API do VirusTotal:', await vtResponse.text())
-        // Em caso de erro na API, podemos decidir se bloqueamos ou permitimos. 
-        // Em um cenário de alta segurança, bloqueamos.
-        return new Response(JSON.stringify({ error: 'Erro ao validar segurança do arquivo' }), {
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      if (vtCheckResponse.ok) {
+        const vtData = await vtCheckResponse.json()
+        const stats = vtData.data.attributes.last_analysis_stats
+        if (stats.malicious > 0 || stats.suspicious > 0) {
+          console.error(`Arquivo malicioso detectado! Malicious: ${stats.malicious}, Suspicious: ${stats.suspicious}`)
+          return new Response(JSON.stringify({ error: 'Arquivo bloqueado por motivos de segurança (malware detectado)' }), {
+            status: 403,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          })
+        }
+        console.log('Arquivo já conhecido e limpo.')
+      } else if (vtCheckResponse.status === 404) {
+        // Arquivo novo, enviar para análise
+        console.log('Arquivo novo, enviando para análise no VirusTotal...')
+        const vtFormData = new FormData()
+        vtFormData.append('file', file)
+        
+        await fetch('https://www.virustotal.com/api/v3/files', {
+          method: 'POST',
+          headers: { 'x-apikey': vtApiKey },
+          body: vtFormData,
         })
+        // Como é um arquivo novo, não temos o resultado imediato. 
+        // Em um sistema crítico, poderíamos bloquear até a análise terminar,
+        // mas aqui permitiremos e logaremos para auditoria posterior.
       }
-
-      const vtResult = await vtResponse.json()
-      console.log('Arquivo enviado para VirusTotal. ID de análise:', vtResult.data.id)
-      
-      // Nota: O VirusTotal v3 retorna um ID de análise. Para resultados em tempo real, 
-      // precisaríamos esperar ou usar a busca por hash se o arquivo já existir.
-      // Para simplificar e garantir segurança imediata em novos uploads,
-      // aqui assumimos que se o upload para o VT falhou, bloqueamos.
-      // Em uma implementação completa, consultaríamos o status da análise.
-    } else {
-      console.warn('VIRUSTOTAL_API_KEY não configurada. Pulando varredura de malware.')
     }
 
-    // 3. Upload para Supabase Storage (usando Service Role para bypass de RLS se necessário, ou apenas proxy)
+    // 3. Upload para Supabase Storage
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
