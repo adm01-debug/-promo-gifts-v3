@@ -384,27 +384,29 @@ html[data-scroll-locked] body {
     transition: background-color 0.3s ease, color 0.3s ease;
   }
 
-  /* Light mode: textos mais pesados para melhor legibilidade */
+  /* Light mode: textos mais pesados para melhor legibilidade e contraste (LP-01) */
   :root body {
-    font-weight: 500;
+    font-weight: 450;
+    -webkit-font-smoothing: antialiased;
   }
   :root p, :root span, :root label, :root td, :root th, :root li, :root dd, :root dt {
-    font-weight: 500;
+    font-weight: 450;
   }
   :root .text-sm, :root .text-xs {
-    font-weight: 500;
+    font-weight: 450;
   }
   :root .text-muted-foreground {
-    font-weight: 500;
+    color: hsl(220 12% 38%);
+    font-weight: 450;
   }
   :root .font-medium {
-    font-weight: 600;
+    font-weight: 550;
   }
   :root .font-semibold {
-    font-weight: 700;
+    font-weight: 650;
   }
   :root .font-bold {
-    font-weight: 800;
+    font-weight: 750;
   }
   /* Dark mode mantém pesos originais */
   .dark body {
