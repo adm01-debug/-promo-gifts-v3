@@ -1,9 +1,8 @@
 /**
- * CloudStatusBanner — gating dev-only
- *
- * Garante que o banner de status do backend (warming/degraded/down) só renderiza
- * quando `shouldShowDevInfraMessages(isDev)` retorna `true` — usuários comuns
- * (agente/supervisor) NUNCA veem mensagens como "Backend reiniciando…".
+ * CloudStatusBanner — gating dev-only vs crítico
+ * 
+ * Garante que apenas mensagens estritamente técnicas ("warming") são ocultadas
+ * para usuários comuns. Falhas críticas ("down", "degraded") são exibidas a todos.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
@@ -20,11 +19,13 @@ vi.mock('@/hooks/useCloudStatus', () => ({
   useCloudStatus: () => mockUseCloudStatus(),
 }));
 
-// Gate SSOT — controlado por env/localStorage/role; mockamos para forçar
-// a precedência por role e isolar o teste do build-time env.
-const mockShouldShow = vi.fn();
-vi.mock('@/lib/system/dev-infra-messages', () => ({
-  shouldShowDevInfraMessages: (isDev: boolean) => mockShouldShow(isDev),
+// Mock do hook useDevGate (já que o componente o usa agora)
+const mockIsAllowed = vi.fn();
+vi.mock('@/hooks/useDevGate', () => ({
+  useDevGate: () => ({
+    isAllowed: mockIsAllowed(),
+    isDev: mockUseAuth().isDev
+  })
 }));
 
 function setStatus(status: CloudStatus) {
@@ -39,54 +40,58 @@ function setStatus(status: CloudStatus) {
 beforeEach(() => {
   mockUseAuth.mockReset();
   mockUseCloudStatus.mockReset();
-  mockShouldShow.mockReset();
-  // Default: gate respeita o role (comportamento de produção).
-  mockShouldShow.mockImplementation((isDev: boolean) => isDev);
+  mockIsAllowed.mockReset();
+  // Default: isAllowed segue isDev
+  mockIsAllowed.mockImplementation(() => mockUseAuth().isDev);
 });
 
-describe('CloudStatusBanner — visibilidade por papel', () => {
-  it.each(['warming', 'degraded', 'down'] as const)(
-    'NÃO renderiza para usuário não-dev mesmo com status=%s',
-    (status) => {
-      mockUseAuth.mockReturnValue({ isDev: false });
-      setStatus(status);
-      const { container } = render(<CloudStatusBanner />);
-      expect(container).toBeEmptyDOMElement();
-      expect(screen.queryByText(/Backend/i)).not.toBeInTheDocument();
-    },
-  );
-
-  it.each([
-    ['warming', /Backend reiniciando/i],
-    ['degraded', /Backend instável/i],
-    ['down', /Backend indisponível/i],
-  ] as const)('renderiza para dev com status=%s', (status, copy) => {
-    mockUseAuth.mockReturnValue({ isDev: true });
-    setStatus(status);
-    render(<CloudStatusBanner />);
-    expect(screen.getByText(copy)).toBeInTheDocument();
-  });
-
-  it('não renderiza nada quando status=healthy, mesmo para dev', () => {
-    mockUseAuth.mockReturnValue({ isDev: true });
-    setStatus('healthy');
-    const { container } = render(<CloudStatusBanner />);
-    expect(container).toBeEmptyDOMElement();
-  });
-
-  it('respeita o gate SSOT: dev=true mas gate=false NÃO renderiza (env desligado em produção)', () => {
-    mockUseAuth.mockReturnValue({ isDev: true });
-    mockShouldShow.mockReturnValue(false); // simula VITE_SHOW_DEV_INFRA_MESSAGES=false
-    setStatus('down');
-    const { container } = render(<CloudStatusBanner />);
-    expect(container).toBeEmptyDOMElement();
-  });
-
-  it('respeita o gate SSOT: dev=false mas gate=true renderiza (override local explícito)', () => {
+describe('CloudStatusBanner — visibilidade por papel e criticidade', () => {
+  it('NÃO renderiza "warming" para usuário não-dev (mensagem técnica)', () => {
     mockUseAuth.mockReturnValue({ isDev: false });
-    mockShouldShow.mockReturnValue(true); // override via localStorage
     setStatus('warming');
+    const { container } = render(<CloudStatusBanner />);
+    expect(container).toBeEmptyDOMElement();
+  });
+
+  it('EXIBE "down" para usuário não-dev (falha crítica)', () => {
+    mockUseAuth.mockReturnValue({ isDev: false });
+    setStatus('down');
     render(<CloudStatusBanner />);
+    expect(screen.getByText(/Backend indisponível/i)).toBeInTheDocument();
+  });
+
+  it('EXIBE "degraded" para usuário não-dev (falha crítica)', () => {
+    mockUseAuth.mockReturnValue({ isDev: false });
+    setStatus('degraded');
+    render(<CloudStatusBanner />);
+    expect(screen.getByText(/Backend instável/i)).toBeInTheDocument();
+  });
+
+  it('EXIBE tudo para usuários dev', () => {
+    mockUseAuth.mockReturnValue({ isDev: true });
+    
+    // Test warming
+    setStatus('warming');
+    const { rerender } = render(<CloudStatusBanner />);
     expect(screen.getByText(/Backend reiniciando/i)).toBeInTheDocument();
+
+    // Test down
+    setStatus('down');
+    rerender(<CloudStatusBanner />);
+    expect(screen.getByText(/Backend indisponível/i)).toBeInTheDocument();
+  });
+
+  it('respeita o gate de infra: mesmo dev NÃO vê "warming" se isAllowed=false (Modo PROD)', () => {
+    mockUseAuth.mockReturnValue({ isDev: true });
+    mockIsAllowed.mockReturnValue(false); // Simula gate fechado em PROD
+    setStatus('warming');
+    
+    const { container } = render(<CloudStatusBanner />);
+    expect(container).toBeEmptyDOMElement();
+    
+    // Mas ainda vê "down"
+    setStatus('down');
+    render(<CloudStatusBanner />);
+    expect(screen.getByText(/Backend indisponível/i)).toBeInTheDocument();
   });
 });
