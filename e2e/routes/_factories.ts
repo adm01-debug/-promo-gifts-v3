@@ -40,7 +40,7 @@ export function buildPublicTokenSuite(spec: PublicTokenRouteSpec) {
 
     test("render: rota pública carrega sem auth", async ({ page }) => {
       await mockEdgeFn(page, spec.edgeFnName, 200, spec.successBody);
-      await page.goto(spec.buildPath("VALID_TOKEN"));
+      await gotoAndSettle(page, spec.buildPath("VALID_TOKEN"));
       await waitRouteReady(page);
       // body visível e não redirecionou para /login
       expect(/\/login/.test(page.url())).toBe(false);
@@ -48,7 +48,7 @@ export function buildPublicTokenSuite(spec: PublicTokenRouteSpec) {
 
     test("happy: dados do token renderizam", async ({ page }) => {
       await mockEdgeFn(page, spec.edgeFnName, 200, spec.successBody);
-      await page.goto(spec.buildPath("VALID_TOKEN"));
+      await gotoAndSettle(page, spec.buildPath("VALID_TOKEN"));
       await waitRouteReady(page);
       // pelo menos um heading visível
       const hasHeading = await page.locator("h1, h2, h3").first().isVisible().catch(() => false);
@@ -57,21 +57,21 @@ export function buildPublicTokenSuite(spec: PublicTokenRouteSpec) {
 
     test("token inválido: 404 mostra mensagem", async ({ page }) => {
       await mockEdgeFn(page, spec.edgeFnName, 404, { error: "not_found" });
-      await page.goto(spec.buildPath("INVALID_TOKEN"));
+      await gotoAndSettle(page, spec.buildPath("INVALID_TOKEN"));
       await waitRouteReady(page);
       await expect(page.getByText(notFound).first()).toBeVisible({ timeout: 8000 });
     });
 
     test("token expirado: 410 mostra mensagem", async ({ page }) => {
       await mockEdgeFn(page, spec.edgeFnName, 410, { error: "expired" });
-      await page.goto(spec.buildPath("EXPIRED_TOKEN"));
+      await gotoAndSettle(page, spec.buildPath("EXPIRED_TOKEN"));
       await waitRouteReady(page);
       await expect(page.getByText(notFound).first()).toBeVisible({ timeout: 8000 });
     });
 
     test("payload inválido: 400 do backend mostra erro acionável", async ({ page }) => {
       await mockEdgeFn(page, spec.edgeFnName, 400, { error: "bad_request", message: "missing token" });
-      await page.goto(spec.buildPath("BAD"));
+      await gotoAndSettle(page, spec.buildPath("BAD"));
       await waitRouteReady(page);
       const visible = await page
         .getByRole("alert")
@@ -84,7 +84,7 @@ export function buildPublicTokenSuite(spec: PublicTokenRouteSpec) {
 
     test("timeout: edge function lenta não trava render", async ({ page }) => {
       await mockEdgeFn(page, spec.edgeFnName, 504, {}, { delayMs: 6000 });
-      await page.goto(spec.buildPath("SLOW"));
+      await gotoAndSettle(page, spec.buildPath("SLOW"));
       // A página deve renderizar ao menos um skeleton/loading antes do timeout
       await page.waitForLoadState("domcontentloaded");
       expect(await page.locator("body").isVisible()).toBe(true);
@@ -92,7 +92,7 @@ export function buildPublicTokenSuite(spec: PublicTokenRouteSpec) {
 
     test("5xx: erro do backend mostra alerta", async ({ page }) => {
       await mockEdgeFn(page, spec.edgeFnName, 503, { error: "service_unavailable" });
-      await page.goto(spec.buildPath("ANY"));
+      await gotoAndSettle(page, spec.buildPath("ANY"));
       await waitRouteReady(page);
       await expect(page.getByRole("alert").or(page.getByText(/erro|indispon|tente novamente/i)).first()).toBeVisible({
         timeout: 10_000,
@@ -101,7 +101,7 @@ export function buildPublicTokenSuite(spec: PublicTokenRouteSpec) {
 
     test("@a11y básico", async ({ page }) => {
       await mockEdgeFn(page, spec.edgeFnName, 200, spec.successBody);
-      await page.goto(spec.buildPath("VALID_TOKEN"));
+      await gotoAndSettle(page, spec.buildPath("VALID_TOKEN"));
       await waitRouteReady(page);
       await basicA11yChecks(page);
     });
@@ -109,7 +109,7 @@ export function buildPublicTokenSuite(spec: PublicTokenRouteSpec) {
     test("@mobile layout sem overflow horizontal", async ({ page }) => {
       await mockEdgeFn(page, spec.edgeFnName, 200, spec.successBody);
       await setMobileViewport(page);
-      await page.goto(spec.buildPath("VALID_TOKEN"));
+      await gotoAndSettle(page, spec.buildPath("VALID_TOKEN"));
       await waitRouteReady(page);
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
       expect(overflow).toBe(false);
@@ -147,14 +147,14 @@ export function buildAuthedRouteSuite(spec: AuthedRouteSpec) {
       const errors: string[] = [];
       page.on("pageerror", e => errors.push(e.message));
       await mockSuccess(page);
-      await page.goto(spec.path);
+      await gotoAndSettle(page, spec.path);
       await waitRouteReady(page);
       expect(errors, "page errors: " + errors.join("; ")).toHaveLength(0);
     });
 
     test("happy: dados principais renderizam", async ({ page }) => {
       await mockSuccess(page);
-      await page.goto(spec.path);
+      await gotoAndSettle(page, spec.path);
       await waitRouteReady(page);
       if (spec.happyAssert) {
         await spec.happyAssert(page);
@@ -168,7 +168,7 @@ export function buildAuthedRouteSuite(spec: AuthedRouteSpec) {
       await page.route(route, r =>
         r.fulfill({ status: 401, contentType: "application/json", body: JSON.stringify({ message: "JWT expired", code: "PGRST301" }) }),
       );
-      await page.goto(spec.path);
+      await gotoAndSettle(page, spec.path);
       await waitRouteReady(page);
       const redirected = /\/login/.test(page.url());
       const msg = await page.getByText(/sessão|login|autentica/i).first().isVisible().catch(() => false);
@@ -179,7 +179,7 @@ export function buildAuthedRouteSuite(spec: AuthedRouteSpec) {
       await page.route(route, r =>
         r.fulfill({ status: 400, contentType: "application/json", body: JSON.stringify({ message: "invalid input", code: "22P02" }) }),
       );
-      await page.goto(spec.path);
+      await gotoAndSettle(page, spec.path);
       await waitRouteReady(page);
       const ok = await page.getByRole("alert").or(page.getByText(/inválid|erro|falhou/i)).first().isVisible({ timeout: 8000 }).catch(() => false);
       expect(ok).toBe(true);
@@ -190,7 +190,7 @@ export function buildAuthedRouteSuite(spec: AuthedRouteSpec) {
         await new Promise(res => setTimeout(res, 5000));
         await r.fulfill({ status: 504, body: "{}" });
       });
-      await page.goto(spec.path);
+      await gotoAndSettle(page, spec.path);
       await page.waitForLoadState("domcontentloaded");
       expect(await page.locator("body").isVisible()).toBe(true);
     });
@@ -199,7 +199,7 @@ export function buildAuthedRouteSuite(spec: AuthedRouteSpec) {
       await page.route(route, r =>
         r.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ message: "service unavailable" }) }),
       );
-      await page.goto(spec.path);
+      await gotoAndSettle(page, spec.path);
       await waitRouteReady(page);
       const ok = await page
         .getByRole("alert")
@@ -212,7 +212,7 @@ export function buildAuthedRouteSuite(spec: AuthedRouteSpec) {
 
     test("@a11y básico", async ({ page }) => {
       await mockSuccess(page);
-      await page.goto(spec.path);
+      await gotoAndSettle(page, spec.path);
       await waitRouteReady(page);
       await basicA11yChecks(page);
     });
@@ -220,7 +220,7 @@ export function buildAuthedRouteSuite(spec: AuthedRouteSpec) {
     test("@mobile layout sem overflow horizontal", async ({ page }) => {
       await mockSuccess(page);
       await setMobileViewport(page);
-      await page.goto(spec.path);
+      await gotoAndSettle(page, spec.path);
       await waitRouteReady(page);
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
       expect(overflow).toBe(false);
