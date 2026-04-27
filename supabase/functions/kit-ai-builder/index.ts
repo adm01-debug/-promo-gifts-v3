@@ -1,3 +1,4 @@
+import { getCorsHeaders } from "../_shared/cors.ts";
 // ============================================================
 // EDGE FUNCTION: kit-ai-builder
 // Recebe um prompt natural e devolve uma sugestão estruturada de kit
@@ -5,19 +6,13 @@
 // Usa Lovable AI Gateway com tool-calling para JSON estrito.
 // ============================================================
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers':
-    'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
-
 interface RequestBody {
   prompt?: string;
 }
 
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: getCorsHeaders(req) });
   }
 
   try {

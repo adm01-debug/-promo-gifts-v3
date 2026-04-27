@@ -1,3 +1,4 @@
+import { getCorsHeaders } from "../_shared/cors.ts";
 // Edge function: step-up auth (senha + OTP por e-mail) com re-checagem de role dev
 // Audit log: registra TODAS as transições do fluxo (requested, password_verified,
 // password_failed, otp_failed, issued, cancelled, unauthorized) com action,
@@ -8,12 +9,6 @@ import { castRpcResult } from "../_shared/supabase-client-adapter.ts";
 type RpcEnvelope<T> = { data: T | null; error: { message: string } | null };
 type StepUpChallengeRow = { challenge_id: string; otp_plain: string; expires_at: string };
 type StepUpOtpRow = { token: string; expires_at: string };
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
@@ -57,7 +52,7 @@ function safeLabel(label: string | undefined | null, max = 200): string | null {
 }
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  if (req.method === "OPTIONS") return new Response(null, { headers: getCorsHeaders(req) });
 
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;
   const ua = req.headers.get("user-agent") ?? null;

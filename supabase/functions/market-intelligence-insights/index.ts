@@ -1,15 +1,9 @@
+import { getCorsHeaders } from "../_shared/cors.ts";
 // supabase/functions/market-intelligence-insights/index.ts
 // Generates AI-powered insights for the Market Intelligence dashboard.
 // v2: server-side cache, structured logging, telemetry, quota check, smart empty state.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { authenticateRequest, authErrorResponse } from "../_shared/auth.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
 
 const FUNCTION_NAME = "market-intelligence-insights";
 const CACHE_TTL_MS = 6 * 60 * 60 * 1000; // 6h
@@ -216,7 +210,7 @@ async function aggregateData(
 
 Deno.serve(async (req) => {
   const t0 = Date.now();
-  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  if (req.method === "OPTIONS") return new Response(null, { headers: getCorsHeaders(req) });
 
   let userId: string | null = null;
   try {
@@ -407,7 +401,7 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e: any) {
-    if (e?.status) return authErrorResponse(e, corsHeaders);
+    if (e?.status) return authErrorResponse(e, getCorsHeaders(req));
     log("error", "internal_error", { user_id: userId, message: e?.message ?? String(e) });
     return new Response(JSON.stringify({ error: e?.message ?? "internal_error" }), {
       status: 500,

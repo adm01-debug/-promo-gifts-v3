@@ -1,3 +1,4 @@
+import { getCorsHeaders } from "../_shared/cors.ts";
 /**
  * Edge function `bi-copilot` — responde perguntas do vendedor sobre um cliente
  * com base no contexto BI (score, sazonalidade, afinidade, tendências, benchmarks).
@@ -5,12 +6,6 @@
  * Chama Lovable AI Gateway (gemini-2.5-flash) — nada de credencial extra.
  */
 // deno-lint-ignore-file no-explicit-any
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
 
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 const MODEL = "google/gemini-2.5-flash";
@@ -23,7 +18,7 @@ interface RequestBody {
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: getCorsHeaders(req) });
   }
 
   try {
