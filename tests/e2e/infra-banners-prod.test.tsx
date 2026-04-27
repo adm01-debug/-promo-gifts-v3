@@ -119,7 +119,7 @@ describe('E2E Infra Banners — Modo PROD (Usuário Não-Dev)', () => {
       expect(toast.error).toHaveBeenCalledWith(
         'Catálogo temporariamente indisponível',
         expect.objectContaining({
-          description: /Estamos com uma instabilidade momentânea no acesso ao catálogo/
+          description: expect.stringContaining('Estamos com uma instabilidade momentânea no acesso ao catálogo')
         })
       );
     });
