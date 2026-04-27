@@ -19,10 +19,15 @@ export function parseGateFlag(raw: unknown): GateValue {
  * Provedor de flag baseado em variáveis de ambiente do Vite.
  */
 export class EnvGateProvider implements GateFlagProvider {
+  private static cachedValue: GateValue | null = null;
+
   getFlag(): GateValue {
+    if (EnvGateProvider.cachedValue !== null) return EnvGateProvider.cachedValue;
+
     try {
       const env = (import.meta as unknown as { env?: Record<string, unknown> })?.env;
-      return parseGateFlag(env?.VITE_SHOW_DEV_INFRA_MESSAGES);
+      EnvGateProvider.cachedValue = parseGateFlag(env?.VITE_SHOW_DEV_INFRA_MESSAGES);
+      return EnvGateProvider.cachedValue;
     } catch {
       return 'auto';
     }

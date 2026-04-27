@@ -15,57 +15,52 @@ export class DevInfraGate {
   private providers: GateFlagProvider[];
   private cache: Map<string, boolean> = new Map();
   private listeners: Set<() => void> = new Set();
-  private debounceTimer: number | null = null;
-  private allowedRoles: AppRole[];
+  private debounceTimer: ReturnType<typeof setTimeout> | null = null;
+  private readonly allowedRoles: Set<AppRole>;
 
   constructor(providers?: GateFlagProvider[], allowedRoles: AppRole[] = ALLOWED_INFRA_ROLES) {
     this.providers = providers ?? [
       new EnvGateProvider(),
       new LocalStorageGateProvider()
     ];
-    this.allowedRoles = allowedRoles;
+    // Otimização Algorítmica: Set para lookup O(1)
+    this.allowedRoles = new Set(allowedRoles);
     
-    // Invalida cache e notifica ouvintes se houver mudança no localStorage
     if (typeof window !== 'undefined') {
-      window.addEventListener('storage', (e) => {
-        if (e.key === 'show_dev_infra_messages' || e.key === 'lov:bridge-metrics-overlay:open') {
-          this.invalidateCache();
-        }
-      });
+      // Usamos uma referência única para o listener para permitir limpeza futura se necessário
+      window.addEventListener('storage', this.handleStorageEvent);
     }
   }
 
-  /**
-   * Inscreve um ouvinte para mudanças no estado do gate.
-   */
+  private handleStorageEvent = (e: StorageEvent) => {
+    if (e.key === 'show_dev_infra_messages' || e.key === 'lov:bridge-metrics-overlay:open') {
+      this.invalidateCache();
+    }
+  };
+
   subscribe(listener: () => void): () => void {
     this.listeners.add(listener);
     return () => this.listeners.delete(listener);
   }
 
-  /**
-   * Verifica se o conjunto de roles do usuário permite acesso.
-   */
   hasAccess(userRoles: AppRole[]): boolean {
-    if (!userRoles || userRoles.length === 0) return false;
-    return userRoles.some(role => this.allowedRoles.includes(role));
+    if (!userRoles?.length) return false;
+    // Otimização: early return na primeira role encontrada
+    for (let i = 0; i < userRoles.length; i++) {
+      if (this.allowedRoles.has(userRoles[i])) return true;
+    }
+    return false;
   }
 
-  /**
-   * Avalia se as mensagens devem ser exibidas.
-   * O parâmetro userRoles é o GATE REAL: se não houver role permitida, NUNCA exibe nada.
-   */
   shouldShow(userRoles: AppRole[]): boolean {
-    // SECURITY GATE: Se o usuário não possui uma role permitida, bloqueia imediatamente.
     if (!this.hasAccess(userRoles)) return false;
 
-    const cacheKey = userRoles.sort().join(',');
-    if (this.cache.has(cacheKey)) {
-      return this.cache.get(cacheKey)!;
-    }
+    // Otimização de CPU: Gerar cacheKey sem sort se houver apenas 1 role (caso comum)
+    const cacheKey = userRoles.length === 1 ? userRoles[0] : [...userRoles].sort().join(',');
+    
+    const cached = this.cache.get(cacheKey);
+    if (cached !== undefined) return cached;
 
-    // Se tiver permissão, permitimos que os providers (env/localStorage)
-    // sobrescrevam o comportamento padrão se necessário.
     let result: boolean = true;
     for (const provider of this.providers) {
       const value = provider.getFlag();
@@ -79,10 +74,6 @@ export class DevInfraGate {
     return result;
   }
 
-  /**
-   * Invalida o cache (ex: quando o dev altera o localStorage).
-   * Implementa debounce para evitar re-render excessivo em mudanças rápidas.
-   */
   invalidateCache(): void {
     this.cache.clear();
     
@@ -90,12 +81,11 @@ export class DevInfraGate {
       clearTimeout(this.debounceTimer);
     }
 
-    if (typeof window !== 'undefined') {
-      this.debounceTimer = window.setTimeout(() => {
-        this.debounceTimer = null;
-        this.listeners.forEach(l => l());
-      }, 50); // 50ms de estabilização
-    }
+    // Estabilidade: 50ms é o "sweet spot" entre responsividade e pressão de CPU
+    this.debounceTimer = setTimeout(() => {
+      this.debounceTimer = null;
+      this.listeners.forEach(l => l());
+    }, 50);
   }
 }
 

@@ -15,7 +15,7 @@ export function useDevGate() {
     setMounted(true);
   }, []);
   
-  // Usamos useSyncExternalStore para reagir a mudanças no devInfraGate (ex: storage events)
+  // Memoizamos a store evaluation para evitar re-renders se a lista de roles for igual
   const isAllowedStore = useSyncExternalStore(
     (onStoreChange) => devInfraGate.subscribe(onStoreChange),
     () => devInfraGate.shouldShow(roles),
