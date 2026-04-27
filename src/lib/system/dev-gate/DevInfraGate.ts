@@ -14,6 +14,15 @@ export class DevInfraGate {
       new EnvGateProvider(),
       new LocalStorageGateProvider()
     ];
+    
+    // Invalida cache se houver mudança no localStorage de outra aba
+    if (typeof window !== 'undefined') {
+      window.addEventListener('storage', (e) => {
+        if (e.key === 'show_dev_infra_messages' || e.key === 'lov:bridge-metrics-overlay:open') {
+          this.invalidateCache();
+        }
+      });
+    }
   }
 
   /**
