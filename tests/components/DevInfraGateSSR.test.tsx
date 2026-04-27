@@ -30,8 +30,8 @@ describe('DevInfraGate Integration — SSR & Auth Loading Guards', () => {
     
     const { container } = render(<DevOnlyBridgeOverlay />);
     
-    // Deve ser absolutamente vazio
-    expect(container).toBeEmptyDOMElement();
+    // Deve ser absolutamente vazio (nem container, nem comentários de Suspense)
+    expect(container.innerHTML).toBe("");
     expect(screen.queryByTestId('bridge-metrics-overlay-real')).not.toBeInTheDocument();
   });
 
