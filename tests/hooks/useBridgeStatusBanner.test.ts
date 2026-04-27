@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useBridgeStatusBanner } from '@/hooks/useBridgeStatusBanner';
 import { emitBridgeStatus } from '@/lib/external-db/bridge-status-events';
+import * as bridgeStatusEvents from '@/lib/external-db/bridge-status-events';
 import { toast } from 'sonner';
 
 // Mock sonner toast
@@ -94,18 +95,20 @@ describe('useBridgeStatusBanner', () => {
     });
 
     expect(toast.loading).not.toHaveBeenCalled();
+  });
 
   it('should unsubscribe from bridge status events and dismiss toasts when unmounted', () => {
-    const { onBridgeStatus } = require('@/lib/external-db/bridge-status-events');
-    const subSpy = vi.spyOn({ onBridgeStatus }, 'onBridgeStatus');
+    const unsubSpy = vi.fn();
+    const subSpy = vi.spyOn(bridgeStatusEvents, 'onBridgeStatus').mockReturnValue(unsubSpy);
     
     const { unmount } = renderHook(() => useBridgeStatusBanner(true));
     
-    // Verifica se assinou
-    expect(toast.dismiss).not.toHaveBeenCalledWith('bridge-degraded');
+    expect(subSpy).toHaveBeenCalled();
 
     unmount();
 
+    // Deve chamar o unsubscribe retornado pelo onBridgeStatus
+    expect(unsubSpy).toHaveBeenCalled();
     // Deve limpar o toast de "degraded" (que é o temporário que pode vazar)
     expect(toast.dismiss).toHaveBeenCalledWith('bridge-degraded');
   });
