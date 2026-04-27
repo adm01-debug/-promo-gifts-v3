@@ -17,8 +17,14 @@ const TOAST_ID_UNAVAILABLE = 'bridge-unavailable';
 export function BridgeStatusBanner() {
   const { isAllowed } = useDevGate();
   const [unavailable, setUnavailable] = useState(false);
+  const unavailableRef = useRef(false);
   const [reason, setReason] = useState<string>('');
   const lastDegradedAt = useRef(0);
+
+  // Sincroniza o ref para uso no listener sem re-subscrição
+  useEffect(() => {
+    unavailableRef.current = unavailable;
+  }, [unavailable]);
 
   useEffect(() => {
     const unsubscribe = onBridgeStatus((e: BridgeStatusEvent) => {
@@ -57,7 +63,7 @@ export function BridgeStatusBanner() {
         });
       } else if (e.type === 'recovered') {
         toast.dismiss(TOAST_ID_DEGRADED);
-        if (unavailable) {
+        if (unavailableRef.current) {
           toast.success('Conexão restabelecida', {
             id: TOAST_ID_UNAVAILABLE,
             description: 'O catálogo voltou a responder normalmente.',

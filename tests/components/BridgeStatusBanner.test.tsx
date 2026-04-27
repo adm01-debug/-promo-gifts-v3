@@ -120,4 +120,17 @@ describe('BridgeStatusBanner — visibilidade por papel e ambiente', () => {
     emit({ type: 'unavailable', reason: 'error' } as any);
     expect(screen.getByText(/Catálogo temporariamente indisponível/i)).toBeInTheDocument();
   });
+
+  it('limpa avisos ao receber evento "recovered"', () => {
+    mockUseAuth.mockReturnValue({ isDev: true });
+    render(<BridgeStatusBanner />);
+
+    emit({ type: 'unavailable', reason: 'error' } as any);
+    expect(screen.getByRole('alert')).toBeInTheDocument();
+
+    emit({ type: 'recovered' } as any);
+    expect(toastApi.dismiss).toHaveBeenCalledWith('bridge-degraded');
+    expect(toastApi.success).toHaveBeenCalledWith('Conexão restabelecida', expect.anything());
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
 });
