@@ -21,6 +21,8 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: getCorsHeaders(req) });
   }
 
+  const corsHeaders = getCorsHeaders(req);
+
   try {
     if (!LOVABLE_API_KEY) {
       return new Response(

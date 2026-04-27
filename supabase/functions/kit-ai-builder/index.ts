@@ -15,6 +15,8 @@ Deno.serve(async (req: Request) => {
     return new Response(null, { headers: getCorsHeaders(req) });
   }
 
+  const corsHeaders = getCorsHeaders(req);
+
   try {
     const body = (await req.json().catch(() => ({}))) as RequestBody;
     const prompt = (body.prompt ?? '').trim();
