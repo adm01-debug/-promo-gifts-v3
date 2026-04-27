@@ -5,8 +5,6 @@ import { Button } from '@/components/ui/button';
 import { useCloudStatus } from '@/hooks/useCloudStatus';
 import { useDevGate } from '@/hooks/useDevGate';
 
-type CloudStatusVariant = 'warming' | 'degraded' | 'down';
-
 const STATUS_CONFIG: Record<string, { message: string; icon: any; className: string }> = {
   down: {
     message: 'Backend indisponível. Verifique sua conexão e tente novamente.',
@@ -31,12 +29,15 @@ export const CloudStatusBanner = memo(function CloudStatusBanner() {
   
   const config = status ? STATUS_CONFIG[status] : null;
   
-  // Apenas a mensagem de "warming" (reiniciando) é considerada estritamente técnica/infra.
-  // Estados de "down" ou "degraded" são falhas críticas que devem ser mostradas a todos os usuários.
-  const isTechnicalMessage = status === 'warming';
-  const visible = config && (isTechnicalMessage ? isAllowed : true);
+  if (!config) return null;
 
-  if (!visible || !config) return null;
+  // Lógica de visibilidade desacoplada:
+  // Mensagens técnicas (warming) aparecem só para quem tem gate de infra.
+  // Mensagens críticas (down/degraded) aparecem para todos.
+  const isTechnical = status === 'warming';
+  const shouldShow = isTechnical ? isAllowed : true;
+
+  if (!shouldShow) return null;
 
   const Icon = config.icon;
 
