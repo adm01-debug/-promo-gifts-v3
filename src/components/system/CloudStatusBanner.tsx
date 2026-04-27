@@ -97,10 +97,22 @@ function getContainerClass(status: 'warming' | 'degraded' | 'down' | string): st
   return `${base} bg-muted text-muted-foreground border-border`;
 }
 
-function getMessage(status: 'warming' | 'degraded' | 'down' | string): string {
-  if (status === 'down') return 'Backend indisponível. Verifique sua conexão e tente novamente.';
-  if (status === 'degraded') return 'Backend instável — algumas operações podem falhar momentaneamente.';
-  return 'Backend reiniciando, aguarde alguns segundos…';
+function getMessage(status: 'warming' | 'degraded' | 'down' | string, isDev: boolean): string {
+  // Devs recebem texto mais técnico ("estado X detectado…"); usuários comuns,
+  // quando habilitados via env, veem o texto amigável padrão.
+  if (status === 'down') {
+    return isDev
+      ? '[dev] backend = down — auth/bridge/rest sem resposta. Probe a cada 5s; auto-stop após 30s.'
+      : 'Backend indisponível. Verifique sua conexão e tente novamente.';
+  }
+  if (status === 'degraded') {
+    return isDev
+      ? '[dev] backend = degraded — alta latência ou falhas parciais. Backoff 5s/10s/15s.'
+      : 'Backend instável — algumas operações podem falhar momentaneamente.';
+  }
+  return isDev
+    ? '[dev] backend = warming — cold-start em curso, repolling automático.'
+    : 'Backend reiniciando, aguarde alguns segundos…';
 }
 
 /**
