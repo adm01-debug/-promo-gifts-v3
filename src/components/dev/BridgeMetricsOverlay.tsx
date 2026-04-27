@@ -3,7 +3,7 @@
  * em tempo real — latência, payload de resposta, status e request-id.
  */
 
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore, memo } from 'react';
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore, memo, useCallback } from 'react';
 import { useDevGate } from '@/hooks/useDevGate';
 import {
   getBridgeSamples,
