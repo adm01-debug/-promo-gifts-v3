@@ -34,7 +34,13 @@ export interface AuthzEntry {
   category: AuthzCategory;
   /** Comentário curto explicando a decisão */
   rationale: string;
-  /** Se true, o teste de bypass anon é dispensado (já contemplado por outro mecanismo) */
+  /**
+   * Mecanismo de enforcement. Default = "shared-authorize" (helper SSOT).
+   * "custom" = implementação própria legítima (validação inline de
+   * has_role, scope MCP, HMAC, etc.) — exige rationale claro.
+   */
+  enforcedBy?: "shared-authorize" | "custom";
+  /** Se true, o teste de bypass anon é dispensado */
   skipAnonBypassTest?: boolean;
   /** Se true, o teste de bypass authenticated é dispensado */
   skipAuthBypassTest?: boolean;
