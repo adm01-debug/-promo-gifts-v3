@@ -72,11 +72,28 @@ export class DevInfraGate {
   }
 
   /**
-   * Handler nomeado para facilitar remoção futura e melhorar legibilidade.
+   * Remove o listener global para evitar memory leaks em contextos de teste ou reinicialização.
+   */
+  destroy(): void {
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('storage', this.handleStorageEvent);
+    }
+    this.cache.clear();
+    this.listeners.clear();
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer);
+      this.debounceTimer = null;
+    }
+  }
+
+  /**
+   * Handler reativo a mudanças no localStorage.
+   * Bug Fix: Agora trata `event.key === null`, que ocorre quando `localStorage.clear()` é chamado.
    */
   private handleStorageEvent = (event: StorageEvent): void => {
     const relevantKeys = ['show_dev_infra_messages', 'lov:bridge-metrics-overlay:open'];
-    if (event.key && relevantKeys.includes(event.key)) {
+    // Se o key for null, o storage foi limpo totalmente (localStorage.clear())
+    if (event.key === null || relevantKeys.includes(event.key)) {
       this.invalidateCache();
     }
   };
