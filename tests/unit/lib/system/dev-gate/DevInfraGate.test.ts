@@ -57,15 +57,13 @@ describe('EnvGateProvider', () => {
   it('lê flag das variáveis de ambiente', () => {
     const provider = new EnvGateProvider();
     
-    // Mock global import.meta.env
-    const originalEnv = (import.meta as any).env;
-    (import.meta as any).env = { VITE_SHOW_DEV_INFRA_MESSAGES: 'false' };
+    vi.stubEnv('VITE_SHOW_DEV_INFRA_MESSAGES', 'false');
+    expect(provider.getFlag()).toBe(false);
     
-    try {
-      expect(provider.getFlag()).toBe(false);
-    } finally {
-      (import.meta as any).env = originalEnv;
-    }
+    vi.stubEnv('VITE_SHOW_DEV_INFRA_MESSAGES', 'true');
+    expect(provider.getFlag()).toBe(true);
+
+    vi.unstubAllEnvs();
   });
 });
 
