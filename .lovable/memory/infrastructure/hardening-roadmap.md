@@ -57,3 +57,8 @@ Total: **8 edge functions** com graceful degradation (503+Retry-After:60 quando 
 - CI RLS: `vitest tests/rls/` quando `TEST_SELLER_PASSWORD`+`TEST_ADMIN_PASSWORD` definidos.
 - Pre-push: `npm run typecheck && npm run lint:check && npm run test`.
 - Audit: `GET /functions/v1/connections-hub-audit` (admin Bearer).
+
+## Onda 5 (Observability) — progresso
+- Item 6: client logging em auth/quote/mcp ✅
+- Item 7: gate CI `check-edge-structured-logging.mjs` ✅
+- Item 8: instrumentação `magicUp.generate`, `magicUp.score`, `comparison.publicShare`, `connections.testCredentials` ✅ (2026-04-27)
