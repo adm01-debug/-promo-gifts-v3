@@ -21,10 +21,11 @@ export function BridgeStatusBanner() {
   const lastDegradedAt = useRef(0);
 
   useEffect(() => {
-    if (!isAllowed) return;
-
     const unsubscribe = onBridgeStatus((e: BridgeStatusEvent) => {
       if (e.type === 'degraded') {
+        // Toasts de "degraded" (reconectando) são mensagens de infra, mostramos apenas para devs.
+        if (!isAllowed) return;
+
         const now = Date.now();
         if (now - lastDegradedAt.current < 8000) return;
         lastDegradedAt.current = now;
@@ -39,9 +40,15 @@ export function BridgeStatusBanner() {
         setReason(e.reason);
         toast.dismiss(TOAST_ID_DEGRADED);
         
-        toast.error('Catálogo externo indisponível', {
+        // Se não for dev, usamos uma mensagem menos técnica.
+        const title = 'Catálogo temporariamente indisponível';
+        const description = isAllowed 
+          ? 'O serviço está reiniciando. Aguarde alguns segundos e tente novamente.'
+          : 'Estamos com uma instabilidade momentânea no acesso ao catálogo. Tente recarregar a página em instantes.';
+
+        toast.error(title, {
           id: TOAST_ID_UNAVAILABLE,
-          description: 'O serviço está reiniciando. Aguarde alguns segundos e tente novamente.',
+          description,
           duration: 10000,
           action: {
             label: 'Recarregar',
