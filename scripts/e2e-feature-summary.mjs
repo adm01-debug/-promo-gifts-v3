@@ -262,6 +262,7 @@ if (failedByE2eName.length > 0) {
   console.log("");
 }
 
+if (skippedRows.length > 0) {
   console.log(`${C.bold}Skipped (${skippedRows.length}):${C.reset}`);
   for (const s of skippedRows.slice(0, 8)) {
     console.log(`  ${C.yellow}⊘${C.reset} ${s.feature}  ${C.dim}${s.title}${C.reset}`);
