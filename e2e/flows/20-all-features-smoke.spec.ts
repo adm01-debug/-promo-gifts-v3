@@ -28,6 +28,20 @@ import { gotoAndWaitReady } from "../helpers/waits";
 test.describe.configure({ mode: "serial" });
 
 /**
+ * Normaliza URL para comparação de "mesma rota" — descarta query/hash e
+ * trailing slash, mantém apenas o path. Permite redirects intencionais
+ * preservando query (ex.: `?token=...`) sem disparar falso positivo.
+ */
+function pathOf(url: string): string {
+  try {
+    const u = new URL(url);
+    return u.pathname.replace(/\/+$/, "") || "/";
+  } catch {
+    return url;
+  }
+}
+
+/**
  * Asserções básicas que TODA tela autenticada deve atender.
  *
  * Estratégia anti-flake (CI):
@@ -35,6 +49,15 @@ test.describe.configure({ mode: "serial" });
  *    readiness (page-title-<slug> quando disponível, senão heurística).
  *  - Coleta `pageerror` para falhar com diagnóstico em vez de silenciar.
  *  - Sem `networkidle` por default (lento e flaky em apps com polling/realtime).
+ *
+ * Validação de estabilidade de URL/histórico (anti redirect-loop):
+ *  - Snapshot de `history.length` ANTES da navegação.
+ *  - Snapshot de URL imediatamente após o ready, e novo snapshot 800ms depois.
+ *  - Falha se a URL mudou entre os 2 snapshots (loop tardio).
+ *  - Falha se `history.length` cresceu mais que 2 entradas (1 push esperado
+ *    para a nova rota; >2 indica replace-redirect-replace ou loop).
+ *  - Falha se houve redirect para path diferente do solicitado E não para
+ *    `/login` (este último já é coberto por asserção dedicada).
  */
 async function assertFeatureLoads(
   page: import("@playwright/test").Page,
@@ -48,6 +71,11 @@ async function assertFeatureLoads(
     }
   });
 
+  // Snapshot de histórico ANTES da navegação (estado da página atual).
+  const historyBefore = await page
+    .evaluate(() => window.history.length)
+    .catch(() => 0);
+
   await gotoAndWaitReady(page, path, {
     attempts: 2,
     perAttemptTimeout: 25_000,
@@ -55,11 +83,45 @@ async function assertFeatureLoads(
     timeout: 20_000,
   });
 
+  // URL logo após ready.
+  const urlAfterLoad = page.url();
+
   // Sessão válida: sem redirect para /login.
-  expect(/\/login/.test(page.url()), `redirect inesperado para login em ${path}`).toBe(false);
+  expect(/\/login/.test(urlAfterLoad), `redirect inesperado para login em ${path}`).toBe(false);
 
   // Body visível (sanity).
   await expect(page.locator("body")).toBeVisible();
+
+  // ── Validação de estabilidade de URL (anti redirect-loop) ───────────────
+  // Aguarda 800ms para detectar redirects tardios (`useEffect` que dispara
+  // navigate após mount). Não usa networkidle pra não acoplar a fetches.
+  await page.waitForTimeout(800);
+  const urlSettled = page.url();
+  const historyAfter = await page
+    .evaluate(() => window.history.length)
+    .catch(() => historyBefore);
+
+  expect(
+    pathOf(urlSettled),
+    `URL instável em ${path}: mudou de ${urlAfterLoad} → ${urlSettled} após 800ms (possível redirect-loop tardio)`,
+  ).toBe(pathOf(urlAfterLoad));
+
+  // Histórico: SPA pode adicionar 1 entrada (push da nova rota) ou 0
+  // (replace). Mais que +2 indica loop ou cadeia de redirects.
+  const historyDelta = historyAfter - historyBefore;
+  expect(
+    historyDelta,
+    `history.length cresceu em ${historyDelta} entradas em ${path} ` +
+      `(${historyBefore} → ${historyAfter}) — provável redirect-loop ou cadeia múltipla de navigate()`,
+  ).toBeLessThanOrEqual(2);
+
+  // Path final deve bater com o solicitado (ignorando trailing slash, query
+  // e hash). Redirects intencionais para outra rota são considerados bug
+  // de smoke (cada rota deve resolver pra si mesma com mocks default).
+  expect(
+    pathOf(urlSettled),
+    `redirect inesperado: solicitado ${path}, terminou em ${urlSettled}`,
+  ).toBe(pathOf(`http://x${path.startsWith("/") ? path : `/${path}`}`));
 
   // Sem `pageerror` fatal coletado durante o carregamento.
   expect(errors, `pageerrors em ${path}: ${errors.join(" | ")}`).toHaveLength(0);
