@@ -13,8 +13,7 @@ import { toast } from 'sonner';
 import { AlertTriangle, X, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { onBridgeStatus, type BridgeStatusEvent } from '@/lib/external-db/bridge-status-events';
-import { useAuth } from '@/contexts/AuthContext';
-import { shouldShowDevInfraMessages } from '@/lib/system/dev-infra-messages';
+import { useDevGate } from '@/hooks/useDevGate';
 
 const TOAST_ID_DEGRADED = 'bridge-degraded';
 const TOAST_ID_UNAVAILABLE = 'bridge-unavailable';
@@ -30,7 +29,7 @@ export function BridgeStatusBanner() {
     // Mensagens técnicas de bridge/infra ficam restritas via gate SSOT
     // (VITE_SHOW_DEV_INFRA_MESSAGES > localStorage > role `dev`). Em produção,
     // setar o env como `false` impede toasts/banner mesmo para devs.
-    if (!allowed) return;
+    if (!isAllowed) return;
     const unsubscribe = onBridgeStatus((e: BridgeStatusEvent) => {
       if (e.type === 'degraded') {
         // Throttle: 1 toast a cada 8s (várias chamadas paralelas geram muitos eventos).

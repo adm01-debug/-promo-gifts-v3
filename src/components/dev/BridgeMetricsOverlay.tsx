@@ -55,21 +55,12 @@ function shortReqId(id?: string): string {
 }
 
 export default function BridgeMetricsOverlay() {
-  const { isDev } = useAuth();
-  const allowed = shouldShowDevInfraMessages(isDev);
+  const { isAllowed } = useDevGate();
 
   // Hard guard: nunca renderiza em build de produção.
   if (import.meta.env.PROD) return null;
   // Gate SSOT
-  if (!allowed) return null;
-
-
-  // Defesa em profundidade — gate SSOT (env > localStorage > role `dev`).
-  // Mesmo que alguém monte o overlay fora do <DevOnlyBridgeOverlay />,
-  // usuários comuns (agente/supervisor) NÃO veem o painel nem podem
-  // ativar o atalho `` ` ``.
-  const { isDev } = useAuth();
-  const allowed = shouldShowDevInfraMessages(isDev);
+  if (!isAllowed) return null;
 
   const [open, setOpen] = useState<boolean>(() => {
     try { return localStorage.getItem(STORAGE_KEY) === '1'; } catch { return false; }
@@ -112,7 +103,7 @@ export default function BridgeMetricsOverlay() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [allowed]);
+  }, [isAllowed]);
 
   // Resumo agregado das amostras visíveis (últimas N).
   const { visible, summary } = useMemo(() => {
@@ -135,7 +126,7 @@ export default function BridgeMetricsOverlay() {
   }, [samples, filter]);
 
   // Gate SSOT: usuários sem permissão não veem botão flutuante nem painel.
-  if (!allowed) return null;
+  if (!isAllowed) return null;
 
   if (!open) {
     return (

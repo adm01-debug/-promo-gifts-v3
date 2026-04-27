@@ -10,8 +10,7 @@
  * Em build de produção, o próprio overlay retorna null no topo.
  */
 import { Suspense, lazy } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { shouldShowDevInfraMessages } from '@/lib/system/dev-infra-messages';
+import { useDevGate } from '@/hooks/useDevGate';
 
 const Overlay = lazy(() => import('./BridgeMetricsOverlay'));
 
