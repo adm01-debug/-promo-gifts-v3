@@ -70,6 +70,27 @@ function featureKey(file) {
   return "uncategorized";
 }
 
+/**
+ * Extrai e2eName de strings produzidas por `e2eName(label, ...)`.
+ * Padrão SSOT (vide e2e/fixtures/test-user.ts):
+ *   "[E2E] <label> <ts>-<hash4>"               → ex: "[E2E] orcamento 1730000000000-a1b2"
+ *   "[E2E:<scope>] <label> <ts>-<hash4>"       → ex: "[E2E:qc] orcamento 1730000000000-a1b2"
+ *
+ * Procura no título do teste E na mensagem de erro (recurso aparece em
+ * locators/strings de erro tipo `expect(getByText("[E2E] orcamento 1730…"))`).
+ * Retorna apenas o PRIMEIRO match — testes que criam múltiplos recursos
+ * tipicamente falham por causa do primeiro.
+ */
+function extractE2eName(...sources) {
+  const re = /\[E2E(?::[a-z0-9-]+)?\]\s+[a-z0-9_-]+(?:\s+\d{10,}-[a-z0-9]{4,})?/i;
+  for (const s of sources) {
+    if (!s) continue;
+    const m = String(s).match(re);
+    if (m) return m[0];
+  }
+  return null;
+}
+
 // ── Walk recursivo das suites do JSON reporter ────────────────────────────
 /**
  * @typedef {{ feature: string, file: string, project: string, title: string,
