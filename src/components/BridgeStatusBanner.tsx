@@ -1,12 +1,8 @@
 /**
  * Banner global de status do external-db-bridge.
  *
- * Escuta o event bus de bridge-status-events e:
- *  - `degraded`: toast informativo discreto (sonner) — retry em andamento.
- *  - `unavailable`: banner sticky + toast de erro com call-to-action.
- *  - `recovered`: dismissa o banner e mostra toast de sucesso.
- *
- * Não bloqueia a UI; permite o usuário tentar novamente manualmente.
+ * Escuta o event bus de bridge-status-events e exibe avisos contextuais.
+ * Restrito ao gate de infra dev para evitar vazamento de mensagens técnicas em prod.
  */
 import { useEffect, useState, useRef } from 'react';
 import { toast } from 'sonner';
@@ -19,23 +15,20 @@ const TOAST_ID_DEGRADED = 'bridge-degraded';
 const TOAST_ID_UNAVAILABLE = 'bridge-unavailable';
 
 export function BridgeStatusBanner() {
-  const { isDev } = useAuth();
-  const allowed = shouldShowDevInfraMessages(isDev);
+  const { isAllowed } = useDevGate();
   const [unavailable, setUnavailable] = useState(false);
   const [reason, setReason] = useState<string>('');
   const lastDegradedAt = useRef(0);
 
   useEffect(() => {
-    // Mensagens técnicas de bridge/infra ficam restritas via gate SSOT
-    // (VITE_SHOW_DEV_INFRA_MESSAGES > localStorage > role `dev`). Em produção,
-    // setar o env como `false` impede toasts/banner mesmo para devs.
     if (!isAllowed) return;
+
     const unsubscribe = onBridgeStatus((e: BridgeStatusEvent) => {
       if (e.type === 'degraded') {
-        // Throttle: 1 toast a cada 8s (várias chamadas paralelas geram muitos eventos).
         const now = Date.now();
         if (now - lastDegradedAt.current < 8000) return;
         lastDegradedAt.current = now;
+        
         toast.loading('Reconectando ao catálogo externo…', {
           id: TOAST_ID_DEGRADED,
           description: `Tentativa ${e.attempt}/${e.maxAttempts}. O sistema está se recuperando automaticamente.`,
@@ -45,6 +38,7 @@ export function BridgeStatusBanner() {
         setUnavailable(true);
         setReason(e.reason);
         toast.dismiss(TOAST_ID_DEGRADED);
+        
         toast.error('Catálogo externo indisponível', {
           id: TOAST_ID_UNAVAILABLE,
           description: 'O serviço está reiniciando. Aguarde alguns segundos e tente novamente.',
@@ -67,12 +61,13 @@ export function BridgeStatusBanner() {
         }
       }
     });
+
     return () => {
       unsubscribe();
     };
-  }, [unavailable, allowed]);
+  }, [unavailable, isAllowed]);
 
-  if (!allowed || !unavailable) return null;
+  if (!isAllowed || !unavailable) return null;
 
   return (
     <div
