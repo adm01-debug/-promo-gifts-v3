@@ -1,44 +1,50 @@
 /**
  * Fluxo: Auth — login OK, credenciais inválidas, validação, esqueci-senha.
- * Roda no project chromium-authed mas usa storageState vazio para os casos
- * de tela de login pública (limpa cookies antes).
- *
- * Seletores: SSOT em e2e/fixtures/selectors.ts (Sel.login).
+ * Migrado para os helpers SSOT (loginViaUI, loginAs, gotoAndSettle,
+ * expectVisibleByTestId). Sem `page.goto`/`waitForTimeout` direto.
  */
 import { test, expect, requireAuth } from "../fixtures/test-base";
 import { Sel } from "../fixtures/selectors";
+import { gotoAndSettle } from "../helpers/nav";
+import {
+  loginAs,
+  loginViaUI,
+  expectAuthenticated,
+  expectUnauthenticated,
+} from "../helpers/auth";
+import { expectVisibleByTestId } from "../helpers/waits";
 
 test.describe("Fluxo: Auth", () => {
   test.use({ storageState: { cookies: [], origins: [] } });
 
   test("renderiza form de login com elementos essenciais", async ({ page }) => {
-    await page.goto("/login");
-    await expect(page.locator(Sel.login.email)).toBeVisible();
-    await expect(page.locator(Sel.login.password)).toBeVisible();
-    await expect(page.locator(Sel.login.submit).first()).toBeVisible();
+    await gotoAndSettle(page, "/login");
+    await expectVisibleByTestId(page, "login-email-input");
+    await expectVisibleByTestId(page, "login-password-input");
+    await expectVisibleByTestId(page, "login-submit");
   });
 
   test("rejeita credenciais inválidas e permanece em /login", async ({ page }) => {
-    await page.goto("/login");
-    await page.fill(Sel.login.email, "naoexiste@example.com");
-    await page.fill(Sel.login.password, "SenhaErrada123");
-    await page.locator(Sel.login.submit).first().click();
-    await page.waitForTimeout(2500);
-    await expect(page).toHaveURL(/login/);
+    await loginViaUI(page, {
+      email: "naoexiste@example.com",
+      password: "SenhaErrada123",
+      expectFail: true,
+    });
+    await expectUnauthenticated(page);
   });
 
   test("valida email malformado", async ({ page }) => {
-    await page.goto("/login");
-    await page.fill(Sel.login.email, "naoehemail");
-    await page.fill(Sel.login.password, "Senha123");
+    await gotoAndSettle(page, "/login");
+    await page.locator(Sel.login.email).fill("naoehemail");
+    await page.locator(Sel.login.password).fill("Senha123");
     await page.locator(Sel.login.submit).first().click();
     await expect(page.locator(Sel.login.errorMsg).first()).toBeVisible({
-      timeout: 4000,
+      timeout: 4_000,
     });
   });
 
   test("alterna visibilidade da senha", async ({ page }) => {
-    await page.goto("/login");
+    await gotoAndSettle(page, "/login");
     const pwd = page.locator(Sel.login.password);
     await expect(pwd).toHaveAttribute("type", "password");
     const toggle = page.locator(Sel.login.toggle).first();
@@ -49,20 +55,17 @@ test.describe("Fluxo: Auth", () => {
   });
 
   test("abre fluxo de esqueci minha senha", async ({ page }) => {
-    await page.goto("/login");
+    await gotoAndSettle(page, "/login");
     const link = page.locator(Sel.login.forgot).first();
     if (await link.count()) {
       await link.click();
-      await expect(page.locator(Sel.login.forgotScreen)).toBeVisible({ timeout: 3000 });
+      await expectVisibleByTestId(page, "forgot-password-screen", { timeout: 4_000 });
     }
   });
 
   test("login com credenciais válidas redireciona para app", async ({ page }) => {
     requireAuth();
-    await page.goto("/login");
-    await page.fill(Sel.login.email, process.env.E2E_USER_EMAIL!);
-    await page.fill(Sel.login.password, process.env.E2E_USER_PASSWORD!);
-    await page.locator(Sel.login.submit).first().click();
-    await expect(page).not.toHaveURL(/\/login/, { timeout: 15_000 });
+    await loginAs(page, "user");
+    await expectAuthenticated(page);
   });
 });
