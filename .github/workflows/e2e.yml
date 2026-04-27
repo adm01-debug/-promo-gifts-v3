@@ -47,7 +47,10 @@ jobs:
         run: npx playwright test --project=chromium-smoke --max-failures=3
         continue-on-error: true
 
-      - name: Generate SMOKE summary (sempre)
+      # Resumo dedicado do smoke: 1 linha por funcionalidade no log do step,
+      # `::error file=...::` por falha (anotação inline no PR), `::group::`
+      # colapsável para diagnóstico, e bloco "FINAL SUMMARY" sem ANSI no fim.
+      - name: Generate SMOKE summary (sempre — log final + annotations)
         if: always()
         run: node scripts/e2e-smoke-summary.mjs || true
 

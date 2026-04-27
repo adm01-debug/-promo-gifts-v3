@@ -321,4 +321,83 @@ console.log(
   `${C.dim}Wrote ${path.join(outDir, "smoke-summary.md")} and smoke-summary.json${C.reset}\n`,
 );
 
+/* ============================================================
+ * Saída para o LOG FINAL do CI (GitHub Actions workflow commands)
+ * ============================================================
+ * 1. `::error file=...,line=...::` — anotações inline no PR (1 por falha).
+ * 2. `::group::` / `::endgroup::` — diagnóstico expandido colapsável.
+ * 3. Bloco "FINAL SUMMARY" sempre impresso ao final, sem cores/ANSI,
+ *    fácil de scanear no log do step quando o job termina.
+ */
+const isCI = process.env.CI === "true" || process.env.GITHUB_ACTIONS === "true";
+
+if (isCI && failed.length > 0) {
+  // Anotações inline (renderizam na aba "Files Changed" do PR)
+  for (const r of failed) {
+    const loc = r.location ?? "e2e/flows/20-all-features-smoke.spec.ts";
+    const [file, line] = loc.split(":");
+    const msg = `Smoke ${r.num} · ${r.label} — ${r.error ?? r.status}`;
+    // Escape de %, \r, \n conforme spec do GitHub Actions
+    const safe = msg.replace(/%/g, "%25").replace(/\r/g, "%0D").replace(/\n/g, "%0A");
+    console.log(
+      `::error file=${file}${line ? `,line=${line}` : ""},title=Smoke fail: ${r.num} · ${r.label}::${safe}`,
+    );
+  }
+}
+
+if (isCI && (failed.length > 0 || flaky.length > 0)) {
+  console.log(`::group::🔬 Smoke diagnostics (clique para expandir)`);
+  for (const r of failed) {
+    console.log(`✗ ${r.num} · ${r.label}`);
+    if (r.location) console.log(`  @ ${r.location}`);
+    if (r.fullError) {
+      for (const l of r.fullError.split("\n").slice(0, 8)) console.log(`  | ${l}`);
+    }
+    console.log("");
+  }
+  for (const r of flaky) {
+    console.log(`⟲ ${r.num} · ${r.label} — flaky (${r.retries} retry)`);
+  }
+  console.log(`::endgroup::`);
+}
+
+/* ── Bloco FINAL SUMMARY (sempre impresso, sem ANSI) ─────────────────── */
+const plain = (s) => s.replace(/\u001b\[[0-9;]*m/g, "");
+const sep = "─".repeat(72);
+const finalLines = [
+  "",
+  sep,
+  `🚦 SMOKE FINAL SUMMARY · project=${SMOKE_PROJECT}`,
+  sep,
+  `Total: ${totals.total}   ✅ ${totals.passed}   ❌ ${totals.failed}   ⏭ ${totals.skipped}` +
+    (totals.retried > 0 ? `   🔁 ${totals.retried} retried` : ""),
+  `Duration: ${wallSec}s   Started: ${startedAt}`,
+  "",
+];
+if (failed.length === 0 && flaky.length === 0) {
+  finalLines.push("✅ Todas as funcionalidades passaram — gate liberado.");
+} else {
+  if (failed.length > 0) {
+    finalLines.push(`❌ Funcionalidades quebradas (${failed.length}):`);
+    for (const r of failed) {
+      finalLines.push(`   ${r.num} · ${r.label}`);
+      if (r.error) finalLines.push(`        ↳ ${plain(r.error)}`);
+    }
+    if (firstFailIdx >= 0) {
+      const r = rows[firstFailIdx];
+      finalLines.push("");
+      finalLines.push(`🛑 Primeira falha: ${r.num} · ${r.label}`);
+    }
+  }
+  if (flaky.length > 0) {
+    finalLines.push("");
+    finalLines.push(`⚠ Flaky — passou após retry (${flaky.length}):`);
+    for (const r of flaky) finalLines.push(`   ${r.num} · ${r.label}  (${r.retries} retry)`);
+  }
+  finalLines.push("");
+  finalLines.push("Detalhes completos: artifact 'e2e-smoke-summary' + 'playwright-report'.");
+}
+finalLines.push(sep, "");
+console.log(finalLines.join("\n"));
+
 process.exit(totals.failed > 0 ? 1 : 0);
