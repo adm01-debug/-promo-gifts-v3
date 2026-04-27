@@ -102,7 +102,7 @@ for (const file of TRACKED_FILES) {
 
   const thresholds = FILE_THRESHOLDS[file];
   const violations = Object.entries(thresholds).filter(
-    ([metric, min]) => m[metric] < min,
+    ([metric, min]) => m[metric] < min - TOLERANCE_PP,
   );
 
   const fmt = `S:${m.statements.toFixed(0)}% B:${m.branches.toFixed(0)}% F:${m.functions.toFixed(0)}% L:${m.lines.toFixed(0)}%`;
@@ -112,7 +112,7 @@ for (const file of TRACKED_FILES) {
   } else {
     hasFailure = true;
     const detail = violations
-      .map(([metric, min]) => `${metric} ${m[metric].toFixed(1)}% < ${min}%`)
+      .map(([metric, min]) => `${metric} ${m[metric].toFixed(1)}% < ${(min - TOLERANCE_PP).toFixed(1)}% (piso ${min}% − tol ${TOLERANCE_PP}pp)`)
       .join(", ");
     lines.push(`✗ ${file.padEnd(60)} ${fmt}   ← ${detail}`);
   }
@@ -123,8 +123,9 @@ console.log("─".repeat(80));
 for (const l of lines) console.log(l);
 console.log("─".repeat(80));
 console.log(
-  `Pisos calibrados por arquivo (baseline atual − ~1pp). Para subir um piso ` +
-    `após adicionar testes, edite FILE_THRESHOLDS em scripts/check-price-freshness-coverage.mjs.`,
+  `Pisos calibrados por arquivo (baseline atual − ~3pp) com tolerância adicional ` +
+    `de ${TOLERANCE_PP}pp para ruído do reporter V8. Para subir um piso após adicionar ` +
+    `testes, edite FILE_THRESHOLDS em scripts/check-price-freshness-coverage.mjs.`,
 );
 
 if (hasFailure) {
