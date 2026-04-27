@@ -29,7 +29,11 @@ export function CloudStatusBanner() {
   const { status, retry, isChecking } = useCloudStatus();
   
   const config = status ? STATUS_CONFIG[status] : null;
-  const visible = isAllowed && !!config;
+  
+  // Apenas a mensagem de "warming" (reiniciando) é considerada estritamente técnica/infra.
+  // Estados de "down" ou "degraded" são falhas críticas que devem ser mostradas a todos os usuários.
+  const isTechnicalMessage = status === 'warming';
+  const visible = config && (isTechnicalMessage ? isAllowed : true);
 
   if (!visible || !config) return null;
 
