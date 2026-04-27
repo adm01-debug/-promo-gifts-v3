@@ -29,65 +29,60 @@ export function useCatalogFiltering({
   hasCategoryFilter, categoryFilteredProductIds, isLoadingCategoryFilter,
   promoSalesMap, supplierSalesMap,
 }: CatalogFilteringOptions): Product[] {
+  // Otimização: Memoizamos conjuntos de filtros para lookup O(1)
+  const colorFilterSet = useMemo(() => new Set(filters.colors), [filters.colors]);
+  const colorGroupSet = useMemo(() => new Set(filters.colorGroups), [filters.colorGroups]);
+  const colorVariationSet = useMemo(() => new Set(filters.colorVariations), [filters.colorVariations]);
+  const categoryFilterSet = useMemo(() => new Set(filters.categories.map(String)), [filters.categories]);
+  const supplierFilterSet = useMemo(() => new Set(filters.suppliers), [filters.suppliers]);
+  const genderFilterSet = useMemo(() => new Set(filters.gender?.map(g => g.toLowerCase().trim())), [filters.gender]);
+
   return useMemo(() => {
     let result = hasFuzzySearch ? [...fuzzySearchResults] : [...realProducts];
+
+    if (result.length === 0) return result;
 
     if (hasCategoryFilter && categoryFilteredProductIds.size > 0) {
       result = result.filter((p) => categoryFilteredProductIds.has(p.id));
     } else if (hasCategoryFilter && categoryFilteredProductIds.size === 0 && !isLoadingCategoryFilter) {
-      result = [];
+      return [];
     }
 
-    if (filters.colors.length) {
+    if (colorFilterSet.size > 0) {
       result = result.filter((p) =>
-        p.colors?.some((c: Record<string, string>) => filters.colors.includes(c.name)) || false
+        p.colors?.some((c: Record<string, string>) => colorFilterSet.has(c.name))
       );
     }
 
-    if (filters.colorGroups?.length) {
+    if (colorGroupSet.size > 0) {
       result = result.filter((p) =>
         p.colors?.some((c: Record<string, string>) => {
-          const colorGroupSlug = c.groupSlug || '';
-          const colorGroup = (c.group || '').toLowerCase().trim();
-          const colorName = (c.name || '').toLowerCase().trim();
-          return filters.colorGroups.some(slug => {
-            const slugLower = slug.toLowerCase().trim();
-            if (colorGroupSlug === slugLower) return true;
-            if (colorGroup === slugLower) return true;
-            if (colorGroup.includes(slugLower) || slugLower.includes(colorGroup)) return true;
-            if (colorName.includes(slugLower) || slugLower.includes(colorName.split(/[\s-]/)[0])) return true;
-            return false;
-          });
-        }) || false
+          const groupSlug = (c.groupSlug || '').toLowerCase().trim();
+          const group = (c.group || '').toLowerCase().trim();
+          const name = (c.name || '').toLowerCase().trim();
+          return colorGroupSet.has(groupSlug) || colorGroupSet.has(group) || 
+                 Array.from(colorGroupSet).some(s => name.includes(s.toLowerCase()));
+        })
       );
     }
 
-    if (filters.colorVariations?.length) {
+    if (colorVariationSet.size > 0) {
       result = result.filter((p) =>
         p.colors?.some((c: Record<string, string>) => {
-          const colorVariationSlug = c.variationSlug || '';
-          const colorName = (c.name || '').toLowerCase().trim();
-          return filters.colorVariations.some(slug => {
-            const slugLower = slug.toLowerCase().trim();
-            if (colorVariationSlug === slugLower) return true;
-            const slugWords = slugLower.split('-');
-            return slugWords.every(word => colorName.includes(word));
-          });
-        }) || false
+          const variationSlug = (c.variationSlug || '').toLowerCase().trim();
+          return colorVariationSet.has(variationSlug);
+        })
       );
     }
 
-    if (filters.categories.length) {
-      result = result.filter((p) =>
-        filters.categories.includes(parseInt(p.category_id || '0')) ||
-        filters.categories.map(String).includes(p.category_id || '')
-      );
+    if (categoryFilterSet.size > 0) {
+      result = result.filter((p) => categoryFilterSet.has(p.category_id || ''));
     }
 
-    if (filters.suppliers.length) {
+    if (supplierFilterSet.size > 0) {
       result = result.filter((p) =>
-        filters.suppliers.includes(p.brand || '') ||
-        filters.suppliers.includes(p.supplier_reference || '')
+        supplierFilterSet.has(p.brand || '') ||
+        supplierFilterSet.has(p.supplier_reference || '')
       );
     }
 
@@ -99,25 +94,24 @@ export function useCatalogFiltering({
       result = result.filter((p) => (p.stock || 0) > 0);
     }
 
-    if (filters.gender?.length) {
-      const genderFilter = filters.gender;
+    if (genderFilterSet.size > 0) {
       result = result.filter((p) => {
         const productGender = (p.gender || '').toLowerCase().trim();
-        if (!productGender) return false;
-        return genderFilter.some(g => productGender === g.toLowerCase());
+        return genderFilterSet.has(productGender);
       });
     }
 
     if (hasMaterialFilter && materialFilteredProductIds.size > 0) {
       result = result.filter((p) => materialFilteredProductIds.has(p.id));
     } else if (hasMaterialFilter && materialFilteredProductIds.size === 0 && !isLoadingMaterialFilter) {
-      result = [];
+      return [];
     }
 
     if (!hasMaterialFilter && filters.materiais.length) {
+      const lowerMateriais = filters.materiais.map(m => m.toLowerCase());
       result = result.filter((p) => {
         const materialsStr = Array.isArray(p.materials) ? p.materials.join(' ').toLowerCase() : (p.materials || '').toLowerCase();
-        return filters.materiais.some((m) => materialsStr.includes(m.toLowerCase()));
+        return lowerMateriais.some((m) => materialsStr.includes(m));
       });
     }
 
@@ -126,5 +120,11 @@ export function useCatalogFiltering({
     sortProducts(result, sortBy, { promoSalesMap, supplierSalesMap, skipSort });
 
     return result;
-  }, [filters, sortBy, hasFuzzySearch, fuzzySearchResults, realProducts, hasMaterialFilter, materialFilteredProductIds, isLoadingMaterialFilter, hasCategoryFilter, categoryFilteredProductIds, isLoadingCategoryFilter, promoSalesMap, supplierSalesMap]);
+  }, [
+    filters, sortBy, hasFuzzySearch, fuzzySearchResults, realProducts, 
+    hasMaterialFilter, materialFilteredProductIds, isLoadingMaterialFilter, 
+    hasCategoryFilter, categoryFilteredProductIds, isLoadingCategoryFilter, 
+    promoSalesMap, supplierSalesMap, colorFilterSet, colorGroupSet, colorVariationSet, 
+    categoryFilterSet, supplierFilterSet, genderFilterSet
+  ]);
 }

@@ -186,7 +186,7 @@ export function useProductImages(productId: string | null) {
       return fetchProductImages(productId);
     },
     enabled: !!productId,
-    staleTime: 5 * 60 * 1000, // 5 minutos
+    staleTime: 15 * 60 * 1000, // Aumentado para 15 min (dados estáveis)
   });
 }
 
@@ -201,7 +201,7 @@ export function useProductImagesBatch(productIds: string[]) {
       return fetchProductImagesBatch(productIds);
     },
     enabled: productIds.length > 0,
-    staleTime: 5 * 60 * 1000, // 5 minutos
+    staleTime: 15 * 60 * 1000,
   });
 }
 
@@ -216,6 +216,6 @@ export function usePrimaryImage(productId: string | null) {
       return fetchPrimaryImage(productId);
     },
     enabled: !!productId,
-    staleTime: 5 * 60 * 1000, // 5 minutos
+    staleTime: 15 * 60 * 1000,
   });
 }
