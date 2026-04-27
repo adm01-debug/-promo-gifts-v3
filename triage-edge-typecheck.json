@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-27T15:15:28.187Z",
+  "generatedAt": "2026-04-27T15:16:18.338Z",
   "denoVersion": "deno 2.6.10 (stable, release, x86_64-unknown-linux-gnu)",
   "mode": "fail-fast",
   "totals": {
@@ -11,28 +11,28 @@
   "firstFailure": {
     "fn": "collections-watcher",
     "exitCode": 1,
-    "elapsedMs": 1521,
+    "elapsedMs": 1600,
     "firstError": {
-      "code": "UNKNOWN",
-      "message": "\u001b[0m\u001b[32mDownload\u001b[0m https://esm.sh/@supabase/auth-js@2.95.0/dist/module/lib/errors.d.ts",
-      "file": null,
-      "line": null,
-      "column": null,
-      "snippet": "\u001b[0m\u001b[32mDownload\u001b[0m https://esm.sh/@supabase/supabase-js@2.95.0\n\u001b[0m\u001b[32mDownload\u001b[0m https://esm.sh/@supabase/supabase-js@2.95.0/dist/index.d.mts\n\u001b[0m\u001b[32mDownload\u001b[0m https://esm.sh/@supabase/functions-js@2.95.0/dist/module/index.d.ts\n\u001b[0m\u001b[32mDownload\u001b[0m https://esm.sh/@supabase/postgrest-js@2.95.0/dist/index.d.mts\n\u001b[0m\u001b[32mDownload\u001b[0m https://esm.sh/@supabase/realtime-js@2.95.0/dist/module/index.d.ts\n\u001b[0m\u001b[32mDownload\u001b[0m https://esm.sh/@supabase/storage-js@2.95.0/dist/index.d.mts\n\u001b[0m\u001b[32mDownload\u001b[0m https://esm.sh/@supabase/auth-js@2.95.0/dist/module/index.d.ts\n\u001b[0m\u001b[32mDownload\u001b[0m https://esm.sh/@supabase/functions-js@2.95.0/dist/module/FunctionsClient.d.ts"
+      "code": "TS2345",
+      "message": "Argument of type 'SupabaseClient<any, \"public\", \"public\", any, any>' is not assignable to parameter of type 'SupabaseClient<unknown, { PostgrestVersion: string; }, never, never, { PostgrestVersion: string; }>'.",
+      "file": "supabase/functions/collections-watcher/index.ts",
+      "line": 96,
+      "column": 33,
+      "snippet": "TS2345 [ERROR]: Argument of type 'SupabaseClient<any, \"public\", \"public\", any, any>' is not assignable to parameter of type 'SupabaseClient<unknown, { PostgrestVersion: string; }, never, never, { PostgrestVersion: string; }>'.\n  Type '\"public\"' is not assignable to type 'never'.\n      if (await alreadyNotified(service, userId, incidentKey)) continue;\n                                ~~~~~~~\n    at file:///dev-server/supabase/functions/collections-watcher/index.ts:96:33"
     }
   },
   "failures": [
     {
       "fn": "collections-watcher",
       "exitCode": 1,
-      "elapsedMs": 1521,
+      "elapsedMs": 1600,
       "firstError": {
-        "code": "UNKNOWN",
-        "message": "\u001b[0m\u001b[32mDownload\u001b[0m https://esm.sh/@supabase/auth-js@2.95.0/dist/module/lib/errors.d.ts",
-        "file": null,
-        "line": null,
-        "column": null,
-        "snippet": "\u001b[0m\u001b[32mDownload\u001b[0m https://esm.sh/@supabase/supabase-js@2.95.0\n\u001b[0m\u001b[32mDownload\u001b[0m https://esm.sh/@supabase/supabase-js@2.95.0/dist/index.d.mts\n\u001b[0m\u001b[32mDownload\u001b[0m https://esm.sh/@supabase/functions-js@2.95.0/dist/module/index.d.ts\n\u001b[0m\u001b[32mDownload\u001b[0m https://esm.sh/@supabase/postgrest-js@2.95.0/dist/index.d.mts\n\u001b[0m\u001b[32mDownload\u001b[0m https://esm.sh/@supabase/realtime-js@2.95.0/dist/module/index.d.ts\n\u001b[0m\u001b[32mDownload\u001b[0m https://esm.sh/@supabase/storage-js@2.95.0/dist/index.d.mts\n\u001b[0m\u001b[32mDownload\u001b[0m https://esm.sh/@supabase/auth-js@2.95.0/dist/module/index.d.ts\n\u001b[0m\u001b[32mDownload\u001b[0m https://esm.sh/@supabase/functions-js@2.95.0/dist/module/FunctionsClient.d.ts"
+        "code": "TS2345",
+        "message": "Argument of type 'SupabaseClient<any, \"public\", \"public\", any, any>' is not assignable to parameter of type 'SupabaseClient<unknown, { PostgrestVersion: string; }, never, never, { PostgrestVersion: string; }>'.",
+        "file": "supabase/functions/collections-watcher/index.ts",
+        "line": 96,
+        "column": 33,
+        "snippet": "TS2345 [ERROR]: Argument of type 'SupabaseClient<any, \"public\", \"public\", any, any>' is not assignable to parameter of type 'SupabaseClient<unknown, { PostgrestVersion: string; }, never, never, { PostgrestVersion: string; }>'.\n  Type '\"public\"' is not assignable to type 'never'.\n      if (await alreadyNotified(service, userId, incidentKey)) continue;\n                                ~~~~~~~\n    at file:///dev-server/supabase/functions/collections-watcher/index.ts:96:33"
       }
     }
   ],
