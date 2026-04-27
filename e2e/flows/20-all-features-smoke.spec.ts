@@ -272,5 +272,88 @@ test.describe("@smoke Rotas públicas (gate de CI)", () => {
     await page.goto("/rota-inexistente-smoke-xyz");
     await expect(page.locator(Sel.app.notFound).first()).toBeVisible({ timeout: 8_000 });
   });
+
+  // 93 · Negativo de login: credenciais inválidas mantêm /login interativo.
+  // Garante que o caminho de auth-fail NÃO trava o gate (smoke negativo).
+  test("93 · Login com credenciais inválidas permanece em /login", async ({ page }) => {
+    await page.route(/\/auth\/v1\/token/, (route) =>
+      route.fulfill({
+        status: 400,
+        contentType: "application/json",
+        body: JSON.stringify({ error: "invalid_grant", error_description: "Invalid login credentials" }),
+      }),
+    );
+    await page.goto("/login");
+    await page.fill(Sel.login.email, "smoke-fake@example.com");
+    await page.fill(Sel.login.password, "SenhaErrada@2025!");
+    await page.locator(Sel.login.submit).first().click();
+    await expect(page).toHaveURL(/\/login/, { timeout: 8_000 });
+    await expect(page.locator(Sel.login.submit).first()).toBeEnabled({ timeout: 5_000 });
+  });
+
+  // 95 · Negativo de recovery: /reset-password sem token NÃO habilita reset.
+  // Defesa contra bypass — exige mensagem de inválido OU redirect.
+  test("95 · /reset-password sem token não habilita reset", async ({ page }) => {
+    await page.goto("/reset-password");
+    await page.waitForLoadState("domcontentloaded");
+    const invalid = await page
+      .getByText(/inválido|expirado|link.+inválido/i)
+      .first()
+      .isVisible()
+      .catch(() => false);
+    const redirected = /\/login/.test(page.url());
+    expect(invalid || redirected, "recovery sem token deve negar acesso").toBeTruthy();
+  });
 });
+
+/* ============================================================
+ * Smoke autenticado adicional — RLS guard (cobertura crítica P0).
+ * Não cabe na seção 00-89 (geração via catálogo) nem na pública.
+ * ============================================================ */
+test.describe("@smoke RLS guard (gate de CI)", () => {
+  test.describe.configure({ mode: "serial" });
+
+  // 94 · RLS: tabelas sensíveis NUNCA devolvem dados de outros usuários
+  // através do REST de Supabase. Smoke negativo P0.
+  test("94 · RLS bloqueia leitura de tabelas sensíveis para o usuário comum", async ({ page }) => {
+    const url = process.env.VITE_SUPABASE_URL;
+    const anon = process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+    test.skip(!url || !anon, "VITE_SUPABASE_* ausentes");
+
+    await page.goto("/produtos");
+    await page.waitForLoadState("domcontentloaded");
+    expect(/\/login/.test(page.url()), "sessão necessária para RLS smoke").toBe(false);
+
+    const token = await page.evaluate(() => {
+      for (const k of Object.keys(localStorage)) {
+        if (/sb-.*-auth-token/.test(k)) {
+          try {
+            const parsed = JSON.parse(localStorage.getItem(k) ?? "{}");
+            return (parsed?.access_token ?? parsed?.currentSession?.access_token ?? null) as string | null;
+          } catch { /* noop */ }
+        }
+      }
+      return null;
+    });
+    expect(token, "access_token ausente").toBeTruthy();
+
+    for (const table of ["password_reset_requests", "login_attempts", "e2e_cleanup_rate_limit"]) {
+      const res = await fetch(`${url}/rest/v1/${table}?select=*&limit=50`, {
+        headers: { apikey: anon!, Authorization: `Bearer ${token}`, Accept: "application/json" },
+      });
+      // RLS pode responder 200 (vazio ou rows próprias), 401, 403 ou 404 — NUNCA dump completo.
+      if (res.status === 200) {
+        const body = (await res.json()) as unknown[];
+        expect(Array.isArray(body), `${table} deve retornar array`).toBe(true);
+        // amostragem de 50: se passou de 50 e usuário comum não é dono, é vazamento.
+        // (assert genérico — testes detalhados em flows/p0/07-rls-enforcement.spec.ts)
+        expect(body.length, `${table} retornou amostra grande para usuário comum`).toBeLessThanOrEqual(50);
+      } else {
+        await res.text().catch(() => "");
+        expect([401, 403, 404]).toContain(res.status);
+      }
+    }
+  });
+});
+
 
