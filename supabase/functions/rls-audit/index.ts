@@ -3,7 +3,6 @@ import { getCorsHeaders } from "../_shared/cors.ts";
 // discount_approval_requests usando o JWT do usuário logado (vendedor).
 // Cada cenário retorna ✅/❌ + detalhe para evidência de auditoria.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
-import { corsHeaders } from "https://esm.sh/@supabase/supabase-js@2.95.0/cors";
 
 interface ScenarioResult {
   table: string;

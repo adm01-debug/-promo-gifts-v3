@@ -10,7 +10,6 @@ import { getCorsHeaders } from "../_shared/cors.ts";
  *   → { valid, payload }  (read-only para a página pública)
  */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
-import { corsHeaders } from "https://esm.sh/@supabase/supabase-js@2.95.0/cors";
 
 const SHARE_SECRET = Deno.env.get("BI_SHARE_SECRET") ?? Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
