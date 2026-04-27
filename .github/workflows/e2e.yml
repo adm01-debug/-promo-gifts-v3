@@ -42,6 +42,12 @@ jobs:
       - name: Install Playwright (chromium)
         run: npx playwright install --with-deps chromium
 
+      # Auditoria: garante que docs/E2E_SMOKE_COVERAGE.md está em dia com
+      # _catalog.ts + SMOKE_COVERAGE. Falha se alguém alterou a suíte sem
+      # regenerar o doc (`npm run e2e:smoke-coverage-doc`).
+      - name: Validar doc de auditoria do smoke (drift check)
+        run: node scripts/e2e-smoke-coverage-doc.mjs --check
+
       - name: Run E2E smoke (gate determinístico — 1 teste/feature, sequencial)
         id: e2e_smoke
         run: npx playwright test --project=chromium-smoke --max-failures=3
