@@ -6,98 +6,103 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+interface ScanLog {
+  user_id: string | null;
+  bucket: string;
+  path: string;
+  hash: string;
+  scan_result: any;
+  status_code: number;
+}
+
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
-  }
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+
+  const supabaseAdmin = createClient(
+    Deno.env.get('SUPABASE_URL') ?? '',
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+  )
 
   try {
     const formData = await req.formData()
     const file = formData.get('file') as File
     const folder = formData.get('folder') as string || 'uploads'
+    
+    const authHeader = req.headers.get('Authorization')
+    const { data: { user } } = await supabaseAdmin.auth.getUser(authHeader?.replace('Bearer ', '') ?? '')
 
-    if (!file) {
-      throw new Error('Nenhum arquivo enviado')
-    }
+    if (!file) throw new Error('Arquivo obrigatório')
 
+    const fileBuffer = await file.arrayBuffer()
+    const hashBuffer = await crypto.subtle.digest('SHA-256', fileBuffer)
+    const hashHex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('')
+
+    let isSuspicious = false
+    let scanDetails: any = { source: 'VirusTotal', checked_at: new Date().toISOString() }
+    let targetBucket = 'personalization-images'
     const vtApiKey = Deno.env.get('VIRUSTOTAL_API_KEY')
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
-
-    let isSuspicious = false;
-    let targetBucket = 'personalization-images';
 
     if (vtApiKey) {
       try {
-        const fileBuffer = await file.arrayBuffer()
-        const hashBuffer = await crypto.subtle.digest('SHA-256', fileBuffer)
-        const hashArray = Array.from(new Uint8Array(hashBuffer))
-        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
-
-        console.log(`Verificando VirusTotal: ${hashHex}`)
-
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
-
-        const vtCheckResponse = await fetch(`https://www.virustotal.com/api/v3/files/${hashHex}`, {
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 10000)
+        const vtRes = await fetch(`https://www.virustotal.com/api/v3/files/${hashHex}`, {
           headers: { 'x-apikey': vtApiKey },
           signal: controller.signal
         })
-        clearTimeout(timeoutId);
+        clearTimeout(timeoutId)
 
-        if (vtCheckResponse.ok) {
-          const vtData = await vtCheckResponse.json()
-          const stats = vtData.data.attributes.last_analysis_stats
-          if (stats.malicious > 0 || stats.suspicious > 0) {
-            isSuspicious = true;
-          }
-        } else if (vtCheckResponse.status === 404) {
-          // Arquivo novo, ignorar bloqueio imediato (esperar análise assíncrona se necessário)
-          console.log('Arquivo não encontrado no VirusTotal. Permitindo upload inicial.');
-        } else {
-          throw new Error('Falha na resposta da API de segurança')
+        if (vtRes.ok) {
+          const vtData = await vtRes.json()
+          scanDetails = { ...scanDetails, ...vtData.data.attributes.last_analysis_stats }
+          if (scanDetails.malicious > 0 || scanDetails.suspicious > 0) isSuspicious = true
+        } else if (vtRes.status !== 404) {
+          throw new Error('Segurança indisponível')
         }
       } catch (err) {
-        console.error('Erro na análise de segurança:', err.message)
-        return new Response(JSON.stringify({ error: 'Bloqueio de segurança: Verificação de malware falhou ou expirou.' }), {
-          status: 403,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        return new Response(JSON.stringify({ error: 'Erro na verificação de malware' }), {
+          status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         })
       }
     }
 
-    if (isSuspicious) {
-      targetBucket = 'quarantine';
-      console.warn(`Arquivo suspeito detectado: ${file.name}`);
-    }
+    if (isSuspicious) targetBucket = 'quarantine'
 
-    const fileExt = file.name.split('.').pop()
-    const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
-
-    const { data, error: uploadError } = await supabaseAdmin.storage
+    const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).substring(7)}.${file.name.split('.').pop()}`
+    const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
       .from(targetBucket)
-      .upload(fileName, await file.arrayBuffer(), {
-        contentType: file.type,
-        upsert: false,
-      })
+      .upload(fileName, fileBuffer, { contentType: file.type, upsert: false })
 
     if (uploadError) throw uploadError
 
+    // Persistir Log de Auditoria
+    await supabaseAdmin.from('file_scan_logs').insert({
+      user_id: user?.id ?? null,
+      bucket: targetBucket,
+      path: uploadData.path,
+      hash: hashHex,
+      scan_result: scanDetails,
+      status_code: isSuspicious ? 403 : 200
+    } as ScanLog)
+
     if (isSuspicious) {
-      return new Response(JSON.stringify({ error: 'Arquivo bloqueado por malware detectado.' }), {
-        status: 403,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      return new Response(JSON.stringify({ error: 'Arquivo bloqueado: Malware detectado' }), {
+        status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
 
-    const { data: { publicUrl } } = supabaseAdmin.storage.from(targetBucket).getPublicUrl(data.path)
-
-    return new Response(JSON.stringify({ url: publicUrl, path: data.path }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 200,
+    const { data: { publicUrl } } = supabaseAdmin.storage.from(targetBucket).getPublicUrl(uploadData.path)
+    return new Response(JSON.stringify({ url: publicUrl, path: uploadData.path }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200
     })
+
+  } catch (error: any) {
+    return new Response(JSON.stringify({ error: error.message }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500
+    })
+  }
+})
+
 
   } catch (error) {
     console.error('Upload Error:', error.message)
