@@ -11,14 +11,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { DevOnlyBridgeOverlay } from '@/components/dev/DevOnlyBridgeOverlay';
 
-const mockUseAuth = vi.fn();
-vi.mock('@/contexts/AuthContext', () => ({
-  useAuth: () => mockUseAuth(),
-}));
+import { useDevGate } from '@/hooks/useDevGate';
 
-const mockShouldShow = vi.fn();
-vi.mock('@/lib/system/dev-infra-messages', () => ({
-  shouldShowDevInfraMessages: (isDev: boolean) => mockShouldShow(isDev),
+vi.mock('@/hooks/useDevGate', () => ({
+  useDevGate: vi.fn(),
 }));
 
 // O overlay real importa telemetria + faz checks de import.meta.env.PROD.
@@ -28,35 +24,31 @@ vi.mock('@/components/dev/BridgeMetricsOverlay', () => ({
 }));
 
 beforeEach(() => {
-  mockUseAuth.mockReset();
-  mockShouldShow.mockReset();
-  mockShouldShow.mockImplementation((isDev: boolean) => isDev);
+  vi.clearAllMocks();
 });
 
 describe('DevOnlyBridgeOverlay — gate por papel + SSOT', () => {
   it('NÃO renderiza overlay para usuário não-dev (default do gate)', () => {
-    mockUseAuth.mockReturnValue({ isDev: false });
+    vi.mocked(useDevGate).mockReturnValue({ isAllowed: false, isDev: false });
     const { container } = render(<DevOnlyBridgeOverlay />);
     expect(container).toBeEmptyDOMElement();
     expect(screen.queryByTestId('bridge-metrics-overlay-mock')).not.toBeInTheDocument();
   });
 
   it('renderiza overlay para usuário dev (gate aprovado por role)', async () => {
-    mockUseAuth.mockReturnValue({ isDev: true });
+    vi.mocked(useDevGate).mockReturnValue({ isAllowed: true, isDev: true });
     render(<DevOnlyBridgeOverlay />);
     expect(await screen.findByTestId('bridge-metrics-overlay-mock')).toBeInTheDocument();
   });
 
   it('gate SSOT desligado (env=false) bloqueia mesmo dev', () => {
-    mockUseAuth.mockReturnValue({ isDev: true });
-    mockShouldShow.mockReturnValue(false);
+    vi.mocked(useDevGate).mockReturnValue({ isAllowed: false, isDev: true });
     const { container } = render(<DevOnlyBridgeOverlay />);
     expect(container).toBeEmptyDOMElement();
   });
 
   it('gate SSOT habilitado por override (localStorage) renderiza mesmo para não-dev', async () => {
-    mockUseAuth.mockReturnValue({ isDev: false });
-    mockShouldShow.mockReturnValue(true);
+    vi.mocked(useDevGate).mockReturnValue({ isAllowed: true, isDev: false });
     render(<DevOnlyBridgeOverlay />);
     expect(await screen.findByTestId('bridge-metrics-overlay-mock')).toBeInTheDocument();
   });
