@@ -69,9 +69,9 @@ export function BridgeStatusBanner() {
     return () => {
       unsubscribe();
     };
-  }, [unavailable]);
+  }, [unavailable, isDev]);
 
-  if (!unavailable) return null;
+  if (!isDev || !unavailable) return null;
 
   return (
     <div
