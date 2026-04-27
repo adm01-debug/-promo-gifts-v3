@@ -70,9 +70,9 @@ export function BridgeStatusBanner() {
     return () => {
       unsubscribe();
     };
-  }, [unavailable, isDev]);
+  }, [unavailable, allowed]);
 
-  if (!isDev || !unavailable) return null;
+  if (!allowed || !unavailable) return null;
 
   return (
     <div
