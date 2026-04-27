@@ -1,4 +1,5 @@
 import { getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts';
+import { authorize } from '../_shared/authorize.ts';
 
 // CORS headers are now dynamic — use getCorsHeaders(req) inside the handler
 // See _shared/cors.ts for the centralized configuration
@@ -8,6 +9,11 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
+
+  // AuthZ: github-fix-config escreve no repositório via PAT — apenas dev.
+  // Server-side double-check via has_role() (defesa em profundidade).
+  const auth = await authorize(req, { requireRole: 'dev', enforceServerSide: true });
+  if (!auth.ok) return auth.response;
 
   try {
     const GITHUB_TOKEN = Deno.env.get('GITHUB_PAT');
