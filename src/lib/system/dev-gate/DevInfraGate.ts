@@ -47,6 +47,7 @@ export class DevInfraGate {
    * Verifica se o conjunto de roles do usuário permite acesso.
    */
   hasAccess(userRoles: AppRole[]): boolean {
+    if (!userRoles || userRoles.length === 0) return false;
     return userRoles.some(role => this.allowedRoles.includes(role));
   }
 
