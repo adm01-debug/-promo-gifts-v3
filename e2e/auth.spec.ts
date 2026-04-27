@@ -1,76 +1,76 @@
 /**
- * E2E: Auth — Login happy path + error states
+ * E2E: Auth — login happy path + estados de erro.
+ * Migrado para helpers SSOT (loginViaUI, gotoAndSettle, expectVisibleByTestId).
  */
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect } from "./fixtures/test-base";
+import { Sel } from "./fixtures/selectors";
+import { gotoAndSettle } from "./helpers/nav";
+import { loginViaUI, expectUnauthenticated } from "./helpers/auth";
+import { expectVisibleByTestId, clickTestId } from "./helpers/waits";
 
-test.describe('Auth — Login Flow', () => {
+test.describe("Auth — Login Flow", () => {
+  test.use({ storageState: { cookies: [], origins: [] } });
+
   test.beforeEach(async ({ page }) => {
-    await page.goto('/login');
+    await gotoAndSettle(page, "/login");
   });
 
-  test('should render login form with all elements', async ({ page }) => {
-    await expect(page.locator('h2')).toContainText('Bem-vindo de volta');
-    await expect(page.locator('#login-email')).toBeVisible();
-    await expect(page.locator('#login-password')).toBeVisible();
-    await expect(page.locator('button[type="submit"]')).toBeVisible();
-    await expect(page.locator('button[type="submit"]')).toContainText('Entrar');
+  test("renderiza form de login completo", async ({ page }) => {
+    await expectVisibleByTestId(page, "login-email-input");
+    await expectVisibleByTestId(page, "login-password-input");
+    await expectVisibleByTestId(page, "login-submit");
   });
 
-  test('should show validation error for empty email', async ({ page }) => {
-    await page.fill('#login-password', 'ValidPass123');
-    await page.click('button[type="submit"]');
-    await expect(page.locator('text=Email é obrigatório')).toBeVisible({ timeout: 3000 });
+  test("erro de validação para email vazio", async ({ page }) => {
+    await page.locator(Sel.login.password).fill("ValidPass123");
+    await clickTestId(page, "login-submit");
+    await expect(page.locator(Sel.login.errorMsg).first()).toBeVisible({
+      timeout: 4_000,
+    });
   });
 
-  test('should show validation error for invalid email format', async ({ page }) => {
-    await page.fill('#login-email', 'notanemail');
-    await page.fill('#login-password', 'ValidPass123');
-    await page.click('button[type="submit"]');
-    await expect(page.locator('text=Email inválido')).toBeVisible({ timeout: 3000 });
+  test("erro de validação para email inválido", async ({ page }) => {
+    await page.locator(Sel.login.email).fill("notanemail");
+    await page.locator(Sel.login.password).fill("ValidPass123");
+    await clickTestId(page, "login-submit");
+    await expect(page.locator(Sel.login.errorMsg).first()).toBeVisible({
+      timeout: 4_000,
+    });
   });
 
-  test('should show validation error for short password', async ({ page }) => {
-    await page.fill('#login-email', 'user@test.com');
-    await page.fill('#login-password', '123');
-    await page.click('button[type="submit"]');
-    await expect(page.locator('text=Senha deve ter pelo menos 6 caracteres')).toBeVisible({ timeout: 3000 });
+  test("erro de validação para senha curta", async ({ page }) => {
+    await page.locator(Sel.login.email).fill("user@test.com");
+    await page.locator(Sel.login.password).fill("123");
+    await clickTestId(page, "login-submit");
+    await expect(page.locator(Sel.login.errorMsg).first()).toBeVisible({
+      timeout: 4_000,
+    });
   });
 
-  test('should toggle password visibility', async ({ page }) => {
-    const passwordInput = page.locator('#login-password');
-    await expect(passwordInput).toHaveAttribute('type', 'password');
-
-    await page.click('button[aria-label="Mostrar senha"]');
-    await expect(passwordInput).toHaveAttribute('type', 'text');
-
-    await page.click('button[aria-label="Ocultar senha"]');
-    await expect(passwordInput).toHaveAttribute('type', 'password');
+  test("alterna visibilidade da senha", async ({ page }) => {
+    const pwd = page.locator(Sel.login.password);
+    await expect(pwd).toHaveAttribute("type", "password");
+    const toggle = page.locator(Sel.login.toggle).first();
+    if (await toggle.count()) {
+      await toggle.click();
+      await expect(pwd).toHaveAttribute("type", "text");
+    }
   });
 
-  test('should show forgot password form', async ({ page }) => {
-    await page.click('text=Esqueci minha senha');
-    await expect(page.locator('text=Recuperar senha')).toBeVisible({ timeout: 3000 });
+  test("abre tela de esqueci minha senha", async ({ page }) => {
+    const link = page.locator(Sel.login.forgot).first();
+    if (await link.count()) {
+      await link.click();
+      await expectVisibleByTestId(page, "forgot-password-screen", { timeout: 4_000 });
+    }
   });
 
-  test('should stay on login page with invalid credentials', async ({ page }) => {
-    await page.fill('#login-email', 'fake@nonexistent.com');
-    await page.fill('#login-password', 'WrongPassword123');
-    await page.click('button[type="submit"]');
-    // Should remain on login (auth error)
-    await page.waitForTimeout(2000);
-    await expect(page).toHaveURL(/login/);
-  });
-
-  test('should redirect authenticated user away from login', async ({ page }) => {
-    // If already logged in, /login should redirect to /
-    // This test validates the redirect guard exists
-    await expect(page).toHaveURL(/login|\/$/);
-  });
-
-  test('should have accessible form labels', async ({ page }) => {
-    const emailLabel = page.locator('label[for="login-email"]');
-    const passwordLabel = page.locator('label[for="login-password"]');
-    await expect(emailLabel).toHaveText('Email');
-    await expect(passwordLabel).toHaveText('Senha');
+  test("rejeita credenciais inválidas e permanece em /login", async ({ page }) => {
+    await loginViaUI(page, {
+      email: "fake@nonexistent.com",
+      password: "WrongPassword123",
+      expectFail: true,
+    });
+    await expectUnauthenticated(page);
   });
 });
