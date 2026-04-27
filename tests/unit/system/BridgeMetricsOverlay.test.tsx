@@ -86,20 +86,17 @@ describe('BridgeMetricsOverlay', () => {
   });
 
   it('deve exibir filtros apenas na aba de chamadas', () => {
-    render(<BridgeMetricsOverlay />);
+    const { rerender } = render(<BridgeMetricsOverlay />);
     expect(screen.getByRole('button', { name: 'all' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '≥600ms' })).toBeInTheDocument();
     
-    // O erro anterior era "Found multiple elements with text: errors"
-    // Temos o label do summary ("errors") e o botão de filtro ("errors")
-    const errorFilters = screen.getAllByText('errors');
-    expect(errorFilters.length).toBeGreaterThan(0);
+    const errorButtons = screen.getAllByText('errors').filter(el => el.tagName === 'BUTTON');
+    expect(errorButtons.length).toBe(1);
 
     (useBridgeMetrics as any).mockReturnValue({
       ...defaultMockValues,
       tab: 'longtasks',
     });
-    render(<BridgeMetricsOverlay />);
+    rerender(<BridgeMetricsOverlay />);
     expect(screen.queryByRole('button', { name: 'all' })).not.toBeInTheDocument();
   });
 
@@ -107,7 +104,9 @@ describe('BridgeMetricsOverlay', () => {
     render(<BridgeMetricsOverlay />);
     fireEvent.click(screen.getByText('≥600ms'));
     expect(mockSetFilter).toHaveBeenCalledWith('slow');
-    fireEvent.click(screen.getByText('errors'));
+    
+    const errorButton = screen.getAllByText('errors').find(el => el.tagName === 'BUTTON');
+    fireEvent.click(errorButton!);
     expect(mockSetFilter).toHaveBeenCalledWith('errors');
   });
 
