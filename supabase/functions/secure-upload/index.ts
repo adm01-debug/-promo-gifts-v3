@@ -60,14 +60,22 @@ serve(async (req) => {
           const vtData = await vtRes.json()
           scanDetails = { ...scanDetails, ...vtData.data.attributes.last_analysis_stats }
           if (scanDetails.malicious > 0 || scanDetails.suspicious > 0) isSuspicious = true
-        } else if (vtRes.status !== 404) {
-          throw new Error('Segurança indisponível')
+        } else if (vtRes.status === 404) {
+          // Arquivo novo, ignorar bloqueio imediato (permitir upload inicial)
+          console.log('Arquivo não encontrado no VirusTotal. Permitindo upload inicial.');
+        } else {
+          // Qualquer erro de API (400, 429, 500 etc) ou resposta inesperada
+          throw new Error('Falha crítica na resposta da API de segurança');
         }
       } catch (err) {
-        console.error('VT Error:', err.message)
-        return new Response(JSON.stringify({ error: 'Erro na verificação de malware' }), {
-          status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        })
+        console.error('Bloqueio por falha na análise:', err.message);
+        // Bloqueio preventivo: se não podemos validar, não permitimos o upload
+        return new Response(JSON.stringify({ 
+          error: 'Bloqueio de segurança preventivo: Não foi possível validar a integridade do arquivo (Timeout ou Erro de API).' 
+        }), {
+          status: 403, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
       }
     }
 
