@@ -2,8 +2,9 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { AccessSecurityManager } from "@/components/admin/AccessSecurityManager";
 import { SecurityDashboard } from "@/components/security/SecurityDashboard";
-import { ShieldCheck, Shield, Lock } from "lucide-react";
+import { ShieldCheck, Shield, Lock, UploadCloud } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SecureUploadManager } from "@/components/admin/security/SecureUploadManager";
 
 export default function AdminSegurancaPage() {
   return (
@@ -21,7 +22,7 @@ export default function AdminSegurancaPage() {
         </div>
 
         <Tabs defaultValue="central" className="space-y-6">
-          <TabsList className="h-auto p-1">
+          <TabsList className="h-auto p-1 flex-wrap">
             <TabsTrigger value="central" className="gap-2 px-4 py-2.5">
               <Shield className="h-4 w-4" />
               Central de Segurança
@@ -29,6 +30,10 @@ export default function AdminSegurancaPage() {
             <TabsTrigger value="restricoes" className="gap-2 px-4 py-2.5">
               <Lock className="h-4 w-4" />
               Restrições de Acesso
+            </TabsTrigger>
+            <TabsTrigger value="uploads" className="gap-2 px-4 py-2.5">
+              <UploadCloud className="h-4 w-4" />
+              Gestão de Uploads (Dev)
             </TabsTrigger>
           </TabsList>
 
@@ -39,8 +44,13 @@ export default function AdminSegurancaPage() {
           <TabsContent value="restricoes">
             <AccessSecurityManager />
           </TabsContent>
+
+          <TabsContent value="uploads">
+            <SecureUploadManager />
+          </TabsContent>
         </Tabs>
       </div>
     </MainLayout>
   );
 }
+
