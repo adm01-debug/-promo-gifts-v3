@@ -51,7 +51,7 @@ export const CloudStatusBanner = memo(function CloudStatusBanner() {
         transition={{ duration: 0.2 }}
         role="status"
         aria-live="polite"
-        className={`sticky top-0 z-50 w-full border-b ${config.className}`}
+        className={`sticky top-0 z-50 w-full border-b safe-area-top ${config.className}`}
       >
         <div className="container mx-auto flex flex-col sm:flex-row items-start sm:items-center gap-3 px-4 py-2 text-sm">
           <div className="flex items-start sm:items-center gap-3 flex-1">

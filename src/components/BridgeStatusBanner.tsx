@@ -20,7 +20,7 @@ export const BridgeStatusBanner = memo(function BridgeStatusBanner() {
     <div
       role="alert"
       aria-live="polite"
-      className="fixed top-0 inset-x-0 z-[60] bg-destructive text-destructive-foreground shadow-md"
+      className="fixed top-0 inset-x-0 z-[60] bg-destructive text-destructive-foreground shadow-md safe-area-top"
     >
       <div className="container mx-auto px-4 py-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-sm">
         <div className="flex items-start sm:items-center gap-2 min-w-0">

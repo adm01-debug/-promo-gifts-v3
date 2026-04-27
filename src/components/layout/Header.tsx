@@ -78,7 +78,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
   return (
     <header
       className={cn(
-        "sticky top-0 z-40 border-b safe-area-top transition-all duration-300",
+        "sticky top-0 z-40 border-b transition-all duration-300",
         "bg-card/95 backdrop-blur-md border-border",
         // #7 — Micro-animação: comprime ao scrollar
         isScrolled
