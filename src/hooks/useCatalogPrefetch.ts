@@ -15,42 +15,47 @@ export function useCatalogPrefetch() {
 
   useEffect(() => {
     if (isLoading || !isAuthenticated || prefetchedRef.current) return;
-    prefetchedRef.current = true;
-
-    queryClient.prefetchInfiniteQuery({
-      queryKey: ['promobrind-products-catalog', ''],
-      queryFn: async () => {
-        const batchQueries = Array.from({ length: CATALOG_BATCH_PAGES }, (_, i) => ({
-          table: 'products',
-          operation: 'select' as const,
-          select: PRODUCT_SELECT_LIGHTWEIGHT,
-          filters: { active: true },
-          orderBy: { column: 'name', ascending: true },
-          limit: CATALOG_PAGE_SIZE,
-          offset: i * CATALOG_PAGE_SIZE,
-          ...(i === 0 ? { countMode: 'exact' } : {}),
-        }));
-        const batchResults = await invokeBatchBridge(batchQueries);
-        const products: ReturnType<typeof mapLightweightToProduct>[] = [];
-        let totalEstimate: number | null = null;
-        let lastPageSize = 0;
-        for (const result of batchResults) {
-          if (result.success && result.data?.records) {
-            products.push(...(result.data.records as unknown[]).map(mapLightweightToProduct));
-            lastPageSize = result.data.records.length;
-            if (result.data.count != null && totalEstimate === null) {
-              totalEstimate = result.data.count as number;
+    
+    // Otimização: Delay de 2s para prefetch não competir com o render inicial crítico (LCP)
+    const timer = setTimeout(() => {
+      prefetchedRef.current = true;
+      queryClient.prefetchInfiniteQuery({
+        queryKey: ['promobrind-products-catalog', ''],
+        queryFn: async () => {
+          const batchQueries = Array.from({ length: CATALOG_BATCH_PAGES }, (_, i) => ({
+            table: 'products',
+            operation: 'select' as const,
+            select: PRODUCT_SELECT_LIGHTWEIGHT,
+            filters: { active: true },
+            orderBy: { column: 'name', ascending: true },
+            limit: CATALOG_PAGE_SIZE,
+            offset: i * CATALOG_PAGE_SIZE,
+            ...(i === 0 ? { countMode: 'exact' } : {}),
+          }));
+          const batchResults = await invokeBatchBridge(batchQueries);
+          const products: ReturnType<typeof mapLightweightToProduct>[] = [];
+          let totalEstimate: number | null = null;
+          let lastPageSize = 0;
+          for (const result of batchResults) {
+            if (result.success && result.data?.records) {
+              products.push(...(result.data.records as unknown[]).map(mapLightweightToProduct));
+              lastPageSize = result.data.records.length;
+              if (result.data.count != null && totalEstimate === null) {
+                totalEstimate = result.data.count as number;
+              }
             }
           }
-        }
-        return {
-          products,
-          nextOffset: lastPageSize === CATALOG_PAGE_SIZE ? CATALOG_BATCH_PAGES * CATALOG_PAGE_SIZE : null,
-          totalEstimate,
-        };
-      },
-      initialPageParam: 0,
-      staleTime: 10 * 60 * 1000,
-    });
+          return {
+            products,
+            nextOffset: lastPageSize === CATALOG_PAGE_SIZE ? CATALOG_BATCH_PAGES * CATALOG_PAGE_SIZE : null,
+            totalEstimate,
+          };
+        },
+        initialPageParam: 0,
+        staleTime: 15 * 60 * 1000, // Aumentado para 15 min
+      });
+    }, 2000);
+
+    return () => clearTimeout(timer);
   }, [isAuthenticated, isLoading, queryClient]);
 }

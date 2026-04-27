@@ -116,7 +116,14 @@ export function useCatalogState() {
 
   // Auto-fetch all server pages in background so full catalog is available
   useEffect(() => {
-    if (hasNextPage && !isFetchingNextPage) fetchNextPage();
+    if (hasNextPage && !isFetchingNextPage) {
+      // Otimização: Background fetch com prioridade baixa (requestIdleCallback)
+      if ('requestIdleCallback' in window) {
+        window.requestIdleCallback(() => fetchNextPage());
+      } else {
+        setTimeout(() => fetchNextPage(), 1000);
+      }
+    }
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   useEffect(() => {
