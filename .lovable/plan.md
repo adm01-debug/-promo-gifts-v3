@@ -1,117 +1,134 @@
 ## Objetivo
 
-Operacionalizar criação e cleanup automáticos de dados E2E **por funcionalidade**, evitando que um spec interfira em outro. A política `e2eName` + edge `e2e-cleanup` com `nameFilterPrefix` já existe — falta o **scoping por spec** e a **adoção real** dos helpers nas specs.
+Separar execução E2E em **smoke** (gate rápido) vs **regression** (suíte completa) com scripts npm dedicados, e adicionar um relatório pós-execução que **agrupa falhas por feature** lendo o `playwright-report/results.json`.
 
 ## Diagnóstico
 
-- `e2eName(label)` gera `[E2E] label <ts>-<rand>` — único por chamada, mas **mesmo prefixo `[E2E]` para toda a suite**. Cleanup pós-falha de um spec apaga recursos vivos de outro spec rodando em paralelo no mesmo worker/CI.
-- Helpers `createE2eQuote/Collection/FavoriteList/CartTemplate/CustomKit` existem mas **nenhum spec os utiliza** (`rg createE2e e2e/` só acha as definições).
-- `cleanup-on-failure` purga **tudo do usuário** — efeito colateral em testes paralelos.
-- ESLint não bloqueia `page.fill('[data-testid="quote-client-name"]', "literal")`.
+- Playwright já tem 7 projects: `setup`, `chromium-public`, `chromium-authed`, `chromium-smoke`, `routes-public`, `routes-authed`, `routes-mobile`.
+- **Hoje** `npm run test:e2e` roda **tudo** (incluindo smoke). Não há atalho para "só smoke" nem "regression sem smoke".
+- Reporter JSON já é gerado em CI (`playwright-report/results.json`) — basta consumir.
+- Não existe agrupamento por feature; relatório padrão lista por arquivo.
 
 ## Plano
 
-### 1. Sub-prefixo por spec (`e2e/fixtures/test-user.ts`)
-- Adicionar `e2eScope(specSlug)` → retorna prefixo `[E2E:<slug>]` derivado do `testInfo.titlePath` (file basename + sanitização).
-- `e2eName(label, opts?)` aceita `opts.prefix` opcional; default mantém `getTestPrefix()` para retrocompatibilidade.
+### 1. Scripts npm dedicados (`package.json`)
 
-### 2. Fixture `e2eResources` automática (`e2e/fixtures/test-base.ts`)
-- Nova fixture `scopedPrefix: string` calculada do `testInfo` (ex.: `[E2E:quote-create]`).
-- Fixture `e2eResources` expõe wrappers já bound ao prefixo:
-  - `resources.createQuote({ label, submit })`, `.createCollection(...)`, etc.
-  - Internamente chama `e2eName(label, { prefix: scopedPrefix })`.
-- `cleanupOnFailure` passa a chamar `purgeAll(cfg, { nameFilterPrefix: scopedPrefix })` em vez de purga total — **isolamento entre specs**.
-
-### 3. `cleanup-client.ts` aceita override de prefixo por chamada
-- Assinatura `purgeAll(cfg, { nameFilterPrefix?: string })` sobrescreve `cfg.nameFilterPrefix` para a chamada (pré-existente passa o config global).
-- `purgeOne` idem.
-
-### 4. Helpers sub-escopados (`e2e/helpers/e2e-resources.ts`)
-- Refatorar `createE2eQuote/...` para aceitar `{ prefix?: string }` — defaultando ao prefixo global.
-- `assertE2eName` aceita lista de prefixos válidos (global + scoped) — falha se não bater com nenhum.
-
-### 5. Adoção mínima nos specs que criam recursos
-Migrar para a fixture `e2eResources` apenas onde já há criação de recursos nomeáveis hoje:
-- `e2e/quote-create.spec.ts`
-- `e2e/quote-approval.spec.ts`
-- `e2e/discount-approval.spec.ts`
-- `e2e/routes/app/kit-builder.spec.ts` (se criar custom kit)
-- `e2e/routes/app/kit-library.spec.ts`
-
-Para os demais specs (smoke/navigation/protected) **nada muda** — eles não criam dados.
-
-### 6. Guard ESLint adicional
-Adicionar regra em `eslint.config.js` (severity `warn` inicial):
-```js
+```jsonc
 {
-  selector: "CallExpression[callee.object.name='page'][callee.property.name='fill'] > Literal[value=/^\\[E2E\\]/]",
-  message: "Use resources.createX() ou e2eName() — nunca passe literal '[E2E]' no .fill()."
+  // Smoke gate — 1 spec agregador, sequencial, ~rápido
+  "test:e2e:smoke": "npx playwright test --project=chromium-smoke --reporter=list,json",
+
+  // Regression — tudo EXCETO o smoke (evita duplicação)
+  "test:e2e:regression": "npx playwright test --project=chromium-public --project=chromium-authed --project=routes-public --project=routes-authed",
+
+  // Mobile só
+  "test:e2e:mobile": "npx playwright test --project=routes-mobile",
+
+  // Smoke + relatório de falhas por feature
+  "test:e2e:smoke:report": "npm run test:e2e:smoke; node scripts/e2e-feature-summary.mjs",
+  "test:e2e:regression:report": "npm run test:e2e:regression; node scripts/e2e-feature-summary.mjs",
+
+  // Apenas o relatório (sobre o último results.json)
+  "e2e:summary": "node scripts/e2e-feature-summary.mjs"
 }
 ```
-E reforço para `client_name`/inputs nomeáveis: detectar `.fill(<literal sem prefixo>)` em testids conhecidos via `no-restricted-syntax`.
 
-### 7. Edge `e2e-cleanup` — sem mudanças
-Já aceita `nameFilterPrefix` arbitrário e sanitiza wildcards (`%`, `_`). Sub-prefixos `[E2E:quote-create]` casam no `LIKE '<prefix>%'` existente sem alteração de schema/RLS.
+Uso de `;` em vez de `&&` no `:report` garante que o resumo SEMPRE roda, mesmo com falhas — propaga o exit code do Playwright via `set +e` interno do script.
 
-### 8. Memória atualizada
-- Editar `mem://testing/e2e-named-resources-policy.md`:
-  - Documentar `e2eScope` + fixture `e2eResources` como **caminho preferido**.
-  - Manter `e2eName(label)` como fallback documentado.
-  - Adicionar exemplo: `const { name } = await resources.createQuote({ label: "approval" });`
+### 2. Forçar reporter JSON localmente (`playwright.config.ts`)
+
+Hoje o reporter JSON só é emitido em CI. Para o sumarizador funcionar localmente, sempre emitir JSON em `playwright-report/results.json` (overhead desprezível).
+
+Mudança mínima: adicionar `["json", { outputFile: "playwright-report/results.json" }]` ao reporter local também.
+
+### 3. Sumarizador `scripts/e2e-feature-summary.mjs`
+
+Lê `playwright-report/results.json` (formato Playwright JSON reporter) e produz:
+
+**Mapeamento spec → feature** via convenção de path:
+- `e2e/routes/admin/<feature>.spec.ts` → feature `admin/<feature>`
+- `e2e/routes/app/<feature>.spec.ts` → feature `app/<feature>`
+- `e2e/routes/quotes/<feature>.spec.ts` → feature `quotes/<feature>`
+- `e2e/routes/public/<feature>.spec.ts` → feature `public/<feature>`
+- `e2e/flows/<NN>-<feature>.spec.ts` → feature `flow/<feature>` (regex `^\d+-(.+)\.spec`)
+- `e2e/<feature>.spec.ts` (top-level legados) → feature `legacy/<feature>`
+
+**Saída no console:**
+```
+═══ E2E Feature Summary ═══
+Run: smoke (chromium-smoke) | 2025-04-27 10:51 | 12.3s
+Total: 47 | ✓ 42 | ✗ 4 | ⊘ 1
+
+Failures by feature:
+  ✗ admin/permissions          2 failed   (3 specs)
+    · permissions › admin can list roles                e2e/routes/admin/permissions.spec.ts:23
+    · permissions › role assignment validates inputs    e2e/routes/admin/permissions.spec.ts:55
+  ✗ app/kit-builder            1 failed   (1 specs)
+    · kit-builder › opens wizard
+  ✗ flow/cart-checkout         1 failed   (4 specs)
+    · cart-checkout › guest can review totals
+
+Skipped (1):
+  · routes-mobile/admin/system-status (@mobile gated)
+
+Top slowest features (top 5):
+  routes-authed/admin/telemetry    18.4s
+  ...
+
+Exit: 1 (failures detected)
+```
+
+**Saída em arquivo:** também grava `playwright-report/feature-summary.md` (markdown) e `feature-summary.json` (estrutura crua) — útil para upload como artifact no CI.
+
+**Exit code:** propaga 1 se houver pelo menos 1 falha, 0 caso contrário.
+
+### 4. CI (opcional — não escopado agora)
+
+Documentar no header do script: para usar no GitHub Actions, basta `npm run test:e2e:smoke:report` no job `smoke-gate` e `npm run test:e2e:regression:report` no job `regression`. O markdown já está pronto para `actions/github-script` postar como comentário no PR.
 
 ## Detalhes técnicos
 
-```ts
-// fixtures/test-user.ts
-export function e2eScope(specSlug: string): string {
-  const safe = specSlug.replace(/[^a-zA-Z0-9-]+/g, "-").slice(0, 32);
-  return `[E2E:${safe}]`;
-}
-export function e2eName(label: string, opts: { prefix?: string } = {}): string {
-  const p = opts.prefix ?? getTestPrefix();
-  return `${p} ${label} ${Date.now()}-${Math.random().toString(36).slice(2,6)}`;
-}
-```
+```js
+// scripts/e2e-feature-summary.mjs (esqueleto)
+import fs from "node:fs";
+import path from "node:path";
 
-```ts
-// fixtures/test-base.ts (trecho)
-e2eResources: async ({ page }, use, testInfo) => {
-  const slug = path.basename(testInfo.file).replace(/\.spec\.tsx?$/, "");
-  const prefix = e2eScope(slug);
-  await use({
-    prefix,
-    createQuote: (o={}) => createE2eQuote(page, { ...o, prefix }),
-    createCollection: (o={}) => createE2eCollection(page, { ...o, prefix }),
-    // ...
-  });
-},
-cleanupOnFailure: [async ({ e2eResources }, use, testInfo) => {
-  await use();
-  if (testInfo.status === testInfo.expectedStatus) return;
-  const cfg = loadCleanupConfig();
-  if (!cfg) return;
-  await purgeAll(cfg, { nameFilterPrefix: e2eResources.prefix, reason: `failure:${testInfo.title}` });
-}, { auto: true }],
+const REPORT = process.env.E2E_RESULTS_JSON || "playwright-report/results.json";
+if (!fs.existsSync(REPORT)) { console.error(`[summary] não achei ${REPORT}`); process.exit(2); }
+const data = JSON.parse(fs.readFileSync(REPORT, "utf8"));
+
+function featureKey(file) {
+  const rel = file.replace(/^.*\/e2e\//, "e2e/");
+  const m =
+    rel.match(/^e2e\/routes\/(admin|app|quotes|public)\/(.+)\.spec\.ts$/) ||
+    rel.match(/^e2e\/flows\/\d+-(.+)\.spec\.ts$/) ||
+    rel.match(/^e2e\/(.+)\.spec\.ts$/);
+  if (!m) return "uncategorized";
+  if (rel.startsWith("e2e/routes/")) return `${m[1]}/${m[2]}`;
+  if (rel.startsWith("e2e/flows/")) return `flow/${m[1]}`;
+  return `legacy/${m[1]}`;
+}
+
+// Walk suites recursively, collect { feature, spec, status, duration, location }
+// Group, sort, render. Render markdown to playwright-report/feature-summary.md.
+// process.exit(failures > 0 ? 1 : 0);
 ```
 
 ## Arquivos afetados
 
-- `e2e/fixtures/test-user.ts` — adiciona `e2eScope`, estende `e2eName`.
-- `e2e/fixtures/test-base.ts` — fixture `e2eResources` + cleanup escopado.
-- `e2e/helpers/cleanup-client.ts` — overrides em `purgeOne/purgeAll`.
-- `e2e/helpers/e2e-resources.ts` — aceita `prefix` opcional.
-- 4–5 specs migrados para `resources.createX(...)`.
-- `eslint.config.js` — regra anti-literal-com-prefixo.
-- `mem://testing/e2e-named-resources-policy.md` — atualização.
+- `package.json` — 6 scripts novos.
+- `playwright.config.ts` — sempre emite JSON reporter (~3 linhas).
+- `scripts/e2e-feature-summary.mjs` — novo (~150 linhas).
+- `mem://testing/e2e-coverage-matrix.md` — ref ao novo fluxo smoke vs regression.
 
 ## Validação
 
-- `npx eslint e2e/` sem erros novos nos arquivos refatorados.
-- `npx tsc --noEmit` limpo.
-- Smoke local de 1 spec migrado: criação → asserção visível → falha forçada → confirmar que cleanup só apagou recursos com prefixo `[E2E:<slug>]` (via auditoria `e2e_cleanup_audit`).
+- `npm run e2e:summary` contra um `results.json` mockado/existente → renderiza markdown + console sem erro.
+- Smoke local: `E2E_BASE_URL=https://preview... npm run test:e2e:smoke:report` (skip se sem credenciais).
+- ESLint (`scripts/**/*.mjs`) limpo.
 
 ## Fora de escopo
 
-- Migrar todos os 100+ specs para a fixture (apenas os que **criam** recursos hoje).
-- Mudanças no schema da edge function (já suporta `nameFilterPrefix`).
-- Promover ESLint de `warn` para `error` (segue separado da política existente).
+- Mudanças nos próprios specs.
+- Workflow GitHub Actions (já mencionado, não alterado nesta task).
+- Notificação Slack/Discord do sumário.

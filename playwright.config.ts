@@ -52,6 +52,8 @@ export default defineConfig({
   timeout: 45_000,
   expect: { timeout: 15_000 },
   outputDir: ARTIFACTS_DIR,
+  // JSON reporter sempre emitido para alimentar `scripts/e2e-feature-summary.mjs`
+  // (overhead desprezível). HTML aberto on-demand via `npm run test:e2e:report`.
   reporter: process.env.CI
     ? [
         ["list"],
@@ -59,7 +61,11 @@ export default defineConfig({
         ["json", { outputFile: "playwright-report/results.json" }],
         ["junit", { outputFile: "playwright-report/results.xml" }],
       ]
-    : [["list"], ["html", { outputFolder: "playwright-report", open: "never" }]],
+    : [
+        ["list"],
+        ["html", { outputFolder: "playwright-report", open: "never" }],
+        ["json", { outputFile: "playwright-report/results.json" }],
+      ],
   use: {
     baseURL: process.env.E2E_BASE_URL ?? "http://localhost:5173",
     headless: HEADLESS,

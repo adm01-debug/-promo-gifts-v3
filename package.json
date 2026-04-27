@@ -31,7 +31,13 @@
     "check:aschild-nesting": "node scripts/check-aschild-nesting.mjs",
     "check:route-ref-usage": "node scripts/check-route-ref-usage.mjs",
     "test:strict-ref": "STRICT_REF_WARNINGS=1 vitest run && node scripts/consolidate-console-snapshot.mjs",
-    "smoke": "node scripts/smoke-tests.mjs"
+    "smoke": "node scripts/smoke-tests.mjs",
+    "test:e2e:smoke": "npx playwright test --project=chromium-smoke",
+    "test:e2e:regression": "npx playwright test --project=chromium-public --project=chromium-authed --project=routes-public --project=routes-authed",
+    "test:e2e:mobile": "npx playwright test --project=routes-mobile",
+    "test:e2e:smoke:report": "npm run test:e2e:smoke; node scripts/e2e-feature-summary.mjs",
+    "test:e2e:regression:report": "npm run test:e2e:regression; node scripts/e2e-feature-summary.mjs",
+    "e2e:summary": "node scripts/e2e-feature-summary.mjs"
   },
   "lint-staged": {
     "src/**/*.{ts,tsx}": [
