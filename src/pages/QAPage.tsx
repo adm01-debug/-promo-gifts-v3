@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,9 +12,39 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useDevGate } from "@/hooks/useDevGate";
+import { devInfraGate } from "@/lib/system/dev-gate/DevInfraGate";
 
 export default function QAPage() {
   const [viewportWidth, setViewportWidth] = useState("100%");
+  const [burstCount, setBurstCount] = useState(0);
+  const [renderCount, setRenderCount] = useState(0);
+  const lastRenderCountRef = useRef(0);
+
+  // Observador reativo via Gate
+  const { isAllowed } = useDevGate();
+
+  // Contador de renders reais para validar debounce
+  useEffect(() => {
+    lastRenderCountRef.current += 1;
+    setRenderCount(lastRenderCountRef.current);
+  });
+
+  const runBurstTest = () => {
+    const burstSize = 10;
+    setBurstCount(burstSize);
+    
+    // Simula múltiplas escritas rápidas no localStorage
+    for (let i = 0; i < burstSize; i++) {
+      const val = i % 2 === 0 ? 'true' : 'false';
+      localStorage.setItem('show_dev_infra_messages', val);
+      // Dispara manualmente o evento de storage já que o browser não dispara para a própria aba
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: 'show_dev_infra_messages',
+        newValue: val
+      }));
+    }
+  };
   
   const widths = [
     { label: "Mobile (320px)", value: "320px" },
@@ -156,6 +186,51 @@ export default function QAPage() {
                 Conteúdo da Tab 1 - Testando padding interno e alinhamento.
               </TabsContent>
             </Tabs>
+          </section>
+
+          {/* Integration Test Section */}
+          <section className="space-y-4">
+            <h2 className="text-lg font-semibold border-b pb-2 flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-blue-500" />
+              Integration Test: Storage Debounce & Sync
+            </h2>
+            <Card className="p-6 bg-blue-50/50 dark:bg-blue-900/10 border-blue-200 dark:border-blue-800">
+              <div className="grid gap-6 md:grid-cols-2">
+                <div className="space-y-4">
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Status do Gate</h3>
+                  <div className="flex items-center gap-3">
+                    <Badge variant={isAllowed ? "default" : "destructive"} className="text-lg px-4 py-1">
+                      {isAllowed ? "ATIVO" : "INATIVO"}
+                    </Badge>
+                    <span className="text-sm text-muted-foreground">
+                      (Baseado em localStorage: <code>show_dev_infra_messages</code>)
+                    </span>
+                  </div>
+                  <div className="text-sm space-y-1">
+                    <p>🔥 Renders do componente: <span className="font-mono font-bold text-blue-600">{renderCount}</span></p>
+                    <p className="text-xs text-muted-foreground">Deve aumentar apenas 1 vez após um burst de alterações.</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Ações de Teste</h3>
+                  <div className="flex flex-wrap gap-2">
+                    <Button onClick={runBurstTest} variant="secondary">
+                      Disparar Burst (10x writes)
+                    </Button>
+                    <Button onClick={() => {
+                      localStorage.removeItem('show_dev_infra_messages');
+                      devInfraGate.invalidateCache();
+                    }} variant="outline">
+                      Reset Gate
+                    </Button>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground italic">
+                    O burst simula 10 alterações rápidas. Graças ao debounce de 50ms, o Gate deve processar apenas a última e disparar um único update de UI.
+                  </p>
+                </div>
+              </div>
+            </Card>
           </section>
         </div>
       </div>

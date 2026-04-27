@@ -9,6 +9,7 @@ export class DevInfraGate {
   private providers: GateFlagProvider[];
   private cache: Map<string, boolean> = new Map();
   private listeners: Set<() => void> = new Set();
+  private debounceTimer: number | null = null;
 
   constructor(providers?: GateFlagProvider[]) {
     this.providers = providers ?? [
@@ -59,10 +60,19 @@ export class DevInfraGate {
 
   /**
    * Invalida o cache (ex: quando o dev altera o localStorage).
+   * Implementa debounce para evitar re-render excessivo em mudanças rápidas.
    */
   invalidateCache(): void {
     this.cache.clear();
-    this.listeners.forEach(l => l());
+    
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer);
+    }
+
+    this.debounceTimer = window.setTimeout(() => {
+      this.debounceTimer = null;
+      this.listeners.forEach(l => l());
+    }, 50); // 50ms de estabilização
   }
 }
 
