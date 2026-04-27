@@ -350,6 +350,11 @@ fs.writeFileSync(
       projects,
       totals,
       features: [...byFeature.values()].sort((a, b) => a.feature.localeCompare(b.feature)),
+      e2eNames: failedByE2eName.map((r) => ({
+        e2eName: r.e2eName,
+        failures: r.failures.length,
+        features: [...r.features],
+      })),
     },
     null,
     2,
