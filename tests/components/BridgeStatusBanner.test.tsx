@@ -1,9 +1,8 @@
 /**
- * BridgeStatusBanner — gating dev-only
+ * BridgeStatusBanner — gating dev-only vs crítico
  *
- * Garante que toasts ("Reconectando ao catálogo externo…") e o banner sticky
- * de indisponibilidade do bridge só são acionados quando o gate SSOT autoriza.
- * Para usuários comuns, NENHUM listener é registrado e o componente renderiza vazio.
+ * Garante que toasts de infra ("Reconectando ao catálogo externo…") só aparecem para dev,
+ * mas avisos críticos de indisponibilidade total aparecem para TODOS, com texto amigável.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, act } from '@testing-library/react';
@@ -43,9 +42,18 @@ vi.mock('@/lib/external-db/bridge-status-events', () => ({
   onBridgeStatus: (cb: (e: BridgeStatusEvent) => void) => onBridgeStatusMock(cb),
 }));
 
+// Mock do gate para controlar o ambiente
 const mockShouldShow = vi.fn();
 vi.mock('@/lib/system/dev-infra-messages', () => ({
   shouldShowDevInfraMessages: (isDev: boolean) => mockShouldShow(isDev),
+}));
+
+// Mock do hook useDevGate (já que o componente o usa agora)
+vi.mock('@/hooks/useDevGate', () => ({
+  useDevGate: () => ({
+    isAllowed: mockShouldShow(mockUseAuth().isDev),
+    isDev: mockUseAuth().isDev
+  })
 }));
 
 function emit(event: BridgeStatusEvent) {
@@ -57,6 +65,7 @@ function emit(event: BridgeStatusEvent) {
 beforeEach(() => {
   mockUseAuth.mockReset();
   mockShouldShow.mockReset();
+  // Por padrão: segue o isDev
   mockShouldShow.mockImplementation((isDev: boolean) => isDev);
   onBridgeStatusMock.mockClear();
   listener = null;
@@ -66,55 +75,49 @@ beforeEach(() => {
   toastApi.dismiss.mockClear();
 });
 
-describe('BridgeStatusBanner — visibilidade por papel', () => {
-  it('usuário NÃO-dev: não registra listener, não dispara toasts e renderiza vazio', () => {
+describe('BridgeStatusBanner — visibilidade por papel e ambiente', () => {
+  it('usuário NÃO-dev: registra listener, oculta infra ("degraded") mas exibe crítico ("unavailable")', () => {
     mockUseAuth.mockReturnValue({ isDev: false });
     const { container } = render(<BridgeStatusBanner />);
 
-    expect(container).toBeEmptyDOMElement();
-    expect(onBridgeStatusMock).not.toHaveBeenCalled();
+    expect(onBridgeStatusMock).toHaveBeenCalledTimes(1);
+    
+    // Degraded (infra) -> Ignora
+    emit({ type: 'degraded', attempt: 1, maxAttempts: 3 } as any);
     expect(toastApi.loading).not.toHaveBeenCalled();
-    expect(toastApi.error).not.toHaveBeenCalled();
-  });
 
-  it('usuário dev: registra listener e dispara toast em "degraded"', () => {
-    mockUseAuth.mockReturnValue({ isDev: true });
-    render(<BridgeStatusBanner />);
-
-    expect(onBridgeStatusMock).toHaveBeenCalledTimes(1);
-    emit({ type: 'degraded', attempt: 1, maxAttempts: 3 } as BridgeStatusEvent);
-    expect(toastApi.loading).toHaveBeenCalledWith(
-      'Reconectando ao catálogo externo…',
-      expect.objectContaining({ id: 'bridge-degraded' }),
-    );
-  });
-
-  it('usuário dev: evento "unavailable" exibe banner sticky com copy técnica', () => {
-    mockUseAuth.mockReturnValue({ isDev: true });
-    render(<BridgeStatusBanner />);
-
-    emit({ type: 'unavailable', reason: 'timeout' } as BridgeStatusEvent);
+    // Unavailable (crítico) -> Exibe com texto amigável
+    emit({ type: 'unavailable', reason: 'timeout' } as any);
     expect(screen.getByRole('alert')).toBeInTheDocument();
-    expect(screen.getByText(/Catálogo externo indisponível/i)).toBeInTheDocument();
-    expect(toastApi.error).toHaveBeenCalled();
+    expect(screen.getByText(/Catálogo temporariamente indisponível/i)).toBeInTheDocument();
+    expect(screen.getByText(/instabilidade momentânea/i)).toBeInTheDocument();
   });
 
-  it('gate SSOT desligado (produção com VITE_SHOW_DEV_INFRA_MESSAGES=false) bloqueia mesmo para dev', () => {
+  it('usuário dev: exibe avisos de infra e avisos críticos com cópia técnica', () => {
     mockUseAuth.mockReturnValue({ isDev: true });
-    mockShouldShow.mockReturnValue(false);
-    const { container } = render(<BridgeStatusBanner />);
-
-    expect(container).toBeEmptyDOMElement();
-    expect(onBridgeStatusMock).not.toHaveBeenCalled();
-  });
-
-  it('gate SSOT habilitado por override (localStorage) permite renderizar para não-dev', () => {
-    mockUseAuth.mockReturnValue({ isDev: false });
-    mockShouldShow.mockReturnValue(true);
     render(<BridgeStatusBanner />);
 
-    expect(onBridgeStatusMock).toHaveBeenCalledTimes(1);
-    emit({ type: 'unavailable', reason: 'manual override' } as BridgeStatusEvent);
+    // Degraded (infra) -> Exibe
+    emit({ type: 'degraded', attempt: 1, maxAttempts: 3 } as any);
+    expect(toastApi.loading).toHaveBeenCalled();
+
+    // Unavailable (crítico) -> Exibe com texto técnico
+    emit({ type: 'unavailable', reason: 'Cold start failed' } as any);
     expect(screen.getByText(/Catálogo externo indisponível/i)).toBeInTheDocument();
+    expect(screen.getByText(/Tentativas automáticas esgotadas/i)).toBeInTheDocument();
+  });
+
+  it('Modo PROD (gate fechado) bloqueia avisos de infra mesmo para Dev, mas mantém críticos', () => {
+    mockUseAuth.mockReturnValue({ isDev: true });
+    mockShouldShow.mockReturnValue(false); // Override de PROD
+    render(<BridgeStatusBanner />);
+
+    // Degraded -> Bloqueado
+    emit({ type: 'degraded', attempt: 1, maxAttempts: 3 } as any);
+    expect(toastApi.loading).not.toHaveBeenCalled();
+
+    // Unavailable -> Exibe (texto amigável pois isAllowed=false)
+    emit({ type: 'unavailable', reason: 'error' } as any);
+    expect(screen.getByText(/Catálogo temporariamente indisponível/i)).toBeInTheDocument();
   });
 });
