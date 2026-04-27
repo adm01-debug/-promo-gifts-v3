@@ -12,21 +12,24 @@ vi.mock('@/hooks/useDevGate', () => ({
 // Rastreamento de eventos de ciclo de vida
 let lifecycleEvents: string[] = [];
 
+let renderCount = 0;
 vi.mock('@/components/dev/BridgeMetricsOverlay', () => ({
-  default: () => {
+  default: React.memo(() => {
     useEffect(() => {
       lifecycleEvents.push('mount');
+      renderCount++;
       return () => {
         lifecycleEvents.push('unmount');
       };
     }, []);
     return <div data-testid="bridge-metrics-overlay-real">Overlay Active</div>;
-  },
+  }),
 }));
 
 describe('DevInfraGate Stability — Lifecycle & Flicker Detection', () => {
   beforeEach(() => {
     lifecycleEvents = [];
+    renderCount = 0;
     vi.clearAllMocks();
   });
 
@@ -54,13 +57,15 @@ describe('DevInfraGate Stability — Lifecycle & Flicker Detection', () => {
     // Deve montar exatamente uma vez
     expect(await screen.findByTestId('bridge-metrics-overlay-real')).toBeInTheDocument();
     expect(lifecycleEvents).toEqual(['mount']);
+    expect(renderCount).toBe(1);
 
     // 3. Estabilidade: Re-render com mesmos valores de permissão
-    // Não deve haver nova montagem nem desmontagem (anti-flicker)
+    // Simula um update no contexto pai que não altera isAllowed
     await act(async () => {
       rerender(<DevOnlyBridgeOverlay />);
     });
     expect(lifecycleEvents).toEqual(['mount']);
+    expect(renderCount).toBe(1); // Não deve ter re-renderizado o componente memoizado
 
     // 4. Saída: Perde permissão
     vi.mocked(useDevGate).mockReturnValue({
