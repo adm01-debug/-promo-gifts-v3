@@ -110,6 +110,8 @@ export class DevInfraGate {
     if (cachedResult !== undefined) return cachedResult;
 
     const finalResult = this.evaluateProviders();
+    // Cache limitado para evitar crescimento infinito do Map se roles variarem muito (leak prevention)
+    if (this.cache.size > 100) this.cache.clear();
     this.cache.set(cacheKey, finalResult);
     
     return finalResult;
