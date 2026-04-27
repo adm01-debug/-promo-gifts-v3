@@ -51,14 +51,18 @@ export function useMagicUpGeneration(deps: GenerationDeps) {
 
   const analyzeQuality = useCallback(async (imageUrl: string, variantBrief: MagicUpBrief, variantControls: MagicUpCreativeControls): Promise<MagicUpQualityDiagnosis> => {
     const fallback = buildQualityDiagnosis(deps.qualityScore);
+    const log = createClientLogger('magicUp.score');
+    log.info('score_start', { channel: variantBrief.channel });
     try {
       const { data, error } = await supabase.functions.invoke<MagicUpQualityDiagnosis>("magic-up-score", {
         body: { imageUrl, productName: deps.selectedProduct?.name, clientName: deps.selectedClient?.name || deps.activeCampaign?.clientName, campaignBrief: variantBrief, brandKit: deps.brandKit, creativeControls: variantControls, promptText: deps.fullPromptPreview || deps.effectivePrompt, channel: variantBrief.channel, aspectRatio: variantControls.aspectRatio },
+        headers: log.headers(),
       });
       if (error || !data) throw error || new Error("Score indisponível");
+      log.info('score_ok', { total: data.total, source: data.source });
       return { ...data, source: data.source || "ai" };
     } catch (error) {
-      console.warn("Magic Up score fallback:", error);
+      log.warn('score_fallback', { err: error });
       return fallback;
     }
   }, [deps]);
