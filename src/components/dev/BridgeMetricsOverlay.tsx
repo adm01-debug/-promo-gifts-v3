@@ -10,6 +10,8 @@
  * • Zero custo quando colapsado: usa o mesmo `subscribeBridgeCalls` já throttled.
  */
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { shouldShowDevInfraMessages } from '@/lib/system/dev-infra-messages';
 import {
   getBridgeSamples,
   subscribeBridgeCalls,
@@ -23,6 +25,7 @@ import {
   describeLongTask,
   type LongTaskEvent,
 } from '@/lib/telemetry/longTaskWatchdog';
+
 
 const STORAGE_KEY = 'lov:bridge-metrics-overlay:open';
 const MAX_VISIBLE = 60;
