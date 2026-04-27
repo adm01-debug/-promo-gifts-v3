@@ -1,96 +1,70 @@
 {
-  "generatedAt": "2026-04-27T15:24:25.700Z",
+  "generatedAt": "2026-04-27T15:25:54.726Z",
   "denoVersion": "deno 2.6.10 (stable, release, x86_64-unknown-linux-gnu)",
   "mode": "all",
   "totals": {
-    "checked": 83,
-    "ok": 77,
-    "failed": 6,
+    "checked": 6,
+    "ok": 2,
+    "failed": 4,
     "skipped": 0
   },
   "firstFailure": {
     "fn": "collections-watcher",
     "exitCode": 1,
-    "elapsedMs": 1713,
+    "elapsedMs": 1496,
     "firstError": {
       "code": "TS2345",
-      "message": "Argument of type 'SupabaseClient<any, \"public\", \"public\", any, any>' is not assignable to parameter of type 'SupabaseClient<unknown, { PostgrestVersion: string; }, never, never, { PostgrestVersion: string; }>'.",
+      "message": "Argument of type 'SupabaseClient<any, \"public\", \"public\", any, any>' is not assignable to parameter of type 'CompatibleSupabaseClient<any, \"public\">'.",
       "file": "supabase/functions/collections-watcher/index.ts",
-      "line": 96,
+      "line": 97,
       "column": 33,
-      "snippet": "TS2345 [ERROR]: Argument of type 'SupabaseClient<any, \"public\", \"public\", any, any>' is not assignable to parameter of type 'SupabaseClient<unknown, { PostgrestVersion: string; }, never, never, { PostgrestVersion: string; }>'.\n  Type '\"public\"' is not assignable to type 'never'.\n      if (await alreadyNotified(service, userId, incidentKey)) continue;\n                                ~~~~~~~\n    at file:///dev-server/supabase/functions/collections-watcher/index.ts:96:33"
+      "snippet": "TS2345 [ERROR]: Argument of type 'SupabaseClient<any, \"public\", \"public\", any, any>' is not assignable to parameter of type 'CompatibleSupabaseClient<any, \"public\">'.\n  Property 'supabaseUrl' is protected but type 'SupabaseClient<Database, SchemaNameOrClientOptions, SchemaName, Schema, ClientOptions>' is not a class derived from 'SupabaseClient<Database, SchemaName, Schema>'.\n      if (await alreadyNotified(service, userId, incidentKey)) continue;\n                                ~~~~~~~\n    at file:///dev-server/supabase/functions/collections-watcher/index.ts:97:33"
     }
   },
   "failures": [
     {
       "fn": "collections-watcher",
       "exitCode": 1,
-      "elapsedMs": 1713,
+      "elapsedMs": 1496,
       "firstError": {
         "code": "TS2345",
-        "message": "Argument of type 'SupabaseClient<any, \"public\", \"public\", any, any>' is not assignable to parameter of type 'SupabaseClient<unknown, { PostgrestVersion: string; }, never, never, { PostgrestVersion: string; }>'.",
+        "message": "Argument of type 'SupabaseClient<any, \"public\", \"public\", any, any>' is not assignable to parameter of type 'CompatibleSupabaseClient<any, \"public\">'.",
         "file": "supabase/functions/collections-watcher/index.ts",
-        "line": 96,
+        "line": 97,
         "column": 33,
-        "snippet": "TS2345 [ERROR]: Argument of type 'SupabaseClient<any, \"public\", \"public\", any, any>' is not assignable to parameter of type 'SupabaseClient<unknown, { PostgrestVersion: string; }, never, never, { PostgrestVersion: string; }>'.\n  Type '\"public\"' is not assignable to type 'never'.\n      if (await alreadyNotified(service, userId, incidentKey)) continue;\n                                ~~~~~~~\n    at file:///dev-server/supabase/functions/collections-watcher/index.ts:96:33"
+        "snippet": "TS2345 [ERROR]: Argument of type 'SupabaseClient<any, \"public\", \"public\", any, any>' is not assignable to parameter of type 'CompatibleSupabaseClient<any, \"public\">'.\n  Property 'supabaseUrl' is protected but type 'SupabaseClient<Database, SchemaNameOrClientOptions, SchemaName, Schema, ClientOptions>' is not a class derived from 'SupabaseClient<Database, SchemaName, Schema>'.\n      if (await alreadyNotified(service, userId, incidentKey)) continue;\n                                ~~~~~~~\n    at file:///dev-server/supabase/functions/collections-watcher/index.ts:97:33"
       }
     },
     {
       "fn": "connections-health-check",
       "exitCode": 1,
-      "elapsedMs": 2045,
+      "elapsedMs": 1476,
       "firstError": {
         "code": "TS2345",
-        "message": "Argument of type 'SupabaseClient<any, \"public\", any>' is not assignable to parameter of type 'SupabaseClient<unknown, never, GenericSchema>'.",
+        "message": "Argument of type 'CompatibleSupabaseClient<any, \"public\">' is not assignable to parameter of type 'SupabaseClient<unknown, never, GenericSchema>'.",
         "file": "supabase/functions/connections-health-check/index.ts",
-        "line": 183,
-        "column": 26,
-        "snippet": "TS2345 [ERROR]: Argument of type 'SupabaseClient<any, \"public\", any>' is not assignable to parameter of type 'SupabaseClient<unknown, never, GenericSchema>'.\n  Type '\"public\"' is not assignable to type 'never'.\n      await notifyAdmins(service, adminIds, inc);\n                         ~~~~~~~\n    at file:///dev-server/supabase/functions/connections-health-check/index.ts:183:26"
+        "line": 45,
+        "column": 31,
+        "snippet": "TS2345 [ERROR]: Argument of type 'CompatibleSupabaseClient<any, \"public\">' is not assignable to parameter of type 'SupabaseClient<unknown, never, GenericSchema>'.\n  Type '\"public\"' is not assignable to type 'never'.\n    if (await alreadyNotified(service, userId, incident.key)) continue;\n                              ~~~~~~~\n    at file:///dev-server/supabase/functions/connections-health-check/index.ts:45:31"
       }
     },
     {
       "fn": "favorites-watcher",
       "exitCode": 1,
-      "elapsedMs": 1863,
+      "elapsedMs": 1731,
       "firstError": {
         "code": "TS2345",
-        "message": "Argument of type 'SupabaseClient<any, \"public\", \"public\", any, any>' is not assignable to parameter of type 'SupabaseClient<unknown, { PostgrestVersion: string; }, never, never, { PostgrestVersion: string; }>'.",
+        "message": "Argument of type 'SupabaseClient<any, \"public\", \"public\", any, any>' is not assignable to parameter of type 'CompatibleSupabaseClient<any, \"public\">'.",
         "file": "supabase/functions/favorites-watcher/index.ts",
         "line": 90,
         "column": 33,
-        "snippet": "TS2345 [ERROR]: Argument of type 'SupabaseClient<any, \"public\", \"public\", any, any>' is not assignable to parameter of type 'SupabaseClient<unknown, { PostgrestVersion: string; }, never, never, { PostgrestVersion: string; }>'.\n  Type '\"public\"' is not assignable to type 'never'.\n      if (await alreadyNotified(service, userId, incidentKey)) continue;\n                                ~~~~~~~\n    at file:///dev-server/supabase/functions/favorites-watcher/index.ts:90:33"
-      }
-    },
-    {
-      "fn": "github-credentials-test",
-      "exitCode": 1,
-      "elapsedMs": 1808,
-      "firstError": {
-        "code": "TS2345",
-        "message": "Argument of type 'SupabaseClient<any, \"public\", any>' is not assignable to parameter of type 'SupabaseClient<unknown, never, GenericSchema>'.",
-        "file": "supabase/functions/github-credentials-test/index.ts",
-        "line": 78,
-        "column": 39,
-        "snippet": "TS2345 [ERROR]: Argument of type 'SupabaseClient<any, \"public\", any>' is not assignable to parameter of type 'SupabaseClient<unknown, never, GenericSchema>'.\n  Type '\"public\"' is not assignable to type 'never'.\n    const tokenSec = await loadSecret(service, \"GITHUB_TOKEN\");\n                                      ~~~~~~~\n    at file:///dev-server/supabase/functions/github-credentials-test/index.ts:78:39"
-      }
-    },
-    {
-      "fn": "market-intelligence-insights",
-      "exitCode": 1,
-      "elapsedMs": 1876,
-      "firstError": {
-        "code": "TS2345",
-        "message": "Argument of type 'SupabaseClient<any, \"public\", any>' is not assignable to parameter of type 'SupabaseClient<unknown, never, GenericSchema>'.",
-        "file": "supabase/functions/market-intelligence-insights/index.ts",
-        "line": 262,
-        "column": 41,
-        "snippet": "TS2345 [ERROR]: Argument of type 'SupabaseClient<any, \"public\", any>' is not assignable to parameter of type 'SupabaseClient<unknown, never, GenericSchema>'.\n  Type '\"public\"' is not assignable to type 'never'.\n    const summary = await aggregateData(auth.localServiceClient, body);\n                                        ~~~~~~~~~~~~~~~~~~~~~~~\n    at file:///dev-server/supabase/functions/market-intelligence-insights/index.ts:262:41"
+        "snippet": "TS2345 [ERROR]: Argument of type 'SupabaseClient<any, \"public\", \"public\", any, any>' is not assignable to parameter of type 'CompatibleSupabaseClient<any, \"public\">'.\n  Property 'supabaseUrl' is protected but type 'SupabaseClient<Database, SchemaNameOrClientOptions, SchemaName, Schema, ClientOptions>' is not a class derived from 'SupabaseClient<Database, SchemaName, Schema>'.\n      if (await alreadyNotified(service, userId, incidentKey)) continue;\n                                ~~~~~~~\n    at file:///dev-server/supabase/functions/favorites-watcher/index.ts:90:33"
       }
     },
     {
       "fn": "mcp-server",
       "exitCode": 1,
-      "elapsedMs": 1698,
+      "elapsedMs": 1385,
       "firstError": {
         "code": "TS2307",
         "message": "Import \"hono\" not a dependency",
@@ -102,82 +76,7 @@
     }
   ],
   "ok": [
-    "ai-recommendations",
-    "analyze-logo-colors",
-    "bi-copilot",
-    "bi-share-dossier",
-    "bitrix-sync",
-    "block-ip-temporarily",
-    "categories-api",
-    "cleanup-notifications",
-    "cleanup-novelties",
-    "cnpj-lookup",
-    "collections-public-react",
-    "commemorative-dates",
-    "comparison-ai-advisor",
-    "comparison-price-watcher",
-    "comparisons-public-react",
-    "connection-tester",
-    "connections-auto-test",
-    "connections-hub-audit",
-    "crm-db-bridge",
-    "detect-new-device",
-    "dropbox-list",
-    "e2e-cleanup",
-    "elevenlabs-scribe-token",
-    "elevenlabs-tts",
-    "expert-chat",
-    "external-db-bridge",
-    "external-db-inspect",
-    "favorites-public-react",
-    "force-global-logout",
-    "full-op-diagnostics",
-    "generate-ad-image",
-    "generate-ad-prompt",
-    "generate-mockup",
-    "generate-mockup-nanobanana",
-    "generate-product-seo",
-    "get-visitor-info",
-    "github-fix-config",
-    "health-check",
-    "image-proxy",
-    "kit-ai-builder",
-    "kit-identity-suggest",
-    "kit-public-view",
-    "log-login-attempt",
-    "magic-up-score",
-    "manage-users",
-    "materials-api",
-    "mcp-keys-issue",
-    "mcp-keys-revoke",
-    "mcp-keys-rotate",
-    "mcp-keys-update",
-    "ownership-audit",
-    "ownership-repair",
-    "process-queue",
-    "process-scheduled-reports",
-    "product-webhook",
-    "quote-followup-reminders",
-    "quote-public-view",
-    "quote-sync",
-    "rate-limit-check",
-    "rls-audit",
-    "rls-integration-tests",
-    "rls-matrix-export",
-    "secrets-manager",
-    "semantic-search",
-    "send-digest",
-    "send-notification",
-    "send-scheduled-reports",
-    "send-transactional-email",
-    "step-up-verify",
-    "sync-quote-bitrix",
-    "trends-insights",
-    "validate-access",
-    "verify-email",
-    "visual-search",
-    "voice-agent",
-    "webhook-dispatcher",
-    "webhook-inbound"
+    "github-credentials-test",
+    "market-intelligence-insights"
   ]
 }
