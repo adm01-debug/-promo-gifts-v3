@@ -31,7 +31,9 @@ describe('DevInfraGate Stability — Loading Transition & Anti-Flicker', () => {
 
     const { rerender } = render(<DevOnlyBridgeOverlay />);
     
-    // Garantimos que não renderizou nada
+    // Garantimos que não renderizou nada no HTML (nem wrappers, nem placeholders)
+    expect(document.body.innerHTML).not.toContain('bridge-metrics-overlay');
+    expect(document.body.innerHTML).not.toContain('<!--'); // Sem Suspense tags
     expect(screen.queryByTestId('bridge-metrics-overlay-real')).not.toBeInTheDocument();
     expect(renderCount).toBe(0);
 
