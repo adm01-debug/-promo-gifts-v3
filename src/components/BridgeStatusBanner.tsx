@@ -116,7 +116,10 @@ export const BridgeStatusBanner = memo(function BridgeStatusBanner() {
             size="icon"
             variant="ghost"
             className="h-7 w-7 text-destructive-foreground hover:bg-destructive-foreground/10"
-            onClick={() => setUnavailable(false)}
+            onClick={() => {
+              setUnavailable(false);
+              toast.dismiss(TOAST_ID_UNAVAILABLE);
+            }}
             aria-label="Fechar aviso"
             title={reason}
           >
