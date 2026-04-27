@@ -1,81 +1,57 @@
 /**
- * dev-infra-messages — SSOT do gate que decide se mensagens técnicas de
- * infraestrutura (estado do backend, reconexão de bridge, banners de
- * indisponibilidade etc.) podem aparecer no frontend.
+ * SSOT — Dev Infra Messages Gate
  *
- * Camadas (avaliadas em ordem; a primeira a decidir vence):
- *  1. **Build-time env (`VITE_SHOW_DEV_INFRA_MESSAGES`)**
- *     Quando definida com um valor explícito, ganha de tudo. Útil para:
- *       - desligar globalmente em demos/produção (`"false"` / `"0"` / `"off"`)
- *       - ligar para todos os usuários em ambientes de homolog (`"true"`)
- *       - voltar ao comportamento padrão (não definir, ou `"auto"`)
- *  2. **Runtime override do dev (`localStorage.show_dev_infra_messages`)**
- *     Permite que um dev oculte/force esses banners no próprio navegador
- *     sem rebuild, sobrescrevendo o default por usuário (DX). Aceita
- *     `"true"|"false"|"1"|"0"|"on"|"off"` ou `"auto"` para resetar.
- *  3. **Default**: `isDev === true` (papel `dev` no AuthContext).
+ * Controla a visibilidade de mensagens técnicas de infraestrutura
+ * (banners de "Backend reiniciando…", toasts de "Reconectando ao
+ * catálogo externo…", detalhes de status do bridge, etc.).
  *
- * Uso típico (em componentes):
- *   const { isDev } = useAuth();
- *   if (!shouldShowDevInfraMessages(isDev)) return null;
+ * Precedência (forte → fraca):
+ *   1. Build-time:  VITE_SHOW_DEV_INFRA_MESSAGES  ('true' | 'false' | 'auto')
+ *   2. Runtime:     localStorage.show_dev_infra_messages  ('true' | 'false' | 'auto')
+ *   3. Default:     role `dev` do usuário autenticado
  *
- * Não importe nada de React aqui — função pura, fácil de testar e
- * reutilizável fora de componentes (ex.: handlers que só querem disparar
- * um toast quando o gate permite).
+ * Em produção, defina `VITE_SHOW_DEV_INFRA_MESSAGES=false` para
+ * GARANTIR que nenhuma mensagem técnica vaze — nem para devs.
+ *
+ * Valores aceitos (case-insensitive): true|false|1|0|on|off|yes|no|auto
  */
 
-const TRUTHY = new Set(['true', '1', 'on', 'yes', 'enabled']);
-const FALSY = new Set(['false', '0', 'off', 'no', 'disabled']);
-const AUTO = new Set(['', 'auto', 'default']);
+export type GateValue = boolean | 'auto';
 
-type Decision = boolean | 'auto';
+const TRUTHY = new Set(['true', '1', 'on', 'yes']);
+const FALSY = new Set(['false', '0', 'off', 'no']);
 
-function parse(value: string | null | undefined): Decision {
-  if (value == null) return 'auto';
-  const v = String(value).trim().toLowerCase();
+function parseFlag(raw: unknown): GateValue {
+  if (typeof raw !== 'string') return 'auto';
+  const v = raw.trim().toLowerCase();
+  if (v === '' || v === 'auto') return 'auto';
   if (TRUTHY.has(v)) return true;
   if (FALSY.has(v)) return false;
-  if (AUTO.has(v)) return 'auto';
   return 'auto';
 }
 
-/**
- * Lê a flag de build-time. `import.meta.env` só existe no bundle Vite — em
- * ambiente Node (testes, scripts) caímos no `process.env` como fallback.
- */
-function readEnvFlag(): Decision {
+function readEnvFlag(): GateValue {
   try {
-    const fromVite =
-      typeof import.meta !== 'undefined' && import.meta.env
-        ? (import.meta.env.VITE_SHOW_DEV_INFRA_MESSAGES as string | undefined)
-        : undefined;
-    if (fromVite != null) return parse(fromVite);
+    // Vite injeta import.meta.env em tempo de build.
+    const env = (import.meta as unknown as { env?: Record<string, unknown> })?.env;
+    return parseFlag(env?.VITE_SHOW_DEV_INFRA_MESSAGES);
   } catch {
-    /* import.meta indisponível — segue */
+    return 'auto';
   }
-  if (typeof process !== 'undefined' && process.env) {
-    const fromNode = process.env.VITE_SHOW_DEV_INFRA_MESSAGES;
-    if (fromNode != null) return parse(fromNode);
-  }
-  return 'auto';
 }
 
-/**
- * Lê o override por usuário. Falha silenciosa em SSR / modo privado.
- */
-function readLocalOverride(): Decision {
+function readLocalOverride(): GateValue {
   try {
     if (typeof window === 'undefined' || !window.localStorage) return 'auto';
-    return parse(window.localStorage.getItem('show_dev_infra_messages'));
+    return parseFlag(window.localStorage.getItem('show_dev_infra_messages'));
   } catch {
     return 'auto';
   }
 }
 
 /**
- * Decide se mensagens técnicas de infra devem aparecer.
- *
- * @param isDev resultado de `useAuth().isDev` — só usado no fallback.
+ * Decide se mensagens técnicas de infraestrutura devem ser exibidas.
+ * @param isDev resultado de `useAuth().isDev` (papel `dev` do usuário).
  */
 export function shouldShowDevInfraMessages(isDev: boolean): boolean {
   const env = readEnvFlag();
@@ -83,19 +59,4 @@ export function shouldShowDevInfraMessages(isDev: boolean): boolean {
   const local = readLocalOverride();
   if (local !== 'auto') return local;
   return Boolean(isDev);
-}
-
-/**
- * Retorna o estado bruto do gate para UIs de diagnóstico (settings/dev).
- * Não usado em runtime de banner — apenas inspeção.
- */
-export function describeDevInfraMessagesGate(isDev: boolean): {
-  effective: boolean;
-  source: 'env' | 'local' | 'role';
-} {
-  const env = readEnvFlag();
-  if (env !== 'auto') return { effective: env, source: 'env' };
-  const local = readLocalOverride();
-  if (local !== 'auto') return { effective: local, source: 'local' };
-  return { effective: Boolean(isDev), source: 'role' };
 }
