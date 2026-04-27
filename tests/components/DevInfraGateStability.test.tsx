@@ -29,6 +29,7 @@ vi.mock('@/components/dev/BridgeMetricsOverlay', () => ({
 describe('DevInfraGate Stability — Lifecycle & Flicker Detection', () => {
   beforeEach(() => {
     lifecycleEvents = [];
+    renderCount = 0;
     vi.clearAllMocks();
   });
 
