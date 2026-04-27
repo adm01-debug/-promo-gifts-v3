@@ -26,7 +26,7 @@ interface Report {
 }
 
 async function loadSecret(
-  service: ReturnType<typeof createClient>,
+  service: import("../_shared/supabase-client-adapter.ts").CompatibleSupabaseClient,
   name: string,
 ): Promise<{ value: string | null; source: "db" | "env" | "none" }> {
   const { data } = await service

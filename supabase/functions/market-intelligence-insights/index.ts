@@ -122,7 +122,7 @@ function buildFallback(s: AggregatedSummary): InsightPayload {
 }
 
 async function aggregateData(
-  supabase: ReturnType<typeof createClient>,
+  supabase: import("../_shared/supabase-client-adapter.ts").CompatibleSupabaseClient,
   body: RequestBody,
 ): Promise<AggregatedSummary> {
   const days = Math.max(1, Math.min(body.days ?? 30, 365));

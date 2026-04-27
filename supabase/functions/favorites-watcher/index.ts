@@ -14,7 +14,7 @@ interface FavRow {
   price_at_save: number | null;
 }
 
-async function alreadyNotified(service: ReturnType<typeof createClient>, userId: string, key: string) {
+async function alreadyNotified(service: import("../_shared/supabase-client-adapter.ts").CompatibleSupabaseClient, userId: string, key: string) {
   const since = new Date(Date.now() - DEDUPE_WINDOW_HOURS * 3600 * 1000).toISOString();
   const { data } = await service
     .from("workspace_notifications")

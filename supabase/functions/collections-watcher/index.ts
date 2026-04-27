@@ -2,7 +2,7 @@ import { getCorsHeaders } from "../_shared/cors.ts";
 // collections-watcher: cron diário que detecta quedas de preço em itens de coleções
 // e gera workspace_notifications (categoria "collections") com dedupe 24h.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
-import type { CompatibleSupabaseClient } from "../_shared/supabase-client-adapter.ts";
+
 
 const DEDUPE_WINDOW_HOURS = 24;
 const DROP_THRESHOLD_PCT = 5;
@@ -14,7 +14,7 @@ interface ColRow {
   price_at_save: number | null;
 }
 
-async function alreadyNotified(service: CompatibleSupabaseClient, userId: string, key: string) {
+async function alreadyNotified(service: import("../_shared/supabase-client-adapter.ts").CompatibleSupabaseClient, userId: string, key: string) {
   const since = new Date(Date.now() - DEDUPE_WINDOW_HOURS * 3600 * 1000).toISOString();
   const { data } = await service
     .from("workspace_notifications")

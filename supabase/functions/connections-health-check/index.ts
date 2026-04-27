@@ -37,7 +37,7 @@ async function alreadyNotified(
 }
 
 async function notifyAdmins(
-  service: ReturnType<typeof createClient>,
+  service: import("../_shared/supabase-client-adapter.ts").CompatibleSupabaseClient,
   adminIds: string[],
   incident: IncidentKey,
 ) {
