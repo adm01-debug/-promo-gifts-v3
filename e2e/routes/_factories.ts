@@ -11,14 +11,14 @@
  *  7. @a11y básico
  *  8. @mobile sem overflow horizontal
  */
-import { test, expect } from "../../fixtures/test-base";
+import { test, expect } from "../fixtures/test-base";
 import { gotoAndSettle } from "../helpers/nav";
 import {
   basicA11yChecks,
   mockEdgeFn,
   setMobileViewport,
   waitRouteReady,
-} from "../_shared";
+} from "./_shared";
 
 export interface PublicTokenRouteSpec {
   /** Nome legível, usado no describe. Ex.: "/proposta/:token". */
