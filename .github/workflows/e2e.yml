@@ -17,6 +17,12 @@ jobs:
     timeout-minutes: 30
     env:
       CI: "true"
+      # Logs limpos no GitHub Actions: sem códigos ANSI no console output
+      # (relatório HTML continua colorido). Reporters dedicados (github/list)
+      # cuidam da formatação amigável.
+      FORCE_COLOR: "0"
+      # Falha imediatamente se algum spec ainda tiver `test.only` esquecido.
+      PWTEST_FORBID_ONLY: "1"
       E2E_USER_EMAIL: ${{ secrets.E2E_USER_EMAIL }}
       E2E_USER_PASSWORD: ${{ secrets.E2E_USER_PASSWORD }}
       E2E_ADMIN_EMAIL: ${{ secrets.E2E_ADMIN_EMAIL }}
