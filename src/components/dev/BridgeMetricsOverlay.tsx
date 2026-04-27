@@ -52,8 +52,14 @@ function shortReqId(id?: string): string {
 }
 
 export default function BridgeMetricsOverlay() {
+  const { isDev } = useAuth();
+  const allowed = shouldShowDevInfraMessages(isDev);
+
   // Hard guard: nunca renderiza em build de produção.
   if (import.meta.env.PROD) return null;
+  // Gate SSOT
+  if (!allowed) return null;
+
 
   const [open, setOpen] = useState<boolean>(() => {
     try { return localStorage.getItem(STORAGE_KEY) === '1'; } catch { return false; }
