@@ -44,7 +44,7 @@ export const FloatingCompareBar = React.forwardRef<HTMLDivElement>(
         exit={{ y: 100, opacity: 0 }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
         className={cn(
-          "fixed bottom-24 lg:bottom-6 left-1/2 -translate-x-1/2 z-40",
+          "fixed bottom-20 sm:bottom-24 lg:bottom-6 left-1/2 -translate-x-1/2 z-40",
           "bg-card/95 backdrop-blur-xl border border-border/50 rounded-2xl shadow-2xl",
           "px-4 py-3 flex items-center gap-3",
           "max-w-[95vw] sm:max-w-xl"

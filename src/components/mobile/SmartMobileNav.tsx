@@ -170,7 +170,7 @@ export const SmartMobileNav = forwardRef<HTMLDivElement>(function SmartMobileNav
         className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-t border-border lg:hidden"
         role="navigation"
         aria-label="Navegação principal mobile"
-        style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 0.5rem)' }}
+        style={{ paddingBottom: 'env(safe-area-inset-bottom, 0.5rem)' }}
       >
         <div className="flex items-center justify-around h-14 sm:h-16 px-1 sm:px-2 relative">
           {mainNavItems.map((item, index) => {
