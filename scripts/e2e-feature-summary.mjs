@@ -70,6 +70,27 @@ function featureKey(file) {
   return "uncategorized";
 }
 
+/**
+ * Extrai e2eName de strings produzidas por `e2eName(label, ...)`.
+ * Padrão SSOT (vide e2e/fixtures/test-user.ts):
+ *   "[E2E] <label> <ts>-<hash4>"               → ex: "[E2E] orcamento 1730000000000-a1b2"
+ *   "[E2E:<scope>] <label> <ts>-<hash4>"       → ex: "[E2E:qc] orcamento 1730000000000-a1b2"
+ *
+ * Procura no título do teste E na mensagem de erro (recurso aparece em
+ * locators/strings de erro tipo `expect(getByText("[E2E] orcamento 1730…"))`).
+ * Retorna apenas o PRIMEIRO match — testes que criam múltiplos recursos
+ * tipicamente falham por causa do primeiro.
+ */
+function extractE2eName(...sources) {
+  const re = /\[E2E(?::[a-z0-9-]+)?\]\s+[a-z0-9_-]+(?:\s+\d{10,}-[a-z0-9]{4,})?/i;
+  for (const s of sources) {
+    if (!s) continue;
+    const m = String(s).match(re);
+    if (m) return m[0];
+  }
+  return null;
+}
+
 // ── Walk recursivo das suites do JSON reporter ────────────────────────────
 /**
  * @typedef {{ feature: string, file: string, project: string, title: string,
@@ -106,6 +127,7 @@ function walkSuites(suites = [], parentTitles = []) {
           duration,
           location: spec.line ? `${file}:${spec.line}` : null,
           error: errorMsg || null,
+          e2eName: extractE2eName(specTitle, errorMsg),
         });
       }
     }
@@ -161,6 +183,24 @@ const slowestFeatures = [...byFeature.values()]
 
 const skippedRows = rows.filter((r) => r.status === "skipped");
 
+// ── Agregação por e2eName (recurso nomeado SSOT) ──────────────────────────
+// Agrupa falhas por recurso identificado via `e2eName(...)`. Permite ver,
+// por exemplo, que 3 falhas distintas em features diferentes compartilham
+// o mesmo recurso (ex: cleanup vazou um orçamento órfão entre specs).
+const byE2eName = new Map();
+for (const r of rows) {
+  if (!r.e2eName || r.status === "passed" || r.status === "skipped") continue;
+  if (!byE2eName.has(r.e2eName)) {
+    byE2eName.set(r.e2eName, { e2eName: r.e2eName, failures: [], features: new Set() });
+  }
+  const b = byE2eName.get(r.e2eName);
+  b.failures.push(r);
+  b.features.add(r.feature);
+}
+const failedByE2eName = [...byE2eName.values()].sort(
+  (a, b) => b.failures.length - a.failures.length || a.e2eName.localeCompare(b.e2eName),
+);
+
 // ── Render console ────────────────────────────────────────────────────────
 const startedAt = raw.stats?.startTime
   ? new Date(raw.stats.startTime).toISOString().replace("T", " ").slice(0, 16)
@@ -197,6 +237,26 @@ if (failedFeatures.length === 0) {
     }
     if (f.failures.length > 5) {
       console.log(`      ${C.dim}… +${f.failures.length - 5} mais${C.reset}`);
+    }
+  }
+  console.log("");
+}
+
+if (failedByE2eName.length > 0) {
+  console.log(
+    `${C.bold}Failures by e2eName (${failedByE2eName.length} recurso(s) afetado(s)):${C.reset}`,
+  );
+  for (const r of failedByE2eName) {
+    const featList = [...r.features].slice(0, 3).join(", ") + (r.features.size > 3 ? ` +${r.features.size - 3}` : "");
+    console.log(
+      `  ${C.cyan}◆${C.reset} ${C.bold}${r.e2eName}${C.reset}  ` +
+        `${C.red}${r.failures.length} fail${C.reset}  ${C.dim}[${featList}]${C.reset}`,
+    );
+    for (const fr of r.failures.slice(0, 3)) {
+      console.log(`      ${C.dim}·${C.reset} ${fr.feature} › ${fr.title}`);
+    }
+    if (r.failures.length > 3) {
+      console.log(`      ${C.dim}… +${r.failures.length - 3} mais${C.reset}`);
     }
   }
   console.log("");
@@ -250,6 +310,21 @@ if (failedFeatures.length === 0) {
   }
 }
 
+if (failedByE2eName.length > 0) {
+  mdLines.push(`## Failures by e2eName`);
+  mdLines.push(``);
+  mdLines.push(`Recursos nomeados via \`e2eName(...)\` que apareceram em falhas. Útil para rastrear leaks de cleanup ou conflitos cross-spec.`);
+  mdLines.push(``);
+  mdLines.push(`| Resource | Failures | Affected features |`);
+  mdLines.push(`|---|---:|---|`);
+  for (const r of failedByE2eName) {
+    mdLines.push(
+      `| \`${r.e2eName}\` | ${r.failures.length} | ${[...r.features].map((f) => `\`${f}\``).join(", ")} |`,
+    );
+  }
+  mdLines.push(``);
+}
+
 if (skippedRows.length > 0) {
   mdLines.push(`## Skipped (${skippedRows.length})`);
   for (const s of skippedRows) mdLines.push(`- \`${s.feature}\` — ${s.title}`);
@@ -275,6 +350,11 @@ fs.writeFileSync(
       projects,
       totals,
       features: [...byFeature.values()].sort((a, b) => a.feature.localeCompare(b.feature)),
+      e2eNames: failedByE2eName.map((r) => ({
+        e2eName: r.e2eName,
+        failures: r.failures.length,
+        features: [...r.features],
+      })),
     },
     null,
     2,
