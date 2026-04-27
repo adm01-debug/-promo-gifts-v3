@@ -169,8 +169,11 @@ jobs:
             test-results
           retention-days: 7
 
-      - name: Fail job if tests failed
-        if: steps.e2e_smoke.outcome == 'failure' || steps.e2e_run.outcome == 'failure'
+      # Gate final do job: o smoke já falhou cedo (Fail-fast acima), aqui
+      # apenas falhamos se a regression registrou alguma falha. Mensagem
+      # nomeia explicitamente onde olhar.
+      - name: 🛑 Fail job se regression registrou falhas
+        if: steps.e2e_run.outcome == 'failure'
         run: |
-          echo "::error::Playwright tests failed — veja artifacts 'playwright-report' e 'e2e-feature-summary'"
+          echo "::error title=Regression failed::Algumas specs falharam — veja '🧪 E2E Feature Summary' acima, artifacts 'playwright-report' (HTML) e 'e2e-evidence' (screenshots/vídeos/trace)."
           exit 1
