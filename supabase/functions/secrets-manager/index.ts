@@ -9,7 +9,7 @@ import {
   resetCredentialCacheMetrics,
 } from "../_shared/credentials.ts";
 import { writeAuditEntry, extractRequestMeta } from "../_shared/audit-log.ts";
-import { getOrCreateRequestId } from "../_shared/request-id.ts";
+import { getOrCreateRequestId, REQUEST_ID_HEADER } from "../_shared/request-id.ts";
 
 const SOURCE = "secrets-manager";
 
@@ -71,10 +71,11 @@ function maskValue(v: string | undefined | null): {
 }
 
 Deno.serve(async (req) => {
-  const corsHeaders = getCorsHeaders(req);
-  if (req.method === "OPTIONS") return new Response(null, { headers: getCorsHeaders(req) });
-
   const requestId = getOrCreateRequestId(req);
+  // X-Request-Id propagado em TODA resposta via spread de corsHeaders.
+  const corsHeaders = { ...getCorsHeaders(req), [REQUEST_ID_HEADER]: requestId };
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+
   const startedAt = new Date().toISOString();
   const startedMs = Date.now();
   const { ip, ua } = extractRequestMeta(req);

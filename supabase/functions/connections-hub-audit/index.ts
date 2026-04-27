@@ -6,7 +6,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { getCorsHeaders, handleCorsPreflightIfNeeded } from "../_shared/cors.ts";
 import { authenticateRequest, requireDev, authErrorResponse } from "../_shared/auth.ts";
 import { writeAuditEntry, extractRequestMeta } from "../_shared/audit-log.ts";
-import { getOrCreateRequestId } from "../_shared/request-id.ts";
+import { getOrCreateRequestId, REQUEST_ID_HEADER } from "../_shared/request-id.ts";
 
 const SOURCE = "connections-hub-audit";
 
@@ -60,9 +60,10 @@ const TRIGGER_NAME_PATTERN = "dispatch_quote_webhook_event";
 Deno.serve(async (req: Request) => {
   const preflight = handleCorsPreflightIfNeeded(req);
   if (preflight) return preflight;
-  const corsHeaders = getCorsHeaders(req);
 
   const requestId = getOrCreateRequestId(req);
+  // X-Request-Id propagado em TODA resposta via spread de corsHeaders.
+  const corsHeaders = { ...getCorsHeaders(req), [REQUEST_ID_HEADER]: requestId };
   const startedAt = new Date().toISOString();
   const startedMs = Date.now();
   const { ip, ua } = extractRequestMeta(req);
