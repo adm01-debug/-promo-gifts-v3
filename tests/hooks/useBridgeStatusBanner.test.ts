@@ -94,5 +94,19 @@ describe('useBridgeStatusBanner', () => {
     });
 
     expect(toast.loading).not.toHaveBeenCalled();
+
+  it('should unsubscribe from bridge status events and dismiss toasts when unmounted', () => {
+    const { onBridgeStatus } = require('@/lib/external-db/bridge-status-events');
+    const subSpy = vi.spyOn({ onBridgeStatus }, 'onBridgeStatus');
+    
+    const { unmount } = renderHook(() => useBridgeStatusBanner(true));
+    
+    // Verifica se assinou
+    expect(toast.dismiss).not.toHaveBeenCalledWith('bridge-degraded');
+
+    unmount();
+
+    // Deve limpar o toast de "degraded" (que é o temporário que pode vazar)
+    expect(toast.dismiss).toHaveBeenCalledWith('bridge-degraded');
   });
 });
