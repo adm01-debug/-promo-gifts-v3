@@ -33,15 +33,24 @@ function fromUtf8(b: Uint8Array): string {
   return new TextDecoder().decode(b);
 }
 
+// TS lib estrita do Deno trata `Uint8Array` como `Uint8Array<ArrayBufferLike>`,
+// que não satisfaz `BufferSource` (esperado `ArrayBufferView<ArrayBuffer>`).
+// Solução: copiar para um `ArrayBuffer` puro antes de passar à WebCrypto.
+function toArrayBuffer(u8: Uint8Array): ArrayBuffer {
+  const ab = new ArrayBuffer(u8.byteLength);
+  new Uint8Array(ab).set(u8);
+  return ab;
+}
+
 async function hmac(payloadB64: string): Promise<string> {
   const key = await crypto.subtle.importKey(
     "raw",
-    utf8(SHARE_SECRET),
+    toArrayBuffer(utf8(SHARE_SECRET)),
     { name: "HMAC", hash: "SHA-256" },
     false,
     ["sign", "verify"],
   );
-  const sig = await crypto.subtle.sign("HMAC", key, utf8(payloadB64));
+  const sig = await crypto.subtle.sign("HMAC", key, toArrayBuffer(utf8(payloadB64)));
   return b64urlEncode(new Uint8Array(sig));
 }
 

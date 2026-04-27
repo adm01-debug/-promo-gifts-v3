@@ -85,11 +85,9 @@ async function runCase(opts: {
 }
 
 async function ensureUser(admin: SupabaseClient, email: string, password: string): Promise<string> {
-  // @ts-expect-error admin API
   const { data: list } = await admin.auth.admin.listUsers({ page: 1, perPage: 200 });
   const existing = list?.users?.find((u: { email?: string }) => u.email === email);
   if (existing?.id) return existing.id;
-  // @ts-expect-error admin API
   const { data, error } = await admin.auth.admin.createUser({
     email,
     password,

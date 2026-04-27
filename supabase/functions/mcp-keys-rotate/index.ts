@@ -302,6 +302,7 @@ Deno.serve(async (req) => {
           status: "error",
           source: SOURCE,
           request_id: requestId,
+          started_at: new Date().toISOString(),
           details: { reason: "log_full_scope_grant_failed", detail: (e as Error).message },
         });
       }

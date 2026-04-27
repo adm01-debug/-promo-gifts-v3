@@ -50,6 +50,16 @@ Deno.serve(async (req) => {
       );
     }
     const { action, data } = parsed.data;
+    // Helper para extrair número de `data?.<key>` (Zod tipa data como
+    // Record<string, unknown> | undefined — sem narrow seguro inline).
+    const numField = (key: string, fallback: number): number => {
+      const v = data?.[key];
+      return typeof v === "number" ? v : fallback;
+    };
+    const stringField = (key: string): string | undefined => {
+      const v = data?.[key];
+      return typeof v === "string" ? v : undefined;
+    };
 
     let result;
 
@@ -465,7 +475,7 @@ Deno.serve(async (req) => {
           .from('bitrix_clients')
           .select('*', { count: 'exact' })
           .order('name', { ascending: true })
-          .range(data?.start || 0, (data?.start || 0) + (data?.limit || 50) - 1);
+          .range(numField('start', 0), numField('start', 0) + numField('limit', 50) - 1);
 
         if (error) {
           throw new Error(`Database error: ${error.message}`);
@@ -498,12 +508,13 @@ Deno.serve(async (req) => {
           .select('*', { count: 'exact' })
           .order('created_at_bitrix', { ascending: false });
 
-        if (data?.clientId) {
-          query = query.eq('bitrix_client_id', data.clientId);
+        const clientIdFilter = stringField('clientId');
+        if (clientIdFilter) {
+          query = query.eq('bitrix_client_id', clientIdFilter);
         }
 
         const { data: deals, error, count } = await query
-          .range(data?.start || 0, (data?.start || 0) + (data?.limit || 50) - 1);
+          .range(numField('start', 0), numField('start', 0) + numField('limit', 50) - 1);
 
         if (error) {
           throw new Error(`Database error: ${error.message}`);
@@ -533,7 +544,7 @@ Deno.serve(async (req) => {
           .from('bitrix_sync_logs')
           .select('*')
           .order('started_at', { ascending: false })
-          .limit(data?.limit || 10);
+          .limit(numField('limit', 10));
 
         if (error) {
           throw new Error(`Database error: ${error.message}`);

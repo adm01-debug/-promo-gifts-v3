@@ -325,6 +325,13 @@ Deno.serve(async (req) => {
 
       const row = Array.isArray(data) ? data[0] : data;
 
+      if (!row) {
+        // Não deveria acontecer (issue_step_up_token sempre retorna 1 linha
+        // ou lança), mas o typecheck Deno exige guard explícito antes do
+        // acesso a `row.token`/`row.expires_at`.
+        return json({ error: "issue_failed", detail: "no_row_returned" }, 500);
+      }
+
       await audit({
         user_id: user.id,
         event_type: "issued",
@@ -332,7 +339,7 @@ Deno.serve(async (req) => {
         target_ref: targetRef,
         action_label: actionLabel,
         challenge_id: body.challenge_id,
-        metadata: { token_expires_at: row?.expires_at ?? null },
+        metadata: { token_expires_at: row.expires_at ?? null },
       });
 
       return json({ token: row.token, expires_at: row.expires_at });

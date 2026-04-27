@@ -1011,18 +1011,18 @@ ${topProducts.length > 0
       const enrichPromises: Promise<void>[] = [];
       if (categoryIds.length > 0) {
         enrichPromises.push(
-          extClient.from("categories").select("id, name").in("id", categoryIds.slice(0, 50))
-            .then(({ data }: any) => {
-              if (data) categoryMap = Object.fromEntries(data.map((c: any) => [c.id, c.name]));
-            })
+          (async () => {
+            const { data } = await extClient.from("categories").select("id, name").in("id", categoryIds.slice(0, 50));
+            if (data) categoryMap = Object.fromEntries(data.map((c: any) => [c.id, c.name]));
+          })(),
         );
       }
       if (supplierIds.length > 0) {
         enrichPromises.push(
-          extClient.from("suppliers").select("id, name").in("id", supplierIds.slice(0, 50))
-            .then(({ data }: any) => {
-              if (data) supplierMap = Object.fromEntries(data.map((s: any) => [s.id, s.name]));
-            })
+          (async () => {
+            const { data } = await extClient.from("suppliers").select("id, name").in("id", supplierIds.slice(0, 50));
+            if (data) supplierMap = Object.fromEntries(data.map((s: any) => [s.id, s.name]));
+          })(),
         );
       }
       await Promise.all(enrichPromises);
