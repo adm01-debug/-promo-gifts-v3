@@ -13,8 +13,8 @@ import {
 
 const STORAGE_KEY = 'lov:bridge-metrics-overlay:open';
 const MAX_VISIBLE = 60;
-const EMPTY: readonly BridgeCallSample[] = [];
-const EMPTY_LT: readonly LongTaskEvent[] = [];
+const EMPTY: BridgeCallSample[] = [];
+const EMPTY_LT: LongTaskEvent[] = [];
 
 export type BridgeMetricsFilter = 'all' | 'slow' | 'errors';
 export type BridgeMetricsTab = 'calls' | 'longtasks';
@@ -27,17 +27,15 @@ export function useBridgeMetrics(isAllowed: boolean) {
   const [filter, setFilter] = useState<BridgeMetricsFilter>('all');
   const [tab, setTab] = useState<BridgeMetricsTab>('calls');
 
-  const getSamplesSnapshot = useCallback(() => (open && !paused ? getBridgeSamples() : EMPTY), [open, paused]);
   const samples = useSyncExternalStore(
     subscribeBridgeCalls,
-    getSamplesSnapshot,
+    useCallback(() => (open && !paused ? getBridgeSamples() : EMPTY), [open, paused]),
     () => EMPTY,
   );
 
-  const getLongTasksSnapshot = useCallback(() => (open && !paused ? getLongTaskEvents() : EMPTY_LT), [open, paused]);
   const longTasks = useSyncExternalStore(
     subscribeLongTasks,
-    getLongTasksSnapshot,
+    useCallback(() => (open && !paused ? getLongTaskEvents() : EMPTY_LT), [open, paused]),
     () => EMPTY_LT,
   );
 
