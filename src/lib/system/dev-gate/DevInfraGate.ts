@@ -1,16 +1,3 @@
-import { GateFlagProvider } from './types';
-import { EnvGateProvider, LocalStorageGateProvider } from './providers';
-import type { AppRole } from '@/contexts/AuthContext';
-
-/**
- * Roles que têm permissão intrínseca para acessar ferramentas de infraestrutura.
- */
-export const ALLOWED_INFRA_ROLES: AppRole[] = ['dev', 'supervisor', 'admin'];
-
-/**
- * Motor principal do Gate de Infraestrutura Dev.
- * Centraliza a lógica de precedência (Chain of Responsibility).
- */
 import { GateFlagProvider, GateValue } from './types';
 import { EnvGateProvider, LocalStorageGateProvider } from './providers';
 import type { AppRole } from '@/contexts/AuthContext';
@@ -22,6 +9,7 @@ export const DEFAULT_ALLOWED_ROLES: AppRole[] = ['dev', 'supervisor', 'admin'];
 
 /**
  * Interface que define a política de acesso baseada em roles.
+ * SRP: Define apenas o contrato de verificação de permissão.
  */
 export interface AccessPolicy {
   hasAccess(roles: AppRole[]): boolean;
@@ -46,9 +34,10 @@ class DefaultAccessPolicy implements AccessPolicy {
 /**
  * Motor principal do Gate de Infraestrutura Dev.
  * Aplica SOLID:
- * - SRP: Gerenciamento de estado e cache do Gate.
- * - OCP: Extensível via novos Providers ou AccessPolicies.
- * - DIP: Depende de interfaces (GateFlagProvider, AccessPolicy).
+ * - SRP: Gerenciamento de estado, cache e notificações do Gate.
+ * - OCP: Extensível via injeção de Providers ou AccessPolicies.
+ * - DIP: Depende de abstrações (GateFlagProvider, AccessPolicy).
+ * - LSP: DefaultAccessPolicy pode ser substituída por qualquer AccessPolicy.
  */
 export class DevInfraGate {
   private readonly providers: GateFlagProvider[];
@@ -77,6 +66,9 @@ export class DevInfraGate {
     window.addEventListener('storage', this.handleStorageEvent);
   }
 
+  /**
+   * Handler nomeado para facilitar remoção futura e melhorar legibilidade.
+   */
   private handleStorageEvent = (event: StorageEvent): void => {
     const relevantKeys = ['show_dev_infra_messages', 'lov:bridge-metrics-overlay:open'];
     if (event.key && relevantKeys.includes(event.key)) {
@@ -86,6 +78,7 @@ export class DevInfraGate {
 
   /**
    * Registra um listener para mudanças de estado no Gate.
+   * Retorna uma função de limpeza (unsubscribe).
    */
   subscribe(listener: () => void): () => void {
     this.listeners.add(listener);
@@ -93,14 +86,15 @@ export class DevInfraGate {
   }
 
   /**
-   * Verifica se o usuário tem permissão baseada na política de acesso.
+   * Verifica permissão delegando para a política injetada.
    */
   hasAccess(userRoles: AppRole[]): boolean {
     return this.accessPolicy.hasAccess(userRoles);
   }
 
   /**
-   * Determina se o overlay deve ser exibido, considerando permissões e overrides.
+   * Determina se o overlay deve ser exibido.
+   * Centraliza a lógica de permissões, cache e precedência de providers.
    */
   shouldShow(userRoles: AppRole[]): boolean {
     if (!this.hasAccess(userRoles)) return false;
@@ -116,25 +110,35 @@ export class DevInfraGate {
     return finalResult;
   }
 
+  /**
+   * Gera uma chave de cache otimizada para performance.
+   */
   private generateCacheKey(roles: AppRole[]): string {
     if (roles.length === 1) return roles[0];
     return [...roles].sort().join(',');
   }
 
+  /**
+   * Avalia a cadeia de provedores seguindo o padrão Chain of Responsibility.
+   */
   private evaluateProviders(): boolean {
-    let result = true; // Default behavior
+    // Valor padrão caso nenhum provider decida (auto)
+    let decision = true; 
 
     for (const provider of this.providers) {
       const value = this.getProviderValue(provider);
       if (value !== 'auto') {
-        result = value;
+        decision = value;
         break;
       }
     }
 
-    return result;
+    return decision;
   }
 
+  /**
+   * Obtém valor do provider com otimização específica para ambiente.
+   */
   private getProviderValue(provider: GateFlagProvider): GateValue {
     if (provider instanceof EnvGateProvider) {
       if (this.envFlagCache === null) {
@@ -146,14 +150,17 @@ export class DevInfraGate {
   }
 
   /**
-   * Invalida o cache e notifica os inscritos com debounce.
+   * Limpa o cache e agenda a notificação dos inscritos.
    */
   invalidateCache(): void {
     this.cache.clear();
-    this.notifyListeners();
+    this.scheduleNotification();
   }
 
-  private notifyListeners(): void {
+  /**
+   * Implementa debouncing para evitar excesso de renders na UI.
+   */
+  private scheduleNotification(): void {
     if (this.debounceTimer) clearTimeout(this.debounceTimer);
 
     this.debounceTimer = setTimeout(() => {
@@ -162,7 +169,5 @@ export class DevInfraGate {
     }, 50);
   }
 }
-
-export const devInfraGate = new DevInfraGate();
 
 export const devInfraGate = new DevInfraGate();
