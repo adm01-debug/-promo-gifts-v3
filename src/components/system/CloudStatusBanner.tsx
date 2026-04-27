@@ -14,12 +14,13 @@ import { Button } from '@/components/ui/button';
 import { useCloudStatus } from '@/hooks/useCloudStatus';
 import { useAuth } from '@/contexts/AuthContext';
 import { shouldShowDevInfraMessages } from '@/lib/system/dev-infra-messages';
+import { DevInfraDetails, formatMs, formatRelative } from './DevInfraDetails';
 
 type CloudStatusVariant = 'warming' | 'degraded' | 'down';
 
 export function CloudStatusBanner() {
   const { isDev } = useAuth();
-  const { status, retry, isChecking } = useCloudStatus();
+  const { status, snapshot, retry, isChecking } = useCloudStatus();
   // Mensagens técnicas de infraestrutura passam pelo gate SSOT
   // (env VITE_SHOW_DEV_INFRA_MESSAGES > localStorage > role dev).
   const allowed = shouldShowDevInfraMessages(isDev);
@@ -39,20 +40,48 @@ export function CloudStatusBanner() {
           aria-live="polite"
           className={getContainerClass(status)}
         >
-          <div className="container mx-auto flex items-center gap-3 px-4 py-2 text-sm">
-            {renderIcon(status)}
-            <span className="flex-1">{getMessage(status)}</span>
-            {status === 'down' && (
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={() => void retry()}
-                disabled={isChecking}
-                className="h-7 gap-1.5"
-              >
-                <RefreshCw className={`h-3.5 w-3.5 ${isChecking ? 'animate-spin' : ''}`} />
-                Tentar novamente
-              </Button>
+          <div className="container mx-auto flex flex-col gap-1.5 px-4 py-2 text-sm">
+            <div className="flex items-center gap-3">
+              {renderIcon(status)}
+              <span className="flex-1">{getMessage(status, isDev)}</span>
+              {status === 'down' && (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => void retry()}
+                  disabled={isChecking}
+                  className="h-7 gap-1.5"
+                >
+                  <RefreshCw className={`h-3.5 w-3.5 ${isChecking ? 'animate-spin' : ''}`} />
+                  Tentar novamente
+                </Button>
+              )}
+            </div>
+            {/* Modo dev: detalhes técnicos colapsáveis */}
+            {isDev && snapshot && (
+              <DevInfraDetails
+                title={`Cloud snapshot · ${status}`}
+                items={[
+                  { label: 'status', value: status, tone: status === 'down' ? 'error' : status === 'degraded' ? 'warn' : 'default' },
+                  { label: 'checkedAt', value: formatRelative(snapshot.checkedAt) },
+                  {
+                    label: 'auth',
+                    value: `${snapshot.signals.auth.ok ? 'ok' : 'fail'} · ${formatMs(snapshot.signals.auth.ms)}`,
+                    tone: snapshot.signals.auth.ok ? 'default' : 'error',
+                  },
+                  {
+                    label: 'bridge',
+                    value: `${snapshot.signals.bridge.ok ? 'ok' : 'fail'} · ${formatMs(snapshot.signals.bridge.ms)}`,
+                    tone: snapshot.signals.bridge.ok ? 'default' : 'error',
+                  },
+                  {
+                    label: 'rest',
+                    value: `${snapshot.signals.rest.ok ? 'ok' : 'fail'} · ${formatMs(snapshot.signals.rest.ms)}`,
+                    tone: snapshot.signals.rest.ok ? 'default' : 'error',
+                  },
+                  { label: 'isChecking', value: isChecking ? 'true' : 'false' },
+                ]}
+              />
             )}
           </div>
         </motion.div>
