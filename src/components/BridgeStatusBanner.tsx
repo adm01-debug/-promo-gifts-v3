@@ -13,16 +13,22 @@ import { toast } from 'sonner';
 import { AlertTriangle, X, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { onBridgeStatus, type BridgeStatusEvent } from '@/lib/external-db/bridge-status-events';
+import { useAuth } from '@/contexts/AuthContext';
 
 const TOAST_ID_DEGRADED = 'bridge-degraded';
 const TOAST_ID_UNAVAILABLE = 'bridge-unavailable';
 
 export function BridgeStatusBanner() {
+  const { isDev } = useAuth();
   const [unavailable, setUnavailable] = useState(false);
   const [reason, setReason] = useState<string>('');
   const lastDegradedAt = useRef(0);
 
   useEffect(() => {
+    // Mensagens técnicas de bridge/infra ficam restritas a usuários `dev`.
+    // Usuários comuns não devem receber toasts/banner sobre o catálogo externo —
+    // o sistema já se recupera sozinho com retries automáticos.
+    if (!isDev) return;
     const unsubscribe = onBridgeStatus((e: BridgeStatusEvent) => {
       if (e.type === 'degraded') {
         // Throttle: 1 toast a cada 8s (várias chamadas paralelas geram muitos eventos).
