@@ -15,13 +15,21 @@ vi.mock('@/contexts/AuthContext', () => ({
   useAuth: () => mockUseAuth(),
 }));
 
-const toastApi = {
-  loading: vi.fn(),
-  error: vi.fn(),
-  success: vi.fn(),
-  dismiss: vi.fn(),
+vi.mock('sonner', () => ({
+  toast: {
+    loading: vi.fn(),
+    error: vi.fn(),
+    success: vi.fn(),
+    dismiss: vi.fn(),
+  },
+}));
+import { toast } from 'sonner';
+const toastApi = toast as unknown as {
+  loading: ReturnType<typeof vi.fn>;
+  error: ReturnType<typeof vi.fn>;
+  success: ReturnType<typeof vi.fn>;
+  dismiss: ReturnType<typeof vi.fn>;
 };
-vi.mock('sonner', () => ({ toast: toastApi }));
 
 // Capturamos o listener registrado por onBridgeStatus para emitir eventos sintéticos.
 let listener: ((e: BridgeStatusEvent) => void) | null = null;
