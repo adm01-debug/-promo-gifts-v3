@@ -127,6 +127,7 @@ function walkSuites(suites = [], parentTitles = []) {
           duration,
           location: spec.line ? `${file}:${spec.line}` : null,
           error: errorMsg || null,
+          e2eName: extractE2eName(specTitle, errorMsg),
         });
       }
     }
