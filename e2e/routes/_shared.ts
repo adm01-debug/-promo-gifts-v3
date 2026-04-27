@@ -148,15 +148,18 @@ export async function setMobileViewport(page: Page) {
  * Espera robusta de carregamento de rota
  * ============================================================ */
 
+/* ============================================================
+ * Espera robusta de carregamento de rota
+ *
+ * `waitRouteReady` é mantido como alias de compatibilidade — delega ao
+ * helper SSOT `waitForRouteIdle` em `e2e/helpers/nav.ts`. Use sempre o
+ * SSOT em código novo.
+ * ============================================================ */
+
+import { waitForRouteIdle as _waitForRouteIdle } from "../helpers/nav";
+
 export async function waitRouteReady(page: Page, opts: { timeout?: number } = {}) {
-  const timeout = opts.timeout ?? 15_000;
-  await page.waitForLoadState("domcontentloaded", { timeout });
-  await page
-    .waitForFunction(
-      () => !document.querySelector('[data-state="loading"], [data-skeleton]'),
-      { timeout: 5_000 },
-    )
-    .catch(() => {});
+  await _waitForRouteIdle(page, opts);
 }
 
 /* ============================================================

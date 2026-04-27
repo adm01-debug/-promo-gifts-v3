@@ -33,6 +33,44 @@ async function injectAnimKill(page: Page) {
   }
 }
 
+/**
+ * Aguarda a rota chegar a um estado idle (DOM + sem skeletons + sem aria-busy).
+ * Substitui usos de `waitForLoadState("networkidle")` em specs (proibido pelo
+ * lint), pois `networkidle` é flaky em SPAs com realtime/polling.
+ */
+export async function waitForRouteIdle(page: Page, opts?: { timeout?: number }) {
+  const timeout = opts?.timeout ?? 10_000;
+  await page.waitForLoadState("domcontentloaded", { timeout });
+  await page
+    .waitForFunction(
+      () => !document.querySelector('[data-state="loading"], [data-skeleton]'),
+      { timeout: Math.min(timeout, 8_000) },
+    )
+    .catch(() => {});
+  await page
+    .waitForFunction(() => !document.querySelector('[aria-busy="true"]'), {
+      timeout: Math.min(timeout, 3_000),
+    })
+    .catch(() => {});
+}
+
+/**
+ * Asserção SSOT de URL atual (usa o auto-retry do `expect`). Substitui
+ * `expect(page.url()).toContain(...)` cru, que não faz retry.
+ */
+export async function expectOnRoute(
+  page: Page,
+  pathOrRegex: string | RegExp,
+  opts?: { timeout?: number },
+) {
+  const re = typeof pathOrRegex === "string"
+    ? new RegExp(pathOrRegex.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+    : pathOrRegex;
+  await expect(page, `esperado URL match ${re}`).toHaveURL(re, {
+    timeout: opts?.timeout ?? 10_000,
+  });
+}
+
 export async function gotoAndSettle(page: Page, path: string, opts?: { timeout?: number }) {
   await page.goto(path, { waitUntil: "domcontentloaded", timeout: opts?.timeout ?? 20_000 });
 

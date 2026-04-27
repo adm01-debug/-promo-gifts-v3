@@ -1,28 +1,37 @@
 /**
- * E2E: Happy path — Login flow
+ * E2E: validação básica do formulário de login (sem credenciais reais).
+ *
+ * Usa exclusivamente helpers SSOT: `gotoAndSettle`, `loginViaUI`,
+ * `expectVisibleByTestId` — proibido `page.goto`/`waitForTimeout` direto.
  */
-import { test, expect } from '@playwright/test';
+import { test, expect } from "./fixtures/test-base";
+import { gotoAndSettle } from "./helpers/nav";
+import { loginViaUI, expectUnauthenticated } from "./helpers/auth";
+import { expectVisibleByTestId } from "./helpers/waits";
 
-test.describe('Login Page', () => {
-  test('should display login form', async ({ page }) => {
-    await page.goto('/login');
-    await expect(page.locator('input[type="email"]')).toBeVisible();
-    await expect(page.locator('input[type="password"]')).toBeVisible();
+test.describe("Login Page", () => {
+  test.use({ storageState: { cookies: [], origins: [] } });
+
+  test("exibe formulário de login", async ({ page }) => {
+    await gotoAndSettle(page, "/login");
+    await expectVisibleByTestId(page, "login-email-input");
+    await expectVisibleByTestId(page, "login-password-input");
+    await expectVisibleByTestId(page, "login-submit");
   });
 
-  test('should show validation errors for empty form', async ({ page }) => {
-    await page.goto('/login');
-    await page.click('button[type="submit"]');
-    // Should not navigate away
-    await expect(page).toHaveURL(/login/);
+  test("submit vazio mantém usuário em /login", async ({ page }) => {
+    await gotoAndSettle(page, "/login");
+    await page.locator('[data-testid="login-submit"]').click();
+    await expectUnauthenticated(page);
   });
 
-  test('should show error for invalid credentials', async ({ page }) => {
-    await page.goto('/login');
-    await page.fill('input[type="email"]', 'invalid@test.com');
-    await page.fill('input[type="password"]', 'wrongpassword123');
-    await page.click('button[type="submit"]');
-    // Should show error toast or stay on login
-    await expect(page).toHaveURL(/login/);
+  test("credenciais inválidas mantêm usuário em /login", async ({ page }) => {
+    await loginViaUI(page, {
+      email: "invalid@test.com",
+      password: "wrongpassword123",
+      expectFail: true,
+    });
+    await expectUnauthenticated(page);
+    expect(page.url()).toMatch(/\/login/);
   });
 });

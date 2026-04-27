@@ -189,3 +189,18 @@ export async function clickTestId(
     { attempts: opts.attempts ?? 2, message: `clickTestId(${testId})` },
   );
 }
+
+/**
+ * Wrapper de `expect(...).toBeVisible()` com mensagem descritiva e timeout
+ * padrão. Use sempre que o teste estiver "asserting" presença visual.
+ */
+export async function expectVisibleByTestId(
+  page: Page,
+  testId: string,
+  opts: WaitOpts = {},
+): Promise<void> {
+  const timeout = opts.timeout ?? DEFAULT_TIMEOUT;
+  const loc = page.locator(TID(testId)).first();
+  await expect(loc, opts.message ?? `testid="${testId}" deveria estar visível`)
+    .toBeVisible({ timeout });
+}

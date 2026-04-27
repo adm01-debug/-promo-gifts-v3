@@ -117,6 +117,35 @@ export default [
     },
   },
 
+  // Guard-rails de anti-flake — proíbe padrões conhecidos por causar
+  // instabilidade nas specs E2E. Helpers (e2e/helpers/**) podem usar.
+  {
+    files: ['e2e/**/*.spec.{ts,tsx}'],
+    rules: {
+      // Severity 'warn' nesta primeira fase — promova para 'error' após
+      // migrar todas as ~17 specs legadas (auditoria via:
+      // `rg "page\.goto|waitForTimeout|networkidle" e2e/**/*.spec.ts`).
+      'no-restricted-syntax': [
+        'warn',
+        {
+          selector: "CallExpression[callee.property.name='waitForTimeout']",
+          message:
+            'Proibido `page.waitForTimeout(...)` em specs — use `waitForTestIdHidden`, `waitForTestIdVisible`, `pollUntil` ou `waitForRouteIdle` (e2e/helpers/waits.ts | nav.ts).',
+        },
+        {
+          selector: "Literal[value='networkidle']",
+          message:
+            'Proibido `networkidle` em specs — use `waitForRouteIdle(page)` ou esperas por testid de estado terminal (e2e/helpers/nav.ts).',
+        },
+        {
+          selector: "MemberExpression[object.name='page'][property.name='goto']",
+          message:
+            'Proibido `page.goto(...)` direto em specs — use `gotoAndSettle(page, path)` ou `loginAs(page)` (e2e/helpers/nav.ts | auth.ts).',
+        },
+      ],
+    },
+  },
+
   // ──────────────────────────────────────────────────────────────────────
   // tests/** — Vitest (unit + integration). Globals = vitest + node + browser.
   // ──────────────────────────────────────────────────────────────────────
