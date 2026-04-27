@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { GitCompare, Sparkles, Heart, Package } from "lucide-react";
 import { formatCurrency } from "@/lib/format";
 import { toast } from "sonner";
+import { createClientLogger } from "@/lib/telemetry/structuredLogger";
 import type { CompareItem } from "@/stores/useComparisonStore";
 
 interface PublicComparison {
