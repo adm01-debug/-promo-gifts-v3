@@ -23,6 +23,12 @@ serve(async (req) => {
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
   )
 
+  // Variáveis para auditoria persistente mesmo em caso de erro
+  let auditData: Partial<ScanLog> = {
+    status_code: 500,
+    scan_result: { message: 'Iniciando processamento' }
+  };
+
   try {
     const formData = await req.formData()
     const file = formData.get('file') as File
@@ -40,6 +46,15 @@ serve(async (req) => {
     const fileBuffer = await file.arrayBuffer()
     const hashBuffer = await crypto.subtle.digest('SHA-256', fileBuffer)
     const hashHex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('')
+
+    auditData = {
+      user_id: user?.id ?? null,
+      bucket: 'personalization-images',
+      path: `${folder}/${file.name}`,
+      hash: hashHex,
+      status_code: 200,
+      scan_result: { message: 'Arquivo recebido para análise' }
+    };
 
     let isSuspicious = false
     let scanDetails: any = { source: 'VirusTotal', checked_at: new Date().toISOString() }
@@ -59,23 +74,31 @@ serve(async (req) => {
         if (vtRes.ok) {
           const vtData = await vtRes.json()
           scanDetails = { ...scanDetails, ...vtData.data.attributes.last_analysis_stats }
-          if (scanDetails.malicious > 0 || scanDetails.suspicious > 0) isSuspicious = true
+          if (scanDetails.malicious > 0 || scanDetails.suspicious > 0) {
+            isSuspicious = true
+            scanDetails.reason = `Detectado: ${scanDetails.malicious} maliciosos, ${scanDetails.suspicious} suspeitos`
+          } else {
+            scanDetails.reason = 'Arquivo limpo (base VirusTotal)'
+          }
         } else if (vtRes.status === 404) {
-          // Arquivo novo, ignorar bloqueio imediato (permitir upload inicial)
-          console.log('Arquivo não encontrado no VirusTotal. Permitindo upload inicial.');
+          scanDetails.reason = 'Arquivo novo no VirusTotal (análise pendente). Permitido upload inicial.'
         } else {
-          // Qualquer erro de API (400, 429, 500 etc) ou resposta inesperada
-          throw new Error('Falha crítica na resposta da API de segurança');
+          throw new Error(`Falha na API de segurança (Status: ${vtRes.status})`)
         }
       } catch (err) {
-        console.error('Bloqueio por falha na análise:', err.message);
-        // Bloqueio preventivo: se não podemos validar, não permitimos o upload
-        return new Response(JSON.stringify({ 
-          error: 'Bloqueio de segurança preventivo: Não foi possível validar a integridade do arquivo (Timeout ou Erro de API).' 
-        }), {
-          status: 403, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        const reason = err.name === 'AbortError' ? 'Timeout na verificação (10s)' : err.message;
+        console.error('Security Check Failed:', reason);
+        
+        // Registrar falha de segurança na auditoria antes de retornar
+        await supabaseAdmin.from('file_scan_logs').insert({
+          ...auditData,
+          status_code: 403,
+          scan_result: { ...scanDetails, error: true, reason: `Bloqueio preventivo: ${reason}` }
         });
+
+        return new Response(JSON.stringify({ error: `Segurança: ${reason}` }), {
+          status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        })
       }
     }
 
@@ -88,15 +111,13 @@ serve(async (req) => {
 
     if (uploadError) throw uploadError
 
-    // Persistir Log de Auditoria
-    await supabaseAdmin.from('file_scan_logs').insert({
-      user_id: user?.id ?? null,
-      bucket: targetBucket,
-      path: uploadData.path,
-      hash: hashHex,
-      scan_result: scanDetails,
-      status_code: isSuspicious ? 403 : 200
-    } as ScanLog)
+    // Atualizar dados de auditoria com o caminho final e resultado do scan
+    auditData.path = uploadData.path;
+    auditData.bucket = targetBucket;
+    auditData.status_code = isSuspicious ? 403 : 200;
+    auditData.scan_result = scanDetails;
+
+    await supabaseAdmin.from('file_scan_logs').insert(auditData as ScanLog)
 
     if (isSuspicious) {
       return new Response(JSON.stringify({ error: 'Arquivo bloqueado: Malware detectado' }), {
@@ -111,8 +132,21 @@ serve(async (req) => {
 
   } catch (error: any) {
     console.error('Final Error:', error.message)
+    
+    // Tenta registrar o erro na auditoria se tivermos o hash
+    if (auditData.hash) {
+      await supabaseAdmin.from('file_scan_logs').insert({
+        ...auditData,
+        status_code: 500,
+        scan_result: { error: true, message: error.message, stack: error.stack }
+      });
+    }
+
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500
     })
+  }
+})
+
   }
 })
