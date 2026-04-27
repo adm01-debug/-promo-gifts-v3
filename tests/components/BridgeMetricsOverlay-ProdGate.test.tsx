@@ -1,42 +1,65 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render } from '@testing-library/react';
 import BridgeMetricsOverlay from '@/components/dev/BridgeMetricsOverlay';
 import { shouldShowDevInfraMessages } from '@/lib/system/dev-infra-messages';
+import { useAuth } from '@/contexts/AuthContext';
 
-// Mock do import.meta.env.PROD
-// Vitest define PROD como falso por padrão, vamos forçar aqui para o teste de "modo PROD"
+// Mock das dependências
 vi.mock('@/lib/system/dev-infra-messages', () => ({
   shouldShowDevInfraMessages: vi.fn(),
 }));
 
+vi.mock('@/contexts/AuthContext', () => ({
+  useAuth: vi.fn(),
+}));
+
+// Mock dos stores de telemetria para evitar erros de subscrição
+vi.mock('@/lib/telemetry/bridgeCallMetrics', () => ({
+  getBridgeSamples: vi.fn(() => []),
+  subscribeBridgeCalls: vi.fn((cb) => () => {}),
+  clearBridgeSamples: vi.fn(),
+}));
+
+vi.mock('@/lib/telemetry/longTaskWatchdog', () => ({
+  getLongTaskEvents: vi.fn(() => []),
+  subscribeLongTasks: vi.fn((cb) => () => {}),
+  clearLongTaskEvents: vi.fn(),
+  describeLongTask: vi.fn(),
+}));
+
 describe('BridgeMetricsOverlay - Gating de Produção', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(useAuth).mockReturnValue({ isDev: true } as any);
+  });
+
   it('RETORNA NULL EM PRODUÇÃO mesmo que o gate SSOT aprove (defesa em profundidade)', () => {
-    // 1. Simular ambiente de PROD via global mock
-    // Nota: Em Vitest, import.meta.env.PROD é readonly. 
-    // Como o componente checa import.meta.env.PROD diretamente, 
-    // precisamos garantir que o ambiente de teste o reflita ou mockar o componente/import.
-    
-    // @ts-ignore - forçando PROD para true no contexto do teste
+    // Forçar PROD = true
     vi.stubGlobal('import', { meta: { env: { PROD: true } } });
-    
-    // 2. Simular que o usuário é DEV e o gate aprova
     vi.mocked(shouldShowDevInfraMessages).mockReturnValue(true);
     
     const { container } = render(<BridgeMetricsOverlay />);
-    
-    // Deve ser vazio porque o guard `if (import.meta.env.PROD) return null` é soberano
     expect(container).toBeEmptyDOMElement();
   });
 
   it('renderiza normalmente se NÃO for produção e o gate aprovar', () => {
-    // @ts-ignore
+    // Forçar PROD = false
     vi.stubGlobal('import', { meta: { env: { PROD: false } } });
     vi.mocked(shouldShowDevInfraMessages).mockReturnValue(true);
     
     const { container } = render(<BridgeMetricsOverlay />);
     
-    // Não deve ser vazio (pelo menos o botão de toggle deve aparecer se 'open' for false por default)
+    // O botão de toggle deve aparecer ("bridge metrics · `")
     expect(container).not.toBeEmptyDOMElement();
     expect(container.textContent).toContain('bridge metrics');
   });
+
+  it('retorna null se NÃO for produção mas o gate SSOT REJEITAR', () => {
+    vi.stubGlobal('import', { meta: { env: { PROD: false } } });
+    vi.mocked(shouldShowDevInfraMessages).mockReturnValue(false);
+    
+    const { container } = render(<BridgeMetricsOverlay />);
+    expect(container).toBeEmptyDOMElement();
+  });
 });
+
