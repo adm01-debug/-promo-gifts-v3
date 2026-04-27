@@ -97,12 +97,30 @@ function listFilesToCheck(fnDir) {
  *
  * Retorna { code, message, file, line, column, snippet } ou null.
  */
-function parseFirstError(output) {
-  if (!output) return null;
-  const lines = output.split(/\r?\n/);
+function stripAnsi(s) {
+  // eslint-disable-next-line no-control-regex
+  return s.replace(/\u001B\[[0-9;]*[A-Za-z]/g, "");
+}
 
-  // Coleta o primeiro bloco de erro: linha que começa com "TSxxxx [ERROR]:"
-  // ou "error:" e captura as próximas linhas até a próxima localização "at file://".
+function isNoiseLine(line) {
+  // Linhas de progresso do Deno que não são erros reais.
+  return (
+    /^\s*Download\s+https?:\/\//.test(line) ||
+    /^\s*Check\s+file:\/\//.test(line) ||
+    /^\s*Warning\s/.test(line) ||
+    line.trim() === ""
+  );
+}
+
+function parseFirstError(rawOutput) {
+  if (!rawOutput) return null;
+  const lines = stripAnsi(rawOutput).split(/\r?\n/);
+
+  // Coleta o primeiro bloco de erro REAL. Aceitamos:
+  //   "TSxxxx [ERROR]: ..."           (formato moderno do `deno check`)
+  //   "error: TSxxxx ..."              (formato alternativo)
+  //   "error: <msg>"                   (erros não-TS, ex: módulo não resolvido)
+  // Ignoramos linhas de Download/Check/Warning.
   let codeMatch = null;
   let message = null;
   let location = null;
@@ -111,38 +129,46 @@ function parseFirstError(output) {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     if (codeMatch === null) {
-      const m =
-        line.match(/^(TS\d+)\s*\[ERROR\]:\s*(.*)$/) ||
-        line.match(/^error:\s*(TS\d+)?\s*(.*)$/);
-      if (m) {
-        codeMatch = m[1] || "TS?";
-        message = (m[2] || "").trim();
-        contextLines.push(line);
+      if (isNoiseLine(line)) continue;
+      const m1 = line.match(/^(TS\d+)\s*\[ERROR\]:\s*(.*)$/);
+      const m2 = line.match(/^error:\s*(TS\d+)\s+(.*)$/);
+      const m3 = line.match(/^error:\s+(.*)$/);
+      if (m1) {
+        codeMatch = m1[1];
+        message = (m1[2] || "").trim();
+      } else if (m2) {
+        codeMatch = m2[1];
+        message = (m2[2] || "").trim();
+      } else if (m3) {
+        codeMatch = "ERROR";
+        message = (m3[1] || "").trim();
+      } else {
         continue;
       }
-    } else {
       contextLines.push(line);
-      // Localização: "    at file:///dev-server/.../index.ts:42:10"
-      const loc = line.match(/at\s+(file:\/\/\S+?):(\d+):(\d+)/);
-      if (loc) {
-        location = { file: loc[1], line: Number(loc[2]), column: Number(loc[3]) };
-        break;
-      }
-      if (contextLines.length > 12) break; // safety
+      continue;
     }
+
+    contextLines.push(line);
+    // Localização: "    at file:///dev-server/.../index.ts:42:10"
+    const loc = line.match(/at\s+(file:\/\/\S+?):(\d+):(\d+)/);
+    if (loc) {
+      location = { file: loc[1], line: Number(loc[2]), column: Number(loc[3]) };
+      break;
+    }
+    if (contextLines.length > 12) break; // safety
   }
 
   if (!codeMatch) {
-    // Fallback: primeira linha não-vazia que contenha "error"
-    const firstErr = lines.find((l) => /error/i.test(l) && !/Check file:/.test(l));
-    if (!firstErr) return null;
+    const firstReal = lines.find((l) => !isNoiseLine(l));
+    if (!firstReal) return null;
     return {
       code: "UNKNOWN",
-      message: firstErr.trim(),
+      message: firstReal.trim(),
       file: null,
       line: null,
       column: null,
-      snippet: lines.slice(0, 8).join("\n"),
+      snippet: lines.filter((l) => !isNoiseLine(l)).slice(0, 8).join("\n"),
     };
   }
 
