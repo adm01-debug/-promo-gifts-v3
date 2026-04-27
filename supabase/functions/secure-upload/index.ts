@@ -38,10 +38,14 @@ serve(async (req) => {
 
         console.log(`Verificando VirusTotal: ${hashHex}`)
 
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
         const vtCheckResponse = await fetch(`https://www.virustotal.com/api/v3/files/${hashHex}`, {
           headers: { 'x-apikey': vtApiKey },
-          signal: AbortSignal.timeout(10000) // Timeout de 10 segundos
+          signal: controller.signal
         })
+        clearTimeout(timeoutId);
 
         if (vtCheckResponse.ok) {
           const vtData = await vtCheckResponse.json()
@@ -50,15 +54,14 @@ serve(async (req) => {
             isSuspicious = true;
           }
         } else if (vtCheckResponse.status === 404) {
-          // Arquivo novo, enviar para análise futura e marcar como pendente/quarentena por segurança se for crítico
-          // Aqui bloquearemos apenas se for explicitamente malicioso conhecido para evitar falsos negativos imediatos
+          // Arquivo novo, ignorar bloqueio imediato (esperar análise assíncrona se necessário)
+          console.log('Arquivo não encontrado no VirusTotal. Permitindo upload inicial.');
         } else {
-          // Erro na API do VirusTotal ou Timeout
-          throw new Error('Falha na verificação de segurança (VirusTotal indisponível)')
+          throw new Error('Falha na resposta da API de segurança')
         }
       } catch (err) {
-        console.error('Erro VirusTotal:', err.message)
-        return new Response(JSON.stringify({ error: 'Erro de segurança: A verificação de malware falhou ou expirou.' }), {
+        console.error('Erro na análise de segurança:', err.message)
+        return new Response(JSON.stringify({ error: 'Bloqueio de segurança: Verificação de malware falhou ou expirou.' }), {
           status: 403,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         })
@@ -67,7 +70,7 @@ serve(async (req) => {
 
     if (isSuspicious) {
       targetBucket = 'quarantine';
-      console.warn(`Arquivo suspeito detectado (${file.name}). Movendo para quarentena.`);
+      console.warn(`Arquivo suspeito detectado: ${file.name}`);
     }
 
     const fileExt = file.name.split('.').pop()
@@ -98,16 +101,6 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Upload Error:', error.message)
-    return new Response(JSON.stringify({ error: error.message }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 500,
-    })
-  }
-})
-
-
-  } catch (error) {
-    console.error('Erro no processamento do upload:', error)
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500,
