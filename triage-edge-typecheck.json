@@ -1,44 +1,31 @@
 {
-  "generatedAt": "2026-04-27T15:25:54.726Z",
+  "generatedAt": "2026-04-27T15:26:34.784Z",
   "denoVersion": "deno 2.6.10 (stable, release, x86_64-unknown-linux-gnu)",
   "mode": "all",
   "totals": {
     "checked": 6,
-    "ok": 2,
-    "failed": 4,
+    "ok": 4,
+    "failed": 2,
     "skipped": 0
   },
   "firstFailure": {
-    "fn": "collections-watcher",
+    "fn": "connections-health-check",
     "exitCode": 1,
-    "elapsedMs": 1496,
+    "elapsedMs": 1578,
     "firstError": {
       "code": "TS2345",
-      "message": "Argument of type 'SupabaseClient<any, \"public\", \"public\", any, any>' is not assignable to parameter of type 'CompatibleSupabaseClient<any, \"public\">'.",
-      "file": "supabase/functions/collections-watcher/index.ts",
-      "line": 97,
-      "column": 33,
-      "snippet": "TS2345 [ERROR]: Argument of type 'SupabaseClient<any, \"public\", \"public\", any, any>' is not assignable to parameter of type 'CompatibleSupabaseClient<any, \"public\">'.\n  Property 'supabaseUrl' is protected but type 'SupabaseClient<Database, SchemaNameOrClientOptions, SchemaName, Schema, ClientOptions>' is not a class derived from 'SupabaseClient<Database, SchemaName, Schema>'.\n      if (await alreadyNotified(service, userId, incidentKey)) continue;\n                                ~~~~~~~\n    at file:///dev-server/supabase/functions/collections-watcher/index.ts:97:33"
+      "message": "Argument of type 'CompatibleSupabaseClient<any, \"public\">' is not assignable to parameter of type 'SupabaseClient<unknown, never, GenericSchema>'.",
+      "file": "supabase/functions/connections-health-check/index.ts",
+      "line": 45,
+      "column": 31,
+      "snippet": "TS2345 [ERROR]: Argument of type 'CompatibleSupabaseClient<any, \"public\">' is not assignable to parameter of type 'SupabaseClient<unknown, never, GenericSchema>'.\n  Type '\"public\"' is not assignable to type 'never'.\n    if (await alreadyNotified(service, userId, incident.key)) continue;\n                              ~~~~~~~\n    at file:///dev-server/supabase/functions/connections-health-check/index.ts:45:31"
     }
   },
   "failures": [
     {
-      "fn": "collections-watcher",
-      "exitCode": 1,
-      "elapsedMs": 1496,
-      "firstError": {
-        "code": "TS2345",
-        "message": "Argument of type 'SupabaseClient<any, \"public\", \"public\", any, any>' is not assignable to parameter of type 'CompatibleSupabaseClient<any, \"public\">'.",
-        "file": "supabase/functions/collections-watcher/index.ts",
-        "line": 97,
-        "column": 33,
-        "snippet": "TS2345 [ERROR]: Argument of type 'SupabaseClient<any, \"public\", \"public\", any, any>' is not assignable to parameter of type 'CompatibleSupabaseClient<any, \"public\">'.\n  Property 'supabaseUrl' is protected but type 'SupabaseClient<Database, SchemaNameOrClientOptions, SchemaName, Schema, ClientOptions>' is not a class derived from 'SupabaseClient<Database, SchemaName, Schema>'.\n      if (await alreadyNotified(service, userId, incidentKey)) continue;\n                                ~~~~~~~\n    at file:///dev-server/supabase/functions/collections-watcher/index.ts:97:33"
-      }
-    },
-    {
       "fn": "connections-health-check",
       "exitCode": 1,
-      "elapsedMs": 1476,
+      "elapsedMs": 1578,
       "firstError": {
         "code": "TS2345",
         "message": "Argument of type 'CompatibleSupabaseClient<any, \"public\">' is not assignable to parameter of type 'SupabaseClient<unknown, never, GenericSchema>'.",
@@ -49,22 +36,9 @@
       }
     },
     {
-      "fn": "favorites-watcher",
-      "exitCode": 1,
-      "elapsedMs": 1731,
-      "firstError": {
-        "code": "TS2345",
-        "message": "Argument of type 'SupabaseClient<any, \"public\", \"public\", any, any>' is not assignable to parameter of type 'CompatibleSupabaseClient<any, \"public\">'.",
-        "file": "supabase/functions/favorites-watcher/index.ts",
-        "line": 90,
-        "column": 33,
-        "snippet": "TS2345 [ERROR]: Argument of type 'SupabaseClient<any, \"public\", \"public\", any, any>' is not assignable to parameter of type 'CompatibleSupabaseClient<any, \"public\">'.\n  Property 'supabaseUrl' is protected but type 'SupabaseClient<Database, SchemaNameOrClientOptions, SchemaName, Schema, ClientOptions>' is not a class derived from 'SupabaseClient<Database, SchemaName, Schema>'.\n      if (await alreadyNotified(service, userId, incidentKey)) continue;\n                                ~~~~~~~\n    at file:///dev-server/supabase/functions/favorites-watcher/index.ts:90:33"
-      }
-    },
-    {
       "fn": "mcp-server",
       "exitCode": 1,
-      "elapsedMs": 1385,
+      "elapsedMs": 1355,
       "firstError": {
         "code": "TS2307",
         "message": "Import \"hono\" not a dependency",
@@ -76,6 +50,8 @@
     }
   ],
   "ok": [
+    "collections-watcher",
+    "favorites-watcher",
     "github-credentials-test",
     "market-intelligence-insights"
   ]
