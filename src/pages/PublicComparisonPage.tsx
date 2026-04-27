@@ -109,11 +109,13 @@ export default function PublicComparisonPage() {
 
   const sendReaction = async (itemIndex: number, emoji: string) => {
     if (!token || !comparison) return;
+    const log = createClientLogger('comparison.publicShare');
+    log.info('reaction_start', { itemIndex, emoji });
     try {
       const url = `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID}.supabase.co/functions/v1/comparisons-public-react`;
       const res = await fetch(url, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...log.headers() },
         body: JSON.stringify({
           share_token: token,
           comparison_id: comparison.id,
@@ -124,8 +126,13 @@ export default function PublicComparisonPage() {
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        if (res.status === 429) toast.error("Muitas reações em pouco tempo. Aguarde um instante.");
-        else toast.error(body.error || "Falha ao reagir");
+        if (res.status === 429) {
+          log.warn('reaction_rate_limited', { status: 429 });
+          toast.error("Muitas reações em pouco tempo. Aguarde um instante.");
+        } else {
+          log.warn('reaction_failed', { status: res.status, body });
+          toast.error(body.error || "Falha ao reagir");
+        }
         return;
       }
       setReactions((prev) => {
@@ -135,8 +142,10 @@ export default function PublicComparisonPage() {
         next.set(itemIndex, m);
         return next;
       });
+      log.info('reaction_ok', { itemIndex, emoji });
       toast.success("Obrigado pelo feedback!");
-    } catch {
+    } catch (err) {
+      log.error('reaction_exception', { err });
       toast.error("Erro de conexão");
     }
   };
