@@ -58,7 +58,7 @@ export function ImageUploadButton({
       let retryCount = 0;
       const maxRetries = 3;
       let uploadSuccess = false;
-      let lastError = null;
+      let lastError: any = null;
 
       while (retryCount < maxRetries && !uploadSuccess) {
         try {
@@ -67,8 +67,10 @@ export function ImageUploadButton({
           });
 
           if (error) {
-            // Se for erro 403 (bloqueio por malware), não tentamos novamente
-            if (error.status === 403) throw error;
+            // Se for erro 403 (bloqueio por malware ou falha de verificação), não tentamos novamente
+            if (error.status === 403) {
+              throw error;
+            }
             throw error;
           }
 
@@ -77,10 +79,17 @@ export function ImageUploadButton({
           uploadSuccess = true;
         } catch (error: any) {
           lastError = error;
+          
+          // Se for bloqueio de segurança (403), interrompe as tentativas
+          if (error.status === 403 || (error.context?.context?.status === 403)) {
+            break;
+          }
+
           retryCount++;
-          if (retryCount < maxRetries && error.status !== 403) {
-            console.log(`Tentativa ${retryCount} falhou, tentando novamente...`);
-            await new Promise(resolve => setTimeout(resolve, 1000 * retryCount)); // Exponential backoff
+          if (retryCount < maxRetries) {
+            const delay = Math.pow(2, retryCount) * 1000; // Exponential backoff: 2s, 4s
+            console.warn(`Tentativa ${retryCount} falhou. Tentando novamente em ${delay}ms...`, error);
+            await new Promise(resolve => setTimeout(resolve, delay));
           }
         }
       }
