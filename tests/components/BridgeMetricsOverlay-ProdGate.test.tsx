@@ -1,16 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render } from '@testing-library/react';
 import BridgeMetricsOverlay from '@/components/dev/BridgeMetricsOverlay';
-import { shouldShowDevInfraMessages } from '@/lib/system/dev-infra-messages';
-import { useAuth } from '@/contexts/AuthContext';
+import { useDevGate } from '@/hooks/useDevGate';
 
-// Vitest mocks são içados (hoisted)
-vi.mock('@/lib/system/dev-infra-messages', () => ({
-  shouldShowDevInfraMessages: vi.fn(),
-}));
-
-vi.mock('@/contexts/AuthContext', () => ({
-  useAuth: vi.fn(),
+vi.mock('@/hooks/useDevGate', () => ({
+  useDevGate: vi.fn(),
 }));
 
 vi.mock('@/lib/telemetry/bridgeCallMetrics', () => ({
@@ -29,7 +23,6 @@ vi.mock('@/lib/telemetry/longTaskWatchdog', () => ({
 describe('BridgeMetricsOverlay - Gating de Produção', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(useAuth).mockReturnValue({ isDev: true } as any);
   });
 
   /**
@@ -43,14 +36,14 @@ describe('BridgeMetricsOverlay - Gating de Produção', () => {
    */
   
   it('renderiza normalmente se o gate SSOT aprovar', () => {
-    vi.mocked(shouldShowDevInfraMessages).mockReturnValue(true);
+    vi.mocked(useDevGate).mockReturnValue({ isAllowed: true, isDev: true });
     const { container } = render(<BridgeMetricsOverlay />);
     expect(container).not.toBeEmptyDOMElement();
     expect(container.textContent).toContain('bridge metrics');
   });
 
   it('retorna null se o gate SSOT REJEITAR (mesmo que seja dev)', () => {
-    vi.mocked(shouldShowDevInfraMessages).mockReturnValue(false);
+    vi.mocked(useDevGate).mockReturnValue({ isAllowed: false, isDev: true });
     const { container } = render(<BridgeMetricsOverlay />);
     expect(container).toBeEmptyDOMElement();
   });
