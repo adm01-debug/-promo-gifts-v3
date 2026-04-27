@@ -2,12 +2,20 @@
  * Overlay flutuante (somente preview/dev) que mostra cada chamada de bridge
  * em tempo real — latência, payload de resposta, status e request-id.
  */
-import { memo, useCallback } from 'react';
+import { memo, useCallback, useState } from 'react';
 import { useDevGate } from '@/hooks/useDevGate';
 import { useBridgeMetrics, type BridgeMetricsFilter, type BridgeMetricsTab } from '@/hooks/dev/useBridgeMetrics';
 import { BridgeCallItem } from './metrics/BridgeCallItem';
 import { BridgeMetricsSummary } from './metrics/BridgeMetricsSummary';
 import { latencyClass } from './metrics/MetricUtils';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Info } from "lucide-react";
 
 export default function BridgeMetricsOverlay() {
   const { isAllowed } = useDevGate();
@@ -32,6 +40,7 @@ export default function BridgeMetricsOverlay() {
     clear
   } = useBridgeMetrics(isAllowed);
 
+  const [showInfo, setShowInfo] = useState(false);
   const handleTogglePause = useCallback(() => setPaused(prev => !prev), [setPaused]);
   const handleClose = useCallback(() => setOpen(false), [setOpen]);
 
@@ -66,7 +75,10 @@ export default function BridgeMetricsOverlay() {
         onTogglePause={handleTogglePause} 
         onClear={clear} 
         onClose={handleClose} 
+        onShowInfo={() => setShowInfo(true)}
       />
+
+      <InfoModal open={showInfo} onOpenChange={setShowInfo} />
 
       <BridgeMetricsSummary summary={summary} />
 
@@ -93,12 +105,18 @@ export default function BridgeMetricsOverlay() {
   );
 }
 
-const Header = memo(({ paused, onTogglePause, onClear, onClose }: any) => (
+const Header = memo(({ paused, onTogglePause, onClear, onClose, onShowInfo }: any) => (
   <div className="flex items-center justify-between gap-2 border-b border-white/10 bg-zinc-900/80 px-3 py-2">
     <div className="flex items-center gap-2">
       <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
       <span className="font-semibold">Métricas de Bridge</span>
-      <span className="text-zinc-500">· modo dev</span>
+      <button 
+        onClick={onShowInfo}
+        className="text-zinc-500 hover:text-zinc-300 transition-colors"
+        title="O que é isso?"
+      >
+        <Info size={14} />
+      </button>
     </div>
     <div className="flex items-center gap-1">
       <button
@@ -124,6 +142,33 @@ const Header = memo(({ paused, onTogglePause, onClear, onClose }: any) => (
       </button>
     </div>
   </div>
+));
+
+const InfoModal = memo(({ open, onOpenChange }: { open: boolean, onOpenChange: (open: boolean) => void }) => (
+  <Dialog open={open} onOpenChange={onOpenChange}>
+    <DialogContent className="bg-zinc-900 border-zinc-800 text-zinc-100 max-w-md">
+      <DialogHeader>
+        <DialogTitle className="flex items-center gap-2">
+          <Info className="text-emerald-400" size={18} />
+          Entendendo as Bridge Metrics
+        </DialogTitle>
+        <DialogDescription className="text-zinc-400 pt-2 space-y-3">
+          <p>
+            O <strong>Bridge</strong> é a camada de comunicação entre a UI e a infraestrutura de dados.
+            Estas métricas ajudam a identificar gargalos de performance no modo dev.
+          </p>
+          <div className="space-y-2 text-xs">
+            <p><strong>• Calls:</strong> Lista de requisições disparadas. Fique atento a status 4xx/5xx e latências altas.</p>
+            <p><strong>• Long Tasks:</strong> Identifica tarefas pesadas no thread principal que podem travar a UI (bloqueios >50ms).</p>
+            <p><strong>• Cores:</strong> Verde (Rápido), Amarelo (Moderado), Vermelho (Lento - requer atenção).</p>
+          </div>
+          <p className="text-[10px] opacity-70 italic border-t border-white/5 pt-2">
+            Este painel é visível apenas para usuários com permissão 'dev' e é removido automaticamente em produção.
+          </p>
+        </DialogDescription>
+      </DialogHeader>
+    </DialogContent>
+  </Dialog>
 ));
 
 const Tabs = memo(({ tab, setTab, longTasksCount, filter, setFilter }: any) => (
