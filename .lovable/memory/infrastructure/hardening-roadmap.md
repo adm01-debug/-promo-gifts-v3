@@ -62,3 +62,8 @@ Total: **8 edge functions** com graceful degradation (503+Retry-After:60 quando 
 - Item 6: client logging em auth/quote/mcp ✅
 - Item 7: gate CI `check-edge-structured-logging.mjs` ✅
 - Item 8: instrumentação `magicUp.generate`, `magicUp.score`, `comparison.publicShare`, `connections.testCredentials` ✅ (2026-04-27)
+- Item 9: bateria E2E auth+RLS+recovery ✅ (2026-04-27)
+  - `e2e/flows/p0/06-auth-lifecycle.spec.ts` (5 testes — login válido/inválido, refresh 401, back após logout, purge de tokens)
+  - `e2e/flows/p0/07-rls-enforcement.spec.ts` (4 testes — leitura cross-user, anon-deny, UPDATE alheio)
+  - `e2e/flows/p0/08-password-recovery.spec.ts` (6 testes — token válido/sem-token, senha fraca, senhas divergentes, 5xx, anti-enumeration)
+  - Smoke gate: testes 93 (login negativo), 94 (RLS guard), 95 (recovery sem token) em `flows/20-all-features-smoke.spec.ts`
