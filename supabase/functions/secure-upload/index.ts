@@ -85,11 +85,10 @@ serve(async (req) => {
         } else {
           throw new Error(`Falha na API de segurança (Status: ${vtRes.status})`)
         }
-      } catch (err) {
+      } catch (err: any) {
         const reason = err.name === 'AbortError' ? 'Timeout na verificação (10s)' : err.message;
         console.error('Security Check Failed:', reason);
         
-        // Registrar falha de segurança na auditoria antes de retornar
         await supabaseAdmin.from('file_scan_logs').insert({
           ...auditData,
           status_code: 403,
@@ -111,7 +110,6 @@ serve(async (req) => {
 
     if (uploadError) throw uploadError
 
-    // Atualizar dados de auditoria com o caminho final e resultado do scan
     auditData.path = uploadData.path;
     auditData.bucket = targetBucket;
     auditData.status_code = isSuspicious ? 403 : 200;
@@ -132,21 +130,15 @@ serve(async (req) => {
 
   } catch (error: any) {
     console.error('Final Error:', error.message)
-    
-    // Tenta registrar o erro na auditoria se tivermos o hash
     if (auditData.hash) {
       await supabaseAdmin.from('file_scan_logs').insert({
         ...auditData,
         status_code: 500,
-        scan_result: { error: true, message: error.message, stack: error.stack }
+        scan_result: { error: true, message: error.message }
       });
     }
-
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500
     })
-  }
-})
-
   }
 })
