@@ -1,0 +1,52 @@
+{
+  "generatedAt": "2026-04-27T15:15:28.187Z",
+  "denoVersion": "deno 2.6.10 (stable, release, x86_64-unknown-linux-gnu)",
+  "mode": "fail-fast",
+  "totals": {
+    "checked": 12,
+    "ok": 11,
+    "failed": 1,
+    "skipped": 0
+  },
+  "firstFailure": {
+    "fn": "collections-watcher",
+    "exitCode": 1,
+    "elapsedMs": 1521,
+    "firstError": {
+      "code": "UNKNOWN",
+      "message": "\u001b[0m\u001b[32mDownload\u001b[0m https://esm.sh/@supabase/auth-js@2.95.0/dist/module/lib/errors.d.ts",
+      "file": null,
+      "line": null,
+      "column": null,
+      "snippet": "\u001b[0m\u001b[32mDownload\u001b[0m https://esm.sh/@supabase/supabase-js@2.95.0\n\u001b[0m\u001b[32mDownload\u001b[0m https://esm.sh/@supabase/supabase-js@2.95.0/dist/index.d.mts\n\u001b[0m\u001b[32mDownload\u001b[0m https://esm.sh/@supabase/functions-js@2.95.0/dist/module/index.d.ts\n\u001b[0m\u001b[32mDownload\u001b[0m https://esm.sh/@supabase/postgrest-js@2.95.0/dist/index.d.mts\n\u001b[0m\u001b[32mDownload\u001b[0m https://esm.sh/@supabase/realtime-js@2.95.0/dist/module/index.d.ts\n\u001b[0m\u001b[32mDownload\u001b[0m https://esm.sh/@supabase/storage-js@2.95.0/dist/index.d.mts\n\u001b[0m\u001b[32mDownload\u001b[0m https://esm.sh/@supabase/auth-js@2.95.0/dist/module/index.d.ts\n\u001b[0m\u001b[32mDownload\u001b[0m https://esm.sh/@supabase/functions-js@2.95.0/dist/module/FunctionsClient.d.ts"
+    }
+  },
+  "failures": [
+    {
+      "fn": "collections-watcher",
+      "exitCode": 1,
+      "elapsedMs": 1521,
+      "firstError": {
+        "code": "UNKNOWN",
+        "message": "\u001b[0m\u001b[32mDownload\u001b[0m https://esm.sh/@supabase/auth-js@2.95.0/dist/module/lib/errors.d.ts",
+        "file": null,
+        "line": null,
+        "column": null,
+        "snippet": "\u001b[0m\u001b[32mDownload\u001b[0m https://esm.sh/@supabase/supabase-js@2.95.0\n\u001b[0m\u001b[32mDownload\u001b[0m https://esm.sh/@supabase/supabase-js@2.95.0/dist/index.d.mts\n\u001b[0m\u001b[32mDownload\u001b[0m https://esm.sh/@supabase/functions-js@2.95.0/dist/module/index.d.ts\n\u001b[0m\u001b[32mDownload\u001b[0m https://esm.sh/@supabase/postgrest-js@2.95.0/dist/index.d.mts\n\u001b[0m\u001b[32mDownload\u001b[0m https://esm.sh/@supabase/realtime-js@2.95.0/dist/module/index.d.ts\n\u001b[0m\u001b[32mDownload\u001b[0m https://esm.sh/@supabase/storage-js@2.95.0/dist/index.d.mts\n\u001b[0m\u001b[32mDownload\u001b[0m https://esm.sh/@supabase/auth-js@2.95.0/dist/module/index.d.ts\n\u001b[0m\u001b[32mDownload\u001b[0m https://esm.sh/@supabase/functions-js@2.95.0/dist/module/FunctionsClient.d.ts"
+      }
+    }
+  ],
+  "ok": [
+    "ai-recommendations",
+    "analyze-logo-colors",
+    "bi-copilot",
+    "bi-share-dossier",
+    "bitrix-sync",
+    "block-ip-temporarily",
+    "categories-api",
+    "cleanup-notifications",
+    "cleanup-novelties",
+    "cnpj-lookup",
+    "collections-public-react"
+  ]
+}
