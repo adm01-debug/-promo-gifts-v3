@@ -9,8 +9,9 @@
  *    re-autoriza acesso).
  *  - Usa SOMENTE seletores SSOT (`Sel.*`) e helpers (`loginViaUI`, `logout`,
  *    `expectAuthenticated`, `expectUnauthenticated`).
- *  - Os 2 testes principais ganham tag `@smoke` para entrar no gate
- *    determinístico. Os demais ficam no regression.
+ *  - Vive em `flows/p0/` (regression P0). Cobertura smoke equivalente
+ *    está em `flows/20-all-features-smoke.spec.ts` (testes 90/93) — vide
+ *    `mem://testing/e2e-smoke-tag-isolation.md`.
  */
 import { test, expect } from "../../fixtures/test-base";
 import { Sel } from "../../fixtures/selectors";
@@ -29,7 +30,7 @@ test.describe("P0 — Auth lifecycle (login/logout/refresh)", () => {
   // Sempre começa SEM sessão para deixar cada teste determinístico.
   test.use({ storageState: { cookies: [], origins: [] } });
 
-  test("@smoke positivo: login válido → app autenticado e logout volta para /login", async ({ page }) => {
+  test("positivo: login válido → app autenticado e logout volta para /login", async ({ page }) => {
     test.skip(!E2E_USER || !E2E_PASS, "Credenciais E2E_USER_* ausentes");
     await loginViaUI(page, { email: E2E_USER!, password: E2E_PASS! });
     await expectAuthenticated(page);
@@ -37,7 +38,7 @@ test.describe("P0 — Auth lifecycle (login/logout/refresh)", () => {
     await expectUnauthenticated(page);
   });
 
-  test("@smoke negativo: credenciais inválidas mantém usuário em /login com botão habilitado", async ({ page }) => {
+  test("negativo: credenciais inválidas mantém usuário em /login com botão habilitado", async ({ page }) => {
     const ok = await loginViaUI(page, {
       email: "ninguem-existe@example.com",
       password: "SenhaErrada@2025!",

@@ -13,7 +13,8 @@
  *  - 5xx do auth → alerta amigável, sem travamento.
  *  - Form com token válido aceita senha forte e habilita submit.
  *
- * 1 teste marcado @smoke para gate determinístico (recovery quebrado é P0).
+ * Cobertura smoke crítica vive em `flows/20-all-features-smoke.spec.ts`
+ * (teste 95) — vide `mem://testing/e2e-smoke-tag-isolation.md`.
  */
 import { test, expect } from "../../fixtures/test-base";
 import { waitRouteReady } from "../../routes/_shared";
@@ -21,7 +22,7 @@ import { waitRouteReady } from "../../routes/_shared";
 test.describe("P0 — Password recovery", () => {
   test.use({ storageState: { cookies: [], origins: [] } });
 
-  test("@smoke positivo: /reset-password com token válido aceita senha forte e habilita submit", async ({ page }) => {
+  test("positivo: /reset-password com token válido aceita senha forte e habilita submit", async ({ page }) => {
     await page.goto("/reset-password#access_token=fake&type=recovery");
     await waitRouteReady(page);
 

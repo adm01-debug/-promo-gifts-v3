@@ -11,7 +11,8 @@
  *  - Negativo: usuário NÃO consegue ler tabelas restritas (user_roles de
  *    outros, password_reset_requests, login_attempts) e recebe array vazio
  *    ou 401/403 — nunca dados de terceiros.
- *  - 1 teste @smoke para regressão crítica (vazamento RLS é P0).
+ *  - Cobertura smoke crítica vive em `flows/20-all-features-smoke.spec.ts`
+ *    (teste 94) — vide `mem://testing/e2e-smoke-tag-isolation.md`.
  */
 import { test, expect } from "../../fixtures/test-base";
 import { loginViaUI } from "../../helpers/auth";
@@ -66,7 +67,7 @@ test.describe("P0 — RLS enforcement", () => {
     test.skip(!E2E_USER || !E2E_PASS, "Credenciais E2E_USER_* ausentes");
   });
 
-  test("@smoke negativo: tabelas sensíveis não retornam linhas de outros usuários", async ({ page }) => {
+  test("negativo: tabelas sensíveis não retornam linhas de outros usuários", async ({ page }) => {
     await loginViaUI(page, { email: E2E_USER!, password: E2E_PASS! });
     const token = await getAccessToken(page);
     expect(token, "access_token deve existir após login").toBeTruthy();
