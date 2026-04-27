@@ -127,6 +127,9 @@ export default function BridgeMetricsOverlay() {
     };
   }, [samples, filter]);
 
+  // Gate SSOT: usuários sem permissão não veem botão flutuante nem painel.
+  if (!allowed) return null;
+
   if (!open) {
     return (
       <button
