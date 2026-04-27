@@ -369,7 +369,7 @@ mcpServer.tool("ping", {
 const transport = new StreamableHttpTransport();
 const app = new Hono();
 
-app.options("/*", (c) => new Response(null, { headers: getCorsHeaders(req) }));
+app.options("/*", (c) => new Response(null, { headers: getCorsHeaders(c.req.raw) }));
 
 const httpHandler = transport.bind(mcpServer);
 
@@ -493,7 +493,7 @@ app.all("/*", async (c) => {
   try {
     const res = await httpHandler(c.req.raw);
     const merged = new Headers(res.headers);
-    for (const [k, v] of Object.entries(getCorsHeaders(req))) merged.set(k, v);
+    for (const [k, v] of Object.entries(getCorsHeaders(c.req.raw))) merged.set(k, v);
     merged.set(REQUEST_ID_HEADER, ctx.requestId);
     return new Response(res.body, { status: res.status, headers: merged });
   } finally {
