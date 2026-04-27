@@ -23,7 +23,7 @@ export function GroupPersonalizationManager() {
     selectedGroup, setSelectedGroup,
     groups, groupsLoading,
     components, componentsLoading,
-    locations, techniques, locationTechniques,
+    locations, techniques,
     addComponent, updateComponent, deleteComponent,
     addLocation, updateLocation, deleteLocation,
     addTechnique, updateTechnique, deleteTechnique,

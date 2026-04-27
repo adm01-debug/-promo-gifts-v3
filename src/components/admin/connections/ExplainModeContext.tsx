@@ -10,7 +10,7 @@
  *  - Ícones de info ficam visíveis ao lado dos valores
  *  - shortcut: pressionar "?" alterna o modo
  */
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 interface ExplainModeContextValue {
   enabled: boolean;

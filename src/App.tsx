@@ -1,4 +1,4 @@
-import { useEffect, useState, type FC } from "react";
+import { useEffect, type ReactNode } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -15,7 +15,6 @@ import { DevRoute } from "@/components/layout/DevRoute";
 import { DeprecatedRoute } from "@/components/layout/DeprecatedRoute";
 import { AppProviders } from "@/components/providers/AppProviders";
 import { AccessibilityProvider, AriaLiveProvider } from "@/components/a11y";
-import LoadingScreen from "@/components/LoadingScreen";
 import { useGlobalErrorCatcher } from "@/hooks/useErrorHandler";
 import { markBootSuccessful } from "@/lib/chunk-recovery";
 import { getFallback } from "@/components/layout/SkeletonLoaders";
@@ -144,19 +143,18 @@ import { loadThemeConfig, applyThemePreset, applyRadius } from '@/lib/theme-pres
 import { ThemeInitializer } from '@/components/ThemeInitializer';
 
 /** Componente interno que roda hooks que dependem de AuthProvider */
-function AppWithAuth({ children }: { children: React.ReactNode }) {
+function AppWithAuth({ children }: { children: ReactNode }) {
   useCatalogPrefetch();
   return <>{children}</>;
 }
 
 /** Location-aware Suspense that renders route-specific skeletons */
-function RouteSuspense({ children }: { children: React.ReactNode }) {
+function RouteSuspense({ children }: { children: ReactNode }) {
   const { pathname } = useLocation();
   return <Suspense fallback={getFallback(pathname)}>{children}</Suspense>;
 }
 
 const App = () => {
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
   useGlobalErrorCatcher();
 
   // Apply saved theme on boot (ThemeInitializer handles re-apply on mode change)
@@ -171,8 +169,8 @@ const App = () => {
   }, []);
 
   useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
+    const handleOnline = () => {};
+    const handleOffline = () => {};
 
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
