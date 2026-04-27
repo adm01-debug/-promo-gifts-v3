@@ -34,6 +34,9 @@ describe('DevInfraGate SSR & Hydration Integration', () => {
     // Mas o mock nos permite ditar o estado.
     
     const { rerender } = render(<DevOnlyBridgeOverlay />);
+    // Garante que o HTML inicial renderizado no cliente (antes do useEffect/Auth) 
+    // é absolutamente vazio, sem placeholders ou wrappers
+    expect(document.body.innerHTML).not.toContain('bridge-metrics-overlay');
     expect(screen.queryByTestId('bridge-metrics-overlay-real')).not.toBeInTheDocument();
 
     // Simula a resolução do Auth (isLoading=false) e montagem final (mounted=true)
