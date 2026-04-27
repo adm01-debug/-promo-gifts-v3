@@ -12,6 +12,7 @@
  *  8. @mobile sem overflow horizontal
  */
 import { test, expect } from "../../fixtures/test-base";
+import { gotoAndSettle } from "../helpers/nav";
 import {
   basicA11yChecks,
   mockEdgeFn,
