@@ -70,12 +70,15 @@ export function useMagicUpGeneration(deps: GenerationDeps) {
   const handleGenerate = useCallback(async (batchVariant?: MagicUpBatchVariant) => {
     if (!canGenerate) return;
     setGenerating(true);
+    const log = createClientLogger('magicUp.generate', { base: { productId: deps.selectedProduct?.id, channel: deps.brief.channel } });
+    log.info('generate_start', { batch: batchVariant?.id ?? null });
     try {
       const isLogoUrl = deps.logoPreview!.startsWith("http");
       const variantBrief = batchVariant ? { ...deps.brief, channel: batchVariant.channel || deps.brief.channel, tone: batchVariant.tone || deps.brief.tone } : deps.brief;
       const variantControls = batchVariant?.aspectRatio ? { ...deps.creativeControls, aspectRatio: batchVariant.aspectRatio } : deps.creativeControls;
       const variantPrompt = [batchVariant?.scenePrompt || deps.effectivePrompt, batchVariant?.refinementInstruction || deps.activeRefinement?.instruction].filter(Boolean).join("\n\nREFINEMENT INSTRUCTION: ");
       const { data, error } = await supabase.functions.invoke("generate-ad-image", {
+        headers: log.headers(),
         body: {
           productImageUrl: deps.currentImage,
           logoBase64: isLogoUrl ? undefined : deps.logoPreview,
