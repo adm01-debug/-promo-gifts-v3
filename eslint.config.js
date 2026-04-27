@@ -122,8 +122,11 @@ export default [
   {
     files: ['e2e/**/*.spec.{ts,tsx}'],
     rules: {
+      // Severity 'warn' nesta primeira fase — promova para 'error' após
+      // migrar todas as ~17 specs legadas (auditoria via:
+      // `rg "page\.goto|waitForTimeout|networkidle" e2e/**/*.spec.ts`).
       'no-restricted-syntax': [
-        'error',
+        'warn',
         {
           selector: "CallExpression[callee.property.name='waitForTimeout']",
           message:
