@@ -504,6 +504,7 @@ async function semanticProductSearch(
 // ============================================
 
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
   let corsHeaders: Record<string, string>;
   try {
     corsHeaders = getCorsHeaders(req);

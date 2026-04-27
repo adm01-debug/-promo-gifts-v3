@@ -1,3 +1,4 @@
+import { getCorsHeaders } from "../_shared/cors.ts";
 // RLS Audit: testa SELECT/INSERT/UPDATE/DELETE em quotes, orders e
 // discount_approval_requests usando o JWT do usuário logado (vendedor).
 // Cada cenário retorna ✅/❌ + detalhe para evidência de auditoria.
@@ -15,6 +16,7 @@ interface ScenarioResult {
 }
 
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {

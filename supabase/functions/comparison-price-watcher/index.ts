@@ -10,6 +10,7 @@ const THRESHOLD_PCT = 5;
 const LOOKBACK_DAYS = 7;
 
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") return new Response(null, { headers: getCorsHeaders(req) });
 
   const supabase = createClient(

@@ -1,3 +1,4 @@
+import { getCorsHeaders } from "../_shared/cors.ts";
 /**
  * bi-share-dossier — gera token assinado HMAC para compartilhamento público
  * do dossiê BI (read-only, expira em 7 dias).
@@ -77,6 +78,7 @@ async function verifyToken(token: string): Promise<Payload | null> {
 }
 
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }

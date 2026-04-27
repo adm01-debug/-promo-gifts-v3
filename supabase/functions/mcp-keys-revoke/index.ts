@@ -1,3 +1,4 @@
+import { getCorsHeaders } from "../_shared/cors.ts";
 /**
  * mcp-keys-revoke
  *
@@ -34,6 +35,7 @@ function jsonResponse(body: unknown, status: number, requestId: string) {
 }
 
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   const requestId = getOrCreateRequestId(req);
   const startedAt = new Date().toISOString();

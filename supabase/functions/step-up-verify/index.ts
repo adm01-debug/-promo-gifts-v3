@@ -52,6 +52,7 @@ function safeLabel(label: string | undefined | null, max = 200): string | null {
 }
 
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") return new Response(null, { headers: getCorsHeaders(req) });
 
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;

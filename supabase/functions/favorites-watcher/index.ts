@@ -1,3 +1,4 @@
+import { getCorsHeaders } from "../_shared/cors.ts";
 // favorites-watcher: cron diário que detecta quedas de preço em favoritos
 // e gera workspace_notifications (categoria "favorites") com dedupe 24h.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.95.0";
@@ -28,6 +29,7 @@ async function alreadyNotified(service: ReturnType<typeof createClient>, userId:
 }
 
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {

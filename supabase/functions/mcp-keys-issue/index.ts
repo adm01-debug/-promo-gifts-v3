@@ -1,3 +1,4 @@
+import { getCorsHeaders } from "../_shared/cors.ts";
 /**
  * mcp-keys-issue
  *
@@ -129,6 +130,7 @@ async function generateKey(): Promise<{ plain: string; hash: string; prefix: str
 }
 
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }

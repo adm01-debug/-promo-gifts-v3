@@ -42,6 +42,7 @@ async function loadSecret(
 }
 
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") return new Response(null, { headers: getCorsHeaders(req) });
 
   const startedAt = Date.now();
