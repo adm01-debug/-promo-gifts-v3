@@ -20,7 +20,7 @@ interface IncidentKey {
 }
 
 async function alreadyNotified(
-  service: ReturnType<typeof createClient>,
+  service: import("../_shared/supabase-client-adapter.ts").CompatibleSupabaseClient,
   userId: string,
   key: string,
 ): Promise<boolean> {
