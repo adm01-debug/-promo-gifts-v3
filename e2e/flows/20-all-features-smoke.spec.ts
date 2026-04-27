@@ -22,16 +22,24 @@ import {
   findSmokeCoverageGaps,
   findUnknownCoveredFeatures,
 } from "../routes/_catalog";
+import { gotoAndWaitReady } from "../helpers/waits";
 
 /** Ordem fixa: garante mesmo relatório em todo run do CI. */
 test.describe.configure({ mode: "serial" });
 
 /**
  * Asserções básicas que TODA tela autenticada deve atender.
+ *
+ * Estratégia anti-flake (CI):
+ *  - `gotoAndWaitReady` = goto com retry em erros transitórios + espera de
+ *    readiness (page-title-<slug> quando disponível, senão heurística).
+ *  - Coleta `pageerror` para falhar com diagnóstico em vez de silenciar.
+ *  - Sem `networkidle` por default (lento e flaky em apps com polling/realtime).
  */
 async function assertFeatureLoads(
   page: import("@playwright/test").Page,
   path: string,
+  pageSlug?: string,
 ): Promise<void> {
   const errors: string[] = [];
   page.on("pageerror", (e) => {
@@ -40,17 +48,20 @@ async function assertFeatureLoads(
     }
   });
 
-  await page.goto(path);
-  await page.waitForLoadState("domcontentloaded");
+  await gotoAndWaitReady(page, path, {
+    attempts: 2,
+    perAttemptTimeout: 25_000,
+    pageSlug,
+    timeout: 20_000,
+  });
 
+  // Sessão válida: sem redirect para /login.
   expect(/\/login/.test(page.url()), `redirect inesperado para login em ${path}`).toBe(false);
+
+  // Body visível (sanity).
   await expect(page.locator("body")).toBeVisible();
-  await page
-    .waitForFunction(
-      () => !document.querySelector('[data-state="loading"]:not([data-allow-loading])'),
-      { timeout: 5_000 },
-    )
-    .catch(() => {});
+
+  // Sem `pageerror` fatal coletado durante o carregamento.
   expect(errors, `pageerrors em ${path}: ${errors.join(" | ")}`).toHaveLength(0);
 }
 
@@ -121,7 +132,7 @@ test.describe("@smoke Funcionalidades principais (gate de CI)", () => {
     const num = String(idx + 1).padStart(2, "0");
     const label = entry.description ?? entry.feature!;
     test(`${num} · ${label}`, async ({ page }) => {
-      await assertFeatureLoads(page, entry.path);
+      await assertFeatureLoads(page, entry.path, entry.titleSlug);
       // Asserções extras específicas por feature.
       if (feature === "catalog") {
         await expect(page.locator(Sel.catalog.searchInput).first()).toBeAttached({
