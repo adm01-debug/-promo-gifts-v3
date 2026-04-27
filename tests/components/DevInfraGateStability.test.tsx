@@ -12,16 +12,18 @@ vi.mock('@/hooks/useDevGate', () => ({
 // Rastreamento de eventos de ciclo de vida
 let lifecycleEvents: string[] = [];
 
+let renderCount = 0;
 vi.mock('@/components/dev/BridgeMetricsOverlay', () => ({
-  default: () => {
+  default: React.memo(() => {
     useEffect(() => {
       lifecycleEvents.push('mount');
+      renderCount++;
       return () => {
         lifecycleEvents.push('unmount');
       };
     }, []);
     return <div data-testid="bridge-metrics-overlay-real">Overlay Active</div>;
-  },
+  }),
 }));
 
 describe('DevInfraGate Stability — Lifecycle & Flicker Detection', () => {
