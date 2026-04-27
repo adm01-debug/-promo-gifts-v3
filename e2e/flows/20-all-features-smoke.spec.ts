@@ -132,7 +132,7 @@ test.describe("@smoke Funcionalidades principais (gate de CI)", () => {
     const num = String(idx + 1).padStart(2, "0");
     const label = entry.description ?? entry.feature!;
     test(`${num} · ${label}`, async ({ page }) => {
-      await assertFeatureLoads(page, entry.path);
+      await assertFeatureLoads(page, entry.path, entry.titleSlug);
       // Asserções extras específicas por feature.
       if (feature === "catalog") {
         await expect(page.locator(Sel.catalog.searchInput).first()).toBeAttached({
