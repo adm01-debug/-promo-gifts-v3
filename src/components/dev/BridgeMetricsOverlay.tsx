@@ -3,7 +3,7 @@
  * em tempo real — latência, payload de resposta, status e request-id.
  */
 
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore, memo } from 'react';
 import { useDevGate } from '@/hooks/useDevGate';
 import {
   getBridgeSamples,
@@ -22,6 +22,29 @@ import {
 const STORAGE_KEY = 'lov:bridge-metrics-overlay:open';
 const MAX_VISIBLE = 60;
 
+const BridgeCallItem = memo(({ sample }: { sample: BridgeCallSample }) => {
+  return (
+    <li className="px-3 py-1.5 hover:bg-white/5">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex min-w-0 items-center gap-1.5">
+          <span className={`shrink-0 rounded border px-1 text-[9px] uppercase ${bridgeBadge(sample.bridge)}`}>
+            {sample.bridge === 'external-db-bridge' ? 'ext' : 'crm'}
+          </span>
+          <span className="truncate text-zinc-200">{sample.op}</span>
+          {sample.target && <span className="truncate text-zinc-500">·{sample.target}</span>}
+        </div>
+        <div className="flex shrink-0 items-center gap-2 tabular-nums">
+          <span className={latencyClass(sample.durationMs)}>{sample.durationMs}ms</span>
+          <span className="text-zinc-400">{formatBytes(sample.respBytes)}</span>
+          {!sample.ok && <span className="rounded bg-red-500/20 px-1 text-[9px] text-red-300">{sample.status ?? 'err'}</span>}
+        </div>
+      </div>
+    </li>
+  );
+});
+
+BridgeCallItem.displayName = 'BridgeCallItem';
+
 function formatBytes(b: number): string {
   if (b < 1024) return `${b}B`;
   if (b < 1024 * 1024) return `${(b / 1024).toFixed(1)}KB`;
@@ -39,11 +62,6 @@ function bridgeBadge(b: BridgeCallSample['bridge']): string {
   return b === 'external-db-bridge'
     ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40'
     : 'bg-fuchsia-500/20 text-fuchsia-300 border-fuchsia-500/40';
-}
-
-function shortReqId(id?: string): string {
-  if (!id) return '—';
-  return id.length > 8 ? id.slice(0, 8) : id;
 }
 
 const EMPTY: readonly BridgeCallSample[] = [];
@@ -233,22 +251,7 @@ export default function BridgeMetricsOverlay() {
           ) : (
             <ul className="divide-y divide-white/5">
               {visible.map(s => (
-                <li key={s.id} className="px-3 py-1.5 hover:bg-white/5">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex min-w-0 items-center gap-1.5">
-                      <span className={`shrink-0 rounded border px-1 text-[9px] uppercase ${bridgeBadge(s.bridge)}`}>
-                        {s.bridge === 'external-db-bridge' ? 'ext' : 'crm'}
-                      </span>
-                      <span className="truncate text-zinc-200">{s.op}</span>
-                      {s.target && <span className="truncate text-zinc-500">·{s.target}</span>}
-                    </div>
-                    <div className="flex shrink-0 items-center gap-2 tabular-nums">
-                      <span className={latencyClass(s.durationMs)}>{s.durationMs}ms</span>
-                      <span className="text-zinc-400">{formatBytes(s.respBytes)}</span>
-                      {!s.ok && <span className="rounded bg-red-500/20 px-1 text-[9px] text-red-300">{s.status ?? 'err'}</span>}
-                    </div>
-                  </div>
-                </li>
+                <BridgeCallItem key={s.id} sample={s} />
               ))}
             </ul>
           )

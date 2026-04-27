@@ -7,25 +7,53 @@ import { EnvGateProvider, LocalStorageGateProvider } from './providers';
  */
 export class DevInfraGate {
   private providers: GateFlagProvider[];
+  private cache: Map<string, boolean> = new Map();
 
   constructor(providers?: GateFlagProvider[]) {
     this.providers = providers ?? [
       new EnvGateProvider(),
       new LocalStorageGateProvider()
     ];
+    
+    // Invalida cache se houver mudança no localStorage de outra aba
+    if (typeof window !== 'undefined') {
+      window.addEventListener('storage', (e) => {
+        if (e.key === 'show_dev_infra_messages' || e.key === 'lov:bridge-metrics-overlay:open') {
+          this.invalidateCache();
+        }
+      });
+    }
   }
 
   /**
    * Avalia se as mensagens devem ser exibidas.
+   * Resultados são cacheados por parâmetro isDev para performance.
    */
   shouldShow(isDev: boolean): boolean {
+    const cacheKey = String(isDev);
+    if (this.cache.has(cacheKey)) {
+      return this.cache.get(cacheKey)!;
+    }
+
+    let result: boolean = isDev;
     for (const provider of this.providers) {
       const value = provider.getFlag();
-      if (value !== 'auto') return value;
+      if (value !== 'auto') {
+        result = value;
+        break;
+      }
     }
-    return Boolean(isDev);
+
+    this.cache.set(cacheKey, result);
+    return result;
+  }
+
+  /**
+   * Invalida o cache (ex: quando o dev altera o localStorage).
+   */
+  invalidateCache(): void {
+    this.cache.clear();
   }
 }
 
-// Instância singleton para uso em toda a aplicação
 export const devInfraGate = new DevInfraGate();

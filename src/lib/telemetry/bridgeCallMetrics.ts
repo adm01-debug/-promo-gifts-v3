@@ -59,51 +59,54 @@ function emit() {
 }
 
 /**
- * Estimativa BARATA do tamanho serializado de um payload.
+ * Estimativa ULTRA-RÁPIDA do tamanho serializado de um payload.
  *
- * IMPORTANTE: chamar `JSON.stringify` em respostas grandes (ex: listing de 500
- * produtos ≈ 1MB) bloqueia a main thread em TODA chamada de bridge — mesmo
- * quando o painel /admin/telemetria não está aberto. Isso causava lentidão
- * geral na navegação.
- *
- * Estratégia:
- *  - Strings: tamanho direto.
- *  - Arrays grandes: amostra os primeiros N itens e extrapola (O(N), não O(total)).
- *  - Objetos pequenos: stringify normal.
- *  - Falha: 0 (telemetria é best-effort, jamais quebra o fluxo).
+ * Evita JSON.stringify() em objetos grandes para não bloquear a Main Thread.
  */
-const SAMPLE_SIZE = 10;
-
-import { isInstrumentationPaused } from './instrumentationControl';
-
 export function estimatePayloadBytes(value: unknown): number {
   if (value == null) return 0;
-  // Kill-switch: evita stringify mesmo amostrado quando o dev pausou.
   if (isInstrumentationPaused()) return 0;
+
   try {
-    if (typeof value === 'string') return value.length;
-    // Heurística para arrays grandes (caso comum: { records: [...] }).
-    if (Array.isArray(value) && value.length > SAMPLE_SIZE) {
-      const sample = value.slice(0, SAMPLE_SIZE);
-      const sampleBytes = JSON.stringify(sample).length;
-      return Math.round((sampleBytes / SAMPLE_SIZE) * value.length);
-    }
-    if (typeof value === 'object') {
-      const obj = value as Record<string, unknown>;
-      // Caso comum do bridge: { data: { records: [...], count }, success }
-      const records =
-        (obj.data as { records?: unknown[] } | undefined)?.records ??
-        (obj.records as unknown[] | undefined);
-      if (Array.isArray(records) && records.length > SAMPLE_SIZE) {
-        const sample = records.slice(0, SAMPLE_SIZE);
-        const sampleBytes = JSON.stringify(sample).length;
-        return Math.round((sampleBytes / SAMPLE_SIZE) * records.length) + 64;
+    const type = typeof value;
+    if (type === 'string') return (value as string).length;
+    if (type === 'number') return 8;
+    if (type === 'boolean') return 4;
+
+    // Heurística para arrays
+    if (Array.isArray(value)) {
+      if (value.length === 0) return 2;
+      const sampleCount = Math.min(value.length, 5);
+      let sampleBytes = 0;
+      for (let i = 0; i < sampleCount; i++) {
+        sampleBytes += estimatePayloadBytes(value[i]);
       }
+      return Math.round((sampleBytes / sampleCount) * value.length) + (value.length * 2);
     }
-    return JSON.stringify(value).length;
+
+    // Heurística para objetos
+    if (type === 'object') {
+      const keys = Object.keys(value as object);
+      if (keys.length === 0) return 2;
+      
+      const obj = value as any;
+      const records = obj.data?.records || obj.records;
+      if (Array.isArray(records)) {
+        return estimatePayloadBytes(records) + 64;
+      }
+
+      const sampleCount = Math.min(keys.length, 5);
+      let sampleBytes = 0;
+      for (let i = 0; i < sampleCount; i++) {
+        const key = keys[i];
+        sampleBytes += key.length + estimatePayloadBytes(obj[key]) + 4;
+      }
+      return Math.round((sampleBytes / sampleCount) * keys.length) + 16;
+    }
   } catch {
     return 0;
   }
+  return 0;
 }
 
 export function recordBridgeCall(sample: Omit<BridgeCallSample, 'id' | 'ts'> & { ts?: number }): void {

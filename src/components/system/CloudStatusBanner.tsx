@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { AlertTriangle, Loader2, RefreshCw, WifiOff } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -24,7 +25,7 @@ const STATUS_CONFIG: Record<string, { message: string; icon: any; className: str
   }
 };
 
-export function CloudStatusBanner() {
+export const CloudStatusBanner = memo(function CloudStatusBanner() {
   const { isAllowed } = useDevGate();
   const { status, retry, isChecking } = useCloudStatus();
   
@@ -71,4 +72,4 @@ export function CloudStatusBanner() {
       </motion.div>
     </AnimatePresence>
   );
-}
+});
