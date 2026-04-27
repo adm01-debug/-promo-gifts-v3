@@ -82,7 +82,9 @@ function parsePublicSmokeTests(src) {
   const tests = [];
   let m;
   while ((m = re.exec(src)) !== null) {
-    if (m[1].startsWith("9")) tests.push({ num: m[1], label: m[2] });
+    // 90-98 = smoke público; 99 = governança (ignorado).
+    const n = Number(m[1]);
+    if (n >= 90 && n <= 98) tests.push({ num: m[1], label: m[2] });
   }
   return tests;
 }
