@@ -54,6 +54,12 @@ jobs:
       - name: Validar doc de auditoria do smoke (drift check)
         run: node scripts/e2e-smoke-coverage-doc.mjs --check
 
+      # Garante que TODO test() no spec do smoke está sob describe @smoke.
+      # Tests fora de describe @smoke seriam silenciosamente IGNORADOS pelo
+      # gate (project chromium-smoke usa `grep: /@smoke/`). Falha CI cedo.
+      - name: 🏷  Validar tags @smoke no spec do gate
+        run: node scripts/check-smoke-tags.mjs
+
       - name: Run E2E smoke (gate determinístico — 1 teste/feature, sequencial)
         id: e2e_smoke
         run: npx playwright test --project=chromium-smoke --max-failures=3
