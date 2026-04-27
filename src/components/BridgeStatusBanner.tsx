@@ -14,21 +14,22 @@ import { AlertTriangle, X, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { onBridgeStatus, type BridgeStatusEvent } from '@/lib/external-db/bridge-status-events';
 import { useAuth } from '@/contexts/AuthContext';
+import { shouldShowDevInfraMessages } from '@/lib/system/dev-infra-messages';
 
 const TOAST_ID_DEGRADED = 'bridge-degraded';
 const TOAST_ID_UNAVAILABLE = 'bridge-unavailable';
 
 export function BridgeStatusBanner() {
   const { isDev } = useAuth();
+  const allowed = shouldShowDevInfraMessages(isDev);
   const [unavailable, setUnavailable] = useState(false);
   const [reason, setReason] = useState<string>('');
   const lastDegradedAt = useRef(0);
 
   useEffect(() => {
-    // Mensagens técnicas de bridge/infra ficam restritas a usuários `dev`.
-    // Usuários comuns não devem receber toasts/banner sobre o catálogo externo —
-    // o sistema já se recupera sozinho com retries automáticos.
-    if (!isDev) return;
+    // Gate SSOT: env VITE_SHOW_DEV_INFRA_MESSAGES > localStorage > role dev.
+    // Usuários sem permissão nem registram o listener — zero toast disparado.
+    if (!allowed) return;
     const unsubscribe = onBridgeStatus((e: BridgeStatusEvent) => {
       if (e.type === 'degraded') {
         // Throttle: 1 toast a cada 8s (várias chamadas paralelas geram muitos eventos).
@@ -69,9 +70,9 @@ export function BridgeStatusBanner() {
     return () => {
       unsubscribe();
     };
-  }, [unavailable, isDev]);
+  }, [unavailable, allowed]);
 
-  if (!isDev || !unavailable) return null;
+  if (!allowed || !unavailable) return null;
 
   return (
     <div
