@@ -39,12 +39,15 @@ export default function BridgeMetricsOverlay() {
     return (
       <button
         type="button"
-        aria-label="Abrir métricas de bridge (preview)"
+        aria-label="Abrir métricas de bridge (dev preview)"
         onClick={() => setOpen(true)}
-        className="fixed bottom-4 right-4 z-[9999] flex h-10 items-center gap-2 rounded-full border border-white/10 bg-black/80 px-3 text-xs font-mono text-white shadow-lg backdrop-blur hover:bg-black"
+        className="fixed bottom-4 right-4 z-[9999] flex h-10 items-center gap-2 rounded-full border border-white/10 bg-black/80 px-3 text-xs font-mono text-white shadow-lg backdrop-blur hover:bg-black group transition-all"
         style={{ pointerEvents: 'auto' }}
       >
         <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
+        <span className="opacity-0 group-hover:opacity-100 transition-opacity absolute right-12 whitespace-nowrap bg-black/90 px-2 py-1 rounded border border-white/10 pointer-events-none">
+          Métricas de Bridge (Acesso Dev)
+        </span>
         bridge metrics · `
       </button>
     );
@@ -94,8 +97,8 @@ const Header = memo(({ paused, onTogglePause, onClear, onClose }: any) => (
   <div className="flex items-center justify-between gap-2 border-b border-white/10 bg-zinc-900/80 px-3 py-2">
     <div className="flex items-center gap-2">
       <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
-      <span className="font-semibold">Bridge metrics</span>
-      <span className="text-zinc-500">· preview only</span>
+      <span className="font-semibold">Métricas de Bridge</span>
+      <span className="text-zinc-500">· modo dev</span>
     </div>
     <div className="flex items-center gap-1">
       <button
