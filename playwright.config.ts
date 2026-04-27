@@ -89,6 +89,20 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"], storageState: STORAGE_STATE },
       dependencies: ["setup"],
       testMatch: /flows\/.*\.spec\.ts/,
+      // Smoke roda no project dedicado abaixo (chromium-smoke) para evitar
+      // execução duplicada e garantir ordem sequencial determinística.
+      testIgnore: [/flows\/20-all-features-smoke\.spec\.ts/],
+    },
+    {
+      // Smoke gate — 1 teste por funcionalidade, ordem fixa, workers=1.
+      // Executar isoladamente: `npx playwright test --project=chromium-smoke`
+      name: "chromium-smoke",
+      use: { ...devices["Desktop Chrome"], storageState: STORAGE_STATE },
+      dependencies: ["setup"],
+      testMatch: /flows\/20-all-features-smoke\.spec\.ts/,
+      fullyParallel: false,
+      workers: 1,
+      retries: process.env.CI ? 1 : 0,
     },
     {
       // Specs por rota — área pública (sem auth). Ex.: routes/public/*.spec.ts
