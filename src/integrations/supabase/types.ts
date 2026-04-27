@@ -1289,6 +1289,39 @@ export type Database = {
         }
         Relationships: []
       }
+      file_scan_logs: {
+        Row: {
+          bucket: string
+          created_at: string | null
+          hash: string
+          id: string
+          path: string
+          scan_result: Json
+          status_code: number
+          user_id: string | null
+        }
+        Insert: {
+          bucket: string
+          created_at?: string | null
+          hash: string
+          id?: string
+          path: string
+          scan_result?: Json
+          status_code: number
+          user_id?: string | null
+        }
+        Update: {
+          bucket?: string
+          created_at?: string | null
+          hash?: string
+          id?: string
+          path?: string
+          scan_result?: Json
+          status_code?: number
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       follow_up_reminders: {
         Row: {
           completed_at: string | null
