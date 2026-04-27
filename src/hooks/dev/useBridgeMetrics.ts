@@ -13,8 +13,8 @@ import {
 
 const STORAGE_KEY = 'lov:bridge-metrics-overlay:open';
 const MAX_VISIBLE = 60;
-const EMPTY: readonly BridgeCallSample[] = [];
-const EMPTY_LT: readonly LongTaskEvent[] = [];
+const EMPTY: BridgeCallSample[] = [];
+const EMPTY_LT: LongTaskEvent[] = [];
 
 export type BridgeMetricsFilter = 'all' | 'slow' | 'errors';
 export type BridgeMetricsTab = 'calls' | 'longtasks';
