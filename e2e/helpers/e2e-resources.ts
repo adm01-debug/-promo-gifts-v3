@@ -16,24 +16,39 @@
  * ele LANÇA imediatamente — falha rápido em vez de poluir o BD.
  */
 import { expect, type Locator, type Page } from "@playwright/test";
-import { e2eName, getTestPrefix } from "../fixtures/test-user";
+import { e2eName, getTestPrefix, isE2eName } from "../fixtures/test-user";
 import { Sel } from "../fixtures/selectors";
 
 /**
- * Guarda runtime: lança se `value` não começa com o prefixo de E2E.
- * Use SEMPRE que houver um `.fill()` em campo nomeável (orçamento,
- * coleção, lista, etc.).
+ * Guarda runtime: lança se `value` não começa com o prefixo global E2E
+ * NEM com um sub-prefixo `[E2E:*]` (gerado por `e2eScope`).
+ *
+ * Aceita opcionalmente um `expectedPrefix` para validação estrita —
+ * útil quando a fixture `e2eResources` quer garantir scoping correto.
  */
-export function assertE2eName(value: string, context = "resource"): void {
-  const prefix = getTestPrefix();
-  if (!value.startsWith(prefix)) {
-    throw new Error(
-      `[e2e-resources] ${context} name="${value}" não usa o prefixo "${prefix}". ` +
-        `Use e2eName("${context}") em vez de strings literais — caso contrário ` +
-        `o cleanup com nameFilterPrefix=true não conseguirá apagar este recurso ` +
-        `e o teste pode acidentalmente impactar dados fora do escopo.`,
-    );
+export function assertE2eName(
+  value: string,
+  context = "resource",
+  expectedPrefix?: string,
+): void {
+  if (expectedPrefix) {
+    if (!value.startsWith(expectedPrefix)) {
+      throw new Error(
+        `[e2e-resources] ${context} name="${value}" não usa o prefixo escopado "${expectedPrefix}". ` +
+          `Use o helper escopado da fixture (resources.create*) — caso contrário o cleanup ` +
+          `escopado por spec não conseguirá apagar este recurso.`,
+      );
+    }
+    return;
   }
+  if (isE2eName(value)) return;
+  const prefix = getTestPrefix();
+  throw new Error(
+    `[e2e-resources] ${context} name="${value}" não usa o prefixo "${prefix}" nem um sub-prefixo "[E2E:*]". ` +
+      `Use e2eName("${context}") (ou e2eName(label, { prefix: e2eScope(slug) })) em vez de strings literais — ` +
+      `caso contrário o cleanup com nameFilterPrefix=true não conseguirá apagar este recurso ` +
+      `e o teste pode acidentalmente impactar dados fora do escopo.`,
+  );
 }
 
 /**
