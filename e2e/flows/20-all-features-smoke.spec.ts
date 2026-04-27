@@ -22,7 +22,7 @@ import {
   findSmokeCoverageGaps,
   findUnknownCoveredFeatures,
 } from "../routes/_catalog";
-import { gotoAndWaitReady } from "../helpers/waits";
+import { gotoAndWaitReady, pollUntil } from "../helpers/waits";
 
 /** Ordem fixa: garante mesmo relatório em todo run do CI. */
 test.describe.configure({ mode: "serial" });
