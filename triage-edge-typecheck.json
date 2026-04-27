@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-04-27T15:16:28.798Z",
+  "denoVersion": "deno 2.6.10 (stable, release, x86_64-unknown-linux-gnu)",
+  "mode": "fail-fast",
+  "totals": {
+    "checked": 1,
+    "ok": 0,
+    "failed": 1,
+    "skipped": 0
+  },
+  "firstFailure": {
+    "fn": "collections-watcher",
+    "exitCode": 1,
+    "elapsedMs": 1399,
+    "firstError": {
+      "code": "TS2345",
+      "message": "Argument of type 'SupabaseClient<any, \"public\", \"public\", any, any>' is not assignable to parameter of type 'SupabaseClient<unknown, { PostgrestVersion: string; }, never, never, { PostgrestVersion: string; }>'.",
+      "file": "supabase/functions/collections-watcher/index.ts",
+      "line": 96,
+      "column": 33,
+      "snippet": "TS2345 [ERROR]: Argument of type 'SupabaseClient<any, \"public\", \"public\", any, any>' is not assignable to parameter of type 'SupabaseClient<unknown, { PostgrestVersion: string; }, never, never, { PostgrestVersion: string; }>'.\n  Type '\"public\"' is not assignable to type 'never'.\n      if (await alreadyNotified(service, userId, incidentKey)) continue;\n                                ~~~~~~~\n    at file:///dev-server/supabase/functions/collections-watcher/index.ts:96:33"
+    }
+  },
+  "failures": [
+    {
+      "fn": "collections-watcher",
+      "exitCode": 1,
+      "elapsedMs": 1399,
+      "firstError": {
+        "code": "TS2345",
+        "message": "Argument of type 'SupabaseClient<any, \"public\", \"public\", any, any>' is not assignable to parameter of type 'SupabaseClient<unknown, { PostgrestVersion: string; }, never, never, { PostgrestVersion: string; }>'.",
+        "file": "supabase/functions/collections-watcher/index.ts",
+        "line": 96,
+        "column": 33,
+        "snippet": "TS2345 [ERROR]: Argument of type 'SupabaseClient<any, \"public\", \"public\", any, any>' is not assignable to parameter of type 'SupabaseClient<unknown, { PostgrestVersion: string; }, never, never, { PostgrestVersion: string; }>'.\n  Type '\"public\"' is not assignable to type 'never'.\n      if (await alreadyNotified(service, userId, incidentKey)) continue;\n                                ~~~~~~~\n    at file:///dev-server/supabase/functions/collections-watcher/index.ts:96:33"
+      }
+    }
+  ],
+  "ok": []
+}
