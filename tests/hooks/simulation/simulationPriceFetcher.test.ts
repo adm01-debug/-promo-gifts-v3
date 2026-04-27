@@ -163,7 +163,12 @@ describe('fetchAllOptions', () => {
     expect(invokeExternalRpcMock).not.toHaveBeenCalled();
   });
 
-  it('marks as unavailable when RPC throws', async () => {
+  it('falls back to legacy heuristic when RPC throws (graceful degradation)', async () => {
+    // Regra de negócio: quando o RPC oficial falha (rede/timeout/erro),
+    // o simulador NÃO marca a técnica como indisponível — ele degrada para
+    // o cálculo legado (`buildLegacyFallbackOption`) usando unit_cost/setup_cost
+    // do catálogo, e expõe `fallbackReason` para que a UI mostre aviso.
+    // Ver simulationPriceFetcher.ts:204-222.
     fetchProductPrintAreasV2Mock.mockResolvedValue([printArea]);
     invokeExternalRpcMock.mockRejectedValue(new Error('boom'));
 
@@ -177,7 +182,9 @@ describe('fetchAllOptions', () => {
     });
 
     expect(out).toHaveLength(1);
-    expect(out[0].priceSource).toBe('unavailable');
+    expect(out[0].priceSource).toBe('legacy-fallback');
+    expect(out[0].fallbackReason).toBe('boom');
+    expect(out[0].rpcAvailable).toBe(false);
   });
 
   it('runs multiple techniques in parallel', async () => {
