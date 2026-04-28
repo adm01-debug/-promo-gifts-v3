@@ -4,7 +4,7 @@ import { useScrollLockFix } from "@/hooks/useScrollLockFix";
 import { useGlobalShortcuts } from "@/hooks/useGlobalShortcuts";
 import { SkipToContent } from "@/components/common/SkipToContent";
 import { BackButton } from "@/components/common/BackButton";
-import { PersistentBreadcrumbs } from "@/components/common/PersistentBreadcrumbs";
+
 import { lazyWithRetry } from "@/lib/lazyWithRetry";
 
 // Lazy load heavy layout components to reduce MainLayout chunk size
