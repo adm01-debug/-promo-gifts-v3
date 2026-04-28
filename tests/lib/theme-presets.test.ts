@@ -164,8 +164,8 @@ describe('§3 Skins Opera GX (paridade Zapp Web)', () => {
     expect(findPreset(id).category).toBe('gx');
   });
 
-  it.each(GX_IDS)('GX [%s] tem borderRadius = 4 (cantos angulares)', (id) => {
-    expect(findPreset(id).borderRadius).toBe(4);
+  it.each(GX_IDS)('GX [%s] tem borderRadius = 10 (friendly + identidade GX)', (id) => {
+    expect(findPreset(id).borderRadius).toBe(10);
   });
 
   it.each(GX_IDS)('GX [%s] usa Inter (família do Cloudflare Sans), NÃO Rajdhani', (id) => {
@@ -362,10 +362,10 @@ describe('§5 applyThemePreset (JSDOM)', () => {
     expect(fontDisplay).toContain('Inter');
   });
 
-  it('para skin GX, escreve --radius = 0.25rem (4px / 16)', () => {
+  it('para skin GX, escreve --radius = 0.625rem (10px / 16)', () => {
     applyThemePreset('gx-classic', 'dark');
     const radius = document.documentElement.style.getPropertyValue('--radius');
-    expect(radius).toBe('0.25rem');
+    expect(radius).toBe('0.625rem');
   });
 
   it('para skin clássica sem borderRadius, NÃO escreve --radius', () => {
@@ -439,9 +439,9 @@ describe('§7 clearThemeOverrides', () => {
 // §8  Storage — getDefaultConfig / load / save
 // ─────────────────────────────────────────────────────────────────
 describe('§8 Storage — getDefaultConfig', () => {
-  it('retorna corporate, radius=8, mode=auto', () => {
+  it('retorna corporate, radius=14, mode=auto', () => {
     const cfg = getDefaultConfig();
-    expect(cfg).toEqual({ presetId: 'corporate', radius: 8, mode: 'auto' });
+    expect(cfg).toEqual({ presetId: 'corporate', radius: 14, mode: 'auto' });
   });
 
   it('NÃO inclui mais fontPairId (foi removido)', () => {
@@ -553,20 +553,20 @@ describe('§10 Migração legacy (fontPairId)', () => {
 // §11  Fluxos do dia a dia — simulações end-to-end de UI
 // ─────────────────────────────────────────────────────────────────
 describe('§11 Fluxo: usuário escolhe skin GX pela primeira vez', () => {
-  it('AppState mock: pick gx-pink-addiction → font Inter, radius 4px, bg roxo', () => {
-    // Estado inicial: corporate light
-    saveThemeConfig({ presetId: 'corporate', radius: 8, mode: 'auto' });
+  it('AppState mock: pick gx-pink-addiction → font Inter, radius 10px, bg roxo', () => {
+    // Estado inicial: corporate light com radius default 14
+    saveThemeConfig({ presetId: 'corporate', radius: 14, mode: 'auto' });
     applyThemePreset('corporate', 'light');
 
-    // User clicks Pink Addiction → AdminTemasPage faz updateConfig({ presetId, radius: 4 })
-    const next: ThemeConfig = { presetId: 'gx-pink-addiction', radius: 4, mode: 'auto' };
+    // User clicks Pink Addiction → AdminTemasPage faz updateConfig({ presetId, radius: 10 })
+    const next: ThemeConfig = { presetId: 'gx-pink-addiction', radius: 10, mode: 'auto' };
     saveThemeConfig(next);
     applyThemePreset(next.presetId, 'dark');
     applyRadius(next.radius);
 
     expect(document.documentElement.style.getPropertyValue('--background')).toBe('265 22% 8%');
     expect(document.documentElement.style.getPropertyValue('--font-sans')).toContain('Inter');
-    expect(document.documentElement.style.getPropertyValue('--radius')).toBe('0.25rem');
+    expect(document.documentElement.style.getPropertyValue('--radius')).toBe('0.625rem');
     expect(loadThemeConfig().presetId).toBe('gx-pink-addiction');
   });
 });
@@ -575,23 +575,23 @@ describe('§11 Fluxo: usuário volta de GX para clássica', () => {
   it('aplicar gx-classic → corporate restaura font padrão e libera o slider de radius', () => {
     // Estado: estava em GX
     applyThemePreset('gx-classic', 'dark');
-    applyRadius(4);
+    applyRadius(10);
     expect(document.documentElement.style.getPropertyValue('--font-sans')).toContain('Inter');
 
     // Volta para clássica
     applyThemePreset('corporate', 'light');
-    applyRadius(10); // user move o slider
+    applyRadius(16); // user move o slider para mais arredondado
     expect(document.documentElement.style.getPropertyValue('--font-sans')).toContain(
       'Plus Jakarta Sans',
     );
-    expect(document.documentElement.style.getPropertyValue('--radius')).toBe('0.625rem');
+    expect(document.documentElement.style.getPropertyValue('--radius')).toBe('1rem');
   });
 });
 
 describe('§11 Fluxo: reload da página com skin GX salva (ThemeInitializer)', () => {
   it('aplica corretamente skin + font + radius após reload', () => {
     // Sessão anterior salvou esta config
-    saveThemeConfig({ presetId: 'gx-hackerman', radius: 4, mode: 'dark' });
+    saveThemeConfig({ presetId: 'gx-hackerman', radius: 10, mode: 'dark' });
 
     // Simula o ThemeInitializer no boot
     const cfg = loadThemeConfig();
@@ -602,8 +602,8 @@ describe('§11 Fluxo: reload da página com skin GX salva (ThemeInitializer)', (
     expect(document.documentElement.style.getPropertyValue('--background')).toBe('265 22% 8%');
     // Inter aplicada
     expect(document.documentElement.style.getPropertyValue('--font-sans')).toContain('Inter');
-    // Radius 4px
-    expect(document.documentElement.style.getPropertyValue('--radius')).toBe('0.25rem');
+    // Radius 10px (GX friendly)
+    expect(document.documentElement.style.getPropertyValue('--radius')).toBe('0.625rem');
     // Primary do Hackerman (h=127)
     expect(document.documentElement.style.getPropertyValue('--primary')).toBe('127 65% 46%');
   });
@@ -624,8 +624,8 @@ describe('§11 Fluxo: handleReset (botão "Restaurar padrão")', () => {
   it('clearThemeOverrides + getDefaultConfig limpa tudo', () => {
     // Estado sujo
     applyThemePreset('gx-cyberpunk', 'dark');
-    applyRadius(4);
-    saveThemeConfig({ presetId: 'gx-cyberpunk', radius: 4, mode: 'dark' });
+    applyRadius(10);
+    saveThemeConfig({ presetId: 'gx-cyberpunk', radius: 10, mode: 'dark' });
 
     // Reset
     clearThemeOverrides();
