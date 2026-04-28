@@ -1,18 +1,26 @@
 ## Problema
 
-O `ColumnSelector` esconde opções (4/5/6/8 colunas) baseado em `window.innerWidth`, então monitores menores nunca veem todas. Você quer todas sempre visíveis.
+A faixa preta no topo do conteúdo mostrando "🏠 Catálogo de Produtos" é o `PersistentBreadcrumbs`, renderizado globalmente em **todas as páginas** pelo `MainLayout`. Você quer removê-la para o conteúdo subir.
 
 ## Proposta
 
-Em `src/components/products/ColumnSelector.tsx`:
+Em `src/components/layout/MainLayout.tsx` (linhas 110-112), remover o bloco:
 
-1. Zerar todos os `minWidth` no array `columnOptions` (3, 4, 5, 6, 8 → todos `minWidth: 0`).
-2. Remover o filtro `getAvailableOptions()` e o listener de `resize` (não são mais necessários).
-3. Remover o `useEffect` que força `onChange` quando o valor excede o máximo disponível (também desnecessário).
-4. Remover o early-return `if (available.length <= 1) return null;` — sempre haverá 5 opções.
+```tsx
+<div className="print:hidden">
+  <PersistentBreadcrumbs className="mb-4" showBackButton />
+</div>
+```
 
-Resultado: as 5 opções (3, 4, 5, 6, 8 colunas) aparecem em qualquer viewport. O grid CSS responsivo continua funcionando normalmente — em telas estreitas, escolher 8 colunas simplesmente apertará os cards.
+O título principal ("Catálogo de Produtos · 6.090 itens" + busca + filtros) já é renderizado pelo `CatalogHeader` da página, então não há perda de contexto — apenas a faixa de breadcrumb redundante some e tudo sobe ~40px.
+
+Também removerei o import não usado de `PersistentBreadcrumbs` no MainLayout.
+
+## Impacto
+
+- **Todas as páginas** que usam `MainLayout` (catálogo, orçamentos, coleções, admin etc.) deixam de exibir o breadcrumb superior.
+- Páginas que precisam de breadcrumb específico (ex.: `AdminProductFormPage`) continuam funcionando, pois usam o componente diretamente.
 
 ## Arquivo afetado
 
-- `src/components/products/ColumnSelector.tsx`
+- `src/components/layout/MainLayout.tsx`
