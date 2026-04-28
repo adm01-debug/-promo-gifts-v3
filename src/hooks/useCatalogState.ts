@@ -8,7 +8,7 @@ import { Package, Heart, Users, Layers, Palette, FolderTree } from "lucide-react
 import React from "react";
 
 import { defaultFilters, type FilterState } from "@/components/filters/FilterPanel";
-import { getDefaultColumns, type ColumnCount } from "@/components/products/ColumnSelector";
+import { getDefaultColumns, STORAGE_KEY as GRID_COLUMNS_KEY, type ColumnCount } from "@/components/products/ColumnSelector";
 import { useProductsCatalog } from "@/hooks/useProductsLightweight";
 import type { Product } from "@/hooks/useProducts";
 import { useProductsContext } from "@/contexts/ProductsContext";
@@ -63,7 +63,11 @@ export function useCatalogState() {
     setViewModeState(mode);
     try { localStorage.setItem(VIEW_MODE_KEY, mode); } catch {}
   }, []);
-  const [gridColumns, setGridColumns] = useState<ColumnCount>(getDefaultColumns);
+  const [gridColumns, setGridColumnsState] = useState<ColumnCount>(getDefaultColumns);
+  const setGridColumns = useCallback((cols: ColumnCount) => {
+    setGridColumnsState(cols);
+    try { localStorage.setItem(GRID_COLUMNS_KEY, String(cols)); } catch {}
+  }, []);
   const [sortBy, setSortBy] = useState<SortOption>("name");
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedCount, setSelectedCount] = useState(0);
@@ -74,14 +78,14 @@ export function useCatalogState() {
     });
   }, []);
 
-  // Responsive clamp: force appropriate columns on small screens
+  // Responsive clamp: force appropriate columns on small screens (visual only — does NOT persist)
   useEffect(() => {
     const handleResize = () => {
       const w = window.innerWidth;
       if (w < 640 && gridColumns > 1) {
-        setGridColumns(1);
+        setGridColumnsState(1);
       } else if (w >= 640 && w < 768 && gridColumns > 2) {
-        setGridColumns(2);
+        setGridColumnsState(2);
       }
     };
     handleResize(); // run on mount
