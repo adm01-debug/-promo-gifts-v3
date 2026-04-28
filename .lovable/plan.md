@@ -1,26 +1,36 @@
-## Problema
+## Situação atual
 
-A faixa preta no topo do conteúdo mostrando "🏠 Catálogo de Produtos" é o `PersistentBreadcrumbs`, renderizado globalmente em **todas as páginas** pelo `MainLayout`. Você quer removê-la para o conteúdo subir.
+O `ColumnSelector` já lê do `localStorage` no init (`getDefaultColumns()`) e já salva ao **clicar** em uma opção. Mas em `useCatalogState`:
+
+- `const [gridColumns, setGridColumns] = useState<ColumnCount>(getDefaultColumns)` usa o setter cru do `useState` — então qualquer `setGridColumns(...)` chamado de fora do `ColumnSelector` (ex.: de outro consumidor, ou se algum dia trocarmos a UI) **não persiste**.
+- O `useEffect` de clamp responsivo (mobile <640px → 1 col, <768px → 2 col) chama `setGridColumns` automaticamente — esse ajuste forçado **não deve** sobrescrever a preferência salva, senão ao voltar para desktop o usuário perde a escolha.
 
 ## Proposta
 
-Em `src/components/layout/MainLayout.tsx` (linhas 110-112), remover o bloco:
+Em `src/hooks/useCatalogState.ts`:
 
-```tsx
-<div className="print:hidden">
-  <PersistentBreadcrumbs className="mb-4" showBackButton />
-</div>
-```
+1. Importar `STORAGE_KEY` do `ColumnSelector` (já é exportado como `STORAGE_KEY`):
+   ```ts
+   import { getDefaultColumns, STORAGE_KEY as GRID_COLUMNS_KEY, type ColumnCount } from "@/components/products/ColumnSelector";
+   ```
 
-O título principal ("Catálogo de Produtos · 6.090 itens" + busca + filtros) já é renderizado pelo `CatalogHeader` da página, então não há perda de contexto — apenas a faixa de breadcrumb redundante some e tudo sobe ~40px.
+2. Renomear o setter cru e criar um wrapper persistente:
+   ```ts
+   const [gridColumns, setGridColumnsState] = useState<ColumnCount>(getDefaultColumns);
+   const setGridColumns = useCallback((cols: ColumnCount) => {
+     setGridColumnsState(cols);
+     try { localStorage.setItem(GRID_COLUMNS_KEY, String(cols)); } catch {}
+   }, []);
+   ```
 
-Também removerei o import não usado de `PersistentBreadcrumbs` no MainLayout.
+3. No clamp responsivo (linhas 78-90), trocar `setGridColumns` pelo setter cru `setGridColumnsState` — assim o ajuste de tela pequena é apenas visual e **não escreve no storage**, preservando a preferência original do usuário.
 
-## Impacto
+## Resultado
 
-- **Todas as páginas** que usam `MainLayout` (catálogo, orçamentos, coleções, admin etc.) deixam de exibir o breadcrumb superior.
-- Páginas que precisam de breadcrumb específico (ex.: `AdminProductFormPage`) continuam funcionando, pois usam o componente diretamente.
+- Toda escolha explícita do usuário (via `ColumnSelector` ou qualquer outro consumidor que use o setter exposto pelo hook) é persistida.
+- Reload mantém a preferência.
+- Em mobile, o grid ainda é apertado para 1/2 colunas, mas ao voltar para desktop a escolha original (ex.: 8 colunas) volta automaticamente.
 
 ## Arquivo afetado
 
-- `src/components/layout/MainLayout.tsx`
+- `src/hooks/useCatalogState.ts` (3 trechos: import, criação do setter, clamp responsivo)

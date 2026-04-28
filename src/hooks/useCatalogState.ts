@@ -8,7 +8,7 @@ import { Package, Heart, Users, Layers, Palette, FolderTree } from "lucide-react
 import React from "react";
 
 import { defaultFilters, type FilterState } from "@/components/filters/FilterPanel";
-import { getDefaultColumns, type ColumnCount } from "@/components/products/ColumnSelector";
+import { getDefaultColumns, STORAGE_KEY as GRID_COLUMNS_KEY, type ColumnCount } from "@/components/products/ColumnSelector";
 import { useProductsCatalog } from "@/hooks/useProductsLightweight";
 import type { Product } from "@/hooks/useProducts";
 import { useProductsContext } from "@/contexts/ProductsContext";
