@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -40,15 +39,14 @@ interface ColumnOption {
   label: string;
   cols: number;
   rows: number;
-  minWidth: number;
 }
 
 const columnOptions: ColumnOption[] = [
-  { value: 3, label: "3 colunas", cols: 3, rows: 2, minWidth: 0 },
-  { value: 4, label: "4 colunas", cols: 4, rows: 2, minWidth: 768 },
-  { value: 5, label: "5 colunas", cols: 5, rows: 2, minWidth: 1024 },
-  { value: 6, label: "6 colunas", cols: 3, rows: 3, minWidth: 1280 },
-  { value: 8, label: "8 colunas", cols: 4, rows: 3, minWidth: 1536 },
+  { value: 3, label: "3 colunas", cols: 3, rows: 2 },
+  { value: 4, label: "4 colunas", cols: 4, rows: 2 },
+  { value: 5, label: "5 colunas", cols: 5, rows: 2 },
+  { value: 6, label: "6 colunas", cols: 3, rows: 3 },
+  { value: 8, label: "8 colunas", cols: 4, rows: 3 },
 ];
 
 function getDefaultColumns(): ColumnCount {
@@ -66,10 +64,6 @@ function getDefaultColumns(): ColumnCount {
   return 5;
 }
 
-function getAvailableOptions(screenWidth: number): ColumnOption[] {
-  return columnOptions.filter((opt) => screenWidth >= opt.minWidth);
-}
-
 interface ColumnSelectorProps {
   value: ColumnCount;
   onChange: (cols: ColumnCount) => void;
@@ -77,24 +71,7 @@ interface ColumnSelectorProps {
 }
 
 export function ColumnSelector({ value, onChange, className }: ColumnSelectorProps) {
-  const [screenWidth, setScreenWidth] = useState(typeof window !== "undefined" ? window.innerWidth : 1280);
-
-  useEffect(() => {
-    const handleResize = () => setScreenWidth(window.innerWidth);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  const available = getAvailableOptions(screenWidth);
-
-  useEffect(() => {
-    const maxAvailable = available[available.length - 1]?.value ?? 3;
-    if (value > maxAvailable) {
-      onChange(maxAvailable);
-    }
-  }, [available, value, onChange]);
-
-  if (available.length <= 1) return null;
+  const available = columnOptions;
 
   return (
     <div className={cn(
