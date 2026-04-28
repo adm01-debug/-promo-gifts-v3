@@ -55,6 +55,7 @@ export type PageSlug =
   | "orcamentos-funil"
   | "orcamentos-templates"
   | "orcamento-novo"
+  | "novidades"
   | "404";
 
 export const Sel = {
