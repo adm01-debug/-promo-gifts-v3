@@ -205,7 +205,7 @@ export function ProductSparkline({ productId, className }: ProductSparklineProps
                 <div className="flex items-center gap-1.5">
                   <Activity className="h-3 w-3 text-muted-foreground" />
                    <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
-                     Saídas no mercado · Dia {hoverIndex + 1}
+                     Vendas no fornecedor · Dia {hoverIndex + 1}
                   </span>
                 </div>
                 <span className="text-sm font-bold text-foreground">
@@ -227,7 +227,7 @@ export function ProductSparkline({ productId, className }: ProductSparklineProps
             {/* Metrics grid */}
             <div className="px-3 py-2 grid grid-cols-2 gap-x-3 gap-y-1.5">
               <TooltipMetric
-                label="Saídas no mercado 30d"
+                label="Vendas no fornecedor 30d"
                 value={`${summary.totalSales.toLocaleString('pt-BR')} un`}
               />
               <TooltipMetric
