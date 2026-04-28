@@ -640,6 +640,139 @@ describe('§11 Fluxo: handleReset (botão "Restaurar padrão")', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────
+// §11.5  Diversity (Pride) — distribuição rainbow em todo o sistema
+// ─────────────────────────────────────────────────────────────────
+describe('§11.5 Diversity (Pride) — slots semânticos celebram o arco-íris', () => {
+  const diversity = () => findPreset('diversity');
+
+  it('preset existe e está classificado como "classic"', () => {
+    expect(diversity()).toBeDefined();
+    expect(diversity().category).not.toBe('gx');
+  });
+
+  it('descrição menciona LGBTQIA+', () => {
+    expect(diversity().description).toMatch(/LGBT/i);
+  });
+
+  it('emoji é a bandeira do arco-íris 🏳️‍🌈', () => {
+    expect(diversity().emoji).toBe('🏳️‍🌈');
+  });
+
+  it('primary é magenta/pink (não vermelho monocromático)', () => {
+    // Pink ~330 (não 0 = vermelho puro)
+    expect(diversity().light.primary).toMatch(/^330\s/);
+    expect(diversity().dark.primary).toMatch(/^330\s/);
+  });
+
+  it('secondary é verde pride (não verde-azulado padrão)', () => {
+    expect(diversity().light.secondary).toBe('130 70% 45%');
+    expect(diversity().dark.secondary).toBe('130 70% 45%');
+  });
+
+  it('orange é mapeado para laranja pride autêntico (h=30)', () => {
+    expect(diversity().light.orange).toMatch(/^30\s/);
+    expect(diversity().dark.orange).toMatch(/^30\s/);
+  });
+
+  it('accent escuro é violeta profundo (h=280) — terceira cor da bandeira', () => {
+    expect(diversity().dark.accent).toMatch(/^280\s/);
+  });
+
+  it('primary-glow é violeta (h=290) — transição visual pink→roxo', () => {
+    expect(diversity().light['primary-glow']).toMatch(/^290\s/);
+    expect(diversity().dark['primary-glow']).toMatch(/^290\s/);
+  });
+
+  it('gradient-primary contém TODAS as 6 cores do arco-íris', () => {
+    const grad = diversity().light['gradient-primary'];
+    [
+      '0 85% 55%', // red
+      '30 90% 55%', // orange
+      '55 90% 50%', // yellow
+      '130 70% 45%', // green
+      '210 80% 55%', // blue
+      '280 80% 58%', // purple
+    ].forEach((color) => {
+      expect(grad, `gradient deveria conter ${color}`).toContain(color);
+    });
+  });
+
+  it('gradient-divider tem 5 cores distintas (não monocromático)', () => {
+    const grad = diversity().light['gradient-divider'];
+    const colorMatches = grad.match(/hsl\([^)]+\)/g);
+    expect(colorMatches?.length, 'divider deveria ter ≥5 cores').toBeGreaterThanOrEqual(5);
+  });
+
+  it('shadow-glow-* usam cores DIFERENTES (não todos pink)', () => {
+    const d = diversity().dark;
+    const primaryGlow = d['shadow-glow-primary'];
+    const successGlow = d['shadow-glow-success'];
+    const warningGlow = d['shadow-glow-warning'];
+    // Cada um tem hue diferente
+    expect(primaryGlow).not.toBe(successGlow);
+    expect(successGlow).not.toBe(warningGlow);
+    // primary tem pink (330), success tem verde (130), warning tem amarelo (55)
+    expect(primaryGlow).toContain('330');
+    expect(successGlow).toContain('130');
+    expect(warningGlow).toContain('55');
+  });
+
+  it('sidebar-primary acompanha o pink da skin (não fica padrão)', () => {
+    expect(diversity().light['sidebar-primary']).toMatch(/^330\s/);
+    expect(diversity().dark['sidebar-primary']).toMatch(/^330\s/);
+  });
+
+  it('ring (foco de teclado) usa o pink da skin', () => {
+    expect(diversity().light.ring).toMatch(/^330\s/);
+    expect(diversity().dark.ring).toMatch(/^330\s/);
+  });
+
+  it('interactive (token semântico) usa o pink da skin', () => {
+    expect(diversity().light.interactive).toMatch(/^330\s/);
+    expect(diversity().dark.interactive).toMatch(/^330\s/);
+  });
+
+  it('swatches mostram 4 cores distintas do arco-íris', () => {
+    const sw = diversity().swatches;
+    const unique = new Set(sw);
+    expect(unique.size).toBe(4);
+    // Cada swatch é uma cor distinta
+    expect(sw).toContain('hsl(0 85% 55%)'); // red
+    expect(sw).toContain('hsl(55 90% 50%)'); // yellow
+    expect(sw).toContain('hsl(130 70% 45%)'); // green
+    expect(sw).toContain('hsl(280 80% 58%)'); // purple
+  });
+
+  it('Diversity ainda recebe o radius do slider (sem borderRadius próprio)', () => {
+    expect(diversity().borderRadius).toBeUndefined();
+  });
+
+  it('Diversity NÃO força fonte (mantém Plus Jakarta Sans + Outfit)', () => {
+    expect(diversity().font).toBeUndefined();
+  });
+});
+
+describe('§11.5 Diversity — comportamento ao aplicar (JSDOM)', () => {
+  it('aplicar Diversity escreve --primary pink e --gradient-primary rainbow', () => {
+    applyThemePreset('diversity', 'dark');
+    const primary = document.documentElement.style.getPropertyValue('--primary');
+    const gradient = document.documentElement.style.getPropertyValue('--gradient-primary');
+
+    expect(primary).toMatch(/^330\s/);
+    expect(gradient).toContain('linear-gradient');
+    // Verifica todas as 6 cores no gradient
+    expect(gradient).toContain('0 85% 55%');
+    expect(gradient).toContain('280 80% 58%');
+  });
+
+  it('--orange em Diversity é laranja pride (h=30), não laranja Promo Gifts default', () => {
+    applyThemePreset('diversity', 'light');
+    const orange = document.documentElement.style.getPropertyValue('--orange');
+    expect(orange).toMatch(/^30\s/);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────
 // §12  Edge cases e robustez
 // ─────────────────────────────────────────────────────────────────
 describe('§12 Edge cases e robustez', () => {

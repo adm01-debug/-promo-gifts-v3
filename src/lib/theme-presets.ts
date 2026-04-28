@@ -393,40 +393,127 @@ function buildPreset(p: PresetParams): ThemePreset {
 const diversityBase = buildPreset({
   id: 'diversity',
   name: 'Diversity',
-  description: 'Orgulho e diversidade',
+  description: 'Pride 🏳️‍🌈 — celebrando a comunidade LGBTQIA+',
   emoji: '🏳️‍🌈',
-  h: 0,
+  // Magenta/pink como hue base (cor mais "actionable" e visível)
+  h: 330,
   s: 85,
   l: 55,
-  gh: 280,
-  sh: 160,
+  gh: 290,
+  sh: 130,
   ss: 70,
   sl: 45,
 });
 
-const rainbowGrad =
-  'linear-gradient(135deg, hsl(0 85% 55%), hsl(30 90% 55%), hsl(55 90% 50%), hsl(130 70% 45%), hsl(210 80% 55%), hsl(280 80% 58%))';
+// ===== ARCO-ÍRIS — paleta oficial usada em todos os gradients e accents =====
+// Cores escolhidas para combinar com a bandeira LGBTQIA+ moderna.
+const PRIDE_RED = '0 85% 55%';
+const PRIDE_ORANGE = '30 90% 55%';
+const PRIDE_YELLOW = '55 90% 50%';
+const PRIDE_GREEN = '130 70% 45%';
+const PRIDE_BLUE = '210 80% 55%';
+const PRIDE_PURPLE = '280 80% 58%';
+const PRIDE_PINK = '330 85% 58%';
+
+const rainbowGrad = `linear-gradient(135deg, hsl(${PRIDE_RED}), hsl(${PRIDE_ORANGE}), hsl(${PRIDE_YELLOW}), hsl(${PRIDE_GREEN}), hsl(${PRIDE_BLUE}), hsl(${PRIDE_PURPLE}))`;
+const rainbowDivider = `linear-gradient(90deg, hsl(${PRIDE_RED} / 0.5), hsl(${PRIDE_YELLOW} / 0.5), hsl(${PRIDE_GREEN} / 0.5), hsl(${PRIDE_BLUE} / 0.5), hsl(${PRIDE_PURPLE} / 0.5))`;
 
 const diversityPreset: ThemePreset = {
   ...diversityBase,
-  swatches: ['hsl(0 85% 55%)', 'hsl(55 90% 50%)', 'hsl(130 70% 45%)', 'hsl(280 80% 58%)'],
+  swatches: [
+    `hsl(${PRIDE_RED})`,
+    `hsl(${PRIDE_YELLOW})`,
+    `hsl(${PRIDE_GREEN})`,
+    `hsl(${PRIDE_PURPLE})`,
+  ],
   light: {
     ...diversityBase.light,
+    // === SLOTS SEMÂNTICOS DISTRIBUÍDOS PELO ARCO-ÍRIS ===
+    // Primary = magenta (cor principal de ação, mais visível)
+    primary: PRIDE_PINK,
+    'primary-foreground': '0 0% 100%',
+    'primary-hover': '330 85% 50%',
+    'primary-active': '330 85% 45%',
+    'primary-glow': '290 85% 60%',
+    // Secondary = verde pride (botões secundários)
+    secondary: PRIDE_GREEN,
+    'secondary-foreground': '0 0% 100%',
+    // Accent = amarelo pride sobre superfície clara
+    accent: '55 100% 92%',
+    'accent-foreground': '20 80% 28%',
+    // Anel de foco e elementos interativos
+    ring: PRIDE_PINK,
+    interactive: PRIDE_PINK,
+    // Token "orange" do Promo Gifts → mapeia para laranja pride autêntico
+    orange: PRIDE_ORANGE,
+    'orange-hover': '30 90% 50%',
+    'orange-active': '30 90% 45%',
+    'orange-glow': '30 90% 65%',
+    'orange-foreground': '0 0% 100%',
+    // Sidebar com identidade pink + accent violeta suave
+    'sidebar-primary': PRIDE_PINK,
+    'sidebar-primary-foreground': '0 0% 100%',
+    'sidebar-accent': '290 50% 96%',
+    'sidebar-accent-foreground': '290 80% 35%',
+    'sidebar-border': '330 40% 92%',
+    'sidebar-ring': PRIDE_PINK,
+    // === GRADIENTES — TODOS RAINBOW ===
     'gradient-primary': rainbowGrad,
     'gradient-secondary': rainbowGrad,
-    'gradient-hero': `linear-gradient(135deg, hsl(0 85% 55% / 0.08), hsl(130 70% 45% / 0.06), hsl(280 80% 58% / 0.08))`,
-    'shadow-glow': '0 0 20px hsl(280 80% 58% / 0.2)',
-    'shadow-glow-primary': '0 0 20px hsl(280 80% 58% / 0.25)',
-    'shadow-glow-secondary': '0 0 20px hsl(130 70% 45% / 0.25)',
+    'gradient-success': `linear-gradient(135deg, hsl(${PRIDE_GREEN}), hsl(${PRIDE_BLUE}))`,
+    'gradient-novelty': rainbowGrad,
+    'gradient-hero': `linear-gradient(135deg, hsl(${PRIDE_RED} / 0.08), hsl(${PRIDE_GREEN} / 0.06), hsl(${PRIDE_PURPLE} / 0.08))`,
+    'gradient-divider': rainbowDivider,
+    'gradient-surface': `linear-gradient(180deg, hsl(330 30% 98%), hsl(280 20% 96%))`,
+    // === SOMBRAS GLOW — CADA UMA EM UMA COR DIFERENTE ===
+    'shadow-glow': `0 0 24px hsl(${PRIDE_PINK} / 0.25)`,
+    'shadow-glow-primary': `0 0 24px hsl(${PRIDE_PINK} / 0.3)`,
+    'shadow-glow-secondary': `0 0 24px hsl(${PRIDE_GREEN} / 0.25)`,
+    'shadow-glow-success': `0 0 24px hsl(${PRIDE_GREEN} / 0.3)`,
+    'shadow-glow-warning': `0 0 24px hsl(${PRIDE_YELLOW} / 0.35)`,
+    // Chart token (para indicadores)
+    'chart-1': PRIDE_PINK,
   },
   dark: {
     ...diversityBase.dark,
+    // === SLOTS SEMÂNTICOS DISTRIBUÍDOS ===
+    primary: '330 85% 60%',
+    'primary-foreground': '0 0% 100%',
+    'primary-hover': '330 85% 55%',
+    'primary-active': '330 85% 50%',
+    'primary-glow': '290 85% 65%',
+    secondary: PRIDE_GREEN,
+    'secondary-foreground': '0 0% 100%',
+    accent: '280 50% 22%',
+    'accent-foreground': '290 85% 78%',
+    ring: '330 85% 60%',
+    interactive: '330 85% 60%',
+    orange: PRIDE_ORANGE,
+    'orange-hover': '30 90% 50%',
+    'orange-active': '30 90% 45%',
+    'orange-glow': '30 90% 65%',
+    'orange-foreground': '0 0% 100%',
+    'sidebar-primary': '330 85% 60%',
+    'sidebar-primary-foreground': '0 0% 100%',
+    'sidebar-accent': '280 50% 18%',
+    'sidebar-accent-foreground': '290 85% 78%',
+    'sidebar-border': '330 30% 18%',
+    'sidebar-ring': '330 85% 60%',
+    // === GRADIENTES — TODOS RAINBOW ===
     'gradient-primary': rainbowGrad,
     'gradient-secondary': rainbowGrad,
-    'gradient-hero': `linear-gradient(135deg, hsl(0 85% 55% / 0.12), hsl(130 70% 45% / 0.08), hsl(280 80% 58% / 0.12))`,
-    'shadow-glow': '0 0 30px hsl(280 80% 58% / 0.4), 0 0 60px hsl(130 70% 45% / 0.15)',
-    'shadow-glow-primary': '0 0 30px hsl(280 80% 58% / 0.3)',
-    'shadow-glow-secondary': '0 0 25px hsl(130 70% 45% / 0.3)',
+    'gradient-success': `linear-gradient(135deg, hsl(${PRIDE_GREEN}), hsl(${PRIDE_BLUE}))`,
+    'gradient-novelty': rainbowGrad,
+    'gradient-hero': `linear-gradient(135deg, hsl(${PRIDE_RED} / 0.14), hsl(${PRIDE_GREEN} / 0.08), hsl(${PRIDE_PURPLE} / 0.14))`,
+    'gradient-divider': rainbowDivider,
+    'gradient-surface': `linear-gradient(180deg, hsl(280 25% 9%), hsl(330 20% 6%))`,
+    // === SOMBRAS GLOW NEON ===
+    'shadow-glow': `0 0 30px hsl(330 85% 60% / 0.4), 0 0 60px hsl(${PRIDE_PURPLE} / 0.18)`,
+    'shadow-glow-primary': `0 0 30px hsl(330 85% 60% / 0.4), 0 0 60px hsl(${PRIDE_PURPLE} / 0.18)`,
+    'shadow-glow-secondary': `0 0 28px hsl(${PRIDE_GREEN} / 0.4)`,
+    'shadow-glow-success': `0 0 28px hsl(${PRIDE_GREEN} / 0.4)`,
+    'shadow-glow-warning': `0 0 28px hsl(${PRIDE_YELLOW} / 0.4)`,
+    'chart-1': '330 85% 60%',
   },
 };
 
