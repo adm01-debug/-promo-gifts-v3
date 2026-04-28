@@ -1,21 +1,18 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
-import { Save, Palette, Sun, Moon, Monitor, Sparkles, Check, Type, Gamepad2 } from 'lucide-react';
+import { Save, Palette, Sun, Moon, Monitor, Sparkles, Check, Gamepad2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { useTheme } from '@/contexts/ThemeContext';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
 import {
   THEME_PRESETS,
-  FONT_PAIRS,
   type ThemeConfig,
   loadThemeConfig,
   saveThemeConfig,
   applyThemePreset,
   applyRadius,
-  applyFontPair,
   clearThemeOverrides,
   getDefaultConfig,
 } from '@/lib/theme-presets';
@@ -44,7 +41,6 @@ export default function AdminTemasPage() {
   const applyAll = useCallback((cfg: ThemeConfig, mode: 'light' | 'dark') => {
     applyThemePreset(cfg.presetId, mode);
     applyRadius(cfg.radius);
-    applyFontPair(cfg.fontPairId);
   }, []);
 
   const classicPresets = useMemo(() => THEME_PRESETS.filter((p) => p.category !== 'gx'), []);
@@ -55,7 +51,15 @@ export default function AdminTemasPage() {
   }, [config, actualTheme, applyAll]);
 
   const updateConfig = (partial: Partial<ThemeConfig>) => {
-    const next = { ...config, ...partial };
+    let next = { ...config, ...partial };
+    // Quando o usuário troca de preset, se o novo skin tem borderRadius
+    // próprio (ex.: GX = 4px), sincroniza o slider para refletir o efeito.
+    if (partial.presetId && partial.presetId !== config.presetId) {
+      const nextPreset = THEME_PRESETS.find((p) => p.id === partial.presetId);
+      if (nextPreset?.borderRadius !== undefined) {
+        next = { ...next, radius: nextPreset.borderRadius };
+      }
+    }
     setConfig(next);
     // Auto-save on every change for instant feedback
     saveThemeConfig(next);
@@ -233,69 +237,6 @@ export default function AdminTemasPage() {
               </motion.div>
             ))}
           </div>
-        </motion.div>
-
-        {/* Font Pair Selector */}
-        <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={3}>
-          <Card>
-            <CardContent className="p-5 sm:p-6">
-              <div className="mb-4 flex items-center gap-2">
-                <Type className="h-4 w-4 text-primary" />
-                <h2 className="font-display text-sm font-semibold text-foreground">Tipografia</h2>
-                <span className="text-xs text-muted-foreground">({FONT_PAIRS.length} pares)</span>
-              </div>
-              <div
-                className="grid grid-cols-2 gap-3 sm:grid-cols-3"
-                role="radiogroup"
-                aria-label="Pares de fontes"
-              >
-                {FONT_PAIRS.map((pair) => {
-                  const isActive = config.fontPairId === pair.id;
-                  return (
-                    <button
-                      key={pair.id}
-                      type="button"
-                      role="radio"
-                      aria-checked={isActive}
-                      onClick={() => updateConfig({ fontPairId: pair.id })}
-                      className={cn(
-                        'relative rounded-xl border bg-card p-4 text-left transition-all duration-200 hover:-translate-y-0.5',
-                        isActive
-                          ? 'border-primary shadow-glow-primary ring-2 ring-primary/60'
-                          : 'border-border hover:border-primary/40 hover:shadow-md',
-                      )}
-                    >
-                      <div className="mb-2 flex items-center justify-between gap-2">
-                        <div className="flex min-w-0 items-center gap-1.5">
-                          <span className="shrink-0 text-base">{pair.emoji}</span>
-                          <h3 className="truncate font-display text-xs font-bold text-foreground">
-                            {pair.name}
-                          </h3>
-                        </div>
-                        {isActive && (
-                          <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary">
-                            <Check className="h-3 w-3 text-primary-foreground" />
-                          </div>
-                        )}
-                      </div>
-                      <div
-                        className="truncate text-base leading-snug text-foreground/90"
-                        style={{ fontFamily: pair.display }}
-                      >
-                        Aa Bb 123
-                      </div>
-                      <div
-                        className="mt-0.5 truncate text-[11px] text-muted-foreground"
-                        style={{ fontFamily: pair.sans }}
-                      >
-                        {pair.description}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
         </motion.div>
 
         {/* Border Radius */}

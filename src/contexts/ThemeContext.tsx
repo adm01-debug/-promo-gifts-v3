@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
-import { loadThemeConfig, applyThemePreset, applyRadius, applyFontPair } from '@/lib/theme-presets';
+import { loadThemeConfig, applyThemePreset, applyRadius } from '@/lib/theme-presets';
 
 type Theme = 'light' | 'dark' | 'auto';
 
@@ -58,7 +58,6 @@ export function ThemeProvider({
     const cfg = loadThemeConfig();
     applyThemePreset(cfg.presetId, resolved);
     applyRadius(cfg.radius);
-    applyFontPair(cfg.fontPairId);
   }, [theme]);
 
   // Listener para mudanças no tema do sistema
@@ -78,7 +77,6 @@ export function ThemeProvider({
       const cfg = loadThemeConfig();
       applyThemePreset(cfg.presetId, resolved);
       applyRadius(cfg.radius);
-      applyFontPair(cfg.fontPairId);
     };
 
     mediaQuery.addEventListener('change', handleChange);
