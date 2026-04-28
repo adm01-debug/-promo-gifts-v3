@@ -205,7 +205,7 @@ export function ProductSparkline({ productId, className }: ProductSparklineProps
                 <div className="flex items-center gap-1.5">
                   <Activity className="h-3 w-3 text-muted-foreground" />
                    <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
-                     Mercado · Dia {hoverIndex + 1}
+                     Vendas no fornecedor · Dia {hoverIndex + 1}
                   </span>
                 </div>
                 <span className="text-sm font-bold text-foreground">
@@ -227,7 +227,7 @@ export function ProductSparkline({ productId, className }: ProductSparklineProps
             {/* Metrics grid */}
             <div className="px-3 py-2 grid grid-cols-2 gap-x-3 gap-y-1.5">
               <TooltipMetric
-                label="Saídas 30d"
+                label="Vendas no fornecedor 30d"
                 value={`${summary.totalSales.toLocaleString('pt-BR')} un`}
               />
               <TooltipMetric
@@ -313,6 +313,13 @@ export function ProductSparkline({ productId, className }: ProductSparklineProps
                 <TrendIcon className="h-3 w-3" />
                 {summary.trend > 0 ? '+' : ''}{summary.trend.toFixed(1)}%
               </div>
+            </div>
+
+            {/* Source legend — sempre visível para deixar claro de onde vem o dado */}
+            <div className="px-3 py-1.5 bg-muted/40 border-t border-border/40">
+              <span className="text-[9px] text-muted-foreground/70 italic leading-tight block">
+                Proxy: unidades depletadas no estoque do fornecedor (não representa vendas da Promo Brindes).
+              </span>
             </div>
 
             {/* Demo indicator */}

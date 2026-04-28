@@ -4,7 +4,7 @@ import { useScrollLockFix } from "@/hooks/useScrollLockFix";
 import { useGlobalShortcuts } from "@/hooks/useGlobalShortcuts";
 import { SkipToContent } from "@/components/common/SkipToContent";
 import { BackButton } from "@/components/common/BackButton";
-import { PersistentBreadcrumbs } from "@/components/common/PersistentBreadcrumbs";
+
 import { lazyWithRetry } from "@/lib/lazyWithRetry";
 
 // Lazy load heavy layout components to reduce MainLayout chunk size
@@ -107,9 +107,6 @@ export function MainLayout({ children }: MainLayoutProps) {
             role="main"
             aria-label="Conteúdo principal"
           >
-            <div className="print:hidden">
-              <PersistentBreadcrumbs className="mb-4" showBackButton />
-            </div>
             
             <Suspense fallback={<div>{children}</div>}>
               <PageTransition variant="fade-slide" duration={0.2}>
