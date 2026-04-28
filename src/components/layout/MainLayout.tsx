@@ -107,9 +107,6 @@ export function MainLayout({ children }: MainLayoutProps) {
             role="main"
             aria-label="Conteúdo principal"
           >
-            <div className="print:hidden">
-              <PersistentBreadcrumbs className="mb-4" showBackButton />
-            </div>
             
             <Suspense fallback={<div>{children}</div>}>
               <PageTransition variant="fade-slide" duration={0.2}>
