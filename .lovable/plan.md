@@ -1,55 +1,47 @@
-# Restringir overlay "Bridge metrics · preview only" ao papel `dev`
+## Contexto
 
-Hoje o `BridgeMetricsOverlay` (chip flutuante com latências/erros do bridge, toggle por backtick) é montado em `main.tsx` para qualquer build não-produção. No preview, isso significa que **qualquer usuário logado** (agente, supervisor) pode abrir o painel pressionando `` ` `` ou ver o botão flutuante. Vamos gateá-lo pelo mesmo SSOT usado pelos banners (`shouldShowDevInfraMessages(isDev)`), que respeita a precedência **`VITE_SHOW_DEV_INFRA_MESSAGES` (build-time) > `localStorage.show_dev_infra_messages` (runtime) > role `dev`**.
+O card do print — **"Recomendações IA / Sugestões inteligentes para este cliente / Selecione um cliente primeiro"** — é o componente `AIRecommendationsPanel` (em `src/components/quotes/`) renderizado dentro do **Quote Builder** (`/orcamentos/novo` e `/orcamentos/editar`), na coluna do cabeçalho do orçamento, logo abaixo do bloco de frete (`QuoteBuilderPage.tsx`, linha 271).
 
-## Mudanças
+Você está correto: essa funcionalidade **se sobrepõe ao Business Analytics** (`/ferramentas/bi`), que já entrega — de forma mais rica e baseada em dados reais (RPCs `get_client_top_products`, `get_industry_top_products`, `get_industry_benchmark_stats`, `get_client_seasonality`):
 
-### 1. `src/main.tsx` — remover montagem fora do AuthProvider
-Tirar o `lazy()` + `<Suspense><BridgeMetricsOverlay /></Suspense>` do root. O componente passa a ser montado dentro do `App` (onde existe o `AuthProvider`).
+- **Zona 3 — Afinidade**: top categorias do cliente + produtos sugeridos
+- **Zona 4 — Tendência do setor**: produtos mais vendidos para o ramo do cliente
+- **Zona 6 — Sugestão do especialista**: curadoria por ramo (`industryRecommendations.ts`)
+- **Recomendações Empíricas** (`EmpiricalRecommendations.tsx`)
 
-### 2. `src/App.tsx` — montar dentro do AuthProvider, gateado
-- Adicionar import lazy: `const BridgeMetricsOverlay = lazyWithRetry(() => import("@/components/dev/BridgeMetricsOverlay"))` (em build PROD, o componente retorna `null` no topo, então o chunk segue tree-shakable).
-- Logo após `<BridgeStatusBanner />` (linha 198), montar:
-  ```tsx
-  <DevOnlyBridgeOverlay />
-  ```
-- Criar pequeno wrapper local em `src/components/dev/DevOnlyBridgeOverlay.tsx`:
-  ```tsx
-  import { Suspense, lazy } from 'react';
-  import { useAuth } from '@/contexts/AuthContext';
-  import { shouldShowDevInfraMessages } from '@/lib/system/dev-infra-messages';
+O painel do Quote Builder, em comparação, faz uma chamada genérica ao LLM com uma amostra de 80 produtos do catálogo, sem usar histórico real do cliente nem benchmark setorial — ou seja, **entrega menos com mais custo**.
 
-  const Overlay = lazy(() => import('./BridgeMetricsOverlay'));
+## Proposta
 
-  export function DevOnlyBridgeOverlay() {
-    const { isDev } = useAuth();
-    if (!shouldShowDevInfraMessages(isDev)) return null;
-    return (
-      <Suspense fallback={null}>
-        <Overlay />
-      </Suspense>
-    );
-  }
-  ```
-  Vantagens: o `lazy()` só dispara o import quando o gate aprova, então usuários comuns nunca baixam o chunk; em produção continua tree-shaken pelo guard `if (import.meta.env.PROD) return null` já existente no overlay.
+**Remover** o `AIRecommendationsPanel` do Quote Builder e **substituir por um atalho** para o Business Analytics do cliente selecionado, mantendo a inteligência centralizada em um único módulo (SSOT).
 
-### 3. `src/components/dev/BridgeMetricsOverlay.tsx` — defesa em profundidade
-Logo após o guard `if (import.meta.env.PROD) return null` (linha 56), reforçar com o gate (caso alguém monte o componente em outro lugar no futuro):
-```ts
-const { isDev } = useAuth();
-if (!shouldShowDevInfraMessages(isDev)) return null;
-```
-Também guardar o handler global de tecla `` ` `` (linhas ~83-95) para que ele só registre o listener quando o gate autoriza — assim o atalho não abre o overlay para não-devs nem mesmo se o componente for mantido montado.
+### O que muda
 
-### 4. Testes — `tests/components/BridgeMetricsOverlay.test.tsx` (novo)
-Padrão idêntico aos testes recém-criados (mock de `useAuth` + `shouldShowDevInfraMessages`):
-- Não-dev: componente renderiza vazio, listener de teclado **não** é registrado, pressionar `` ` `` não abre nada.
-- Dev: botão flutuante aparece, atalho `` ` `` abre o painel.
-- Gate desligado (env `false`) com `isDev=true`: não renderiza.
-- Gate ligado por override com `isDev=false`: renderiza.
+1. **`src/pages/QuoteBuilderPage.tsx`** — remover o bloco `<AIRecommendationsPanel ... />` (linhas 270-280) e o import (linha 24).
 
-### 5. Memória — atualizar `mem://features/dev-infra-messages-gate`
-Adicionar `BridgeMetricsOverlay` (via `DevOnlyBridgeOverlay`) à lista de consumidores do gate, junto de `CloudStatusBanner` e `BridgeStatusBanner`.
+2. **Substituir por um CTA discreto** no mesmo lugar: card pequeno "Ver inteligência completa deste cliente" com ícone `Sparkles` + botão linkando para `/ferramentas/bi?clientId={companyId}`. Só aparece quando há cliente selecionado. Abre em nova aba (`target="_blank"`) para não perder o orçamento em edição.
 
-## Resultado
-Em produção: continua sendo tree-shaken (zero bytes baixados). Em preview, somente usuários com papel `dev` (ou com override explícito via env/localStorage) veem o botão flutuante e podem abrir o overlay com `` ` ``. Agentes e supervisores logados no preview não têm mais acesso ao painel técnico de telemetria do bridge.
+3. **`src/components/quotes/AIRecommendationsPanel.tsx`** — **deletar** o arquivo (uso é exclusivo do Quote Builder, confirmado por grep).
+
+4. **`src/hooks/useAIRecommendations.ts`** — verificar se é usado em outro lugar; se não, deletar também (e a edge function correspondente, se existir e não for usada). _Vou validar antes de remover._
+
+5. **Nada muda** no Business Analytics — ele já faz tudo isso e melhor.
+
+### O que NÃO muda
+
+- O componente homônimo em `src/components/ai/AIRecommendationsPanel.tsx` (arquivo diferente, mais completo, usado em outros fluxos) — fica intacto.
+- As 6 zonas do BI ficam intactas.
+- Nenhuma migração de banco necessária.
+
+### Resultado
+
+- Quote Builder fica mais leve e focado em **montar o orçamento**.
+- A inteligência de cliente fica em **um único lugar** (`/ferramentas/bi`), eliminando duplicação.
+- Vendedor que quer recomendações tem 1 clique para o BI completo, com dados reais do cliente.
+
+### Detalhes técnicos
+
+- Remoção: 1 import + 1 bloco JSX em `QuoteBuilderPage.tsx`.
+- Adição: card de 1 link com `useNavigate` ou `<a target="_blank">` apontando para `/ferramentas/bi?clientId=${s.companyInfo?.id}`.
+- Cleanup: deletar `src/components/quotes/AIRecommendationsPanel.tsx` e (se órfão) `src/hooks/useAIRecommendations.ts` + edge function relacionada.
+- Sem mudanças em RLS, schema, rotas ou contexts.
