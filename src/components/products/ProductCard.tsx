@@ -4,7 +4,7 @@
  */
 import { useState, useRef, useEffect, memo, forwardRef, useCallback } from "react";
 import { GenderBadge } from "./GenderBadge";
-import { Building2, Package, FolderTree } from "lucide-react";
+import { Building2, Package } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { getCdnUrl, getSrcSet } from "@/utils/image-utils";
 import { Badge } from "@/components/ui/badge";
