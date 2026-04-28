@@ -310,7 +310,7 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
 
         <div className="pt-1.5 sm:pt-2 border-t border-border/30">
           <div className="flex items-center justify-between mb-0.5">
-            <span className="text-[9px] sm:text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Saídas no Mercado 30d</span>
+            <span className="text-[9px] sm:text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Vendas no Fornecedor 30d</span>
           </div>
           <ProductSparkline productId={product.id} />
         </div>
