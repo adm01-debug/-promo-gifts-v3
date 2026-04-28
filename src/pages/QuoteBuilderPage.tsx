@@ -21,7 +21,7 @@ import {
   Edit, AlertTriangle, Calendar as CalendarIcon,
 } from "lucide-react";
 import { toast } from "sonner";
-import { AIRecommendationsPanel } from "@/components/quotes/AIRecommendationsPanel";
+import { Sparkles, ExternalLink } from "lucide-react";
 import { format, addDays } from "date-fns";
 
 import { QuoteTemplateSelector } from "@/components/quotes/QuoteTemplateSelector";
