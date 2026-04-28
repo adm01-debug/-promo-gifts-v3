@@ -29,6 +29,47 @@ const RecommendationRequestSchema = z.object({
   products: z.array(ProductSchema).min(1).max(100),
 });
 
+/**
+ * Robustly extract & parse JSON from an LLM response.
+ * Handles markdown fences, prose around JSON, trailing commas, and minor
+ * truncation (auto-closes one missing `]` or `}` at the end).
+ */
+function extractAndParseJSON(raw: string): unknown {
+  let s = String(raw ?? "").trim();
+
+  // Strip markdown fences
+  s = s.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "").trim();
+
+  // Slice from first { or [ to last matching } or ]
+  const firstObj = s.indexOf("{");
+  const firstArr = s.indexOf("[");
+  const start =
+    firstObj === -1 ? firstArr :
+    firstArr === -1 ? firstObj :
+    Math.min(firstObj, firstArr);
+  if (start === -1) throw new Error("No JSON object/array found in AI response");
+  const isArray = s[start] === "[";
+  const end = isArray ? s.lastIndexOf("]") : s.lastIndexOf("}");
+  s = end > start ? s.slice(start, end + 1) : s.slice(start);
+
+  // Remove trailing commas before } or ]
+  const cleaned = s.replace(/,(\s*[}\]])/g, "$1");
+
+  try {
+    return JSON.parse(cleaned);
+  } catch (e1) {
+    // Last-resort: auto-close one missing bracket if truncated
+    const opens = (cleaned.match(/[{[]/g) || []).length;
+    const closes = (cleaned.match(/[}\]]/g) || []).length;
+    if (opens > closes) {
+      const patched = cleaned + (isArray ? "]" : "}");
+      try { return JSON.parse(patched); } catch { /* fall through */ }
+    }
+    console.error("[ai-recommendations] JSON parse failed. Raw snippet:", cleaned.slice(0, 500));
+    throw e1;
+  }
+}
+
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") {
