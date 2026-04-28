@@ -29,7 +29,6 @@ export const DEV_ONLY_ROUTE_PREFIXES = [
 export const ADMIN_ONLY_ROUTE_PREFIXES = [
   "/admin/usuarios",
   "/admin/cadastros",
-  "/admin/temas",
 ] as const;
 
 export function isDevOnlyPath(pathname: string): boolean {
