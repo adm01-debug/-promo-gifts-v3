@@ -108,6 +108,22 @@ const mockProductWithColors = {
   ],
 };
 
+// PR addition: product with a category object (category.name)
+const mockProductWithCategory = {
+  ...mockProduct,
+  id: "p3",
+  name: "Mochila Executiva",
+  category: { id: 10, name: "Mochilas" },
+};
+
+// PR addition: product explicitly without category
+const mockProductWithoutCategory = {
+  ...mockProduct,
+  id: "p4",
+  name: "Chaveiro Simples",
+  category: undefined,
+};
+
 describe("ProductCard", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -217,5 +233,59 @@ describe("ProductCard", () => {
     expect(tablist).toBeInTheDocument();
     const tabs = screen.getAllByRole("tab");
     expect(tabs).toHaveLength(2);
+  });
+});
+
+// ── Category line — PR change: display product.category.name ─────────
+
+describe("ProductCard — category line (PR)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("renders category name when product.category.name is present", async () => {
+    const { ProductCard } = await import("@/components/products/ProductCard");
+    renderWithProviders(<ProductCard product={mockProductWithCategory as any} />);
+    expect(screen.getByText("Mochilas")).toBeInTheDocument();
+  });
+
+  it("does not render category line when product.category is absent", async () => {
+    const { ProductCard } = await import("@/components/products/ProductCard");
+    renderWithProviders(<ProductCard product={mockProductWithoutCategory as any} />);
+    // No stray "undefined" or empty badge
+    expect(screen.queryByText("undefined")).not.toBeInTheDocument();
+    // The product name is still shown
+    expect(screen.getByText("Chaveiro Simples")).toBeInTheDocument();
+  });
+
+  it("does not render category line when category.name is falsy", async () => {
+    const { ProductCard } = await import("@/components/products/ProductCard");
+    const productNoName = { ...mockProduct, id: "p5", name: "Produto Sem Cat", category: { id: 1, name: "" } };
+    renderWithProviders(<ProductCard product={productNoName as any} />);
+    // Empty-name category should not create a visible badge
+    const categoryBadges = document.querySelectorAll(".bg-primary\\/15");
+    const emptyBadge = Array.from(categoryBadges).find((el) => el.textContent?.trim() === "");
+    expect(emptyBadge).toBeUndefined();
+  });
+
+  it("renders the sparkline section label as 'Vendas 30d' (not the old label)", async () => {
+    const { ProductCard } = await import("@/components/products/ProductCard");
+    renderWithProviders(<ProductCard product={mockProduct as any} />);
+    expect(screen.getByText("Vendas 30d")).toBeInTheDocument();
+    expect(screen.queryByText(/Vendas no Fornecedor/i)).not.toBeInTheDocument();
+  });
+
+  // Regression: category name must not appear when category object exists but name is undefined
+  it("handles category object with undefined name gracefully", async () => {
+    const { ProductCard } = await import("@/components/products/ProductCard");
+    const productUndefinedCatName = {
+      ...mockProduct,
+      id: "p6",
+      name: "Produto X",
+      category: { id: 2, name: undefined as unknown as string },
+    };
+    expect(() =>
+      renderWithProviders(<ProductCard product={productUndefinedCatName as any} />)
+    ).not.toThrow();
   });
 });
