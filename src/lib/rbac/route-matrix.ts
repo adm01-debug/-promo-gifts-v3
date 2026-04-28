@@ -75,7 +75,7 @@ export const RBAC_ROUTES: RbacRouteEntry[] = [
   { path: "/admin/permissoes", label: "Permissões", guard: "AdminRoute", role: "admin", mfaAal2: true, rlsHelper: "is_admin", category: "admin" },
   { path: "/admin/roles", label: "Papéis", guard: "AdminRoute", role: "admin", mfaAal2: true, rlsHelper: "is_admin", category: "admin" },
   { path: "/admin/role-permissoes", label: "Permissões de Papéis", guard: "AdminRoute", role: "admin", mfaAal2: true, rlsHelper: "is_admin", category: "admin" },
-  { path: "/admin/temas", label: "Skins / Temas", guard: "AdminRoute", role: "admin", mfaAal2: true, category: "admin" },
+  { path: "/admin/temas", label: "Skins / Temas", guard: "AuthenticatedRoute", role: "vendedor", mfaAal2: false, category: "admin", notes: "Preferência visual local (localStorage). Disponível para qualquer usuário autenticado." },
   { path: "/admin/kit-templates", label: "Templates de Kit", guard: "AdminRoute", role: "admin", mfaAal2: true, category: "admin" },
   { path: "/admin/video-variantes", label: "Vídeos por variante", guard: "AdminRoute", role: "admin", mfaAal2: true, category: "admin" },
 
