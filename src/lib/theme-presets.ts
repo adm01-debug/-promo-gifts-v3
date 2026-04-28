@@ -99,23 +99,68 @@ export interface ThemeModeColors {
 }
 
 export const CSS_VARS_TO_APPLY: (keyof ThemeModeColors)[] = [
-  'background', 'foreground', 'card', 'card-foreground', 'card-elevated',
-  'popover', 'popover-foreground', 'primary', 'primary-foreground', 'primary-hover',
-  'primary-active', 'primary-glow', 'secondary', 'secondary-foreground',
-  'muted', 'muted-foreground', 'accent', 'accent-foreground',
-  'border', 'input', 'ring', 'surface', 'surface-hover', 'text-secondary',
-  'interactive', 'divider',
-  'orange', 'orange-hover', 'orange-active', 'orange-glow', 'orange-foreground',
-  'sidebar-background', 'sidebar-foreground', 'sidebar-primary',
-  'sidebar-primary-foreground', 'sidebar-accent', 'sidebar-accent-foreground',
-  'sidebar-border', 'sidebar-ring',
-  'elevated', 'elevated-hover',
-  'glass-bg', 'glass-bg-strong', 'glass-bg-subtle', 'glass-border', 'glass-border-strong', 'glass-shadow',
-  'gradient-primary', 'gradient-secondary', 'gradient-success',
-  'gradient-surface', 'gradient-divider', 'gradient-hero', 'gradient-novelty',
-  'shadow-glow', 'shadow-glow-primary', 'shadow-glow-secondary',
-  'shadow-glow-success', 'shadow-glow-warning',
-  'shadow-lg', 'shadow-xl', 'shadow-header',
+  'background',
+  'foreground',
+  'card',
+  'card-foreground',
+  'card-elevated',
+  'popover',
+  'popover-foreground',
+  'primary',
+  'primary-foreground',
+  'primary-hover',
+  'primary-active',
+  'primary-glow',
+  'secondary',
+  'secondary-foreground',
+  'muted',
+  'muted-foreground',
+  'accent',
+  'accent-foreground',
+  'border',
+  'input',
+  'ring',
+  'surface',
+  'surface-hover',
+  'text-secondary',
+  'interactive',
+  'divider',
+  'orange',
+  'orange-hover',
+  'orange-active',
+  'orange-glow',
+  'orange-foreground',
+  'sidebar-background',
+  'sidebar-foreground',
+  'sidebar-primary',
+  'sidebar-primary-foreground',
+  'sidebar-accent',
+  'sidebar-accent-foreground',
+  'sidebar-border',
+  'sidebar-ring',
+  'elevated',
+  'elevated-hover',
+  'glass-bg',
+  'glass-bg-strong',
+  'glass-bg-subtle',
+  'glass-border',
+  'glass-border-strong',
+  'glass-shadow',
+  'gradient-primary',
+  'gradient-secondary',
+  'gradient-success',
+  'gradient-surface',
+  'gradient-divider',
+  'gradient-hero',
+  'gradient-novelty',
+  'shadow-glow',
+  'shadow-glow-primary',
+  'shadow-glow-secondary',
+  'shadow-glow-success',
+  'shadow-glow-warning',
+  'shadow-lg',
+  'shadow-xl',
+  'shadow-header',
   'chart-1',
 ];
 
@@ -127,6 +172,21 @@ export interface ThemePreset {
   swatches: [string, string, string, string];
   light: ThemeModeColors;
   dark: ThemeModeColors;
+  /** Optional category badge (e.g., "GX" for Opera GX inspired). */
+  category?: 'classic' | 'gx';
+  /**
+   * Border-radius (em px) sugerido pelo skin. Quando definido, o helper
+   * `applyThemePreset` aplica esse valor ao `--radius` global. Permite
+   * que skins angulares (Opera GX = 4px) coexistam com skins arredondados.
+   */
+  borderRadius?: number;
+  /**
+   * Família de fonte (CSS font-family list) sugerida pelo skin. Quando
+   * definida, é aplicada às variáveis globais `--font-sans` e
+   * `--font-display`. Permite skins com tipografia distinta (ex.: skins
+   * Opera GX usam Inter, igual ao dashboard do Cloudflare).
+   */
+  font?: string;
 }
 
 export interface ThemeConfig {
@@ -144,13 +204,13 @@ interface PresetParams {
   name: string;
   description: string;
   emoji: string;
-  h: number;   // Primary hue
-  s: number;   // Primary saturation
-  l: number;   // Primary lightness
-  gh: number;  // Glow hue
-  sh: number;  // Secondary hue
-  ss: number;  // Secondary saturation
-  sl: number;  // Secondary lightness
+  h: number; // Primary hue
+  s: number; // Primary saturation
+  l: number; // Primary lightness
+  gh: number; // Glow hue
+  sh: number; // Secondary hue
+  ss: number; // Secondary saturation
+  sl: number; // Secondary lightness
 }
 
 function buildPreset(p: PresetParams): ThemePreset {
@@ -335,10 +395,17 @@ const diversityBase = buildPreset({
   name: 'Diversity',
   description: 'Orgulho e diversidade',
   emoji: '🏳️‍🌈',
-  h: 0, s: 85, l: 55, gh: 280, sh: 160, ss: 70, sl: 45,
+  h: 0,
+  s: 85,
+  l: 55,
+  gh: 280,
+  sh: 160,
+  ss: 70,
+  sl: 45,
 });
 
-const rainbowGrad = 'linear-gradient(135deg, hsl(0 85% 55%), hsl(30 90% 55%), hsl(55 90% 50%), hsl(130 70% 45%), hsl(210 80% 55%), hsl(280 80% 58%))';
+const rainbowGrad =
+  'linear-gradient(135deg, hsl(0 85% 55%), hsl(30 90% 55%), hsl(55 90% 50%), hsl(130 70% 45%), hsl(210 80% 55%), hsl(280 80% 58%))';
 
 const diversityPreset: ThemePreset = {
   ...diversityBase,
@@ -363,17 +430,382 @@ const diversityPreset: ThemePreset = {
   },
 };
 
+// =====================================================
+// OPERA GX-INSPIRED PRESETS — Zapp Web canonical port
+// =====================================================
+//
+// Implementação alinhada com `adm01-debug/zapp-web` para garantir
+// padrão de cores entre os dois sistemas. Os 9 skins GX abaixo usam
+// os mesmos hue/sat/light que o Zapp Web; a pipeline usa três helpers
+// que reproduzem a "RGB feel" do Opera GX:
+//   1. applyGxDarkSurfaces — fundo roxo escuro #251F33 (hue 265)
+//   2. applyGxNeonGlow      — boost de alpha nas sombras coloridas
+//   3. applyGxGlass         — glass translúcido tingido pela primária
+//
+// Diferenças deliberadas vs. Zapp Web:
+//   • Tipografia: usamos Inter (família do Cloudflare Sans) em vez de
+//     Rajdhani — mais profissional e adequado ao Promo Gifts B2B.
+//   • Tokens extras do Promo Gifts (surface, divider, shadow-glow,
+//     glass-bg-strong/subtle) recebem versões coerentes do tratamento
+//     GX já que não existem no Zapp.
+
+// Hex de referência: #251F33 (roxo escuro icônico do Opera GX).
+// Aplicamos uma família de tons em torno desse hue (265) para dar
+// identidade "GX" em todas as superfícies do dark mode.
+function applyGxDarkSurfaces(preset: ThemePreset): ThemePreset {
+  const d = preset.dark;
+  d.background = '265 22% 8%';
+  d.card = '265 22% 12%';
+  d['card-elevated'] = '265 18% 17%';
+  d.popover = '265 22% 14%';
+  d.muted = '265 18% 17%';
+  d.input = '265 18% 17%';
+  d.border = '265 18% 22%';
+  d.secondary = '265 18% 17%';
+  d.accent = '265 18% 17%';
+  // Promo Gifts-specific tokens (não existem no Zapp): mantemos a família 265
+  d.surface = '265 22% 10%';
+  d['surface-hover'] = '265 18% 17%';
+  d.divider = '265 18% 22%';
+  d['sidebar-background'] = '265 24% 10%';
+  d['sidebar-accent'] = '265 18% 18%';
+  d['sidebar-border'] = '265 18% 20%';
+  d.elevated = '265 18% 17%';
+  d['elevated-hover'] = '265 18% 22%';
+  d['gradient-surface'] = 'linear-gradient(180deg, hsl(265 22% 12%), hsl(265 24% 8%))';
+  return preset;
+}
+
+// Substitui o alpha da última ocorrência hsl(... / X) de uma string
+// `box-shadow`, preservando offset/blur/spread e a cor base. Trabalhar
+// com a última ocorrência permite manter drop shadows neutros antes do
+// glow colorido (caso comum nas sombras dark do Promo Gifts).
+//   '0 0 30px hsl(347 96% 54% / 0.4)' → '0 0 30px hsl(347 96% 54% / 0.7)'
+function boostGlowAlpha(shadow: string, alpha: number): string {
+  const matches = shadow.match(/\/\s*[0-9.]+\s*\)/g);
+  if (!matches || matches.length === 0) return shadow;
+  const last = matches[matches.length - 1];
+  const idx = shadow.lastIndexOf(last);
+  return shadow.slice(0, idx) + `/ ${alpha})` + shadow.slice(idx + last.length);
+}
+
+// Reforça a intensidade das sombras/neon em torno dos elementos
+// principais para reproduzir o "RGB feel" do Opera GX.
+function applyGxNeonGlow(preset: ThemePreset): ThemePreset {
+  const { light, dark } = preset;
+
+  light['shadow-glow-primary'] = boostGlowAlpha(light['shadow-glow-primary'], 0.45);
+  light['shadow-glow-secondary'] = boostGlowAlpha(light['shadow-glow-secondary'], 0.4);
+  light['shadow-glow'] = boostGlowAlpha(light['shadow-glow'], 0.45);
+
+  dark['shadow-glow-primary'] = boostGlowAlpha(dark['shadow-glow-primary'], 0.7);
+  dark['shadow-glow-secondary'] = boostGlowAlpha(dark['shadow-glow-secondary'], 0.65);
+  dark['shadow-glow'] = boostGlowAlpha(dark['shadow-glow'], 0.7);
+
+  return preset;
+}
+
+// Reduz drasticamente a opacidade do glass-bg e tinge a glass-border
+// com a cor primária do skin — efeito de painéis translúcidos do Opera GX.
+function applyGxGlass(preset: ThemePreset, h: number, s: number, l: number): ThemePreset {
+  preset.light['glass-bg'] = '0 0% 100% / 0.55';
+  preset.light['glass-bg-strong'] = '0 0% 100% / 0.7';
+  preset.light['glass-bg-subtle'] = '0 0% 100% / 0.4';
+  preset.light['glass-border'] = `${h} ${s}% ${l}% / 0.35`;
+  preset.light['glass-border-strong'] = `${h} ${s}% ${l}% / 0.55`;
+
+  preset.dark['glass-bg'] = '265 22% 12% / 0.55';
+  preset.dark['glass-bg-strong'] = '265 22% 10% / 0.75';
+  preset.dark['glass-bg-subtle'] = '265 22% 14% / 0.4';
+  preset.dark['glass-border'] = `${h} ${Math.min(100, s + 5)}% ${l}% / 0.5`;
+  preset.dark['glass-border-strong'] = `${h} ${Math.min(100, s + 10)}% ${l}% / 0.65`;
+  return preset;
+}
+
+// Família tipográfica usada nas skins GX. Inter é a mesma família do
+// Cloudflare Sans (variante do Inter), mantendo a vibe tech/profissional
+// sem cair no estilo gamer puro.
+const GX_FONT_STACK = "'Inter', 'Plus Jakarta Sans', system-ui, sans-serif";
+
+function buildGxPreset(p: PresetParams): ThemePreset {
+  const preset = applyGxGlass(applyGxNeonGlow(applyGxDarkSurfaces(buildPreset(p))), p.h, p.s, p.l);
+  preset.category = 'gx';
+  // Opera GX usa cantos quase retos em botões/cards/sidebar.
+  preset.borderRadius = 4;
+  // Inter — a mesma família do Cloudflare Sans.
+  preset.font = GX_FONT_STACK;
+  return preset;
+}
+
 export const THEME_PRESETS: ThemePreset[] = [
-  buildPreset({ id: 'corporate', name: 'Padrão',      emoji: '💼', h: 221, s: 83, l: 53, gh: 230, sh: 215, ss: 70, sl: 55, description: 'Azul profissional' }),
-  buildPreset({ id: 'purpure',   name: 'Púrpure',     emoji: '💜', h: 254, s: 92, l: 62, gh: 260, sh: 260, ss: 90, sl: 67, description: 'Roxo vibrante' }),
-  buildPreset({ id: 'emerald',   name: 'Esmeralda',   emoji: '💎', h: 160, s: 84, l: 45, gh: 170, sh: 145, ss: 70, sl: 50, description: 'Verde sofisticado' }),
-  buildPreset({ id: 'sunset',    name: 'Pôr do Sol',  emoji: '🌅', h: 25,  s: 95, l: 53, gh: 35,  sh: 15,  ss: 80, sl: 50, description: 'Quente e acolhedor' }),
-  buildPreset({ id: 'rose',      name: 'Rosé',        emoji: '🌸', h: 346, s: 77, l: 50, gh: 355, sh: 330, ss: 70, sl: 55, description: 'Elegante e moderno' }),
-  buildPreset({ id: 'minimal',   name: 'Minimal',     emoji: '⚪', h: 220, s: 15, l: 50, gh: 220, sh: 220, ss: 10, sl: 45, description: 'Clean e neutro' }),
-  buildPreset({ id: 'ocean',     name: 'Oceano',      emoji: '🌊', h: 200, s: 85, l: 55, gh: 210, sh: 190, ss: 75, sl: 50, description: 'Azul profundo' }),
-  buildPreset({ id: 'amber',     name: 'Âmbar',       emoji: '✨', h: 38,  s: 92, l: 50, gh: 45,  sh: 30,  ss: 80, sl: 55, description: 'Dourado e premium' }),
-  buildPreset({ id: 'cyber',     name: 'Cyber',       emoji: '🤖', h: 180, s: 100, l: 50, gh: 300, sh: 320, ss: 100, sl: 60, description: 'Neon futurista' }),
-  diversityPreset,
+  // === CLASSIC PRESETS (mantidas) ===
+  {
+    ...buildPreset({
+      id: 'corporate',
+      name: 'Padrão',
+      emoji: '💼',
+      h: 221,
+      s: 83,
+      l: 53,
+      gh: 230,
+      sh: 215,
+      ss: 70,
+      sl: 55,
+      description: 'Azul profissional',
+    }),
+    category: 'classic',
+  },
+  {
+    ...buildPreset({
+      id: 'purpure',
+      name: 'Púrpure',
+      emoji: '💜',
+      h: 254,
+      s: 92,
+      l: 62,
+      gh: 260,
+      sh: 260,
+      ss: 90,
+      sl: 67,
+      description: 'Roxo vibrante',
+    }),
+    category: 'classic',
+  },
+  {
+    ...buildPreset({
+      id: 'emerald',
+      name: 'Esmeralda',
+      emoji: '💎',
+      h: 160,
+      s: 84,
+      l: 45,
+      gh: 170,
+      sh: 145,
+      ss: 70,
+      sl: 50,
+      description: 'Verde sofisticado',
+    }),
+    category: 'classic',
+  },
+  {
+    ...buildPreset({
+      id: 'sunset',
+      name: 'Pôr do Sol',
+      emoji: '🌅',
+      h: 25,
+      s: 95,
+      l: 53,
+      gh: 35,
+      sh: 15,
+      ss: 80,
+      sl: 50,
+      description: 'Quente e acolhedor',
+    }),
+    category: 'classic',
+  },
+  {
+    ...buildPreset({
+      id: 'rose',
+      name: 'Rosé',
+      emoji: '🌸',
+      h: 346,
+      s: 77,
+      l: 50,
+      gh: 355,
+      sh: 330,
+      ss: 70,
+      sl: 55,
+      description: 'Elegante e moderno',
+    }),
+    category: 'classic',
+  },
+  {
+    ...buildPreset({
+      id: 'minimal',
+      name: 'Minimal',
+      emoji: '⚪',
+      h: 220,
+      s: 15,
+      l: 50,
+      gh: 220,
+      sh: 220,
+      ss: 10,
+      sl: 45,
+      description: 'Clean e neutro',
+    }),
+    category: 'classic',
+  },
+  {
+    ...buildPreset({
+      id: 'ocean',
+      name: 'Oceano',
+      emoji: '🌊',
+      h: 200,
+      s: 85,
+      l: 55,
+      gh: 210,
+      sh: 190,
+      ss: 75,
+      sl: 50,
+      description: 'Azul profundo',
+    }),
+    category: 'classic',
+  },
+  {
+    ...buildPreset({
+      id: 'amber',
+      name: 'Âmbar',
+      emoji: '✨',
+      h: 38,
+      s: 92,
+      l: 50,
+      gh: 45,
+      sh: 30,
+      ss: 80,
+      sl: 55,
+      description: 'Dourado e premium',
+    }),
+    category: 'classic',
+  },
+  {
+    ...buildPreset({
+      id: 'cyber',
+      name: 'Cyber',
+      emoji: '🤖',
+      h: 180,
+      s: 100,
+      l: 50,
+      gh: 300,
+      sh: 320,
+      ss: 100,
+      sl: 60,
+      description: 'Neon futurista',
+    }),
+    category: 'classic',
+  },
+  { ...diversityPreset, category: 'classic' },
+
+  // === OPERA GX EDITION ===
+  // Skins inspirados nos temas oficiais do navegador Opera GX.
+  // HSL idênticos ao repo `adm01-debug/zapp-web` para padronização entre
+  // os sistemas. Tipografia trocada para Inter (Cloudflare Sans family).
+  buildGxPreset({
+    id: 'gx-classic',
+    name: 'GX Classic',
+    emoji: '🦈',
+    description: 'Vermelho neon assinatura do Opera GX',
+    h: 347,
+    s: 96,
+    l: 54,
+    gh: 340,
+    sh: 280,
+    ss: 60,
+    sl: 40,
+  }),
+  buildGxPreset({
+    id: 'gx-pink-addiction',
+    name: 'Pink Addiction',
+    emoji: '🍭',
+    description: 'Rosa intenso e viciante',
+    h: 330,
+    s: 95,
+    l: 60,
+    gh: 340,
+    sh: 300,
+    ss: 90,
+    sl: 55,
+  }),
+  buildGxPreset({
+    id: 'gx-purple-haze',
+    name: 'Purple Haze',
+    emoji: '🟣',
+    description: 'Roxo profundo e psicodélico',
+    h: 265,
+    s: 65,
+    l: 50,
+    gh: 275,
+    sh: 245,
+    ss: 70,
+    sl: 55,
+  }),
+  buildGxPreset({
+    id: 'gx-rose-quartz',
+    name: 'Rose Quartz',
+    emoji: '💗',
+    description: 'Rosa quartzo cristalino',
+    h: 345,
+    s: 75,
+    l: 68,
+    gh: 355,
+    sh: 320,
+    ss: 60,
+    sl: 70,
+  }),
+  buildGxPreset({
+    id: 'gx-ultraviolet',
+    name: 'Ultraviolet',
+    emoji: '🔮',
+    description: 'Violeta UV vibrante',
+    h: 271,
+    s: 76,
+    l: 53,
+    gh: 280,
+    sh: 255,
+    ss: 80,
+    sl: 55,
+  }),
+  buildGxPreset({
+    id: 'gx-hackerman',
+    name: 'Hackerman',
+    emoji: '👨‍💻',
+    description: 'Verde Matrix de hacker',
+    h: 127,
+    s: 65,
+    l: 46,
+    gh: 135,
+    sh: 115,
+    ss: 60,
+    sl: 42,
+  }),
+  buildGxPreset({
+    id: 'gx-frutti-di-mare',
+    name: 'Frutti di Mare',
+    emoji: '🐙',
+    description: 'Azul-petróleo do fundo do mar',
+    h: 182,
+    s: 90,
+    l: 42,
+    gh: 190,
+    sh: 200,
+    ss: 75,
+    sl: 45,
+  }),
+  buildGxPreset({
+    id: 'gx-cyberpunk',
+    name: 'Cyberpunk',
+    emoji: '⚡',
+    description: 'Amarelo neon de Night City',
+    h: 55,
+    s: 100,
+    l: 51,
+    gh: 180,
+    sh: 320,
+    ss: 95,
+    sl: 55,
+  }),
+  buildGxPreset({
+    id: 'gx-razer',
+    name: 'Razer',
+    emoji: '🐍',
+    description: 'Verde RGB Razer Chroma',
+    h: 113,
+    s: 70,
+    l: 51,
+    gh: 120,
+    sh: 100,
+    ss: 60,
+    sl: 48,
+  }),
 ];
 
 // =====================================================
@@ -381,6 +813,10 @@ export const THEME_PRESETS: ThemePreset[] = [
 // =====================================================
 
 const STORAGE_KEY = 'gifts-store-theme-config';
+
+/** Valor padrão das variáveis de fonte do projeto (igual ao index.css). */
+const DEFAULT_FONT_SANS = "'Plus Jakarta Sans', system-ui, sans-serif";
+const DEFAULT_FONT_DISPLAY = "'Outfit', system-ui, sans-serif";
 
 export function getDefaultConfig(): ThemeConfig {
   return { presetId: 'corporate', radius: 8, mode: 'auto' };
@@ -391,12 +827,14 @@ export function loadThemeConfig(): ThemeConfig {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       const parsed = { ...getDefaultConfig(), ...JSON.parse(stored) };
-      if (!THEME_PRESETS.find(p => p.id === parsed.presetId)) {
+      if (!THEME_PRESETS.find((p) => p.id === parsed.presetId)) {
         parsed.presetId = 'corporate';
       }
       return parsed;
     }
-  } catch {}
+  } catch {
+    // localStorage indisponível ou JSON inválido: usa defaults
+  }
   return getDefaultConfig();
 }
 
@@ -404,8 +842,16 @@ export function saveThemeConfig(config: ThemeConfig): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
 }
 
+/**
+ * Aplica todos os tokens visuais de um preset:
+ *   • CSS vars de cor (light ou dark)
+ *   • --radius, se o preset definir borderRadius (ex.: GX = 4px)
+ *   • --font-sans / --font-display, se o preset definir font (ex.: GX = Inter)
+ * Quando o preset não define radius/font, restaura os defaults para que
+ * voltar de uma skin GX para uma clássica desfaça os overrides.
+ */
 export function applyThemePreset(presetId: string, mode: 'light' | 'dark'): void {
-  const preset = THEME_PRESETS.find(p => p.id === presetId);
+  const preset = THEME_PRESETS.find((p) => p.id === presetId);
   if (!preset) return;
 
   const root = document.documentElement;
@@ -415,12 +861,30 @@ export function applyThemePreset(presetId: string, mode: 'light' | 'dark'): void
 
   const colors = preset[mode];
 
-  CSS_VARS_TO_APPLY.forEach(key => {
+  CSS_VARS_TO_APPLY.forEach((key) => {
     const value = colors[key];
     if (value !== undefined) {
       root.style.setProperty(`--${key}`, value);
     }
   });
+
+  // Per-preset font override (Opera GX skins → Inter / Cloudflare Sans family).
+  // Restaura para o valor padrão (Plus Jakarta Sans + Outfit) se a skin não
+  // declara fonte, garantindo que classics revertam o efeito GX.
+  if (preset.font) {
+    root.style.setProperty('--font-sans', preset.font);
+    root.style.setProperty('--font-display', preset.font);
+  } else {
+    root.style.setProperty('--font-sans', DEFAULT_FONT_SANS);
+    root.style.setProperty('--font-display', DEFAULT_FONT_DISPLAY);
+  }
+
+  // Per-preset radius override (Opera GX skins → 4px angular).
+  // Quando definido, vence sobre o slider global do usuário enquanto a
+  // skin estiver ativa.
+  if (preset.borderRadius !== undefined) {
+    root.style.setProperty('--radius', `${preset.borderRadius / 16}rem`);
+  }
 
   // Remove transition class after animation completes
   setTimeout(() => root.classList.remove('theme-transitioning'), 500);
@@ -432,8 +896,10 @@ export function applyRadius(px: number): void {
 
 export function clearThemeOverrides(): void {
   const root = document.documentElement;
-  CSS_VARS_TO_APPLY.forEach(key => root.style.removeProperty(`--${key}`));
+  CSS_VARS_TO_APPLY.forEach((key) => root.style.removeProperty(`--${key}`));
   root.style.removeProperty('--radius');
+  root.style.removeProperty('--font-sans');
+  root.style.removeProperty('--font-display');
 }
 
 export function exportThemeConfig(config: ThemeConfig): string {
@@ -444,8 +910,11 @@ export function importThemeConfig(json: string): ThemeConfig | null {
   try {
     const parsed = JSON.parse(json);
     if (parsed.presetId && typeof parsed.radius === 'number') {
-      return parsed as ThemeConfig;
+      // Backfill defaults para configs antigas sem mode (compat retroativa)
+      return { ...getDefaultConfig(), ...parsed } as ThemeConfig;
     }
-  } catch {}
+  } catch {
+    // JSON inválido: import falha silenciosamente
+  }
   return null;
 }

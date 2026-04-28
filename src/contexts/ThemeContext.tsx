@@ -1,5 +1,5 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
-import { loadThemeConfig, applyThemePreset, applyRadius } from "@/lib/theme-presets";
+import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { loadThemeConfig, applyThemePreset, applyRadius } from '@/lib/theme-presets';
 
 type Theme = 'light' | 'dark' | 'auto';
 
@@ -103,11 +103,7 @@ export function ThemeProvider({
     toggleTheme,
   };
 
-  return (
-    <ThemeContext.Provider value={value}>
-      {children}
-    </ThemeContext.Provider>
-  );
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
 
 export function useTheme() {
