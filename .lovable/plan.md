@@ -1,29 +1,18 @@
-## Remover categoria duplicada no rodapé do ProductCard
+## Problema
 
-A categoria já é exibida no topo do card via `<ProductCategoryBadges>` (linhas 240-242). O bloco do rodapé (linhas 292-300) repete a mesma informação com ícone `FolderTree` e fundo azul, criando ruído visual.
+O `ColumnSelector` esconde opções (4/5/6/8 colunas) baseado em `window.innerWidth`, então monitores menores nunca veem todas. Você quer todas sempre visíveis.
 
-### Mudança
+## Proposta
 
-**Arquivo:** `src/components/products/ProductCard.tsx`
+Em `src/components/products/ColumnSelector.tsx`:
 
-Remover o bloco "Category line — bright accent strip" (linhas 292-300):
+1. Zerar todos os `minWidth` no array `columnOptions` (3, 4, 5, 6, 8 → todos `minWidth: 0`).
+2. Remover o filtro `getAvailableOptions()` e o listener de `resize` (não são mais necessários).
+3. Remover o `useEffect` que força `onChange` quando o valor excede o máximo disponível (também desnecessário).
+4. Remover o early-return `if (available.length <= 1) return null;` — sempre haverá 5 opções.
 
-```tsx
-{/* Category line — bright accent strip */}
-{product.category?.name && (
-  <div className="flex flex-wrap gap-1.5 pt-1.5 mt-0.5 border-t border-primary/20">
-    <span className="...">
-      <FolderTree className="h-2.5 w-2.5" aria-hidden="true" />
-      {product.category.name}
-    </span>
-  </div>
-)}
-```
+Resultado: as 5 opções (3, 4, 5, 6, 8 colunas) aparecem em qualquer viewport. O grid CSS responsivo continua funcionando normalmente — em telas estreitas, escolher 8 colunas simplesmente apertará os cards.
 
-Também remover o import `FolderTree` de `lucide-react` se não for usado em mais nenhum lugar do arquivo.
+## Arquivo afetado
 
-### Resultado
-
-- Categoria continua visível no topo via `ProductCategoryBadges` (padrão do app).
-- Card fica mais limpo, sem informação repetida.
-- Materials chips (linha 302+) continuam intactos.
+- `src/components/products/ColumnSelector.tsx`
