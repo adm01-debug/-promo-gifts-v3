@@ -267,17 +267,29 @@ export default function QuoteBuilderPage() {
               </div>
               </div>
 
-              {/* AI Recommendations */}
-              <AIRecommendationsPanel
-                clientName={s.companyInfo?.name || s.contactInfo?.name}
-                clientCompany={s.companyInfo?.name}
-                clientIndustry={s.companyInfo?.ramo_atividade}
-                addedProductIds={s.items.map(i => i.product_id)}
-                onAddProduct={(productId, productName) => {
-                  s.setProductSearch(productName);
-                  s.setProductSearchOpen(true);
-                }}
-              />
+              {/* Atalho para Business Analytics do cliente — substitui o antigo painel de Recomendações IA,
+                  consolidando inteligência comercial no módulo /ferramentas/bi (SSOT). */}
+              {s.companyInfo?.id && (
+                <a
+                  href={`/ferramentas/bi?clientId=${s.companyInfo.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex items-center gap-3 rounded-2xl border border-dashed border-primary/30 bg-primary/5 p-3 hover:bg-primary/10 hover:border-primary/50 transition-colors"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                    <Sparkles className="h-4 w-4 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-display font-semibold text-sm leading-tight">
+                      Inteligência completa deste cliente
+                    </p>
+                    <p className="text-[11px] text-muted-foreground leading-tight mt-0.5">
+                      Histórico, afinidade, sazonalidade e tendência do setor
+                    </p>
+                  </div>
+                  <ExternalLink className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
+                </a>
+              )}
             </div>
           </div>
 
