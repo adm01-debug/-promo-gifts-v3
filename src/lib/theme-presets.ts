@@ -530,8 +530,10 @@ const GX_FONT_STACK = "'Inter', 'Plus Jakarta Sans', system-ui, sans-serif";
 function buildGxPreset(p: PresetParams): ThemePreset {
   const preset = applyGxGlass(applyGxNeonGlow(applyGxDarkSurfaces(buildPreset(p))), p.h, p.s, p.l);
   preset.category = 'gx';
-  // Opera GX usa cantos quase retos em botões/cards/sidebar.
-  preset.borderRadius = 4;
+  // Skins GX usam cantos um toque mais compactos que os clássicos para
+  // manter identidade visual, mas suficientemente arredondados para o
+  // visual friendly do Promo Gifts (em vez do 4px canon Opera GX).
+  preset.borderRadius = 10;
   // Inter — a mesma família do Cloudflare Sans.
   preset.font = GX_FONT_STACK;
   return preset;
@@ -819,7 +821,7 @@ const DEFAULT_FONT_SANS = "'Plus Jakarta Sans', system-ui, sans-serif";
 const DEFAULT_FONT_DISPLAY = "'Outfit', system-ui, sans-serif";
 
 export function getDefaultConfig(): ThemeConfig {
-  return { presetId: 'corporate', radius: 8, mode: 'auto' };
+  return { presetId: 'corporate', radius: 14, mode: 'auto' };
 }
 
 export function loadThemeConfig(): ThemeConfig {
