@@ -129,6 +129,7 @@ Com base no perfil do cliente, recomende os produtos mais adequados.`;
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
         ],
+        response_format: { type: "json_object" },
       },
     });
 
