@@ -243,6 +243,8 @@ const App = () => {
                             <Route path="/orcamentos/:id" element={<QuoteViewPage />} />
 
                             {/* Skins / Temas — disponível para todos os usuários autenticados (preferência local). */}
+                            <Route path="/admin/temas" element={<AdminTemasPage />} />
+
                             {/* Admin Layout Route — supervisor + dev (gestão de negócio) */}
                             <Route element={<AdminRoute />}>
                               <Route path="/admin" element={<Navigate to="/admin/usuarios" replace />} />
