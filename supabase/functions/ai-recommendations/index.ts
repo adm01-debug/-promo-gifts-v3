@@ -158,15 +158,9 @@ Com base no perfil do cliente, recomende os produtos mais adequados.`;
       throw new Error("No content in AI response");
     }
 
-    // Parse JSON from response (handle markdown code blocks)
-    let jsonContent = content;
-    if (content.includes("```json")) {
-      jsonContent = content.split("```json")[1].split("```")[0].trim();
-    } else if (content.includes("```")) {
-      jsonContent = content.split("```")[1].split("```")[0].trim();
-    }
-
-    const recommendations = JSON.parse(jsonContent);
+    // Parse JSON from response — robust extraction + sanitization to survive
+    // markdown fences, trailing commas, prose around the JSON, and minor truncation.
+    const recommendations = extractAndParseJSON(content);
 
     return new Response(JSON.stringify(recommendations), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
