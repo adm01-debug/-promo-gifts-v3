@@ -258,7 +258,6 @@ const App = () => {
                               <Route path="/admin/permissoes" element={<PermissionsPage />} />
                               <Route path="/admin/roles" element={<RolesPage />} />
                               <Route path="/admin/role-permissoes" element={<RolePermissionsPage />} />
-                              <Route path="/admin/temas" element={<AdminTemasPage />} />
                               <Route path="/admin/video-variantes" element={<AdminVideoVariantsPage />} />
                               <Route path="/admin/kit-templates" element={<KitTemplatesAdminPage />} />
                               <Route path="/admin/kit-templates/metricas" element={<KitTemplatesMetricsPage />} />
