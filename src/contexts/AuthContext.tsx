@@ -67,6 +67,8 @@ interface AuthContextType {
   nextAAL: 'aal1' | 'aal2' | null;
   hasMFA: boolean;
   mfaRequired: boolean;
+  /** True quando user_roles foi carregado com sucesso (≥1 role). False = ainda carregando ou falhou. */
+  rolesLoaded: boolean;
   refreshAAL: () => Promise<void>;
   // Métodos
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: Error | null }>;
