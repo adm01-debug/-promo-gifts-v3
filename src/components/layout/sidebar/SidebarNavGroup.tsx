@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRBAC } from "@/hooks/useRBAC";
 import { getPrefetchHandlers } from "@/lib/routePrefetch";
 import { isDevOnlyPath, isAdminOnlyPath } from "@/lib/navigation/restricted-routes";
+import { isNavItemActive } from "@/lib/navigation/active-match";
 
 export interface NavItem {
   icon: React.ComponentType<{ className?: string }>;
@@ -42,7 +43,8 @@ interface SidebarNavGroupProps {
   group: NavGroup;
   isOpen: boolean;
   isCollapsed: boolean;
-  onToggle: () => void;
+  /** Receives the next open state from Radix Collapsible. */
+  onToggle: (next: boolean) => void;
   onMobileClose: () => void;
   isMobileSidebarOpen: boolean;
 }
@@ -60,13 +62,15 @@ export const SidebarNavGroup = forwardRef<HTMLDivElement, SidebarNavGroupProps>(
   const { hasPermission } = useRBAC();
 
   const isItemActive = (href: string, exact?: boolean) => {
-    // Handle hrefs with query params (e.g. /admin/cadastros?tab=products)
+    // Hrefs with query params (e.g. /admin/cadastros?tab=products): match
+    // both pathname and search exactly — query items are leaf navigation.
     if (href.includes('?')) {
       const [path, search] = href.split('?');
       return location.pathname === path && location.search === `?${search}`;
     }
-    if (href === "/" || exact) return location.pathname === href;
-    return location.pathname.startsWith(href);
+    // Delegate to SSOT: prefix-aware matching that avoids false positives
+    // like "/orcamentos" matching "/orcamentos-publicos".
+    return isNavItemActive(location.pathname, href, exact);
   };
 
   const hasActiveItem = group.items.some((item) => isItemActive(item.href, item.exact));
