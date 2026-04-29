@@ -62,92 +62,25 @@ export const ScrollToTopButton = forwardRef<
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    const getScrollableContainer = (): Element | Window => {
-      // Search for scrollable container: first inside main, then parents, then window
-      const main = document.getElementById("main-content");
-      if (main) {
-        // Check children first (deep search)
-        const allElements = main.querySelectorAll("*");
-        for (const el of allElements) {
-          const style = window.getComputedStyle(el);
-          if (
-            (style.overflowY === "auto" || style.overflowY === "scroll") &&
-            el.scrollHeight > el.clientHeight
-          ) {
-            return el;
-          }
-        }
-        // Check parents
-        let parent: Element | null = main.parentElement;
-        while (parent) {
-          const style = window.getComputedStyle(parent);
-          if (
-            (style.overflowY === "auto" || style.overflowY === "scroll") &&
-            parent.scrollHeight > parent.clientHeight
-          ) {
-            return parent;
-          }
-          parent = parent.parentElement;
-        }
-      }
-      return window;
-    };
-
-    let scrollTarget: Element | Window | null = null;
-
+    // Após a correção do `position: sticky` do Header, o scroll vertical
+    // é sempre da `window`. Listener simples e confiável.
     const handleScroll = () => {
-      const scrollTop =
-        scrollTarget instanceof Window
-          ? window.scrollY
-          : (scrollTarget as Element).scrollTop;
-      setIsVisible(scrollTop > threshold);
+      setIsVisible(window.scrollY > threshold);
     };
 
-    // Delay to let layout settle
-    const timer = setTimeout(() => {
-      scrollTarget = getScrollableContainer();
-      scrollTarget.addEventListener("scroll", handleScroll, { passive: true });
-      handleScroll();
-    }, 500);
-
-    return () => {
-      clearTimeout(timer);
-      if (scrollTarget) {
-        scrollTarget.removeEventListener("scroll", handleScroll);
-      }
-    };
+    handleScroll(); // estado inicial (caso já esteja rolado)
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, [threshold]);
 
   const handleScrollToTop = () => {
-    const main = document.getElementById("main-content");
-    if (main) {
-      // Check children first
-      const allElements = main.querySelectorAll("*");
-      for (const el of allElements) {
-        const style = window.getComputedStyle(el);
-        if (
-          (style.overflowY === "auto" || style.overflowY === "scroll") &&
-          el.scrollHeight > el.clientHeight
-        ) {
-          el.scrollTo({ top: 0, behavior: "smooth" });
-          return;
-        }
-      }
-      // Check parents
-      let parent: Element | null = main.parentElement;
-      while (parent) {
-        const style = window.getComputedStyle(parent);
-        if (
-          (style.overflowY === "auto" || style.overflowY === "scroll") &&
-          parent.scrollHeight > parent.clientHeight
-        ) {
-          parent.scrollTo({ top: 0, behavior: "smooth" });
-          return;
-        }
-        parent = parent.parentElement;
-      }
-    }
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    const prefersReduced = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    window.scrollTo({
+      top: 0,
+      behavior: prefersReduced ? "auto" : "smooth",
+    });
   };
 
   if (!isVisible) return null;
@@ -156,22 +89,28 @@ export const ScrollToTopButton = forwardRef<
     <motion.button
       ref={ref}
       key="scroll-to-top"
+      data-testid="scroll-to-top"
+      type="button"
       className={cn(
-        "fixed bottom-20 lg:bottom-6 right-4 lg:right-6 z-40 p-3 rounded-full",
+        // z-30: abaixo do Header sticky (z-40), acima do conteúdo.
+        "fixed bottom-20 lg:bottom-6 right-4 lg:right-6 z-30 p-3 rounded-full",
         "bg-primary text-primary-foreground shadow-lg",
         "hover:shadow-xl hover:scale-105 active:scale-95",
         "transition-transform duration-200",
-        className
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+        className,
       )}
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.8 }}
       transition={{ duration: 0.2 }}
       whileHover={{ scale: 1.1 }}
       whileTap={{ scale: 0.95 }}
       onClick={handleScrollToTop}
       aria-label="Voltar ao topo"
+      title="Voltar ao topo"
     >
-      <ArrowUp className="h-5 w-5" />
+      <ArrowUp className="h-5 w-5" aria-hidden />
     </motion.button>
   );
 });

@@ -1,104 +1,62 @@
-## Objetivo
+## Estado atual
 
-Criar um spec E2E que valida que o `<Header />` global permanece **sticky no topo do viewport** ao rolar verticalmente, em todos os módulos principais (catálogo, pedidos, favoritos, coleções, dashboard, novidades).
+O botão "voltar ao topo" **já existe** em `src/components/common/ScrollProgress.tsx` (`ScrollToTopButton`) e já está montado no `MainLayout` (linha 135) com `threshold={150}`.
 
-Esse teste protege contra regressões da correção feita em `MainLayout.tsx` (remoção do `overflow-x-hidden` no wrapper que quebrava `position: sticky`).
+Ele aparece como um FAB redondo no canto inferior direito (`fixed bottom-20 lg:bottom-6 right-4 lg:right-6`) com `bg-primary` e ícone `ArrowUp`.
+
+Porém ele tem 3 problemas que foram amplificados após a correção do sticky do Header:
+
+1. **Lógica de scroll container complexa e frágil** — varre `document.querySelectorAll("*")` dentro de `#main-content` procurando elementos com `overflow-y: auto/scroll`. Após nossa correção, o scroll real é da `window`, então essa varredura é desnecessária e pode prender o listener no elemento errado (ex: dropdown interno).
+2. **Delay de 500ms** antes de registrar o listener — em SPA com transições rápidas o usuário pode rolar antes do listener estar ativo.
+3. **`z-index: 40`** — mesmo que do Header sticky. Não há conflito visual hoje (botão fica na base), mas em modais/overlays pode haver. Baixar para `z-30` deixa hierarquia clara.
 
 ## Mudanças
 
-### 1. `src/components/layout/Header.tsx` (1 linha)
+### `src/components/common/ScrollProgress.tsx` — refatorar `ScrollToTopButton`
 
-Adicionar `data-testid="app-header"` ao `<header>` (linha 79–88) — necessário porque a política E2E proíbe seletores por tag/role/classe.
+Substituir o `useEffect` complexo por listener direto em `window.scrollY` (agora o scroll é sempre da janela, graças à correção do sticky):
 
 ```tsx
-<header
-  data-testid="app-header"
-  className={cn(...)}
->
+useEffect(() => {
+  const handleScroll = () => setIsVisible(window.scrollY > threshold);
+  handleScroll();
+  window.addEventListener("scroll", handleScroll, { passive: true });
+  return () => window.removeEventListener("scroll", handleScroll);
+}, [threshold]);
 ```
 
-### 2. `e2e/fixtures/selectors.ts` (registro SSOT)
+E `handleScrollToTop` simples:
 
-Adicionar dentro de `Sel.app`:
-
-```ts
-/** Header global (sticky no topo). */
-header: TID("app-header"),
+```tsx
+const handleScrollToTop = () => {
+  const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  window.scrollTo({ top: 0, behavior: prefersReduced ? "auto" : "smooth" });
+};
 ```
 
-### 3. `e2e/flows/22-header-sticky.spec.ts` (novo)
+Acrescentar:
+- `data-testid="scroll-to-top"` (E2E SSOT)
+- `type="button"` (boa prática)
+- Anel de foco `focus-visible:ring-2 ring-primary` (a11y)
+- `prefers-reduced-motion` no scroll
+- Trocar `z-40` → `z-30` (Header continua acima)
+- `title="Voltar ao topo"` (tooltip nativo)
+- `aria-hidden` no ícone
 
-Spec novo que, para cada rota da matriz, executa:
+### Não mudar
 
-1. `loginAs(page)` + `gotoAndSettle(page, route)`
-2. Captura `boundingBox.y` inicial do `Sel.app.header` → deve ser ~0
-3. Injeta conteúdo alto via `page.evaluate` (ou rola até `document.body.scrollHeight`) para forçar scroll do viewport
-4. `await page.evaluate(() => window.scrollTo(0, 1500))`
-5. Reavalia `boundingBox.y` do header → **deve continuar ~0** (tolerância ±2px para acomodar o estado comprimido `h-11`/`h-12`)
-6. Assert extra: `getComputedStyle(header).position === "sticky"`
-
-Esqueleto:
-
-```ts
-import { test, expect, requireAuth } from "../fixtures/test-base";
-import { gotoAndSettle } from "../helpers/nav";
-import { Sel } from "../fixtures/selectors";
-import { waitForTestId } from "../helpers/waits";
-
-const ROUTES = [
-  "/produtos",
-  "/pedidos",
-  "/favoritos",
-  "/colecoes",
-  "/dashboard",
-  "/novidades",
-];
-
-test.describe("Header sticky em todos os módulos", () => {
-  test.beforeEach(() => requireAuth());
-
-  for (const route of ROUTES) {
-    test(`header permanece fixo ao rolar em ${route}`, async ({ page }) => {
-      await gotoAndSettle(page, route);
-      const header = page.locator(Sel.app.header);
-      await waitForTestId(page, "app-header");
-
-      const initialBox = await header.boundingBox();
-      expect(initialBox?.y ?? -1).toBeLessThanOrEqual(2);
-
-      // Garante que a página tem altura para rolar
-      await page.evaluate(() => {
-        if (document.body.scrollHeight < window.innerHeight + 800) {
-          const spacer = document.createElement("div");
-          spacer.style.height = "2000px";
-          spacer.setAttribute("data-e2e-spacer", "");
-          document.body.appendChild(spacer);
-        }
-        window.scrollTo(0, 1500);
-      });
-
-      await page.waitForFunction(() => window.scrollY > 1000, { timeout: 3000 });
-
-      const scrolledBox = await header.boundingBox();
-      expect(scrolledBox?.y ?? -1).toBeLessThanOrEqual(2);
-
-      const position = await header.evaluate(
-        (el) => getComputedStyle(el).position,
-      );
-      expect(position).toBe("sticky");
-    });
-  }
-});
-```
-
-## Escopo / Não-objetivos
-
-- Não testa header em rotas públicas (`/login`, `/lista-publica/*`) — elas não usam `MainLayout`.
-- Não inclui tag `@smoke` (smoke tem project isolado e gating próprio — fica no projeto `chromium` padrão).
-- Não adiciona ao catálogo `_catalog.ts` (é um cross-cutting concern, não uma rota).
+- O botão **já está montado** em `MainLayout` (linha 135) — nenhuma mudança em `MainLayout.tsx`.
+- `threshold={150}` mantido.
+- Visual (cor, posição, ícone, animações framer-motion) preservado.
 
 ## Verificação
 
-- Rodar `npx playwright test e2e/flows/22-header-sticky.spec.ts`
-- ESLint deve passar (não usa `page.goto`/`waitForTimeout`/`networkidle` direto — usa helpers SSOT).
-- Se o `MainLayout` voltar a ter `overflow-x-hidden` no wrapper, **todos os 6 testes falham** ao verificar `boundingBox.y` após scroll, capturando a regressão imediatamente.
+1. Rolar qualquer página até passar 150px → botão aparece no canto inferior direito.
+2. Clicar → página rola suavemente até o topo.
+3. Header continua fixo durante o scroll de retorno (já garantido pela correção anterior).
+4. Em mobile (`bottom-20` para não conflitar com `SmartMobileNav`).
+5. Não testar com browser tools — mudança comportamental simples, baixo risco.
+
+## Observação
+
+Não vou criar um componente novo — apenas simplificar o existente, que é a fonte da verdade. Criar um botão paralelo violaria a política SSOT.
