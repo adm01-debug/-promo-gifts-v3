@@ -25,8 +25,9 @@
  * o wrapper em scroll container, fazendo o header rolar junto com o conteúdo.
  */
 import { test, expect, requireAuth, requireAdmin } from "../fixtures/test-base";
-import { gotoAndSettle } from "../helpers/nav";
+import { gotoAndSettle, waitForRouteIdle, expectOnRoute } from "../helpers/nav";
 import { waitForTestIdVisible } from "../helpers/waits";
+import { loginViaUI } from "../helpers/auth";
 import { Sel } from "../fixtures/selectors";
 import {
   AUTHED_USER_ROUTES,
