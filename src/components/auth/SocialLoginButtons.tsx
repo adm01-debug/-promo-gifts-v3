@@ -3,6 +3,7 @@ import { Loader2 } from "lucide-react";
 import { useState, forwardRef } from "react";
 import { lovable } from "@/integrations/lovable/index";
 import { useToast } from "@/hooks/use-toast";
+import { authDebug, authDebugError } from "@/lib/auth/auth-debug";
 
 export const SocialLoginButtons = forwardRef<HTMLDivElement>(function SocialLoginButtons(_, ref) {
   const [isLoading, setIsLoading] = useState<string | null>(null);
@@ -10,19 +11,23 @@ export const SocialLoginButtons = forwardRef<HTMLDivElement>(function SocialLogi
 
   const handleGoogleLogin = async () => {
     setIsLoading("google");
+    const redirect_uri = `${window.location.origin}/auth/callback`;
+    authDebug("social-login", "google click", { redirect_uri, origin: window.location.origin });
     try {
-      const { error } = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: `${window.location.origin}/auth/callback`,
-      });
+      const { error } = await lovable.auth.signInWithOAuth("google", { redirect_uri });
 
       if (error) {
+        authDebugError("social-login", "lovable.signInWithOAuth returned error", error);
         toast({
           variant: "destructive",
           title: "Erro ao entrar com Google",
           description: error.message,
         });
+      } else {
+        authDebug("social-login", "redirect dispatched (browser will leave the page)");
       }
-    } catch {
+    } catch (err) {
+      authDebugError("social-login", "unexpected exception during OAuth", err);
       toast({
         variant: "destructive",
         title: "Erro inesperado",
