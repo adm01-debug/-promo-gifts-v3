@@ -64,10 +64,12 @@ export default function SSOCallbackPage() {
 
     const goHome = async () => {
       if (cancelled) return;
-      // Força refresh do JWT + roles + AAL para o menu/permissões refletirem na hora.
+      authDebug('sso-callback', 'goHome — calling refreshSession()');
       try {
         await refreshSession();
+        authDebug('sso-callback', 'refreshSession ok, navigating to /');
       } catch (e) {
+        authDebugError('sso-callback', 'refreshSession failed', e);
         logger.warn('[sso-callback] refreshSession failed', { message: e instanceof Error ? e.message : String(e) });
       }
       if (cancelled) return;
@@ -76,6 +78,7 @@ export default function SSOCallbackPage() {
 
     const goLogin = (reason: string) => {
       if (cancelled) return;
+      authDebug('sso-callback', 'goLogin', { reason });
       navigate('/login?error=' + encodeURIComponent(reason), { replace: true });
     };
 
@@ -85,12 +88,15 @@ export default function SSOCallbackPage() {
 
         // (2) Fluxo PKCE — troca o code por sessão
         if (code) {
-          const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+          authDebug('sso-callback', 'PKCE flow: exchangeCodeForSession start');
+          const { data: exData, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
           if (exchangeError) {
+            authDebugError('sso-callback', 'exchangeCodeForSession failed', exchangeError);
             logger.error('[sso-callback] exchangeCodeForSession failed', { message: exchangeError.message });
             goLogin(exchangeError.message);
             return;
           }
+          authDebug('sso-callback', 'exchangeCodeForSession ok', summarizeSession(exData?.session ?? null));
           await goHome();
           return;
         }
@@ -98,13 +104,16 @@ export default function SSOCallbackPage() {
         // (1) e (3) Verifica se já existe sessão (broker Lovable já chamou setSession,
         // ou supabase-js já parseou o hash fragment automaticamente).
         const { data: { session } } = await supabase.auth.getSession();
+        authDebug('sso-callback', 'initial getSession()', summarizeSession(session));
         if (session) {
           await goHome();
           return;
         }
 
         // Caso a sessão ainda não tenha sido aplicada, escuta onAuthStateChange.
-        const { data } = supabase.auth.onAuthStateChange((_event, newSession) => {
+        authDebug('sso-callback', 'no session yet — subscribing to onAuthStateChange');
+        const { data } = supabase.auth.onAuthStateChange((event, newSession) => {
+          authDebug('sso-callback', `onAuthStateChange event=${event}`, summarizeSession(newSession));
           if (newSession) {
             void goHome();
           }
@@ -114,6 +123,7 @@ export default function SSOCallbackPage() {
         // Timeout de segurança: 8s sem sessão → volta para login.
         timeoutId = window.setTimeout(() => {
           supabase.auth.getSession().then(({ data: { session: s } }) => {
+            authDebug('sso-callback', 'timeout 8s — re-checking session', summarizeSession(s));
             if (s) {
               void goHome();
             } else {
@@ -124,6 +134,7 @@ export default function SSOCallbackPage() {
         }, 8000);
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Erro inesperado';
+        authDebugError('sso-callback', 'unexpected error in run()', err);
         logger.error('[sso-callback] unexpected error', { message });
         goLogin(message);
       }
