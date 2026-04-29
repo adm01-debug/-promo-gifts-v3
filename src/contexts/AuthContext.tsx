@@ -72,6 +72,8 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
+  /** Força refresh do JWT + roles + AAL — usar após login social / mudança de papéis. */
+  refreshSession: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -350,6 +352,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  /**
+   * Força um refresh completo após login social ou mudança de papéis:
+   *  1. Renova o JWT (`supabase.auth.refreshSession`) para trazer claims atuais.
+   *  2. Re-busca profile + user_roles (bypassando o cache do fetchPromiseRef).
+   *  3. Atualiza AAL/MFA.
+   */
+  const refreshSession = useCallback(async () => {
+    const log = createClientLogger('auth.refreshSession');
+    log.info('start');
+    try {
+      const { data, error } = await supabase.auth.refreshSession();
+      if (error) {
+        log.warn('refresh_failed', { message: error.message });
+      }
+      const nextSession = data?.session ?? (await supabase.auth.getSession()).data.session;
+      if (mountedRef.current) {
+        setSession(nextSession);
+        setUser(nextSession?.user ?? null);
+      }
+      const uid = nextSession?.user?.id ?? user?.id;
+      if (uid) {
+        fetchPromiseRef.current = null;
+        await Promise.all([fetchUserData(uid), fetchAAL()]);
+      }
+      log.info('ok');
+    } catch (err) {
+      log.error('failed', { err: err instanceof Error ? err.message : String(err) });
+    }
+  }, [user, fetchUserData, fetchAAL]);
+
   // Helpers da NOVA hierarquia (fonte: array userRoles).
   // 'admin' legado mapeia para supervisor; 'vendedor' legado mapeia para agente.
   const has = (r: AppRole) => userRoles.includes(r);
@@ -400,6 +432,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signIn,
     signOut,
     refreshProfile,
+    refreshSession,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

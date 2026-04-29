@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
 import { PageSEO } from "@/components/seo/PageSEO";
 import { logger } from '@/lib/logger';
+import { useAuth } from '@/contexts/AuthContext';
 
 /**
  * Callback do login social.
@@ -20,6 +21,7 @@ import { logger } from '@/lib/logger';
 export default function SSOCallbackPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { refreshSession } = useAuth();
   const handledRef = useRef(false);
 
   useEffect(() => {
@@ -49,9 +51,15 @@ export default function SSOCallbackPage() {
     let unsub: (() => void) | null = null;
     let timeoutId: number | null = null;
 
-    const goHome = () => {
+    const goHome = async () => {
       if (cancelled) return;
-      // Limpa fragment / query da URL
+      // Força refresh do JWT + roles + AAL para o menu/permissões refletirem na hora.
+      try {
+        await refreshSession();
+      } catch (e) {
+        logger.warn('[sso-callback] refreshSession failed', { message: e instanceof Error ? e.message : String(e) });
+      }
+      if (cancelled) return;
       navigate('/', { replace: true });
     };
 
@@ -72,7 +80,7 @@ export default function SSOCallbackPage() {
             goLogin(exchangeError.message);
             return;
           }
-          goHome();
+          await goHome();
           return;
         }
 
@@ -80,14 +88,14 @@ export default function SSOCallbackPage() {
         // ou supabase-js já parseou o hash fragment automaticamente).
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
-          goHome();
+          await goHome();
           return;
         }
 
         // Caso a sessão ainda não tenha sido aplicada, escuta onAuthStateChange.
         const { data } = supabase.auth.onAuthStateChange((_event, newSession) => {
           if (newSession) {
-            goHome();
+            void goHome();
           }
         });
         unsub = () => data.subscription.unsubscribe();
@@ -96,7 +104,7 @@ export default function SSOCallbackPage() {
         timeoutId = window.setTimeout(() => {
           supabase.auth.getSession().then(({ data: { session: s } }) => {
             if (s) {
-              goHome();
+              void goHome();
             } else {
               logger.warn('[sso-callback] no session after timeout');
               goLogin('Sessão não estabelecida. Tente novamente.');
@@ -117,7 +125,7 @@ export default function SSOCallbackPage() {
       if (unsub) unsub();
       if (timeoutId !== null) window.clearTimeout(timeoutId);
     };
-  }, [navigate, searchParams]);
+  }, [navigate, searchParams, refreshSession]);
 
   return (
     <div className="min-h-screen flex items-center justify-center">
