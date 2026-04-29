@@ -240,11 +240,11 @@ export const SidebarReorganized = React.forwardRef<HTMLElement, SidebarProps>(
   const hasAnyGroupOpen = Object.values(openGroups).some(Boolean);
 
 
-  const toggleGroup = (groupId: string) => {
-    setOpenGroups((prev) => ({
-      ...prev,
-      [groupId]: !prev[groupId],
-    }));
+  // Receives the next open value from Radix Collapsible. Trusting Radix's
+  // value (instead of inverting our own) keeps state consistent if the
+  // Collapsible re-emits the same state due to focus/escape interactions.
+  const toggleGroup = (groupId: string, next: boolean) => {
+    setOpenGroups((prev) => (prev[groupId] === next ? prev : { ...prev, [groupId]: next }));
   };
 
   // Defense-in-depth: além das flags declarativas (`devOnly`/`adminOnly`),
