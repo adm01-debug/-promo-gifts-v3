@@ -8,8 +8,8 @@
  * - Notas sempre visíveis (textarea inline com debounce)
  * - Sidebar reorganizada (Hero pricing → Ação → Menu) + Health Checklist
  */
-import { useCallback, useEffect, useMemo, useRef } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useCallback, useMemo, useRef } from "react";
+
 import { MainLayout } from "@/components/layout/MainLayout";
 import { type CartStatus } from "@/hooks/useSellerCarts";
 import { CartCompanyPickerDialog } from "@/components/cart/CartCompanyPickerDialog";
