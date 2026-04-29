@@ -61,7 +61,6 @@ const navGroups: NavGroup[] = [
     icon: ShoppingCart,
     defaultOpen: true,
     items: [
-      { icon: Plus, label: "Novo Carrinho", href: "/carrinhos/novo", isCta: true },
       { icon: ShoppingCart, label: "Carrinhos", href: "/carrinhos", exact: true },
     ],
   },

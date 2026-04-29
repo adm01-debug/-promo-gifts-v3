@@ -1,31 +1,34 @@
-## Problema
-
-Hoje os dois itens da sidebar (**"+ Novo Carrinho"** e **"Carrinhos"**) levam a telas visualmente idênticas. As rotas `/carrinhos` e `/carrinhos/novo` renderizam o mesmo `SellerCartsPage` sem qualquer diferença de comportamento — `/carrinhos/novo` é uma rota "fantasma" que não dispara nada.
-
 ## Objetivo
 
-Ao clicar em **"+ Novo Carrinho"** na sidebar, o usuário deve cair em `/carrinhos` com o **modal de seleção de empresa já aberto** (mesmo comportamento do botão azul "+ Novo Carrinho" no topo da página).
+Eliminar a duplicação no grupo **CARRINHOS** da sidebar. Hoje aparecem dois itens (`+ Novo Carrinho` e `Carrinhos`) que entregam telas idênticas. Vai ficar **apenas um item "Carrinhos"** que leva à página de gestão (`/carrinhos`), onde o vendedor cria, lista e gerencia tudo pelo botão azul "+ Novo Carrinho" já existente no topo da página.
 
 ## Mudanças
 
-### 1. `src/pages/SellerCartsPage.tsx`
-Detectar quando a rota é `/carrinhos/novo` e abrir o modal automaticamente:
-- Ler `useLocation()` e, se `pathname === "/carrinhos/novo"`, chamar `s.setShowNewCart(true)` em um `useEffect` (uma única vez por navegação).
-- Após abrir, fazer `navigate("/carrinhos", { replace: true })` para limpar a URL — assim o usuário não fica preso na rota `/novo` se fechar o modal e não polui o histórico.
+### 1. `src/components/layout/SidebarReorganized.tsx`
+No `navGroups`, no grupo `carts` (linhas 57–67), remover o item `+ Novo Carrinho` e manter só `Carrinhos`:
 
-### 2. `src/App.tsx`
-Manter as duas rotas (`/carrinhos` e `/carrinhos/novo`) renderizando `SellerCartsPage` — a rota `/novo` continua existindo só como gatilho de UX, sem precisar de componente próprio.
+```ts
+{
+  id: "carts",
+  label: "Carrinhos",
+  icon: ShoppingCart,
+  defaultOpen: true,
+  items: [
+    { icon: ShoppingCart, label: "Carrinhos", href: "/carrinhos", exact: true },
+  ],
+},
+```
 
-### 3. `src/components/layout/SidebarReorganized.tsx`
-Sem mudança de href. O item **"+ Novo Carrinho"** continua apontando para `/carrinhos/novo`, que agora tem comportamento real.
+### 2. `src/pages/SellerCartsPage.tsx`
+Remover o `useEffect` que detectava `/carrinhos/novo` e abria o modal automaticamente (lógica adicionada nas rodadas anteriores) — sem o atalho na sidebar, esse hook fica órfão e só polui a página.
 
-## Detalhes técnicos
+### 3. `src/App.tsx` (verificar)
+Se houver uma rota explícita `/carrinhos/novo` registrada, removê-la. Se a rota só existia implicitamente, nada a fazer.
 
-- Usar uma flag local (`useRef`) para garantir que o modal só abre **uma vez** por entrada na rota `/novo` — evita reabrir se o usuário fechar e ficar na página.
-- O `navigate("/carrinhos", { replace: true })` é disparado **junto** com o `setShowNewCart(true)`, de forma que o estado `showNewCart` (controlado pelo `useSellerCartsPage`) sobreviva à troca de URL (é state do React, não query param).
-- Sem mudanças no router, no contexto, nas edge functions ou no banco. Só comportamento da página.
+### 4. `src/components/cart/CartCompanyPickerDialog.tsx`
+Mantido como está — continua sendo aberto pelo botão "+ Novo Carrinho" no topo da página `/carrinhos`.
 
 ## Fora de escopo
 
-- Diferenciação visual entre carrinhos da mesma empresa (badge, sequencial, nome editável) — assunto da minha mensagem anterior, fica para próxima rodada se você quiser.
-- Bloqueio/aviso de duplicata por empresa.
+- Layout interno da página `/carrinhos`.
+- Comportamento do botão "+ Novo Carrinho" no header da página (continua igual).
