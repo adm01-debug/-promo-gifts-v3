@@ -85,6 +85,20 @@ function isActive(label: string): boolean {
   return getLink(label).className.includes("bg-orange/10");
 }
 
+/**
+ * Normaliza o conjunto de classes para comparação de paridade entre itens:
+ * remove a classe `active` adicionada pelo NavLink (do React Router), que é
+ * baseada apenas no `to` e independente do nosso destaque visual baseado em
+ * `isNavItemActive`. O foco aqui é a paridade do *layout/visual idle*.
+ */
+function classSetIgnoringNavLinkActive(label: string): string {
+  return getLink(label)
+    .className.split(/\s+/)
+    .filter((c) => c !== "active")
+    .sort()
+    .join(" ");
+}
+
 function groupShouldAutoOpen(pathname: string): boolean {
   return group.items.some((item) => isNavItemActive(pathname, item.href, item.exact));
 }
