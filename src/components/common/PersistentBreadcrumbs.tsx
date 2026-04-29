@@ -116,6 +116,7 @@ export const PersistentBreadcrumbs = forwardRef<HTMLElement, PersistentBreadcrum
   return (
     <nav 
       ref={ref}
+      data-testid="breadcrumb"
       aria-label="Breadcrumb" 
       className={cn(
         "flex items-center text-sm overflow-x-auto scrollbar-hide",
