@@ -126,22 +126,23 @@ describe("SidebarNavGroup — atributos ARIA do Collapsible (header e content)",
     expect(content?.getAttribute("data-state")).toBe("open");
   });
 
-  it("o header tem aria-label estável independente do estado aberto/colapsado", async () => {
+  it("o aria-label do header reflete a ação disponível: 'Recolher' quando aberto, 'Expandir' quando colapsado", async () => {
     const router = setupRouter(["/orcamentos/novo"]);
-    const labelOpen = getHeaderButton().getAttribute("aria-label");
-    expect(labelOpen).toBeTruthy();
+    const labelOpen = getHeaderButton().getAttribute("aria-label") ?? "";
+    expect(labelOpen).toMatch(/recolher/i);
+    expect(labelOpen).toMatch(/orçamentos/i);
 
-    // Colapsa indo para rota neutra e fazendo... na verdade, ir para neutra em /dashboard
-    // mantém defaultOpen=true. Vamos pelo caminho do toggle do header:
     await act(async () => {
       getHeaderButton().click();
     });
-    const labelClosed = getHeaderButton().getAttribute("aria-label");
-    expect(labelClosed).toBe(labelOpen);
+    const labelClosed = getHeaderButton().getAttribute("aria-label") ?? "";
+    expect(labelClosed).toMatch(/expandir/i);
+    expect(labelClosed).toMatch(/orçamentos/i);
+    expect(labelClosed).not.toBe(labelOpen);
 
-    // Ir para outra rota relevante via push reaplica auto-open: o aria-label segue igual.
+    // Ao trocar de rota relevante, auto-open reaplica e o label volta para "Recolher".
     await pushTo(router, "/carrinhos");
-    expect(getHeaderButton().getAttribute("aria-label")).toBe(labelOpen);
+    expect(getHeaderButton().getAttribute("aria-label") ?? "").toMatch(/recolher/i);
   });
 
   it("aria-expanded e data-state alternam corretamente ao toggle manual", async () => {
