@@ -179,23 +179,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (import.meta.env.DEV) {
             console.error("Error fetching user roles:", rolesResult.error);
           }
-          setUserRoles(["agente"]);
+          // Não chutar fallback "agente" — deixa userRoles vazio (estado indeterminado);
+          // consumidores devem usar `rolesLoaded` para diferenciar carregando/falha de "sem role".
         } else if (rolesResult.data) {
           const roles = rolesResult.data.map((r) => r.role as AppRole);
           authDebug("AuthContext.fetchUserData", "user_roles loaded", {
             count: roles.length,
             roles,
           });
-          setUserRoles(roles.length > 0 ? roles : ["agente"]);
+          // Só atualiza se vieram roles reais. Lista vazia mantém o estado anterior
+          // (provavelmente sessão ainda hidratando — o retry acima já cobre o caso normal).
+          if (roles.length > 0) {
+            setUserRoles(roles);
+          }
         }
       } catch (error) {
         authDebugError("AuthContext.fetchUserData", "unexpected exception", error);
         if (import.meta.env.DEV) {
           console.error("Error fetching user data:", error);
         }
-        if (mountedRef.current) {
-          setUserRoles(["agente"]);
-        }
+        // Não chutar fallback "agente" — manter userRoles como está (vazio = indeterminado).
       } finally {
         fetchPromiseRef.current = null;
         // isLoading só fica false APÓS os dados carregarem (#5)
