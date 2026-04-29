@@ -126,7 +126,7 @@ export function ConnectionsPulseBar() {
         aria-live="polite"
         aria-label={`Status global das integrações: ${meta.label}. ${data?.headline ?? ""}`}
         className={cn(
-          "sticky top-0 z-30 -mx-4 md:-mx-6 px-4 md:px-6 py-2.5",
+          "sticky top-[calc(var(--header-h,56px)+var(--breadcrumb-h,0px))] z-30 -mx-4 md:-mx-6 px-4 md:px-6 py-2.5",
           "border-b backdrop-blur-md bg-background/85 supports-[backdrop-filter]:bg-background/70",
           "transition-colors duration-300",
           severity === "P0" && "border-destructive/30",
