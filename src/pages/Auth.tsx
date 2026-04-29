@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { PageSEO } from "@/components/seo/PageSEO";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff, Loader2, Gift, Mail, Lock, ShieldAlert, Globe, Wifi } from "lucide-react";
+import { Eye, EyeOff, Loader2, Gift, Mail, Lock, ShieldAlert, Globe, Wifi, AlertTriangle } from "lucide-react";
 import { AuthBrandingPanel } from "./auth/AuthBranding";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,6 +26,7 @@ type LoginForm = LoginFormData;
 
 export default function Auth() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
   const { user, isLoading: authLoading, signIn, signOut } = useAuth();
   const { validateIPForAuthenticatedUser, logLoginAttempt, fetchCurrentIP } = useIPValidation();
@@ -36,6 +37,31 @@ export default function Auth() {
   const [blockedIP, setBlockedIP] = useState<string | null>(null);
   const [currentIP, setCurrentIP] = useState<string | null>(null);
   const [geoLocation, setGeoLocation] = useState<string | null>(null);
+  // Fallback social → email/senha: mensagem amigável quando OAuth falha.
+  const [socialError, setSocialError] = useState<string | null>(null);
+  const emailInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Captura `?error=` vindo do SSOCallbackPage (Google falhou) e exibe o
+  // banner de fallback. Limpa o param da URL para não persistir.
+  useEffect(() => {
+    const err = searchParams.get("error");
+    if (err) {
+      setSocialError(err);
+      const next = new URLSearchParams(searchParams);
+      next.delete("error");
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
+
+  const handleSocialError = useCallback((message: string) => {
+    setSocialError(message);
+    setTimeout(() => emailInputRef.current?.focus(), 50);
+  }, []);
+
+  const focusEmailFallback = useCallback(() => {
+    emailInputRef.current?.focus();
+    emailInputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, []);
 
   // Fetch IP and geolocation via edge function (works in preview + production)
   useEffect(() => {
