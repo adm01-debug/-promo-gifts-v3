@@ -244,3 +244,135 @@ describe("SidebarNavGroup — back/forward (histórico real) preservam paridade 
     expect(novoIdleC).toBe(novoIdleA); // idempotente após round-trip
   });
 });
+
+/**
+ * Cobre o cenário em que apenas a query string muda (ex.: filtros, drafts,
+ * `?cliente=42`) sem alterar o `pathname`. O destaque do "Novo Orçamento" deve
+ * permanecer estável e o grupo "Orçamentos" NÃO pode abrir/fechar como efeito
+ * colateral. Espelha exatamente a lógica de `computeAutoOpen` do
+ * `SidebarReorganized`, que usa apenas `location.pathname`.
+ */
+describe("SidebarNavGroup — mudanças apenas na query string preservam estado", () => {
+  /** Espelha SidebarReorganized.computeAutoOpen — usa SOMENTE pathname. */
+  function autoOpenFromLocation(pathname: string): boolean {
+    return groupShouldAutoOpen(pathname);
+  }
+
+  it("trocar ?a=1 por ?a=2 em /orcamentos/novo mantém Novo Orçamento ativo", async () => {
+    const router = setupHistory(["/orcamentos/novo?a=1"]);
+    expect(isActive("Novo Orçamento")).toBe(true);
+    expect(isActive("Orçamentos")).toBe(false);
+    expect(isActive("Carrinhos")).toBe(false);
+
+    await pushTo(router, "/orcamentos/novo?a=2");
+    expect(router.state.location.pathname).toBe("/orcamentos/novo");
+    expect(isActive("Novo Orçamento")).toBe(true);
+    expect(isActive("Orçamentos")).toBe(false);
+    expect(isActive("Carrinhos")).toBe(false);
+  });
+
+  it("adicionar query a /orcamentos/novo (sem query -> com query) não altera o destaque", async () => {
+    const router = setupHistory(["/orcamentos/novo"]);
+    expect(isActive("Novo Orçamento")).toBe(true);
+
+    await pushTo(router, "/orcamentos/novo?cliente=42&draft=1");
+    expect(isActive("Novo Orçamento")).toBe(true);
+    expect(isActive("Orçamentos")).toBe(false);
+    expect(isActive("Carrinhos")).toBe(false);
+  });
+
+  it("remover query de /orcamentos/novo?cliente=42 (com query -> sem query) não altera o destaque", async () => {
+    const router = setupHistory(["/orcamentos/novo?cliente=42"]);
+    expect(isActive("Novo Orçamento")).toBe(true);
+
+    await pushTo(router, "/orcamentos/novo");
+    expect(isActive("Novo Orçamento")).toBe(true);
+    expect(isActive("Orçamentos")).toBe(false);
+    expect(isActive("Carrinhos")).toBe(false);
+  });
+
+  it("hash-only change em /orcamentos/novo#secao não altera o destaque", async () => {
+    const router = setupHistory(["/orcamentos/novo"]);
+    expect(isActive("Novo Orçamento")).toBe(true);
+
+    await pushTo(router, "/orcamentos/novo#topo");
+    expect(isActive("Novo Orçamento")).toBe(true);
+
+    await pushTo(router, "/orcamentos/novo#rodape");
+    expect(isActive("Novo Orçamento")).toBe(true);
+  });
+
+  it("o grupo Orçamentos permanece auto-aberto e estável quando só a query muda", async () => {
+    const router = setupHistory(["/orcamentos/novo?step=1"]);
+    expect(autoOpenFromLocation(router.state.location.pathname)).toBe(true);
+
+    await pushTo(router, "/orcamentos/novo?step=2");
+    expect(autoOpenFromLocation(router.state.location.pathname)).toBe(true);
+
+    await pushTo(router, "/orcamentos/novo?step=3&cliente=99");
+    expect(autoOpenFromLocation(router.state.location.pathname)).toBe(true);
+  });
+
+  it("o conjunto de classes idle dos itens NÃO ativos não muda quando apenas a query muda", async () => {
+    const router = setupHistory(["/orcamentos/novo?a=1"]);
+    const carrinhosIdleA = classSetIgnoringNavLinkActive("Carrinhos");
+    const orcamentosIdleA = classSetIgnoringNavLinkActive("Orçamentos");
+
+    await pushTo(router, "/orcamentos/novo?a=2&b=3");
+    const carrinhosIdleB = classSetIgnoringNavLinkActive("Carrinhos");
+    const orcamentosIdleB = classSetIgnoringNavLinkActive("Orçamentos");
+
+    expect(carrinhosIdleB).toBe(carrinhosIdleA);
+    expect(orcamentosIdleB).toBe(orcamentosIdleA);
+  });
+
+  it("query change + back: depois de voltar à URL anterior, o destaque permanece em Novo Orçamento", async () => {
+    const router = setupHistory(["/orcamentos/novo?a=1"]);
+    await pushTo(router, "/orcamentos/novo?a=2");
+    await pushTo(router, "/orcamentos/novo?a=3");
+
+    await go(router, -1); // ?a=2
+    expect(router.state.location.pathname).toBe("/orcamentos/novo");
+    expect(router.state.location.search).toBe("?a=2");
+    expect(isActive("Novo Orçamento")).toBe(true);
+    expect(isActive("Carrinhos")).toBe(false);
+
+    await go(router, -1); // ?a=1
+    expect(isActive("Novo Orçamento")).toBe(true);
+    expect(isActive("Carrinhos")).toBe(false);
+
+    await go(router, 2); // forward até ?a=3
+    expect(router.state.location.search).toBe("?a=3");
+    expect(isActive("Novo Orçamento")).toBe(true);
+  });
+
+  it("query mudando em /carrinhos NÃO migra destaque para Novo Orçamento (não há vazamento entre itens)", async () => {
+    const router = setupHistory(["/carrinhos?filtro=todos"]);
+    expect(isActive("Carrinhos")).toBe(true);
+    expect(isActive("Novo Orçamento")).toBe(false);
+
+    await pushTo(router, "/carrinhos?filtro=ativos&page=2");
+    expect(isActive("Carrinhos")).toBe(true);
+    expect(isActive("Novo Orçamento")).toBe(false);
+    expect(isActive("Orçamentos")).toBe(false);
+  });
+
+  it("classes do próprio Novo Orçamento são idênticas antes e depois de uma mudança apenas de query", async () => {
+    const router = setupHistory(["/orcamentos/novo?a=1"]);
+    const novoBefore = getLink("Novo Orçamento")
+      .className.split(/\s+/)
+      .filter((c) => c !== "active")
+      .sort()
+      .join(" ");
+
+    await pushTo(router, "/orcamentos/novo?a=2&b=3");
+    const novoAfter = getLink("Novo Orçamento")
+      .className.split(/\s+/)
+      .filter((c) => c !== "active")
+      .sort()
+      .join(" ");
+
+    expect(novoAfter).toBe(novoBefore);
+  });
+});
+
