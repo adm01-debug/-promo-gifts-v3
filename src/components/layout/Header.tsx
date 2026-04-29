@@ -43,7 +43,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
   const { toast } = useToast();
   const favoriteCount = useFavoritesStore((s) => s.favoriteCount);
   const compareCount = useComparisonStore((s) => s.compareCount);
-  const { user, profile, role, isAdmin, signOut } = useAuth();
+  const { user, profile, role, isAdmin, signOut, rolesLoaded } = useAuth();
   const currentSection = useCurrentSection();
   const { restartTour, hasCompletedTour, isLoading: onboardingLoading } = useOnboardingContext();
 
@@ -281,7 +281,14 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
                   <span className="text-sm font-medium text-foreground leading-tight truncate max-w-[120px]">
                     {truncatedName}
                   </span>
-                  <RoleBadge role={role} className="h-4 px-1.5 text-[9px] leading-none" />
+                  {rolesLoaded ? (
+                    <RoleBadge role={role} className="h-4 px-1.5 text-[9px] leading-none" />
+                  ) : (
+                    <span
+                      aria-hidden="true"
+                      className="h-4 w-12 rounded bg-muted/40 animate-pulse"
+                    />
+                  )}
                 </div>
               </Button>
             </DropdownMenuTrigger>
@@ -290,7 +297,14 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
                 <div className="flex flex-col gap-1">
                   <span className="font-medium">{displayName}</span>
                   <span className="text-xs text-muted-foreground">{user?.email}</span>
-                  <RoleBadge role={role} className="self-start mt-1" />
+                  {rolesLoaded ? (
+                    <RoleBadge role={role} className="self-start mt-1" />
+                  ) : (
+                    <span
+                      aria-hidden="true"
+                      className="self-start mt-1 h-5 w-16 rounded bg-muted/40 animate-pulse"
+                    />
+                  )}
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator className="bg-border" />
