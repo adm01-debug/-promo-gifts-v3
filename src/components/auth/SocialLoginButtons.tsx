@@ -5,7 +5,15 @@ import { lovable } from "@/integrations/lovable/index";
 import { useToast } from "@/hooks/use-toast";
 import { authDebug, authDebugError } from "@/lib/auth/auth-debug";
 
-export const SocialLoginButtons = forwardRef<HTMLDivElement>(function SocialLoginButtons(_, ref) {
+interface SocialLoginButtonsProps {
+  /** Disparado quando o login social falha — habilita fallback para e-mail/senha. */
+  onError?: (message: string) => void;
+}
+
+export const SocialLoginButtons = forwardRef<HTMLDivElement, SocialLoginButtonsProps>(function SocialLoginButtons(
+  { onError },
+  ref,
+) {
   const [isLoading, setIsLoading] = useState<string | null>(null);
   const { toast } = useToast();
 
@@ -18,21 +26,25 @@ export const SocialLoginButtons = forwardRef<HTMLDivElement>(function SocialLogi
 
       if (error) {
         authDebugError("social-login", "lovable.signInWithOAuth returned error", error);
+        const msg = error.message || "Falha ao iniciar login com Google.";
         toast({
           variant: "destructive",
           title: "Erro ao entrar com Google",
-          description: error.message,
+          description: msg,
         });
+        onError?.(msg);
       } else {
         authDebug("social-login", "redirect dispatched (browser will leave the page)");
       }
     } catch (err) {
       authDebugError("social-login", "unexpected exception during OAuth", err);
+      const msg = err instanceof Error ? err.message : "Tente novamente mais tarde";
       toast({
         variant: "destructive",
         title: "Erro inesperado",
-        description: "Tente novamente mais tarde",
+        description: msg,
       });
+      onError?.(msg);
     } finally {
       setIsLoading(null);
     }
