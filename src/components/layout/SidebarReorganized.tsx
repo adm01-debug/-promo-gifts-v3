@@ -48,6 +48,7 @@ import { SidebarBrandHeader } from "./sidebar/SidebarBrandHeader";
 import { SidebarNavGroup, type NavGroup } from "./sidebar/SidebarNavGroup";
 import { RestrictedRouteNotice } from "./sidebar/RestrictedRouteNotice";
 import { isDevOnlyPath, isAdminOnlyPath } from "@/lib/navigation/restricted-routes";
+import { isNavItemActive } from "@/lib/navigation/active-match";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -139,10 +140,8 @@ export const SidebarReorganized = React.forwardRef<HTMLElement, SidebarProps>(
   const location = useLocation();
   const navigate = useNavigate();
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const isItemActive = (href: string, exact?: boolean) => {
-    if (href === "/" || exact) return location.pathname === href;
-    return location.pathname.startsWith(href);
-  };
+  const isItemActive = (href: string, exact?: boolean) =>
+    isNavItemActive(location.pathname, href, exact);
 
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
     const initial: Record<string, boolean> = {};
