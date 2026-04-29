@@ -56,15 +56,6 @@ interface SidebarProps {
 
 const navGroups: NavGroup[] = [
   {
-    id: "carts",
-    label: "Carrinhos",
-    icon: ShoppingCart,
-    defaultOpen: true,
-    items: [
-      { icon: ShoppingCart, label: "Carrinhos", href: "/carrinhos", exact: true },
-    ],
-  },
-  {
     id: "quotes",
     label: "Orçamentos",
     icon: FileText,
@@ -72,6 +63,7 @@ const navGroups: NavGroup[] = [
     items: [
       { icon: Plus, label: "Novo Orçamento", href: "/orcamentos/novo", isCta: true, shortcut: "Alt+N" },
       { icon: FileText, label: "Orçamentos", href: "/orcamentos", tourId: "quotes", exact: true, shortcut: "Alt+O" },
+      { icon: ShoppingCart, label: "Carrinhos", href: "/carrinhos", exact: true },
     ],
   },
   {

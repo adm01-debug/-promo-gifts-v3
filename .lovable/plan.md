@@ -1,34 +1,34 @@
 ## Objetivo
 
-Eliminar a duplicação no grupo **CARRINHOS** da sidebar. Hoje aparecem dois itens (`+ Novo Carrinho` e `Carrinhos`) que entregam telas idênticas. Vai ficar **apenas um item "Carrinhos"** que leva à página de gestão (`/carrinhos`), onde o vendedor cria, lista e gerencia tudo pelo botão azul "+ Novo Carrinho" já existente no topo da página.
+Remover o grupo **CARRINHOS** da sidebar e mover o item "Carrinhos" para dentro do grupo **ORÇAMENTOS**, ficando logo abaixo de "Orçamentos".
 
-## Mudanças
+## Resultado visual
 
-### 1. `src/components/layout/SidebarReorganized.tsx`
-No `navGroups`, no grupo `carts` (linhas 57–67), remover o item `+ Novo Carrinho` e manter só `Carrinhos`:
+```text
+ORÇAMENTOS                    ▾
+  + Novo Orçamento     Alt+N
+  Orçamentos           Alt+O
+  Carrinhos
+```
+
+## Mudança
+
+### `src/components/layout/SidebarReorganized.tsx` (linhas 58–76)
+
+Remover o grupo `carts` inteiro e adicionar o item "Carrinhos" como terceira entrada do grupo `quotes`:
 
 ```ts
 {
-  id: "carts",
-  label: "Carrinhos",
-  icon: ShoppingCart,
+  id: "quotes",
+  label: "Orçamentos",
+  icon: FileText,
   defaultOpen: true,
   items: [
+    { icon: Plus, label: "Novo Orçamento", href: "/orcamentos/novo", isCta: true, shortcut: "Alt+N" },
+    { icon: FileText, label: "Orçamentos", href: "/orcamentos", tourId: "quotes", exact: true, shortcut: "Alt+O" },
     { icon: ShoppingCart, label: "Carrinhos", href: "/carrinhos", exact: true },
   ],
 },
 ```
 
-### 2. `src/pages/SellerCartsPage.tsx`
-Remover o `useEffect` que detectava `/carrinhos/novo` e abria o modal automaticamente (lógica adicionada nas rodadas anteriores) — sem o atalho na sidebar, esse hook fica órfão e só polui a página.
-
-### 3. `src/App.tsx` (verificar)
-Se houver uma rota explícita `/carrinhos/novo` registrada, removê-la. Se a rota só existia implicitamente, nada a fazer.
-
-### 4. `src/components/cart/CartCompanyPickerDialog.tsx`
-Mantido como está — continua sendo aberto pelo botão "+ Novo Carrinho" no topo da página `/carrinhos`.
-
-## Fora de escopo
-
-- Layout interno da página `/carrinhos`.
-- Comportamento do botão "+ Novo Carrinho" no header da página (continua igual).
+Nada mais muda — rota `/carrinhos`, página `SellerCartsPage` e o botão "+ Novo Carrinho" no topo da página continuam iguais.
