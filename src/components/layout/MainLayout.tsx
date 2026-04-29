@@ -101,8 +101,26 @@ export function MainLayout({ children }: MainLayoutProps) {
               />
             </Suspense>
           </div>
-          
-          <main 
+
+          {/* Breadcrumb persistente — sticky logo abaixo do Header (top-16 = h-16 do Header).
+              Hierarquia: Header z-40 > Breadcrumb z-30 > conteúdo. Oculto na home "/". */}
+          <div
+            className={cn(
+              "sticky top-16 z-30 print:hidden",
+              "bg-background/85 backdrop-blur-md",
+              "border-b border-border/40",
+              location.pathname === "/" && "hidden",
+            )}
+            data-testid="breadcrumb-bar"
+          >
+            <div className="max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 py-2">
+              <Suspense fallback={<div className="h-6" />}>
+                <PersistentBreadcrumbs showBackButton />
+              </Suspense>
+            </div>
+          </div>
+
+
             ref={mainRef}
             tabIndex={-1}
             id="main-content" 
