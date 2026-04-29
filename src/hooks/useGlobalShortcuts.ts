@@ -7,7 +7,9 @@
  * Ctrl/Cmd + Shift + N → New quote
  * Ctrl/Cmd + Shift + C → Open cart
  * 
- * Existing Alt shortcuts (sidebar): Alt+O cart, Alt+F favorites, Alt+C compare, Alt+T theme
+ * Existing Alt shortcuts (sidebar): Alt+N novo orçamento, Alt+O orçamentos,
+ *   Alt+R carrinhos, Alt+P produtos, Alt+F super filtro, Alt+M mockup, Alt+S simulador.
+ *   Header: Alt+F favoritos, Alt+C comparar, Alt+T tema.
  */
 import { useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
