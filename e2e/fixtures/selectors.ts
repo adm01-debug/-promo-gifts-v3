@@ -316,6 +316,11 @@ export const Sel = {
       header: TID("app-header"),
       breadcrumbBar: TID("breadcrumb-bar"),
       breadcrumb: TID("breadcrumb"),
+      /**
+       * Botão flutuante "voltar ao topo" — `src/components/common/ScrollProgress.tsx`.
+       * Aparece após `window.scrollY > threshold` (default 150 no MainLayout).
+       */
+      scrollToTop: TID("scroll-to-top"),
     },
   },
 
