@@ -383,12 +383,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refreshSession = useCallback(async () => {
     const log = createClientLogger('auth.refreshSession');
     log.info('start');
+    authDebug("AuthContext.refreshSession", "start");
     try {
       const { data, error } = await supabase.auth.refreshSession();
       if (error) {
+        authDebugError("AuthContext.refreshSession", "supabase.auth.refreshSession failed", error);
         log.warn('refresh_failed', { message: error.message });
+      } else {
+        authDebug("AuthContext.refreshSession", "refreshSession ok", summarizeSession(data?.session ?? null));
       }
       const nextSession = data?.session ?? (await supabase.auth.getSession()).data.session;
+      authDebug("AuthContext.refreshSession", "resolved nextSession", summarizeSession(nextSession));
       if (mountedRef.current) {
         setSession(nextSession);
         setUser(nextSession?.user ?? null);
@@ -397,9 +402,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (uid) {
         fetchPromiseRef.current = null;
         await Promise.all([fetchUserData(uid), fetchAAL()]);
+      } else {
+        authDebug("AuthContext.refreshSession", "no uid — skipping fetchUserData");
       }
       log.info('ok');
+      authDebug("AuthContext.refreshSession", "done");
     } catch (err) {
+      authDebugError("AuthContext.refreshSession", "unexpected exception", err);
       log.error('failed', { err: err instanceof Error ? err.message : String(err) });
     }
   }, [user, fetchUserData, fetchAAL]);
