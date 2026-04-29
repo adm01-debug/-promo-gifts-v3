@@ -43,7 +43,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
   const { toast } = useToast();
   const favoriteCount = useFavoritesStore((s) => s.favoriteCount);
   const compareCount = useComparisonStore((s) => s.compareCount);
-  const { user, profile, role, isAdmin, signOut } = useAuth();
+  const { user, profile, role, isAdmin, signOut, rolesLoaded } = useAuth();
   const currentSection = useCurrentSection();
   const { restartTour, hasCompletedTour, isLoading: onboardingLoading } = useOnboardingContext();
 
