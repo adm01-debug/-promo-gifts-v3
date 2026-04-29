@@ -69,6 +69,7 @@ export const EDGE_AUTHZ_MANIFEST: Record<string, AuthzEntry> = {
   "detect-new-device": { category: "public", rationale: "Anti-fraude pré-login" },
   "bi-share-dossier": { category: "public", rationale: "Dossiê compartilhado por token" },
   "dropbox-list": { category: "public", rationale: "Listagem pública de arquivos curados" },
+  "secure-upload": { category: "public", rationale: "Upload com scan VirusTotal anti-malware (aceita anônimo; uso real em áreas autenticadas — considerar promover a authenticated em PR futuro)" },
 
   // ---------------- Webhooks (assinatura própria) ----------------
   "webhook-inbound": { category: "scoped", rationale: "HMAC-SHA256 inline" },
