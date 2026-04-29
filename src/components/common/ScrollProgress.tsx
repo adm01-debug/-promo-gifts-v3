@@ -61,6 +61,7 @@ export const ScrollToTopButton = forwardRef<
   { threshold?: number; className?: string }
 >(function ScrollToTopButton({ threshold = 300, className }, ref) {
   const [isVisible, setIsVisible] = useState(false);
+  const { announceStatus } = useAriaLive();
 
   useEffect(() => {
     // Após a correção do `position: sticky` do Header, o scroll vertical
