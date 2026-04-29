@@ -137,6 +137,9 @@ describe("Sidebar shortcut: Alt+R → /carrinhos", () => {
   it("ignora Alt+R quando o foco está em um elemento contentEditable", () => {
     const div = document.createElement("div");
     div.contentEditable = "true";
+    // jsdom não calcula `isContentEditable` a partir do atributo — força a
+    // propriedade para refletir a guarda real do handler em produção.
+    Object.defineProperty(div, "isContentEditable", { value: true, configurable: true });
     document.body.appendChild(div);
     div.focus();
 
