@@ -300,6 +300,8 @@ export const Sel = {
     notFound: TID("app-not-found"),
     /** Tela de acesso negado (DevAccessDeniedPage). */
     accessDenied: TID("app-access-denied"),
+    /** Header global do MainLayout — sticky no topo do viewport. */
+    header: TID("app-header"),
   },
 
   // ---------- Bibliotecas externas (contratos estáveis) ----------
