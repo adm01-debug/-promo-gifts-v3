@@ -120,7 +120,7 @@ export function MainLayout({ children }: MainLayoutProps) {
             </div>
           </div>
 
-
+          <main
             ref={mainRef}
             tabIndex={-1}
             id="main-content" 
