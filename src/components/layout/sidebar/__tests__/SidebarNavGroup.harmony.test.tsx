@@ -253,11 +253,12 @@ describe("SidebarNavGroup — paridade ao alternar rotas (back/forward, deep lin
   });
 
   it("ao alternar entre Novo Orçamento e Carrinhos, o conjunto de classes IDLE do item desativado volta IGUAL ao do outro idle", () => {
-    const { rerenderAt } = renderAt("/orcamentos/novo");
+    const utils = renderAt("/orcamentos/novo");
     // Novo está ativo, Carrinhos está idle
     const carrinhosIdle = getLink("Carrinhos").className.split(/\s+/).sort().join(" ");
+    utils.unmount();
 
-    rerenderAt("/carrinhos");
+    renderAt("/carrinhos");
     // Agora Carrinhos está ativo, Novo está idle
     const novoIdle = getLink("Novo Orçamento").className.split(/\s+/).sort().join(" ");
 
