@@ -104,7 +104,7 @@ export function MainLayout({ children }: MainLayoutProps) {
         
         <div className="flex-1 flex flex-col min-h-screen min-w-0 print:min-h-0">
           <div className="print:hidden">
-            <Suspense fallback={<div className="h-16" />}>
+            <Suspense fallback={<div style={{ height: 56 }} />}>
               <Header 
                 onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
                 searchQuery={searchQuery}
@@ -113,14 +113,16 @@ export function MainLayout({ children }: MainLayoutProps) {
             </Suspense>
           </div>
 
-          {/* Breadcrumb persistente — sticky logo abaixo do Header (top-16 = h-16 do Header).
-              Hierarquia: Header z-40 > Breadcrumb z-30 > conteúdo. Oculto na home "/". */}
+          {/* Breadcrumb persistente — sticky logo abaixo do Header.
+              Usa --header-h (definido pelo Header) para acompanhar a altura
+              dinâmica (compactado/expandido). Hierarquia: Header z-40 >
+              Breadcrumb z-30 > conteúdo. Oculto na home "/". */}
           <div
             className={cn(
-              "sticky top-16 z-30 print:hidden",
+              "sticky top-[var(--header-h,56px)] z-30 print:hidden",
               "bg-background/85 backdrop-blur-md",
               "border-b border-border/40",
-              location.pathname === "/" && "hidden",
+              isHome && "hidden",
             )}
             data-testid="breadcrumb-bar"
           >
