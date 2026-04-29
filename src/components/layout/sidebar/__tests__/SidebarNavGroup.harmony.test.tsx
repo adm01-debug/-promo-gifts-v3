@@ -41,7 +41,7 @@ const group: NavGroup = {
 };
 
 function renderAt(pathname: string) {
-  return render(
+  const utils = render(
     <MemoryRouter initialEntries={[pathname]}>
       <SidebarNavGroup
         group={group}
@@ -53,6 +53,20 @@ function renderAt(pathname: string) {
       />
     </MemoryRouter>
   );
+  const rerenderAt = (next: string) =>
+    utils.rerender(
+      <MemoryRouter initialEntries={[next]}>
+        <SidebarNavGroup
+          group={group}
+          isOpen={true}
+          isCollapsed={false}
+          onToggle={() => {}}
+          onMobileClose={() => {}}
+          isMobileSidebarOpen={false}
+        />
+      </MemoryRouter>
+    );
+  return { ...utils, rerenderAt };
 }
 
 /** Classes BASE compartilhadas — devem estar presentes em todos os 3 itens. */
