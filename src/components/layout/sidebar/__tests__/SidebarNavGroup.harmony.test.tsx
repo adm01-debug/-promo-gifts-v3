@@ -186,27 +186,30 @@ describe("SidebarNavGroup — paridade ao alternar rotas (back/forward, deep lin
   }
 
   it("ao trocar /carrinhos -> /orcamentos/novo -> /orcamentos, o destaque migra corretamente entre os 3 itens", () => {
-    const { rerenderAt } = renderAt("/carrinhos");
+    let utils = renderAt("/carrinhos");
     expect(isLinkActive("Carrinhos")).toBe(true);
     expect(isLinkActive("Novo Orçamento")).toBe(false);
     expect(isLinkActive("Orçamentos")).toBe(false);
+    utils.unmount();
 
-    rerenderAt("/orcamentos/novo");
+    utils = renderAt("/orcamentos/novo");
     expect(isLinkActive("Novo Orçamento")).toBe(true);
     expect(isLinkActive("Carrinhos")).toBe(false);
     expect(isLinkActive("Orçamentos")).toBe(false);
+    utils.unmount();
 
-    rerenderAt("/orcamentos");
+    renderAt("/orcamentos");
     expect(isLinkActive("Orçamentos")).toBe(true);
     expect(isLinkActive("Novo Orçamento")).toBe(false);
     expect(isLinkActive("Carrinhos")).toBe(false);
   });
 
   it("ao voltar para uma rota neutra, NENHUM dos 3 itens permanece ativo", () => {
-    const { rerenderAt } = renderAt("/orcamentos/novo");
+    const utils = renderAt("/orcamentos/novo");
     expect(isLinkActive("Novo Orçamento")).toBe(true);
+    utils.unmount();
 
-    rerenderAt("/dashboard");
+    renderAt("/dashboard");
     expect(isLinkActive("Novo Orçamento")).toBe(false);
     expect(isLinkActive("Orçamentos")).toBe(false);
     expect(isLinkActive("Carrinhos")).toBe(false);
