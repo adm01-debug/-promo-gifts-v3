@@ -281,7 +281,14 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
                   <span className="text-sm font-medium text-foreground leading-tight truncate max-w-[120px]">
                     {truncatedName}
                   </span>
-                  <RoleBadge role={role} className="h-4 px-1.5 text-[9px] leading-none" />
+                  {rolesLoaded ? (
+                    <RoleBadge role={role} className="h-4 px-1.5 text-[9px] leading-none" />
+                  ) : (
+                    <span
+                      aria-hidden="true"
+                      className="h-4 w-12 rounded bg-muted/40 animate-pulse"
+                    />
+                  )}
                 </div>
               </Button>
             </DropdownMenuTrigger>
