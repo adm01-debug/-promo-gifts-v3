@@ -21,7 +21,7 @@ export interface NavItem {
   devOnly?: boolean;
   requiredPermission?: { action: string; resource: string };
   badge?: string | number;
-  isCta?: boolean;
+  
   exact?: boolean;
   children?: NavItem[];
   /** Keyboard shortcut hint (e.g. "Alt+P") */
