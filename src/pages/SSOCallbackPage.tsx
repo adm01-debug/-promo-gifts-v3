@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
 import { PageSEO } from "@/components/seo/PageSEO";
 import { logger } from '@/lib/logger';
+import { useAuth } from '@/contexts/AuthContext';
 
 /**
  * Callback do login social.
@@ -20,6 +21,7 @@ import { logger } from '@/lib/logger';
 export default function SSOCallbackPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { refreshSession } = useAuth();
   const handledRef = useRef(false);
 
   useEffect(() => {
