@@ -5,6 +5,12 @@ import { Loader2 } from 'lucide-react';
 import { PageSEO } from "@/components/seo/PageSEO";
 import { logger } from '@/lib/logger';
 import { useAuth } from '@/contexts/AuthContext';
+import {
+  authDebug,
+  authDebugError,
+  authDebugUrl,
+  summarizeSession,
+} from '@/lib/auth/auth-debug';
 
 /**
  * Callback do login social.
@@ -28,9 +34,13 @@ export default function SSOCallbackPage() {
     if (handledRef.current) return;
     handledRef.current = true;
 
+    authDebug('sso-callback', 'mount');
+    authDebugUrl('sso-callback');
+
     const error = searchParams.get('error');
     const errorDescription = searchParams.get('error_description');
     if (error) {
+      authDebugError('sso-callback', 'provider returned error in query', { error, errorDescription });
       logger.error('[sso-callback] provider returned error', { error, errorDescription });
       navigate('/login?error=' + encodeURIComponent(errorDescription || error), { replace: true });
       return;
@@ -42,6 +52,7 @@ export default function SSOCallbackPage() {
     const hashError = hashParams.get('error');
     if (hashError) {
       const desc = hashParams.get('error_description') || hashError;
+      authDebugError('sso-callback', 'provider returned error in hash', { error: hashError, desc });
       logger.error('[sso-callback] hash error', { error: hashError, desc });
       navigate('/login?error=' + encodeURIComponent(desc), { replace: true });
       return;
