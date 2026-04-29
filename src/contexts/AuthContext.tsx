@@ -120,7 +120,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         // Garante que o cliente Supabase já tem a sessão hidratada antes de consultar
         // tabelas com RLS (evita query como anon retornando 0 linhas → fallback "agente").
-        await supabase.auth.getSession();
+        const { data: sessionData } = await supabase.auth.getSession();
+        const sess = sessionData?.session ?? null;
+        const sessUserId = sess?.user?.id ?? null;
+        const provider =
+          (sess?.user?.app_metadata as { provider?: string } | undefined)?.provider ?? null;
+        const sessionMatchesTarget = sessUserId === userId;
+
+        // Asserção: NUNCA consultar user_roles como anon. Se a sessão estiver ausente
+        // ou pertencer a outro usuário, abortar antes da query (evita resultado [] enganoso).
+        if (!sess || !sessUserId) {
+          authDebugError(
+            "AuthContext.fetchUserData",
+            "ABORT — no active session (would query as anon)",
+            { requestedUserId: userId, hasSession: !!sess },
+          );
+          if (import.meta.env.DEV) {
+            console.warn(
+              "[AUTH-DEBUG] fetchUserData abortado: sem sessão ativa. Não consultando user_roles como anon.",
+            );
+          }
+          return;
+        }
+        if (!sessionMatchesTarget) {
+          authDebugError("AuthContext.fetchUserData", "ABORT — session user mismatch", {
+            requestedUserId: userId,
+            sessionUserId: sessUserId,
+          });
+          return;
+        }
+
+        authDebug("AuthContext.fetchUserData", "session asserted", {
+          sessionUserId: sessUserId,
+          provider,
+          tokenType: sess.token_type ?? null,
+          expiresAt: sess.expires_at ?? null,
+          targetUserId: userId,
+          match: sessionMatchesTarget,
+        });
 
         // Helper que busca roles e re-tenta 1x se vier vazio sem erro (sessão propagando)
         const queryRoles = async () =>

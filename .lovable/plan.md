@@ -1,45 +1,34 @@
 ## Objetivo
 
-Eliminar o fallback `setUserRoles(["agente"])` quando a query a `user_roles` vier vazia sem erro, e fazer o `RoleBadge` ficar **oculto** (em vez de exibir "Agente" enganosamente) enquanto as roles ainda não foram carregadas.
+Adicionar uma asserção em `fetchUserData` (em `src/contexts/AuthContext.tsx`) que loga o estado de `supabase.auth.getSession()` antes de consultar `user_roles`, e **aborta** a query se não houver sessão ativa ou se o `user.id` da sessão não bater com o `userId` alvo. Isso garante que `user_roles` jamais seja consultado como anônimo (que produziria `data: []` por RLS e mascararia roles reais).
 
-Isso resolve o sintoma reportado: usuário com `dev` + `supervisor` no banco vê badge "Agente" porque o fallback mascara um estado intermediário (sessão hidratando, RLS sem auth ainda, etc).
+## Alteração
 
-## Alterações
+### `src/contexts/AuthContext.tsx` — bloco `doFetch` em `fetchUserData`
 
-### 1. `src/contexts/AuthContext.tsx`
+Após `await supabase.auth.getSession()`, extrair:
 
-**`fetchUserData`** — eliminar fallback silencioso:
+- `session.user.id` (presença de usuário)
+- `session.user.app_metadata.provider` (google / email)
+- `session.token_type`, `session.expires_at` e `aal` claim (contexto)
 
-- Quando `rolesResult.data` vier **vazio sem erro**: NÃO setar `["agente"]`. Apenas logar o caso e deixar `userRoles` como `[]` (estado indeterminado), preservando a tentativa de retry já existente.
-- Quando `rolesResult.error`: continuar logando o erro, mas também NÃO chutar `["agente"]` — manter `userRoles` como `[]` para que o consumidor (Header) possa decidir não exibir nada em vez de mostrar role errada.
-- Bloco `catch` externo: idem — remover `setUserRoles(["agente"])`.
+Logar via `authDebug("AuthContext.fetchUserData", "session asserted", {...})` mascarando nada sensível (apenas IDs/flags).
 
-Resultado: `userRoles === []` passa a significar "ainda não carregou ou falhou", não "é agente por padrão".
+**Asserções de aborto** antes da query:
 
-**Novo flag derivado** (próximo de `primaryRole`):
+1. Se `!session || !session.user.id` → log de erro `ABORT — no active session (would query as anon)` + `console.warn` em DEV + `return` (não chama `queryRoles`).
+2. Se `session.user.id !== userId` (target) → log de erro `ABORT — session user mismatch` + `return`.
 
-```ts
-const rolesLoaded = userRoles.length > 0;
-```
+Em ambos os abortos, `userRoles` permanece como está (estado indeterminado, já tratado pelo `rolesLoaded` no Header) e `isLoading` é resetado no `finally` existente.
 
-Exposto no `AuthContextType` e no `value` para que componentes possam diferenciar "carregando" de "sem role".
+## Comportamento esperado
 
-### 2. `src/components/layout/Header.tsx`
-
-- Consumir `rolesLoaded` do `useAuth()`.
-- Renderizar `<RoleBadge />` apenas quando `rolesLoaded === true`. Enquanto `false`, exibir um placeholder discreto (skeleton fino de mesma altura, `h-4 w-12 rounded bg-muted/40 animate-pulse`) para não causar layout shift no header colapsado e no dropdown.
-
-### 3. Sem alterações em `RoleBadge.tsx` nem em `getRoleVisual`
-
-O fallback "Agente" do `getRoleVisual(null)` permanece como salvaguarda de último recurso para qualquer outro consumidor legado, mas o Header — único caso visível ao usuário no momento — passa a respeitar o estado de carregamento.
+- Console (filtro `[AUTH-DEBUG]`) passa a mostrar `session asserted` com `provider: "google"` (ou `"email"`) imediatamente antes de cada query a `user_roles`. Isso comprova que a query nunca rodou como anon.
+- Em qualquer race condition em que `fetchUserData` for chamado antes da sessão hidratar, vemos `ABORT — no active session` em vez de uma resposta vazia silenciosa que escolheria roles erradas.
+- Comportamento bem-sucedido (caso normal) é idêntico ao atual — só adiciona observabilidade e proteção.
 
 ## Arquivos afetados
 
-- `src/contexts/AuthContext.tsx` — remover 3 ocorrências de `setUserRoles(["agente"])`, expor `rolesLoaded`.
-- `src/components/layout/Header.tsx` — gating do `RoleBadge` por `rolesLoaded` + skeleton placeholder.
+- `src/contexts/AuthContext.tsx` — apenas o bloco `try` interno de `fetchUserData` (~10 linhas substituídas por ~40, mantendo o retry-on-empty já existente).
 
-## Comportamento esperado após o ajuste
-
-- Login social com Google → header mostra skeleton no lugar do badge por ~200-500ms → badge correto ("Dev") aparece assim que `user_roles` retorna.
-- Falha real de rede ou RLS → badge não aparece (em vez de mentir "Agente"); erro fica visível no console via `[AUTH-DEBUG]` e o usuário não fica com permissões aparentemente reduzidas.
-- Usuário legitimamente sem role no banco → badge não aparece; comportamento de RBAC permanece restritivo (correto).
+Sem mudanças em UI, RLS, edge functions ou tipos públicos.
