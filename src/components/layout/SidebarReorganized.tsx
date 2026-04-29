@@ -369,7 +369,7 @@ export const SidebarReorganized = React.forwardRef<HTMLElement, SidebarProps>(
                   group={group}
                   isOpen={openGroups[group.id] ?? false}
                   isCollapsed={isCollapsed}
-                  onToggle={() => toggleGroup(group.id)}
+                  onToggle={(next) => toggleGroup(group.id, next)}
                   onMobileClose={onToggle}
                   isMobileSidebarOpen={isOpen}
                 />
