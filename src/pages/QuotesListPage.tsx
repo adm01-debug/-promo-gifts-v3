@@ -48,7 +48,7 @@ import {
 import { useQuotes } from "@/hooks/useQuotes";
 import Fuse from "fuse.js";
 import { format } from "date-fns";
-import { DynamicBreadcrumbs } from "@/components/navigation/DynamicBreadcrumbs";
+// DynamicBreadcrumbs removido: o MainLayout já renderiza PersistentBreadcrumbs sticky.
 import { EmptyState } from "@/components/common/EmptyState";
 import { QuoteCardSkeleton } from "@/components/common/ContextualSkeleton";
 import { FadeInView, AnimatedCounter } from "@/components/common/MicroInteractions";
@@ -176,7 +176,7 @@ export default function QuotesListPage() {
     return (
       <MainLayout>
         <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-4 pb-24 md:pb-6 animate-fade-in">
-          <DynamicBreadcrumbs />
+          {/* Breadcrumb global vem do MainLayout (sticky) — não duplicar aqui. */}
           <div className="flex items-center justify-between gap-3">
             <div>
               <h1 className="text-2xl lg:text-3xl font-display font-bold text-foreground flex items-center gap-2">
