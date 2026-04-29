@@ -88,7 +88,7 @@ export function MainLayout({ children }: MainLayoutProps) {
           </Suspense>
         </div>
         
-        <div className="flex-1 flex flex-col min-h-screen min-w-0 overflow-x-hidden print:min-h-0">
+        <div className="flex-1 flex flex-col min-h-screen min-w-0 print:min-h-0">
           <div className="print:hidden">
             <Suspense fallback={<div className="h-16" />}>
               <Header 
@@ -103,7 +103,7 @@ export function MainLayout({ children }: MainLayoutProps) {
             ref={mainRef}
             tabIndex={-1}
             id="main-content" 
-            className="flex-1 p-3 sm:p-4 lg:p-6 pb-24 sm:pb-20 lg:pb-6 print:p-0 print:pb-0 outline-none" 
+            className="flex-1 p-3 sm:p-4 lg:p-6 pb-24 sm:pb-20 lg:pb-6 print:p-0 print:pb-0 outline-none overflow-x-clip" 
             role="main"
             aria-label="Conteúdo principal"
           >
