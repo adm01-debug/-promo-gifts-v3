@@ -198,6 +198,7 @@ const App = () => {
                       <CloudStatusBanner />
                       <BridgeStatusBanner />
                       <DevOnlyBridgeOverlay />
+                      <RouteScrollReset />
                       <RouteSuspense>
                         <Routes>
                           {/* Public Routes */}
