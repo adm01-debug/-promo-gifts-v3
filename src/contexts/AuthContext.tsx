@@ -116,18 +116,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const doFetch = async () => {
       authDebug("AuthContext.fetchUserData", "start", { userId });
       try {
+        // Garante que o cliente Supabase já tem a sessão hidratada antes de consultar
+        // tabelas com RLS (evita query como anon retornando 0 linhas → fallback "agente").
+        await supabase.auth.getSession();
+
+        // Helper que busca roles e re-tenta 1x se vier vazio sem erro (sessão propagando)
+        const queryRoles = async () =>
+          supabase.from("user_roles").select("role").eq("user_id", userId);
+
         // Buscar profile e TODAS as roles em paralelo (usuário pode ter múltiplas, ex: dev+supervisor)
-        const [profileResult, rolesResult] = await Promise.all([
+        const [profileResult, firstRoles] = await Promise.all([
           supabase
             .from("profiles")
             .select("*")
             .eq("user_id", userId)
             .single(),
-          supabase
-            .from("user_roles")
-            .select("role")
-            .eq("user_id", userId)
+          queryRoles(),
         ]);
+
+        let rolesResult = firstRoles;
+        if (!rolesResult.error && (!rolesResult.data || rolesResult.data.length === 0)) {
+          authDebug("AuthContext.fetchUserData", "user_roles empty — retrying once", { userId });
+          await new Promise((r) => setTimeout(r, 250));
+          rolesResult = await queryRoles();
+          authDebug("AuthContext.fetchUserData", "user_roles retry result", {
+            count: rolesResult.data?.length ?? 0,
+            error: rolesResult.error?.message,
+          });
+        }
 
         if (!mountedRef.current) return;
 
