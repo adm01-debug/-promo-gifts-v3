@@ -234,27 +234,41 @@ describe("SidebarNavGroup — atributos ARIA do Collapsible (header e content)",
 });
 
 describe("SidebarNavGroup — aria-current nos NavLinks acompanha a rota", () => {
-  it.each([
-    ["/orcamentos/novo", "Novo Orçamento"],
-    ["/orcamentos", "Orçamentos"],
-    ["/carrinhos", "Carrinhos"],
-  ])("em %s, o link %s tem aria-current='page' e os outros não", (path, activeLabel) => {
-    setupRouter([path]);
-    const labels = ["Novo Orçamento", "Orçamentos", "Carrinhos"];
-    for (const label of labels) {
-      const link = getNavLink(label);
-      expect(link).not.toBeNull();
-      if (label === activeLabel) {
-        expect(link!.getAttribute("aria-current")).toBe("page");
-      } else {
-        // NavLink só seta aria-current no ativo; nos outros pode ser null/ausente.
+  /**
+   * Conjunto de labels que DEVEM ter aria-current='page' em cada rota.
+   * Reflete o comportamento real do `NavLink` (RR v6) sem `end`: links cuja
+   * `to` é prefixo do pathname recebem aria-current. O item "Orçamentos" usa
+   * `exact: true` no nosso modelo (afeta o destaque visual via
+   * `isNavItemActive`), mas o `NavLink` em si NÃO recebe `end`, então em
+   * `/orcamentos/novo` tanto "Novo Orçamento" quanto "Orçamentos" recebem
+   * aria-current. Esse contrato é validado para evitar regressão silenciosa.
+   */
+  const ARIA_CURRENT_BY_ROUTE: Record<string, string[]> = {
+    "/orcamentos/novo": ["Novo Orçamento", "Orçamentos"],
+    "/orcamentos": ["Orçamentos"],
+    "/carrinhos": ["Carrinhos"],
+    "/carrinhos/abc-123": ["Carrinhos"],
+  };
+
+  it.each(Object.entries(ARIA_CURRENT_BY_ROUTE))(
+    "em %s os links com aria-current='page' são exatamente %j",
+    (path, expectedActive) => {
+      setupRouter([path]);
+      const labels = ["Novo Orçamento", "Orçamentos", "Carrinhos"];
+      for (const label of labels) {
+        const link = getNavLink(label);
+        expect(link).not.toBeNull();
         const cur = link!.getAttribute("aria-current");
-        expect(cur === null || cur === "false").toBe(true);
+        if ((expectedActive as string[]).includes(label)) {
+          expect(cur).toBe("page");
+        } else {
+          expect(cur === null || cur === "false").toBe(true);
+        }
       }
     }
-  });
+  );
 
-  it("ao navegar /carrinhos -> /orcamentos/novo, aria-current migra entre os links", async () => {
+  it("ao navegar /carrinhos -> /orcamentos/novo, aria-current migra (Carrinhos sai, Novo Orçamento entra)", async () => {
     const router = setupRouter(["/carrinhos"]);
     expect(getNavLink("Carrinhos")!.getAttribute("aria-current")).toBe("page");
     expect(getNavLink("Novo Orçamento")!.getAttribute("aria-current")).not.toBe("page");
@@ -266,13 +280,26 @@ describe("SidebarNavGroup — aria-current nos NavLinks acompanha a rota", () =>
 
   it("após back/forward, aria-current permanece consistente com a rota corrente", async () => {
     const router = setupRouter(["/carrinhos", "/orcamentos/novo", "/orcamentos"], 2);
+    // Em /orcamentos: só Orçamentos é ativo (não há subpath)
     expect(getNavLink("Orçamentos")!.getAttribute("aria-current")).toBe("page");
+    expect(getNavLink("Novo Orçamento")!.getAttribute("aria-current")).not.toBe("page");
+    expect(getNavLink("Carrinhos")!.getAttribute("aria-current")).not.toBe("page");
 
     await go(router, -1); // /orcamentos/novo
     expect(getNavLink("Novo Orçamento")!.getAttribute("aria-current")).toBe("page");
-    expect(getNavLink("Orçamentos")!.getAttribute("aria-current")).not.toBe("page");
+    // Em /orcamentos/novo, "Orçamentos" também recebe aria-current via prefixo do NavLink (sem `end`).
+    expect(getNavLink("Orçamentos")!.getAttribute("aria-current")).toBe("page");
+    expect(getNavLink("Carrinhos")!.getAttribute("aria-current")).not.toBe("page");
 
     await go(router, -1); // /carrinhos
+    expect(getNavLink("Carrinhos")!.getAttribute("aria-current")).toBe("page");
+    expect(getNavLink("Novo Orçamento")!.getAttribute("aria-current")).not.toBe("page");
+    expect(getNavLink("Orçamentos")!.getAttribute("aria-current")).not.toBe("page");
+
+    await go(router, 2); // forward até /orcamentos
+    expect(getNavLink("Orçamentos")!.getAttribute("aria-current")).toBe("page");
+    expect(getNavLink("Novo Orçamento")!.getAttribute("aria-current")).not.toBe("page");
+  });
     expect(getNavLink("Carrinhos")!.getAttribute("aria-current")).toBe("page");
     expect(getNavLink("Novo Orçamento")!.getAttribute("aria-current")).not.toBe("page");
 
