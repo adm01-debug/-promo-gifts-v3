@@ -39,9 +39,20 @@ export function MainLayout({ children }: MainLayoutProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const location = useLocation();
   const isMockupGenerator = location.pathname === "/mockup-generator";
-  
+  const isHome = location.pathname === "/";
+
   useScrollLockFix();
   useGlobalShortcuts();
+
+  // Propaga --breadcrumb-h ao :root para que stickys filhos (toolbars de
+  // página) ancorem corretamente abaixo do Header + Breadcrumb. Em "/" a
+  // breadcrumb-bar fica oculta → 0px.
+  useEffect(() => {
+    document.documentElement.style.setProperty(
+      "--breadcrumb-h",
+      isHome ? "0px" : "40px",
+    );
+  }, [isHome]);
 
   // Focus management: move focus to main content on route changes for screen readers
   const mainRef = useRef<HTMLElement>(null);
