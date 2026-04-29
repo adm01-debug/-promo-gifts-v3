@@ -9,6 +9,7 @@ import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { Plus, FileText, ShoppingCart } from "lucide-react";
 import type { NavGroup } from "../SidebarNavGroup";
+import { isNavItemActive } from "@/lib/navigation/active-match";
 
 // Mocks dos contextos usados pelo componente
 vi.mock("@/contexts/AuthContext", () => ({
@@ -159,3 +160,96 @@ describe("SidebarNavGroup — comportamento de destaque ativo", () => {
     expect(link.className).not.toContain("bg-orange/10");
   });
 });
+
+describe("SidebarNavGroup — paridade ao alternar rotas (back/forward, deep links)", () => {
+  /** Espelha o `computeAutoOpen` do SidebarReorganized: o grupo abre quando ALGUM filho é ativo. */
+  function groupShouldAutoOpen(pathname: string): boolean {
+    return group.items.some((item) => isNavItemActive(pathname, item.href, item.exact));
+  }
+
+  function isLinkActive(label: string): boolean {
+    return getLink(label).className.includes("bg-orange/10");
+  }
+
+  it("ao trocar /carrinhos -> /orcamentos/novo -> /orcamentos, o destaque migra corretamente entre os 3 itens", () => {
+    let utils = renderAt("/carrinhos");
+    expect(isLinkActive("Carrinhos")).toBe(true);
+    expect(isLinkActive("Novo Orçamento")).toBe(false);
+    expect(isLinkActive("Orçamentos")).toBe(false);
+    utils.unmount();
+
+    utils = renderAt("/orcamentos/novo");
+    expect(isLinkActive("Novo Orçamento")).toBe(true);
+    expect(isLinkActive("Carrinhos")).toBe(false);
+    expect(isLinkActive("Orçamentos")).toBe(false);
+    utils.unmount();
+
+    renderAt("/orcamentos");
+    expect(isLinkActive("Orçamentos")).toBe(true);
+    expect(isLinkActive("Novo Orçamento")).toBe(false);
+    expect(isLinkActive("Carrinhos")).toBe(false);
+  });
+
+  it("ao voltar para uma rota neutra, NENHUM dos 3 itens permanece ativo", () => {
+    const utils = renderAt("/orcamentos/novo");
+    expect(isLinkActive("Novo Orçamento")).toBe(true);
+    utils.unmount();
+
+    renderAt("/dashboard");
+    expect(isLinkActive("Novo Orçamento")).toBe(false);
+    expect(isLinkActive("Orçamentos")).toBe(false);
+    expect(isLinkActive("Carrinhos")).toBe(false);
+  });
+
+  it.each([
+    ["/orcamentos/novo", "Novo Orçamento"],
+    ["/orcamentos/novo?cliente=42", "Novo Orçamento"],
+    ["/orcamentos/novo/passo-2", "Novo Orçamento"],
+    ["/orcamentos", "Orçamentos"],
+    ["/carrinhos", "Carrinhos"],
+    ["/carrinhos/abc-123", "Carrinhos"],
+  ])("deep-link em %s mantém destaque consistente em %s", (path, label) => {
+    renderAt(path);
+    expect(isLinkActive(label)).toBe(true);
+  });
+
+  it("o grupo Orçamentos deve auto-expandir para QUALQUER um dos 3 itens (paridade)", () => {
+    const cases = [
+      "/orcamentos/novo",
+      "/orcamentos/novo/qualquer-coisa",
+      "/orcamentos",
+      "/carrinhos",
+      "/carrinhos/xyz",
+    ];
+    for (const path of cases) {
+      expect(groupShouldAutoOpen(path)).toBe(true);
+    }
+  });
+
+  it("o grupo NÃO auto-expande em rotas não relacionadas (sem falso prefixo)", () => {
+    const cases = [
+      "/dashboard",
+      "/orcamentos-publicos",
+      "/carrinhos-publicos",
+      "/produtos",
+    ];
+    for (const path of cases) {
+      expect(groupShouldAutoOpen(path)).toBe(false);
+    }
+  });
+
+  it("ao alternar entre Novo Orçamento e Carrinhos, o conjunto de classes IDLE do item desativado volta IGUAL ao do outro idle", () => {
+    const utils = renderAt("/orcamentos/novo");
+    // Novo está ativo, Carrinhos está idle
+    const carrinhosIdle = getLink("Carrinhos").className.split(/\s+/).sort().join(" ");
+    utils.unmount();
+
+    renderAt("/carrinhos");
+    // Agora Carrinhos está ativo, Novo está idle
+    const novoIdle = getLink("Novo Orçamento").className.split(/\s+/).sort().join(" ");
+
+    // Ambos os "idle" devem ter exatamente o mesmo conjunto de classes — paridade total.
+    expect(novoIdle).toBe(carrinhosIdle);
+  });
+});
+
