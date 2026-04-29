@@ -198,9 +198,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        authDebug("AuthContext.onAuthStateChange", `event=${event}`, {
+          hasSession: !!session,
+          user: summarizeUser(session?.user ?? null),
+          session: summarizeSession(session),
+        });
         setSession(session);
         setUser(session?.user ?? null);
-        
+
         if (session?.user) {
           // Show greeting on login
           if (event === 'SIGNED_IN') {
@@ -209,7 +214,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               || session.user.email?.split('@')[0]
               || 'Usuário';
             const firstName = displayName.split(' ')[0];
-            
+
             const flowGreetings = [
               `${getGreeting()}, ${firstName}! Que bom te ver! Estou pronto pra te ajudar a vender mais hoje. 🚀`,
               `${getGreeting()}, ${firstName}! Já separei algumas novidades do catálogo pra você! 😎`,
@@ -218,7 +223,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               `Fala, ${firstName}! Pronto pra mais um dia de vendas incríveis? 🎯`,
             ];
             const randomGreeting = flowGreetings[Math.floor(Math.random() * flowGreetings.length)];
-            
+
             toast.success(`🤖 Flow`, {
               description: randomGreeting,
               duration: 3000,
@@ -234,6 +239,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             import('@/lib/external-db-prewarm').then(m => m.prewarmExternalDb({ oncePerSession: true }));
           }, 0);
         } else {
+          authDebug("AuthContext.onAuthStateChange", "no session — clearing state");
           setProfile(null);
           setUserRoles([]);
           setCurrentAAL(null);
@@ -247,9 +253,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      authDebug("AuthContext.init", "initial getSession()", summarizeSession(session));
       setSession(session);
       setUser(session?.user ?? null);
-      
+
       if (session?.user) {
         fetchUserData(session.user.id);
         fetchAAL();
