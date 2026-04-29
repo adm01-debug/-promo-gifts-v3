@@ -18,12 +18,11 @@ import {
 import { Info } from "lucide-react";
 
 export default function BridgeMetricsOverlay() {
+  // ⚠️ Rules of Hooks: TODOS os hooks devem ser chamados antes de qualquer
+  // early-return. Caso contrário, mudanças em `isAllowed` (ex: AuthContext
+  // resolvendo role `dev` após RLS desbloqueada) provocam
+  // "Rendered more hooks than during the previous render" e crash global.
   const { isAllowed } = useDevGate();
-
-  // Hard guard: nunca renderiza em build de produção.
-  if (import.meta.env.PROD) return null;
-  // Gate SSOT
-  if (!isAllowed) return null;
 
   const {
     open,
@@ -43,6 +42,10 @@ export default function BridgeMetricsOverlay() {
   const [showInfo, setShowInfo] = useState(false);
   const handleTogglePause = useCallback(() => setPaused(prev => !prev), [setPaused]);
   const handleClose = useCallback(() => setOpen(false), [setOpen]);
+
+  // Guards APÓS todos os hooks (ordem de hooks fica estável entre renders).
+  if (import.meta.env.PROD) return null;
+  if (!isAllowed) return null;
 
   if (!open) {
     return (
