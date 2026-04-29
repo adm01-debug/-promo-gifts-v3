@@ -62,7 +62,7 @@ const navGroups: NavGroup[] = [
     icon: FileText,
     defaultOpen: true,
     items: [
-      { icon: Plus, label: "Novo Orçamento", href: "/orcamentos/novo", isCta: true, shortcut: "Alt+N" },
+      { icon: Plus, label: "Novo Orçamento", href: "/orcamentos/novo", shortcut: "Alt+N" },
       { icon: FileText, label: "Orçamentos", href: "/orcamentos", tourId: "quotes", exact: true, shortcut: "Alt+O" },
       { icon: ShoppingCart, label: "Carrinhos", href: "/carrinhos" },
     ],
