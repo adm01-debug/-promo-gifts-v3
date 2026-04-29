@@ -26,6 +26,9 @@ const FloatingCompareBar = lazyWithRetry(() => import("@/components/compare/Floa
 const GlobalCommandBar = lazyWithRetry(() => import("@/components/command/GlobalCommandBar").then(m => ({ default: m.GlobalCommandBar })));
 const ScrollToTopButton = lazyWithRetry(() => import("@/components/common/ScrollProgress").then(m => ({ default: m.ScrollToTopButton })));
 const ScrollProgressIndicator = lazyWithRetry(() => import("@/components/common/ScrollProgress").then(m => ({ default: m.ScrollProgressIndicator })));
+const PersistentBreadcrumbs = lazyWithRetry(() => import("@/components/common/PersistentBreadcrumbs").then(m => ({ default: m.PersistentBreadcrumbs })));
+
+import { cn } from "@/lib/utils";
 
 interface MainLayoutProps {
   children: React.ReactNode;
