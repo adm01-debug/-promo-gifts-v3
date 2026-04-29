@@ -1,34 +1,88 @@
-## Objetivo
+## Problema confirmado
+O erro não está mais no login nem no carregamento inicial da sessão.
 
-Adicionar uma asserção em `fetchUserData` (em `src/contexts/AuthContext.tsx`) que loga o estado de `supabase.auth.getSession()` antes de consultar `user_roles`, e **aborta** a query se não houver sessão ativa ou se o `user.id` da sessão não bater com o `userId` alvo. Isso garante que `user_roles` jamais seja consultado como anônimo (que produziria `data: []` por RLS e mascararia roles reais).
+A sessão do seu usuário foi confirmada como autenticada, e o banco mostra que seu usuário **já tem as roles `dev` e `supervisor`**. Mesmo assim, o app não exibe as ferramentas porque a consulta em `user_roles` está falhando com:
 
-## Alteração
+```text
+permission denied for function is_admin_strict
+```
 
-### `src/contexts/AuthContext.tsx` — bloco `doFetch` em `fetchUserData`
+Isso deixa `userRoles` vazio no `AuthContext`, e como a sidebar e os guards dependem de `isAdmin` / `isDev`, a área Admin/Dev some da interface.
 
-Após `await supabase.auth.getSession()`, extrair:
+## Causa raiz
+A policy atual de `user_roles` inclui uma regra `FOR ALL` que usa `public.is_admin_strict(auth.uid())`.
 
-- `session.user.id` (presença de usuário)
-- `session.user.app_metadata.provider` (google / email)
-- `session.token_type`, `session.expires_at` e `aal` claim (contexto)
+Como `FOR ALL` também participa da leitura, o Postgres tenta avaliar essa função durante o `SELECT` em `user_roles`. Só que a função não está com `EXECUTE` liberado para o papel autenticado do cliente. Resultado:
 
-Logar via `authDebug("AuthContext.fetchUserData", "session asserted", {...})` mascarando nada sensível (apenas IDs/flags).
+- a sessão existe
+- o usuário está autenticado
+- as roles existem no banco
+- mas o `SELECT` quebra antes de retornar dados
 
-**Asserções de aborto** antes da query:
+## Plano de correção
+1. **Ajustar a permissão da função de RLS no banco**
+   - Criar uma migration que conceda `EXECUTE` em `public.is_admin_strict(uuid)` para `authenticated`.
+   - Manter a função como `SECURITY DEFINER` e restrita ao uso via policies, sem abrir acesso indevido aos dados.
 
-1. Se `!session || !session.user.id` → log de erro `ABORT — no active session (would query as anon)` + `console.warn` em DEV + `return` (não chama `queryRoles`).
-2. Se `session.user.id !== userId` (target) → log de erro `ABORT — session user mismatch` + `return`.
+2. **Endurecer a policy de leitura de `user_roles`**
+   - Revisar a policy atual para garantir que leitura use apenas o helper semântico correto para leitura (`is_supervisor_or_above`) e não dependa incidentalmente de uma policy de escrita.
+   - Se necessário, separar com mais clareza as policies de `SELECT` e de `ALL` para evitar regressões futuras.
 
-Em ambos os abortos, `userRoles` permanece como está (estado indeterminado, já tratado pelo `rolesLoaded` no Header) e `isLoading` é resetado no `finally` existente.
+3. **Manter o frontend consistente com o estado real**
+   - Preservar o comportamento atual do `AuthContext`: sem fallback para `agente`, sem assumir role quando a query falha.
+   - Adicionar um log mais explícito para distinguir:
+     - sessão ausente
+     - RLS negando a query
+     - roles realmente inexistentes
 
-## Comportamento esperado
+4. **Validar ponta a ponta**
+   - Confirmar que o `SELECT` em `user_roles` volta a retornar `dev` e `supervisor` para o seu usuário.
+   - Verificar que:
+     - badge de role mostra corretamente
+     - grupo **Admin** aparece
+     - itens técnicos de **Dev** aparecem
+     - guards de rota passam a liberar `/admin/usuarios`, `/admin/conexoes`, `/admin/telemetria` etc. conforme a hierarquia.
 
-- Console (filtro `[AUTH-DEBUG]`) passa a mostrar `session asserted` com `provider: "google"` (ou `"email"`) imediatamente antes de cada query a `user_roles`. Isso comprova que a query nunca rodou como anon.
-- Em qualquer race condition em que `fetchUserData` for chamado antes da sessão hidratar, vemos `ABORT — no active session` em vez de uma resposta vazia silenciosa que escolheria roles erradas.
-- Comportamento bem-sucedido (caso normal) é idêntico ao atual — só adiciona observabilidade e proteção.
+5. **Adicionar cobertura contra regressão**
+   - Incluir um teste focado no cenário: usuário autenticado com `dev/supervisor` não pode perder acesso por erro de função em policy.
+   - Cobrir pelo menos o fluxo do `AuthContext`/guard ou um teste de navegação que falharia se `user_roles` voltasse a quebrar.
 
-## Arquivos afetados
+## Arquivos e áreas envolvidos
+- `src/contexts/AuthContext.tsx`
+- `src/components/layout/SidebarReorganized.tsx`
+- `src/components/layout/sidebar/SidebarNavGroup.tsx`
+- `src/components/layout/ProtectedRoute.tsx`
+- `supabase/migrations/*` (nova migration de RLS/permissões)
 
-- `src/contexts/AuthContext.tsx` — apenas o bloco `try` interno de `fetchUserData` (~10 linhas substituídas por ~40, mantendo o retry-on-empty já existente).
+## Detalhes técnicos
+Constatações já verificadas:
 
-Sem mudanças em UI, RLS, edge functions ou tipos públicos.
+- Seu usuário autenticado: `1c36907b-d39e-49e0-a711-ca651586035a`
+- Roles existentes no banco:
+  - `supervisor`
+  - `dev`
+- Log do frontend:
+  - sessão válida
+  - profile carregado
+  - falha em `user_roles` com `42501`
+  - mensagem: `permission denied for function is_admin_strict`
+
+Leitura da policy relevante:
+
+```text
+user_roles
+- SELECT: is_supervisor_or_above(auth.uid())
+- ALL:    is_admin_strict(auth.uid())
+```
+
+Como a policy `FOR ALL` também afeta `SELECT`, a falta de `GRANT EXECUTE` em `is_admin_strict(uuid)` explica exatamente o seu sintoma atual.
+
+## Resultado esperado após a correção
+Seu usuário volta a carregar as roles reais do banco, e a UI passa a mostrar normalmente as ferramentas e áreas de Admin/Dev às quais você já tem direito.
+
+<lov-actions>
+  <lov-open-history>View History</lov-open-history>
+</lov-actions>
+<lov-actions>
+<lov-link url="https://docs.lovable.dev/tips-tricks/troubleshooting">Troubleshooting docs</lov-link>
+</lov-actions>
