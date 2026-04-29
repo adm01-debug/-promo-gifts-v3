@@ -77,6 +77,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
 
   return (
     <header
+      data-testid="app-header"
       className={cn(
         "sticky top-0 z-40 border-b transition-all duration-300",
         "bg-card/95 backdrop-blur-md border-border",
