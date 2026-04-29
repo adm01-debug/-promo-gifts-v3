@@ -97,7 +97,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
         zIndex: 50,
       } as CSSProperties}
       className={cn(
-        "border-b transition-all duration-300",
+        "border-b transition-all duration-300 print:hidden",
         "bg-card/95 backdrop-blur-md border-border",
         "h-[var(--header-h)]",
         isScrolled && "bg-card/98 backdrop-blur-lg shadow-md border-border/80",
