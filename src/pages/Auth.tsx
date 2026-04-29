@@ -253,6 +253,43 @@ export default function Auth() {
               </CardHeader>
 
               <CardContent className="pt-2 space-y-6">
+                  {socialError && (
+                    <div
+                      role="alert"
+                      data-testid="social-login-fallback-banner"
+                      className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-foreground space-y-2 animate-fade-in"
+                    >
+                      <div className="flex items-start gap-2">
+                        <AlertTriangle className="h-4 w-4 mt-0.5 text-amber-600 shrink-0" />
+                        <div className="flex-1 space-y-1">
+                          <p className="font-medium">Não consegui te autenticar pelo Google.</p>
+                          <p className="text-xs text-muted-foreground break-words">{socialError}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 pt-1">
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="orange"
+                          className="h-8 text-xs"
+                          onClick={focusEmailFallback}
+                          data-testid="social-fallback-use-email"
+                        >
+                          Entrar com e-mail e senha
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          className="h-8 text-xs"
+                          onClick={() => setSocialError(null)}
+                        >
+                          Dispensar
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
                   <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-4" data-testid="login-form">
                     <div className="space-y-2">
                       <Label htmlFor="login-email" className="text-foreground">Email</Label>
@@ -265,6 +302,10 @@ export default function Auth() {
                           placeholder="seu@email.com"
                           className="pl-10 bg-input border-border focus:border-orange focus:ring-orange"
                           {...loginForm.register("email")}
+                          ref={(el) => {
+                            loginForm.register("email").ref(el);
+                            emailInputRef.current = el;
+                          }}
                         />
                       </div>
                       {loginForm.formState.errors.email && (
@@ -341,7 +382,7 @@ export default function Auth() {
                       </div>
                     </div>
 
-                    <SocialLoginButtons />
+                    <SocialLoginButtons onError={handleSocialError} />
 
                     <PasskeyLogin
                       email={loginForm.watch("email")}
