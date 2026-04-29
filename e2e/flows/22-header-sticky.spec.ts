@@ -70,7 +70,7 @@ async function assertHeaderSticky(
   }
 
   await waitForTestIdVisible(page, "app-header");
-  const header = page.locator(Sel.app.header);
+  const header = page.locator(Sel.app.layout.header);
 
   const initialBox = await header.boundingBox();
   expect(

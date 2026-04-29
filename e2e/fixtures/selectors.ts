@@ -300,8 +300,23 @@ export const Sel = {
     notFound: TID("app-not-found"),
     /** Tela de acesso negado (DevAccessDeniedPage). */
     accessDenied: TID("app-access-denied"),
-    /** Header global do MainLayout — sticky no topo do viewport. */
+    /**
+     * Header global do MainLayout — sticky no topo do viewport.
+     * Alias de `Sel.app.layout.header`, mantido para retrocompatibilidade.
+     */
     header: TID("app-header"),
+    /**
+     * Sub-namespace do layout fixo (header + breadcrumb bar). Use estes
+     * seletores em qualquer asserção de sticky/stacking. Fonte única:
+     *  - `app-header`     → `<header>` global em `src/components/layout/Header.tsx`
+     *  - `breadcrumb-bar` → wrapper sticky em `src/components/layout/MainLayout.tsx`
+     *  - `breadcrumb`     → `<nav>` em `src/components/common/PersistentBreadcrumbs.tsx`
+     */
+    layout: {
+      header: TID("app-header"),
+      breadcrumbBar: TID("breadcrumb-bar"),
+      breadcrumb: TID("breadcrumb"),
+    },
   },
 
   // ---------- Bibliotecas externas (contratos estáveis) ----------
