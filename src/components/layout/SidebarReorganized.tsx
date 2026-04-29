@@ -143,14 +143,32 @@ export const SidebarReorganized = React.forwardRef<HTMLElement, SidebarProps>(
   const isItemActive = (href: string, exact?: boolean) =>
     isNavItemActive(location.pathname, href, exact);
 
-  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
-    const initial: Record<string, boolean> = {};
+  // Compute which groups should be auto-opened for the current route.
+  // Derived synchronously from `location` so back/forward navigation never
+  // flickers (no post-commit useEffect lag).
+  const computeAutoOpen = useCallback(() => {
+    const next: Record<string, boolean> = {};
     navGroups.forEach((group) => {
-      const hasActive = group.items.some((item) => isItemActive(item.href, item.exact));
-      initial[group.id] = hasActive || (group.defaultOpen ?? false);
+      const hasActive = group.items.some((item) =>
+        isNavItemActive(location.pathname, item.href, item.exact),
+      );
+      next[group.id] = hasActive || (group.defaultOpen ?? false);
     });
-    return initial;
-  });
+    return next;
+  }, [location.pathname]);
+
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(computeAutoOpen);
+
+  // Track the last pathname we synced so we only override user-toggled state
+  // when the route actually changes (incl. via popstate / back-forward).
+  const lastSyncedPathRef = React.useRef(location.pathname);
+  if (lastSyncedPathRef.current !== location.pathname) {
+    lastSyncedPathRef.current = location.pathname;
+    // setState during render is safe here: React bails out on equal state and
+    // schedules the update before paint, eliminating the 1-frame flicker.
+    setOpenGroups(computeAutoOpen());
+  }
+
   const { isAdmin, isDev } = useAuth();
 
   // Pending discount approval count for admin badge
@@ -184,16 +202,6 @@ export const SidebarReorganized = React.forwardRef<HTMLElement, SidebarProps>(
       };
     });
   }, [isAdmin, pendingApprovalCount]);
-
-  // Auto-open only the group containing the active route, collapse others
-  useEffect(() => {
-    const newState: Record<string, boolean> = {};
-    navGroups.forEach((group) => {
-      const hasActive = group.items.some((item) => isItemActive(item.href, item.exact));
-      newState[group.id] = hasActive;
-    });
-    setOpenGroups(newState);
-  }, [location.pathname]);
 
   const toggleCollapse = () => setIsCollapsed(!isCollapsed);
   const collapseAllGroups = () => {
