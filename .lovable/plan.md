@@ -1,62 +1,95 @@
-## Estado atual
+## Diagnóstico
 
-O botão "voltar ao topo" **já existe** em `src/components/common/ScrollProgress.tsx` (`ScrollToTopButton`) e já está montado no `MainLayout` (linha 135) com `threshold={150}`.
+- **`Header`** (`src/components/layout/Header.tsx`) é `sticky top-0 z-40` — fixo no topo durante o scroll (já corrigido).
+- **`PersistentBreadcrumbs`** (`src/components/common/PersistentBreadcrumbs.tsx`) existe e é completo (rotas, ícones, back, a11y), mas **NÃO está montado** no `MainLayout`. Há até um comentário enganoso em `AdminProductFormPage.tsx:344` ("Breadcrumbs are rendered by MainLayout's PersistentBreadcrumbs") — isso não corresponde à realidade.
+- **`DynamicBreadcrumbs`** é usado pontualmente em `QuotesListPage.tsx` dentro do conteúdo da página (rola junto com o conteúdo).
+- Resultado: hoje **nenhum breadcrumb persiste** durante o scroll em rotas globais.
 
-Ele aparece como um FAB redondo no canto inferior direito (`fixed bottom-20 lg:bottom-6 right-4 lg:right-6`) com `bg-primary` e ícone `ArrowUp`.
+## Objetivo
 
-Porém ele tem 3 problemas que foram amplificados após a correção do sticky do Header:
+Quando há breadcrumb (rota ≠ `/`), ele deve ficar **fixo logo abaixo do Header** durante o scroll, formando uma hierarquia visual:
 
-1. **Lógica de scroll container complexa e frágil** — varre `document.querySelectorAll("*")` dentro de `#main-content` procurando elementos com `overflow-y: auto/scroll`. Após nossa correção, o scroll real é da `window`, então essa varredura é desnecessária e pode prender o listener no elemento errado (ex: dropdown interno).
-2. **Delay de 500ms** antes de registrar o listener — em SPA com transições rápidas o usuário pode rolar antes do listener estar ativo.
-3. **`z-index: 40`** — mesmo que do Header sticky. Não há conflito visual hoje (botão fica na base), mas em modais/overlays pode haver. Baixar para `z-30` deixa hierarquia clara.
+```text
+┌─────────────────────────────────────────────┐
+│ Header (sticky top-0, z-40, h-16)           │ ← sempre visível
+├─────────────────────────────────────────────┤
+│ Breadcrumb (sticky top-16, z-30, h-10)      │ ← sempre visível quando existe
+├─────────────────────────────────────────────┤
+│ Conteúdo da página (rola normalmente)       │
+│                                             │
+│  ↕ scroll                                   │
+└─────────────────────────────────────────────┘
+```
 
 ## Mudanças
 
-### `src/components/common/ScrollProgress.tsx` — refatorar `ScrollToTopButton`
+### 1. `src/components/layout/MainLayout.tsx`
 
-Substituir o `useEffect` complexo por listener direto em `window.scrollY` (agora o scroll é sempre da janela, graças à correção do sticky):
-
-```tsx
-useEffect(() => {
-  const handleScroll = () => setIsVisible(window.scrollY > threshold);
-  handleScroll();
-  window.addEventListener("scroll", handleScroll, { passive: true });
-  return () => window.removeEventListener("scroll", handleScroll);
-}, [threshold]);
-```
-
-E `handleScrollToTop` simples:
+Inserir um wrapper sticky para o breadcrumb **entre** o `Header` (linha 100) e o `<main>` (linha 102):
 
 ```tsx
-const handleScrollToTop = () => {
-  const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  window.scrollTo({ top: 0, behavior: prefersReduced ? "auto" : "smooth" });
-};
+{/* Breadcrumb persistente — sticky abaixo do Header */}
+<div
+  className={cn(
+    "sticky top-16 z-30 print:hidden",
+    "bg-background/85 backdrop-blur-md",
+    "border-b border-border/40",
+    // Esconde-se em "/" (PersistentBreadcrumbs já oculta nas rotas vazias,
+    // mas escondemos a barra inteira para não deixar borda solta na home)
+    location.pathname === "/" && "hidden",
+  )}
+  data-testid="breadcrumb-bar"
+>
+  <div className="max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 py-2">
+    <Suspense fallback={<div className="h-6" />}>
+      <PersistentBreadcrumbs showBackButton />
+    </Suspense>
+  </div>
+</div>
 ```
 
-Acrescentar:
-- `data-testid="scroll-to-top"` (E2E SSOT)
-- `type="button"` (boa prática)
-- Anel de foco `focus-visible:ring-2 ring-primary` (a11y)
-- `prefers-reduced-motion` no scroll
-- Trocar `z-40` → `z-30` (Header continua acima)
-- `title="Voltar ao topo"` (tooltip nativo)
-- `aria-hidden` no ícone
+Adicionar:
+- `import { useLocation } from "react-router-dom"` + `const location = useLocation();` (no topo do componente).
+- `const PersistentBreadcrumbs = lazyWithRetry(() => import("@/components/common/PersistentBreadcrumbs").then(m => ({ default: m.PersistentBreadcrumbs })));` junto dos demais lazies (linha ~11).
+- Importar `cn` se ainda não estiver.
 
-### Não mudar
+**Por que `top-16` e `z-30`?**
+- O `Header` mede `h-16` (64px) — confirmado pelo fallback `<div className="h-16" />` da linha 93.
+- `z-30` deixa o breadcrumb abaixo do Header (`z-40`) e abaixo de modais/sheets (`z-50`), mas acima do conteúdo (`z-0`).
+- `bg-background/85 backdrop-blur-md` segue o mesmo padrão visual do Header (transparente com blur), mantendo coesão.
 
-- O botão **já está montado** em `MainLayout` (linha 135) — nenhuma mudança em `MainLayout.tsx`.
-- `threshold={150}` mantido.
-- Visual (cor, posição, ícone, animações framer-motion) preservado.
+### 2. `src/pages/QuotesListPage.tsx`
 
-## Verificação
+Remover o `<DynamicBreadcrumbs />` interno (linha 179) e o import (linha 51) — agora o breadcrumb global cobre essa rota e evita duplicação. Sem isso, o usuário veria 2 breadcrumbs em `/orcamentos`.
 
-1. Rolar qualquer página até passar 150px → botão aparece no canto inferior direito.
-2. Clicar → página rola suavemente até o topo.
-3. Header continua fixo durante o scroll de retorno (já garantido pela correção anterior).
-4. Em mobile (`bottom-20` para não conflitar com `SmartMobileNav`).
-5. Não testar com browser tools — mudança comportamental simples, baixo risco.
+### 3. `src/pages/admin/AdminProductFormPage.tsx`
 
-## Observação
+Atualizar/remover o comentário enganoso em `:344` para refletir que agora é verdade.
 
-Não vou criar um componente novo — apenas simplificar o existente, que é a fonte da verdade. Criar um botão paralelo violaria a política SSOT.
+### 4. (opcional, leve) `src/components/common/PersistentBreadcrumbs.tsx`
+
+Adicionar `data-testid="breadcrumb"` no `<nav>` para testes E2E. Sem mudança funcional.
+
+## Hierarquia visual final
+
+| Camada | z-index | Comportamento |
+|--------|---------|---------------|
+| Modais / Sheets / Dialog (Radix) | 50 | overlay |
+| Header | 40 | `sticky top-0` |
+| Breadcrumb bar | 30 | `sticky top-16` |
+| ScrollToTop button | 30 | `fixed bottom-6 right-6` |
+| Conteúdo | 0 | flow normal |
+
+## Verificação manual (após deploy)
+
+1. Acessar qualquer rota que não seja `/` (ex: `/produtos`, `/colecoes/foo`, `/orcamentos`) → ver Header + Breadcrumb empilhados no topo.
+2. Rolar para baixo → ambos permanecem fixos, sem sobreposição, sem "flash".
+3. Em `/` (catálogo home) → barra de breadcrumb não aparece (sem borda órfã).
+4. Em `/orcamentos` → apenas **um** breadcrumb (o global), não dois.
+5. Print (`window.print`) → ambos somem (`print:hidden`).
+
+## Não vou mexer em
+
+- Rotas públicas (`/lista-publica`, `/orcamento/:token`, `/colecao-publica`, `/comparar-publica`) — usam layouts próprios, não `MainLayout`.
+- `Header.tsx` — já está sticky e correto.
+- `DynamicBreadcrumbs` (componente separado) — segue disponível para casos onde alguém quer um breadcrumb inline customizado dentro do conteúdo (ex: páginas admin específicas que não usam MainLayout).
