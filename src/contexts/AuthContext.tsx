@@ -5,6 +5,7 @@ import { logger } from "@/lib/logger";
 import { createClientLogger } from "@/lib/telemetry/structuredLogger";
 import { checkLoginAllowed, recordFailedAttempt, clearLoginAttempts } from "@/hooks/useLoginRateLimit";
 import { toast } from "sonner";
+import { authDebug, authDebugError, summarizeSession, summarizeUser } from "@/lib/auth/auth-debug";
 
 function getGreeting(): string {
   const hour = new Date().getHours();
@@ -72,6 +73,8 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
+  /** Força refresh do JWT + roles + AAL — usar após login social / mudança de papéis. */
+  refreshSession: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -111,6 +114,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     
     const doFetch = async () => {
+      authDebug("AuthContext.fetchUserData", "start", { userId });
       try {
         // Buscar profile e TODAS as roles em paralelo (usuário pode ter múltiplas, ex: dev+supervisor)
         const [profileResult, rolesResult] = await Promise.all([
@@ -128,12 +132,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!mountedRef.current) return;
 
         if (profileResult.error) {
+          authDebugError("AuthContext.fetchUserData", "profile query failed", profileResult.error);
           if (import.meta.env.DEV) {
             console.error("Error fetching profile:", profileResult.error);
           }
         } else if (profileResult.data) {
+          authDebug("AuthContext.fetchUserData", "profile loaded", {
+            id: profileResult.data.id,
+            role_mirror: profileResult.data.role,
+            is_active: profileResult.data.is_active,
+          });
           setProfile(profileResult.data as Profile);
-          
+
           // Atualizar last_login_at (não bloqueia)
           supabase
             .from("profiles")
@@ -147,15 +157,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         if (rolesResult.error) {
+          authDebugError("AuthContext.fetchUserData", "user_roles query failed", rolesResult.error);
           if (import.meta.env.DEV) {
             console.error("Error fetching user roles:", rolesResult.error);
           }
           setUserRoles(["agente"]);
         } else if (rolesResult.data) {
           const roles = rolesResult.data.map((r) => r.role as AppRole);
+          authDebug("AuthContext.fetchUserData", "user_roles loaded", {
+            count: roles.length,
+            roles,
+          });
           setUserRoles(roles.length > 0 ? roles : ["agente"]);
         }
       } catch (error) {
+        authDebugError("AuthContext.fetchUserData", "unexpected exception", error);
         if (import.meta.env.DEV) {
           console.error("Error fetching user data:", error);
         }
@@ -168,6 +184,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (mountedRef.current) {
           setIsLoading(false);
         }
+        authDebug("AuthContext.fetchUserData", "done");
       }
     };
 
@@ -181,9 +198,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        authDebug("AuthContext.onAuthStateChange", `event=${event}`, {
+          hasSession: !!session,
+          user: summarizeUser(session?.user ?? null),
+          session: summarizeSession(session),
+        });
         setSession(session);
         setUser(session?.user ?? null);
-        
+
         if (session?.user) {
           // Show greeting on login
           if (event === 'SIGNED_IN') {
@@ -192,7 +214,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               || session.user.email?.split('@')[0]
               || 'Usuário';
             const firstName = displayName.split(' ')[0];
-            
+
             const flowGreetings = [
               `${getGreeting()}, ${firstName}! Que bom te ver! Estou pronto pra te ajudar a vender mais hoje. 🚀`,
               `${getGreeting()}, ${firstName}! Já separei algumas novidades do catálogo pra você! 😎`,
@@ -201,7 +223,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               `Fala, ${firstName}! Pronto pra mais um dia de vendas incríveis? 🎯`,
             ];
             const randomGreeting = flowGreetings[Math.floor(Math.random() * flowGreetings.length)];
-            
+
             toast.success(`🤖 Flow`, {
               description: randomGreeting,
               duration: 3000,
@@ -217,6 +239,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             import('@/lib/external-db-prewarm').then(m => m.prewarmExternalDb({ oncePerSession: true }));
           }, 0);
         } else {
+          authDebug("AuthContext.onAuthStateChange", "no session — clearing state");
           setProfile(null);
           setUserRoles([]);
           setCurrentAAL(null);
@@ -230,9 +253,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      authDebug("AuthContext.init", "initial getSession()", summarizeSession(session));
       setSession(session);
       setUser(session?.user ?? null);
-      
+
       if (session?.user) {
         fetchUserData(session.user.id);
         fetchAAL();
@@ -350,6 +374,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  /**
+   * Força um refresh completo após login social ou mudança de papéis:
+   *  1. Renova o JWT (`supabase.auth.refreshSession`) para trazer claims atuais.
+   *  2. Re-busca profile + user_roles (bypassando o cache do fetchPromiseRef).
+   *  3. Atualiza AAL/MFA.
+   */
+  const refreshSession = useCallback(async () => {
+    const log = createClientLogger('auth.refreshSession');
+    log.info('start');
+    authDebug("AuthContext.refreshSession", "start");
+    try {
+      const { data, error } = await supabase.auth.refreshSession();
+      if (error) {
+        authDebugError("AuthContext.refreshSession", "supabase.auth.refreshSession failed", error);
+        log.warn('refresh_failed', { message: error.message });
+      } else {
+        authDebug("AuthContext.refreshSession", "refreshSession ok", summarizeSession(data?.session ?? null));
+      }
+      const nextSession = data?.session ?? (await supabase.auth.getSession()).data.session;
+      authDebug("AuthContext.refreshSession", "resolved nextSession", summarizeSession(nextSession));
+      if (mountedRef.current) {
+        setSession(nextSession);
+        setUser(nextSession?.user ?? null);
+      }
+      const uid = nextSession?.user?.id ?? user?.id;
+      if (uid) {
+        fetchPromiseRef.current = null;
+        await Promise.all([fetchUserData(uid), fetchAAL()]);
+      } else {
+        authDebug("AuthContext.refreshSession", "no uid — skipping fetchUserData");
+      }
+      log.info('ok');
+      authDebug("AuthContext.refreshSession", "done");
+    } catch (err) {
+      authDebugError("AuthContext.refreshSession", "unexpected exception", err);
+      log.error('failed', { err: err instanceof Error ? err.message : String(err) });
+    }
+  }, [user, fetchUserData, fetchAAL]);
+
   // Helpers da NOVA hierarquia (fonte: array userRoles).
   // 'admin' legado mapeia para supervisor; 'vendedor' legado mapeia para agente.
   const has = (r: AppRole) => userRoles.includes(r);
@@ -400,6 +463,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signIn,
     signOut,
     refreshProfile,
+    refreshSession,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
