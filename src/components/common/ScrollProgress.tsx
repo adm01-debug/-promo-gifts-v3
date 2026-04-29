@@ -2,6 +2,7 @@ import { useState, useEffect, forwardRef } from "react";
 import { motion, useScroll, useSpring } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { ArrowUp } from "lucide-react";
+import { useAriaLive } from "@/components/a11y";
 
 interface ScrollProgressProps {
   className?: string;
@@ -60,6 +61,7 @@ export const ScrollToTopButton = forwardRef<
   { threshold?: number; className?: string }
 >(function ScrollToTopButton({ threshold = 300, className }, ref) {
   const [isVisible, setIsVisible] = useState(false);
+  const { announceStatus } = useAriaLive();
 
   useEffect(() => {
     // Após a correção do `position: sticky` do Header, o scroll vertical
@@ -82,6 +84,10 @@ export const ScrollToTopButton = forwardRef<
       behavior: prefersReduced ? "auto" : "smooth",
     });
 
+    // A11y: anuncia imediatamente o início da ação para leitores de tela
+    // (region polite — não interrompe leitura em curso). WCAG 4.1.3.
+    announceStatus("Voltando ao topo da página");
+
     // A11y: como o botão desaparece ao chegar no topo (perdendo o foco no
     // void), movemos o foco para o início lógico da página (`<main>` ou o
     // primeiro heading). Isso mantém usuários de teclado/leitor de tela
@@ -91,7 +97,11 @@ export const ScrollToTopButton = forwardRef<
         (document.getElementById("main-content") as HTMLElement | null) ??
         (document.querySelector("main") as HTMLElement | null) ??
         (document.querySelector("h1") as HTMLElement | null);
-      if (!target) return;
+      if (!target) {
+        // Mesmo sem alvo, confirma o término da mudança de contexto.
+        announceStatus("Topo da página.");
+        return;
+      }
       const hadTabIndex = target.hasAttribute("tabindex");
       if (!hadTabIndex) target.setAttribute("tabindex", "-1");
       target.focus({ preventScroll: true });
@@ -103,6 +113,8 @@ export const ScrollToTopButton = forwardRef<
           { once: true },
         );
       }
+      // Confirma chegada e nova localização do foco.
+      announceStatus("Topo da página. Foco no conteúdo principal.");
     };
     // Aguarda o smooth scroll terminar antes de focar (evita "puxar" o
     // viewport de volta). Em reduced-motion, foca imediatamente.
