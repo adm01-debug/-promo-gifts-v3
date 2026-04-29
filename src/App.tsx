@@ -21,6 +21,7 @@ import { getFallback } from "@/components/layout/SkeletonLoaders";
 import { BridgeStatusBanner } from "@/components/BridgeStatusBanner";
 import { CloudStatusBanner } from "@/components/system/CloudStatusBanner";
 import { DevOnlyBridgeOverlay } from "@/components/dev/DevOnlyBridgeOverlay";
+import { RouteScrollReset } from "@/components/common/RouteScrollReset";
 import { startBridgeTelemetry } from "@/lib/external-db/bridge-telemetry-client";
 import { startColdStartRecorder } from "@/lib/external-db/cold-start-recorder";
 import "./App.css";
