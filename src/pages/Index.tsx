@@ -58,8 +58,10 @@ export default function Index() {
               }}
             />
 
-            {/* Toolbar: Filters + Sort + Stats + Layout — sticky when scrolling */}
-            <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-md -mx-4 sm:-mx-6 px-4 sm:px-6 py-2 border-b border-transparent [&:not(:first-child)]:border-border/30">
+            {/* Toolbar: Filters + Sort + Stats + Layout — sticky abaixo do Header global.
+                Usa --header-h + --breadcrumb-h (definidos por Header/MainLayout) para
+                acompanhar a altura dinâmica em qualquer rota. */}
+            <div className="sticky top-[calc(var(--header-h,56px)+var(--breadcrumb-h,0px))] z-20 bg-background/95 backdrop-blur-md -mx-4 sm:-mx-6 px-4 sm:px-6 py-2 border-b border-transparent [&:not(:first-child)]:border-border/30">
             <CatalogToolbar
               filters={catalog.filters}
               setFilters={catalog.setFilters}

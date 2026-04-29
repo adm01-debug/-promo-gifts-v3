@@ -72,7 +72,7 @@ export function ProductSectionNav({ tabs, className }: ProductSectionNavProps) {
     <div
       ref={navRef}
       className={cn(
-        "sticky top-0 md:top-14 z-40 flex gap-1 overflow-x-auto scrollbar-hide",
+        "sticky top-[calc(var(--header-h,56px)+var(--breadcrumb-h,0px))] z-40 flex gap-1 overflow-x-auto scrollbar-hide",
         "bg-background/95 backdrop-blur-md border-b border-border",
         "-mx-4 px-4 md:-mx-0 md:px-0 py-1.5",
         className

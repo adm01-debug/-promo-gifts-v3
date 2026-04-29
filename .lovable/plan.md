@@ -1,95 +1,131 @@
-## Diagnóstico
+## Diagnóstico (causa raiz)
 
-- **`Header`** (`src/components/layout/Header.tsx`) é `sticky top-0 z-40` — fixo no topo durante o scroll (já corrigido).
-- **`PersistentBreadcrumbs`** (`src/components/common/PersistentBreadcrumbs.tsx`) existe e é completo (rotas, ícones, back, a11y), mas **NÃO está montado** no `MainLayout`. Há até um comentário enganoso em `AdminProductFormPage.tsx:344` ("Breadcrumbs are rendered by MainLayout's PersistentBreadcrumbs") — isso não corresponde à realidade.
-- **`DynamicBreadcrumbs`** é usado pontualmente em `QuotesListPage.tsx` dentro do conteúdo da página (rola junto com o conteúdo).
-- Resultado: hoje **nenhum breadcrumb persiste** durante o scroll em rotas globais.
-
-## Objetivo
-
-Quando há breadcrumb (rota ≠ `/`), ele deve ficar **fixo logo abaixo do Header** durante o scroll, formando uma hierarquia visual:
-
-```text
-┌─────────────────────────────────────────────┐
-│ Header (sticky top-0, z-40, h-16)           │ ← sempre visível
-├─────────────────────────────────────────────┤
-│ Breadcrumb (sticky top-16, z-30, h-10)      │ ← sempre visível quando existe
-├─────────────────────────────────────────────┤
-│ Conteúdo da página (rola normalmente)       │
-│                                             │
-│  ↕ scroll                                   │
-└─────────────────────────────────────────────┘
-```
-
-## Mudanças
-
-### 1. `src/components/layout/MainLayout.tsx`
-
-Inserir um wrapper sticky para o breadcrumb **entre** o `Header` (linha 100) e o `<main>` (linha 102):
+O Header global **está** sticky, mas tem **altura dinâmica**:
 
 ```tsx
-{/* Breadcrumb persistente — sticky abaixo do Header */}
-<div
-  className={cn(
-    "sticky top-16 z-30 print:hidden",
-    "bg-background/85 backdrop-blur-md",
-    "border-b border-border/40",
-    // Esconde-se em "/" (PersistentBreadcrumbs já oculta nas rotas vazias,
-    // mas escondemos a barra inteira para não deixar borda solta na home)
-    location.pathname === "/" && "hidden",
-  )}
-  data-testid="breadcrumb-bar"
->
-  <div className="max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 py-2">
-    <Suspense fallback={<div className="h-6" />}>
-      <PersistentBreadcrumbs showBackButton />
-    </Suspense>
-  </div>
+// src/components/layout/Header.tsx:85-87
+isScrolled
+  ? "bg-card/98 ... h-11 sm:h-12"  // 44px mobile / 48px desktop
+  : "h-12 sm:h-14"                  // 48px mobile / 56px desktop
+```
+
+E na rota `/` (`src/pages/Index.tsx:62`) há **outra barra sticky** dentro do `<main>`:
+
+```tsx
+<div className="sticky top-0 z-20 ..."> {/* ← cola no topo da viewport! */}
+  <CatalogToolbar ... />
 </div>
 ```
 
-Adicionar:
-- `import { useLocation } from "react-router-dom"` + `const location = useLocation();` (no topo do componente).
-- `const PersistentBreadcrumbs = lazyWithRetry(() => import("@/components/common/PersistentBreadcrumbs").then(m => ({ default: m.PersistentBreadcrumbs })));` junto dos demais lazies (linha ~11).
-- Importar `cn` se ainda não estiver.
+Como ela usa `top-0`, ela cola no **topo absoluto da viewport**, sobrepondo / brigando com o Header global (que tem `z-40` mas a toolbar tem `z-20`, então o Header passa POR CIMA dela visualmente — o que dá a impressão de que "o topo desapareceu" quando na verdade o que sumiu foi a toolbar interna sob o Header).
 
-**Por que `top-16` e `z-30`?**
-- O `Header` mede `h-16` (64px) — confirmado pelo fallback `<div className="h-16" />` da linha 93.
-- `z-30` deixa o breadcrumb abaixo do Header (`z-40`) e abaixo de modais/sheets (`z-50`), mas acima do conteúdo (`z-0`).
-- `bg-background/85 backdrop-blur-md` segue o mesmo padrão visual do Header (transparente com blur), mantendo coesão.
+Pior: meu fix anterior do breadcrumb usou `top-16` (64px) e Suspense fallback `<div className="h-16" />` (64px), mas o Header nunca chega a 64px (máx 56px). Isso cria um **gap de 8px** entre Header e Breadcrumb durante o scroll.
 
-### 2. `src/pages/QuotesListPage.tsx`
+E na rota `/orcamentos` há mais uma barra similar (vou checar todas as toolbars sticky).
 
-Remover o `<DynamicBreadcrumbs />` interno (linha 179) e o import (linha 51) — agora o breadcrumb global cobre essa rota e evita duplicação. Sem isso, o usuário veria 2 breadcrumbs em `/orcamentos`.
+## Solução
 
-### 3. `src/pages/admin/AdminProductFormPage.tsx`
+Centralizar a altura do Header em uma **CSS variable** `--header-h` definida pelo próprio Header, e fazer todos os stickys filhos referenciarem essa variável. O breadcrumb também expõe `--breadcrumb-h`. Toolbars internas usam `top-[calc(var(--header-h)+var(--breadcrumb-h))]`.
 
-Atualizar/remover o comentário enganoso em `:344` para refletir que agora é verdade.
+Isso resolve os 3 sintomas de uma vez:
+1. Breadcrumb encosta exatamente abaixo do Header em qualquer estado (sem gap).
+2. Toolbar do catálogo cola abaixo de Header+Breadcrumb (não no topo da viewport).
+3. Quando o Header encolhe ao scrollar, breadcrumb e toolbar se reposicionam automaticamente.
 
-### 4. (opcional, leve) `src/components/common/PersistentBreadcrumbs.tsx`
+## Mudanças
 
-Adicionar `data-testid="breadcrumb"` no `<nav>` para testes E2E. Sem mudança funcional.
+### 1. `src/components/layout/Header.tsx`
 
-## Hierarquia visual final
+Substituir as classes `h-11 sm:h-12` / `h-12 sm:h-14` por uma única altura `h-[var(--header-h)]` e definir `--header-h` via `style` no próprio `<header>`:
 
-| Camada | z-index | Comportamento |
-|--------|---------|---------------|
-| Modais / Sheets / Dialog (Radix) | 50 | overlay |
-| Header | 40 | `sticky top-0` |
-| Breadcrumb bar | 30 | `sticky top-16` |
-| ScrollToTop button | 30 | `fixed bottom-6 right-6` |
-| Conteúdo | 0 | flow normal |
+```tsx
+const headerHeightPx = isScrolled ? 48 : 56;
 
-## Verificação manual (após deploy)
+return (
+  <header
+    data-testid="app-header"
+    style={{ "--header-h": `${headerHeightPx}px` } as React.CSSProperties}
+    className={cn(
+      "sticky top-0 z-40 border-b transition-all duration-300",
+      "bg-card/95 backdrop-blur-md border-border",
+      "h-[var(--header-h)]",
+      isScrolled && "bg-card/98 backdrop-blur-lg shadow-md border-border/80",
+    )}
+  >
+```
 
-1. Acessar qualquer rota que não seja `/` (ex: `/produtos`, `/colecoes/foo`, `/orcamentos`) → ver Header + Breadcrumb empilhados no topo.
-2. Rolar para baixo → ambos permanecem fixos, sem sobreposição, sem "flash".
-3. Em `/` (catálogo home) → barra de breadcrumb não aparece (sem borda órfã).
-4. Em `/orcamentos` → apenas **um** breadcrumb (o global), não dois.
-5. Print (`window.print`) → ambos somem (`print:hidden`).
+Também propagar a var para o `<html>` via `useEffect` para que stickys fora da árvore do Header (improvável, mas defensivo) também leiam:
 
-## Não vou mexer em
+```tsx
+useEffect(() => {
+  document.documentElement.style.setProperty("--header-h", `${headerHeightPx}px`);
+}, [headerHeightPx]);
+```
 
-- Rotas públicas (`/lista-publica`, `/orcamento/:token`, `/colecao-publica`, `/comparar-publica`) — usam layouts próprios, não `MainLayout`.
-- `Header.tsx` — já está sticky e correto.
-- `DynamicBreadcrumbs` (componente separado) — segue disponível para casos onde alguém quer um breadcrumb inline customizado dentro do conteúdo (ex: páginas admin específicas que não usam MainLayout).
+Trade-off: a animação `transition-all` antes interpolava a classe Tailwind (que não anima entre classes); agora interpola o valor numérico via CSS var → animação real e suave.
+
+### 2. `src/components/layout/MainLayout.tsx`
+
+Trocar:
+```tsx
+<Suspense fallback={<div className="h-16" />}>     // ← errado (64px)
+  <Header ... />
+```
+por:
+```tsx
+<Suspense fallback={<div style={{ height: 56 }} />}> // altura "expandida" padrão
+```
+
+Trocar a barra do breadcrumb:
+```tsx
+<div className={cn(
+  "sticky top-[var(--header-h,56px)] z-30 print:hidden",  // ← antes: top-16
+  "bg-background/85 backdrop-blur-md",
+  "border-b border-border/40",
+  location.pathname === "/" && "hidden",
+)}
+  style={{ "--breadcrumb-h": "40px" } as React.CSSProperties}
+  data-testid="breadcrumb-bar"
+>
+```
+
+Propagar `--breadcrumb-h` ao `<html>` via `useEffect` no `MainLayout` baseado em `location.pathname === "/"` (40px ou 0px):
+
+```tsx
+useEffect(() => {
+  const h = location.pathname === "/" ? 0 : 40;
+  document.documentElement.style.setProperty("--breadcrumb-h", `${h}px`);
+}, [location.pathname]);
+```
+
+### 3. `src/pages/Index.tsx` (linha 62)
+
+Trocar:
+```tsx
+<div className="sticky top-0 z-20 ...">           // ← cola no topo da viewport
+```
+por:
+```tsx
+<div className="sticky top-[calc(var(--header-h,56px)+var(--breadcrumb-h,0px))] z-20 ...">
+```
+
+Para `/` (home) o breadcrumb-h é 0, então fica abaixo só do Header (~56px). Para `/produtos` (se o catálogo for usado lá) ficaria abaixo de Header+Breadcrumb (~96px).
+
+### 4. Buscar e corrigir outros `sticky top-0` internos
+
+Vou rodar `rg "sticky top-0" src/pages src/components -l` e atualizar todas as ocorrências que ficam dentro de `<main>` (sob o Header) para usar a mesma fórmula `top-[calc(var(--header-h,56px)+var(--breadcrumb-h,0px))]`. Casos esperados: barras de filtro, toolbars de listas, abas. Modais/popovers/sidebars NÃO mudam.
+
+## Verificação
+
+Após aplicar, vou usar o browser em viewport 1280×800 para:
+
+1. Abrir `/` (catálogo) → screenshot inicial → scroll 800px → screenshot.
+   - Esperado: Header global "Catálogo / Busca inteligente / ícones" + toolbar "Filtros / Sort / Layout" empilhados visíveis no topo, sem gap, sem sobreposição.
+2. Abrir `/produtos` → mesmo teste com Header + Breadcrumb + (se houver) toolbar.
+3. Abrir `/orcamentos` → Header + Breadcrumb visíveis após scroll.
+
+Se passar, fecho a tarefa. Se não, reporto e ajusto.
+
+## Observação
+
+Não vou redesenhar nada — apenas ancorar corretamente os stickys que já existiam. Visual idêntico, comportamento correto.

@@ -122,7 +122,7 @@ export default function AdminTemasPage() {
           initial="hidden"
           animate="visible"
           custom={0}
-          className="sticky top-0 z-10 -mx-4 border-b border-border/40 bg-background/80 px-4 py-3 backdrop-blur-lg sm:-mx-6 sm:px-6"
+          className="sticky top-[calc(var(--header-h,56px)+var(--breadcrumb-h,0px))] z-10 -mx-4 border-b border-border/40 bg-background/80 px-4 py-3 backdrop-blur-lg sm:-mx-6 sm:px-6"
         >
           <div className="flex items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">

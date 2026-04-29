@@ -1,3 +1,4 @@
+import { useEffect, type CSSProperties } from "react";
 import { User, Menu, Sun, Moon, Heart, GitCompare, Search, LogOut, Settings, HelpCircle, Shield, MoreHorizontal, Palette, RotateCcw } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useNavigate } from "react-router-dom";
@@ -48,6 +49,17 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
 
   const isScrolled = useIsScrolled(20);
 
+  // Altura dinâmica do Header (px). Usada como --header-h para que stickys
+  // filhos (breadcrumb, toolbars de catálogo) ancorem corretamente abaixo
+  // do header em qualquer estado (compactado ou expandido).
+  const headerHeightPx = isScrolled ? 48 : 56;
+
+  // Propaga --header-h ao :root para que stickys fora da árvore do Header
+  // (ex.: dentro de <main>) também leiam o valor atual.
+  useEffect(() => {
+    document.documentElement.style.setProperty("--header-h", `${headerHeightPx}px`);
+  }, [headerHeightPx]);
+
   const handleToggleTheme = () => {
     if (theme === "auto") {
       setTheme(actualTheme === "dark" ? "light" : "dark");
@@ -78,13 +90,13 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
   return (
     <header
       data-testid="app-header"
+      style={{ "--header-h": `${headerHeightPx}px` } as CSSProperties}
       className={cn(
         "sticky top-0 z-40 border-b transition-all duration-300",
         "bg-card/95 backdrop-blur-md border-border",
-        // #7 — Micro-animação: comprime ao scrollar
-        isScrolled
-          ? "bg-card/98 backdrop-blur-lg shadow-md border-border/80 h-11 sm:h-12"
-          : "h-12 sm:h-14"
+        "h-[var(--header-h)]",
+        // #7 — Micro-ajuste visual ao scrollar (altura é controlada via --header-h)
+        isScrolled && "bg-card/98 backdrop-blur-lg shadow-md border-border/80",
       )}
     >
       <div className="flex items-center justify-between h-full px-2 sm:px-4 lg:px-6">
