@@ -419,6 +419,9 @@ html[data-scroll-locked] body {
 
   html {
     scroll-behavior: smooth;
+    /* Garante que âncoras (#id) e scrollIntoView fiquem abaixo do Header sticky.
+       --header-h é propagada dinamicamente pelo Header.tsx (48–56px). */
+    scroll-padding-top: var(--header-h, 56px);
   }
 
   body {
