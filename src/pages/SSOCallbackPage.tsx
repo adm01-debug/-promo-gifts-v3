@@ -104,7 +104,7 @@ export default function SSOCallbackPage() {
         timeoutId = window.setTimeout(() => {
           supabase.auth.getSession().then(({ data: { session: s } }) => {
             if (s) {
-              goHome();
+              void goHome();
             } else {
               logger.warn('[sso-callback] no session after timeout');
               goLogin('Sessão não estabelecida. Tente novamente.');
@@ -125,7 +125,7 @@ export default function SSOCallbackPage() {
       if (unsub) unsub();
       if (timeoutId !== null) window.clearTimeout(timeoutId);
     };
-  }, [navigate, searchParams]);
+  }, [navigate, searchParams, refreshSession]);
 
   return (
     <div className="min-h-screen flex items-center justify-center">
