@@ -9,6 +9,7 @@ import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { Plus, FileText, ShoppingCart } from "lucide-react";
 import type { NavGroup } from "../SidebarNavGroup";
+import { isNavItemActive } from "@/lib/navigation/active-match";
 
 // Mocks dos contextos usados pelo componente
 vi.mock("@/contexts/AuthContext", () => ({
