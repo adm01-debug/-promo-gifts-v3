@@ -1,52 +1,26 @@
-## Diagnóstico (causa raiz)
+## Diagnóstico
 
-O Header global **está** sticky, mas tem **altura dinâmica**:
+Em `/` (sem breadcrumb) o Header gruda. Em `/orcamentos`, `/produtos`, `/favoritos`, `/colecoes`, `/comparar`, `/admin/*` (com breadcrumb), o Header desaparece ao rolar — apenas o breadcrumb fica fixo. O `<header>` permanece no DOM, mas suas regras `sticky top-0 z-40` não são honradas visualmente: o conteúdo rola por cima dele.
 
-```tsx
-// src/components/layout/Header.tsx:85-87
-isScrolled
-  ? "bg-card/98 ... h-11 sm:h-12"  // 44px mobile / 48px desktop
-  : "h-12 sm:h-14"                  // 48px mobile / 56px desktop
-```
+A causa mais provável é que a classe Tailwind `sticky` (compilada como `position: sticky`) está sendo derrotada por outra regra em alguma camada CSS específica desta árvore (já vimos `!important` no `index.css` para outros casos). O breadcrumb, que está em outro wrapper, não sofre o mesmo conflito.
 
-E na rota `/` (`src/pages/Index.tsx:62`) há **outra barra sticky** dentro do `<main>`:
-
-```tsx
-<div className="sticky top-0 z-20 ..."> {/* ← cola no topo da viewport! */}
-  <CatalogToolbar ... />
-</div>
-```
-
-Como ela usa `top-0`, ela cola no **topo absoluto da viewport**, sobrepondo / brigando com o Header global (que tem `z-40` mas a toolbar tem `z-20`, então o Header passa POR CIMA dela visualmente — o que dá a impressão de que "o topo desapareceu" quando na verdade o que sumiu foi a toolbar interna sob o Header).
-
-Pior: meu fix anterior do breadcrumb usou `top-16` (64px) e Suspense fallback `<div className="h-16" />` (64px), mas o Header nunca chega a 64px (máx 56px). Isso cria um **gap de 8px** entre Header e Breadcrumb durante o scroll.
-
-E na rota `/orcamentos` há mais uma barra similar (vou checar todas as toolbars sticky).
-
-## Solução
-
-Centralizar a altura do Header em uma **CSS variable** `--header-h` definida pelo próprio Header, e fazer todos os stickys filhos referenciarem essa variável. O breadcrumb também expõe `--breadcrumb-h`. Toolbars internas usam `top-[calc(var(--header-h)+var(--breadcrumb-h))]`.
-
-Isso resolve os 3 sintomas de uma vez:
-1. Breadcrumb encosta exatamente abaixo do Header em qualquer estado (sem gap).
-2. Toolbar do catálogo cola abaixo de Header+Breadcrumb (não no topo da viewport).
-3. Quando o Header encolhe ao scrollar, breadcrumb e toolbar se reposicionam automaticamente.
-
-## Mudanças
+## Correção
 
 ### 1. `src/components/layout/Header.tsx`
-
-Substituir as classes `h-11 sm:h-12` / `h-12 sm:h-14` por uma única altura `h-[var(--header-h)]` e definir `--header-h` via `style` no próprio `<header>`:
+Forçar `position: sticky`, `top: 0` e `z-index: 50` via **inline style** (vence qualquer classe), removendo as classes equivalentes do `cn()`:
 
 ```tsx
-const headerHeightPx = isScrolled ? 48 : 56;
-
 return (
   <header
     data-testid="app-header"
-    style={{ "--header-h": `${headerHeightPx}px` } as React.CSSProperties}
+    style={{
+      "--header-h": `${headerHeightPx}px`,
+      position: "sticky",
+      top: 0,
+      zIndex: 50,
+    } as CSSProperties}
     className={cn(
-      "sticky top-0 z-40 border-b transition-all duration-300",
+      "border-b transition-all duration-300",
       "bg-card/95 backdrop-blur-md border-border",
       "h-[var(--header-h)]",
       isScrolled && "bg-card/98 backdrop-blur-lg shadow-md border-border/80",
@@ -54,78 +28,29 @@ return (
   >
 ```
 
-Também propagar a var para o `<html>` via `useEffect` para que stickys fora da árvore do Header (improvável, mas defensivo) também leiam:
-
-```tsx
-useEffect(() => {
-  document.documentElement.style.setProperty("--header-h", `${headerHeightPx}px`);
-}, [headerHeightPx]);
-```
-
-Trade-off: a animação `transition-all` antes interpolava a classe Tailwind (que não anima entre classes); agora interpola o valor numérico via CSS var → animação real e suave.
+Subo `z-index` para 50 (era 40) garantindo que o Header fique acima do breadcrumb (z-30), de toolbars internas (z-20), do FAB QuickQuote, e de qualquer outro sticky de página.
 
 ### 2. `src/components/layout/MainLayout.tsx`
-
-Trocar:
-```tsx
-<Suspense fallback={<div className="h-16" />}>     // ← errado (64px)
-  <Header ... />
-```
-por:
-```tsx
-<Suspense fallback={<div style={{ height: 56 }} />}> // altura "expandida" padrão
-```
-
-Trocar a barra do breadcrumb:
-```tsx
-<div className={cn(
-  "sticky top-[var(--header-h,56px)] z-30 print:hidden",  // ← antes: top-16
-  "bg-background/85 backdrop-blur-md",
-  "border-b border-border/40",
-  location.pathname === "/" && "hidden",
-)}
-  style={{ "--breadcrumb-h": "40px" } as React.CSSProperties}
-  data-testid="breadcrumb-bar"
->
-```
-
-Propagar `--breadcrumb-h` ao `<html>` via `useEffect` no `MainLayout` baseado em `location.pathname === "/"` (40px ou 0px):
+Adicionar `isolation: isolate` no container `<div className="flex-1 flex flex-col min-h-screen">` para criar um stacking context isolado, evitando que outros elementos da página (incluindo `transform`/`backdrop-blur` em descendentes) interfiram no sticky do Header:
 
 ```tsx
-useEffect(() => {
-  const h = location.pathname === "/" ? 0 : 40;
-  document.documentElement.style.setProperty("--breadcrumb-h", `${h}px`);
-}, [location.pathname]);
+<div className="flex-1 flex flex-col min-h-screen min-w-0 print:min-h-0 isolate">
 ```
 
-### 3. `src/pages/Index.tsx` (linha 62)
+`isolate` é seguro: não muda layout nem cria containing block para `position: fixed`.
 
-Trocar:
-```tsx
-<div className="sticky top-0 z-20 ...">           // ← cola no topo da viewport
-```
-por:
-```tsx
-<div className="sticky top-[calc(var(--header-h,56px)+var(--breadcrumb-h,0px))] z-20 ...">
-```
+### 3. Verificação
+Rotas a testar com scroll de ~1500px e screenshot do topo:
+- `/` (catálogo, sem breadcrumb) — Header + toolbar Catálogo visíveis
+- `/orcamentos` — Header + breadcrumb + chips de status visíveis empilhados
+- `/produtos` — Header + breadcrumb visíveis
+- `/favoritos` — Header + breadcrumb visíveis
+- `/comparar` — Header + breadcrumb visíveis
+- `/colecoes` — Header + breadcrumb + (BulkSelectionBar se houver seleção) visíveis
+- `/admin/usuarios` — Header + breadcrumb visíveis
 
-Para `/` (home) o breadcrumb-h é 0, então fica abaixo só do Header (~56px). Para `/produtos` (se o catálogo for usado lá) ficaria abaixo de Header+Breadcrumb (~96px).
-
-### 4. Buscar e corrigir outros `sticky top-0` internos
-
-Vou rodar `rg "sticky top-0" src/pages src/components -l` e atualizar todas as ocorrências que ficam dentro de `<main>` (sob o Header) para usar a mesma fórmula `top-[calc(var(--header-h,56px)+var(--breadcrumb-h,0px))]`. Casos esperados: barras de filtro, toolbars de listas, abas. Modais/popovers/sidebars NÃO mudam.
-
-## Verificação
-
-Após aplicar, vou usar o browser em viewport 1280×800 para:
-
-1. Abrir `/` (catálogo) → screenshot inicial → scroll 800px → screenshot.
-   - Esperado: Header global "Catálogo / Busca inteligente / ícones" + toolbar "Filtros / Sort / Layout" empilhados visíveis no topo, sem gap, sem sobreposição.
-2. Abrir `/produtos` → mesmo teste com Header + Breadcrumb + (se houver) toolbar.
-3. Abrir `/orcamentos` → Header + Breadcrumb visíveis após scroll.
-
-Se passar, fecho a tarefa. Se não, reporto e ajusto.
+Se em alguma rota o Header ainda falhar, investigo o stacking context dessa rota especificamente (provavelmente `transform`/`filter` em algum wrapper de página) e adiciono `isolate` localmente.
 
 ## Observação
 
-Não vou redesenhar nada — apenas ancorar corretamente os stickys que já existiam. Visual idêntico, comportamento correto.
+Não estou redesenhando nada — só forçando o `position: sticky` do Header via inline style para vencer qualquer conflito de specificity, e isolando o stacking context da coluna principal. Visual idêntico, comportamento corrigido em todas as rotas.
