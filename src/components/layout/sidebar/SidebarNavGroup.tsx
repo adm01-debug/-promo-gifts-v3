@@ -160,7 +160,6 @@ export const SidebarNavGroup = forwardRef<HTMLDivElement, SidebarNavGroupProps>(
 
     const isActive = isItemActive(item.href, item.exact);
     const Icon = item.icon;
-    const isCta = item.isCta || item.href.includes("/novo");
 
     const prefetch = getPrefetchHandlers(item.href);
 
@@ -170,11 +169,10 @@ export const SidebarNavGroup = forwardRef<HTMLDivElement, SidebarNavGroupProps>(
         data-tour={item.tourId}
         className={cn(
           "flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 group relative",
-          isCta && !isActive && "bg-gradient-to-r from-orange/15 to-orange/5 border border-orange/30 hover:from-orange/25 hover:to-orange/10 hover:border-orange/50 hover:shadow-sm hover:shadow-orange/10",
-          !isCta && "hover:bg-sidebar-accent/50",
+          "hover:bg-sidebar-accent/50",
           isActive
             ? "bg-orange/10 text-orange font-medium before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-5 before:w-[3px] before:rounded-r-full before:bg-orange"
-            : !isCta && "text-sidebar-foreground/60 hover:text-sidebar-foreground before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-0 before:w-[2px] before:rounded-r-full before:bg-orange/50 before:transition-all before:duration-200 hover:before:h-4"
+            : "text-sidebar-foreground/60 hover:text-sidebar-foreground before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-0 before:w-[2px] before:rounded-r-full before:bg-orange/50 before:transition-all before:duration-200 hover:before:h-4"
         )}
         onClick={() => isMobileSidebarOpen && onMobileClose()}
         onMouseEnter={prefetch.onMouseEnter}
@@ -183,11 +181,11 @@ export const SidebarNavGroup = forwardRef<HTMLDivElement, SidebarNavGroupProps>(
         <Icon
           className={cn(
             "h-4 w-4 shrink-0 transition-colors",
-            isActive ? "text-orange" : isCta ? "text-orange/70" : "group-hover:text-orange/70"
+            isActive ? "text-orange" : "group-hover:text-orange/70"
           )}
         />
         {!isCollapsed && (
-          <span className={cn("truncate text-sm flex-1", isCta && !isActive && "text-orange/80 font-medium")}>
+          <span className="truncate text-sm flex-1">
             {item.label}
           </span>
         )}
