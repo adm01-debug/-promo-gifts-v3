@@ -55,8 +55,14 @@ export function CartCompanyPickerDialog({ open, onOpenChange, onCreated }: CartC
     if (!open) return;
     setRecents(readList(RECENT_KEY));
     setFavorites(readList(FAV_KEY));
-    if (recents.length === 0 && favorites.length === 0) setTab("search");
-    setTimeout(() => inputRef.current?.focus(), 80);
+    // Sempre abre na aba "Todas" (busca) para o usuário poder digitar imediatamente.
+    setTab("search");
+    // Aguarda a aba "search" montar para garantir que inputRef.current exista.
+    const t = setTimeout(() => {
+      inputRef.current?.focus();
+      inputRef.current?.select();
+    }, 120);
+    return () => clearTimeout(t);
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
