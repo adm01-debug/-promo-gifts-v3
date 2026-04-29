@@ -8,7 +8,8 @@
  * - Notas sempre visíveis (textarea inline com debounce)
  * - Sidebar reorganizada (Hero pricing → Ação → Menu) + Health Checklist
  */
-import { useCallback, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { type CartStatus } from "@/hooks/useSellerCarts";
 import { CartCompanyPickerDialog } from "@/components/cart/CartCompanyPickerDialog";
@@ -61,6 +62,21 @@ const NOTES_PLACEHOLDERS = [
 function SellerCartsContent() {
   const s = useSellerCartsPage();
   const notesRef = useRef<HTMLTextAreaElement>(null);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const newCartTriggeredRef = useRef(false);
+
+  // Sidebar "+ Novo Carrinho" navega para /carrinhos/novo: abrir modal automaticamente
+  // e limpar a URL para /carrinhos para não prender o usuário na rota "fantasma".
+  useEffect(() => {
+    if (location.pathname === "/carrinhos/novo" && !newCartTriggeredRef.current) {
+      newCartTriggeredRef.current = true;
+      s.setShowNewCart(true);
+      navigate("/carrinhos", { replace: true });
+    } else if (location.pathname !== "/carrinhos/novo") {
+      newCartTriggeredRef.current = false;
+    }
+  }, [location.pathname, navigate, s]);
 
   const focusNotes = useCallback(() => {
     notesRef.current?.focus();
