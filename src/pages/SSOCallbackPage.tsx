@@ -51,9 +51,15 @@ export default function SSOCallbackPage() {
     let unsub: (() => void) | null = null;
     let timeoutId: number | null = null;
 
-    const goHome = () => {
+    const goHome = async () => {
       if (cancelled) return;
-      // Limpa fragment / query da URL
+      // Força refresh do JWT + roles + AAL para o menu/permissões refletirem na hora.
+      try {
+        await refreshSession();
+      } catch (e) {
+        logger.warn('[sso-callback] refreshSession failed', { message: e instanceof Error ? e.message : String(e) });
+      }
+      if (cancelled) return;
       navigate('/', { replace: true });
     };
 
@@ -74,7 +80,7 @@ export default function SSOCallbackPage() {
             goLogin(exchangeError.message);
             return;
           }
-          goHome();
+          await goHome();
           return;
         }
 
@@ -82,14 +88,14 @@ export default function SSOCallbackPage() {
         // ou supabase-js já parseou o hash fragment automaticamente).
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
-          goHome();
+          await goHome();
           return;
         }
 
         // Caso a sessão ainda não tenha sido aplicada, escuta onAuthStateChange.
         const { data } = supabase.auth.onAuthStateChange((_event, newSession) => {
           if (newSession) {
-            goHome();
+            void goHome();
           }
         });
         unsub = () => data.subscription.unsubscribe();
