@@ -137,8 +137,9 @@ export const ScrollToTopButton = forwardRef<
       whileHover={{ scale: 1.1 }}
       whileTap={{ scale: 0.95 }}
       onClick={handleScrollToTop}
-      aria-label="Voltar ao topo"
-      title="Voltar ao topo"
+      aria-label="Voltar ao topo da página"
+      aria-keyshortcuts="Home"
+      title="Voltar ao topo (Enter ou Espaço)"
     >
       <ArrowUp className="h-5 w-5" aria-hidden />
     </motion.button>
