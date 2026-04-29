@@ -2,6 +2,7 @@ import { useState, useEffect, forwardRef } from "react";
 import { motion, useScroll, useSpring } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { ArrowUp } from "lucide-react";
+import { useAriaLive } from "@/components/a11y";
 
 interface ScrollProgressProps {
   className?: string;
