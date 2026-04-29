@@ -300,12 +300,6 @@ describe("SidebarNavGroup — aria-current nos NavLinks acompanha a rota", () =>
     expect(getNavLink("Orçamentos")!.getAttribute("aria-current")).toBe("page");
     expect(getNavLink("Novo Orçamento")!.getAttribute("aria-current")).not.toBe("page");
   });
-    expect(getNavLink("Carrinhos")!.getAttribute("aria-current")).toBe("page");
-    expect(getNavLink("Novo Orçamento")!.getAttribute("aria-current")).not.toBe("page");
-
-    await go(router, 2); // forward até /orcamentos
-    expect(getNavLink("Orçamentos")!.getAttribute("aria-current")).toBe("page");
-  });
 
   it("em rota neutra (/dashboard) NENHUM link do grupo tem aria-current='page'", () => {
     setupRouter(["/dashboard"]);
