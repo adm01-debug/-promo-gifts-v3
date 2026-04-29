@@ -226,21 +226,21 @@ describe("SidebarNavGroup — back/forward (histórico real) preservam paridade 
 
   it("após back/forward, o conjunto de classes idle de Novo Orçamento permanece IGUAL ao de Carrinhos (sem drift)", async () => {
     const router = setupHistory(["/orcamentos/novo", "/carrinhos"], 1);
-    // Em /carrinhos: Novo está idle
-    const novoIdleA = getLink("Novo Orçamento").className.split(/\s+/).sort().join(" ");
-    const orcamentosIdleA = getLink("Orçamentos").className.split(/\s+/).sort().join(" ");
+    // Em /carrinhos: Novo está idle, Orçamentos está idle
+    const novoIdleA = classSetIgnoringNavLinkActive("Novo Orçamento");
+    const orcamentosIdleA = classSetIgnoringNavLinkActive("Orçamentos");
     expect(novoIdleA).toBe(orcamentosIdleA);
 
-    await go(router, -1); // /orcamentos/novo: Carrinhos está idle
-    const carrinhosIdleB = getLink("Carrinhos").className.split(/\s+/).sort().join(" ");
-    const orcamentosIdleB = getLink("Orçamentos").className.split(/\s+/).sort().join(" ");
+    await go(router, -1); // /orcamentos/novo: Carrinhos está idle, Orçamentos está idle
+    const carrinhosIdleB = classSetIgnoringNavLinkActive("Carrinhos");
+    const orcamentosIdleB = classSetIgnoringNavLinkActive("Orçamentos");
     expect(carrinhosIdleB).toBe(orcamentosIdleB);
 
     // E o idle de Novo (em A) deve ser igual ao idle de Carrinhos (em B): paridade total.
     expect(novoIdleA).toBe(carrinhosIdleB);
 
     await go(router, 1); // /carrinhos novamente
-    const novoIdleC = getLink("Novo Orçamento").className.split(/\s+/).sort().join(" ");
+    const novoIdleC = classSetIgnoringNavLinkActive("Novo Orçamento");
     expect(novoIdleC).toBe(novoIdleA); // idempotente após round-trip
   });
 });
