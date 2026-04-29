@@ -5,6 +5,7 @@ import { logger } from "@/lib/logger";
 import { createClientLogger } from "@/lib/telemetry/structuredLogger";
 import { checkLoginAllowed, recordFailedAttempt, clearLoginAttempts } from "@/hooks/useLoginRateLimit";
 import { toast } from "sonner";
+import { authDebug, authDebugError, summarizeSession, summarizeUser } from "@/lib/auth/auth-debug";
 
 function getGreeting(): string {
   const hour = new Date().getHours();
@@ -113,6 +114,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     
     const doFetch = async () => {
+      authDebug("AuthContext.fetchUserData", "start", { userId });
       try {
         // Buscar profile e TODAS as roles em paralelo (usuário pode ter múltiplas, ex: dev+supervisor)
         const [profileResult, rolesResult] = await Promise.all([
@@ -130,12 +132,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!mountedRef.current) return;
 
         if (profileResult.error) {
+          authDebugError("AuthContext.fetchUserData", "profile query failed", profileResult.error);
           if (import.meta.env.DEV) {
             console.error("Error fetching profile:", profileResult.error);
           }
         } else if (profileResult.data) {
+          authDebug("AuthContext.fetchUserData", "profile loaded", {
+            id: profileResult.data.id,
+            role_mirror: profileResult.data.role,
+            is_active: profileResult.data.is_active,
+          });
           setProfile(profileResult.data as Profile);
-          
+
           // Atualizar last_login_at (não bloqueia)
           supabase
             .from("profiles")
@@ -149,15 +157,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         if (rolesResult.error) {
+          authDebugError("AuthContext.fetchUserData", "user_roles query failed", rolesResult.error);
           if (import.meta.env.DEV) {
             console.error("Error fetching user roles:", rolesResult.error);
           }
           setUserRoles(["agente"]);
         } else if (rolesResult.data) {
           const roles = rolesResult.data.map((r) => r.role as AppRole);
+          authDebug("AuthContext.fetchUserData", "user_roles loaded", {
+            count: roles.length,
+            roles,
+          });
           setUserRoles(roles.length > 0 ? roles : ["agente"]);
         }
       } catch (error) {
+        authDebugError("AuthContext.fetchUserData", "unexpected exception", error);
         if (import.meta.env.DEV) {
           console.error("Error fetching user data:", error);
         }
@@ -170,6 +184,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (mountedRef.current) {
           setIsLoading(false);
         }
+        authDebug("AuthContext.fetchUserData", "done");
       }
     };
 
