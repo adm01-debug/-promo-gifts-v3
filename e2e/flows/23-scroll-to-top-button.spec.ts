@@ -110,4 +110,67 @@ test.describe("ScrollToTopButton — módulos principais", () => {
       ).toHaveCount(0, { timeout: 2000 });
     });
   }
+
+  /**
+   * Acessibilidade por teclado: o botão DEVE ser ativável com Enter e Espaço
+   * (comportamento nativo do <button>) e, após o clique, o foco DEVE migrar
+   * para `#main-content` — caso contrário usuários de teclado/leitor de tela
+   * ficariam órfãos (o botão desaparece ao chegar no topo).
+   */
+  for (const key of ["Enter", "Space"] as const) {
+    test(`ativável por teclado (${key}) e foco migra para #main-content`, async ({
+      page,
+    }) => {
+      await gotoAndSettle(page, "/dashboard");
+      test.skip(
+        /\/login(\?|$)/.test(page.url()),
+        "Dashboard redirecionou para /login.",
+      );
+      await waitForRouteIdle(page);
+      await waitForTestIdVisible(page, "app-header");
+
+      // Determinístico: scroll instantâneo + foca alvo imediatamente.
+      await page.addStyleTag({
+        content: `html { scroll-behavior: auto !important; }
+                  *, *::before, *::after { transition-duration: 0s !important; animation-duration: 0s !important; }`,
+      });
+      await page.emulateMedia({ reducedMotion: "reduce" });
+
+      await page.evaluate(() => {
+        if (document.body.scrollHeight < window.innerHeight + 2000) {
+          const spacer = document.createElement("div");
+          spacer.style.height = "2400px";
+          spacer.setAttribute("data-e2e-spacer", "");
+          document.body.appendChild(spacer);
+        }
+        window.scrollTo(0, 1500);
+      });
+      await page.waitForFunction(() => window.scrollY > 1000, { timeout: 3000 });
+
+      await waitForTestIdVisible(page, "scroll-to-top");
+      const button = page.locator(Sel.app.layout.scrollToTop);
+
+      // Foca via API e valida atributos de a11y.
+      await button.focus();
+      await expect(button).toBeFocused();
+      await expect(button).toHaveAttribute("aria-label", /voltar ao topo/i);
+
+      // Aciona via teclado.
+      await page.keyboard.press(key);
+
+      // Scroll volta a 0 e foco migra para o main.
+      await pollUntil(
+        async () => (await page.evaluate(() => window.scrollY)) <= TOP_TOLERANCE_PX,
+        { timeoutMs: 3000, intervalMs: 50, message: "scrollY não voltou a 0" },
+      );
+
+      const focusedId = await page.evaluate(
+        () => document.activeElement?.id ?? null,
+      );
+      expect(
+        focusedId,
+        `Foco deveria migrar para #main-content após ${key} (recebido id="${focusedId}")`,
+      ).toBe("main-content");
+    });
+  }
 });

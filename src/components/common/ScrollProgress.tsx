@@ -81,6 +81,36 @@ export const ScrollToTopButton = forwardRef<
       top: 0,
       behavior: prefersReduced ? "auto" : "smooth",
     });
+
+    // A11y: como o botão desaparece ao chegar no topo (perdendo o foco no
+    // void), movemos o foco para o início lógico da página (`<main>` ou o
+    // primeiro heading). Isso mantém usuários de teclado/leitor de tela
+    // ancorados no novo contexto e dispara o anel de focus-visible no alvo.
+    const moveFocusToTop = () => {
+      const target =
+        (document.getElementById("main-content") as HTMLElement | null) ??
+        (document.querySelector("main") as HTMLElement | null) ??
+        (document.querySelector("h1") as HTMLElement | null);
+      if (!target) return;
+      const hadTabIndex = target.hasAttribute("tabindex");
+      if (!hadTabIndex) target.setAttribute("tabindex", "-1");
+      target.focus({ preventScroll: true });
+      // Restaura tabindex original para não vazar nó focável extra.
+      if (!hadTabIndex) {
+        target.addEventListener(
+          "blur",
+          () => target.removeAttribute("tabindex"),
+          { once: true },
+        );
+      }
+    };
+    // Aguarda o smooth scroll terminar antes de focar (evita "puxar" o
+    // viewport de volta). Em reduced-motion, foca imediatamente.
+    if (prefersReduced) {
+      moveFocusToTop();
+    } else {
+      window.setTimeout(moveFocusToTop, 350);
+    }
   };
 
   if (!isVisible) return null;
@@ -107,8 +137,9 @@ export const ScrollToTopButton = forwardRef<
       whileHover={{ scale: 1.1 }}
       whileTap={{ scale: 0.95 }}
       onClick={handleScrollToTop}
-      aria-label="Voltar ao topo"
-      title="Voltar ao topo"
+      aria-label="Voltar ao topo da página"
+      aria-keyshortcuts="Home"
+      title="Voltar ao topo (Enter ou Espaço)"
     >
       <ArrowUp className="h-5 w-5" aria-hidden />
     </motion.button>
