@@ -90,12 +90,16 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
   return (
     <header
       data-testid="app-header"
-      style={{ "--header-h": `${headerHeightPx}px` } as CSSProperties}
+      style={{
+        "--header-h": `${headerHeightPx}px`,
+        position: "sticky",
+        top: 0,
+        zIndex: 50,
+      } as CSSProperties}
       className={cn(
-        "sticky top-0 z-40 border-b transition-all duration-300",
+        "border-b transition-all duration-300 print:hidden",
         "bg-card/95 backdrop-blur-md border-border",
         "h-[var(--header-h)]",
-        // #7 — Micro-ajuste visual ao scrollar (altura é controlada via --header-h)
         isScrolled && "bg-card/98 backdrop-blur-lg shadow-md border-border/80",
       )}
     >
