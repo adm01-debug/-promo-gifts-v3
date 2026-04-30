@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Loader2, RefreshCw, X } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { useSecretsManager } from "@/hooks/useSecretsManager";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Loader2, RefreshCw, X } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useSecretsManager } from '@/hooks/useSecretsManager';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 interface CredentialsChangedBannerProps {
   /** Callback executed in parallel with cache invalidation + secret list refresh. */
@@ -12,7 +12,7 @@ interface CredentialsChangedBannerProps {
 
 interface PendingChange {
   count: number;
-  lastEvent: "INSERT" | "UPDATE" | "DELETE";
+  lastEvent: 'INSERT' | 'UPDATE' | 'DELETE';
   lastName: string | null;
   lastAt: number;
 }
@@ -35,16 +35,19 @@ export function CredentialsChangedBanner({ onRefreshed }: CredentialsChangedBann
 
   useEffect(() => {
     const channel = supabase
-      .channel("admin-conexoes-credentials-changes")
+      .channel('admin-conexoes-credentials-changes')
       .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "integration_credentials" },
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'integration_credentials' },
         (payload) => {
-          const event = payload.eventType as "INSERT" | "UPDATE" | "DELETE";
+          const event = payload.eventType as 'INSERT' | 'UPDATE' | 'DELETE';
+          // Coluna real em integration_credentials é `secret_name` —
+          // typo histórico (`name`) escondia o nome do secret alterado
+          // no aviso de auto-refresh.
           const row =
-            (payload.new as { name?: string } | null) ??
-            (payload.old as { name?: string } | null);
-          const name = row?.name ?? null;
+            (payload.new as { secret_name?: string } | null) ??
+            (payload.old as { secret_name?: string } | null);
+          const name = row?.secret_name ?? null;
           setPending((prev) => ({
             count: (prev?.count ?? 0) + 1,
             lastEvent: event,
@@ -71,19 +74,19 @@ export function CredentialsChangedBanner({ onRefreshed }: CredentialsChangedBann
         Promise.resolve().then(() => onRefreshedRef.current?.()),
       ]);
       const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
-      const cacheOk = cacheRes.status === "fulfilled" && cacheRes.value.ok;
-      const listOk = listRes.status === "fulfilled";
-      const hookOk = hookRes.status === "fulfilled";
+      const cacheOk = cacheRes.status === 'fulfilled' && cacheRes.value.ok;
+      const listOk = listRes.status === 'fulfilled';
+      const hookOk = hookRes.status === 'fulfilled';
       const credCount = listOk && Array.isArray(listRes.value) ? listRes.value.length : 0;
       const okCount = [cacheOk, listOk, hookOk].filter(Boolean).length;
 
       if (okCount === 3) {
-        toast.success("Status e cards atualizados", {
+        toast.success('Status e cards atualizados', {
           description: `Cache invalidado · ${credCount} credenciais relidas (${elapsed}s)`,
         });
         setPending(null);
       } else {
-        toast.warning("Atualização parcial", {
+        toast.warning('Atualização parcial', {
           description: `Algumas operações falharam (${elapsed}s)`,
         });
       }
@@ -95,16 +98,16 @@ export function CredentialsChangedBanner({ onRefreshed }: CredentialsChangedBann
   if (!pending) return null;
 
   const eventLabel =
-    pending.lastEvent === "INSERT"
-      ? "criada"
-      : pending.lastEvent === "DELETE"
-        ? "removida"
-        : "alterada";
+    pending.lastEvent === 'INSERT'
+      ? 'criada'
+      : pending.lastEvent === 'DELETE'
+        ? 'removida'
+        : 'alterada';
 
   const description =
     pending.count === 1
-      ? `Credencial ${pending.lastName ? `"${pending.lastName}" ` : ""}${eventLabel} no banco.`
-      : `${pending.count} alterações detectadas em credenciais (última: ${pending.lastName ?? "—"}, ${eventLabel}).`;
+      ? `Credencial ${pending.lastName ? `"${pending.lastName}" ` : ''}${eventLabel} no banco.`
+      : `${pending.count} alterações detectadas em credenciais (última: ${pending.lastName ?? '—'}, ${eventLabel}).`;
 
   return (
     <div
@@ -112,10 +115,13 @@ export function CredentialsChangedBanner({ onRefreshed }: CredentialsChangedBann
       aria-live="polite"
       className="flex items-center gap-3 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-2.5 text-sm"
     >
-      <RefreshCw className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" aria-hidden="true" />
-      <div className="flex-1 min-w-0">
+      <RefreshCw
+        className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400"
+        aria-hidden="true"
+      />
+      <div className="min-w-0 flex-1">
         <p className="font-medium text-foreground">Credenciais alteradas no banco</p>
-        <p className="text-xs text-muted-foreground truncate">{description}</p>
+        <p className="truncate text-xs text-muted-foreground">{description}</p>
       </div>
       <Button
         type="button"
@@ -126,11 +132,11 @@ export function CredentialsChangedBanner({ onRefreshed }: CredentialsChangedBann
         aria-label="Recarregar status e cards agora"
       >
         {isRefreshing ? (
-          <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+          <Loader2 className="mr-1 h-4 w-4 animate-spin" />
         ) : (
-          <RefreshCw className="h-4 w-4 mr-1" />
+          <RefreshCw className="mr-1 h-4 w-4" />
         )}
-        {isRefreshing ? "Atualizando…" : "Atualizar agora"}
+        {isRefreshing ? 'Atualizando…' : 'Atualizar agora'}
       </Button>
       <Button
         type="button"

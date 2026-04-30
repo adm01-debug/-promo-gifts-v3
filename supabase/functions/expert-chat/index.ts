@@ -5,6 +5,7 @@ import { z } from "npm:zod@3.23.8";
 import { callAiWithTracking, QuotaExceededError } from '../_shared/ai-usage.ts';
 import { rateLimiters, applyRateLimit } from '../_shared/rate-limiter.ts';
 import { runBotProtection } from '../_shared/bot-protection.ts';
+import { resolveCredential } from '../_shared/credentials.ts';
 
 // ============================================
 // SCHEMAS
@@ -612,8 +613,16 @@ Deno.serve(async (req) => {
     if (clientId) {
       console.log("Fetching client data from CRM for:", clientId);
 
-      const CRM_URL = Deno.env.get("CRM_SUPABASE_URL");
-      const CRM_KEY = Deno.env.get("CRM_SUPABASE_ANON_KEY");
+      // SSOT: lê de integration_credentials (DB-first) com fallback para
+      // env vars legadas (CRM_SUPABASE_*). Antes ignorava credenciais
+      // salvas pela UI /admin/conexoes.
+      const [urlRes, svcRes, anonRes] = await Promise.all([
+        resolveCredential("EXTERNAL_CRM_URL"),
+        resolveCredential("EXTERNAL_CRM_SERVICE_ROLE_KEY"),
+        resolveCredential("EXTERNAL_CRM_ANON_KEY"),
+      ]);
+      const CRM_URL = urlRes.value;
+      const CRM_KEY = svcRes.value ?? anonRes.value;
 
       if (CRM_URL && CRM_KEY) {
         const crmClient = createClient(CRM_URL, CRM_KEY);

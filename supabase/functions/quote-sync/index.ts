@@ -3,12 +3,26 @@ import { getCorsHeaders } from "../_shared/cors.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.49.1";
 import { z } from "https://esm.sh/zod@3.23.8";
 import { parseBodyWithSchema } from "../_shared/zod-validate.ts";
+import { resolveCredential } from "../_shared/credentials.ts";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const crmUrl = Deno.env.get("CRM_SUPABASE_URL");
-const crmKey = Deno.env.get("CRM_SUPABASE_ANON_KEY");
 const n8nWebhookUrl = Deno.env.get("N8N_QUOTE_WEBHOOK_URL");
+
+/**
+ * Resolve credenciais do CRM externo (DB-first via integration_credentials,
+ * env fallback via aliases CRM_SUPABASE_URL → EXTERNAL_CRM_URL).
+ * Antes lia Deno.env.get() em escopo de módulo, ignorando rotações
+ * salvas pela UI /admin/conexoes.
+ */
+async function getCrmCreds(): Promise<{ url: string | null; key: string | null }> {
+  const [urlRes, svcRes, anonRes] = await Promise.all([
+    resolveCredential("EXTERNAL_CRM_URL"),
+    resolveCredential("EXTERNAL_CRM_SERVICE_ROLE_KEY"),
+    resolveCredential("EXTERNAL_CRM_ANON_KEY"),
+  ]);
+  return { url: urlRes.value, key: svcRes.value ?? anonRes.value };
+}
 
 // ===== Zod Schemas =====
 
@@ -128,6 +142,7 @@ Deno.serve(async (req) => {
       }
 
       case "sync_all_pending": {
+        const { url: crmUrl, key: crmKey } = await getCrmCreds();
         if (!crmUrl || !crmKey) throw new Error("CRM database not configured");
         const crm = createClient(crmUrl, crmKey);
 
@@ -220,6 +235,7 @@ Deno.serve(async (req) => {
 
 // ===== Fetch quote data from external CRM database =====
 async function fetchQuoteFromCRM(quoteId: string): Promise<QuoteData | null> {
+  const { url: crmUrl, key: crmKey } = await getCrmCreds();
   if (!crmUrl || !crmKey) {
     throw new Error("CRM database credentials not configured");
   }
@@ -279,6 +295,7 @@ async function fetchQuoteFromCRM(quoteId: string): Promise<QuoteData | null> {
 }
 
 async function updateCRMSyncStatus(quoteId: string, n8nResponse: Record<string, unknown>): Promise<void> {
+  const { url: crmUrl, key: crmKey } = await getCrmCreds();
   if (!crmUrl || !crmKey) return;
   const crm = createClient(crmUrl, crmKey);
   const { error } = await crm.from("quotes").update({

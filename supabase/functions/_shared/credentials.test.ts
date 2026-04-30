@@ -18,6 +18,7 @@
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
+  buildCredentialsHealth,
   invalidateCredentialCache,
   resolveCredential,
 } from "../_shared/credentials.ts";
@@ -424,3 +425,104 @@ Deno.test(
     assertEquals(dbReads, 2, "DB foi re-lido exatamente 1x após invalidação");
   },
 );
+
+// ============================================================================
+// buildCredentialsHealth — snapshot agregado para endpoints ?op=creds_health
+// ============================================================================
+
+Deno.test("buildCredentialsHealth: tudo presente em DB → health='healthy'", async () => {
+  invalidateCredentialCache();
+  clearAll("EXTERNAL_CRM_URL", ["CRM_SUPABASE_URL"]);
+  clearAll("EXTERNAL_CRM_SERVICE_ROLE_KEY", ["CRM_SUPABASE_SERVICE_KEY"]);
+  clearAll("EXTERNAL_CRM_ANON_KEY", ["CRM_SUPABASE_ANON_KEY"]);
+
+  const client = mockServiceClient({
+    EXTERNAL_CRM_URL: "https://crm.supabase.co",
+    EXTERNAL_CRM_SERVICE_ROLE_KEY: "service-key-12345678",
+    EXTERNAL_CRM_ANON_KEY: "anon-key-12345678",
+  });
+
+  const summary = await buildCredentialsHealth([
+    "EXTERNAL_CRM_URL",
+    "EXTERNAL_CRM_SERVICE_ROLE_KEY",
+    "EXTERNAL_CRM_ANON_KEY",
+  ], { serviceClient: client });
+
+  assertEquals(summary.ok, true);
+  assertEquals(summary.health, "healthy");
+  assertEquals(summary.credentials.length, 3);
+
+  const url = summary.credentials.find((c) => c.name === "EXTERNAL_CRM_URL")!;
+  assertEquals(url.present, true);
+  assertEquals(url.source, "db");
+  assertEquals(url.via_alias, false);
+  assertEquals(url.value_length, "https://crm.supabase.co".length);
+  assertEquals(url.suffix4, "e.co");
+
+  const svc = summary.credentials.find((c) => c.name === "EXTERNAL_CRM_SERVICE_ROLE_KEY")!;
+  assertEquals(svc.present, true);
+  assertEquals(svc.suffix4, "5678");
+});
+
+Deno.test("buildCredentialsHealth: URL ausente → health='missing' (independente das keys)", async () => {
+  invalidateCredentialCache();
+  clearAll("EXTERNAL_CRM_URL", ["CRM_SUPABASE_URL"]);
+  clearAll("EXTERNAL_CRM_SERVICE_ROLE_KEY", ["CRM_SUPABASE_SERVICE_KEY"]);
+  clearAll("EXTERNAL_CRM_ANON_KEY", ["CRM_SUPABASE_ANON_KEY"]);
+
+  // Mesmo com SERVICE_ROLE presente, sem URL não tem como conectar.
+  const client = mockServiceClient({
+    EXTERNAL_CRM_SERVICE_ROLE_KEY: "service-key-only",
+  });
+
+  const summary = await buildCredentialsHealth([
+    "EXTERNAL_CRM_URL",
+    "EXTERNAL_CRM_SERVICE_ROLE_KEY",
+    "EXTERNAL_CRM_ANON_KEY",
+  ], { serviceClient: client });
+
+  assertEquals(summary.health, "missing");
+  const url = summary.credentials.find((c) => c.name === "EXTERNAL_CRM_URL")!;
+  assertEquals(url.present, false);
+  assertEquals(url.suffix4, null);
+  assertEquals(url.value_length, 0);
+});
+
+Deno.test("buildCredentialsHealth: URL presente, todas keys ausentes → health='degraded'", async () => {
+  invalidateCredentialCache();
+  clearAll("EXTERNAL_CRM_URL", ["CRM_SUPABASE_URL"]);
+  clearAll("EXTERNAL_CRM_SERVICE_ROLE_KEY", ["CRM_SUPABASE_SERVICE_KEY"]);
+  clearAll("EXTERNAL_CRM_ANON_KEY", ["CRM_SUPABASE_ANON_KEY"]);
+
+  const client = mockServiceClient({
+    EXTERNAL_CRM_URL: "https://crm.supabase.co",
+  });
+
+  const summary = await buildCredentialsHealth([
+    "EXTERNAL_CRM_URL",
+    "EXTERNAL_CRM_SERVICE_ROLE_KEY",
+    "EXTERNAL_CRM_ANON_KEY",
+  ], { serviceClient: client });
+
+  assertEquals(summary.health, "degraded");
+});
+
+Deno.test("buildCredentialsHealth: alias legado em env → via_alias=true e source='env'", async () => {
+  invalidateCredentialCache();
+  clearAll("EXTERNAL_CRM_URL", ["CRM_SUPABASE_URL"]);
+  Deno.env.set("CRM_SUPABASE_URL", "https://legacy-alias-crm.supabase.co");
+
+  const client = mockServiceClient({}); // DB vazio
+  const summary = await buildCredentialsHealth(
+    ["EXTERNAL_CRM_URL"],
+    { serviceClient: client },
+  );
+
+  const url = summary.credentials[0];
+  assertEquals(url.present, true);
+  assertEquals(url.source, "env");
+  assertEquals(url.via_alias, true);
+  assertEquals(url.resolved_name, "CRM_SUPABASE_URL");
+
+  Deno.env.delete("CRM_SUPABASE_URL");
+});

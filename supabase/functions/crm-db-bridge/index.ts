@@ -5,7 +5,7 @@ import { runBotProtection } from '../_shared/bot-protection.ts';
 import { getBreaker, circuitOpenResponse, getAllBreakerStatuses } from '../_shared/circuit-breaker.ts';
 import { AsyncLocalStorage } from "node:async_hooks";
 import { getOrCreateRequestId, REQUEST_ID_HEADER } from "../_shared/request-id.ts";
-import { resolveCredential } from "../_shared/credentials.ts";
+import { resolveCredential, buildCredentialsHealth } from "../_shared/credentials.ts";
 
 const breaker = getBreaker("crm-db");
 
@@ -149,22 +149,24 @@ function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(finalBody), { status, headers });
 }
 
-type DiagOp = "ping" | "diag" | "breaker_status";
+type DiagOp = "ping" | "diag" | "breaker_status" | "creds_health";
 
 /**
- * Detecta operações de diagnóstico (`ping` | `diag` | `breaker_status`)
- * sem consumir o body original. Aceita querystring (`?op=…`, `?ping=1`,
- * `?diag=1`, `?breaker=1`) ou body JSON `{ "operation": "…" }`.
+ * Detecta operações de diagnóstico (`ping` | `diag` | `breaker_status` |
+ * `creds_health`) sem consumir o body original. Aceita querystring
+ * (`?op=…`, `?ping=1`, `?diag=1`, `?breaker=1`, `?creds=1`) ou body JSON
+ * `{ "operation": "…" }`.
  */
 async function detectDiagOp(req: Request): Promise<DiagOp | null> {
   // Query string
   try {
     const url = new URL(req.url);
     const op = url.searchParams.get("op");
-    if (op === "ping" || op === "diag" || op === "breaker_status") return op;
+    if (op === "ping" || op === "diag" || op === "breaker_status" || op === "creds_health") return op;
     if (url.searchParams.get("ping") === "1") return "ping";
     if (url.searchParams.get("diag") === "1") return "diag";
     if (url.searchParams.get("breaker") === "1") return "breaker_status";
+    if (url.searchParams.get("creds") === "1") return "creds_health";
   } catch { /* ignore */ }
 
   // Body JSON (POST/PUT/PATCH apenas; clonamos para não consumir o original)
@@ -174,13 +176,29 @@ async function detectDiagOp(req: Request): Promise<DiagOp | null> {
       try {
         const cloned = req.clone();
         const peek = await cloned.json() as { operation?: unknown };
-        if (peek?.operation === "ping" || peek?.operation === "diag" || peek?.operation === "breaker_status") {
+        if (peek?.operation === "ping" || peek?.operation === "diag" || peek?.operation === "breaker_status" || peek?.operation === "creds_health") {
           return peek.operation as DiagOp;
         }
       } catch { /* corpo inválido — não é diag */ }
     }
   }
   return null;
+}
+
+/**
+ * Snapshot do estado de resolução das credenciais CRM, sem expor valores.
+ * Bypass auth (igual a ping/diag/breaker_status) — operadores precisam
+ * conseguir checar saúde mesmo se JWT/secrets estiverem quebrados.
+ *
+ * Lógica de agregação está em `_shared/credentials.ts:buildCredentialsHealth`
+ * para reuso por outras edge functions (quote-sync, expert-chat, etc).
+ */
+async function buildCredsHealthSnapshot() {
+  return await buildCredentialsHealth([
+    "EXTERNAL_CRM_URL",
+    "EXTERNAL_CRM_SERVICE_ROLE_KEY",
+    "EXTERNAL_CRM_ANON_KEY",
+  ]);
 }
 
 /**
@@ -819,6 +837,9 @@ Deno.serve((req) => {
       all,
     });
   }
+  if (diagOp === "creds_health") {
+    return jsonResponse(await buildCredsHealthSnapshot());
+  }
 
   // Marca início da request real (pós-diag) para medir cold vs warm path.
   // `was_cold` = true para a 1ª request real após o boot do isolate.
@@ -845,30 +866,43 @@ Deno.serve((req) => {
     const auth = await authenticateRequest(req);
     if (auth.error) return auth.error;
 
-    const CRM_URL = Deno.env.get("CRM_SUPABASE_URL");
-    const CRM_SERVICE_KEY = Deno.env.get("CRM_SUPABASE_SERVICE_KEY");
-    const CRM_KEY = CRM_SERVICE_KEY || Deno.env.get("CRM_SUPABASE_ANON_KEY");
+    // SSOT: DB-first via integration_credentials, env fallback via aliases.
+    // Antes lia Deno.env.get() direto e ignorava credenciais salvas pela UI
+    // (/admin/conexoes), causando 500 mesmo após o usuário cadastrar a CRM.
+    const [urlRes, svcRes, anonRes] = await Promise.all([
+      resolveCredential("EXTERNAL_CRM_URL"),
+      resolveCredential("EXTERNAL_CRM_SERVICE_ROLE_KEY"),
+      resolveCredential("EXTERNAL_CRM_ANON_KEY"),
+    ]);
+    const CRM_URL = urlRes.value;
+    const CRM_SERVICE_KEY = svcRes.value;
+    const CRM_ANON_VAL = anonRes.value;
+    const CRM_KEY = CRM_SERVICE_KEY || CRM_ANON_VAL;
     if (!CRM_URL || !CRM_KEY) {
       return jsonResponse({ error: "CRM database credentials not configured" }, 500);
     }
 
-    const CRM_ANON = Deno.env.get("CRM_SUPABASE_ANON_KEY") || "";
-    const keysMatch = CRM_SERVICE_KEY === CRM_ANON;
-    console.log(`[crm-db-bridge] CRM_URL prefix: ${CRM_URL.substring(0, 30)}..., using ${CRM_SERVICE_KEY ? 'SERVICE_KEY' : 'ANON_KEY'} (len=${CRM_KEY.length}), anon_len=${CRM_ANON.length}, KEYS_MATCH=${keysMatch}, svc_last4=${CRM_KEY.slice(-4)}, anon_last4=${CRM_ANON.slice(-4)}`);
+    const CRM_ANON = CRM_ANON_VAL ?? "";
 
-    // DIAGNOSTIC: test raw REST call to verify key works
-    try {
-      const testUrl = `${CRM_URL}/rest/v1/companies?select=id&limit=1`;
-      const testResp = await fetch(testUrl, {
-        headers: {
-          'apikey': CRM_KEY,
-          'Authorization': `Bearer ${CRM_KEY}`,
-        },
-      });
-      const testBody = await testResp.text();
-      console.log(`[DIAG] Raw REST: status=${testResp.status}, body=${testBody.substring(0, 200)}`);
-    } catch (diagErr) {
-      console.error(`[DIAG] Raw REST error:`, diagErr);
+    // Log de resolução só na 1ª request por isolate (cold) ou se LOG_CRM_BRIDGE_VERBOSE=on.
+    // Antes corria em toda request → poluía logs sem agregar info nova.
+    // Use ?op=creds_health para snapshot sob demanda em qualquer momento.
+    if (wasCold || Deno.env.get("LOG_CRM_BRIDGE_VERBOSE") === "on") {
+      const using = CRM_SERVICE_KEY ? "SERVICE_KEY" : "ANON_KEY";
+      const keySource = CRM_SERVICE_KEY ? svcRes.source : anonRes.source;
+      console.log(JSON.stringify({
+        evt: "crm-creds-resolved",
+        url_source: urlRes.source,
+        url_via_alias: urlRes.resolved_name !== "EXTERNAL_CRM_URL",
+        url_prefix: CRM_URL.substring(0, 30),
+        using,
+        key_source: keySource,
+        key_len: CRM_KEY.length,
+        anon_len: CRM_ANON.length,
+        keys_match: CRM_SERVICE_KEY === CRM_ANON,
+        svc_last4: CRM_KEY.slice(-4),
+        anon_last4: CRM_ANON.slice(-4),
+      }));
     }
 
     // Reusa client cacheado no escopo do módulo (singleton por isolate).

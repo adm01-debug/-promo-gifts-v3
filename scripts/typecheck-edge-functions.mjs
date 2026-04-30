@@ -66,7 +66,17 @@ function checkFunction(fn) {
   // `deno check` is the dedicated typecheck command. It's faster than
   // `deno cache` and doesn't execute code. We pass all files at once so
   // shared types within the function are resolved together.
-  const result = spawnSync("deno", ["check", ...files], {
+  //
+  // If the function has a local deno.json (with import map for npm:/jsr:
+  // bare specifiers), pass it via --config so imports like
+  // `import { Hono } from "hono"` resolve. Without this, bare specifiers
+  // fail with: Relative import path "X" not prefixed with / or ./ or ../
+  const localConfig = join(fnDir, "deno.json");
+  const args = ["check"];
+  if (existsSync(localConfig)) args.push("--config", localConfig);
+  args.push(...files);
+
+  const result = spawnSync("deno", args, {
     encoding: "utf8",
     env: { ...process.env, NO_COLOR: "1" },
   });

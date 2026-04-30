@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { z } from "../_shared/zod-validate.ts";
 import { runBotProtection } from "../_shared/bot-protection.ts";
+import { resolveCredential } from "../_shared/credentials.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -84,9 +85,22 @@ Deno.serve(async (req: Request) => {
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
-    // CRM bridge credentials
-    const crmUrl = Deno.env.get("CRM_SUPABASE_URL")!;
-    const crmKey = Deno.env.get("CRM_SUPABASE_ANON_KEY")!;
+    // CRM bridge credentials — DB-first via integration_credentials,
+    // env fallback via aliases. O `!` antigo causava throw quando o
+    // env não estava configurado mesmo com credenciais salvas pela UI.
+    const [crmUrlRes, crmSvcRes, crmAnonRes] = await Promise.all([
+      resolveCredential("EXTERNAL_CRM_URL"),
+      resolveCredential("EXTERNAL_CRM_SERVICE_ROLE_KEY"),
+      resolveCredential("EXTERNAL_CRM_ANON_KEY"),
+    ]);
+    const crmUrl = crmUrlRes.value;
+    const crmKey = crmSvcRes.value ?? crmAnonRes.value;
+    if (!crmUrl || !crmKey) {
+      return new Response(
+        JSON.stringify({ error: "CRM database credentials not configured" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
     const crmClient = createClient(crmUrl, crmKey);
 
     const clientIp = getClientIpFromReq(req);

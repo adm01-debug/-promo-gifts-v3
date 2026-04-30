@@ -218,6 +218,99 @@ export function getCredentialCacheMetrics(): CacheMetricsSnapshot {
   };
 }
 
+// =============================================================================
+// Credentials health summary — observability snapshot without exposing values.
+// =============================================================================
+// Reusable primitive consumed by edge functions that expose ?op=creds_health
+// (currently crm-db-bridge; expand to quote-sync/expert-chat/quote-public-view
+// in follow-up PRs). Returns presence/source/alias/length/suffix4 per name,
+// plus an aggregated `health` flag.
+//
+// Health aggregation rules (URL é considerada o pivô — sem URL nada conecta):
+//   - "missing"   : nenhum dos nomes "URL" está presente
+//   - "degraded"  : URL presente, mas zero "key" presente
+//   - "healthy"   : URL presente E ao menos 1 "key" presente
+//
+// Para detectar URL, consideramos `name.endsWith("_URL")`. Mantemos simples;
+// edge fns com nomenclatura diferente podem passar `urlNames`/`keyNames`
+// explicitamente.
+
+export interface CredentialHealthEntry {
+  name: string;
+  present: boolean;
+  source: CredentialSource;
+  via_alias: boolean;
+  resolved_name: string;
+  value_length: number;
+  /** Last 4 chars of the secret value, for ops to fingerprint without leaking. */
+  suffix4: string | null;
+}
+
+export interface CredentialsHealthSummary {
+  ok: true;
+  ts: number;
+  health: "healthy" | "degraded" | "missing";
+  credentials: CredentialHealthEntry[];
+}
+
+export interface BuildCredentialsHealthOptions {
+  /**
+   * Name suffixes that identify URL-like credentials. Defaults to ["_URL"].
+   * Used for the "missing" classification (no URL → missing).
+   */
+  urlSuffixes?: string[];
+  /** Optional service client to pass through to resolveCredential. */
+  serviceClient?: SupabaseClient | null;
+}
+
+function summarizeCredential(name: string, res: CredentialResolution): CredentialHealthEntry {
+  return {
+    name,
+    present: res.value !== null,
+    source: res.source,
+    via_alias: res.resolved_name !== name,
+    resolved_name: res.resolved_name,
+    value_length: res.value?.length ?? 0,
+    suffix4: res.value ? res.value.slice(-4) : null,
+  };
+}
+
+/**
+ * Resolve uma lista de credenciais e devolve um snapshot agregado de saúde,
+ * sem expor valores. Usado por endpoints `?op=creds_health` em edge functions
+ * que dependem de credenciais externas (CRM, Promobrind, etc).
+ */
+export async function buildCredentialsHealth(
+  names: readonly string[],
+  options: BuildCredentialsHealthOptions = {},
+): Promise<CredentialsHealthSummary> {
+  const urlSuffixes = options.urlSuffixes ?? ["_URL"];
+  const resolutions = await Promise.all(
+    names.map((name) => resolveCredential(name, options.serviceClient)),
+  );
+  const credentials = names.map((name, i) => summarizeCredential(name, resolutions[i]));
+
+  const isUrlName = (n: string) => urlSuffixes.some((suf) => n.endsWith(suf));
+  const urlEntries = credentials.filter((c) => isUrlName(c.name));
+  const keyEntries = credentials.filter((c) => !isUrlName(c.name));
+
+  const anyUrlPresent = urlEntries.some((c) => c.present);
+  const anyKeyPresent = keyEntries.some((c) => c.present);
+
+  const health: CredentialsHealthSummary["health"] = !anyUrlPresent
+    ? "missing"
+    : !anyKeyPresent
+      ? "degraded"
+      : "healthy";
+
+  return {
+    ok: true,
+    ts: Date.now(),
+    health,
+    credentials,
+  };
+}
+
 /** Reset all in-memory metrics. Cache itself is NOT cleared. */
 export function resetCredentialCacheMetrics(): void {
   METRICS.started_at = Date.now();
