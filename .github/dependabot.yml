@@ -1,6 +1,8 @@
+# Dependabot — atualização automática de dependências
+# Docs: https://docs.github.com/en/code-security/dependabot/dependabot-version-updates
 version: 2
 updates:
-  # npm dependencies
+  # NPM/pnpm/bun dependencies
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
@@ -16,28 +18,23 @@ updates:
       prefix: "chore(deps)"
       include: "scope"
     groups:
-      # Group all minor/patch updates together to reduce PR noise
-      production-minor:
+      production-minor-patch:
+        applies-to: version-updates
         dependency-type: "production"
         update-types:
           - "minor"
           - "patch"
-      development-minor:
+      development-all:
+        applies-to: version-updates
         dependency-type: "development"
         update-types:
           - "minor"
           - "patch"
+          - "major"
     ignore:
-      # React majors require manual coordination
-      - dependency-name: "react"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "react-dom"
-        update-types: ["version-update:semver-major"]
-      # Tailwind v4 requires migration
-      - dependency-name: "tailwindcss"
-        update-types: ["version-update:semver-major"]
-      # Supabase types are auto-generated — don't touch
-      - dependency-name: "@supabase/supabase-js"
+      # Ignorar majors em prod (revisar caso a caso)
+      - dependency-name: "*"
+        dependency-type: "production"
         update-types: ["version-update:semver-major"]
 
   # GitHub Actions
@@ -47,7 +44,8 @@ updates:
       interval: "weekly"
       day: "monday"
     labels:
+      - "dependencies"
       - "ci"
       - "automated"
     commit-message:
-      prefix: "ci(actions)"
+      prefix: "chore(ci)"
