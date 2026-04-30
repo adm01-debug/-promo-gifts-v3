@@ -165,7 +165,7 @@ jobs:
 
       - name: Upload Playwright report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-report
           path: playwright-report
@@ -173,7 +173,7 @@ jobs:
 
       - name: Upload smoke summary (markdown + json)
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: e2e-smoke-summary
           path: |
@@ -184,7 +184,7 @@ jobs:
 
       - name: Upload feature summary (markdown)
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: e2e-feature-summary
           path: playwright-report/feature-summary.md
@@ -193,7 +193,7 @@ jobs:
 
       - name: Upload evidence artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: e2e-evidence
           path: |
