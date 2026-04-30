@@ -1,106 +1,91 @@
-# 🤝 Guia de Contribuição — Promo Gifts
+# Guia de Contribuição
 
-## 🔄 Fluxo de Trabalho
+> Padrão de trabalho da Promo Brindes. Aplica-se a todo este repositório.
 
-### Branches
-- `main` — branch de produção (protegida)
-- `feature/*` — novas funcionalidades
-- `fix/*` — correções de bugs
-- `hotfix/*` — correções urgentes em produção
+## 🎯 Princípio
 
-### Processo
-1. Crie branch a partir de `main`
-2. Implemente a mudança
-3. Garanta que `npm run lint` passa (0 erros)
-4. Garanta que `npm run test` passa
-5. Abra PR com descrição clara
-6. Aguarde review e aprovação
+**Toda alteração em `main` passa por Pull Request.** Sem exceção. Mesmo configs.
 
-## 📏 Padrões de Código
+Razão: rastreabilidade + revisão automática (CodeRabbit) + ponto de gate antes de deploy.
 
-### TypeScript
-- **Strict mode obrigatório** — `strict: true`
-- **Zero `as any`** — use generics ou type guards
-- **Return types explícitos** em funções públicas/hooks
-- **Zod para validação runtime** em edge functions
+## 🔄 Fluxo de trabalho
 
-### Componentes React
-- **< 200 linhas** por componente
-- **Responsabilidade única** — se faz mais de uma coisa, extraia
-- **Props tipadas** — sem `Partial` desnecessário
-- **Lazy loading** — use `lazyWithRetry()` para páginas
+1. **Criar branch** a partir de `main`:
+   ```bash
+   git checkout main
+   git pull
+   git checkout -b <tipo>/<descricao-curta>
+   ```
 
-### Edge Functions
-- **Auth**: Use `authenticateRequest()` de `_shared/auth.ts`
-- **CORS**: Use `getCorsHeaders(req)` de `_shared/cors.ts`
-- **Validação**: Use Zod schemas com `parseBodyWithSchema()` de `_shared/zod-validate.ts`
-- **Erros**: Sempre try-catch com response JSON estruturado
+2. **Tipos de branch** (prefixo obrigatório):
+   - `feat/` — funcionalidade nova
+   - `fix/` — correção de bug
+   - `chore/` — manutenção, deps, configs
+   - `docs/` — documentação
+   - `refactor/` — refatoração sem mudança de comportamento
+   - `hotfix/` — correção urgente em produção
 
-### CSS/Tailwind
-- **Tokens semânticos** — use variáveis CSS (`--primary`, `--background`), nunca cores diretas
-- **HSL** em index.css e tailwind.config.ts
-- **Mobile-first** — sempre considere responsividade
+3. **Commits** seguindo Conventional Commits:
+   ```
+   <tipo>(<escopo opcional>): descrição curta
 
-## 🧪 Testes
+   Corpo opcional explicando o porquê.
 
-### Estrutura
-```
-tests/
-├── components/     # Testes de componentes React
-├── hooks/          # Testes de hooks
-├── rls/            # Testes de Row Level Security
-└── setup.ts        # Configuração global
-```
+   Refs: #issue
+   ```
+   Exemplos:
+   - `feat(bitrix): adiciona sync de contatos para SPA Lalamove`
+   - `fix(edge-function): corrige timeout em webhook-evolution`
+   - `chore(deps): atualiza @supabase/supabase-js para 2.39.0`
 
-### Convenções
-- Arquivo de teste: `tests/<domínio>/<NomeDoComponente>.test.tsx`
-- Use `describe` para agrupar, `it` para cada caso
-- Mock de dependências externas (Supabase, APIs)
-- Testes devem ser determinísticos — sem dependência de estado externo
+4. **Abrir Pull Request** com base em `main`.
+   - Preencher o template
+   - Aguardar revisão automática do **CodeRabbit** (~3 min)
+   - Endereçar comentários críticos
+   - Solicitar aprovação humana se mudança não-trivial
 
-### Executar
-```bash
-npm run test           # Todos os testes
-npm run test:watch     # Modo interativo
-npm run test:coverage  # Com relatório de cobertura
-```
+5. **Merge** somente após:
+   - ✅ CodeRabbit revisou
+   - ✅ Comentários críticos / security resolvidos
+   - ✅ CI passou (se aplicável)
+   - ✅ Aprovação humana (para mudanças em produção)
 
-## 🗄️ Banco de Dados
+## 🚫 Proibido
 
-### Migrations
-- Use a ferramenta de migration do Supabase — nunca SQL manual em produção
-- Toda tabela **DEVE** ter RLS habilitado
-- Use `SECURITY DEFINER` functions para evitar recursão em policies
-- Triggers de validação em vez de CHECK constraints para campos de status
+- `git push --force` em `main`
+- Commit direto em `main` (use sempre PR)
+- Commitar `.env`, tokens, chaves SSH ou qualquer credencial
+- Merge sem revisão do CodeRabbit
+- Renomear ou deletar tabelas/colunas Supabase sem backup `_backup_*_YYYYMMDD`
 
-### Naming
-- Tabelas: `snake_case` (ex: `quote_items`)
-- Colunas: `snake_case` (ex: `created_at`)
-- Índices: `idx_<tabela>_<colunas>` (ex: `idx_quotes_seller_status`)
-- Policies: Nome descritivo em inglês (ex: "Users can manage own quotes")
+## 🔐 Secrets
 
-## 🔐 Segurança
+- **Nunca** commitar tokens, credenciais ou URLs com auth embutida
+- Usar `Deno.env.get()` em Edge Functions
+- Usar `process.env` (com validação) em Node.js
+- Configurar via dashboard Supabase, n8n credentials ou GitHub Secrets
 
-### Obrigatório
-- ✅ RLS em 100% das tabelas
-- ✅ Validação Zod em edge functions
-- ✅ `authenticateRequest()` em endpoints autenticados
-- ✅ Sem secrets no código (usar Supabase Vault)
-- ✅ Sem console.log em produção (usar `logger` de `src/lib/logger.ts`)
+## 🧪 Antes de abrir PR
 
-### Proibido
-- ❌ `as any` sem justificativa documentada
-- ❌ `console.log` em código de produção
-- ❌ Secrets/credenciais hardcoded
-- ❌ SQL raw sem parameterização
-- ❌ Modificar `src/integrations/supabase/client.ts` ou `types.ts`
+Checklist mínimo:
+- [ ] Código roda local (ou justifica por que não dá pra testar local)
+- [ ] Sem `console.log` esquecidos com payloads sensíveis
+- [ ] Sem secrets hardcoded
+- [ ] Migrations SQL com backup das tabelas afetadas
+- [ ] Variáveis de ambiente documentadas se forem novas
 
-## 📋 Checklist de PR
+## 🎓 Convenções específicas
 
-- [ ] TypeScript compila sem erros (`npm run lint`)
-- [ ] Testes passam (`npm run test`)
-- [ ] Sem novos `as any`
-- [ ] Sem `console.log` em código de produção
-- [ ] RLS policies para novas tabelas
-- [ ] Validação Zod em novas edge functions
-- [ ] Componentes < 200 linhas
+### Edge Functions Supabase
+- Sempre validar payload de webhook (assinatura HMAC ou shared secret)
+- Sempre retornar JSON estruturado em erros
+- Nunca vazar mensagem de erro com detalhes internos para o cliente
+
+### Migrations Supabase
+- Operações destrutivas isoladas em migrations próprias
+- Backup antes de DROP em tabela `_backup_<original>_YYYYMMDD`
+- RLS ON em qualquer tabela nova
+
+### Bitrix24
+- `crm.item.get` com `entityTypeId=4` para Smart Companies (não usar `crm.company.get`)
+- OAuth2 sempre — webhook clássico está deprecado para nosso uso
