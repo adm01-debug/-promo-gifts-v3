@@ -1,4 +1,4 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { authenticateRequest, authErrorResponse } from "../_shared/auth.ts";
 import { createStructuredLogger } from "../_shared/structured-logger.ts";
 import { getOrCreateRequestId } from "../_shared/request-id.ts";
 
@@ -8,7 +8,7 @@ const corsHeaders = {
 };
 
 interface ScanLog {
-  user_id: string | null;
+  user_id: string;
   bucket: string;
   path: string;
   hash: string;
@@ -24,15 +24,21 @@ Deno.serve(async (req) => {
     return log.respond(new Response("ok", { headers: corsHeaders }));
   }
 
-  log.info("request_start");
+  // 1. Autenticação obrigatória — rejeita anônimos antes de qualquer trabalho.
+  let auth;
+  try {
+    auth = await authenticateRequest(req);
+  } catch (err) {
+    log.warn("auth_failed", { err });
+    return log.respond(authErrorResponse(err, corsHeaders));
+  }
 
-  const supabaseAdmin = createClient(
-    Deno.env.get("SUPABASE_URL") ?? "",
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-  );
+  const supabaseAdmin = auth.localServiceClient;
+  log.info("request_start", { user_id: auth.userId });
 
   // Variáveis para auditoria persistente mesmo em caso de erro
   let auditData: Partial<ScanLog> = {
+    user_id: auth.userId,
     status_code: 500,
     scan_result: { message: "Iniciando processamento" },
   };
@@ -41,15 +47,6 @@ Deno.serve(async (req) => {
     const formData = await req.formData();
     const file = formData.get("file") as File;
     const folder = (formData.get("folder") as string) || "uploads";
-
-    const authHeader = req.headers.get("Authorization");
-    let user = null;
-    if (authHeader) {
-      const { data: { user: authUser } } = await supabaseAdmin.auth.getUser(
-        authHeader.replace("Bearer ", ""),
-      );
-      user = authUser;
-    }
 
     if (!file) throw new Error("Arquivo obrigatório");
 
@@ -60,7 +57,7 @@ Deno.serve(async (req) => {
       .join("");
 
     auditData = {
-      user_id: user?.id ?? null,
+      user_id: auth.userId,
       bucket: "personalization-images",
       path: `verified/${folder}/${file.name}`,
       hash: hashHex,
@@ -112,7 +109,7 @@ Deno.serve(async (req) => {
         const reason = errorObj.name === "AbortError"
           ? "Timeout na verificação (10s)"
           : (errorObj.message ?? "Erro desconhecido");
-        log.error("security_check_failed", { err, reason });
+        log.error("security_check_failed", { err, reason, user_id: auth.userId });
 
         await supabaseAdmin.from("file_scan_logs").insert({
           ...auditData,
@@ -151,7 +148,11 @@ Deno.serve(async (req) => {
     await supabaseAdmin.from("file_scan_logs").insert(auditData as ScanLog);
 
     if (isSuspicious) {
-      log.warn("upload_blocked_malware", { bucket: targetBucket, path: uploadData.path });
+      log.warn("upload_blocked_malware", {
+        bucket: targetBucket,
+        path: uploadData.path,
+        user_id: auth.userId,
+      });
       return log.respond(
         new Response(
           JSON.stringify({ error: "Arquivo bloqueado: Malware detectado", request_id: requestId }),
@@ -167,7 +168,7 @@ Deno.serve(async (req) => {
     log.info("upload_ok", {
       bucket: targetBucket,
       path: uploadData.path,
-      user_id: user?.id ?? null,
+      user_id: auth.userId,
     });
 
     return log.respond(
@@ -178,7 +179,7 @@ Deno.serve(async (req) => {
     );
   } catch (error) {
     const errorObj = error as { message?: string };
-    log.error("upload_failed", { err: error });
+    log.error("upload_failed", { err: error, user_id: auth.userId });
     if (auditData.hash) {
       await supabaseAdmin.from("file_scan_logs").insert({
         ...auditData,

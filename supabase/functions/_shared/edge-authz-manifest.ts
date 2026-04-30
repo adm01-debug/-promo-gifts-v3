@@ -69,7 +69,6 @@ export const EDGE_AUTHZ_MANIFEST: Record<string, AuthzEntry> = {
   "detect-new-device": { category: "public", rationale: "Anti-fraude pré-login" },
   "bi-share-dossier": { category: "public", rationale: "Dossiê compartilhado por token" },
   "dropbox-list": { category: "public", rationale: "Listagem pública de arquivos curados" },
-  "secure-upload": { category: "public", rationale: "Upload com scan VirusTotal anti-malware (aceita anônimo; uso real em áreas autenticadas — considerar promover a authenticated em PR futuro)" },
 
   // ---------------- Webhooks (assinatura própria) ----------------
   "webhook-inbound": { category: "scoped", rationale: "HMAC-SHA256 inline" },
@@ -118,6 +117,7 @@ export const EDGE_AUTHZ_MANIFEST: Record<string, AuthzEntry> = {
   "step-up-verify": { category: "authenticated", rationale: "MFA step-up — quem está fazendo" },
   "validate-access": { category: "authenticated", rationale: "Validação de acesso pós-login" },
   "force-global-logout": { category: "authenticated", rationale: "Logout global do próprio user" },
+  "secure-upload": { category: "authenticated", rationale: "Upload com scan VirusTotal anti-malware — exige JWT (uso de SERVICE_ROLE_KEY interno; auditoria em file_scan_logs com user_id obrigatório)" },
 
   // ---------------- Supervisor (admin) ----------------
   "bitrix-sync": { category: "supervisor", rationale: "Sync no CRM externo — admin/dev", enforcedBy: "shared-authorize" },
