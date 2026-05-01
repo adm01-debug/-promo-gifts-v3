@@ -1,13 +1,28 @@
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { useState, forwardRef } from "react";
-import { lovable } from "@/integrations/lovable/index";
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { authDebug, authDebugError } from "@/lib/auth/auth-debug";
 
 interface SocialLoginButtonsProps {
   /** Disparado quando o login social falha — habilita fallback para e-mail/senha. */
   onError?: (message: string) => void;
+}
+
+/**
+ * Detects if running on a self-hosted VPS domain (not Lovable Cloud).
+ * When self-hosted, we bypass the Lovable auth broker and go directly
+ * through Supabase Auth, since the Lovable broker only accepts
+ * Lovable-registered domains.
+ */
+function isSelfHosted(): boolean {
+  const host = window.location.hostname;
+  return (
+    host.endsWith('.atomicabr.com.br') ||
+    host === 'promogifts.com.br' ||
+    host === 'www.promogifts.com.br'
+  );
 }
 
 export const SocialLoginButtons = forwardRef<HTMLDivElement, SocialLoginButtonsProps>(function SocialLoginButtons(
@@ -20,30 +35,39 @@ export const SocialLoginButtons = forwardRef<HTMLDivElement, SocialLoginButtonsP
   const handleGoogleLogin = async () => {
     setIsLoading("google");
     const redirect_uri = `${window.location.origin}/auth/callback`;
-    authDebug("social-login", "google click", { redirect_uri, origin: window.location.origin });
+    authDebug("social-login", "google click", { redirect_uri, origin: window.location.origin, selfHosted: isSelfHosted() });
     try {
-      const { error } = await lovable.auth.signInWithOAuth("google", { redirect_uri });
-
-      if (error) {
-        authDebugError("social-login", "lovable.signInWithOAuth returned error", error);
-        const msg = error.message || "Falha ao iniciar login com Google.";
-        toast({
-          variant: "destructive",
-          title: "Erro ao entrar com Google",
-          description: msg,
+      if (isSelfHosted()) {
+        // Direct Supabase OAuth — bypasses Lovable broker for VPS deployments
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: { redirectTo: redirect_uri },
         });
-        onError?.(msg);
+        if (error) {
+          authDebugError("social-login", "supabase.signInWithOAuth returned error", error);
+          const msg = error.message || "Falha ao iniciar login com Google.";
+          toast({ variant: "destructive", title: "Erro ao entrar com Google", description: msg });
+          onError?.(msg);
+        } else {
+          authDebug("social-login", "redirect dispatched via Supabase direct (self-hosted)");
+        }
       } else {
-        authDebug("social-login", "redirect dispatched (browser will leave the page)");
+        // Lovable broker — original flow for Lovable Cloud domains
+        const { lovable } = await import("@/integrations/lovable/index");
+        const { error } = await lovable.auth.signInWithOAuth("google", { redirect_uri });
+        if (error) {
+          authDebugError("social-login", "lovable.signInWithOAuth returned error", error);
+          const msg = error.message || "Falha ao iniciar login com Google.";
+          toast({ variant: "destructive", title: "Erro ao entrar com Google", description: msg });
+          onError?.(msg);
+        } else {
+          authDebug("social-login", "redirect dispatched (browser will leave the page)");
+        }
       }
     } catch (err) {
       authDebugError("social-login", "unexpected exception during OAuth", err);
       const msg = err instanceof Error ? err.message : "Tente novamente mais tarde";
-      toast({
-        variant: "destructive",
-        title: "Erro inesperado",
-        description: msg,
-      });
+      toast({ variant: "destructive", title: "Erro inesperado", description: msg });
       onError?.(msg);
     } finally {
       setIsLoading(null);
