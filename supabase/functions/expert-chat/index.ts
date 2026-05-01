@@ -509,10 +509,7 @@ Deno.serve(async (req) => {
   try {
     corsHeaders = getCorsHeaders(req);
   } catch {
-    corsHeaders = {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-request-id, x-step-up-token",
-    };
+    corsHeaders = buildPublicCorsHeaders();
   }
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
