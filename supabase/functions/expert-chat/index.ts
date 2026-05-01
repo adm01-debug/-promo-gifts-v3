@@ -511,7 +511,7 @@ Deno.serve(async (req) => {
   } catch {
     corsHeaders = {
       "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+      "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-request-id, x-step-up-token",
     };
   }
   if (req.method === "OPTIONS") {
