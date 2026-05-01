@@ -85,6 +85,12 @@ test.describe("Matriz de Permissões Automatizada", () => {
 
                 // 5. NÃO deve exibir o layout de 404 indevidamente
                 await expect(page.locator('[data-testid="app-not-found"]')).not.toBeVisible();
+                
+                // 6. Diferenciação 403 vs 404: A permissão é checada antes da existência do dado no DevRoute.
+                // IDs inválidos em rotas proibidas devem resultar em 403.
+                if (actualPath.includes('invalid') || actualPath.includes('auto')) {
+                  await expect(deniedContainer).toContainText(/REQ-[A-Z0-9]{3,}/);
+                }
                 break;
 
               case "deny_404":
