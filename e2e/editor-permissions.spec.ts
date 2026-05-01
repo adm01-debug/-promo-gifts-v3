@@ -32,6 +32,12 @@ test.describe("Editor (Manager) Permissions Suite", () => {
         // Verifica integridade da página (deve carregar sem crash e sem o overlay de acesso negado)
         await expect(page.locator("text=Acesso restrito")).not.toBeVisible();
         
+        // Valida visibilidade do link no menu/sidebar para rotas permitidas
+        if (route !== "/" && !route.includes(':')) {
+          const menuLink = page.locator(`aside nav a[href="${route}"]`).first();
+          await expect(menuLink, `Link para ${route} deveria estar visível na sidebar`).toBeVisible();
+        }
+        
         if (route !== "/") {
           expect(page.url()).toContain(route);
         }
@@ -74,6 +80,10 @@ test.describe("Editor (Manager) Permissions Suite", () => {
         const fullContent = await page.locator('[role="alert"]').innerText();
         expect(fullContent).not.toContain("/admin/telemetria");
         expect(fullContent).not.toContain("/admin/seguranca");
+
+        // Valida ocultação do link no menu/sidebar para rotas bloqueadas
+        const menuLink = page.locator(`aside nav a[href="${route}"]`).first();
+        await expect(menuLink, `Link para ${route} NÃO deveria estar visível na sidebar`).not.toBeVisible();
       }
     });
 
