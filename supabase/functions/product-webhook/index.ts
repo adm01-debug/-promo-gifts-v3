@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { z } from "../_shared/zod-validate.ts";
+import { buildPublicCorsHeaders } from "../_shared/cors.ts";
 
 const corsHeaders = buildPublicCorsHeaders({ extraAllowHeaders: ["x-webhook-secret"] });
 

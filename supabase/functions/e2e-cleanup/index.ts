@@ -26,6 +26,7 @@
 // @ts-ignore - Deno runtime
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { castRpcResult } from "../_shared/supabase-client-adapter.ts";
+import { buildPublicCorsHeaders } from "../_shared/cors.ts";
 
 type E2ERateLimitRow = {
   allowed: boolean;

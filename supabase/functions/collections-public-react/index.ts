@@ -2,6 +2,7 @@
 // Recebe reactions anônimas (👍 ❤️ 🔥 💡) em itens de coleções públicas compartilhadas.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { z } from "https://esm.sh/zod@3.23.8";
+import { buildPublicCorsHeaders } from "../_shared/cors.ts";
 
 const corsHeaders = buildPublicCorsHeaders({ allowMethods: "POST, OPTIONS" });
 

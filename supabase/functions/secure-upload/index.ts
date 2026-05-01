@@ -1,6 +1,7 @@
 import { authenticateRequest, authErrorResponse } from "../_shared/auth.ts";
 import { createStructuredLogger } from "../_shared/structured-logger.ts";
 import { getOrCreateRequestId } from "../_shared/request-id.ts";
+import { buildPublicCorsHeaders } from "../_shared/cors.ts";
 
 const corsHeaders = buildPublicCorsHeaders();
 

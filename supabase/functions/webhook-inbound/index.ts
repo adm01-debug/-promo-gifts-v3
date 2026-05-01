@@ -4,6 +4,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { crypto } from "https://deno.land/std@0.224.0/crypto/mod.ts";
 import { encodeHex } from "https://deno.land/std@0.224.0/encoding/hex.ts";
+import { buildPublicCorsHeaders } from "../_shared/cors.ts";
 
 const corsHeaders = buildPublicCorsHeaders({ extraAllowHeaders: ["x-signature-256","x-event"], allowMethods: "POST, OPTIONS" });
 
