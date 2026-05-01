@@ -80,6 +80,7 @@ function classify(src) {
 }
 
 function main() {
+  const checkMode = process.argv.includes("--check");
   const fns = listFunctions();
   const items = fns
     .map(({ name, dir }) => {
@@ -95,8 +96,9 @@ function main() {
     })
     .sort((a, b) => a.name.localeCompare(b.name));
 
-  const snapshot = {
-    generated_at: new Date().toISOString(),
+  // generated_at is excluded from --check comparison so timestamp drift
+  // doesn't trip CI.
+  const stable = {
     total: items.length,
     counts: {
       shared: items.filter((i) => i.mode === "shared").length,
@@ -106,6 +108,22 @@ function main() {
     functions: items,
   };
 
+  if (checkMode) {
+    if (!existsSync(SNAPSHOT_PATH)) {
+      console.error(`❌ ${SNAPSHOT_PATH} missing. Run: npm run build:cors-snapshot`);
+      process.exit(1);
+    }
+    const current = JSON.parse(readFileSync(SNAPSHOT_PATH, "utf8"));
+    const stableCurrent = { total: current.total, counts: current.counts, functions: current.functions };
+    if (JSON.stringify(stableCurrent) !== JSON.stringify(stable)) {
+      console.error(`❌ ${SNAPSHOT_PATH} is stale. Run: npm run build:cors-snapshot`);
+      process.exit(1);
+    }
+    console.log(`✅ ${SNAPSHOT_PATH} up-to-date (${stable.total} functions)`);
+    return;
+  }
+
+  const snapshot = { generated_at: new Date().toISOString(), ...stable };
   writeFileSync(SNAPSHOT_PATH, JSON.stringify(snapshot, null, 2) + "\n");
   console.log(`✅ wrote ${SNAPSHOT_PATH}`);
   console.log(`   total=${snapshot.total} shared=${snapshot.counts.shared} inline=${snapshot.counts.inline} none=${snapshot.counts.none}`);
