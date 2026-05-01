@@ -8,6 +8,7 @@ import { encodeHex } from "https://deno.land/std@0.224.0/encoding/hex.ts";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-signature-256, x-event, x-request-id, x-step-up-token",
+  "Access-Control-Expose-Headers": "x-request-id",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
