@@ -7,7 +7,7 @@ import {
   castSupabaseClient,
 } from "../_shared/supabase-client-adapter.ts";
 import { z } from "https://deno.land/x/zod@v3.23.8/mod.ts";
-import { getCorsHeaders, handleCorsPreflightIfNeeded } from "../_shared/cors.ts";
+import { buildPublicCorsHeaders, getCorsHeaders, handleCorsPreflightIfNeeded } from "../_shared/cors.ts";
 import {
   type Operation,
   ALLOWED_RPCS,
