@@ -7,7 +7,7 @@
 import { test, expect } from "./fixtures/test-base";
 import { loginAs, logout, Role as AuthRole } from "./helpers/auth";
 import { gotoAndSettle } from "./helpers/nav";
-import { PERMISSION_MATRIX, Role, resolvePath } from "./fixtures/permissions-matrix";
+import { PERMISSION_MATRIX, Role, resolvePaths } from "./fixtures/permissions-matrix";
 
 test.describe("Matriz de Permissões Automatizada", () => {
 
