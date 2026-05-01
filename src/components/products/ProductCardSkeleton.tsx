@@ -91,19 +91,26 @@ export function ProductCardSkeleton({
 }
 
 interface ProductGridSkeletonProps {
+  /** Quantidade de cards (default = ITEMS_PER_PAGE = 12 para casar com a primeira página) */
   count?: number;
   variant?: "default" | "compact" | "detailed";
-  /** Staggered animation delay */
+  /**
+   * Animação escalonada — desativada por padrão para evitar percepção
+   * de delay em listas grandes (memory `[Loading Standard]`).
+   */
   stagger?: boolean;
+  /** Espelha exatamente as colunas do grid real para evitar layout shift. */
+  columns?: ColumnCount;
 }
 
-export function ProductGridSkeleton({ 
-  count = 8, 
+export function ProductGridSkeleton({
+  count = 12,
   variant = "default",
-  stagger = true 
+  stagger = false,
+  columns = 5,
 }: ProductGridSkeletonProps) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
+    <div className={cn("grid", getGridColsClass(columns), getGridGapClass(columns))}>
       {[...Array(count)].map((_, i) => (
         <div
           key={i}
