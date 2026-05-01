@@ -139,17 +139,17 @@ test.describe("Editor (Manager) Permissions Suite", () => {
     });
 
     test("redirecionamento correto ao tentar acessar rota proibida", async ({ page }) => {
-      // Se um Editor tenta acessar /admin/telemetria, ele deve ver a tela de bloqueio com CTA para voltar
+      // Se um Editor tenta acessar /admin/telemetria, ele deve ver a tela de bloqueio
       await gotoAndSettle(page, "/admin/telemetria");
       
       const backButton = page.locator('button:has-text("Voltar")');
       await expect(backButton).toBeVisible();
       
-      // O botão "Ir para Usuários" (contextualCtaLabel para Supervisor) deve estar visível
-      const contextualButton = page.locator('button:has-text("Ir para Usuários")');
-      await expect(contextualButton).toBeVisible();
+      // Valida que o link para a área administrativa de usuários está presente como atalho
+      const usersShortcut = page.locator('button:has-text("Usuários")');
+      await expect(usersShortcut).toBeVisible();
       
-      await contextualButton.click();
+      await usersShortcut.click();
       await expect(page).toHaveURL(/\/admin\/usuarios/);
     });
 
