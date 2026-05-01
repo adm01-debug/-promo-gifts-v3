@@ -40,6 +40,11 @@ export const PERMISSION_MATRIX: Record<Role, PermissionRoute[]> = {
     { path: "/orcamentos", expectedBehavior: "allow" },
     { path: "/orcamentos/:id", params: { id: "test-quote-123" }, expectedBehavior: "allow" },
     { path: "/orcamentos/:id/editar", params: { id: "test-quote-123" }, expectedBehavior: "allow" },
+    { 
+      path: "/orcamentos/:id/itens/:itemId", 
+      params: { id: "test-quote-123", itemId: "item-789" }, 
+      expectedBehavior: "allow" 
+    },
     { path: "/admin/usuarios", expectedBehavior: "deny_redirect_home" },
   ],
   supervisor: [
@@ -47,6 +52,11 @@ export const PERMISSION_MATRIX: Record<Role, PermissionRoute[]> = {
     { path: "/admin/usuarios", expectedBehavior: "allow" },
     { path: "/admin/cadastros", expectedBehavior: "allow" },
     { path: "/admin/cadastros/produto/:id", params: { id: "test-prod-123" }, expectedBehavior: "allow" },
+    { 
+      path: "/admin/cadastros/produto/:id/variante/:variantId", 
+      params: { id: "test-prod-123", variantId: "v-blue" }, 
+      expectedBehavior: "allow" 
+    },
     { path: "/admin/telemetria", expectedBehavior: "deny_403" },
   ],
   dev: [
