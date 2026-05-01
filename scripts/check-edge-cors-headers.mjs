@@ -93,13 +93,23 @@ function extractCorsLiterals(src) {
 
 function checkSharedCors() {
   const src = readFileSync(SHARED_CORS, "utf8");
-  const { allow, expose } = extractCorsLiterals(src);
+  const { expose } = extractCorsLiterals(src);
   const violations = [];
-  if (!allow.has(REQUIRED_ALLOW)) {
-    violations.push(`_shared/cors.ts missing "${REQUIRED_ALLOW}" in Access-Control-Allow-Headers`);
+
+  // Allow-Headers in the shared module is built from the ALLOWED_HEADERS_LIST
+  // array literal — parse it directly.
+  const arrayMatch = src.match(/ALLOWED_HEADERS_LIST\s*=\s*\[([\s\S]*?)\]/);
+  const allowTokens = new Set();
+  if (arrayMatch) {
+    for (const m of arrayMatch[1].matchAll(/["'`]([^"'`]+)["'`]/g)) {
+      allowTokens.add(m[1].trim().toLowerCase());
+    }
+  }
+  if (!allowTokens.has(REQUIRED_ALLOW)) {
+    violations.push(`_shared/cors.ts: ALLOWED_HEADERS_LIST missing "${REQUIRED_ALLOW}"`);
   }
   if (!expose.has(REQUIRED_EXPOSE)) {
-    violations.push(`_shared/cors.ts missing "${REQUIRED_EXPOSE}" in Access-Control-Expose-Headers`);
+    violations.push(`_shared/cors.ts: missing "${REQUIRED_EXPOSE}" in Access-Control-Expose-Headers`);
   }
   return violations;
 }
