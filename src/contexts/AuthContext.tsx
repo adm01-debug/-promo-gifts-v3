@@ -452,30 +452,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [user, fetchUserData, fetchAAL]);
 
-  // Helpers da NOVA hierarquia (fonte: array userRoles).
-  // 'admin' legado mapeia para supervisor; 'vendedor' legado mapeia para agente.
   const has = (r: AppRole) => userRoles.includes(r);
   const isDev = has("dev");
-  const isSupervisor = has("supervisor") || has("admin"); // admin legado = supervisor
-  const isAgente = has("agente") || has("vendedor");      // vendedor legado = agente
-  const isSupervisorOrAbove = isDev || isSupervisor;
+  const isSupervisor = has("supervisor") || has("admin") || has("manager");
+  const isAgente = has("agente") || has("vendedor");
+  const isSupervisorOrAbove = checkIsSupervisorOrAbove(userRoles);
 
-  // Role principal para exibição (mais alta na hierarquia)
-  const primaryRole: AppRole | null = isDev
-    ? "dev"
-    : isSupervisor
-    ? "supervisor"
-    : isAgente
-    ? "agente"
-    : userRoles[0] ?? null;
+  const primaryRole = getHighestRole(userRoles);
 
-  // Aliases legados (deprecated, mantidos para componentes ainda não migrados)
   const isAdmin = isSupervisorOrAbove;
   const isManager = has("manager");
   const isSeller = isAgente;
   const canManage = isSupervisorOrAbove;
-  // MFA exigido para qualquer supervisor/dev que ainda não autenticou em aal2
   const mfaRequired = canManage && currentAAL !== 'aal2';
+
 
   const value: AuthContextType = {
     user,
