@@ -75,6 +75,11 @@ export const PERMISSION_MATRIX: Record<Role, PermissionRoute[]> = {
       expectedBehavior: "deny_404" 
     },
     { path: "/admin/telemetria", expectedBehavior: "deny_403" },
+    { 
+      path: "/admin/seguranca/chaves/:keyId", 
+      params: { keyId: "std-key-123" }, 
+      expectedBehavior: "deny_403" 
+    },
     { path: "/orcamentos/:id", params: { id: "inexistente-123" }, expectedBehavior: "deny_404" },
   ],
   supervisor: [
@@ -99,6 +104,11 @@ export const PERMISSION_MATRIX: Record<Role, PermissionRoute[]> = {
     { 
       path: "/admin/workflows/:workflowId/runs/:runId?trace=true&step=final&log=detailed&env=prod&bypass=true", 
       params: { workflowId: "invalid-wf", runId: "invalid-run" }, 
+      expectedBehavior: "deny_403" 
+    },
+    { 
+      path: "/admin/external-db/tables/:tableName/rows/:rowId", 
+      params: { tableName: "profiles", rowId: "std-row-999" }, 
       expectedBehavior: "deny_403" 
     },
   ],
