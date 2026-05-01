@@ -32,7 +32,7 @@ export interface LoginCreds {
   timeoutMs?: number;
 }
 
-export type Role = "user" | "admin";
+export type Role = "user" | "admin" | "dev";
 
 const LOGIN_URL_RE = /\/login(\?|#|$)/;
 
@@ -76,8 +76,8 @@ export async function loginViaUI(page: Page, creds: LoginCreds): Promise<boolean
  * variáveis de ambiente não estiverem configuradas.
  */
 export async function loginAs(page: Page, role: Role = "user"): Promise<void> {
-  const email = role === "admin" ? process.env.E2E_ADMIN_EMAIL : process.env.E2E_USER_EMAIL;
-  const password = role === "admin" ? process.env.E2E_ADMIN_PASSWORD : process.env.E2E_USER_PASSWORD;
+  const email = role === "dev" ? process.env.E2E_DEV_EMAIL : role === "admin" ? process.env.E2E_ADMIN_EMAIL : process.env.E2E_USER_EMAIL;
+  const password = role === "dev" ? process.env.E2E_DEV_PASSWORD : role === "admin" ? process.env.E2E_ADMIN_PASSWORD : process.env.E2E_USER_PASSWORD;
 
   if (!email || !password) {
     test.skip(true, `Credenciais E2E_${role.toUpperCase()}_EMAIL/PASSWORD ausentes`);
