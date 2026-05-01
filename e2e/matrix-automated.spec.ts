@@ -53,11 +53,11 @@ test.describe("Matriz de Permissões Automatizada", () => {
                 break;
 
               case "deny_login":
-                // 1. Deve redirecionar para login
-                await expect(page).toHaveURL(/\/login/);
+                // 1. Deve redirecionar para a página 401 (Unauthorized)
+                await expect(page).toHaveURL(/\/unauthorized/);
                 
-                // 2. Deve exibir o formulário de login
-                await expect(page.locator('[data-testid="login-email-input"]')).toBeVisible();
+                // 2. Deve exibir o componente de não autorizado
+                await expect(page.locator('[data-testid="app-unauthorized"]')).toBeVisible();
                 break;
 
               case "deny_redirect_home":
