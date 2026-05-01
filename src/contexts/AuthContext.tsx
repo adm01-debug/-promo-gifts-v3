@@ -262,21 +262,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               || 'Usuário';
             const firstName = displayName.split(' ')[0];
 
-            const flowGreetings = [
-              `${getGreeting()}, ${firstName}! Que bom te ver! Estou pronto pra te ajudar a vender mais hoje. 🚀`,
-              `${getGreeting()}, ${firstName}! Já separei algumas novidades do catálogo pra você! 😎`,
-              `E aí, ${firstName}! Bora fazer acontecer! Estou aqui sempre que precisar. 💪`,
-              `${getGreeting()}, ${firstName}! Tenho insights fresquinhos esperando por você! ✨`,
-              `Fala, ${firstName}! Pronto pra mais um dia de vendas incríveis? 🎯`,
-            ];
-            const randomGreeting = flowGreetings[Math.floor(Math.random() * flowGreetings.length)];
-
             toast.success(`🤖 Flow`, {
-              description: randomGreeting,
+              description: getRandomGreeting(firstName),
               duration: 3000,
               closeButton: true,
             });
           }
+
 
           // Defer Supabase calls with setTimeout to avoid deadlocks
           setTimeout(() => {
