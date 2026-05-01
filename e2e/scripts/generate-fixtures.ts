@@ -9,7 +9,10 @@ import { z } from "zod";
  */
 const UrlFixtureSchema = z.record(
   z.enum(["publico", "agente", "supervisor", "dev"]),
-  z.array(z.string().startsWith("/"))
+  z.object({
+    valid: z.array(z.string().startsWith("/")),
+    invalid: z.array(z.string().startsWith("/"))
+  })
 );
 
 /**
@@ -20,15 +23,21 @@ const UrlFixtureSchema = z.record(
  * além de gerar automaticamente variações negativas (invalid params) para testes de robustez.
  */
 function generateUrlFixtures() {
-  const output: Record<string, string[]> = {};
+  const output: Record<string, { valid: string[]; invalid: string[] }> = {};
   const totalStats = { total: 0, unique: 0, parameterized: 0, generatedNegative: 0 };
 
   for (const [role, routes] of Object.entries(PERMISSION_MATRIX)) {
-    const roleResolvedUrls: string[] = [];
+    const validUrls: string[] = [];
+    const invalidUrls: string[] = [];
     
     for (const route of routes) {
       const paths = resolvePaths(route);
-      roleResolvedUrls.push(...paths);
+      
+      if (route.expectedBehavior === 'allow') {
+        validUrls.push(...paths);
+      } else {
+        invalidUrls.push(...paths);
+      }
       
       if (route.path.includes(':')) {
         totalStats.parameterized++;
@@ -46,8 +55,8 @@ function generateUrlFixtures() {
             for (const [key, value] of Object.entries(mixedParams)) {
               mixedPath = mixedPath.split(`:${key}`).join(value);
             }
-            if (!roleResolvedUrls.includes(mixedPath)) {
-              roleResolvedUrls.push(mixedPath);
+            if (!invalidUrls.includes(mixedPath)) {
+              invalidUrls.push(mixedPath);
               totalStats.generatedNegative++;
             }
           });
@@ -57,8 +66,8 @@ function generateUrlFixtures() {
             paramNames.forEach(name => {
               allInvalidPath = allInvalidPath.split(`:${name}`).join(`invalid-${name}-all-auto`);
             });
-            if (!roleResolvedUrls.includes(allInvalidPath)) {
-              roleResolvedUrls.push(allInvalidPath);
+            if (!invalidUrls.includes(allInvalidPath)) {
+              invalidUrls.push(allInvalidPath);
               totalStats.generatedNegative++;
             }
           }
@@ -66,15 +75,20 @@ function generateUrlFixtures() {
       }
     }
 
-    // Validação de duplicidades por papel
-    const uniqueUrls = [...new Set(roleResolvedUrls)];
-    if (uniqueUrls.length !== roleResolvedUrls.length) {
+    // Validação de duplicidades por papel e seção
+    const finalValid = [...new Set(validUrls)];
+    const finalInvalid = [...new Set(invalidUrls)];
+
+    if (finalValid.length !== validUrls.length || finalInvalid.length !== invalidUrls.length) {
       console.warn(`⚠️ Aviso: Duplicidades detectadas para o papel [${role}]. Removendo...`);
     }
 
-    output[role] = uniqueUrls;
-    totalStats.total += roleResolvedUrls.length;
-    totalStats.unique += uniqueUrls.length;
+    output[role] = {
+      valid: finalValid,
+      invalid: finalInvalid
+    };
+    totalStats.total += (validUrls.length + invalidUrls.length);
+    totalStats.unique += (finalValid.length + finalInvalid.length);
   }
 
   const filePath = path.join(process.cwd(), "e2e", "fixtures", "generated-urls.json");
@@ -89,8 +103,8 @@ function generateUrlFixtures() {
   console.log(`📊 Estatísticas: ${totalStats.unique} URLs únicas geradas (${totalStats.parameterized} rotas base parametrizadas resolvidas).`);
 
   // Validação final de integridade
-  for (const [role, urls] of Object.entries(output)) {
-    const unresolved = urls.filter(url => url.includes(':'));
+  for (const [role, data] of Object.entries(output)) {
+    const unresolved = [...data.valid, ...data.invalid].filter(url => url.includes(':'));
     if (unresolved.length > 0) {
       throw new Error(`❌ Erro crítico: Rotas não resolvidas detectadas para o papel [${role}]: ${unresolved.join(', ')}`);
     }
