@@ -155,30 +155,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           match: sessionMatchesTarget,
         });
 
-        // Helper que busca roles e re-tenta 1x se vier vazio sem erro (sessão propagando)
-        const queryRoles = async () =>
-          supabase.from("user_roles").select("role").eq("user_id", userId);
-
-        // Buscar profile e TODAS as roles em paralelo (usuário pode ter múltiplas, ex: dev+supervisor)
+        // Buscar profile e TODAS as roles em paralelo
         const [profileResult, firstRoles] = await Promise.all([
-          supabase
-            .from("profiles")
-            .select("*")
-            .eq("user_id", userId)
-            .single(),
-          queryRoles(),
+          authService.fetchProfile(userId),
+          authService.queryRoles(userId),
         ]);
 
         let rolesResult = firstRoles;
         if (!rolesResult.error && (!rolesResult.data || rolesResult.data.length === 0)) {
-          authDebug("AuthContext.fetchUserData", "user_roles empty — retrying once", { userId });
+          authDebug("AuthContext.fetchUserData", "user_roles empty \u2014 retrying once", { userId });
           await new Promise((r) => setTimeout(r, 250));
-          rolesResult = await queryRoles();
+          rolesResult = await authService.queryRoles(userId);
           authDebug("AuthContext.fetchUserData", "user_roles retry result", {
             count: rolesResult.data?.length ?? 0,
             error: rolesResult.error?.message,
           });
         }
+
 
         if (!mountedRef.current) return;
 
