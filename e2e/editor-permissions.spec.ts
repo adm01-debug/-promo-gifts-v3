@@ -109,5 +109,27 @@ test.describe("Editor (Manager) Permissions Suite", () => {
       await contextualButton.click();
       await expect(page).toHaveURL(/\/admin\/usuarios/);
     });
+
+    test("fluxo de logout redireciona para login e bloqueia acesso", async ({ page }) => {
+      // 1. Garante que está logado e em uma rota permitida
+      await gotoAndSettle(page, "/admin/usuarios");
+      await expect(page).toHaveURL(/\/admin\/usuarios/);
+
+      // 2. Realiza o logout
+      await logout(page);
+
+      // 3. Verifica redirecionamento para login
+      await expect(page).toHaveURL(/\/login/);
+
+      // 4. Tenta acessar a rota administrativa novamente
+      await page.goto("/admin/usuarios");
+
+      // 5. Deve ser redirecionado para login (com o parâmetro 'from' no state via ProtectedRoute)
+      await expect(page).toHaveURL(/\/login/);
+      
+      // 6. Tenta acessar a home
+      await page.goto("/");
+      await expect(page).toHaveURL(/\/login/);
+    });
   });
 });
