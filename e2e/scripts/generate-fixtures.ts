@@ -73,7 +73,7 @@ function generateUrlFixtures() {
     }
 
     output[role] = uniqueUrls;
-    totalStats.total += resolvedUrls.length;
+    totalStats.total += roleResolvedUrls.length;
     totalStats.unique += uniqueUrls.length;
   }
 
