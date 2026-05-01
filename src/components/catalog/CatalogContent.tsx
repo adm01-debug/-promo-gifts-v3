@@ -2,7 +2,7 @@ import { useRef, useCallback, useEffect, useState, useMemo } from "react";
 import type { ActiveColorFilter } from "@/utils/color-image-resolver";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Loader2, ArrowUp } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
+
 import { AnimatePresence, motion } from "framer-motion";
 import { ProductCard } from "@/components/products/ProductCard";
 import { ProductListItem } from "@/components/products/ProductListItem";
@@ -65,10 +65,11 @@ function ScrollToTopButton({ show, onClick }: { show: boolean; onClick: () => vo
 }
 
 // ─── Footer row (shared between grid & list) ────────────────────────
-function VirtualFooter({ hasMore, loadMoreRef, productsCount, totalEstimate, filteredCount, isLoadingMore, itemsPerPage, skeletonType }: {
+function VirtualFooter({ hasMore, loadMoreRef, productsCount, totalEstimate, filteredCount, isLoadingMore, itemsPerPage, skeletonType, columns }: {
   hasMore: boolean; loadMoreRef: RefObject<HTMLDivElement>; productsCount: number;
   totalEstimate: number | null; filteredCount: number; isLoadingMore: boolean; itemsPerPage: number;
   skeletonType: "grid" | "list";
+  columns: import("@/components/products/ColumnSelector").ColumnCount;
 }) {
   const total = (totalEstimate ?? filteredCount).toLocaleString("pt-BR");
   if (hasMore) return (
@@ -76,7 +77,7 @@ function VirtualFooter({ hasMore, loadMoreRef, productsCount, totalEstimate, fil
       <div ref={loadMoreRef} style={{ minHeight: "1px" }} />
       <p className="text-sm text-muted-foreground">Mostrando {productsCount} de {total} produtos</p>
       {isLoadingMore && (skeletonType === "grid"
-        ? <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 w-full mt-4">{Array.from({ length: 5 }).map((_, i) => <div key={i} className="space-y-3"><Skeleton className="aspect-square w-full rounded-xl" /><Skeleton className="h-4 w-3/4" /><Skeleton className="h-4 w-1/2" /></div>)}</div>
+        ? <ProductGridSkeleton count={Math.min(itemsPerPage, columns * 2)} columns={columns} />
         : <ProductListSkeleton count={3} />
       )}
     </div>
@@ -141,7 +142,7 @@ function VirtualGrid({ products, columns, navigate, handleViewProduct, handleSha
           {virtualizer.getVirtualItems().map((vr) => {
             if (vr.index === rowCount) return (
               <div key="footer" style={{ position: "absolute", top: 0, left: 0, width: "100%", transform: `translateY(${vr.start}px)` }}>
-                <VirtualFooter hasMore={hasMore} loadMoreRef={loadMoreRef} productsCount={products.length} totalEstimate={totalEstimate} filteredCount={filteredCount} isLoadingMore={isLoadingMore} itemsPerPage={itemsPerPage} skeletonType="grid" />
+                <VirtualFooter hasMore={hasMore} loadMoreRef={loadMoreRef} productsCount={products.length} totalEstimate={totalEstimate} filteredCount={filteredCount} isLoadingMore={isLoadingMore} itemsPerPage={itemsPerPage} skeletonType="grid" columns={columns} />
               </div>
             );
             const startIdx = vr.index * columns;
@@ -203,7 +204,7 @@ function VirtualList({ products, navigate, handleViewProduct, handleShareProduct
           {virtualizer.getVirtualItems().map((vr) => {
             if (vr.index === rowCount) return (
               <div key="footer" style={{ position: "absolute", top: 0, left: 0, width: "100%", transform: `translateY(${vr.start}px)` }}>
-                <VirtualFooter hasMore={hasMore} loadMoreRef={loadMoreRef} productsCount={products.length} totalEstimate={totalEstimate} filteredCount={filteredCount} isLoadingMore={isLoadingMore} itemsPerPage={itemsPerPage} skeletonType="list" />
+                <VirtualFooter hasMore={hasMore} loadMoreRef={loadMoreRef} productsCount={products.length} totalEstimate={totalEstimate} filteredCount={filteredCount} isLoadingMore={isLoadingMore} itemsPerPage={itemsPerPage} skeletonType="list" columns={5} />
               </div>
             );
             const product = products[vr.index];
@@ -251,7 +252,9 @@ export function CatalogContent({
   if (shouldShowCatalogSkeleton) {
     return (
       <div className={`${CONTAINER_CLASS} p-4`}>
-        {viewMode === "grid" ? <ProductGridSkeleton count={8} /> : <ProductListSkeleton count={viewMode === "table" ? 12 : 8} />}
+        {viewMode === "grid"
+          ? <ProductGridSkeleton count={itemsPerPage} columns={gridColumns} />
+          : <ProductListSkeleton count={viewMode === "table" ? 12 : 8} />}
       </div>
     );
   }
