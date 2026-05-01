@@ -70,6 +70,7 @@ export const PERMISSION_MATRIX: Record<Role, PermissionRoute[]> = {
       expectedBehavior: "allow" 
     },
     { path: "/admin/telemetria", expectedBehavior: "deny_403" },
+    { path: "/admin/telemetria/:id", params: { id: "invalid-id-123" }, expectedBehavior: "deny_403" },
     { 
       path: "/admin/workflows/:workflowId/runs/:runId", 
       params: { workflowId: "wf-1", runId: "run-99" }, 
