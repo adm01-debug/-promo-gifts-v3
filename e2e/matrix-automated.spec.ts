@@ -96,18 +96,26 @@ test.describe("Matriz de Permissões Automatizada", () => {
                 const notFoundContainer = page.locator('[data-testid="app-not-found"]');
                 await expect(notFoundContainer, "Deveria exibir o layout de 404").toBeVisible();
                 
-                // 3. Validação Visual / Snapshot (Consistência de Layout)
+                // 3. Validações de Acessibilidade e Conteúdo (SEO/A11y)
+                // Deve haver um heading H1 claro informando o erro
+                const h1_404 = notFoundContainer.locator('h1');
+                await expect(h1_404).toBeVisible();
+                await expect(h1_404).toContainText('404');
+                
+                // Texto amigável deve estar presente
+                await expect(page.locator("text=Página não encontrada")).toBeVisible();
+
+                // 4. Validação Visual / Snapshot (Consistência de Layout)
                 // Usamos toHaveScreenshot para garantir que o layout 404 não degradou
-                // O Playwright gerencia as imagens por plataforma/browser automaticamente
                 await expect(page).toHaveScreenshot('not-found-page.png', {
                   mask: [page.locator('code')], // Mascaramos o path variável para evitar falso-negativos
                   maxDiffPixelRatio: 0.05
                 });
 
-                // 4. Não deve exibir o layout de erro 403 (RBAC) indevidamente
+                // 5. Não deve exibir o layout de erro 403 (RBAC) indevidamente
                 await expect(page.locator('[data-testid="app-access-denied"]'), "Não deveria exibir layout de 403").not.toBeVisible();
 
-                // 5. Garantir que não vaza detalhes técnicos do erro (DB, server, stack)
+                // 6. Garantir que não vaza detalhes técnicos do erro (DB, server, stack)
                 const bodyText404 = await page.innerText('body');
                 const forbidden404 = ["sql", "stack trace", "dump", "exception", "postgres", "supabase"];
                 for (const term of forbidden404) {
