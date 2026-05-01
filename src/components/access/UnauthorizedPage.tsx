@@ -3,24 +3,14 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { ShieldAlert, LogIn, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useMemo } from "react";
-
-/** Gera uma hash curta e não reversível para ofuscar o path */
-function generateSecurityHash(path: string): string {
-  let hash = 0;
-  for (let i = 0; i < path.length; i++) {
-    const char = path.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash;
-  }
-  return Math.abs(hash).toString(36).substring(0, 6).toUpperCase();
-}
+import { generateSecurityId } from "@/lib/access/security-utils";
 
 export function UnauthorizedPage() {
   const navigate = useNavigate();
   const location = useLocation();
   
   // Ofusca o path original para segurança usando hash não reversível
-  const requestId = useMemo(() => `AUTH-${generateSecurityHash(location.pathname)}`, [location.pathname]);
+  const requestId = useMemo(() => generateSecurityId('AUTH', location.pathname), [location.pathname]);
 
   const handleLogin = () => {
     navigate("/login", { state: { from: location }, replace: true });
