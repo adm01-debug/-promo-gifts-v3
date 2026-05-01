@@ -252,7 +252,9 @@ export function CatalogContent({
   if (shouldShowCatalogSkeleton) {
     return (
       <div className={`${CONTAINER_CLASS} p-4`}>
-        {viewMode === "grid" ? <ProductGridSkeleton count={8} /> : <ProductListSkeleton count={viewMode === "table" ? 12 : 8} />}
+        {viewMode === "grid"
+          ? <ProductGridSkeleton count={itemsPerPage} columns={gridColumns} />
+          : <ProductListSkeleton count={viewMode === "table" ? 12 : 8} />}
       </div>
     );
   }
