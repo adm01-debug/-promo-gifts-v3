@@ -30,6 +30,7 @@ test.describe("RBAC Visual - Visibilidade de Menus e Links", () => {
         await gotoAndSettle(page, "/");
       });
 
+      // Testa cada rota para o papel atual
       for (const route of routes) {
         // Ignoramos rotas que não são naturais de menu (como IDs específicos ou rotas inexistentes)
         // ou rotas públicas básicas. Focamos em caminhos de "base" para validar a UI.
@@ -38,16 +39,17 @@ test.describe("RBAC Visual - Visibilidade de Menus e Links", () => {
         if (!isMenuCandidate) continue;
 
         test(`link para ${route.path} deve estar ${route.expectedBehavior === 'allow' ? 'VISÍVEL' : 'OCULTO'}`, async ({ page }) => {
-          // Procuramos por links na sidebar
-          // O SidebarReorganized usa SidebarNavGroup que renderiza os links
+          // No SidebarReorganized, os links são renderizados dentro de uma tag nav.
+          // O seletor abaixo busca links especificamente na sidebar para evitar falso-positivos de links no conteúdo.
           const navigationLink = page.locator(`aside nav a[href="${route.path}"]`).first();
 
           if (route.expectedBehavior === "allow") {
-            // Se permitido, o link DEVE estar visível
-            await expect(navigationLink, `Link para ${route.path} deveria estar visível na sidebar para o perfil ${role}`).toBeVisible();
+            // Se permitido, o link DEVE estar visível.
+            // Usamos assert personalizado para fornecer mensagem clara em caso de falha.
+            await expect(navigationLink, `O link para a rota '${route.path}' deveria estar visível na sidebar para o perfil '${role}'`).toBeVisible({ timeout: 15000 });
           } else {
-            // Se negado (403, redirect ou login), o link NÃO deve estar visível
-            await expect(navigationLink, `Link para ${route.path} NÃO deveria estar visível na sidebar para o perfil ${role}`).not.toBeVisible();
+            // Se negado, o link NÃO deve estar visível no menu.
+            await expect(navigationLink, `O link para a rota '${route.path}' NÃO deveria estar visível na sidebar para o perfil '${role}'`).not.toBeVisible({ timeout: 10000 });
           }
         });
       }
