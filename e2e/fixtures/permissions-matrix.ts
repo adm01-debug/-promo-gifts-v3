@@ -32,16 +32,16 @@ export const PERMISSION_MATRIX: Record<Role, PermissionRoute[]> = {
   publico: [
     { path: "/login", expectedBehavior: "allow" },
     { path: "/produtos", expectedBehavior: "deny_login" },
-    { path: "/orcamentos/:id", params: [{ id: "test-quote-123" }, { id: "another-quote-456" }], expectedBehavior: "deny_login" },
+    { path: "/orcamentos/:id", params: [{ id: "std-quote-789" }, { id: "another-quote-456" }], expectedBehavior: "deny_login" },
     { path: "/admin/usuarios", expectedBehavior: "deny_login" },
     { 
       path: "/admin/cadastros/produto/:id/variante/:variantId", 
-      params: { id: "p-123", variantId: "v-456" }, 
+      params: { id: "std-prod-123", variantId: "std-var-001" }, 
       expectedBehavior: "deny_login" 
     },
     { 
       path: "/orcamentos/:id/itens/:itemId", 
-      params: { id: "non-existent", itemId: "invalid-item" }, 
+      params: { id: "non-existent-777", itemId: "invalid-item-999" }, 
       expectedBehavior: "deny_login" 
     },
   ],
