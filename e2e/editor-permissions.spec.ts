@@ -77,6 +77,33 @@ test.describe("Editor (Manager) Permissions Suite", () => {
       }
     });
 
+    test("regressão: página 403 não deve vazar dados sensíveis em rotas complexas", async ({ page }) => {
+      // Testa uma rota técnica com parâmetros e query strings sensíveis
+      const sensitivePath = "/admin/seguranca-acesso?token=secret123&env=production";
+      await gotoAndSettle(page, sensitivePath);
+
+      await expect(page.locator("text=Acesso restrito")).toBeVisible();
+      
+      const fullContent = await page.locator('[role="alert"]').innerText();
+      
+      // Lista de dados que NUNCA devem aparecer na UI
+      const forbiddenStrings = [
+        "/admin/",
+        "token=",
+        "secret123",
+        "env=production",
+        "?token="
+      ];
+
+      for (const forbidden of forbiddenStrings) {
+        expect(fullContent.toLowerCase(), `String proibida encontrada: ${forbidden}`).not.toContain(forbidden.toLowerCase());
+      }
+
+      // Deve exibir apenas o identificador ofuscado
+      await expect(page.locator("text=Identificador de Segurança")).toBeVisible();
+      await expect(page.locator(".font-mono")).toContainText("REQ-SEGURANCA-ACESSO");
+    });
+
     test("não deve ver links técnicos na Sidebar/Navegação", async ({ page }) => {
       await gotoAndSettle(page, "/");
       // Verifica se itens exclusivos de Dev não estão presentes no menu
