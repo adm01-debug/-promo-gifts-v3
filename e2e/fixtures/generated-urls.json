@@ -1,0 +1,31 @@
+{
+  "publico": [
+    "/login",
+    "/produtos",
+    "/orcamentos/test-quote-123",
+    "/orcamentos/another-quote-456",
+    "/admin/usuarios"
+  ],
+  "agente": [
+    "/produtos",
+    "/orcamentos",
+    "/orcamentos/test-quote-123",
+    "/orcamentos/test-quote-123/editar",
+    "/orcamentos/test-quote-123/itens/item-789",
+    "/admin/usuarios",
+    "/rota-fantasma",
+    "/orcamentos/inexistente-123"
+  ],
+  "supervisor": [
+    "/produtos",
+    "/admin/usuarios",
+    "/admin/cadastros",
+    "/admin/cadastros/produto/test-prod-123",
+    "/admin/cadastros/produto/test-prod-123/variante/v-blue",
+    "/admin/telemetria"
+  ],
+  "dev": [
+    "/admin/telemetria",
+    "/admin/cadastros/produto/test-prod-123"
+  ]
+}
