@@ -60,10 +60,10 @@ test.describe("Editor (Manager) Permissions Suite", () => {
         await gotoAndSettle(page, route);
         
         // Deve exibir a DevAccessDeniedPage (403)
-        // Verificado no componente DevAccessDeniedPage.tsx: exibe "Acesso restrito" e badge "Supervisor"
         await expect(page.locator("text=Acesso restrito")).toBeVisible();
         await expect(page.locator("text=Área técnica restrita à equipe de Desenvolvimento")).toBeVisible();
         await expect(page.locator("text=Supervisor")).toBeVisible();
+        await expect(page.locator("text=como supervisor, você administra usuários")).toBeVisible();
         
         // Validação do Layout Padronizado 403
         await expect(page.locator("text=Identificador de Segurança")).toBeVisible();
