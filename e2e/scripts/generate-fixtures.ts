@@ -24,47 +24,56 @@ function generateUrlFixtures() {
   const totalStats = { total: 0, unique: 0, parameterized: 0, generatedNegative: 0 };
 
   for (const [role, routes] of Object.entries(PERMISSION_MATRIX)) {
-    const resolvedUrls = routes.flatMap(route => {
+    const roleResolvedUrls: string[] = [];
+    
+    for (const route of routes) {
       const paths = resolvePaths(route);
+      roleResolvedUrls.push(...paths);
       
       if (route.path.includes(':')) {
         totalStats.parameterized++;
         
-        // Gerador Automático de Cenários Negativos (Invalid Params)
-        // Se a rota é parametrizada, criamos uma versão com IDs visivelmente inválidos
-        // para alimentar os testes de 403/404 se não houver um parâmetro explícito negativo na matriz.
-        const hasNegativeParam = Array.isArray(route.params) 
-          ? route.params.some(p => Object.values(p).some(v => v.includes('invalid') || v.includes('non-existent')))
-          : Object.values(route.params || {}).some(v => v.includes('invalid') || v.includes('non-existent'));
-
-        if (!hasNegativeParam && route.expectedBehavior === 'allow') {
-          const negativeParams: Record<string, string> = {};
-          // Extrai os nomes dos parâmetros do path (ex: :id, :itemId)
-          const paramNames = route.path.match(/:[a-zA-Z0-9]+/g) || [];
-          paramNames.forEach(p => {
-            const name = p.replace(':', '');
-            negativeParams[name] = `invalid-${name}-auto`;
-          });
+        const paramNames = (route.path.match(/:[a-zA-Z0-9]+/g) || []).map(p => p.replace(':', ''));
+        
+        if (paramNames.length > 0 && route.expectedBehavior === 'allow') {
+          const validBase = Array.isArray(route.params) ? route.params[0] : (route.params || {});
           
-          let negativePath = route.path;
-          for (const [key, value] of Object.entries(negativeParams)) {
-            negativePath = negativePath.split(`:${key}`).join(value);
+          paramNames.forEach(targetParam => {
+            const mixedParams: Record<string, string> = { ...validBase };
+            mixedParams[targetParam] = `invalid-${targetParam}-auto`;
+            
+            let mixedPath = route.path;
+            for (const [key, value] of Object.entries(mixedParams)) {
+              mixedPath = mixedPath.split(`:${key}`).join(value);
+            }
+            if (!roleResolvedUrls.includes(mixedPath)) {
+              roleResolvedUrls.push(mixedPath);
+              totalStats.generatedNegative++;
+            }
+          });
+
+          if (paramNames.length > 1) {
+            let allInvalidPath = route.path;
+            paramNames.forEach(name => {
+              allInvalidPath = allInvalidPath.split(`:${name}`).join(`invalid-${name}-all-auto`);
+            });
+            if (!roleResolvedUrls.includes(allInvalidPath)) {
+              roleResolvedUrls.push(allInvalidPath);
+              totalStats.generatedNegative++;
+            }
           }
-          paths.push(negativePath);
-          totalStats.generatedNegative++;
         }
       }
-      return paths;
-    });
+    }
 
     // Validação de duplicidades por papel
-    const uniqueUrls = [...new Set(resolvedUrls)];
-    if (uniqueUrls.length !== resolvedUrls.length) {
+    const uniqueUrls = [...new Set(roleResolvedUrls)];
+    if (uniqueUrls.length !== roleResolvedUrls.length) {
       console.warn(`⚠️ Aviso: Duplicidades detectadas para o papel [${role}]. Removendo...`);
     }
 
     output[role] = uniqueUrls;
-    totalStats.total += resolvedUrls.length;
+    totalStats.total += roleResolvedUrls.length;
     totalStats.unique += uniqueUrls.length;
   }
 
