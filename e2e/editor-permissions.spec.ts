@@ -65,12 +65,43 @@ test.describe("Editor (Manager) Permissions Suite", () => {
         await expect(page.locator("text=Área técnica restrita à equipe de Desenvolvimento")).toBeVisible();
         await expect(page.locator("text=Supervisor")).toBeVisible();
         
-        // Garante que não há vazamento de dados técnicos sensíveis (ex: caminhos completos de diretório)
-        await expect(page.locator("text=ID da Requisição Bloqueada")).toBeVisible();
-        const pathSuffix = route.split('/').pop() || 'root';
-        await expect(page.locator(".font-mono")).toContainText(pathSuffix); 
-        await expect(page.locator(".font-mono")).not.toContainText("/admin/"); // O path completo não deve ser exposto na UI se possível
+        // Validação do Layout Padronizado 403
+        await expect(page.locator("text=Identificador de Segurança")).toBeVisible();
+        const pathSuffix = route.split('/').filter(Boolean).pop()?.toUpperCase() || 'ROOT';
+        await expect(page.locator(".font-mono")).toContainText(`REQ-${pathSuffix}`); 
+        
+        // Garante que dados sensíveis (path completo) estão ocultos
+        const fullContent = await page.locator('[role="alert"]').innerText();
+        expect(fullContent).not.toContain("/admin/telemetria");
+        expect(fullContent).not.toContain("/admin/seguranca");
       }
+    });
+
+    test("regressão: página 403 não deve vazar dados sensíveis em rotas complexas", async ({ page }) => {
+      // Testa uma rota técnica com parâmetros e query strings sensíveis
+      const sensitivePath = "/admin/seguranca-acesso?token=secret123&env=production";
+      await gotoAndSettle(page, sensitivePath);
+
+      await expect(page.locator("text=Acesso restrito")).toBeVisible();
+      
+      const fullContent = await page.locator('[role="alert"]').innerText();
+      
+      // Lista de dados que NUNCA devem aparecer na UI
+      const forbiddenStrings = [
+        "/admin/",
+        "token=",
+        "secret123",
+        "env=production",
+        "?token="
+      ];
+
+      for (const forbidden of forbiddenStrings) {
+        expect(fullContent.toLowerCase(), `String proibida encontrada: ${forbidden}`).not.toContain(forbidden.toLowerCase());
+      }
+
+      // Deve exibir apenas o identificador ofuscado
+      await expect(page.locator("text=Identificador de Segurança")).toBeVisible();
+      await expect(page.locator(".font-mono")).toContainText("REQ-SEGURANCA-ACESSO");
     });
 
     test("não deve ver links técnicos na Sidebar/Navegação", async ({ page }) => {
