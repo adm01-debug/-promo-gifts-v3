@@ -36,6 +36,7 @@ type E2ERateLimitRow = {
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-e2e-cleanup-token, x-request-id, x-step-up-token",
+  "Access-Control-Expose-Headers": "x-request-id",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
