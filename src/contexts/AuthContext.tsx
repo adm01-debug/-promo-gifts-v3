@@ -6,13 +6,9 @@ import { createClientLogger } from "@/lib/telemetry/structuredLogger";
 import { checkLoginAllowed, recordFailedAttempt, clearLoginAttempts } from "@/hooks/useLoginRateLimit";
 import { toast } from "sonner";
 import { authDebug, authDebugError, summarizeSession, summarizeUser } from "@/lib/auth/auth-debug";
+import { getRandomGreeting, getHighestRole, isSupervisorOrAbove as checkIsSupervisorOrAbove } from "@/lib/auth/auth-utils";
+import { authService } from "@/services/authService";
 
-function getGreeting(): string {
-  const hour = new Date().getHours();
-  if (hour < 12) return "Bom dia";
-  if (hour < 18) return "Boa tarde";
-  return "Boa noite";
-}
 
 // Tipos de role conforme app_role enum no banco.
 // 'admin', 'manager' e 'vendedor' permanecem por compatibilidade com dados legados,
@@ -97,16 +93,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchAAL = useCallback(async () => {
     try {
-      const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-      const { data: factorsData } = await supabase.auth.mfa.listFactors();
+      const data = await authService.fetchAAL();
       if (!mountedRef.current) return;
-      setCurrentAAL((aalData?.currentLevel ?? null) as 'aal1' | 'aal2' | null);
-      setNextAAL((aalData?.nextLevel ?? null) as 'aal1' | 'aal2' | null);
-      setHasMFA(!!factorsData?.totp?.some((f) => f.status === 'verified'));
+      setCurrentAAL(data.currentLevel);
+      setNextAAL(data.nextLevel);
+      setHasMFA(data.hasMFA);
     } catch (e) {
       if (import.meta.env.DEV) logger.warn('AAL fetch failed', e instanceof Error ? e.message : String(e));
     }
   }, []);
+
 
   const fetchUserData = useCallback(async (userId: string) => {
     // Se já existe um fetch em andamento para este userId, aguardar ao invés de ignorar
@@ -159,30 +155,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           match: sessionMatchesTarget,
         });
 
-        // Helper que busca roles e re-tenta 1x se vier vazio sem erro (sessão propagando)
-        const queryRoles = async () =>
-          supabase.from("user_roles").select("role").eq("user_id", userId);
-
-        // Buscar profile e TODAS as roles em paralelo (usuário pode ter múltiplas, ex: dev+supervisor)
+        // Buscar profile e TODAS as roles em paralelo
         const [profileResult, firstRoles] = await Promise.all([
-          supabase
-            .from("profiles")
-            .select("*")
-            .eq("user_id", userId)
-            .single(),
-          queryRoles(),
+          authService.fetchProfile(userId),
+          authService.queryRoles(userId),
         ]);
 
         let rolesResult = firstRoles;
         if (!rolesResult.error && (!rolesResult.data || rolesResult.data.length === 0)) {
-          authDebug("AuthContext.fetchUserData", "user_roles empty — retrying once", { userId });
+          authDebug("AuthContext.fetchUserData", "user_roles empty \u2014 retrying once", { userId });
           await new Promise((r) => setTimeout(r, 250));
-          rolesResult = await queryRoles();
+          rolesResult = await authService.queryRoles(userId);
           authDebug("AuthContext.fetchUserData", "user_roles retry result", {
             count: rolesResult.data?.length ?? 0,
             error: rolesResult.error?.message,
           });
         }
+
 
         if (!mountedRef.current) return;
 
@@ -273,21 +262,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               || 'Usuário';
             const firstName = displayName.split(' ')[0];
 
-            const flowGreetings = [
-              `${getGreeting()}, ${firstName}! Que bom te ver! Estou pronto pra te ajudar a vender mais hoje. 🚀`,
-              `${getGreeting()}, ${firstName}! Já separei algumas novidades do catálogo pra você! 😎`,
-              `E aí, ${firstName}! Bora fazer acontecer! Estou aqui sempre que precisar. 💪`,
-              `${getGreeting()}, ${firstName}! Tenho insights fresquinhos esperando por você! ✨`,
-              `Fala, ${firstName}! Pronto pra mais um dia de vendas incríveis? 🎯`,
-            ];
-            const randomGreeting = flowGreetings[Math.floor(Math.random() * flowGreetings.length)];
-
             toast.success(`🤖 Flow`, {
-              description: randomGreeting,
+              description: getRandomGreeting(firstName),
               duration: 3000,
               closeButton: true,
             });
           }
+
 
           // Defer Supabase calls with setTimeout to avoid deadlocks
           setTimeout(() => {
@@ -471,30 +452,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [user, fetchUserData, fetchAAL]);
 
-  // Helpers da NOVA hierarquia (fonte: array userRoles).
-  // 'admin' legado mapeia para supervisor; 'vendedor' legado mapeia para agente.
   const has = (r: AppRole) => userRoles.includes(r);
   const isDev = has("dev");
-  const isSupervisor = has("supervisor") || has("admin"); // admin legado = supervisor
-  const isAgente = has("agente") || has("vendedor");      // vendedor legado = agente
-  const isSupervisorOrAbove = isDev || isSupervisor;
+  const isSupervisor = has("supervisor") || has("admin") || has("manager");
+  const isAgente = has("agente") || has("vendedor");
+  const isSupervisorOrAbove = checkIsSupervisorOrAbove(userRoles);
 
-  // Role principal para exibição (mais alta na hierarquia)
-  const primaryRole: AppRole | null = isDev
-    ? "dev"
-    : isSupervisor
-    ? "supervisor"
-    : isAgente
-    ? "agente"
-    : userRoles[0] ?? null;
+  const primaryRole = getHighestRole(userRoles);
 
-  // Aliases legados (deprecated, mantidos para componentes ainda não migrados)
   const isAdmin = isSupervisorOrAbove;
   const isManager = has("manager");
   const isSeller = isAgente;
   const canManage = isSupervisorOrAbove;
-  // MFA exigido para qualquer supervisor/dev que ainda não autenticou em aal2
   const mfaRequired = canManage && currentAAL !== 'aal2';
+
 
   const value: AuthContextType = {
     user,
