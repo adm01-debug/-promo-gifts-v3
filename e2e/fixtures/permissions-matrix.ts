@@ -63,6 +63,7 @@ export const PERMISSION_MATRIX: Record<Role, PermissionRoute[]> = {
     { path: "/produtos", expectedBehavior: "allow" },
     { path: "/admin/usuarios", expectedBehavior: "allow" },
     { path: "/admin/cadastros", expectedBehavior: "allow" },
+    { path: "/admin/non-existent-area", expectedBehavior: "deny_404" },
     { path: "/admin/cadastros/produto/:id", params: { id: "test-prod-123" }, expectedBehavior: "allow" },
     { 
       path: "/admin/cadastros/produto/:id/variante/:variantId", 
