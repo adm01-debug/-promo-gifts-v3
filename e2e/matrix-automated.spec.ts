@@ -69,16 +69,22 @@ test.describe("Matriz de Permissões Automatizada", () => {
                 break;
 
               case "deny_403":
-                // 1. Deve exibir a página de erro 403 (DevRoute behavior)
+                // 1. Deve estar na URL correta (não deve redirecionar para home ou login)
+                await expect(page).toHaveURL(new RegExp(actualPath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+
+                // 2. Deve exibir a página de erro 403 (DevRoute behavior)
                 const deniedContainer = page.locator('[data-testid="app-access-denied"]');
                 await expect(deniedContainer).toBeVisible();
                 
-                // 2. Deve conter o status 403 e mensagem de acesso restrito
+                // 3. Deve conter o status 403 e mensagem de acesso restrito
                 await expect(deniedContainer).toContainText("403");
                 await expect(deniedContainer).toContainText("Acesso restrito");
                 
-                // 3. Deve exibir o identificador de segurança ofuscado
+                // 4. Deve exibir o identificador de segurança ofuscado
                 await expect(page.locator("text=Identificador de Segurança")).toBeVisible();
+
+                // 5. NÃO deve exibir o layout de 404 indevidamente
+                await expect(page.locator('[data-testid="app-not-found"]')).not.toBeVisible();
                 break;
 
               case "deny_404":
