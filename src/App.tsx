@@ -32,6 +32,7 @@ startColdStartRecorder();
 
 // Auth Pages
 const Auth = lazyWithRetry(() => import("./pages/Auth"));
+const Unauthorized = lazyWithRetry(() => import("@/components/access/UnauthorizedPage").then(m => ({ default: m.UnauthorizedPage })));
 const ResetPassword = lazyWithRetry(() => import("./pages/ResetPassword"));
 const Index = lazyWithRetry(() => import("./pages/Index"));
 const PublicQuoteApproval = lazyWithRetry(() => import("./pages/PublicQuoteApprovalPage"));
@@ -212,6 +213,7 @@ const App = () => {
                           <Route path="/comparar-publica/:token" element={<PublicComparisonPage />} />
                           <Route path="/dossie/:token" element={<PublicDossierPage />} />
                           <Route path="/auth/callback" element={<SSOCallbackPage />} />
+                          <Route path="/unauthorized" element={<Unauthorized />} />
 
                           {/* Protected Layout Route */}
                           <Route element={<ProtectedRoute />}>
