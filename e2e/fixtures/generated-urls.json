@@ -12,8 +12,11 @@
     "/produtos",
     "/orcamentos",
     "/orcamentos/test-quote-123",
+    "/orcamentos/invalid-id-auto",
     "/orcamentos/test-quote-123/editar",
+    "/orcamentos/invalid-id-auto/editar",
     "/orcamentos/test-quote-123/itens/item-789",
+    "/orcamentos/invalid-id-auto/itens/invalid-itemId-auto",
     "/admin/usuarios",
     "/admin/cadastros/produto/p-123/variante/v-456",
     "/orcamentos/valid-quote/itens/invalid-item",
@@ -27,13 +30,16 @@
     "/admin/cadastros",
     "/admin/non-existent-area",
     "/admin/cadastros/produto/test-prod-123",
+    "/admin/cadastros/produto/invalid-id-auto",
     "/admin/cadastros/produto/test-prod-123/variante/v-blue",
+    "/admin/cadastros/produto/invalid-id-auto/variante/invalid-variantId-auto",
     "/admin/telemetria",
     "/admin/telemetria/invalid-id-123",
     "/admin/workflows/wf-1/runs/run-99"
   ],
   "dev": [
     "/admin/telemetria",
-    "/admin/cadastros/produto/test-prod-123"
+    "/admin/cadastros/produto/test-prod-123",
+    "/admin/cadastros/produto/invalid-id-auto"
   ]
 }
