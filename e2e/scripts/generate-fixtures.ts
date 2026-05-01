@@ -1,4 +1,5 @@
 import { PERMISSION_MATRIX, resolvePaths } from "../fixtures/permissions-matrix";
+import * as fs from "node:fs";
 import * as path from "node:path";
 
 /**
