@@ -1,19 +1,18 @@
 // supabase/functions/cors-audit/index.ts
 //
 // Diagnostic endpoint — returns the CORS configuration of every edge function
-// in the project so you can audit which custom headers are accepted and spot
-// any function that's missing a recently-added header.
+// in the project so you can audit which custom headers are accepted and quickly
+// spot any function that's missing a recently-added header.
 //
-// Auth: admin/dev only (uses authorize() with admin role).
+// Auth: dev role only (uses authorize({ requireRole: "dev" })).
 //
 // Response shape:
 //   {
-//     shared: { allowHeaders, exposeHeaders, allowMethods, exposeHeadersList? },
+//     shared: { allowHeaders, allowHeadersList, allowMethods, exposeHeaders },
 //     snapshot: { generated_at, total, counts, functions: [...] },
 //     audit: {
-//       missing_in_inline: { header: [funcName, ...] }, // headers present in
-//                                                       // shared but missing
-//                                                       // from inline funcs
+//       missing_in_inline: { header: [funcName, ...] }, // headers in shared
+//                                                       // missing from inline
 //       extra_in_inline: { header: [funcName, ...] }    // headers in inline
 //                                                       // not in shared (often
 //                                                       // legitimate, e.g.
@@ -21,35 +20,44 @@
 //     }
 //   }
 //
-// Build/refresh the snapshot with:  node scripts/build-cors-snapshot.mjs
+// Refresh the snapshot with:  node scripts/build-cors-snapshot.mjs
+// (run after editing inline-CORS funcs or adding a new edge function).
 
 import { createStructuredLogger } from "../_shared/structured-logger.ts";
-import { CORS_INTROSPECTION, getCorsHeaders, handleCorsPreflightIfNeeded } from "../_shared/cors.ts";
+import { getOrCreateRequestId } from "../_shared/request-id.ts";
+import {
+  CORS_INTROSPECTION,
+  getCorsHeaders,
+  handleCorsPreflightIfNeeded,
+} from "../_shared/cors.ts";
 import { authorize } from "../_shared/authorize.ts";
 import snapshot from "../_shared/cors-snapshot.json" with { type: "json" };
 
-type SnapshotFunction = {
+interface SnapshotFunction {
   name: string;
   mode: "shared" | "inline" | "none";
   allowHeaders: string[];
   exposeHeaders: string[];
   allowMethods: string | null;
   allowOrigin: string | null;
-};
+}
 
-type Snapshot = {
+interface Snapshot {
   generated_at: string;
   total: number;
   counts: { shared: number; inline: number; none: number };
   functions: SnapshotFunction[];
-};
+}
 
 function buildAudit(snap: Snapshot) {
   const sharedAllow = new Set(
     CORS_INTROSPECTION.allowHeadersList.map((h) => h.toLowerCase()),
   );
   const sharedExpose = new Set(
-    CORS_INTROSPECTION.exposeHeaders.split(",").map((h) => h.trim().toLowerCase()).filter(Boolean),
+    CORS_INTROSPECTION.exposeHeaders
+      .split(",")
+      .map((h) => h.trim().toLowerCase())
+      .filter(Boolean),
   );
 
   const missing_in_inline: Record<string, string[]> = {};
@@ -59,20 +67,16 @@ function buildAudit(snap: Snapshot) {
     if (fn.mode !== "inline") continue;
 
     const inlineAllow = new Set(fn.allowHeaders);
-    // Missing: in shared, not in inline
     for (const h of sharedAllow) {
       if (!inlineAllow.has(h)) {
         (missing_in_inline[h] ||= []).push(fn.name);
       }
     }
-    // Extra: in inline, not in shared
     for (const h of inlineAllow) {
       if (!sharedAllow.has(h)) {
         (extra_in_inline[h] ||= []).push(fn.name);
       }
     }
-
-    // Expose-headers: missing
     for (const h of sharedExpose) {
       if (!fn.exposeHeaders.includes(h)) {
         (missing_in_inline[`expose:${h}`] ||= []).push(fn.name);
@@ -84,44 +88,60 @@ function buildAudit(snap: Snapshot) {
 }
 
 Deno.serve(async (req) => {
-  const log = createStructuredLogger(req, { fn: "cors-audit" });
+  const requestId = getOrCreateRequestId(req);
+  const log = createStructuredLogger({ fn: "cors-audit", requestId, req });
 
   const preflight = handleCorsPreflightIfNeeded(req);
   if (preflight) return preflight;
 
   const corsHeaders = getCorsHeaders(req);
 
-  // Admin-only: use authorize() with role gate
-  const auth = await authorize(req, { requireRole: ["admin", "dev"] });
+  const auth = await authorize(req, { requireRole: "dev" });
   if (!auth.ok) {
-    log.warn("cors_audit_denied", { reason: auth.reason });
-    return new Response(
-      JSON.stringify({ error: "forbidden", reason: auth.reason }),
-      { status: auth.status ?? 403, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-    );
+    log.warn("cors_audit_denied", {});
+    return auth.response;
   }
 
   const snap = snapshot as Snapshot;
   const audit = buildAudit(snap);
 
+  const missingCount = Object.values(audit.missing_in_inline).reduce(
+    (a, b) => a + b.length,
+    0,
+  );
+  const extraCount = Object.values(audit.extra_in_inline).reduce(
+    (a, b) => a + b.length,
+    0,
+  );
+
   log.info("cors_audit_ok", {
     total: snap.total,
+    shared: snap.counts.shared,
     inline: snap.counts.inline,
-    missing_count: Object.values(audit.missing_in_inline).reduce((a, b) => a + b.length, 0),
-    extra_count: Object.values(audit.extra_in_inline).reduce((a, b) => a + b.length, 0),
+    missing_count: missingCount,
+    extra_count: extraCount,
   });
 
-  return new Response(
-    JSON.stringify({
-      shared: {
-        allowHeaders: CORS_INTROSPECTION.allowHeaders,
-        allowHeadersList: CORS_INTROSPECTION.allowHeadersList,
-        allowMethods: CORS_INTROSPECTION.allowMethods,
-        exposeHeaders: CORS_INTROSPECTION.exposeHeaders,
+  return log.respond(
+    new Response(
+      JSON.stringify(
+        {
+          shared: {
+            allowHeaders: CORS_INTROSPECTION.allowHeaders,
+            allowHeadersList: CORS_INTROSPECTION.allowHeadersList,
+            allowMethods: CORS_INTROSPECTION.allowMethods,
+            exposeHeaders: CORS_INTROSPECTION.exposeHeaders,
+          },
+          snapshot: snap,
+          audit,
+        },
+        null,
+        2,
+      ),
+      {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       },
-      snapshot: snap,
-      audit,
-    }, null, 2),
-    { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    ),
   );
 });
