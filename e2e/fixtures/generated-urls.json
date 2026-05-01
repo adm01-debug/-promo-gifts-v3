@@ -4,7 +4,9 @@
     "/produtos",
     "/orcamentos/test-quote-123",
     "/orcamentos/another-quote-456",
-    "/admin/usuarios"
+    "/admin/usuarios",
+    "/admin/cadastros/produto/p-123/variante/v-456",
+    "/orcamentos/non-existent/itens/invalid-item"
   ],
   "agente": [
     "/produtos",
@@ -13,6 +15,9 @@
     "/orcamentos/test-quote-123/editar",
     "/orcamentos/test-quote-123/itens/item-789",
     "/admin/usuarios",
+    "/admin/cadastros/produto/p-123/variante/v-456",
+    "/orcamentos/valid-quote/itens/invalid-item",
+    "/orcamentos/non-existent/itens/non-existent-item",
     "/rota-fantasma",
     "/orcamentos/inexistente-123"
   ],
@@ -20,9 +25,12 @@
     "/produtos",
     "/admin/usuarios",
     "/admin/cadastros",
+    "/admin/non-existent-area",
     "/admin/cadastros/produto/test-prod-123",
     "/admin/cadastros/produto/test-prod-123/variante/v-blue",
-    "/admin/telemetria"
+    "/admin/telemetria",
+    "/admin/telemetria/invalid-id-123",
+    "/admin/workflows/wf-1/runs/run-99"
   ],
   "dev": [
     "/admin/telemetria",
