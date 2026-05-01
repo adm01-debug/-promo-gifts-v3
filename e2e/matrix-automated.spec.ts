@@ -37,32 +37,51 @@ test.describe("Matriz de Permissões Automatizada", () => {
           test(`acesso a ${actualPath} deve resultar em ${route.expectedBehavior}`, async ({ page }) => {
             await gotoAndSettle(page, actualPath);
 
-          switch (route.expectedBehavior) {
-            case "allow":
-              // Garante que não houve redirect para login ou home
-              await expect(page).not.toHaveURL(/\/login/);
-              if (actualPath !== "/") {
-                await expect(page).toHaveURL(new RegExp(actualPath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
-              }
-              // Garante que não há overlay de acesso negado
-              await expect(page.locator("text=Acesso restrito")).not.toBeVisible();
-              break;
+            switch (route.expectedBehavior) {
+              case "allow":
+                // 1. Não deve redirecionar para login
+                await expect(page).not.toHaveURL(/\/login/);
+                
+                // 2. Deve estar na URL correta (ou dashboard se for root)
+                if (actualPath !== "/") {
+                  await expect(page).toHaveURL(new RegExp(actualPath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+                }
+                
+                // 3. Não deve exibir nenhum componente de erro 403
+                await expect(page.locator('[data-testid="app-access-denied"]')).not.toBeVisible();
+                await expect(page.locator("text=Acesso restrito")).not.toBeVisible();
+                break;
 
-            case "deny_login":
-              await expect(page).toHaveURL(/\/login/);
-              break;
+              case "deny_login":
+                // 1. Deve redirecionar para login
+                await expect(page).toHaveURL(/\/login/);
+                
+                // 2. Deve exibir o formulário de login
+                await expect(page.locator('[data-testid="login-email-input"]')).toBeVisible();
+                break;
 
-            case "deny_redirect_home":
-              // O ProtectedRoute redireciona para "/" quando o papel é insuficiente
-              await expect(page).toHaveURL(/\/($|#)/);
-              break;
+              case "deny_redirect_home":
+                // 1. Deve redirecionar para a home (ProtectedRoute behavior)
+                await expect(page).toHaveURL(/\/($|#)/);
+                
+                // 2. Não deve exibir erro 403 (redirecionamento silencioso)
+                await expect(page.locator('[data-testid="app-access-denied"]')).not.toBeVisible();
+                break;
 
-            case "deny_403":
-              // O DevRoute exibe a página de erro 403 (DevAccessDeniedPage)
-              await expect(page.locator("text=Acesso restrito")).toBeVisible();
-              await expect(page.locator("text=403")).toBeVisible();
-              break;
-          }
+              case "deny_403":
+                // 1. Deve exibir a página de erro 403 (DevRoute behavior)
+                const deniedContainer = page.locator('[data-testid="app-access-denied"]');
+                await expect(deniedContainer).toBeVisible();
+                
+                // 2. Deve conter o status 403 e mensagem de acesso restrito
+                await expect(deniedContainer).toContainText("403");
+                await expect(deniedContainer).toContainText("Acesso restrito");
+                
+                // 3. Deve exibir o identificador de segurança ofuscado
+                await expect(page.locator("text=Identificador de Segurança")).toBeVisible();
+                break;
+            }
+          });
         }
       }
     });
