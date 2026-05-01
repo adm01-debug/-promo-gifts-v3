@@ -144,6 +144,11 @@ jobs:
       - name: 🌐 Edge CORS x-request-id gate
         run: node scripts/check-edge-cors-headers.mjs
 
+      # Garante que supabase/functions/_shared/cors-snapshot.json está em sync
+      # com os index.ts (consumido pela edge function `cors-audit`).
+      - name: 📸 CORS snapshot freshness
+        run: node scripts/build-cors-snapshot.mjs --check
+
       - name: RLS policy tests (optional)
         if: env.TEST_SELLER_PASSWORD != '' && env.TEST_ADMIN_PASSWORD != ''
         env:
