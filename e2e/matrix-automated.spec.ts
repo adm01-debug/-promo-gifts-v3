@@ -82,15 +82,16 @@ test.describe("Matriz de Permissões Automatizada", () => {
                 break;
 
               case "deny_404":
-                // 1. Não deve redirecionar para login
-                await expect(page).not.toHaveURL(/\/login/);
+                // 1. Não deve redirecionar para login (específico para usuários logados)
+                await expect(page, "Não deveria redirecionar para login em rota inexistente").not.toHaveURL(/\/login/);
+                await expect(page, "Não deveria redirecionar para unauthorized em rota inexistente").not.toHaveURL(/\/unauthorized/);
 
-                // 2. Deve mostrar mensagem amigável exata de não encontrado
-                const notFoundMessage = page.locator("text=Página não encontrada").or(page.locator("text=404"));
-                await expect(notFoundMessage).toBeVisible();
+                // 2. Deve mostrar o componente de NotFound com data-testid correto
+                const notFoundContainer = page.locator('[data-testid="app-not-found"]');
+                await expect(notFoundContainer, "Deveria exibir o layout de 404").toBeVisible();
                 
                 // 3. Não deve exibir o layout de erro 403 (RBAC) indevidamente
-                await expect(page.locator('[data-testid="app-access-denied"]')).not.toBeVisible();
+                await expect(page.locator('[data-testid="app-access-denied"]'), "Não deveria exibir layout de 403").not.toBeVisible();
 
                 // 4. Garantir que não vaza detalhes técnicos do erro (DB, server, stack)
                 const bodyText404 = await page.innerText('body');
