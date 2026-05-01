@@ -1,5 +1,10 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import {
+  getGridColsClass,
+  getGridGapClass,
+} from "@/components/replenishments/VirtualizedReplenishmentGrid";
+import type { ColumnCount } from "@/components/products/ColumnSelector";
 
 interface ProductCardSkeletonProps {
   /** Variant of skeleton - matches card content structure */
