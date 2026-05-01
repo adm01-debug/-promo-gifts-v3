@@ -39,6 +39,11 @@ export const PERMISSION_MATRIX: Record<Role, PermissionRoute[]> = {
       params: { id: "p-123", variantId: "v-456" }, 
       expectedBehavior: "deny_login" 
     },
+    { 
+      path: "/orcamentos/:id/itens/:itemId", 
+      params: { id: "non-existent", itemId: "invalid-item" }, 
+      expectedBehavior: "deny_login" 
+    },
   ],
   agente: [
     { path: "/produtos", expectedBehavior: "allow" },
@@ -55,6 +60,16 @@ export const PERMISSION_MATRIX: Record<Role, PermissionRoute[]> = {
       path: "/admin/cadastros/produto/:id/variante/:variantId", 
       params: { id: "p-123", variantId: "v-456" }, 
       expectedBehavior: "deny_redirect_home" 
+    },
+    { 
+      path: "/orcamentos/:id/itens/:itemId", 
+      params: { id: "valid-quote", itemId: "invalid-item" }, 
+      expectedBehavior: "deny_404" 
+    },
+    { 
+      path: "/orcamentos/:id/itens/:itemId", 
+      params: { id: "non-existent", itemId: "non-existent-item" }, 
+      expectedBehavior: "deny_404" 
     },
     { path: "/rota-fantasma", expectedBehavior: "deny_404" },
     { path: "/orcamentos/:id", params: { id: "inexistente-123" }, expectedBehavior: "deny_404" },
