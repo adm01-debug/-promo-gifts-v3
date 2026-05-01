@@ -25,17 +25,7 @@ import {
   DEV_ACCESS_CONTACT_EMAIL,
 } from "@/lib/access/request-dev-access";
 import { ACCESS_DENIED_STRINGS, type Role } from "@/lib/access/access-denied-strings";
-
-/** Gera uma hash curta e não reversível para ofuscar o path */
-function generateSecurityHash(path: string): string {
-  let hash = 0;
-  for (let i = 0; i < path.length; i++) {
-    const char = path.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32bit integer
-  }
-  return Math.abs(hash).toString(36).substring(0, 6).toUpperCase();
-}
+import { generateSecurityId } from "@/lib/access/security-utils";
 
 export type DevAccessUserRole =
   | "supervisor"
@@ -99,7 +89,7 @@ export function DevAccessDeniedPage({
   const [submitting, setSubmitting] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const securityId = useMemo(() => `REQ-${generateSecurityHash(blockedPath)}`, [blockedPath]);
+  const securityId = useMemo(() => generateSecurityId('REQ', blockedPath), [blockedPath]);
 
   const copy = getRoleCopy(role, blockedPath);
   const isAgente =
