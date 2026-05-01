@@ -32,46 +32,46 @@ export const PERMISSION_MATRIX: Record<Role, PermissionRoute[]> = {
   publico: [
     { path: "/login", expectedBehavior: "allow" },
     { path: "/produtos", expectedBehavior: "deny_login" },
-    { path: "/orcamentos/:id", params: [{ id: "test-quote-123" }, { id: "another-quote-456" }], expectedBehavior: "deny_login" },
+    { path: "/orcamentos/:id", params: [{ id: "std-quote-789" }, { id: "another-quote-456" }], expectedBehavior: "deny_login" },
     { path: "/admin/usuarios", expectedBehavior: "deny_login" },
     { 
       path: "/admin/cadastros/produto/:id/variante/:variantId", 
-      params: { id: "p-123", variantId: "v-456" }, 
+      params: { id: "std-prod-123", variantId: "std-var-001" }, 
       expectedBehavior: "deny_login" 
     },
     { 
       path: "/orcamentos/:id/itens/:itemId", 
-      params: { id: "non-existent", itemId: "invalid-item" }, 
+      params: { id: "non-existent-777", itemId: "invalid-item-999" }, 
       expectedBehavior: "deny_login" 
     },
   ],
   agente: [
     { path: "/produtos", expectedBehavior: "allow" },
     { path: "/orcamentos", expectedBehavior: "allow" },
-    { path: "/orcamentos/:id", params: { id: "test-quote-123" }, expectedBehavior: "allow" },
-    { path: "/orcamentos/:id/editar", params: { id: "test-quote-123" }, expectedBehavior: "allow" },
+    { path: "/orcamentos/:id", params: { id: "std-quote-789" }, expectedBehavior: "allow" },
+    { path: "/orcamentos/:id/editar", params: { id: "std-quote-789" }, expectedBehavior: "allow" },
     { 
       path: "/orcamentos/:id/itens/:itemId", 
-      params: { id: "test-quote-123", itemId: "item-789" }, 
+      params: { id: "std-quote-789", itemId: "std-item-456" }, 
       expectedBehavior: "allow" 
     },
     { path: "/admin/usuarios", expectedBehavior: "deny_redirect_home" },
     { 
       path: "/admin/cadastros/produto/:id/variante/:variantId", 
-      params: { id: "p-123", variantId: "v-456" }, 
+      params: { id: "std-prod-123", variantId: "std-var-001" }, 
       expectedBehavior: "deny_redirect_home" 
     },
-    { 
-      path: "/orcamentos/:id/itens/:itemId", 
-      params: { id: "valid-quote", itemId: "invalid-item" }, 
-      expectedBehavior: "deny_404" 
-    },
-    { 
-      path: "/orcamentos/:id/itens/:itemId", 
-      params: { id: "non-existent", itemId: "non-existent-item" }, 
-      expectedBehavior: "deny_404" 
-    },
     { path: "/rota-fantasma", expectedBehavior: "deny_404" },
+    { 
+      path: "/orcamentos/:id/itens/:itemId", 
+      params: { id: "std-quote-789", itemId: "invalid-item-999" }, 
+      expectedBehavior: "deny_404" 
+    },
+    { 
+      path: "/orcamentos/:id/itens/:itemId", 
+      params: { id: "non-existent-777", itemId: "non-existent-888" }, 
+      expectedBehavior: "deny_404" 
+    },
     { path: "/orcamentos/:id", params: { id: "inexistente-123" }, expectedBehavior: "deny_404" },
   ],
   supervisor: [
@@ -79,17 +79,17 @@ export const PERMISSION_MATRIX: Record<Role, PermissionRoute[]> = {
     { path: "/admin/usuarios", expectedBehavior: "allow" },
     { path: "/admin/cadastros", expectedBehavior: "allow" },
     { path: "/admin/non-existent-area", expectedBehavior: "deny_404" },
-    { path: "/admin/cadastros/produto/:id", params: { id: "test-prod-123" }, expectedBehavior: "allow" },
+    { path: "/admin/cadastros/produto/:id", params: { id: "std-prod-123" }, expectedBehavior: "allow" },
     { 
       path: "/admin/cadastros/produto/:id/variante/:variantId", 
-      params: { id: "test-prod-123", variantId: "v-blue" }, 
+      params: { id: "std-prod-123", variantId: "std-var-001" }, 
       expectedBehavior: "allow" 
     },
     { path: "/admin/telemetria", expectedBehavior: "deny_403" },
     { path: "/admin/telemetria/:id", params: { id: "invalid-id-123" }, expectedBehavior: "deny_403" },
     { 
       path: "/admin/workflows/:workflowId/runs/:runId", 
-      params: { workflowId: "wf-1", runId: "run-99" }, 
+      params: { workflowId: "std-wf-001", runId: "std-run-555" }, 
       expectedBehavior: "deny_403" 
     },
   ],
