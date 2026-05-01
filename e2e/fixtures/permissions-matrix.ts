@@ -44,7 +44,7 @@ export const PERMISSION_MATRIX: Record<Role, PermissionRoute[]> = {
       params: { id: "non-existent-777", itemId: "invalid-item-999" }, 
       expectedBehavior: "deny_login" 
     },
-    { path: "/public-search", params: { q: "test", sort: "desc", page: "invalid" }, expectedBehavior: "deny_login" },
+    { path: "/public-search", params: { q: "test", sort: "desc", page: "invalid", filter: "malicious<script>", mode: "advanced" }, expectedBehavior: "deny_login" },
   ],
   agente: [
     { path: "/produtos", expectedBehavior: "allow" },
@@ -63,17 +63,18 @@ export const PERMISSION_MATRIX: Record<Role, PermissionRoute[]> = {
       expectedBehavior: "deny_redirect_home" 
     },
     { path: "/rota-fantasma", expectedBehavior: "deny_404" },
-    { path: "/rota-fantasma?debug=true&token=invalid&context=deep", expectedBehavior: "deny_404" },
+    { path: "/rota-fantasma?debug=true&token=invalid&context=deep&traceId=unknown&retry=false", expectedBehavior: "deny_404" },
     { 
       path: "/orcamentos/:id/itens/:itemId", 
       params: { id: "std-quote-789", itemId: "invalid-item-999" }, 
       expectedBehavior: "deny_404" 
     },
     { 
-      path: "/orcamentos/:id/itens/:itemId?view=raw&mode=edit", 
+      path: "/orcamentos/:id/itens/:itemId?view=raw&mode=edit&format=json&depth=full", 
       params: { id: "non-existent-777", itemId: "non-existent-888" }, 
       expectedBehavior: "deny_404" 
     },
+    { path: "/admin/telemetria", expectedBehavior: "deny_403" },
     { path: "/orcamentos/:id", params: { id: "inexistente-123" }, expectedBehavior: "deny_404" },
   ],
   supervisor: [
@@ -88,7 +89,7 @@ export const PERMISSION_MATRIX: Record<Role, PermissionRoute[]> = {
       expectedBehavior: "allow" 
     },
     { path: "/admin/telemetria", expectedBehavior: "deny_403" },
-    { path: "/admin/telemetria?raw=true&limit=100&offset=invalid", expectedBehavior: "deny_403" },
+    { path: "/admin/telemetria?raw=true&limit=100&offset=invalid&sort=unknown&filter=blocked&secret=exposed", expectedBehavior: "deny_403" },
     { path: "/admin/telemetria/:id", params: { id: "invalid-id-123" }, expectedBehavior: "deny_403" },
     { 
       path: "/admin/workflows/:workflowId/runs/:runId", 
@@ -96,7 +97,7 @@ export const PERMISSION_MATRIX: Record<Role, PermissionRoute[]> = {
       expectedBehavior: "deny_403" 
     },
     { 
-      path: "/admin/workflows/:workflowId/runs/:runId?trace=true&step=final", 
+      path: "/admin/workflows/:workflowId/runs/:runId?trace=true&step=final&log=detailed&env=prod&bypass=true", 
       params: { workflowId: "invalid-wf", runId: "invalid-run" }, 
       expectedBehavior: "deny_403" 
     },
