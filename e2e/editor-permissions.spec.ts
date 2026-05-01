@@ -134,5 +134,27 @@ test.describe("Editor (Manager) Permissions Suite", () => {
       await page.goto("/");
       await expect(page).toHaveURL(/\/login/);
     });
+
+    test("tentativa de chamada de API restrita após logout deve retornar 401/403", async ({ page, request }) => {
+      // 1. Faz logout para garantir que não há tokens válidos
+      await logout(page);
+
+      // 2. Tenta fazer uma chamada direta via request API para um endpoint restrito
+      // Usamos endpoints que sabemos que exigem autenticação/permissões específicas
+      const restrictedEndpoints = [
+        '/functions/v1/log-login-attempt',
+        '/functions/v1/bridge-metrics', // Exemplo de endpoint técnico
+      ];
+
+      for (const endpoint of restrictedEndpoints) {
+        const response = await request.post(endpoint, {
+          data: { test: true }
+        });
+        
+        // Deve retornar 401 (Unauthorized) ou 403 (Forbidden)
+        // O status depende da implementação do Edge Function e do middleware do Supabase
+        expect([401, 403]).toContain(response.status());
+      }
+    });
   });
 });
