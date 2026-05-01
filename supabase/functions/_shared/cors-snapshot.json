@@ -1,0 +1,852 @@
+{
+  "generated_at": "2026-05-01T20:09:19.077Z",
+  "total": 84,
+  "counts": {
+    "shared": 67,
+    "inline": 17,
+    "none": 0
+  },
+  "functions": [
+    {
+      "name": "ai-recommendations",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "analyze-logo-colors",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "bi-copilot",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "bi-share-dossier",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "bitrix-sync",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "block-ip-temporarily",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "categories-api",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "cleanup-notifications",
+      "mode": "inline",
+      "allowHeaders": [
+        "apikey",
+        "authorization",
+        "content-type",
+        "x-client-info",
+        "x-request-id",
+        "x-step-up-token"
+      ],
+      "exposeHeaders": [
+        "x-request-id"
+      ],
+      "allowMethods": null,
+      "allowOrigin": "*"
+    },
+    {
+      "name": "cleanup-novelties",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "cnpj-lookup",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "collections-public-react",
+      "mode": "inline",
+      "allowHeaders": [
+        "apikey",
+        "authorization",
+        "content-type",
+        "x-client-info",
+        "x-request-id",
+        "x-step-up-token"
+      ],
+      "exposeHeaders": [
+        "x-request-id"
+      ],
+      "allowMethods": "POST, OPTIONS",
+      "allowOrigin": "*"
+    },
+    {
+      "name": "collections-watcher",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "commemorative-dates",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "comparison-ai-advisor",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "comparison-price-watcher",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "comparisons-public-react",
+      "mode": "inline",
+      "allowHeaders": [
+        "apikey",
+        "authorization",
+        "content-type",
+        "x-client-info",
+        "x-request-id",
+        "x-step-up-token"
+      ],
+      "exposeHeaders": [
+        "x-request-id"
+      ],
+      "allowMethods": "POST, OPTIONS",
+      "allowOrigin": "*"
+    },
+    {
+      "name": "connection-tester",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "connections-auto-test",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "connections-health-check",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "connections-hub-audit",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "crm-db-bridge",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "detect-new-device",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "dropbox-list",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "e2e-cleanup",
+      "mode": "inline",
+      "allowHeaders": [
+        "apikey",
+        "authorization",
+        "content-type",
+        "x-client-info",
+        "x-e2e-cleanup-token",
+        "x-request-id",
+        "x-step-up-token"
+      ],
+      "exposeHeaders": [
+        "x-request-id"
+      ],
+      "allowMethods": "POST, OPTIONS",
+      "allowOrigin": "*"
+    },
+    {
+      "name": "elevenlabs-scribe-token",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "elevenlabs-tts",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "expert-chat",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "external-db-bridge",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "external-db-inspect",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "favorites-public-react",
+      "mode": "inline",
+      "allowHeaders": [
+        "apikey",
+        "authorization",
+        "content-type",
+        "x-client-info",
+        "x-request-id",
+        "x-step-up-token"
+      ],
+      "exposeHeaders": [
+        "x-request-id"
+      ],
+      "allowMethods": "POST, OPTIONS",
+      "allowOrigin": "*"
+    },
+    {
+      "name": "favorites-watcher",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "force-global-logout",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "full-op-diagnostics",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "generate-ad-image",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "generate-ad-prompt",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "generate-mockup",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "generate-mockup-nanobanana",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "generate-product-seo",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "get-visitor-info",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "github-credentials-test",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "github-fix-config",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "health-check",
+      "mode": "inline",
+      "allowHeaders": [
+        "apikey",
+        "authorization",
+        "content-type",
+        "x-client-info",
+        "x-request-id",
+        "x-step-up-token"
+      ],
+      "exposeHeaders": [
+        "x-request-id"
+      ],
+      "allowMethods": null,
+      "allowOrigin": "*"
+    },
+    {
+      "name": "image-proxy",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "kit-ai-builder",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "kit-identity-suggest",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "kit-public-view",
+      "mode": "inline",
+      "allowHeaders": [
+        "apikey",
+        "authorization",
+        "content-type",
+        "x-client-info",
+        "x-request-id",
+        "x-step-up-token",
+        "x-supabase-client-platform",
+        "x-supabase-client-platform-version",
+        "x-supabase-client-runtime",
+        "x-supabase-client-runtime-version"
+      ],
+      "exposeHeaders": [
+        "x-request-id"
+      ],
+      "allowMethods": null,
+      "allowOrigin": "*"
+    },
+    {
+      "name": "log-login-attempt",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "magic-up-score",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "manage-users",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "market-intelligence-insights",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "materials-api",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "mcp-keys-issue",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "mcp-keys-revoke",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "mcp-keys-rotate",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "mcp-keys-update",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "mcp-server",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "ownership-audit",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "ownership-repair",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "process-queue",
+      "mode": "inline",
+      "allowHeaders": [
+        "apikey",
+        "authorization",
+        "content-type",
+        "x-client-info",
+        "x-request-id",
+        "x-step-up-token"
+      ],
+      "exposeHeaders": [
+        "x-request-id"
+      ],
+      "allowMethods": null,
+      "allowOrigin": "*"
+    },
+    {
+      "name": "process-scheduled-reports",
+      "mode": "inline",
+      "allowHeaders": [
+        "apikey",
+        "authorization",
+        "content-type",
+        "x-client-info",
+        "x-request-id",
+        "x-step-up-token"
+      ],
+      "exposeHeaders": [
+        "x-request-id"
+      ],
+      "allowMethods": null,
+      "allowOrigin": "*"
+    },
+    {
+      "name": "product-webhook",
+      "mode": "inline",
+      "allowHeaders": [
+        "apikey",
+        "authorization",
+        "content-type",
+        "x-client-info",
+        "x-request-id",
+        "x-step-up-token",
+        "x-supabase-client-platform",
+        "x-supabase-client-platform-version",
+        "x-supabase-client-runtime",
+        "x-supabase-client-runtime-version",
+        "x-webhook-secret"
+      ],
+      "exposeHeaders": [
+        "x-request-id"
+      ],
+      "allowMethods": null,
+      "allowOrigin": "*"
+    },
+    {
+      "name": "quote-followup-reminders",
+      "mode": "inline",
+      "allowHeaders": [
+        "apikey",
+        "authorization",
+        "content-type",
+        "x-client-info",
+        "x-request-id",
+        "x-step-up-token"
+      ],
+      "exposeHeaders": [
+        "x-request-id"
+      ],
+      "allowMethods": null,
+      "allowOrigin": "*"
+    },
+    {
+      "name": "quote-public-view",
+      "mode": "inline",
+      "allowHeaders": [
+        "apikey",
+        "authorization",
+        "content-type",
+        "x-client-info",
+        "x-request-id",
+        "x-step-up-token",
+        "x-supabase-client-platform",
+        "x-supabase-client-platform-version",
+        "x-supabase-client-runtime",
+        "x-supabase-client-runtime-version"
+      ],
+      "exposeHeaders": [
+        "x-request-id"
+      ],
+      "allowMethods": null,
+      "allowOrigin": "*"
+    },
+    {
+      "name": "quote-sync",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "rate-limit-check",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "rls-audit",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "rls-integration-tests",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "rls-matrix-export",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "secrets-manager",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "secure-upload",
+      "mode": "inline",
+      "allowHeaders": [
+        "apikey",
+        "authorization",
+        "content-type",
+        "x-client-info",
+        "x-request-id",
+        "x-step-up-token"
+      ],
+      "exposeHeaders": [
+        "x-request-id"
+      ],
+      "allowMethods": null,
+      "allowOrigin": "*"
+    },
+    {
+      "name": "semantic-search",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "send-digest",
+      "mode": "inline",
+      "allowHeaders": [
+        "apikey",
+        "authorization",
+        "content-type",
+        "x-client-info",
+        "x-request-id",
+        "x-step-up-token"
+      ],
+      "exposeHeaders": [
+        "x-request-id"
+      ],
+      "allowMethods": null,
+      "allowOrigin": "*"
+    },
+    {
+      "name": "send-notification",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "send-scheduled-reports",
+      "mode": "inline",
+      "allowHeaders": [
+        "apikey",
+        "authorization",
+        "content-type",
+        "x-client-info",
+        "x-request-id",
+        "x-step-up-token"
+      ],
+      "exposeHeaders": [
+        "x-request-id"
+      ],
+      "allowMethods": null,
+      "allowOrigin": "*"
+    },
+    {
+      "name": "send-transactional-email",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "step-up-verify",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "sync-quote-bitrix",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "trends-insights",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "validate-access",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "verify-email",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "visual-search",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "voice-agent",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "webhook-dispatcher",
+      "mode": "inline",
+      "allowHeaders": [
+        "apikey",
+        "authorization",
+        "content-type",
+        "x-client-info",
+        "x-request-id",
+        "x-step-up-token"
+      ],
+      "exposeHeaders": [
+        "x-request-id"
+      ],
+      "allowMethods": "POST, OPTIONS",
+      "allowOrigin": "*"
+    },
+    {
+      "name": "webhook-inbound",
+      "mode": "inline",
+      "allowHeaders": [
+        "apikey",
+        "authorization",
+        "content-type",
+        "x-client-info",
+        "x-event",
+        "x-request-id",
+        "x-signature-256",
+        "x-step-up-token"
+      ],
+      "exposeHeaders": [
+        "x-request-id"
+      ],
+      "allowMethods": "POST, OPTIONS",
+      "allowOrigin": "*"
+    }
+  ]
+}
