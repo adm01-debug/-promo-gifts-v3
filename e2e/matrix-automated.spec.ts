@@ -80,7 +80,14 @@ test.describe("Matriz de Permissões Automatizada", () => {
                 await expect(deniedContainer).toContainText("403");
                 await expect(deniedContainer).toContainText("Acesso restrito");
                 
-                // 4. Deve exibir o identificador de segurança ofuscado
+                // 4. Verificação de Dados Sensíveis (403): Ocultação total de internals
+                const bodyText403 = await page.innerText('body');
+                const forbidden403 = ["sql", "stack trace", "exception", "postgres", "supabase", "internal error", "dump", "at /", "line "];
+                for (const term of forbidden403) {
+                  expect(bodyText403.toLowerCase(), `Vazamento de dado técnico (403): ${term}`).not.toContain(term.toLowerCase());
+                }
+                
+                // 5. Deve exibir o identificador de segurança ofuscado
                 await expect(page.locator("text=Identificador de Segurança")).toBeVisible();
 
                 // 5. NÃO deve exibir o layout de 404 indevidamente
