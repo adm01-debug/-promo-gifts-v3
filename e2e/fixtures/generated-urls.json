@@ -2,26 +2,26 @@
   "publico": [
     "/login",
     "/produtos",
-    "/orcamentos/test-quote-123",
+    "/orcamentos/std-quote-789",
     "/orcamentos/another-quote-456",
     "/admin/usuarios",
-    "/admin/cadastros/produto/p-123/variante/v-456",
-    "/orcamentos/non-existent/itens/invalid-item"
+    "/admin/cadastros/produto/std-prod-123/variante/std-var-001",
+    "/orcamentos/non-existent-777/itens/invalid-item-999"
   ],
   "agente": [
     "/produtos",
     "/orcamentos",
-    "/orcamentos/test-quote-123",
+    "/orcamentos/std-quote-789",
     "/orcamentos/invalid-id-auto",
-    "/orcamentos/test-quote-123/editar",
+    "/orcamentos/std-quote-789/editar",
     "/orcamentos/invalid-id-auto/editar",
-    "/orcamentos/test-quote-123/itens/item-789",
+    "/orcamentos/std-quote-789/itens/std-item-456",
     "/orcamentos/invalid-id-auto/itens/invalid-itemId-auto",
     "/admin/usuarios",
-    "/admin/cadastros/produto/p-123/variante/v-456",
-    "/orcamentos/valid-quote/itens/invalid-item",
-    "/orcamentos/non-existent/itens/non-existent-item",
+    "/admin/cadastros/produto/std-prod-123/variante/std-var-001",
     "/rota-fantasma",
+    "/orcamentos/std-quote-789/itens/invalid-item-999",
+    "/orcamentos/non-existent-777/itens/non-existent-888",
     "/orcamentos/inexistente-123"
   ],
   "supervisor": [
@@ -29,13 +29,13 @@
     "/admin/usuarios",
     "/admin/cadastros",
     "/admin/non-existent-area",
-    "/admin/cadastros/produto/test-prod-123",
+    "/admin/cadastros/produto/std-prod-123",
     "/admin/cadastros/produto/invalid-id-auto",
-    "/admin/cadastros/produto/test-prod-123/variante/v-blue",
+    "/admin/cadastros/produto/std-prod-123/variante/std-var-001",
     "/admin/cadastros/produto/invalid-id-auto/variante/invalid-variantId-auto",
     "/admin/telemetria",
     "/admin/telemetria/invalid-id-123",
-    "/admin/workflows/wf-1/runs/run-99"
+    "/admin/workflows/std-wf-001/runs/std-run-555"
   ],
   "dev": [
     "/admin/telemetria",
