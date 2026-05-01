@@ -34,6 +34,11 @@ export const PERMISSION_MATRIX: Record<Role, PermissionRoute[]> = {
     { path: "/produtos", expectedBehavior: "deny_login" },
     { path: "/orcamentos/:id", params: [{ id: "test-quote-123" }, { id: "another-quote-456" }], expectedBehavior: "deny_login" },
     { path: "/admin/usuarios", expectedBehavior: "deny_login" },
+    { 
+      path: "/admin/cadastros/produto/:id/variante/:variantId", 
+      params: { id: "p-123", variantId: "v-456" }, 
+      expectedBehavior: "deny_login" 
+    },
   ],
   agente: [
     { path: "/produtos", expectedBehavior: "allow" },
@@ -46,6 +51,11 @@ export const PERMISSION_MATRIX: Record<Role, PermissionRoute[]> = {
       expectedBehavior: "allow" 
     },
     { path: "/admin/usuarios", expectedBehavior: "deny_redirect_home" },
+    { 
+      path: "/admin/cadastros/produto/:id/variante/:variantId", 
+      params: { id: "p-123", variantId: "v-456" }, 
+      expectedBehavior: "deny_redirect_home" 
+    },
     { path: "/rota-fantasma", expectedBehavior: "deny_404" },
     { path: "/orcamentos/:id", params: { id: "inexistente-123" }, expectedBehavior: "deny_404" },
   ],
@@ -60,6 +70,11 @@ export const PERMISSION_MATRIX: Record<Role, PermissionRoute[]> = {
       expectedBehavior: "allow" 
     },
     { path: "/admin/telemetria", expectedBehavior: "deny_403" },
+    { 
+      path: "/admin/workflows/:workflowId/runs/:runId", 
+      params: { workflowId: "wf-1", runId: "run-99" }, 
+      expectedBehavior: "deny_403" 
+    },
   ],
   dev: [
     { path: "/admin/telemetria", expectedBehavior: "allow" },
