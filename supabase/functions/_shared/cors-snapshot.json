@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-05-01T20:11:25.747Z",
+  "generated_at": "2026-05-01T20:15:40.846Z",
   "total": 85,
   "counts": {
-    "shared": 68,
-    "inline": 17,
+    "shared": 85,
+    "inline": 0,
     "none": 0
   },
   "functions": [
@@ -65,20 +65,11 @@
     },
     {
       "name": "cleanup-notifications",
-      "mode": "inline",
-      "allowHeaders": [
-        "apikey",
-        "authorization",
-        "content-type",
-        "x-client-info",
-        "x-request-id",
-        "x-step-up-token"
-      ],
-      "exposeHeaders": [
-        "x-request-id"
-      ],
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
       "allowMethods": null,
-      "allowOrigin": "*"
+      "allowOrigin": null
     },
     {
       "name": "cleanup-novelties",
@@ -98,20 +89,11 @@
     },
     {
       "name": "collections-public-react",
-      "mode": "inline",
-      "allowHeaders": [
-        "apikey",
-        "authorization",
-        "content-type",
-        "x-client-info",
-        "x-request-id",
-        "x-step-up-token"
-      ],
-      "exposeHeaders": [
-        "x-request-id"
-      ],
-      "allowMethods": "POST, OPTIONS",
-      "allowOrigin": "*"
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
     },
     {
       "name": "collections-watcher",
@@ -147,20 +129,11 @@
     },
     {
       "name": "comparisons-public-react",
-      "mode": "inline",
-      "allowHeaders": [
-        "apikey",
-        "authorization",
-        "content-type",
-        "x-client-info",
-        "x-request-id",
-        "x-step-up-token"
-      ],
-      "exposeHeaders": [
-        "x-request-id"
-      ],
-      "allowMethods": "POST, OPTIONS",
-      "allowOrigin": "*"
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
     },
     {
       "name": "connection-tester",
@@ -228,21 +201,11 @@
     },
     {
       "name": "e2e-cleanup",
-      "mode": "inline",
-      "allowHeaders": [
-        "apikey",
-        "authorization",
-        "content-type",
-        "x-client-info",
-        "x-e2e-cleanup-token",
-        "x-request-id",
-        "x-step-up-token"
-      ],
-      "exposeHeaders": [
-        "x-request-id"
-      ],
-      "allowMethods": "POST, OPTIONS",
-      "allowOrigin": "*"
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
     },
     {
       "name": "elevenlabs-scribe-token",
@@ -286,20 +249,11 @@
     },
     {
       "name": "favorites-public-react",
-      "mode": "inline",
-      "allowHeaders": [
-        "apikey",
-        "authorization",
-        "content-type",
-        "x-client-info",
-        "x-request-id",
-        "x-step-up-token"
-      ],
-      "exposeHeaders": [
-        "x-request-id"
-      ],
-      "allowMethods": "POST, OPTIONS",
-      "allowOrigin": "*"
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
     },
     {
       "name": "favorites-watcher",
@@ -391,20 +345,11 @@
     },
     {
       "name": "health-check",
-      "mode": "inline",
-      "allowHeaders": [
-        "apikey",
-        "authorization",
-        "content-type",
-        "x-client-info",
-        "x-request-id",
-        "x-step-up-token"
-      ],
-      "exposeHeaders": [
-        "x-request-id"
-      ],
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
       "allowMethods": null,
-      "allowOrigin": "*"
+      "allowOrigin": null
     },
     {
       "name": "image-proxy",
@@ -432,24 +377,11 @@
     },
     {
       "name": "kit-public-view",
-      "mode": "inline",
-      "allowHeaders": [
-        "apikey",
-        "authorization",
-        "content-type",
-        "x-client-info",
-        "x-request-id",
-        "x-step-up-token",
-        "x-supabase-client-platform",
-        "x-supabase-client-platform-version",
-        "x-supabase-client-runtime",
-        "x-supabase-client-runtime-version"
-      ],
-      "exposeHeaders": [
-        "x-request-id"
-      ],
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
       "allowMethods": null,
-      "allowOrigin": "*"
+      "allowOrigin": null
     },
     {
       "name": "log-login-attempt",
@@ -549,97 +481,43 @@
     },
     {
       "name": "process-queue",
-      "mode": "inline",
-      "allowHeaders": [
-        "apikey",
-        "authorization",
-        "content-type",
-        "x-client-info",
-        "x-request-id",
-        "x-step-up-token"
-      ],
-      "exposeHeaders": [
-        "x-request-id"
-      ],
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
       "allowMethods": null,
-      "allowOrigin": "*"
+      "allowOrigin": null
     },
     {
       "name": "process-scheduled-reports",
-      "mode": "inline",
-      "allowHeaders": [
-        "apikey",
-        "authorization",
-        "content-type",
-        "x-client-info",
-        "x-request-id",
-        "x-step-up-token"
-      ],
-      "exposeHeaders": [
-        "x-request-id"
-      ],
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
       "allowMethods": null,
-      "allowOrigin": "*"
+      "allowOrigin": null
     },
     {
       "name": "product-webhook",
-      "mode": "inline",
-      "allowHeaders": [
-        "apikey",
-        "authorization",
-        "content-type",
-        "x-client-info",
-        "x-request-id",
-        "x-step-up-token",
-        "x-supabase-client-platform",
-        "x-supabase-client-platform-version",
-        "x-supabase-client-runtime",
-        "x-supabase-client-runtime-version",
-        "x-webhook-secret"
-      ],
-      "exposeHeaders": [
-        "x-request-id"
-      ],
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
       "allowMethods": null,
-      "allowOrigin": "*"
+      "allowOrigin": null
     },
     {
       "name": "quote-followup-reminders",
-      "mode": "inline",
-      "allowHeaders": [
-        "apikey",
-        "authorization",
-        "content-type",
-        "x-client-info",
-        "x-request-id",
-        "x-step-up-token"
-      ],
-      "exposeHeaders": [
-        "x-request-id"
-      ],
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
       "allowMethods": null,
-      "allowOrigin": "*"
+      "allowOrigin": null
     },
     {
       "name": "quote-public-view",
-      "mode": "inline",
-      "allowHeaders": [
-        "apikey",
-        "authorization",
-        "content-type",
-        "x-client-info",
-        "x-request-id",
-        "x-step-up-token",
-        "x-supabase-client-platform",
-        "x-supabase-client-platform-version",
-        "x-supabase-client-runtime",
-        "x-supabase-client-runtime-version"
-      ],
-      "exposeHeaders": [
-        "x-request-id"
-      ],
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
       "allowMethods": null,
-      "allowOrigin": "*"
+      "allowOrigin": null
     },
     {
       "name": "quote-sync",
@@ -691,20 +569,11 @@
     },
     {
       "name": "secure-upload",
-      "mode": "inline",
-      "allowHeaders": [
-        "apikey",
-        "authorization",
-        "content-type",
-        "x-client-info",
-        "x-request-id",
-        "x-step-up-token"
-      ],
-      "exposeHeaders": [
-        "x-request-id"
-      ],
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
       "allowMethods": null,
-      "allowOrigin": "*"
+      "allowOrigin": null
     },
     {
       "name": "semantic-search",
@@ -716,20 +585,11 @@
     },
     {
       "name": "send-digest",
-      "mode": "inline",
-      "allowHeaders": [
-        "apikey",
-        "authorization",
-        "content-type",
-        "x-client-info",
-        "x-request-id",
-        "x-step-up-token"
-      ],
-      "exposeHeaders": [
-        "x-request-id"
-      ],
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
       "allowMethods": null,
-      "allowOrigin": "*"
+      "allowOrigin": null
     },
     {
       "name": "send-notification",
@@ -741,20 +601,11 @@
     },
     {
       "name": "send-scheduled-reports",
-      "mode": "inline",
-      "allowHeaders": [
-        "apikey",
-        "authorization",
-        "content-type",
-        "x-client-info",
-        "x-request-id",
-        "x-step-up-token"
-      ],
-      "exposeHeaders": [
-        "x-request-id"
-      ],
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
       "allowMethods": null,
-      "allowOrigin": "*"
+      "allowOrigin": null
     },
     {
       "name": "send-transactional-email",
@@ -822,39 +673,19 @@
     },
     {
       "name": "webhook-dispatcher",
-      "mode": "inline",
-      "allowHeaders": [
-        "apikey",
-        "authorization",
-        "content-type",
-        "x-client-info",
-        "x-request-id",
-        "x-step-up-token"
-      ],
-      "exposeHeaders": [
-        "x-request-id"
-      ],
-      "allowMethods": "POST, OPTIONS",
-      "allowOrigin": "*"
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
     },
     {
       "name": "webhook-inbound",
-      "mode": "inline",
-      "allowHeaders": [
-        "apikey",
-        "authorization",
-        "content-type",
-        "x-client-info",
-        "x-event",
-        "x-request-id",
-        "x-signature-256",
-        "x-step-up-token"
-      ],
-      "exposeHeaders": [
-        "x-request-id"
-      ],
-      "allowMethods": "POST, OPTIONS",
-      "allowOrigin": "*"
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
     }
   ]
 }
