@@ -1,4 +1,4 @@
-import { getCorsHeaders } from "../_shared/cors.ts";
+import { buildPublicCorsHeaders, getCorsHeaders } from "../_shared/cors.ts";
 // MCP server for Claude Desktop / other Lovable projects.
 // Authenticates via X-MCP-Key header (validated in DB against mcp_api_keys.key_hash).
 // Each tool declares { scope, mode } and is gated centrally before running.
