@@ -204,7 +204,7 @@ function VirtualList({ products, navigate, handleViewProduct, handleShareProduct
           {virtualizer.getVirtualItems().map((vr) => {
             if (vr.index === rowCount) return (
               <div key="footer" style={{ position: "absolute", top: 0, left: 0, width: "100%", transform: `translateY(${vr.start}px)` }}>
-                <VirtualFooter hasMore={hasMore} loadMoreRef={loadMoreRef} productsCount={products.length} totalEstimate={totalEstimate} filteredCount={filteredCount} isLoadingMore={isLoadingMore} itemsPerPage={itemsPerPage} skeletonType="list" />
+                <VirtualFooter hasMore={hasMore} loadMoreRef={loadMoreRef} productsCount={products.length} totalEstimate={totalEstimate} filteredCount={filteredCount} isLoadingMore={isLoadingMore} itemsPerPage={itemsPerPage} skeletonType="list" columns={5} />
               </div>
             );
             const product = products[vr.index];
