@@ -93,16 +93,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchAAL = useCallback(async () => {
     try {
-      const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-      const { data: factorsData } = await supabase.auth.mfa.listFactors();
+      const data = await authService.fetchAAL();
       if (!mountedRef.current) return;
-      setCurrentAAL((aalData?.currentLevel ?? null) as 'aal1' | 'aal2' | null);
-      setNextAAL((aalData?.nextLevel ?? null) as 'aal1' | 'aal2' | null);
-      setHasMFA(!!factorsData?.totp?.some((f) => f.status === 'verified'));
+      setCurrentAAL(data.currentLevel);
+      setNextAAL(data.nextLevel);
+      setHasMFA(data.hasMFA);
     } catch (e) {
       if (import.meta.env.DEV) logger.warn('AAL fetch failed', e instanceof Error ? e.message : String(e));
     }
   }, []);
+
 
   const fetchUserData = useCallback(async (userId: string) => {
     // Se já existe um fetch em andamento para este userId, aguardar ao invés de ignorar
