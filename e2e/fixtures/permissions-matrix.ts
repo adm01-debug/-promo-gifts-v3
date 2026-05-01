@@ -9,7 +9,7 @@ export interface PermissionRoute {
   path: string;
   /** Permite testar rotas com parâmetros. Pode ser um objeto simples ou um array de objetos para múltiplos cenários. */
   params?: Record<string, string> | Record<string, string>[];
-  expectedBehavior: "allow" | "deny_redirect_home" | "deny_403" | "deny_login";
+  expectedBehavior: "allow" | "deny_redirect_home" | "deny_403" | "deny_login" | "deny_404";
 }
 
 /** Helper para resolver os paths reais substituindo parâmetros. Retorna um array para suportar múltiplos valores. */
@@ -46,6 +46,8 @@ export const PERMISSION_MATRIX: Record<Role, PermissionRoute[]> = {
       expectedBehavior: "allow" 
     },
     { path: "/admin/usuarios", expectedBehavior: "deny_redirect_home" },
+    { path: "/rota-fantasma", expectedBehavior: "deny_404" },
+    { path: "/orcamentos/:id", params: { id: "inexistente-123" }, expectedBehavior: "deny_404" },
   ],
   supervisor: [
     { path: "/produtos", expectedBehavior: "allow" },

@@ -80,6 +80,17 @@ test.describe("Matriz de Permissões Automatizada", () => {
                 // 3. Deve exibir o identificador de segurança ofuscado
                 await expect(page.locator("text=Identificador de Segurança")).toBeVisible();
                 break;
+
+              case "deny_404":
+                // 1. Deve mostrar página de 404 ou mensagem de não encontrado
+                // Dependendo da implementação, pode ser um componente específico ou redirect
+                await expect(page.locator("text=não encontrada").or(page.locator("text=404"))).toBeVisible();
+                
+                // 2. Garantir que não vaza detalhes técnicos do erro
+                const bodyText = await page.innerText('body');
+                expect(bodyText.toLowerCase()).not.toContain("sql");
+                expect(bodyText.toLowerCase()).not.toContain("stack trace");
+                break;
             }
           });
         }
