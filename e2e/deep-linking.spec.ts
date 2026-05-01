@@ -14,7 +14,7 @@ import { gotoAndSettle } from "./helpers/nav";
 test.describe("Deep Linking & Auth Flow Integrity", () => {
 
   const scenarios = [
-    { role: "agente" as AuthRole, target: "/produtos", label: "Agente acessando Catálogo" },
+    { role: "user" as AuthRole, target: "/produtos", label: "Agente acessando Catálogo" },
     { role: "editor" as AuthRole, target: "/admin/usuarios", label: "Editor acessando Gestão de Usuários" },
     { role: "dev" as AuthRole, target: "/admin/telemetria", label: "Dev acessando Telemetria" },
   ];
