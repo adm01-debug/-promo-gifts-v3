@@ -33,12 +33,7 @@ type E2ERateLimitRow = {
   current_count?: number;
 };
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-e2e-cleanup-token, x-request-id, x-step-up-token",
-  "Access-Control-Expose-Headers": "x-request-id",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
+const corsHeaders = buildPublicCorsHeaders({ extraAllowHeaders: ["x-e2e-cleanup-token"], allowMethods: "POST, OPTIONS" });
 
 function jsonResponse(body: unknown, status = 200, extraHeaders: Record<string, string> = {}) {
   return new Response(JSON.stringify(body), {

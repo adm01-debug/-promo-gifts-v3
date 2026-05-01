@@ -1,10 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-request-id, x-step-up-token',
-  'Access-Control-Expose-Headers': 'x-request-id',
-};
+const corsHeaders = buildPublicCorsHeaders();
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {

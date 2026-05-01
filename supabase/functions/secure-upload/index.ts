@@ -2,11 +2,7 @@ import { authenticateRequest, authErrorResponse } from "../_shared/auth.ts";
 import { createStructuredLogger } from "../_shared/structured-logger.ts";
 import { getOrCreateRequestId } from "../_shared/request-id.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-request-id, x-step-up-token",
-  "Access-Control-Expose-Headers": "x-request-id",
-};
+const corsHeaders = buildPublicCorsHeaders();
 
 interface ScanLog {
   user_id: string;

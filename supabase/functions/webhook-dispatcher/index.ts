@@ -8,12 +8,7 @@ import { crypto } from "https://deno.land/std@0.224.0/crypto/mod.ts";
 import { encodeHex } from "https://deno.land/std@0.224.0/encoding/hex.ts";
 import { z } from "https://deno.land/x/zod@v3.23.8/mod.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-request-id, x-step-up-token",
-  "Access-Control-Expose-Headers": "x-request-id",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
+const corsHeaders = buildPublicCorsHeaders({ allowMethods: "POST, OPTIONS" });
 
 const BodySchema = z.object({
   event: z.string().min(1),
