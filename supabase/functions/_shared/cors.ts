@@ -176,49 +176,8 @@ function logPreflightFromRequest(req: Request, origin: string): void {
  */
 export function handleCorsPreflightIfNeeded(req: Request): Response | null {
   if (req.method !== 'OPTIONS') return null;
-
-  const origin = req.headers.get('Origin') || req.headers.get('origin') || '';
-  const requestedHeadersRaw =
-    req.headers.get('Access-Control-Request-Headers') ||
-    req.headers.get('access-control-request-headers') ||
-    '';
-  const requestedMethod =
-    req.headers.get('Access-Control-Request-Method') ||
-    req.headers.get('access-control-request-method') ||
-    '';
-
-  const originAllowed = !origin || isAllowedOrigin(origin);
-  const requestedHeaders = requestedHeadersRaw
-    .split(',')
-    .map((h) => h.trim().toLowerCase())
-    .filter(Boolean);
-  const missingHeaders = requestedHeaders.filter((h) => !ALLOWED_HEADERS_SET.has(h));
-
-  const requestId =
-    req.headers.get('X-Request-Id') || req.headers.get('x-request-id') || null;
-
-  const baseFields = {
-    request_id: requestId,
-    origin: origin || null,
-    origin_allowed: originAllowed,
-    requested_method: requestedMethod || null,
-    requested_headers: requestedHeaders,
-    missing_headers: missingHeaders,
-  };
-
-  if (!originAllowed || missingHeaders.length > 0) {
-    logCorsEvent('cors_preflight_warn', {
-      ...baseFields,
-      reason: !originAllowed ? 'origin_not_allowed' : 'header_not_allowed',
-      hint:
-        missingHeaders.length > 0
-          ? `Add to ALLOWED_HEADERS_LIST in _shared/cors.ts: ${missingHeaders.join(', ')}`
-          : 'Add origin to EXACT_ALLOWED_ORIGINS or ALLOWED_ORIGIN_PATTERNS',
-    });
-  } else {
-    logCorsEvent('cors_preflight_ok', baseFields);
-  }
-
+  // getCorsHeaders() emits the structured preflight log on its own when the
+  // request method is OPTIONS, so we don't duplicate the log here.
   return new Response(null, { headers: getCorsHeaders(req) });
 }
 
