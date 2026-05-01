@@ -1,6 +1,16 @@
 import { PERMISSION_MATRIX, resolvePaths } from "../fixtures/permissions-matrix";
 import * as fs from "node:fs";
 import * as path from "node:path";
+import { z } from "zod";
+
+/**
+ * Schema de validação para a fixture gerada.
+ * Garante que o JSON final tenha os papéis corretos e listas de strings (URLs).
+ */
+const UrlFixtureSchema = z.record(
+  z.enum(["publico", "agente", "supervisor", "dev"]),
+  z.array(z.string().startsWith("/"))
+);
 
 /**
  * Script para gerar automaticamente um arquivo de fixtures estáticas 
