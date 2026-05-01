@@ -1,6 +1,16 @@
 import { PERMISSION_MATRIX, resolvePaths } from "../fixtures/permissions-matrix";
 import * as fs from "node:fs";
 import * as path from "node:path";
+import { z } from "zod";
+
+/**
+ * Schema de validação para a fixture gerada.
+ * Garante que o JSON final tenha os papéis corretos e listas de strings (URLs).
+ */
+const UrlFixtureSchema = z.record(
+  z.enum(["publico", "agente", "supervisor", "dev"]),
+  z.array(z.string().startsWith("/"))
+);
 
 /**
  * Script para gerar automaticamente um arquivo de fixtures estáticas 
@@ -75,6 +85,17 @@ function generateUrlFixtures() {
     if (unresolved.length > 0) {
       throw new Error(`❌ Erro crítico: Rotas não resolvidas detectadas para o papel [${role}]: ${unresolved.join(', ')}`);
     }
+  }
+
+  // Validação de Schema via Zod
+  try {
+    UrlFixtureSchema.parse(output);
+    console.log("✅ Schema validado com sucesso via Zod.");
+  } catch (err) {
+    if (err instanceof z.ZodError) {
+      console.error("❌ Falha na validação do schema JSON:", err.errors);
+    }
+    throw err;
   }
 }
 
