@@ -24,22 +24,20 @@ function generateUrlFixtures() {
   const totalStats = { total: 0, unique: 0, parameterized: 0, generatedNegative: 0 };
 
   for (const [role, routes] of Object.entries(PERMISSION_MATRIX)) {
-    const resolvedUrls = routes.flatMap(route => {
+    const roleResolvedUrls: string[] = [];
+    
+    for (const route of routes) {
       const paths = resolvePaths(route);
+      roleResolvedUrls.push(...paths);
       
       if (route.path.includes(':')) {
         totalStats.parameterized++;
         
-        // Gerador Automático de Cenários Negativos Combinados (Invalid Params)
-        // Se a rota é parametrizada, criamos combinações de IDs válidos e inválidos
         const paramNames = (route.path.match(/:[a-zA-Z0-9]+/g) || []).map(p => p.replace(':', ''));
         
         if (paramNames.length > 0 && route.expectedBehavior === 'allow') {
-          // Extraímos o primeiro conjunto de parâmetros válidos como base
           const validBase = Array.isArray(route.params) ? route.params[0] : (route.params || {});
           
-          // Geramos casos: 
-          // 1. Um parâmetro inválido por vez (mantendo os outros válidos)
           paramNames.forEach(targetParam => {
             const mixedParams: Record<string, string> = { ...validBase };
             mixedParams[targetParam] = `invalid-${targetParam}-auto`;
@@ -48,30 +46,28 @@ function generateUrlFixtures() {
             for (const [key, value] of Object.entries(mixedParams)) {
               mixedPath = mixedPath.split(`:${key}`).join(value);
             }
-            if (!resolvedUrls.includes(mixedPath)) {
-              paths.push(mixedPath);
+            if (!roleResolvedUrls.includes(mixedPath)) {
+              roleResolvedUrls.push(mixedPath);
               totalStats.generatedNegative++;
             }
           });
 
-          // 2. Todos os parâmetros inválidos (se houver > 1 parâmetro)
           if (paramNames.length > 1) {
             let allInvalidPath = route.path;
             paramNames.forEach(name => {
               allInvalidPath = allInvalidPath.split(`:${name}`).join(`invalid-${name}-all-auto`);
             });
-            if (!resolvedUrls.includes(allInvalidPath)) {
-              paths.push(allInvalidPath);
+            if (!roleResolvedUrls.includes(allInvalidPath)) {
+              roleResolvedUrls.push(allInvalidPath);
               totalStats.generatedNegative++;
             }
           }
         }
       }
-      return paths;
-    });
+    }
 
     // Validação de duplicidades por papel
-    const uniqueUrls = [...new Set(resolvedUrls)];
+    const uniqueUrls = [...new Set(roleResolvedUrls)];
     if (uniqueUrls.length !== resolvedUrls.length) {
       console.warn(`⚠️ Aviso: Duplicidades detectadas para o papel [${role}]. Removendo...`);
     }
