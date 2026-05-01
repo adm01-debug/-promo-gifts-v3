@@ -32,7 +32,7 @@ export const PERMISSION_MATRIX: Record<Role, PermissionRoute[]> = {
   publico: [
     { path: "/login", expectedBehavior: "allow" },
     { path: "/produtos", expectedBehavior: "deny_login" },
-    { path: "/orcamentos/:id", params: { id: "test-quote-123" }, expectedBehavior: "deny_login" },
+    { path: "/orcamentos/:id", params: [{ id: "test-quote-123" }, { id: "another-quote-456" }], expectedBehavior: "deny_login" },
     { path: "/admin/usuarios", expectedBehavior: "deny_login" },
   ],
   agente: [
