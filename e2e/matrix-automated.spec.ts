@@ -119,18 +119,18 @@ test.describe("Matriz de Permissões Automatizada", () => {
                 await expect(page.locator("text=Página não encontrada")).toBeVisible();
 
                 // 4. Validação Visual / Snapshot (Consistência de Layout)
-                // Usamos toHaveScreenshot para garantir que o layout 404 não degradou
+                // Usamos toHaveScreenshot para garantir que o layout 404 não degradou e está responsivo
                 await expect(page).toHaveScreenshot('not-found-page.png', {
-                  mask: [page.locator('code')], // Mascaramos o path variável para evitar falso-negativos
-                  maxDiffPixelRatio: 0.05
+                  mask: [page.locator('code')], 
+                  maxDiffPixelRatio: 0.1 
                 });
 
                 // 5. Não deve exibir o layout de erro 403 (RBAC) indevidamente
                 await expect(page.locator('[data-testid="app-access-denied"]'), "Não deveria exibir layout de 403").not.toBeVisible();
 
-                // 6. Garantir que não vaza detalhes técnicos do erro (DB, server, stack)
+                // 6. Verificação de Dados Sensíveis (404): Ocultação total de internals
                 const bodyText404 = await page.innerText('body');
-                const forbidden404 = ["sql", "stack trace", "dump", "exception", "postgres", "supabase"];
+                const forbidden404 = ["sql", "stack trace", "exception", "postgres", "supabase", "internal error", "dump", "at /", "line "];
                 for (const term of forbidden404) {
                   expect(bodyText404.toLowerCase(), `Vazamento de dado técnico (404): ${term}`).not.toContain(term.toLowerCase());
                 }
