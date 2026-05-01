@@ -430,11 +430,7 @@ Deno.serve((req) => {
     // ignora — vamos usar "unknown"
   }
   return requestCtx.run({ requestId }, async () => {
-    let corsHeaders: Record<string, string> = {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-request-id, x-step-up-token",
-      "Access-Control-Allow-Methods": "POST, OPTIONS",
-    };
+    let corsHeaders: Record<string, string> = buildPublicCorsHeaders({ allowMethods: "POST, OPTIONS" });
     try {
       corsHeaders = getCorsHeaders(req);
       const preflightResponse = handleCorsPreflightIfNeeded(req);
