@@ -32,9 +32,10 @@ test.describe("Matriz de Permissões Automatizada", () => {
 
       // Testa cada rota para o papel atual
       for (const route of routes) {
-        const actualPath = resolvePath(route);
-        test(`acesso a ${actualPath} deve resultar em ${route.expectedBehavior}`, async ({ page }) => {
-          await gotoAndSettle(page, actualPath);
+        const actualPaths = resolvePaths(route);
+        for (const actualPath of actualPaths) {
+          test(`acesso a ${actualPath} deve resultar em ${route.expectedBehavior}`, async ({ page }) => {
+            await gotoAndSettle(page, actualPath);
 
           switch (route.expectedBehavior) {
             case "allow":
