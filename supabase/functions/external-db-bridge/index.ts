@@ -7,7 +7,7 @@ import {
   castSupabaseClient,
 } from "../_shared/supabase-client-adapter.ts";
 import { z } from "https://deno.land/x/zod@v3.23.8/mod.ts";
-import { getCorsHeaders, handleCorsPreflightIfNeeded } from "../_shared/cors.ts";
+import { buildPublicCorsHeaders, getCorsHeaders, handleCorsPreflightIfNeeded } from "../_shared/cors.ts";
 import {
   type Operation,
   ALLOWED_RPCS,
@@ -430,11 +430,7 @@ Deno.serve((req) => {
     // ignora — vamos usar "unknown"
   }
   return requestCtx.run({ requestId }, async () => {
-    let corsHeaders: Record<string, string> = {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-request-id, x-step-up-token",
-      "Access-Control-Allow-Methods": "POST, OPTIONS",
-    };
+    let corsHeaders: Record<string, string> = buildPublicCorsHeaders({ allowMethods: "POST, OPTIONS" });
     try {
       corsHeaders = getCorsHeaders(req);
       const preflightResponse = handleCorsPreflightIfNeeded(req);

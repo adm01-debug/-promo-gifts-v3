@@ -4,12 +4,9 @@
  * ainda não foram visualizados pelo cliente. Idempotente por dia (não duplica).
  */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { buildPublicCorsHeaders } from "../_shared/cors.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-request-id, x-step-up-token",
-  "Access-Control-Expose-Headers": "x-request-id",
-};
+const corsHeaders = buildPublicCorsHeaders();
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });

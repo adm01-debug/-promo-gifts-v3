@@ -1,4 +1,4 @@
-import { getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts';
+import { buildPublicCorsHeaders, getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts';
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { authenticateRequest, authErrorResponse } from '../_shared/auth.ts';
 import { z } from "npm:zod@3.23.8";
@@ -509,10 +509,7 @@ Deno.serve(async (req) => {
   try {
     corsHeaders = getCorsHeaders(req);
   } catch {
-    corsHeaders = {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-request-id, x-step-up-token",
-    };
+    corsHeaders = buildPublicCorsHeaders();
   }
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });

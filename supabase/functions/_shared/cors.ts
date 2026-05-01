@@ -181,19 +181,77 @@ export function handleCorsPreflightIfNeeded(req: Request): Response | null {
   return new Response(null, { headers: getCorsHeaders(req) });
 }
 
+// ---------- Public / wildcard helpers (SSOT for inline-style endpoints) ----------
+
+export interface PublicCorsOptions {
+  /**
+   * Extra header tokens to append to Access-Control-Allow-Headers.
+   * Use for webhooks that accept custom headers like `x-signature-256`,
+   * `x-event`, `x-webhook-secret`. Tokens are deduped + lowercased.
+   */
+  extraAllowHeaders?: string[];
+  /**
+   * Override Access-Control-Allow-Methods (default: same as restricted helper).
+   * E.g. `"POST, OPTIONS"` for webhooks.
+   */
+  allowMethods?: string;
+}
+
 /**
- * Legacy wildcard CORS headers for public-facing endpoints
- * (webhooks, public quote views, public kit views).
+ * Build CORS headers for **public/wildcard** endpoints (webhooks, public
+ * resource viewers). Always exposes `x-request-id`.
  *
- * @deprecated Use getCorsHeaders(req) instead. Kept only for legacy webhooks
- * that genuinely need wildcard access (e.g., third-party callbacks without Origin header).
- * For all browser-facing endpoints, ALWAYS use getCorsHeaders(req).
+ * Use this helper instead of declaring an inline `corsHeaders` object — it
+ * guarantees that every required header (`x-request-id`, `x-step-up-token`,
+ * client telemetry headers) stays in sync with the rest of the platform.
+ *
+ * If you need origin allowlisting (browser-only endpoints), use
+ * `getCorsHeaders(req)` instead.
  */
-export const publicCorsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': ALLOWED_HEADERS_VALUE,
-  'Access-Control-Expose-Headers': 'x-request-id',
-};
+export function buildPublicCorsHeaders(opts: PublicCorsOptions = {}): Record<string, string> {
+  const merged = new Set(ALLOWED_HEADERS_LIST.map((h) => h.toLowerCase()));
+  for (const h of opts.extraAllowHeaders ?? []) {
+    const t = h.trim().toLowerCase();
+    if (t) merged.add(t);
+  }
+  return {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': [...merged].join(', '),
+    'Access-Control-Allow-Methods': opts.allowMethods ?? CORS_HEADERS_BASE['Access-Control-Allow-Methods'],
+    'Access-Control-Expose-Headers': 'x-request-id',
+  };
+}
+
+/**
+ * Unified preflight handler — works for BOTH public-wildcard and
+ * origin-restricted endpoints. Returns a 204 Response when the request is
+ * OPTIONS, otherwise null. Always emits the structured preflight log.
+ *
+ * Examples:
+ *   const pre = handleCorsPreflight(req); if (pre) return pre;                       // restricted
+ *   const pre = handleCorsPreflight(req, { public: true }); if (pre) return pre;     // wildcard
+ *   const pre = handleCorsPreflight(req, { public: true, extraAllowHeaders: ["x-signature-256"], allowMethods: "POST, OPTIONS" });
+ */
+export function handleCorsPreflight(
+  req: Request,
+  opts: { public?: boolean } & PublicCorsOptions = {},
+): Response | null {
+  if (req.method !== 'OPTIONS') return null;
+  if (opts.public) {
+    // Emit the same structured preflight log as the restricted path.
+    const origin = req.headers.get('Origin') || req.headers.get('origin') || '';
+    logPreflightFromRequest(req, origin);
+    return new Response(null, { headers: buildPublicCorsHeaders(opts) });
+  }
+  // getCorsHeaders() emits the structured preflight log on its own when method=OPTIONS.
+  return new Response(null, { headers: getCorsHeaders(req) });
+}
+
+/**
+ * @deprecated Use `buildPublicCorsHeaders()` (or `handleCorsPreflight(req, { public: true })`).
+ * Kept as a frozen alias for backwards compatibility.
+ */
+export const publicCorsHeaders = Object.freeze(buildPublicCorsHeaders());
 
 /**
  * Exported for tests / introspection — never mutate at runtime.
@@ -204,3 +262,4 @@ export const CORS_INTROSPECTION = Object.freeze({
   allowMethods: CORS_HEADERS_BASE['Access-Control-Allow-Methods'],
   exposeHeaders: CORS_HEADERS_BASE['Access-Control-Expose-Headers'],
 });
+

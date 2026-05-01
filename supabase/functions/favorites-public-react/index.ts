@@ -7,13 +7,9 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 import { z } from "https://esm.sh/zod@3.23.8";
+import { buildPublicCorsHeaders } from "../_shared/cors.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-request-id, x-step-up-token",
-  "Access-Control-Expose-Headers": "x-request-id",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
+const corsHeaders = buildPublicCorsHeaders({ allowMethods: "POST, OPTIONS" });
 
 const BodySchema = z.object({
   list_token: z.string().regex(/^[a-f0-9]{64}$/, "Invalid token"),

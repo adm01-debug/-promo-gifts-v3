@@ -55,6 +55,7 @@
     "e2e:smoke-coverage-check": "node scripts/e2e-smoke-coverage-doc.mjs --check",
     "check:security-definer-acl": "node scripts/check-security-definer-acl.mjs",
     "check:edge-cors": "node scripts/check-edge-cors-headers.mjs",
+    "check:no-inline-cors": "node scripts/check-no-inline-cors.mjs",
     "build:cors-snapshot": "node scripts/build-cors-snapshot.mjs"
   },
   "lint-staged": {
