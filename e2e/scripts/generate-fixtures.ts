@@ -86,6 +86,17 @@ function generateUrlFixtures() {
       throw new Error(`❌ Erro crítico: Rotas não resolvidas detectadas para o papel [${role}]: ${unresolved.join(', ')}`);
     }
   }
+
+  // Validação de Schema via Zod
+  try {
+    UrlFixtureSchema.parse(output);
+    console.log("✅ Schema validado com sucesso via Zod.");
+  } catch (err) {
+    if (err instanceof z.ZodError) {
+      console.error("❌ Falha na validação do schema JSON:", err.errors);
+    }
+    throw err;
+  }
 }
 
 // Executa se chamado diretamente
