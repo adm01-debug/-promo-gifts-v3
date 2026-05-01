@@ -6,14 +6,28 @@ import * as path from "node:path";
  * Script para gerar automaticamente um arquivo de fixtures estáticas 
  * contendo todas as URLs resolvidas a partir da matriz de permissões.
  * 
- * Isso é útil para auditoria, documentação ou para outros sistemas 
- * que não rodam TypeScript/Deno diretamente.
+ * Inclui validação contra duplicidades e garantia de resolução de parâmetros.
  */
 function generateUrlFixtures() {
   const output: Record<string, string[]> = {};
+  const totalStats = { total: 0, unique: 0, parameterized: 0 };
 
   for (const [role, routes] of Object.entries(PERMISSION_MATRIX)) {
-    output[role] = routes.flatMap(route => resolvePaths(route));
+    const resolvedUrls = routes.flatMap(route => {
+      const paths = resolvePaths(route);
+      if (route.path.includes(':')) totalStats.parameterized++;
+      return paths;
+    });
+
+    // Validação de duplicidades por papel
+    const uniqueUrls = [...new Set(resolvedUrls)];
+    if (uniqueUrls.length !== resolvedUrls.length) {
+      console.warn(`⚠️ Aviso: Duplicidades detectadas para o papel [${role}]. Removendo...`);
+    }
+
+    output[role] = uniqueUrls;
+    totalStats.total += resolvedUrls.length;
+    totalStats.unique += uniqueUrls.length;
   }
 
   const filePath = path.join(process.cwd(), "e2e", "fixtures", "generated-urls.json");
@@ -25,6 +39,15 @@ function generateUrlFixtures() {
   );
 
   console.log(`✅ Fixture de URLs gerada com sucesso em: ${filePath}`);
+  console.log(`📊 Estatísticas: ${totalStats.unique} URLs únicas geradas (${totalStats.parameterized} rotas base parametrizadas resolvidas).`);
+
+  // Validação final de integridade
+  for (const [role, urls] of Object.entries(output)) {
+    const unresolved = urls.filter(url => url.includes(':'));
+    if (unresolved.length > 0) {
+      throw new Error(`❌ Erro crítico: Rotas não resolvidas detectadas para o papel [${role}]: ${unresolved.join(', ')}`);
+    }
+  }
 }
 
 // Executa se chamado diretamente
