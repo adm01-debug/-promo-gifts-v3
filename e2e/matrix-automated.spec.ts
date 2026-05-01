@@ -63,7 +63,7 @@ test.describe("Matriz de Permissões Automatizada", () => {
               await expect(page.locator("text=403")).toBeVisible();
               break;
           }
-        });
+        }
       }
     });
   }
