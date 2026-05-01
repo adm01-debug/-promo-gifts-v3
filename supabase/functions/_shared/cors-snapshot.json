@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-05-01T20:09:19.077Z",
-  "total": 84,
+  "generated_at": "2026-05-01T20:11:25.747Z",
+  "total": 85,
   "counts": {
-    "shared": 67,
+    "shared": 68,
     "inline": 17,
     "none": 0
   },
@@ -188,6 +188,14 @@
     },
     {
       "name": "connections-hub-audit",
+      "mode": "shared",
+      "allowHeaders": [],
+      "exposeHeaders": [],
+      "allowMethods": null,
+      "allowOrigin": null
+    },
+    {
+      "name": "cors-audit",
       "mode": "shared",
       "allowHeaders": [],
       "exposeHeaders": [],
