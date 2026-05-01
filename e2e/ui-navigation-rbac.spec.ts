@@ -38,15 +38,16 @@ test.describe("RBAC Visual - Visibilidade de Menus e Links", () => {
         if (!isMenuCandidate) continue;
 
         test(`link para ${route.path} deve estar ${route.expectedBehavior === 'allow' ? 'VISÍVEL' : 'OCULTO'}`, async ({ page }) => {
-          // Procuramos por links na sidebar ou navegação principal
-          const navigationLink = page.locator(`nav a[href="${route.path}"], [data-testid*="nav"] a[href="${route.path}"], .sidebar a[href="${route.path}"]`).first();
+          // Procuramos por links na sidebar
+          // O SidebarReorganized usa SidebarNavGroup que renderiza os links
+          const navigationLink = page.locator(`aside nav a[href="${route.path}"]`).first();
 
           if (route.expectedBehavior === "allow") {
             // Se permitido, o link DEVE estar visível
-            await expect(navigationLink, `Link para ${route.path} deveria estar visível para o perfil ${role}`).toBeVisible();
+            await expect(navigationLink, `Link para ${route.path} deveria estar visível na sidebar para o perfil ${role}`).toBeVisible();
           } else {
             // Se negado (403, redirect ou login), o link NÃO deve estar visível
-            await expect(navigationLink, `Link para ${route.path} NÃO deveria estar visível para o perfil ${role}`).not.toBeVisible();
+            await expect(navigationLink, `Link para ${route.path} NÃO deveria estar visível na sidebar para o perfil ${role}`).not.toBeVisible();
           }
         });
       }
