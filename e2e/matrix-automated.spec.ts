@@ -90,10 +90,18 @@ test.describe("Matriz de Permissões Automatizada", () => {
                 const notFoundContainer = page.locator('[data-testid="app-not-found"]');
                 await expect(notFoundContainer, "Deveria exibir o layout de 404").toBeVisible();
                 
-                // 3. Não deve exibir o layout de erro 403 (RBAC) indevidamente
+                // 3. Validação Visual / Snapshot (Consistência de Layout)
+                // Usamos toHaveScreenshot para garantir que o layout 404 não degradou
+                // O Playwright gerencia as imagens por plataforma/browser automaticamente
+                await expect(page).toHaveScreenshot('not-found-page.png', {
+                  mask: [page.locator('code')], // Mascaramos o path variável para evitar falso-negativos
+                  maxDiffPixelRatio: 0.05
+                });
+
+                // 4. Não deve exibir o layout de erro 403 (RBAC) indevidamente
                 await expect(page.locator('[data-testid="app-access-denied"]'), "Não deveria exibir layout de 403").not.toBeVisible();
 
-                // 4. Garantir que não vaza detalhes técnicos do erro (DB, server, stack)
+                // 5. Garantir que não vaza detalhes técnicos do erro (DB, server, stack)
                 const bodyText404 = await page.innerText('body');
                 const forbidden404 = ["sql", "stack trace", "dump", "exception", "postgres", "supabase"];
                 for (const term of forbidden404) {
