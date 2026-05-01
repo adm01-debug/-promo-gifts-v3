@@ -238,17 +238,13 @@ export function DevAccessDeniedPage({
       <div
         role="alert"
         data-testid="app-access-denied"
-        aria-labelledby="dev-access-denied-title"
-        data-http-status="403"
-        data-blocked-path={blockedPath}
-        data-user-role={role ?? "unknown"}
         className="min-h-screen flex items-center justify-center bg-background px-4 py-8"
       >
-        <div className="w-full max-w-lg flex flex-col items-center gap-5 text-center">
-          <ShieldAlert
-            className="h-12 w-12 text-destructive"
-            aria-hidden="true"
-          />
+        <div className="w-full max-w-md flex flex-col items-center gap-6 text-center">
+          <div className="relative">
+            <div className="absolute inset-0 animate-pulse bg-destructive/10 rounded-full blur-xl" />
+            <ShieldAlert className="h-16 w-16 text-destructive relative z-10" />
+          </div>
 
           <div className="space-y-4 w-full">
             <div className="space-y-1">
@@ -291,27 +287,33 @@ export function DevAccessDeniedPage({
 
           {/* Para supervisor: atalhos visuais para áreas administrativas. */}
           {isSupervisor && (
-            <div className="w-full">
-              <p className="text-xs text-muted-foreground mb-2">
-                Continuar nas áreas que você administra:
+            <div className="w-full pt-2 border-t border-border/40">
+              <p className="text-[10px] font-medium text-muted-foreground/50 uppercase tracking-widest mb-3">
+                Atalhos Administrativos
               </p>
-              <div className="flex flex-wrap gap-2 justify-center">
-                {SUPERVISOR_AREAS.map((area) => (
-                  <Button
-                    key={area.path}
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => navigate(area.path)}
-                  >
-                    {area.label}
-                  </Button>
-                ))}
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate("/admin/usuarios")}
+                  className="text-xs h-8"
+                >
+                  Usuários
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate("/admin/cadastros")}
+                  className="text-xs h-8"
+                >
+                  Cadastros
+                </Button>
               </div>
             </div>
           )}
 
-          <div className="w-full text-left rounded-md border border-border/60 bg-muted/30 p-3">
-            <p className="text-xs text-muted-foreground">{copy.hint}</p>
+          <div className="w-full text-left rounded-lg border border-border/60 bg-muted/20 p-3">
+            <p className="text-[10px] leading-relaxed text-muted-foreground">{copy.hint}</p>
           </div>
 
           {/* Bloco de motivo + CTA de solicitação (todos os papéis podem
@@ -341,100 +343,52 @@ export function DevAccessDeniedPage({
             </div>
           </div>
 
-          <div className="flex flex-col w-full gap-2">
+          <div className="flex flex-col w-full gap-2 pt-2">
             {requestButton}
 
             <div className="grid grid-cols-2 gap-2">
               <Button
-                variant="outline"
-                onClick={handleCopyLink}
-                className="w-full"
+                variant="ghost"
+                onClick={() => {
+                  finalize("back");
+                  navigate(-1);
+                }}
+                className="h-9 gap-2"
               >
-                {copied ? (
-                  <Check className="h-4 w-4 mr-2" />
-                ) : (
-                  <Copy className="h-4 w-4 mr-2" />
-                )}
-                Copiar link
+                <ArrowLeft className="h-4 w-4" />
+                Voltar
               </Button>
               <Button
                 variant="outline"
-                asChild
-                className="w-full"
-                title={`Enviar e-mail para ${DEV_ACCESS_CONTACT_EMAIL}`}
-                onClick={() => emit("mail")}
+                onClick={handleCopyLink}
+                className="h-9 gap-2"
               >
-                <a
-                  href={`mailto:${DEV_ACCESS_CONTACT_EMAIL}?subject=${encodeURIComponent(
-                    `[Promo Gifts] Acesso técnico — ${blockedPath}`,
-                  )}`}
-                >
-                  <Mail className="h-4 w-4 mr-2" />
-                  E-mail
-                </a>
+                {copied ? (
+                  <Check className="h-4 w-4 text-success" />
+                ) : (
+                  <Copy className="h-4 w-4" />
+                )}
+                Link
               </Button>
             </div>
 
-            {/* Link explícito para "solicitar acesso" / suporte — sempre
-                visível, atende explicitamente ao requisito. */}
             <Button
               variant="link"
               size="sm"
               asChild
-              className="text-xs"
+              className="text-[10px] text-muted-foreground/60 h-auto py-1"
               onClick={() => emit("mail")}
             >
               <a
                 href={`mailto:${DEV_ACCESS_CONTACT_EMAIL}?subject=${encodeURIComponent(
-                  `[Promo Gifts] Solicitação de acesso técnico — ${blockedPath}`,
+                  `[Promo Gifts] Acesso técnico — ${securityId}`,
                 )}&body=${encodeURIComponent(
-                  `Olá, equipe técnica.\n\nGostaria de solicitar acesso à página: ${window.location.origin}${blockedPath}\n\nMotivo: ${reason || "(não informado)"}\n\nObrigado.`,
+                  `Olá, equipe técnica.\n\nGostaria de solicitar acesso técnico.\n\nIdentificador: ${securityId}\n\nMotivo: ${reason || "(não informado)"}\n\nObrigado.`,
                 )}`}
               >
-                <LifeBuoy className="h-3.5 w-3.5 mr-1.5" />
-                Solicitar acesso pelo Suporte
-                <ExternalLink className="h-3 w-3 ml-1" />
+                <LifeBuoy className="h-3 w-3 mr-1.5" />
+                Solicitar via Suporte
               </a>
-            </Button>
-          </div>
-
-          <div className="flex w-full flex-wrap gap-2 pt-2 border-t border-border/40">
-            <Button
-              variant="ghost"
-              onClick={() => {
-                finalize("back");
-                navigate(-1);
-              }}
-              className="flex-1 min-w-[8rem]"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Voltar
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => {
-                finalize("retry");
-                navigate(blockedFullPath, {
-                  replace: true,
-                  state: blockedState,
-                });
-              }}
-              className="flex-1 min-w-[8rem]"
-              title={`Reabrir ${blockedFullPath} preservando o contexto original`}
-            >
-              <RotateCw className="h-4 w-4 mr-2" />
-              Tentar novamente
-            </Button>
-            <Button
-              variant="secondary"
-              onClick={() => {
-                finalize("fallback");
-                navigate(copy.contextualCtaPath, { replace: true });
-              }}
-              className="flex-1 min-w-[8rem]"
-            >
-              {copy.contextualCtaIcon}
-              {copy.contextualCtaLabel}
             </Button>
           </div>
         </div>
