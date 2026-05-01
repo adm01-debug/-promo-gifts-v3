@@ -6,8 +6,7 @@
     "/orcamentos/another-quote-456",
     "/admin/usuarios",
     "/admin/cadastros/produto/std-prod-123/variante/std-var-001",
-    "/orcamentos/non-existent-777/itens/invalid-item-999",
-    "/public-search"
+    "/orcamentos/non-existent-777/itens/invalid-item-999"
   ],
   "agente": [
     "/produtos",
@@ -19,34 +18,47 @@
     "/orcamentos/std-quote-789/itens/std-item-456",
     "/orcamentos/invalid-id-auto/itens/invalid-itemId-auto",
     "/admin/usuarios",
-    "/admin/cadastros/produto/std-prod-123/variante/std-var-001",
-    "/rota-fantasma",
-    "/rota-fantasma?debug=true&token=invalid&context=deep&traceId=unknown&retry=false",
-    "/orcamentos/std-quote-789/itens/invalid-item-999",
-    "/orcamentos/non-existent-777/itens/non-existent-888?view=raw&mode=edit&format=json&depth=full",
+    "/admin/cadastros",
     "/admin/telemetria",
-    "/admin/seguranca/chaves/std-key-123",
+    "/rota-fantasma",
     "/orcamentos/inexistente-123"
   ],
   "supervisor": [
     "/produtos",
+    "/orcamentos",
+    "/orcamentos/std-quote-789",
+    "/orcamentos/invalid-id-auto",
+    "/orcamentos/std-quote-789/editar",
+    "/orcamentos/invalid-id-auto/editar",
+    "/orcamentos/std-quote-789/itens/std-item-456",
+    "/orcamentos/invalid-id-auto/itens/invalid-itemId-auto",
     "/admin/usuarios",
     "/admin/cadastros",
-    "/admin/non-existent-area",
     "/admin/cadastros/produto/std-prod-123",
     "/admin/cadastros/produto/invalid-id-auto",
     "/admin/cadastros/produto/std-prod-123/variante/std-var-001",
     "/admin/cadastros/produto/invalid-id-auto/variante/invalid-variantId-auto",
     "/admin/telemetria",
-    "/admin/telemetria?raw=true&limit=100&offset=invalid&sort=unknown&filter=blocked&secret=exposed",
     "/admin/telemetria/invalid-id-123",
-    "/admin/workflows/std-wf-001/runs/std-run-555",
-    "/admin/workflows/invalid-wf/runs/invalid-run?trace=true&step=final&log=detailed&env=prod&bypass=true",
-    "/admin/external-db/tables/profiles/rows/std-row-999"
+    "/admin/non-existent-area"
   ],
   "dev": [
+    "/produtos",
+    "/orcamentos",
+    "/orcamentos/std-quote-789",
+    "/orcamentos/invalid-id-auto",
+    "/orcamentos/std-quote-789/editar",
+    "/orcamentos/invalid-id-auto/editar",
+    "/orcamentos/std-quote-789/itens/std-item-456",
+    "/orcamentos/invalid-id-auto/itens/invalid-itemId-auto",
+    "/admin/usuarios",
+    "/admin/cadastros",
+    "/admin/cadastros/produto/std-prod-123",
+    "/admin/cadastros/produto/invalid-id-auto",
+    "/admin/cadastros/produto/std-prod-123/variante/std-var-001",
+    "/admin/cadastros/produto/invalid-id-auto/variante/invalid-variantId-auto",
     "/admin/telemetria",
-    "/admin/cadastros/produto/test-prod-123",
-    "/admin/cadastros/produto/invalid-id-auto"
+    "/admin/seguranca",
+    "/admin/workflows"
   ]
 }
