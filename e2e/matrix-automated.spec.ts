@@ -7,7 +7,7 @@
 import { test, expect } from "./fixtures/test-base";
 import { loginAs, logout, Role as AuthRole } from "./helpers/auth";
 import { gotoAndSettle } from "./helpers/nav";
-import { PERMISSION_MATRIX, Role } from "./fixtures/permissions-matrix";
+import { PERMISSION_MATRIX, Role, resolvePath } from "./fixtures/permissions-matrix";
 
 test.describe("Matriz de Permissões Automatizada", () => {
 
@@ -32,15 +32,16 @@ test.describe("Matriz de Permissões Automatizada", () => {
 
       // Testa cada rota para o papel atual
       for (const route of routes) {
-        test(`acesso a ${route.path} deve resultar em ${route.expectedBehavior}`, async ({ page }) => {
-          await gotoAndSettle(page, route.path);
+        const actualPath = resolvePath(route);
+        test(`acesso a ${actualPath} deve resultar em ${route.expectedBehavior}`, async ({ page }) => {
+          await gotoAndSettle(page, actualPath);
 
           switch (route.expectedBehavior) {
             case "allow":
               // Garante que não houve redirect para login ou home
               await expect(page).not.toHaveURL(/\/login/);
-              if (route.path !== "/") {
-                await expect(page).toHaveURL(new RegExp(route.path));
+              if (actualPath !== "/") {
+                await expect(page).toHaveURL(new RegExp(actualPath.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
               }
               // Garante que não há overlay de acesso negado
               await expect(page.locator("text=Acesso restrito")).not.toBeVisible();
