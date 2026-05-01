@@ -68,7 +68,7 @@ function generateUrlFixtures() {
 
     // Validação de duplicidades por papel
     const uniqueUrls = [...new Set(roleResolvedUrls)];
-    if (uniqueUrls.length !== resolvedUrls.length) {
+    if (uniqueUrls.length !== roleResolvedUrls.length) {
       console.warn(`⚠️ Aviso: Duplicidades detectadas para o papel [${role}]. Removendo...`);
     }
 
