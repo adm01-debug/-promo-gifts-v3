@@ -24,6 +24,7 @@ import {
   getThrottleStatus,
   DEV_ACCESS_CONTACT_EMAIL,
 } from "@/lib/access/request-dev-access";
+import { ACCESS_DENIED_STRINGS, type Role } from "@/lib/access/access-denied-strings";
 
 export type DevAccessUserRole =
   | "supervisor"
@@ -46,106 +47,19 @@ interface DevAccessDeniedPageProps {
   blockedState?: unknown;
 }
 
-interface RoleCopy {
-  title: string;
-  intro: ReactNode;
-  hint: ReactNode;
-  /** CTA secundário contextual ao papel (ex.: voltar para área natural). */
-  contextualCtaLabel: string;
-  contextualCtaPath: string;
-  contextualCtaIcon: ReactNode;
-  /** Tom semântico — usado em badges/realce sutil. */
-  badge: string;
-}
-
-const SUPERVISOR_AREAS: ReadonlyArray<{
-  label: string;
-  path: string;
-}> = [
-  { label: "Usuários", path: "/admin/usuarios" },
-  { label: "Empresas", path: "/admin/empresas" },
-  { label: "Configurações", path: "/admin/configuracoes" },
-];
-
-function getRoleCopy(role: DevAccessUserRole, blockedPath: string): RoleCopy {
-  // Normaliza apelidos comuns ("agent", "vendedor" → "agente").
+function getRoleCopy(role: DevAccessUserRole, _blockedPath: string) {
+  // Normaliza apelidos comuns
   const normalized =
     role === "agent" || role === "vendedor" ? "agente" : role ?? "desconhecido";
+  
+  const key = (normalized in ACCESS_DENIED_STRINGS ? normalized : "desconhecido") as Role;
+  const config = ACCESS_DENIED_STRINGS[key];
 
-  if (normalized === "supervisor") {
-    return {
-      badge: "Supervisor",
-      title: "Área técnica restrita à equipe de Desenvolvimento",
-      intro: (
-        <>
-          Como <strong>supervisor</strong>, você administra usuários, empresas e
-          regras de negócio — mas <em>ferramentas técnicas</em> (telemetria,
-          conexões externas, secrets, MCP, auditoria de baixo nível) ficam
-          restritas ao time de Desenvolvimento por motivos de segurança e
-          rastreabilidade.
-        </>
-      ),
-      hint: (
-        <>
-          Se você precisa investigar um incidente, peça acesso temporário ao
-          time técnico descrevendo brevemente o motivo abaixo. Você continuará
-          com seus poderes de supervisor enquanto isso.
-        </>
-      ),
-      contextualCtaLabel: "Ir para Usuários",
-      contextualCtaPath: "/admin/usuarios",
-      contextualCtaIcon: <Users className="h-4 w-4 mr-2" />,
-    };
-  }
-
-  if (normalized === "agente") {
-    return {
-      badge: "Agente / Vendedor",
-      title: "Esta área é exclusiva da equipe técnica",
-      intro: (
-        <>
-          Como <strong>vendedor</strong>, você não precisa acessar páginas
-          técnicas para o seu dia a dia: o catálogo, orçamentos, pedidos e o
-          CRM já cobrem tudo o que você usa. Se você chegou aqui por um link
-          antigo ou pelo histórico do navegador, pode voltar com segurança.
-        </>
-      ),
-      hint: (
-        <>
-          Se acredita que precisa entrar nesta área, fale primeiro com o seu
-          supervisor — em casos raros ele poderá pedir acesso técnico em seu
-          nome ao time de Desenvolvimento.
-        </>
-      ),
-      contextualCtaLabel: "Voltar ao Catálogo",
-      contextualCtaPath: "/catalogo",
-      contextualCtaIcon: <ShoppingCart className="h-4 w-4 mr-2" />,
-    };
-  }
-
-  // Fallback genérico (ex.: papel não mapeado).
   return {
-    badge: "Sem permissão",
-    title: "Acesso restrito",
-    intro: (
-      <>
-        A página{" "}
-        <code className="font-mono px-1 py-0.5 rounded bg-muted">
-          {blockedPath}
-        </code>{" "}
-        exige o papel <strong>Desenvolvedor</strong>. O seu papel atual não
-        possui essa permissão.
-      </>
-    ),
-    hint: (
-      <>
-        Você pode solicitar acesso ao time técnico abaixo ou voltar para a
-        página inicial.
-      </>
-    ),
-    contextualCtaLabel: "Ir para o Início",
-    contextualCtaPath: "/",
-    contextualCtaIcon: <ArrowLeft className="h-4 w-4 mr-2" />,
+    ...config,
+    contextualCtaIcon: key === "supervisor" ? <Users className="h-4 w-4 mr-2" /> : 
+                       key === "agente" ? <ShoppingCart className="h-4 w-4 mr-2" /> : 
+                       <ArrowLeft className="h-4 w-4 mr-2" />
   };
 }
 
