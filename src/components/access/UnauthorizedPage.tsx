@@ -57,13 +57,13 @@ export function UnauthorizedPage() {
             </p>
           </div>
 
-          <div className="w-full pt-4 border-t border-border/40">
-            <Button onClick={handleLogin} className="w-full gap-2 mb-3">
+          <div className="w-full pt-4 border-t border-border/40 space-y-2">
+            <Button onClick={handleLogin} className="w-full gap-2 h-9">
               <LogIn className="h-4 w-4" />
               Ir para o Login
             </Button>
             
-            <Button variant="ghost" onClick={() => navigate(-1)} className="w-full gap-2">
+            <Button variant="ghost" onClick={() => navigate(-1)} className="w-full gap-2 h-9">
               <ArrowLeft className="h-4 w-4" />
               Voltar
             </Button>
