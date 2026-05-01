@@ -7,6 +7,7 @@ const EXACT_ALLOWED_ORIGINS = new Set([
   'https://1be35a65-1f65-4c2b-9a79-7d563930aacd.lovableproject.com',
   'https://promogifts.com.br',
   'https://www.promogifts.com.br',
+  'https://promogifts.atomicabr.com.br',
   'http://localhost:5173',
   'http://localhost:8080',
   'http://localhost:3000',
@@ -18,6 +19,7 @@ const EXACT_ALLOWED_ORIGINS = new Set([
 const ALLOWED_ORIGIN_PATTERNS = [
   /^https:\/\/[a-z0-9-]+\.lovable\.app$/i,
   /^https:\/\/[a-z0-9-]+\.lovableproject\.com$/i,
+  /^https:\/\/[a-z0-9-]+\.atomicabr\.com\.br$/i,
   /^http:\/\/localhost(?::\d+)?$/i,
   /^http:\/\/127\.0\.0\.1(?::\d+)?$/i,
 ];
