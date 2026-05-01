@@ -5,13 +5,13 @@ import { z } from "zod";
 
 /**
  * Schema de validação para a fixture gerada.
- * Garante que o JSON final tenha os papéis corretos e listas de strings (URLs).
+ * Garante que o JSON final tenha os papéis corretos e listas separadas de URLs.
  */
 const UrlFixtureSchema = z.record(
   z.enum(["publico", "agente", "supervisor", "dev"]),
   z.object({
     valid: z.array(z.string().startsWith("/")),
-    invalid: z.array(z.string().startsWith("/"))
+    invalid: z.array(z.string().startsWith("/")),
   })
 );
 
@@ -21,6 +21,8 @@ const UrlFixtureSchema = z.record(
  * 
  * Inclui validação contra duplicidades e garantia de resolução de parâmetros,
  * além de gerar automaticamente variações negativas (invalid params) para testes de robustez.
+ * 
+ * Separa as URLs em seções 'valid' e 'invalid' para facilitar o consumo nos testes.
  */
 function generateUrlFixtures() {
   const output: Record<string, { valid: string[]; invalid: string[] }> = {};
@@ -33,6 +35,7 @@ function generateUrlFixtures() {
     for (const route of routes) {
       const paths = resolvePaths(route);
       
+      // Organiza por comportamento esperado (baseado na matriz original)
       if (route.expectedBehavior === 'allow') {
         validUrls.push(...paths);
       } else {
@@ -42,6 +45,7 @@ function generateUrlFixtures() {
       if (route.path.includes(':')) {
         totalStats.parameterized++;
         
+        // Gerador Automático de Cenários Negativos Combinados (Invalid Params)
         const paramNames = (route.path.match(/:[a-zA-Z0-9]+/g) || []).map(p => p.replace(':', ''));
         
         if (paramNames.length > 0 && route.expectedBehavior === 'allow') {
