@@ -6,7 +6,8 @@
     "/orcamentos/another-quote-456",
     "/admin/usuarios",
     "/admin/cadastros/produto/std-prod-123/variante/std-var-001",
-    "/orcamentos/non-existent-777/itens/invalid-item-999"
+    "/orcamentos/non-existent-777/itens/invalid-item-999",
+    "/public-search"
   ],
   "agente": [
     "/produtos",
@@ -20,8 +21,11 @@
     "/admin/usuarios",
     "/admin/cadastros/produto/std-prod-123/variante/std-var-001",
     "/rota-fantasma",
+    "/rota-fantasma?debug=true&token=invalid&context=deep&traceId=unknown&retry=false",
     "/orcamentos/std-quote-789/itens/invalid-item-999",
-    "/orcamentos/non-existent-777/itens/non-existent-888",
+    "/orcamentos/non-existent-777/itens/non-existent-888?view=raw&mode=edit&format=json&depth=full",
+    "/admin/telemetria",
+    "/admin/seguranca/chaves/std-key-123",
     "/orcamentos/inexistente-123"
   ],
   "supervisor": [
@@ -34,8 +38,11 @@
     "/admin/cadastros/produto/std-prod-123/variante/std-var-001",
     "/admin/cadastros/produto/invalid-id-auto/variante/invalid-variantId-auto",
     "/admin/telemetria",
+    "/admin/telemetria?raw=true&limit=100&offset=invalid&sort=unknown&filter=blocked&secret=exposed",
     "/admin/telemetria/invalid-id-123",
-    "/admin/workflows/std-wf-001/runs/std-run-555"
+    "/admin/workflows/std-wf-001/runs/std-run-555",
+    "/admin/workflows/invalid-wf/runs/invalid-run?trace=true&step=final&log=detailed&env=prod&bypass=true",
+    "/admin/external-db/tables/profiles/rows/std-row-999"
   ],
   "dev": [
     "/admin/telemetria",
