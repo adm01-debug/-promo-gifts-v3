@@ -4,7 +4,7 @@ import { getOrCreateRequestId } from "../_shared/request-id.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-request-id, x-step-up-token",
 };
 
 interface ScanLog {

@@ -11,7 +11,7 @@ import { summarizePayload } from "../_shared/audit-log.ts";
 import { castRpcResult } from "../_shared/supabase-client-adapter.ts";
 
 // Fallback CORS headers (injected by recovery codemod) — substituído per-request quando aplicável.
-let corsHeaders: Record<string, string> = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type" };
+let corsHeaders: Record<string, string> = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-request-id, x-step-up-token" };
 
 type ValidateMcpKeyRow = {
   key_id: string;
