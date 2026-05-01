@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useRef, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState, useMemo } from "react";
 import { recordDevRouteTelemetry } from "@/lib/access/dev-route-telemetry";
 import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
@@ -25,6 +25,17 @@ import {
   DEV_ACCESS_CONTACT_EMAIL,
 } from "@/lib/access/request-dev-access";
 import { ACCESS_DENIED_STRINGS, type Role } from "@/lib/access/access-denied-strings";
+
+/** Gera uma hash curta e não reversível para ofuscar o path */
+function generateSecurityHash(path: string): string {
+  let hash = 0;
+  for (let i = 0; i < path.length; i++) {
+    const char = path.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  return Math.abs(hash).toString(36).substring(0, 6).toUpperCase();
+}
 
 export type DevAccessUserRole =
   | "supervisor"
@@ -87,6 +98,8 @@ export function DevAccessDeniedPage({
   const [reason, setReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  const securityId = useMemo(() => `REQ-${generateSecurityHash(blockedPath)}`, [blockedPath]);
 
   const copy = getRoleCopy(role, blockedPath);
   const isAgente =
@@ -271,7 +284,7 @@ export function DevAccessDeniedPage({
                 Identificador de Segurança
               </p>
               <p className="text-xs font-mono text-muted-foreground mt-1 bg-muted/30 py-1 px-2 rounded inline-block">
-                REQ-{blockedPath.split('/').filter(Boolean).pop()?.toUpperCase() || 'ROOT'}
+                {securityId}
               </p>
             </div>
           </div>

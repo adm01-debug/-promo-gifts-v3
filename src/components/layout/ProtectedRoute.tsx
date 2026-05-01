@@ -33,7 +33,8 @@ export function ProtectedRoute({
   }
 
   if (!user) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    // Redireciona para página de erro 401 que fornece contexto e link de login
+    return <Navigate to="/unauthorized" state={{ from: location }} replace />;
   }
 
   // Resolução do nível exigido (props mais explícitas têm prioridade)

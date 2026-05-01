@@ -71,11 +71,10 @@ test.describe("Editor (Manager) Permissions Suite", () => {
         await expect(page.locator("text=Supervisor")).toBeVisible();
         await expect(page.locator("text=como supervisor, você administra usuários")).toBeVisible();
         
-        // Validação do Layout Padronizado 403
+        // Validação do Layout Padronizado 403 com hash curta
         await expect(page.locator("text=Identificador de Segurança")).toBeVisible();
-        const pathSuffix = route.split('/').filter(Boolean).pop()?.toUpperCase() || 'ROOT';
-        await expect(page.locator(".font-mono")).toContainText(`REQ-${pathSuffix}`); 
-        
+        await expect(page.locator(".font-mono")).toContainText(/REQ-[A-Z0-9]{3,}/); 
+
         // Garante que dados sensíveis (path completo) estão ocultos
         const fullContent = await page.locator('[role="alert"]').innerText();
         expect(fullContent).not.toContain("/admin/telemetria");
@@ -109,9 +108,9 @@ test.describe("Editor (Manager) Permissions Suite", () => {
         expect(fullContent.toLowerCase(), `String proibida encontrada: ${forbidden}`).not.toContain(forbidden.toLowerCase());
       }
 
-      // Deve exibir apenas o identificador ofuscado
+      // Deve exibir apenas o identificador ofuscado (hash)
       await expect(page.locator("text=Identificador de Segurança")).toBeVisible();
-      await expect(page.locator(".font-mono")).toContainText("REQ-SEGURANCA-ACESSO");
+      await expect(page.locator(".font-mono")).toContainText(/REQ-[A-Z0-9]{3,}/);
     });
 
     test("não deve ver links técnicos na Sidebar/Navegação", async ({ page }) => {
@@ -162,23 +161,23 @@ test.describe("Editor (Manager) Permissions Suite", () => {
       // 2. Realiza o logout
       await logout(page);
 
-      // 3. Verifica redirecionamento para login
-      await expect(page).toHaveURL(/\/login/);
+      // 3. Verifica redirecionamento para página de não autorizado (401)
+      await expect(page).toHaveURL(/\/unauthorized/);
+      await expect(page.locator('[data-testid="app-unauthorized"]')).toBeVisible();
+      await expect(page.locator("text=401")).toBeVisible();
 
       // 4. Tenta acessar uma rota restrita diretamente (Deep Linking)
       const targetPath = "/admin/usuarios";
       await page.goto(targetPath);
 
-      // 5. Deve ser redirecionado para login
+      // 5. Deve ser redirecionado para a página 401
+      await expect(page).toHaveURL(/\/unauthorized/);
+      
+      // 6. Clica no botão de login da página 401
+      await page.locator('button:has-text("Ir para o Login")').click();
       await expect(page).toHaveURL(/\/login/);
       
-      // 6. Verifica se o parâmetro 'from' está preservado no state do roteador
-      // O ProtectedRoute do React Router geralmente armazena isso no history state
-      const state = await page.evaluate(() => window.history.state);
-      // No React Router v6+, a estrutura costuma ter o objeto 'usr' ou 'from'
-      // mas o mais confiável é validar via comportamento de login ou checar se o link de retorno funciona
-      
-      // Para validar o state 'from' de forma conclusiva, fazemos o login e vemos se volta para targetPath
+      // 7. Faz o login e verifica se volta para targetPath (Deep Linking via unauthorized page)
       await loginAs(page, "editor");
       await expect(page).toHaveURL(new RegExp(targetPath));
     });
