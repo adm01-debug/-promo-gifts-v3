@@ -65,8 +65,11 @@ test.describe("Editor (Manager) Permissions Suite", () => {
         await expect(page.locator("text=Área técnica restrita à equipe de Desenvolvimento")).toBeVisible();
         await expect(page.locator("text=Supervisor")).toBeVisible();
         
-        // Garante que não há vazamento de dados técnicos (ex: lista de logs ou secrets)
-        await expect(page.locator(".font-mono")).toContainText(route); // O path aparece no aviso, o que é seguro
+        // Garante que não há vazamento de dados técnicos sensíveis (ex: caminhos completos de diretório)
+        await expect(page.locator("text=ID da Requisição Bloqueada")).toBeVisible();
+        const pathSuffix = route.split('/').pop() || 'root';
+        await expect(page.locator(".font-mono")).toContainText(pathSuffix); 
+        await expect(page.locator(".font-mono")).not.toContainText("/admin/"); // O path completo não deve ser exposto na UI se possível
       }
     });
 

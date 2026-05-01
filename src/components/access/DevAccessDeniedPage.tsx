@@ -334,11 +334,13 @@ export function DevAccessDeniedPage({
               {copy.title}
             </h1>
             <p className="text-sm text-muted-foreground">{copy.intro}</p>
-            <p className="text-xs text-muted-foreground">
-              Rota bloqueada:{" "}
-              <code className="font-mono px-1 py-0.5 rounded bg-muted">
-                {blockedPath}
-              </code>
+            {isSupervisor && (
+              <p className="text-xs text-muted-foreground bg-muted/50 py-2 px-3 rounded border border-border/40">
+                Você está tentando acessar uma área técnica restrita. Seus privilégios administrativos cobrem apenas gestão de negócio e usuários.
+              </p>
+            )}
+            <p className="text-[10px] text-muted-foreground/60 uppercase tracking-tight pt-2">
+              ID da Requisição Bloqueada: <span className="font-mono">{blockedPath.split('/').pop() || 'root'}</span>
             </p>
           </div>
 
