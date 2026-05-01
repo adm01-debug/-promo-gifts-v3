@@ -2,14 +2,25 @@ import { Helmet } from "react-helmet-async";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ShieldAlert, LogIn, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useMemo } from "react";
+
+/** Gera uma hash curta e não reversível para ofuscar o path */
+function generateSecurityHash(path: string): string {
+  let hash = 0;
+  for (let i = 0; i < path.length; i++) {
+    const char = path.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  return Math.abs(hash).toString(36).substring(0, 6).toUpperCase();
+}
 
 export function UnauthorizedPage() {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Ofusca o path original para segurança
-  const blockedPath = location.pathname;
-  const requestId = `AUTH-${blockedPath.split('/').filter(Boolean).pop()?.toUpperCase() || 'ROOT'}`;
+  // Ofusca o path original para segurança usando hash não reversível
+  const requestId = useMemo(() => `AUTH-${generateSecurityHash(location.pathname)}`, [location.pathname]);
 
   const handleLogin = () => {
     navigate("/login", { state: { from: location }, replace: true });

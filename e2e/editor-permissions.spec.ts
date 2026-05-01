@@ -71,11 +71,10 @@ test.describe("Editor (Manager) Permissions Suite", () => {
         await expect(page.locator("text=Supervisor")).toBeVisible();
         await expect(page.locator("text=como supervisor, você administra usuários")).toBeVisible();
         
-        // Validação do Layout Padronizado 403
+        // Validação do Layout Padronizado 403 com hash curta
         await expect(page.locator("text=Identificador de Segurança")).toBeVisible();
-        const pathSuffix = route.split('/').filter(Boolean).pop()?.toUpperCase() || 'ROOT';
-        await expect(page.locator(".font-mono")).toContainText(`REQ-${pathSuffix}`); 
-        
+        await expect(page.locator(".font-mono")).toContainText(/REQ-[A-Z0-9]{3,}/); 
+
         // Garante que dados sensíveis (path completo) estão ocultos
         const fullContent = await page.locator('[role="alert"]').innerText();
         expect(fullContent).not.toContain("/admin/telemetria");
@@ -109,9 +108,9 @@ test.describe("Editor (Manager) Permissions Suite", () => {
         expect(fullContent.toLowerCase(), `String proibida encontrada: ${forbidden}`).not.toContain(forbidden.toLowerCase());
       }
 
-      // Deve exibir apenas o identificador ofuscado
+      // Deve exibir apenas o identificador ofuscado (hash)
       await expect(page.locator("text=Identificador de Segurança")).toBeVisible();
-      await expect(page.locator(".font-mono")).toContainText("REQ-SEGURANCA-ACESSO");
+      await expect(page.locator(".font-mono")).toContainText(/REQ-[A-Z0-9]{3,}/);
     });
 
     test("não deve ver links técnicos na Sidebar/Navegação", async ({ page }) => {
