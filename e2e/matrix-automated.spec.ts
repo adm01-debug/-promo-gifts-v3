@@ -7,7 +7,7 @@
 import { test, expect } from "./fixtures/test-base";
 import { loginAs, logout, Role as AuthRole } from "./helpers/auth";
 import { gotoAndSettle } from "./helpers/nav";
-import { PERMISSION_MATRIX, Role, resolvePath } from "./fixtures/permissions-matrix";
+import { PERMISSION_MATRIX, Role, resolvePaths } from "./fixtures/permissions-matrix";
 
 test.describe("Matriz de Permissões Automatizada", () => {
 
@@ -32,9 +32,10 @@ test.describe("Matriz de Permissões Automatizada", () => {
 
       // Testa cada rota para o papel atual
       for (const route of routes) {
-        const actualPath = resolvePath(route);
-        test(`acesso a ${actualPath} deve resultar em ${route.expectedBehavior}`, async ({ page }) => {
-          await gotoAndSettle(page, actualPath);
+        const actualPaths = resolvePaths(route);
+        for (const actualPath of actualPaths) {
+          test(`acesso a ${actualPath} deve resultar em ${route.expectedBehavior}`, async ({ page }) => {
+            await gotoAndSettle(page, actualPath);
 
           switch (route.expectedBehavior) {
             case "allow":
@@ -62,7 +63,7 @@ test.describe("Matriz de Permissões Automatizada", () => {
               await expect(page.locator("text=403")).toBeVisible();
               break;
           }
-        });
+        }
       }
     });
   }
