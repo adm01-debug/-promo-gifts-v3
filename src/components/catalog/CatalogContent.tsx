@@ -65,10 +65,11 @@ function ScrollToTopButton({ show, onClick }: { show: boolean; onClick: () => vo
 }
 
 // ─── Footer row (shared between grid & list) ────────────────────────
-function VirtualFooter({ hasMore, loadMoreRef, productsCount, totalEstimate, filteredCount, isLoadingMore, itemsPerPage, skeletonType }: {
+function VirtualFooter({ hasMore, loadMoreRef, productsCount, totalEstimate, filteredCount, isLoadingMore, itemsPerPage, skeletonType, columns }: {
   hasMore: boolean; loadMoreRef: RefObject<HTMLDivElement>; productsCount: number;
   totalEstimate: number | null; filteredCount: number; isLoadingMore: boolean; itemsPerPage: number;
   skeletonType: "grid" | "list";
+  columns: import("@/components/products/ColumnSelector").ColumnCount;
 }) {
   const total = (totalEstimate ?? filteredCount).toLocaleString("pt-BR");
   if (hasMore) return (
@@ -76,7 +77,7 @@ function VirtualFooter({ hasMore, loadMoreRef, productsCount, totalEstimate, fil
       <div ref={loadMoreRef} style={{ minHeight: "1px" }} />
       <p className="text-sm text-muted-foreground">Mostrando {productsCount} de {total} produtos</p>
       {isLoadingMore && (skeletonType === "grid"
-        ? <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 w-full mt-4">{Array.from({ length: 5 }).map((_, i) => <div key={i} className="space-y-3"><Skeleton className="aspect-square w-full rounded-xl" /><Skeleton className="h-4 w-3/4" /><Skeleton className="h-4 w-1/2" /></div>)}</div>
+        ? <ProductGridSkeleton count={Math.min(itemsPerPage, columns * 2)} columns={columns} />
         : <ProductListSkeleton count={3} />
       )}
     </div>
