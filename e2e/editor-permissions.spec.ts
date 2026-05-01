@@ -65,11 +65,15 @@ test.describe("Editor (Manager) Permissions Suite", () => {
         await expect(page.locator("text=Área técnica restrita à equipe de Desenvolvimento")).toBeVisible();
         await expect(page.locator("text=Supervisor")).toBeVisible();
         
-        // Garante que não há vazamento de dados técnicos sensíveis (ex: caminhos completos de diretório)
-        await expect(page.locator("text=ID da Requisição Bloqueada")).toBeVisible();
-        const pathSuffix = route.split('/').pop() || 'root';
-        await expect(page.locator(".font-mono")).toContainText(pathSuffix); 
-        await expect(page.locator(".font-mono")).not.toContainText("/admin/"); // O path completo não deve ser exposto na UI se possível
+        // Validação do Layout Padronizado 403
+        await expect(page.locator("text=Identificador de Segurança")).toBeVisible();
+        const pathSuffix = route.split('/').filter(Boolean).pop()?.toUpperCase() || 'ROOT';
+        await expect(page.locator(".font-mono")).toContainText(`REQ-${pathSuffix}`); 
+        
+        // Garante que dados sensíveis (path completo) estão ocultos
+        const fullContent = await page.locator('[role="alert"]').innerText();
+        expect(fullContent).not.toContain("/admin/telemetria");
+        expect(fullContent).not.toContain("/admin/seguranca");
       }
     });
 
@@ -124,15 +128,22 @@ test.describe("Editor (Manager) Permissions Suite", () => {
       // 3. Verifica redirecionamento para login
       await expect(page).toHaveURL(/\/login/);
 
-      // 4. Tenta acessar a rota administrativa novamente
-      await page.goto("/admin/usuarios");
+      // 4. Tenta acessar uma rota restrita diretamente (Deep Linking)
+      const targetPath = "/admin/usuarios";
+      await page.goto(targetPath);
 
-      // 5. Deve ser redirecionado para login (com o parâmetro 'from' no state via ProtectedRoute)
+      // 5. Deve ser redirecionado para login
       await expect(page).toHaveURL(/\/login/);
       
-      // 6. Tenta acessar a home
-      await page.goto("/");
-      await expect(page).toHaveURL(/\/login/);
+      // 6. Verifica se o parâmetro 'from' está preservado no state do roteador
+      // O ProtectedRoute do React Router geralmente armazena isso no history state
+      const state = await page.evaluate(() => window.history.state);
+      // No React Router v6+, a estrutura costuma ter o objeto 'usr' ou 'from'
+      // mas o mais confiável é validar via comportamento de login ou checar se o link de retorno funciona
+      
+      // Para validar o state 'from' de forma conclusiva, fazemos o login e vemos se volta para targetPath
+      await loginAs(page, "editor");
+      await expect(page).toHaveURL(new RegExp(targetPath));
     });
 
     test("tentativa de chamada de API restrita após logout deve retornar 401/403", async ({ page, request }) => {

@@ -323,25 +323,43 @@ export function DevAccessDeniedPage({
             aria-hidden="true"
           />
 
-          <div className="space-y-2">
-            <span className="inline-block text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
-              {copy.badge} · 403
-            </span>
-            <h1
-              id="dev-access-denied-title"
-              className="text-xl font-semibold"
-            >
-              {copy.title}
-            </h1>
-            <p className="text-sm text-muted-foreground">{copy.intro}</p>
-            {isSupervisor && (
-              <p className="text-xs text-muted-foreground bg-muted/50 py-2 px-3 rounded border border-border/40">
-                Você está tentando acessar uma área técnica restrita. Seus privilégios administrativos cobrem apenas gestão de negócio e usuários.
+          <div className="space-y-4 w-full">
+            <div className="space-y-1">
+              <span className="inline-block text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-destructive/10 text-destructive border border-destructive/20">
+                {copy.badge} · 403
+              </span>
+              <h1
+                id="dev-access-denied-title"
+                className="text-2xl font-bold tracking-tight text-foreground"
+              >
+                {copy.title}
+              </h1>
+            </div>
+
+            <div className="space-y-3">
+              <p className="text-sm leading-relaxed text-muted-foreground px-2">
+                {copy.intro}
               </p>
-            )}
-            <p className="text-[10px] text-muted-foreground/60 uppercase tracking-tight pt-2">
-              ID da Requisição Bloqueada: <span className="font-mono">{blockedPath.split('/').pop() || 'root'}</span>
-            </p>
+              
+              {isSupervisor && (
+                <div className="mx-auto max-w-sm p-3 rounded-lg bg-muted/40 border border-border/50 text-xs text-left">
+                  <p className="font-medium text-foreground mb-1">Nota de Permissão:</p>
+                  <p className="text-muted-foreground leading-normal">
+                    Seus privilégios administrativos estão configurados para gestão de negócio e usuários. 
+                    O acesso a ferramentas de infraestrutura e telemetria é restrito.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div className="pt-2 border-t border-border/10">
+              <p className="text-[10px] font-medium text-muted-foreground/50 uppercase tracking-widest">
+                Identificador de Segurança
+              </p>
+              <p className="text-xs font-mono text-muted-foreground mt-1 bg-muted/30 py-1 px-2 rounded inline-block">
+                REQ-{blockedPath.split('/').filter(Boolean).pop()?.toUpperCase() || 'ROOT'}
+              </p>
+            </div>
           </div>
 
           {/* Para supervisor: atalhos visuais para áreas administrativas. */}
