@@ -1,63 +1,56 @@
+## Diagnóstico
 
-## Problema
+O modal "Salvar EXTERNAL_PROMOBRIND_URL" exibe `Failed to send a request to the Edge Function`. Investigando a aba de rede:
 
-Ao recarregar a página, o app mostra a tela "Ops! Algo deu errado" com a mensagem:
+- Requisição: `POST /functions/v1/secrets-manager` com body `{"action":"set","name":"EXTERNAL_PROMOBRIND_URL","value":"https://..."}`
+- Erro do browser: **`Failed to fetch`** (falha antes mesmo de chegar à função — preflight CORS bloqueado)
+- Logs da edge mostram apenas `booted`, **sem nenhuma execução registrada** → confirma que o browser rejeitou o preflight
 
-> **Rendered more hooks than during the previous render.**
+A causa raiz está em `supabase/functions/_shared/cors.ts`:
 
-Isso acontece **exatamente porque o fix anterior funcionou**: o `AuthContext` agora consegue ler `user_roles` (RLS desbloqueada), descobre que sua conta tem role `dev`, e o `DevOnlyBridgeOverlay` finalmente monta o `BridgeMetricsOverlay` — que tem um bug clássico de Rules-of-Hooks.
-
-### Causa raiz
-
-`src/components/dev/BridgeMetricsOverlay.tsx` faz `early return` **antes** de chamar a maior parte dos hooks:
-
-```tsx
-export default function BridgeMetricsOverlay() {
-  const { isAllowed } = useDevGate();        // hook 1 ✅
-
-  if (import.meta.env.PROD) return null;     // ❌ return antes de hooks
-  if (!isAllowed) return null;               // ❌ return antes de hooks
-
-  const { ... } = useBridgeMetrics(isAllowed); // hooks 2..N — pulados quando !isAllowed
-  const [showInfo, setShowInfo] = useState(false);
-  const handleTogglePause = useCallback(...);
-  const handleClose = useCallback(...);
+```ts
+'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type,
+  x-supabase-client-platform, x-supabase-client-platform-version,
+  x-supabase-client-runtime, x-supabase-client-runtime-version'
 ```
 
-Quando `useDevGate` retornou `isAllowed=false` num render e `isAllowed=true` no render seguinte, o React contou mais hooks do que antes → erro fatal → Error Boundary engole o app inteiro.
+O header `X-Request-Id` **NÃO está listado**. Porém o cliente (`useSecretsManager.ts` via `invokeSecretsManager`) envia esse header em **todas** as chamadas:
 
-## Solução
-
-### 1. `src/components/dev/BridgeMetricsOverlay.tsx`
-- Remover os early-returns no topo do componente.
-- Mover a checagem de `isAllowed` e `import.meta.env.PROD` para **depois** de todos os hooks (ou simplesmente remover, já que `DevOnlyBridgeOverlay` já gateia o mount).
-- Manter os hooks (`useDevGate`, `useBridgeMetrics`, `useState`, `useCallback`) sempre na mesma ordem em todo render.
-
-Estrutura corrigida:
-```tsx
-export default function BridgeMetricsOverlay() {
-  const { isAllowed } = useDevGate();
-  const { open, setOpen, ... } = useBridgeMetrics(isAllowed);
-  const [showInfo, setShowInfo] = useState(false);
-  const handleTogglePause = useCallback(...);
-  const handleClose = useCallback(...);
-
-  // Guards APÓS todos os hooks
-  if (import.meta.env.PROD) return null;
-  if (!isAllowed) return null;
-  if (!open) return <FloatingButton ... />;
-  return <Panel ... />;
-}
+```ts
+await supabase.functions.invoke("secrets-manager", {
+  body, headers: { [REQUEST_ID_HEADER]: requestId }, // X-Request-Id
+});
 ```
 
-### 2. Verificação
+Quando o browser faz o preflight `OPTIONS`, ele inclui `X-Request-Id` em `Access-Control-Request-Headers`. O servidor responde com um `Allow-Headers` que **não cobre** esse header → o browser cancela o request real, gerando `Failed to fetch` (que o `supabase-js` traduz para "Failed to send a request to the Edge Function").
 
-Após o fix, recarregar a página deve:
-- Não disparar mais o Error Boundary.
-- Mostrar o botão flutuante "bridge metrics · `" no canto inferior direito (porque sua conta tem role `dev`).
-- Header exibir os menus Admin e Dev normalmente.
+Esse mesmo bug afeta toda função que usa `getCorsHeaders()` e recebe chamadas com `X-Request-Id` (é o caso de praticamente todo o hub de Conexões, Magic Up, MCP, Quote, etc., conforme a memória `Edge Request-Id Propagation Gate`).
 
-### Arquivos alterados
-- `src/components/dev/BridgeMetricsOverlay.tsx` — reordenar hooks antes dos guards.
+## Correção
 
-Sem mudanças de banco, sem mudanças de testes (os testes existentes mockam `useDevGate` direto e continuam válidos).
+**Arquivo único:** `supabase/functions/_shared/cors.ts`
+
+Adicionar `x-request-id` (case-insensitive, lowercase por convenção HTTP/2) à constante `CORS_HEADERS_BASE['Access-Control-Allow-Headers']`.
+
+```ts
+const CORS_HEADERS_BASE = {
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-request-id, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+};
+```
+
+Também adicionar a `publicCorsHeaders` (legacy wildcard) para manter consistência caso alguma função pública também receba o header.
+
+Opcionalmente expor `Access-Control-Expose-Headers: x-request-id` para que o frontend possa ler o `X-Request-Id` ecoado pelo servidor (já estamos retornando — falta só permitir a leitura no browser).
+
+## Validação pós-correção
+
+1. Recarregar `/admin/conexoes`, abrir o modal "Salvar EXTERNAL_PROMOBRIND_URL", colar uma URL e clicar **Sim, salvar** → deve persistir e fechar o modal sem erro.
+2. Verificar via Network que a request `POST secrets-manager` retorna `200` com `ok: true`.
+3. Confirmar que o painel "Saúde da Aplicação" passa a registrar a chamada (antes era engolida pelo CORS, então nem chegava no `webhook_delivery_metrics`).
+
+## Por que é a única mudança necessária
+
+- Não há mudança de schema, RLS ou edge logic.
+- Não há regressão para outras funções (apenas habilita um header já enviado).
+- Cobre **todas** as edges (one-shot fix), porque todas importam `getCorsHeaders` desse arquivo.
