@@ -56,16 +56,20 @@ test.describe("Agente (Seller) Permissions Suite", () => {
       }
     });
 
-    test("valida identificador de segurança ofuscado para Agente", async ({ page }) => {
-      await gotoAndSettle(page, "/admin/workflows");
+    test("valida identificador de segurança ofuscado para Agente e tratamento de erro amigável", async ({ page }) => {
+      await gotoAndSettle(page, "/admin/workflows/invalid-id");
       
       await expect(page.locator("text=Identificador de Segurança")).toBeVisible();
       // Deve conter o padrão de hash REQ-XXXXXX
       await expect(page.locator(".font-mono")).toContainText(/REQ-[A-Z0-9]{3,}/);
       
-      // Garante que o path real /admin/workflows NÃO está visível
+      // Valida mensagem amigável exata
+      await expect(page.locator("text=Esta área é exclusiva da equipe técnica")).toBeVisible();
+      
+      // Garante que o path real ou erros técnicos NÃO estão visíveis
       const fullText = await page.locator('[role="alert"]').innerText();
       expect(fullText).not.toContain("/admin/workflows");
+      expect(fullText.toLowerCase()).not.toContain("exception");
     });
   });
 });

@@ -82,14 +82,16 @@ test.describe("Matriz de Permissões Automatizada", () => {
                 break;
 
               case "deny_404":
-                // 1. Deve mostrar página de 404 ou mensagem de não encontrado
-                // Dependendo da implementação, pode ser um componente específico ou redirect
-                await expect(page.locator("text=não encontrada").or(page.locator("text=404"))).toBeVisible();
+                // 1. Deve mostrar mensagem amigável exata de não encontrado
+                const notFoundMessage = page.locator("text=Página não encontrada").or(page.locator("text=404"));
+                await expect(notFoundMessage).toBeVisible();
                 
-                // 2. Garantir que não vaza detalhes técnicos do erro
-                const bodyText = await page.innerText('body');
-                expect(bodyText.toLowerCase()).not.toContain("sql");
-                expect(bodyText.toLowerCase()).not.toContain("stack trace");
+                // 2. Garantir que não vaza detalhes técnicos do erro (DB, server, stack)
+                const bodyText404 = await page.innerText('body');
+                const forbidden404 = ["sql", "stack trace", "dump", "exception", "postgres", "supabase"];
+                for (const term of forbidden404) {
+                  expect(bodyText404.toLowerCase(), `Vazamento de dado técnico (404): ${term}`).not.toContain(term.toLowerCase());
+                }
                 break;
             }
           });
