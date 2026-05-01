@@ -4,6 +4,7 @@
   "version": "2.0.0",
   "type": "module",
   "scripts": {
+    "e2e:generate-fixtures": "bun run e2e/scripts/generate-fixtures.ts",
     "dev": "vite",
     "build": "vite build",
     "build:dev": "vite build --mode development",
