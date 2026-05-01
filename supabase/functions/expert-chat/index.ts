@@ -1,4 +1,4 @@
-import { getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts';
+import { buildPublicCorsHeaders, getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts';
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { authenticateRequest, authErrorResponse } from '../_shared/auth.ts';
 import { z } from "npm:zod@3.23.8";
