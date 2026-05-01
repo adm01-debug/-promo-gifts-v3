@@ -17,7 +17,8 @@ export function resolvePath(route: PermissionRoute): string {
   let finalPath = route.path;
   if (route.params) {
     for (const [key, value] of Object.entries(route.params)) {
-      finalPath = finalPath.replace(`:${key}`, value);
+      // Replaces all occurrences of :parameterName
+      finalPath = finalPath.split(`:${key}`).join(value);
     }
   }
   return finalPath;
@@ -34,6 +35,7 @@ export const PERMISSION_MATRIX: Record<Role, PermissionRoute[]> = {
     { path: "/produtos", expectedBehavior: "allow" },
     { path: "/orcamentos", expectedBehavior: "allow" },
     { path: "/orcamentos/:id", params: { id: "test-quote-123" }, expectedBehavior: "allow" },
+    { path: "/orcamentos/:id/editar", params: { id: "test-quote-123" }, expectedBehavior: "allow" },
     { path: "/admin/usuarios", expectedBehavior: "deny_redirect_home" },
   ],
   supervisor: [
