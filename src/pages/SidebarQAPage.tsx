@@ -46,7 +46,7 @@ function NavItemSample({
         // focus-visible simulado via ring estático
         forceFocus && "ring-2 ring-primary ring-offset-2",
         isActive
-          ? "bg-orange/15 text-orange font-bold ring-1 ring-orange/30 before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-5 before:w-[3px] before:rounded-r-full before:bg-orange"
+          ? "bg-orange/15 text-orange font-bold before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-5 before:w-[3px] before:rounded-r-full before:bg-orange"
           : "text-sidebar-foreground/75 before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-0 before:w-[2px] before:rounded-r-full before:bg-orange/50",
       )}
     >
