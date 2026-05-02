@@ -124,6 +124,7 @@ export default function AdminConexoesStatusPage() {
   }, [conns, creds]);
 
   return (
+    <MainLayout>
     <div className="container mx-auto max-w-6xl space-y-6 py-6">
       <PageSEO
         title="Status da sincronização de conexões | Promo Gifts"
