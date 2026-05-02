@@ -169,10 +169,10 @@ export const SidebarNavGroup = forwardRef<HTMLDivElement, SidebarNavGroupProps>(
         data-tour={item.tourId}
         className={cn(
           "flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 group relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.98]",
-          "hover:bg-sidebar-accent/50",
+          "hover:bg-sidebar-accent/70",
           isActive
-            ? "bg-orange/10 text-orange font-bold before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-5 before:w-[3px] before:rounded-r-full before:bg-orange"
-            : "text-sidebar-foreground/60 hover:text-sidebar-foreground before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-0 before:w-[2px] before:rounded-r-full before:bg-orange/50 before:transition-all before:duration-200 hover:before:h-4"
+            ? "bg-orange/15 text-orange font-bold ring-1 ring-orange/30 before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-5 before:w-[3px] before:rounded-r-full before:bg-orange"
+            : "text-sidebar-foreground/75 hover:text-sidebar-foreground before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-0 before:w-[2px] before:rounded-r-full before:bg-orange/50 before:transition-all before:duration-200 hover:before:h-4"
         )}
         onClick={() => isMobileSidebarOpen && onMobileClose()}
         onMouseEnter={prefetch.onMouseEnter}
