@@ -42,10 +42,14 @@ describe('Admin Visual Consistency Snapshot', () => {
     expect(conexoesMain).not.toBeNull();
     expect(usuariosMain).not.toBeNull();
     
-    // We look for ANY container that has our padronized layout classes.
-    // In our implementation, we added: mx-auto max-w-[1920px]...
-    const conexoesContainer = conexoesMain?.querySelector('[class*="mx-auto"]');
-    const usuariosContainer = usuariosMain?.querySelector('[class*="mx-auto"]');
+    // Check all divs inside main until we find one with mx-auto
+    const findContainer = (main: HTMLElement | null) => {
+      if (!main) return null;
+      return Array.from(main.querySelectorAll('div')).find(div => div.className.includes('mx-auto'));
+    };
+
+    const conexoesContainer = findContainer(conexoesMain);
+    const usuariosContainer = findContainer(usuariosMain);
     
     expect(conexoesContainer, 'Conexoes content should have mx-auto container').not.toBeNull();
     expect(usuariosContainer, 'Usuarios content should have mx-auto container').not.toBeNull();
