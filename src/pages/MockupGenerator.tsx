@@ -407,11 +407,13 @@ export default function MockupGenerator() {
           <TabsContent value="history">
             <Suspense fallback={<div className="flex items-center justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>}>
               <MockupHistoryPanel
-                history={mg.mockupHistory}
+                mockupHistory={mg.mockupHistory}
                 isLoading={mg.isLoadingHistory}
+                clients={mg.historyClients}
+                techniques={mg.techniques}
                 onDelete={(id) => { setMockupToDelete(id); setDeleteDialogOpen(true); }}
                 onDownload={(mockup) => mg.downloadMockup(mockup)}
-                onRestore={(mockup) => {
+                onLoadFromHistory={(mockup) => {
                   const product = getProductById(mockup.product_id || "");
                   if (product) {
                     mg.setProductSelection({ product, variant: null, imageUrl: mockup.mockup_url });
