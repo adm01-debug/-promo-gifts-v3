@@ -339,18 +339,22 @@ html[data-scroll-locked] body {
     letter-spacing: -0.01em;
   }
   .dark .link-primary {
-    @apply text-primary decoration-primary/50;
+    @apply font-bold underline-offset-4 decoration-2 decoration-primary/50;
+    color: hsl(var(--primary));
     text-shadow: 0 0 20px hsl(var(--primary) / 0.55);
   }
   .dark .link-primary:hover {
-    @apply text-primary-hover decoration-primary;
+    @apply decoration-primary;
+    color: hsl(var(--primary-hover));
     text-shadow: 0 0 35px hsl(var(--primary) / 0.85);
   }
   .dark .link-secondary {
-    @apply text-muted-foreground decoration-muted-foreground/40;
+    @apply font-semibold underline-offset-4 decoration-1 decoration-muted-foreground/40;
+    color: hsl(var(--muted-foreground));
   }
   .dark .link-secondary:hover {
-    @apply text-foreground decoration-primary/70;
+    @apply decoration-primary/70;
+    color: hsl(var(--foreground));
     text-shadow: 0 0 15px hsl(var(--primary) / 0.3);
   }
 
