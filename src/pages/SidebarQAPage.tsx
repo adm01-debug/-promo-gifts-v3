@@ -170,7 +170,7 @@ export default function SidebarQAPage() {
               × light/dark.
             </p>
             <p className="text-xs text-muted-foreground mt-2">
-              ✓ Sem <code>shadow-glow</code>, <code>shadow-soft</code>,{" "}
+              ✓ Sem efeitos de brilho ou sombras neon. Foco usa <code>ring-2 ring-primary
               <code>hover:shadow-*</code>. Foco usa <code>ring-2 ring-primary
               ring-offset-2</code>.
             </p>

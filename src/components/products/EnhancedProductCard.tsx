@@ -113,7 +113,7 @@ export function EnhancedProductCard({
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         className={cn(
-          "absolute top-3 left-3 z-20 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium shadow-lg",
+          "absolute top-3 left-3 z-20 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium shadow-md",
           config.className
         )}
       >
@@ -167,7 +167,7 @@ export function EnhancedProductCard({
 
         {/* Featured badge */}
         {product.featured && (
-          <Badge className="absolute top-3 right-3 z-10 bg-gradient-to-r from-primary to-primary-glow text-primary-foreground shadow-lg">
+          <Badge className="absolute top-3 right-3 z-10 bg-primary text-primary-foreground shadow-md">
             <Sparkles className="h-3 w-3 mr-1" />
             Destaque
           </Badge>
@@ -190,7 +190,7 @@ export function EnhancedProductCard({
                 data-testid="product-card-favorite"
                 aria-pressed={isFavorited}
                 className={cn(
-                  "h-10 w-10 rounded-full bg-card/95 backdrop-blur-md shadow-lg",
+                  "h-10 w-10 rounded-full bg-card/95 backdrop-blur-md shadow-md",
                   "hover:scale-110 transition-all",
                   isFavorited && "bg-destructive/10 border-destructive/30"
                 )}
@@ -218,7 +218,7 @@ export function EnhancedProductCard({
                 variant="secondary"
                 size="icon" aria-label="GitCompare"
                 className={cn(
-                  "h-10 w-10 rounded-full bg-card/95 backdrop-blur-md shadow-lg",
+                  "h-10 w-10 rounded-full bg-card/95 backdrop-blur-md shadow-md",
                   "hover:scale-110 transition-all",
                   isInCompare && "bg-primary/10 border-primary/30"
                 )}
@@ -243,7 +243,7 @@ export function EnhancedProductCard({
               <Button
                 variant="secondary"
                 size="icon" aria-label="Visualizar"
-                className="h-10 w-10 rounded-full bg-card/95 backdrop-blur-md shadow-lg hover:scale-110 transition-all"
+                className="h-10 w-10 rounded-full bg-card/95 backdrop-blur-md shadow-md hover:scale-110 transition-all"
                 onClick={(e: React.MouseEvent) => {
                   e.stopPropagation();
                   onQuickView?.(product);
@@ -260,7 +260,7 @@ export function EnhancedProductCard({
               <Button
                 variant="secondary"
                 size="icon" aria-label="Compartilhar"
-                className="h-10 w-10 rounded-full bg-card/95 backdrop-blur-md shadow-lg hover:scale-110 transition-all"
+                className="h-10 w-10 rounded-full bg-card/95 backdrop-blur-md shadow-md hover:scale-110 transition-all"
                 onClick={(e: React.MouseEvent) => {
                   e.stopPropagation();
                   onShare?.(product);
@@ -404,7 +404,7 @@ export function EnhancedProductCard({
       <AnimatePresence>
         {showPreview && (
           <motion.div
-            className="absolute left-full top-0 ml-4 w-72 bg-card rounded-xl shadow-2xl border z-50 overflow-hidden"
+            className="absolute left-full top-0 ml-4 w-72 bg-card rounded-xl shadow-xl border z-50 overflow-hidden"
             initial={{ opacity: 0, x: -20, scale: 0.95 }}
             animate={{ opacity: 1, x: 0, scale: 1 }}
             exit={{ opacity: 0, x: -20, scale: 0.95 }}

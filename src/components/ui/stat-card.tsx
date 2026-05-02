@@ -26,27 +26,27 @@ const variantStyles: Record<StatVariant, { bg: string; icon: string; glow: strin
   success: {
     bg: "bg-success border-2 border-success/30",
     icon: "text-white",
-    glow: "shadow-[0_0_20px_hsl(var(--success)/0.3)]",
+    glow: "shadow-sm",
   },
   warning: {
     bg: "bg-warning border-2 border-warning/30",
     icon: "text-white",
-    glow: "shadow-[0_0_20px_hsl(var(--warning)/0.3)]",
+    glow: "shadow-sm",
   },
   danger: {
     bg: "bg-destructive border-2 border-destructive/30",
     icon: "text-white",
-    glow: "shadow-[0_0_20px_hsl(var(--destructive)/0.3)]",
+    glow: "shadow-sm",
   },
   info: {
     bg: "bg-info border-2 border-info/30",
     icon: "text-white",
-    glow: "shadow-[0_0_20px_hsl(var(--info)/0.3)]",
+    glow: "shadow-sm",
   },
   orange: {
     bg: "bg-primary border-2 border-primary/30",
     icon: "text-white",
-    glow: "shadow-[0_0_25px_hsl(var(--primary)/0.4)]",
+    glow: "shadow-sm",
   },
 };
 

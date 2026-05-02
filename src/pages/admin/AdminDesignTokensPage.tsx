@@ -69,11 +69,7 @@ const SHADOW_TOKENS = [
   { name: "shadow-sm (soft)", twClass: "shadow-sm", description: "Repouso default" },
   { name: "shadow-md (medium)", twClass: "shadow-md", description: "Hover / agrupamentos" },
   { name: "shadow-xl (premium)", twClass: "shadow-xl", description: "Modais, hero" },
-  { name: "shadow-glow", twClass: "shadow-glow", description: "Estados ativos / neon" },
-  { name: "shadow-glow-hover", twClass: "shadow-glow-hover", description: "Hover sobre glow" },
-  { name: "shadow-glow-active", twClass: "shadow-glow-active", description: "Pressed / Active state" },
-  { name: "shadow-glow-focus", twClass: "shadow-glow-focus", description: "Focus ring + glow" },
-  { name: "shadow-premium-hover", twClass: "shadow-premium-hover", description: "Intense premium hover" },
+  { name: "shadow-none", twClass: "shadow-none", description: "Sem sombra" },
 ];
 
 const RADIUS_TOKENS = [
@@ -169,17 +165,16 @@ export default function AdminDesignTokensPage() {
         </div>
       </Section>
 
-      <Section title="5. Sombras & Glow">
+      <Section title="5. Sombras">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <TokenSwatch name="Glow Blur" cssVar="--glow-blur" twClass="bg-primary/10" description="Raio de desfoque base" />
-          <TokenSwatch name="Glow Intensity" cssVar="--glow-intensity" twClass="bg-primary/10" description="Opacidade do brilho" />
-          <TokenSwatch name="Glow Color" cssVar="--glow-color" twClass="bg-primary" description="Cor HSL do brilho" />
-          <TokenSwatch name="Glow Blur (Hover)" cssVar="--glow-blur-hover" twClass="bg-primary/10" description="Raio no estado hover" />
+          <TokenSwatch name="Shadow Soft" cssVar="--shadow-soft" twClass="shadow-soft" description="Padrão discreto" />
+          <TokenSwatch name="Shadow Medium" cssVar="--shadow-medium" twClass="shadow-medium" description="Hover" />
+          <TokenSwatch name="Shadow XL" cssVar="--shadow-xl" twClass="shadow-xl" description="Modais" />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 p-6 bg-surface rounded-lg">
           {SHADOW_TOKENS.map((s) => (
             <div key={s.twClass} className="space-y-2">
-              <div className={`h-20 rounded-lg bg-card border ${s.twClass} transition-all duration-300 hover:shadow-glow-hover`} />
+              <div className={`h-20 rounded-lg bg-card border ${s.twClass} transition-all duration-300`} />
               <div className="text-xs">
                 <div className="font-bold text-foreground">{s.name}</div>
                 <div className="text-muted-foreground">{s.description}</div>

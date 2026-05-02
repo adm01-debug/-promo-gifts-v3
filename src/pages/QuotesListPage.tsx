@@ -246,7 +246,7 @@ export default function QuotesListPage() {
 
           {/* KPI Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-            <Card className="sm:col-span-2 md:col-span-1 border-primary/30 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent shadow-glow-primary/10">
+            <Card className="sm:col-span-2 md:col-span-1 border-primary/30 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent shadow-md">
               <CardContent className="p-4 flex items-center gap-3">
                 <div className="h-11 w-11 rounded-xl bg-primary/20 flex items-center justify-center shrink-0 ring-1 ring-primary/30">
                   <DollarSign className="h-5 w-5 text-primary" />

@@ -33,9 +33,9 @@ const TabsTrigger = React.forwardRef<
       "text-muted-foreground hover:text-primary hover:bg-primary/5 active:scale-[0.98]",
       // Ativo: laranja brilhante
       "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground",
-      "data-[state=active]:shadow-glow data-[state=active]:scale-[1.02] data-[state=active]:font-extrabold",
+      "data-[state=active]:shadow-soft data-[state=active]:scale-[1.02] data-[state=active]:font-extrabold",
       // Focus
-      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:shadow-glow-focus",
+      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
       "disabled:pointer-events-none disabled:opacity-50",
       className,
     )}
