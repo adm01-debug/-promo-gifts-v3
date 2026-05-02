@@ -308,7 +308,7 @@ function MobileCollapsibleSection({
 }: MobileCollapsibleSectionProps) {
   // Desktop: always expanded. Mobile: collapsible, auto-collapse when completed.
   return (
-    <div className="space-y-2">
+    <div id={id} className="space-y-2 scroll-mt-20">
       {/* Desktop view — always visible */}
       <div className="hidden md:block space-y-2">
         <Label className="flex items-center gap-2">
