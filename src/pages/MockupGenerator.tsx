@@ -194,7 +194,6 @@ export default function MockupGenerator() {
       <GeneratingOverlay isVisible={mg.isLoading} productName={mg.selectedProduct?.name} techniqueName={mg.selectedTechnique?.name} />
 
       <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
-        <MockupHeader historyCount={mg.mockupHistory.length} summary={summary} activeTab={mg.activeTab} />
 
         {mg.activeTab !== "history" && (
           <div className="sticky top-0 z-[40] bg-background/80 backdrop-blur-md py-2 -mx-2 px-2 rounded-xl transition-all duration-300 border border-transparent hover:border-border/40">
