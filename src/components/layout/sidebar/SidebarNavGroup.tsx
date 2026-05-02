@@ -119,7 +119,7 @@ export const SidebarNavGroup = forwardRef<HTMLDivElement, SidebarNavGroupProps>(
               "flex items-center gap-3 w-full px-3 py-2 rounded-lg transition-all duration-200 group relative",
               "hover:bg-sidebar-accent/50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-orange/30 active:scale-[0.99]",
               hasActiveChild
-                ? "text-orange font-semibold bg-orange/[0.06] before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-5 before:w-[2px] before:rounded-r-full before:bg-orange"
+                ? "text-orange font-semibold bg-orange/[0.03] before:absolute before:left-0 before:top-[20%] before:bottom-[20%] before:w-[2px] before:rounded-r-full before:bg-orange"
                 : "text-sidebar-foreground/75 hover:text-sidebar-foreground"
             )}
           >
@@ -171,8 +171,8 @@ export const SidebarNavGroup = forwardRef<HTMLDivElement, SidebarNavGroupProps>(
           "flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 group relative focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-orange/30 active:scale-[0.99]",
           "hover:bg-sidebar-accent/50",
           isActive
-            ? "bg-orange/[0.04] text-orange font-bold before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-5 before:w-[2px] before:rounded-r-full before:bg-orange"
-            : "text-sidebar-foreground/75 hover:text-sidebar-foreground before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-0 before:w-[2px] before:rounded-r-full before:bg-orange/50 before:transition-all before:duration-200 hover:before:h-4"
+            ? "bg-orange/[0.03] text-orange font-bold before:absolute before:left-0 before:top-[20%] before:bottom-[20%] before:w-[2px] before:rounded-r-full before:bg-orange"
+            : "text-sidebar-foreground/75 hover:text-sidebar-foreground before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-0 before:w-[2px] before:rounded-r-full before:bg-orange/50 before:transition-all before:duration-200 hover:before:h-3"
         )}
         onClick={() => isMobileSidebarOpen && onMobileClose()}
         onMouseEnter={prefetch.onMouseEnter}
@@ -248,7 +248,7 @@ export const SidebarNavGroup = forwardRef<HTMLDivElement, SidebarNavGroupProps>(
           className={cn(
             "flex items-center gap-3 w-full px-3 py-2 rounded-lg transition-all duration-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-orange/20 active:scale-[0.99]",
             "hover:bg-sidebar-accent/50 text-sidebar-foreground/70 hover:text-sidebar-foreground",
-            hasActiveItem && "text-orange bg-orange/[0.04]"
+            hasActiveItem && "text-orange bg-orange/[0.03]"
           )}
         >
           <GroupIcon
