@@ -32,6 +32,15 @@ export function useKeyboardShortcuts({
         return;
       }
 
+      // Number keys 1-6: Navigate steps
+      if (e.key >= "1" && e.key <= "6" && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        const step = parseInt(e.key);
+        if (onStepChange) {
+          onStepChange(step);
+          return;
+        }
+      }
+
       // Ctrl/Cmd + Enter: Generate mockup
       if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
         e.preventDefault();
