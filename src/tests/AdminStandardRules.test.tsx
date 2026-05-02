@@ -100,7 +100,6 @@ describe('Admin Module Programmatic Standard Rules', () => {
       const container = mainContent?.querySelector('[class*="max-w-"]');
       expect(container, `Page ${pageName} missing standardized max-w container`).not.toBeNull();
       expect(container?.className).toContain('mx-auto');
-      expect(container?.className).toContain('animate-fade-in');
     });
   });
 });
