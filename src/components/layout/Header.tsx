@@ -129,6 +129,19 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
 
         {/* ══════ Right section — Agrupamento em clusters (#2) ══════ */}
         <div className="flex items-center gap-0.5 sm:gap-0.5">
+          {isFallback && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="px-2 py-1 rounded bg-amber-100 text-amber-800 text-[10px] font-medium mr-2 flex items-center gap-1 animate-pulse border border-amber-200">
+                  <Shield className="h-3 w-3" />
+                  <span className="hidden sm:inline">Theme Safe-Mode</span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-[200px] text-xs">
+                O ThemeProvider não foi detectado. O sistema está rodando em modo de segurança com o tema padrão.
+              </TooltipContent>
+            </Tooltip>
+          )}
           {/* Mobile search trigger */}
           <Button
             variant="ghost"
