@@ -250,7 +250,7 @@ export function BoxSelector({
             <p className="text-muted-foreground">Nenhuma caixa encontrada</p>
             <p className="text-sm text-muted-foreground">Tente ajustar os filtros</p>
             {hasActiveFilters && (
-              <Button variant="link" size="sm" className="mt-2" onClick={clearAdvancedFilters}>
+              <Button variant="link-primary" size="sm" className="mt-2" onClick={clearAdvancedFilters}>
                 Limpar filtros
               </Button>
             )}
