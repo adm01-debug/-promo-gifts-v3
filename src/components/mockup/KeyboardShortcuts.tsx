@@ -18,6 +18,7 @@ export function useKeyboardShortcuts({
   canGenerate,
   canDownload,
   isLoading,
+  onStepChange,
 }: KeyboardShortcutsProps) {
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
