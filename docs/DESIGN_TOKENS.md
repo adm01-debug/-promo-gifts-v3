@@ -173,6 +173,61 @@ Pesos usados: `font-medium` (corpo), `font-semibold` (subtítulos), `font-bold` 
 
 ---
 
+## 7.1 Links — `link-primary`, `link-secondary`, `link-disabled`
+
+SSOT em `src/index.css` (linhas 274-308). Aplicar via classe utilitária OU via `<Button variant="link" | "link-secondary" | "link-disabled">` (mapeado em `src/components/ui/button.tsx`).
+
+> **Regra Core:** nunca usar `<a>` "cru" com classes ad-hoc (`text-blue-500 underline`). Sempre um dos três tokens abaixo, ou a variante `Button` correspondente. O fallback global em `:root a:not([class*="link-"])` aplica `link-primary` automaticamente para `<a>` sem classe — mas **declare explicitamente**.
+
+### Quando usar cada um
+
+| Token | Quando aplicar | Exemplos no projeto |
+|---|---|---|
+| **`link-primary`** | Ação principal de navegação ou CTA textual: links de página, "Ver detalhes", "Abrir orçamento", links em hero/empty states, links em conteúdo público. Peso 800, glow laranja, sublinhado on hover. | CTAs em hero, "Ver tudo" em listagens, links de aprovação pública, links em e-mail templates |
+| **`link-secondary`** | Ação contextual ou secundária dentro de blocos densos: "Ver histórico completo", "Editar", "Mais opções", links em rodapés, breadcrumbs intermediários, links auxiliares em cards. Peso 700, cor `muted-foreground`, ganha cor de marca no hover. | `RotationHistoryRow` ("Ver histórico completo"), "Selecionar todos os N" em `BulkActionsBar`, links em metadados de cards |
+| **`link-disabled`** | Link permanentemente indisponível para o usuário atual (sem permissão, recurso bloqueado, item arquivado). NÃO usar para "loading" — para isso use `Skeleton` ou estado disabled em botão. Sem underline, opacidade 40%, grayscale, `pointer-events-none`. | Itens de menu sem permissão (RBAC), links para recursos arquivados |
+
+### Exemplos canônicos
+
+```tsx
+// 1) Link primário em CTA / navegação principal
+<Button variant="link" asChild>
+  <Link to="/orcamentos/novo">Criar novo orçamento</Link>
+</Button>
+
+// 2) Link secundário em ação contextual (dentro de card/row)
+<Button variant="link-secondary" size="sm" className="h-auto p-0 text-xs"
+        onClick={() => setOpen(true)}>
+  Ver histórico completo
+</Button>
+
+// 3) Link desabilitado (sem permissão)
+<Button variant="link-disabled" disabled>
+  Acessar relatórios financeiros
+</Button>
+
+// 4) <a> nativo — quando não pode ser Button (e-mail HTML, conteúdo MD renderizado)
+<a className="link-primary" href="https://promogifts.com.br/orcamento/abc">
+  Aprovar orçamento
+</a>
+```
+
+### Anti-padrões
+
+❌ `<a className="text-primary underline">` — use `link-primary`
+❌ `<a className="text-muted-foreground hover:text-foreground">` — use `link-secondary`
+❌ `<a className="opacity-50 pointer-events-none">` — use `link-disabled`
+❌ Misturar `variant="link"` com classes de cor (`className="text-blue-500"`) — quebra o glow Orange Premium
+❌ Usar `link-disabled` para estado de loading — use `<Skeleton />` ou `disabled` em `<Button>`
+
+### Acessibilidade
+
+- Todos os três tokens definem `:focus-visible` com `ring-2 ring-primary` + `shadow-glow-focus` (consistente com `Button`).
+- `link-disabled` aplica `cursor-not-allowed` e `pointer-events-none` — mas para leitores de tela complemente com `aria-disabled="true"` quando renderizado em `<a>`.
+- Glow `text-shadow` usa `--background` como camada de nitidez, garantindo legibilidade em ambos os modos.
+
+---
+
 ## 8. Como modificar tokens
 
 1. **Edite apenas `src/index.css`** — alterar valor em `:root` (light) e correspondente em `.dark`.
@@ -201,8 +256,9 @@ Pesos usados: `font-medium` (corpo), `font-semibold` (subtítulos), `font-bold` 
 ❌ `border-[2px]` (use `border-2` que mapeia para `--border-width-strong`)
 ❌ `rounded-[20px]` (use `rounded-xl`)
 ❌ `shadow-[0_0_20px_rgba(255,165,0,0.5)]` (use `shadow-glow`)
+❌ `<a className="text-primary underline">` (use `link-primary` ou `<Button variant="link">` — ver §7.1)
 
-✅ `text-primary-foreground`, `bg-card`, `border`, `rounded-lg`, `shadow-glow`, `bg-gradient-cta`
+✅ `text-primary-foreground`, `bg-card`, `border`, `rounded-lg`, `shadow-glow`, `bg-gradient-cta`, `link-primary`
 
 ---
 
