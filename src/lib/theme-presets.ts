@@ -438,9 +438,9 @@ const diversityPreset: ThemePreset = {
     // Secondary = verde pride (botões secundários)
     secondary: PRIDE_GREEN,
     'secondary-foreground': '0 0% 100%',
-    // Accent = amarelo pride sobre superfície clara
-    accent: '55 100% 92%',
-    'accent-foreground': '20 80% 28%',
+    // Accent = amarelo pride sobre superfície clara (ajustado para legibilidade)
+    accent: '55 100% 94%',
+    'accent-foreground': '20 80% 25%',
     // Anel de foco e elementos interativos
     ring: PRIDE_PINK,
     interactive: PRIDE_PINK,
