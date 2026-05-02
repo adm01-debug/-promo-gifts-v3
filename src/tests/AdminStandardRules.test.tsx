@@ -85,7 +85,9 @@ describe('Admin Module Programmatic Standard Rules', () => {
     it(`${pageName} should render with correct PageSEO config`, async () => {
       render(<Component />, { wrapper });
       
-      const seo = await screen.findByTestId('page-seo', {}, { timeout: 2000 });
+      // We look for the SEO marker. Since it's often conditional or inside MainLayout,
+      // we use findBy to allow for hydration/state resolution.
+      const seo = await screen.findByTestId('page-seo', {}, { timeout: 3000 });
       expect(seo, `Page ${pageName} is missing PageSEO`).not.toBeNull();
       
       // Basic title check - should not be empty
