@@ -185,6 +185,7 @@ export default function AdminLoginAttemptsPage() {
           )}
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </MainLayout>
   );
 }
