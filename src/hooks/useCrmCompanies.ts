@@ -3,9 +3,10 @@
  * Substitui useClients (que usava bitrix_clients)
  */
 
-import { useQuery } from "@tanstack/react-query";
-import { selectCrm, selectCrmById, searchCrm } from "@/lib/crm-db";
-import { type CrmCompany, type CrmCompanyFilters, type CrmCustomer, toLegacyClient, getCompanyDisplayName, type LegacyClientFormat } from "@/types/crm";
+import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
+import { selectCrm, selectCrmById, searchCrm, invokeCrmDb } from "@/lib/crm-db";
+import { type CrmCompany, type CrmCompanyFilters, type CrmCustomer, toLegacyClient, getCompanyDisplayName } from "@/types/crm";
+import { toast } from "sonner";
 import { DEMO_CLIENT_ID, DEMO_COMPANY, isDemoClient } from "@/lib/bi/demoClient";
 
 /**
@@ -91,8 +92,55 @@ export function useCrmCompanyLegacy(id: string | null | undefined) {
 }
 
 /**
+ * Hook para busca infinita de empresas (dropdown/combobox)
+ * Suporta carregamento incremental para performance
+ */
+export function useCrmInfiniteCompanySelector() {
+  return useInfiniteQuery({
+    queryKey: ["crm-companies-infinite"],
+    queryFn: async ({ pageParam = 0 }) => {
+      console.log(`[CRM-DB] useCrmInfiniteCompanySelector: Carregando offset=${pageParam}...`);
+      try {
+        const result = await invokeCrmDb<CrmCompany[]>({
+          table: "companies",
+          operation: "select",
+          select: "id, razao_social, nome_fantasia, ramo_atividade, logo_url, cnpj",
+          filters: { deleted_at: null },
+          orderBy: { column: "razao_social", ascending: true },
+          limit: 100,
+          offset: pageParam,
+        });
+
+        const records = result.data || [];
+        console.log(`[CRM-DB] useCrmInfiniteCompanySelector: OK. Recebidos ${records.length} registros.`);
+
+        return {
+          records: records.map((c) => ({
+            id: c.id,
+            name: getCompanyDisplayName(c),
+            razao_social: c.razao_social,
+            nome_fantasia: c.nome_fantasia,
+            ramo: c.ramo_atividade,
+            logo_url: c.logo_url,
+            cnpj: c.cnpj,
+          })),
+          nextOffset: records.length === 100 ? pageParam + 100 : undefined,
+        };
+      } catch (err) {
+        console.error("[CRM-DB] useCrmInfiniteCompanySelector: FALHA:", err);
+        toast.error("Erro ao carregar empresas do CRM. Verifique sua conexão.");
+        throw err;
+      }
+    },
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) => lastPage.nextOffset,
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+/**
  * Busca lista de empresas para seletores (dropdown/combobox)
- * Retorna apenas campos essenciais para performance
+ * @deprecated Use useCrmInfiniteCompanySelector para melhor performance em listas grandes
  */
 export function useCrmCompanySelector() {
   return useQuery({
@@ -122,6 +170,7 @@ export function useCrmCompanySelector() {
         }));
       } catch (err) {
         console.error("[CRM-DB] useCrmCompanySelector: FALHA:", err);
+        toast.error("Não foi possível carregar a lista de empresas.");
         throw err;
       }
     },

@@ -3,14 +3,15 @@
  * Um único input que filtra e mostra resultados inline (sem botão separado)
  */
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useClientFuzzySearch } from "@/hooks/useGenericFuzzySearch";
 import { X, Building2, Search, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useCrmCompanySelector } from "@/hooks/useCrmCompanies";
+import { useCrmInfiniteCompanySelector } from "@/hooks/useCrmCompanies";
 import { motion, AnimatePresence } from "framer-motion";
+import { Button } from "@/components/ui/button";
 import type { MockupClient } from "./MockupConfigPanel";
 
 interface MockupClientSelectorProps {
@@ -43,8 +44,19 @@ export function MockupClientSelector({ selectedClient, onClientSelect }: MockupC
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const { data: companies = [], isLoading } = useCrmCompanySelector();
-  const { results: filteredCompanies } = useClientFuzzySearch(companies, searchQuery);
+  const { 
+    data, 
+    isLoading, 
+    fetchNextPage, 
+    hasNextPage, 
+    isFetchingNextPage 
+  } = useCrmInfiniteCompanySelector();
+
+  const allCompanies = useMemo(() => {
+    return data?.pages.flatMap(page => page.records) || [];
+  }, [data]);
+
+  const { results: filteredCompanies } = useClientFuzzySearch(allCompanies, searchQuery);
 
   // Fechar dropdown ao clicar fora
   useEffect(() => {
@@ -217,6 +229,26 @@ export function MockupClientSelector({ selectedClient, onClientSelect }: MockupC
                         </div>
                       </button>
                     ))}
+                  </div>
+                )}
+                {hasNextPage && !searchQuery && (
+                  <div className="p-2 flex justify-center border-t border-border/30">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-[11px] h-7 w-full text-muted-foreground hover:text-primary"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        fetchNextPage();
+                      }}
+                      disabled={isFetchingNextPage}
+                    >
+                      {isFetchingNextPage ? (
+                        <Loader2 className="h-3 w-3 animate-spin mr-2" />
+                      ) : (
+                        "Carregar mais empresas..."
+                      )}
+                    </Button>
                   </div>
                 )}
               </ScrollArea>
