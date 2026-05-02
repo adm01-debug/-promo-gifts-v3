@@ -1,10 +1,18 @@
-import { useMemo } from "react";
+import { useMemo, Fragment } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
-import { ChevronRight, Home } from "lucide-react";
+import { Home } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { canNavigateTo, isDevOnlyPath } from "@/lib/navigation/restricted-routes";
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 
 interface BreadcrumbItem {
   label: string;
@@ -82,8 +90,6 @@ export function DynamicBreadcrumbs({ customItems, className }: DynamicBreadcrumb
       if (isUuid || isNumericId) {
         const prevSegment = pathSegments[index - 1];
         
-        // Para rotas de detalhe de produto (/produto/:id), o UUID é redundante
-        // pois o segmento "produto" já mostra "Detalhe do Produto"
         if (prevSegment === "produto" || prevSegment === "produtos") {
           return; // Pular — não adicionar UUID ao breadcrumb
         }
@@ -95,11 +101,9 @@ export function DynamicBreadcrumbs({ customItems, className }: DynamicBreadcrumb
         
         items.push({ label, href: currentPath });
       } else {
-        // Use mapping or capitalize
         const label = routeLabels[segment] || 
           segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, " ");
         
-        // Verificar se o próximo segmento é um UUID/ID que será omitido (ex: /produto/:id)
         const nextSegment = pathSegments[index + 1];
         const nextIsSkippedId = nextSegment && (
           /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(nextSegment) ||
@@ -108,9 +112,6 @@ export function DynamicBreadcrumbs({ customItems, className }: DynamicBreadcrumb
         
         const isLastVisible = index >= pathSegments.length - 1 || nextIsSkippedId;
 
-        // Esconder link para rotas técnicas quando o usuário não tiver papel.
-        // Para rotas devOnly, ocultamos o item completamente para não-dev
-        // (defesa em profundidade — DevRoute também bloqueia o acesso).
         if (!isDev && isDevOnlyPath(currentPath)) {
           return;
         }
@@ -127,58 +128,46 @@ export function DynamicBreadcrumbs({ customItems, className }: DynamicBreadcrumb
     return items;
   }, [location.pathname, customItems, isDev, isAdmin]);
   
-  // Don't show breadcrumbs on home or login pages
   if (location.pathname === "/" || location.pathname === "/login") {
     return null;
   }
   
   return (
-    <nav 
-      aria-label="Breadcrumb" 
-      className={cn("flex items-center text-sm", className)}
-    >
-      <ol className="flex items-center gap-1">
-        {breadcrumbs.map((item, index) => (
-          <motion.li 
-            key={index}
-            className="flex items-center gap-1"
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: index * 0.05 }}
-          >
-            {index > 0 && (
-              <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-            )}
-            
-            {item.href ? (
-              <Link
-                to={item.href}
-                className={cn(
-                  "flex items-center gap-1.5 px-2 py-1 rounded-md",
-                  "text-muted-foreground hover:text-foreground",
-                  "hover:bg-muted/50 transition-colors",
-                  "focus:outline-none focus:ring-2 focus:ring-primary/50"
-                )}
+    <Breadcrumb className={cn("text-sm", className)}>
+      <BreadcrumbList>
+        {breadcrumbs.map((item, index) => {
+          const isLast = index === breadcrumbs.length - 1;
+          
+          return (
+            <Fragment key={index}>
+              <motion.div
+                initial={{ opacity: 0, x: -5 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.05 }}
+                className="flex items-center gap-2"
               >
-                {item.icon}
-                <span className="max-w-[150px] truncate">{item.label}</span>
-              </Link>
-            ) : (
-              <span 
-                className={cn(
-                  "flex items-center gap-1.5 px-2 py-1",
-                  "text-foreground font-medium"
-                )}
-                aria-current="page"
-              >
-                {item.icon}
-                <span className="max-w-[200px] truncate">{item.label}</span>
-              </span>
-            )}
-          </motion.li>
-        ))}
-      </ol>
-    </nav>
+                <BreadcrumbItem>
+                  {item.href ? (
+                    <BreadcrumbLink asChild>
+                      <Link to={item.href} className="flex items-center gap-1.5">
+                        {item.icon}
+                        <span className="max-w-[150px] truncate">{item.label}</span>
+                      </Link>
+                    </BreadcrumbLink>
+                  ) : (
+                    <BreadcrumbPage className="flex items-center gap-1.5">
+                      {item.icon}
+                      <span className="max-w-[200px] truncate">{item.label}</span>
+                    </BreadcrumbPage>
+                  )}
+                </BreadcrumbItem>
+                {!isLast && <BreadcrumbSeparator />}
+              </motion.div>
+            </Fragment>
+          );
+        })}
+      </BreadcrumbList>
+    </Breadcrumb>
   );
 }
 

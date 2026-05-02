@@ -1,9 +1,17 @@
-import { forwardRef, useCallback } from "react";
+import { forwardRef, useCallback, Fragment } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
-import { ChevronRight, Home } from "lucide-react";
+import { Home } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { canNavigateTo, isDevOnlyPath } from "@/lib/navigation/restricted-routes";
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 
 interface BreadcrumbItem {
   label: string;
@@ -86,8 +94,6 @@ export const PersistentBreadcrumbs = forwardRef<HTMLElement, PersistentBreadcrum
         }
         items.push({ label: `#${part.slice(0, 8)}...` });
       } else {
-        // Esconder segmentos técnicos do breadcrumb para não-dev
-        // (defesa em profundidade — DevRoute também bloqueia o acesso).
         if (!isDev && isDevOnlyPath(currentPath)) {
           return;
         }
@@ -119,8 +125,7 @@ export const PersistentBreadcrumbs = forwardRef<HTMLElement, PersistentBreadcrum
       data-testid="breadcrumb"
       aria-label="Breadcrumb" 
       className={cn(
-        "flex items-center text-sm overflow-x-auto scrollbar-hide",
-        "max-w-full gap-2",
+        "flex items-center text-sm overflow-x-auto scrollbar-hide max-w-full gap-3",
         className
       )}
     >
@@ -131,7 +136,6 @@ export const PersistentBreadcrumbs = forwardRef<HTMLElement, PersistentBreadcrum
           title="Teletransporte"
           className="hidden sm:inline-flex items-center justify-center gap-1.5 h-7 px-3 rounded-full text-xs font-medium text-muted-foreground hover:text-foreground bg-muted/60 hover:bg-muted border border-border/40 hover:border-border transition-all duration-200 flex-shrink-0 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 group"
         >
-          {/* Teleport icon — person with rings */}
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
@@ -153,44 +157,36 @@ export const PersistentBreadcrumbs = forwardRef<HTMLElement, PersistentBreadcrum
           <span className="hidden md:inline">Teletransporte</span>
         </button>
       )}
-      <ol className="flex items-center gap-1.5 flex-wrap">
-        {breadcrumbs.map((item, index) => {
-          const Icon = item.icon;
-          const isLast = index === breadcrumbs.length - 1;
-          
-          return (
-            <li key={`${item.href ?? item.label}-${index}`} className="flex items-center gap-1.5">
-              {index > 0 && (
-                <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/50" />
-              )}
-              
-              {item.href ? (
-                <Link
-                  to={item.href}
-                  className={cn(
-                    "flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors",
-                    "hover:underline underline-offset-4"
+
+      <Breadcrumb>
+        <BreadcrumbList>
+          {breadcrumbs.map((item, index) => {
+            const Icon = item.icon;
+            const isLast = index === breadcrumbs.length - 1;
+            
+            return (
+              <Fragment key={`${item.href ?? item.label}-${index}`}>
+                <BreadcrumbItem>
+                  {item.href ? (
+                    <BreadcrumbLink asChild>
+                      <Link to={item.href} className="flex items-center gap-1.5">
+                        {Icon && <Icon className="h-3.5 w-3.5" />}
+                        <span>{item.label}</span>
+                      </Link>
+                    </BreadcrumbLink>
+                  ) : (
+                    <BreadcrumbPage className="flex items-center gap-1.5">
+                      {Icon && <Icon className="h-3.5 w-3.5" />}
+                      <span>{item.label}</span>
+                    </BreadcrumbPage>
                   )}
-                >
-                  {Icon && <Icon className="h-3.5 w-3.5" />}
-                  <span>{item.label}</span>
-                </Link>
-              ) : (
-                <span 
-                  className={cn(
-                    "flex items-center gap-1.5",
-                    isLast ? "text-foreground font-medium" : "text-muted-foreground"
-                  )}
-                  aria-current={isLast ? "page" : undefined}
-                >
-                  {Icon && <Icon className="h-3.5 w-3.5" />}
-                  <span>{item.label}</span>
-                </span>
-              )}
-            </li>
-          );
-        })}
-      </ol>
+                </BreadcrumbItem>
+                {!isLast && <BreadcrumbSeparator />}
+              </Fragment>
+            );
+          })}
+        </BreadcrumbList>
+      </Breadcrumb>
     </nav>
   );
 });

@@ -1,8 +1,16 @@
-import { ChevronRight, Home } from "lucide-react";
+import { Home } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { canNavigateTo, isDevOnlyPath } from "@/lib/navigation/restricted-routes";
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 
 export interface BreadcrumbItem {
   label: string;
@@ -61,27 +69,18 @@ export function Breadcrumbs({ items, className, showHome = true }: BreadcrumbsPr
   if (breadcrumbItems.length === 0) return null;
   
   return (
-    <nav 
-      aria-label="Navegação de migalhas de pão" 
-      className={cn("flex items-center text-sm", className)}
-    >
-      <ol className="flex items-center gap-1.5 flex-wrap">
+    <Breadcrumb className={cn("text-sm", className)}>
+      <BreadcrumbList>
         {showHome && (
           <>
-            <li>
-              <Link
-                to="/"
-                className="flex items-center text-muted-foreground hover:text-foreground transition-colors"
-                aria-label="Página inicial"
-              >
-                <Home className="h-4 w-4" />
-              </Link>
-            </li>
-            {breadcrumbItems.length > 0 && (
-              <li aria-hidden="true">
-                <ChevronRight className="h-4 w-4 text-muted-foreground/50" />
-              </li>
-            )}
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link to="/" aria-label="Página inicial" className="flex items-center">
+                  <Home className="h-4 w-4" />
+                </Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            {breadcrumbItems.length > 0 && <BreadcrumbSeparator />}
           </>
         )}
         
@@ -89,33 +88,26 @@ export function Breadcrumbs({ items, className, showHome = true }: BreadcrumbsPr
           const isLast = index === breadcrumbItems.length - 1;
           
           return (
-            <li key={index} className="flex items-center gap-1.5">
-              {isLast ? (
-                <span 
-                  className="font-medium text-foreground"
-                  aria-current="page"
-                >
-                  {item.label}
-                </span>
-              ) : (
-                <>
-                  <Link
-                    to={item.href || "#"}
-                    className="text-muted-foreground hover:text-foreground transition-colors"
-                  >
+            <React.Fragment key={index}>
+              <BreadcrumbItem>
+                {isLast ? (
+                  <BreadcrumbPage>
                     {item.label}
-                  </Link>
-                  <ChevronRight 
-                    className="h-4 w-4 text-muted-foreground/50" 
-                    aria-hidden="true" 
-                  />
-                </>
-              )}
-            </li>
+                  </BreadcrumbPage>
+                ) : (
+                  <BreadcrumbLink asChild>
+                    <Link to={item.href || "#"}>
+                      {item.label}
+                    </Link>
+                  </BreadcrumbLink>
+                )}
+              </BreadcrumbItem>
+              {!isLast && <BreadcrumbSeparator />}
+            </React.Fragment>
           );
         })}
-      </ol>
-    </nav>
+      </BreadcrumbList>
+    </Breadcrumb>
   );
 }
 
