@@ -391,12 +391,12 @@ html[data-scroll-locked] body {
     @apply transition-all duration-300 underline-offset-4 decoration-2 decoration-primary/50 hover:underline active:opacity-80 active:scale-[0.98];
     font-weight: 800;
     color: hsl(var(--primary));
-    text-shadow: 0 0 20px hsl(var(--primary) / 0.55);
+    text-shadow: 0 0 1px hsl(var(--background)), 0 0 15px hsl(var(--primary) / 0.45);
   }
   .dark a:not([class*="link-"]):hover {
     @apply decoration-primary;
     color: hsl(var(--primary-hover));
-    text-shadow: 0 0 35px hsl(var(--primary) / 0.85);
+    text-shadow: 0 0 1px hsl(var(--background)), 0 0 30px hsl(var(--primary) / 0.75);
   }
   .dark a:not([class*="link-"]):focus-visible {
     @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-background rounded-sm shadow-glow-focus;
