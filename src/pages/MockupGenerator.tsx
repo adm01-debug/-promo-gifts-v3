@@ -6,7 +6,9 @@ import { type MockupTechnique } from "@/types/external-db";
  * Progressive Preview + Enhanced Header + Sticky Navigator.
  */
 
-import { useMemo, useCallback, Suspense } from "react";
+import { useMemo, useCallback, useState, Suspense } from "react";
+import { useProductsContext } from "@/contexts/ProductsContext";
+import { deleteMockupFromDb } from "@/hooks/mockup/mockupGenerationService";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { Button } from "@/components/ui/button";
@@ -88,6 +90,9 @@ export default function MockupGenerator() {
   const mg = useMockupGenerator();
   const { profile } = useAuth();
   const user = mg.user;
+  const { getProductById } = useProductsContext();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [mockupToDelete, setMockupToDelete] = useState<string | null>(null);
 
   const summary = useMemo(() => {
     const parts = [];
