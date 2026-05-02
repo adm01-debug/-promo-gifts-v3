@@ -385,7 +385,7 @@ export function TechniqueSelector({
           <p>Nenhuma técnica encontrada</p>
           {activeFiltersCount > 0 && (
             <Button
-              variant="link"
+              variant="link-primary"
               size="sm"
               className="mt-2"
               onClick={clearFilters}
