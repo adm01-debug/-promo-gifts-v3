@@ -110,25 +110,25 @@ html[data-scroll-locked] body {
     --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
     --transition-standard: all var(--duration-normal) var(--ease-out);
 
-    /* 10. Shadow & Depth Tokens (Extreme Glow System) */
-    --glow-blur: 20px;
-    --glow-intensity: 0.45;
+    /* 10. Shadow & Depth Tokens (NEUTRALIZED — orange glow eliminated) */
+    --glow-blur: 0px;
+    --glow-intensity: 0;
     --glow-color: 24 100% 50%;
-    --glow-blur-hover: 35px;
-    --glow-intensity-hover: 0.65;
+    --glow-blur-hover: 0px;
+    --glow-intensity-hover: 0;
     
     --overlay-opacity: 0.45;
     --overlay-blur: 8px;
     --overlay-color: 24 100% 4%;
     
-    --shadow-soft: 0 2px 10px hsl(24 100% 50% / 0.1);
-    --shadow-medium: 0 10px 30px -5px hsl(24 100% 50% / 0.2), 0 4px 12px -2px hsl(24 100% 50% / 0.1);
-    --shadow-premium: 0 20px 50px -12px hsl(24 100% 50% / 0.35), 0 0 30px hsl(24 100% 50% / 0.15);
-    --shadow-glow: 0 0 var(--glow-blur) hsl(var(--glow-color) / var(--glow-intensity)), 0 0 calc(var(--glow-blur) * 2) hsl(var(--glow-color) / 0.15);
-    --shadow-glow-hover: 0 0 var(--glow-blur-hover) hsl(var(--glow-color) / var(--glow-intensity-hover)), 0 0 calc(var(--glow-blur-hover) * 2) hsl(var(--glow-color) / 0.25);
-    --shadow-glow-active: 0 2px 10px hsl(var(--glow-color) / 0.4), inset 0 2px 15px hsl(24 100% 20% / 0.15);
-    --shadow-glow-focus: 0 0 0 3px hsl(var(--background)), 0 0 0 6px hsl(var(--primary)), 0 0 30px hsl(var(--primary) / 0.5);
-    --shadow-premium-hover: 0 25px 60px -12px hsl(24 100% 50% / 0.45), 0 0 40px hsl(24 100% 50% / 0.2);
+    --shadow-soft: 0 1px 3px hsl(0 0% 0% / 0.06);
+    --shadow-medium: 0 4px 12px hsl(0 0% 0% / 0.08);
+    --shadow-premium: 0 4px 12px hsl(0 0% 0% / 0.08);
+    --shadow-glow: none;
+    --shadow-glow-hover: none;
+    --shadow-glow-active: none;
+    --shadow-glow-focus: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--primary) / 0.4);
+    --shadow-premium-hover: 0 6px 16px hsl(0 0% 0% / 0.12);
 
     /* 10. Sidebar Specific */
     --sidebar-background: 24 100% 99%;
@@ -202,25 +202,25 @@ html[data-scroll-locked] body {
     --sidebar-primary: 24 100% 60%;
     --sidebar-border: 24 100% 60% / 0.18;
 
-    /* Shadows / glow */
-    --glow-blur: 30px;
-    --glow-intensity: 0.6;
+    /* Shadows / glow — NEUTRALIZED in dark mode (no orange halo) */
+    --glow-blur: 0px;
+    --glow-intensity: 0;
     --glow-color: 24 100% 58%;
-    --glow-blur-hover: 45px;
-    --glow-intensity-hover: 0.75;
+    --glow-blur-hover: 0px;
+    --glow-intensity-hover: 0;
 
     --overlay-opacity: 0.8;
     --overlay-blur: 12px;
     --overlay-color: 24 30% 2%;
 
-    --shadow-soft: 0 4px 20px hsl(0 0% 0% / 0.5);
-    --shadow-medium: 0 15px 45px hsl(0 0% 0% / 0.75), 0 0 20px hsl(24 100% 58% / 0.18);
-    --shadow-premium: 0 25px 70px hsl(0 0% 0% / 0.9), 0 0 45px hsl(24 100% 58% / 0.35);
-    --shadow-glow: 0 0 var(--glow-blur) hsl(var(--glow-color) / var(--glow-intensity)), 0 0 calc(var(--glow-blur) * 2) hsl(var(--glow-color) / 0.25);
-    --shadow-glow-hover: 0 0 var(--glow-blur-hover) hsl(var(--glow-color) / var(--glow-intensity-hover)), 0 0 calc(var(--glow-blur-hover) * 2) hsl(var(--glow-color) / 0.35);
-    --shadow-glow-active: 0 0 20px hsl(var(--glow-color) / 0.9), inset 0 2px 15px hsl(24 100% 20% / 0.4);
-    --shadow-glow-focus: 0 0 0 3px hsl(var(--background)), 0 0 0 6px hsl(var(--primary)), 0 0 40px hsl(var(--primary) / 0.6);
-    --shadow-premium-hover: 0 30px 80px hsl(0 0% 0% / 0.95), 0 0 50px hsl(24 100% 58% / 0.45);
+    --shadow-soft: 0 2px 8px hsl(0 0% 0% / 0.4);
+    --shadow-medium: 0 6px 18px hsl(0 0% 0% / 0.55);
+    --shadow-premium: 0 8px 24px hsl(0 0% 0% / 0.6);
+    --shadow-glow: none;
+    --shadow-glow-hover: none;
+    --shadow-glow-active: none;
+    --shadow-glow-focus: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--primary) / 0.5);
+    --shadow-premium-hover: 0 12px 32px hsl(0 0% 0% / 0.7);
 
     /* Gradients — bases escuras + CTA com luminância elevada */
     --gradient-hero: linear-gradient(135deg, hsl(24 30% 4%) 0%, hsl(24 35% 8%) 50%, hsl(24 45% 12%) 100%);
