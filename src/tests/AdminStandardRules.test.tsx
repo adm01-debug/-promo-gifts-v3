@@ -82,10 +82,10 @@ describe('Admin Module Programmatic Standard Rules', () => {
 
     const pageName = path.split('/').pop()?.replace('.tsx', '');
 
-    it(`${pageName} should render with correct PageSEO config`, () => {
+    it(`${pageName} should render with correct PageSEO config`, async () => {
       render(<Component />, { wrapper });
       
-      const seo = screen.queryByTestId('page-seo');
+      const seo = await screen.findByTestId('page-seo', {}, { timeout: 2000 });
       expect(seo, `Page ${pageName} is missing PageSEO`).not.toBeNull();
       
       // Basic title check - should not be empty
