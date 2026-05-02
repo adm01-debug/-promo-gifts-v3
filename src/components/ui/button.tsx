@@ -17,7 +17,7 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline font-bold",
         orange: "bg-primary text-primary-foreground hover:bg-primary-hover active:bg-primary-active shadow-glow hover:shadow-glow-hover border border-white/20",
         // Variante premium com gradiente e brilho intenso
-        premium: "bg-gradient-to-br from-primary via-primary-hover to-primary-active text-white shadow-medium hover:shadow-premium hover:scale-[1.02] border border-white/30",
+        premium: "bg-gradient-cta text-primary-foreground shadow-medium hover:shadow-premium hover:scale-[1.02] border border-white/30",
         // Variante success para ações de confirmação
         success: "bg-success text-success-foreground hover:bg-success/90 shadow-md border border-success/20",
       },

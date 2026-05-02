@@ -162,7 +162,7 @@ export const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(func
         
         {/* Icon */}
         <div className={cn(
-          "relative z-10 p-6 rounded-2xl bg-gradient-to-br from-muted to-muted/50",
+          "relative z-10 p-6 rounded-2xl bg-gradient-subtle",
           "border border-border shadow-sm"
         )}>
           <Icon className={cn("h-12 w-12", config.color)} strokeWidth={1.5} />
