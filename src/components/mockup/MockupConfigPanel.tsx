@@ -253,6 +253,7 @@ export function MockupConfigPanel({
             {/* Logo Color Analysis — auto-appears after logo upload */}
             {logoColorAnalysis && (logoColorAnalysis.colors.length > 0 || logoColorAnalysis.isAnalyzing) && (
               <MobileCollapsibleSection
+                id="step-colors"
                 label="Cores da Logo"
                 isCompleted={logoColorAnalysis.colors.length > 0 && !logoColorAnalysis.isAnalyzing}
                 summary={logoColorAnalysis.colors.length > 0 ? `${logoColorAnalysis.colors.length} Pantone` : undefined}
