@@ -25,7 +25,7 @@ export function PresetCard({ preset, isActive, onSelect }: PresetCardProps) {
           className={cn(
             'relative cursor-pointer rounded-xl border bg-card p-4 transition-all duration-300 overflow-hidden group',
             isActive
-              ? 'border-primary ring-2 ring-primary/60 shadow-glow-primary'
+              ? 'border-primary ring-2 ring-primary/60 shadow-md'
               : 'border-border hover:border-primary/40 hover:shadow-lg'
           )}
           onClick={() => onSelect(preset.id)}

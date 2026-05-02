@@ -69,7 +69,7 @@ export function MainLayout({ children }: MainLayoutProps) {
   }, [location.pathname]);
 
   const layoutContent = (
-    <div className="min-h-screen bg-background ambient-glow print:min-h-0" role="document">
+    <div className="min-h-screen bg-background print:min-h-0" role="document">
       <div className="print:hidden">
         <Suspense fallback={null}>
           <ScrollProgressIndicator color="primary" height={3} />
