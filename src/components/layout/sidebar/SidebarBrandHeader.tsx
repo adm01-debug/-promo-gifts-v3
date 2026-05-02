@@ -1,5 +1,6 @@
-import { forwardRef } from "react";
-import { Gift } from "lucide-react";
+import { forwardRef, useState, useEffect } from "react";
+import { Gift, Moon, Sun, Monitor } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface SidebarBrandHeaderProps {
   isCollapsed: boolean;
