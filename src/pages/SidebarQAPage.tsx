@@ -69,7 +69,7 @@ function GroupHeaderSample({ active }: { active: boolean }) {
       className={cn(
         "flex items-center gap-3 w-full px-3 py-2 rounded-lg transition-all duration-200",
         "hover:bg-sidebar-accent/60 text-sidebar-foreground/70 hover:text-sidebar-foreground",
-        active && "text-orange bg-orange/15 border border-orange/30",
+        active && "text-orange bg-orange/15",
       )}
     >
       <ShoppingCart
@@ -204,7 +204,7 @@ export default function SidebarQAPage() {
         <section className="rounded-xl border border-border p-4 space-y-2 text-sm text-muted-foreground">
           <h3 className="font-semibold text-foreground">Checklist de validação</h3>
           <ul className="list-disc pl-5 space-y-1">
-            <li>Item <strong>active</strong>: fundo laranja translúcido + ring laranja sutil + barra lateral 3px (sem halo).</li>
+            <li>Item <strong>active</strong>: fundo laranja sólido translúcido + indicador lateral 3px (totalmente plano, sem brilho).</li>
             <li>Item <strong>hover</strong>: fundo accent ~70% + texto mais forte (sem brilho).</li>
             <li>Item <strong>focus</strong>: ring sólido primário 2px com offset (visível em qualquer fundo).</li>
             <li>Item <strong>collapsed</strong> (320px): apenas ícone + indicadores; sem texto.</li>
