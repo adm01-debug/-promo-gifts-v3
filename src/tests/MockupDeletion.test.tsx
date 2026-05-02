@@ -30,6 +30,11 @@ vi.mock("sonner", () => ({
   },
 }));
 
+vi.mock("@/lib/telemetry/bridgeCallMetrics", () => ({
+  estimatePayloadBytes: vi.fn().mockReturnValue(0),
+  trackBridgeCall: vi.fn(),
+}));
+
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
     auth: {
