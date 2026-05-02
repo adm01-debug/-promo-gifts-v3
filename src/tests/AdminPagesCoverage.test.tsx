@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { HelmetProvider } from 'react-helmet-async';
 import React from 'react';
 
 // Import all admin pages
@@ -16,15 +17,17 @@ const queryClient = new QueryClient({
 
 const wrapper = ({ children }: { children: React.ReactNode }) => (
   <QueryClientProvider client={queryClient}>
-    <MemoryRouter>
-      <ThemeProvider>
-        <AuthProvider>
-          <TooltipProvider>
-            {children}
-          </TooltipProvider>
-        </AuthProvider>
-      </ThemeProvider>
-    </MemoryRouter>
+    <HelmetProvider>
+      <MemoryRouter>
+        <ThemeProvider>
+          <AuthProvider>
+            <TooltipProvider>
+              {children}
+            </TooltipProvider>
+          </AuthProvider>
+        </ThemeProvider>
+      </MemoryRouter>
+    </HelmetProvider>
   </QueryClientProvider>
 );
 

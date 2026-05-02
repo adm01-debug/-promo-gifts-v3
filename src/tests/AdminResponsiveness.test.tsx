@@ -5,18 +5,21 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { AuthProvider } from '@/contexts/AuthProvider';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { HelmetProvider } from 'react-helmet-async';
 import React from 'react';
 
 const wrapper = ({ children }: { children: React.ReactNode }) => (
-  <MemoryRouter>
-    <ThemeProvider>
-      <AuthProvider>
-        <TooltipProvider>
-          {children}
-        </TooltipProvider>
-      </AuthProvider>
-    </ThemeProvider>
-  </MemoryRouter>
+  <HelmetProvider>
+    <MemoryRouter>
+      <ThemeProvider>
+        <AuthProvider>
+          <TooltipProvider>
+            {children}
+          </TooltipProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </MemoryRouter>
+  </HelmetProvider>
 );
 
 describe('Admin Layout Responsiveness', () => {
