@@ -108,7 +108,6 @@ describe("Sidebar Mobile — Regressão de Design Plano (No Shadows/Glows)", () 
       if (inCollapsedLogic && line.includes("border-orange") && !line.includes("focus-visible:")) {
         throw new Error(`Border laranja detectado no contexto colapsado: ${line.trim()}`);
       }
-      });
     });
   });
 
