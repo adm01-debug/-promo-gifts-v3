@@ -19,34 +19,34 @@ interface StatCardProps {
 
 const variantStyles: Record<StatVariant, { bg: string; icon: string; glow: string }> = {
   default: {
-    bg: "bg-muted/50",
+    bg: "bg-muted border-2 border-border",
     icon: "text-foreground",
     glow: "",
   },
   success: {
-    bg: "bg-success/15",
-    icon: "text-success",
+    bg: "bg-success border-2 border-success/30",
+    icon: "text-white",
     glow: "shadow-[0_0_20px_hsl(var(--success)/0.3)]",
   },
   warning: {
-    bg: "bg-warning/15",
-    icon: "text-warning",
+    bg: "bg-warning border-2 border-warning/30",
+    icon: "text-white",
     glow: "shadow-[0_0_20px_hsl(var(--warning)/0.3)]",
   },
   danger: {
-    bg: "bg-destructive/15",
-    icon: "text-destructive",
+    bg: "bg-destructive border-2 border-destructive/30",
+    icon: "text-white",
     glow: "shadow-[0_0_20px_hsl(var(--destructive)/0.3)]",
   },
   info: {
-    bg: "bg-info/15",
-    icon: "text-info",
+    bg: "bg-info border-2 border-info/30",
+    icon: "text-white",
     glow: "shadow-[0_0_20px_hsl(var(--info)/0.3)]",
   },
   orange: {
-    bg: "bg-orange/15",
-    icon: "text-orange",
-    glow: "shadow-[0_0_20px_hsl(var(--orange)/0.3)]",
+    bg: "bg-primary border-2 border-primary/30",
+    icon: "text-white",
+    glow: "shadow-[0_0_25px_hsl(var(--primary)/0.4)]",
   },
 };
 
