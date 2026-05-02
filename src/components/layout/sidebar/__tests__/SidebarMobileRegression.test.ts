@@ -108,6 +108,30 @@ describe("Sidebar Mobile — Regressão de Design Plano (No Shadows/Glows)", () 
       if (inCollapsedLogic && line.includes("border-orange") && !line.includes("focus-visible:")) {
         throw new Error(`Border laranja detectado no contexto colapsado: ${line.trim()}`);
       }
+      });
     });
+  });
+
+  it("Garante que o fundo do item ativo não excede opacidade discreta", () => {
+    const file = "src/components/layout/sidebar/SidebarNavGroup.tsx";
+    const content = readFileSync(resolve(process.cwd(), file), "utf8");
+    
+    // Verifica se a opacidade do bg-orange ativo é <= 0.04
+    const matches = content.match(/bg-orange\/\[([\d.]+)\]/g);
+    if (matches) {
+      matches.forEach(m => {
+        const opacity = parseFloat(m.match(/[\d.]+/)![0]);
+        expect(opacity, `Opacidade de fundo ${m} é muito alta`).toBeLessThanOrEqual(0.04);
+      });
+    }
+  });
+
+  it("Garante que o indicador lateral (before) tem altura calibrada", () => {
+    const file = "src/components/layout/sidebar/SidebarNavGroup.tsx";
+    const content = readFileSync(resolve(process.cwd(), file), "utf8");
+    
+    // Verifica se estamos usando o novo padrão de top/bottom em vez de h-5 fixo para o indicador principal
+    const hasCalibratedIndicator = /before:top-\[20%\] before:bottom-\[20%\]/.test(content);
+    expect(hasCalibratedIndicator, "O indicador lateral deve usar posicionamento relativo (top/bottom) para ser mais discreto").toBe(true);
   });
 });
