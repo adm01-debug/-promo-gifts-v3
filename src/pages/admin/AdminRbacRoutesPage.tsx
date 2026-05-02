@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
-import { Helmet } from "react-helmet-async";
 import {
   ShieldCheck,
   ShieldAlert,
@@ -139,7 +138,7 @@ export default function AdminRbacRoutesPage() {
         noIndex
       />
 
-      <div className="container mx-auto py-6 space-y-6">
+      <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
         <header className="flex flex-col gap-2">
           <div className="flex items-center gap-2">
             <ShieldCheck className="h-6 w-6 text-primary" aria-hidden="true" />

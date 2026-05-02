@@ -125,7 +125,7 @@ export default function AdminConexoesStatusPage() {
 
   return (
     <MainLayout>
-    <div className="container mx-auto max-w-6xl space-y-6 py-6">
+    <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
       <PageSEO
         title="Status da sincronização de conexões | Promo Gifts"
         description="Histórico recente da sincronização de external_connections e diagnóstico de credenciais."
