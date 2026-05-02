@@ -12,39 +12,39 @@ export interface SupplierColorConfig {
 
 // Mapeamento de cores por fornecedor (baseado em palavras-chave no nome)
 const SUPPLIER_COLORS: Record<string, SupplierColorConfig> = {
-  // XBZ - Azul Royal
+  // XBZ - Azul Royal (Escurecido para contraste no light mode)
   xbz: {
-    bg: 'bg-[#4169E1]/15',
-    text: 'text-[#4169E1]',
-    border: 'border-[#4169E1]/30',
-    hex: '#4169E1',
+    bg: 'bg-[#1E40AF]/15',
+    text: 'text-[#1E40AF]',
+    border: 'border-[#1E40AF]/30',
+    hex: '#1E40AF',
   },
-  // SPOT / Stricker - Verde Tiffany
+  // SPOT / Stricker - Verde Escuro (Contrastado)
   spot: {
-    bg: 'bg-[#0ABAB5]/15',
-    text: 'text-[#0ABAB5]',
-    border: 'border-[#0ABAB5]/30',
-    hex: '#0ABAB5',
+    bg: 'bg-[#065F46]/15',
+    text: 'text-[#065F46]',
+    border: 'border-[#065F46]/30',
+    hex: '#065F46',
   },
   stricker: {
-    bg: 'bg-[#0ABAB5]/15',
-    text: 'text-[#0ABAB5]',
-    border: 'border-[#0ABAB5]/30',
-    hex: '#0ABAB5',
+    bg: 'bg-[#065F46]/15',
+    text: 'text-[#065F46]',
+    border: 'border-[#065F46]/30',
+    hex: '#065F46',
   },
-  // Asia Import - Vermelho Vivo
+  // Asia Import - Vermelho Escuro
   asia: {
-    bg: 'bg-[#FF3B30]/15',
-    text: 'text-[#FF3B30]',
-    border: 'border-[#FF3B30]/30',
-    hex: '#FF3B30',
+    bg: 'bg-[#991B1B]/15',
+    text: 'text-[#991B1B]',
+    border: 'border-[#991B1B]/30',
+    hex: '#991B1B',
   },
-  // Fallback - Laranja Vivo (cor principal do sistema)
+  // Fallback - Laranja Escuro para badges
   default: {
-    bg: 'bg-orange-500/15',
-    text: 'text-orange-500',
-    border: 'border-orange-500/30',
-    hex: '#f97316',
+    bg: 'bg-[#9A3412]/15',
+    text: 'text-[#9A3412]',
+    border: 'border-[#9A3412]/30',
+    hex: '#9A3412',
   },
 };
 
