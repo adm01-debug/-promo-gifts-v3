@@ -71,6 +71,9 @@ const SHADOW_TOKENS = [
   { name: "shadow-xl (premium)", twClass: "shadow-xl", description: "Modais, hero" },
   { name: "shadow-glow", twClass: "shadow-glow", description: "Estados ativos / neon" },
   { name: "shadow-glow-hover", twClass: "shadow-glow-hover", description: "Hover sobre glow" },
+  { name: "shadow-glow-active", twClass: "shadow-glow-active", description: "Pressed / Active state" },
+  { name: "shadow-glow-focus", twClass: "shadow-glow-focus", description: "Focus ring + glow" },
+  { name: "shadow-premium-hover", twClass: "shadow-premium-hover", description: "Intense premium hover" },
 ];
 
 const RADIUS_TOKENS = [
