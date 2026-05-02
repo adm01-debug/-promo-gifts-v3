@@ -19,6 +19,38 @@ describe('Theme Runtime Safety', () => {
     expect(screen.getByTestId('theme-value')).toBeDefined();
     expect(screen.getByTestId('theme-value').textContent).toBe('light');
   });
+
+  it('should show console warning only in development when context is missing', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    
+    // Test development environment
+    const originalEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'development';
+    
+    render(<ThemeConsumer />);
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('useTheme must be used within a ThemeProvider'));
+    
+    warnSpy.mockClear();
+    
+    // Test production environment
+    process.env.NODE_ENV = 'production';
+    render(<ThemeConsumer />);
+    expect(warnSpy).not.toHaveBeenCalled();
+    
+    // Restore
+    process.env.NODE_ENV = originalEnv;
+    warnSpy.mockRestore();
+  });
+
+  it('should return isFallback: true when context is missing', () => {
+    const FallbackChecker = () => {
+      const { isFallback } = useTheme() as any;
+      return <div data-testid="fallback-status">{isFallback ? 'true' : 'false'}</div>;
+    };
+
+    render(<FallbackChecker />);
+    expect(screen.getByTestId('fallback-status').textContent).toBe('true');
+  });
 });
 
 
