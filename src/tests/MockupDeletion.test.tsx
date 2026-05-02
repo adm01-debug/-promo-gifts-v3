@@ -43,6 +43,7 @@ const mockMg = {
   ],
   isLoadingHistory: false,
   fetchHistory: vi.fn(),
+  historyClients: [],
   activeTab: "generator",
   setActiveTab: vi.fn(),
   isLoading: false,
