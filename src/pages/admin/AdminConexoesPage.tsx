@@ -143,6 +143,7 @@ export default function AdminConexoesPage() {
   }, []);
 
   return (
+    <MainLayout>
     <SeverityFilterProvider>
       <ExplainModeProvider>
       <CredentialsSourceFilterProvider>
