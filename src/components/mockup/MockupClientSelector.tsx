@@ -108,8 +108,17 @@ export function MockupClientSelector({ selectedClient, onClientSelect }: MockupC
           onFocus={() => setIsFocused(true)}
           className="pl-9 h-11 bg-background"
         />
-        {isLoading && (
-          <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground animate-spin" />
+        {isLoading ? (
+          <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary animate-spin" />
+        ) : (
+          searchQuery.length > 0 && (
+            <button 
+              onClick={() => setSearchQuery("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )
         )}
       </div>
 

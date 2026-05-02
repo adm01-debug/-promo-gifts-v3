@@ -111,9 +111,10 @@ export function useClientFuzzySearch<T extends ClientSearchItem>(
 ): { results: T[]; hasSearch: boolean } {
   const { results, hasSearch } = useGenericFuzzySearch(clients, query, [
     { name: 'name', weight: 0.4 },
-    { name: 'email', weight: 0.2 },
-    { name: 'ramo', weight: 0.2 },
-    { name: 'nicho', weight: 0.15 },
+    { name: 'cnpj', weight: 0.3 },
+    { name: 'email', weight: 0.1 },
+    { name: 'ramo', weight: 0.1 },
+    { name: 'nicho', weight: 0.05 },
     { name: 'phone', weight: 0.05 },
   ]);
   return { results, hasSearch };

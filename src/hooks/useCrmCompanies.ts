@@ -15,6 +15,7 @@ export function useCrmCompanies(filters?: CrmCompanyFilters) {
   return useQuery<CrmCompany[]>({
     queryKey: ["crm-companies", filters],
     queryFn: async () => {
+      console.log("[CRM-DB] useCrmCompanies: Buscando empresas...", { filters });
       const queryFilters: Record<string, unknown> = {};
 
       if (filters?.status) queryFilters.status = filters.status;
@@ -29,17 +30,21 @@ export function useCrmCompanies(filters?: CrmCompanyFilters) {
       queryFilters.deleted_at = null;
 
       if (filters?.search) {
-        return searchCrm<CrmCompany>("companies", "razao_social", filters.search, {
+        const results = await searchCrm<CrmCompany>("companies", "razao_social", filters.search, {
           orderBy: { column: "razao_social", ascending: true },
           limit: 200,
         });
+        console.log("[CRM-DB] useCrmCompanies: Busca concluída (search). Total:", results.length);
+        return results;
       }
 
-      return selectCrm<CrmCompany>("companies", {
+      const results = await selectCrm<CrmCompany>("companies", {
         filters: Object.keys(queryFilters).length > 0 ? queryFilters : undefined,
         orderBy: { column: "razao_social", ascending: true },
         limit: 200,
       });
+      console.log("[CRM-DB] useCrmCompanies: Busca concluída (select). Total:", results.length);
+      return results;
     },
     staleTime: 10 * 60 * 1000,
   });
@@ -93,25 +98,32 @@ export function useCrmCompanySelector() {
   return useQuery({
     queryKey: ["crm-companies-selector"],
     queryFn: async () => {
-      const companies = await selectCrm<CrmCompany>("companies", {
-        select: "id, razao_social, nome_fantasia, ramo_atividade, logo_url, cnpj",
-        filters: { deleted_at: null },
-        orderBy: { column: "razao_social", ascending: true },
-        limit: 200,
-      });
+      console.log("[CRM-DB] useCrmCompanySelector: Iniciando carregamento...");
+      try {
+        const companies = await selectCrm<CrmCompany>("companies", {
+          select: "id, razao_social, nome_fantasia, ramo_atividade, logo_url, cnpj",
+          filters: { deleted_at: null },
+          orderBy: { column: "razao_social", ascending: true },
+          limit: 500,
+        });
 
-      return companies.map((c) => ({
-        id: c.id,
-        name: getCompanyDisplayName(c),
-        razao_social: c.razao_social,
-        nome_fantasia: c.nome_fantasia,
-        ramo: c.ramo_atividade,
-        nicho: null,
-        primary_color_name: null,
-        primary_color_hex: null,
-        logo_url: c.logo_url,
-        cnpj: c.cnpj,
-      }));
+        console.log("[CRM-DB] useCrmCompanySelector: OK. Total:", companies.length);
+        return companies.map((c) => ({
+          id: c.id,
+          name: getCompanyDisplayName(c),
+          razao_social: c.razao_social,
+          nome_fantasia: c.nome_fantasia,
+          ramo: c.ramo_atividade,
+          nicho: null,
+          primary_color_name: null,
+          primary_color_hex: null,
+          logo_url: c.logo_url,
+          cnpj: c.cnpj,
+        }));
+      } catch (err) {
+        console.error("[CRM-DB] useCrmCompanySelector: FALHA:", err);
+        throw err;
+      }
     },
     staleTime: 15 * 60 * 1000,
   });
