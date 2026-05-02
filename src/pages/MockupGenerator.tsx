@@ -130,23 +130,26 @@ export default function MockupGenerator() {
 
       <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
         {mg.activeTab !== "history" && (
-          <Suspense fallback={null}>
-            <MockupWizard
-              currentStep={mg.wizardStep}
-              hasClient={!!mg.selectedClient}
-              hasProduct={!!mg.selectedProduct}
-              hasTechnique={!!mg.selectedTechnique}
-              hasLogo={mg.hasLogo}
-              hasPositioned={mg.hasUserInteractedPosition}
-              hasGenerated={!!mg.generatedMockup}
-              onStepClick={(step) => {
-                mg.setActiveTab("generator");
-                const sectionMap: Record<number, string> = { 1: "Empresa", 2: "Produto", 3: "Técnica", 4: "Logo", 5: "Posição", 6: "Gerar" };
-                const label = sectionMap[step];
-                if (label) toast.info(`📍 ${label}`, { duration: 1500 });
-              }}
-            />
-          </Suspense>
+          <div className="sticky top-0 z-[40] bg-background/80 backdrop-blur-md py-2 -mx-2 px-2 rounded-xl transition-all duration-300 border border-transparent hover:border-border/40">
+            <Suspense fallback={null}>
+              <MockupWizard
+                currentStep={mg.wizardStep}
+                hasClient={!!mg.selectedClient}
+                hasProduct={!!mg.selectedProduct}
+                hasTechnique={!!mg.selectedTechnique}
+                hasLogo={mg.hasLogo}
+                hasPositioned={mg.hasUserInteractedPosition}
+                hasGenerated={!!mg.generatedMockup}
+                onStepClick={(step) => {
+                  mg.setActiveTab("generator");
+                  // Scroll to appropriate section or focus
+                  const sectionMap: Record<number, string> = { 1: "Empresa", 2: "Produto", 3: "Técnica", 4: "Logo", 5: "Posição", 6: "Gerar" };
+                  const label = sectionMap[step];
+                  if (label) toast.info(`📍 ${label}`, { duration: 1500 });
+                }}
+              />
+            </Suspense>
+          </div>
         )}
 
         {mg.showDraftRestoredNotice && (
