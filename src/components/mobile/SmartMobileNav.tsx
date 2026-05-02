@@ -115,7 +115,7 @@ export const SmartMobileNav = forwardRef<HTMLDivElement>(function SmartMobileNav
               className="fixed bottom-20 left-0 right-0 z-50 px-4 pb-4 lg:hidden"
               style={{ paddingBottom: 'max(calc(env(safe-area-inset-bottom) + 5rem), 6rem)' }}
             >
-              <div className="bg-card rounded-2xl border border-border shadow-2xl p-4 max-w-sm mx-auto">
+              <div className="bg-card rounded-2xl border border-border p-4 max-w-sm mx-auto">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-display font-semibold text-foreground">Ações Rápidas</h3>
                   <button
@@ -188,12 +188,12 @@ export const SmartMobileNav = forwardRef<HTMLDivElement>(function SmartMobileNav
                     animate={{ rotate: fabOpen ? 45 : 0 }}
                     transition={{ type: "spring", stiffness: 400, damping: 20 }}
                     className={cn(
-                      "flex items-center justify-center w-14 h-14 rounded-full shadow-lg",
+                      "flex items-center justify-center w-14 h-14 rounded-full border border-border/40",
                       "transition-colors duration-200",
                       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
                       fabOpen
                         ? "bg-muted text-muted-foreground"
-                        : "bg-primary text-primary-foreground shadow-primary/30"
+                        : "bg-primary text-primary-foreground"
                     )}
                     aria-label={fabOpen ? "Fechar menu de ações" : "Abrir menu de ações"}
                     aria-expanded={fabOpen}
