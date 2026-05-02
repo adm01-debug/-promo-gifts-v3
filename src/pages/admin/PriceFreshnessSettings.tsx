@@ -8,6 +8,7 @@
  * Rota: /admin/validade-precos (admin-only — protegida por AdminRoute).
  */
 import { useMemo, useState } from "react";
+import { MainLayout } from "@/components/layout/MainLayout";
 import { Trash2, Loader2, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
