@@ -57,15 +57,19 @@ const queryClient = new QueryClient({
 
 const renderWithProviders = (ui: React.ReactElement) => {
   return render(
-    <QueryClientProvider client={queryClient}>
-      <MemoryRouter>
-        <ThemeProvider>
-          <AuthProvider>
-            {ui}
-          </AuthProvider>
-        </ThemeProvider>
-      </MemoryRouter>
-    </QueryClientProvider>
+    <HelmetProvider>
+      <TooltipProvider>
+        <QueryClientProvider client={queryClient}>
+          <MemoryRouter>
+            <ThemeProvider>
+              <AuthProvider>
+                {ui}
+              </AuthProvider>
+            </ThemeProvider>
+          </MemoryRouter>
+        </QueryClientProvider>
+      </TooltipProvider>
+    </HelmetProvider>
   );
 };
 
