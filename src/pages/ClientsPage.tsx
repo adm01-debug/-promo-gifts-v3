@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
-import { Users, Search } from "lucide-react";
+import { Users, Search, AlertTriangle, RefreshCw } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useCrmCompanies } from "@/hooks/useCrmCompanies";
 import { ClientCard } from "@/components/clients/ClientCard";
@@ -13,7 +14,7 @@ import { getCompanyDisplayName } from "@/types/crm";
 export default function ClientsPage() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
-  const { data: clients = [], isLoading } = useCrmCompanies({ is_customer: true });
+  const { data: clients = [], isLoading, isError, error, refetch } = useCrmCompanies({ is_customer: true });
 
   const filtered = clients.filter((c) => {
     if (!search) return true;
@@ -38,7 +39,9 @@ export default function ClientsPage() {
             <Users className="h-6 w-6 text-primary" /> Clientes
           </h1>
           <p className="text-muted-foreground text-sm mt-1">
-            {clients.length} {clients.length === 1 ? "cliente cadastrado" : "clientes cadastrados"}
+            {isError
+              ? "Erro ao carregar clientes"
+              : `${clients.length} ${clients.length === 1 ? "cliente cadastrado" : "clientes cadastrados"}`}
           </p>
         </div>
 
@@ -52,7 +55,23 @@ export default function ClientsPage() {
           />
         </div>
 
-        {isLoading ? (
+        {isError ? (
+          <Card className="border-destructive/50">
+            <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+              <AlertTriangle className="h-12 w-12 text-destructive/70 mb-4" />
+              <h3 className="font-display text-lg font-medium text-foreground mb-1">
+                Erro ao carregar empresas do CRM
+              </h3>
+              <p className="text-muted-foreground text-sm mb-4 max-w-md">
+                {error instanceof Error ? error.message : "Não foi possível conectar ao banco de clientes. Verifique sua conexão e tente novamente."}
+              </p>
+              <Button variant="outline" onClick={() => refetch()} className="gap-2">
+                <RefreshCw className="h-4 w-4" />
+                Tentar novamente
+              </Button>
+            </CardContent>
+          </Card>
+        ) : isLoading ? (
           <div className="grid gap-3">
             {[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-20" />)}
           </div>
