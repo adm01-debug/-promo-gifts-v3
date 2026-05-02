@@ -137,6 +137,7 @@ const CustomizableDashboard = lazyWithRetry(() => import("./pages/CustomizableDa
 
 // Auth Callbacks
 const QAPage = lazyWithRetry(() => import("./pages/QAPage"));
+const SidebarQAPage = lazyWithRetry(() => import("./pages/SidebarQAPage"));
 const SSOCallbackPage = lazyWithRetry(() => import("./pages/SSOCallbackPage"));
 
 const queryClient = createQueryClient();
