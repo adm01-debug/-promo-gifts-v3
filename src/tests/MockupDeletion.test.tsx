@@ -142,6 +142,14 @@ vi.mock("@/integrations/supabase/client", () => ({
   },
 }));
 
+vi.mock("@/components/layout/MainLayout", () => ({
+  MainLayout: ({ children }: { children: React.ReactNode }) => <div data-testid="main-layout">{children}</div>,
+}));
+
+vi.mock("@/components/seo/PageSEO", () => ({
+  PageSEO: () => null,
+}));
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
