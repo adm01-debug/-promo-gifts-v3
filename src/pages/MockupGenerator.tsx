@@ -90,6 +90,9 @@ export default function MockupGenerator() {
   const mg = useMockupGenerator();
   const { profile } = useAuth();
   const user = mg.user;
+  const { getProductById } = useProductsContext();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [mockupToDelete, setMockupToDelete] = useState<string | null>(null);
 
   const summary = useMemo(() => {
     const parts = [];
