@@ -1,71 +1,133 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
-import { buildPublicCorsHeaders } from "../_shared/cors.ts";
+import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { handleCorsPreflight } from "../_shared/cors.ts";
+import { getOrCreateRequestId } from "../_shared/request-id.ts";
+import { createStructuredLogger } from "../_shared/structured-logger.ts";
 
-const corsHeaders = buildPublicCorsHeaders();
+// --- Types ---
 
-Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
-  }
+type HealthStatus = "healthy" | "degraded" | "unhealthy" | "skipped";
 
-  const start = Date.now();
-  const checks: Record<string, { status: string; latency_ms?: number; error?: string }> = {};
+interface CheckResult {
+  status: HealthStatus;
+  latency_ms?: number;
+  error?: string;
+}
 
-  // Check database connectivity
-  try {
-    const dbStart = Date.now();
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL") || "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || ""
-    );
-    const { error } = await supabase.from("profiles").select("id").limit(1);
-    checks.database = {
-      status: error ? "degraded" : "healthy",
-      latency_ms: Date.now() - dbStart,
-      ...(error && { error: error.message }),
-    };
-  } catch (e) {
-    checks.database = { status: "unhealthy", error: (e as Error).message };
-  }
+interface HealthChecker {
+  name: string;
+  check(): Promise<CheckResult>;
+}
 
-  // Check external DB connectivity
-  try {
-    const extStart = Date.now();
-    const extUrl = Deno.env.get("EXTERNAL_SUPABASE_URL");
-    const extKey = Deno.env.get("EXTERNAL_SUPABASE_SERVICE_KEY");
-    if (extUrl && extKey) {
-      const extClient = createClient(extUrl, extKey);
-      const { error } = await extClient.from("produto").select("id").limit(1);
-      checks.external_db = {
+// --- Implementations ---
+
+class DatabaseChecker implements HealthChecker {
+  name = "database";
+  
+  async check(): Promise<CheckResult> {
+    const start = Date.now();
+    try {
+      const supabase = createClient(
+        Deno.env.get("SUPABASE_URL") || "",
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || ""
+      );
+      const { error } = await supabase.from("profiles").select("id").limit(1);
+      
+      return {
         status: error ? "degraded" : "healthy",
-        latency_ms: Date.now() - extStart,
+        latency_ms: Date.now() - start,
         ...(error && { error: error.message }),
       };
-    } else {
-      checks.external_db = { status: "skipped", error: "No credentials" };
+    } catch (e) {
+      return { 
+        status: "unhealthy", 
+        error: (e as Error).message,
+        latency_ms: Date.now() - start 
+      };
     }
-  } catch (e) {
-    checks.external_db = { status: "unhealthy", error: (e as Error).message };
+  }
+}
+
+class ExternalDatabaseChecker implements HealthChecker {
+  name = "external_db";
+
+  async check(): Promise<CheckResult> {
+    const start = Date.now();
+    try {
+      const url = Deno.env.get("EXTERNAL_SUPABASE_URL");
+      const key = Deno.env.get("EXTERNAL_SUPABASE_SERVICE_KEY");
+      
+      if (!url || !key) {
+        return { status: "skipped", error: "No credentials" };
+      }
+
+      const client = createClient(url, key);
+      const { error } = await client.from("produto").select("id").limit(1);
+      
+      return {
+        status: error ? "degraded" : "healthy",
+        latency_ms: Date.now() - start,
+        ...(error && { error: error.message }),
+      };
+    } catch (e) {
+      return { 
+        status: "unhealthy", 
+        error: (e as Error).message,
+        latency_ms: Date.now() - start 
+      };
+    }
+  }
+}
+
+// --- Main Handler ---
+
+Deno.serve(async (req) => {
+  const requestId = getOrCreateRequestId(req);
+  const log = createStructuredLogger({ fn: "health-check", requestId, req });
+
+  // Handle CORS
+  const preflight = handleCorsPreflight(req, { public: true });
+  if (preflight) return preflight;
+
+  const start = Date.now();
+  const checkers: HealthChecker[] = [
+    new DatabaseChecker(),
+    new ExternalDatabaseChecker(),
+  ];
+
+  const results: Record<string, CheckResult> = {};
+  
+  // Run all checks in parallel
+  await Promise.all(
+    checkers.map(async (checker) => {
+      results[checker.name] = await checker.check();
+    })
+  );
+
+  // Compute aggregate status
+  const statuses = Object.values(results).map((r) => r.status);
+  let overall: HealthStatus = "healthy";
+  
+  if (statuses.some((s) => s === "unhealthy")) {
+    overall = "unhealthy";
+  } else if (statuses.some((s) => s === "degraded")) {
+    overall = "degraded";
   }
 
-  // Overall status
-  const allStatuses = Object.values(checks).map(c => c.status);
-  const overall = allStatuses.every(s => s === "healthy")
-    ? "healthy"
-    : allStatuses.some(s => s === "unhealthy")
-      ? "unhealthy"
-      : "degraded";
+  const responseBody = {
+    status: overall,
+    timestamp: new Date().toISOString(),
+    total_latency_ms: Date.now() - start,
+    checks: results,
+    request_id: requestId,
+  };
 
-  return new Response(
-    JSON.stringify({
-      status: overall,
-      timestamp: new Date().toISOString(),
-      total_latency_ms: Date.now() - start,
-      checks,
-    }),
-    {
+  log.info(overall === "healthy" ? "health_ok" : "health_degraded", responseBody);
+
+  return log.respond(
+    new Response(JSON.stringify(responseBody), {
       status: overall === "unhealthy" ? 503 : 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    }
+      headers: { "Content-Type": "application/json" },
+    })
   );
 });
+
