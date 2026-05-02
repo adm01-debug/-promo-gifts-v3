@@ -44,8 +44,19 @@ export function MockupClientSelector({ selectedClient, onClientSelect }: MockupC
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const { data: companies = [], isLoading } = useCrmCompanySelector();
-  const { results: filteredCompanies } = useClientFuzzySearch(companies, searchQuery);
+  const { 
+    data, 
+    isLoading, 
+    fetchNextPage, 
+    hasNextPage, 
+    isFetchingNextPage 
+  } = useCrmInfiniteCompanySelector();
+
+  const allCompanies = useMemo(() => {
+    return data?.pages.flatMap(page => page.records) || [];
+  }, [data]);
+
+  const { results: filteredCompanies } = useClientFuzzySearch(allCompanies, searchQuery);
 
   // Fechar dropdown ao clicar fora
   useEffect(() => {
