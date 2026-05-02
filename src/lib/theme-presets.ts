@@ -866,7 +866,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     description: 'Azul-petróleo do fundo do mar',
     h: 182,
     s: 90,
-    l: 42,
+    l: 35, // Ajuste para 35 (era 42) para contraste no Frutti di Mare
     gh: 190,
     sh: 200,
     ss: 75,
