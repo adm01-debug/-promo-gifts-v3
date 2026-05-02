@@ -248,7 +248,7 @@ export const SidebarNavGroup = forwardRef<HTMLDivElement, SidebarNavGroupProps>(
           className={cn(
             "flex items-center gap-3 w-full px-3 py-2 rounded-lg transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.98]",
             "hover:bg-sidebar-accent/40 text-sidebar-foreground/50 hover:text-sidebar-foreground",
-            hasActiveItem && "text-orange bg-orange/8 border border-orange/15 shadow-glow"
+            hasActiveItem && "text-orange bg-orange/8 border border-orange/15"
           )}
         >
           <GroupIcon
