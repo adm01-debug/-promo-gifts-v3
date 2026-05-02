@@ -51,4 +51,26 @@ describe("Sidebar — sem sombras/brilhos em hover/active (light + dark)", () =>
       );
     }
   });
+
+  it("não usa classes de sombra específicas para dark mode (dark:shadow-*)", () => {
+    for (const rel of FILES) {
+      const content = readFileSync(resolve(process.cwd(), rel), "utf8");
+      // Bane dark:shadow exceto dark:shadow-none
+      expect(content, `dark:shadow em ${rel}`).not.toMatch(/\bdark:shadow-(?!none\b)/);
+    }
+  });
+
+  it("focus e focus-visible não usam glows/sombras (exceto ring)", () => {
+    // Permite ring-* e shadow-glow-focus (permitido para a11y)
+    // Bane focus:shadow-* e focus-visible:shadow-*
+    const FORBIDDEN_FOCUS = /\bfocus(?:-visible)?:shadow-(?!glow-focus|none)\b/g;
+    for (const rel of FILES) {
+      const content = readFileSync(resolve(process.cwd(), rel), "utf8");
+      const matches = content.match(FORBIDDEN_FOCUS) ?? [];
+      expect(
+        matches,
+        `Encontradas sombras de foco proibidas em ${rel}: ${matches.join(", ")}`,
+      ).toEqual([]);
+    }
+  });
 });
