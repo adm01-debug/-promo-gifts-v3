@@ -1,56 +1,29 @@
-## Diagnóstico
+## Remover efeito de sombra do sidebar de navegação
 
-O modal "Salvar EXTERNAL_PROMOBRIND_URL" exibe `Failed to send a request to the Edge Function`. Investigando a aba de rede:
+Pelas screenshots, o "efeito sombra" são os **glows laranjas** (`shadow-glow`) e sombras suaves (`shadow-soft`, `shadow-md shadow-primary/20`) aplicados nos itens do sidebar e no logo da marca. Vou removê-los mantendo:
+- Cores e tipografia (laranja para item ativo)
+- Indicador de barra lateral (`before:` pseudo-element) que marca o item ativo
+- Estados de foco (`focus-visible:ring`) — necessários para acessibilidade
 
-- Requisição: `POST /functions/v1/secrets-manager` com body `{"action":"set","name":"EXTERNAL_PROMOBRIND_URL","value":"https://..."}`
-- Erro do browser: **`Failed to fetch`** (falha antes mesmo de chegar à função — preflight CORS bloqueado)
-- Logs da edge mostram apenas `booted`, **sem nenhuma execução registrada** → confirma que o browser rejeitou o preflight
+### Alterações
 
-A causa raiz está em `supabase/functions/_shared/cors.ts`:
+**1. `src/components/layout/sidebar/SidebarNavGroup.tsx`**
+- Linha 122: remover `shadow-glow` do estado "tem filho ativo"
+- Linha 123: remover `hover:shadow-soft` do hover de grupos
+- Linha 174: remover `shadow-glow` do `NavLink` ativo
+- Linha 175: remover `hover:shadow-soft` do hover de itens
+- Linha 251: remover `shadow-glow` do botão colapsado com item ativo
 
-```ts
-'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type,
-  x-supabase-client-platform, x-supabase-client-platform-version,
-  x-supabase-client-runtime, x-supabase-client-runtime-version'
-```
+**2. `src/components/layout/sidebar/SidebarBrandHeader.tsx`**
+- Linhas 13 e 23: remover `shadow-md shadow-primary/20` do bloco do logo Promo Gifts (mantém o `bg-gradient-primary`)
 
-O header `X-Request-Id` **NÃO está listado**. Porém o cliente (`useSecretsManager.ts` via `invokeSecretsManager`) envia esse header em **todas** as chamadas:
+### Não vou tocar
 
-```ts
-await supabase.functions.invoke("secrets-manager", {
-  body, headers: { [REQUEST_ID_HEADER]: requestId }, // X-Request-Id
-});
-```
+- `PanelComponents.tsx` (`shadow-2xl`) — é um Drawer/Panel genérico, não o sidebar de navegação
+- `ui/sidebar.tsx` — sombras de variantes `floating`/`inset` do shadcn não estão em uso aqui
+- `Header.tsx` — é o topbar, não o sidebar
+- `shadow-glow-focus` (apenas em `:focus-visible`) — acessibilidade de teclado
 
-Quando o browser faz o preflight `OPTIONS`, ele inclui `X-Request-Id` em `Access-Control-Request-Headers`. O servidor responde com um `Allow-Headers` que **não cobre** esse header → o browser cancela o request real, gerando `Failed to fetch` (que o `supabase-js` traduz para "Failed to send a request to the Edge Function").
+### Resultado esperado
 
-Esse mesmo bug afeta toda função que usa `getCorsHeaders()` e recebe chamadas com `X-Request-Id` (é o caso de praticamente todo o hub de Conexões, Magic Up, MCP, Quote, etc., conforme a memória `Edge Request-Id Propagation Gate`).
-
-## Correção
-
-**Arquivo único:** `supabase/functions/_shared/cors.ts`
-
-Adicionar `x-request-id` (case-insensitive, lowercase por convenção HTTP/2) à constante `CORS_HEADERS_BASE['Access-Control-Allow-Headers']`.
-
-```ts
-const CORS_HEADERS_BASE = {
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-request-id, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-};
-```
-
-Também adicionar a `publicCorsHeaders` (legacy wildcard) para manter consistência caso alguma função pública também receba o header.
-
-Opcionalmente expor `Access-Control-Expose-Headers: x-request-id` para que o frontend possa ler o `X-Request-Id` ecoado pelo servidor (já estamos retornando — falta só permitir a leitura no browser).
-
-## Validação pós-correção
-
-1. Recarregar `/admin/conexoes`, abrir o modal "Salvar EXTERNAL_PROMOBRIND_URL", colar uma URL e clicar **Sim, salvar** → deve persistir e fechar o modal sem erro.
-2. Verificar via Network que a request `POST secrets-manager` retorna `200` com `ok: true`.
-3. Confirmar que o painel "Saúde da Aplicação" passa a registrar a chamada (antes era engolida pelo CORS, então nem chegava no `webhook_delivery_metrics`).
-
-## Por que é a única mudança necessária
-
-- Não há mudança de schema, RLS ou edge logic.
-- Não há regressão para outras funções (apenas habilita um header já enviado).
-- Cobre **todas** as edges (one-shot fix), porque todas importam `getCorsHeaders` desse arquivo.
+Sidebar com itens ativos destacados apenas por **fundo laranja translúcido + texto laranja + barra lateral**, sem nenhum brilho/halo ao redor dos botões nem sombra sob o logo.
