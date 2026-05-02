@@ -127,6 +127,7 @@ export function MockupConfigPanel({
           <>
             {/* Step 1: Client Selection — collapsible on mobile */}
             <MobileCollapsibleSection
+              id="step-client"
               label="Empresa"
               isCompleted={!!selectedClient}
               summary={selectedClient?.name}
