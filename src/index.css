@@ -230,62 +230,66 @@ html[data-scroll-locked] body {
   h5,
   h6 {
     font-family: var(--font-display);
-    @apply font-semibold tracking-tight;
+    @apply font-bold tracking-tight text-foreground;
+    line-height: 1.1;
   }
 
   h1 {
-    @apply text-3xl font-bold leading-tight;
+    @apply text-4xl font-extrabold leading-[1.1];
+    letter-spacing: -0.04em;
   }
   @screen md {
-    h1 {
-      @apply text-4xl leading-[1.15];
-    }
-  }
-  @screen lg {
     h1 {
       @apply text-5xl;
     }
   }
-
-  h2 {
-    @apply text-2xl leading-snug;
-  }
-  @screen md {
-    h2 {
-      @apply text-3xl leading-tight;
+  @screen lg {
+    h1 {
+      @apply text-6xl;
     }
   }
-  @screen lg {
+
+  h2 {
+    @apply text-3xl font-bold leading-tight;
+    letter-spacing: -0.03em;
+  }
+  @screen md {
     h2 {
       @apply text-4xl;
     }
   }
-
-  h3 {
-    @apply text-xl leading-snug;
-  }
-  @screen md {
-    h3 {
-      @apply text-2xl;
+  @screen lg {
+    h2 {
+      @apply text-5xl;
     }
   }
-  @screen lg {
+
+  h3 {
+    @apply text-2xl font-bold leading-tight;
+    letter-spacing: -0.02em;
+  }
+  @screen md {
     h3 {
       @apply text-3xl;
     }
   }
+  @screen lg {
+    h3 {
+      @apply text-4xl;
+    }
+  }
 
   h4 {
-    @apply text-lg;
+    @apply text-xl font-bold;
   }
   @screen md {
     h4 {
-      @apply text-xl;
+      @apply text-2xl;
     }
   }
   @screen lg {
     h4 {
-      @apply text-2xl;
+      @apply text-3xl;
     }
   }
 
