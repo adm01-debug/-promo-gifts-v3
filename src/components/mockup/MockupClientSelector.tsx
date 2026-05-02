@@ -5,7 +5,7 @@
 
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useClientFuzzySearch } from "@/hooks/useGenericFuzzySearch";
-import { X, Building2, Search, Loader2 } from "lucide-react";
+import { X, Building2, Search, Loader2, AlertCircle, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -49,7 +49,9 @@ export function MockupClientSelector({ selectedClient, onClientSelect }: MockupC
     isLoading, 
     fetchNextPage, 
     hasNextPage, 
-    isFetchingNextPage 
+    isFetchingNextPage,
+    isError,
+    refetch
   } = useCrmInfiniteCompanySelector();
 
   const allCompanies = useMemo(() => {
@@ -105,7 +107,7 @@ export function MockupClientSelector({ selectedClient, onClientSelect }: MockupC
   const itemHeight = 56;
   const maxVisibleItems = 5;
   const dynamicHeight = Math.min(filteredCompanies.length, maxVisibleItems) * itemHeight;
-  const dropdownHeight = filteredCompanies.length === 0 ? 80 : Math.max(dynamicHeight, 80);
+  const dropdownHeight = isError ? 140 : (filteredCompanies.length === 0 ? 80 : Math.max(dynamicHeight, 80));
 
   return (
     <div ref={containerRef} className="relative w-full z-40">
@@ -163,7 +165,9 @@ export function MockupClientSelector({ selectedClient, onClientSelect }: MockupC
               <span className="text-xs text-muted-foreground font-medium">
                 {isLoading
                   ? "Carregando..."
-                  : searchQuery.trim().length >= 2
+                  : isError
+                    ? "Erro no carregamento"
+                    : searchQuery.trim().length >= 2
                     ? `${filteredCompanies.length} resultado${filteredCompanies.length !== 1 ? "s" : ""}`
                     : `${filteredCompanies.length} empresa${filteredCompanies.length !== 1 ? "s" : ""} disponíve${filteredCompanies.length !== 1 ? "is" : "l"}`
                 }
@@ -173,7 +177,33 @@ export function MockupClientSelector({ selectedClient, onClientSelect }: MockupC
             {/* Lista com scroll */}
             <div className="relative">
               <ScrollArea style={{ height: `${dropdownHeight}px` }}>
-                {filteredCompanies.length === 0 ? (
+                {isError ? (
+                  <div className="flex flex-col items-center justify-center gap-3 py-8 text-center px-4">
+                    <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center">
+                      <AlertCircle className="h-6 w-6 text-destructive" />
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm font-semibold text-foreground">
+                        Falha ao carregar CRM
+                      </p>
+                      <p className="text-xs text-muted-foreground max-w-[200px] mx-auto">
+                        Não conseguimos conectar ao banco de dados externo agora.
+                      </p>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        refetch();
+                      }}
+                      className="mt-1 h-8 gap-2 border-destructive/20 hover:bg-destructive/5 hover:text-destructive transition-colors"
+                    >
+                      <RefreshCw className="h-3.5 w-3.5" />
+                      Tentar novamente
+                    </Button>
+                  </div>
+                ) : filteredCompanies.length === 0 ? (
                   <div className="flex flex-col items-center justify-center gap-2 py-6 text-center px-4">
                     <div className="w-10 h-10 rounded-full bg-muted/50 flex items-center justify-center">
                       <Building2 className="h-5 w-5 text-muted-foreground/60" />
