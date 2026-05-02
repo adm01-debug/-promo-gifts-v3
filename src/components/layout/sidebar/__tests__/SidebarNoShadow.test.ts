@@ -33,10 +33,12 @@ describe("Sidebar — sem sombras/brilhos em hover/active (light + dark)", () =>
     });
   }
 
-  it("hover:shadow-* não é usado em itens do sidebar", () => {
+  it("hover:shadow-* (com blur/glow) não é usado em itens do sidebar", () => {
+    // Permite shadow-[0_0_0_Npx_...] (border-as-shadow, sem desfoque) e shadow-none.
+    const BAD_HOVER = /hover:shadow-(?!none|\[0_0_0_)/;
     for (const rel of FILES) {
       const content = readFileSync(resolve(process.cwd(), rel), "utf8");
-      expect(content, `hover:shadow-* em ${rel}`).not.toMatch(/hover:shadow-(?!none)/);
+      expect(content, `hover:shadow-* (glow) em ${rel}`).not.toMatch(BAD_HOVER);
     }
   });
 
