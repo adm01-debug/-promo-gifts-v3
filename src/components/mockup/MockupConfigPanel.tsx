@@ -141,6 +141,7 @@ export function MockupConfigPanel({
 
             {/* Step 2: Product Selection */}
             <MobileCollapsibleSection
+              id="step-product"
               label="Produto"
               isCompleted={!!productSelection}
               summary={productSelection?.product.name}
