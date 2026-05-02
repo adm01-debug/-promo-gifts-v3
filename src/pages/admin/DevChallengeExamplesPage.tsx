@@ -434,6 +434,6 @@ export default function DevChallengeExamplesPage() {
           </TabsContent>
         </Tabs>
       </div>
-    </>
+    </MainLayout>
   );
 }
