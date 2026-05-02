@@ -3,9 +3,10 @@
  * Substitui useClients (que usava bitrix_clients)
  */
 
-import { useQuery } from "@tanstack/react-query";
-import { selectCrm, selectCrmById, searchCrm } from "@/lib/crm-db";
-import { type CrmCompany, type CrmCompanyFilters, type CrmCustomer, toLegacyClient, getCompanyDisplayName, type LegacyClientFormat } from "@/types/crm";
+import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
+import { selectCrm, selectCrmById, searchCrm, invokeCrmDb } from "@/lib/crm-db";
+import { type CrmCompany, type CrmCompanyFilters, type CrmCustomer, toLegacyClient, getCompanyDisplayName } from "@/types/crm";
+import { toast } from "sonner";
 import { DEMO_CLIENT_ID, DEMO_COMPANY, isDemoClient } from "@/lib/bi/demoClient";
 
 /**
