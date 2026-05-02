@@ -30,17 +30,21 @@ export function useCrmCompanies(filters?: CrmCompanyFilters) {
       queryFilters.deleted_at = null;
 
       if (filters?.search) {
-        return searchCrm<CrmCompany>("companies", "razao_social", filters.search, {
+        const results = await searchCrm<CrmCompany>("companies", "razao_social", filters.search, {
           orderBy: { column: "razao_social", ascending: true },
           limit: 200,
         });
+        console.log("[CRM-DB] useCrmCompanies: Busca concluída (search). Total:", results.length);
+        return results;
       }
 
-      return selectCrm<CrmCompany>("companies", {
+      const results = await selectCrm<CrmCompany>("companies", {
         filters: Object.keys(queryFilters).length > 0 ? queryFilters : undefined,
         orderBy: { column: "razao_social", ascending: true },
         limit: 200,
       });
+      console.log("[CRM-DB] useCrmCompanies: Busca concluída (select). Total:", results.length);
+      return results;
     },
     staleTime: 10 * 60 * 1000,
   });
