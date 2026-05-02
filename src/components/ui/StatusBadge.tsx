@@ -18,26 +18,26 @@ const statusBadgeVariants = cva(
     variants: {
       status: {
         // Quote statuses
-        draft: "bg-muted text-muted-foreground",
-        pending: "bg-warning/10 text-warning border border-warning/20",
-        sent: "bg-info/10 text-info border border-info/20",
-        approved: "bg-success/10 text-success border border-success/20",
-        rejected: "bg-destructive/10 text-destructive border border-destructive/20",
-        expired: "bg-muted text-muted-foreground border border-border",
+        draft: "bg-muted text-foreground border border-border font-bold",
+        pending: "bg-warning text-white border-2 border-warning shadow-sm font-bold",
+        sent: "bg-info text-white border-2 border-info shadow-sm font-bold",
+        approved: "bg-success text-white border-2 border-success shadow-sm font-bold",
+        rejected: "bg-destructive text-white border-2 border-destructive shadow-sm font-bold",
+        expired: "bg-muted text-foreground border-2 border-border font-bold",
         
         // Order statuses
-        processing: "bg-info/10 text-info border border-info/20",
-        shipped: "bg-primary/10 text-primary border border-primary/20",
-        delivered: "bg-success/10 text-success border border-success/20",
-        cancelled: "bg-destructive/10 text-destructive border border-destructive/20",
+        processing: "bg-info text-white border-2 border-info animate-pulse font-bold",
+        shipped: "bg-primary text-white border-2 border-primary shadow-sm font-bold",
+        delivered: "bg-success text-white border-2 border-success shadow-sm font-bold",
+        cancelled: "bg-destructive text-white border-2 border-destructive shadow-sm font-bold",
         
         // Generic statuses
-        active: "bg-success/10 text-success border border-success/20",
-        inactive: "bg-muted text-muted-foreground border border-border",
-        warning: "bg-warning/10 text-warning border border-warning/20",
-        error: "bg-destructive/10 text-destructive border border-destructive/20",
-        info: "bg-info/10 text-info border border-info/20",
-        success: "bg-success/10 text-success border border-success/20",
+        active: "bg-success text-white border-2 border-success shadow-sm font-bold",
+        inactive: "bg-muted text-foreground border-2 border-border font-bold",
+        warning: "bg-warning text-white border-2 border-warning shadow-sm font-bold",
+        error: "bg-destructive text-white border-2 border-destructive shadow-sm font-bold",
+        info: "bg-info text-white border-2 border-info shadow-sm font-bold",
+        success: "bg-success text-white border-2 border-success shadow-sm font-bold",
         
         // Loading
         loading: "bg-muted text-muted-foreground animate-pulse",
