@@ -231,6 +231,26 @@ export function MockupClientSelector({ selectedClient, onClientSelect }: MockupC
                     ))}
                   </div>
                 )}
+                {hasNextPage && !searchQuery && (
+                  <div className="p-2 flex justify-center border-t border-border/30">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-[11px] h-7 w-full text-muted-foreground hover:text-primary"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        fetchNextPage();
+                      }}
+                      disabled={isFetchingNextPage}
+                    >
+                      {isFetchingNextPage ? (
+                        <Loader2 className="h-3 w-3 animate-spin mr-2" />
+                      ) : (
+                        "Carregar mais empresas..."
+                      )}
+                    </Button>
+                  </div>
+                )}
               </ScrollArea>
 
               {/* Fade gradient no bottom quando há scroll */}
