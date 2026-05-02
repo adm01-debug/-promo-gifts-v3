@@ -19,7 +19,8 @@ const FILES = [
 
 // Casa shadow-glow, shadow-soft, shadow-md/lg/xl/2xl, shadow-primary/...
 // Exclui shadow-glow-focus (a11y focus-visible) e shadow-none.
-const FORBIDDEN = /\bshadow-(?:glow(?!-focus)\b|soft\b|md\b|lg\b|xl\b|2xl\b|primary\b)/g;
+// Também valida que dark:shadow não é usado para evitar glows específicos em dark mode.
+const FORBIDDEN = /\b(?:dark:)?shadow-(?:glow(?!-focus)\b|soft\b|md\b|lg\b|xl\b|2xl\b|primary\b)/g;
 
 describe("Sidebar — sem sombras/brilhos em hover/active (light + dark)", () => {
   for (const rel of FILES) {
