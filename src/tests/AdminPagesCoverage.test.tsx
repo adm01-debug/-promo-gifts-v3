@@ -52,6 +52,26 @@ const wrapper = ({ children }: { children: React.ReactNode }) => (
 );
 
 describe('Admin Module Programmatic Coverage', () => {
+  // Silence console warnings for cleaner output during bulk render tests
+  const originalError = console.error;
+  const originalWarn = console.warn;
+  
+  beforeAll(() => {
+    console.error = (...args) => {
+      if (args[0]?.toString().includes('act(...)') || args[0]?.toString().includes('HelmetProvider')) return;
+      originalError(...args);
+    };
+    console.warn = (...args) => {
+      if (args[0]?.toString().includes('React Router Future Flag')) return;
+      originalWarn(...args);
+    };
+  });
+
+  afterAll(() => {
+    console.error = originalError;
+    console.warn = originalWarn;
+  });
+
   Object.entries(adminPageModules).forEach(([path, module]: [string, any]) => {
     const Component = module.default;
     if (typeof Component !== 'function') return;
