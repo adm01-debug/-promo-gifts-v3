@@ -907,8 +907,8 @@ export const THEME_PRESETS: ThemePreset[] = [
 const STORAGE_KEY = 'gifts-store-theme-config';
 
 /** Valor padrão das variáveis de fonte do projeto (igual ao index.css). */
-const DEFAULT_FONT_SANS = "'Plus Jakarta Sans', system-ui, sans-serif";
-const DEFAULT_FONT_DISPLAY = "'Outfit', system-ui, sans-serif";
+export const DEFAULT_FONT_SANS = "'Plus Jakarta Sans', system-ui, sans-serif";
+export const DEFAULT_FONT_DISPLAY = "'Outfit', system-ui, sans-serif";
 
 export function getDefaultConfig(): ThemeConfig {
   return { presetId: 'corporate', radius: 14, mode: 'auto' };
