@@ -101,7 +101,7 @@ export default function BridgeMetricsOverlay() {
         )}
       </div>
 
-      <div className="border-t border-white/5 bg-zinc-900/60 px-3 py-1 text-[10px] text-zinc-500">
+      <div className="border-t border-white/5 bg-zinc-900/60 px-3 py-1 text-[10px] text-zinc-400">
         ` para fechar
       </div>
     </div>
