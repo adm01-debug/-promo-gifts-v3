@@ -879,7 +879,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     description: 'Amarelo neon de Night City',
     h: 55,
     s: 100,
-    l: 45, // Lightness reduzida de 51 para 45 para contraste com texto branco no Cyberpunk
+    l: 25, // Ajuste drástico para 25 (era 45) para contraste 3:1 com branco no Cyberpunk
     gh: 180,
     sh: 320,
     ss: 95,
