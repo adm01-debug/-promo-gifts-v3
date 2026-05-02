@@ -120,8 +120,9 @@ export function useTheme() {
       actualTheme: 'light',
       setTheme: () => {},
       toggleTheme: () => {},
+      isFallback: true,
     } as ThemeContextType;
   }
 
-  return context;
+  return { ...context, isFallback: false };
 }
