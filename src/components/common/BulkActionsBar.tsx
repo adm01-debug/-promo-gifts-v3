@@ -75,9 +75,9 @@ export function BulkActionsBar({
                 Todos desta página estão selecionados.
               </span>
               <Button
-                variant="link"
+                variant="link-primary"
                 size="sm"
-                className="text-xs text-primary p-0 h-auto"
+                className="text-xs p-0 h-auto"
                 onClick={onSelectAll}
               >
                 Selecionar todos os {totalCount}
