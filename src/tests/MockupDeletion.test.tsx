@@ -12,6 +12,9 @@ import { toast } from "sonner";
 import { ProductsProvider } from "@/contexts/ProductsContext";
 import { AriaLiveProvider } from "@/components/a11y/AriaLive";
 
+// Mock global environment
+window.scrollTo = vi.fn();
+
 // Mock services
 vi.mock("@/hooks/mockup/mockupGenerationService", () => ({
   deleteMockupFromDb: vi.fn(),
@@ -104,6 +107,12 @@ vi.mock("@/components/mockup/KeyboardShortcuts", () => ({
   useKeyboardShortcuts: vi.fn(),
 }));
 
+vi.mock("@/lib/telemetry/bridgeCallMetrics", () => ({
+  estimatePayloadBytes: vi.fn().mockReturnValue(0),
+  trackBridgeCall: vi.fn(),
+  recordBridgeCall: vi.fn(),
+}));
+
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
     auth: {
@@ -113,8 +122,21 @@ vi.mock("@/integrations/supabase/client", () => ({
     },
     from: vi.fn().mockReturnValue({
       select: vi.fn().mockReturnThis(),
+      order: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
-      single: vi.fn(),
+      single: vi.fn().mockResolvedValue({ data: null, error: null }),
+      maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+      insert: vi.fn().mockReturnThis(),
+      delete: vi.fn().mockReturnThis(),
+    }),
+    functions: {
+      invoke: vi.fn().mockResolvedValue({ data: null, error: null }),
+    },
+    channel: vi.fn().mockReturnValue({
+      on: vi.fn().mockReturnThis(),
+      subscribe: vi.fn().mockReturnThis(),
+      unsubscribe: vi.fn().mockReturnThis(),
     }),
   },
 }));
