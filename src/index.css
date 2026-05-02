@@ -259,22 +259,41 @@ html[data-scroll-locked] body {
     letter-spacing: -0.015em;
     line-height: 1.6;
   }
-  :root a {
-    @apply transition-all duration-300;
-    color: hsl(var(--primary));
-    font-weight: 700;
-  }
-  :root a:hover {
-    @apply text-primary-hover underline underline-offset-4 decoration-2 decoration-primary/40 transition-all duration-300;
+  /* Link Variants - Orange Premium SSOT */
+  .link-primary {
+    @apply transition-all duration-300 text-primary font-bold underline-offset-4 decoration-2 decoration-primary/40 hover:underline hover:text-primary-hover active:opacity-80 active:scale-[0.98];
     text-shadow: 0 0 15px hsl(var(--primary) / 0.4);
   }
-  :root a:active {
-    @apply opacity-80 scale-[0.98];
-    text-shadow: 0 0 10px hsl(var(--primary) / 0.6);
+  .link-primary:hover {
+    text-shadow: 0 0 25px hsl(var(--primary) / 0.6);
   }
-  :root a:focus-visible {
+  .link-primary:focus-visible {
     @apply outline-none ring-2 ring-primary ring-offset-2 rounded-sm shadow-glow-focus;
   }
+
+  .link-secondary {
+    @apply transition-all duration-300 text-muted-foreground font-semibold underline-offset-4 decoration-1 decoration-muted-foreground/30 hover:underline hover:text-foreground hover:decoration-primary/60 active:opacity-80 active:scale-[0.98];
+  }
+  .link-secondary:focus-visible {
+    @apply outline-none ring-2 ring-primary ring-offset-1 rounded-sm shadow-glow-focus;
+  }
+
+  .link-disabled {
+    @apply pointer-events-none opacity-40 grayscale cursor-not-allowed decoration-transparent no-underline;
+  }
+
+  /* Legacy global link support - falls back to primary */
+  :root a:not([class*="link-"]) {
+    @apply transition-all duration-300 text-primary font-bold underline-offset-4 decoration-2 decoration-primary/40 hover:underline hover:text-primary-hover active:opacity-80 active:scale-[0.98];
+    text-shadow: 0 0 15px hsl(var(--primary) / 0.4);
+  }
+  :root a:not([class*="link-"]):hover {
+    text-shadow: 0 0 25px hsl(var(--primary) / 0.6);
+  }
+  :root a:not([class*="link-"]):focus-visible {
+    @apply outline-none ring-2 ring-primary ring-offset-2 rounded-sm shadow-glow-focus;
+  }
+
   :root p,
   :root span,
   :root label,
@@ -284,16 +303,7 @@ html[data-scroll-locked] body {
     font-weight: 500;
     color: hsl(24 100% 4%); /* Ultra deep contrast for maximum punch (WCAG AAA) */
   }
-  :root .text-muted-foreground {
-    color: hsl(24 35% 18%); /* Significantly darkened to meet 7:1 ratio */
-    font-weight: 500;
-  }
-  :root .font-medium {
-    font-weight: 600;
-  }
-  :root .font-semibold {
-    font-weight: 700;
-  }
+...
   :root .font-bold {
     font-weight: 850;
     letter-spacing: -0.02em;
@@ -328,20 +338,31 @@ html[data-scroll-locked] body {
     font-weight: 800;
     letter-spacing: -0.01em;
   }
-  .dark a {
-    @apply transition-all duration-300;
-    color: hsl(var(--primary));
-    font-weight: 700;
-  }
-  .dark a:hover {
-    @apply text-primary-hover underline underline-offset-4 decoration-2 decoration-primary/50;
+  .dark .link-primary {
+    @apply text-primary decoration-primary/50;
     text-shadow: 0 0 20px hsl(var(--primary) / 0.55);
   }
-  .dark a:active {
-    @apply opacity-80 scale-[0.98];
-    text-shadow: 0 0 12px hsl(var(--primary) / 0.7);
+  .dark .link-primary:hover {
+    @apply text-primary-hover decoration-primary;
+    text-shadow: 0 0 35px hsl(var(--primary) / 0.85);
   }
-  .dark a:focus-visible {
+  .dark .link-secondary {
+    @apply text-muted-foreground decoration-muted-foreground/40;
+  }
+  .dark .link-secondary:hover {
+    @apply text-foreground decoration-primary/70;
+    text-shadow: 0 0 15px hsl(var(--primary) / 0.3);
+  }
+
+  /* Legacy global link support - falls back to primary */
+  .dark a:not([class*="link-"]) {
+    @apply transition-all duration-300 text-primary font-bold underline-offset-4 decoration-2 decoration-primary/50 hover:underline hover:text-primary-hover active:opacity-80 active:scale-[0.98];
+    text-shadow: 0 0 20px hsl(var(--primary) / 0.55);
+  }
+  .dark a:not([class*="link-"]):hover {
+    text-shadow: 0 0 35px hsl(var(--primary) / 0.85);
+  }
+  .dark a:not([class*="link-"]):focus-visible {
     @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-background rounded-sm shadow-glow-focus;
   }
 
