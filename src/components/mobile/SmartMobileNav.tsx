@@ -188,7 +188,7 @@ export const SmartMobileNav = forwardRef<HTMLDivElement>(function SmartMobileNav
                     animate={{ rotate: fabOpen ? 45 : 0 }}
                     transition={{ type: "spring", stiffness: 400, damping: 20 }}
                     className={cn(
-                      "flex items-center justify-center w-14 h-14 rounded-full border border-primary/20",
+                      "flex items-center justify-center w-14 h-14 rounded-full border border-border/40",
                       "transition-colors duration-200",
                       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
                       fabOpen
