@@ -57,7 +57,7 @@ export default function PriceFreshnessSettings() {
 
   return (
     <MainLayout>
-      <div className="container mx-auto max-w-5xl p-6">
+      <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
       <PageSEO
         title="Validade de Preços | Admin"
         description="Configure a janela de validade do alerta de preço por produto (30, 60 ou 90 dias)."

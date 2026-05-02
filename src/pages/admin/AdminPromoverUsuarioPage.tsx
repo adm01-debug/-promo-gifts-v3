@@ -109,7 +109,7 @@ export default function AdminPromoverUsuarioPage() {
         path="/admin/usuarios/promover"
         noIndex
       />
-      <div className="w-full max-w-[1400px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-4 pb-24 md:pb-6 animate-fade-in">
+      <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" asChild aria-label="Voltar">
             <Link to="/admin/usuarios">

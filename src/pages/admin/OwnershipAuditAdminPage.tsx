@@ -132,7 +132,7 @@ export default function OwnershipAuditAdminPage() {
   return (
     <MainLayout>
       <PageSEO title="Auditoria de Propriedade" description="Auditoria periódica de registros órfãos e sem dono." path="/admin/auditoria-propriedade" />
-      <div className="container mx-auto px-4 py-6 space-y-6">
+      <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
         <header className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
