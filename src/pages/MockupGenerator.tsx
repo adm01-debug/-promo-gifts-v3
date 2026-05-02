@@ -142,10 +142,17 @@ export default function MockupGenerator() {
                 hasGenerated={!!mg.generatedMockup}
                 onStepClick={(step) => {
                   mg.setActiveTab("generator");
-                  // Scroll to appropriate section or focus
-                  const sectionMap: Record<number, string> = { 1: "Empresa", 2: "Produto", 3: "Técnica", 4: "Logo", 5: "Posição", 6: "Gerar" };
-                  const label = sectionMap[step];
-                  if (label) toast.info(`📍 ${label}`, { duration: 1500 });
+                  const sectionMap: Record<number, string> = { 1: "step-client", 2: "step-product", 3: "step-technique", 4: "step-logo", 5: "step-logo", 6: "step-logo" };
+                  const targetId = sectionMap[step];
+                  if (targetId) {
+                    const el = document.getElementById(targetId);
+                    if (el) {
+                      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      // Add a brief highlight effect
+                      el.classList.add('ring-2', 'ring-primary/50', 'rounded-lg');
+                      setTimeout(() => el.classList.remove('ring-2', 'ring-primary/50', 'rounded-lg'), 2000);
+                    }
+                  }
                 }}
               />
             </Suspense>
