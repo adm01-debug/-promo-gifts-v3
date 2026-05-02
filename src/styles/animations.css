@@ -69,13 +69,13 @@
   transform: translateY(-2px);
 }
 
-/* Hover com glow */
+/* Hover glow — NEUTRALIZED */
 .hover-glow {
   transition: box-shadow 0.3s ease;
 }
 
 .hover-glow:hover {
-  box-shadow: 0 0 20px hsl(var(--primary) / 0.15);
+  box-shadow: none;
 }
 
 /* ===== INPUT FOCUS ANIMATIONS ===== */
