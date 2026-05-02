@@ -273,14 +273,13 @@ function ExampleCard({ config }: { config: ExampleConfig }) {
 
 export default function DevChallengeExamplesPage() {
   return (
-    <>
-      <Helmet>
-        <title>Exemplos — Challenge Reutilizável | Admin</title>
-        <meta
-          name="description"
-          content="Documentação interativa do challenge reutilizável de dev para liberar operações full scope."
-        />
-      </Helmet>
+    <MainLayout>
+      <PageSEO
+        title="Exemplos — Challenge Reutilizável"
+        description="Documentação interativa do challenge reutilizável de dev para liberar operações full scope."
+        path="/admin/seguranca/exemplos-challenge"
+        noIndex
+      />
 
       <div className="container mx-auto py-8 space-y-8 max-w-7xl">
         <header className="space-y-2">
