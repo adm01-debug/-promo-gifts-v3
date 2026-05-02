@@ -264,7 +264,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
                 className="flex items-center gap-2 h-9 px-1.5 sm:px-2 hover:bg-primary/10 rounded-lg"
               >
                 <div className="relative">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center ring-2 ring-background shadow-md">
+                  <div className="w-8 h-8 rounded-full bg-gradient-primary flex items-center justify-center ring-2 ring-background shadow-md">
                     {profile?.avatar_url ? (
                       <img
                         src={profile.avatar_url}

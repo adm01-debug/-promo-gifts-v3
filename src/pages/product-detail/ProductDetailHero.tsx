@@ -112,7 +112,7 @@ export function ProductDetailHero({
           </div>
           <div className="flex flex-wrap gap-1.5">
             {product.featured && (
-              <Badge className="bg-gradient-to-r from-primary to-primary-glow text-primary-foreground px-2 py-0.5 text-[11px] shadow-sm">
+              <Badge className="bg-gradient-primary text-primary-foreground px-2 py-0.5 text-[11px] shadow-sm">
                 <Sparkles className="h-3 w-3 mr-1" />Destaque
               </Badge>
             )}
@@ -236,7 +236,7 @@ export function ProductDetailHero({
                   labelOverride="Carrinho" iconOverride="cart"
                 />
                 <Button size="lg"
-                  className="flex-1 basis-0 h-12 xl:h-13 rounded-xl bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary/80 text-primary-foreground font-display font-bold text-[0.875rem] tracking-wide shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] gap-1.5"
+                  className="flex-1 basis-0 h-12 xl:h-13 rounded-xl bg-gradient-cta text-primary-foreground font-display font-bold text-[0.875rem] tracking-wide shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] gap-1.5"
                   onClick={() => setQuoteVariantWizardOpen(true)}
                 >
                   <FileText className="h-4 w-4" />Orçamento

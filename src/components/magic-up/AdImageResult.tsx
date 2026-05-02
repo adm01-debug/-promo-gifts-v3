@@ -91,7 +91,7 @@ export function AdImageResult({
     return (
       <Card className="border-primary/20 overflow-hidden">
         <CardContent className="p-0">
-          <div className="aspect-square flex flex-col items-center justify-center bg-gradient-to-br from-primary/5 to-primary/10">
+          <div className="aspect-square flex flex-col items-center justify-center bg-gradient-glow">
             <div className="relative">
               <div className="w-20 h-20 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
               <div className="absolute inset-0 flex items-center justify-center">
