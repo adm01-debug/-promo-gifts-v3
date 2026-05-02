@@ -132,6 +132,18 @@ export default {
           purple: "hsl(var(--color-purple))",
         },
       },
+      backgroundImage: {
+        // Gradient tokens — SSOT em src/index.css (--gradient-*)
+        "gradient-primary": "var(--gradient-primary)",
+        "gradient-cta": "var(--gradient-cta)",
+        "gradient-hero": "var(--gradient-hero)",
+        "gradient-glow": "var(--gradient-glow)",
+        "gradient-subtle": "var(--gradient-subtle)",
+        "gradient-secondary-token": "var(--gradient-secondary)",
+        "gradient-success-token": "var(--gradient-success)",
+        "gradient-highlight": "var(--gradient-highlight)",
+        "gradient-card": "var(--gradient-card)",
+      },
       borderRadius: {
         sm: "var(--radius-sm)",
         md: "var(--radius-md)",
