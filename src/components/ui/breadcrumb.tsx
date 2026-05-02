@@ -62,7 +62,7 @@ const BreadcrumbPage = React.forwardRef<HTMLSpanElement, React.ComponentPropsWit
       aria-disabled="true"
       aria-current="page"
       className={cn(
-        "font-bold text-primary drop-shadow-[0_0_8px_hsl(var(--primary)/0.3)] tracking-tight",
+        "font-bold text-primary tracking-tight",
         className
       )}
       {...props}

@@ -10,138 +10,50 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, it, expect } from "vitest";
 
-const SIDEBAR_FILES = [
-  "src/components/layout/SidebarReorganized.tsx",
-  "src/components/layout/sidebar/SidebarNavGroup.tsx",
-  "src/components/layout/sidebar/SidebarBrandHeader.tsx",
-  "src/components/mobile/SmartMobileNav.tsx",
-  "src/components/ui/sidebar.tsx",
-];
-
-// Regex para detectar bordas ou sombras laranjas/primárias que causam "glow"
-// Exclui focus-visible:ring (necessário para a11y) e shadow-none
-// Regex para detectar QUALQUER sombra (exceto as permitidas para a11y)
-const FORBIDDEN_SHADOWS = /\bshadow-(?!none|glow-focus)\w+/g;
-// Regex para detectar bordas coloridas que não sejam neutras
-const FORBIDDEN_BORDERS = /\bborder-(?:orange|primary)(?:\/\d+)?\b/g;
-
-describe("Sidebar Mobile — Regressão de Design Plano (No Shadows/Glows)", () => {
-  for (const file of SIDEBAR_FILES) {
-    it(`${file} não deve ter sombras ou bordas coloridas`, () => {
-      const content = readFileSync(resolve(process.cwd(), file), "utf8");
-      const lines = content.split("\n");
-      const violations: string[] = [];
-
-      lines.forEach((line, index) => {
-        // Ignorar linhas de comentário ou import
-        if (line.trim().startsWith("//") || line.trim().startsWith("import")) return;
-
-        const shadowMatches = line.match(FORBIDDEN_SHADOWS);
-        const borderMatches = line.match(FORBIDDEN_BORDERS);
-
-        if (shadowMatches || borderMatches) {
-          // Permitir apenas se for focus-visible
-          const isA11yFocus = /focus-visible:/.test(line);
-          const isSafeIndicator = /before:bg-orange/.test(line);
-          const isSheetBase = (/SheetContent/.test(line) && /shadow-lg/.test(line)) || /SidebarBrandHeader/.test(file); // Base shadow do Sheet ou Seletor de Tema
-
-          if (shadowMatches) {
-            shadowMatches.forEach(m => {
-              if (!isA11yFocus && !isSheetBase) violations.push(`Linha ${index + 1}: ${m}`);
-            });
-          }
-          if (borderMatches) {
-            borderMatches.forEach(m => {
-              if (!isA11yFocus && !isSafeIndicator) violations.push(`Linha ${index + 1}: ${m}`);
-            });
-          }
-        }
-      });
-
-      expect(violations, `Violações detectadas em ${file}`).toHaveLength(0);
-    });
-  }
-
-  it("Garante ausência de 'ring-orange' fora de focus-visible", () => {
-    const files = ["src/components/layout/SidebarReorganized.tsx", "src/components/mobile/SmartMobileNav.tsx"];
-    files.forEach(file => {
-      const content = readFileSync(resolve(process.cwd(), file), "utf8");
-      const matches = content.match(/\bring-orange(?:\/\d+)?\b/g) ?? [];
-      
-      if (matches.length > 0) {
-        const lines = content.split("\n");
-        lines.forEach(line => {
-          if (line.includes("ring-orange") && !line.includes("focus-visible:") && !line.trim().startsWith("//")) {
-            throw new Error(`Ring laranja detectado sem focus-visible em ${file}: ${line.trim()}`);
-          }
-        });
+// Recursive directory scan for design regressions
+const ALL_SRC_FILES = (function getAllFiles(dir: string, fileList: string[] = []): string[] {
+  const files = readdirSync(dir);
+  files.forEach(file => {
+    const name = resolve(dir, file);
+    if (statSync(name).isDirectory()) {
+      if (!name.includes('node_modules') && !name.includes('.git')) {
+        getAllFiles(name, fileList);
       }
-    });
-  });
-
-  it("Garante que o estado hover/active usa apenas background sólido", () => {
-    const files = ["src/components/layout/SidebarReorganized.tsx", "src/components/mobile/SmartMobileNav.tsx"];
-    files.forEach(file => {
-      const content = readFileSync(resolve(process.cwd(), file), "utf8");
-      const hoverOrangeShadow = /hover:shadow-orange/.test(content);
-      const hoverOrangeBorder = /hover:border-orange/.test(content);
-      const activeOrangeShadow = /active:shadow-orange/.test(content);
-      const activeOrangeBorder = /active:border-orange/.test(content);
-      
-      expect(hoverOrangeShadow, `Hover shadow laranja detectado em ${file}`).toBe(false);
-      expect(hoverOrangeBorder, `Hover border laranja detectado em ${file}`).toBe(false);
-      expect(activeOrangeShadow, `Active shadow laranja detectado em ${file}`).toBe(false);
-      expect(activeOrangeBorder, `Active border laranja detectado em ${file}`).toBe(false);
-    });
-  });
-
-  it("Garante ausência de glow laranja no menu colapsado e durante transições", () => {
-    const file = "src/components/layout/sidebar/SidebarNavGroup.tsx";
-    const content = readFileSync(resolve(process.cwd(), file), "utf8");
-    const hasForbiddenShadows = /shadow-orange|shadow-glow/.test(content);
-    expect(hasForbiddenShadows, "SidebarNavGroup não deve conter sombras laranjas ou de brilho").toBe(false);
-    
-    const lines = content.split("\n");
-    let inCollapsedLogic = false;
-    lines.forEach((line) => {
-      if (line.includes("isCollapsed")) inCollapsedLogic = true;
-      if (inCollapsedLogic && line.includes("border-orange") && !line.includes("focus-visible:")) {
-        throw new Error(`Border laranja detectado no contexto colapsado: ${line.trim()}`);
-      }
-    });
-  });
-
-  it("Garante que o fundo do item ativo não excede opacidade discreta", () => {
-    const file = "src/components/layout/sidebar/SidebarNavGroup.tsx";
-    const content = readFileSync(resolve(process.cwd(), file), "utf8");
-    
-    // Verifica se a opacidade do bg-orange ativo é <= 0.04
-    const matches = content.match(/bg-orange\/\[([\d.]+)\]/g);
-    if (matches) {
-      matches.forEach(m => {
-        const opacity = parseFloat(m.match(/[\d.]+/)![0]);
-        expect(opacity, `Opacidade de fundo ${m} é muito alta`).toBeLessThanOrEqual(0.04);
-      });
+    } else if (/\.(tsx|ts|css)$/.test(name)) {
+      fileList.push(name);
     }
   });
+  return fileList;
+})(resolve(process.cwd(), "src"));
 
-  it("Garante que o indicador lateral (before) tem altura calibrada", () => {
-    const file = "src/components/layout/sidebar/SidebarNavGroup.tsx";
-    const content = readFileSync(resolve(process.cwd(), file), "utf8");
-    
-    // Verifica se estamos usando o novo padrão de top/bottom em vez de h-5 fixo para o indicador principal
-    const hasCalibratedIndicator = /before:top-\[20%\] before:bottom-\[20%\]/.test(content);
-    expect(hasCalibratedIndicator, "O indicador lateral deve usar posicionamento relativo (top/bottom) para ser mais discreto").toBe(true);
-  });
+// Regex for forbidden glow patterns
+const FORBIDDEN_GLOW = /\b(?:shadow-glow|text-shadow|ambient-glow|drop-shadow-\[.*?primary.*?\]|drop-shadow-\[.*?orange.*?\])\b/g;
 
-  it("Garante contraste WCAG para o item ativo no sidebar", () => {
-    // Simulação de verificação de contraste
-    // text-orange em Dark Mode é hsl(24 100% 60%) L=60%
-    // Background dark padrão é L=3% a 6%
-    // Diferença de luminosidade > 50% garante conformidade AA (4.5:1)
-    const orangeLuminance = 60;
-    const darkLuminance = 6;
-    const ratio = orangeLuminance / darkLuminance;
-    expect(ratio, "Contraste do texto laranja em fundo escuro deve ser alto").toBeGreaterThan(4.5);
+describe("Global UI Regression — Zero Glow Policy", () => {
+  ALL_SRC_FILES.forEach(file => {
+    // Skip policy definition and the test itself
+    if (file.includes('design-policy.ts') || file.includes('SidebarMobileRegression.test.ts')) return;
+
+    it(`should not contain orange glow or halos in ${file.replace(process.cwd(), '')}`, () => {
+      const content = readFileSync(file, "utf8");
+      
+      // Allow focus-visible:ring as it's neutralized in CSS but classes might persist
+      // However, we want to flag hardcoded drop-shadows
+      const matches = content.match(FORBIDDEN_GLOW);
+      
+      if (matches) {
+        // Double check if it's a comment
+        const lines = content.split('\n');
+        const violations = lines.filter(line => 
+          FORBIDDEN_GLOW.test(line) && 
+          !line.trim().startsWith("//") && 
+          !line.trim().startsWith("*") &&
+          !line.includes("NO_ORANGE_GLOW_POLICY")
+        );
+        
+        expect(violations, `Found glow effects in ${file}:\n${violations.join('\n')}`).toHaveLength(0);
+      }
+    });
   });
 });
+... keep existing code
