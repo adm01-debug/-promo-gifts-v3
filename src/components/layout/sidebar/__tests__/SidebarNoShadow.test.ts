@@ -73,4 +73,22 @@ describe("Sidebar — sem sombras/brilhos em hover/active (light + dark)", () =>
       ).toEqual([]);
     }
   });
+
+  it("itens ativos NÃO usam ring laranja/primário (vira halo em dark mode)", () => {
+    // Apenas SidebarNavGroup é checado: o ui/sidebar.tsx do shadcn usa
+    // ring-sidebar-ring que é neutro. Banimos qualquer ring colorido aqui.
+    const NAV_FILE = "src/components/layout/sidebar/SidebarNavGroup.tsx";
+    const content = readFileSync(resolve(process.cwd(), NAV_FILE), "utf8");
+    // Casa ring-1/2/N + (orange|primary|orange/...) que não esteja em focus-visible.
+    // Estratégia: pega a linha inteira, e se tiver ring-(orange|primary) sem focus-visible: na frente, falha.
+    const lines = content.split("\n");
+    for (const line of lines) {
+      const ringColor = line.match(/\bring-(?:orange|primary)(?:\/\d+)?\b/);
+      if (ringColor && !/focus-visible:ring/.test(line)) {
+        throw new Error(
+          `Ring colorido fora de focus-visible (vira glow em dark) em ${NAV_FILE}: ${line.trim()}`,
+        );
+      }
+    }
+  });
 });
