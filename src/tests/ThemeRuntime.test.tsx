@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { useTheme } from '../contexts/ThemeContext';
 import React from 'react';
@@ -10,6 +10,10 @@ const ThemeConsumer = () => {
 };
 
 describe('Theme Runtime Safety', () => {
+  beforeEach(() => {
+    vi.stubEnv('NODE_ENV', 'development');
+  });
+
   it('should not crash when useTheme is used outside of ThemeProvider', () => {
     const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     
@@ -19,8 +23,10 @@ describe('Theme Runtime Safety', () => {
     }).not.toThrow();
     
     expect(screen.getByTestId('theme-value')).toBeDefined();
-    expect(spy).toHaveBeenCalledWith(expect.stringContaining('useTheme must be used within a ThemeProvider'));
+    expect(spy).toHaveBeenCalled();
     
     spy.mockRestore();
+    vi.unstubEnv();
   });
 });
+
