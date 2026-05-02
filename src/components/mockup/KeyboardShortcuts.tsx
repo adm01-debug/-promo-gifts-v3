@@ -5,6 +5,7 @@ interface KeyboardShortcutsProps {
   onGenerate: () => void;
   onReset: () => void;
   onDownload: () => void;
+  onStepChange?: (step: number) => void;
   canGenerate: boolean;
   canDownload: boolean;
   isLoading: boolean;
