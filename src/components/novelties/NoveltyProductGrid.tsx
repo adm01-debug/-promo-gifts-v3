@@ -138,7 +138,7 @@ export function NoveltyProductGrid() {
         <div className="text-center py-10">
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-muted/80 mb-3"><Package className="h-7 w-7 text-muted-foreground/40" /></div>
           <p className="text-muted-foreground font-medium text-sm">{hasActiveFilters ? "Nenhuma novidade com esses filtros" : "Nenhuma novidade encontrada"}</p>
-          {hasActiveFilters ? <Button variant="link" className="mt-1 text-xs" onClick={clearFilters}>Limpar filtros</Button> : <p className="text-xs text-muted-foreground/70 mt-1">Produtos novos aparecerão aqui automaticamente</p>}
+          {hasActiveFilters ? <Button variant="link-primary" className="mt-1 text-xs" onClick={clearFilters}>Limpar filtros</Button> : <p className="text-xs text-muted-foreground/70 mt-1">Produtos novos aparecerão aqui automaticamente</p>}
         </div>
       );
     }
