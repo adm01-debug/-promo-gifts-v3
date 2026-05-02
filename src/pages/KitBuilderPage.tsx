@@ -5,8 +5,10 @@ import { useKitBuilderPageState } from "@/hooks/useKitBuilderPageState";
 import { Card, CardContent } from '@/components/ui/card';
 import { 
   WizardSteps, BoxSelector, ItemSelector, 
-  PersonalizationConfig, KitSummary, KitBuilderHeader, KitHeroPricingCard
+  PersonalizationConfig, KitSummary,
 } from '@/components/kit-builder';
+import { KitBuilderHeader } from '@/components/kit-builder/KitBuilderHeader';
+import { KitHeroPricingCard } from '@/components/kit-builder/KitHeroPricingCard';
 
 const KitIsometricPreview = lazy(() => import('@/components/kit-builder/KitIsometricPreview').then(m => ({ default: m.KitIsometricPreview })));
 
