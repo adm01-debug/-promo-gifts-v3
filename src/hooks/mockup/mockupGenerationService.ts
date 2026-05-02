@@ -242,8 +242,10 @@ export async function downloadMockupAsPdf(mockupUrl: string, sku?: string, techn
 
 // ─── Delete ──────────────────────────────────────────────────────────
 
-export async function deleteMockupFromDb(id: string): Promise<void> {
-  const { error } = await supabase.from("generated_mockups").delete().eq("id", id);
+export async function deleteMockupFromDb(id: string, userId?: string): Promise<void> {
+  let query = supabase.from("generated_mockups").delete().eq("id", id);
+  if (userId) query = query.eq("seller_id", userId);
+  const { error } = await query;
   if (error) throw error;
 }
 
