@@ -78,6 +78,9 @@ jobs:
       - name: Run tests
         run: npm run test
 
+      - name: 🎨 Theme Presets & Contrast gate
+        run: npx vitest run src/lib/theme-presets.test.ts --reporter=verbose
+
       - name: Strict ref-warning gate (suite completa)
         # Roda toda a suite com STRICT_REF_WARNINGS=1: o setup global
         # (tests/setup-ref-warning-capture.ts) intercepta console.error/warn
