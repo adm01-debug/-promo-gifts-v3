@@ -322,5 +322,6 @@ export default function AdminConexoesPage() {
     </CredentialsSourceFilterProvider>
     </ExplainModeProvider>
     </SeverityFilterProvider>
+    </MainLayout>
   );
 }
