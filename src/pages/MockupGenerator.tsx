@@ -1,20 +1,18 @@
 import { type MockupTechnique } from "@/types/external-db";
 /**
- * MockupGenerator — Refactored v5
+ * MockupGenerator — Refactored v5.2
  * 
  * Business logic in useMockupGenerator hook.
- * Technique change logic extracted to MockupTechniqueHandlers.
- * Heavy sub-components are lazy-loaded.
+ * Progressive Preview + Enhanced Header + Sticky Navigator.
  */
 
 import { useMemo, useCallback, Suspense } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { Button } from "@/components/ui/button";
-import { Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Loader2, AlertCircle, CheckCircle2, History, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Wand2, History } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { TechniqueChangeDialog, DeleteMockupDialog } from "./mockup-generator/MockupDialogs";
@@ -40,10 +38,64 @@ const OffscreenLayoutCapture = lazyWithRetry(() => import("@/components/mockup/a
 const TechniqueColorConfigDialog = lazyWithRetry(() => import("@/components/mockup/TechniqueColorConfigDialog").then(m => ({ default: m.TechniqueColorConfigDialog })));
 const AIMockupAssistant = lazyWithRetry(() => import("@/components/ai").then(m => ({ default: m.AIMockupAssistant })));
 
+// ─── Sub-components ──────────────────────────────────────────────────
+
+function MockupHeader({ 
+  historyCount, 
+  summary,
+  activeTab
+}: { 
+  historyCount: number; 
+  summary: string;
+  activeTab: string;
+}) {
+  return (
+    <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-primary/10 via-accent/5 to-transparent p-6 border border-primary/20">
+      <div className="absolute -top-24 -right-24 w-48 h-48 bg-accent/10 rounded-full blur-3xl" />
+      <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center justify-center w-14 h-14 rounded-xl bg-primary/10 ring-2 ring-primary/20 shrink-0">
+            <Wand2 className="h-7 w-7 text-primary animate-pulse" />
+          </div>
+          <div className="min-w-0">
+            <h1 data-testid="page-title-mockup-generator" className="font-display text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">Gerador de Mockups</h1>
+            <p className="text-muted-foreground mt-1 truncate">Crie mockups profissionais de brindes personalizados ✨</p>
+            {activeTab === "generator" && summary && (
+              <p className="text-[11px] text-primary/70 mt-1 font-medium bg-primary/5 px-2 py-0.5 rounded-full inline-block border border-primary/10">
+                {summary}
+              </p>
+            )}
+          </div>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          {historyCount > 0 && (
+            <Badge variant="outline" className="gap-1.5 py-1 px-3 bg-background/50 backdrop-blur-sm border-primary/20">
+              <History className="h-3.5 w-3.5 text-primary" />
+              {historyCount} no histórico
+            </Badge>
+          )}
+          <Badge variant="secondary" className="gap-1.5 py-1 px-3">
+            <CheckCircle2 className="h-3.5 w-3.5" />
+            V.5.2
+          </Badge>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function MockupGenerator() {
   const mg = useMockupGenerator();
   const { profile } = useAuth();
   const user = mg.user;
+
+  const summary = useMemo(() => {
+    const parts = [];
+    if (mg.selectedClient) parts.push(mg.selectedClient.name);
+    if (mg.selectedProduct) parts.push(mg.selectedProduct.name);
+    if (mg.selectedTechnique) parts.push(mg.selectedTechnique.name);
+    return parts.join(" · ");
+  }, [mg.selectedClient, mg.selectedProduct, mg.selectedTechnique]);
 
   const technique = useTechniqueHandlers({
     hasLogo: mg.hasLogo,
@@ -137,6 +189,8 @@ export default function MockupGenerator() {
       <GeneratingOverlay isVisible={mg.isLoading} productName={mg.selectedProduct?.name} techniqueName={mg.selectedTechnique?.name} />
 
       <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
+        <MockupHeader historyCount={mg.mockupHistory.length} summary={summary} activeTab={mg.activeTab} />
+
         {mg.activeTab !== "history" && (
           <div className="sticky top-0 z-[40] bg-background/80 backdrop-blur-md py-2 -mx-2 px-2 rounded-xl transition-all duration-300 border border-transparent hover:border-border/40">
             <Suspense fallback={null}>
@@ -156,7 +210,6 @@ export default function MockupGenerator() {
                     const el = document.getElementById(targetId);
                     if (el) {
                       el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                      // Add a brief highlight effect
                       el.classList.add('ring-2', 'ring-primary/50', 'rounded-lg');
                       setTimeout(() => el.classList.remove('ring-2', 'ring-primary/50', 'rounded-lg'), 2000);
                     }
@@ -186,8 +239,8 @@ export default function MockupGenerator() {
           </Alert>
         )}
 
-        <Tabs value={mg.activeTab} onValueChange={mg.setActiveTab} className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
-          <div className="flex items-center justify-between gap-2">
+        <Tabs value={mg.activeTab} onValueChange={mg.setActiveTab} className="w-full">
+          <div className="flex items-center justify-between gap-2 mb-4">
             <TabsList>
               <TabsTrigger value="generator" className="flex items-center gap-2"><Wand2 className="h-4 w-4" /> Gerar Mockup</TabsTrigger>
               <TabsTrigger value="history" className="flex items-center gap-2"><History className="h-4 w-4" /> Histórico ({mg.mockupHistory.length})</TabsTrigger>
@@ -227,7 +280,7 @@ export default function MockupGenerator() {
                   logoColorAnalysis={mg.logoColorAnalysis}
                 />
 
-                <div className="space-y-4 lg:sticky lg:top-4 lg:self-start">
+                <div className="space-y-4 lg:sticky lg:top-24 lg:self-start transition-all duration-300">
                   {mg.selectedProduct && mg.getProductImage() && mg.activeArea ? (
                     <LogoPositionEditor
                       productImageUrl={mg.getProductImage()!}
@@ -324,13 +377,23 @@ export default function MockupGenerator() {
                           <div key={idx} className="border border-border/30 rounded-lg overflow-hidden bg-card">
                             <img src={batch.url} alt={batch.areaName} className="w-full aspect-square object-contain" loading="lazy" />
                             <div className="p-2 text-center">
-                              <Badge variant="secondary" className="text-[10px]">{batch.areaName}</Badge>
+                              <p className="text-[10px] font-medium truncate">{batch.areaName}</p>
                             </div>
                           </div>
                         ))}
                       </div>
                     </div>
                   )}
+
+                  <AIMockupAssistant onApplySuggestion={(suggestion) => {
+                    if (suggestion.techniqueId) {
+                      const tech = mg.techniques.find(t => t.id === suggestion.techniqueId);
+                      if (tech) technique.handleTechniqueChange(tech);
+                    }
+                    if (suggestion.position) {
+                      mg.updateActiveArea({ positionX: suggestion.position.x, positionY: suggestion.position.y });
+                    }
+                  }} />
                 </div>
               </div>
             </Suspense>
@@ -339,57 +402,52 @@ export default function MockupGenerator() {
           <TabsContent value="history">
             <Suspense fallback={<div className="flex items-center justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>}>
               <MockupHistoryPanel
-                mockupHistory={mg.mockupHistory}
+                history={mg.mockupHistory}
                 isLoading={mg.isLoadingHistory}
-                clients={mg.historyClients}
-                techniques={mg.techniques}
-                onLoadFromHistory={mg.loadFromHistory}
-                onDownload={mg.downloadMockup}
-                onDelete={(id) => { mg.setMockupToDelete(id); mg.setDeleteDialogOpen(true); }}
-                onShare={mg.handleShareMockup}
+                onDelete={(id) => { setMockupToDelete(id); setDeleteDialogOpen(true); }}
+                onDownload={(mockup) => mg.downloadMockup(mockup)}
+                onRestore={(mockup) => {
+                  const product = getProductById(mockup.product_id || "");
+                  if (product) {
+                    mg.setProductSelection({ product, variant: null, imageUrl: mockup.mockup_url });
+                    mg.setActiveTab("generator");
+                    toast.success("Produto restaurado do histórico");
+                  }
+                }}
               />
             </Suspense>
           </TabsContent>
         </Tabs>
-      </div>
 
-      <TechniqueChangeDialog
-        open={technique.techniqueChangeDialogOpen}
-        onOpenChange={technique.setTechniqueChangeDialogOpen}
-        fromName={mg.selectedTechnique?.name}
-        toName={technique.pendingTechnique?.name}
-        hasGeneratedMockup={!!mg.generatedMockup}
-        onConfirm={technique.confirmTechniqueChange}
-        onCancel={() => technique.setTechniqueChangeDialogOpen(false)}
-      />
+        <TechniqueChangeDialog 
+          open={technique.isDialogOpen} 
+          onOpenChange={technique.setIsDialogOpen} 
+          onConfirm={technique.confirmTechniqueChange} 
+          techniqueName={technique.pendingTechnique?.name || ""} 
+        />
 
-      <DeleteMockupDialog open={mg.deleteDialogOpen} onOpenChange={mg.setDeleteDialogOpen} onConfirm={mg.deleteMockup} />
+        <DeleteMockupDialog 
+          open={deleteDialogOpen} 
+          onOpenChange={setDeleteDialogOpen} 
+          onConfirm={async () => {
+            if (mockupToDelete) {
+              await deleteMockupFromDb(mockupToDelete);
+              mg.fetchHistory();
+              setDeleteDialogOpen(false);
+              setMockupToDelete(null);
+            }
+          }} 
+        />
 
-      <Suspense fallback={null}>
         <TechniqueColorConfigDialog
           open={technique.colorConfigDialogOpen}
           onOpenChange={technique.setColorConfigDialogOpen}
+          config={mg.techniqueColorConfig}
+          onConfigChange={mg.setTechniqueColorConfig}
           techniqueName={mg.selectedTechnique?.name || ""}
-          techniqueCode={mg.selectedTechnique?.code}
-          detectedColors={mg.logoColorAnalysis.colors}
-          currentConfig={mg.techniqueColorConfig}
-          onConfirm={(config) => {
-            mg.setTechniqueColorConfig(config);
-            toast.success(
-              config.category === "laser"
-                ? `Tom ${config.laserTone === "claro" ? "claro" : "escuro"} selecionado`
-                : config.category === "serigrafia"
-                  ? `${config.colorCount} cor${(config.colorCount || 1) > 1 ? "es" : ""} configurada${(config.colorCount || 1) > 1 ? "s" : ""}`
-                  : "Policromia (Full Color)",
-              { duration: 2000 }
-            );
-          }}
+          logoColors={mg.logoColorAnalysis.colors}
         />
-      </Suspense>
-
-      <Suspense fallback={null}>
-        <AIMockupAssistant productName={mg.selectedProduct?.name} techniqueName={mg.selectedTechnique?.name} />
-      </Suspense>
+      </div>
     </MainLayout>
   );
 }
