@@ -60,6 +60,14 @@ export default function MockupGenerator() {
     canGenerate: !!(mg.selectedProduct && mg.selectedTechnique && mg.hasLogo),
     canDownload: !!mg.generatedMockup,
     isLoading: mg.isLoading,
+    onStepChange: (step) => {
+      mg.setActiveTab("generator");
+      const sectionMap: Record<number, string> = { 1: "step-client", 2: "step-product", 3: "step-technique", 4: "step-logo", 5: "step-logo", 6: "step-logo" };
+      const targetId = sectionMap[step];
+      if (targetId) {
+        document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
   });
 
   const layoutCaptureRequest = useMemo((): LayoutCaptureRequest | null => {
