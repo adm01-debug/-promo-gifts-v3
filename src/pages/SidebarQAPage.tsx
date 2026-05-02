@@ -13,7 +13,7 @@
 import { useState } from "react";
 import { Home, Package, ShoppingCart, Settings, ChevronDown, Gift } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { PageSEO } from "@/components/PageSEO";
+import { PageSEO } from "@/components/seo/PageSEO";
 
 const VIEWPORT_WIDTHS = [
   { label: "Mobile 320", value: 320 },
