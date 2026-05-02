@@ -5,6 +5,7 @@ interface KeyboardShortcutsProps {
   onGenerate: () => void;
   onReset: () => void;
   onDownload: () => void;
+  onStepChange?: (step: number) => void;
   canGenerate: boolean;
   canDownload: boolean;
   isLoading: boolean;
@@ -17,6 +18,7 @@ export function useKeyboardShortcuts({
   canGenerate,
   canDownload,
   isLoading,
+  onStepChange,
 }: KeyboardShortcutsProps) {
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -28,6 +30,15 @@ export function useKeyboardShortcuts({
         target.isContentEditable
       ) {
         return;
+      }
+
+      // Number keys 1-6: Navigate steps
+      if (e.key >= "1" && e.key <= "6" && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        const step = parseInt(e.key);
+        if (onStepChange) {
+          onStepChange(step);
+          return;
+        }
       }
 
       // Ctrl/Cmd + Enter: Generate mockup
@@ -93,6 +104,10 @@ export function KeyboardShortcutsHint({ className }: { className?: string }) {
           <span>+</span>
           <kbd className="px-1.5 py-0.5 bg-muted rounded text-[9px] font-mono">D</kbd>
           <span className="ml-1">Baixar</span>
+        </span>
+        <span className="flex items-center gap-1">
+          <kbd className="px-1.5 py-0.5 bg-muted rounded text-[9px] font-mono">1-6</kbd>
+          <span className="ml-1">Passos</span>
         </span>
         <span className="flex items-center gap-1">
           <kbd className="px-1.5 py-0.5 bg-muted rounded text-[9px] font-mono">Esc</kbd>

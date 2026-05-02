@@ -127,7 +127,7 @@ export function MockupConfigPanel({
           <>
             {/* Step 1: Client Selection — collapsible on mobile */}
             <MobileCollapsibleSection
-              stepNumber={1}
+              id="step-client"
               label="Empresa"
               isCompleted={!!selectedClient}
               summary={selectedClient?.name}
@@ -141,7 +141,7 @@ export function MockupConfigPanel({
 
             {/* Step 2: Product Selection */}
             <MobileCollapsibleSection
-              stepNumber={2}
+              id="step-product"
               label="Produto"
               isCompleted={!!productSelection}
               summary={productSelection?.product.name}
@@ -154,7 +154,7 @@ export function MockupConfigPanel({
 
             {/* Step 3: Technique Selection */}
             <MobileCollapsibleSection
-              stepNumber={3}
+              id="step-technique"
               label="Técnica de Personalização"
               isCompleted={!!selectedTechnique}
               summary={selectedTechnique?.name}
@@ -234,7 +234,7 @@ export function MockupConfigPanel({
 
             {/* Step 4: Areas */}
             <MobileCollapsibleSection
-              stepNumber={4}
+              id="step-logo"
               label="Áreas de Personalização"
               isCompleted={hasLogo}
               summary={hasLogo ? `${personalizationAreas.filter(a => a.logoPreview).length} logo(s)` : undefined}
@@ -253,7 +253,7 @@ export function MockupConfigPanel({
             {/* Logo Color Analysis — auto-appears after logo upload */}
             {logoColorAnalysis && (logoColorAnalysis.colors.length > 0 || logoColorAnalysis.isAnalyzing) && (
               <MobileCollapsibleSection
-                stepNumber={5}
+                id="step-colors"
                 label="Cores da Logo"
                 isCompleted={logoColorAnalysis.colors.length > 0 && !logoColorAnalysis.isAnalyzing}
                 summary={logoColorAnalysis.colors.length > 0 ? `${logoColorAnalysis.colors.length} Pantone` : undefined}
@@ -288,7 +288,7 @@ export function MockupConfigPanel({
 // ─── Mobile Collapsible Section ──────────────────────────────────────
 
 interface MobileCollapsibleSectionProps {
-  stepNumber: number;
+  id?: string;
   label: string;
   isCompleted: boolean;
   summary?: string;
@@ -298,7 +298,7 @@ interface MobileCollapsibleSectionProps {
 }
 
 function MobileCollapsibleSection({
-  stepNumber,
+  id,
   label,
   isCompleted,
   summary,
@@ -308,16 +308,10 @@ function MobileCollapsibleSection({
 }: MobileCollapsibleSectionProps) {
   // Desktop: always expanded. Mobile: collapsible, auto-collapse when completed.
   return (
-    <div className="space-y-2">
+    <div id={id} className="space-y-2 scroll-mt-20">
       {/* Desktop view — always visible */}
       <div className="hidden md:block space-y-2">
         <Label className="flex items-center gap-2">
-          <span className={cn(
-            "flex items-center justify-center w-5 h-5 rounded-full text-xs font-semibold",
-            isCompleted ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary"
-          )}>
-            {stepNumber}
-          </span>
           {label} {required && <span className="text-destructive">*</span>}
           {trailing}
         </Label>
@@ -330,12 +324,6 @@ function MobileCollapsibleSection({
           <CollapsibleTrigger className="w-full">
             <div className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 transition-colors">
               <div className="flex items-center gap-2">
-                <span className={cn(
-                  "flex items-center justify-center w-5 h-5 rounded-full text-xs font-semibold",
-                  isCompleted ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary"
-                )}>
-                  {stepNumber}
-                </span>
                 <span className="text-sm font-medium">{label}</span>
                 {required && <span className="text-destructive text-xs">*</span>}
                 {trailing}
