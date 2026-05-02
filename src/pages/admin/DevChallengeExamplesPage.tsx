@@ -18,7 +18,8 @@
  * (modal de step-up, supersede, retry on invalid, toast com CTA).
  */
 import { useState } from "react";
-import { Helmet } from "react-helmet-async";
+import { MainLayout } from "@/components/layout/MainLayout";
+import { PageSEO } from "@/components/seo/PageSEO";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
