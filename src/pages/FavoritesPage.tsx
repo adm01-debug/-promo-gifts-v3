@@ -52,7 +52,7 @@ const PRICE_DROP_FILTER_KEY = "favorites-only-drops";
 function loadViewMode(): ViewMode {
   try {
     const v = localStorage.getItem(VIEW_MODE_KEY);
-    if (v === "grid" || v === "list" || v === "table") return v;
+    if (v === "grid" || v === "list" || v === "table") return v as ViewMode;
   } catch {}
   return "grid";
 }
@@ -62,7 +62,7 @@ function loadGridColumns(): ColumnCount {
     const v = localStorage.getItem(GRID_COLS_KEY);
     if (v) {
       const n = Number(v) as ColumnCount;
-      if ([3, 4, 5, 6, 8].includes(n)) return n;
+      if ([3, 4, 5, 6, 8].includes(n)) return n as ColumnCount;
     }
   } catch {}
   return getDefaultColumns();
@@ -80,17 +80,12 @@ function loadSort(): FavoritesSort {
 export default function FavoritesPage() {
   const navigate = useNavigate();
 
-  // Atalhos globais (G L / Shift+F) + Cmd+Z undo stack
   useFavoritesGlobalShortcuts();
   useUndoStack();
-
-  // Migra favoritos do localStorage para a nuvem (idempotente)
   useLegacyFavoritesMigration();
 
-  // Store legado (SSOT para "Todos" enquanto não escolher lista remota)
   const { favorites, clearFavorites, favoriteCount, toggleFavorite, isFavorite } = useFavoritesStore();
 
-  // Listas remotas + lixeira
   const {
     lists,
     createList,
@@ -101,7 +96,6 @@ export default function FavoritesPage() {
   } = useFavoriteLists();
   const { items: trashItems } = useFavoriteTrash();
 
-  // Estado: lista selecionada (null = view legado/todos) + lixeira
   const [selectedListId, setSelectedListId] = useState<string | null>(() => {
     try { return localStorage.getItem(SELECTED_LIST_KEY); } catch { return null; }
   });
@@ -117,7 +111,6 @@ export default function FavoritesPage() {
     } catch {}
   }, [selectedListId]);
 
-  // Items enriquecidos da lista remota selecionada
   const { enriched, rawItems, removeItem, updateItem } = useEnrichedFavoriteItems(selectedListId);
   const isRemoteListView = !!selectedListId && !showTrash;
 
@@ -136,7 +129,6 @@ export default function FavoritesPage() {
   useEffect(() => { try { localStorage.setItem(SORT_KEY, sort); } catch {} }, [sort]);
   useEffect(() => { try { localStorage.setItem(PRICE_DROP_FILTER_KEY, onlyPriceDrops ? "1" : "0"); } catch {} }, [onlyPriceDrops]);
 
-  // Mapa product_id → meta enriquecida (para badges + filtro de queda)
   const enrichedMetaMap = useMemo(() => {
     const m = new Map<string, { priceDiffPct: number | null; priceAtSave: number | null; savedAt: string }>();
     if (isRemoteListView) {
@@ -156,10 +148,8 @@ export default function FavoritesPage() {
     return enriched.filter((e) => e.priceDiffPct !== null && e.priceDiffPct < -2).length;
   }, [enriched, isRemoteListView]);
 
-  // ===== Produtos da view ativa =====
   const legacyFavoriteProducts = useMemo(
     () => getProductsByIds(favorites.map((f) => f.productId)),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [getProductsByIds, favorites, _cacheSignal]
   );
 
@@ -179,7 +169,6 @@ export default function FavoritesPage() {
     return map;
   }, [favorites, enriched, isRemoteListView]);
 
-  // Map de notas (apenas remoto)
   const noteMap = useMemo(() => {
     const m = new Map<string, { itemId: string; note: string | null }>();
     if (isRemoteListView) {
@@ -208,18 +197,15 @@ export default function FavoritesPage() {
       list = list.filter((p) =>
         p.name.toLowerCase().includes(q) ||
         p.sku?.toLowerCase().includes(q) ||
-        // @ts-expect-error - brand pode existir no enriched
-        p.brand?.toLowerCase().includes(q)
+        (p as any).brand?.toLowerCase().includes(q)
       );
     }
-    // Filtro "só com queda" (apenas em listas remotas)
     if (onlyPriceDrops && isRemoteListView) {
       list = list.filter((p) => {
         const meta = enrichedMetaMap.get(p.id);
         return meta?.priceDiffPct !== null && meta?.priceDiffPct !== undefined && meta.priceDiffPct < -2;
       });
     }
-    // Aplicar sort
     const sorted = [...list];
     switch (sort) {
       case "price-asc": sorted.sort((a, b) => (a.price ?? 0) - (b.price ?? 0)); break;
@@ -233,19 +219,16 @@ export default function FavoritesPage() {
     return sorted;
   }, [productsWithVariant, searchQuery, sort, onlyPriceDrops, isRemoteListView, enrichedMetaMap]);
 
-  // Bulk selection
   const sel = useCatalogSelection(filteredProducts, selectionMode);
   const selectedIds = sel.selectedIds;
 
-  // Stats (sempre baseados no contexto ativo)
   const stats = useMemo(() => {
     const source = isRemoteListView ? productsWithVariant : legacyFavoriteProducts;
     if (source.length === 0) return null;
     const prices = source.map((p) => p.price ?? 0).filter((v) => v > 0);
     return {
       total: source.length,
-      // @ts-expect-error - category enriquecida pelo context
-      categories: new Set(source.map((p) => p.category?.id ?? p.category_id)).size,
+      categories: new Set(source.map((p) => (p as any).category?.id ?? (p as any).category_id)).size,
       minPrice: prices.length ? Math.min(...prices) : 0,
       maxPrice: prices.length ? Math.max(...prices) : 0,
     };
@@ -253,7 +236,6 @@ export default function FavoritesPage() {
 
   const fmt = (v: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v);
 
-  // Total counter para header principal (lista remota tem prioridade)
   const activeList = useMemo(() => lists.find((l) => l.id === selectedListId) ?? null, [lists, selectedListId]);
   const headerTotalCount = isRemoteListView ? rawItems.length : favoriteCount;
 
@@ -318,7 +300,6 @@ export default function FavoritesPage() {
     toast.success("Nota salva");
   };
 
-  // Sidebar reutilizável (desktop + sheet mobile)
   const sidebarNode = (
     <FavoriteListsSidebar
       lists={lists}
@@ -342,7 +323,6 @@ export default function FavoritesPage() {
     <MainLayout>
       <PageSEO title="Favoritos" description="Suas listas de produtos favoritos com organização, anotações e compartilhamento." path="/favoritos" />
       <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 pb-24 md:pb-6 animate-fade-in">
-        {/* Header global */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
           <div className="flex items-center gap-3">
             <div
@@ -371,7 +351,6 @@ export default function FavoritesPage() {
           </div>
 
           <div className="flex gap-2 items-center flex-wrap">
-            {/* Mobile: abrir sidebar como sheet */}
             <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
               <SheetTrigger asChild>
                 <Button variant="outline" size="sm" className="lg:hidden">
@@ -438,14 +417,11 @@ export default function FavoritesPage() {
           </div>
         </div>
 
-        {/* Layout 2-col */}
         <div className="flex gap-4 lg:gap-6">
-          {/* Sidebar desktop */}
           <div className="hidden lg:block">
             {sidebarNode}
           </div>
 
-          {/* View principal */}
           <div className="flex-1 min-w-0 space-y-4">
             {showTrash ? (
               <>
@@ -472,7 +448,6 @@ export default function FavoritesPage() {
                   onPresent={productsWithVariant.length > 0 ? () => setPresenting(true) : undefined}
                 />
 
-                {/* KPI cards */}
                 {stats && (
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     <div className="stat-card flex items-center gap-3">
@@ -514,7 +489,6 @@ export default function FavoritesPage() {
                   </div>
                 )}
 
-                {/* Search */}
                 {productsWithVariant.length > 0 && (
                   <div className="relative max-w-md">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -527,7 +501,6 @@ export default function FavoritesPage() {
                   </div>
                 )}
 
-                {/* Selection action bar */}
                 {selectionMode && productsWithVariant.length > 0 && (
                   <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 rounded-lg border border-primary/30 bg-primary/5 animate-fade-in">
                     <div className="flex items-center gap-2 text-sm">
@@ -561,7 +534,6 @@ export default function FavoritesPage() {
                   </div>
                 )}
 
-                {/* Products view */}
                 {filteredProducts.length > 0 ? (
                   viewMode === "table" ? (
                     <ProductTableView
@@ -637,7 +609,6 @@ export default function FavoritesPage() {
                                 onFavorite={() => handleRemoveFavorite(product.id, product.name)}
                               />
                             </div>
-                            {/* Price drop badge — canto inferior esquerdo, apenas em listas remotas */}
                             {isRemoteListView && priceMeta && !selectionMode && (
                               <div className="absolute bottom-3 left-3 z-10 pointer-events-auto">
                                 <PriceDropBadge
@@ -670,7 +641,6 @@ export default function FavoritesPage() {
                                 >
                                   <Heart className="h-4 w-4 fill-destructive text-destructive" />
                                 </Button>
-                                {/* Note editor — apenas em listas remotas */}
                                 {isRemoteListView && noteMeta && (
                                   <ItemNoteEditor
                                     initialNote={noteMeta.note}
@@ -726,15 +696,12 @@ export default function FavoritesPage() {
         </div>
       </div>
 
-      {/* Bulk actions: BulkActionBar flutuante + wizard */}
       <CatalogBulkModals sel={sel} selectionMode={selectionMode} totalCount={filteredProducts.length} />
 
-      {/* ARIA live region para anúncios de favoritar/remover */}
       <div role="status" aria-live="polite" className="sr-only">
         {ariaAnnouncement}
       </div>
 
-      {/* Modo apresentação fullscreen */}
       {presenting && (
         <FavoritePresentationLauncher
           products={productsWithVariant}

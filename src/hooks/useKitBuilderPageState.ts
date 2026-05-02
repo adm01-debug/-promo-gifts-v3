@@ -1,0 +1,90 @@
+import { useState, useEffect, useRef } from 'react';
+import confetti from 'canvas-confetti';
+import { toast } from 'sonner';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useKitBuilder } from '@/hooks/useKitBuilder';
+import { useCustomKitPersistence } from '@/hooks/useCustomKitPersistence';
+import { useKitAutoSave } from '@/hooks/useKitAutoSave';
+import { useKitUndoRedo } from '@/hooks/useKitUndoRedo';
+import { useKitBuilderQuote } from '@/pages/kit-builder/useKitBuilderQuote';
+import { useTemplateSnapshot } from '@/hooks/useTemplateSnapshot';
+import { useDuplicateKitDetector } from '@/hooks/useDuplicateKitDetector';
+import { useKitWizardShortcuts } from '@/hooks/useKitWizardShortcuts';
+import { transformToKitItem } from '@/hooks/useKitBuilderTransformers';
+import { invokeExternalDb } from '@/lib/external-db';
+import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/lib/logger';
+import { calculateTotalKitPrice } from '@/lib/kit-builder';
+
+export function useKitBuilderPageState() {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const kitIdParam = searchParams.get('kit');
+  const productIdParam = searchParams.get('product');
+  const templateIdParam = searchParams.get('template');
+
+  const [currentKitId, setCurrentKitId] = useState<string | undefined>(kitIdParam || undefined);
+  const [occasion, setOccasion] = useState<any>(null);
+
+  const {
+    kitState, setKitType, wizardState, kitQuantity, availableBoxes, availableItems,
+    isLoadingBoxes, isLoadingItems, boxFilters, setBoxFilters, itemFilters, setItemFilters,
+    setKitName, selectBox, clearBox, addItem, removeItem, updateItemQuantity,
+    updateItemVariant, reorderItems, setItemPersonalization, setBoxPersonalization,
+    setKitQuantity, setIdentity, goToStep, nextStep, prevStep, resetKit, loadKit,
+  } = useKitBuilder();
+
+  const { saveKit, isSaving, bumpLastUsed } = useCustomKitPersistence();
+  const { saveAsTemplate } = useTemplateSnapshot();
+  const { handleAddToQuote, isCreatingQuote } = useKitBuilderQuote();
+  const { lastSavedAt, isSaving: isAutoSaving, autoSavedKitId } = useKitAutoSave(
+    kitState, kitQuantity, currentKitId, (id) => setCurrentKitId(id),
+  );
+  const { pushSnapshot, undo, redo, canUndo, canRedo } = useKitUndoRedo();
+  const { findDuplicate } = useDuplicateKitDetector();
+
+  // Load Logic (Simplified for the pattern example)
+  useEffect(() => {
+    if (productIdParam && !kitIdParam) {
+      (async () => {
+        try {
+          const result = await invokeExternalDb<any>({ table: 'products', operation: 'select', filters: { id: productIdParam }, limit: 1 });
+          if (result.records?.length > 0) {
+            addItem(transformToKitItem(result.records[0]));
+            setKitName(result.records[0].name || '');
+          }
+        } catch (err) { logger.warn('[kit-builder] Failed to load product:', err); }
+      })();
+    }
+  }, [productIdParam, kitIdParam]);
+
+  // Effects (Confetti, Title, etc.)
+  useEffect(() => {
+    if (kitState.isValid && kitState.items.length > 0) {
+      confetti({ particleCount: 60, spread: 70, origin: { y: 0.85, x: 0.5 }, colors: ['#f97316'] });
+    }
+  }, [kitState.isValid]);
+
+  const pricing = calculateTotalKitPrice(kitState.box, kitState.items, kitState.personalization, kitQuantity);
+
+  return {
+    state: {
+      kitState, wizardState, kitQuantity, currentKitId, autoSavedKitId,
+      availableBoxes, availableItems, isLoadingBoxes, isLoadingItems,
+      boxFilters, itemFilters, occasion, setOccasion,
+    },
+    actions: {
+      setKitName, selectBox, clearBox, addItem, removeItem,
+      updateItemQuantity, updateItemVariant, reorderItems,
+      setItemPersonalization, setBoxPersonalization, setKitQuantity,
+      setIdentity, goToStep, nextStep, prevStep, resetKit,
+      undo, redo, canUndo, canRedo,
+      handleSaveKit: async () => { /* save logic */ },
+      handleAddToQuote,
+    },
+    meta: {
+      isSaving, isAutoSaving, isCreatingQuote, lastSavedAt,
+      pricing,
+    }
+  };
+}
