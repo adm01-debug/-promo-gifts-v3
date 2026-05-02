@@ -14,12 +14,13 @@ const SIDEBAR_FILES = [
   "src/components/layout/SidebarReorganized.tsx",
   "src/components/layout/sidebar/SidebarNavGroup.tsx",
   "src/components/layout/sidebar/SidebarBrandHeader.tsx",
+  "src/components/mobile/SmartMobileNav.tsx",
   "src/components/ui/sidebar.tsx",
 ];
 
 // Regex para detectar bordas ou sombras laranjas/primárias que causam "glow"
-// Exclui focus-visible:ring (necessário para a11y)
-const ORANGE_GLOW_CLASSES = /\b(?:hover:|active:|data-\[active=true\]:)?(?:shadow|border)-(?:orange|primary)(?:\/\d+)?\b/g;
+// Exclui focus-visible:ring (necessário para a11y) e shadow-none
+const ORANGE_GLOW_CLASSES = /\b(?:hover:|active:|data-\[active=true\]:)?(?:shadow|border)-(?:orange|primary|glow)(?:\/\d+)?\b/g;
 
 describe("Sidebar Mobile — Regressão de Border/Shadow Laranja (Dark Mode Safe)", () => {
   for (const file of SIDEBAR_FILES) {
