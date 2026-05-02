@@ -121,42 +121,72 @@ html[data-scroll-locked] body {
   }
 
   .dark {
-    /* ===== DARK MODE TOKEN OVERRIDES ===== */
-    --background: 24 30% 2%;
+    /* ===== DARK MODE TOKEN OVERRIDES — Orange Premium Neon ===== */
+
+    /* Surfaces — quase pretos com tinta laranja sutil */
+    --background: 24 30% 3%;
     --foreground: 24 10% 98%;
-    --surface: 24 30% 4%;
-    --surface-hover: 24 30% 8%;
-    --divider: 24 100% 50% / 0.25;
+    --surface: 24 28% 6%;
+    --surface-hover: 24 28% 10%;
+    --divider: 24 100% 60% / 0.3;
 
-    --card: 24 30% 5%;
+    --card: 24 28% 6%;
     --card-foreground: 24 10% 98%;
-    --card-elevated: 24 30% 8%;
+    --card-elevated: 24 28% 10%;
+    --popover: 24 28% 7%;
+    --popover-foreground: 24 10% 98%;
 
-    --primary-hover: 24 100% 55%;
-    --primary-active: 24 100% 65%;
+    /* Brand — sobe luminância para "neon" sobre fundos escuros */
+    --primary: 24 100% 58%;
+    --primary-hover: 24 100% 64%;
+    --primary-active: 24 100% 70%;
+    --primary-glow: 24 100% 72%;
+    --primary-foreground: 24 100% 6%;
 
-    --secondary: 24 30% 10%;
+    /* Funcionais — versões mais saturadas para fundos escuros */
+    --success: 142 90% 48%;
+    --success-foreground: 142 100% 6%;
+    --warning: 38 100% 58%;
+    --warning-foreground: 38 100% 8%;
+    --destructive: 0 95% 62%;
+    --destructive-foreground: 0 0% 100%;
+    --info: 210 100% 62%;
+    --info-foreground: 210 100% 8%;
+
+    /* Estados muted */
+    --secondary: 24 28% 12%;
     --secondary-foreground: 24 10% 95%;
-    --muted: 24 25% 8%;
-    --muted-foreground: 24 15% 80%;
+    --muted: 24 22% 10%;
+    --muted-foreground: 24 15% 78%;
+    --accent: 24 28% 14%;
+    --accent-foreground: 24 100% 70%;
 
-    --border: 24 100% 50% / 0.35;
-    --border-strong: 24 100% 50% / 0.6;
-    --input: 24 100% 50% / 0.2;
+    /* Bordas/inputs/ring — laranja brilhante para destacar do fundo */
+    --border: 24 100% 60% / 0.32;
+    --border-strong: 24 100% 60% / 0.55;
+    --input: 24 100% 60% / 0.18;
+    --ring: 24 100% 60%;
 
-    --sidebar-background: 24 30% 3%;
+    /* Sidebar */
+    --sidebar-background: 24 30% 4%;
     --sidebar-foreground: 24 10% 98%;
+    --sidebar-primary: 24 100% 60%;
+    --sidebar-border: 24 100% 60% / 0.18;
 
+    /* Shadows / glow */
     --shadow-soft: 0 4px 20px hsl(0 0% 0% / 0.5);
-    --shadow-medium: 0 15px 45px hsl(0 0% 0% / 0.75), 0 0 20px hsl(24 100% 50% / 0.1);
-    --shadow-premium: 0 25px 70px hsl(0 0% 0% / 0.9), 0 0 40px hsl(24 100% 50% / 0.25);
-    --shadow-glow: 0 0 30px hsl(24 100% 50% / 0.55), 0 0 60px hsl(24 100% 50% / 0.2);
+    --shadow-medium: 0 15px 45px hsl(0 0% 0% / 0.75), 0 0 20px hsl(24 100% 58% / 0.18);
+    --shadow-premium: 0 25px 70px hsl(0 0% 0% / 0.9), 0 0 45px hsl(24 100% 58% / 0.35);
+    --shadow-glow: 0 0 30px hsl(24 100% 58% / 0.6), 0 0 60px hsl(24 100% 58% / 0.25);
+    --shadow-glow-hover: 0 0 45px hsl(24 100% 64% / 0.75), 0 0 90px hsl(24 100% 64% / 0.35);
 
-    /* Gradient overrides — Dark mode mantém vibração com bases mais escuras */
-    --gradient-hero: linear-gradient(135deg, hsl(24 30% 4%) 0%, hsl(24 35% 8%) 50%, hsl(24 40% 12%) 100%);
+    /* Gradients — bases escuras + CTA com luminância elevada */
+    --gradient-hero: linear-gradient(135deg, hsl(24 30% 4%) 0%, hsl(24 35% 8%) 50%, hsl(24 45% 12%) 100%);
     --gradient-subtle: linear-gradient(180deg, hsl(var(--surface)) 0%, hsl(var(--background)) 100%);
     --gradient-card: linear-gradient(180deg, hsl(var(--card-elevated)) 0%, hsl(var(--card)) 100%);
-    --gradient-glow: radial-gradient(circle at 50% 0%, hsl(var(--primary) / 0.45) 0%, hsl(var(--primary) / 0.12) 45%, transparent 70%);
+    --gradient-glow: radial-gradient(circle at 50% 0%, hsl(var(--primary) / 0.5) 0%, hsl(var(--primary) / 0.14) 45%, transparent 70%);
+    --gradient-cta: linear-gradient(135deg, hsl(24 100% 62%) 0%, hsl(18 100% 56%) 50%, hsl(12 100% 52%) 100%);
+    --gradient-highlight: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(38 100% 62%) 100%);
   }
 }
 
