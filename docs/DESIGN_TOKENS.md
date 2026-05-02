@@ -256,8 +256,9 @@ SSOT em `src/index.css` (linhas 274-308). Aplicar via classe utilitária OU via 
 ❌ `border-[2px]` (use `border-2` que mapeia para `--border-width-strong`)
 ❌ `rounded-[20px]` (use `rounded-xl`)
 ❌ `shadow-[0_0_20px_rgba(255,165,0,0.5)]` (use `shadow-glow`)
+❌ `<a className="text-primary underline">` (use `link-primary` ou `<Button variant="link">` — ver §7.1)
 
-✅ `text-primary-foreground`, `bg-card`, `border`, `rounded-lg`, `shadow-glow`, `bg-gradient-cta`
+✅ `text-primary-foreground`, `bg-card`, `border`, `rounded-lg`, `shadow-glow`, `bg-gradient-cta`, `link-primary`
 
 ---
 
