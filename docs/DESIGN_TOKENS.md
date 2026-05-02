@@ -87,9 +87,12 @@ Combinações validadas em **AA** ou superior. Use sempre par token-fundo + toke
 |---|---|---|---|---|
 | `--shadow-soft` | `0 2px 10px primary/0.10` | `0 4px 20px black/0.50` | `shadow-sm` | Cartões em repouso, inputs |
 | `--shadow-medium` | `0 10px 30px primary/0.20` | `+ glow primary/0.18` | `shadow-md` | Cartões interativos, modais |
-| `--shadow-premium` | `0 20px 50px primary/0.35` | `+ glow primary/0.35` | `shadow-xl` / `shadow-elevated` | Hero CTAs, dialogs centrais |
+| `--shadow-premium` | `0 20px 50px primary/0.35` | `+ glow primary/0.35` | `shadow-xl` | Hero CTAs, dialogs centrais |
+| `--shadow-premium-hover` | `... intensity x1.5` | `... intensity x1.5` | `shadow-premium-hover` | Hover em botões premium / dialogs |
 | `--shadow-glow` | `0 0 20px primary/0.45` | `0 0 30px primary/0.60` | `shadow-glow` | Botão hover, ícones ativos, neon |
 | `--shadow-glow-hover` | `0 0 35px primary/0.65` | `0 0 45px primary/0.75` | `shadow-glow-hover` | Hover sobre `shadow-glow` |
+| `--shadow-glow-active` | `inset + intense glow` | `inset + intense neon` | `shadow-glow-active` | Estado pressed (active) de botões |
+| `--shadow-glow-focus` | `ring + outer glow` | `ring + outer neon` | `shadow-glow-focus` | Estado focus (ring offset 3px) |
 
 **Quando usar:**
 - `shadow-sm` → repouso default. Quase tudo.
