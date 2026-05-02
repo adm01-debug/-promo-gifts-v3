@@ -54,15 +54,16 @@ describe('Admin Mobile Interaction', () => {
 
     render(<MainLayout>Content</MainLayout>, { wrapper });
 
-    const sidebar = screen.getByRole('complementary', { hidden: true }) || screen.getByLabelText(/menu principal/i);
+    // The sidebar aside should exist
+    const sidebar = await screen.findByLabelText(/menu principal/i);
     expect(sidebar.className).toContain('-translate-x-full');
 
-    // Open
+    // Open via Header toggle
     const toggleBtn = screen.getByLabelText(/abrir menu/i);
     fireEvent.click(toggleBtn);
     expect(sidebar.className).toContain('translate-x-0');
 
-    // Close
+    // Close via Sidebar internal button
     const closeBtn = screen.getByLabelText(/fechar menu/i);
     fireEvent.click(closeBtn);
     expect(sidebar.className).toContain('-translate-x-full');
