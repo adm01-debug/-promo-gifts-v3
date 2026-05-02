@@ -19,7 +19,8 @@ const FILES = [
 
 // Casa shadow-glow, shadow-soft, shadow-md/lg/xl/2xl, shadow-primary/...
 // Exclui shadow-glow-focus (a11y focus-visible) e shadow-none.
-const FORBIDDEN = /\bshadow-(?:glow(?!-focus)\b|soft\b|md\b|lg\b|xl\b|2xl\b|primary\b)/g;
+// Também valida que dark:shadow não é usado para evitar glows específicos em dark mode.
+const FORBIDDEN = /\b(?:dark:)?shadow-(?:glow(?!-focus)\b|soft\b|md\b|lg\b|xl\b|2xl\b|primary\b)/g;
 
 describe("Sidebar — sem sombras/brilhos em hover/active (light + dark)", () => {
   for (const rel of FILES) {
@@ -48,6 +49,46 @@ describe("Sidebar — sem sombras/brilhos em hover/active (light + dark)", () =>
       expect(content, `active:shadow em ${rel}`).not.toMatch(
         /data-\[active=true\]:shadow-(?!none)/,
       );
+    }
+  });
+
+  it("não usa classes de sombra específicas para dark mode (dark:shadow-*)", () => {
+    for (const rel of FILES) {
+      const content = readFileSync(resolve(process.cwd(), rel), "utf8");
+      // Bane dark:shadow exceto dark:shadow-none
+      expect(content, `dark:shadow em ${rel}`).not.toMatch(/\bdark:shadow-(?!none\b)/);
+    }
+  });
+
+  it("focus e focus-visible não usam glows/sombras (exceto ring)", () => {
+    // Permite ring-* e shadow-glow-focus (permitido para a11y)
+    // Bane focus:shadow-* e focus-visible:shadow-*
+    const FORBIDDEN_FOCUS = /\bfocus(?:-visible)?:shadow-(?!glow-focus|none)\b/g;
+    for (const rel of FILES) {
+      const content = readFileSync(resolve(process.cwd(), rel), "utf8");
+      const matches = content.match(FORBIDDEN_FOCUS) ?? [];
+      expect(
+        matches,
+        `Encontradas sombras de foco proibidas em ${rel}: ${matches.join(", ")}`,
+      ).toEqual([]);
+    }
+  });
+
+  it("itens ativos NÃO usam ring laranja/primário (vira halo em dark mode)", () => {
+    // Apenas SidebarNavGroup é checado: o ui/sidebar.tsx do shadcn usa
+    // ring-sidebar-ring que é neutro. Banimos qualquer ring colorido aqui.
+    const NAV_FILE = "src/components/layout/sidebar/SidebarNavGroup.tsx";
+    const content = readFileSync(resolve(process.cwd(), NAV_FILE), "utf8");
+    // Casa ring-1/2/N + (orange|primary|orange/...) que não esteja em focus-visible.
+    // Estratégia: pega a linha inteira, e se tiver ring-(orange|primary) sem focus-visible: na frente, falha.
+    const lines = content.split("\n");
+    for (const line of lines) {
+      const ringColor = line.match(/\bring-(?:orange|primary)(?:\/\d+)?\b/);
+      if (ringColor && !/focus-visible:ring/.test(line)) {
+        throw new Error(
+          `Ring colorido fora de focus-visible (vira glow em dark) em ${NAV_FILE}: ${line.trim()}`,
+        );
+      }
     }
   });
 });
