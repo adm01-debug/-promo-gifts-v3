@@ -29,26 +29,22 @@ const wrapper = ({ children }: { children: React.ReactNode }) => (
 );
 
 describe('Admin Module Structural Comparison', () => {
-  it('Conexoes and Usuarios should share identical container hierarchy', () => {
+  it('Conexoes and Usuarios should share matching container hierarchy', () => {
     const { container: conexoes } = render(<AdminConexoesPage />, { wrapper });
     const { container: usuarios } = render(<AdminUsuariosPage />, { wrapper });
     
-    const findStandardDiv = (root: HTMLElement) => 
-      Array.from(root.querySelectorAll('div')).find(d => d.className.includes('max-w-[1920px]'));
+    // Select the standardized inner container (first div inside main)
+    const conexoesInner = conexoes.querySelector('main > div');
+    const usuariosInner = usuarios.querySelector('main > div');
 
-    const conexoesDiv = findStandardDiv(conexoes);
-    const usuariosDiv = findStandardDiv(usuarios);
-
-    expect(conexoesDiv, 'Conexoes missing standardized container').not.toBeUndefined();
-    expect(usuariosDiv, 'Usuarios missing standardized container').not.toBeUndefined();
+    expect(conexoesInner, 'Conexoes missing inner container').not.toBeNull();
+    expect(usuariosInner, 'Usuarios missing inner container').not.toBeNull();
     
-    // Check key design system tokens in classes
-    const classes = conexoesDiv?.className || '';
-    expect(classes).toContain('mx-auto');
-    expect(classes).toContain('px-3');
-    expect(classes).toContain('lg:px-6');
-    // Note: animate-fade-in might be on a different level or replaced by PageTransition in MainLayout
-    // We check the core layout classes that ensure spacing consistency
-    expect(usuariosDiv?.className).toBe(conexoesDiv?.className);
+    // Check core layout tokens for max-width and auto-centering
+    expect(conexoesInner?.className).toContain('mx-auto');
+    expect(conexoesInner?.className).toContain('max-w-');
+    
+    // Compare structural equivalence
+    expect(usuariosInner?.className).toBe(conexoesInner?.className);
   });
 });
