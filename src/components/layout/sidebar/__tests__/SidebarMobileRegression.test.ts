@@ -89,4 +89,27 @@ describe("Sidebar Mobile — Regressão de Design Plano (No Shadows/Glows)", () 
     expect(hoverOrangeShadow, "Mobile Sidebar não deve ter shadow-orange no hover").toBe(false);
     expect(hoverOrangeBorder, "Mobile Sidebar não deve ter border-orange no hover").toBe(false);
   });
+
+  it("Garante ausência de glow laranja no menu colapsado ao alternar estados", () => {
+    const file = "src/components/layout/sidebar/SidebarNavGroup.tsx";
+    const content = readFileSync(resolve(process.cwd(), file), "utf8");
+    
+    // Proibir sombras laranjas em qualquer estado de interação do NavGroup
+    const hasForbiddenShadows = /shadow-orange|shadow-glow/.test(content);
+    expect(hasForbiddenShadows, "SidebarNavGroup não deve conter sombras laranjas ou de brilho").toBe(false);
+    
+    // Verificar se no modo colapsado (isCollapsed) não há aplicação de bordas que simulem glow
+    const lines = content.split("\n");
+    let inCollapsedLogic = false;
+    lines.forEach((line) => {
+      if (line.includes("if (isCollapsed)")) inCollapsedLogic = true;
+      if (inCollapsedLogic) {
+        // No modo colapsado, o NavLink não deve ter bordas laranjas além do indicador lateral (isActive)
+        // O indicador lateral usa 'before:bg-orange' que é permitido, mas não deve ter border-orange
+        if (line.includes("border-orange")) {
+          throw new Error(`Border laranja detectado no modo colapsado: ${line.trim()}`);
+        }
+      }
+    });
+  });
 });
