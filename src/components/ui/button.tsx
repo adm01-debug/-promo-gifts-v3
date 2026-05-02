@@ -9,17 +9,17 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary-hover active:bg-primary-active shadow-[0_0_15px_rgba(255,102,0,0.2)] hover:shadow-[0_0_25px_rgba(255,102,0,0.4)] border border-primary/20",
-        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-md",
-        outline: "border-2 border-primary/30 bg-background text-primary-hover hover:border-primary hover:bg-primary/5 hover:shadow-[0_0_15px_rgba(255,102,0,0.1)]",
+        default: "bg-primary text-primary-foreground hover:bg-primary-hover active:bg-primary-active shadow-sm hover:shadow-glow border border-primary/20",
+        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-sm",
+        outline: "border-2 border-primary/30 bg-background text-primary hover:border-primary hover:bg-primary/5 hover:shadow-soft",
         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80 border border-divider shadow-sm",
-        ghost: "hover:bg-primary/10 hover:text-primary-hover font-bold",
+        ghost: "hover:bg-primary/10 hover:text-primary font-bold",
         link: "text-primary underline-offset-4 hover:underline font-bold",
-        orange: "bg-orange text-orange-foreground hover:bg-orange-hover active:bg-orange-active shadow-[0_0_20px_rgba(255,102,0,0.3)] hover:shadow-[0_0_35px_rgba(255,102,0,0.5)] border border-white/20",
-        // Nova variante premium com gradiente e glow intenso
-        premium: "bg-gradient-to-br from-orange via-orange-hover to-orange-active text-white shadow-[0_10px_30px_rgba(255,102,0,0.3)] hover:shadow-[0_15px_45px_rgba(255,102,0,0.5)] hover:scale-[1.02] border border-white/30",
+        orange: "bg-primary text-primary-foreground hover:bg-primary-hover active:bg-primary-active shadow-glow hover:shadow-glow-hover border border-white/20",
+        // Variante premium com gradiente e brilho intenso
+        premium: "bg-gradient-to-br from-primary via-primary-hover to-primary-active text-white shadow-medium hover:shadow-premium hover:scale-[1.02] border border-white/30",
         // Variante success para ações de confirmação
-        success: "bg-success text-success-foreground hover:bg-success/90 shadow-lg border border-success/20",
+        success: "bg-success text-success-foreground hover:bg-success/90 shadow-md border border-success/20",
       },
       size: {
         default: "h-10 px-4 py-2 min-h-[44px]",

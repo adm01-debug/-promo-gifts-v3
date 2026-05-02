@@ -38,155 +38,107 @@ html[data-scroll-locked] body {
 
 @layer base {
   :root {
-    /* ===== FONTS - Optimized for Contrast ===== */
+    /* ===== DESIGN TOKENS - ORANGE PREMIUM ===== */
+    
+    /* 1. Typography & Contrast Tokens */
     --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
     --font-display: 'Outfit', system-ui, sans-serif;
-
-    /* ===== BASE - Deep Slate for Ultra Contrast ===== */
+    
+    /* 2. Surface & Background Tokens (High Contrast) */
     --background: 0 0% 100%;
-    --foreground: 24 100% 10%;
+    --foreground: 24 100% 5%;
+    --surface: 24 100% 98%;
+    --surface-hover: 24 100% 95%;
+    --divider: 24 100% 50% / 0.15;
 
-    /* ===== CARDS - Crisp White with Deep Borders ===== */
+    /* 3. Component Surfaces */
     --card: 0 0% 100%;
-    --card-foreground: 24 100% 10%;
+    --card-foreground: 24 100% 5%;
     --card-elevated: 0 0% 100%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 24 100% 5%;
 
-    /* ===== ORANGE PREMIUM CORE - The Soul of the Skin ===== */
+    /* 4. Core Brand Colors (Orange Premium) */
     --primary: 24 100% 50%;
     --primary-hover: 24 100% 45%;
     --primary-active: 24 100% 40%;
-    --primary-glow: 24 100% 60%;
+    --primary-glow: 24 100% 65%;
     --primary-foreground: 0 0% 100%;
 
-    /* ===== SECONDARY - Warm Grays to Complement Orange ===== */
-    --secondary: 24 20% 95%;
-    --secondary-foreground: 24 80% 15%;
-
-    /* ===== MUTED - High Legibility ===== */
-    --muted: 24 10% 90%;
-    --muted-foreground: 24 15% 30%;
-
-    /* ===== SEMANTIC COLORS ===== */
-    --surface: 24 15% 98%;
-    --surface-hover: 24 20% 94%;
-    --text-secondary: 24 30% 25%;
-    --interactive: 24 100% 50%;
-    --divider: 24 100% 50% / 0.15;
-
-    /* ===== ACCENT - Soft Orange Glow ===== */
-    --accent: 24 100% 96%;
-    --accent-foreground: 24 100% 40%;
-
-    /* ===== DESTRUCTIVE - Deep Red for Contrast ===== */
-    --destructive: 0 100% 45%;
-    --destructive-foreground: 0 0% 100%;
-
-    /* ===== ESTADOS - Vibrant & Clear ===== */
-    --success: 142 80% 40%;
+    /* 5. Functional Colors (High Saturation) */
+    --success: 142 100% 35%;
     --success-foreground: 0 0% 100%;
     --warning: 38 100% 45%;
     --warning-foreground: 0 0% 100%;
+    --destructive: 0 100% 45%;
+    --destructive-foreground: 0 0% 100%;
     --info: 210 100% 45%;
     --info-foreground: 0 0% 100%;
 
-    /* ===== ORANGE NEON & PREMIUM OVERRIDES ===== */
-    --orange: 24 100% 50%;
-    --orange-hover: 24 100% 45%;
-    --orange-active: 24 100% 40%;
-    --orange-glow: 24 100% 65%;
-    --orange-foreground: 0 0% 100%;
+    /* 6. Muted & Secondary States */
+    --secondary: 24 40% 96%;
+    --secondary-foreground: 24 100% 10%;
+    --muted: 24 20% 92%;
+    --muted-foreground: 24 40% 25%;
 
-    /* ===== BORDAS E INPUTS - Strong Definitions ===== */
-    --border: 24 100% 50% / 0.2;
+    /* 7. Borders & Inputs */
+    --border: 24 100% 50% / 0.25;
+    --border-strong: 24 100% 50% / 0.45;
     --input: 24 100% 50% / 0.1;
     --ring: 24 100% 50%;
 
-    --radius: 0.75rem;
+    /* 8. Radius Tokens */
+    --radius-sm: 0.5rem;
+    --radius-md: 0.75rem;
+    --radius-lg: 1rem;
+    --radius-full: 9999px;
+    --radius: var(--radius-md);
 
-    /* ===== GLASS MORPHISM - Orange Tinted ===== */
-    --glass-bg: 0 0% 100% / 0.9;
-    --glass-border: 24 100% 50% / 0.3;
-    --glass-blur: 8px;
-    --glass-shadow: 24 100% 50% / 0.1;
+    /* 9. Shadow & Depth Tokens (Orange Infused) */
+    --shadow-soft: 0 2px 10px hsl(24 100% 50% / 0.05);
+    --shadow-medium: 0 8px 30px hsl(24 100% 50% / 0.1);
+    --shadow-premium: 0 20px 50px hsl(24 100% 50% / 0.15);
+    --shadow-glow: 0 0 25px hsl(24 100% 50% / 0.4);
+    --shadow-glow-hover: 0 0 45px hsl(24 100% 50% / 0.6);
 
-    /* ===== SIDEBAR - Premium Orange Theme ===== */
-    --sidebar-background: 24 100% 98%;
-    --sidebar-foreground: 24 100% 15%;
+    /* 10. Sidebar Specific */
+    --sidebar-background: 24 100% 99%;
+    --sidebar-foreground: 24 100% 10%;
     --sidebar-primary: 24 100% 50%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 24 100% 50% / 0.1;
-    --sidebar-accent-foreground: 24 100% 40%;
     --sidebar-border: 24 100% 50% / 0.1;
-    --sidebar-ring: 24 100% 50%;
-
-    /* ===== GRADIENTES - Pure Fire ===== */
-    --gradient-primary: linear-gradient(135deg, hsl(24 100% 55%), hsl(24 100% 45%));
-    --gradient-hero: radial-gradient(circle at top right, hsl(24 100% 50% / 0.15), transparent 70%);
-    --gradient-cta: linear-gradient(135deg, hsl(24 100% 50%), hsl(15 100% 45%));
-
-    /* ===== SHADOWS - Orange Glow System ===== */
-    --shadow-glow: 0 0 25px hsl(24 100% 50% / 0.3);
-    --shadow-header: 0 4px 20px hsl(24 100% 50% / 0.08);
   }
 
   .dark {
-    /* ===== BASE - True Deep Black for Maximum Contrast ===== */
-    --background: 24 20% 2%;
+    /* ===== DARK MODE TOKEN OVERRIDES ===== */
+    --background: 24 30% 2%;
     --foreground: 24 10% 98%;
-
-    /* ===== CARDS - Deep Onyx with Orange Glow ===== */
-    --card: 24 20% 5%;
-    --card-foreground: 24 10% 98%;
-    --card-elevated: 24 20% 8%;
-
-    /* ===== POPOVER/DIALOG ===== */
-    --popover: 24 20% 5%;
-    --popover-foreground: 24 10% 98%;
-
-    /* ===== PRIMARY - Neon Orange Focus ===== */
-    --primary: 24 100% 50%;
-    --primary-hover: 24 100% 55%;
-    --primary-active: 24 100% 60%;
-    --primary-glow: 24 100% 50%;
-    --primary-foreground: 0 0% 100%;
-
-    /* ===== MUTED - Darker with more Contrast ===== */
-    --muted: 24 20% 10%;
-    --muted-foreground: 24 10% 80%;
-
-    /* ===== SEMANTIC COLORS ===== */
-    --surface: 24 20% 4%;
-    --surface-hover: 24 20% 8%;
-    --text-secondary: 24 10% 85%;
+    --surface: 24 30% 4%;
+    --surface-hover: 24 30% 8%;
     --divider: 24 100% 50% / 0.25;
 
-    /* ===== ACCENT ===== */
-    --accent: 24 100% 50% / 0.15;
-    --accent-foreground: 24 100% 60%;
+    --card: 24 30% 5%;
+    --card-foreground: 24 10% 98%;
+    --card-elevated: 24 30% 8%;
 
-    /* ===== BORDAS E INPUTS - Neon Outlines ===== */
-    --border: 24 100% 50% / 0.3;
-    --input: 24 100% 50% / 0.15;
-    --ring: 24 100% 55%;
+    --primary-hover: 24 100% 55%;
+    --primary-active: 24 100% 65%;
 
-    /* ===== GLASS MORPHISM - Cyber Depth ===== */
-    --glass-bg: 24 20% 3% / 0.85;
-    --glass-border: 24 100% 50% / 0.4;
-    --glass-shadow: 0 0 40px hsl(24 100% 50% / 0.2);
+    --secondary: 24 30% 10%;
+    --secondary-foreground: 24 10% 95%;
+    --muted: 24 25% 8%;
+    --muted-foreground: 24 15% 80%;
 
-    /* ===== SIDEBAR ===== */
-    --sidebar-background: 24 20% 3%;
+    --border: 24 100% 50% / 0.35;
+    --border-strong: 24 100% 50% / 0.6;
+    --input: 24 100% 50% / 0.2;
+
+    --sidebar-background: 24 30% 3%;
     --sidebar-foreground: 24 10% 98%;
-    --sidebar-primary: 24 100% 50%;
-    --sidebar-accent: 24 100% 50% / 0.1;
-    --sidebar-border: 24 100% 50% / 0.2;
 
-    /* ===== GRADIENTES - Neon Fusion ===== */
-    --gradient-primary: linear-gradient(135deg, hsl(24 100% 50%), hsl(35 100% 50%));
-    --gradient-ambient: radial-gradient(circle at 50% -20%, hsl(24 100% 50% / 0.2), transparent 80%);
-
-    /* ===== SHADOWS - High Intensity Glow ===== */
-    --shadow-glow: 0 0 40px hsl(24 100% 50% / 0.5), 0 0 80px hsl(24 100% 50% / 0.1);
+    --shadow-soft: 0 2px 10px hsl(0 0% 0% / 0.4);
+    --shadow-medium: 0 10px 40px hsl(0 0% 0% / 0.6);
+    --shadow-premium: 0 20px 60px hsl(0 0% 0% / 0.8), 0 0 30px hsl(24 100% 50% / 0.1);
+    --shadow-glow: 0 0 35px hsl(24 100% 50% / 0.5);
   }
 }
 
