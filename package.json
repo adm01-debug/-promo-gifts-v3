@@ -30,6 +30,7 @@
     "test:e2e:debug": "npx playwright test --grep-invert @smoke --debug",
     "test:e2e:report": "npx playwright show-report",
     "test:e2e:install": "npx playwright install --with-deps chromium",
+    "test:theme-validation": "npx playwright test e2e/theme-validation.spec.ts && node scripts/generate-theme-report.mjs",
     "check:seller-scope": "node scripts/check-seller-scope.mjs",
     "check:route-error-element": "node scripts/check-route-error-element.mjs",
     "check:aschild-nesting": "node scripts/check-aschild-nesting.mjs",

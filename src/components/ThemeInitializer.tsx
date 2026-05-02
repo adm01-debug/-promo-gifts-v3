@@ -12,13 +12,20 @@ import { loadThemeConfig, applyThemePreset, applyRadius } from '@/lib/theme-pres
  */
 export function ThemeInitializer() {
   const ctx = useContext(ThemeContext);
-  const actualTheme = ctx?.actualTheme ?? 'light';
-
+  
   useEffect(() => {
+    // Only run when context is actually available
+    if (!ctx) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[ThemeInitializer] Waiting for ThemeContext to be mounted...');
+      }
+      return;
+    }
+
     const cfg = loadThemeConfig();
-    applyThemePreset(cfg.presetId, actualTheme);
+    applyThemePreset(cfg.presetId, ctx.actualTheme);
     applyRadius(cfg.radius);
-  }, [actualTheme]);
+  }, [ctx?.actualTheme]);
 
   return null;
 }
