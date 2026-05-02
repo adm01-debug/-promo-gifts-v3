@@ -166,7 +166,8 @@ html[data-scroll-locked] body {
   :root body {
     font-weight: 500;
     -webkit-font-smoothing: antialiased;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.015em;
+    line-height: 1.6;
   }
   :root p,
   :root span,
@@ -175,10 +176,10 @@ html[data-scroll-locked] body {
   :root th,
   :root li {
     font-weight: 500;
-    color: hsl(24 100% 5%); /* Ultra deep contrast */
+    color: hsl(24 100% 5%); /* Ultra deep contrast for maximum punch */
   }
   :root .text-muted-foreground {
-    color: hsl(24 30% 25%); /* Still high contrast even when muted */
+    color: hsl(24 40% 20%); /* Significantly darkened for legibility */
     font-weight: 500;
   }
   :root .font-medium {
@@ -189,12 +190,14 @@ html[data-scroll-locked] body {
   }
   :root .font-bold {
     font-weight: 850;
+    letter-spacing: -0.02em;
   }
 
-  /* Dark mode maintains punchy contrast */
+  /* Dark mode maintains punchy contrast and clarity */
   .dark body {
     font-weight: 450;
     letter-spacing: 0.01em;
+    line-height: 1.6;
   }
   .dark p,
   .dark span,
@@ -203,10 +206,10 @@ html[data-scroll-locked] body {
   .dark th,
   .dark li {
     font-weight: 450;
-    color: hsl(24 10% 95%);
+    color: hsl(24 10% 98%);
   }
   .dark .text-muted-foreground {
-    color: hsl(24 20% 75%);
+    color: hsl(24 20% 85%);
     font-weight: 450;
   }
   .dark .font-medium {
@@ -217,6 +220,7 @@ html[data-scroll-locked] body {
   }
   .dark .font-bold {
     font-weight: 800;
+    letter-spacing: -0.01em;
   }
 
   h1,
