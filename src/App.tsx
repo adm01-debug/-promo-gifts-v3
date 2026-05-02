@@ -295,6 +295,7 @@ const App = () => {
                                  <Route path="/external-db-test" element={<ExternalDatabaseTest />} />
                                  <Route path="/admin/rbac-rotas" element={<AdminRbacRoutesPage />} />
                                  <Route path="/admin/qa" element={<QAPage />} />
+                                 <Route path="/admin/qa/sidebar" element={<SidebarQAPage />} />
                                </Route>
                             </Route>
 
