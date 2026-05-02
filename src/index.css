@@ -88,11 +88,19 @@ html[data-scroll-locked] body {
     --ring: 24 100% 50%;
 
     /* 8. Radius Tokens */
+    --radius-xs: 0.25rem;
     --radius-sm: 0.5rem;
     --radius-md: 0.75rem;
     --radius-lg: 1rem;
+    --radius-xl: 1.25rem;
+    --radius-2xl: 1.5rem;
     --radius-full: 9999px;
     --radius: var(--radius-md);
+
+    /* 8b. Border Width Tokens — SSOT para evitar mistura de border/border-2 */
+    --border-width: 1.5px;
+    --border-width-strong: 2px;
+    --border-width-hairline: 1px;
 
     /* 9. Shadow & Depth Tokens (Extreme Glow System) */
     --shadow-soft: 0 2px 10px hsl(24 100% 50% / 0.1);
