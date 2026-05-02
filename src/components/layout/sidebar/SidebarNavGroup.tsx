@@ -171,7 +171,7 @@ export const SidebarNavGroup = forwardRef<HTMLDivElement, SidebarNavGroupProps>(
           "flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-150 group relative focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-orange/20 active:scale-[0.995]",
           "hover:bg-sidebar-accent/50",
           isActive
-            ? "bg-orange/[0.03] text-orange font-bold before:absolute before:left-0 before:top-[25%] before:bottom-[25%] before:w-[1.5px] before:rounded-r-full before:bg-orange"
+            ? "bg-orange/[0.03] text-orange font-bold before:absolute before:left-0 before:top-[20%] before:bottom-[20%] before:w-[1.5px] before:rounded-r-full before:bg-orange"
             : "text-sidebar-foreground/75 hover:text-sidebar-foreground before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-0 before:w-[1.5px] before:rounded-r-full before:bg-orange/50 before:transition-all before:duration-150 hover:before:h-3"
         )}
         onClick={() => isMobileSidebarOpen && onMobileClose()}
