@@ -153,7 +153,7 @@ html[data-scroll-locked] body {
     /* ===== DARK MODE TOKEN OVERRIDES — Orange Premium Neon ===== */
 
     /* Surfaces — quase pretos com tinta laranja sutil */
-    --background: 24 30% 3%;
+    --background: var(--bg-override, 24 30% 3%);
     --foreground: 24 10% 98%;
     --surface: 24 28% 6%;
     --surface-hover: 24 28% 10%;
