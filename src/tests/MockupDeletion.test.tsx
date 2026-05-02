@@ -42,11 +42,19 @@ vi.mock("@/integrations/supabase/client", () => ({
       order: vi.fn().mockReturnThis(),
       limit: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({ data: null, error: null }),
       maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+      insert: vi.fn().mockReturnThis(),
+      delete: vi.fn().mockReturnThis(),
     }),
     functions: {
       invoke: vi.fn().mockResolvedValue({ data: null, error: null }),
     },
+    channel: vi.fn().mockReturnValue({
+      on: vi.fn().mockReturnThis(),
+      subscribe: vi.fn().mockReturnThis(),
+      unsubscribe: vi.fn().mockReturnThis(),
+    }),
   },
 }));
 
