@@ -10,7 +10,7 @@ export const SidebarBrandHeader = forwardRef<HTMLDivElement, SidebarBrandHeaderP
     if (isCollapsed) {
       return (
         <div ref={ref} className="flex items-center justify-center px-2 py-3 mb-2">
-          <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center shadow-md shadow-primary/20">
+          <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center">
             <span className="text-[10px] font-bold text-primary-foreground tracking-tight">PG</span>
           </div>
         </div>
@@ -20,7 +20,7 @@ export const SidebarBrandHeader = forwardRef<HTMLDivElement, SidebarBrandHeaderP
     return (
       <div ref={ref} className="px-4 py-3 mb-2">
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-9 h-9 rounded-lg bg-gradient-primary flex items-center justify-center shrink-0 shadow-md shadow-primary/20">
+          <div className="w-9 h-9 rounded-lg bg-gradient-primary flex items-center justify-center shrink-0">
             <Gift className="h-4.5 w-4.5 text-primary-foreground" />
           </div>
           <div className="flex flex-col min-w-0">
