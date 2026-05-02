@@ -154,6 +154,7 @@ export function MockupConfigPanel({
 
             {/* Step 3: Technique Selection */}
             <MobileCollapsibleSection
+              id="step-technique"
               label="Técnica de Personalização"
               isCompleted={!!selectedTechnique}
               summary={selectedTechnique?.name}
