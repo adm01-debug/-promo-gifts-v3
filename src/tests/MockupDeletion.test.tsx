@@ -62,17 +62,19 @@ const renderWithProviders = (ui: React.ReactElement) => {
   return render(
     <HelmetProvider>
       <TooltipProvider>
-        <QueryClientProvider client={queryClient}>
-          <ProductsProvider>
-            <MemoryRouter>
-              <ThemeProvider>
-                <AuthProvider>
-                  {ui}
-                </AuthProvider>
-              </ThemeProvider>
-            </MemoryRouter>
-          </ProductsProvider>
-        </QueryClientProvider>
+        <AriaLiveProvider>
+          <QueryClientProvider client={queryClient}>
+            <ProductsProvider>
+              <MemoryRouter>
+                <ThemeProvider>
+                  <AuthProvider>
+                    {ui}
+                  </AuthProvider>
+                </ThemeProvider>
+              </MemoryRouter>
+            </ProductsProvider>
+          </QueryClientProvider>
+        </AriaLiveProvider>
       </TooltipProvider>
     </HelmetProvider>
   );
