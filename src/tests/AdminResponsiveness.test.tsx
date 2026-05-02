@@ -35,14 +35,15 @@ describe('Admin Layout Responsiveness', () => {
 
     render(<MainLayout>Test Content</MainLayout>, { wrapper });
 
-    // We check the actual SidebarReorganized or the desktop class hiding
-    // In mobile, SidebarReorganized should have lg:sticky and fixed inset-0 overlay
+    // The MainLayout always renders an aside with role navigation
     const sidebar = screen.getByRole('navigation', { name: /menu principal/i });
+    
+    // In mobile width (375px), it should have the classes for absolute/fixed positioning
+    // and the translate-x-full to stay hidden initially.
+    // Transition classes are also expected.
     expect(sidebar.className).toContain('fixed');
-    expect(sidebar.className).toContain('lg:sticky');
-
-    // In mobile by default, it should be translated out of view
     expect(sidebar.className).toContain('-translate-x-full');
+    expect(sidebar.className).toContain('lg:translate-x-0');
 
     // Content should not be overlapped (it's flex-1, the sidebar is fixed/absolute in mobile)
     const main = screen.getByRole('main');

@@ -89,9 +89,11 @@ describe('Admin Module Programmatic Coverage', () => {
       const mainContent = screen.queryByRole('main');
       expect(mainContent).not.toBeNull();
       
-      // Some pages use specific max-w like max-w-[1400px] or max-w-5xl, but we ensured all use max-w- now
-      const standardContainer = mainContent?.querySelector('[class*="max-w-"]');
-      expect(standardContainer, `Page ${pageName} missing max-w- container`).not.toBeNull();
+      // Some pages use specific max-w like max-w-[1400px] or max-w-5xl, but we ensured all use max-w- now.
+      // We search for any div containing "max-w-" within the main content.
+      const elements = mainContent?.querySelectorAll('*');
+      const hasMaxW = Array.from(elements || []).some(el => el.className.includes('max-w-'));
+      expect(hasMaxW, `Page ${pageName} missing a max-w- container`).toBe(true);
     });
   });
 });
