@@ -169,6 +169,15 @@ html[data-scroll-locked] body {
     letter-spacing: -0.015em;
     line-height: 1.6;
   }
+  :root a {
+    @apply transition-all duration-300;
+    color: hsl(var(--primary));
+    font-weight: 700;
+  }
+  :root a:hover {
+    @apply text-primary-hover underline underline-offset-4 decoration-primary/40;
+    text-shadow: 0 0 10px hsl(var(--primary) / 0.2);
+  }
   :root p,
   :root span,
   :root label,
