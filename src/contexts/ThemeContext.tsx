@@ -8,6 +8,7 @@ interface ThemeContextType {
   actualTheme: 'light' | 'dark';
   setTheme: (theme: Theme) => void;
   toggleTheme: () => void;
+  isFallback?: boolean;
 }
 
 export const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -119,8 +120,9 @@ export function useTheme() {
       actualTheme: 'light',
       setTheme: () => {},
       toggleTheme: () => {},
+      isFallback: true,
     } as ThemeContextType;
   }
 
-  return context;
+  return { ...context, isFallback: false };
 }
