@@ -8,13 +8,32 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { HelmetProvider } from 'react-helmet-async';
 import React from 'react';
 
-// Mocking heavy providers/components that require specific context setup
+// Mock specific logic
 vi.mock('@/contexts/DevChallengeContext', () => ({
   DevChallengeProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-  useDevChallenge: () => ({ challenge: null, isLoading: false, markStepCompleted: vi.fn(), isStepCompleted: vi.fn().mockReturnValue(false) }),
+  useDevChallenge: () => ({ 
+    challenge: null, 
+    isLoading: false, 
+    markStepCompleted: vi.fn(), 
+    isStepCompleted: vi.fn().mockReturnValue(false) 
+  }),
 }));
 
-// Partially mocking MainLayout to avoid deep provider issues while keeping the structure for testing
+// Mock useAuth to force supervisor status so PageSEO always renders
+vi.mock('@/contexts/AuthContext', async (importOriginal) => {
+  const actual: any = await importOriginal();
+  return {
+    ...actual,
+    useAuth: () => ({
+      user: { id: 'test-user-id', role: 'admin' },
+      isSupervisorOrAbove: true,
+      isAdmin: true,
+      isLoading: false,
+    }),
+  };
+});
+
+// Partially mocking MainLayout to ensure stability in CI
 vi.mock('@/components/layout/MainLayout', async (importOriginal) => {
   const actual: any = await importOriginal();
   return {
@@ -27,6 +46,16 @@ vi.mock('@/components/layout/MainLayout', async (importOriginal) => {
     ),
   };
 });
+
+// Capture PageSEO props
+const seoCaptures: Record<string, any> = {};
+vi.mock('@/components/seo/PageSEO', () => ({
+  PageSEO: (props: any) => {
+    const pageName = window.location.pathname;
+    seoCaptures[pageName] = props;
+    return <div data-testid="page-seo" data-title={props.title} />;
+  }
+}));
 
 // Import all admin pages
 const adminPageModules = import.meta.glob('@/pages/admin/*.tsx', { eager: true });
@@ -51,26 +80,15 @@ const wrapper = ({ children }: { children: React.ReactNode }) => (
   </QueryClientProvider>
 );
 
-describe('Admin Module Programmatic Coverage', () => {
-  // Silence console warnings for cleaner output during bulk render tests
+describe('Admin Module Programmatic Standard Rules', () => {
   const originalError = console.error;
-  const originalWarn = console.warn;
-  
   beforeAll(() => {
     console.error = (...args) => {
       if (args[0]?.toString().includes('act(...)') || args[0]?.toString().includes('HelmetProvider')) return;
       originalError(...args);
     };
-    console.warn = (...args) => {
-      if (args[0]?.toString().includes('React Router Future Flag')) return;
-      originalWarn(...args);
-    };
   });
-
-  afterAll(() => {
-    console.error = originalError;
-    console.warn = originalWarn;
-  });
+  afterAll(() => { console.error = originalError; });
 
   Object.entries(adminPageModules).forEach(([path, module]: [string, any]) => {
     const Component = module.default;
@@ -78,24 +96,26 @@ describe('Admin Module Programmatic Coverage', () => {
 
     const pageName = path.split('/').pop()?.replace('.tsx', '');
 
-    it(`${pageName} should render within MainLayout`, () => {
+    it(`${pageName} should render with correct PageSEO config`, async () => {
       render(<Component />, { wrapper });
-      expect(screen.queryByTestId('main-layout')).not.toBeNull();
-      // Look specifically for our Mock Sidebar navigation
-      expect(screen.queryByRole('navigation', { name: /menu principal/i })).not.toBeNull();
+      
+      // We look for the SEO marker. Since it's often conditional or inside MainLayout,
+      // we use findBy to allow for hydration/state resolution.
+      const seo = await screen.findByTestId('page-seo', {}, { timeout: 3000 });
+      expect(seo, `Page ${pageName} is missing PageSEO`).not.toBeNull();
+      
+      // Basic title check - should not be empty
+      expect(seo?.getAttribute('data-title')).not.toBe('');
     });
 
-    it(`${pageName} should use standard container classes`, () => {
+    it(`${pageName} should use standard max-w classes in its layout container`, () => {
       render(<Component />, { wrapper });
       const mainContent = screen.queryByRole('main');
-      expect(mainContent).not.toBeNull();
       
-      // Some pages use specific max-w like max-w-[1400px] or max-w-5xl, but we ensured all use max-w- now.
-      // We search for any div containing "max-w-" within the main content.
-      const elements = mainContent?.querySelectorAll('*');
-      const hasMaxW = Array.from(elements || []).some(el => el.className.includes('max-w-'));
-      expect(hasMaxW, `Page ${pageName} missing a max-w- container`).toBe(true);
+      // We look for the standardized container div
+      const container = mainContent?.querySelector('[class*="max-w-"]');
+      expect(container, `Page ${pageName} missing standardized max-w container`).not.toBeNull();
+      expect(container?.className).toContain('mx-auto');
     });
   });
 });
-

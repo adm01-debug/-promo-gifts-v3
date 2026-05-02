@@ -90,6 +90,12 @@ export default function AdminPromoverUsuarioPage() {
   if (!isSupervisorOrAbove) {
     return (
       <MainLayout>
+        <PageSEO
+          title="Acesso Restrito"
+          description="Acesso negado ao módulo de promoção."
+          path="/admin/usuarios/promover"
+          noIndex
+        />
         <div className="max-w-2xl mx-auto py-12 text-center">
           <Shield className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
           <h1 className="text-2xl font-bold">Acesso restrito</h1>
