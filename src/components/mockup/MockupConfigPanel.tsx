@@ -288,7 +288,6 @@ export function MockupConfigPanel({
 // ─── Mobile Collapsible Section ──────────────────────────────────────
 
 interface MobileCollapsibleSectionProps {
-  stepNumber: number;
   label: string;
   isCompleted: boolean;
   summary?: string;
@@ -298,7 +297,6 @@ interface MobileCollapsibleSectionProps {
 }
 
 function MobileCollapsibleSection({
-  stepNumber,
   label,
   isCompleted,
   summary,
