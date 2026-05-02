@@ -734,7 +734,7 @@ export const THEME_PRESETS: ThemePreset[] = [
       emoji: '🌊',
       h: 200,
       s: 85,
-      l: 55,
+      l: 48, // Ajuste para 48 (era 55) para contraste 3:1 com texto branco
       gh: 210,
       sh: 190,
       ss: 75,
