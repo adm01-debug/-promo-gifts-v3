@@ -43,7 +43,7 @@ describe("Sidebar Mobile — Regressão de Design Plano (No Shadows/Glows)", () 
           // Permitir apenas se for focus-visible
           const isA11yFocus = /focus-visible:/.test(line);
           const isSafeIndicator = /before:bg-orange/.test(line);
-          const isSheetBase = /SheetContent/.test(line) && /shadow-lg/.test(line); // Base shadow do Sheet (opcional manter)
+          const isSheetBase = /SheetContent/.test(line) && /shadow-lg/.test(line); // Base shadow do Sheet
 
           if (shadowMatches) {
             shadowMatches.forEach(m => {
@@ -62,53 +62,51 @@ describe("Sidebar Mobile — Regressão de Design Plano (No Shadows/Glows)", () 
     });
   }
 
-  it("Garante ausência de 'ring-orange' fora de focus-visible (mobile aside)", () => {
-    const file = "src/components/layout/SidebarReorganized.tsx";
-    const content = readFileSync(resolve(process.cwd(), file), "utf8");
-    const matches = content.match(/\bring-orange(?:\/\d+)?\b/g) ?? [];
-    
-    // Se houver ring-orange, deve obrigatoriamente ter focus-visible:
-    if (matches.length > 0) {
-      const lines = content.split("\n");
-      lines.forEach(line => {
-        if (line.includes("ring-orange") && !line.includes("focus-visible:")) {
-          throw new Error(`Ring laranja detectado sem focus-visible em ${file}: ${line.trim()}`);
-        }
-      });
-    }
+  it("Garante ausência de 'ring-orange' fora de focus-visible", () => {
+    const files = ["src/components/layout/SidebarReorganized.tsx", "src/components/mobile/SmartMobileNav.tsx"];
+    files.forEach(file => {
+      const content = readFileSync(resolve(process.cwd(), file), "utf8");
+      const matches = content.match(/\bring-orange(?:\/\d+)?\b/g) ?? [];
+      
+      if (matches.length > 0) {
+        const lines = content.split("\n");
+        lines.forEach(line => {
+          if (line.includes("ring-orange") && !line.includes("focus-visible:") && !line.trim().startsWith("//")) {
+            throw new Error(`Ring laranja detectado sem focus-visible em ${file}: ${line.trim()}`);
+          }
+        });
+      }
+    });
   });
 
-  it("Garante que o estado hover no Mobile/Aside usa apenas background neutro ou orange/10 sem glow", () => {
-    const file = "src/components/layout/SidebarReorganized.tsx";
-    const content = readFileSync(resolve(process.cwd(), file), "utf8");
-    
-    // Checar botões de toggle e fechar no mobile
-    const hoverOrangeShadow = /hover:shadow-orange/.test(content);
-    const hoverOrangeBorder = /hover:border-orange/.test(content);
-    
-    expect(hoverOrangeShadow, "Mobile Sidebar não deve ter shadow-orange no hover").toBe(false);
-    expect(hoverOrangeBorder, "Mobile Sidebar não deve ter border-orange no hover").toBe(false);
+  it("Garante que o estado hover/active usa apenas background sólido", () => {
+    const files = ["src/components/layout/SidebarReorganized.tsx", "src/components/mobile/SmartMobileNav.tsx"];
+    files.forEach(file => {
+      const content = readFileSync(resolve(process.cwd(), file), "utf8");
+      const hoverOrangeShadow = /hover:shadow-orange/.test(content);
+      const hoverOrangeBorder = /hover:border-orange/.test(content);
+      const activeOrangeShadow = /active:shadow-orange/.test(content);
+      const activeOrangeBorder = /active:border-orange/.test(content);
+      
+      expect(hoverOrangeShadow, `Hover shadow laranja detectado em ${file}`).toBe(false);
+      expect(hoverOrangeBorder, `Hover border laranja detectado em ${file}`).toBe(false);
+      expect(activeOrangeShadow, `Active shadow laranja detectado em ${file}`).toBe(false);
+      expect(activeOrangeBorder, `Active border laranja detectado em ${file}`).toBe(false);
+    });
   });
 
-  it("Garante ausência de glow laranja no menu colapsado ao alternar estados", () => {
+  it("Garante ausência de glow laranja no menu colapsado e durante transições", () => {
     const file = "src/components/layout/sidebar/SidebarNavGroup.tsx";
     const content = readFileSync(resolve(process.cwd(), file), "utf8");
-    
-    // Proibir sombras laranjas em qualquer estado de interação do NavGroup
     const hasForbiddenShadows = /shadow-orange|shadow-glow/.test(content);
     expect(hasForbiddenShadows, "SidebarNavGroup não deve conter sombras laranjas ou de brilho").toBe(false);
     
-    // Verificar se no modo colapsado (isCollapsed) não há aplicação de bordas que simulem glow
     const lines = content.split("\n");
     let inCollapsedLogic = false;
     lines.forEach((line) => {
-      if (line.includes("if (isCollapsed)")) inCollapsedLogic = true;
-      if (inCollapsedLogic) {
-        // No modo colapsado, o NavLink não deve ter bordas laranjas além do indicador lateral (isActive)
-        // O indicador lateral usa 'before:bg-orange' que é permitido, mas não deve ter border-orange
-        if (line.includes("border-orange")) {
-          throw new Error(`Border laranja detectado no modo colapsado: ${line.trim()}`);
-        }
+      if (line.includes("isCollapsed")) inCollapsedLogic = true;
+      if (inCollapsedLogic && line.includes("border-orange") && !line.includes("focus-visible:")) {
+        throw new Error(`Border laranja detectado no contexto colapsado: ${line.trim()}`);
       }
     });
   });
