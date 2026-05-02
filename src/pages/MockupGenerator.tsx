@@ -407,11 +407,13 @@ export default function MockupGenerator() {
           <TabsContent value="history">
             <Suspense fallback={<div className="flex items-center justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>}>
               <MockupHistoryPanel
-                history={mg.mockupHistory}
+                mockupHistory={mg.mockupHistory}
                 isLoading={mg.isLoadingHistory}
+                clients={mg.historyClients}
+                techniques={mg.techniques}
                 onDelete={(id) => { setMockupToDelete(id); setDeleteDialogOpen(true); }}
                 onDownload={(mockup) => mg.downloadMockup(mockup)}
-                onRestore={(mockup) => {
+                onLoadFromHistory={(mockup) => {
                   const product = getProductById(mockup.product_id || "");
                   if (product) {
                     mg.setProductSelection({ product, variant: null, imageUrl: mockup.mockup_url });
@@ -433,13 +435,23 @@ export default function MockupGenerator() {
 
         <DeleteMockupDialog 
           open={deleteDialogOpen} 
-          onOpenChange={setDeleteDialogOpen} 
+          onOpenChange={(open) => {
+            setDeleteDialogOpen(open);
+            if (!open) setMockupToDelete(null);
+          }} 
           onConfirm={async () => {
             if (mockupToDelete) {
-              await deleteMockupFromDb(mockupToDelete);
-              mg.fetchHistory();
-              setDeleteDialogOpen(false);
-              setMockupToDelete(null);
+              try {
+                await deleteMockupFromDb(mockupToDelete, user?.id);
+                toast.success("Mockup excluído com sucesso");
+                await mg.fetchHistory();
+              } catch (error) {
+                console.error("Erro ao excluir mockup:", error);
+                toast.error("Não foi possível excluir o mockup. Tente novamente.");
+              } finally {
+                setDeleteDialogOpen(false);
+                setMockupToDelete(null);
+              }
             }
           }} 
         />
@@ -447,10 +459,11 @@ export default function MockupGenerator() {
         <TechniqueColorConfigDialog
           open={technique.colorConfigDialogOpen}
           onOpenChange={technique.setColorConfigDialogOpen}
-          config={mg.techniqueColorConfig}
-          onConfigChange={mg.setTechniqueColorConfig}
+          currentConfig={mg.techniqueColorConfig}
+          onConfirm={mg.setTechniqueColorConfig}
           techniqueName={mg.selectedTechnique?.name || ""}
-          logoColors={mg.logoColorAnalysis.colors}
+          techniqueCode={mg.selectedTechnique?.code}
+          detectedColors={mg.logoColorAnalysis.colors || []}
         />
       </div>
     </MainLayout>
