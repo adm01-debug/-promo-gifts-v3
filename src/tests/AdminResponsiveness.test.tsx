@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { AuthProvider } from '@/contexts/AuthContext';
@@ -8,18 +9,22 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { HelmetProvider } from 'react-helmet-async';
 import React from 'react';
 
+const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+
 const wrapper = ({ children }: { children: React.ReactNode }) => (
-  <HelmetProvider>
-    <MemoryRouter>
-      <ThemeProvider>
-        <AuthProvider>
-          <TooltipProvider>
-            {children}
-          </TooltipProvider>
-        </AuthProvider>
-      </ThemeProvider>
-    </MemoryRouter>
-  </HelmetProvider>
+  <QueryClientProvider client={queryClient}>
+    <HelmetProvider>
+      <MemoryRouter>
+        <ThemeProvider>
+          <AuthProvider>
+            <TooltipProvider>
+              {children}
+            </TooltipProvider>
+          </AuthProvider>
+        </ThemeProvider>
+      </MemoryRouter>
+    </HelmetProvider>
+  </QueryClientProvider>
 );
 
 describe('Admin Layout Responsiveness', () => {
