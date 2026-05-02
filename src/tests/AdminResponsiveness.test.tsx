@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -8,6 +8,19 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { HelmetProvider } from 'react-helmet-async';
 import React from 'react';
+
+// Mock Sidebar to avoid lazy loading issues in responsiveness test
+vi.mock('@/components/layout/SidebarReorganized', () => ({
+  SidebarReorganized: ({ isOpen }: { isOpen: boolean }) => (
+    <aside 
+      role="navigation" 
+      aria-label="Menu principal"
+      className={`transition-all duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} fixed lg:sticky lg:top-0 h-screen w-64 bg-sidebar`}
+    >
+      Mock Sidebar
+    </aside>
+  )
+}));
 
 const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
 
