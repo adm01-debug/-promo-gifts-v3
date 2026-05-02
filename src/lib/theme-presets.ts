@@ -576,18 +576,18 @@ function boostGlowAlpha(shadow: string, alpha: number): string {
   return shadow.slice(0, idx) + `/ ${alpha})` + shadow.slice(idx + last.length);
 }
 
-// Reforça a intensidade das sombras/neon em torno dos elementos
-// principais para reproduzir o "RGB feel" do Opera GX.
+// NEUTRALIZED: orange/neon glow eliminado em todo o sistema.
+// Mantido como no-op para preservar a assinatura usada pelos presets.
 function applyGxNeonGlow(preset: ThemePreset): ThemePreset {
   const { light, dark } = preset;
 
-  light['shadow-glow-primary'] = boostGlowAlpha(light['shadow-glow-primary'], 0.45);
-  light['shadow-glow-secondary'] = boostGlowAlpha(light['shadow-glow-secondary'], 0.4);
-  light['shadow-glow'] = boostGlowAlpha(light['shadow-glow'], 0.45);
+  light['shadow-glow-primary'] = 'none';
+  light['shadow-glow-secondary'] = 'none';
+  light['shadow-glow'] = 'none';
 
-  dark['shadow-glow-primary'] = boostGlowAlpha(dark['shadow-glow-primary'], 0.7);
-  dark['shadow-glow-secondary'] = boostGlowAlpha(dark['shadow-glow-secondary'], 0.65);
-  dark['shadow-glow'] = boostGlowAlpha(dark['shadow-glow'], 0.7);
+  dark['shadow-glow-primary'] = 'none';
+  dark['shadow-glow-secondary'] = 'none';
+  dark['shadow-glow'] = 'none';
 
   return preset;
 }

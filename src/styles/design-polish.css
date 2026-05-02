@@ -40,11 +40,9 @@
 .shadow-strong {
   box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.08);
 }
-.shadow-glow-primary {
-  box-shadow: 0 0 20px -5px hsl(var(--primary) / 0.4);
-}
+.shadow-glow-primary,
 .shadow-glow-orange {
-  box-shadow: 0 0 20px -5px hsl(var(--orange) / 0.4);
+  box-shadow: none;
 }
 
 /* ============================================
@@ -62,7 +60,7 @@
   transition: box-shadow 0.2s ease;
 }
 .hover-glow:hover {
-  box-shadow: 0 0 30px -10px hsl(var(--primary) / 0.4);
+  box-shadow: none;
 }
 
 .hover-bg-accent {
