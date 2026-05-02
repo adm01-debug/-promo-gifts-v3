@@ -9,7 +9,7 @@ const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElemen
       "rounded-2xl border border-border bg-card text-card-foreground shadow-medium",
       "hover:border-primary/40 hover:shadow-premium hover:-translate-y-1 transition-standard",
       className
-    )}
+    )} 
     {...props} 
   />
 ));
