@@ -1,6 +1,8 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { MainLayout } from "@/components/layout/MainLayout";
+import { PageSEO } from "@/components/seo/PageSEO";
 
 /**
  * /admin/design-tokens — Paleta visual viva dos tokens do sistema.
