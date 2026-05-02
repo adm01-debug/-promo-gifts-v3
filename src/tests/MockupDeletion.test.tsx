@@ -10,6 +10,7 @@ import { HelmetProvider } from "react-helmet-async";
 import * as mockupService from "@/hooks/mockup/mockupGenerationService";
 import { toast } from "sonner";
 import { ProductsProvider } from "@/contexts/ProductsContext";
+import { AriaLiveProvider } from "@/components/a11y/AriaLive";
 
 // Mock services
 vi.mock("@/hooks/mockup/mockupGenerationService", async () => {
