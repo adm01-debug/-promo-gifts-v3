@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -14,7 +14,7 @@ vi.mock('@/contexts/DevChallengeContext', () => ({
   useDevChallenge: () => ({ challenge: null, isLoading: false, markStepCompleted: vi.fn(), isStepCompleted: vi.fn().mockReturnValue(false) }),
 }));
 
-// Mocking MainLayout partially to avoid deep provider issues while keeping the structure for testing
+// Partially mocking MainLayout to avoid deep provider issues while keeping the structure for testing
 vi.mock('@/components/layout/MainLayout', async (importOriginal) => {
   const actual: any = await importOriginal();
   return {
@@ -94,3 +94,4 @@ describe('Admin Module Programmatic Coverage', () => {
     });
   });
 });
+
