@@ -20,35 +20,45 @@ const SIDEBAR_FILES = [
 
 // Regex para detectar bordas ou sombras laranjas/primárias que causam "glow"
 // Exclui focus-visible:ring (necessário para a11y) e shadow-none
-const ORANGE_GLOW_CLASSES = /\b(?:hover:|active:|data-\[active=true\]:)?(?:shadow|border)-(?:orange|primary|glow)(?:\/\d+)?\b/g;
+// Regex para detectar QUALQUER sombra (exceto as permitidas para a11y)
+const FORBIDDEN_SHADOWS = /\bshadow-(?!none|glow-focus)\w+/g;
+// Regex para detectar bordas coloridas que não sejam neutras
+const FORBIDDEN_BORDERS = /\bborder-(?:orange|primary)(?:\/\d+)?\b/g;
 
-describe("Sidebar Mobile — Regressão de Border/Shadow Laranja (Dark Mode Safe)", () => {
+describe("Sidebar Mobile — Regressão de Design Plano (No Shadows/Glows)", () => {
   for (const file of SIDEBAR_FILES) {
-    it(`${file} não deve ter bordas ou sombras laranjas em hover/active`, () => {
+    it(`${file} não deve ter sombras ou bordas coloridas`, () => {
       const content = readFileSync(resolve(process.cwd(), file), "utf8");
-      
-      // Procurar por classes que usam border-orange ou shadow-orange fora de focus-visible
       const lines = content.split("\n");
       const violations: string[] = [];
 
       lines.forEach((line, index) => {
-        const matches = line.match(ORANGE_GLOW_CLASSES);
-        if (matches) {
-          // Filtrar matches que estão dentro de um contexto de focus-visible ou ring
-          // (permitimos ring-primary em focus-visible)
+        // Ignorar linhas de comentário ou import
+        if (line.trim().startsWith("//") || line.trim().startsWith("import")) return;
+
+        const shadowMatches = line.match(FORBIDDEN_SHADOWS);
+        const borderMatches = line.match(FORBIDDEN_BORDERS);
+
+        if (shadowMatches || borderMatches) {
+          // Permitir apenas se for focus-visible
           const isA11yFocus = /focus-visible:/.test(line);
-          const isSafeIndicator = /before:bg-orange/.test(line); // O indicador lateral é seguro
-          
-          matches.forEach(match => {
-            // Se for border-orange ou shadow-orange e não for focus-visible ou indicador lateral
-            if (!isA11yFocus && !isSafeIndicator) {
-              violations.push(`Linha ${index + 1}: ${match}`);
-            }
-          });
+          const isSafeIndicator = /before:bg-orange/.test(line);
+          const isSheetBase = /SheetContent/.test(line) && /shadow-lg/.test(line); // Base shadow do Sheet (opcional manter)
+
+          if (shadowMatches) {
+            shadowMatches.forEach(m => {
+              if (!isA11yFocus && !isSheetBase) violations.push(`Linha ${index + 1}: ${m}`);
+            });
+          }
+          if (borderMatches) {
+            borderMatches.forEach(m => {
+              if (!isA11yFocus && !isSafeIndicator) violations.push(`Linha ${index + 1}: ${m}`);
+            });
+          }
         }
       });
 
-      expect(violations, `Violações de design (glow laranja detectado) em ${file}`).toHaveLength(0);
+      expect(violations, `Violações detectadas em ${file}`).toHaveLength(0);
     });
   }
 
