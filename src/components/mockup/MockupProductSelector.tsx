@@ -10,7 +10,7 @@ import { useState, useMemo, useRef, useCallback } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
 import Fuse from "fuse.js";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { Search, Package, X, SearchX, ArrowLeft, AlertTriangle, Loader2, Maximize2, Filter } from "lucide-react";
+import { Search, Package, X, SearchX, Filter } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -43,17 +43,13 @@ export function MockupProductSelector({ selection, onSelect, disabled }: MockupP
   const scrollParentRef = useRef<HTMLDivElement>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<'default' | 'name-asc' | 'name-desc' | 'price-asc' | 'price-desc'>('default');
-  const [scrollState, setScrollState] = useState({ top: false, bottom: true });
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   
   // Internal state: product picked, loading full data or choosing color
   const [pendingProductId, setPendingProductId] = useState<string | null>(null);
 
   const handleScroll = useCallback(() => {
-    const el = scrollParentRef.current;
-    if (!el) return;
-    const atTop = el.scrollTop > 8;
-    const atBottom = el.scrollTop + el.clientHeight < el.scrollHeight - 8;
-    setScrollState({ top: atTop, bottom: atBottom });
+    // Empty scroll handler to maintain compatibility if needed, but virtualizer now handles grid layout better
   }, []);
 
   const debouncedQuery = useDebounce(searchQuery, 300);
@@ -82,9 +78,9 @@ export function MockupProductSelector({ selection, onSelect, disabled }: MockupP
   }, [filteredProducts, sortBy]);
 
   const rowVirtualizer = useVirtualizer({
-    count: sortedProducts.length,
+    count: Math.ceil(sortedProducts.length / 3), // Assuming 3 columns on average
     getScrollElement: () => scrollParentRef.current,
-    estimateSize: () => 72,
+    estimateSize: () => 240,
     overscan: 5,
   });
 
@@ -116,6 +112,7 @@ export function MockupProductSelector({ selection, onSelect, disabled }: MockupP
       imageUrl,
     });
     setPendingProductId(null);
+    setIsDialogOpen(false);
   };
 
   const handleClear = () => {
@@ -171,7 +168,9 @@ export function MockupProductSelector({ selection, onSelect, disabled }: MockupP
           className="h-7 w-7 shrink-0 hover:bg-destructive/10 hover:text-destructive"
           onClick={handleClear}
           disabled={disabled}
-         aria-label="Fechar"><X className="h-3.5 w-3.5" />
+          aria-label="Fechar"
+        >
+          <X className="h-3.5 w-3.5" />
         </Button>
       </div>
     );
@@ -191,7 +190,7 @@ export function MockupProductSelector({ selection, onSelect, disabled }: MockupP
   // ─── State: Product list (search) ──────────────────────────────────
   return (
     <div className="flex flex-col gap-3">
-      <Dialog>
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogTrigger asChild>
           <Button 
             variant="outline" 
@@ -293,55 +292,50 @@ export function MockupProductSelector({ selection, onSelect, disabled }: MockupP
                     <Button variant="link" className="mt-2" onClick={() => setSearchQuery("")}>Limpar busca</Button>
                   </div>
                 ) : (
-                  <div
-                    style={{
-                      height: `${rowVirtualizer.getTotalSize() / 2}px`, // Adjusted for grid estimate
-                      width: '100%',
-                      position: 'relative',
-                    }}
-                  >
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                      {sortedProducts.map((product) => (
-                        <div
-                          key={product.id}
-                          onClick={() => handleProductPick(product)}
-                          className="group relative flex flex-col p-3 rounded-2xl border border-border/30 bg-card hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5 cursor-pointer transition-all duration-300"
-                        >
-                          <div className="aspect-square rounded-xl bg-muted overflow-hidden mb-3 relative">
-                            <img
-                              src={product.image_url}
-                              alt={product.name}
-                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                              loading="lazy"
-                              onError={(e) => { e.currentTarget.src = '/placeholder.svg'; }}
-                            />
-                            <div className="absolute top-2 right-2 flex flex-col gap-1">
-                               {product.stock > 0 ? (
-                                <Badge className="bg-success/90 hover:bg-success text-[9px] px-1.5 py-0 border-none shadow-sm">
-                                  {product.stock >= 1000 ? `${(product.stock / 1000).toFixed(1)}k` : product.stock} un
-                                </Badge>
-                              ) : (
-                                <Badge variant="destructive" className="text-[9px] px-1.5 py-0 border-none shadow-sm">Esgotado</Badge>
-                              )}
-                            </div>
-                          </div>
-                          
-                          <div className="flex-1 flex flex-col min-w-0">
-                            <h4 className="font-semibold text-sm leading-tight line-clamp-2 mb-1 group-hover:text-primary transition-colors">
-                              {product.name}
-                            </h4>
-                            <div className="mt-auto flex items-center justify-between">
-                              <span className="text-[10px] text-muted-foreground font-mono uppercase tracking-tighter">
-                                {product.sku}
-                              </span>
-                              <p className="text-sm font-bold text-foreground tabular-nums">
-                                {formatCurrency(product.price)}
-                              </p>
-                            </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {sortedProducts.map((product) => (
+                      <div
+                        key={product.id}
+                        onClick={() => handleProductPick(product)}
+                        className="group relative flex flex-col p-3 rounded-2xl border border-border/30 bg-card hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5 cursor-pointer transition-all duration-300 focus-visible:ring-2 focus-visible:ring-primary outline-none"
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => e.key === 'Enter' && handleProductPick(product)}
+                      >
+                        <div className="aspect-square rounded-xl bg-muted overflow-hidden mb-3 relative">
+                          <img
+                            src={product.image_url}
+                            alt={product.name}
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                            loading="lazy"
+                            onError={(e) => { e.currentTarget.src = '/placeholder.svg'; }}
+                          />
+                          <div className="absolute top-2 right-2 flex flex-col gap-1">
+                             {product.stock > 0 ? (
+                              <Badge className="bg-success/90 hover:bg-success text-[9px] px-1.5 py-0 border-none shadow-sm">
+                                {product.stock >= 1000 ? `${(product.stock / 1000).toFixed(1)}k` : product.stock} un
+                              </Badge>
+                            ) : (
+                              <Badge variant="destructive" className="text-[9px] px-1.5 py-0 border-none shadow-sm">Esgotado</Badge>
+                            )}
                           </div>
                         </div>
-                      ))}
-                    </div>
+                        
+                        <div className="flex-1 flex flex-col min-w-0">
+                          <h4 className="font-semibold text-sm leading-tight line-clamp-2 mb-1 group-hover:text-primary transition-colors">
+                            {product.name}
+                          </h4>
+                          <div className="mt-auto flex items-center justify-between">
+                            <span className="text-[10px] text-muted-foreground font-mono uppercase tracking-tighter">
+                              {product.sku}
+                            </span>
+                            <p className="text-sm font-bold text-foreground tabular-nums">
+                              {formatCurrency(product.price)}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
@@ -351,7 +345,6 @@ export function MockupProductSelector({ selection, onSelect, disabled }: MockupP
       </Dialog>
     </div>
   );
-}
 }
 
 // Re-export from extracted module
