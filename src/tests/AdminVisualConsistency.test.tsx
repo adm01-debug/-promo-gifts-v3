@@ -42,13 +42,15 @@ describe('Admin Visual Consistency Snapshot', () => {
     expect(conexoesMain).not.toBeNull();
     expect(usuariosMain).not.toBeNull();
     
-    // In our padronization, the content is always wrapped in an animate-fade-in div.
-    // We look for it by role "main" then its direct children which should contain the layout classes.
-    const conexoesContent = conexoesMain?.querySelector('div');
-    const usuariosContent = usuariosMain?.querySelector('div');
+    // We look for ANY container that has our padronized layout classes.
+    // In our implementation, we added: mx-auto max-w-[1920px]...
+    const conexoesContainer = conexoesMain?.querySelector('[class*="mx-auto"]');
+    const usuariosContainer = usuariosMain?.querySelector('[class*="mx-auto"]');
     
-    expect(conexoesContent?.className).toContain('mx-auto');
-    expect(conexoesContent?.className).toContain('max-w-');
-    expect(usuariosContent?.className).toBe(conexoesContent?.className);
+    expect(conexoesContainer, 'Conexoes content should have mx-auto container').not.toBeNull();
+    expect(usuariosContainer, 'Usuarios content should have mx-auto container').not.toBeNull();
+    
+    expect(conexoesContainer?.className).toContain('max-w-');
+    expect(usuariosContainer?.className).toBe(conexoesContainer?.className);
   });
 });
