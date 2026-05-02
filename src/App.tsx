@@ -69,6 +69,7 @@ const AdminCadastrosPage = lazyWithRetry(() => import("./pages/admin/AdminCadast
 const AdminPromptsIAPage = lazyWithRetry(() => import("./pages/admin/AdminPromptsIAPage"));
 const AdminProductFormPage = lazyWithRetry(() => import("./pages/admin/AdminProductFormPage"));
 const AdminTelemetriaPage = lazyWithRetry(() => import("./pages/admin/AdminTelemetriaPage"));
+const AdminDesignTokensPage = lazyWithRetry(() => import("./pages/admin/AdminDesignTokensPage"));
 const AdminTemasPage = lazyWithRetry(() => import("./pages/admin/AdminTemasPage"));
 const AdminWorkflowsPage = lazyWithRetry(() => import("./pages/admin/AdminWorkflowsPage"));
 const AdminLoginAttemptsPage = lazyWithRetry(() => import("./pages/admin/AdminLoginAttemptsPage"));
@@ -281,6 +282,7 @@ const App = () => {
                                 <Route path="/admin/prompts-ia" element={<AdminPromptsIAPage />} />
                                 <Route path="/admin/validade-precos" element={<PriceFreshnessSettingsPage />} />
                                 <Route path="/admin/telemetria" element={<AdminTelemetriaPage />} />
+                                <Route path="/admin/design-tokens" element={<AdminDesignTokensPage />} />
                                 <Route path="/admin/rate-limit" element={<RateLimitDashboard />} />
                                 <Route path="/admin/workflows" element={<AdminWorkflowsPage />} />
                                 <Route path="/admin/login-attempts" element={<AdminLoginAttemptsPage />} />
