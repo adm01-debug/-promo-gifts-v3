@@ -68,7 +68,7 @@ const BASE_CLASSES = [
   "duration-200",
   "group",
   "relative",
-  "hover:bg-sidebar-accent/50",
+  "hover:bg-sidebar-accent/70",
 ];
 
 /** Classes que NÃO devem aparecer em nenhum item (resíduo do antigo CTA). */
@@ -126,9 +126,9 @@ describe("SidebarNavGroup — harmonia visual de Novo Orçamento / Orçamentos /
 
 describe("SidebarNavGroup — comportamento de destaque ativo", () => {
   /** Classes aplicadas quando o item está ativo. */
-  const ACTIVE_MARKERS = ["bg-orange/10", "text-orange", "font-medium"];
+  const ACTIVE_MARKERS = ["bg-orange/15", "text-orange", "font-bold"];
   /** Classes aplicadas quando o item está idle (não ativo). */
-  const IDLE_MARKERS = ["text-sidebar-foreground/60"];
+  const IDLE_MARKERS = ["text-sidebar-foreground/75"];
 
   it.each([
     ["/orcamentos/novo", "Novo Orçamento"],
@@ -150,14 +150,14 @@ describe("SidebarNavGroup — comportamento de destaque ativo", () => {
       for (const cls of IDLE_MARKERS) {
         expect(link.className).toContain(cls);
       }
-      expect(link.className).not.toContain("bg-orange/10");
+      expect(link.className).not.toContain("bg-orange/15");
     }
   });
 
   it("em /orcamentos-publicos o item /orcamentos NÃO fica ativo (sem falso prefixo)", () => {
     renderAt("/orcamentos-publicos");
     const link = getLink("Orçamentos");
-    expect(link.className).not.toContain("bg-orange/10");
+    expect(link.className).not.toContain("bg-orange/15");
   });
 });
 
@@ -168,7 +168,7 @@ describe("SidebarNavGroup — paridade ao alternar rotas (back/forward, deep lin
   }
 
   function isLinkActive(label: string): boolean {
-    return getLink(label).className.includes("bg-orange/10");
+    return getLink(label).className.includes("bg-orange/15");
   }
 
   it("ao trocar /carrinhos -> /orcamentos/novo -> /orcamentos, o destaque migra corretamente entre os 3 itens", () => {
