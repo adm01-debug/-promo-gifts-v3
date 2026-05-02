@@ -321,7 +321,7 @@ export const SidebarReorganized = React.forwardRef<HTMLElement, SidebarProps>(
               <Button
                 variant="outline"
                 size="sm"
-                className="h-7 gap-1.5 text-[10px] border-sidebar-border/50 hover:bg-orange/10 hover:text-orange hover:border-orange/30 text-sidebar-foreground/40"
+                className="h-7 gap-1.5 text-[10px] border-sidebar-border/50 hover:bg-orange/10 hover:text-orange text-sidebar-foreground/40"
                 onClick={collapseAllGroups}
               >
                 <X className="h-3 w-3" />

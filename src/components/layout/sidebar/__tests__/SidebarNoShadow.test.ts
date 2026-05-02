@@ -91,4 +91,19 @@ describe("Sidebar — sem sombras/brilhos em hover/active (light + dark)", () =>
       }
     }
   });
+
+  it("itens ativos NÃO usam border laranja/primário (pode parecer glow em dark)", () => {
+    const NAV_FILE = "src/components/layout/sidebar/SidebarNavGroup.tsx";
+    const content = readFileSync(resolve(process.cwd(), NAV_FILE), "utf8");
+    // Bane border-(orange|primary) exceto se tiver focus-visible: na frente.
+    const lines = content.split("\n");
+    for (const line of lines) {
+      const borderColor = line.match(/\bborder-(?:orange|primary)(?:\/\d+)?\b/);
+      if (borderColor && !/focus-visible:/.test(line)) {
+        throw new Error(
+          `Border colorido detectado em ${NAV_FILE}: ${line.trim()}. Use apenas background sólido para destacar ativos.`,
+        );
+      }
+    }
+  });
 });
