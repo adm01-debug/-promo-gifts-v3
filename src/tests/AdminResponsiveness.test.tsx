@@ -38,7 +38,7 @@ describe('Admin Layout Responsiveness', () => {
     // The MainLayout always renders an aside with role navigation
     // Note: MainLayout uses lazy loading for Sidebar, we might need to use findByRole 
     // or just check the presence of the navigation role in the document
-    const sidebar = screen.getByRole('navigation');
+    const sidebar = screen.getAllByRole('navigation')[0];
     
     // In mobile width (375px), it should have the classes for absolute/fixed positioning
     expect(sidebar.className).toContain('fixed');
