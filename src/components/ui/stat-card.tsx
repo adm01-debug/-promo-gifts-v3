@@ -104,7 +104,7 @@ export function StatCard({
         {/* Icon container with colored background */}
         <div
           className={cn(
-            "flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-all duration-300",
+            "flex h-12 w-12 shrink-0 items-center justify-center rounded-lg transition-all duration-300",
             styles.bg,
             styles.glow
           )}

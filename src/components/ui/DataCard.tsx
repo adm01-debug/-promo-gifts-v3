@@ -109,7 +109,7 @@ export function DataCard({
       onClick={onClick}
     >
       <CardContent className={cn("flex items-center gap-3", sizes.padding)}>
-        <div className={cn("rounded-lg", sizes.iconContainer, styles.iconBg)}>
+        <div className={cn("rounded-md", sizes.iconContainer, styles.iconBg)}>
           <Icon className={cn(sizes.iconSize, styles.iconColor)} aria-hidden="true" />
         </div>
         <div className="flex-1 min-w-0">
