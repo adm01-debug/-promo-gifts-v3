@@ -248,5 +248,6 @@ export default function AdminConexoesStatusPage() {
         <ExternalConnectionsSyncLogPanel />
       </section>
     </div>
+    </MainLayout>
   );
 }
