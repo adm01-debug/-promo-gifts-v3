@@ -324,12 +324,6 @@ function MobileCollapsibleSection({
           <CollapsibleTrigger className="w-full">
             <div className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 transition-colors">
               <div className="flex items-center gap-2">
-                <span className={cn(
-                  "flex items-center justify-center w-5 h-5 rounded-full text-xs font-semibold",
-                  isCompleted ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary"
-                )}>
-                  {stepNumber}
-                </span>
                 <span className="text-sm font-medium">{label}</span>
                 {required && <span className="text-destructive text-xs">*</span>}
                 {trailing}
