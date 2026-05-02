@@ -312,12 +312,6 @@ function MobileCollapsibleSection({
       {/* Desktop view — always visible */}
       <div className="hidden md:block space-y-2">
         <Label className="flex items-center gap-2">
-          <span className={cn(
-            "flex items-center justify-center w-5 h-5 rounded-full text-xs font-semibold",
-            isCompleted ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary"
-          )}>
-            {stepNumber}
-          </span>
           {label} {required && <span className="text-destructive">*</span>}
           {trailing}
         </Label>
