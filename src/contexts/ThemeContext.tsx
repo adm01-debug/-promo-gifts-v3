@@ -8,6 +8,7 @@ interface ThemeContextType {
   actualTheme: 'light' | 'dark';
   setTheme: (theme: Theme) => void;
   toggleTheme: () => void;
+  isFallback?: boolean;
 }
 
 export const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
