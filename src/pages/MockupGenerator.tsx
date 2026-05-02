@@ -457,10 +457,11 @@ export default function MockupGenerator() {
         <TechniqueColorConfigDialog
           open={technique.colorConfigDialogOpen}
           onOpenChange={technique.setColorConfigDialogOpen}
-          config={mg.techniqueColorConfig}
-          onConfigChange={mg.setTechniqueColorConfig}
+          currentConfig={mg.techniqueColorConfig}
+          onConfirm={mg.setTechniqueColorConfig}
           techniqueName={mg.selectedTechnique?.name || ""}
-          logoColors={mg.logoColorAnalysis.colors}
+          techniqueCode={mg.selectedTechnique?.code}
+          detectedColors={mg.logoColorAnalysis.colors || []}
         />
       </div>
     </MainLayout>
