@@ -750,7 +750,7 @@ export const THEME_PRESETS: ThemePreset[] = [
       emoji: '✨',
       h: 38,
       s: 92,
-      l: 50,
+      l: 42, // Ajuste para 42 (era 50) para contraste com texto branco no Âmbar
       gh: 45,
       sh: 30,
       ss: 80,
