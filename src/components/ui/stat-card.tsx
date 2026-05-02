@@ -86,7 +86,7 @@ export function StatCard({
               <span
                 className={cn(
                   "text-xs font-medium",
-                  trend.value >= 0 ? "text-success" : "text-destructive"
+                  trend.value >= 0 ? "text-success font-bold" : "text-destructive font-bold"
                 )}
               >
                 {trend.value >= 0 ? "+" : ""}
