@@ -102,7 +102,9 @@ const BORDER_WIDTHS = [
 
 export default function AdminDesignTokensPage() {
   return (
-    <div className="container max-w-[1920px] py-8 space-y-10">
+    <MainLayout>
+      <PageSEO title="Design Tokens" description="Paleta visual viva dos tokens do sistema." path="/admin/design-tokens" />
+      <div className="container max-w-[1920px] py-8 space-y-10">
       <header className="space-y-2">
         <h1
           data-testid="page-title-design-tokens"
