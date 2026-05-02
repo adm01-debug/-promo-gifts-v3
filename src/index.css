@@ -1179,9 +1179,9 @@ html[data-scroll-locked] body {
     background: linear-gradient(
       90deg,
       transparent,
-      hsl(var(--orange) / 0.15),
-      hsl(var(--orange) / 0.3),
-      hsl(var(--orange) / 0.15),
+      hsl(0 0% 100% / 0.04),
+      hsl(0 0% 100% / 0.08),
+      hsl(0 0% 100% / 0.04),
       transparent
     );
     transition: left 0s;
@@ -1202,17 +1202,11 @@ html[data-scroll-locked] body {
     @apply transition-transform duration-100 active:scale-[0.98];
   }
 
-  /* Glow Effects */
-  .glow-primary {
-    box-shadow: var(--shadow-glow-primary);
-  }
-
-  .glow-secondary {
-    box-shadow: var(--shadow-glow-secondary);
-  }
-
+  /* Glow Effects — NEUTRALIZED */
+  .glow-primary,
+  .glow-secondary,
   .glow-success {
-    box-shadow: var(--shadow-glow-success);
+    box-shadow: none;
   }
 
   /* Shadow Elevation */
@@ -1487,7 +1481,7 @@ html[data-scroll-locked] body {
 
   .fab:hover {
     @apply scale-110;
-    box-shadow: var(--shadow-glow);
+    box-shadow: 0 6px 16px hsl(0 0% 0% / 0.18);
   }
 
   /* Search Bar */
@@ -1545,7 +1539,7 @@ html[data-scroll-locked] body {
 
   .quick-filter-chip.active {
     @apply border-primary bg-primary text-primary-foreground;
-    box-shadow: var(--shadow-glow);
+    box-shadow: 0 2px 8px hsl(0 0% 0% / 0.1);
   }
 
   /* Hero Banner */
