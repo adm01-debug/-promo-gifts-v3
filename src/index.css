@@ -38,377 +38,155 @@ html[data-scroll-locked] body {
 
 @layer base {
   :root {
-    /* ===== FONTS ===== */
+    /* ===== FONTS - Optimized for Contrast ===== */
     --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
     --font-display: 'Outfit', system-ui, sans-serif;
 
-    /* ===== BASE ===== */
-    --background: 220 14% 96%;
-    --foreground: 222 25% 10%;
+    /* ===== BASE - Deep Slate for Ultra Contrast ===== */
+    --background: 0 0% 100%;
+    --foreground: 24 100% 10%;
 
-    /* ===== CARDS ===== */
+    /* ===== CARDS - Crisp White with Deep Borders ===== */
     --card: 0 0% 100%;
-    --card-foreground: 222 25% 10%;
+    --card-foreground: 24 100% 10%;
     --card-elevated: 0 0% 100%;
 
-    /* ===== POPOVER/DIALOG ===== */
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 25% 10%;
-    --command-surface: 0 0% 100%;
-    --command-surface-raised: 220 14% 98%;
-    --command-surface-soft: 220 14% 95%;
-    --command-accent: 220 14% 96%;
-    --command-accent-strong: 220 14% 92%;
-    --command-border: 220 14% 86%;
-    --command-border-strong: 220 14% 80%;
-    --command-text-muted: 220 12% 46%;
-    --command-text-subtle: 220 10% 62%;
-    --command-shadow: 222 25% 10% / 0.18;
-
-    /* ===== CORES PRIMÁRIAS (LARANJA — IGUAL DARK) ===== */
-    --primary: 25 95% 53%;
-    --primary-hover: 25 95% 48%;
-    --primary-active: 25 95% 43%;
-    --primary-glow: 25 95% 63%;
+    /* ===== ORANGE PREMIUM CORE - The Soul of the Skin ===== */
+    --primary: 24 100% 50%;
+    --primary-hover: 24 100% 45%;
+    --primary-active: 24 100% 40%;
+    --primary-glow: 24 100% 60%;
     --primary-foreground: 0 0% 100%;
 
-    /* ===== CORES SECUNDÁRIAS ===== */
-    --secondary: 220 14% 92%;
-    --secondary-foreground: 222 25% 18%;
+    /* ===== SECONDARY - Warm Grays to Complement Orange ===== */
+    --secondary: 24 20% 95%;
+    --secondary-foreground: 24 80% 15%;
 
-    /* ===== MUTED ===== */
-    --muted: 220 14% 90%;
-    --muted-foreground: 220 12% 46%;
+    /* ===== MUTED - High Legibility ===== */
+    --muted: 24 10% 90%;
+    --muted-foreground: 24 15% 30%;
 
     /* ===== SEMANTIC COLORS ===== */
-    --surface: 220 14% 98%;
-    --surface-hover: 220 14% 95%;
-    --text-secondary: 220 12% 42%;
-    --interactive: 25 95% 53%;
-    --divider: 220 14% 86%;
+    --surface: 24 15% 98%;
+    --surface-hover: 24 20% 94%;
+    --text-secondary: 24 30% 25%;
+    --interactive: 24 100% 50%;
+    --divider: 24 100% 50% / 0.15;
 
-    /* ===== ACCENT ===== */
-    --accent: 220 14% 92%;
-    --accent-foreground: 222 25% 13%;
+    /* ===== ACCENT - Soft Orange Glow ===== */
+    --accent: 24 100% 96%;
+    --accent-foreground: 24 100% 40%;
 
-    /* ===== DESTRUCTIVE ===== */
-    --destructive: 0 84% 60%;
+    /* ===== DESTRUCTIVE - Deep Red for Contrast ===== */
+    --destructive: 0 100% 45%;
     --destructive-foreground: 0 0% 100%;
 
-    /* ===== ESTADOS ===== */
-    --success: 142 71% 45%;
+    /* ===== ESTADOS - Vibrant & Clear ===== */
+    --success: 142 80% 40%;
     --success-foreground: 0 0% 100%;
-    --warning: 38 92% 50%;
+    --warning: 38 100% 45%;
     --warning-foreground: 0 0% 100%;
-    --info: 200 85% 55%;
+    --info: 210 100% 45%;
     --info-foreground: 0 0% 100%;
 
-    /* ===== CART (EMERALD) ===== */
-    --cart: 152 69% 36%;
-    --cart-hover: 152 69% 41%;
-    --cart-foreground: 0 0% 100%;
-
-    /* ===== LARANJA (COR DE DESTAQUE) ===== */
-    --orange: 25 95% 53%;
-    --orange-hover: 25 95% 48%;
-    --orange-active: 25 95% 43%;
-    --orange-glow: 25 95% 63%;
+    /* ===== ORANGE NEON & PREMIUM OVERRIDES ===== */
+    --orange: 24 100% 50%;
+    --orange-hover: 24 100% 45%;
+    --orange-active: 24 100% 40%;
+    --orange-glow: 24 100% 65%;
     --orange-foreground: 0 0% 100%;
 
-    /* ===== HIGHLIGHT COLORS ===== */
-    --highlight-gold: 45 93% 47%;
-    --highlight-silver: 220 13% 70%;
-    --highlight-bronze: 30 50% 50%;
+    /* ===== BORDAS E INPUTS - Strong Definitions ===== */
+    --border: 24 100% 50% / 0.2;
+    --input: 24 100% 50% / 0.1;
+    --ring: 24 100% 50%;
 
-    /* ===== BORDAS E INPUTS ===== */
-    --border: 220 14% 86%;
-    --input: 220 14% 90%;
-    --ring: 25 95% 53%;
+    --radius: 0.75rem;
 
-    --radius: 1rem;
+    /* ===== GLASS MORPHISM - Orange Tinted ===== */
+    --glass-bg: 0 0% 100% / 0.9;
+    --glass-border: 24 100% 50% / 0.3;
+    --glass-blur: 8px;
+    --glass-shadow: 24 100% 50% / 0.1;
 
-    /* ===== ELEVAÇÃO ===== */
-    --elevated: 0 0% 100%;
-    --elevated-hover: 220 14% 97%;
-
-    /* ===== GLASS MORPHISM ===== */
-    --glass-bg: 0 0% 100% / 0.8;
-    --glass-bg-strong: 0 0% 100% / 0.9;
-    --glass-bg-subtle: 0 0% 100% / 0.6;
-    --glass-border: 220 14% 86% / 0.4;
-    --glass-border-strong: 220 14% 86% / 0.6;
-    --glass-blur: 12px;
-    --glass-blur-strong: 20px;
-    --glass-shadow: 0 4px 30px hsl(222 25% 10% / 0.06);
-
-    /* ===== SIDEBAR ===== */
-    --sidebar-background: 220 14% 98%;
-    --sidebar-foreground: 222 25% 10%;
-    --sidebar-primary: 25 95% 53%;
+    /* ===== SIDEBAR - Premium Orange Theme ===== */
+    --sidebar-background: 24 100% 98%;
+    --sidebar-foreground: 24 100% 15%;
+    --sidebar-primary: 24 100% 50%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 14% 93%;
-    --sidebar-accent-foreground: 222 25% 13%;
-    --sidebar-border: 220 14% 90%;
-    --sidebar-ring: 25 95% 53%;
+    --sidebar-accent: 24 100% 50% / 0.1;
+    --sidebar-accent-foreground: 24 100% 40%;
+    --sidebar-border: 24 100% 50% / 0.1;
+    --sidebar-ring: 24 100% 50%;
 
-    /* ===== GRADIENTES ===== */
-    --gradient-primary: linear-gradient(135deg, hsl(25 95% 53%), hsl(25 95% 45%));
-    --gradient-secondary: linear-gradient(135deg, hsl(220 14% 92%), hsl(220 14% 96%));
-    --gradient-success: linear-gradient(135deg, hsl(142 71% 45%), hsl(142 71% 55%));
-    --gradient-surface: linear-gradient(180deg, hsl(0 0% 100%), hsl(220 14% 96%));
-    --gradient-divider: linear-gradient(90deg, transparent, hsl(220 14% 86% / 0.5), transparent);
-    --gradient-hero: linear-gradient(
-      135deg,
-      hsl(25 95% 53% / 0.08) 0%,
-      hsl(25 95% 45% / 0.04) 100%
-    );
-    --gradient-cta: linear-gradient(135deg, hsl(var(--orange)), hsl(var(--orange-hover)));
-    --gradient-cta-hover: linear-gradient(
-      135deg,
-      hsl(var(--orange-hover)),
-      hsl(var(--orange-active))
-    );
-    --gradient-novelty: linear-gradient(135deg, hsl(142 71% 45%), hsl(152 76% 40%));
-    --gradient-card-hover: linear-gradient(180deg, transparent, hsl(var(--muted) / 0.3));
-    --gradient-overlay: linear-gradient(to top, hsl(var(--foreground) / 0.6), transparent);
+    /* ===== GRADIENTES - Pure Fire ===== */
+    --gradient-primary: linear-gradient(135deg, hsl(24 100% 55%), hsl(24 100% 45%));
+    --gradient-hero: radial-gradient(circle at top right, hsl(24 100% 50% / 0.15), transparent 70%);
+    --gradient-cta: linear-gradient(135deg, hsl(24 100% 50%), hsl(15 100% 45%));
 
-    /* ===== SOMBRAS ===== */
-    --shadow-xs: 0 1px 2px hsl(222 25% 10% / 0.04);
-    --shadow-sm: 0 1px 3px hsl(222 25% 10% / 0.06), 0 1px 2px hsl(222 25% 10% / 0.04);
-    --shadow-md: 0 4px 6px -1px hsl(222 25% 10% / 0.07), 0 2px 4px -2px hsl(222 25% 10% / 0.05);
-    --shadow-lg: 0 10px 15px -3px hsl(222 25% 10% / 0.08), 0 4px 6px -4px hsl(222 25% 10% / 0.05);
-    --shadow-xl: 0 20px 25px -5px hsl(222 25% 10% / 0.1), 0 8px 10px -6px hsl(222 25% 10% / 0.06);
-    --shadow-glow: 0 0 20px hsl(25 95% 53% / 0.2);
-    --shadow-glow-primary: 0 0 20px hsl(25 95% 53% / 0.2);
-    --shadow-glow-secondary: 0 0 20px hsl(220 14% 92% / 0.3);
-    --shadow-glow-success: 0 0 20px hsl(142 71% 45% / 0.2);
-    --shadow-glow-warning: 0 0 20px hsl(38 92% 50% / 0.25);
-    --shadow-header: 0 1px 3px hsl(222 25% 10% / 0.06), 0 1px 2px hsl(222 25% 10% / 0.04);
-
-    /* ===== SPACING RHYTHM ===== */
-    --space-0: 0;
-    --space-1: 0.25rem;
-    --space-2: 0.5rem;
-    --space-3: 0.75rem;
-    --space-4: 1rem;
-    --space-5: 1.25rem;
-    --space-6: 1.5rem;
-    --space-8: 2rem;
-    --space-10: 2.5rem;
-    --space-12: 3rem;
-    --space-16: 4rem;
-    --space-20: 5rem;
-    --space-24: 6rem;
-
-    --spacing-card: 1.5rem;
-    --spacing-card-sm: 1rem;
-    --spacing-card-lg: 2rem;
-    --spacing-section: 2rem;
-    --spacing-section-lg: 3rem;
-
-    /* ===== TIMING FUNCTIONS ===== */
-    --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
-    --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
-    --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
-
-    /* ===== Z-INDEX SCALE ===== */
-    --z-dropdown: 50;
-    --z-sticky: 60;
-    --z-overlay: 70;
-    --z-modal: 80;
-    --z-popover: 90;
-    --z-toast: 100;
-    --z-tooltip: 110;
-    --z-spotlight: 120;
-
-    /* ===== CHART ===== */
-    --chart-1: 25 95% 53%;
-    --chart-2: 142 71% 45%;
-    --chart-3: 45 93% 47%;
-    --chart-4: 200 85% 55%;
-    --chart-5: 0 84% 60%;
-
-    /* ===== CORES DE PRODUTOS ===== */
-    --color-red: 0 84% 60%;
-    --color-blue: 217 91% 60%;
-    --color-green: 142 70% 45%;
-    --color-white: 0 0% 100%;
-    --color-black: 0 0% 10%;
-    --color-orange: 25 95% 53%;
-    --color-yellow: 45 100% 50%;
-    --color-pink: 330 80% 65%;
-    --color-gray: 220 10% 60%;
-    --color-silver: 220 10% 80%;
-    --color-brown: 25 40% 35%;
-    --color-purple: 270 70% 55%;
+    /* ===== SHADOWS - Orange Glow System ===== */
+    --shadow-glow: 0 0 25px hsl(24 100% 50% / 0.3);
+    --shadow-header: 0 4px 20px hsl(24 100% 50% / 0.08);
   }
 
   .dark {
-    /* ===== BASE — Fusion-inspired deep blacks ===== */
-    --background: 225 20% 4%;
-    --foreground: 210 40% 98%;
+    /* ===== BASE - True Deep Black for Maximum Contrast ===== */
+    --background: 24 20% 2%;
+    --foreground: 24 10% 98%;
 
-    /* ===== CARDS — richer depth with warm undertone ===== */
-    --card: 225 18% 8%;
-    --card-foreground: 210 40% 98%;
-    --card-elevated: 225 16% 11%;
+    /* ===== CARDS - Deep Onyx with Orange Glow ===== */
+    --card: 24 20% 5%;
+    --card-foreground: 24 10% 98%;
+    --card-elevated: 24 20% 8%;
 
     /* ===== POPOVER/DIALOG ===== */
-    --popover: 225 18% 8%;
-    --popover-foreground: 210 40% 98%;
-    --command-surface: 0 0% 0%;
-    --command-surface-raised: 0 0% 3%;
-    --command-surface-soft: 0 0% 6%;
-    --command-accent: 0 0% 5%;
-    --command-accent-strong: 0 0% 8%;
-    --command-border: 0 0% 11%;
-    --command-border-strong: 0 0% 16%;
-    --command-text-muted: 0 0% 78%;
-    --command-text-subtle: 0 0% 54%;
-    --command-shadow: 0 0% 0% / 0.92;
+    --popover: 24 20% 5%;
+    --popover-foreground: 24 10% 98%;
 
-    /* ===== CORES PRIMÁRIAS (LARANJA — mais vibrante) ===== */
+    /* ===== PRIMARY - Neon Orange Focus ===== */
     --primary: 24 100% 50%;
-    --primary-hover: 22 100% 55%;
-    --primary-active: 20 100% 60%;
-    --primary-glow: 25 100% 55%;
+    --primary-hover: 24 100% 55%;
+    --primary-active: 24 100% 60%;
+    --primary-glow: 24 100% 50%;
     --primary-foreground: 0 0% 100%;
 
-    /* ===== CORES SECUNDÁRIAS ===== */
-    --secondary: 225 16% 13%;
-    --secondary-foreground: 210 40% 92%;
-
-    /* ===== MUTED ===== */
-    --muted: 225 14% 16%;
-    --muted-foreground: 215 20% 75%;
+    /* ===== MUTED - Darker with more Contrast ===== */
+    --muted: 24 20% 10%;
+    --muted-foreground: 24 10% 80%;
 
     /* ===== SEMANTIC COLORS ===== */
-    --surface: 225 18% 9%;
-    --surface-hover: 225 16% 12%;
-    --text-secondary: 215 20% 72%;
-    --interactive: 24 100% 55%;
-    --divider: 225 14% 18%;
+    --surface: 24 20% 4%;
+    --surface-hover: 24 20% 8%;
+    --text-secondary: 24 10% 85%;
+    --divider: 24 100% 50% / 0.25;
 
     /* ===== ACCENT ===== */
-    --accent: 225 16% 13%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 24 100% 50% / 0.15;
+    --accent-foreground: 24 100% 60%;
 
-    /* ===== DESTRUCTIVE ===== */
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 100%;
+    /* ===== BORDAS E INPUTS - Neon Outlines ===== */
+    --border: 24 100% 50% / 0.3;
+    --input: 24 100% 50% / 0.15;
+    --ring: 24 100% 55%;
 
-    /* ===== ESTADOS ===== */
-    --success: 142 76% 48%;
-    --success-foreground: 0 0% 100%;
-    --warning: 38 95% 52%;
-    --warning-foreground: 0 0% 100%;
-    --info: 200 85% 58%;
-    --info-foreground: 0 0% 100%;
-
-    /* ===== CART (EMERALD) ===== */
-    --cart: 152 69% 38%;
-    --cart-hover: 152 69% 45%;
-    --cart-foreground: 0 0% 100%;
-
-    /* ===== LARANJA (COR DE DESTAQUE — Fusion glow) ===== */
-    --orange: 24 100% 50%;
-    --orange-hover: 22 100% 55%;
-    --orange-active: 20 100% 60%;
-    --orange-glow: 25 100% 48%;
-    --orange-foreground: 0 0% 100%;
-
-    /* ===== HIGHLIGHT COLORS ===== */
-    --highlight-gold: 45 93% 55%;
-    --highlight-silver: 220 15% 75%;
-    --highlight-bronze: 30 55% 55%;
-
-    /* ===== BORDAS E INPUTS — subtle warm tint ===== */
-    --border: 225 12% 16%;
-    --input: 225 16% 11%;
-    --ring: 24 100% 50%;
-
-    /* ===== ELEVAÇÃO ===== */
-    --elevated: 225 16% 11%;
-    --elevated-hover: 225 14% 14%;
-
-    /* ===== GLASS MORPHISM — enhanced depth ===== */
-    --glass-bg: 225 18% 8% / 0.85;
-    --glass-bg-strong: 225 20% 6% / 0.92;
-    --glass-bg-subtle: 225 16% 10% / 0.65;
-    --glass-border: 25 30% 30% / 0.15;
-    --glass-border-strong: 25 40% 35% / 0.25;
-    --glass-blur: 16px;
-    --glass-blur-strong: 24px;
-    --glass-shadow: 0 4px 30px hsl(225 20% 2% / 0.4), 0 0 40px hsl(var(--primary) / 0.03);
+    /* ===== GLASS MORPHISM - Cyber Depth ===== */
+    --glass-bg: 24 20% 3% / 0.85;
+    --glass-border: 24 100% 50% / 0.4;
+    --glass-shadow: 0 0 40px hsl(24 100% 50% / 0.2);
 
     /* ===== SIDEBAR ===== */
-    --sidebar-background: 225 20% 5%;
-    --sidebar-foreground: 210 40% 98%;
+    --sidebar-background: 24 20% 3%;
+    --sidebar-foreground: 24 10% 98%;
     --sidebar-primary: 24 100% 50%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 225 16% 12%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 225 14% 12%;
-    --sidebar-ring: 24 100% 50%;
+    --sidebar-accent: 24 100% 50% / 0.1;
+    --sidebar-border: 24 100% 50% / 0.2;
 
-    /* ===== GRADIENTES — Fusion-inspired dramatic gradients ===== */
-    --gradient-primary: linear-gradient(
-      135deg,
-      hsl(var(--primary)),
-      hsl(var(--primary-hover, var(--primary)))
-    );
-    --gradient-secondary: linear-gradient(135deg, hsl(225 16% 13%), hsl(225 18% 8%));
-    --gradient-success: linear-gradient(135deg, hsl(142 76% 48%), hsl(152 80% 42%));
-    --gradient-surface: linear-gradient(180deg, hsl(225 18% 8%), hsl(225 20% 4%));
-    --gradient-divider: linear-gradient(
-      90deg,
-      transparent,
-      hsl(var(--primary) / 0.15),
-      transparent
-    );
-    --gradient-hero: linear-gradient(
-      135deg,
-      hsl(var(--primary) / 0.12) 0%,
-      hsl(220 60% 50% / 0.06) 50%,
-      hsl(var(--primary) / 0.08) 100%
-    );
-    --gradient-ambient: radial-gradient(
-      ellipse 80% 50% at 50% 0%,
-      hsl(var(--primary) / 0.08) 0%,
-      transparent 60%
-    );
-    --gradient-ambient-bottom: radial-gradient(
-      ellipse 60% 40% at 80% 100%,
-      hsl(220 80% 50% / 0.06) 0%,
-      transparent 50%
-    );
+    /* ===== GRADIENTES - Neon Fusion ===== */
+    --gradient-primary: linear-gradient(135deg, hsl(24 100% 50%), hsl(35 100% 50%));
+    --gradient-ambient: radial-gradient(circle at 50% -20%, hsl(24 100% 50% / 0.2), transparent 80%);
 
-    /* ===== SOMBRAS — enhanced glow system ===== */
-    --shadow-xs: 0 1px 2px hsl(225 20% 2% / 0.6);
-    --shadow-sm: 0 1px 3px hsl(225 20% 2% / 0.7), 0 1px 2px hsl(225 20% 2% / 0.6);
-    --shadow-md: 0 4px 6px -1px hsl(225 20% 2% / 0.7), 0 2px 4px -2px hsl(225 20% 2% / 0.6);
-    --shadow-lg:
-      0 10px 15px -3px hsl(225 20% 2% / 0.7), 0 4px 6px -4px hsl(225 20% 2% / 0.5),
-      0 0 20px hsl(var(--primary) / 0.04);
-    --shadow-xl:
-      0 20px 25px -5px hsl(225 20% 2% / 0.8), 0 8px 10px -6px hsl(225 20% 2% / 0.6),
-      0 0 30px hsl(var(--primary) / 0.06);
-    --shadow-glow: 0 0 30px hsl(var(--primary) / 0.4), 0 0 60px hsl(var(--primary) / 0.15);
-    --shadow-glow-primary: 0 0 30px hsl(var(--primary) / 0.4), 0 0 60px hsl(var(--primary) / 0.15);
-    --shadow-glow-secondary: 0 0 25px hsl(225 16% 13% / 0.5);
-    --shadow-glow-success: 0 0 25px hsl(142 76% 48% / 0.35);
-    --shadow-glow-warning: 0 0 25px hsl(38 95% 52% / 0.4);
-    --shadow-header:
-      0 1px 3px hsl(225 20% 2% / 0.7), 0 0 20px hsl(var(--primary) / 0.03),
-      inset 0 1px 0 hsl(225 15% 18% / 0.3);
-
-    /* ===== CHART ===== */
-    --chart-1: 24 100% 50%;
-    --chart-2: 142 76% 50%;
-    --chart-3: 45 93% 55%;
-    --chart-4: 200 85% 58%;
-    --chart-5: 0 72% 55%;
+    /* ===== SHADOWS - High Intensity Glow ===== */
+    --shadow-glow: 0 0 40px hsl(24 100% 50% / 0.5), 0 0 80px hsl(24 100% 50% / 0.1);
   }
 }
 
@@ -428,64 +206,65 @@ html[data-scroll-locked] body {
     @apply bg-background text-foreground antialiased;
     font-family: var(--font-sans);
     transition:
-      background-color 0.3s ease,
-      color 0.3s ease;
+      background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+      color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  /* Light mode: textos mais pesados para melhor legibilidade e contraste (LP-01) */
+  /* Extreme Contrast Mode - Maximum Legibility */
   :root body {
-    font-weight: 450;
+    font-weight: 500;
     -webkit-font-smoothing: antialiased;
+    letter-spacing: -0.01em;
   }
   :root p,
   :root span,
   :root label,
   :root td,
   :root th,
-  :root li,
-  :root dd,
-  :root dt {
-    font-weight: 450;
-  }
-  :root .text-sm,
-  :root .text-xs {
-    font-weight: 450;
+  :root li {
+    font-weight: 500;
+    color: hsl(24 100% 5%); /* Ultra deep contrast */
   }
   :root .text-muted-foreground {
-    color: hsl(220 12% 38%);
-    font-weight: 450;
+    color: hsl(24 30% 25%); /* Still high contrast even when muted */
+    font-weight: 500;
   }
   :root .font-medium {
-    font-weight: 550;
+    font-weight: 600;
   }
   :root .font-semibold {
-    font-weight: 650;
+    font-weight: 700;
   }
   :root .font-bold {
-    font-weight: 750;
+    font-weight: 850;
   }
-  /* Dark mode mantém pesos originais */
+
+  /* Dark mode maintains punchy contrast */
   .dark body {
-    font-weight: 400;
+    font-weight: 450;
+    letter-spacing: 0.01em;
   }
   .dark p,
   .dark span,
   .dark label,
   .dark td,
   .dark th,
-  .dark li,
-  .dark dd,
-  .dark dt {
-    font-weight: inherit;
+  .dark li {
+    font-weight: 450;
+    color: hsl(24 10% 95%);
+  }
+  .dark .text-muted-foreground {
+    color: hsl(24 20% 75%);
+    font-weight: 450;
   }
   .dark .font-medium {
-    font-weight: 500;
+    font-weight: 550;
   }
   .dark .font-semibold {
-    font-weight: 600;
+    font-weight: 650;
   }
   .dark .font-bold {
-    font-weight: 700;
+    font-weight: 800;
   }
 
   h1,
