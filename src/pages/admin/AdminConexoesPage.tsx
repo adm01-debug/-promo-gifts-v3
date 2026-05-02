@@ -1,4 +1,5 @@
 import { Plug, Activity, Settings2, Network } from "lucide-react";
+import { MainLayout } from "@/components/layout/MainLayout";
 import { DataSourceDebugTab } from "@/components/admin/connections/DataSourceDebugTab";
 import { KeysValidationTab } from "@/components/admin/connections/KeysValidationTab";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
