@@ -1,0 +1,106 @@
+import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ThemeProvider } from '@/contexts/ThemeContext';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { HelmetProvider } from 'react-helmet-async';
+import React from 'react';
+
+// Mock specific logic
+vi.mock('@/contexts/DevChallengeContext', () => ({
+  DevChallengeProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  useDevChallenge: () => ({ 
+    challenge: null, 
+    isLoading: false, 
+    markStepCompleted: vi.fn(), 
+    isStepCompleted: vi.fn().mockReturnValue(false) 
+  }),
+}));
+
+// Partially mocking MainLayout to ensure stability in CI
+vi.mock('@/components/layout/MainLayout', async (importOriginal) => {
+  const actual: any = await importOriginal();
+  return {
+    ...actual,
+    MainLayout: ({ children }: { children: React.ReactNode }) => (
+      <div data-testid="main-layout" role="document">
+        <nav aria-label="Menu principal">Mock Sidebar</nav>
+        <main role="main">{children}</main>
+      </div>
+    ),
+  };
+});
+
+// Capture PageSEO props
+const seoCaptures: Record<string, any> = {};
+vi.mock('@/components/seo/PageSEO', () => ({
+  PageSEO: (props: any) => {
+    const pageName = window.location.pathname;
+    seoCaptures[pageName] = props;
+    return <div data-testid="page-seo" data-title={props.title} />;
+  }
+}));
+
+// Import all admin pages
+const adminPageModules = import.meta.glob('@/pages/admin/*.tsx', { eager: true });
+
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: false } },
+});
+
+const wrapper = ({ children }: { children: React.ReactNode }) => (
+  <QueryClientProvider client={queryClient}>
+    <HelmetProvider>
+      <MemoryRouter>
+        <ThemeProvider>
+          <AuthProvider>
+            <TooltipProvider>
+              {children}
+            </TooltipProvider>
+          </AuthProvider>
+        </ThemeProvider>
+      </MemoryRouter>
+    </HelmetProvider>
+  </QueryClientProvider>
+);
+
+describe('Admin Module Programmatic Standard Rules', () => {
+  const originalError = console.error;
+  beforeAll(() => {
+    console.error = (...args) => {
+      if (args[0]?.toString().includes('act(...)') || args[0]?.toString().includes('HelmetProvider')) return;
+      originalError(...args);
+    };
+  });
+  afterAll(() => { console.error = originalError; });
+
+  Object.entries(adminPageModules).forEach(([path, module]: [string, any]) => {
+    const Component = module.default;
+    if (typeof Component !== 'function') return;
+
+    const pageName = path.split('/').pop()?.replace('.tsx', '');
+
+    it(`${pageName} should render with correct PageSEO config`, () => {
+      render(<Component />, { wrapper });
+      
+      const seo = screen.queryByTestId('page-seo');
+      expect(seo, `Page ${pageName} is missing PageSEO`).not.toBeNull();
+      
+      // Basic title check - should not be empty
+      expect(seo?.getAttribute('data-title')).not.toBe('');
+    });
+
+    it(`${pageName} should use standard max-w classes in its layout container`, () => {
+      render(<Component />, { wrapper });
+      const mainContent = screen.queryByRole('main');
+      
+      // We look for the standardized container div
+      const container = mainContent?.querySelector('[class*="max-w-"]');
+      expect(container, `Page ${pageName} missing standardized max-w container`).not.toBeNull();
+      expect(container?.className).toContain('mx-auto');
+      expect(container?.className).toContain('animate-fade-in');
+    });
+  });
+});
