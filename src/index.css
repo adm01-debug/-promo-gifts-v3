@@ -271,22 +271,17 @@ html[data-scroll-locked] body {
     }
   }
 
-  /* Link Variants - Orange Premium SSOT */
+  /* Link Variants - SSOT (no orange glow / text-shadow) */
   .link-primary {
     @apply transition-all duration-300 underline-offset-4 decoration-2 decoration-primary/40 hover:underline active:opacity-80 active:scale-[0.98];
     font-weight: 800;
     color: hsl(var(--primary));
-    /* Layered text-shadow for better legibility: 
-       Small blur for sharpness + large blur for glow */
-    text-shadow: 0 0 1px hsl(var(--background)), 0 0 12px hsl(var(--primary) / 0.3);
   }
   .link-primary:hover {
     color: hsl(var(--primary-hover));
-    text-shadow: 0 0 1px hsl(var(--background)), 0 0 20px hsl(var(--primary) / 0.5);
-    box-shadow: var(--shadow-glow-hover);
   }
   .link-primary:focus-visible {
-    @apply outline-none ring-2 ring-primary ring-offset-2 rounded-sm shadow-glow-focus;
+    @apply outline-none ring-2 ring-primary/50 ring-offset-2 rounded-sm;
   }
 
   .link-secondary {
@@ -297,10 +292,9 @@ html[data-scroll-locked] body {
   .link-secondary:hover {
     color: hsl(var(--foreground));
     @apply decoration-primary/60;
-    box-shadow: var(--shadow-glow-hover);
   }
   .link-secondary:focus-visible {
-    @apply outline-none ring-2 ring-primary ring-offset-1 rounded-sm shadow-glow-focus;
+    @apply outline-none ring-2 ring-primary/50 ring-offset-1 rounded-sm;
   }
 
   .link-disabled {
@@ -312,15 +306,12 @@ html[data-scroll-locked] body {
     @apply transition-all duration-300 underline-offset-4 decoration-2 decoration-primary/40 hover:underline active:opacity-80 active:scale-[0.98];
     font-weight: 800;
     color: hsl(var(--primary));
-    text-shadow: 0 0 1px hsl(var(--background)), 0 0 12px hsl(var(--primary) / 0.3);
   }
   :root a:not([class*="link-"]):hover {
     color: hsl(var(--primary-hover));
-    text-shadow: 0 0 1px hsl(var(--background)), 0 0 20px hsl(var(--primary) / 0.5);
-    box-shadow: var(--shadow-glow-hover);
   }
   :root a:not([class*="link-"]):focus-visible {
-    @apply outline-none ring-2 ring-primary ring-offset-2 rounded-sm shadow-glow-focus;
+    @apply outline-none ring-2 ring-primary/50 ring-offset-2 rounded-sm;
   }
 
   /* Global Typography Consistency */
@@ -371,12 +362,10 @@ html[data-scroll-locked] body {
     @apply transition-all duration-300 underline-offset-4 decoration-2 decoration-primary/50 hover:underline active:opacity-80 active:scale-[0.98];
     font-weight: 800;
     color: hsl(var(--primary));
-    text-shadow: 0 0 1px hsl(var(--background)), 0 0 15px hsl(var(--primary) / 0.45);
   }
   .dark .link-primary:hover {
     @apply decoration-primary;
     color: hsl(var(--primary-hover));
-    text-shadow: 0 0 1px hsl(var(--background)), 0 0 30px hsl(var(--primary) / 0.75);
   }
   .dark .link-secondary {
     @apply transition-all duration-300 underline-offset-4 decoration-1 decoration-muted-foreground/40 hover:underline active:opacity-80 active:scale-[0.98];
@@ -386,7 +375,6 @@ html[data-scroll-locked] body {
   .dark .link-secondary:hover {
     @apply decoration-primary/70;
     color: hsl(var(--foreground));
-    text-shadow: 0 0 1px hsl(var(--background)), 0 0 15px hsl(var(--primary) / 0.3);
   }
 
   /* Legacy global link support - falls back to primary */
@@ -394,15 +382,13 @@ html[data-scroll-locked] body {
     @apply transition-all duration-300 underline-offset-4 decoration-2 decoration-primary/50 hover:underline active:opacity-80 active:scale-[0.98];
     font-weight: 800;
     color: hsl(var(--primary));
-    text-shadow: 0 0 1px hsl(var(--background)), 0 0 15px hsl(var(--primary) / 0.45);
   }
   .dark a:not([class*="link-"]):hover {
     @apply decoration-primary;
     color: hsl(var(--primary-hover));
-    text-shadow: 0 0 1px hsl(var(--background)), 0 0 30px hsl(var(--primary) / 0.75);
   }
   .dark a:not([class*="link-"]):focus-visible {
-    @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-background rounded-sm shadow-glow-focus;
+    @apply outline-none ring-2 ring-primary/50 ring-offset-2 ring-offset-background rounded-sm;
   }
 
   h1,
