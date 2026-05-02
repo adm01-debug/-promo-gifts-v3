@@ -12,7 +12,7 @@ const TabsList = React.forwardRef<
   <TabsPrimitive.List
     ref={ref}
     className={cn(
-      "inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground",
+      "inline-flex h-11 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground border-2 border-border shadow-soft",
       className,
     )}
     {...props}
@@ -27,15 +27,15 @@ const TabsTrigger = React.forwardRef<
   <TabsPrimitive.Trigger
     ref={ref}
     className={cn(
-      "inline-flex items-center justify-center whitespace-nowrap rounded-sm px-4 py-3 text-sm font-medium md:px-3 md:py-1.5",
-      "ring-offset-background transition-all duration-200",
-      // Estado inativo
-      "text-muted-foreground hover:text-foreground hover:bg-background/50",
-      // Estado ativo melhorado (LP-07)
-      "data-[state=active]:bg-background data-[state=active]:text-foreground",
-      "data-[state=active]:shadow-sm data-[state=active]:font-semibold",
-      // Focus states
-      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+      "inline-flex items-center justify-center whitespace-nowrap rounded-md px-4 py-3 text-sm font-bold md:px-3 md:py-1.5",
+      "ring-offset-background transition-all duration-300",
+      // Inativo
+      "text-muted-foreground hover:text-primary hover:bg-primary/5",
+      // Ativo: laranja brilhante
+      "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground",
+      "data-[state=active]:shadow-glow data-[state=active]:scale-[1.02]",
+      // Focus
+      "focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/25",
       "disabled:pointer-events-none disabled:opacity-50",
       className,
     )}
