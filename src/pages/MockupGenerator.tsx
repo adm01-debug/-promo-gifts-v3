@@ -280,7 +280,13 @@ export default function MockupGenerator() {
                       }
                     />
                   ) : (
-                    <MockupEmptyState />
+                    <MockupEmptyState 
+                      currentStep={mg.wizardStep}
+                      hasClient={!!mg.selectedClient}
+                      hasProduct={!!mg.selectedProduct}
+                      hasTechnique={!!mg.selectedTechnique}
+                      hasLogo={mg.hasLogo}
+                    />
                   )}
 
                   <MockupResultCard
