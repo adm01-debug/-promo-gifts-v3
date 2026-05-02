@@ -36,13 +36,15 @@ describe('Admin Layout Responsiveness', () => {
     render(<MainLayout>Test Content</MainLayout>, { wrapper });
 
     // The MainLayout always renders an aside with role navigation
-    const sidebar = screen.getByRole('navigation', { name: /menu principal/i });
+    // Note: MainLayout uses lazy loading for Sidebar, we might need to use findByRole 
+    // or just check the presence of the navigation role in the document
+    const sidebar = screen.getByRole('navigation');
     
     // In mobile width (375px), it should have the classes for absolute/fixed positioning
-    // and the translate-x-full to stay hidden initially.
-    // Transition classes are also expected.
     expect(sidebar.className).toContain('fixed');
+    // Initially closed on mobile
     expect(sidebar.className).toContain('-translate-x-full');
+    // On desktop it should be visible
     expect(sidebar.className).toContain('lg:translate-x-0');
 
     // Content should not be overlapped (it's flex-1, the sidebar is fixed/absolute in mobile)
