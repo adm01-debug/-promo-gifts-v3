@@ -261,10 +261,13 @@ html[data-scroll-locked] body {
   }
   /* Link Variants - Orange Premium SSOT */
   .link-primary {
-    @apply transition-all duration-300 text-primary font-bold underline-offset-4 decoration-2 decoration-primary/40 hover:underline hover:text-primary-hover active:opacity-80 active:scale-[0.98];
+    @apply transition-all duration-300 underline-offset-4 decoration-2 decoration-primary/40 hover:underline active:opacity-80 active:scale-[0.98];
+    font-weight: 850;
+    color: hsl(var(--primary));
     text-shadow: 0 0 15px hsl(var(--primary) / 0.4);
   }
   .link-primary:hover {
+    color: hsl(var(--primary-hover));
     text-shadow: 0 0 25px hsl(var(--primary) / 0.6);
   }
   .link-primary:focus-visible {
@@ -272,7 +275,13 @@ html[data-scroll-locked] body {
   }
 
   .link-secondary {
-    @apply transition-all duration-300 text-muted-foreground font-semibold underline-offset-4 decoration-1 decoration-muted-foreground/30 hover:underline hover:text-foreground hover:decoration-primary/60 active:opacity-80 active:scale-[0.98];
+    @apply transition-all duration-300 underline-offset-4 decoration-1 decoration-muted-foreground/30 hover:underline active:opacity-80 active:scale-[0.98];
+    font-weight: 700;
+    color: hsl(var(--muted-foreground));
+  }
+  .link-secondary:hover {
+    color: hsl(var(--foreground));
+    @apply decoration-primary/60;
   }
   .link-secondary:focus-visible {
     @apply outline-none ring-2 ring-primary ring-offset-1 rounded-sm shadow-glow-focus;
@@ -284,10 +293,13 @@ html[data-scroll-locked] body {
 
   /* Legacy global link support - falls back to primary */
   :root a:not([class*="link-"]) {
-    @apply transition-all duration-300 text-primary font-bold underline-offset-4 decoration-2 decoration-primary/40 hover:underline hover:text-primary-hover active:opacity-80 active:scale-[0.98];
+    @apply transition-all duration-300 underline-offset-4 decoration-2 decoration-primary/40 hover:underline active:opacity-80 active:scale-[0.98];
+    font-weight: 850;
+    color: hsl(var(--primary));
     text-shadow: 0 0 15px hsl(var(--primary) / 0.4);
   }
   :root a:not([class*="link-"]):hover {
+    color: hsl(var(--primary-hover));
     text-shadow: 0 0 25px hsl(var(--primary) / 0.6);
   }
   :root a:not([class*="link-"]):focus-visible {
@@ -339,7 +351,8 @@ html[data-scroll-locked] body {
     letter-spacing: -0.01em;
   }
   .dark .link-primary {
-    @apply font-bold underline-offset-4 decoration-2 decoration-primary/50;
+    @apply transition-all duration-300 underline-offset-4 decoration-2 decoration-primary/50 hover:underline active:opacity-80 active:scale-[0.98];
+    font-weight: 800;
     color: hsl(var(--primary));
     text-shadow: 0 0 20px hsl(var(--primary) / 0.55);
   }
@@ -349,7 +362,8 @@ html[data-scroll-locked] body {
     text-shadow: 0 0 35px hsl(var(--primary) / 0.85);
   }
   .dark .link-secondary {
-    @apply font-semibold underline-offset-4 decoration-1 decoration-muted-foreground/40;
+    @apply transition-all duration-300 underline-offset-4 decoration-1 decoration-muted-foreground/40 hover:underline active:opacity-80 active:scale-[0.98];
+    font-weight: 650;
     color: hsl(var(--muted-foreground));
   }
   .dark .link-secondary:hover {
@@ -360,10 +374,14 @@ html[data-scroll-locked] body {
 
   /* Legacy global link support - falls back to primary */
   .dark a:not([class*="link-"]) {
-    @apply transition-all duration-300 text-primary font-bold underline-offset-4 decoration-2 decoration-primary/50 hover:underline hover:text-primary-hover active:opacity-80 active:scale-[0.98];
+    @apply transition-all duration-300 underline-offset-4 decoration-2 decoration-primary/50 hover:underline active:opacity-80 active:scale-[0.98];
+    font-weight: 800;
+    color: hsl(var(--primary));
     text-shadow: 0 0 20px hsl(var(--primary) / 0.55);
   }
   .dark a:not([class*="link-"]):hover {
+    @apply decoration-primary;
+    color: hsl(var(--primary-hover));
     text-shadow: 0 0 35px hsl(var(--primary) / 0.85);
   }
   .dark a:not([class*="link-"]):focus-visible {
