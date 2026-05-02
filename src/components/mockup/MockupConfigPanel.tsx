@@ -234,6 +234,7 @@ export function MockupConfigPanel({
 
             {/* Step 4: Areas */}
             <MobileCollapsibleSection
+              id="step-logo"
               label="Áreas de Personalização"
               isCompleted={hasLogo}
               summary={hasLogo ? `${personalizationAreas.filter(a => a.logoPreview).length} logo(s)` : undefined}
