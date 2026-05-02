@@ -105,11 +105,11 @@ export const MockupWizard = forwardRef<HTMLDivElement, MockupWizardProps>(functi
       <div className="hidden md:block py-2">
         <div className="relative flex items-start justify-between">
           {/* Progress line background */}
-          <div className="absolute top-5 left-[5%] right-[5%] h-0.5 bg-muted" />
+          <div className="absolute top-5 left-[5%] right-[5%] h-1 bg-muted rounded-full" />
           
           {/* Progress line filled */}
           <div
-            className="absolute top-5 left-[5%] h-0.5 bg-gradient-to-r from-primary to-primary/80 transition-all duration-500 ease-out"
+            className="absolute top-5 left-[5%] h-1 bg-gradient-to-r from-primary to-primary/80 rounded-full transition-all duration-500 ease-out shadow-[0_0_8px_rgba(var(--primary),0.4)]"
             style={{ width: `${progressPercent * 0.9}%` }}
           />
 
