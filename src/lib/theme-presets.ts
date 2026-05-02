@@ -654,7 +654,7 @@ export const THEME_PRESETS: ThemePreset[] = [
       emoji: '💜',
       h: 254,
       s: 92,
-      l: 62,
+      l: 55, // Lightness reduzida de 62 para 55 para contraste WCAG com texto branco
       gh: 260,
       sh: 260,
       ss: 90,
@@ -670,7 +670,7 @@ export const THEME_PRESETS: ThemePreset[] = [
       emoji: '💎',
       h: 160,
       s: 84,
-      l: 45,
+      l: 35, // Lightness reduzida de 45 para 35 para garantir contraste WCAG com texto branco
       gh: 170,
       sh: 145,
       ss: 70,
@@ -686,7 +686,7 @@ export const THEME_PRESETS: ThemePreset[] = [
       emoji: '🌅',
       h: 25,
       s: 95,
-      l: 53,
+      l: 48, // Ajuste para 48 (era 53) para contraste 3:1 com texto branco
       gh: 35,
       sh: 15,
       ss: 80,
@@ -734,7 +734,7 @@ export const THEME_PRESETS: ThemePreset[] = [
       emoji: '🌊',
       h: 200,
       s: 85,
-      l: 55,
+      l: 48, // Ajuste para 48 (era 55) para contraste 3:1 com texto branco
       gh: 210,
       sh: 190,
       ss: 75,
@@ -750,7 +750,7 @@ export const THEME_PRESETS: ThemePreset[] = [
       emoji: '✨',
       h: 38,
       s: 92,
-      l: 50,
+      l: 42, // Ajuste para 42 (era 50) para contraste com texto branco no Âmbar
       gh: 45,
       sh: 30,
       ss: 80,
@@ -766,7 +766,7 @@ export const THEME_PRESETS: ThemePreset[] = [
       emoji: '🤖',
       h: 180,
       s: 100,
-      l: 50,
+      l: 30, // Reduzido drasticamente para contraste 3:1 com texto branco
       gh: 300,
       sh: 320,
       ss: 100,
@@ -827,7 +827,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     description: 'Rosa quartzo cristalino',
     h: 345,
     s: 75,
-    l: 68,
+    l: 66, // Ajuste final para 66 para garantir 3:1 (limite técnico do Rose Quartz)
     gh: 355,
     sh: 320,
     ss: 60,
@@ -853,7 +853,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     description: 'Verde Matrix de hacker',
     h: 127,
     s: 65,
-    l: 46,
+    l: 38, // Ajuste para 38 (era 46) para contraste no Hackerman
     gh: 135,
     sh: 115,
     ss: 60,
@@ -866,7 +866,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     description: 'Azul-petróleo do fundo do mar',
     h: 182,
     s: 90,
-    l: 42,
+    l: 35, // Ajuste para 35 (era 42) para contraste no Frutti di Mare
     gh: 190,
     sh: 200,
     ss: 75,
@@ -879,7 +879,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     description: 'Amarelo neon de Night City',
     h: 55,
     s: 100,
-    l: 51,
+    l: 25, // Ajuste drástico para 25 (era 45) para contraste 3:1 com branco no Cyberpunk
     gh: 180,
     sh: 320,
     ss: 95,
@@ -892,7 +892,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     description: 'Verde RGB Razer Chroma',
     h: 113,
     s: 70,
-    l: 51,
+    l: 32, // Ajuste para 32 (era 51) para contraste no Razer Chroma
     gh: 120,
     sh: 100,
     ss: 60,
