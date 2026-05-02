@@ -38,14 +38,16 @@ describe('Admin Visual Consistency Snapshot', () => {
     const conexoesMain = conexoesContainer.querySelector('main');
     const usuariosMain = usuariosContainer.querySelector('main');
     
-    // Check main container classes
     // MainLayout wraps children in a main element
     expect(conexoesMain).not.toBeNull();
     expect(usuariosMain).not.toBeNull();
     
-    // Check first div inside main (the container we padronized)
-    const conexoesInner = conexoesMain?.firstElementChild;
-    const usuariosInner = usuariosMain?.firstElementChild;
+    // In our padronization, the content is always wrapped in an animate-fade-in div
+    const conexoesInner = conexoesMain?.querySelector('.animate-fade-in');
+    const usuariosInner = usuariosMain?.querySelector('.animate-fade-in');
+    
+    expect(conexoesInner, 'Conexoes content should have fade-in container').not.toBeNull();
+    expect(usuariosInner, 'Usuarios content should have fade-in container').not.toBeNull();
     
     expect(conexoesInner?.className).toContain('mx-auto');
     expect(conexoesInner?.className).toContain('max-w-');

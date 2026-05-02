@@ -81,7 +81,8 @@ describe('Admin Module Programmatic Coverage', () => {
     it(`${pageName} should render within MainLayout`, () => {
       render(<Component />, { wrapper });
       expect(screen.queryByTestId('main-layout')).not.toBeNull();
-      expect(screen.queryAllByRole('navigation').length).toBeGreaterThan(0);
+      // Look specifically for our Mock Sidebar navigation
+      expect(screen.queryByRole('navigation', { name: /menu principal/i })).not.toBeNull();
     });
 
     it(`${pageName} should use standard container classes`, () => {
