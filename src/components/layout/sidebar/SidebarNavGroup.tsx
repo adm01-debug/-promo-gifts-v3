@@ -117,7 +117,7 @@ export const SidebarNavGroup = forwardRef<HTMLDivElement, SidebarNavGroupProps>(
             onClick={() => toggleSubMenu(item.label)}
             className={cn(
               "flex items-center gap-3 w-full px-3 py-2 rounded-lg transition-all duration-200 group relative",
-              "hover:bg-sidebar-accent/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.98]",
+              "hover:bg-sidebar-accent/50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-orange/30 active:scale-[0.99]",
               hasActiveChild
                 ? "text-orange font-semibold bg-orange/[0.06] before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-5 before:w-[2px] before:rounded-r-full before:bg-orange"
                 : "text-sidebar-foreground/75 hover:text-sidebar-foreground"
