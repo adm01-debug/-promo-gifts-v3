@@ -106,6 +106,10 @@ export function KeyboardShortcutsHint({ className }: { className?: string }) {
           <span className="ml-1">Baixar</span>
         </span>
         <span className="flex items-center gap-1">
+          <kbd className="px-1.5 py-0.5 bg-muted rounded text-[9px] font-mono">1-6</kbd>
+          <span className="ml-1">Passos</span>
+        </span>
+        <span className="flex items-center gap-1">
           <kbd className="px-1.5 py-0.5 bg-muted rounded text-[9px] font-mono">Esc</kbd>
           <span className="ml-1">Limpar</span>
         </span>
