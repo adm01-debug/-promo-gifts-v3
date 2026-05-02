@@ -11,7 +11,7 @@ import React from 'react';
 // Mocking heavy providers/components that require specific context setup
 vi.mock('@/contexts/DevChallengeContext', () => ({
   DevChallengeProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-  useDevChallenge: () => ({ challenge: null, isLoading: false }),
+  useDevChallenge: () => ({ challenge: null, isLoading: false, markStepCompleted: vi.fn(), isStepCompleted: vi.fn().mockReturnValue(false) }),
 }));
 
 // Mocking MainLayout partially to avoid deep provider issues while keeping the structure for testing
