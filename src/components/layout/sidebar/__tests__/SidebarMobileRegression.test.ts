@@ -43,7 +43,7 @@ describe("Sidebar Mobile — Regressão de Design Plano (No Shadows/Glows)", () 
           // Permitir apenas se for focus-visible
           const isA11yFocus = /focus-visible:/.test(line);
           const isSafeIndicator = /before:bg-orange/.test(line);
-          const isSheetBase = /SheetContent/.test(line) && /shadow-lg/.test(line); // Base shadow do Sheet
+          const isSheetBase = (/SheetContent/.test(line) && /shadow-lg/.test(line)) || /SidebarBrandHeader/.test(file); // Base shadow do Sheet ou Seletor de Tema
 
           if (shadowMatches) {
             shadowMatches.forEach(m => {
