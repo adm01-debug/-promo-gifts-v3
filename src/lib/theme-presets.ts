@@ -766,7 +766,7 @@ export const THEME_PRESETS: ThemePreset[] = [
       emoji: '🤖',
       h: 180,
       s: 100,
-      l: 50,
+      l: 30, // Reduzido drasticamente para contraste 3:1 com texto branco
       gh: 300,
       sh: 320,
       ss: 100,
