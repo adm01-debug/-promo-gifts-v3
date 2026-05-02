@@ -1,29 +1,43 @@
-## Remover efeito de sombra do sidebar de navegação
+# Plano: tornar o glow laranja do sidebar mais discreto
 
-Pelas screenshots, o "efeito sombra" são os **glows laranjas** (`shadow-glow`) e sombras suaves (`shadow-soft`, `shadow-md shadow-primary/20`) aplicados nos itens do sidebar e no logo da marca. Vou removê-los mantendo:
-- Cores e tipografia (laranja para item ativo)
-- Indicador de barra lateral (`before:` pseudo-element) que marca o item ativo
-- Estados de foco (`focus-visible:ring`) — necessários para acessibilidade
+## Diagnóstico
 
-### Alterações
+A "sombra" laranja que aparece ao redor do item ativo (ex.: "Estoque" no print) **não é uma `box-shadow` do item**. Os testes de regressão (`SidebarNoShadow`, `SidebarMobileRegression`) já garantem isso e por isso não conseguimos removê-la mexendo nos itens — não há nada para remover lá.
 
-**1. `src/components/layout/sidebar/SidebarNavGroup.tsx`**
-- Linha 122: remover `shadow-glow` do estado "tem filho ativo"
-- Linha 123: remover `hover:shadow-soft` do hover de grupos
-- Linha 174: remover `shadow-glow` do `NavLink` ativo
-- Linha 175: remover `hover:shadow-soft` do hover de itens
-- Linha 251: remover `shadow-glow` do botão colapsado com item ativo
+A fonte real é o **ambient glow global do dark mode**, declarado em `src/index.css`:
 
-**2. `src/components/layout/sidebar/SidebarBrandHeader.tsx`**
-- Linhas 13 e 23: remover `shadow-md shadow-primary/20` do bloco do logo Promo Gifts (mantém o `bg-gradient-primary`)
+```text
+.dark .ambient-glow::before  → radial laranja fixo no topo, 60vh, alpha 0.06
+.dark .ambient-glow::after   → radial azul fixo no canto inferior direito, alpha 0.04
+```
 
-### Não vou tocar
+Esse `::before` é aplicado pelo `MainLayout.tsx` (`<div className="... ambient-glow">`) e ocupa os primeiros 60% da altura da viewport. Como o sidebar é escuro e fica exatamente nessa faixa, o gradiente vaza por trás dos itens visíveis e parece um halo/shadow ao redor do item ativo. Não é o item — é o fundo.
 
-- `PanelComponents.tsx` (`shadow-2xl`) — é um Drawer/Panel genérico, não o sidebar de navegação
-- `ui/sidebar.tsx` — sombras de variantes `floating`/`inset` do shadcn não estão em uso aqui
-- `Header.tsx` — é o topbar, não o sidebar
-- `shadow-glow-focus` (apenas em `:focus-visible`) — acessibilidade de teclado
+## O que será alterado
 
-### Resultado esperado
+Apenas tokens CSS. Sem mexer em componente, sem novos arquivos, sem quebrar os testes de regressão existentes (eles validam ausência de `shadow-*` em itens, e nada disso muda).
 
-Sidebar com itens ativos destacados apenas por **fundo laranja translúcido + texto laranja + barra lateral**, sem nenhum brilho/halo ao redor dos botões nem sombra sob o logo.
+### `src/index.css` — `.dark .ambient-glow::before`
+
+Reduzir intensidade e área do glow laranja para que praticamente não toque o sidebar:
+
+- Alpha: `0.06` → `0.025` (cerca de 60% mais discreto)
+- Altura: `60vh` → `35vh` (não desce mais até a área dos itens do sidebar)
+- Elipse: `80% 50% at 50% -10%` → `70% 40% at 50% -15%` (mais concentrado no topo, longe da lista)
+
+### `src/index.css` — `.dark .ambient-glow::after`
+
+Manter como está (é o glow azul do canto inferior direito, não interfere no sidebar).
+
+## O que NÃO será alterado
+
+- Nenhum item do sidebar (`SidebarMenuButton`, `SidebarNavGroup`, `SmartMobileNav`, `SidebarReorganized`).
+- Nenhum dos tokens `--shadow-glow*` ou `--gradient-glow` (usados em cards, CTAs e focus a11y).
+- Nenhum teste existente (`SidebarNoShadow.test.ts`, `SidebarMobileRegression.test.ts`, `SidebarNavGroup.harmony.test.tsx`) — todos continuam passando porque nada de `shadow-*` em item muda.
+- O modo claro (`.ambient-glow` só tem efeito no `.dark`).
+
+## Resultado esperado
+
+O halo laranja sutil ao redor dos itens visíveis do sidebar (incluindo o item ativo "Estoque") fica visivelmente mais discreto, mantendo a identidade premium "neon laranja" do tema dark em hero/CTAs sem poluir a área de navegação.
+
+Pronto para aprovar e aplicar?
