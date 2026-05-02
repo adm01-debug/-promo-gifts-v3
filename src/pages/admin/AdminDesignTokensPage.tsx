@@ -170,10 +170,16 @@ export default function AdminDesignTokensPage() {
       </Section>
 
       <Section title="5. Sombras & Glow">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <TokenSwatch name="Glow Blur" cssVar="--glow-blur" twClass="bg-primary/10" description="Raio de desfoque base" />
+          <TokenSwatch name="Glow Intensity" cssVar="--glow-intensity" twClass="bg-primary/10" description="Opacidade do brilho" />
+          <TokenSwatch name="Glow Color" cssVar="--glow-color" twClass="bg-primary" description="Cor HSL do brilho" />
+          <TokenSwatch name="Glow Blur (Hover)" cssVar="--glow-blur-hover" twClass="bg-primary/10" description="Raio no estado hover" />
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 p-6 bg-surface rounded-lg">
           {SHADOW_TOKENS.map((s) => (
             <div key={s.twClass} className="space-y-2">
-              <div className={`h-20 rounded-lg bg-card border ${s.twClass}`} />
+              <div className={`h-20 rounded-lg bg-card border ${s.twClass} transition-all duration-300 hover:shadow-glow-hover`} />
               <div className="text-xs">
                 <div className="font-bold text-foreground">{s.name}</div>
                 <div className="text-muted-foreground">{s.description}</div>
