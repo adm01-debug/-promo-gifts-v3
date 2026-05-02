@@ -265,12 +265,15 @@ html[data-scroll-locked] body {
     font-weight: 700;
   }
   :root a:hover {
-    @apply text-primary-hover underline underline-offset-4 decoration-primary/50 transition-all duration-300;
-    text-shadow: 0 0 12px hsl(var(--primary) / 0.35);
+    @apply text-primary-hover underline underline-offset-4 decoration-2 decoration-primary/40 transition-all duration-300;
+    text-shadow: 0 0 15px hsl(var(--primary) / 0.4);
   }
   :root a:active {
-    @apply opacity-80;
-    text-shadow: 0 0 8px hsl(var(--primary) / 0.5);
+    @apply opacity-80 scale-[0.98];
+    text-shadow: 0 0 10px hsl(var(--primary) / 0.6);
+  }
+  :root a:focus-visible {
+    @apply outline-none ring-2 ring-primary ring-offset-2 rounded-sm shadow-glow-focus;
   }
   :root p,
   :root span,
@@ -331,12 +334,15 @@ html[data-scroll-locked] body {
     font-weight: 700;
   }
   .dark a:hover {
-    @apply text-primary-hover underline underline-offset-4 decoration-primary/50;
-    text-shadow: 0 0 15px hsl(var(--primary) / 0.45);
+    @apply text-primary-hover underline underline-offset-4 decoration-2 decoration-primary/50;
+    text-shadow: 0 0 20px hsl(var(--primary) / 0.55);
   }
   .dark a:active {
-    @apply opacity-80;
-    text-shadow: 0 0 10px hsl(var(--primary) / 0.6);
+    @apply opacity-80 scale-[0.98];
+    text-shadow: 0 0 12px hsl(var(--primary) / 0.7);
+  }
+  .dark a:focus-visible {
+    @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-background rounded-sm shadow-glow-focus;
   }
 
   h1,
@@ -480,9 +486,7 @@ html[data-scroll-locked] body {
   }
 
   a:focus-visible {
-    @apply outline-none;
-    box-shadow: var(--shadow-glow-focus);
-    border-radius: 4px;
+    @apply outline-none ring-2 ring-primary ring-offset-2 rounded-sm shadow-glow-focus;
   }
 }
 
