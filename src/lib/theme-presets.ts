@@ -609,10 +609,8 @@ function applyGxGlass(preset: ThemePreset, h: number, s: number, l: number): The
   return preset;
 }
 
-// Família tipográfica usada nas skins GX. Inter é a mesma família do
-// Cloudflare Sans (variante do Inter), mantendo a vibe tech/profissional
-// sem cair no estilo gamer puro.
-const GX_FONT_STACK = "'Inter', 'Plus Jakarta Sans', system-ui, sans-serif";
+// Skins GX agora seguem a tipografia padrão (Outfit e Plus Jakarta Sans) 
+// conforme solicitado para padronização em todas as skins.
 
 function buildGxPreset(p: PresetParams): ThemePreset {
   const preset = applyGxGlass(applyGxNeonGlow(applyGxDarkSurfaces(buildPreset(p))), p.h, p.s, p.l);
@@ -621,8 +619,7 @@ function buildGxPreset(p: PresetParams): ThemePreset {
   // manter identidade visual, mas suficientemente arredondados para o
   // visual friendly do Promo Gifts (em vez do 4px canon Opera GX).
   preset.borderRadius = 10;
-  // Inter — a mesma família do Cloudflare Sans.
-  preset.font = GX_FONT_STACK;
+  // Font override removido para usar o padrão (Outfit/Plus Jakarta Sans).
   return preset;
 }
 
