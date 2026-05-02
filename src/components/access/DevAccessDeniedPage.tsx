@@ -363,10 +363,10 @@ export function DevAccessDeniedPage({
             </div>
 
             <Button
-              variant="link"
+              variant="link-secondary"
               size="sm"
               asChild
-              className="text-[10px] text-muted-foreground/60 h-auto py-1"
+              className="text-[10px] h-auto py-1"
               onClick={() => emit("mail")}
             >
               <a

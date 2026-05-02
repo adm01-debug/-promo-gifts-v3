@@ -15,6 +15,8 @@ const buttonVariants = cva(
         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80 border border-divider shadow-sm active:shadow-inner",
         ghost: "hover:bg-primary/10 hover:text-primary font-bold active:bg-primary/20",
         link: "link-primary",
+        "link-secondary": "link-secondary",
+        "link-disabled": "link-disabled",
         orange: "bg-primary text-primary-foreground hover:bg-primary-hover active:bg-primary-active shadow-glow hover:shadow-glow-hover active:shadow-glow-active border border-white/20",
         // Variante premium com gradiente e brilho intenso
         premium: "bg-gradient-cta text-primary-foreground shadow-medium hover:shadow-premium-hover hover:scale-[1.02] active:scale-[0.98] active:shadow-premium border border-white/30",

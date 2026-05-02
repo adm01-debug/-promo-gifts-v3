@@ -62,7 +62,7 @@ export function RotationHistoryRow({ secretName, refreshKey = 0 }: Props) {
         </span>
         <Button
           size="sm"
-          variant="link"
+          variant="link-secondary"
           className="h-auto p-0 text-xs"
           onClick={() => setDialogOpen(true)}
         >

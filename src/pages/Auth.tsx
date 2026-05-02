@@ -348,8 +348,8 @@ export default function Auth() {
                       <Button
                         type="button"
                         data-testid="login-forgot-link"
-                        variant="link"
-                        className="p-0 h-auto text-sm text-orange hover:text-orange/80"
+                        variant="link-primary"
+                        className="p-0 h-auto text-sm"
                         onClick={() => setShowForgotPassword(true)}
                       >
                         Esqueci minha senha

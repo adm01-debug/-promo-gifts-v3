@@ -170,7 +170,7 @@ export function ReplenishmentProductGrid() {
             {hasActiveFilters ? "Nenhuma reposição com esses filtros" : "Nenhuma reposição encontrada"}
           </p>
           {hasActiveFilters ? (
-            <Button variant="link" className="mt-1 text-xs" onClick={clearFilters}>Limpar filtros</Button>
+            <Button variant="link-primary" className="mt-1 text-xs" onClick={clearFilters}>Limpar filtros</Button>
           ) : (
             <p className="text-xs text-muted-foreground/70 mt-1">Produtos repostos aparecerão aqui automaticamente</p>
           )}
