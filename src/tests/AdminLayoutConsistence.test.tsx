@@ -3,7 +3,8 @@ import { render } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from '@/contexts/ThemeContext';
-import { AuthProvider } from '@/contexts/AuthContext';
+import { AuthProvider } from '@/contexts/AuthProvider'; // Check actual path
+import { TooltipProvider } from '@/components/ui/tooltip';
 import React from 'react';
 
 // Mocking components that might cause issues in a simple render test
@@ -35,7 +36,9 @@ const wrapper = ({ children }: { children: React.ReactNode }) => (
     <MemoryRouter>
       <ThemeProvider>
         <AuthProvider>
-          {children}
+          <TooltipProvider>
+            {children}
+          </TooltipProvider>
         </AuthProvider>
       </ThemeProvider>
     </MemoryRouter>
