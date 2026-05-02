@@ -19,6 +19,20 @@ vi.mock('@/contexts/DevChallengeContext', () => ({
   }),
 }));
 
+// Mock useAuth to force supervisor status so PageSEO always renders
+vi.mock('@/contexts/AuthContext', async (importOriginal) => {
+  const actual: any = await importOriginal();
+  return {
+    ...actual,
+    useAuth: () => ({
+      user: { id: 'test-user-id', role: 'admin' },
+      isSupervisorOrAbove: true,
+      isAdmin: true,
+      isLoading: false,
+    }),
+  };
+});
+
 // Partially mocking MainLayout to ensure stability in CI
 vi.mock('@/components/layout/MainLayout', async (importOriginal) => {
   const actual: any = await importOriginal();
