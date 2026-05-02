@@ -954,9 +954,8 @@ export function applyThemePreset(presetId: string, mode: 'light' | 'dark'): void
     }
   });
 
-  // Per-preset font override (Opera GX skins → Inter / Cloudflare Sans family).
-  // Restaura para o valor padrão (Plus Jakarta Sans + Outfit) se a skin não
-  // declara fonte, garantindo que classics revertam o efeito GX.
+  // Aplica a fonte definida no preset ou restaura para os valores padrão
+  // (Plus Jakarta Sans + Outfit) garantindo consistência em todas as skins.
   if (preset.font) {
     root.style.setProperty('--font-sans', preset.font);
     root.style.setProperty('--font-display', preset.font);
