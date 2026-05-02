@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, RefreshCw, AlertTriangle, CheckCircle2, ShieldAlert, Database } from "lucide-react";
 import { PageSEO } from "@/components/seo/PageSEO";
+import { MainLayout } from "@/components/layout/MainLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -123,6 +124,7 @@ export default function AdminConexoesStatusPage() {
   }, [conns, creds]);
 
   return (
+    <MainLayout>
     <div className="container mx-auto max-w-6xl space-y-6 py-6">
       <PageSEO
         title="Status da sincronização de conexões | Promo Gifts"
@@ -246,5 +248,6 @@ export default function AdminConexoesStatusPage() {
         <ExternalConnectionsSyncLogPanel />
       </section>
     </div>
+    </MainLayout>
   );
 }
