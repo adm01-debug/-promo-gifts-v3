@@ -6,6 +6,8 @@ import AdminConexoesStatusPage from "@/pages/admin/AdminConexoesStatusPage";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { HelmetProvider } from "react-helmet-async";
 
 // Mock das hooks que dependem de rede/Supabase
 vi.mock("@/hooks/useSecretsManager", () => ({
