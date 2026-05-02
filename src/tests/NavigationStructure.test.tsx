@@ -42,7 +42,7 @@ describe('App Structure and Navigation', () => {
     try {
       const { queryByTestId } = render(<App />);
       const initializer = queryByTestId('theme-initializer');
-      expect(initializer).toBeDefined();
+      expect(initializer).not.toBeNull();
     } catch (e) {
       console.log('App render had some expected test errors, but checking for component presence...');
       // Even if App fails to fully render due to other missing mocks, 
