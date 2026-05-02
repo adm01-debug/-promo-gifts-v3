@@ -15,6 +15,7 @@ export function useCrmCompanies(filters?: CrmCompanyFilters) {
   return useQuery<CrmCompany[]>({
     queryKey: ["crm-companies", filters],
     queryFn: async () => {
+      console.log("[CRM-DB] useCrmCompanies: Buscando empresas...", { filters });
       const queryFilters: Record<string, unknown> = {};
 
       if (filters?.status) queryFilters.status = filters.status;
