@@ -241,10 +241,10 @@ html[data-scroll-locked] body {
   :root th,
   :root li {
     font-weight: 500;
-    color: hsl(24 100% 5%); /* Ultra deep contrast for maximum punch */
+    color: hsl(24 100% 4%); /* Ultra deep contrast for maximum punch (WCAG AAA) */
   }
   :root .text-muted-foreground {
-    color: hsl(24 40% 20%); /* Significantly darkened for legibility */
+    color: hsl(24 35% 18%); /* Significantly darkened to meet 7:1 ratio */
     font-weight: 500;
   }
   :root .font-medium {
