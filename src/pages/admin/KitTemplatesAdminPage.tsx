@@ -274,6 +274,7 @@ export default function KitTemplatesAdminPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      </div>
     </MainLayout>
   );
 }
