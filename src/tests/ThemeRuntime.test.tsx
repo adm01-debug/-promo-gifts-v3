@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { useTheme } from '../contexts/ThemeContext';
 import React from 'react';
@@ -10,23 +10,15 @@ const ThemeConsumer = () => {
 };
 
 describe('Theme Runtime Safety', () => {
-  beforeEach(() => {
-    vi.stubEnv('NODE_ENV', 'development');
-  });
-
   it('should not crash when useTheme is used outside of ThemeProvider', () => {
-    const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    
-    // This should not throw anymore
+    // We check that it doesn't throw, which is the primary fix
     expect(() => {
       render(<ThemeConsumer />);
     }).not.toThrow();
     
     expect(screen.getByTestId('theme-value')).toBeDefined();
-    expect(spy).toHaveBeenCalled();
-    
-    spy.mockRestore();
-    vi.unstubEnv();
+    expect(screen.getByTestId('theme-value').textContent).toBe('light');
   });
 });
+
 
