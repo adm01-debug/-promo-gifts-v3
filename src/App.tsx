@@ -137,6 +137,7 @@ const CustomizableDashboard = lazyWithRetry(() => import("./pages/CustomizableDa
 
 // Auth Callbacks
 const QAPage = lazyWithRetry(() => import("./pages/QAPage"));
+const SidebarQAPage = lazyWithRetry(() => import("./pages/SidebarQAPage"));
 const SSOCallbackPage = lazyWithRetry(() => import("./pages/SSOCallbackPage"));
 
 const queryClient = createQueryClient();
@@ -294,6 +295,7 @@ const App = () => {
                                  <Route path="/external-db-test" element={<ExternalDatabaseTest />} />
                                  <Route path="/admin/rbac-rotas" element={<AdminRbacRoutesPage />} />
                                  <Route path="/admin/qa" element={<QAPage />} />
+                                 <Route path="/admin/qa/sidebar" element={<SidebarQAPage />} />
                                </Route>
                             </Route>
 
