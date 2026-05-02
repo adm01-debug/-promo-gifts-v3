@@ -18,7 +18,8 @@
  * (modal de step-up, supersede, retry on invalid, toast com CTA).
  */
 import { useState } from "react";
-import { Helmet } from "react-helmet-async";
+import { MainLayout } from "@/components/layout/MainLayout";
+import { PageSEO } from "@/components/seo/PageSEO";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -272,14 +273,13 @@ function ExampleCard({ config }: { config: ExampleConfig }) {
 
 export default function DevChallengeExamplesPage() {
   return (
-    <>
-      <Helmet>
-        <title>Exemplos — Challenge Reutilizável | Admin</title>
-        <meta
-          name="description"
-          content="Documentação interativa do challenge reutilizável de dev para liberar operações full scope."
-        />
-      </Helmet>
+    <MainLayout>
+      <PageSEO
+        title="Exemplos — Challenge Reutilizável"
+        description="Documentação interativa do challenge reutilizável de dev para liberar operações full scope."
+        path="/admin/seguranca/exemplos-challenge"
+        noIndex
+      />
 
       <div className="container mx-auto py-8 space-y-8 max-w-7xl">
         <header className="space-y-2">
@@ -434,6 +434,6 @@ export default function DevChallengeExamplesPage() {
           </TabsContent>
         </Tabs>
       </div>
-    </>
+    </MainLayout>
   );
 }

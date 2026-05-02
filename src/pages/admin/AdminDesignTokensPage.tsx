@@ -1,6 +1,8 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { MainLayout } from "@/components/layout/MainLayout";
+import { PageSEO } from "@/components/seo/PageSEO";
 
 /**
  * /admin/design-tokens — Paleta visual viva dos tokens do sistema.
@@ -100,7 +102,9 @@ const BORDER_WIDTHS = [
 
 export default function AdminDesignTokensPage() {
   return (
-    <div className="container max-w-[1920px] py-8 space-y-10">
+    <MainLayout>
+      <PageSEO title="Design Tokens" description="Paleta visual viva dos tokens do sistema." path="/admin/design-tokens" />
+      <div className="container max-w-[1920px] py-8 space-y-10">
       <header className="space-y-2">
         <h1
           data-testid="page-title-design-tokens"
@@ -265,6 +269,7 @@ export default function AdminDesignTokensPage() {
         Para alterar tokens edite <code className="text-primary">src/index.css</code> (raiz `:root`
         + `.dark`). Esta página reflete automaticamente.
       </footer>
-    </div>
+      </div>
+    </MainLayout>
   );
 }

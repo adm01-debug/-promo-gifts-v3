@@ -8,6 +8,7 @@
  * Rota: /admin/validade-precos (admin-only — protegida por AdminRoute).
  */
 import { useMemo, useState } from "react";
+import { MainLayout } from "@/components/layout/MainLayout";
 import { Trash2, Loader2, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -55,7 +56,8 @@ export default function PriceFreshnessSettings() {
   }, [overrides]);
 
   return (
-    <div className="container mx-auto max-w-5xl p-6">
+    <MainLayout>
+      <div className="container mx-auto max-w-5xl p-6">
       <PageSEO
         title="Validade de Preços | Admin"
         description="Configure a janela de validade do alerta de preço por produto (30, 60 ou 90 dias)."
@@ -147,6 +149,7 @@ export default function PriceFreshnessSettings() {
           )}
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </MainLayout>
   );
 }

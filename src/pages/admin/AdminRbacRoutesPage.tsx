@@ -1,4 +1,6 @@
 import { useMemo, useState } from "react";
+import { MainLayout } from "@/components/layout/MainLayout";
+import { PageSEO } from "@/components/seo/PageSEO";
 import { Helmet } from "react-helmet-async";
 import {
   ShieldCheck,
@@ -129,14 +131,13 @@ export default function AdminRbacRoutesPage() {
   };
 
   return (
-    <>
-      <Helmet>
-        <title>Auditoria RBAC de Rotas — Promo Gifts</title>
-        <meta
-          name="description"
-          content="Matriz de auditoria das rotas técnicas, papéis exigidos, guards e helpers RLS."
-        />
-      </Helmet>
+    <MainLayout>
+      <PageSEO
+        title="Auditoria RBAC de Rotas"
+        description="Matriz de auditoria das rotas técnicas, papéis exigidos, guards e helpers RLS."
+        path="/admin/rbac-rotas"
+        noIndex
+      />
 
       <div className="container mx-auto py-6 space-y-6">
         <header className="flex flex-col gap-2">
@@ -370,6 +371,6 @@ export default function AdminRbacRoutesPage() {
           </CardContent>
         </Card>
       </div>
-    </>
+    </MainLayout>
   );
 }
