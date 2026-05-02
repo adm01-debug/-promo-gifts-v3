@@ -100,9 +100,9 @@ export const MockupWizard = forwardRef<HTMLDivElement, MockupWizardProps>(functi
   };
 
   return (
-    <div ref={ref} className={cn("w-full", className)}>
+    <div ref={ref} className={cn("w-full transition-all duration-300", className)}>
       {/* Desktop Stepper */}
-      <div className="hidden md:block">
+      <div className="hidden md:block py-2">
         <div className="relative flex items-start justify-between">
           {/* Progress line background */}
           <div className="absolute top-5 left-[5%] right-[5%] h-0.5 bg-muted" />
