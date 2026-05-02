@@ -38,7 +38,7 @@ interface HeaderProps {
 }
 
 export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProps) {
-  const { theme, actualTheme, setTheme, toggleTheme } = useTheme();
+  const { theme, actualTheme, setTheme, toggleTheme, isFallback } = useTheme();
   const navigate = useNavigate();
   const { toast } = useToast();
   const favoriteCount = useFavoritesStore((s) => s.favoriteCount);
