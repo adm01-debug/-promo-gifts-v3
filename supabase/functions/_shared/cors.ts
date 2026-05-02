@@ -115,13 +115,13 @@ function logBootIfNeeded(): void {
 logBootIfNeeded();
 
 function logPreflightFromRequest(req: Request, origin: string): void {
-  const requestedHeadersRaw = req.headers.get('Access-Control-Request-Headers');
-  const requestedMethod = req.headers.get('Access-Control-Request-Method');
+  const requestedHeadersRaw = req.headers.get('Access-Control-Request-Headers') || req.headers.get('access-control-request-headers');
+  const requestedMethod = req.headers.get('Access-Control-Request-Method') || req.headers.get('access-control-request-method');
   const requestedHeaders = parseHeaderList(requestedHeadersRaw);
   
   const missingHeaders = requestedHeaders.filter((h) => !ALLOWED_HEADERS_SET.has(h));
   const originAllowed = !origin || isAllowedOrigin(origin);
-  const requestId = req.headers.get('x-request-id');
+  const requestId = req.headers.get('x-request-id') || req.headers.get('X-Request-Id');
 
   const baseFields = {
     request_id: requestId,
@@ -152,7 +152,7 @@ function logPreflightFromRequest(req: Request, origin: string): void {
  * If the request origin is in the allowlist, it is reflected back.
  */
 export function getCorsHeaders(req?: Request): Record<string, string> {
-  const origin = req?.headers.get('origin') || '';
+  const origin = req?.headers.get('origin') || req?.headers.get('Origin') || '';
   
   if (req?.method === 'OPTIONS') {
     logPreflightFromRequest(req, origin);
@@ -212,7 +212,7 @@ export function handleCorsPreflight(
   if (req.method !== 'OPTIONS') return null;
   
   if (opts.public) {
-    const origin = req.headers.get('origin') || '';
+    const origin = req.headers.get('origin') || req.headers.get('Origin') || '';
     logPreflightFromRequest(req, origin);
     return new Response(null, { headers: buildPublicCorsHeaders(opts) });
   }
