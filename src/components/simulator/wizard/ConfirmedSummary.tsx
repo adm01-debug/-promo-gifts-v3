@@ -164,7 +164,7 @@ export function ConfirmedSummary({ wizard, onAddAnother, onGenerateQuote, onCopy
 
       {/* New Simulation */}
       <div className="text-center pt-2">
-        <Button variant="link" className="text-muted-foreground" onClick={wizard.resetWizard}>Iniciar nova simulação</Button>
+        <Button variant="link-secondary" className="text-muted-foreground" onClick={wizard.resetWizard}>Iniciar nova simulação</Button>
       </div>
     </div>
   );
