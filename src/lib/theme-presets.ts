@@ -654,7 +654,7 @@ export const THEME_PRESETS: ThemePreset[] = [
       emoji: '💜',
       h: 254,
       s: 92,
-      l: 62,
+      l: 55, // Lightness reduzida de 62 para 55 para contraste WCAG com texto branco
       gh: 260,
       sh: 260,
       ss: 90,
