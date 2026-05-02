@@ -853,7 +853,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     description: 'Verde Matrix de hacker',
     h: 127,
     s: 65,
-    l: 46,
+    l: 38, // Ajuste para 38 (era 46) para contraste no Hackerman
     gh: 135,
     sh: 115,
     ss: 60,
