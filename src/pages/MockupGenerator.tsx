@@ -433,13 +433,23 @@ export default function MockupGenerator() {
 
         <DeleteMockupDialog 
           open={deleteDialogOpen} 
-          onOpenChange={setDeleteDialogOpen} 
+          onOpenChange={(open) => {
+            setDeleteDialogOpen(open);
+            if (!open) setMockupToDelete(null);
+          }} 
           onConfirm={async () => {
             if (mockupToDelete) {
-              await deleteMockupFromDb(mockupToDelete);
-              mg.fetchHistory();
-              setDeleteDialogOpen(false);
-              setMockupToDelete(null);
+              try {
+                await deleteMockupFromDb(mockupToDelete, user?.id);
+                toast.success("Mockup excluído com sucesso");
+                await mg.fetchHistory();
+              } catch (error) {
+                console.error("Erro ao excluir mockup:", error);
+                toast.error("Não foi possível excluir o mockup. Tente novamente.");
+              } finally {
+                setDeleteDialogOpen(false);
+                setMockupToDelete(null);
+              }
             }
           }} 
         />
