@@ -127,7 +127,6 @@ export function MockupConfigPanel({
           <>
             {/* Step 1: Client Selection — collapsible on mobile */}
             <MobileCollapsibleSection
-              stepNumber={1}
               label="Empresa"
               isCompleted={!!selectedClient}
               summary={selectedClient?.name}
@@ -141,7 +140,6 @@ export function MockupConfigPanel({
 
             {/* Step 2: Product Selection */}
             <MobileCollapsibleSection
-              stepNumber={2}
               label="Produto"
               isCompleted={!!productSelection}
               summary={productSelection?.product.name}
@@ -154,7 +152,6 @@ export function MockupConfigPanel({
 
             {/* Step 3: Technique Selection */}
             <MobileCollapsibleSection
-              stepNumber={3}
               label="Técnica de Personalização"
               isCompleted={!!selectedTechnique}
               summary={selectedTechnique?.name}
@@ -234,7 +231,6 @@ export function MockupConfigPanel({
 
             {/* Step 4: Areas */}
             <MobileCollapsibleSection
-              stepNumber={4}
               label="Áreas de Personalização"
               isCompleted={hasLogo}
               summary={hasLogo ? `${personalizationAreas.filter(a => a.logoPreview).length} logo(s)` : undefined}
@@ -253,7 +249,6 @@ export function MockupConfigPanel({
             {/* Logo Color Analysis — auto-appears after logo upload */}
             {logoColorAnalysis && (logoColorAnalysis.colors.length > 0 || logoColorAnalysis.isAnalyzing) && (
               <MobileCollapsibleSection
-                stepNumber={5}
                 label="Cores da Logo"
                 isCompleted={logoColorAnalysis.colors.length > 0 && !logoColorAnalysis.isAnalyzing}
                 summary={logoColorAnalysis.colors.length > 0 ? `${logoColorAnalysis.colors.length} Pantone` : undefined}
