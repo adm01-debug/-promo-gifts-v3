@@ -1010,10 +1010,10 @@ html[data-scroll-locked] body {
   top: 0;
   left: 0;
   right: 0;
-  height: 60vh;
+  height: 35vh;
   background: radial-gradient(
-    ellipse 80% 50% at 50% -10%,
-    hsl(var(--primary) / 0.06) 0%,
+    ellipse 70% 40% at 50% -15%,
+    hsl(var(--primary) / 0.025) 0%,
     transparent 70%
   );
   pointer-events: none;
