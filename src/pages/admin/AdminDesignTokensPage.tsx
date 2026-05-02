@@ -269,6 +269,7 @@ export default function AdminDesignTokensPage() {
         Para alterar tokens edite <code className="text-primary">src/index.css</code> (raiz `:root`
         + `.dark`). Esta página reflete automaticamente.
       </footer>
-    </div>
+      </div>
+    </MainLayout>
   );
 }
