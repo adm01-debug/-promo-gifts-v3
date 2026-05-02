@@ -221,26 +221,45 @@ export function MockupResultCard({
         <Dialog open={isFullscreen} onOpenChange={setIsFullscreen}>
           <DialogContent className="max-w-[95vw] max-h-[95vh] w-auto h-auto p-0 border-0 bg-background/95 backdrop-blur-xl [&>button]:hidden">
             <div className="relative flex flex-col items-center justify-center w-full h-full min-h-[60vh]">
-              <div className="absolute top-3 right-3 z-10 flex items-center gap-2">
-                <Button size="sm" variant="secondary" onClick={onDownload} className="gap-1.5 shadow-md">
-                  <Download className="h-4 w-4" /> Baixar
+              {!isClientMode && (
+                <div className="absolute top-3 right-3 z-10 flex items-center gap-2">
+                  <Button size="sm" variant="secondary" onClick={() => setIsClientMode(true)} className="gap-1.5 shadow-md">
+                    <Maximize2 className="h-4 w-4" /> Modo Apresentação
+                  </Button>
+                  <Button size="sm" variant="secondary" onClick={onDownload} className="gap-1.5 shadow-md">
+                    <Download className="h-4 w-4" /> Baixar
+                  </Button>
+                  <Button size="icon" aria-label="Fechar" variant="secondary" className="h-8 w-8 shadow-md" onClick={() => setIsFullscreen(false)}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+              
+              {isClientMode && (
+                <Button 
+                  size="sm" 
+                  variant="secondary" 
+                  onClick={() => setIsClientMode(false)} 
+                  className="absolute top-3 right-3 z-20 gap-1.5 shadow-md bg-background/50 hover:bg-background/80"
+                >
+                  <X className="h-4 w-4" /> Sair do modo limpo
                 </Button>
-                <Button size="icon" aria-label="Fechar" variant="secondary" className="h-8 w-8 shadow-md" onClick={() => setIsFullscreen(false)}>
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1 p-1.5 bg-background/90 backdrop-blur-sm rounded-lg border shadow-lg">
-                <Button size="icon" aria-label="Reduzir" variant="ghost" className="h-8 w-8" onClick={() => setFullscreenZoom(z => Math.max(z - 0.25, 0.25))} disabled={fullscreenZoom <= 0.25}>
-                  <ZoomOut className="h-4 w-4" />
-                </Button>
-                <span className="text-xs font-medium w-14 text-center">{Math.round(fullscreenZoom * 100)}%</span>
-                <Button size="icon" aria-label="Ampliar" variant="ghost" className="h-8 w-8" onClick={() => setFullscreenZoom(z => Math.min(z + 0.25, 5))}>
-                  <ZoomIn className="h-4 w-4" />
-                </Button>
-                <Button size="icon" aria-label="Desfazer" variant="ghost" className="h-8 w-8" onClick={() => setFullscreenZoom(1)}>
-                  <RotateCcw className="h-3.5 w-3.5" />
-                </Button>
-              </div>
+              )}
+
+              {!isClientMode && (
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1 p-1.5 bg-background/90 backdrop-blur-sm rounded-lg border shadow-lg">
+                  <Button size="icon" aria-label="Reduzir" variant="ghost" className="h-8 w-8" onClick={() => setFullscreenZoom(z => Math.max(z - 0.25, 0.25))} disabled={fullscreenZoom <= 0.25}>
+                    <ZoomOut className="h-4 w-4" />
+                  </Button>
+                  <span className="text-xs font-medium w-14 text-center">{Math.round(fullscreenZoom * 100)}%</span>
+                  <Button size="icon" aria-label="Ampliar" variant="ghost" className="h-8 w-8" onClick={() => setFullscreenZoom(z => Math.min(z + 0.25, 5))}>
+                    <ZoomIn className="h-4 w-4" />
+                  </Button>
+                  <Button size="icon" aria-label="Desfazer" variant="ghost" className="h-8 w-8" onClick={() => setFullscreenZoom(1)}>
+                    <RotateCcw className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              )}
               <div className="overflow-auto w-full h-full flex items-center justify-center p-8" style={{ cursor: fullscreenZoom > 1 ? 'grab' : 'default' }}>
                 
 <img src={generatedMockup} alt="Mockup em tela cheia" className="max-w-full max-h-[85vh] object-contain transition-transform duration-200" style={{ transform: `scale(${fullscreenZoom})` }}  loading="lazy" />
