@@ -139,9 +139,9 @@ export function SecretErrorAlert({
               <Button
                 type="button"
                 size="sm"
-                variant="link"
+                variant="link-secondary"
                 className={cn(
-                  "text-destructive hover:text-destructive/80 px-1",
+                  "px-1",
                   variant === "expanded" ? "h-8" : "h-7",
                 )}
                 onClick={onViewDetails}
