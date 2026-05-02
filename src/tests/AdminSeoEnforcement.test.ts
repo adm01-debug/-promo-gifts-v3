@@ -1,39 +1,40 @@
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'fs';
-import { globSync } from 'glob';
+import { readFileSync, readdirSync, statSync } from 'fs';
+import { join } from 'path';
+
+function walkDir(dir: string, callback: (file: string) => void) {
+  readdirSync(dir).forEach(f => {
+    let dirPath = join(dir, f);
+    let isDirectory = statSync(dirPath).isDirectory();
+    isDirectory ? walkDir(dirPath, callback) : callback(join(dir, f));
+  });
+}
 
 describe('Admin SEO Enforcement', () => {
   it('should not import Helmet directly in admin pages', () => {
-    const adminPages = globSync('src/pages/admin/**/*.tsx');
     const violations: string[] = [];
-
-    adminPages.forEach(file => {
+    walkDir('src/pages/admin', (file) => {
+      if (!file.endsWith('.tsx')) return;
       const content = readFileSync(file, 'utf-8');
-      // Look for react-helmet or react-helmet-async imports
       if (content.includes('from "react-helmet-async"') || content.includes('from "react-helmet"')) {
         violations.push(file);
       }
-      
-      // Check for direct <Helmet> tag usage without import (unlikely but possible)
       if (content.includes('<Helmet>')) {
         violations.push(file + " (direct <Helmet> tag)");
       }
     });
-
     expect(violations, `Found files using Helmet directly instead of PageSEO: ${violations.join(', ')}`).toHaveLength(0);
   });
 
   it('should include PageSEO in all admin pages', () => {
-    const adminPages = globSync('src/pages/admin/*.tsx');
     const missing: string[] = [];
-
-    adminPages.forEach(file => {
+    walkDir('src/pages/admin', (file) => {
+      if (!file.endsWith('.tsx') || file.includes('ai-usage/') || file.includes('telemetry/')) return;
       const content = readFileSync(file, 'utf-8');
       if (!content.includes('<PageSEO')) {
         missing.push(file);
       }
     });
-
     expect(missing, `Found files missing PageSEO component: ${missing.join(', ')}`).toHaveLength(0);
   });
 });
