@@ -43,7 +43,7 @@ export function QuoteTotalsSummary({ items, discountPercent, discountAmount, shi
         <div className="p-4 space-y-2">
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Subtotal produtos:</span>
-            <span>{formatCurrency(productSubtotal)}</span>
+            <span data-testid="summary-subtotal-products">{formatCurrency(productSubtotal)}</span>
           </div>
           {hasPersonalizations && (
             <div className="flex justify-between text-sm">
