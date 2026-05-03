@@ -38,7 +38,7 @@ const routeLabels: Record<string, string> = {
   "/configuracoes": "Configurações",
   "/admin": "Administração",
   "/seguranca": "Segurança",
-  "/estoque": "Dashboard de Estoque",
+  "/estoque": "Estoque",
   "/admin/temas": "Skins",
 };
 

@@ -24,7 +24,7 @@ const routeLabels: Record<string, string> = {
   "/configuracoes": "Configurações",
   "/admin": "Administração",
   "/seguranca": "Segurança",
-  "/estoque": "Dashboard de Estoque",
+  "/estoque": "Estoque",
 };
 
 interface BackButtonProps {
