@@ -544,7 +544,7 @@ export function useQuoteBuilderState() {
       navigate(`/orcamentos/${result.id}`);
     }
 
-  }, [isDraftValid, isFormValid, validationErrors, clientId, contactInfo, companyInfo, discountType, discountValue, negotiationMarkup, realDiscountPercent, notes, internalNotes, validUntil, paymentTerms, deliveryTime, shippingType, shippingCost, isEditMode, quoteId, items, navigate, updateQuote, createQuote, maxDiscountPercent, requestApproval]);
+  }, [isDraftValid, isFormValid, validationErrors, clientId, contactInfo, companyInfo, discountType, discountValue, negotiationMarkup, realDiscountPercent, notes, internalNotes, validUntil, paymentTerms, deliveryTime, shippingType, shippingCost, isEditMode, quoteId, items, navigate, updateQuote, createQuote, maxDiscountPercent, requestApproval, clearAutoSave]);
 
   const defaultTemplate = useMemo(() => templates.find(t => t.is_default), [templates]);
 
