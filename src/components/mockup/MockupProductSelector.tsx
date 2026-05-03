@@ -77,11 +77,12 @@ export function MockupProductSelector({ selection, onSelect, disabled }: MockupP
     }
   }, [filteredProducts, sortBy]);
 
+  const columnCount = 4; // Max columns as per grid class
   const rowVirtualizer = useVirtualizer({
-    count: Math.ceil(sortedProducts.length / 3), // Assuming 3 columns on average
+    count: Math.ceil(sortedProducts.length / columnCount),
     getScrollElement: () => scrollParentRef.current,
-    estimateSize: () => 240,
-    overscan: 5,
+    estimateSize: () => 280,
+    overscan: 3,
   });
 
   const formatCurrency = (value: number) =>
