@@ -1,6 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { migratePayload } from '../useAutoSaveQuote';
 
+// Redefining current version to match the file
+const CURRENT_VERSION = 2;
+
 describe('useAutoSaveQuote - migratePayload', () => {
   it('returns null for empty payload', () => {
     expect(migratePayload(null)).toBeNull();
@@ -9,20 +12,20 @@ describe('useAutoSaveQuote - migratePayload', () => {
 
   it('migrates v1 payload (no version) to current version', () => {
     const oldData = { items: [{ id: 1 }], total: 100 };
-    const migrated = migratePayload(oldData, 2);
+    const migrated = migratePayload(oldData, CURRENT_VERSION);
     
-    expect(migrated.version).toBe(2);
+    expect(migrated.version).toBe(CURRENT_VERSION);
     expect(migrated.data).toEqual(oldData);
     expect(migrated.savedAt).toBeDefined();
   });
 
   it('preserves current version payload', () => {
     const currentPayload = {
-      version: 2,
+      version: CURRENT_VERSION,
       data: { test: true },
       savedAt: '2024-01-01T00:00:00.000Z'
     };
-    const migrated = migratePayload(currentPayload, 2);
+    const migrated = migratePayload(currentPayload, CURRENT_VERSION);
     expect(migrated).toEqual(currentPayload);
   });
 
@@ -32,7 +35,7 @@ describe('useAutoSaveQuote - migratePayload', () => {
       data: { secret: 'data' },
       savedAt: '2024-01-01T00:00:00.000Z'
     };
-    const migrated = migratePayload(futurePayload, 2);
+    const migrated = migratePayload(futurePayload, CURRENT_VERSION);
     expect(migrated).toBeNull();
   });
 
