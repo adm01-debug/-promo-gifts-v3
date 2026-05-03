@@ -45,6 +45,8 @@ export async function authenticateRequest(req: Request): Promise<AuthResult> {
     throw { status: 401, message: 'Audiência de token inválida' };
   }
 
+  const userId = user.id;
+
   // Fetch ALL roles using service role client (bypasses RLS)
   const localServiceClient = createClient(supabaseUrl, serviceRoleKey);
 
