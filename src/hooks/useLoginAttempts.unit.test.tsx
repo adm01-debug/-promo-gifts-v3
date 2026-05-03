@@ -4,28 +4,30 @@ import { useLoginAttempts } from "./useLoginAttempts";
 import { supabase } from "@/integrations/supabase/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-// Mock Supabase completely inline
-vi.mock("@/integrations/supabase/client", () => {
-  const queryMock = {
+// Mock implementation that actually returns itself
+const createMockQuery = () => {
+  const mock: any = {
     select: vi.fn(),
     order: vi.fn(),
     range: vi.fn(),
     ilike: vi.fn(),
     eq: vi.fn(),
   };
-  
-  queryMock.select.mockReturnValue(queryMock);
-  queryMock.order.mockReturnValue(queryMock);
-  queryMock.range.mockReturnValue(queryMock);
-  queryMock.ilike.mockReturnValue(queryMock);
-  queryMock.eq.mockReturnValue(queryMock);
+  mock.select.mockReturnValue(mock);
+  mock.order.mockReturnValue(mock);
+  mock.range.mockReturnValue(mock);
+  mock.ilike.mockReturnValue(mock);
+  mock.eq.mockReturnValue(mock);
+  return mock;
+};
 
-  return {
-    supabase: {
-      from: vi.fn(() => queryMock),
-    },
-  };
-});
+const globalMockQuery = createMockQuery();
+
+vi.mock("@/integrations/supabase/client", () => ({
+  supabase: {
+    from: vi.fn(() => globalMockQuery),
+  },
+}));
 
 const queryClient = new QueryClient({
   defaultOptions: { 
@@ -46,14 +48,19 @@ describe("useLoginAttempts Hook", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     queryClient.clear();
+    // Reset implementations to return the object
+    globalMockQuery.select.mockReturnValue(globalMockQuery);
+    globalMockQuery.order.mockReturnValue(globalMockQuery);
+    globalMockQuery.range.mockReturnValue(globalMockQuery);
+    globalMockQuery.ilike.mockReturnValue(globalMockQuery);
+    globalMockQuery.eq.mockReturnValue(globalMockQuery);
   });
 
   it("fetches login attempts with filters", async () => {
     const mockData = [{ id: "1", email: "test@example.com", success: true }];
     const fromSpy = vi.mocked(supabase.from);
-    const mockQuery = fromSpy() as any;
     
-    mockQuery.range.mockResolvedValue({ data: mockData, count: 1, error: null });
+    globalMockQuery.range.mockResolvedValue({ data: mockData, count: 1, error: null });
 
     const { result } = renderHook(() => useLoginAttempts({ emailFilter: "test", successFilter: false }), { wrapper });
 
@@ -63,16 +70,13 @@ describe("useLoginAttempts Hook", () => {
     }, { timeout: 2000 });
 
     expect(fromSpy).toHaveBeenCalledWith("login_attempts");
-    expect(mockQuery.ilike).toHaveBeenCalledWith("email", "%test%");
-    expect(mockQuery.eq).toHaveBeenCalledWith("success", false);
+    expect(globalMockQuery.ilike).toHaveBeenCalledWith("email", "%test%");
+    expect(globalMockQuery.eq).toHaveBeenCalledWith("success", false);
     expect(result.current.data?.attempts).toEqual(mockData);
   });
 
   it("handles errors from supabase gracefully", async () => {
-    const fromSpy = vi.mocked(supabase.from);
-    const mockQuery = fromSpy() as any;
-    
-    mockQuery.range.mockResolvedValue({ data: null, error: { message: "DB Error" } });
+    globalMockQuery.range.mockResolvedValue({ data: null, error: { message: "DB Error" } });
 
     const { result } = renderHook(() => useLoginAttempts(), { wrapper });
 
