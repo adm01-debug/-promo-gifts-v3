@@ -1,15 +1,10 @@
-import { useState, useEffect, useMemo, useCallback, useContext } from "react";
+import { useState, useMemo, useCallback, useContext } from "react";
 import Fuse from "fuse.js";
 import { type Product } from "@/hooks/useProducts";
 import { CATEGORIES, SUPPLIERS } from "@/data/mockData";
 import { ProductsContext } from "@/contexts/ProductsContext";
 import { createProductFuseOptions, rankProductSearchResults } from "@/utils/product-search";
-
-const HISTORY_KEY = "search-history";
-const MAX_HISTORY = 10;
-
-// This hook now relies on ProductsContext for product data
-// Products are passed externally or fetched via context
+import { useSearchHistory } from "./useSearchHistory";
 
 export interface SearchResult {
   type: "product" | "category" | "supplier" | "history";
@@ -23,47 +18,25 @@ export interface SearchResult {
 export function useSearch(products: Product[] = []) {
   const productsContext = useContext(ProductsContext);
   const [query, setQuery] = useState("");
-  const [history, setHistory] = useState<string[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const { 
+    history: searchHistory, 
+    addToHistory: addHistoryItem, 
+    removeFromHistory, 
+    clearHistory 
+  } = useSearchHistory("general");
+
+  const history = useMemo(() => searchHistory.map(h => h.label), [searchHistory]);
 
   const availableProducts = products.length > 0 ? products : (productsContext?.products || []);
 
-  // Load history from localStorage
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem(HISTORY_KEY);
-      if (stored) {
-        setHistory(JSON.parse(stored));
-      }
-    } catch (e) {
-      console.error("Error loading search history:", e);
-    }
-    setIsLoaded(true);
-  }, []);
-
-  // Save history to localStorage
-  useEffect(() => {
-    if (isLoaded) {
-      localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
-    }
-  }, [history, isLoaded]);
-
   const addToHistory = useCallback((term: string) => {
     if (!term.trim()) return;
-    
-    setHistory((prev) => {
-      const filtered = prev.filter((h) => h.toLowerCase() !== term.toLowerCase());
-      return [term, ...filtered].slice(0, MAX_HISTORY);
+    addHistoryItem({
+      id: `history-${term}`,
+      label: term,
+      type: "general"
     });
-  }, []);
-
-  const removeFromHistory = useCallback((term: string) => {
-    setHistory((prev) => prev.filter((h) => h !== term));
-  }, []);
-
-  const clearHistory = useCallback(() => {
-    setHistory([]);
-  }, []);
+  }, [addHistoryItem]);
 
   // Criar instância Fuse.js para busca fuzzy de produtos
   const productFuse = useMemo(() => new Fuse(availableProducts, createProductFuseOptions<Product>({
@@ -198,8 +171,8 @@ export function useSearch(products: Product[] = []) {
     quickSuggestions,
     history,
     addToHistory,
-    removeFromHistory,
+    removeFromHistory: (term: string) => removeFromHistory(`history-${term}`),
     clearHistory,
-    isLoaded,
+    isLoaded: true,
   };
 }
