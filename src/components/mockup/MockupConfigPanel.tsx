@@ -103,6 +103,9 @@ export function MockupConfigPanel({
   onLogoRemove,
   productLocations,
   logoColorAnalysis,
+  artAttachments,
+  onArtAttachmentsChange,
+  userId,
 }: MockupConfigPanelProps) {
   const hasLogo = personalizationAreas.some(a => a.logoPreview);
   
