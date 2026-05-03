@@ -109,7 +109,7 @@ export function useSearchHistory(type?: HistoryType) {
         localStorage.removeItem(STORAGE_KEY);
         setHistory([]);
       }
-      window.dispatchEvent(new Event("storage"));
+      window.dispatchEvent(new Event("search-history-update"));
     } catch (e) {
       console.error("Failed to clear search history", e);
     }
