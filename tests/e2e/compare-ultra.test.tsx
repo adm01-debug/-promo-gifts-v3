@@ -119,14 +119,11 @@ describe('Módulo Comparar - Ultra Avançado', () => {
 
   it('Resiliência AI: Carrega Advisor AI graciosamente', async () => {
     await renderPage();
-    // O Advisor AI pode demorar para hidratar ou estar em um Suspense.
-    // Usamos queryByText para evitar falha imediata e verificamos com waitFor
-    await waitFor(() => {
-      const titles = screen.queryAllByRole('heading');
-      const hasAdvisor = titles.some(h => /Advisor|Recomendação/i.test(h.textContent || ''));
-      expect(hasAdvisor || screen.queryByText(/Analista/i)).toBeTruthy();
-    }, { timeout: 2000 });
+    // O componente usa o termo "Conselheiro IA"
+    expect(await screen.findByText(/Conselheiro IA/i)).toBeInTheDocument();
+    expect(screen.getByText(/Analisar com IA/i)).toBeInTheDocument();
   });
 });
+
 
 
