@@ -297,20 +297,30 @@ export const SortableCartItem = memo(function SortableCartItem({
           {/* Collapsible notes */}
           <Collapsible open={notesOpen} onOpenChange={setNotesOpen}>
             <CollapsibleTrigger asChild>
-              <button data-testid="cart-item-notes-toggle" className="flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors w-full" aria-label="Recolher">
-                <MessageSquare className="h-3 w-3" />
-                {item.notes ? "Observações" : "Adicionar observação"}
-                <ChevronDown className={cn("h-3 w-3 ml-auto transition-transform", notesOpen && "rotate-180")} />
+              <button 
+                data-testid="cart-item-notes-toggle" 
+                className={cn(
+                  "flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider transition-all w-full p-2 rounded-lg border border-transparent",
+                  item.notes 
+                    ? "text-primary bg-primary/5 border-primary/10" 
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                )} 
+                aria-label="Notas do item"
+              >
+                <MessageSquare className="h-3.5 w-3.5" />
+                {item.notes ? "Ver Observações" : "Adicionar Observação"}
+                <div className="flex-1" />
+                <ChevronDown className={cn("h-3.5 w-3.5 transition-transform duration-300", notesOpen && "rotate-180")} />
               </button>
             </CollapsibleTrigger>
-            <CollapsibleContent className="pt-1.5">
+            <CollapsibleContent className="pt-2">
               <Textarea
                 data-testid="cart-item-notes-input"
                 value={localNotes}
                 onChange={(e) => handleNotesChange(e.target.value)}
                 placeholder="Ex: personalizar com logo do cliente..."
-                className="text-xs min-h-[60px] resize-none"
-                rows={2}
+                className="text-xs min-h-[70px] resize-none focus:ring-primary/20 bg-muted/5 border-border/40"
+                rows={3}
               />
             </CollapsibleContent>
           </Collapsible>
