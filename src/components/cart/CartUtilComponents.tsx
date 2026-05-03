@@ -110,10 +110,10 @@ export { CartItemSkeleton };
 
 export function SuggestionSkeleton() {
   return (
-    <div className="space-y-2">
-      {[1, 2].map((i) => (
+    <div className="space-y-2 animate-pulse">
+      {[1, 2, 3].map((i) => (
         <div key={i} className="flex items-start gap-2.5 p-3 rounded-xl border border-border/20 bg-muted/5">
-          <Skeleton className="h-5 w-5 rounded-full flex-shrink-0" />
+          <Skeleton className="h-5 w-5 rounded-full flex-shrink-0 mt-0.5" />
           <div className="space-y-1.5 flex-1">
             <Skeleton className="h-3 w-full" />
             <Skeleton className="h-3 w-4/5" />
