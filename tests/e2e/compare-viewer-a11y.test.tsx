@@ -88,14 +88,16 @@ const saveTransitionArtifacts = (name: string, container: HTMLElement) => {
   const html = container.innerHTML;
   const styles = {};
   container.querySelectorAll('*').forEach((el, i) => {
-    if (i < 50) { // Amostra de estilos
-      const selector = el.tagName.toLowerCase() + (el.className ? `.${el.className.split(' ').join('.')}` : '');
+    if (i < 50 && el instanceof HTMLElement) { // Amostra de estilos
+      const className = typeof el.className === 'string' ? el.className : '';
+      const selector = el.tagName.toLowerCase() + (className ? `.${className.split(' ').join('.')}` : '');
       try {
         const computed = window.getComputedStyle(el);
         styles[selector] = { display: computed.display, position: computed.position, color: computed.color };
       } catch (e) {}
     }
   });
+
 
   fs.writeFileSync(path.join(artifactDir, `${name}.html`), html);
   fs.writeFileSync(path.join(artifactDir, `${name}-styles.json`), JSON.stringify(styles, null, 2));
