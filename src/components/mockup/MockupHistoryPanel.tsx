@@ -69,6 +69,7 @@ export function MockupHistoryPanel({
 }: MockupHistoryPanelProps) {
   const [filterClient, setFilterClient] = useState("all");
   const [filterProduct, setFilterProduct] = useState("");
+  const deferredFilterProduct = useDeferredValue(filterProduct);
   const [filterTechnique, setFilterTechnique] = useState("all");
   const [filterDateRange, setFilterDateRange] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
@@ -78,8 +79,8 @@ export function MockupHistoryPanel({
   const [gridColumns, setGridColumns] = useState<ColumnCount>(() => getDefaultColumns());
   const [lightboxMockup, setLightboxMockup] = useState<GeneratedMockup | null>(null);
 
-  const handleSetViewMode = (mode: "grid" | "list") => { setViewMode(mode); setCurrentPage(1); };
-  const toggleCompareSelection = (id: string) => {
+  const handleSetViewMode = useCallback((mode: "grid" | "list") => { setViewMode(mode); setCurrentPage(1); }, []);
+  const toggleCompareSelection = useCallback((id: string) => {
     setSelectedForCompare(prev => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
