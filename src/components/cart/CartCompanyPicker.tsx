@@ -5,7 +5,7 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Fuse from "fuse.js";
-import { Building2, Search, Loader2, Plus } from "lucide-react";
+import { Building2, Search, Loader2, Clock, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { selectCrm, searchCrm } from "@/lib/crm-db";
 import { getCompanyDisplayName, type CrmCompany } from "@/types/crm";
 import { useSellerCartContext, type CreateCartInput } from "@/contexts/SellerCartContext";
+import { useSearchHistory } from "@/hooks/useSearchHistory";
 
 interface CompanyItem {
   id: string;
@@ -33,6 +34,7 @@ export function CartCompanyPicker({ onCreated, onCancel }: CartCompanyPickerProp
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const { createCart, canCreateCart } = useSellerCartContext();
+  const { history, addToHistory, removeFromHistory, clearHistory } = useSearchHistory("company");
 
   // Debounce server search
   useEffect(() => {
@@ -113,7 +115,13 @@ export function CartCompanyPicker({ onCreated, onCancel }: CartCompanyPickerProp
     return merged.slice(0, 30);
   }, [searchTerm, fuse, localCompanies, serverResults]);
 
-  const handleSelect = useCallback(async (company: CompanyItem) => {
+  const handleSelect = useCallback(async (company: { id: string; name: string; ramo?: string | null; logo_url?: string | null }) => {
+    addToHistory({
+      id: company.id,
+      label: company.name,
+      type: "company"
+    });
+    
     const input: CreateCartInput = {
       company_id: company.id,
       company_name: company.name,
@@ -122,7 +130,7 @@ export function CartCompanyPicker({ onCreated, onCancel }: CartCompanyPickerProp
     };
     await createCart(input);
     onCreated?.();
-  }, [createCart, onCreated]);
+  }, [createCart, onCreated, addToHistory]);
 
   const isLoading = loadingLocal || loadingServer;
 
@@ -153,6 +161,38 @@ export function CartCompanyPicker({ onCreated, onCancel }: CartCompanyPickerProp
 
       <ScrollArea className="h-[200px]">
         <div className="space-y-0.5">
+          {!searchTerm && history.length > 0 && (
+            <div className="mb-2 pb-2 border-b border-border/50">
+              <div className="flex items-center justify-between px-2 mb-1">
+                <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                  <Clock className="h-3 w-3" />
+                  Visitados Recentemente
+                </span>
+                <Button variant="ghost" size="sm" className="h-5 text-[10px]" onClick={clearHistory}>Limpar</Button>
+              </div>
+              {history.slice(0, 3).map(item => (
+                <div key={item.id} className="group relative">
+                  <button
+                    type="button"
+                    className="w-full flex items-center gap-2 px-2 py-1 rounded-md text-left hover:bg-accent/50 text-sm"
+                    onClick={() => handleSelect({ id: item.id, name: item.label })}
+                  >
+                    <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
+                    <span className="truncate flex-1">{item.label}</span>
+                  </button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-5 w-5 opacity-0 group-hover:opacity-100"
+                    onClick={(e) => { e.stopPropagation(); removeFromHistory(item.id); }}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+
           {filteredCompanies.map((company) => (
             <button
               key={company.id}
