@@ -38,6 +38,40 @@ export const STATUS_CONFIG: Record<CartStatus, { label: string; color: string }>
 export function getStatusCfg(status: string | undefined | null) {
   return STATUS_CONFIG[(status as CartStatus)] || STATUS_CONFIG.novo;
 }
+ 
+ // ============================================
+ // SHARED UI COMPONENTS
+ // ============================================
+ 
+ interface PriceLabelProps {
+   label: string;
+   value: number;
+   testId?: string;
+   className?: string;
+   isPrimary?: boolean;
+ }
+ 
+ /**
+  * PriceLabel - Componente padronizado para exibir rótulo + valor monetário
+  */
+ export function PriceLabel({ label, value, testId, className, isPrimary }: PriceLabelProps) {
+   return (
+     <div className={cn("flex flex-col", className)}>
+       <span className=\"text-[10px] text-muted-foreground uppercase font-bold tracking-tight opacity-60\">
+         {label}
+       </span>
+       <span 
+         data-testid={testId} 
+         className={cn(
+           \"text-sm font-bold tabular-nums\",
+           isPrimary ? \"text-primary\" : \"text-foreground\"
+         )}
+       >
+         {formatCurrency(value)}
+       </span>
+     </div>
+   );
+ }
 
 // ============================================
 // ACTION HISTORY (in-memory per session)
