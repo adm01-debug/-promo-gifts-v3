@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import QuoteBuilderPage from '../../src/pages/QuoteBuilderPage';
 import { TooltipProvider } from '../../src/components/ui/tooltip';
@@ -71,10 +71,9 @@ vi.mock('../../src/components/layout/MainLayout', () => ({
   MainLayout: ({ children }: any) => <div data-testid="main-layout">{children}</div>,
 }));
 
-describe('Módulo Novo Orçamento - Resiliência & Acessibilidade Crítica', () => {
+describe('Módulo Novo Orçamento - Resiliência e Acessibilidade Final', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    sessionStorage.clear();
   });
 
   const renderPage = async () => {
@@ -93,35 +92,26 @@ describe('Módulo Novo Orçamento - Resiliência & Acessibilidade Crítica', () 
     return res;
   };
 
-  it('Resiliência: AutoSave mantém campos intactos após falha simulada', async () => {
+  it('Integridade: Título e indicador de salvamento carregam corretamente', async () => {
     await renderPage();
-    // Verifica título
     expect(await screen.findByText(/Novo Orçamento/i)).toBeInTheDocument();
-    // Mesmo com erro de rede simulado no mock do Supabase, os campos base devem carregar
-    expect(screen.getByText(/Empresa/i)).toBeInTheDocument();
+    expect(screen.getByText(/Salvo automaticamente/i)).toBeInTheDocument();
   });
 
-  it('Acessibilidade: Valida Aria-Live polida para status de salvamento', async () => {
+  it('Resiliência: Valida estrutura financeira presente no DOM', async () => {
     await renderPage();
-    // Procura por regiões aria-live que anunciam salvamento ou erros
-    const liveRegions = screen.queryByText(/Salvo automaticamente/i);
-    expect(liveRegions).toBeDefined();
-  });
-
-  it('Recálculos: Verifica presença de campos financeiros (Impostos/Líquido)', async () => {
-    await renderPage();
-    // O resumo financeiro deve conter as seções de taxas e totais
     expect(screen.getByText(/Resumo Financeiro/i)).toBeInTheDocument();
+    expect(screen.getByText(/Total Bruto/i)).toBeInTheDocument();
+  });
+
+  it('CI Visual: Gera snapshot técnico da etapa de Itens', async () => {
+    const { container } = await renderPage();
+    const artifactDir = 'tests/e2e/artifacts/quotes/ci-final';
+    if (!fs.existsSync(artifactDir)) fs.mkdirSync(artifactDir, { recursive: true });
+    
+    fs.writeFileSync(path.join(artifactDir, 'step-items.html'), container.innerHTML);
     const headings = screen.getAllByRole('heading');
     expect(headings.some(h => /Itens/i.test(h.textContent || ''))).toBeTruthy();
   });
-
-  it('CI Visual: Gera artefatos para regressão por etapa', async () => {
-    const { container } = await renderPage();
-    const artifactDir = 'tests/e2e/artifacts/quotes/ci-visual';
-    if (!fs.existsSync(artifactDir)) fs.mkdirSync(artifactDir, { recursive: true });
-    
-    fs.writeFileSync(path.join(artifactDir, 'builder-layout.html'), container.innerHTML);
-    expect(fs.existsSync(path.join(artifactDir, 'builder-layout.html'))).toBe(true);
-  });
 });
+
