@@ -16,6 +16,9 @@ const queryClient = new QueryClient({
   },
 });
 
+// Mock window.scrollTo
+window.scrollTo = vi.fn();
+
 // Mock do contexto de Auth
 vi.mock('../../src/contexts/AuthContext', () => ({
   useAuth: () => ({
@@ -228,9 +231,8 @@ describe('E2E Comparar — Módulo de Comparação', () => {
     renderPage();
 
     await waitFor(() => {
-      // Usamos getAllByText e pegamos o primeiro para evitar o conflito de múltiplos elementos
-      const duelBtn = screen.getAllByText(/Modo Duelo/i)[0];
-      expect(duelBtn).toBeInTheDocument();
+      const duelBtns = screen.getAllByText(/Modo Duelo/i);
+      expect(duelBtns.length).toBeGreaterThan(0);
     });
   });
 
@@ -246,9 +248,10 @@ describe('E2E Comparar — Módulo de Comparação', () => {
     const tableTab = await screen.findByText(/Tabela Detalhada/i);
     fireEvent.click(tableTab);
 
+    // Na tabela detalhada, procuramos por cabeçalhos conhecidos
     await waitFor(() => {
-      expect(screen.getByText(/Atributo/i)).toBeInTheDocument();
       expect(screen.getByText(/Preço unitário/i)).toBeInTheDocument();
+      expect(screen.getByText(/Quantidade mínima/i)).toBeInTheDocument();
     });
   });
 
