@@ -87,7 +87,7 @@ export function MockupHistoryPanel({
       else if (next.size < 4) next.add(id);
       return next;
     });
-  };
+  }, []);
 
   const compareMode = selectedForCompare.size > 0;
   const compareMockups = mockupHistory.filter(m => selectedForCompare.has(m.id));
