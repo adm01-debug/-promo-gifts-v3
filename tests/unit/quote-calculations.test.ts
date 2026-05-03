@@ -85,7 +85,7 @@ describe('Cálculos de Orçamento (Unit Tests)', () => {
     });
   });
 
-  describe('Casos de Borda e Precisão', () => {
+  describe('Casos de Borda e Precisão Avançados', () => {
     it('deve lidar com descontos negativos (tratar como zero)', () => {
       expect(calculateDiscountAmount(100, 'percent', -10)).toBe(0);
       expect(calculateDiscountAmount(100, 'amount', -50)).toBe(0);
@@ -93,32 +93,52 @@ describe('Cálculos de Orçamento (Unit Tests)', () => {
 
     it('deve limitar markup excessivo ao teto de 50%', () => {
       expect(applyMarkup(100, 1000)).toBe(150);
+      expect(applyMarkup(100, 50.00001)).toBe(150);
     });
 
-    it('deve lidar com valores nulos ou undefined em applyMarkup', () => {
+    it('deve lidar com valores nulos ou undefined em todas as funções', () => {
       // @ts-ignore
       expect(applyMarkup(100, null)).toBe(100);
       // @ts-ignore
       expect(applyMarkup(null, 10)).toBe(0);
+      // @ts-ignore
+      expect(calculateDiscountAmount(null, 'percent', 10)).toBe(0);
+      // @ts-ignore
+      expect(calculateDiscountAmount(100, 'percent', null)).toBe(0);
+      // @ts-ignore
+      expect(calculateSubtotal(null)).toBe(0);
+      expect(calculateSubtotal([])).toBe(0);
     });
 
     it('deve manter alta precisão e arredondamento correto (ABNT/Financeiro)', () => {
       // 10.125 deve arredondar para 10.13 se usarmos Math.round com 2 casas
-      // 10.125 * 100 = 1012.5 -> Math.round = 1013 -> / 100 = 10.13
       expect(applyMarkup(10, 1.25)).toBe(10.13); 
       
-      // Teste com muitos decimais
-      expect(applyMarkup(10.123456789, 10)).toBe(11.14); // 10.123456789 * 1.1 = 11.135802... -> 11.14
+      // Teste com muitos decimais e arredondamento para cima/baixo
+      expect(applyMarkup(10.124, 10)).toBe(11.14); // 10.124 * 1.1 = 11.1364 -> 11.14
+      expect(applyMarkup(10.121, 10)).toBe(11.13); // 10.121 * 1.1 = 11.1331 -> 11.13
     });
 
-    it('deve lidar com quantidades fracionadas (se permitido pelo sistema)', () => {
+    it('deve calcular o desconto real com precisão de 2 casas decimais no percentual', () => {
+      // Subtotal real: 100, apresentado: 110 (markup 10%), desconto: 15
+      // Final: 110 - 15 = 95
+      // Desconto Real: (100 - 95) / 100 = 5%
+      expect(calculateRealDiscountPercent(100, 110, 15)).toBe(5);
+
+      // Valores quebrados
+      // Subtotal real: 33.33, apresentado: 36.66, desconto: 5
+      // Final: 31.66
+      // Desconto Real: (33.33 - 31.66) / 33.33 = 1.67 / 33.33 = 0.050105... -> 5.01%
+      expect(calculateRealDiscountPercent(33.33, 36.66, 5)).toBe(5.01);
+    });
+
+    it('deve lidar com quantidades fracionadas com alta precisão', () => {
       const params = {
-        quantity: 0.5,
-        unitPrice: 10.55
+        quantity: 0.3333,
+        unitPrice: 10.5555
       };
-      // 0.5 * 10.55 = 5.275 -> calculateItemTotal não arredonda, o subtotal ou final deve arredondar
-      // Mas o calculateItemTotal atual faz apenas a multiplicação
-      expect(calculateItemTotal(params)).toBe(5.275);
+      // 0.3333 * 10.5555 = 3.51814815
+      expect(calculateItemTotal(params)).toBeCloseTo(3.51814815, 8);
     });
   });
 });
