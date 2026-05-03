@@ -22,17 +22,24 @@ interface AutoSaveOptions {
 /**
  * Migra dados de versões antigas para a versão atual.
  */
-function migratePayload(payload: any): any {
+export function migratePayload(payload: any, currentVersion: number = AUTOSAVE_SCHEMA_VERSION): any {
   if (!payload) return null;
 
   // Se for um payload antigo sem versão (v1)
   if (!payload.version) {
     console.log("[AutoSave] Migrating from v1 to v2");
     return {
-      version: AUTOSAVE_SCHEMA_VERSION,
+      version: currentVersion,
       data: payload, // Antigamente o payload era o próprio data
       savedAt: new Date().toISOString()
     };
+  }
+
+  // Se a versão do payload for maior que a atual, tratamos como inseguro 
+  // e retornamos null para evitar corrupção de estado (o usuário perderá o rascunho, mas não quebrará o app)
+  if (payload.version > currentVersion) {
+    console.warn("[AutoSave] Future payload version detected, skipping restore to prevent state corruption");
+    return null;
   }
 
   // Adicione futuras migrações aqui:
