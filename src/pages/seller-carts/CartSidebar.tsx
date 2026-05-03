@@ -108,7 +108,7 @@ export function CartSidebar({
         {/* ZONE 2 — Ação primária */}
         <Button
           data-testid="cart-checkout-cta"
-          className="w-full gap-2 h-11 font-semibold bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl"
+          className="w-full gap-2 h-11 font-semibold bg-success hover:bg-success/90 text-success-foreground rounded-xl shadow-md shadow-success/20 hover:shadow-lg hover:shadow-success/30 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
           onClick={() => onGenerateQuote(cart)}
         >
           <ArrowRight className="h-4 w-4" /> Gerar Orçamento
