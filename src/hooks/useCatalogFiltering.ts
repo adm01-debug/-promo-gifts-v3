@@ -103,10 +103,12 @@ export function useCatalogFiltering({
       });
     }
 
-    if (hasMaterialFilter && materialFilteredProductIds.size > 0) {
-      result = result.filter((p) => materialFilteredProductIds.has(p.id));
-    } else if (hasMaterialFilter && materialFilteredProductIds.size === 0 && !isLoadingMaterialFilter) {
-      return [];
+    if (hasMaterialFilter && !isLoadingMaterialFilter) {
+      if (materialFilteredProductIds.size > 0) {
+        result = result.filter((p) => materialFilteredProductIds.has(p.id));
+      } else {
+        return [];
+      }
     }
 
     if (!hasMaterialFilter && filters.materiais.length) {
