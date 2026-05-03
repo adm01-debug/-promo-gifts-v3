@@ -538,7 +538,13 @@ Deno.serve(async (req) => {
 
     console.log("Authenticated user:", userId);
 
-    const rawBody = await req.json();
+    const rawBody = await safeJson(req);
+    if (!rawBody) {
+      return new Response(JSON.stringify({ error: "Invalid or empty request body" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const parsed = ExpertChatBodySchema.safeParse(rawBody);
     if (!parsed.success) {
       console.error("Validation errors:", JSON.stringify(parsed.error.flatten()));
