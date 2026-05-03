@@ -12,6 +12,9 @@ const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false } },
 });
 
+// Mock window.scrollTo
+window.scrollTo = vi.fn();
+
 // Mock de produtos base
 const mockProducts = [
   {
@@ -30,61 +33,39 @@ const mockProducts = [
   }
 ];
 
-// Mock do contexto de AriaLive
+// Mocks consolidados
 vi.mock('../../src/components/a11y/AriaLive', () => ({
   useAriaLive: () => ({ announce: vi.fn(), announceStatus: vi.fn() }),
-  AriaLiveProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  AriaLiveProvider: ({ children }: any) => <div>{children}</div>,
 }));
 
-// Mock do contexto de Auth
 vi.mock('../../src/contexts/AuthContext', () => ({
-  useAuth: () => ({
-    user: { id: 'user-123' },
-    session: { access_token: 'fake-token' },
-    profile: { id: 'prof-123', full_name: 'Test User' },
-    isLoading: false, isAdmin: false, role: 'agente', isAuthenticated: true,
-  }),
-  AuthProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  useAuth: () => ({ user: { id: 'u1' }, isAuthenticated: true, role: 'agente' }),
+  AuthProvider: ({ children }: any) => <div>{children}</div>,
 }));
 
-// Mock do contexto de Onboarding
 vi.mock('../../src/contexts/OnboardingContext', () => ({
-  useOnboarding: () => ({ isTourOpen: false, startTour: vi.fn(), completeTour: vi.fn() }),
-  useOnboardingContext: () => ({ isTourOpen: false, startTour: vi.fn(), completeTour: vi.fn() }),
-  useOnboardingHook: () => ({ isTourOpen: false, startTour: vi.fn(), completeTour: vi.fn() }),
-  OnboardingProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  useOnboarding: () => ({ isTourOpen: false }),
+  OnboardingProvider: ({ children }: any) => <div>{children}</div>,
 }));
 
-// Mock do contexto de Carrinho do Vendedor
 vi.mock('../../src/contexts/SellerCartContext', () => ({
-  useSellerCart: () => ({ items: [], addItem: vi.fn(), removeItem: vi.fn() }),
-  SellerCartProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  useSellerCart: () => ({ items: [] }),
+  SellerCartProvider: ({ children }: any) => <div>{children}</div>,
 }));
 
-// Mocks de infraestrutura
 vi.mock('../../src/integrations/supabase/client', () => ({
   supabase: {
     auth: { getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'u1' } } }) },
-    from: vi.fn().mockReturnThis(),
-    select: vi.fn().mockReturnThis(),
-    eq: vi.fn().mockReturnThis(),
-    is: vi.fn().mockReturnThis(),
-    order: vi.fn().mockReturnThis(),
-    limit: vi.fn().mockReturnThis(),
-    maybeSingle: vi.fn().mockResolvedValue({ data: null }),
-    rpc: vi.fn().mockResolvedValue({ data: [] }),
+    from: vi.fn().mockReturnThis(), select: vi.fn().mockReturnThis(),
+    eq: vi.fn().mockReturnThis(), rpc: vi.fn().mockResolvedValue({ data: [] }),
   },
 }));
 
 vi.mock('../../src/contexts/ProductsContext', () => ({
-  useProductsContext: () => ({
-    products: mockProducts,
-    getProductsByIds: (ids: string[]) => mockProducts.filter(p => ids.includes(p.id)),
-  }),
-  useProductsContextSafe: () => ({
-    products: mockProducts,
-    getProductsByIds: (ids: string[]) => mockProducts.filter(p => ids.includes(p.id)),
-  }),
+  useProductsContext: () => ({ products: mockProducts, getProductsByIds: (ids: string[]) => mockProducts.filter(p => ids.includes(p.id)) }),
+  useProductsContextSafe: () => ({ products: mockProducts, getProductsByIds: (ids: string[]) => mockProducts.filter(p => ids.includes(p.id)) }),
+  ProductsContext: { Provider: ({ children }: any) => <div>{children}</div> },
 }));
 
 vi.mock('recharts', () => ({
@@ -99,13 +80,13 @@ vi.mock('recharts', () => ({
 
 vi.mock('../../src/hooks/useComparisonScore', () => ({
   useComparisonScore: (products: any[]) => (products || []).map(p => ({
-    productId: String(p.id), total: 80, score: 80, isWinner: p.id === 'p1', rank: 1,
+    productId: String(p.id), total: 80, score: 80, isWinner: true, rank: 1,
     breakdown: { price: 35, stock: 20, minQuantity: 15, colorVariety: 10, verifiedSupplier: 10, leadTime: 10 }
   })),
   DEFAULT_SCORE_WEIGHTS: { price: 35, stock: 20, minQuantity: 15, colorVariety: 10, verifiedSupplier: 10, leadTime: 10 }
 }));
 
-describe('Módulo Comparar - Bateria Exaustiva de Testes', () => {
+describe('Módulo Comparar - Bateria Exaustiva', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     useComparisonStore.setState({
@@ -130,12 +111,13 @@ describe('Módulo Comparar - Bateria Exaustiva de Testes', () => {
     return res;
   };
 
-  it('Validação 1: Carregamento total e limites', async () => {
+  it('Geral: Carregamento e Interface Base', async () => {
     await renderPage();
-    expect(await screen.findByText(/Comparando 2 produtos/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Comparador de Produtos/i)).toBeInTheDocument();
+    expect(screen.getByText(/Comparando 2 produtos/i)).toBeInTheDocument();
   });
 
-  it('Validação 2: Tabela Detalhada e Filtros', async () => {
+  it('Funcional: Tabela e Filtros', async () => {
     await renderPage();
     const tableTab = await screen.findByText(/Tabela Detalhada/i);
     fireEvent.click(tableTab);
@@ -149,14 +131,14 @@ describe('Módulo Comparar - Bateria Exaustiva de Testes', () => {
     expect(diffBtn).toHaveTextContent(/Mostrando diferenças/i);
   });
 
-  it('Validação 3: Modo Duelo', async () => {
+  it('Modos: Duelo', async () => {
     await renderPage();
     const duelBtn = await screen.findByText(/Ativar Modo Duelo/i);
     fireEvent.click(duelBtn);
     expect(await screen.findByText(/Modo Duelo ativo/i)).toBeInTheDocument();
   });
 
-  it('Validação 4: Remoção e Limpeza', async () => {
+  it('Ações: Remoção e Limpeza', async () => {
     await renderPage();
     const removeBtns = await screen.findAllByLabelText(/Remover/i);
     fireEvent.click(removeBtns[0]);
@@ -166,4 +148,5 @@ describe('Módulo Comparar - Bateria Exaustiva de Testes', () => {
     expect(await screen.findByText(/Selecione pelo menos 2 produtos/i)).toBeInTheDocument();
   });
 });
+
 
