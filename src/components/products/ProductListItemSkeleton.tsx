@@ -17,15 +17,15 @@ export function ProductListItemSkeleton() {
       <div className="flex-1 min-w-0 py-0.5 space-y-1.5">
         {/* Meta: category + supplier */}
         <div className="flex items-center gap-1.5">
-          <Skeleton className="h-3 w-20" />
-          <Skeleton className="h-3 w-16" />
+          <Skeleton className="h-3 w-16 opacity-50" />
+          <Skeleton className="h-3 w-12 opacity-40" />
         </div>
         {/* Name */}
-        <Skeleton className="h-4 w-3/5" />
+        <Skeleton className="h-4 w-3/5 opacity-80" />
         {/* Stock + SKU */}
         <div className="flex items-center gap-2">
-          <Skeleton className="h-3 w-28" />
-          <Skeleton className="h-3 w-16 hidden sm:block" />
+          <Skeleton className="h-3 w-24 opacity-50" />
+          <Skeleton className="h-3 w-12 hidden sm:block opacity-30" />
         </div>
       </div>
 
