@@ -4,6 +4,13 @@
 @import './styles/animations.css';
 @import './styles/responsive.css';
 @import './styles/motion-tokens.css';
+@keyframes bounce-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10%); }
+}
+.animate-bounce-slow {
+  animation: bounce-slow 3s infinite ease-in-out;
+}
 
 /* Reset problematic defaults */
 #root {

@@ -216,7 +216,19 @@ export function CartCompanyPickerDialog({ open, onOpenChange, onCreated }: CartC
 
           <TabsContent value="recent" className="m-0 px-3 pt-3 pb-4">
             <ScrollArea className="h-[340px] pr-2">
-              {recents.length > 0 ? (
+              {isLoading ? (
+                <div className="space-y-1 py-1">
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i} className="flex items-center gap-3 px-3 py-2.5 rounded-lg">
+                      <Skeleton className="w-9 h-9 rounded-lg opacity-20" />
+                      <div className="flex-1 space-y-2">
+                        <Skeleton className="h-3 w-3/4 opacity-15" />
+                        <Skeleton className="h-2 w-1/2 opacity-10" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : recents.length > 0 ? (
                 <div className="space-y-0.5">{recents.map(renderRow)}</div>
               ) : (
                 <p className="text-xs text-muted-foreground text-center py-12">Sem empresas recentes ainda.</p>
@@ -226,7 +238,19 @@ export function CartCompanyPickerDialog({ open, onOpenChange, onCreated }: CartC
 
           <TabsContent value="favorites" className="m-0 px-3 pt-3 pb-4">
             <ScrollArea className="h-[340px] pr-2">
-              {favorites.length > 0 ? (
+              {isLoading ? (
+                <div className="space-y-1 py-1">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="flex items-center gap-3 px-3 py-2.5 rounded-lg">
+                      <Skeleton className="w-9 h-9 rounded-lg opacity-20" />
+                      <div className="flex-1 space-y-2">
+                        <Skeleton className="h-3 w-3/4 opacity-15" />
+                        <Skeleton className="h-2 w-1/2 opacity-10" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : favorites.length > 0 ? (
                 <div className="space-y-0.5">{favorites.map(renderRow)}</div>
               ) : (
                 <p className="text-xs text-muted-foreground text-center py-12">Marque empresas como favoritas usando a estrela.</p>
@@ -242,12 +266,24 @@ export function CartCompanyPickerDialog({ open, onOpenChange, onCreated }: CartC
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Nome, CNPJ ou segmento..."
-                className="h-9 pl-8 text-sm"
+                className="h-9 pl-8 text-sm bg-muted/20 border-border/40 focus:bg-background transition-colors"
               />
-              {isLoading && <Loader2 className="absolute right-4.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-muted-foreground" />}
+              {isLoading && <Loader2 className="absolute right-4.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-muted-foreground opacity-50" />}
             </div>
             <ScrollArea className="h-[290px] pr-2">
-              {filteredCompanies.length > 0 ? (
+              {isLoading && filteredCompanies.length === 0 ? (
+                <div className="space-y-1 px-1">
+                  {[...Array(6)].map((_, i) => (
+                    <div key={i} className="flex items-center gap-3 px-3 py-2.5 rounded-lg">
+                      <Skeleton className="w-9 h-9 rounded-lg opacity-20" />
+                      <div className="flex-1 space-y-2">
+                        <Skeleton className="h-3 w-3/4 opacity-15" />
+                        <Skeleton className="h-2 w-1/2 opacity-10" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : filteredCompanies.length > 0 ? (
                 <div className="space-y-0.5">{filteredCompanies.map(renderRow)}</div>
               ) : !isLoading ? (
                 <p className="text-xs text-muted-foreground text-center py-12">Nenhuma empresa encontrada.</p>

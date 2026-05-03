@@ -59,15 +59,15 @@ export function BundleSuggestionCard({ productId, onAdd, className }: BundleSugg
       </CardHeader>
       <CardContent className="p-3 pt-0 space-y-2">
         {isLoading ? (
-          <div className="space-y-3">
+          <div className="space-y-3 animate-pulse">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="flex items-center gap-2">
-                <Skeleton className="w-10 h-10 rounded-md shrink-0" />
-                <div className="flex-1 space-y-1.5">
-                  <Skeleton className="h-3 w-3/4" />
-                  <Skeleton className="h-2 w-1/2" />
+              <div key={i} className="flex items-center gap-2.5 p-2.5 rounded-md">
+                <Skeleton className="w-10 h-10 rounded-md shrink-0 opacity-20" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-3 w-3/4 opacity-15" />
+                  <Skeleton className="h-2 w-1/2 opacity-10" />
                 </div>
-                <Skeleton className="h-7 w-12 rounded-md" />
+                <Skeleton className="h-7 w-12 rounded-md opacity-20" />
               </div>
             ))}
           </div>
