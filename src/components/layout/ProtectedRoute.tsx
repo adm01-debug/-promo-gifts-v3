@@ -34,7 +34,7 @@ export function ProtectedRoute({
     );
   }
 
-  if (!user && location.pathname !== "/") {
+  if (!user) {
     // Redireciona para página de erro 401 que fornece contexto e link de login
     return <Navigate to="/unauthorized" state={{ from: location }} replace />;
   }
