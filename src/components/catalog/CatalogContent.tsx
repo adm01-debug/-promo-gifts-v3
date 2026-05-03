@@ -1,7 +1,7 @@
-import { useRef, useCallback, useEffect, useState, useMemo } from "react";
+import { useRef, useCallback, useEffect, useState, useMemo, memo } from "react";
 import type { ActiveColorFilter } from "@/utils/color-image-resolver";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { Loader2, ArrowUp } from "lucide-react";
+import { Loader2, ArrowUp, Keyboard } from "lucide-react";
 
 import { AnimatePresence, motion } from "framer-motion";
 import { ProductCard } from "@/components/products/ProductCard";
@@ -47,6 +47,8 @@ interface CatalogContentProps {
   selectionMode?: boolean;
   onSelectedCountChange?: (count: number) => void;
   activeColorFilter?: ActiveColorFilter | null;
+  activeProductId?: string | null;
+  setActiveProductId?: (id: string | null) => void;
 }
 
 // ─── Shared scroll-to-top button ────────────────────────────────────
