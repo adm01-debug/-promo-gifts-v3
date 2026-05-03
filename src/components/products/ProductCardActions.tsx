@@ -102,7 +102,7 @@ export const ProductCardActions = memo(function ProductCardActions({
           productId={productId} productName={productName} productSku={productSku}
           productImageUrl={productImageUrl} productPrice={productPrice}
           minQuantity={productMinQuantity} variant="icon"
-          className="h-9 w-9 md:h-11 md:w-11 min-h-[36px] min-w-[36px] md:min-h-[44px] md:min-w-[44px]"
+          className="h-9 w-9 md:h-11 md:w-11 min-h-[36px] min-w-[36px] md:min-h-[44px] md:min-w-[44px] bg-primary hover:bg-primary/90 text-primary-foreground border-primary/20 shadow-primary/20"
         />
 
         {/* Quick View */}
