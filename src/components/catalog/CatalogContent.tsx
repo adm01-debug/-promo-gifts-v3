@@ -230,7 +230,7 @@ function VirtualList({ products, navigate, handleViewProduct, handleShareProduct
 }
 
 // ─── CatalogContent — Orchestrator ──────────────────────────────────
-export function CatalogContent({
+export const CatalogContent = memo(function CatalogContent({
   viewMode, shouldShowCatalogSkeleton, shouldShowEmptyState, hasActiveCatalogConstraints,
   paginatedProducts, filteredProducts, gridColumns, hasMoreProducts, isLoadingMore, totalEstimate,
   loadMoreRef, itemsPerPage, navigate, handleViewProduct, handleShareProduct,
@@ -240,79 +240,102 @@ export function CatalogContent({
   const sparklineProductIds = useMemo(() => paginatedProducts.map(p => p.id), [paginatedProducts]);
   const sel = useCatalogSelection(paginatedProducts, selectionMode, onSelectedCountChange);
 
-  const sharedProps = {
+  const sharedProps = useMemo(() => ({
     products: paginatedProducts, navigate, handleViewProduct, handleShareProduct,
     isFavorite, toggleFavorite, isInCompare, onToggleCompare, canAddToCompare,
     hasMore: hasMoreProducts, isLoadingMore, totalEstimate,
     filteredCount: filteredProducts.length, loadMoreRef, itemsPerPage, onLoadMore,
     selectionMode, selectedIds: sel.selectedIds, onToggleSelect: sel.toggleSelect,
     activeColorFilter,
-  };
+  }), [
+    paginatedProducts, navigate, handleViewProduct, handleShareProduct,
+    isFavorite, toggleFavorite, isInCompare, onToggleCompare, canAddToCompare,
+    hasMoreProducts, isLoadingMore, totalEstimate,
+    filteredProducts.length, loadMoreRef, itemsPerPage, onLoadMore,
+    selectionMode, sel.selectedIds, sel.toggleSelect,
+    activeColorFilter
+  ]);
 
-  if (shouldShowCatalogSkeleton) {
-    return (
-      <div className={`${CONTAINER_CLASS} p-4`}>
-        {viewMode === "grid"
-          ? <ProductGridSkeleton count={itemsPerPage} columns={gridColumns} />
-          : <ProductListSkeleton count={viewMode === "table" ? 12 : 8} />}
-      </div>
-    );
-  }
+  const renderContent = () => {
+    if (shouldShowCatalogSkeleton) {
+      return (
+        <div className={`${CONTAINER_CLASS} p-4`}>
+          {viewMode === "grid"
+            ? <ProductGridSkeleton count={itemsPerPage} columns={gridColumns} />
+            : <ProductListSkeleton count={viewMode === "table" ? 12 : 8} />}
+        </div>
+      );
+    }
 
-  if (shouldShowEmptyState) {
-    return (
-      <div className={`${CONTAINER_CLASS} p-4`}>
-        <EmptyState
-          variant={hasActiveCatalogConstraints ? "search" : "products"}
-          title={hasActiveCatalogConstraints ? "Nenhum produto encontrado" : "Catálogo indisponível no momento"}
-          description={hasActiveCatalogConstraints ? "Tente ajustar os filtros, remover termos da busca ou buscar em todas as categorias." : "O catálogo ainda não retornou itens para exibição."}
-          action={hasActiveCatalogConstraints && onResetFilters ? { label: "Limpar tudo e ver catálogo completo", onClick: onResetFilters } : undefined}
-          className="min-h-[420px]"
-        />
-      </div>
-    );
-  }
+    if (shouldShowEmptyState) {
+      return (
+        <div className={`${CONTAINER_CLASS} p-4`}>
+          <EmptyState
+            variant={hasActiveCatalogConstraints ? "search" : "products"}
+            title={hasActiveCatalogConstraints ? "Nenhum produto encontrado" : "Catálogo indisponível no momento"}
+            description={hasActiveCatalogConstraints ? "Tente ajustar os filtros, remover termos da busca ou buscar em todas as categorias." : "O catálogo ainda não retornou itens para exibição."}
+            action={hasActiveCatalogConstraints && onResetFilters ? { label: "Limpar tudo e ver catálogo completo", onClick: onResetFilters } : undefined}
+            className="min-h-[420px]"
+          />
+        </div>
+      );
+    }
 
-  // Se não há produtos mas ainda está carregando mais (background fetch), mostrar skeleton
-  if (paginatedProducts.length === 0 && isLoadingMore) {
-    return (
-      <div className={`${CONTAINER_CLASS} p-4`}>
-        <div className="flex flex-col items-center justify-center h-full space-y-4">
-          <Loader2 className="h-8 w-8 text-primary animate-spin" />
-          <p className="text-muted-foreground animate-pulse">Buscando mais produtos no catálogo...</p>
-          <div className="w-full max-w-md">
-             <ProductGridSkeleton count={4} columns={gridColumns} />
+    // Se não há produtos mas ainda está carregando mais (background fetch), mostrar skeleton
+    if (paginatedProducts.length === 0 && isLoadingMore) {
+      return (
+        <div className={`${CONTAINER_CLASS} p-4`}>
+          <div className="flex flex-col items-center justify-center h-full space-y-4">
+            <Loader2 className="h-8 w-8 text-primary animate-spin" />
+            <p className="text-muted-foreground animate-pulse font-medium">Sincronizando catálogo...</p>
+            <div className="w-full max-w-md opacity-50">
+               <ProductGridSkeleton count={gridColumns} columns={gridColumns} />
+            </div>
           </div>
         </div>
-      </div>
-    );
-  }
+      );
+    }
 
-  const content = viewMode === "table" ? (
-    <div className={`${CONTAINER_CLASS}`}>
-      <ProductTableView
-        products={paginatedProducts} onProductClick={(id) => navigate(`/produto/${id}`)}
-        isFavorite={isFavorite} onToggleFavorite={toggleFavorite}
-        isInCompare={isInCompare} onToggleCompare={onToggleCompare} canAddToCompare={canAddToCompare}
-        onShareProduct={handleShareProduct} selectionMode={selectionMode}
-        selectedIds={sel.selectedIds} onToggleSelect={sel.toggleSelect} activeColorFilter={activeColorFilter}
-      />
-      {hasMoreProducts && (
-        <div ref={loadMoreRef} className="flex flex-col items-center gap-3 pt-8 pb-4 px-4" style={{ minHeight: "60px" }}>
-          <p className="text-sm text-muted-foreground">Mostrando {paginatedProducts.length} de {(totalEstimate ?? filteredProducts.length).toLocaleString("pt-BR")} produtos</p>
-        </div>
-      )}
-    </div>
-  ) : viewMode === "list" ? (
-    <SparklineSalesProvider productIds={sparklineProductIds}><VirtualList {...sharedProps} /></SparklineSalesProvider>
-  ) : (
-    <SparklineSalesProvider productIds={sparklineProductIds}><VirtualGrid {...sharedProps} columns={gridColumns} /></SparklineSalesProvider>
-  );
+    switch (viewMode) {
+      case "table":
+        return (
+          <div className={`${CONTAINER_CLASS}`}>
+            <ProductTableView
+              products={paginatedProducts} onProductClick={(id) => navigate(`/produto/${id}`)}
+              isFavorite={isFavorite} onToggleFavorite={toggleFavorite}
+              isInCompare={isInCompare} onToggleCompare={onToggleCompare} canAddToCompare={canAddToCompare}
+              onShareProduct={handleShareProduct} selectionMode={selectionMode}
+              selectedIds={sel.selectedIds} onToggleSelect={sel.toggleSelect} activeColorFilter={activeColorFilter}
+            />
+            {hasMoreProducts && (
+              <div ref={loadMoreRef} className="flex flex-col items-center gap-3 pt-8 pb-4 px-4" style={{ minHeight: "60px" }}>
+                <p className="text-sm text-muted-foreground">Mostrando {paginatedProducts.length} de {(totalEstimate ?? filteredProducts.length).toLocaleString("pt-BR")} produtos</p>
+                {isLoadingMore && <Loader2 className="h-6 w-6 animate-spin text-primary" />}
+              </div>
+            )}
+          </div>
+        );
+      case "list":
+        return (
+          <SparklineSalesProvider productIds={sparklineProductIds}>
+            <VirtualList {...sharedProps} />
+          </SparklineSalesProvider>
+        );
+      default:
+        return (
+          <SparklineSalesProvider productIds={sparklineProductIds}>
+            <VirtualGrid {...sharedProps} columns={gridColumns} />
+          </SparklineSalesProvider>
+        );
+    }
+  };
 
   return (
     <>
-      {content}
+      {renderContent()}
       <CatalogBulkModals sel={sel} selectionMode={selectionMode} totalCount={paginatedProducts.length} />
     </>
   );
-}
+});
+
+CatalogContent.displayName = "CatalogContent";
