@@ -303,7 +303,7 @@ describe('E2E Comparar — Módulo de Comparação', () => {
       compareIds: ['prod-1', 'prod-2'],
     });
 
-    renderPage();
+    await renderPage();
 
     const clearBtn = await screen.findByText(/Limpar/i);
     fireEvent.click(clearBtn);
