@@ -295,26 +295,36 @@ export function CartHeaderButton() {
                             {isActive && cart.items.length > 0 && (
                               <div className="border-t border-border/30 px-3 py-2 space-y-1.5">
                                 {cart.items.slice(0, 5).map((item) => (
-                                  <div
-                                    key={item.id}
-                                    className="flex items-start gap-2.5 py-1.5 px-1.5 rounded-lg hover:bg-background/60 group/item transition-colors"
-                                  >
-                                    {item.product_image_url ? (
-                                      <img
-                                        src={item.product_image_url}
-                                        alt="Logo da empresa"
-                                        className="w-9 h-9 rounded-lg object-contain bg-background border border-border/30 flex-shrink-0 p-0.5 mt-0.5" loading="lazy" />
-                                    ) : (
-                                      <div className="w-9 h-9 rounded-lg bg-muted/40 flex-shrink-0 flex items-center justify-center mt-0.5">
-                                        <Package className="h-3.5 w-3.5 text-muted-foreground/50" />
-                                      </div>
-                                    )}
-                                    
-                                    <div className="flex-1 min-w-0">
-                                      {/* Product name - 2 lines */}
-                                      <p className="text-xs text-foreground/90 leading-tight line-clamp-2">
-                                        {item.product_name}
-                                      </p>
+                                   <div
+                                     key={item.id}
+                                     className="flex items-start gap-2.5 py-1.5 px-1.5 rounded-lg hover:bg-background/60 group/item transition-colors relative"
+                                   >
+                                     <div className="relative flex-shrink-0 group/img">
+                                       {item.product_image_url ? (
+                                         <img
+                                           src={item.product_image_url}
+                                           alt={item.product_name}
+                                           className="w-9 h-9 rounded-lg object-contain bg-background border border-border/30 p-0.5 mt-0.5 transition-transform group-hover/img:scale-110" 
+                                           loading="lazy" 
+                                         />
+                                       ) : (
+                                         <div className="w-9 h-9 rounded-lg bg-muted/40 flex items-center justify-center mt-0.5">
+                                           <Package className="h-3.5 w-3.5 text-muted-foreground/50" />
+                                         </div>
+                                       )}
+                                       <button 
+                                         onClick={(e) => { e.stopPropagation(); navigate(`/produto/${item.product_id}`); setOpen(false); }}
+                                         className="absolute inset-0 bg-primary/10 flex items-center justify-center rounded-lg opacity-0 group-hover/img:opacity-100 transition-opacity"
+                                       >
+                                         <Eye className="h-3 w-3 text-primary" />
+                                       </button>
+                                     </div>
+                                     
+                                     <div className="flex-1 min-w-0">
+                                       <p className="text-[11px] font-medium text-foreground/90 leading-tight line-clamp-2 hover:text-primary transition-colors cursor-pointer"
+                                          onClick={(e) => { e.stopPropagation(); navigate(`/produto/${item.product_id}`); setOpen(false); }}>
+                                         {item.product_name}
+                                       </p>
                                       {/* Price + Qty stepper row */}
                                        <div className="flex items-center justify-between mt-1.5 gap-2">
                                          <PriceLabel 
