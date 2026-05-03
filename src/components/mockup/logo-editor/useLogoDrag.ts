@@ -14,20 +14,26 @@ export function useLogoDrag(
     startPosY: number;
   } | null>(null);
 
+  const rafRef = useRef<number | null>(null);
+
   const handlePointerMove = useCallback(
     (e: PointerEvent) => {
       const container = containerRef.current;
       const drag = draggingRef.current;
       if (!container || !drag) return;
 
-      const rect = container.getBoundingClientRect();
-      const dx = e.clientX - drag.startClientX;
-      const dy = e.clientY - drag.startClientY;
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
 
-      const nextX = drag.startPosX + (dx / rect.width) * 100;
-      const nextY = drag.startPosY + (dy / rect.height) * 100;
+      rafRef.current = requestAnimationFrame(() => {
+        const rect = container.getBoundingClientRect();
+        const dx = e.clientX - drag.startClientX;
+        const dy = e.clientY - drag.startClientY;
 
-      onPositionChange(Math.round(clamp(nextX, 5, 95)), Math.round(clamp(nextY, 5, 95)));
+        const nextX = drag.startPosX + (dx / rect.width) * 100;
+        const nextY = drag.startPosY + (dy / rect.height) * 100;
+
+        onPositionChange(Math.round(clamp(nextX, 5, 95)), Math.round(clamp(nextY, 5, 95)));
+      });
     },
     [onPositionChange, containerRef]
   );
