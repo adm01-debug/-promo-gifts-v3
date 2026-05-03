@@ -51,8 +51,11 @@ export function MockupClientSelector({ selectedClient, onClientSelect }: MockupC
     hasNextPage, 
     isFetchingNextPage,
     isError,
+    error,
     refetch
   } = useCrmInfiniteCompanySelector();
+
+  const errorMessage = error instanceof Error ? error.message : null;
 
   const allCompanies = useMemo(() => {
     return data?.pages.flatMap(page => page.records) || [];
@@ -186,9 +189,14 @@ export function MockupClientSelector({ selectedClient, onClientSelect }: MockupC
                       <p className="text-sm font-semibold text-foreground">
                         Falha ao carregar CRM
                       </p>
-                      <p className="text-xs text-muted-foreground max-w-[200px] mx-auto">
+                      <p className="text-xs text-muted-foreground max-w-[260px] mx-auto">
                         Não conseguimos conectar ao banco de dados externo agora.
                       </p>
+                      {errorMessage && (
+                        <p className="text-[10px] font-mono text-destructive/80 max-w-[260px] mx-auto break-all mt-1">
+                          {errorMessage}
+                        </p>
+                      )}
                     </div>
                     <Button 
                       variant="outline" 

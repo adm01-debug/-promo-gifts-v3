@@ -127,14 +127,16 @@ export function useCrmInfiniteCompanySelector() {
           nextOffset: records.length === 100 ? pageParam + 100 : undefined,
         };
       } catch (err) {
-        console.error("[CRM-DB] useCrmInfiniteCompanySelector: FALHA:", err);
-        toast.error("Erro ao carregar empresas do CRM. Verifique sua conexão.");
+        const msg = err instanceof Error ? err.message : String(err);
+        console.error("[CRM-DB] useCrmInfiniteCompanySelector: FALHA:", { message: msg, error: err });
+        toast.error(`Erro ao carregar empresas do CRM: ${msg}`);
         throw err;
       }
     },
     initialPageParam: 0,
     getNextPageParam: (lastPage) => lastPage.nextOffset,
     staleTime: 5 * 60 * 1000,
+    retry: 1,
   });
 }
 
