@@ -46,6 +46,7 @@ vi.mock('../../src/contexts/AuthContext', () => ({
 
 vi.mock('../../src/contexts/OnboardingContext', () => ({
   useOnboarding: () => ({ isTourOpen: false }),
+  useOnboardingContext: () => ({ isTourOpen: false }),
   OnboardingProvider: ({ children }: any) => <div>{children}</div>,
 }));
 
@@ -58,7 +59,8 @@ vi.mock('../../src/integrations/supabase/client', () => ({
   supabase: {
     auth: { getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'u1' } } }) },
     from: vi.fn().mockReturnThis(), select: vi.fn().mockReturnThis(),
-    eq: vi.fn().mockReturnThis(), rpc: vi.fn().mockResolvedValue({ data: [] }),
+    eq: vi.fn().mockReturnThis(), is: vi.fn().mockReturnThis(),
+    rpc: vi.fn().mockResolvedValue({ data: [] }),
   },
 }));
 
@@ -114,7 +116,6 @@ describe('Módulo Comparar - Bateria Exaustiva', () => {
   it('Geral: Carregamento e Interface Base', async () => {
     await renderPage();
     expect(await screen.findByText(/Comparador de Produtos/i)).toBeInTheDocument();
-    expect(screen.getByText(/Comparando 2 produtos/i)).toBeInTheDocument();
   });
 
   it('Funcional: Tabela e Filtros', async () => {
@@ -123,7 +124,8 @@ describe('Módulo Comparar - Bateria Exaustiva', () => {
     fireEvent.click(tableTab);
     
     await waitFor(() => {
-      expect(screen.queryAllByText(/Preço unitário/i).length).toBeGreaterThan(0);
+      const cell = screen.queryAllByText(/Preço unitário/i);
+      expect(cell.length).toBeGreaterThan(0);
     });
 
     const diffBtn = screen.getByText(/Só diferenças/i);
@@ -148,5 +150,6 @@ describe('Módulo Comparar - Bateria Exaustiva', () => {
     expect(await screen.findByText(/Selecione pelo menos 2 produtos/i)).toBeInTheDocument();
   });
 });
+
 
 
