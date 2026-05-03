@@ -38,48 +38,55 @@ export function useCatalogFiltering({
   const genderFilterSet = useMemo(() => new Set(filters.gender?.map(g => g.toLowerCase().trim())), [filters.gender]);
 
   return useMemo(() => {
+    if (realProducts.length === 0) return [];
+
     let result = hasFuzzySearch ? [...fuzzySearchResults] : [...realProducts];
 
     if (result.length === 0) return result;
 
+    // Filter by Category IDs (pre-fetched or simple match)
     if (hasCategoryFilter && !isLoadingCategoryFilter) {
       if (categoryFilteredProductIds.size > 0) {
         result = result.filter((p) => categoryFilteredProductIds.has(p.id));
       } else {
         return [];
       }
-    }
-
-    if (colorFilterSet.size > 0) {
-      result = result.filter((p) =>
-        p.colors?.some((c: Record<string, string>) => colorFilterSet.has(c.name))
-      );
-    }
-
-    if (colorGroupSet.size > 0) {
-      result = result.filter((p) =>
-        p.colors?.some((c: Record<string, string>) => {
-          const groupSlug = (c.groupSlug || '').toLowerCase().trim();
-          const group = (c.group || '').toLowerCase().trim();
-          const name = (c.name || '').toLowerCase().trim();
-          return colorGroupSet.has(groupSlug) || colorGroupSet.has(group) || 
-                 Array.from(colorGroupSet).some(s => name.includes(s.toLowerCase()));
-        })
-      );
-    }
-
-    if (colorVariationSet.size > 0) {
-      result = result.filter((p) =>
-        p.colors?.some((c: Record<string, string>) => {
-          const variationSlug = (c.variationSlug || '').toLowerCase().trim();
-          return colorVariationSet.has(variationSlug);
-        })
-      );
-    }
-
-    if (categoryFilterSet.size > 0) {
+    } else if (categoryFilterSet.size > 0) {
       result = result.filter((p) => categoryFilterSet.has(p.category_id || ''));
     }
+
+    if (result.length === 0) return result;
+
+    // Optimized Color Filtering: Process once per product
+    if (colorFilterSet.size > 0 || colorGroupSet.size > 0 || colorVariationSet.size > 0) {
+      const groupArray = colorGroupSet.size > 0 ? Array.from(colorGroupSet).map(s => s.toLowerCase()) : null;
+      
+      result = result.filter((p) => {
+        if (!p.colors?.length) return false;
+        
+        return p.colors.some((c: Record<string, string>) => {
+          if (colorFilterSet.size > 0 && colorFilterSet.has(c.name)) return true;
+          
+          if (colorVariationSet.size > 0) {
+            const vSlug = (c.variationSlug || '').toLowerCase().trim();
+            if (colorVariationSet.has(vSlug)) return true;
+          }
+          
+          if (groupArray) {
+            const gSlug = (c.groupSlug || '').toLowerCase().trim();
+            const gName = (c.group || '').toLowerCase().trim();
+            const cName = (c.name || '').toLowerCase().trim();
+            
+            if (colorGroupSet.has(gSlug) || colorGroupSet.has(gName)) return true;
+            if (groupArray.some(s => cName.includes(s))) return true;
+          }
+          
+          return false;
+        });
+      });
+    }
+
+    if (result.length === 0) return result;
 
     if (supplierFilterSet.size > 0) {
       result = result.filter((p) =>
@@ -89,7 +96,8 @@ export function useCatalogFiltering({
     }
 
     if (filters.priceRange[0] > 0 || filters.priceRange[1] < 500) {
-      result = result.filter((p) => p.price >= filters.priceRange[0] && p.price <= filters.priceRange[1]);
+      const [min, max] = filters.priceRange;
+      result = result.filter((p) => p.price >= min && p.price <= max);
     }
 
     if (filters.inStock) {
@@ -97,10 +105,7 @@ export function useCatalogFiltering({
     }
 
     if (genderFilterSet.size > 0) {
-      result = result.filter((p) => {
-        const productGender = (p.gender || '').toLowerCase().trim();
-        return genderFilterSet.has(productGender);
-      });
+      result = result.filter((p) => genderFilterSet.has((p.gender || '').toLowerCase().trim()));
     }
 
     if (hasMaterialFilter && !isLoadingMaterialFilter) {
@@ -109,23 +114,22 @@ export function useCatalogFiltering({
       } else {
         return [];
       }
-    }
-
-    if (!hasMaterialFilter && filters.materiais.length) {
+    } else if (filters.materiais.length) {
       const lowerMateriais = filters.materiais.map(m => m.toLowerCase());
       result = result.filter((p) => {
-        const materialsStr = Array.isArray(p.materials) ? p.materials.join(' ').toLowerCase() : (p.materials || '').toLowerCase();
-        return lowerMateriais.some((m) => materialsStr.includes(m));
+        const mats = Array.isArray(p.materials) ? p.materials.join(' ').toLowerCase() : (p.materials || '').toLowerCase();
+        return lowerMateriais.some((m) => mats.includes(m));
       });
     }
 
-    // ⚠️ REGRA DE NEGÓCIO — NÃO ALTERAR
+    // Business Logic - Do not change sorting behavior
     const skipSort = (hasFuzzySearch && sortBy === 'relevance') || (hasFuzzySearch && sortBy === 'name');
     sortProducts(result, sortBy, { promoSalesMap, supplierSalesMap, skipSort });
 
     return result;
   }, [
-    filters, sortBy, hasFuzzySearch, fuzzySearchResults, realProducts, 
+    filters.priceRange, filters.inStock, filters.materiais, // De-structure simple filter primitives
+    sortBy, hasFuzzySearch, fuzzySearchResults, realProducts, 
     hasMaterialFilter, materialFilteredProductIds, isLoadingMaterialFilter, 
     hasCategoryFilter, categoryFilteredProductIds, isLoadingCategoryFilter, 
     promoSalesMap, supplierSalesMap, colorFilterSet, colorGroupSet, colorVariationSet, 

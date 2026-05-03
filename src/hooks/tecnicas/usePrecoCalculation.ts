@@ -78,29 +78,32 @@ export function calcularPreco(
   quantidade: number,
   numeroCores?: number
 ): ResultadoCalculoPreco {
-  // Encontrar a faixa correta
-  let faixaUtilizada = tabela.faixas[0];
-  
-  for (const faixa of tabela.faixas) {
-    if (quantidade >= faixa.quantidadeMinima) {
-      faixaUtilizada = faixa;
+  const faixas = tabela.faixas;
+  if (!faixas.length) {
+    throw new Error('Tabela de preço sem faixas configuradas');
+  }
+
+  // Binary search for faster faixa lookup on large quantity arrays
+  let low = 0;
+  let high = faixas.length - 1;
+  let foundIdx = 0;
+
+  while (low <= high) {
+    const mid = (low + high) >>> 1;
+    if (quantidade >= faixas[mid].quantidadeMinima) {
+      foundIdx = mid;
+      low = mid + 1;
     } else {
-      break;
+      high = mid - 1;
     }
   }
 
+  const faixaUtilizada = faixas[foundIdx];
   let precoUnitario = faixaUtilizada.precoUnitario;
   
-  // Ajustar por número de cores se aplicável
-  if (tabela.precoPorCor && numeroCores && tabela.maxCores) {
-    const coresBase = tabela.maxCores;
-    if (numeroCores > coresBase) {
-      const fatorCor = numeroCores / coresBase;
-      precoUnitario = precoUnitario * fatorCor;
-    }
+  if (tabela.precoPorCor && numeroCores && tabela.maxCores && numeroCores > tabela.maxCores) {
+    precoUnitario *= (numeroCores / tabela.maxCores);
   }
-
-  const precoTotal = precoUnitario * quantidade;
 
   return {
     tabelaId: tabela.id,
@@ -108,7 +111,7 @@ export function calcularPreco(
     quantidade,
     faixaUtilizada: faixaUtilizada.faixa,
     precoUnitario,
-    precoTotal,
+    precoTotal: precoUnitario * quantidade,
     precoSetup: tabela.precoSetup,
     precoManuseio: tabela.precoManuseio,
     slaDias: faixaUtilizada.slaDias,
