@@ -152,6 +152,7 @@ export function useCatalogState() {
   const { data: realStats } = useCatalogRealStats();
 
   const isLoading = isLoadingProducts || isLoadingMaterialFilter || isLoadingCategoryFilter;
+  const isBackgroundFetching = isFetchingNextPage;
   const isInitialCatalogLoad = (isLoadingProducts || isFetchingProducts) && realProducts.length === 0;
 
   // Sync search with URL
@@ -242,7 +243,8 @@ export function useCatalogState() {
 
   const shouldShowCatalogSkeleton = isInitialCatalogLoad || (isLoading && paginatedProducts.length === 0);
   const hasActiveCatalogConstraints = activeFiltersCount > 0 || searchQuery.trim().length > 0;
-  const shouldShowEmptyState = !shouldShowCatalogSkeleton && paginatedProducts.length === 0;
+  // BUG-FIX: Don't show empty state if we are still fetching subsequent pages in background
+  const shouldShowEmptyState = !shouldShowCatalogSkeleton && paginatedProducts.length === 0 && !isFetchingNextPage;
 
   const hasMoreProducts = useMemo(() => {
     return paginatedProducts.length < filteredProducts.length || !!hasNextPage;
@@ -419,7 +421,8 @@ export function useCatalogState() {
     shouldShowEmptyState,
     hasActiveCatalogConstraints,
     hasMoreProducts,
-    isLoadingMore,
+    isLoadingMore: isLoadingMore || isBackgroundFetching,
+    isBackgroundFetching,
     totalEstimate,
     hasNextPage,
     statBadges,

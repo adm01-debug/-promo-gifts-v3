@@ -273,6 +273,21 @@ export function CatalogContent({
     );
   }
 
+  // Se não há produtos mas ainda está carregando mais (background fetch), mostrar skeleton
+  if (paginatedProducts.length === 0 && isLoadingMore) {
+    return (
+      <div className={`${CONTAINER_CLASS} p-4`}>
+        <div className="flex flex-col items-center justify-center h-full space-y-4">
+          <Loader2 className="h-8 w-8 text-primary animate-spin" />
+          <p className="text-muted-foreground animate-pulse">Buscando mais produtos no catálogo...</p>
+          <div className="w-full max-w-md">
+             <ProductGridSkeleton count={4} columns={gridColumns} />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const content = viewMode === "table" ? (
     <div className={`${CONTAINER_CLASS}`}>
       <ProductTableView
