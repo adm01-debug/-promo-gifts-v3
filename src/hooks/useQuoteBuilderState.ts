@@ -543,7 +543,7 @@ export function useQuoteBuilderState() {
     templateApplied, setTemplateApplied,
     expandedItems, setExpandedItems, activeItemIndex, setActiveItemIndex,
     // Computed
-    completedSteps, filteredProducts, subtotal, realSubtotal, discountAmount, total, realDiscountPercent,
+    completedSteps, activeStep, filteredProducts, subtotal, realSubtotal, discountAmount, total, realDiscountPercent,
     validationErrors, isFormValid, isDraftValid,
     quotesLoading, templates, defaultTemplate,
     // Discount limits
