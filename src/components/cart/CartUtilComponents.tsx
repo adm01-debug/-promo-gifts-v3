@@ -170,7 +170,9 @@ interface ProductLike {
   is_active?: boolean;
 }
 
-export function SmartSuggestions({ cart, allProducts }: { cart: SellerCart; allProducts: ProductLike[] }) {
+export function SmartSuggestions({ cart, allProducts, isLoading }: { cart: SellerCart; allProducts: ProductLike[]; isLoading?: boolean }) {
+  if (isLoading) return <SuggestionSkeleton />;
+
   const suggestions = useMemo(() => {
     const tips: { icon: typeof Lightbulb; text: string }[] = [];
     const totalQty = cart.items.reduce((s, i) => s + i.quantity, 0);
