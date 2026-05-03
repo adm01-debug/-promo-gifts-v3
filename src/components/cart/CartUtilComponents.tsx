@@ -59,8 +59,8 @@ export function getStatusCfg(status: string | undefined | null) {
   return (
     <div className={cn("flex flex-col space-y-0.5", className)}>
       <span className={cn(
-        "text-muted-foreground uppercase font-bold tracking-tight opacity-60",
-        className?.includes("flex-row") ? "text-[9px]" : "text-[10px]"
+        "text-muted-foreground uppercase font-bold tracking-tight opacity-60 transition-opacity group-hover:opacity-80",
+        className?.includes("flex-row") ? "text-[8px]" : "text-[10px]"
       )}>
         {label}
       </span>
