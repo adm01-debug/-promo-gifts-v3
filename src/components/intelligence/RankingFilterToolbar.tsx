@@ -95,11 +95,14 @@ export function RankingFilterToolbar({
   }, [categories, catSearch]);
 
   const handleSearchSubmit = (val: string) => {
-    onSearchChange(val);
-    if (val.trim().length >= 2) {
+    const trimmed = val.trim();
+    if (!trimmed) return;
+    
+    onSearchChange(trimmed);
+    if (trimmed.length >= 2) {
       addToHistory({
-        id: `search-${val.trim()}`,
-        label: val.trim(),
+        id: `search-${trimmed}`,
+        label: trimmed,
         type: "general"
       });
     }

@@ -35,12 +35,20 @@ export function useSearchHistory(type?: HistoryType) {
   useEffect(() => {
     loadHistory();
     
-    // Listen for storage changes from other tabs/components
     const handleStorage = (e: StorageEvent) => {
       if (e.key === STORAGE_KEY) loadHistory();
     };
+    
+    // Custom event for same-tab updates
+    const handleCustomUpdate = () => loadHistory();
+    
     window.addEventListener("storage", handleStorage);
-    return () => window.removeEventListener("storage", handleStorage);
+    window.addEventListener("search-history-update", handleCustomUpdate);
+    
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+      window.removeEventListener("search-history-update", handleCustomUpdate);
+    };
   }, [loadHistory]);
 
   const addToHistory = useCallback((item: Omit<HistoryItem, "timestamp">) => {
@@ -64,8 +72,8 @@ export function useSearchHistory(type?: HistoryType) {
         setHistory(updated.filter(i => !type || i.type === type).slice(0, MAX_HISTORY));
       }
       
-      // Dispatch event for same-tab updates
-      window.dispatchEvent(new Event("storage"));
+      // Dispatch custom event for same-tab updates
+      window.dispatchEvent(new Event("search-history-update"));
     } catch (e) {
       console.error("Failed to save search history", e);
     }
@@ -82,7 +90,7 @@ export function useSearchHistory(type?: HistoryType) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
       setHistory(prev => prev.filter(i => i.id !== id));
       
-      window.dispatchEvent(new Event("storage"));
+      window.dispatchEvent(new Event("search-history-update"));
     } catch (e) {
       console.error("Failed to remove search history", e);
     }
@@ -101,7 +109,7 @@ export function useSearchHistory(type?: HistoryType) {
         localStorage.removeItem(STORAGE_KEY);
         setHistory([]);
       }
-      window.dispatchEvent(new Event("storage"));
+      window.dispatchEvent(new Event("search-history-update"));
     } catch (e) {
       console.error("Failed to clear search history", e);
     }
