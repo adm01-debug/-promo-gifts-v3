@@ -110,8 +110,8 @@ export function MockupHistoryPanel({
       if (filterClient !== "all" && filterClient !== "none") {
         if (mockup.client_id !== filterClient && mockup.client_name !== filterClient) return false;
       }
-      if (filterProduct) {
-        const q = filterProduct.toLowerCase();
+      if (deferredFilterProduct) {
+        const q = deferredFilterProduct.toLowerCase();
         if (!mockup.product_name.toLowerCase().includes(q) && !mockup.product_sku?.toLowerCase().includes(q)) return false;
       }
       if (filterTechnique !== "all") {
