@@ -34,11 +34,12 @@ describe("PriceFreshnessBadge Component", () => {
   });
 
   it("renders badge in compact variant for stale updates", () => {
+    // 2026-05-03 - 4 months ago (~120 days)
     const monthsAgo = new Date("2026-01-03T12:00:00Z").toISOString();
     renderWithProvider(<PriceFreshnessBadge priceUpdatedAt={monthsAgo} variant="compact" />);
     
-    // Should show relative time
-    expect(screen.getByText(/há 3m/i)).toBeInTheDocument();
+    // 120 days / 30 = 4 months (há 4m)
+    expect(screen.getByText(/há 4m/i)).toBeInTheDocument();
   });
 
   it("renders PDP variant with warning box for stale updates", () => {
