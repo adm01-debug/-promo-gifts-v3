@@ -126,11 +126,12 @@ export function MainLayout({ children }: MainLayoutProps) {
               hierarquia z-30 < z-40 do Header. */}
           <div
             className={cn(
-              "sticky top-0 z-30 print:hidden",
+              "sticky z-30 print:hidden transition-all duration-300",
               "bg-background/85 backdrop-blur-md",
               "border-b border-border/40",
               isHome && "hidden",
             )}
+            style={{ top: "var(--header-h, 56px)" }}
             data-testid="breadcrumb-bar"
           >
             <div className="max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 py-2">
