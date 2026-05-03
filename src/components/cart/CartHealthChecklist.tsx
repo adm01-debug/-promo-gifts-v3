@@ -55,54 +55,107 @@ export function CartHealthChecklist({ cart, cartSubtotal, onFocusNotes, onAddPro
   const pct = Math.round((okCount / total) * 100);
 
   return (
-    <Card className="p-4 space-y-3 border-border/30 shadow-sm bg-card/50">
-      <div className="flex items-center justify-between">
-        <h4 className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-          <Sparkles className="h-3.5 w-3.5 text-primary fill-primary/20" /> Saúde do Carrinho
+    <Card className="p-4 space-y-4 border-border/30 shadow-sm bg-gradient-to-b from-card to-card/50 overflow-hidden relative group/checklist">
+      {pct === 100 && (
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="absolute -top-6 -right-6 w-24 h-24 bg-primary/10 rounded-full blur-2xl"
+        />
+      )}
+      
+      <div className="flex items-center justify-between relative z-10">
+        <h4 className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+          {pct === 100 ? (
+            <ShieldCheck className="h-3.5 w-3.5 text-primary animate-pulse" />
+          ) : (
+            <Sparkles className="h-3.5 w-3.5 text-primary/60 group-hover/checklist:text-primary transition-colors" />
+          )}
+          Saúde do Carrinho
         </h4>
-        <span className={cn(
-          "text-xs font-bold tabular-nums",
-          pct >= 80 ? "text-primary" : pct >= 50 ? "text-warning" : "text-muted-foreground"
-        )}>
-          {okCount}/{total}
-        </span>
+        <div className="flex items-center gap-1.5">
+          <AnimatePresence mode="wait">
+            <motion.span 
+              key={okCount}
+              initial={{ y: 5, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: -5, opacity: 0 }}
+              className={cn(
+                "text-xs font-bold tabular-nums",
+                pct >= 80 ? "text-primary" : pct >= 50 ? "text-warning" : "text-muted-foreground"
+              )}
+            >
+              {okCount}/{total}
+            </motion.span>
+          </AnimatePresence>
+          <span className="text-[10px] text-muted-foreground font-medium opacity-40">({pct}%)</span>
+        </div>
       </div>
 
-      <div className="h-1.5 w-full bg-muted/40 rounded-full overflow-hidden">
-        <div
+      <div className="h-1.5 w-full bg-muted/40 rounded-full overflow-hidden relative">
+        <motion.div
+          initial={{ width: 0 }}
+          animate={{ width: `${pct}%` }}
+          transition={{ duration: 0.8, ease: "circOut" }}
           className={cn(
-            "h-full rounded-full transition-all duration-500",
+            "h-full rounded-full relative z-10",
             pct >= 80 ? "bg-primary" : pct >= 50 ? "bg-warning" : "bg-muted-foreground/40"
           )}
-          style={{ width: `${pct}%` }}
         />
+        {pct === 100 && (
+          <motion.div 
+            animate={{ x: ["-100%", "200%"] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent z-20"
+          />
+        )}
       </div>
 
-      <ul className="space-y-1.5">
-        {checks.map(c => (
-          <li key={c.id}>
+      <ul className="space-y-1 relative z-10">
+        {checks.map((c, idx) => (
+          <motion.li 
+            key={c.id}
+            initial={{ opacity: 0, x: -5 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: idx * 0.05 }}
+          >
             <button
               type="button"
               onClick={c.ok ? undefined : c.onFix}
               disabled={c.ok || !c.onFix}
               className={cn(
-                "w-full flex items-center gap-2 text-xs py-1 px-1.5 rounded-md text-left transition-colors",
-                !c.ok && c.onFix && "hover:bg-muted/40 cursor-pointer",
-                (c.ok || !c.onFix) && "cursor-default"
+                "w-full flex items-center gap-2.5 text-xs py-1.5 px-2 rounded-lg text-left transition-all duration-200 group/item",
+                !c.ok && c.onFix && "hover:bg-primary/5 hover:translate-x-1 cursor-pointer",
+                (c.ok || !c.onFix) && "cursor-default",
+                c.ok ? "opacity-60" : "opacity-100"
               )}
             >
-              {c.ok ? (
-                <CheckCircle2 className="h-3.5 w-3.5 text-primary flex-shrink-0" />
-              ) : (
-                <AlertCircle className="h-3.5 w-3.5 text-warning flex-shrink-0" />
-              )}
-              <span className={cn(c.ok ? "text-muted-foreground line-through decoration-muted-foreground/40" : "text-foreground")}>
+              <div className="flex-shrink-0">
+                {c.ok ? (
+                  <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
+                ) : (
+                  <AlertCircle className="h-3.5 w-3.5 text-warning group-hover/item:scale-110 transition-transform" />
+                )}
+              </div>
+              <span className={cn(
+                "flex-1 transition-colors",
+                c.ok ? "text-muted-foreground line-through decoration-muted-foreground/30" : "text-foreground font-medium group-hover/item:text-primary"
+              )}>
                 {c.label}
               </span>
+              {!c.ok && c.onFix && (
+                <ArrowRight className="h-3 w-3 text-primary opacity-0 group-hover/item:opacity-100 transition-opacity" />
+              )}
             </button>
-          </li>
+          </motion.li>
         ))}
       </ul>
+
+      {pct < 100 && (
+        <p className="text-[10px] text-muted-foreground/60 italic px-2 pt-1">
+          {pct >= 80 ? "Quase lá! Só mais um pouco..." : "Complete a checklist para garantir a melhor conversão."}
+        </p>
+      )}
     </Card>
   );
 }
