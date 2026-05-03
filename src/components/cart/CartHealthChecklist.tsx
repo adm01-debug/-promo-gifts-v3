@@ -5,8 +5,9 @@
 import { useMemo } from "react";
 import { type SellerCart } from "@/hooks/useSellerCarts";
 import { Card } from "@/components/ui/card";
-import { CheckCircle2, AlertCircle, Sparkles } from "lucide-react";
+import { CheckCircle2, AlertCircle, Sparkles, ArrowRight, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface CartHealthChecklistProps {
   cart: SellerCart;
