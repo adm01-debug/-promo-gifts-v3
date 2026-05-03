@@ -4851,6 +4851,21 @@ export type Database = {
         }
         Relationships: []
       }
+      user_token_revocations: {
+        Row: {
+          revoked_at: string
+          user_id: string
+        }
+        Insert: {
+          revoked_at?: string
+          user_id: string
+        }
+        Update: {
+          revoked_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       video_variant_links: {
         Row: {
           created_at: string
@@ -5598,6 +5613,7 @@ export type Database = {
         Returns: number
       }
       retry_failed_webhook_deliveries: { Args: never; Returns: Json }
+      revoke_all_user_tokens: { Args: { _user_id: string }; Returns: undefined }
       search_products_semantic: {
         Args: { _limit?: number; _products: Json; _query: string }
         Returns: {
