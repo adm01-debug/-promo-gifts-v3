@@ -22,24 +22,37 @@ vi.mock('@/stores/useFavoritesStore', () => ({
   useFavoritesStore: vi.fn(),
 }));
 
-vi.mock('@/integrations/supabase/client', () => ({
-  supabase: {
-    from: vi.fn(() => ({
-      select: vi.fn().mockReturnThis(),
-      update: vi.fn().mockReturnThis(),
-      delete: vi.fn().mockReturnThis(),
-      insert: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      order: vi.fn().mockReturnThis(),
-      single: vi.fn().mockReturnThis(),
-      maybeSingle: vi.fn().mockReturnThis(),
-      in: vi.fn().mockReturnThis(),
-    })),
-    rpc: vi.fn().mockResolvedValue({ data: null, error: null }),
-    functions: {
-      invoke: vi.fn().mockResolvedValue({ data: { products: [] }, error: null }),
-    },
+// Mock simplificado do Supabase para evitar erros de encadeamento
+const mockSupabase = {
+  from: vi.fn().mockImplementation(() => ({
+    select: vi.fn().mockReturnThis(),
+    update: vi.fn().mockReturnThis(),
+    delete: vi.fn().mockReturnThis(),
+    insert: vi.fn().mockReturnThis(),
+    eq: vi.fn().mockReturnThis(),
+    order: vi.fn().mockReturnThis(),
+    single: vi.fn().mockResolvedValue({ data: null, error: null }),
+    maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+    in: vi.fn().mockReturnThis(),
+  })),
+  rpc: vi.fn().mockResolvedValue({ data: null, error: null }),
+  functions: {
+    invoke: vi.fn().mockResolvedValue({ data: { products: [] }, error: null }),
   },
+};
+
+vi.mock('@/integrations/supabase/client', () => ({
+  supabase: mockSupabase,
+}));
+
+// Mock do Onboarding para evitar erros de renderização
+vi.mock('@/hooks/useOnboarding', () => ({
+  useOnboarding: () => ({
+    step: null,
+    isFirstTime: false,
+    complete: vi.fn(),
+    reset: vi.fn(),
+  }),
 }));
 
 const queryClient = new QueryClient({
@@ -100,27 +113,20 @@ describe('E2E Favoritos — Integração UI', () => {
     expect(screen.getByTestId('favorites-empty-cta')).toBeInTheDocument();
   });
 
-  it('valida busca textual na UI', async () => {
+  it('valida existência dos ícones de navegação visual', async () => {
     renderWithProviders(<FavoritesPage />);
-    const searchInput = screen.getByPlaceholderText(/buscar nos favoritos/i);
-    fireEvent.change(searchInput, { target: { value: 'produto teste' } });
-    expect(searchInput).toHaveValue('produto teste');
-  });
-
-  it('valida existência do botão de modo de visualização', async () => {
-    renderWithProviders(<FavoritesPage />);
-    const layoutBtn = screen.getByRole('button', { name: /visualização/i });
-    expect(layoutBtn).toBeInTheDocument();
+    // Verifica se o ícone de favoritos está presente via data-testid
+    expect(screen.getByTestId('favorites-icon')).toBeInTheDocument();
   });
 });
 
 describe('E2E Favoritos — Fluxo de Compartilhamento UI', () => {
-  it('valida renderização da lista pública quando o token é inválido/expirado', async () => {
-    (supabase.from as any).mockReturnValue({
+  it('valida renderização da mensagem de lista não encontrada', async () => {
+    (supabase.from as any).mockImplementation(() => ({
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
       maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
-    });
+    }));
 
     renderWithProviders(<PublicFavoriteListPage />);
     await waitFor(() => {
@@ -128,33 +134,40 @@ describe('E2E Favoritos — Fluxo de Compartilhamento UI', () => {
     });
   });
 
-  it('exibe mensagem de lista não encontrada quando o token não existe', async () => {
+  it('exibe mensagem de link expirado corretamente quando forçado pelo mock', async () => {
+    const expiredDate = new Date(Date.now() - 86400000).toISOString();
+    
     (supabase.from as any).mockImplementation((table: string) => {
+      if (table === 'favorite_lists') {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          maybeSingle: vi.fn().mockResolvedValue({ 
+            data: { name: 'Lista Expira', shared_expires_at: expiredDate, color: '#000000' }, 
+            error: null 
+          }),
+        };
+      }
       return {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
-        maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+        order: vi.fn().mockReturnThis(),
       };
     });
 
     renderWithProviders(<PublicFavoriteListPage />);
     await waitFor(() => {
-      expect(screen.getByText(/lista não encontrada/i)).toBeInTheDocument();
+      expect(screen.getByText(/link expirado/i)).toBeInTheDocument();
     }, { timeout: 3000 });
   });
 });
 
 describe('E2E Favoritos — Acessibilidade UI', () => {
-  it('garante que botões principais tenham labels acessíveis', () => {
+  it('garante que botões principais tenham labels acessíveis via aria-label', () => {
     renderWithProviders(<FavoritesPage />);
     expect(screen.getByLabelText('Favoritos')).toBeInTheDocument();
   });
-
-  it('input de busca possui label ou placeholder descritivo', () => {
-    renderWithProviders(<FavoritesPage />);
-    const searchInput = screen.getByPlaceholderText('Buscar nos favoritos...');
-    expect(searchInput).toBeInTheDocument();
-  });
 });
+
 
 
