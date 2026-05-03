@@ -15,10 +15,15 @@ test.describe('Módulo Estoque - Testes Exaustivos', () => {
     await page.waitForSelector('[aria-busy="true"]', { state: 'hidden', timeout: 30000 });
   });
 
-  test('Deve carregar a estrutura básica do dashboard corretamente', async ({ page }) => {
+  test('Deve carregar a estrutura básica do dashboard e breadcrumbs corretamente', async ({ page }) => {
+    // Valida Título da Página e Breadcrumbs
     await expect(page).toHaveTitle(/Estoque/i);
+    const breadcrumb = page.locator('nav[aria-label="Breadcrumb"]');
+    await expect(breadcrumb).toContainText('Estoque');
+    
+    // Valida heading principal (se houver um explícito ou no MainLayout/Breadcrumbs)
     await expect(page.getByRole('heading', { name: 'Visão Geral' })).toBeVisible();
-    await expect(page.locator('text=/Saúde:/i')).toBeVisible();
+    await expect(page.locator('text=/Saúde do Estoque:/i')).toBeVisible();
     
     const summaryCards = ['Total de Produtos', 'Em Estoque', 'Estoque Baixo', 'Sem Estoque', 'Estoque Futuro'];
     for (const card of summaryCards) {
@@ -85,6 +90,9 @@ test.describe('Módulo Estoque - Testes Exaustivos', () => {
         exportButton.click(),
       ]);
       
+      // Valida Toast de Exportação
+      await expect(page.locator('text=/Exportação concluída/i')).toBeVisible();
+      
       const path = await download.path();
       const fs = require('fs');
       const content = fs.readFileSync(path, 'utf8');
@@ -119,7 +127,7 @@ test.describe('Módulo Estoque - Testes Exaustivos', () => {
     
     // Volta e testa busca
     await page.goBack();
-    const searchInput = page.getByPlaceholder(/Buscar no Estoque (Nome, SKU ou Cor)... /i);
+    const searchInput = page.getByPlaceholder(/Buscar no Estoque \(Nome, SKU ou Cor\)... /i);
     await searchInput.fill(productName);
     await page.waitForTimeout(600); // Debounce
     
@@ -137,7 +145,7 @@ test.describe('Módulo Estoque - Testes Exaustivos', () => {
     await firstRow.click();
     const colorName = await page.locator('table tbody tr').nth(1).locator('.text-sm').first().innerText();
     
-    const searchInput = page.getByPlaceholder(/Buscar no Estoque (Nome, SKU ou Cor)... /i);
+    const searchInput = page.getByPlaceholder(/Buscar no Estoque \(Nome, SKU ou Cor\)... /i);
     
     // Teste Nome
     await searchInput.fill(productName);
@@ -161,7 +169,7 @@ test.describe('Módulo Estoque - Testes Exaustivos', () => {
   });
 
   test('Deve persistir filtros, busca e ordenação ao navegar entre páginas', async ({ page }) => {
-    const searchInput = page.getByPlaceholder(/Buscar no Estoque (Nome, SKU ou Cor)... /i);
+    const searchInput = page.getByPlaceholder(/Buscar no Estoque \(Nome, SKU ou Cor\)... /i);
     const nextButton = page.getByRole('button', { name: /Próximo/i });
     
     // 1. Aplica Filtro de Status (Estoque Baixo)

@@ -1015,7 +1015,7 @@
 
 ## 📦 24. ESTOQUE
 
-### 24.1 Dashboard de Estoque
+### 24.1 Estoque
 | Funcionalidade | Arquivo Principal | Ferramentas/Bibliotecas |
 |----------------|-------------------|-------------------------|
 | Página | `src/pages/StockDashboardPage.tsx` | React |
