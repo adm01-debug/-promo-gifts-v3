@@ -90,7 +90,7 @@ export function useSearchHistory(type?: HistoryType) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
       setHistory(prev => prev.filter(i => i.id !== id));
       
-      window.dispatchEvent(new Event("storage"));
+      window.dispatchEvent(new Event("search-history-update"));
     } catch (e) {
       console.error("Failed to remove search history", e);
     }
