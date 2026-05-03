@@ -212,10 +212,11 @@ describe('E2E Comparar — Módulo de Comparação', () => {
 
 
   it('exibe estado vazio inteligente quando menos de 2 produtos estão na comparação', async () => {
-    renderPage();
+    await renderPage();
     expect(screen.getByText(/Selecione pelo menos 2 produtos para comparar/i)).toBeInTheDocument();
     expect(screen.getByText(/Explorar catálogo/i)).toBeInTheDocument();
   });
+
 
   it('exibe a tabela de comparação quando 2 ou mais produtos são adicionados', async () => {
     useComparisonStore.setState({
