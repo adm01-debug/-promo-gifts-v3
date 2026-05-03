@@ -1,5 +1,6 @@
 /**
  * CartHeaderButton - Ícone de carrinho no header com popover de resumo
+ * Melhorado com skeletons de carregamento e UX de acesso rápido (Onda 10/10)
  */
 
 import { ShoppingCart, Trash2, Plus, Building2, Package, X, ArrowRight, Eraser, Minus, Eye } from "lucide-react";
