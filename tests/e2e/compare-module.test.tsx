@@ -284,7 +284,7 @@ describe('E2E Comparar — Módulo de Comparação', () => {
       compareIds: ['prod-1', 'prod-2', 'prod-3'],
     });
 
-    renderPage();
+    await renderPage();
 
     const diffBtn = await screen.findByText(/Só diferenças/i);
     fireEvent.click(diffBtn);
