@@ -74,4 +74,32 @@ describe('QuoteBuilderStepper UI', () => {
     const mutedSteps = document.querySelectorAll('.bg-muted\\/50');
     expect(mutedSteps.length).toBe(4);
   });
+
+  it('correctly updates visual state when progressing and regressing', () => {
+    const { rerender, container } = render(
+      <QuoteBuilderStepper 
+        completedSteps={['client']} 
+        activeStep="items" 
+      />
+    );
+
+    // Forward state
+    let connectors = container.querySelectorAll('.flex-1.h-0\\.5 > div');
+    expect(connectors[0].className).toContain('bg-primary');
+    expect(screen.getByTestId('icon-check')).toBeDefined();
+
+    // Regression state
+    rerender(
+      <QuoteBuilderStepper 
+        completedSteps={['client']} 
+        activeStep="client" 
+      />
+    );
+    
+    connectors = container.querySelectorAll('.flex-1.h-0\\.5 > div');
+    expect(connectors[0].className).toContain('bg-border');
+    // Active step "client" should NOT have check icon even if completed
+    expect(screen.queryByTestId('icon-check')).toBeNull();
+    expect(screen.getByTestId('icon-client')).toBeDefined();
+  });
 });

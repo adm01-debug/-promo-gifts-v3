@@ -34,8 +34,8 @@ export const calculateSubtotal = (items: QuoteItemCalculationParams[]): number =
  * Aplica markup de negociação a um valor base.
  */
 export const applyMarkup = (baseValue: number, markupPercent: number): number => {
-  const safeMarkup = Math.min(50, Math.max(0, markupPercent));
-  if (safeMarkup <= 0) return baseValue;
+  const safeMarkup = Math.min(50, Math.max(0, markupPercent || 0));
+  if (safeMarkup <= 0) return baseValue || 0;
   return Math.round(baseValue * (1 + safeMarkup / 100) * 100) / 100;
 };
 
@@ -47,10 +47,11 @@ export const calculateDiscountAmount = (
   discountType: 'percent' | 'amount', 
   discountValue: number
 ): number => {
+  const safeValue = Math.max(0, discountValue || 0);
   if (discountType === 'percent') {
-    return subtotal * (discountValue / 100);
+    return (subtotal || 0) * (safeValue / 100);
   }
-  return discountValue;
+  return safeValue;
 };
 
 /**
