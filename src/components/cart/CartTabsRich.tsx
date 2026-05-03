@@ -65,17 +65,20 @@ export function CartTabsRich({ carts, activeCartId, canCreateCart, onSelect, onN
               isActive ? "scale-x-100 opacity-100" : "scale-x-0 opacity-0"
             )} />
             {cart.company_logo_url ? (
-              <img src={cart.company_logo_url} alt="" className="w-7 h-7 rounded-lg object-contain bg-background border border-border/50 p-0.5" loading="lazy" />
+              <img src={cart.company_logo_url} alt="" className="w-8 h-8 rounded-xl object-contain bg-background border border-border/40 p-1 flex-shrink-0 group-hover:scale-110 transition-transform" loading="lazy" />
             ) : (
-              <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center", isActive ? "bg-primary/15" : "bg-muted")}>
-                <Building2 className="h-3.5 w-3.5" />
+              <div className={cn(
+                "w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 transition-all",
+                isActive ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground group-hover:bg-muted/80"
+              )}>
+                <Building2 className="h-4 w-4" />
               </div>
             )}
             <div className="flex flex-col items-start gap-0.5 leading-none">
-              <span className="text-sm font-semibold max-w-[160px] truncate tracking-tight">{cart.company_name}</span>
-              <div className="flex items-center gap-1.5 opacity-80">
-                <span className={cn("w-1.5 h-1.5 rounded-full ring-1 ring-background", statusCfg.color.split(" ")[0])} aria-hidden />
-                <span className="text-[10px] text-muted-foreground font-medium">{statusCfg.label}</span>
+              <span className="text-sm font-bold max-w-[150px] truncate tracking-tight group-hover:text-primary transition-colors">{cart.company_name}</span>
+              <div className="flex items-center gap-2 opacity-80">
+                <span className={cn("w-2 h-2 rounded-full ring-2 ring-background shadow-sm", statusCfg.color.split(" ")[0])} aria-hidden />
+                <span className="text-[10px] text-muted-foreground font-bold tracking-tight uppercase opacity-60">{statusCfg.label}</span>
               </div>
             </div>
             <span
