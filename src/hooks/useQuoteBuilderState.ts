@@ -542,7 +542,7 @@ export function useQuoteBuilderState() {
       client_email: contactInfo?.email || undefined, client_phone: contactInfo?.phone || undefined,
       status: effectiveStatus, discount_percent: discountType === "percent" ? discountValue : 0,
       discount_amount: discountType === "amount" ? discountValue : 0,
-      negotiation_markup_percent: markup,
+      negotiation_markup_percent: Math.min(50, Math.max(0, negotiationMarkup || 0)),
       notes: notes || undefined, internal_notes: internalNotes || undefined,
       valid_until: validUntil || undefined, payment_terms: paymentTerms || undefined,
       delivery_time: deliveryTime || undefined, shipping_type: shippingType || undefined,
