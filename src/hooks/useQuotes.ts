@@ -113,7 +113,11 @@ export function useQuotes() {
 
   async function insertItemsWithPersonalizations(items: QuoteItem[], quoteId: string) {
     if (items.length === 0) return;
-    const itemsPayload = buildItemsInsertPayload(items, quoteId);
+    const itemsPayload = buildItemsInsertPayload(items, quoteId).map(item => ({
+      ...item,
+      product_name: item.product_name?.trim().slice(0, 255),
+      notes: item.notes?.trim().slice(0, 1000)
+    }));
     const { data: insertedItems, error: itemsErr } = await supabase
       .from("quote_items").insert(itemsPayload).select("*");
     if (itemsErr) throw new Error(itemsErr.message);

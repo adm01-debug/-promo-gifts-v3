@@ -83,6 +83,11 @@ export function useUpdateOrder(orderId?: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (patch: Partial<OrderRow>) => {
+      // Sanitização básica de inputs de texto
+      const sanitizedPatch = { ...patch };
+      if (sanitizedPatch.notes) sanitizedPatch.notes = sanitizedPatch.notes.trim().slice(0, 2000);
+      if (sanitizedPatch.internal_notes) sanitizedPatch.internal_notes = sanitizedPatch.internal_notes.trim().slice(0, 2000);
+
       const { error } = await supabase
         // rls-allow: applySellerScope chamado dinamicamente conforme escopo
         .from("orders")
