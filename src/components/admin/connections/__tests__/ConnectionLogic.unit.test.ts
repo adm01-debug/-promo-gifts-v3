@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { validateSecret } from "./secretValidators";
-import { normalizeSecret } from "./secretNormalizers";
-import { resolveSupabaseConnectionStatus } from "./connectionStatus";
+import { validateSecret } from "../secretValidators";
+import { normalizeSecret } from "../secretNormalizers";
+import { resolveSupabaseConnectionStatus } from "../connectionStatus";
 
 describe("Módulo Conexão - Testes de Lógica e Sanidade", () => {
   describe("Normalização de Secrets (Pre-Flight)", () => {
