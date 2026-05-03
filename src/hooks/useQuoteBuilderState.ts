@@ -375,7 +375,9 @@ export function useQuoteBuilderState() {
     () => QuoteCalc.calculateRealDiscountPercent(realSubtotal, subtotal, discountAmount),
     [realSubtotal, subtotal, discountAmount]
   );
-
+  const handleProductClick = useCallback((product: Product) => {
+    setSelectedProductForColor(product);
+  }, []);
 
   // ── Item actions ──
   const addProductWithColor = useCallback((product: Product, variant: ExternalVariantStock | null) => {
