@@ -83,7 +83,7 @@ export function getStatusCfg(status: string | undefined | null) {
 // ============================================
 
 export interface CartAction {
-  type: "add" | "remove" | "qty" | "move" | "duplicate";
+  type: "add" | "remove" | "qty" | "move" | "duplicate" | "clear";
   itemName: string;
   detail?: string;
   time: Date;
