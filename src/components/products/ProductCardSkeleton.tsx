@@ -20,34 +20,32 @@ export function ProductCardSkeleton({
   const baseClass = animate ? "animate-pulse" : "";
 
   return (
-    <div className={cn("rounded-2xl bg-card border border-border/50 overflow-hidden", baseClass)}>
+    <div className={cn("rounded-2xl bg-card border border-border/40 overflow-hidden shadow-sm", baseClass)}>
       {/* Image skeleton - matches aspect-[4/5] */}
-      <div className="relative aspect-[4/5] bg-gradient-to-br from-secondary/50 to-muted/30">
+      <div className="relative aspect-[4/5] bg-muted/40">
         {/* Shimmer overlay */}
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent,hsl(var(--background)/0.4),transparent)] bg-[length:200%_100%] animate-shimmer" />
+        <div className="absolute inset-0 bg-shimmer animate-shimmer pointer-events-none" />
         
         {/* Badges placeholder - top left */}
-        <div className="absolute top-3 left-3 flex flex-col gap-1.5">
-          <Skeleton className="h-5 w-16 rounded-full" />
+        <div className="absolute top-2 sm:top-3 left-2 sm:left-3 flex flex-col gap-1 sm:gap-1.5">
+          <Skeleton className="h-4 sm:h-5 w-14 sm:w-16 rounded-full opacity-60" />
         </div>
 
-        {/* Action buttons placeholder - top right - 44px touch targets */}
+        {/* Action buttons placeholder - top right */}
         {variant === "detailed" && (
           <div className="absolute top-3 right-3 flex flex-col gap-2">
-            <Skeleton className="h-11 w-11 rounded-full" />
-            <Skeleton className="h-11 w-11 rounded-full" />
-            <Skeleton className="h-11 w-11 rounded-full" />
-            <Skeleton className="h-11 w-11 rounded-full" />
+            <Skeleton className="h-10 w-10 rounded-full" />
+            <Skeleton className="h-10 w-10 rounded-full" />
           </div>
         )}
 
         {/* Colors placeholder - bottom */}
         <div className="absolute bottom-3 left-3 right-3">
-          <div className="flex items-center gap-1.5 bg-muted/40 rounded-full px-3 py-2">
-            {[...Array(5)].map((_, i) => (
-              <Skeleton key={i} className="h-5 w-5 rounded-full" />
+          <div className="flex items-center gap-1 sm:gap-1.5 bg-card/60 backdrop-blur-sm rounded-full px-2 sm:px-3 py-1.5 sm:py-2 border border-border/20">
+            {[...Array(4)].map((_, i) => (
+              <Skeleton key={i} className="h-4 sm:h-5 w-4 sm:w-5 rounded-full opacity-70" />
             ))}
-            <Skeleton className="h-4 w-6 ml-1" />
+            <Skeleton className="h-3 w-5 ml-1 opacity-50" />
           </div>
         </div>
       </div>
