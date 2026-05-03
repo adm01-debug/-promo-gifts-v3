@@ -114,6 +114,7 @@ export function MockupResultCard({
   if (generatedMockup) {
     return (
       <Card
+        data-testid="mockup-result-card"
         className={cn(
           "overflow-hidden transition-all duration-500 border-border/30",
           showSuccess && "ring-2 ring-success shadow-lg shadow-success/20",
