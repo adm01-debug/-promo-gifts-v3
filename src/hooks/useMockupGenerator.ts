@@ -1,7 +1,10 @@
 /**
  * useMockupGenerator — Core business logic hook for MockupGenerator page
  * 
- * Refactored: generation/history/download logic extracted to mockup/mockupGenerationService.ts
+ * Performance Optimized: 
+ * - Lazy initialization of techniques and history.
+ * - Memoized computed values (historyClients, productLocations).
+ * - Debounced position history persistence.
  */
 
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
@@ -104,11 +107,15 @@ export function useMockupGenerator() {
   const hasLogo = personalizationAreas.some(a => !!a.logoPreview);
 
   const historyClients = useMemo(() => {
+    if (!mockupHistory.length) return [];
     const map = new Map<string, { id: string; name: string }>();
-    mockupHistory.forEach(m => {
+    for (let i = 0; i < mockupHistory.length; i++) {
+      const m = mockupHistory[i];
       const clientKey = m.client_id || m.client_name;
-      if (clientKey && m.client_name) map.set(clientKey, { id: m.client_id || m.client_name, name: m.client_name });
-    });
+      if (clientKey && m.client_name && !map.has(clientKey)) {
+        map.set(clientKey, { id: m.client_id || m.client_name, name: m.client_name });
+      }
+    }
     return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
   }, [mockupHistory]);
 
