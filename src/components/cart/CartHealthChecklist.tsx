@@ -36,14 +36,14 @@ export function CartHealthChecklist({ cart, cartSubtotal, onFocusNotes, onAddPro
     });
     
     const isReady = cart.status === "pronto_orcamento";
-    const hasItemNotes = cart.items.every(i => !!i.notes && i.notes.length > 5);
+    const hasItemNotes = cart.items.length > 0 && cart.items.every(i => !!i.notes && i.notes.trim().length > 5);
 
     return [
       { id: "company", label: "Empresa vinculada", ok: !!cart.company_id },
       { id: "items", label: "Mix de produtos (≥ 3 SKUs)", ok: hasMinItems, onFix: onAddProducts },
       { id: "value", label: "Valor mínimo (R$ 500,00)", ok: hasMinValue, onFix: onAddProducts },
       { id: "notes", label: "Observações do pedido", ok: hasNotes, onFocusNotes },
-      { id: "item_notes", label: "Instruções por item", ok: hasItemNotes },
+      { id: "item_notes", label: "Instruções detalhadas por item", ok: hasItemNotes },
       { id: "variants", label: "Variantes e Cores", ok: hasVariants },
       { id: "ready", label: "Status: Pronto p/ Orçamento", ok: isReady },
     ];

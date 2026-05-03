@@ -53,10 +53,10 @@ export function CartTabsRich({ carts, activeCartId, canCreateCart, onSelect, onN
               </div>
             )}
             <div className="flex flex-col items-start gap-0.5 leading-none">
-              <span className="text-sm font-medium max-w-[160px] truncate">{cart.company_name}</span>
-              <div className="flex items-center gap-1.5">
-                <span className={cn("w-1.5 h-1.5 rounded-full", statusCfg.color.split(" ")[0])} aria-hidden />
-                <span className="text-[10px] text-muted-foreground">{statusCfg.label}</span>
+              <span className="text-sm font-semibold max-w-[160px] truncate tracking-tight">{cart.company_name}</span>
+              <div className="flex items-center gap-1.5 opacity-80">
+                <span className={cn("w-1.5 h-1.5 rounded-full ring-1 ring-background", statusCfg.color.split(" ")[0])} aria-hidden />
+                <span className="text-[10px] text-muted-foreground font-medium">{statusCfg.label}</span>
               </div>
             </div>
             <span
