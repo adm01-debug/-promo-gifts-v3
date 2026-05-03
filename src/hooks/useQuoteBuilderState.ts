@@ -139,14 +139,22 @@ export function useQuoteBuilderState() {
   const debouncedProductSearch = useDebounce(productSearch, 400);
 
   // ── Stepper ──
+  const activeStep = useMemo((): QuoteBuilderStep => {
+    if (!clientId) return "client";
+    if (items.length === 0) return "items";
+    if (!paymentTerms || !deliveryTime || !shippingType) return "conditions";
+    return "review";
+  }, [clientId, items.length, paymentTerms, deliveryTime, shippingType]);
+
   const completedSteps = useMemo((): QuoteBuilderStep[] => {
     const steps: QuoteBuilderStep[] = [];
     if (clientId) steps.push("client");
     if (items.length > 0) steps.push("items");
     if (paymentTerms && deliveryTime && shippingType) steps.push("conditions");
-    if (clientId && items.length > 0 && paymentTerms && deliveryTime && shippingType) steps.push("review");
+    // No review, we only mark as completed if saved
     return steps;
   }, [clientId, items.length, paymentTerms, deliveryTime, shippingType]);
+
 
   // ── Route guard ──
   const hasUnsavedData = useMemo(() => {
