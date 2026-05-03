@@ -86,7 +86,7 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
               return `${selector} {\n${vars}\n}`;
             }
           )
-          .join("\n"),
+          .join("\n")),
       }}
     />
   );
