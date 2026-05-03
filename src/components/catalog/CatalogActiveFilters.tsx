@@ -2,6 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import type { FilterState } from "@/components/filters/FilterPanel";
 import { useExternalCategoriesQuery } from "@/hooks/useExternalCategoriesQuery";
 import { useCategoryIcons, getCategoryIcon } from "@/hooks/useCategoryIcons";
+import { useSupplierNames } from "@/hooks/useSupplierNames";
 import { toTitleCase } from "@/lib/textUtils";
 import { X } from "lucide-react";
 
@@ -14,6 +15,7 @@ interface CatalogActiveFiltersProps {
 export function CatalogActiveFilters({ filters, setFilters, activeFiltersCount }: CatalogActiveFiltersProps) {
   const { data: categories = [] } = useExternalCategoriesQuery();
   const { data: icons = [] } = useCategoryIcons();
+  const { data: supplierNamesMap } = useSupplierNames(filters.suppliers);
 
   if (activeFiltersCount === 0) return null;
 
@@ -74,17 +76,20 @@ export function CatalogActiveFilters({ filters, setFilters, activeFiltersCount }
         );
       })}
 
-      {filters.suppliers.map((supplierId) => (
-        <Badge
-          key={supplierId}
-          variant="secondary"
-          className="cursor-pointer hover:bg-destructive/10"
-          onClick={() => setFilters({ ...filters, suppliers: filters.suppliers.filter((s) => s !== supplierId) })}
-        >
-          🏭 {supplierId}
-          <span className="ml-1">×</span>
-        </Badge>
-      ))}
+      {filters.suppliers.map((supplierId) => {
+        const name = supplierNamesMap?.get(supplierId) || supplierId;
+        return (
+          <Badge
+            key={supplierId}
+            variant="secondary"
+            className="cursor-pointer hover:bg-destructive/10"
+            onClick={() => setFilters({ ...filters, suppliers: filters.suppliers.filter((s) => s !== supplierId) })}
+          >
+            🏭 {toTitleCase(name)}
+            <span className="ml-1">×</span>
+          </Badge>
+        );
+      })}
 
       {filters.featured && (
         <Badge
