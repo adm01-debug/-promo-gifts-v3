@@ -78,6 +78,10 @@ interface MockupConfigPanelProps {
     error: string | null;
     updatePantone: (index: number, pantoneCode: string) => void;
   };
+  /** Art file attachments */
+  artAttachments: ArtFileAttachment[];
+  onArtAttachmentsChange: (attachments: ArtFileAttachment[]) => void;
+  userId?: string;
 }
 
 export function MockupConfigPanel({
