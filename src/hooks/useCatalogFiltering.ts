@@ -116,7 +116,7 @@ export function useCatalogFiltering({
     }
 
     // ⚠️ REGRA DE NEGÓCIO — NÃO ALTERAR
-    const skipSort = hasFuzzySearch && sortBy === 'name';
+    const skipSort = (hasFuzzySearch && sortBy === 'relevance') || (hasFuzzySearch && sortBy === 'name');
     sortProducts(result, sortBy, { promoSalesMap, supplierSalesMap, skipSort });
 
     return result;
