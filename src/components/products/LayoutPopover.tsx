@@ -26,7 +26,7 @@ export const LayoutPopover = React.forwardRef<HTMLDivElement, LayoutPopoverProps
       <div ref={ref}>
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="outline" size="sm" className="gap-1.5 h-8">
+            <Button variant="outline" size="sm" className="gap-1.5 h-8" aria-label="Alterar layout">
               <Settings2 className="h-3.5 w-3.5" />
               <span className="hidden sm:inline text-xs">Layout</span>
             </Button>
