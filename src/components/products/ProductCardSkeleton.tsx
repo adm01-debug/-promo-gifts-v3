@@ -113,7 +113,7 @@ export function ProductGridSkeleton({
         <div
           key={i}
           style={stagger ? { animationDelay: `${i * 75}ms` } : undefined}
-          className={stagger ? "animate-fade-in opacity-0" : ""}
+          className=""
         >
           <ProductCardSkeleton variant={variant} />
         </div>
