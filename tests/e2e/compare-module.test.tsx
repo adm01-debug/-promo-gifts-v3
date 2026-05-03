@@ -30,6 +30,17 @@ vi.mock('../../src/contexts/AuthContext', () => ({
   AuthProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
+// Mock do contexto de AriaLive
+vi.mock('../../src/components/a11y/AriaLive', () => ({
+  useAriaLive: () => ({
+    announce: vi.fn(),
+    announceStatus: vi.fn(),
+    announceAlert: vi.fn(),
+    announceProgress: vi.fn(),
+  }),
+  AriaLiveProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}));
+
 // Mock do contexto de Onboarding
 vi.mock('../../src/contexts/OnboardingContext', () => ({
   useOnboarding: () => ({
@@ -217,13 +228,13 @@ describe('E2E Comparar — Módulo de Comparação', () => {
     renderPage();
 
     await waitFor(() => {
-      const duelBtn = screen.getByText(/Modo Duelo/i);
+      // Usamos getAllByText e pegamos o primeiro para evitar o conflito de múltiplos elementos
+      const duelBtn = screen.getAllByText(/Modo Duelo/i)[0];
       expect(duelBtn).toBeInTheDocument();
     });
   });
 
   it('permite alternar entre Galeria Visual e Tabela Detalhada', async () => {
-    // Para testar as abas, usamos 3 produtos para que o modo duelo não seja o único
     useComparisonStore.setState({
       compareItems: [{ productId: 'prod-1' }, { productId: 'prod-2' }, { productId: 'prod-3' }],
       compareCount: 3,
