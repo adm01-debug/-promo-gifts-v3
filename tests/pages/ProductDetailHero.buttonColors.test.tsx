@@ -1,9 +1,24 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { ProductDetailHero } from '@/pages/product-detail/ProductDetailHero';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { TooltipProvider } from '@/components/ui/tooltip';
+
+// Mock components that require complex context
+vi.mock('@/components/products/QuickAddToQuote', () => ({
+  QuickAddToQuote: ({ className, labelOverride }: any) => (
+    <button className={className} aria-label={labelOverride}>{labelOverride}</button>
+  )
+}));
+
+vi.mock('@/components/products/ProductCategoryBadges', () => ({
+  ProductCategoryBadges: () => <div data-testid="category-badges" />
+}));
+
+vi.mock('@/components/products/PriceFreshnessThresholdEditor', () => ({
+  PriceFreshnessThresholdEditor: () => null
+}));
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false } }
@@ -38,12 +53,9 @@ describe('ProductDetailHero Button Colors', () => {
       </QueryClientProvider>
     );
 
-    // Carrinho: azul (primary)
-    // No mock, QuickAddToQuote pode renderizar como botão com label "Carrinho"
     const cartBtn = screen.getByLabelText(/Carrinho/i);
     expect(cartBtn.className).toContain('bg-primary');
     
-    // Orçamento: verde (success)
     const quoteBtn = screen.getByText(/Orçamento/i).closest('button');
     expect(quoteBtn?.className).toContain('bg-success');
   });
