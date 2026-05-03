@@ -5,31 +5,33 @@ import { supabase } from "@/integrations/supabase/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 // Mock Supabase
-const mockQuery = {
-  select: vi.fn().mockReturnThis(),
-  order: vi.fn().mockReturnThis(),
-  range: vi.fn().mockReturnThis(),
-  ilike: vi.fn().mockReturnThis(),
-  eq: vi.fn().mockReturnThis(),
-};
-mockQuery.select.mockReturnValue(mockQuery);
-mockQuery.order.mockReturnValue(mockQuery);
-mockQuery.range.mockReturnValue(mockQuery);
-mockQuery.ilike.mockReturnValue(mockQuery);
-mockQuery.eq.mockReturnValue(mockQuery);
+vi.mock("@/integrations/supabase/client", () => {
+  const mockQuery = {
+    select: vi.fn(),
+    order: vi.fn(),
+    range: vi.fn(),
+    ilike: vi.fn(),
+    eq: vi.fn(),
+  };
 
-vi.mock("@/integrations/supabase/client", () => ({
-  supabase: {
-    from: vi.fn(() => mockQuery),
-  },
-}));
+  mockQuery.select.mockReturnValue(mockQuery);
+  mockQuery.order.mockReturnValue(mockQuery);
+  mockQuery.range.mockReturnValue(mockQuery);
+  mockQuery.ilike.mockReturnValue(mockQuery);
+  mockQuery.eq.mockReturnValue(mockQuery);
+
+  return {
+    supabase: {
+      from: vi.fn(() => mockQuery),
+    },
+  };
+});
 
 const queryClient = new QueryClient({
   defaultOptions: { 
     queries: { 
       retry: false,
       gcTime: 0,
-      staleTime: 0,
     } 
   },
 });
@@ -51,8 +53,9 @@ describe("useLoginAttempts Hook", () => {
   it("fetches login attempts with correct parameters", async () => {
     const mockData = [{ id: "1", email: "test@example.com", success: true }];
     const fromSpy = vi.mocked(supabase.from);
+    const mockQuery = fromSpy() as any;
     
-    (mockQuery.range as any).mockResolvedValue({ data: mockData, count: 1, error: null });
+    mockQuery.range.mockResolvedValue({ data: mockData, count: 1, error: null });
 
     const { result } = renderHook(() => useLoginAttempts({ emailFilter: "test" }), { wrapper });
 
@@ -68,7 +71,9 @@ describe("useLoginAttempts Hook", () => {
 
   it("handles errors from supabase gracefully", async () => {
     const fromSpy = vi.mocked(supabase.from);
-    (mockQuery.range as any).mockResolvedValue({ data: null, error: { message: "DB Error" } });
+    const mockQuery = fromSpy() as any;
+    
+    mockQuery.range.mockResolvedValue({ data: null, error: { message: "DB Error" } });
 
     const { result } = renderHook(() => useLoginAttempts(), { wrapper });
 
