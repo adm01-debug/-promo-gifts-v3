@@ -211,18 +211,23 @@ export const SortableCartItem = memo(function SortableCartItem({
         </div>
 
         {/* Product info */}
-        <div className="p-3 space-y-2">
-          {item.product_sku && (
-            <span data-testid="cart-item-sku" className="text-[10px] text-muted-foreground font-mono">{item.product_sku}</span>
-          )}
-          <h4 data-testid="cart-item-name" className="text-sm font-medium leading-tight line-clamp-2 min-h-[2.5rem]">
-            {item.product_name}
-          </h4>
+        <div className="p-3.5 space-y-2.5">
+          <div className="flex flex-col gap-1">
+            {item.product_sku && (
+              <span data-testid="cart-item-sku" className="text-[10px] text-muted-foreground font-mono bg-muted/50 w-fit px-1.5 py-0.5 rounded-sm">{item.product_sku}</span>
+            )}
+            <h4 data-testid="cart-item-name" className="text-sm font-semibold leading-tight line-clamp-2 min-h-[2.5rem] group-hover:text-primary transition-colors">
+              {item.product_name}
+            </h4>
+          </div>
 
           <div className="flex items-center justify-between">
-            <span data-testid="cart-item-unit-price" className="text-sm font-bold text-primary tabular-nums">
-              {formatCurrency(item.product_price)}
-            </span>
+            <div className="flex flex-col">
+              <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-tight opacity-60">Unitário</span>
+              <span data-testid="cart-item-unit-price" className="text-sm font-bold text-primary tabular-nums">
+                {formatCurrency(item.product_price)}
+              </span>
+            </div>
           </div>
 
           {/* Quantity stepper */}
@@ -266,9 +271,12 @@ export const SortableCartItem = memo(function SortableCartItem({
                 <Plus className="h-3.5 w-3.5" />
               </button>
             </div>
-            <span data-testid="cart-item-total" className="text-sm font-bold text-foreground tabular-nums">
-              {formatCurrency(itemTotal)}
-            </span>
+            <div className="flex flex-col items-end">
+              <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-tight opacity-60">Subtotal</span>
+              <span data-testid="cart-item-total" className="text-sm font-bold text-foreground tabular-nums">
+                {formatCurrency(itemTotal)}
+              </span>
+            </div>
           </div>
 
           {/* Collapsible notes */}
