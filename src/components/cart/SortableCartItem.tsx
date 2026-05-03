@@ -224,13 +224,13 @@ export const SortableCartItem = memo(function SortableCartItem({
             </h4>
           </div>
 
-          <div className="flex items-center justify-between">
-            <div className="flex flex-col">
-              <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-tight opacity-60">Unitário</span>
-              <span data-testid="cart-item-unit-price" className="text-sm font-bold text-primary tabular-nums">
-                {formatCurrency(item.product_price)}
-              </span>
-            </div>
+          <div className=\"flex items-center justify-between\">
+            <PriceLabel 
+              label=\"Unitário\" 
+              value={item.product_price} 
+              testId=\"cart-item-unit-price\"
+              isPrimary 
+            />
           </div>
 
           {/* Quantity stepper */}
