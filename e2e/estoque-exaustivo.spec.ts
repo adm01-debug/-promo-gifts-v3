@@ -227,6 +227,7 @@ test.describe('Módulo Dashboard de Estoque - Testes Exaustivos', () => {
     // 3. Verifica se o botão de atualizar está disponível para re-tentativa
     const refreshButton = page.getByRole('button', { name: /Atualizar/i });
     await expect(refreshButton).toBeEnabled();
+  });
 
   test('Deve testar o atalho de teclado para atualização (Ctrl+Shift+R)', async ({ page }) => {
     await page.keyboard.press('Control+Shift+R');
