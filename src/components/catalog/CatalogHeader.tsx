@@ -1,9 +1,13 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { SmartSearchInput } from "@/components/search";
 import { RecentlyViewedPopover } from "@/components/products/RecentlyViewedPopover";
-import { Home } from "lucide-react";
+import { Home, Command, Search, Clock, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Badge } from "@/components/ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface CatalogHeaderProps {
   shouldShowCatalogSkeleton: boolean;
@@ -14,6 +18,8 @@ interface CatalogHeaderProps {
   searchQuery?: string;
   onReset?: () => void;
   activeFiltersCount?: number;
+  searchHistory?: string[];
+  onClearHistory?: () => void;
 }
 
 export function CatalogHeader({
@@ -25,9 +31,13 @@ export function CatalogHeader({
   searchQuery = "",
   onReset,
   activeFiltersCount = 0,
+  searchHistory = [],
+  onClearHistory,
 }: CatalogHeaderProps) {
   const hasActiveConstraints = searchQuery.trim().length > 0 || activeFiltersCount > 0;
   const searchRef = useRef<HTMLDivElement>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
+
 
   // "/" shortcut to focus search (standard pattern: Notion, GitHub, Figma)
   useEffect(() => {
@@ -83,12 +93,50 @@ export function CatalogHeader({
         </h1>
 
         {/* Search inline next to product count on desktop */}
-        <div className="hidden sm:block w-80 lg:w-[25rem]" ref={searchRef}>
+        <div className="hidden sm:flex items-center gap-2 w-80 lg:w-[28rem]" ref={searchRef}>
           <SmartSearchInput
             placeholder="Buscar produtos…  /"
             onSelect={onSelect}
-            className="w-full"
+            className="flex-1"
           />
+          
+          <AnimatePresence>
+            {searchHistory.length > 0 && (
+              <Popover open={historyOpen} onOpenChange={setHistoryOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="icon" className="h-11 w-11 shrink-0 rounded-lg border-muted-foreground/20 hover:border-primary/50 relative group overflow-hidden">
+                    <Clock className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                    <Badge className="absolute -top-1 -right-1 h-4 min-w-4 px-1 bg-primary text-[8px] flex items-center justify-center border-2 border-background">
+                      {searchHistory.length}
+                    </Badge>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-64 p-2" align="end">
+                  <div className="flex items-center justify-between px-2 pb-2 border-b border-border/50 mb-2">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Histórico</span>
+                    <Button variant="ghost" size="xs" onClick={onClearHistory} className="h-6 text-[10px] text-muted-foreground hover:text-destructive gap-1 px-1.5">
+                      <Trash2 className="h-3 w-3" /> Limpar
+                    </Button>
+                  </div>
+                  <div className="space-y-1 max-h-60 overflow-y-auto pr-1">
+                    {searchHistory.map((term, i) => (
+                      <button
+                        key={i}
+                        className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-accent text-left group transition-colors"
+                        onClick={() => {
+                          onSelect({ type: 'history', id: `hist-${i}`, label: term });
+                          setHistoryOpen(false);
+                        }}
+                      >
+                        <Search className="h-3 w-3 text-muted-foreground group-hover:text-primary" />
+                        <span className="truncate flex-1">{term}</span>
+                      </button>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
+            )}
+          </AnimatePresence>
         </div>
 
         <div className="hidden sm:block">
@@ -103,8 +151,12 @@ export function CatalogHeader({
           onSelect={onSelect}
           className="flex-1"
         />
+        {searchHistory.length > 0 && (
+          <Button variant="outline" size="icon" className="h-11 w-11 shrink-0" onClick={() => setHistoryOpen(!historyOpen)}>
+            <Clock className="h-4 w-4" />
+          </Button>
+        )}
       </div>
-      
     </div>
   );
 }

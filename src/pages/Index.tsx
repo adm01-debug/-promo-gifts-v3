@@ -45,6 +45,8 @@ export default function Index() {
               searchQuery={catalog.searchQuery}
               activeFiltersCount={catalog.activeFiltersCount}
               onReset={catalog.resetFilters}
+              searchHistory={catalog.searchHistory}
+              onClearHistory={catalog.clearHistory}
               onSelect={(result) => {
                 if (result.type === "product") {
                   catalog.navigate(`/produto/${result.id}`);

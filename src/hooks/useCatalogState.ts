@@ -453,6 +453,10 @@ export function useCatalogState() {
     setShareProduct,
     hasNextPage,
     activeProductId,
-    setActiveProductId
+    setActiveProductId,
+    suggestions,
+    quickSuggestions,
+    searchHistory: history,
+    clearHistory
   };
 }
