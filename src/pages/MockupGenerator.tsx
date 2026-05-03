@@ -26,6 +26,7 @@ import { useMockupGenerator } from "@/hooks/useMockupGenerator";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTechniqueHandlers } from "./mockup-generator/MockupTechniqueHandlers";
 import type { MockupApprovalData } from "@/types/mockup-approval";
+import { DiagnosticProfiler } from "@/components/dev/DiagnosticProfiler";
 import { lazyWithRetry } from "@/lib/lazyWithRetry";
 import type { LayoutCaptureRequest } from "@/components/mockup/approval/OffscreenLayoutCapture";
 
@@ -186,6 +187,7 @@ export default function MockupGenerator() {
 
   return (
     <MainLayout>
+      <DiagnosticProfiler id="MockupGenerator">
       <PageSEO title="Gerador de Mockups" description="Crie mockups profissionais de brindes personalizados com sua logo." path="/mockup-generator" />
       <Suspense fallback={null}>
         <OffscreenLayoutCapture request={layoutCaptureRequest} onCaptured={handleLayoutCaptured} />
@@ -468,6 +470,7 @@ export default function MockupGenerator() {
           detectedColors={mg.logoColorAnalysis.colors || []}
         />
       </div>
+      </DiagnosticProfiler>
     </MainLayout>
   );
 }
