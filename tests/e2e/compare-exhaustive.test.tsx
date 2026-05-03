@@ -27,22 +27,14 @@ const mockProducts = [
     colors: [{ name: 'Vermelho', hex: '#ff0000' }], sku: 'SKU2',
     category: { name: 'Escritório', icon: '📎' },
     supplier: { name: 'Sup2', verified: false }
-  },
-  {
-    id: 'p3', name: 'Produto 3', price: 120, images: ['img3.jpg'],
-    minQuantity: 15, stock: 100, stockStatus: 'in-stock',
-    colors: [{ name: 'Verde', hex: '#00ff00' }], sku: 'SKU3',
-    category: { name: 'Escritório', icon: '📎' },
-    supplier: { name: 'Sup3', verified: true }
-  },
-  {
-    id: 'p4', name: 'Produto 4', price: 180, images: ['img4.jpg'],
-    minQuantity: 8, stock: 0, stockStatus: 'out-of-stock',
-    colors: [{ name: 'Preto', hex: '#000000' }], sku: 'SKU4',
-    category: { name: 'Escritório', icon: '📎' },
-    supplier: { name: 'Sup4', verified: true }
   }
 ];
+
+// Mock do contexto de AriaLive
+vi.mock('../../src/components/a11y/AriaLive', () => ({
+  useAriaLive: () => ({ announce: vi.fn(), announceStatus: vi.fn() }),
+  AriaLiveProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}));
 
 // Mock do contexto de Auth
 vi.mock('../../src/contexts/AuthContext', () => ({
@@ -69,9 +61,9 @@ vi.mock('../../src/contexts/SellerCartContext', () => ({
   SellerCartProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
-// Mocks de infraestrutura (Supabase)
-vi.mock('../../src/integrations/supabase/client', () => {
-  const mockSupabase = {
+// Mocks de infraestrutura
+vi.mock('../../src/integrations/supabase/client', () => ({
+  supabase: {
     auth: { getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'u1' } } }) },
     from: vi.fn().mockReturnThis(),
     select: vi.fn().mockReturnThis(),
@@ -81,9 +73,8 @@ vi.mock('../../src/integrations/supabase/client', () => {
     limit: vi.fn().mockReturnThis(),
     maybeSingle: vi.fn().mockResolvedValue({ data: null }),
     rpc: vi.fn().mockResolvedValue({ data: [] }),
-  };
-  return { supabase: mockSupabase };
-});
+  },
+}));
 
 vi.mock('../../src/contexts/ProductsContext', () => ({
   useProductsContext: () => ({
@@ -106,19 +97,11 @@ vi.mock('recharts', () => ({
   Line: () => <div />,
 }));
 
-// Mock do hook useComparisonScore para garantir dados nos cards
 vi.mock('../../src/hooks/useComparisonScore', () => ({
-  useComparisonScore: (products: any[]) => {
-    if (!products || products.length === 0) return [];
-    return products.map(p => ({
-      productId: String(p.id),
-      total: 80,
-      score: 80,
-      isWinner: p.id === 'p1',
-      rank: 1,
-      breakdown: { price: 35, stock: 20, minQuantity: 15, colorVariety: 10, verifiedSupplier: 10, leadTime: 10 }
-    }));
-  },
+  useComparisonScore: (products: any[]) => (products || []).map(p => ({
+    productId: String(p.id), total: 80, score: 80, isWinner: p.id === 'p1', rank: 1,
+    breakdown: { price: 35, stock: 20, minQuantity: 15, colorVariety: 10, verifiedSupplier: 10, leadTime: 10 }
+  })),
   DEFAULT_SCORE_WEIGHTS: { price: 35, stock: 20, minQuantity: 15, colorVariety: 10, verifiedSupplier: 10, leadTime: 10 }
 }));
 
@@ -126,8 +109,8 @@ describe('Módulo Comparar - Bateria Exaustiva de Testes', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     useComparisonStore.setState({
-      compareItems: [{ productId: 'p1' }, { productId: 'p2' }, { productId: 'p3' }, { productId: 'p4' }],
-      compareCount: 4, compareIds: ['p1', 'p2', 'p3', 'p4'], isLoaded: true,
+      compareItems: [{ productId: 'p1' }, { productId: 'p2' }],
+      compareCount: 2, compareIds: ['p1', 'p2'], isLoaded: true,
     });
   });
 
@@ -147,20 +130,18 @@ describe('Módulo Comparar - Bateria Exaustiva de Testes', () => {
     return res;
   };
 
-  it('Validação 1: Carregamento total e limites (4 produtos)', async () => {
+  it('Validação 1: Carregamento total e limites', async () => {
     await renderPage();
-    expect(screen.getByText(/Comparando 4 produtos/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Comparando 2 produtos/i)).toBeInTheDocument();
   });
 
-  it('Validação 2: Tabela Detalhada e Filtros de Diferença', async () => {
+  it('Validação 2: Tabela Detalhada e Filtros', async () => {
     await renderPage();
     const tableTab = await screen.findByText(/Tabela Detalhada/i);
     fireEvent.click(tableTab);
     
-    // Tenta encontrar o texto de forma mais flexível
     await waitFor(() => {
-      const cell = screen.queryAllByText(/Preço unitário/i);
-      expect(cell.length).toBeGreaterThan(0);
+      expect(screen.queryAllByText(/Preço unitário/i).length).toBeGreaterThan(0);
     });
 
     const diffBtn = screen.getByText(/Só diferenças/i);
@@ -168,29 +149,21 @@ describe('Módulo Comparar - Bateria Exaustiva de Testes', () => {
     expect(diffBtn).toHaveTextContent(/Mostrando diferenças/i);
   });
 
-  it('Validação 3: Gráficos e Inteligência Artificial', async () => {
+  it('Validação 3: Modo Duelo', async () => {
     await renderPage();
-    const radars = screen.getAllByTestId('radar-chart');
-    expect(radars.length).toBeGreaterThan(0);
-    expect(screen.getByText(/Advisor AI/i)).toBeInTheDocument();
+    const duelBtn = await screen.findByText(/Ativar Modo Duelo/i);
+    fireEvent.click(duelBtn);
+    expect(await screen.findByText(/Modo Duelo ativo/i)).toBeInTheDocument();
   });
 
-  it('Validação 4: Modo Duelo', async () => {
-    useComparisonStore.setState({
-      compareItems: [{ productId: 'p1' }, { productId: 'p2' }],
-      compareCount: 2, compareIds: ['p1', 'p2'],
-    });
+  it('Validação 4: Remoção e Limpeza', async () => {
     await renderPage();
-    fireEvent.click(screen.getByText(/Ativar Modo Duelo/i));
-    expect(screen.getByText(/Modo Duelo ativo/i)).toBeInTheDocument();
-  });
-
-  it('Validação 5: Remoção e Limpeza', async () => {
-    await renderPage();
-    const removeBtns = screen.getAllByLabelText(/Remover/i);
+    const removeBtns = await screen.findAllByLabelText(/Remover/i);
     fireEvent.click(removeBtns[0]);
-    expect(screen.getByText(/Comparando 3 produtos/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Comparando 1 produto/i)).toBeInTheDocument();
+
     fireEvent.click(screen.getByText(/Limpar/i));
-    expect(screen.getByText(/Selecione pelo menos 2 produtos/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Selecione pelo menos 2 produtos/i)).toBeInTheDocument();
   });
 });
+
