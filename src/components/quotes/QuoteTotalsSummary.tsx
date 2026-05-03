@@ -72,7 +72,7 @@ export function QuoteTotalsSummary({ items, discountPercent, discountAmount, shi
         <div className="bg-muted/50 border-t border-border px-4 py-3">
           <div className="flex justify-between items-baseline">
             <span className="font-bold text-lg">Total:</span>
-            <span className="text-2xl font-bold text-primary">{formatCurrency(computedTotal)}</span>
+            <span data-testid="summary-total" className="text-2xl font-bold text-primary">{formatCurrency(computedTotal)}</span>
           </div>
         </div>
       </div>
