@@ -42,10 +42,12 @@ export function useCatalogFiltering({
 
     if (result.length === 0) return result;
 
-    if (hasCategoryFilter && categoryFilteredProductIds.size > 0) {
-      result = result.filter((p) => categoryFilteredProductIds.has(p.id));
-    } else if (hasCategoryFilter && categoryFilteredProductIds.size === 0 && !isLoadingCategoryFilter) {
-      return [];
+    if (hasCategoryFilter && !isLoadingCategoryFilter) {
+      if (categoryFilteredProductIds.size > 0) {
+        result = result.filter((p) => categoryFilteredProductIds.has(p.id));
+      } else {
+        return [];
+      }
     }
 
     if (colorFilterSet.size > 0) {
@@ -101,10 +103,12 @@ export function useCatalogFiltering({
       });
     }
 
-    if (hasMaterialFilter && materialFilteredProductIds.size > 0) {
-      result = result.filter((p) => materialFilteredProductIds.has(p.id));
-    } else if (hasMaterialFilter && materialFilteredProductIds.size === 0 && !isLoadingMaterialFilter) {
-      return [];
+    if (hasMaterialFilter && !isLoadingMaterialFilter) {
+      if (materialFilteredProductIds.size > 0) {
+        result = result.filter((p) => materialFilteredProductIds.has(p.id));
+      } else {
+        return [];
+      }
     }
 
     if (!hasMaterialFilter && filters.materiais.length) {

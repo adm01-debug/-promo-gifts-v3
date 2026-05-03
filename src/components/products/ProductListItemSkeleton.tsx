@@ -6,36 +6,39 @@ import { Skeleton } from "@/components/ui/skeleton";
  */
 export function ProductListItemSkeleton() {
   return (
-    <div className="flex items-center gap-3 sm:gap-4 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-card border border-border/50">
+    <div className="flex items-center gap-3 sm:gap-4 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-card border border-border/40 relative overflow-hidden">
+      {/* Shimmer overlay */}
+      <div className="absolute inset-0 bg-shimmer animate-shimmer pointer-events-none" />
+
       {/* Thumbnail */}
-      <Skeleton className="w-14 h-14 sm:w-[72px] sm:h-[72px] rounded-lg shrink-0" />
+      <Skeleton className="w-14 h-14 sm:w-[72px] sm:h-[72px] rounded-lg shrink-0 bg-muted/40" />
 
       {/* Info block */}
       <div className="flex-1 min-w-0 py-0.5 space-y-1.5">
         {/* Meta: category + supplier */}
         <div className="flex items-center gap-1.5">
-          <Skeleton className="h-3 w-20" />
-          <Skeleton className="h-3 w-16" />
+          <Skeleton className="h-3 w-16 opacity-50" />
+          <Skeleton className="h-3 w-12 opacity-40" />
         </div>
         {/* Name */}
-        <Skeleton className="h-4 w-3/5" />
+        <Skeleton className="h-4 w-3/5 opacity-80" />
         {/* Stock + SKU */}
         <div className="flex items-center gap-2">
-          <Skeleton className="h-3 w-28" />
-          <Skeleton className="h-3 w-16 hidden sm:block" />
+          <Skeleton className="h-3 w-24 opacity-50" />
+          <Skeleton className="h-3 w-12 hidden sm:block opacity-30" />
         </div>
       </div>
 
       {/* Price */}
       <div className="shrink-0 text-right min-w-[80px] sm:min-w-[100px]">
-        <Skeleton className="h-5 w-20 ml-auto" />
+        <Skeleton className="h-5 w-16 ml-auto opacity-70" />
       </div>
 
       {/* Actions */}
       <div className="shrink-0 flex items-center gap-0.5">
-        <Skeleton className="h-8 w-8 rounded-full" />
-        <Skeleton className="h-8 w-8 rounded-full" />
-        <Skeleton className="h-8 w-8 rounded-full hidden sm:block" />
+        <Skeleton className="h-7 w-7 rounded-full opacity-40" />
+        <Skeleton className="h-7 w-7 rounded-full opacity-40" />
+        <Skeleton className="h-7 w-7 rounded-full hidden sm:block opacity-40" />
       </div>
     </div>
   );
@@ -47,7 +50,7 @@ export function ProductListSkeleton({ count = 8 }: { count?: number }) {
       {[...Array(count)].map((_, i) => (
         <div
           key={i}
-          className="animate-pulse"
+          className=""
           style={{ animationDelay: `${i * 60}ms` }}
         >
           <ProductListItemSkeleton />

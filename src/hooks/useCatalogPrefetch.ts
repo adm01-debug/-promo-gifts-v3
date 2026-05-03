@@ -16,7 +16,8 @@ export function useCatalogPrefetch() {
   useEffect(() => {
     if (isLoading || !isAuthenticated || prefetchedRef.current) return;
     
-    // Otimização: Delay de 2s para prefetch não competir com o render inicial crítico (LCP)
+    // Otimização: Delay de 400ms para prefetch não competir com o render inicial crítico (LCP),
+    // mas rápido o suficiente para estar pronto antes que o usuário interaja.
     const timer = setTimeout(() => {
       prefetchedRef.current = true;
       queryClient.prefetchInfiniteQuery({
