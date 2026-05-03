@@ -3,12 +3,12 @@
  * antes de executar ações como Favoritar, Comparar e Coleção.
  * Mesmo fluxo usado para Carrinho e Orçamento.
  */
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import { Heart, GitCompare, FolderPlus, MessageCircle, FileText } from 'lucide-react';
 import { SingleVariantPicker } from '@/components/products/SingleVariantPicker';
 import type { ExternalVariantStock } from '@/hooks/useExternalVariantStock';
+import { VisuallyHidden } from '@/components/a11y/VisuallyHidden';
 
 export type VariantActionMode = 'favorite' | 'compare' | 'collection' | 'share' | 'quote';
 
@@ -78,14 +78,19 @@ export function VariantPickerDialog({
         onClick={(e) => e.stopPropagation()}
         onPointerDown={(e) => e.stopPropagation()}
       >
+        <VisuallyHidden>
+          <DialogTitle>{config.title}: {productName}</DialogTitle>
+          <DialogDescription>Seletor de variantes para o produto {productName}</DialogDescription>
+        </VisuallyHidden>
+
         <div className="px-5 pt-5 pb-3 space-y-2">
           <DialogHeader className="p-0">
-            <DialogTitle className="flex items-center gap-2.5 text-base font-display font-semibold">
+            <div className="flex items-center gap-2.5 text-base font-display font-semibold">
               <div className={cn('w-8 h-8 rounded-lg flex items-center justify-center shrink-0', config.bgClass)}>
                 <Icon className={cn('h-4 w-4', config.colorClass)} />
               </div>
               {config.title}
-            </DialogTitle>
+            </div>
           </DialogHeader>
           <p className="text-xs text-muted-foreground truncate">{productName}</p>
           <p className="text-[11px] text-muted-foreground leading-relaxed">
@@ -93,7 +98,7 @@ export function VariantPickerDialog({
           </p>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-5 pb-5">
+        <div className="flex-1 overflow-y-auto px-5 pb-5 scrollbar-thin">
           <SingleVariantPicker
             productId={productId}
             onSelect={handleSelect}

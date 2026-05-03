@@ -67,11 +67,22 @@ export function VariantGridMatrix({ variants, selectedId, onSelect, mode = "view
             const isSelected = selectedId === variant.id; const isBulk = selectedIds.has(variant.id); const stock = Math.max(0, variant.stock);
             return (
               <Tooltip key={variant.id}><TooltipTrigger asChild>
-                <button onClick={() => isAdmin ? toggleSelection(variant.id) : onSelect?.(variant)} className={cn("flex items-center gap-2 px-3 py-2 rounded-lg border-2 transition-all text-sm",
-                  isBulk ? "border-primary bg-primary/15 ring-2 ring-primary/30" : isSelected ? "border-primary bg-primary/10 ring-1 ring-primary/20" : "border-border bg-card hover:border-primary/40", stock === 0 && "opacity-40")}>
+                <button 
+                  onClick={() => isAdmin ? toggleSelection(variant.id) : onSelect?.(variant)} 
+                  className={cn(
+                    "flex items-center gap-2 px-3 py-2 rounded-lg border-2 transition-all text-sm",
+                    isBulk ? "border-primary bg-primary/15 ring-2 ring-primary/30" : 
+                    isSelected ? "border-primary bg-primary/10 ring-1 ring-primary/20" : 
+                    "border-border bg-card hover:border-primary/40", 
+                    stock === 0 && "bg-destructive/5 border-destructive/20"
+                  )}
+                >
                   {isAdmin && (isBulk ? <CheckSquare className="h-3.5 w-3.5 text-primary shrink-0" /> : <Square className="h-3.5 w-3.5 text-muted-foreground shrink-0" />)}
                   <div className="w-4 h-4 rounded-full border border-border shrink-0" style={{ backgroundColor: color.hex || "hsl(var(--muted))" }} />
-                  <span className="font-medium">{color.name}</span><span className={cn("text-xs font-mono", stockColor(stock))}>{formatStock(stock)}</span>
+                  <span className="font-medium">{color.name}</span>
+                  <span className={cn("text-xs font-mono", stockColor(stock), stock === 0 && "font-bold")}>
+                    {formatStock(stock)}
+                  </span>
                 </button></TooltipTrigger>
                 <TooltipContent>{variant.sku && <p className="font-mono text-xs">{variant.sku}</p>}<p>{stock} un. em estoque</p>{isAdmin && <p className="text-xs text-muted-foreground">Clique para selecionar</p>}</TooltipContent>
               </Tooltip>
@@ -124,9 +135,17 @@ export function VariantGridMatrix({ variants, selectedId, onSelect, mode = "view
                     return (
                       <td key={size} className={cn("text-center border-border", compact ? "px-1 py-1" : "px-2 py-2")}>
                         <Tooltip><TooltipTrigger asChild>
-                          <button onClick={() => isAdmin ? toggleSelection(variant.id) : onSelect?.(variant)} className={cn("w-full min-w-[3rem] py-1.5 px-2 rounded-md transition-all text-xs font-medium",
-                            isBulk ? "bg-primary/20 text-primary ring-2 ring-primary/40 shadow-sm" : isItem ? "bg-primary text-primary-foreground ring-2 ring-primary/30 shadow-sm" : stock > 0 ? "bg-secondary/60 hover:bg-secondary text-foreground hover:shadow-sm" : "bg-destructive/5 text-destructive/60",
-                            (stock > 0 || isAdmin) && !isItem && "hover:scale-105")}>
+                          <button 
+                            onClick={() => isAdmin ? toggleSelection(variant.id) : onSelect?.(variant)} 
+                            className={cn(
+                              "w-full min-w-[3rem] py-1.5 px-2 rounded-md transition-all text-xs font-medium",
+                              isBulk ? "bg-primary/20 text-primary ring-2 ring-primary/40 shadow-sm" : 
+                              isItem ? "bg-primary text-primary-foreground ring-2 ring-primary/30 shadow-sm" : 
+                              stock > 0 ? "bg-secondary/60 hover:bg-secondary text-foreground hover:shadow-sm" : 
+                              "bg-destructive/10 text-destructive font-bold border border-destructive/20",
+                              (stock > 0 || isAdmin) && !isItem && "hover:scale-105"
+                            )}
+                          >
                             {isBulk && <Check className="inline-block h-3 w-3 mr-0.5 -mt-0.5 text-primary" />}
                             {isItem && !isBulk && <Check className="inline-block h-3 w-3 mr-0.5 -mt-0.5" />}
                             {formatStock(stock)}

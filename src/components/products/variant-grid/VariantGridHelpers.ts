@@ -29,6 +29,7 @@ export function isLightColor(hex?: string | null): boolean {
 }
 
 export function formatStock(stock: number): string {
+  if (stock === 0) return "0";
   if (stock >= 1000) return `${(stock / 1000).toFixed(1)}k`;
   return stock.toLocaleString("pt-BR");
 }
