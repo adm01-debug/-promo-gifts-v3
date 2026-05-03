@@ -18,6 +18,7 @@ import { TechniqueTooltip } from "./TechniqueTooltip";
 import { MockupClientSelector } from "./MockupClientSelector";
 import { MockupProductSelector, type MockupProductSelection } from "./MockupProductSelector";
 import { MultiAreaManager, type PersonalizationArea } from "./MultiAreaManager";
+import { ArtFileUpload, type ArtFileAttachment } from "./ArtFileUpload";
 import { LogoColorAnalyzer } from "./LogoColorAnalyzer";
 import type { DetectedColor } from "@/hooks/useLogoColorAnalysis";
 
