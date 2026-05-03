@@ -108,6 +108,7 @@ export function useCatalogState() {
     isFetchingNextPage,
     hasNextPage,
     fetchNextPage,
+    refetch: refetchCatalog,
   } = useProductsCatalog(debouncedServerSearch ? { search: debouncedServerSearch } : undefined);
 
   const realProducts = useMemo(() => {
