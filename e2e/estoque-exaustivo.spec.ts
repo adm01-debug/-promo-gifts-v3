@@ -30,10 +30,10 @@ test.describe('Módulo Estoque - Testes Exaustivos', () => {
 
   test('Deve alternar filtros rápidos através dos cards de sumário', async ({ page }) => {
     await page.click('text=/Em Estoque/i');
-    await expect(page.locator('text=/Filtro ativo: Em Estoque/i')).toBeVisible();
+    await expect(page.locator('text=/Estoque: Em Estoque/i')).toBeVisible();
     
     await page.click('text=/Sem Estoque/i');
-    await expect(page.locator('text=/Filtro ativo: Sem Estoque/i')).toBeVisible();
+    await expect(page.locator('text=/Estoque: Sem Estoque/i')).toBeVisible();
     
     await page.locator('button[aria-label="Remover filtro"]').click();
     await expect(page.locator('text=/Filtro ativo:/i')).not.toBeVisible();
@@ -119,7 +119,7 @@ test.describe('Módulo Estoque - Testes Exaustivos', () => {
     
     // Volta e testa busca
     await page.goBack();
-    const searchInput = page.getByPlaceholder(/Buscar produto, SKU ou cor.../i);
+    const searchInput = page.getByPlaceholder(/Buscar no Estoque (Nome, SKU ou Cor)... /i);
     await searchInput.fill(productName);
     await page.waitForTimeout(600); // Debounce
     
@@ -137,7 +137,7 @@ test.describe('Módulo Estoque - Testes Exaustivos', () => {
     await firstRow.click();
     const colorName = await page.locator('table tbody tr').nth(1).locator('.text-sm').first().innerText();
     
-    const searchInput = page.getByPlaceholder(/Buscar produto, SKU ou cor.../i);
+    const searchInput = page.getByPlaceholder(/Buscar no Estoque (Nome, SKU ou Cor)... /i);
     
     // Teste Nome
     await searchInput.fill(productName);
@@ -161,12 +161,12 @@ test.describe('Módulo Estoque - Testes Exaustivos', () => {
   });
 
   test('Deve persistir filtros, busca e ordenação ao navegar entre páginas', async ({ page }) => {
-    const searchInput = page.getByPlaceholder(/Buscar produto, SKU ou cor.../i);
+    const searchInput = page.getByPlaceholder(/Buscar no Estoque (Nome, SKU ou Cor)... /i);
     const nextButton = page.getByRole('button', { name: /Próximo/i });
     
     // 1. Aplica Filtro de Status (Estoque Baixo)
     await page.click('text=/Estoque Baixo/i');
-    await expect(page.locator('text=/Filtro ativo: Estoque Baixo/i')).toBeVisible();
+    await expect(page.locator('text=/Estoque: Estoque Baixo/i')).toBeVisible();
     
     // 2. Aplica Busca
     const firstProductName = await page.locator('table tbody tr').first().locator('.font-medium').innerText();
@@ -190,7 +190,7 @@ test.describe('Módulo Estoque - Testes Exaustivos', () => {
       await page.waitForTimeout(300);
       
       // 6. Valida que tudo permanece aplicado
-      await expect(page.locator('text=/Filtro ativo: Estoque Baixo/i')).toBeVisible();
+      await expect(page.locator('text=/Estoque: Estoque Baixo/i')).toBeVisible();
       await expect(searchInput).toHaveValue(searchTerms);
       // O primeiro item deve ser o mesmo (ordenado por nome e filtrado)
       const currentFirstProduct = await page.locator('table tbody tr').first().locator('.font-medium').innerText();
