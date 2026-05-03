@@ -455,7 +455,7 @@ export function useMockupGenerator() {
     selectedClient, setSelectedClient,
     personalizationAreas, setPersonalizationAreas, activeAreaId, setActiveAreaId,
     activeArea, updateActiveArea, handleAreaLogoUpload, productLocations,
-    generatedMockup, setGeneratedMockup, generatedBatchMockups, isLoading,
+    generatedMockup, setGeneratedMockup, generatedBatchMockups, artAttachments, setArtAttachments, isLoading,
     generationError, setGenerationError, generateMockup, downloadMockup,
     mockupAnnotations, setMockupAnnotations, beforeImage,
     mockupHistory, isLoadingHistory, deleteDialogOpen, setDeleteDialogOpen,
