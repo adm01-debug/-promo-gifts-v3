@@ -24,7 +24,12 @@ vi.mock('@tanstack/react-query', async (importOriginal) => {
 vi.mock('../lib/query-config', () => ({
   createQueryClient: () => ({
     setDefaultOptions: vi.fn(),
+    prefetchInfiniteQuery: vi.fn(),
   }),
+}));
+
+vi.mock('../hooks/useCatalogPrefetch', () => ({
+  useCatalogPrefetch: vi.fn(),
 }));
 
 vi.mock('react-router-dom', async () => {
@@ -50,9 +55,8 @@ describe('App Structure and Navigation', () => {
       expect(initializer).not.toBeNull();
     } catch (e) {
       console.log('App render had some expected test errors, but checking for component presence...');
-      // Even if App fails to fully render due to other missing mocks, 
-      // the initial parts of the tree should be there if we use queryByTestId
     }
   });
 });
+
 
