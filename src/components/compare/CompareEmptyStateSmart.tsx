@@ -45,10 +45,15 @@ export function CompareEmptyStateSmart() {
   if (rpcProducts.length === 0 && allProducts.length > 0) {
     products = allProducts.slice(0, 6);
     if (!usedFallback) {
-      setUsedFallback(true);
+      // Usamos setImmediate ou setTimeout para evitar "update during render"
+      setTimeout(() => {
+        setUsedFallback(true);
+      }, 0);
       logger.warn("[CompareEmptyStateSmart] Usando fallback de produtos do contexto");
     }
   }
+
+
 
   const handleAdd = (id: string, name: string) => {
     if (!canAddMore) {
