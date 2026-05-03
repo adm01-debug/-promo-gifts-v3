@@ -429,7 +429,7 @@ export function useCatalogState() {
     isLoadingMore,
     isInitialCatalogLoad,
     isLoading,
-    isBackgroundFetching,
+    isBackgroundFetching: isFetchingNextPage,
     paginatedProducts,
     filteredProducts,
     totalEstimate,
