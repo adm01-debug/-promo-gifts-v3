@@ -35,6 +35,7 @@ interface CartSidebarProps {
   cartAge: number;
   weightVolume: { weightKg: number; volumeM3: number; volumeCm3: number } | null;
   allProducts: unknown[];
+  isLoadingProducts?: boolean;
   templates: { id: string; name: string; description?: string | null; items: CartTemplateItem[]; created_at?: string }[];
   canCreateCart: boolean;
   onGenerateQuote: (cart: SellerCart) => void;
