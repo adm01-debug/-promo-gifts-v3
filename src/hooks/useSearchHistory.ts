@@ -35,12 +35,20 @@ export function useSearchHistory(type?: HistoryType) {
   useEffect(() => {
     loadHistory();
     
-    // Listen for storage changes from other tabs/components
     const handleStorage = (e: StorageEvent) => {
       if (e.key === STORAGE_KEY) loadHistory();
     };
+    
+    // Custom event for same-tab updates
+    const handleCustomUpdate = () => loadHistory();
+    
     window.addEventListener("storage", handleStorage);
-    return () => window.removeEventListener("storage", handleStorage);
+    window.addEventListener("search-history-update", handleCustomUpdate);
+    
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+      window.removeEventListener("search-history-update", handleCustomUpdate);
+    };
   }, [loadHistory]);
 
   const addToHistory = useCallback((item: Omit<HistoryItem, "timestamp">) => {
