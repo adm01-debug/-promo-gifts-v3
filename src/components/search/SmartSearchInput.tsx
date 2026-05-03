@@ -109,7 +109,7 @@ export const SmartSearchInput = forwardRef<HTMLDivElement, SmartSearchInputProps
   }, [addToHistory, setQuery, onSelect, navigate]);
 
   const submitSearch = useCallback((q: string) => {
-    addToHistory(q);
+    addToHistory({ id: `history-${q}`, label: q, type: "general" });
     if (onSearch) { onSearch(q); } else { navigate(`/?search=${encodeURIComponent(q)}`); }
     setIsFocused(false);
   }, [addToHistory, onSearch, navigate]);
