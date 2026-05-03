@@ -6,6 +6,7 @@ import { callAiWithTracking, QuotaExceededError } from '../_shared/ai-usage.ts';
 import { rateLimiters, applyRateLimit } from '../_shared/rate-limiter.ts';
 import { runBotProtection } from '../_shared/bot-protection.ts';
 import { resolveCredential } from '../_shared/credentials.ts';
+import { extractAndParseAIJSON, safeJson } from '../_shared/json-parser.ts';
 
 // ============================================
 // SCHEMAS
@@ -180,9 +181,7 @@ Seja GENEROSO nos sinônimos — quanto mais variações, melhor a busca.`;
     const content = data.choices?.[0]?.message?.content?.trim();
     if (!content) return defaultResult;
 
-    // Clean potential markdown wrapping
-    const cleaned = content.replace(/```json\s*/gi, "").replace(/```\s*/gi, "").trim();
-    const parsed = JSON.parse(cleaned);
+    const parsed = extractAndParseAIJSON(content) as any;
 
     return {
       searchTerms: Array.isArray(parsed.searchTerms) ? parsed.searchTerms.filter((t: any) => typeof t === "string") : [],
