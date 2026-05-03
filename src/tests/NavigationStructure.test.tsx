@@ -32,11 +32,17 @@ vi.mock('../hooks/useCatalogPrefetch', () => ({
   useCatalogPrefetch: vi.fn(),
 }));
 
+// Mock RouteScrollReset which needs Router context
+vi.mock('../components/common/RouteScrollReset', () => ({
+  RouteScrollReset: () => null
+}));
+
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom');
   return {
     ...actual,
     BrowserRouter: ({ children }: { children: React.ReactNode }) => <div data-testid="browser-router">{children}</div>,
+    useLocation: vi.fn(() => ({ pathname: '/' })),
   };
 });
 
@@ -58,5 +64,6 @@ describe('App Structure and Navigation', () => {
     }
   });
 });
+
 
 
