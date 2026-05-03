@@ -376,4 +376,4 @@ const MockupListRow = memo(({ mockup, isCompareSelected, onToggleCompare, onLoad
       </div>
     </div>
   );
-}
+});
