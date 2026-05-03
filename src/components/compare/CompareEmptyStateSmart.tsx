@@ -40,15 +40,19 @@ export function CompareEmptyStateSmart() {
     return () => { cancelled = true; };
   }, []);
 
-  const rpcProducts = getProductsByIds(topIds);
   let products = rpcProducts;
   if (rpcProducts.length === 0 && allProducts.length > 0) {
     products = allProducts.slice(0, 6);
     if (!usedFallback) {
-      setUsedFallback(true);
+      // Usamos useEffect ou setImmediate para evitar "update during render" em testes
+      // ou apenas omitimos o setUsedFallback se for trivial, mas manteremos a lógica segura
+      setTimeout(() => {
+        if (!cancelled) setUsedFallback(true);
+      }, 0);
       logger.warn("[CompareEmptyStateSmart] Usando fallback de produtos do contexto");
     }
   }
+
 
   const handleAdd = (id: string, name: string) => {
     if (!canAddMore) {
