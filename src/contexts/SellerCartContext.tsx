@@ -32,6 +32,7 @@ interface SellerCartContextType {
   duplicateCart: (cartId: string) => void;
   moveItemToCart: (itemId: string, targetCartId: string) => void;
   duplicateItemToCart: (itemId: string, targetCartId: string) => void;
+  clearCart: (cartId: string) => void;
 }
 
 const SellerCartContext = createContext<SellerCartContextType | undefined>(undefined);
