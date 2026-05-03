@@ -105,13 +105,13 @@ export const MobileProductActions = React.forwardRef<HTMLDivElement, MobileProdu
             buttonSize="default"
             labelOverride="Carrinho"
             iconOverride="cart"
-            className="flex-1 h-10 rounded-full bg-cart hover:bg-cart-hover text-cart-foreground font-medium text-sm"
+            className="flex-1 h-10 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-sm"
           />
 
           {/* Orçamento Button */}
           <Button
             onClick={() => setQuoteWizardOpen(true)}
-            className="flex-1 h-10 rounded-full gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-sm"
+            className="flex-1 h-10 rounded-full gap-2 bg-success hover:bg-success/90 text-success-foreground font-medium text-sm"
           >
             <FileText className="h-4 w-4" />
             Orçamento

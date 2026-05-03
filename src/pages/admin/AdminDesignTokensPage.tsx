@@ -86,7 +86,7 @@ const RADIUS_TOKENS = [
 
 const GRADIENT_TOKENS = [
   { name: "Primary", twClass: "bg-gradient-primary" },
-  { name: "CTA", twClass: "bg-gradient-cta" },
+  { name: "CTA (Success)", twClass: "bg-gradient-cta" },
   { name: "Hero", twClass: "bg-gradient-hero" },
   { name: "Glow", twClass: "bg-gradient-glow" },
   { name: "Subtle", twClass: "bg-gradient-subtle" },
