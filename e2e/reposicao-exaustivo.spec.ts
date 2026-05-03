@@ -20,8 +20,9 @@ test.describe('Módulo de Reposição - Testes Exaustivos', () => {
     await expect(page.getByRole('heading', { name: 'Reposição' })).toBeVisible();
     
     // Cards de KPI/Stats
-    await expect(page.locator('section:has-text("Total Reposto")')).toBeVisible();
-    await expect(page.locator('section:has-text("Últimos 30 dias")')).toBeVisible();
+    await expect(page.locator('section[aria-label="Estatísticas de reposição"]')).toBeVisible();
+    await expect(page.locator('text=/Repostos Hoje/i')).toBeVisible();
+    await expect(page.locator('text=/Últimos 7 Dias/i')).toBeVisible();
     
     // Grid de produtos
     await expect(page.locator('main')).toBeVisible();
