@@ -41,6 +41,7 @@ test.describe("Mockup Generation IA Flow", () => {
     await expect(page.getByTestId("mockup-technique-select-trigger")).toContainText(techniqueName.trim());
 
     // 4. Upload Logo
+    // Find the file input for the first area
     const fileInput = page.locator('input[data-testid^="mockup-logo-upload-input-"]').first();
     const logoPath = path.resolve("public/placeholder.svg");
     await fileInput.setInputFiles(logoPath);
@@ -49,12 +50,12 @@ test.describe("Mockup Generation IA Flow", () => {
     await expect(page.locator("img[alt='Logo']")).toBeVisible({ timeout: 10000 });
 
     // 5. Adjust Position
-    // Use the "Centro" button from LogoQuickActions
+    // Centering the logo
     const centerBtn = page.getByRole("button", { name: /^Centro$/i });
     await expect(centerBtn).toBeVisible();
     await centerBtn.click();
     
-    // Verify coordinates in status (if visible)
+    // Verify coordinates in status (LogoSizeControls shows this)
     await expect(page.getByText(/Pos: 50% × 50%/i)).toBeVisible();
 
     // Rotate +15°
@@ -63,13 +64,14 @@ test.describe("Mockup Generation IA Flow", () => {
     await expect(page.getByText(/Rot: 15°/i)).toBeVisible();
 
     // 6. Generate Mockup with IA
-    const generateBtn = page.getByTestId("mockup-generate-button");
-    await expect(generateBtn).toBeEnabled();
-    // In GenerateButton.tsx, the default label is "Gerar Mockup com IA"
-    await expect(generateBtn).toContainText(/Gerar Mockup com IA/i);
-    await generateBtn.click();
+    // We use the "Gerar Layout - IA" button from MockupLayoutButtons
+    const generateLayoutAiBtn = page.getByRole("button", { name: /Gerar Layout - IA/i });
+    await expect(generateLayoutAiBtn).toBeVisible();
+    await expect(generateLayoutAiBtn).toBeEnabled();
+    await generateLayoutAiBtn.click();
 
     // 7. Verify Generation State (Overlay)
+    // The overlay appears while the IA is working
     await expect(page.locator('[data-testid="generating-overlay"]')).toBeVisible();
     await expect(page.getByText(/Criando seu mockup/i)).toBeVisible();
 
@@ -82,7 +84,8 @@ test.describe("Mockup Generation IA Flow", () => {
     const resultImage = page.getByTestId("mockup-result-card").locator("img").first();
     await expect(resultImage).toBeVisible();
     
-    // Check if the download button is present
+    // Check if the download button is present in the result card
     await expect(page.getByTestId("mockup-result-card").getByText(/Baixar/i)).toBeVisible();
   });
 });
+
