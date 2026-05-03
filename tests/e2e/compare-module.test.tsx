@@ -6,6 +6,15 @@ import ComparePage from '../../src/pages/ComparePage';
 import { useComparisonStore } from '../../src/stores/useComparisonStore';
 import { TooltipProvider } from '../../src/components/ui/tooltip';
 import { HelmetProvider } from 'react-helmet-async';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: false,
+    },
+  },
+});
 
 // Mock do contexto de Auth
 vi.mock('../../src/contexts/AuthContext', () => ({
@@ -98,14 +107,14 @@ vi.mock('../../src/contexts/ProductsContext', () => ({
   ProductsProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
-// Mock do hook useComparisonScore (Retornando um ARRAY diretamente como esperado pelos componentes)
+// Mock do hook useComparisonScore
 vi.mock('../../src/hooks/useComparisonScore', () => ({
   useComparisonScore: (products: any[]) => {
     if (!products || products.length === 0) return [];
     return products.map(p => ({
       productId: String(p.id),
       total: 80,
-      score: 80, // para o ComparisonPresentationLauncher
+      score: 80,
       isWinner: p.id === 'prod-1',
       rank: 1,
       breakdown: { price: 35, stock: 20, minQuantity: 15, colorVariety: 10, verifiedSupplier: 10, leadTime: 10 }
@@ -139,13 +148,15 @@ describe('E2E Comparar — Módulo de Comparação', () => {
 
   const renderPage = () => {
     return render(
-      <HelmetProvider>
-        <BrowserRouter>
-          <TooltipProvider>
-            <ComparePage />
-          </TooltipProvider>
-        </BrowserRouter>
-      </HelmetProvider>
+      <QueryClientProvider client={queryClient}>
+        <HelmetProvider>
+          <BrowserRouter>
+            <TooltipProvider>
+              <ComparePage />
+            </TooltipProvider>
+          </BrowserRouter>
+        </HelmetProvider>
+      </QueryClientProvider>
     );
   };
 
@@ -189,16 +200,6 @@ describe('E2E Comparar — Módulo de Comparação', () => {
   });
 
   it('permite alternar entre Galeria Visual e Tabela Detalhada', async () => {
-    useComparisonStore.setState({
-      compareItems: [{ productId: 'prod-1' }, { productId: 'prod-2' }],
-      compareCount: 2,
-      compareIds: ['prod-1', 'prod-2'],
-    });
-
-    renderPage();
-
-    // No modo duelo (default para 2 produtos), precisamos desativar o modo duelo ou clicar nas tabs se estiverem visíveis
-    // Como o default para 2 produtos é Duel View, vamos testar as tabs se mudarmos para 3 produtos
     useComparisonStore.setState({
       compareItems: [{ productId: 'prod-1' }, { productId: 'prod-2' }, { productId: 'prod-3' }],
       compareCount: 3,
