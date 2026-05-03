@@ -1,7 +1,7 @@
 import { useRef, useCallback, useEffect, useState, useMemo, memo } from "react";
 import type { ActiveColorFilter } from "@/utils/color-image-resolver";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { Loader2, ArrowUp, Keyboard } from "lucide-react";
+import { Loader2, ArrowUp, Keyboard, X } from "lucide-react";
 
 import { AnimatePresence, motion } from "framer-motion";
 import { ProductCard } from "@/components/products/ProductCard";
@@ -51,7 +51,6 @@ interface CatalogContentProps {
   setActiveProductId?: (id: string | null) => void;
 }
 
-// ─── Shared scroll-to-top button ────────────────────────────────────
 function ScrollToTopButton({ show, onClick }: { show: boolean; onClick: () => void }) {
   return (
     <AnimatePresence>
@@ -66,7 +65,6 @@ function ScrollToTopButton({ show, onClick }: { show: boolean; onClick: () => vo
   );
 }
 
-// ─── Footer row (shared between grid & list) ────────────────────────
 function VirtualFooter({ hasMore, loadMoreRef, productsCount, totalEstimate, filteredCount, isLoadingMore, itemsPerPage, skeletonType, columns }: {
   hasMore: boolean; loadMoreRef: RefObject<HTMLDivElement>; productsCount: number;
   totalEstimate: number | null; filteredCount: number; isLoadingMore: boolean; itemsPerPage: number;
@@ -88,7 +86,6 @@ function VirtualFooter({ hasMore, loadMoreRef, productsCount, totalEstimate, fil
   return null;
 }
 
-// ─── useScrollableVirtualizer — shared scroll logic ─────────────────
 function useScrollableContainer(hasMore: boolean, isLoadingMore: boolean, onLoadMore?: () => void) {
   const parentRef = useRef<HTMLDivElement>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -114,8 +111,7 @@ function useScrollableContainer(hasMore: boolean, isLoadingMore: boolean, onLoad
 
 const CONTAINER_CLASS = "h-[calc(100vh-200px)] min-h-[550px] overflow-y-auto rounded-xl border border-border/40 bg-gradient-to-b from-background/80 to-background/40 backdrop-blur-sm scrollbar-products shadow-inner";
 
-// ─── VirtualGrid ────────────────────────────────────────────────────
-function VirtualGrid({ products, columns, navigate, handleViewProduct, handleShareProduct, isFavorite, toggleFavorite, isInCompare, onToggleCompare, canAddToCompare, hasMore, isLoadingMore, totalEstimate, filteredCount, loadMoreRef, itemsPerPage, onLoadMore, selectionMode, selectedIds, onToggleSelect, activeColorFilter }: {
+function VirtualGrid({ products, columns, navigate, handleViewProduct, handleShareProduct, isFavorite, toggleFavorite, isInCompare, onToggleCompare, canAddToCompare, hasMore, isLoadingMore, totalEstimate, filteredCount, loadMoreRef, itemsPerPage, onLoadMore, selectionMode, selectedIds, onToggleSelect, activeColorFilter, activeProductId, setActiveProductId }: {
   products: Product[]; columns: ColumnCount; navigate: (p: string) => void;
   handleViewProduct: (p: Product) => void; handleShareProduct: (p: Product) => void;
   isFavorite: (id: string) => boolean; toggleFavorite: (id: string) => void;
@@ -124,6 +120,8 @@ function VirtualGrid({ products, columns, navigate, handleViewProduct, handleSha
   loadMoreRef: RefObject<HTMLDivElement>; itemsPerPage: number; onLoadMore?: () => void;
   selectionMode?: boolean; selectedIds?: Set<string>; onToggleSelect?: (id: string) => void;
   activeColorFilter?: ActiveColorFilter | null;
+  activeProductId?: string | null;
+  setActiveProductId?: (id: string | null) => void;
 }) {
   const { parentRef, showScrollTop, scrollToTop } = useScrollableContainer(hasMore, isLoadingMore, onLoadMore);
   const rowCount = Math.ceil(products.length / columns);
@@ -136,6 +134,17 @@ function VirtualGrid({ products, columns, navigate, handleViewProduct, handleSha
 
   const virtualizer = useVirtualizer({ count: rowCount + 1, getScrollElement: () => parentRef.current, estimateSize: estimateRowHeight, overscan: 3 });
   const gap = columns >= 8 ? 16 : columns >= 6 ? 24 : 32;
+
+  // Auto-scroll to active product
+  useEffect(() => {
+    if (activeProductId && parentRef.current) {
+      const idx = products.findIndex(p => p.id === activeProductId);
+      if (idx !== -1) {
+        const rowIdx = Math.floor(idx / columns);
+        virtualizer.scrollToIndex(rowIdx, { align: "center", behavior: "smooth" });
+      }
+    }
+  }, [activeProductId, products, columns, virtualizer]);
 
   return (
     <div className="relative h-full">
@@ -154,10 +163,11 @@ function VirtualGrid({ products, columns, navigate, handleViewProduct, handleSha
                 style={{ position: "absolute", top: 0, left: 0, width: "100%", transform: `translateY(${vr.start}px)`, display: "grid", gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`, columnGap: `${gap}px`, paddingBottom: `${gap}px` }}>
                 {rowProducts.map((product) => {
                   const isSelected = selectionMode && selectedIds?.has(product.id);
+                  const isActive = activeProductId === product.id;
                   return (
-                    <div key={product.id} className="relative">
+                    <div key={product.id} className="relative" onMouseEnter={() => setActiveProductId?.(product.id)}>
                       {selectionMode && <div className="absolute top-2.5 left-2.5 z-20"><SelectionCheckbox checked={!!isSelected} onChange={() => onToggleSelect?.(product.id)} size="lg" animateEntry /></div>}
-                      <div className={cn("transition-all duration-200 rounded-xl", isSelected && "ring-2 ring-primary/50 shadow-[0_0_12px_-4px_hsl(var(--primary)/0.3)]")}>
+                      <div className={cn("transition-all duration-200 rounded-xl", isSelected && "ring-2 ring-primary/50 shadow-[0_0_12px_-4px_hsl(var(--primary)/0.3)]", isActive && "ring-2 ring-primary shadow-lg scale-[1.01] z-10")}>
                         <ProductCard
                           product={product}
                           onClick={() => selectionMode ? onToggleSelect?.(product.id) : navigate(`/produto/${product.id}`)}
@@ -184,8 +194,7 @@ function VirtualGrid({ products, columns, navigate, handleViewProduct, handleSha
   );
 }
 
-// ─── VirtualList ────────────────────────────────────────────────────
-function VirtualList({ products, navigate, handleViewProduct, handleShareProduct, isFavorite, toggleFavorite, isInCompare, onToggleCompare, canAddToCompare, hasMore, isLoadingMore, totalEstimate, filteredCount, loadMoreRef, itemsPerPage, onLoadMore, selectionMode, selectedIds, onToggleSelect, activeColorFilter }: {
+function VirtualList({ products, navigate, handleViewProduct, handleShareProduct, isFavorite, toggleFavorite, isInCompare, onToggleCompare, canAddToCompare, hasMore, isLoadingMore, totalEstimate, filteredCount, loadMoreRef, itemsPerPage, onLoadMore, selectionMode, selectedIds, onToggleSelect, activeColorFilter, activeProductId, setActiveProductId }: {
   products: Product[]; navigate: (p: string) => void;
   handleViewProduct: (p: Product) => void; handleShareProduct: (p: Product) => void;
   isFavorite: (id: string) => boolean; toggleFavorite: (id: string) => void;
@@ -194,10 +203,19 @@ function VirtualList({ products, navigate, handleViewProduct, handleShareProduct
   loadMoreRef: RefObject<HTMLDivElement>; itemsPerPage: number; onLoadMore?: () => void;
   selectionMode?: boolean; selectedIds?: Set<string>; onToggleSelect?: (id: string) => void;
   activeColorFilter?: ActiveColorFilter | null;
+  activeProductId?: string | null;
+  setActiveProductId?: (id: string | null) => void;
 }) {
   const { parentRef, showScrollTop, scrollToTop } = useScrollableContainer(hasMore, isLoadingMore, onLoadMore);
   const rowCount = products.length;
   const virtualizer = useVirtualizer({ count: rowCount + 1, getScrollElement: () => parentRef.current, estimateSize: () => 88, overscan: 8 });
+
+  useEffect(() => {
+    if (activeProductId && parentRef.current) {
+      const idx = products.findIndex(p => p.id === activeProductId);
+      if (idx !== -1) virtualizer.scrollToIndex(idx, { align: "center", behavior: "smooth" });
+    }
+  }, [activeProductId, products, virtualizer]);
 
   return (
     <div className="relative h-full">
@@ -212,10 +230,13 @@ function VirtualList({ products, navigate, handleViewProduct, handleShareProduct
             const product = products[vr.index];
             if (!product) return null;
             const isSelected = selectionMode && selectedIds?.has(product.id);
+            const isActive = activeProductId === product.id;
             return (
               <div key={vr.key} data-index={vr.index} ref={virtualizer.measureElement}
-                style={{ position: "absolute", top: 0, left: 0, width: "100%", transform: `translateY(${vr.start}px)`, paddingBottom: "8px" }}>
-                <div className={cn("flex items-center gap-2 rounded-xl transition-all duration-200", isSelected && "ring-2 ring-primary/40 bg-primary/5")}>
+                style={{ position: "absolute", top: 0, left: 0, width: "100%", transform: `translateY(${vr.start}px)`, paddingBottom: "8px" }}
+                onMouseEnter={() => setActiveProductId?.(product.id)}
+              >
+                <div className={cn("flex items-center gap-2 rounded-xl transition-all duration-200", isSelected && "ring-2 ring-primary/40 bg-primary/5", isActive && "ring-2 ring-primary bg-primary/10 shadow-md")}>
                   {selectionMode && <div className="flex-shrink-0 ml-1"><SelectionCheckbox checked={!!isSelected} onChange={() => onToggleSelect?.(product.id)} size="md" /></div>}
                   <div className="flex-1 min-w-0">
                     <ProductListItem product={product} onClick={() => selectionMode ? onToggleSelect?.(product.id) : navigate(`/produto/${product.id}`)} onView={handleViewProduct} onShare={handleShareProduct} isFavorited={isFavorite(product.id)} onToggleFavorite={toggleFavorite} isInCompare={isInCompare(product.id)} onToggleCompare={onToggleCompare} canAddToCompare={canAddToCompare} activeColorFilter={activeColorFilter} />
@@ -231,16 +252,23 @@ function VirtualList({ products, navigate, handleViewProduct, handleShareProduct
   );
 }
 
-// ─── CatalogContent — Orchestrator ──────────────────────────────────
 export const CatalogContent = memo(function CatalogContent({
   viewMode, shouldShowCatalogSkeleton, shouldShowEmptyState, hasActiveCatalogConstraints,
   paginatedProducts, filteredProducts, gridColumns, hasMoreProducts, isLoadingMore, totalEstimate,
   loadMoreRef, itemsPerPage, navigate, handleViewProduct, handleShareProduct,
   handleFavoriteProduct, isFavorite, toggleFavorite, isInCompare, onToggleCompare, canAddToCompare,
   onLoadMore, onResetFilters, selectionMode, onSelectedCountChange, activeColorFilter,
+  activeProductId, setActiveProductId
 }: CatalogContentProps) {
   const sparklineProductIds = useMemo(() => paginatedProducts.map(p => p.id), [paginatedProducts]);
   const sel = useCatalogSelection(paginatedProducts, selectionMode, onSelectedCountChange);
+
+  const [showKbdTip, setShowKbdTip] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setShowKbdTip(true), 2000);
+    const hideTimer = setTimeout(() => setShowKbdTip(false), 8000);
+    return () => { clearTimeout(timer); clearTimeout(hideTimer); };
+  }, []);
 
   const sharedProps = useMemo(() => ({
     products: paginatedProducts, navigate, handleViewProduct, handleShareProduct,
@@ -248,14 +276,14 @@ export const CatalogContent = memo(function CatalogContent({
     hasMore: hasMoreProducts, isLoadingMore, totalEstimate,
     filteredCount: filteredProducts.length, loadMoreRef, itemsPerPage, onLoadMore,
     selectionMode, selectedIds: sel.selectedIds, onToggleSelect: sel.toggleSelect,
-    activeColorFilter,
+    activeColorFilter, activeProductId, setActiveProductId
   }), [
     paginatedProducts, navigate, handleViewProduct, handleShareProduct,
     isFavorite, toggleFavorite, isInCompare, onToggleCompare, canAddToCompare,
     hasMoreProducts, isLoadingMore, totalEstimate,
     filteredProducts.length, loadMoreRef, itemsPerPage, onLoadMore,
     selectionMode, sel.selectedIds, sel.toggleSelect,
-    activeColorFilter
+    activeColorFilter, activeProductId, setActiveProductId
   ]);
 
   const renderContent = () => {
@@ -283,7 +311,6 @@ export const CatalogContent = memo(function CatalogContent({
       );
     }
 
-    // Se não há produtos mas ainda está carregando mais (background fetch), mostrar skeleton
     if (paginatedProducts.length === 0 && isLoadingMore) {
       return (
         <div className={`${CONTAINER_CLASS} p-4`}>
@@ -298,6 +325,7 @@ export const CatalogContent = memo(function CatalogContent({
       );
     }
 
+    switch (viewMode) {
       case "table":
         return (
           <ProductTableView
@@ -308,6 +336,7 @@ export const CatalogContent = memo(function CatalogContent({
             selectedIds={sel.selectedIds} onToggleSelect={sel.toggleSelect} activeColorFilter={activeColorFilter}
             hasMore={hasMoreProducts} isLoadingMore={isLoadingMore} totalEstimate={totalEstimate}
             filteredCount={filteredProducts.length} loadMoreRef={loadMoreRef} itemsPerPage={itemsPerPage} onLoadMore={onLoadMore}
+            activeProductId={activeProductId} setActiveProductId={setActiveProductId}
           />
         );
       case "list":
@@ -326,10 +355,20 @@ export const CatalogContent = memo(function CatalogContent({
   };
 
   return (
-    <>
+    <div className="relative">
+      <AnimatePresence>
+        {showKbdTip && !activeProductId && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
+            className="absolute -top-12 right-0 z-30 hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/90 text-primary-foreground text-[10px] font-medium shadow-lg backdrop-blur-sm border border-primary-foreground/20">
+            <Keyboard className="h-3 w-3" />
+            <span>Use <kbd className="px-1 bg-white/20 rounded">J</kbd> / <kbd className="px-1 bg-white/20 rounded">K</kbd> para navegar rapidamente</span>
+            <button onClick={() => setShowKbdTip(false)} className="ml-1 hover:text-white/60"><X className="h-3 w-3" /></button>
+          </motion.div>
+        )}
+      </AnimatePresence>
       {renderContent()}
       <CatalogBulkModals sel={sel} selectionMode={selectionMode} totalCount={paginatedProducts.length} />
-    </>
+    </div>
   );
 });
 
