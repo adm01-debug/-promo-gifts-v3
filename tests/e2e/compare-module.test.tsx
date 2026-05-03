@@ -4,8 +4,8 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import ComparePage from '../../src/pages/ComparePage';
 import { useComparisonStore } from '../../src/stores/useComparisonStore';
-import { ProductsProvider } from '../../src/contexts/ProductsContext';
 import { TooltipProvider } from '../../src/components/ui/tooltip';
+import { HelmetProvider } from 'react-helmet-async';
 
 // Mock do contexto de Auth
 vi.mock('../../src/contexts/AuthContext', () => ({
@@ -88,6 +88,26 @@ const mockProducts = [
   }
 ];
 
+// Mock do ProductsContext
+vi.mock('../../src/contexts/ProductsContext', () => ({
+  useProductsContext: () => ({
+    products: mockProducts,
+    getProductsByIds: (ids: string[]) => mockProducts.filter(p => ids.includes(p.id)),
+    isLoading: false,
+  }),
+  ProductsProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}));
+
+// Mock da biblioteca de Recharts para evitar erros de renderização em ambiente JSDOM
+vi.mock('recharts', () => ({
+  ResponsiveContainer: ({ children }: any) => <div>{children}</div>,
+  Radar: () => <div />,
+  RadarChart: () => <div />,
+  PolarGrid: () => <div />,
+  PolarAngleAxis: () => <div />,
+  PolarRadiusAxis: () => <div />,
+}));
+
 describe('E2E Comparar — Módulo de Comparação', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -101,13 +121,13 @@ describe('E2E Comparar — Módulo de Comparação', () => {
 
   const renderPage = () => {
     return render(
-      <BrowserRouter>
-        <ProductsProvider>
+      <HelmetProvider>
+        <BrowserRouter>
           <TooltipProvider>
             <ComparePage />
           </TooltipProvider>
-        </ProductsProvider>
-      </BrowserRouter>
+        </BrowserRouter>
+      </HelmetProvider>
     );
   };
 
