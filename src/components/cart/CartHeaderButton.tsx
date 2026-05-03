@@ -316,13 +316,13 @@ export function CartHeaderButton() {
                                         {item.product_name}
                                       </p>
                                       {/* Price + Qty stepper row */}
-                                      <div className="flex items-center justify-between mt-1.5 gap-2">
-                                        <PriceLabel 
-                                          label="Unitário" 
-                                          value={item.product_price}
-                                          isPrimary 
-                                          className="flex-row items-center gap-1.5 space-y-0"
-                                        />
+                                       <div className="flex items-center justify-between mt-1.5 gap-2">
+                                         <PriceLabel 
+                                           label="Unitário" 
+                                           value={item.product_price}
+                                           isPrimary 
+                                           className="flex-row items-center gap-1.5 space-y-0 text-[10px]"
+                                         />
                                         {/* Qty stepper */}
                                         <div className="flex items-center gap-0 border border-border/50 rounded-md overflow-hidden">
                                           <button
