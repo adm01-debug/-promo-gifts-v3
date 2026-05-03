@@ -150,7 +150,21 @@ export function CartHeaderButton() {
                 )}
               </div>
 
-              {carts.length === 0 ? (
+              {isLoading ? (
+                <div className="p-3 space-y-2">
+                  {[...Array(2)].map((_, i) => (
+                    <div key={i} className="rounded-xl border border-border/40 p-3 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Skeleton className="h-9 w-9 rounded-lg" />
+                        <div className="flex-1 space-y-1.5">
+                          <Skeleton className="h-3 w-1/2" />
+                          <Skeleton className="h-2 w-1/3" />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : carts.length === 0 ? (
                 <div className="px-4 pb-5 pt-6 text-center">
                   <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-muted/30 flex items-center justify-center">
                     <Package className="h-7 w-7 text-muted-foreground/50" />

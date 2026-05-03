@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Sparkles, Plus } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface BundleSuggestion {
   product_id: string;
@@ -58,10 +59,24 @@ export function BundleSuggestionCard({ productId, onAdd, className }: BundleSugg
       </CardHeader>
       <CardContent className="p-3 pt-0 space-y-2">
         {isLoading ? (
-          [...Array(3)].map((_, i) => <Skeleton key={i} className="h-12 rounded-md" />)
+          <div className="space-y-3">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <Skeleton className="w-10 h-10 rounded-md shrink-0" />
+                <div className="flex-1 space-y-1.5">
+                  <Skeleton className="h-3 w-3/4" />
+                  <Skeleton className="h-2 w-1/2" />
+                </div>
+                <Skeleton className="h-7 w-12 rounded-md" />
+              </div>
+            ))}
+          </div>
         ) : (
           data!.map(item => (
-            <div
+            <motion.div
+              layout
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
               key={item.product_id}
               className="flex items-center gap-2 p-2 rounded-md hover:bg-muted/50 transition-colors"
             >
@@ -92,7 +107,7 @@ export function BundleSuggestionCard({ productId, onAdd, className }: BundleSugg
                   <Plus className="h-3 w-3" />
                 </Button>
               )}
-            </div>
+            </motion.div>
           ))
         )}
       </CardContent>
