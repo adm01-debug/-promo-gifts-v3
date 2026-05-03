@@ -228,7 +228,7 @@ describe('E2E Comparar — Módulo de Comparação', () => {
       compareIds: ['prod-1', 'prod-2'],
     });
     
-    renderPage();
+    await renderPage();
 
     await waitFor(() => {
       expect(screen.getByText(/Comparador de Produtos/i)).toBeInTheDocument();
