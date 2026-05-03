@@ -113,7 +113,12 @@ export function useQuoteBuilderState() {
   const [negotiationMarkup, setNegotiationMarkup] = useState(0);
   const [notes, setNotes] = useState("");
   const [internalNotes, setInternalNotes] = useState("");
-  const [items, setItems] = useState<QuoteItem[]>([]);
+  const {
+    items, setItems, activeItemIndex, setActiveItemIndex, expandedItems, setExpandedItems,
+    toggleExpanded, addProductWithColor: addProductWithColorInternal, updateItemQuantity,
+    updateItemPrice, removeItem, handlePersonalizationsChange, confirmItemPrice
+  } = useQuoteItems();
+
   const [quoteNumber, setQuoteNumber] = useState("");
   const [currentStatus, setCurrentStatus] = useState("draft");
 
