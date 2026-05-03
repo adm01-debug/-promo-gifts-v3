@@ -18,7 +18,7 @@ interface AreaCardProps {
   onRemove: () => void;
 }
 
-export function AreaCard({
+export const AreaCard = memo(({
   area,
   index,
   isActive,
@@ -29,7 +29,7 @@ export function AreaCard({
   onLogoUpload,
   onLogoRemove,
   onRemove,
-}: AreaCardProps) {
+}: AreaCardProps) => {
   
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
