@@ -290,6 +290,33 @@ export type Database = {
         }
         Relationships: []
       }
+      audit_logs: {
+        Row: {
+          created_at: string | null
+          endpoint: string
+          event_type: string
+          id: string
+          identifier: string
+          metadata: Json | null
+        }
+        Insert: {
+          created_at?: string | null
+          endpoint: string
+          event_type: string
+          id?: string
+          identifier: string
+          metadata?: Json | null
+        }
+        Update: {
+          created_at?: string | null
+          endpoint?: string
+          event_type?: string
+          id?: string
+          identifier?: string
+          metadata?: Json | null
+        }
+        Relationships: []
+      }
       bot_detection_log: {
         Row: {
           blocked: boolean

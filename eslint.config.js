@@ -85,6 +85,7 @@ export default [
       'eqeqeq': ['error', 'always'],
 
       // React
+      'react/no-danger': 'warn',
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'warn',
       'jsx-a11y/anchor-is-valid': 'warn',
