@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { SortableCartItem } from '../SortableCartItem';
+import { SortableCartItem } from '../../../components/cart/SortableCartItem';
 import { BrowserRouter } from 'react-router-dom';
 
 // Mock dnd-kit since it depends on layout measurements
