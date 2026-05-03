@@ -132,7 +132,7 @@ describe('Módulo de Carrinhos (E2E Exhaustive)', () => {
     });
   });
 
-  describe('UI e Experiência do Usuário (Simulado)', () => {
+  describe('UI e Saúde do Carrinho', () => {
     it('deve identificar carrinhos que precisam de follow-up (parados há > 3 dias)', () => {
       const cart = carts[0];
       const ageInDays = (Date.now() - new Date(cart.created_at).getTime()) / (1000 * 60 * 60 * 24);
@@ -151,6 +151,48 @@ describe('Módulo de Carrinhos (E2E Exhaustive)', () => {
       carts[0].status = 'em_negociacao';
       expect(getStatusColor(carts[0].status)).toBe('bg-yellow-500');
     });
+
+    it('deve calcular a saúde do carrinho com base na checklist', () => {
+      const cart = carts[0];
+      const cartSubtotal = cart.items.reduce((sum, i) => sum + i.product_price * i.quantity, 0);
+      
+      const hasMinItems = cart.items.length >= 3;
+      const hasNotes = !!cart.notes && cart.notes.trim().length > 10;
+      const hasMinValue = cartSubtotal >= 500;
+      
+      const checks = [
+        { id: "company", ok: !!cart.company_id },
+        { id: "items", ok: hasMinItems },
+        { id: "value", ok: hasMinValue },
+        { id: "notes", ok: hasNotes }
+      ];
+      
+      const okCount = checks.filter(c => c.ok).length;
+      expect(okCount).toBe(3); // Empresa, Valor (1650), Notas (Urgente...) OK. Itens (2) Falhou.
+    });
+  });
+
+  describe('Inteligência Comercial: Bundle Suggestions', () => {
+    it('deve simular a adição de um item sugerido (cross-sell)', () => {
+      const cart = carts[0];
+      const suggestion = { product_id: 'p-suggest', product_name: 'Embalagem Presente', product_price: 5.00 };
+      
+      cart.items.push({
+        id: 'item-suggested',
+        cart_id: cart.id,
+        product_id: suggestion.product_id,
+        product_name: suggestion.product_name,
+        product_price: suggestion.product_price,
+        quantity: 50,
+        color_name: null,
+        notes: null,
+        sort_order: 2,
+        created_at: new Date().toISOString()
+      });
+      
+      expect(cart.items).toHaveLength(3);
+      expect(cart.items[2].product_id).toBe('p-suggest');
+    });
   });
 
   describe('Integração: Conversão para Orçamento', () => {
@@ -168,4 +210,5 @@ describe('Módulo de Carrinhos (E2E Exhaustive)', () => {
     });
   });
 });
+
 
