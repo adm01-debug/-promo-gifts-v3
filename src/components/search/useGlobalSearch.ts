@@ -548,19 +548,23 @@ export function useGlobalSearch() {
 
   const handleSelect = useCallback((href: string, saveToHistory = true) => {
     if (saveToHistory && query.trim()) {
-      addToHistory(query.trim());
+      addGlobalHistoryItem({
+        id: `history-${query.trim()}`,
+        label: query.trim(),
+        type: "general"
+      });
       pushRecentSearch(query.trim());
     }
     setOpen(false); setQuery(""); setResults([]); setSearchIntent(null); setTypingSuggestions([]);
     // Support external URLs (art_file fallback) and "_blank" via Cmd/Ctrl+Enter elsewhere
     if (/^https?:\/\//.test(href)) window.open(href, "_blank", "noopener,noreferrer");
     else navigate(href);
-  }, [query, addToHistory, navigate]);
+  }, [query, addGlobalHistoryItem, navigate]);
 
   const handleSuggestionClick = useCallback((suggestion: string) => { setQuery(suggestion); }, []);
 
   const handleRemoveFromHistory = useCallback((e: React.MouseEvent, term: string) => {
-    e.stopPropagation(); removeFromHistory(term);
+    e.stopPropagation(); removeFromHistory(`history-${term}`);
   }, [removeFromHistory]);
 
   const groupedResults = results.reduce((acc, result) => {
@@ -570,13 +574,12 @@ export function useGlobalSearch() {
   }, {} as Record<string, SearchResult[]>);
 
   return {
-    open, setOpen, query, setQuery,
-    results, groupedResults, isSearching, isAIProcessing, searchIntent,
-    popularProducts, typingSuggestions,
-    voiceOverlayOpen, setVoiceOverlayOpen,
-    handleVoiceAction,
-    handleOpenVoiceOverlay, handleCloseVoiceOverlay,
-    handleSelect, handleSuggestionClick, handleRemoveFromHistory,
-    history, quickSuggestions, contextualSuggestions, routeContext,
+    open, setOpen, query, setQuery, results, isSearching, isAIProcessing,
+    searchIntent, popularProducts, typingSuggestions,
+    voiceOverlayOpen, setVoiceOverlayOpen, handleOpenVoiceOverlay, handleCloseVoiceOverlay,
+    handleVoiceAction, performSemanticSearch, handleSelect, groupedResults, contextualSuggestions, routeContext,
+    history, addToHistory: (term: string) => addGlobalHistoryItem({ id: `history-${term}`, label: term, type: "general" }), 
+    removeFromHistory: (term: string) => removeFromHistory(`history-${term}`), 
+    clearHistory, handleSuggestionClick, handleRemoveFromHistory
   };
 }
