@@ -9,10 +9,11 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useSellerCartContext } from "@/contexts/SellerCartContext";
-import { CartCompanyPicker } from "./CartCompanyPicker";
-import { cn } from "@/lib/utils";
-import { useState, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { CartCompanyPicker } from \"./CartCompanyPicker\";
+import { PriceLabel } from \"./CartUtilComponents\";
+import { cn } from \"@/lib/utils\";
+import { useState, useEffect, useCallback } from \"react\";
+import { motion, AnimatePresence } from \"framer-motion\";
 
 function formatCurrency(value: number) {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
