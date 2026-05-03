@@ -137,7 +137,7 @@ export default function MockupHistoryPage() {
                 </TableRow>
               ) : (
                 data.mockups.map((m) => (
-                  <TableRow key={m.id}>
+                  <TableRow key={m.id} data-testid="mockup-history-item">
                     <TableCell>
                       {m.mockup_url ? (
                         <img
@@ -145,6 +145,7 @@ export default function MockupHistoryPage() {
                           alt="Mockup"
                           className="h-12 w-12 object-cover rounded border"
                           loading="lazy"
+                          data-testid="mockup-history-preview"
                         />
                       ) : (
                         <div className="h-12 w-12 bg-muted rounded flex items-center justify-center">
@@ -154,13 +155,13 @@ export default function MockupHistoryPage() {
                     </TableCell>
                     <TableCell>
                       <div>
-                        <p className="font-medium text-sm">{m.product_name || "—"}</p>
+                        <p className="font-medium text-sm" data-testid="mockup-history-product-name">{m.product_name || "—"}</p>
                         {m.product_sku && (
                           <p className="text-xs text-muted-foreground font-mono">{m.product_sku}</p>
                         )}
                       </div>
                     </TableCell>
-                    <TableCell className="text-sm">{m.client_name || "—"}</TableCell>
+                    <TableCell className="text-sm" data-testid="mockup-history-client-name">{m.client_name || "—"}</TableCell>
                     <TableCell>
                       {m.technique_name ? (
                         <Badge variant="secondary">{m.technique_name}</Badge>
@@ -180,17 +181,21 @@ export default function MockupHistoryPage() {
                         {m.mockup_url && (
                           <Button
                             variant="ghost"
-                            size="icon" aria-label="Download"
+                            size="icon" 
+                            aria-label="Download"
                             onClick={() => window.open(m.mockup_url!, "_blank")}
+                            data-testid="mockup-history-download-btn"
                           >
                             <Download className="h-4 w-4" />
                           </Button>
                         )}
                         <Button
                           variant="ghost"
-                          size="icon" aria-label="Excluir"
+                          size="icon" 
+                          aria-label="Excluir"
                           onClick={() => handleDelete(m.id)}
                           className="text-destructive hover:text-destructive"
+                          data-testid="mockup-history-delete-btn"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
