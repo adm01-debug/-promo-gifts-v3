@@ -411,7 +411,7 @@ export function useMockupGenerator() {
   const resetForm = () => {
     setProductSelection(null); setSelectedTechnique(null); setSelectedClient(null);
     setPersonalizationAreas([createDefaultArea()]); setActiveAreaId(null);
-    setGeneratedMockup(null); setGeneratedBatchMockups([]); setGenerationError(null);
+    setGeneratedMockup(null); setGeneratedBatchMockups([]); setArtAttachments([]); setGenerationError(null);
     setMockupAnnotations([]); setBeforeImage(null); setHasUserInteractedPosition(false);
     setTechniqueColorConfig(null); setLastSavedRecordId(null); setLastSavedMockupUrl(null);
     setLastSavedLayoutMode('ai'); positionHistory.clear(); clearDraft();
