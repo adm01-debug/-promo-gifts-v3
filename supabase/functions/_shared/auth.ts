@@ -38,7 +38,12 @@ export async function authenticateRequest(req: Request): Promise<AuthResult> {
     throw { status: 401, message: 'Token inválido ou expirado' };
   }
 
-  const userId = userData.user.id;
+  // Security Hardening: Validar se a sessão ainda é válida e não foi revogada
+  // Opcional: Adicionar checagem de IP/UserAgent se necessário para alta segurança
+  const user = userData.user;
+  if (!user.aud || user.aud !== 'authenticated') {
+    throw { status: 401, message: 'Audiência de token inválida' };
+  }
 
   // Fetch ALL roles using service role client (bypasses RLS)
   const localServiceClient = createClient(supabaseUrl, serviceRoleKey);

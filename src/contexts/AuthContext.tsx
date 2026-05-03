@@ -389,6 +389,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const log = createClientLogger('auth.signOut');
     log.info('start');
     try {
+      // Security: Registrar auditoria de logout antes de limpar a sessão
+      if (user) {
+        await supabase.rpc('log_user_logout').catch(() => {});
+      }
+      
       await supabase.auth.signOut();
       setUser(null);
       setSession(null);
@@ -424,6 +429,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     log.info('start');
     authDebug("AuthContext.refreshSession", "start");
     try {
+      // Security: sessões curtas exigem refresh mais frequente para manter UX
       const { data, error } = await supabase.auth.refreshSession();
       if (error) {
         authDebugError("AuthContext.refreshSession", "supabase.auth.refreshSession failed", error);
@@ -451,6 +457,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       log.error('failed', { err: err instanceof Error ? err.message : String(err) });
     }
   }, [user, fetchUserData, fetchAAL]);
+
+  // Security: Auto-refresh do token se estiver próximo de expirar
+  useEffect(() => {
+    if (!session) return;
+    
+    const expiresAt = session.expires_at ? session.expires_at * 1000 : 0;
+    const now = Date.now();
+    const buffer = 5 * 60 * 1000; // 5 minutos antes
+    const delay = expiresAt - now - buffer;
+
+    if (delay <= 0) return;
+
+    const timer = setTimeout(() => {
+      authDebug("AuthContext.autoRefresh", "triggering token refresh");
+      refreshSession();
+    }, delay);
+
+    return () => clearTimeout(timer);
+  }, [session, refreshSession]);
 
   const has = (r: AppRole) => userRoles.includes(r);
   const isDev = has("dev");
