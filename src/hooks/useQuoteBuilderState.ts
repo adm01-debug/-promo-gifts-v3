@@ -22,6 +22,8 @@ import type { ExternalVariantStock } from "@/hooks/useExternalVariantStock";
 import type { QuoteBuilderStep } from "@/components/quotes/QuoteBuilderStepper";
 import { createProductFuseOptions, dedupeById, rankProductSearchResults } from "@/utils/product-search";
 import { getPriceFreshness } from "@/utils/price-freshness";
+import * as QuoteCalc from "@/logic/quotes/calculations";
+
 
 interface Product {
   id: string;
