@@ -227,7 +227,7 @@ export const SortableCartItem = memo(function SortableCartItem({
 
           {/* Quantity stepper */}
           <div className="flex items-center justify-between pt-1 border-t border-border/30">
-            <div data-testid="cart-item-qty-stepper" className="flex items-center gap-0 border border-border/50 rounded-lg overflow-hidden">
+            <div data-testid="cart-item-qty-stepper" className="flex items-center gap-0 border border-border/50 rounded-lg overflow-hidden bg-background">
               <button
                 data-testid="cart-qty-decrement"
                 aria-label="Diminuir quantidade"
@@ -246,13 +246,16 @@ export const SortableCartItem = memo(function SortableCartItem({
                   <Minus data-testid="cart-qty-decrement-icon" className="h-3.5 w-3.5" />
                 )}
               </button>
-              <span
-                data-testid="cart-qty-badge"
-                data-qty={item.quantity}
-                className="h-8 min-w-[40px] flex items-center justify-center text-xs font-bold tabular-nums bg-muted/20 border-x border-border/30"
-              >
-                {item.quantity.toLocaleString("pt-BR")}
-              </span>
+              <input
+                type="number"
+                data-testid="cart-qty-input"
+                value={item.quantity}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value);
+                  if (!isNaN(val) && val > 0) onUpdateQuantity(item.id, val);
+                }}
+                className="h-8 w-12 text-center text-xs font-bold tabular-nums bg-transparent border-x border-border/30 focus:outline-none focus:ring-1 focus:ring-primary/20 appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+              />
               <button
                 data-testid="cart-qty-increment"
                 aria-label="Aumentar quantidade"

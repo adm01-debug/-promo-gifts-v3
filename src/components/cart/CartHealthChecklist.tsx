@@ -27,7 +27,7 @@ export function CartHealthChecklist({ cart, cartSubtotal, onFocusNotes, onAddPro
     const hasMinItems = cart.items.length >= 3;
     const hasNotes = !!cart.notes && cart.notes.trim().length > 10;
     const hasMinValue = cartSubtotal >= 500;
-    const hasVariants = cart.items.every(i => !i.color_name || i.color_name.length > 0);
+    const hasVariants = cart.items.every(i => (i.color_name && i.color_name.length > 0) || !i.product_sku?.includes("-")); // Heurística simples: se tem SKU composto, deve ter variante
     const isReady = cart.status === "pronto_orcamento";
 
       return [
