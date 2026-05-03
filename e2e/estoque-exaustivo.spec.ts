@@ -127,7 +127,7 @@ test.describe('Módulo Estoque - Testes Exaustivos', () => {
     
     // Volta e testa busca
     await page.goBack();
-    const searchInput = page.getByPlaceholder(/Buscar no Estoque (Nome, SKU ou Cor)... /i);
+    const searchInput = page.getByPlaceholder(/Buscar no Estoque \(Nome, SKU ou Cor\)... /i);
     await searchInput.fill(productName);
     await page.waitForTimeout(600); // Debounce
     
