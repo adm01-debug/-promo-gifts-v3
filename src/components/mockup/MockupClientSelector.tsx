@@ -81,6 +81,7 @@ export function MockupClientSelector({ selectedClient, onClientSelect }: MockupC
     return (
       <div
         className="flex items-center gap-3 w-full rounded-md border border-border bg-background px-3 py-2 min-h-[44px] cursor-pointer group hover:border-primary/50 transition-colors"
+        data-testid="mockup-client-chip"
         onClick={() => {
           onClientSelect(null);
           setTimeout(() => inputRef.current?.focus(), 50);
@@ -113,12 +114,13 @@ export function MockupClientSelector({ selectedClient, onClientSelect }: MockupC
   const dropdownHeight = isError ? 140 : (filteredCompanies.length === 0 ? 80 : Math.max(dynamicHeight, 80));
 
   return (
-    <div ref={containerRef} className="relative w-full z-40">
+    <div ref={containerRef} className="relative w-full z-40" data-testid="mockup-client-selector">
       {/* Campo de busca — z-50 + isolate para ficar acima do backdrop-blur */}
       <div className="relative z-50 isolate">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
           ref={inputRef}
+          data-testid="mockup-client-search-input"
           placeholder="Buscar empresa..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
@@ -232,6 +234,7 @@ export function MockupClientSelector({ selectedClient, onClientSelect }: MockupC
                       <button
                         key={company.id}
                         type="button"
+                        data-testid={`mockup-client-option-${company.id}`}
                         className={cn(
                           "flex items-center gap-3 w-full px-3 py-2.5 text-left transition-colors duration-150",
                           "hover:bg-primary/10 focus-visible:bg-primary/10 focus-visible:outline-none",

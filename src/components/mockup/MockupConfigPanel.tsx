@@ -171,7 +171,7 @@ export function MockupConfigPanel({
                   onTechniqueSelect(technique || null);
                 }}
               >
-                <SelectTrigger>
+                <SelectTrigger data-testid="mockup-technique-select-trigger">
                   <SelectValue placeholder="Selecione uma técnica..." />
                 </SelectTrigger>
                 <SelectContent>
