@@ -24,7 +24,7 @@ const STATUS_CONFIG: Record<string, { message: string; icon: any; className: str
 };
 
 export const CloudStatusBanner = memo(function CloudStatusBanner() {
-  const { isAllowed } = useDevGate();
+  const { isDev } = useDevGate();
   const { status, retry, isChecking } = useCloudStatus();
   
   const config = status ? STATUS_CONFIG[status] : null;
@@ -32,10 +32,10 @@ export const CloudStatusBanner = memo(function CloudStatusBanner() {
   if (!config) return null;
 
   // Lógica de visibilidade desacoplada:
-  // Mensagens técnicas (warming) aparecem só para quem tem gate de infra.
+  // Mensagens técnicas (warming) aparecem APENAS para usuários com role "dev".
   // Mensagens críticas (down/degraded) aparecem para todos.
   const isTechnical = status === 'warming';
-  const shouldShow = isTechnical ? isAllowed : true;
+  const shouldShow = isTechnical ? isDev : true;
 
   if (!shouldShow) return null;
 
