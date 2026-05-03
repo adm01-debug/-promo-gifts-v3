@@ -332,7 +332,7 @@ const MockupGridCard = memo(({ mockup, isCompareSelected, onToggleCompare, onOpe
       </div>
     </div>
   );
-}
+});
 
 function MockupListRow({ mockup, isCompareSelected, onToggleCompare, onLoadFromHistory, onDownload, onDelete }: {
   mockup: GeneratedMockup; isCompareSelected: boolean;
