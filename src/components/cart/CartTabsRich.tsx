@@ -93,13 +93,15 @@ export function CartTabsRich({ carts, activeCartId, canCreateCart, onSelect, onN
               {cart.items.length}
             </span>
             {needsFollowUp && (
-              <span
+              <motion.span
                 data-testid="cart-tab-followup"
-                className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-warning text-warning-foreground flex items-center justify-center"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-warning text-warning-foreground flex items-center justify-center shadow-md border-2 border-background z-20"
                 title={`Sem movimento há ${ageDays} dias`}
               >
-                <Clock className="h-2.5 w-2.5" />
-              </span>
+                <Clock className="h-3 w-3" />
+              </motion.span>
             )}
           </button>
         );
@@ -110,13 +112,16 @@ export function CartTabsRich({ carts, activeCartId, canCreateCart, onSelect, onN
           data-testid="cart-tab-new"
           onClick={onNew}
           className={cn(
-            "flex items-center gap-1.5 px-3 py-2 rounded-xl border border-dashed border-border/60",
-            "hover:border-primary/40 hover:bg-primary/5 hover:text-primary transition-colors",
-            "text-sm font-medium text-muted-foreground flex-shrink-0"
+            "flex items-center gap-2 px-5 py-2.5 rounded-2xl border-2 border-dashed border-border/40 transition-all flex-shrink-0 group/new",
+            "hover:border-primary/50 hover:bg-primary/5 hover:text-primary active:scale-95",
+            "text-sm font-bold text-muted-foreground/60"
           )}
           aria-label="Criar novo carrinho"
         >
-          <Plus className="h-4 w-4" /> Novo
+          <div className="w-6 h-6 rounded-lg bg-muted/40 flex items-center justify-center group-hover/new:bg-primary/20 transition-colors">
+            <Plus className="h-4 w-4 group-hover/new:rotate-90 transition-transform duration-300" />
+          </div>
+          <span>Novo</span>
         </button>
       )}
     </div>
