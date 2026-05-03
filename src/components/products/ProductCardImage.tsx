@@ -129,8 +129,8 @@ export const ProductCardImage = memo(function ProductCardImage({
         )}
       </div>
 
-      {/* Color dots on hover */}
-      {product.colors.length > 0 && (
+      {/* Color dots on hover — hidden if multi-variant carousel is active to avoid overlap */}
+      {product.colors.length > 0 && !hasMultipleVariants && (
         <div className={cn("absolute bottom-3 left-3 right-3 z-10 transition-all duration-400 ease-out", isHovered ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4")}>
           <div className="flex items-center gap-1.5 bg-card/95 backdrop-blur-md rounded-full px-3 py-2 shadow-lg border border-border/50">
             {product.colors.slice(0, 6).map((color, idx) => {
