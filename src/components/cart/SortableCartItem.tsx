@@ -250,16 +250,17 @@ export const SortableCartItem = memo(function SortableCartItem({
                 type="number"
                 data-testid="cart-qty-input"
                 value={item.quantity}
+                onFocus={(e) => e.target.select()}
                 onChange={(e) => {
                   const val = parseInt(e.target.value);
                   if (!isNaN(val) && val > 0) onUpdateQuantity(item.id, val);
                 }}
-                className="h-8 w-12 text-center text-xs font-bold tabular-nums bg-transparent border-x border-border/30 focus:outline-none focus:ring-1 focus:ring-primary/20 appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                className="h-8 w-12 text-center text-xs font-bold tabular-nums bg-transparent border-x border-border/30 focus:outline-none focus:ring-1 focus:ring-primary/20 appearance-none m-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
               />
               <button
                 data-testid="cart-qty-increment"
                 aria-label="Aumentar quantidade"
-                className="h-8 w-8 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+                className="h-8 w-8 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 active:bg-muted/80 transition-colors"
                 onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
               >
                 <Plus className="h-3.5 w-3.5" />
