@@ -90,31 +90,34 @@ export const SortableCartItem = memo(function SortableCartItem({
         )}
 
         {/* Product image */}
-        <div className="relative aspect-square bg-muted/30">
+        <div className="relative aspect-square bg-muted/20 group/img-container overflow-hidden">
           <button
             {...attributes}
             {...listeners}
-            className="absolute top-2 left-2 z-10 h-7 w-7 flex items-center justify-center rounded-lg bg-card/80 backdrop-blur-sm text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity"
-           aria-label="Arrastar">
-            <GripVertical className="h-3.5 w-3.5" />
+            className="absolute top-2.5 left-2.5 z-20 h-8 w-8 flex items-center justify-center rounded-xl bg-card/90 backdrop-blur-md text-muted-foreground hover:text-primary cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-sm border border-border/50"
+            aria-label="Arrastar"
+          >
+            <GripVertical className="h-4 w-4" />
           </button>
+          
           <div
             data-testid="cart-item-image"
-            className="w-full h-full cursor-pointer relative"
+            className="w-full h-full cursor-pointer relative z-10"
             onClick={() => onNavigate(`/produto/${item.product_id}`)}
           >
             {!item.product_image_url && (
               <div className="absolute inset-0 flex items-center justify-center">
-                <Package className="h-12 w-12 text-muted-foreground/30" />
+                <Package className="h-14 w-14 text-muted-foreground/20 animate-pulse" />
               </div>
             )}
             <motion.img 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              whileHover={{ scale: 1.08 }}
               src={item.product_image_url || "/placeholder.svg"} 
               alt={item.product_name} 
               className={cn(
-                "w-full h-full object-contain p-4 transition-all duration-300",
+                "w-full h-full object-contain p-6 transition-all duration-500",
                 !item.product_image_url && "opacity-0"
               )} 
               loading="lazy" 
