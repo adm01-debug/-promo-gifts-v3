@@ -72,8 +72,8 @@ export function useSearchHistory(type?: HistoryType) {
         setHistory(updated.filter(i => !type || i.type === type).slice(0, MAX_HISTORY));
       }
       
-      // Dispatch event for same-tab updates
-      window.dispatchEvent(new Event("storage"));
+      // Dispatch custom event for same-tab updates
+      window.dispatchEvent(new Event("search-history-update"));
     } catch (e) {
       console.error("Failed to save search history", e);
     }
