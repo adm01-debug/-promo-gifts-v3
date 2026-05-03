@@ -156,7 +156,27 @@ export function useQuoteBuilderState() {
     // No review, we only mark as completed if saved
     return steps;
   }, [clientId, items.length, paymentTerms, deliveryTime, shippingType]);
-
+  // ── AutoSave ──
+  const { clearAutoSave } = useAutoSaveQuote({
+    enabled: !!clientId && items.length > 0 && !isEditMode,
+    data: {
+      clientId, contactId, contactInfo, companyInfo,
+      items, discountType, discountValue, negotiationMarkup,
+      paymentTerms, deliveryTime, shippingType, shippingCost,
+      notes, internalNotes, validUntil
+    },
+    onRestore: (saved) => {
+      // Exemplo: Restaurar campos se o usuário desejar ou automaticamente
+      // Para evitar sobrescrever um carregamento de rascunho real (via URL),
+      // só restauramos se não estiver em modo edição.
+      if (!isEditMode) {
+        if (saved.clientId) setClientId(saved.clientId);
+        if (saved.contactId) setContactId(saved.contactId);
+        if (saved.items) setItems(saved.items);
+        // ... outros campos conforme necessário
+      }
+    }
+  });
 
   // ── Route guard ──
   const hasUnsavedData = useMemo(() => {
