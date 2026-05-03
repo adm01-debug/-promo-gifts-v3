@@ -83,7 +83,7 @@ export function getStatusCfg(status: string | undefined | null) {
 // ============================================
 
 export interface CartAction {
-  type: "add" | "remove" | "qty" | "move" | "duplicate";
+  type: "add" | "remove" | "qty" | "move" | "duplicate" | "clear";
   itemName: string;
   detail?: string;
   time: Date;
@@ -252,6 +252,7 @@ export function ActionHistoryPanel({ cartId }: { cartId: string }) {
     qty: Package,
     move: MoveRight,
     duplicate: Copy,
+    clear: Eraser,
   };
 
   return (
@@ -276,6 +277,7 @@ export function ActionHistoryPanel({ cartId }: { cartId: string }) {
                   {action.type === "qty" && `Alterou qtd de ${action.itemName}${action.detail ? ` → ${action.detail}` : ""}`}
                   {action.type === "move" && `Moveu ${action.itemName}${action.detail ? ` → ${action.detail}` : ""}`}
                   {action.type === "duplicate" && `Duplicou ${action.itemName}${action.detail ? ` → ${action.detail}` : ""}`}
+                  {action.type === "clear" && `Limpou ${action.itemName}`}
                 </span>
                 <span className="text-[9px] tabular-nums flex-shrink-0">
                   {formatDistanceToNow(action.time, { addSuffix: true, locale: ptBR })}

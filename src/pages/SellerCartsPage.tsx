@@ -344,7 +344,7 @@ function SellerCartsContent() {
         variant="warning" title="Limpar todos os itens?"
         description={`${s.activeCart?.items.length || 0} itens serão removidos do carrinho de ${s.activeCart?.company_name}.`}
         confirmLabel="Limpar" cancelLabel="Cancelar"
-        onConfirm={() => { s.activeCart?.items.forEach(i => s.removeItem(i.id)); toast.success("Carrinho limpo"); s.setConfirmClearCart(false); }}
+        onConfirm={s.handleClearCart}
         testId="cart-clear-dialog"
       />
     </div>

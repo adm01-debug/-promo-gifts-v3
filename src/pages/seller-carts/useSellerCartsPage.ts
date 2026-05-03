@@ -27,7 +27,7 @@ export function useSellerCartsPage() {
     carts, activeCart, activeCartId, isLoading, totalItems, canCreateCart,
     setActiveCartId, deleteCart, addToActiveCart, removeItem, updateItemQuantity,
     updateItemNotes, updateItemSortOrder, updateCartNotes, updateCartStatus,
-    duplicateCart, moveItemToCart, duplicateItemToCart,
+    duplicateCart, moveItemToCart, duplicateItemToCart, clearCart,
   } = useSellerCartContext();
 
   const { templates, saveTemplate, deleteTemplate } = useCartTemplates();
@@ -153,6 +153,28 @@ export function useSellerCartsPage() {
     }
   }, [duplicateItemToCart, activeCart, carts]);
 
+  const handleClearCart = useCallback(() => {
+    if (!activeCart) return;
+    const itemsToRestore = [...activeCart.items];
+    clearCart(activeCart.id);
+    recordAction(activeCart.id, { type: "clear", itemName: "todos os itens", time: new Date() });
+    
+    showUndoToast({
+      title: `Carrinho limpo`,
+      description: activeCart.company_name,
+      onUndo: () => {
+        itemsToRestore.forEach(item => {
+          addToActiveCart({
+            product_id: item.product_id, product_name: item.product_name,
+            product_sku: item.product_sku || undefined, product_image_url: item.product_image_url || undefined,
+            product_price: item.product_price, quantity: item.quantity,
+            color_name: item.color_name || undefined, color_hex: item.color_hex || undefined,
+          });
+        });
+      },
+    });
+  }, [clearCart, activeCart, addToActiveCart]);
+
   const handleSaveTemplate = useCallback((name: string, description: string) => {
     if (!activeCart) return;
     const items: CartTemplateItem[] = activeCart.items.map(i => ({
@@ -222,7 +244,7 @@ export function useSellerCartsPage() {
     stockMap, weightVolume, sensors, handleDragEnd, handleRemoveItem, handleUpdateQuantity,
     handleMoveItem, handleDuplicateItem, handleSaveTemplate, handleLoadTemplate,
     confirmQuoteCart, setConfirmQuoteCart, confirmDeleteCart, setConfirmDeleteCart,
-    confirmClearCart, setConfirmClearCart, handleGenerateQuote, confirmGenerateQuote,
+    confirmClearCart, setConfirmClearCart, handleGenerateQuote, confirmGenerateQuote, handleClearCart,
     otherCarts, cartAge, cartSubtotal, cartTotalQty, companyAccentColor, isLoadingProducts,
     exportCartToCSV, exportCartToPDF, shareCartLink,
   };
