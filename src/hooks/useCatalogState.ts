@@ -242,7 +242,8 @@ export function useCatalogState() {
 
   const shouldShowCatalogSkeleton = isInitialCatalogLoad || (isLoading && paginatedProducts.length === 0);
   const hasActiveCatalogConstraints = activeFiltersCount > 0 || searchQuery.trim().length > 0;
-  const shouldShowEmptyState = !shouldShowCatalogSkeleton && paginatedProducts.length === 0;
+  // BUG-FIX: Don't show empty state if we are still fetching subsequent pages in background
+  const shouldShowEmptyState = !shouldShowCatalogSkeleton && paginatedProducts.length === 0 && !isFetchingNextPage;
 
   const hasMoreProducts = useMemo(() => {
     return paginatedProducts.length < filteredProducts.length || !!hasNextPage;
