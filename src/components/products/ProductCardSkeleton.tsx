@@ -17,7 +17,7 @@ export function ProductCardSkeleton({
   variant = "default",
   animate = true 
 }: ProductCardSkeletonProps) {
-  const baseClass = animate ? "animate-pulse" : "";
+  const baseClass = "";
 
   return (
     <div className={cn("rounded-2xl bg-card border border-border/40 overflow-hidden shadow-sm", baseClass)}>
