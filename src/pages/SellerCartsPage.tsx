@@ -273,8 +273,8 @@ function SellerCartsContent() {
               cart={s.activeCart} otherCarts={s.otherCarts}
               cartSubtotal={s.cartSubtotal} cartTotalQty={s.cartTotalQty}
               cartAge={s.cartAge} weightVolume={s.weightVolume}
-              allProducts={s.allProducts} templates={s.templates}
-              canCreateCart={s.canCreateCart}
+              allProducts={s.allProducts} isLoadingProducts={s.isLoadingProducts}
+              templates={s.templates} canCreateCart={s.canCreateCart}
               onGenerateQuote={s.handleGenerateQuote}
               onShareCart={s.shareCartLink}
               onDuplicateCart={(id) => {
