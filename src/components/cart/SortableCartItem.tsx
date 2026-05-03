@@ -243,13 +243,13 @@ export const SortableCartItem = memo(function SortableCartItem({
             )}
           </div>
 
-          {/* Quantity stepper */}
-          <div className="flex items-center justify-between pt-1 border-t border-border/30">
-            <div data-testid="cart-item-qty-stepper" className="flex items-center gap-0 border border-border/50 rounded-lg overflow-hidden bg-background">
+          {/* Quantity stepper & Subtotal */}
+          <div className="flex items-center justify-between pt-2 border-t border-border/30 gap-3">
+            <div data-testid="cart-item-qty-stepper" className="flex items-center gap-0 border border-border/50 rounded-lg overflow-hidden bg-background shadow-sm hover:border-primary/30 transition-colors">
               <button
                 data-testid="cart-qty-decrement"
                 aria-label="Diminuir quantidade"
-                className="h-8 w-8 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+                className="h-9 w-9 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all active:scale-90"
                 onClick={() => {
                   if (item.quantity <= 1) {
                     onRemove(item.id, item.product_name);
@@ -259,9 +259,9 @@ export const SortableCartItem = memo(function SortableCartItem({
                 }}
               >
                 {item.quantity <= 1 ? (
-                  <Trash2 data-testid="cart-qty-remove-icon" className="h-3.5 w-3.5 text-destructive" />
+                  <Trash2 data-testid="cart-qty-remove-icon" className="h-4 w-4 text-destructive" />
                 ) : (
-                  <Minus data-testid="cart-qty-decrement-icon" className="h-3.5 w-3.5" />
+                  <Minus data-testid="cart-qty-decrement-icon" className="h-4 w-4" />
                 )}
               </button>
               <input
@@ -273,23 +273,25 @@ export const SortableCartItem = memo(function SortableCartItem({
                   const val = parseInt(e.target.value);
                   if (!isNaN(val) && val > 0) onUpdateQuantity(item.id, val);
                 }}
-                className="h-8 w-12 text-center text-xs font-bold tabular-nums bg-transparent border-x border-border/30 focus:outline-none focus:ring-1 focus:ring-primary/20 appearance-none m-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                className="h-9 w-12 text-center text-sm font-bold tabular-nums bg-transparent border-x border-border/30 focus:outline-none focus:ring-1 focus:ring-primary/20 appearance-none m-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none transition-all focus:bg-primary/5"
               />
               <button
                 data-testid="cart-qty-increment"
                 aria-label="Aumentar quantidade"
-                className="h-8 w-8 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 active:bg-muted/80 transition-colors"
+                className="h-9 w-9 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 active:bg-muted/80 transition-all active:scale-90"
                 onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
               >
-                <Plus className="h-3.5 w-3.5" />
+                <Plus className="h-4 w-4" />
               </button>
             </div>
-            <PriceLabel 
-              label="Subtotal" 
-              value={itemTotal} 
-              testId="cart-item-total"
-              className="items-end" 
-            />
+            <div className="flex flex-col items-end">
+              <PriceLabel 
+                label="Subtotal" 
+                value={itemTotal} 
+                testId="cart-item-total"
+                className="items-end" 
+              />
+            </div>
           </div>
 
           {/* Collapsible notes */}
