@@ -86,7 +86,9 @@ export const SmartSearchInput = forwardRef<HTMLDivElement, SmartSearchInputProps
   useEffect(() => { setSelectedIndex(-1); }, [suggestions]);
 
   const handleSelectResult = useCallback((result: SearchResult) => {
-    addToHistory({ id: `history-${result.label}`, label: result.label, type: "general" });
+    if (result.type !== "history") {
+      addToHistory({ id: `history-${result.label}`, label: result.label, type: "general" });
+    }
     setQuery("");
     setIsFocused(false);
     setSelectedIndex(-1);
