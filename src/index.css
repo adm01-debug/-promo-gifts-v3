@@ -139,7 +139,7 @@ html[data-scroll-locked] body {
     /* 11. Gradient Tokens — Orange Premium SSOT
        Use estes tokens em vez de gradientes literais. */
     --gradient-primary: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-glow)) 100%);
-    --gradient-cta: linear-gradient(135deg, hsl(24 100% 55%) 0%, hsl(18 100% 50%) 50%, hsl(12 100% 48%) 100%);
+    --gradient-cta: linear-gradient(135deg, hsl(var(--success)) 0%, hsl(142 100% 45%) 100%);
     --gradient-hero: linear-gradient(135deg, hsl(24 100% 97%) 0%, hsl(24 100% 92%) 45%, hsl(24 100% 88%) 100%);
     --gradient-glow: radial-gradient(circle at 50% 0%, hsl(var(--primary) / 0.35) 0%, hsl(var(--primary) / 0.08) 45%, transparent 70%);
     --gradient-subtle: linear-gradient(180deg, hsl(var(--surface)) 0%, hsl(var(--background)) 100%);
@@ -227,7 +227,7 @@ html[data-scroll-locked] body {
     --gradient-subtle: linear-gradient(180deg, hsl(var(--surface)) 0%, hsl(var(--background)) 100%);
     --gradient-card: linear-gradient(180deg, hsl(var(--card-elevated)) 0%, hsl(var(--card)) 100%);
     --gradient-glow: radial-gradient(circle at 50% 0%, hsl(var(--primary) / 0.5) 0%, hsl(var(--primary) / 0.14) 45%, transparent 70%);
-    --gradient-cta: linear-gradient(135deg, hsl(24 100% 62%) 0%, hsl(18 100% 56%) 50%, hsl(12 100% 52%) 100%);
+    --gradient-cta: linear-gradient(135deg, hsl(var(--success)) 0%, hsl(142 100% 55%) 100%);
     --gradient-highlight: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(38 100% 62%) 100%);
   }
 }
