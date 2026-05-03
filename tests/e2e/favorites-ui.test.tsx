@@ -22,27 +22,24 @@ vi.mock('@/stores/useFavoritesStore', () => ({
   useFavoritesStore: vi.fn(),
 }));
 
-// Mock simplificado do Supabase para evitar erros de encadeamento
-const mockSupabase = {
-  from: vi.fn().mockImplementation(() => ({
-    select: vi.fn().mockReturnThis(),
-    update: vi.fn().mockReturnThis(),
-    delete: vi.fn().mockReturnThis(),
-    insert: vi.fn().mockReturnThis(),
-    eq: vi.fn().mockReturnThis(),
-    order: vi.fn().mockReturnThis(),
-    single: vi.fn().mockResolvedValue({ data: null, error: null }),
-    maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
-    in: vi.fn().mockReturnThis(),
-  })),
-  rpc: vi.fn().mockResolvedValue({ data: null, error: null }),
-  functions: {
-    invoke: vi.fn().mockResolvedValue({ data: { products: [] }, error: null }),
-  },
-};
-
 vi.mock('@/integrations/supabase/client', () => ({
-  supabase: mockSupabase,
+  supabase: {
+    from: vi.fn().mockImplementation(() => ({
+      select: vi.fn().mockReturnThis(),
+      update: vi.fn().mockReturnThis(),
+      delete: vi.fn().mockReturnThis(),
+      insert: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      order: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({ data: null, error: null }),
+      maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+      in: vi.fn().mockReturnThis(),
+    })),
+    rpc: vi.fn().mockResolvedValue({ data: null, error: null }),
+    functions: {
+      invoke: vi.fn().mockResolvedValue({ data: { products: [] }, error: null }),
+    },
+  },
 }));
 
 // Mock do Onboarding para evitar erros de renderização
@@ -115,7 +112,6 @@ describe('E2E Favoritos — Integração UI', () => {
 
   it('valida existência dos ícones de navegação visual', async () => {
     renderWithProviders(<FavoritesPage />);
-    // Verifica se o ícone de favoritos está presente via data-testid
     expect(screen.getByTestId('favorites-icon')).toBeInTheDocument();
   });
 });
@@ -168,6 +164,7 @@ describe('E2E Favoritos — Acessibilidade UI', () => {
     expect(screen.getByLabelText('Favoritos')).toBeInTheDocument();
   });
 });
+
 
 
 
