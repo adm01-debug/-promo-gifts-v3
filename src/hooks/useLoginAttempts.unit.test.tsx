@@ -47,9 +47,7 @@ describe("useLoginAttempts Hook", () => {
     const mockData = [{ id: "1", email: "test@example.com", success: true }];
     const fromSpy = vi.mocked(supabase.from);
     
-    // Get the mock query object from the spy's return value
-    const mockQuery = fromSpy() as any;
-    mockQuery.range.mockResolvedValue({ data: mockData, count: 1, error: null });
+    (mockQuery.range as any).mockResolvedValue({ data: mockData, count: 1, error: null });
 
     const { result } = renderHook(() => useLoginAttempts({ emailFilter: "test" }), { wrapper });
 
