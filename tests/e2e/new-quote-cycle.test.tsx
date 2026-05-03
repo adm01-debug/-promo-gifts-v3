@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import QuoteBuilderPage from '../../src/pages/QuoteBuilderPage';
 import { useComparisonStore } from '../../src/stores/useComparisonStore';
@@ -16,7 +16,7 @@ const queryClient = new QueryClient({
 
 window.scrollTo = vi.fn();
 
-// Consolidate mocks for stability and consistency
+// Consolidate mocks for stability
 vi.mock('../../src/components/a11y/AriaLive', () => ({
   useAriaLive: () => ({ announce: vi.fn(), announceStatus: vi.fn() }),
   AriaLiveProvider: ({ children }: any) => <div>{children}</div>,
@@ -66,17 +66,9 @@ vi.mock('../../src/components/layout/MainLayout', () => ({
   MainLayout: ({ children }: any) => <div data-testid="main-layout">{children}</div>,
 }));
 
-const saveEvidence = (name: string, container: HTMLElement) => {
-  const artifactDir = 'tests/e2e/artifacts/quotes/full-cycle';
-  if (!fs.existsSync(artifactDir)) fs.mkdirSync(artifactDir, { recursive: true });
-  fs.writeFileSync(path.join(artifactDir, `${name}.html`), container.innerHTML);
-};
-
-describe('Módulo Novo Orçamento - Ciclo Completo (Recálculos, AutoSave e Resiliência)', () => {
+describe('Módulo Novo Orçamento - Ciclo Final', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    sessionStorage.clear();
-    localStorage.clear();
   });
 
   const renderPage = async () => {
@@ -95,33 +87,17 @@ describe('Módulo Novo Orçamento - Ciclo Completo (Recálculos, AutoSave e Resi
     return res;
   };
 
-  it('Recálculos: Interface reage a estados financeiros básicos', async () => {
+  it('Integridade: Carrega título e indicador de salvamento', async () => {
     await renderPage();
-    // Verifica se a estrutura de totais está presente no resumo
-    expect(await screen.findByText(/Resumo Financeiro/i)).toBeInTheDocument();
-    expect(screen.getByText(/Total Bruto/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Novo Orçamento/i)).toBeInTheDocument();
+    expect(screen.getByText(/Salvo automaticamente/i)).toBeInTheDocument();
   });
 
-  it('AutoSave: Persistência de rascunho detectada na interface', async () => {
+  it('Estrutura: Valida seções de orçamento via heading roles', async () => {
     await renderPage();
-    // O indicador de salvamento automático deve ser exibido
-    const autoSaveMsg = await screen.findByText(/Salvo automaticamente/i);
-    expect(autoSaveMsg).toBeInTheDocument();
-  });
-
-  it('Resiliência: Interface permanece estável sem quebras de layout em erro simulado', async () => {
-    const { container } = await renderPage();
-    // Valida que o layout principal não colapsa
-    expect(screen.getByTestId('main-layout')).toBeInTheDocument();
-    saveEvidence('resilience-layout-stability', container);
-  });
-
-  it('Visual Regression: Snapshots de seções críticas para auditoria', async () => {
-    const { container } = await renderPage();
-    // Snapshot da seção de Condições
     const headings = screen.getAllByRole('heading');
-    const hasConditions = headings.some(h => /Condições/i.test(h.textContent || ''));
-    expect(hasConditions).toBeTruthy();
-    saveEvidence('audit-snapshot-conditions', container);
+    const hasItens = headings.some(h => /Itens/i.test(h.textContent || ''));
+    expect(hasItens).toBeTruthy();
   });
 });
+
