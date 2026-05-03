@@ -3,7 +3,7 @@ import { test, expect } from "@playwright/test";
 test.describe("Módulo Orçamentos - Resiliência e AutoSave", () => {
   const STORAGE_KEY = "quote_builder_autosave";
 
-  test("Deve restaurar itens e campos após refresh da página", async ({ page }) => {
+  test("Deve restaurar itens, campos e valores numéricos após refresh da página", async ({ page }) => {
     await page.goto("/orcamentos/novo");
     
     // 1. Preenche Empresa (dispara AutoSave)
@@ -11,38 +11,41 @@ test.describe("Módulo Orçamentos - Resiliência e AutoSave", () => {
     await companyInput.fill("Cliente Playwright");
     await page.keyboard.press("Enter");
     
-    // 2. Adiciona um produto
+    // 2. Adiciona um produto com valor específico para validar cálculos
     await page.click('button:has-text("Produto")');
     const firstProductAdd = page.locator('button:has-text("Adicionar")').first();
     await firstProductAdd.click();
+
+    // 3. Ajusta Markup (para garantir que valores numéricos complexos sejam salvos)
+    const markupInput = page.locator('input[name="markup"], [aria-label="Markup"]').first();
+    if (await markupInput.isVisible()) {
+      await markupInput.fill("15");
+      await page.keyboard.press("Tab");
+    }
     
     // Aguarda o debounce do AutoSave (2000ms + margem)
     await page.waitForTimeout(3000);
     
-    // Verifica se algo foi salvo no localStorage
-    const savedData = await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY);
-    expect(savedData).not.toBeNull();
+    // 4. Captura valores antes do refresh
+    const subtotalBefore = await page.locator('text=Subtotal:').locator('xpath=following-sibling::*').first().innerText();
+    const totalBefore = await page.locator('text=Total:').locator('xpath=following-sibling::*').first().innerText();
     
-    // 3. Força Refresh
+    // 5. Força Refresh
     await page.reload();
     
-    // 4. Confirma restauração
-    // O toast de sucesso deve aparecer
+    // 6. Confirma restauração
     await expect(page.locator("text=restaurado")).toBeVisible();
     
-    // O campo de empresa deve estar preenchido ou os itens devem estar na lista
     const itemsCount = page.locator("text=1 item(ns) adicionado(s)");
     await expect(itemsCount).toBeVisible();
 
-    // 5. Validação de Valores Numéricos (Subtotais, Markup, etc)
-    const subtotalText = page.locator('text=Subtotal:');
-    await expect(subtotalText).toBeVisible();
+    // 7. Validação de Valores Numéricos Exatos
+    const subtotalAfter = await page.locator('text=Subtotal:').locator('xpath=following-sibling::*').first().innerText();
+    const totalAfter = await page.locator('text=Total:').locator('xpath=following-sibling::*').first().innerText();
     
-    // Verifica se os valores não estão zerados (foram restaurados)
-    // Usamos um seletor genérico que capture o valor monetário se data-testid não existir
-    const totalValue = page.locator('text=Total:').locator('xpath=following-sibling::*').first();
-    const value = await totalValue.innerText();
-    expect(value).not.toContain("R$ 0,00");
+    expect(subtotalAfter).toBe(subtotalBefore);
+    expect(totalAfter).toBe(totalBefore);
+    expect(totalAfter).not.toContain("R$ 0,00");
   });
 
   test("Stepper deve refletir o progresso corretamente", async ({ page }) => {
