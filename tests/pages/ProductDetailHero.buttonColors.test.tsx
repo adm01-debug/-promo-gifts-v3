@@ -5,7 +5,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { TooltipProvider } from '@/components/ui/tooltip';
 
-// Mock components that require complex context
+// Mock components that require complex context or data structures
 vi.mock('@/components/products/QuickAddToQuote', () => ({
   QuickAddToQuote: ({ className, labelOverride }: any) => (
     <button className={className} aria-label={labelOverride}>{labelOverride}</button>
@@ -18,6 +18,10 @@ vi.mock('@/components/products/ProductCategoryBadges', () => ({
 
 vi.mock('@/components/products/PriceFreshnessThresholdEditor', () => ({
   PriceFreshnessThresholdEditor: () => null
+}));
+
+vi.mock('@/components/products/ProductQuickActions', () => ({
+  ProductQuickActions: () => <div data-testid="quick-actions" />
 }));
 
 const queryClient = new QueryClient({
@@ -38,7 +42,8 @@ const mockProduct = {
     name: 'XBZ Brindes'
   },
   categories: [],
-  brand: 'Brand'
+  brand: 'Brand',
+  colors: [] // Added to prevent map errors
 };
 
 describe('ProductDetailHero Button Colors', () => {
