@@ -48,7 +48,7 @@ export function QuoteTotalsSummary({ items, discountPercent, discountAmount, shi
           {hasPersonalizations && (
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Personalização:</span>
-              <span>{formatCurrency(personalizationTotal)}</span>
+              <span data-testid="summary-personalization">{formatCurrency(personalizationTotal)}</span>
             </div>
           )}
           {discountValue > 0 && (
