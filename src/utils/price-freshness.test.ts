@@ -34,6 +34,7 @@ describe("Price Freshness Utility", () => {
   });
 
   describe("getPriceFreshness", () => {
+    // ... keep existing tests
     it("returns unknown status when date is missing", () => {
       const result = getPriceFreshness(null, 60);
       expect(result.status).toBe("unknown");
@@ -94,6 +95,42 @@ describe("Price Freshness Utility", () => {
       const fifteenDaysAgo = new Date("2026-04-18T12:00:00Z").toISOString();
       const result = getPriceFreshness(fifteenDaysAgo, 10);
       expect(result.status).toBe("stale");
+    });
+
+    describe("Edge Cases", () => {
+      it("exactly at half threshold (30 days) should be fresh", () => {
+        const thirtyDaysAgo = new Date("2026-04-03T12:00:00Z").toISOString();
+        const result = getPriceFreshness(thirtyDaysAgo, 60);
+        expect(result.status).toBe("fresh");
+      });
+
+      it("exactly at full threshold (60 days) should be aging (not stale yet)", () => {
+        const sixtyDaysAgo = new Date("2026-03-04T12:00:00Z").toISOString();
+        const result = getPriceFreshness(sixtyDaysAgo, 60);
+        expect(result.status).toBe("aging");
+      });
+
+      it("handles ISO strings without Z (local time) consistently", () => {
+        // "2026-05-02T10:00:00" might be interpreted differently depending on environment timezone
+        // but the utility should handle it via Date constructor.
+        const yesterday = "2026-05-02T12:00:00";
+        const result = getPriceFreshness(yesterday, 60);
+        expect(result.daysSinceUpdate).toBeGreaterThanOrEqual(0);
+      });
+
+      it("handles very old dates (years ago) as stale", () => {
+        const yearsAgo = new Date("2020-01-01T12:00:00Z").toISOString();
+        const result = getPriceFreshness(yearsAgo, 60);
+        expect(result.status).toBe("stale");
+        expect(result.daysSinceUpdate).toBeGreaterThan(365 * 5);
+      });
+
+      it("handles dates in the future as today (0 days)", () => {
+        const tomorrow = new Date("2026-05-04T12:00:00Z").toISOString();
+        const result = getPriceFreshness(tomorrow, 60);
+        expect(result.daysSinceUpdate).toBe(0);
+        expect(result.status).toBe("fresh");
+      });
     });
   });
 });
