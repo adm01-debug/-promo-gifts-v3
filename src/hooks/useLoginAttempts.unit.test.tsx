@@ -51,7 +51,10 @@ describe("useLoginAttempts Hook", () => {
 
     const { result } = renderHook(() => useLoginAttempts({ emailFilter: "test" }), { wrapper });
 
-    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    await waitFor(() => {
+      if (result.current.isError) throw result.current.error;
+      expect(result.current.isSuccess).toBe(true);
+    }, { timeout: 2000 });
 
     expect(fromSpy).toHaveBeenCalledWith("login_attempts");
     expect(mockQuery.ilike).toHaveBeenCalledWith("email", "%test%");
