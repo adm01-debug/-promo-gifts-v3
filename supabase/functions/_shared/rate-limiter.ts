@@ -12,7 +12,7 @@ const requestCounts = new Map<string, { count: number; resetAt: number }>();
 export class RateLimiter {
   constructor(private config: RateLimitConfig) {}
 
-  async check(identifier: string): Promise<{ allowed: boolean; remaining: number; resetAt: number }> {
+  async check(identifier: string): Promise<{ allowed: boolean; remaining: number; resetAt: number; suspicious?: boolean }> {
     const key = `${this.config.keyPrefix || 'rl'}:${identifier}`;
     const now = Date.now();
     
@@ -29,6 +29,12 @@ export class RateLimiter {
     record.count++;
     requestCounts.set(key, record);
 
+    // Detecção de tentativas suspeitas: 
+    // se o usuário atingir 80% do limite muito rápido (ex: em menos de 10% da janela)
+    const usageRatio = record.count / this.config.maxRequests;
+    const timeRatio = (now - (record.resetAt - this.config.windowMs)) / this.config.windowMs;
+    const suspicious = usageRatio > 0.8 && timeRatio < 0.1;
+
     // Limpar registros antigos periodicamente
     if (Math.random() < 0.01) {
       this.cleanup();
@@ -40,7 +46,8 @@ export class RateLimiter {
     return {
       allowed,
       remaining,
-      resetAt: record.resetAt
+      resetAt: record.resetAt,
+      suspicious
     };
   }
 
@@ -86,6 +93,11 @@ export async function applyRateLimit(
 ): Promise<Response | null> {
   const identifier = getIdentifier(req);
   const result = await limiter.check(identifier);
+
+  if (result.suspicious) {
+    console.warn(`[suspicious-activity] ID: ${identifier} endpoint: ${limiter['config'].keyPrefix}`);
+    // Opcional: registrar no admin_audit_log se for crítico
+  }
 
   if (!result.allowed) {
     return new Response(

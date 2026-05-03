@@ -70,16 +70,20 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
       dangerouslySetInnerHTML={{
         __html: Object.entries(THEMES)
           .map(
-            ([theme, prefix]) => `
-${prefix} [data-chart=${id}] {
-${colorConfig
-  .map(([key, itemConfig]) => {
-    const color = itemConfig.theme?.[theme as keyof typeof itemConfig.theme] || itemConfig.color;
-    return color ? `  --color-${key}: ${color};` : null;
-  })
-  .join("\n")}
-}
-`,
+            ([theme, prefix]) => {
+              const selector = `${prefix} [data-chart=${id}]`.trim();
+              const vars = colorConfig
+                .map(([key, itemConfig]) => {
+                  const color = itemConfig.theme?.[theme as keyof typeof itemConfig.theme] || itemConfig.color;
+                  // Validation: Only allow safe color values (hex, rgb, hsl, or named colors)
+                  // This is a simple regex to block injection of closing braces or other CSS properties
+                  if (!color || !/^#?[a-zA-Z0-9(),\.\s%]+$/.test(color)) return null;
+                  return `  --color-${key}: ${color};`;
+                })
+                .filter(Boolean)
+                .join("\n");
+              return `${selector} {\n${vars}\n}`;
+            }
           )
           .join("\n"),
       }}
