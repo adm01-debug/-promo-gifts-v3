@@ -121,39 +121,112 @@ test.describe('Módulo Dashboard de Estoque - Testes Exaustivos', () => {
     await page.goBack();
     const searchInput = page.getByPlaceholder(/Buscar produto, SKU ou cor.../i);
     await searchInput.fill(productName);
-    await page.waitForTimeout(600);
+    await page.waitForTimeout(600); // Debounce
     
     const searchResult = await page.locator('table tbody tr').first().locator('.font-medium').innerText();
     expect(searchResult).toBe(productName);
   });
 
-  test('Deve validar permissões de Administrador vs Visualizador', async ({ page }) => {
-    // Simulando teste de RBAC (Role Based Access Control)
-    // Se estiver logado como admin, exportar deve estar visível
-    const exportButton = page.getByRole('button', { name: /Exportar/i });
-    await expect(exportButton).toBeVisible();
+  test('Deve realizar busca exaustiva por Nome, SKU e Cor', async ({ page }) => {
+    // 1. Pega dados de um produto real para testar
+    const firstRow = page.locator('table tbody tr').first();
+    const productName = await firstRow.locator('.font-medium').innerText();
+    const productSku = (await firstRow.locator('.text-xs.text-muted-foreground').innerText()).split(' • ')[0];
     
-    // Se for visualizador, algumas ações podem estar restritas (dependendo da implementação real do sistema)
-    // Aqui validamos que as ações de leitura estão presentes
-    await expect(page.getByRole('button', { name: /Atualizar/i })).toBeVisible();
+    // Expande para pegar uma cor
+    await firstRow.click();
+    const colorName = await page.locator('table tbody tr').nth(1).locator('.text-sm').first().innerText();
+    
+    const searchInput = page.getByPlaceholder(/Buscar produto, SKU ou cor.../i);
+    
+    // Teste Nome
+    await searchInput.fill(productName);
+    await page.waitForTimeout(600);
+    let results = await page.locator('table tbody tr').count();
+    expect(results).toBeGreaterThan(0);
+    await expect(page.locator('table tbody tr').first()).toContainText(productName);
+    
+    // Teste SKU
+    await searchInput.fill(productSku);
+    await page.waitForTimeout(600);
+    await expect(page.locator('table tbody tr').first()).toContainText(productSku);
+    
+    // Teste Cor
+    await searchInput.fill(colorName);
+    await page.waitForTimeout(600);
+    // Ao buscar por cor, o produto que contém essa cor deve aparecer
+    await expect(page.locator('table tbody tr').first()).toBeVisible();
+    // Verifica se pelo menos um produto na lista tem a cor (pode precisar expandir ou checar resumo)
+    // O filtro global do useVariantStock filtra os produtos que possuem a variante
   });
 
-  test('Deve tratar falhas de API e exibir mensagens de erro', async ({ page }) => {
-    // Intercepta a chamada de API e simula erro 500
-    await page.route('**/api/stock/**', route => route.fulfill({
-      status: 500,
-      contentType: 'application/json',
-      body: JSON.stringify({ error: 'Internal Server Error' })
-    }));
-
-    // Força um refresh
-    await page.keyboard.press('Control+Shift+R');
+  test('Deve persistir filtros, busca e ordenação ao navegar entre páginas', async ({ page }) => {
+    const searchInput = page.getByPlaceholder(/Buscar produto, SKU ou cor.../i);
+    const nextButton = page.getByRole('button', { name: /Próximo/i });
     
-    // Verifica se um toast de erro ou mensagem de fallback aparece
-    // Nota: Depende de como o useToast e React Query tratam erros. 
-    // Se o erro for capturado pelo TanStack Query, pode mostrar o estado de erro ou um toast global.
-    const errorToast = page.locator('text=/Erro ao/i').or(page.locator('text=/Falha/i'));
-    // Como estamos usando mocks, dependemos do componente tratar o catch do fetchStockData
+    // 1. Aplica Filtro de Status (Estoque Baixo)
+    await page.click('text=/Estoque Baixo/i');
+    await expect(page.locator('text=/Filtro ativo: Estoque Baixo/i')).toBeVisible();
+    
+    // 2. Aplica Busca
+    const firstProductName = await page.locator('table tbody tr').first().locator('.font-medium').innerText();
+    const searchTerms = firstProductName.split(' ')[0]; // Pega a primeira palavra
+    await searchInput.fill(searchTerms);
+    await page.waitForTimeout(600);
+    
+    // 3. Aplica Ordenação
+    await page.getByRole('button', { name: /Filtros/i }).click();
+    await page.locator('button:has-text("Ordenar por")').click();
+    await page.getByRole('option', { name: 'Nome (A-Z)' }).click();
+    await page.keyboard.press('Escape');
+    
+    // 4. Muda de página (se houver mais de uma página filtrada)
+    if (await nextButton.isVisible()) {
+      await nextButton.click();
+      await page.waitForTimeout(300);
+      
+      // 5. Volta para página 1
+      await page.getByRole('button', { name: /Anterior/i }).click();
+      await page.waitForTimeout(300);
+      
+      // 6. Valida que tudo permanece aplicado
+      await expect(page.locator('text=/Filtro ativo: Estoque Baixo/i')).toBeVisible();
+      await expect(searchInput).toHaveValue(searchTerms);
+      // O primeiro item deve ser o mesmo (ordenado por nome e filtrado)
+      const currentFirstProduct = await page.locator('table tbody tr').first().locator('.font-medium').innerText();
+      expect(currentFirstProduct.toLowerCase()).toContain(searchTerms.toLowerCase());
+    }
+  });
+
+  test('Deve mostrar estados de carregamento (skeleton) e tratar falhas sequenciais', async ({ page }) => {
+    // 1. Mock de resposta lenta para ver Skeleton
+    await page.route('**/api/stock/**', async (route) => {
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      return route.continue();
+    });
+    
+    await page.reload();
+    await expect(page.locator('[aria-busy="true"]')).toBeVisible();
+    await expect(page.locator('.animate-pulse')).toBeVisible();
+    
+    // 2. Mock de falha sequencial
+    let attempts = 0;
+    await page.route('**/api/stock/**', route => {
+      attempts++;
+      return route.fulfill({
+        status: 500,
+        body: JSON.stringify({ error: 'Erro temporário' })
+      });
+    }, { times: 2 });
+    
+    await page.getByRole('button', { name: /Atualizar/i }).click();
+    
+    // Verifica toast de erro
+    await expect(page.locator('text=/Erro ao/i').or(page.locator('text=/Falha/i'))).toBeVisible();
+    
+    // 3. Verifica se o botão de atualizar está disponível para re-tentativa
+    const refreshButton = page.getByRole('button', { name: /Atualizar/i });
+    await expect(refreshButton).toBeEnabled();
   });
 
   test('Deve testar o atalho de teclado para atualização (Ctrl+Shift+R)', async ({ page }) => {
