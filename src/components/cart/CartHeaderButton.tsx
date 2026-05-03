@@ -7,11 +7,13 @@ import { ShoppingCart, Trash2, Plus, Building2, Package, X, ArrowRight, Eraser, 
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useSellerCartContext } from "@/contexts/SellerCartContext";
 import { CartCompanyPicker } from "./CartCompanyPicker";
 import { PriceLabel } from "./CartUtilComponents";
+import { formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
