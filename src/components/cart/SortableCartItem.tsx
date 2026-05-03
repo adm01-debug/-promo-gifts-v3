@@ -113,8 +113,8 @@ export const SortableCartItem = memo(function SortableCartItem({
                 animate={{ opacity: 1 }}
                 src={item.product_image_url} 
                 alt={item.product_name} 
-                className=\"w-full h-full object-contain p-4\" 
-                loading=\"lazy\" 
+                className="w-full h-full object-contain p-4" 
+                loading="lazy" 
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
