@@ -15,10 +15,15 @@ test.describe('Módulo Estoque - Testes Exaustivos', () => {
     await page.waitForSelector('[aria-busy="true"]', { state: 'hidden', timeout: 30000 });
   });
 
-  test('Deve carregar a estrutura básica do dashboard corretamente', async ({ page }) => {
+  test('Deve carregar a estrutura básica do dashboard e breadcrumbs corretamente', async ({ page }) => {
+    // Valida Título da Página e Breadcrumbs
     await expect(page).toHaveTitle(/Estoque/i);
+    const breadcrumb = page.locator('nav[aria-label="Breadcrumb"]');
+    await expect(breadcrumb).toContainText('Estoque');
+    
+    // Valida heading principal (se houver um explícito ou no MainLayout/Breadcrumbs)
     await expect(page.getByRole('heading', { name: 'Visão Geral' })).toBeVisible();
-    await expect(page.locator('text=/Saúde:/i')).toBeVisible();
+    await expect(page.locator('text=/Saúde do Estoque:/i')).toBeVisible();
     
     const summaryCards = ['Total de Produtos', 'Em Estoque', 'Estoque Baixo', 'Sem Estoque', 'Estoque Futuro'];
     for (const card of summaryCards) {
