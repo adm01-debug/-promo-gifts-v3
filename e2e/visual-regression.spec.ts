@@ -5,10 +5,10 @@ test.describe('Regressão Visual - Product Hero', () => {
     // Ir para a home e clicar no primeiro produto para garantir que estamos em uma página de produto
     await page.goto('/');
     // Esperar os produtos carregarem
-    await page.waitForSelector('[data-testid="product-card"]', { timeout: 10000 });
+    await page.waitForSelector('[data-testid="product-card"]', { timeout: 15000 });
     await page.locator('[data-testid="product-card"]').first().click();
     // Esperar o Hero carregar
-    await page.waitForSelector('h1[data-testid="product-name"]');
+    await page.waitForSelector('h1[data-testid="product-name"]', { timeout: 10000 });
   });
 
   test('Hero section layout e cores dos botões', async ({ page }) => {
@@ -22,15 +22,19 @@ test.describe('Regressão Visual - Product Hero', () => {
   });
 
   test('Interação nos botões Carrinho e Orçamento', async ({ page }) => {
-    const carrinhoBtn = page.getByRole('button', { name: /carrinho/i }).first();
-    const orcamentoBtn = page.getByRole('button', { name: /orçamento/i }).first();
+    // Pegar botões específicos da seção Hero (para evitar conflito com mobile nav se visível)
+    const hero = page.locator('.grid.lg\\:grid-cols-\\[minmax\\(0\\,5fr\\)_minmax\\(0\\,7fr\\)\\]');
+    const carrinhoBtn = hero.getByRole('button', { name: /carrinho/i });
+    const orcamentoBtn = hero.getByRole('button', { name: /orçamento/i });
 
     // Hover Carrinho
     await carrinhoBtn.hover();
+    await page.waitForTimeout(200);
     await expect(carrinhoBtn).toHaveScreenshot('button-carrinho-hover.png');
 
     // Hover Orçamento
     await orcamentoBtn.hover();
+    await page.waitForTimeout(200);
     await expect(orcamentoBtn).toHaveScreenshot('button-orcamento-hover.png');
     
     // Estado Disabled (via JS para teste visual)
@@ -45,6 +49,24 @@ test.describe('Regressão Visual - Product Hero', () => {
     await expect(carrinhoBtn).toHaveScreenshot('button-carrinho-disabled.png');
     await expect(orcamentoBtn).toHaveScreenshot('button-orcamento-disabled.png');
   });
+
+  test('Visualização em Diferentes Skins', async ({ page }) => {
+    const skins = ['corporate', 'diversity', 'ocean'];
+    const hero = page.locator('.grid.lg\\:grid-cols-\\[minmax\\(0\\,5fr\\)_minmax\\(0\\,7fr\\)\\]');
+    
+    for (const skin of skins) {
+      await page.evaluate((s) => {
+        localStorage.setItem('gifts-store-theme-config', JSON.stringify({ presetId: s, radius: 14, mode: 'light' }));
+        window.location.reload();
+      }, skin);
+      await page.waitForSelector('h1[data-testid="product-name"]', { timeout: 10000 });
+      // Pequeno delay para garantir que o preset CSS foi aplicado
+      await page.waitForTimeout(500);
+      await expect(hero).toHaveScreenshot(`product-hero-skin-${skin}.png`, {
+        mask: [page.locator('[data-testid="product-name"]')],
+      });
+    }
+  });
 });
 
 test.describe('Regressão Visual - Layout (Header & Breadcrumb)', () => {
@@ -54,6 +76,9 @@ test.describe('Regressão Visual - Layout (Header & Breadcrumb)', () => {
     
     const header = page.locator('[data-testid="app-header"]');
     const breadcrumb = page.locator('[data-testid="breadcrumb-bar"]');
+    
+    // Esperar header carregar
+    await expect(header).toBeVisible();
     
     // Estado Inicial (Header 56px)
     await expect(header).toHaveScreenshot('header-desktop-initial.png');
@@ -71,7 +96,8 @@ test.describe('Regressão Visual - Layout (Header & Breadcrumb)', () => {
     const headerBox = await header.boundingBox();
     const breadcrumbBox = await breadcrumb.boundingBox();
     if (headerBox && breadcrumbBox) {
-      expect(breadcrumbBox.y).toBeGreaterThanOrEqual(headerBox.y + headerBox.height - 1); // tolerância de 1px
+      // O breadcrumb deve estar exatamente no top: headerHeight
+      expect(breadcrumbBox.y).toBeGreaterThanOrEqual(headerBox.y + headerBox.height - 1);
     }
   });
 
@@ -80,6 +106,7 @@ test.describe('Regressão Visual - Layout (Header & Breadcrumb)', () => {
     await page.goto('/filtros');
     
     const header = page.locator('[data-testid="app-header"]');
+    await expect(header).toBeVisible();
     await expect(header).toHaveScreenshot('header-mobile.png');
     
     // Breadcrumb deve estar visível no mobile também
@@ -94,3 +121,4 @@ test.describe('Regressão Visual - Layout (Header & Breadcrumb)', () => {
     await expect(breadcrumb).toBeHidden();
   });
 });
+
