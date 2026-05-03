@@ -216,9 +216,9 @@ export const SortableCartItem = memo(function SortableCartItem({
 
           {/* Color badge */}
           {item.color_name && (
-            <div data-testid="cart-item-color" className="absolute bottom-2 left-2 flex items-center gap-1.5 bg-card/90 backdrop-blur-sm rounded-full px-2 py-1">
-              <div className="w-3 h-3 rounded-full border border-border/50" style={{ backgroundColor: item.color_hex || undefined }} />
-              <span data-testid="cart-item-color-name" className="text-[10px] font-medium">{item.color_name}</span>
+            <div data-testid="cart-item-color" className="absolute bottom-3 left-3 flex items-center gap-2 bg-card/90 backdrop-blur-md rounded-full px-2.5 py-1 border border-border/50 shadow-sm z-20">
+              <div className="w-3.5 h-3.5 rounded-full border border-border/50 shadow-inner" style={{ backgroundColor: item.color_hex || undefined }} />
+              <span data-testid="cart-item-color-name" className="text-[10px] font-bold uppercase tracking-tight opacity-80">{item.color_name}</span>
             </div>
           )}
         </div>
