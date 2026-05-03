@@ -112,11 +112,11 @@ export function SuggestionSkeleton() {
   return (
     <div className="space-y-2 animate-pulse">
       {[1, 2, 3].map((i) => (
-        <div key={i} className="flex items-start gap-2.5 p-3 rounded-xl border border-border/20 bg-muted/5">
-          <Skeleton className="h-5 w-5 rounded-full flex-shrink-0 mt-0.5" />
-          <div className="space-y-1.5 flex-1">
-            <Skeleton className="h-3 w-full" />
-            <Skeleton className="h-3 w-4/5" />
+        <div key={i} className="flex items-start gap-2.5 p-3 rounded-xl border border-border/20 bg-muted/5 group">
+          <Skeleton className="h-5 w-5 rounded-full flex-shrink-0 mt-0.5 opacity-40 group-hover:opacity-60 transition-opacity" />
+          <div className="space-y-2 flex-1">
+            <Skeleton className="h-2.5 w-full opacity-30" />
+            <Skeleton className="h-2.5 w-4/5 opacity-20" />
           </div>
         </div>
       ))}
