@@ -60,6 +60,31 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
     document.documentElement.style.setProperty("--header-h", `${headerHeightPx}px`);
   }, [headerHeightPx]);
 
+  // Mantém --header-left em sincronia com o breakpoint desktop (lg = 1024px)
+  // e a largura atual da sidebar (--sidebar-w). Em telas <lg, a sidebar é
+  // off-canvas, então --header-left = 0.
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px)");
+    const apply = () => {
+      const sidebarW = getComputedStyle(document.documentElement)
+        .getPropertyValue("--sidebar-w")
+        .trim() || "16rem";
+      document.documentElement.style.setProperty(
+        "--header-left",
+        mq.matches ? sidebarW : "0px",
+      );
+    };
+    apply();
+    mq.addEventListener("change", apply);
+    // Observa mudanças no atributo style do <html> (quando sidebar atualiza --sidebar-w)
+    const obs = new MutationObserver(apply);
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ["style"] });
+    return () => {
+      mq.removeEventListener("change", apply);
+      obs.disconnect();
+    };
+  }, []);
+
   const handleToggleTheme = () => {
     if (theme === "auto") {
       setTheme(actualTheme === "dark" ? "light" : "dark");
@@ -92,12 +117,10 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
       data-testid="app-header"
       style={{
         "--header-h": `${headerHeightPx}px`,
-        position: "sticky",
-        top: 0,
-        zIndex: 50,
+        left: "var(--header-left, 0px)",
       } as CSSProperties}
       className={cn(
-        "border-b transition-all duration-300 print:hidden",
+        "fixed top-0 right-0 z-40 border-b transition-all duration-300 print:hidden",
         "bg-card/95 backdrop-blur-md border-border",
         "h-[var(--header-h)]",
         isScrolled && "bg-card/98 backdrop-blur-lg shadow-md border-border/80",

@@ -140,6 +140,15 @@ export const SidebarReorganized = React.forwardRef<HTMLElement, SidebarProps>(
   const location = useLocation();
   const navigate = useNavigate();
   const [isCollapsed, setIsCollapsed] = useState(false);
+
+  // Propaga --sidebar-w no :root para que o Header fixo possa offset
+  // corretamente da largura da sidebar em desktop (lg+).
+  useEffect(() => {
+    document.documentElement.style.setProperty(
+      "--sidebar-w",
+      isCollapsed ? "4rem" : "16rem",
+    );
+  }, [isCollapsed]);
   const isItemActive = (href: string, exact?: boolean) =>
     isNavItemActive(location.pathname, href, exact);
 
@@ -302,6 +311,7 @@ export const SidebarReorganized = React.forwardRef<HTMLElement, SidebarProps>(
         data-tour="sidebar"
         role="navigation"
         aria-label="Menu principal"
+        style={{ ['--sidebar-w' as string]: isCollapsed ? '4rem' : '16rem' }}
         className={cn(
           "fixed left-0 top-0 z-50 h-full bg-sidebar border-r border-sidebar-border transition-all duration-300 ease-out",
           isCollapsed ? "overflow-visible" : "overflow-hidden",
