@@ -50,7 +50,7 @@ export function ProductListSkeleton({ count = 8 }: { count?: number }) {
       {[...Array(count)].map((_, i) => (
         <div
           key={i}
-          className="animate-pulse"
+          className=""
           style={{ animationDelay: `${i * 60}ms` }}
         >
           <ProductListItemSkeleton />
