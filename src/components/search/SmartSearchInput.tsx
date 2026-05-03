@@ -47,8 +47,10 @@ export const SmartSearchInput = forwardRef<HTMLDivElement, SmartSearchInputProps
 
   const {
     query, setQuery, suggestions, quickSuggestions,
-    history, addToHistory, removeFromHistory, clearHistory,
+    clearHistory,
   } = useSearch();
+
+  const { history, addToHistory, removeFromHistory } = useSearchHistory("general");
 
   const debouncedQuery = useDebounce(query, 150);
 
