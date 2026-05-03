@@ -38,6 +38,14 @@ export function sanitizeString(val: string): string {
 export const safeString = z.string().trim().transform(sanitizeString);
 export const safeHtml = z.string().trim().transform(sanitizeHtml);
 
+/**
+ * Higher-order component/helper for dangerouslySetInnerHTML
+ * to ensure only sanitized HTML is used.
+ */
+export function createSafeHtml(html: string) {
+  return { __html: sanitizeHtml(html) };
+}
+
 export const uuidSchema = z.string().uuid();
 export const emailSchema = z.string().email();
 
