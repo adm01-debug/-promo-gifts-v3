@@ -120,30 +120,35 @@ export function CartHeaderButton() {
               transition={{ duration: 0.15 }}
             >
               {/* Header */}
-              <div className="px-4 pt-4 pb-3 flex items-center justify-between border-b border-border/40">
-                <div className="flex items-center gap-2">
-                  <div className="h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <ShoppingCart className="h-3.5 w-3.5 text-primary" />
+              <div className="px-4 pt-4 pb-3 flex items-center justify-between border-b border-border/40 bg-muted/5">
+                <div className="flex items-center gap-2.5">
+                  <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center shadow-inner">
+                    <ShoppingCart className="h-4 w-4 text-primary" />
                   </div>
-                  <h3 className="font-display font-semibold text-sm">Carrinhos</h3>
-                  <button
-                    className="text-[10px] text-muted-foreground hover:text-primary font-medium underline-offset-2 hover:underline transition-colors"
-                    onClick={() => { setOpen(false); navigate("/carrinhos"); }}
-                  >
-                    Ver todos →
-                  </button>
-                  <span className="text-[10px] text-muted-foreground font-medium tabular-nums">
-                    {carts.length}/3
-                  </span>
+                  <div className="flex flex-col">
+                    <h3 className="font-display font-bold text-[13px] leading-tight">Meus Carrinhos</h3>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <span className="text-[10px] text-muted-foreground font-bold tabular-nums">
+                        {carts.length}/3
+                      </span>
+                      <span className="text-[10px] text-muted-foreground opacity-30">|</span>
+                      <button
+                        className="text-[10px] text-primary hover:text-primary/80 font-bold underline-offset-2 hover:underline transition-colors"
+                        onClick={() => { setOpen(false); navigate("/carrinhos"); }}
+                      >
+                        Ver todos
+                      </button>
+                    </div>
+                  </div>
                 </div>
                 {canCreateCart && (
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
-                    className="h-7 text-[11px] gap-1 px-2.5 rounded-lg border-dashed border-primary/30 text-primary hover:bg-primary/10 hover:text-primary hover:border-primary/50"
+                    className="h-8 text-[11px] gap-1.5 px-3 rounded-lg text-primary hover:bg-primary/10 font-bold transition-all hover:scale-105 active:scale-95"
                     onClick={() => setShowPicker(true)}
                   >
-                    <Plus className="h-3 w-3" />
+                    <Plus className="h-3.5 w-3.5" />
                     Novo
                   </Button>
                 )}
