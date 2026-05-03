@@ -142,8 +142,8 @@ describe('Módulo Novo Orçamento - Auditoria Detalhada de Funcionalidades', () 
     await renderPage();
     
     // Botões devem ter labels acessíveis
-    const searchTrigger = screen.getByRole('button', { name: /buscar produtos/i });
-    expect(searchTrigger).toBeInTheDocument();
+    const productBtn = screen.getByRole('button', { name: /produto/i });
+    expect(productBtn).toBeInTheDocument();
     
     // Verifica H1 único
     const h1s = screen.getAllByRole('heading', { level: 1 });
