@@ -170,6 +170,7 @@ export function SellerCartProvider({ children }: { children: ReactNode }) {
         duplicateCart: duplicateCartFn,
         moveItemToCart,
         duplicateItemToCart,
+        clearCart,
       }}
     >
       {children}
