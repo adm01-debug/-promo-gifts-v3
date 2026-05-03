@@ -53,15 +53,15 @@ export function ProductCardSkeleton({
       {/* Content skeleton */}
       <div className="p-4 space-y-3">
         {/* Category & supplier */}
-        <div className="flex items-center justify-between">
-          <Skeleton className="h-3 w-24" />
-          <Skeleton className="h-5 w-16 rounded-full" />
+        <div className="flex items-center justify-between gap-2">
+          <Skeleton className="h-3 w-16 opacity-50" />
+          <Skeleton className="h-4 sm:h-5 w-14 sm:w-16 rounded-full opacity-60" />
         </div>
         
         {/* Title - two lines */}
-        <div className="space-y-1.5">
-          <Skeleton className="h-5 w-full" />
-          <Skeleton className="h-5 w-3/4" />
+        <div className="space-y-1.5 min-h-[2.25rem] sm:min-h-[2.75rem]">
+          <Skeleton className="h-4 sm:h-5 w-full" />
+          <Skeleton className="h-4 sm:h-5 w-3/4 opacity-60" />
         </div>
         
         {/* Price and stock row */}
