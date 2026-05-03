@@ -56,10 +56,14 @@ describe('calculations.ts edge cases', () => {
   });
 
   describe('calculateDiscountAmount', () => {
-    it('handles negative discount values (as 0)', () => {
-      // Current implementation doesn't clamp discountValue, let's see if we should
-      // If the user didn't specify, we'll test current behavior or propose clamp
-      expect(calculateDiscountAmount(100, 'percent', -10)).toBe(-10);
+    it('clumps negative discount values to 0', () => {
+      expect(calculateDiscountAmount(100, 'percent', -10)).toBe(0);
+      expect(calculateDiscountAmount(100, 'amount', -50)).toBe(0);
+    });
+
+    it('handles null or undefined values as 0', () => {
+      expect(calculateDiscountAmount(100, 'percent', null as any)).toBe(0);
+      expect(calculateDiscountAmount(undefined as any, 'percent', 10)).toBe(0);
     });
 
     it('handles 100% discount', () => {
@@ -70,6 +74,7 @@ describe('calculations.ts edge cases', () => {
   describe('calculateRealDiscountPercent', () => {
     it('prevents division by zero', () => {
       expect(calculateRealDiscountPercent(0, 100, 10)).toBe(0);
+      expect(calculateRealDiscountPercent(null as any, 100, 10)).toBe(0);
     });
 
     it('handles cases where presented subtotal is higher than real (markup)', () => {
@@ -80,6 +85,27 @@ describe('calculations.ts edge cases', () => {
     it('handles high precision rounding (2 decimal places)', () => {
       // (100 - 90.1234) / 100 = 0.098766 -> 9.88%
       expect(calculateRealDiscountPercent(100, 100, 9.8766)).toBe(9.88);
+    });
+
+    it('handles cases where discount exceeds subtotal', () => {
+      // real: 100, presented: 100, discount: 150 -> final: 0. Real discount: 100%
+      expect(calculateRealDiscountPercent(100, 100, 150)).toBe(100);
+    });
+  });
+
+  describe('Markup Boundary Cases', () => {
+    it('handles markup exactly at 50% limit', () => {
+      expect(applyMarkup(100, 50)).toBe(150);
+    });
+
+    it('handles markup above 50% (capped)', () => {
+      expect(applyMarkup(100, 51)).toBe(150);
+      expect(applyMarkup(100, 1000)).toBe(150);
+    });
+
+    it('handles null/undefined markup as 0', () => {
+      expect(applyMarkup(100, null as any)).toBe(100);
+      expect(applyMarkup(100, undefined as any)).toBe(100);
     });
   });
 });
