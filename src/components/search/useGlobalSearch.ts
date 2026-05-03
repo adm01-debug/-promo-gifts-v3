@@ -13,6 +13,7 @@ import { playTtsAudio } from "@/hooks/voice/playTtsAudio";
 import { processVoiceTranscript } from "@/hooks/voice/processTranscript";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useSearch } from "@/hooks/useSearch";
+import { useSearchHistory } from "@/hooks/useSearchHistory";
 import { useVoiceCommandHistory, type VoiceCommandRecord } from "@/hooks/useVoiceCommandHistory";
 import { useContextualSuggestions } from "@/hooks/useContextualSuggestions";
 import type { VoiceAgentAction } from "@/hooks/voice/types";
@@ -71,7 +72,15 @@ export function useGlobalSearch() {
   const [voiceOverlayOpen, setVoiceOverlayOpen] = useState(false);
   const navigate = useNavigate();
   const debouncedQuery = useDebounce(query, 500);
-  const { history, addToHistory, removeFromHistory, quickSuggestions } = useSearch();
+  
+  const { 
+    history: globalHistory, 
+    addToHistory: addGlobalHistoryItem, 
+    removeFromHistory, 
+    clearHistory 
+  } = useSearchHistory("general");
+  
+  const history = globalHistory.map(h => h.label);
 
   const {
     addCommand: addVoiceCommand,
@@ -188,12 +197,11 @@ export function useGlobalSearch() {
       const lowerQuery = query.toLowerCase();
       const suggestions: string[] = [];
       history.forEach(h => { if (h.toLowerCase().startsWith(lowerQuery) && !suggestions.includes(h)) suggestions.push(h); });
-      quickSuggestions.forEach(qs => { if (qs.label.toLowerCase().includes(lowerQuery) && !suggestions.includes(qs.label)) suggestions.push(qs.label); });
       setTypingSuggestions(suggestions.slice(0, 5));
     } else {
       setTypingSuggestions([]);
     }
-  }, [query, history, quickSuggestions]);
+  }, [query, history]);
 
   // ── Keyboard shortcut ──
   useEffect(() => {
@@ -403,6 +411,7 @@ export function useGlobalSearch() {
               subtitle: `${itemCount} ${itemCount === 1 ? "item" : "itens"} • ${t.description || "Template de carrinho"}`,
               type: "cart_template", href: `/carrinho?template=${t.id}`,
             });
+
           });
         } catch { /* silent */ }
       }
@@ -539,19 +548,23 @@ export function useGlobalSearch() {
 
   const handleSelect = useCallback((href: string, saveToHistory = true) => {
     if (saveToHistory && query.trim()) {
-      addToHistory(query.trim());
+      addGlobalHistoryItem({
+        id: `history-${query.trim()}`,
+        label: query.trim(),
+        type: "general"
+      });
       pushRecentSearch(query.trim());
     }
     setOpen(false); setQuery(""); setResults([]); setSearchIntent(null); setTypingSuggestions([]);
     // Support external URLs (art_file fallback) and "_blank" via Cmd/Ctrl+Enter elsewhere
     if (/^https?:\/\//.test(href)) window.open(href, "_blank", "noopener,noreferrer");
     else navigate(href);
-  }, [query, addToHistory, navigate]);
+  }, [query, addGlobalHistoryItem, navigate]);
 
   const handleSuggestionClick = useCallback((suggestion: string) => { setQuery(suggestion); }, []);
 
   const handleRemoveFromHistory = useCallback((e: React.MouseEvent, term: string) => {
-    e.stopPropagation(); removeFromHistory(term);
+    e.stopPropagation(); removeFromHistory(`history-${term}`);
   }, [removeFromHistory]);
 
   const groupedResults = results.reduce((acc, result) => {
@@ -561,13 +574,12 @@ export function useGlobalSearch() {
   }, {} as Record<string, SearchResult[]>);
 
   return {
-    open, setOpen, query, setQuery,
-    results, groupedResults, isSearching, isAIProcessing, searchIntent,
-    popularProducts, typingSuggestions,
-    voiceOverlayOpen, setVoiceOverlayOpen,
-    handleVoiceAction,
-    handleOpenVoiceOverlay, handleCloseVoiceOverlay,
-    handleSelect, handleSuggestionClick, handleRemoveFromHistory,
-    history, quickSuggestions, contextualSuggestions, routeContext,
+    open, setOpen, query, setQuery, results, isSearching, isAIProcessing,
+    searchIntent, popularProducts, typingSuggestions,
+    voiceOverlayOpen, setVoiceOverlayOpen, handleOpenVoiceOverlay, handleCloseVoiceOverlay,
+    handleVoiceAction, performSemanticSearch, handleSelect, groupedResults, contextualSuggestions, routeContext,
+    history, addToHistory: (term: string) => addGlobalHistoryItem({ id: `history-${term}`, label: term, type: "general" }), 
+    removeFromHistory: (term: string) => removeFromHistory(`history-${term}`), 
+    clearHistory, handleSuggestionClick, handleRemoveFromHistory
   };
 }
