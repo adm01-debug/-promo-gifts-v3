@@ -252,6 +252,7 @@ export function ActionHistoryPanel({ cartId }: { cartId: string }) {
     qty: Package,
     move: MoveRight,
     duplicate: Copy,
+    clear: Eraser,
   };
 
   return (
