@@ -103,10 +103,9 @@ export function MainLayout({ children }: MainLayoutProps) {
         </div>
         
         <div className="flex-1 flex flex-col min-h-screen min-w-0 print:min-h-0 isolate">
-          {/* Header global — sem wrapper extra: sticky precisa do container
-              flex-col como parent direto para grudar enquanto a página inteira
-              estiver rolando. `print:hidden` é aplicado no próprio <header>
-              via Suspense fallback abaixo. */}
+          {/* Header global agora é position: fixed → reservar espaço com pt
+              para evitar que o conteúdo fique atrás. Usa --header-h dinâmico
+              propagado pelo próprio Header. */}
           <Suspense fallback={<div style={{ height: 56 }} className="print:hidden" />}>
             <Header 
               onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
@@ -115,13 +114,19 @@ export function MainLayout({ children }: MainLayoutProps) {
             />
           </Suspense>
 
+          {/* Spacer para compensar o Header fixo */}
+          <div
+            aria-hidden="true"
+            className="print:hidden shrink-0"
+            style={{ height: "var(--header-h, 56px)" }}
+          />
+
           {/* Breadcrumb persistente — sticky logo abaixo do Header.
-              Usa --header-h (definido pelo Header) para acompanhar a altura
-              dinâmica (compactado/expandido). Hierarquia: Header z-40 >
-              Breadcrumb z-30 > conteúdo. Oculto na home "/". */}
+              Como o Header agora é fixed, basta sticky em top:0 com a
+              hierarquia z-30 < z-40 do Header. */}
           <div
             className={cn(
-              "sticky top-[var(--header-h,56px)] z-30 print:hidden",
+              "sticky top-0 z-30 print:hidden",
               "bg-background/85 backdrop-blur-md",
               "border-b border-border/40",
               isHome && "hidden",
