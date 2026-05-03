@@ -5,6 +5,7 @@ import { callAiWithTracking, QuotaExceededError } from '../_shared/ai-usage.ts';
 import { z } from '../_shared/zod-validate.ts';
 import { rateLimiters, applyRateLimit } from '../_shared/rate-limiter.ts';
 import { runBotProtection } from '../_shared/bot-protection.ts';
+import { extractAndParseAIJSON, safeJson } from '../_shared/json-parser.ts';
 
 const ClientSchema = z.object({
   name: z.string().trim().min(1).max(255),
@@ -30,45 +31,8 @@ const RecommendationRequestSchema = z.object({
 });
 
 /**
- * Robustly extract & parse JSON from an LLM response.
- * Handles markdown fences, prose around JSON, trailing commas, and minor
- * truncation (auto-closes one missing `]` or `}` at the end).
+ * JSON robustness is now handled by _shared/json-parser.ts
  */
-function extractAndParseJSON(raw: string): unknown {
-  let s = String(raw ?? "").trim();
-
-  // Strip markdown fences
-  s = s.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "").trim();
-
-  // Slice from first { or [ to last matching } or ]
-  const firstObj = s.indexOf("{");
-  const firstArr = s.indexOf("[");
-  const start =
-    firstObj === -1 ? firstArr :
-    firstArr === -1 ? firstObj :
-    Math.min(firstObj, firstArr);
-  if (start === -1) throw new Error("No JSON object/array found in AI response");
-  const isArray = s[start] === "[";
-  const end = isArray ? s.lastIndexOf("]") : s.lastIndexOf("}");
-  s = end > start ? s.slice(start, end + 1) : s.slice(start);
-
-  // Remove trailing commas before } or ]
-  const cleaned = s.replace(/,(\s*[}\]])/g, "$1");
-
-  try {
-    return JSON.parse(cleaned);
-  } catch (e1) {
-    // Last-resort: auto-close one missing bracket if truncated
-    const opens = (cleaned.match(/[{[]/g) || []).length;
-    const closes = (cleaned.match(/[}\]]/g) || []).length;
-    if (opens > closes) {
-      const patched = cleaned + (isArray ? "]" : "}");
-      try { return JSON.parse(patched); } catch { /* fall through */ }
-    }
-    console.error("[ai-recommendations] JSON parse failed. Raw snippet:", cleaned.slice(0, 500));
-    throw e1;
-  }
-}
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
@@ -98,11 +62,9 @@ Deno.serve(async (req) => {
       return new Response(rl.body, { status: rl.status, headers });
     }
 
-    let rawBody: unknown;
-    try {
-      rawBody = await req.json();
-    } catch {
-      return new Response(JSON.stringify({ error: "Invalid request body" }), {
+    const rawBody = await safeJson(req);
+    if (!rawBody) {
+      return new Response(JSON.stringify({ error: "Invalid or empty request body" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -201,7 +163,7 @@ Com base no perfil do cliente, recomende os produtos mais adequados.`;
 
     // Parse JSON from response — robust extraction + sanitization to survive
     // markdown fences, trailing commas, prose around the JSON, and minor truncation.
-    const recommendations = extractAndParseJSON(content);
+    const recommendations = extractAndParseAIJSON(content);
 
     return new Response(JSON.stringify(recommendations), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
