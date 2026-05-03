@@ -55,7 +55,7 @@ export function StockDashboard() {
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'R') {
         e.preventDefault();
         handleRefresh();
-        toast({ title: '🔄 Atualizando estoque...', description: 'Atalho: Ctrl+Shift+R' });
+        toast({ title: '🔄 Atualizando Estoque...', description: 'Atalho: Ctrl+Shift+R' });
       }
     };
     window.addEventListener('keydown', handler);

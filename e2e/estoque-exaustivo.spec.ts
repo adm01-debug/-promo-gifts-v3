@@ -1,12 +1,12 @@
 import { test, expect } from '@playwright/test';
 
 /**
- * Módulo: Dashboard de Estoque
+ * Módulo: Estoque
  * Objetivo: Testes E2E exaustivos cobrindo funcionalidades de monitoramento, 
  * filtros avançados, alertas, integração de estoque e análise de risco.
  */
 
-test.describe('Módulo Dashboard de Estoque - Testes Exaustivos', () => {
+test.describe('Módulo Estoque - Testes Exaustivos', () => {
   test.beforeEach(async ({ page }) => {
     // Navega para a página de estoque
     await page.goto('/estoque');
@@ -231,7 +231,7 @@ test.describe('Módulo Dashboard de Estoque - Testes Exaustivos', () => {
 
   test('Deve testar o atalho de teclado para atualização (Ctrl+Shift+R)', async ({ page }) => {
     await page.keyboard.press('Control+Shift+R');
-    await expect(page.locator('text=/Atualizando estoque/i')).toBeVisible();
+    await expect(page.locator('text=/Atualizando Estoque/i')).toBeVisible();
   });
 
   test('Deve verificar o Painel de Risco do Fornecedor', async ({ page }) => {
