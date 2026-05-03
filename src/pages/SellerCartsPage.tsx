@@ -151,10 +151,25 @@ function SellerCartsContent() {
       {/* Conteúdo */}
       {s.isLoading ? (
         <div className="grid grid-cols-1 xl:grid-cols-[1fr_340px] gap-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[...Array(6)].map((_, i) => <CartItemSkeleton key={i} />)}
+          <div className="space-y-4">
+            <div className="p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border border-border/20 rounded-xl bg-card/40 animate-pulse">
+              <div className="flex items-center gap-3">
+                <Skeleton className="w-10 h-10 rounded-xl opacity-30" />
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-32 opacity-20" />
+                  <Skeleton className="h-3 w-48 opacity-10" />
+                </div>
+              </div>
+              <Skeleton className="h-8 w-32 rounded-lg opacity-20" />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[...Array(6)].map((_, i) => <CartItemSkeleton key={i} />)}
+            </div>
           </div>
-          <div className="space-y-4"><Skeleton className="h-64 w-full rounded-xl" /></div>
+          <div className="space-y-4 animate-pulse">
+            <Skeleton className="h-[400px] w-full rounded-xl opacity-20" />
+            <Skeleton className="h-[200px] w-full rounded-xl opacity-10" />
+          </div>
         </div>
       ) : s.carts.length === 0 ? (
         <EmptyState
