@@ -1,6 +1,9 @@
 import { Badge } from "@/components/ui/badge";
 import type { FilterState } from "@/components/filters/FilterPanel";
-import { CATEGORIES } from "@/data/mockData";
+import { useExternalCategoriesQuery } from "@/hooks/useExternalCategoriesQuery";
+import { useCategoryIcons, getCategoryIcon } from "@/hooks/useCategoryIcons";
+import { toTitleCase } from "@/lib/textUtils";
+import { X } from "lucide-react";
 
 interface CatalogActiveFiltersProps {
   filters: FilterState;
@@ -9,6 +12,9 @@ interface CatalogActiveFiltersProps {
 }
 
 export function CatalogActiveFilters({ filters, setFilters, activeFiltersCount }: CatalogActiveFiltersProps) {
+  const { data: categories = [] } = useExternalCategoriesQuery();
+  const { data: icons = [] } = useCategoryIcons();
+
   if (activeFiltersCount === 0) return null;
 
   return (
@@ -24,20 +30,62 @@ export function CatalogActiveFilters({ filters, setFilters, activeFiltersCount }
           <span className="ml-1">×</span>
         </Badge>
       ))}
+      
+      {filters.colorGroups?.map((group) => (
+        <Badge
+          key={`group-${group}`}
+          variant="secondary"
+          className="cursor-pointer hover:bg-destructive/10"
+          onClick={() => setFilters({ ...filters, colorGroups: filters.colorGroups?.filter((g) => g !== group) })}
+        >
+          🌈 {toTitleCase(group)}
+          <span className="ml-1">×</span>
+        </Badge>
+      ))}
+
+      {filters.colorVariations?.map((variation) => (
+        <Badge
+          key={`var-${variation}`}
+          variant="secondary"
+          className="cursor-pointer hover:bg-destructive/10"
+          onClick={() => setFilters({ ...filters, colorVariations: filters.colorVariations?.filter((v) => v !== variation) })}
+        >
+          🖌️ {toTitleCase(variation.replace(/-/g, ' '))}
+          <span className="ml-1">×</span>
+        </Badge>
+      ))}
+
       {filters.categories.map((catId) => {
-        const cat = CATEGORIES.find((c) => c.id === catId);
-        return cat ? (
+        const cat = categories.find((c) => c.id === catId);
+        if (!cat) return null;
+        
+        const icon = getCategoryIcon(cat.name, icons);
+        return (
           <Badge
             key={catId}
             variant="secondary"
             className="cursor-pointer hover:bg-destructive/10"
             onClick={() => setFilters({ ...filters, categories: filters.categories.filter((c) => c !== catId) })}
           >
-            {cat.icon} {cat.name}
-            <span className="ml-1">×</span>
+            <span className="mr-1">{icon}</span>
+            {toTitleCase(cat.name)}
+            <X className="ml-1 h-3 w-3" />
           </Badge>
-        ) : null;
+        );
       })}
+
+      {filters.suppliers.map((supplierId) => (
+        <Badge
+          key={supplierId}
+          variant="secondary"
+          className="cursor-pointer hover:bg-destructive/10"
+          onClick={() => setFilters({ ...filters, suppliers: filters.suppliers.filter((s) => s !== supplierId) })}
+        >
+          🏭 {supplierId}
+          <span className="ml-1">×</span>
+        </Badge>
+      ))}
+
       {filters.featured && (
         <Badge
           variant="secondary"
