@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSearch, type SearchResult } from "@/hooks/useSearch";
+import { useSearchHistory } from "@/hooks/useSearchHistory";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
 import { GroupedSearchResults } from "./SearchResultGroups";
