@@ -381,6 +381,36 @@ export function useSellerCarts() {
   const totalItems = carts.reduce((sum, c) => sum + c.items.length, 0);
   const canCreateCart = carts.length < 3;
 
+  // Restore multiple items (Undo Clear)
+  const restoreItems = useMutation({
+    mutationFn: async ({ cartId, items }: { cartId: string; items: AddToCartInput[] }) => {
+      if (items.length === 0) return;
+      
+      const itemsToInsert = items.map(item => ({
+        cart_id: cartId,
+        product_id: item.product_id,
+        product_name: item.product_name,
+        product_sku: item.product_sku || null,
+        product_image_url: item.product_image_url || null,
+        product_price: item.product_price,
+        quantity: item.quantity || 1,
+        color_name: item.color_name || null,
+        color_hex: item.color_hex || null,
+      }));
+
+      const { error } = await supabase.from("seller_cart_items").insert(itemsToInsert);
+      if (error) throw error;
+
+      await supabase
+        .from("seller_carts")
+        .update({ updated_at: new Date().toISOString() })
+        .eq("id", cartId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
+    },
+  });
+
   return {
     carts,
     isLoading: cartsQuery.isLoading,
@@ -398,6 +428,7 @@ export function useSellerCarts() {
     duplicateCart,
     moveItemToCart,
     duplicateItemToCart,
+    restoreItems,
     clearCart: async (cartId: string) => {
       const { error } = await supabase
         .from("seller_cart_items")

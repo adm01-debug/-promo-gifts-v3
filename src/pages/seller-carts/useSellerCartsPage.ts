@@ -27,7 +27,7 @@ export function useSellerCartsPage() {
     carts, activeCart, activeCartId, isLoading, totalItems, canCreateCart,
     setActiveCartId, deleteCart, addToActiveCart, removeItem, updateItemQuantity,
     updateItemNotes, updateItemSortOrder, updateCartNotes, updateCartStatus,
-    duplicateCart, moveItemToCart, duplicateItemToCart, clearCart,
+    duplicateCart, moveItemToCart, duplicateItemToCart, clearCart, restoreItems,
   } = useSellerCartContext();
 
   const { templates, saveTemplate, deleteTemplate } = useCartTemplates();
@@ -163,14 +163,17 @@ export function useSellerCartsPage() {
       title: `Carrinho limpo`,
       description: activeCart.company_name,
       onUndo: () => {
-        itemsToRestore.forEach(item => {
-          addToActiveCart({
-            product_id: item.product_id, product_name: item.product_name,
-            product_sku: item.product_sku || undefined, product_image_url: item.product_image_url || undefined,
-            product_price: item.product_price, quantity: item.quantity,
-            color_name: item.color_name || undefined, color_hex: item.color_hex || undefined,
-          });
-        });
+        const addItems = itemsToRestore.map(item => ({
+          product_id: item.product_id,
+          product_name: item.product_name,
+          product_sku: item.product_sku || undefined,
+          product_image_url: item.product_image_url || undefined,
+          product_price: item.product_price,
+          quantity: item.quantity,
+          color_name: item.color_name || undefined,
+          color_hex: item.color_hex || undefined,
+        }));
+        restoreItems(activeCart.id, addItems);
       },
     });
   }, [clearCart, activeCart, addToActiveCart]);

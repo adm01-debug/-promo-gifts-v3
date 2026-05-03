@@ -33,6 +33,7 @@ interface SellerCartContextType {
   moveItemToCart: (itemId: string, targetCartId: string) => void;
   duplicateItemToCart: (itemId: string, targetCartId: string) => void;
   clearCart: (cartId: string) => void;
+  restoreItems: (cartId: string, items: AddToCartInput[]) => void;
 }
 
 const SellerCartContext = createContext<SellerCartContextType | undefined>(undefined);
@@ -56,6 +57,7 @@ export function SellerCartProvider({ children }: { children: ReactNode }) {
     moveItemToCart: moveItemMutation,
     duplicateItemToCart: duplicateItemMutation,
     clearCart: clearCartMutation,
+    restoreItems: restoreItemsMutation,
   } = useSellerCarts();
 
   const [activeCartId, setActiveCartId] = useState<string | null>(null);
@@ -151,6 +153,10 @@ export function SellerCartProvider({ children }: { children: ReactNode }) {
     }
   }, [clearCartMutation]);
 
+  const restoreItems = useCallback((cartId: string, items: AddToCartInput[]) => {
+    restoreItemsMutation.mutate({ cartId, items });
+  }, [restoreItemsMutation]);
+
   return (
     <SellerCartContext.Provider
       value={{
@@ -174,6 +180,7 @@ export function SellerCartProvider({ children }: { children: ReactNode }) {
         moveItemToCart,
         duplicateItemToCart,
         clearCart,
+        restoreItems,
       }}
     >
       {children}
