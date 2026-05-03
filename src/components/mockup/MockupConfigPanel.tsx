@@ -5,7 +5,7 @@
  * Handles: Client, Product, Technique selection + Areas.
  */
 
-import { Loader2, Paintbrush, RefreshCw, Info, ChevronDown } from "lucide-react";
+import { Loader2, Paintbrush, RefreshCw, Info, ChevronDown, FileText } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -18,6 +18,7 @@ import { TechniqueTooltip } from "./TechniqueTooltip";
 import { MockupClientSelector } from "./MockupClientSelector";
 import { MockupProductSelector, type MockupProductSelection } from "./MockupProductSelector";
 import { MultiAreaManager, type PersonalizationArea } from "./MultiAreaManager";
+import { ArtFileUpload, type ArtFileAttachment } from "./ArtFileUpload";
 import { LogoColorAnalyzer } from "./LogoColorAnalyzer";
 import type { DetectedColor } from "@/hooks/useLogoColorAnalysis";
 
@@ -77,6 +78,10 @@ interface MockupConfigPanelProps {
     error: string | null;
     updatePantone: (index: number, pantoneCode: string) => void;
   };
+  /** Art file attachments */
+  artAttachments: ArtFileAttachment[];
+  onArtAttachmentsChange: (attachments: ArtFileAttachment[]) => void;
+  userId?: string;
 }
 
 export function MockupConfigPanel({
@@ -98,6 +103,9 @@ export function MockupConfigPanel({
   onLogoRemove,
   productLocations,
   logoColorAnalysis,
+  artAttachments,
+  onArtAttachmentsChange,
+  userId,
 }: MockupConfigPanelProps) {
   const hasLogo = personalizationAreas.some(a => a.logoPreview);
   
@@ -247,6 +255,20 @@ export function MockupConfigPanel({
                 onLogoUpload={onLogoUpload}
                 onLogoRemove={onLogoRemove}
                 productLocations={productLocations}
+              />
+            </MobileCollapsibleSection>
+
+            {/* Step 5: Art Files */}
+            <MobileCollapsibleSection
+              id="step-art-files"
+              label="Arquivos de Arte (Vetor)"
+              isCompleted={artAttachments.length > 0}
+              summary={artAttachments.length > 0 ? `${artAttachments.length} arquivo(s)` : undefined}
+            >
+              <ArtFileUpload
+                userId={userId || ""}
+                attachments={artAttachments}
+                onAttachmentsChange={onArtAttachmentsChange}
               />
             </MobileCollapsibleSection>
 

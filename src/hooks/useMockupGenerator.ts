@@ -52,6 +52,7 @@ export function useMockupGenerator() {
   // Generation
   const [generatedMockup, setGeneratedMockup] = useState<string | null>(null);
   const [generatedBatchMockups, setGeneratedBatchMockups] = useState<{areaName: string; url: string}[]>([]);
+  const [artAttachments, setArtAttachments] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [generationError, setGenerationError] = useState<string | null>(null);
   const [mockupAnnotations, setMockupAnnotations] = useState<{id: string; x: number; y: number; text: string}[]>([]);
@@ -410,7 +411,7 @@ export function useMockupGenerator() {
   const resetForm = () => {
     setProductSelection(null); setSelectedTechnique(null); setSelectedClient(null);
     setPersonalizationAreas([createDefaultArea()]); setActiveAreaId(null);
-    setGeneratedMockup(null); setGeneratedBatchMockups([]); setGenerationError(null);
+    setGeneratedMockup(null); setGeneratedBatchMockups([]); setArtAttachments([]); setGenerationError(null);
     setMockupAnnotations([]); setBeforeImage(null); setHasUserInteractedPosition(false);
     setTechniqueColorConfig(null); setLastSavedRecordId(null); setLastSavedMockupUrl(null);
     setLastSavedLayoutMode('ai'); positionHistory.clear(); clearDraft();
@@ -454,7 +455,7 @@ export function useMockupGenerator() {
     selectedClient, setSelectedClient,
     personalizationAreas, setPersonalizationAreas, activeAreaId, setActiveAreaId,
     activeArea, updateActiveArea, handleAreaLogoUpload, productLocations,
-    generatedMockup, setGeneratedMockup, generatedBatchMockups, isLoading,
+    generatedMockup, setGeneratedMockup, generatedBatchMockups, artAttachments, setArtAttachments, isLoading,
     generationError, setGenerationError, generateMockup, downloadMockup,
     mockupAnnotations, setMockupAnnotations, beforeImage,
     mockupHistory, isLoadingHistory, deleteDialogOpen, setDeleteDialogOpen,

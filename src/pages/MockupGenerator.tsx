@@ -279,10 +279,13 @@ export default function MockupGenerator() {
                   onAreasChange={mg.setPersonalizationAreas}
                   onActiveAreaChange={mg.setActiveAreaId}
                   onLogoUpload={mg.handleAreaLogoUpload}
-                  onLogoRemove={() => mg.logoColorAnalysis.clearAnalysis()}
-                  productLocations={mg.productLocations}
-                  logoColorAnalysis={mg.logoColorAnalysis}
-                />
+                   onLogoRemove={() => mg.logoColorAnalysis.clearAnalysis()}
+                   productLocations={mg.productLocations}
+                   logoColorAnalysis={mg.logoColorAnalysis}
+                   artAttachments={mg.artAttachments}
+                   onArtAttachmentsChange={mg.setArtAttachments}
+                   userId={user?.id}
+                 />
 
                 <div className="space-y-4 lg:sticky lg:top-24 lg:self-start transition-all duration-300">
                   {mg.selectedProduct && mg.getProductImage() && mg.activeArea ? (

@@ -5,6 +5,10 @@
 import { test as setup } from "@playwright/test";
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 import { loginViaUI } from "../helpers/auth";
 
