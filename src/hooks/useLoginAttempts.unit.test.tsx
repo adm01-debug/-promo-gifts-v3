@@ -5,17 +5,20 @@ import { supabase } from "@/integrations/supabase/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 // Mock Supabase
-vi.mock("@/integrations/supabase/client", () => ({
-  supabase: {
-    from: vi.fn(() => ({
-      select: vi.fn().mockReturnThis(),
-      order: vi.fn().mockReturnThis(),
-      range: vi.fn().mockReturnThis(),
-      ilike: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-    })),
-  },
-}));
+vi.mock("@/integrations/supabase/client", () => {
+  const mockQuery = {
+    select: vi.fn().mockReturnThis(),
+    order: vi.fn().mockReturnThis(),
+    range: vi.fn().mockReturnThis(),
+    ilike: vi.fn().mockReturnThis(),
+    eq: vi.fn().mockReturnThis(),
+  };
+  return {
+    supabase: {
+      from: vi.fn(() => mockQuery),
+    },
+  };
+});
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false } },
