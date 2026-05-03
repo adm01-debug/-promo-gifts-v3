@@ -30,14 +30,14 @@ export function CartHealthChecklist({ cart, cartSubtotal, onFocusNotes, onAddPro
     const hasVariants = cart.items.every(i => !i.color_name || i.color_name.length > 0);
     const isReady = cart.status === "pronto_orcamento";
 
-    return [
-      { id: "company", label: "Empresa vinculada", ok: !!cart.company_id },
-      { id: "items", label: "≥ 3 produtos no carrinho", ok: hasMinItems, onFix: onAddProducts },
-      { id: "value", label: "Valor mínimo (R$ 500)", ok: hasMinValue, onFix: onAddProducts },
-      { id: "notes", label: "Notas de negociação", ok: hasNotes, onFix: onFocusNotes },
-      { id: "variants", label: "Variantes selecionadas", ok: hasVariants },
-      { id: "ready", label: "Status pronto p/ orçamento", ok: isReady },
-    ];
+      return [
+        { id: "company", label: "Empresa vinculada", ok: !!cart.company_id },
+        { id: "items", label: "≥ 3 SKUs no carrinho", ok: hasMinItems, onFix: onAddProducts },
+        { id: "value", label: "Valor mínimo (R$ 500,00)", ok: hasMinValue, onFix: onAddProducts },
+        { id: "notes", label: "Notas de negociação (detalhadas)", ok: hasNotes, onFix: onFocusNotes },
+        { id: "variants", label: "Variantes/Cores selecionadas", ok: hasVariants },
+        { id: "ready", label: "Status: Pronto p/ Orçamento", ok: isReady },
+      ];
   }, [cart, cartSubtotal, onFocusNotes, onAddProducts]);
 
   const okCount = checks.filter(c => c.ok).length;
