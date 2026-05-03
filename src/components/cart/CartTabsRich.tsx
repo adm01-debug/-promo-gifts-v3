@@ -85,10 +85,10 @@ export function CartTabsRich({ carts, activeCartId, canCreateCart, onSelect, onN
               data-testid="cart-tab-count"
               data-count={cart.items.length}
               className={cn(
-                "ml-1 inline-flex items-center justify-center min-w-[22px] h-5.5 px-2 rounded-full text-[10px] font-bold tabular-nums transition-all duration-300",
+                "ml-1 inline-flex items-center justify-center min-w-[24px] h-6 px-2 rounded-full text-[10px] font-black tabular-nums transition-all duration-500",
                 hasItems
-                  ? (isActive ? "bg-primary text-primary-foreground scale-110 shadow-sm" : "bg-primary/15 text-primary")
-                  : "bg-muted text-muted-foreground opacity-60"
+                  ? (isActive ? "bg-primary text-primary-foreground scale-110 shadow-lg" : "bg-primary/15 text-primary")
+                  : "bg-muted text-muted-foreground opacity-50"
               )}>
               {cart.items.length}
             </span>
