@@ -137,42 +137,46 @@ export const SortableCartItem = memo(function SortableCartItem({
           </div>
 
           {/* Actions menu */}
-          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="absolute top-2.5 right-2.5 opacity-0 group-hover:opacity-100 transition-all duration-300 z-20">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button data-testid="cart-item-menu-trigger" className="h-7 w-7 flex items-center justify-center rounded-lg bg-card/80 backdrop-blur-sm text-muted-foreground hover:text-foreground" aria-label="Mais opções">
-                  <MoreHorizontal className="h-3.5 w-3.5" />
+                <button 
+                  data-testid="cart-item-menu-trigger" 
+                  className="h-8 w-8 flex items-center justify-center rounded-xl bg-card/90 backdrop-blur-md text-muted-foreground hover:text-primary transition-all shadow-sm border border-border/50" 
+                  aria-label="Mais opções"
+                >
+                  <MoreHorizontal className="h-4 w-4" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-52">
-                <DropdownMenuItem data-testid="cart-item-action-view" onClick={() => onNavigate(`/produto/${item.product_id}`)}>
-                  <Eye className="h-3.5 w-3.5 mr-2" /> Ver Produto
+              <DropdownMenuContent align="end" className="w-56 p-1.5 rounded-xl">
+                <DropdownMenuItem data-testid="cart-item-action-view" className="rounded-lg py-2" onClick={() => onNavigate(`/produto/${item.product_id}`)}>
+                  <Eye className="h-4 w-4 mr-2.5 opacity-70" /> Ver Produto
                 </DropdownMenuItem>
-                <DropdownMenuItem data-testid="cart-item-action-simulate" onClick={() => onNavigate(`/simulador?product=${item.product_id}`)}>
-                  <Calculator className="h-3.5 w-3.5 mr-2" /> Simular Personalização
+                <DropdownMenuItem data-testid="cart-item-action-simulate" className="rounded-lg py-2" onClick={() => onNavigate(`/simulador?product=${item.product_id}`)}>
+                  <Calculator className="h-4 w-4 mr-2.5 opacity-70" /> Simular Personalização
                 </DropdownMenuItem>
                 {otherCarts.length > 0 && (
                   <>
-                    <DropdownMenuSeparator />
+                    <DropdownMenuSeparator className="my-1.5" />
                     <DropdownMenuSub>
-                      <DropdownMenuSubTrigger data-testid="cart-item-action-move">
-                        <MoveRight className="h-3.5 w-3.5 mr-2" /> Mover para...
+                      <DropdownMenuSubTrigger data-testid="cart-item-action-move" className="rounded-lg py-2">
+                        <MoveRight className="h-4 w-4 mr-2.5 opacity-70" /> Mover para...
                       </DropdownMenuSubTrigger>
-                      <DropdownMenuSubContent>
+                      <DropdownMenuSubContent className="p-1.5 rounded-xl min-w-[180px]">
                         {otherCarts.map(c => (
-                          <DropdownMenuItem key={c.id} data-testid="cart-item-move-target" data-target-cart-id={c.id} onClick={() => onMoveToCart(item.id, c.id)}>
+                          <DropdownMenuItem key={c.id} data-testid="cart-item-move-target" data-target-cart-id={c.id} className="rounded-lg py-2" onClick={() => onMoveToCart(item.id, c.id)}>
                             {c.company_name}
                           </DropdownMenuItem>
                         ))}
                       </DropdownMenuSubContent>
                     </DropdownMenuSub>
                     <DropdownMenuSub>
-                      <DropdownMenuSubTrigger data-testid="cart-item-action-duplicate">
-                        <CopyPlus className="h-3.5 w-3.5 mr-2" /> Duplicar para...
+                      <DropdownMenuSubTrigger data-testid="cart-item-action-duplicate" className="rounded-lg py-2">
+                        <CopyPlus className="h-4 w-4 mr-2.5 opacity-70" /> Duplicar para...
                       </DropdownMenuSubTrigger>
-                      <DropdownMenuSubContent>
+                      <DropdownMenuSubContent className="p-1.5 rounded-xl min-w-[180px]">
                         {otherCarts.map(c => (
-                          <DropdownMenuItem key={c.id} data-testid="cart-item-duplicate-target" data-target-cart-id={c.id} onClick={() => onDuplicateToCart(item.id, c.id)}>
+                          <DropdownMenuItem key={c.id} data-testid="cart-item-duplicate-target" data-target-cart-id={c.id} className="rounded-lg py-2" onClick={() => onDuplicateToCart(item.id, c.id)}>
                             {c.company_name}
                           </DropdownMenuItem>
                         ))}
@@ -180,13 +184,13 @@ export const SortableCartItem = memo(function SortableCartItem({
                     </DropdownMenuSub>
                   </>
                 )}
-                <DropdownMenuSeparator />
+                <DropdownMenuSeparator className="my-1.5" />
                 <DropdownMenuItem
                   data-testid="cart-item-action-remove"
-                  className="text-destructive focus:text-destructive"
+                  className="text-destructive focus:text-destructive focus:bg-destructive/5 rounded-lg py-2"
                   onClick={() => onRemove(item.id, item.product_name)}
                 >
-                  <Trash2 className="h-3.5 w-3.5 mr-2" /> Remover
+                  <Trash2 className="h-4 w-4 mr-2.5 opacity-70" /> Remover Item
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
