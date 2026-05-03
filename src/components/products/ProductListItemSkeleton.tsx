@@ -36,9 +36,9 @@ export function ProductListItemSkeleton() {
 
       {/* Actions */}
       <div className="shrink-0 flex items-center gap-0.5">
-        <Skeleton className="h-8 w-8 rounded-full" />
-        <Skeleton className="h-8 w-8 rounded-full" />
-        <Skeleton className="h-8 w-8 rounded-full hidden sm:block" />
+        <Skeleton className="h-7 w-7 rounded-full opacity-40" />
+        <Skeleton className="h-7 w-7 rounded-full opacity-40" />
+        <Skeleton className="h-7 w-7 rounded-full hidden sm:block opacity-40" />
       </div>
     </div>
   );
