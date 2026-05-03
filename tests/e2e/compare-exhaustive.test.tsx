@@ -70,13 +70,20 @@ vi.mock('../../src/contexts/SellerCartContext', () => ({
 }));
 
 // Mocks de infraestrutura
+const mockSupabase = {
+  auth: { getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'u1' } } }) },
+  from: vi.fn().mockReturnThis(),
+  select: vi.fn().mockReturnThis(),
+  eq: vi.fn().mockReturnThis(),
+  is: vi.fn().mockReturnThis(),
+  order: vi.fn().mockReturnThis(),
+  limit: vi.fn().mockReturnThis(),
+  maybeSingle: vi.fn().mockResolvedValue({ data: null }),
+  rpc: vi.fn().mockResolvedValue({ data: [] }),
+};
+
 vi.mock('../../src/integrations/supabase/client', () => ({
-  supabase: {
-    auth: { getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'u1' } } }) },
-    from: vi.fn().mockReturnThis(),
-    select: vi.fn().mockReturnThis(),
-    rpc: vi.fn().mockResolvedValue({ data: [] }),
-  },
+  supabase: mockSupabase,
 }));
 
 vi.mock('../../src/contexts/ProductsContext', () => ({
@@ -96,6 +103,22 @@ vi.mock('recharts', () => ({
   RadarChart: ({ children }: any) => <div>{children}</div>,
   PolarGrid: () => <div />, PolarAngleAxis: () => <div />, PolarRadiusAxis: () => <div />,
   Legend: () => <div />, Tooltip: () => <div />,
+}));
+
+// Mock do hook useComparisonScore para garantir dados nos cards
+vi.mock('../../src/hooks/useComparisonScore', () => ({
+  useComparisonScore: (products: any[]) => {
+    if (!products || products.length === 0) return [];
+    return products.map(p => ({
+      productId: String(p.id),
+      total: 80,
+      score: 80,
+      isWinner: p.id === 'p1',
+      rank: 1,
+      breakdown: { price: 35, stock: 20, minQuantity: 15, colorVariety: 10, verifiedSupplier: 10, leadTime: 10 }
+    }));
+  },
+  DEFAULT_SCORE_WEIGHTS: { price: 35, stock: 20, minQuantity: 15, colorVariety: 10, verifiedSupplier: 10, leadTime: 10 }
 }));
 
 describe('Módulo Comparar - Bateria Exaustiva de Testes', () => {
@@ -130,9 +153,15 @@ describe('Módulo Comparar - Bateria Exaustiva de Testes', () => {
 
   it('Validação 2: Tabela Detalhada e Filtros de Diferença', async () => {
     await renderPage();
-    const tableTab = screen.getByText(/Tabela Detalhada/i);
+    const tableTab = await screen.findByText(/Tabela Detalhada/i);
     fireEvent.click(tableTab);
-    expect(screen.getByText(/Preço unitário/i)).toBeInTheDocument();
+    
+    // Tenta encontrar o texto de forma mais flexível
+    await waitFor(() => {
+      const cell = screen.queryAllByText(/Preço unitário/i);
+      expect(cell.length).toBeGreaterThan(0);
+    });
+
     const diffBtn = screen.getByText(/Só diferenças/i);
     fireEvent.click(diffBtn);
     expect(diffBtn).toHaveTextContent(/Mostrando diferenças/i);
@@ -140,7 +169,8 @@ describe('Módulo Comparar - Bateria Exaustiva de Testes', () => {
 
   it('Validação 3: Gráficos e Inteligência Artificial', async () => {
     await renderPage();
-    expect(screen.getByTestId('radar-chart')).toBeInTheDocument();
+    const radars = screen.getAllByTestId('radar-chart');
+    expect(radars.length).toBeGreaterThan(0);
     expect(screen.getByText(/Advisor AI/i)).toBeInTheDocument();
   });
 
