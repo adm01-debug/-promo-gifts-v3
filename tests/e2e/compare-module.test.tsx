@@ -98,16 +98,20 @@ vi.mock('../../src/contexts/ProductsContext', () => ({
   ProductsProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
-// Mock do hook useComparisonScore
+// Mock do hook useComparisonScore (Retornando um ARRAY diretamente como esperado pelos componentes)
 vi.mock('../../src/hooks/useComparisonScore', () => ({
   useComparisonScore: (products: any[]) => {
-    if (!products || products.length === 0) return { items: [] };
-    return {
-      items: products.map(p => ({ productId: p.id, score: 80 })),
-      total: 100
-    };
+    if (!products || products.length === 0) return [];
+    return products.map(p => ({
+      productId: String(p.id),
+      total: 80,
+      score: 80, // para o ComparisonPresentationLauncher
+      isWinner: p.id === 'prod-1',
+      rank: 1,
+      breakdown: { price: 35, stock: 20, minQuantity: 15, colorVariety: 10, verifiedSupplier: 10, leadTime: 10 }
+    }));
   },
-  DEFAULT_SCORE_WEIGHTS: {}
+  DEFAULT_SCORE_WEIGHTS: { price: 35, stock: 20, minQuantity: 15, colorVariety: 10, verifiedSupplier: 10, leadTime: 10 }
 }));
 
 // Mock da biblioteca de Recharts
@@ -193,7 +197,17 @@ describe('E2E Comparar — Módulo de Comparação', () => {
 
     renderPage();
 
-    const tableTab = screen.getByText(/Tabela Detalhada/i);
+    // No modo duelo (default para 2 produtos), precisamos desativar o modo duelo ou clicar nas tabs se estiverem visíveis
+    // Como o default para 2 produtos é Duel View, vamos testar as tabs se mudarmos para 3 produtos
+    useComparisonStore.setState({
+      compareItems: [{ productId: 'prod-1' }, { productId: 'prod-2' }, { productId: 'prod-3' }],
+      compareCount: 3,
+      compareIds: ['prod-1', 'prod-2', 'prod-3'],
+    });
+
+    renderPage();
+
+    const tableTab = await screen.findByText(/Tabela Detalhada/i);
     fireEvent.click(tableTab);
 
     await waitFor(() => {
@@ -204,14 +218,14 @@ describe('E2E Comparar — Módulo de Comparação', () => {
 
   it('valida o filtro "Só diferenças"', async () => {
     useComparisonStore.setState({
-      compareItems: [{ productId: 'prod-1' }, { productId: 'prod-2' }],
-      compareCount: 2,
-      compareIds: ['prod-1', 'prod-2'],
+      compareItems: [{ productId: 'prod-1' }, { productId: 'prod-2' }, { productId: 'prod-3' }],
+      compareCount: 3,
+      compareIds: ['prod-1', 'prod-2', 'prod-3'],
     });
 
     renderPage();
 
-    const diffBtn = screen.getByText(/Só diferenças/i);
+    const diffBtn = await screen.findByText(/Só diferenças/i);
     fireEvent.click(diffBtn);
 
     await waitFor(() => {
@@ -230,7 +244,7 @@ describe('E2E Comparar — Módulo de Comparação', () => {
 
     renderPage();
 
-    const clearBtn = screen.getByText(/Limpar/i);
+    const clearBtn = await screen.findByText(/Limpar/i);
     fireEvent.click(clearBtn);
 
     expect(clearSpy).toHaveBeenCalled();
@@ -245,7 +259,7 @@ describe('E2E Comparar — Módulo de Comparação', () => {
 
     renderPage();
 
-    const backBtn = screen.getByLabelText(/Voltar/i);
+    const backBtn = await screen.findByLabelText(/Voltar/i);
     expect(backBtn).toBeInTheDocument();
     
     backBtn.focus();
