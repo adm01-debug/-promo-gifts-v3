@@ -95,7 +95,11 @@ export const SmartSearchInput = forwardRef<HTMLDivElement, SmartSearchInputProps
       case "category": navigate(`/?categoria=${result.id}`); break;
       case "supplier": navigate(`/?fornecedor=${result.id}`); break;
       case "history":
+        // addToHistory already called above, but handleSelectResult logic
+        // is re-adding it. addToHistory handles duplicates.
         setQuery(result.label);
+        // Ensure it's in history even if it was just picked from history
+        addToHistory(result.label);
         navigate(`/?search=${encodeURIComponent(result.label)}`);
         break;
     }
