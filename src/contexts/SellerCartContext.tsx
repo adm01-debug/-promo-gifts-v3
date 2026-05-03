@@ -141,13 +141,15 @@ export function SellerCartProvider({ children }: { children: ReactNode }) {
     duplicateItemMutation.mutate({ itemId, targetCartId });
   }, [duplicateItemMutation]);
 
-  const clearCart = useCallback((cartId: string) => {
-    const cart = carts.find(c => c.id === cartId);
-    if (!cart) return;
-    cart.items.forEach(item => removeItemMutation.mutate(item.id));
-    setActiveCartId(cartId);
-    toast.success("Carrinho limpo");
-  }, [carts, removeItemMutation]);
+  const clearCart = useCallback(async (cartId: string) => {
+    try {
+      await clearCartMutation(cartId);
+      setActiveCartId(cartId);
+      toast.success("Carrinho limpo");
+    } catch {
+      toast.error("Erro ao limpar carrinho");
+    }
+  }, [clearCartMutation]);
 
   return (
     <SellerCartContext.Provider
