@@ -68,6 +68,7 @@ export function GeneratingOverlay({
       role="alert"
       aria-live="polite"
       aria-busy="true"
+      data-testid="generating-overlay"
     >
       <div className="relative max-w-md w-full mx-4 p-8 rounded-2xl bg-card border shadow-2xl animate-scale-in">
         {/* Decorative background elements */}
