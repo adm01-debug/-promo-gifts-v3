@@ -149,22 +149,26 @@ export function QuoteBuilderSummaryColumn({
           <div className="flex-1 min-h-0 px-4 overflow-y-auto max-h-[50vh]">
             <div className="space-y-3 pr-1">
               {items.length === 0 ? (
-                <div className="p-4 rounded-lg border border-dashed border-muted-foreground/30 text-center">
-                  <Package className="h-5 w-5 mx-auto mb-2 text-muted-foreground/40" />
-                  <p className="text-xs text-muted-foreground">Nenhum item adicionado</p>
+                <div className="flex flex-col items-center justify-center p-8 rounded-2xl border-2 border-dashed border-muted-foreground/20 bg-muted/5 group hover:border-primary/30 transition-all duration-300">
+                  <div className="p-3 rounded-full bg-muted/30 mb-3 group-hover:bg-primary/10 transition-colors">
+                    <Package className="h-6 w-6 text-muted-foreground/40 group-hover:text-primary/50" />
+                  </div>
+                  <p className="text-sm font-medium text-muted-foreground group-hover:text-primary/70">Nenhum item adicionado</p>
+                  <p className="text-[11px] text-muted-foreground/60 mt-1 max-w-[150px] text-center">Busque produtos na coluna ao lado para começar</p>
                 </div>
               ) : visibleItems.length === 0 ? (
-                <div className="p-4 rounded-lg border border-dashed border-warning/40 bg-warning/5 text-center">
-                  <CheckCircle2 className="h-5 w-5 mx-auto mb-2 text-warning" />
-                  <p className="text-xs text-warning font-medium">Todos os preços estão confirmados</p>
+                <div className="flex flex-col items-center justify-center p-6 rounded-2xl border-2 border-dashed border-warning/30 bg-warning/[0.03]">
+                  <CheckCircle2 className="h-6 w-6 text-warning mb-2" />
+                  <p className="text-sm font-medium text-warning">Preços Confirmados</p>
                   <button
                     type="button"
                     onClick={() => setShowOnlyStale(false)}
-                    className="text-[11px] text-muted-foreground hover:text-foreground underline mt-1"
+                    className="text-xs text-muted-foreground hover:text-foreground underline mt-2 transition-colors"
                   >
-                    Mostrar todos os itens
+                    Ver todos os itens
                   </button>
                 </div>
+
               ) : visibleItems.map(({ it: item, idx }) => {
                 const persTotal = calculateItemPersonalizationTotal(item);
                 const isActive = activeItemIndex === idx;

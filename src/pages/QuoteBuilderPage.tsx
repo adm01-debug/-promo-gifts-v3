@@ -118,7 +118,7 @@ export default function QuoteBuilderPage() {
         </div>
 
         {/* Stepper */}
-        <QuoteBuilderStepper completedSteps={s.completedSteps} />
+        <QuoteBuilderStepper completedSteps={s.completedSteps} activeStep={s.activeStep} />
 
         {/* Template notifications */}
         {s.templateApplied && (

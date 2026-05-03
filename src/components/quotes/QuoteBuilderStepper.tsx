@@ -80,7 +80,7 @@ export function QuoteBuilderStepper({
                   <div
                     className={cn(
                       "h-full rounded-full transition-colors",
-                      isCompleted ? "bg-primary" : "bg-border"
+                      isCompleted || (index < STEPS.findIndex(s => s.id === activeStep)) ? "bg-primary" : "bg-border"
                     )}
                   />
                 </div>

@@ -22,6 +22,12 @@ import type { ExternalVariantStock } from "@/hooks/useExternalVariantStock";
 import type { QuoteBuilderStep } from "@/components/quotes/QuoteBuilderStepper";
 import { createProductFuseOptions, dedupeById, rankProductSearchResults } from "@/utils/product-search";
 import { getPriceFreshness } from "@/utils/price-freshness";
+import * as QuoteCalc from "@/logic/quotes/calculations";
+import { useQuoteItems } from "@/hooks/useQuoteItems";
+import { useAutoSaveQuote } from "@/hooks/useAutoSaveQuote";
+
+
+
 
 interface Product {
   id: string;
@@ -109,7 +115,12 @@ export function useQuoteBuilderState() {
   const [negotiationMarkup, setNegotiationMarkup] = useState(0);
   const [notes, setNotes] = useState("");
   const [internalNotes, setInternalNotes] = useState("");
-  const [items, setItems] = useState<QuoteItem[]>([]);
+  const {
+    items, setItems, activeItemIndex, setActiveItemIndex, expandedItems, setExpandedItems,
+    toggleExpanded, addProductWithColor: addProductWithColorInternal, updateItemQuantity,
+    updateItemPrice, removeItem, handlePersonalizationsChange, confirmItemPrice
+  } = useQuoteItems();
+
   const [quoteNumber, setQuoteNumber] = useState("");
   const [currentStatus, setCurrentStatus] = useState("draft");
 
@@ -125,19 +136,47 @@ export function useQuoteBuilderState() {
   const [selectedProductForColor, setSelectedProductForColor] = useState<Product | null>(null);
   const [templateApplied, setTemplateApplied] = useState<string | null>(null);
   const [loadingQuote, setLoadingQuote] = useState(isEditMode);
-  const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
-  const [activeItemIndex, setActiveItemIndex] = useState<number | null>(null);
+  // Removido estado duplicado de items e activeItemIndex (gerenciados pelo useQuoteItems)
+
   const debouncedProductSearch = useDebounce(productSearch, 400);
 
   // ── Stepper ──
+  const activeStep = useMemo((): QuoteBuilderStep => {
+    if (!clientId) return "client";
+    if (items.length === 0) return "items";
+    if (!paymentTerms || !deliveryTime || !shippingType) return "conditions";
+    return "review";
+  }, [clientId, items.length, paymentTerms, deliveryTime, shippingType]);
+
   const completedSteps = useMemo((): QuoteBuilderStep[] => {
     const steps: QuoteBuilderStep[] = [];
     if (clientId) steps.push("client");
     if (items.length > 0) steps.push("items");
     if (paymentTerms && deliveryTime && shippingType) steps.push("conditions");
-    if (clientId && items.length > 0 && paymentTerms && deliveryTime && shippingType) steps.push("review");
+    // No review, we only mark as completed if saved
     return steps;
   }, [clientId, items.length, paymentTerms, deliveryTime, shippingType]);
+  // ── AutoSave ──
+  const { clearAutoSave } = useAutoSaveQuote({
+    enabled: !!clientId && items.length > 0 && !isEditMode,
+    data: {
+      clientId, contactId, contactInfo, companyInfo,
+      items, discountType, discountValue, negotiationMarkup,
+      paymentTerms, deliveryTime, shippingType, shippingCost,
+      notes, internalNotes, validUntil
+    },
+    onRestore: (saved) => {
+      // Exemplo: Restaurar campos se o usuário desejar ou automaticamente
+      // Para evitar sobrescrever um carregamento de rascunho real (via URL),
+      // só restauramos se não estiver em modo edição.
+      if (!isEditMode) {
+        if (saved.clientId) setClientId(saved.clientId);
+        if (saved.contactId) setContactId(saved.contactId);
+        if (saved.items) setItems(saved.items);
+        // ... outros campos conforme necessário
+      }
+    }
+  });
 
   // ── Route guard ──
   const hasUnsavedData = useMemo(() => {
@@ -328,104 +367,65 @@ export function useQuoteBuilderState() {
   }, []);
 
   const calculateItemPersonalizationTotal = useCallback((item: QuoteItem) => {
-    return (item.personalizations || []).reduce((sum, p) => sum + (p.total_cost || 0), 0);
+    return QuoteCalc.calculateItemPersonalizationTotal(item);
   }, []);
 
   const calculateItemTotal = useCallback((item: QuoteItem) => {
-    return item.quantity * item.unit_price + calculateItemPersonalizationTotal(item);
-  }, [calculateItemPersonalizationTotal]);
+    return QuoteCalc.calculateItemTotal({
+      quantity: item.quantity,
+      unitPrice: item.unit_price,
+      personalizations: item.personalizations
+    });
+  }, []);
 
   // ── Subtotal real (sem markup) e apresentado (com markup) ──
-  const realSubtotal = useMemo(() => items.reduce((sum, item) => sum + calculateItemTotal(item), 0), [items, calculateItemTotal]);
-  const markup = useMemo(() => Math.min(50, Math.max(0, negotiationMarkup || 0)), [negotiationMarkup]);
-  const subtotal = useMemo(
-    () => markup > 0 ? Math.round(realSubtotal * (1 + markup / 100) * 100) / 100 : realSubtotal,
-    [realSubtotal, markup]
+  const realSubtotal = useMemo(() => 
+    QuoteCalc.calculateSubtotal(items.map(item => ({
+      quantity: item.quantity,
+      unitPrice: item.unit_price,
+      personalizations: item.personalizations
+    }))), 
+    [items]
   );
-  const discountAmount = useMemo(() => discountType === "percent" ? subtotal * (discountValue / 100) : discountValue, [subtotal, discountType, discountValue]);
+
+  const subtotal = useMemo(
+    () => QuoteCalc.applyMarkup(realSubtotal, negotiationMarkup),
+    [realSubtotal, negotiationMarkup]
+  );
+
+  const discountAmount = useMemo(
+    () => QuoteCalc.calculateDiscountAmount(subtotal, discountType, discountValue),
+    [subtotal, discountType, discountValue]
+  );
+
   const total = useMemo(() => Math.max(0, subtotal - discountAmount), [subtotal, discountAmount]);
 
   // ── Desconto REAL (sobre subtotal real) — usado para alçada ──
-  const realDiscountPercent = useMemo(() => {
-    if (realSubtotal <= 0) return 0;
-    const finalBeforeShipping = Math.max(0, subtotal - discountAmount);
-    return Math.round(((realSubtotal - finalBeforeShipping) / realSubtotal) * 10000) / 100;
-  }, [realSubtotal, subtotal, discountAmount]);
-
-  // ── Item actions ──
-  const toggleExpanded = useCallback((index: number) => {
-    setExpandedItems(prev => { const n = new Set(prev); n.has(index) ? n.delete(index) : n.add(index); return n; });
-  }, []);
-
-  const handlePersonalizationsChange = useCallback((index: number, personalizations: QuoteItemPersonalization[]) => {
-    setItems(prev => prev.map((item, idx) => idx === index ? { ...item, personalizations } : item));
-  }, []);
-
+  const realDiscountPercent = useMemo(
+    () => QuoteCalc.calculateRealDiscountPercent(realSubtotal, subtotal, discountAmount),
+    [realSubtotal, subtotal, discountAmount]
+  );
   const handleProductClick = useCallback((product: Product) => {
     setSelectedProductForColor(product);
   }, []);
 
+  // ── Item actions ──
   const addProductWithColor = useCallback((product: Product, variant: ExternalVariantStock | null) => {
-    const colorName = variant?.color_name || undefined;
-    const colorHex = variant?.color_hex || undefined;
-    const sizeCode = variant?.size_code || undefined;
-    const imageUrl = variant?.selected_thumbnail || (variant?.images?.length ? variant.images[0] : undefined) || (Array.isArray(product.images) && product.images.length > 0 ? product.images[0] : undefined);
-    const existingIndex = items.findIndex(i => i.product_id === product.id && i.color_name === colorName && i.size_code === sizeCode);
-    if (existingIndex >= 0) {
-      setItems(prev => prev.map((item, idx) => idx === existingIndex ? { ...item, quantity: item.quantity + 1 } : item));
-      setActiveItemIndex(existingIndex);
-    } else {
-      setItems(prev => {
-        const newItems = [...prev, {
-          product_id: product.id, product_name: product.name, product_sku: product.sku,
-          product_image_url: imageUrl, quantity: 1, unit_price: product.price,
-          color_name: colorName, color_hex: colorHex, size_code: sizeCode,
-          bitrix_product_id: variant?.bitrix_product_id ?? null,
-          price_updated_at: product.priceUpdatedAt ?? null,
-          price_freshness_threshold_days: product.priceFreshnessThresholdDays ?? null,
-          personalizations: [],
-        }];
-        setActiveItemIndex(newItems.length - 1);
-        return newItems;
-      });
-    }
-    setSelectedProductForColor(null); setProductSearchOpen(false); setProductSearch("");
-  }, [items]);
-
-  const updateItemQuantity = useCallback((index: number, quantity: number) => {
-    if (quantity < 1) return;
-    setItems(prev => prev.map((item, idx) => idx === index ? { ...item, quantity } : item));
-  }, []);
-
-  const updateItemPrice = useCallback((index: number, price: number) => {
-    setItems(prev => prev.map((item, idx) => idx === index ? { ...item, unit_price: price } : item));
-  }, []);
-
-  const removeItem = useCallback((index: number) => {
-    setItems(prev => prev.filter((_, idx) => idx !== index));
-  }, []);
-
-  // ── Confirmação de preço com fornecedor (suprime badge "stale") ──
-  const confirmItemPrice = useCallback((index: number) => {
-    const ts = new Date().toISOString();
-    setItems(prev => prev.map((item, idx) => idx === index ? { ...item, price_confirmed_at: ts } : item));
-  }, []);
+    addProductWithColorInternal(product, variant);
+    setSelectedProductForColor(null); 
+    setProductSearchOpen(false); 
+    setProductSearch("");
+  }, [addProductWithColorInternal]);
 
   const confirmAllStalePrices = useCallback(() => {
     const ts = new Date().toISOString();
     setItems(prev => prev.map(item => {
       if (item.price_confirmed_at) return item;
-      // Apenas itens cujo preço esteja em estado de alerta (aging/stale) e ainda não confirmado
-      const days = item.price_updated_at
-        ? Math.max(0, Math.floor((Date.now() - new Date(item.price_updated_at).getTime()) / (1000 * 60 * 60 * 24)))
-        : null;
-      const threshold = item.price_freshness_threshold_days && item.price_freshness_threshold_days > 0
-        ? item.price_freshness_threshold_days
-        : 60;
-      const shouldWarn = days !== null && days >= threshold * 0.5; // aging começa em 50% do threshold
-      return shouldWarn ? { ...item, price_confirmed_at: ts } : item;
+      const f = getPriceFreshness(item.price_updated_at, item.price_freshness_threshold_days);
+      return f.shouldWarn ? { ...item, price_confirmed_at: ts } : item;
     }));
-  }, []);
+  }, [setItems]);
+
 
   // ── Template ──
   const applyTemplate = useCallback((template: QuoteTemplate) => {
@@ -524,7 +524,7 @@ export function useQuoteBuilderState() {
       client_email: contactInfo?.email || undefined, client_phone: contactInfo?.phone || undefined,
       status: effectiveStatus, discount_percent: discountType === "percent" ? discountValue : 0,
       discount_amount: discountType === "amount" ? discountValue : 0,
-      negotiation_markup_percent: markup,
+      negotiation_markup_percent: Math.min(50, Math.max(0, negotiationMarkup || 0)),
       notes: notes || undefined, internal_notes: internalNotes || undefined,
       valid_until: validUntil || undefined, payment_terms: paymentTerms || undefined,
       delivery_time: deliveryTime || undefined, shipping_type: shippingType || undefined,
@@ -539,8 +539,12 @@ export function useQuoteBuilderState() {
       await requestApproval(result.id, realDiscountPercent, maxDiscountPercent, sellerNotes);
     }
 
-    if (result) navigate(`/orcamentos/${result.id}`);
-  }, [isDraftValid, isFormValid, validationErrors, clientId, contactInfo, companyInfo, discountType, discountValue, markup, realDiscountPercent, notes, internalNotes, validUntil, paymentTerms, deliveryTime, shippingType, shippingCost, isEditMode, quoteId, items, navigate, updateQuote, createQuote, maxDiscountPercent, requestApproval]);
+    if (result) {
+      clearAutoSave();
+      navigate(`/orcamentos/${result.id}`);
+    }
+
+  }, [isDraftValid, isFormValid, validationErrors, clientId, contactInfo, companyInfo, discountType, discountValue, negotiationMarkup, realDiscountPercent, notes, internalNotes, validUntil, paymentTerms, deliveryTime, shippingType, shippingCost, isEditMode, quoteId, items, navigate, updateQuote, createQuote, maxDiscountPercent, requestApproval, clearAutoSave]);
 
   const defaultTemplate = useMemo(() => templates.find(t => t.is_default), [templates]);
 
@@ -565,7 +569,7 @@ export function useQuoteBuilderState() {
     templateApplied, setTemplateApplied,
     expandedItems, setExpandedItems, activeItemIndex, setActiveItemIndex,
     // Computed
-    completedSteps, filteredProducts, subtotal, realSubtotal, discountAmount, total, realDiscountPercent,
+    completedSteps, activeStep, filteredProducts, subtotal, realSubtotal, discountAmount, total, realDiscountPercent,
     validationErrors, isFormValid, isDraftValid,
     quotesLoading, templates, defaultTemplate,
     // Discount limits
