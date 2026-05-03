@@ -144,6 +144,7 @@ function SellerCartsContent() {
           canCreateCart={s.canCreateCart}
           onSelect={s.setActiveCartId}
           onNew={() => s.setShowNewCart(true)}
+          isLoading={s.isLoading}
         />
       )}
 
