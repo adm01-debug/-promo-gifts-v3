@@ -94,7 +94,7 @@ export const ProductCardActions = memo(function ProductCardActions({
           onClick={(e) => { e.stopPropagation(); e.preventDefault(); markBusy(); onOpenVariantPicker('share'); }} />
 
         {/* Quote */}
-        <ActionButton icon={FileText} label="Orçamento" className={btnClass}
+        <ActionButton icon={FileText} label="Orçamento" className={cn(btnClass, "bg-success hover:bg-success/90 text-success-foreground border-success/20 shadow-success/20")}
           onClick={(e) => { e.stopPropagation(); markBusy(); onOpenVariantPicker('quote'); }} />
 
         {/* Add to Cart */}
