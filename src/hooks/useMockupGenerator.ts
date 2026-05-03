@@ -249,7 +249,7 @@ export function useMockupGenerator() {
 
   // ─── Data fetching ──────────────────────────────────────────────────
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const { data: techniquesRes, error: techniquesErr } = await invokeWithRetry({
         table: "tabela_preco_gravacao_oficial", operation: "select",
@@ -273,7 +273,7 @@ export function useMockupGenerator() {
       console.error("Error fetching data:", error);
       toast.error("Erro ao carregar dados. Tente novamente.");
     } finally { setIsLoadingData(false); }
-  };
+  }, []);
 
   const fetchHistory = useCallback(async () => {
     setIsLoadingHistory(true);
