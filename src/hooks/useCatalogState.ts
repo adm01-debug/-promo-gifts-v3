@@ -152,6 +152,7 @@ export function useCatalogState() {
   const { data: realStats } = useCatalogRealStats();
 
   const isLoading = isLoadingProducts || isLoadingMaterialFilter || isLoadingCategoryFilter;
+  const isBackgroundFetching = isFetchingNextPage;
   const isInitialCatalogLoad = (isLoadingProducts || isFetchingProducts) && realProducts.length === 0;
 
   // Sync search with URL
