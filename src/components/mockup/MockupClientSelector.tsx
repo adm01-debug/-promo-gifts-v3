@@ -51,8 +51,11 @@ export function MockupClientSelector({ selectedClient, onClientSelect }: MockupC
     hasNextPage, 
     isFetchingNextPage,
     isError,
+    error,
     refetch
   } = useCrmInfiniteCompanySelector();
+
+  const errorMessage = error instanceof Error ? error.message : null;
 
   const allCompanies = useMemo(() => {
     return data?.pages.flatMap(page => page.records) || [];
