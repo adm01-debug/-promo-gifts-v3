@@ -539,7 +539,11 @@ export function useQuoteBuilderState() {
       await requestApproval(result.id, realDiscountPercent, maxDiscountPercent, sellerNotes);
     }
 
-    if (result) navigate(`/orcamentos/${result.id}`);
+    if (result) {
+      clearAutoSave();
+      navigate(`/orcamentos/${result.id}`);
+    }
+
   }, [isDraftValid, isFormValid, validationErrors, clientId, contactInfo, companyInfo, discountType, discountValue, negotiationMarkup, realDiscountPercent, notes, internalNotes, validUntil, paymentTerms, deliveryTime, shippingType, shippingCost, isEditMode, quoteId, items, navigate, updateQuote, createQuote, maxDiscountPercent, requestApproval]);
 
   const defaultTemplate = useMemo(() => templates.find(t => t.is_default), [templates]);
