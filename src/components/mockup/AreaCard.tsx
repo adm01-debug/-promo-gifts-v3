@@ -203,4 +203,4 @@ export const AreaCard = memo(({
       )}
     </div>
   );
-}
+});
