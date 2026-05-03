@@ -6,6 +6,7 @@ import { callAiWithTracking, QuotaExceededError } from '../_shared/ai-usage.ts';
 import { rateLimiters, applyRateLimit } from '../_shared/rate-limiter.ts';
 import { runBotProtection } from '../_shared/bot-protection.ts';
 import { resolveCredential } from '../_shared/credentials.ts';
+import { extractAndParseAIJSON, safeJson } from '../_shared/json-parser.ts';
 
 // ============================================
 // SCHEMAS
@@ -180,9 +181,7 @@ Seja GENEROSO nos sinônimos — quanto mais variações, melhor a busca.`;
     const content = data.choices?.[0]?.message?.content?.trim();
     if (!content) return defaultResult;
 
-    // Clean potential markdown wrapping
-    const cleaned = content.replace(/```json\s*/gi, "").replace(/```\s*/gi, "").trim();
-    const parsed = JSON.parse(cleaned);
+    const parsed = extractAndParseAIJSON(content) as any;
 
     return {
       searchTerms: Array.isArray(parsed.searchTerms) ? parsed.searchTerms.filter((t: any) => typeof t === "string") : [],
@@ -406,8 +405,11 @@ async function semanticProductSearch(
     ...expansion.useCases,
   ];
 
-  // Deduplicate and limit
-  const uniqueTerms = [...new Set([...allTerms, ...fallbackTerms].map(t => t.toLowerCase()))].slice(0, 15);
+  // Deduplicate, limit and SANITIZE (remove PostgREST special chars: , . ( ) )
+  const uniqueTerms = [...new Set([...allTerms, ...fallbackTerms]
+    .map(t => t.toLowerCase().replace(/[(),.]/g, " ").trim()))]
+    .filter(t => t.length >= 3)
+    .slice(0, 15);
 
   if (uniqueTerms.length === 0) {
     return { products: [], searchMethod: "none" };
@@ -539,7 +541,13 @@ Deno.serve(async (req) => {
 
     console.log("Authenticated user:", userId);
 
-    const rawBody = await req.json();
+    const rawBody = await safeJson(req);
+    if (!rawBody) {
+      return new Response(JSON.stringify({ error: "Invalid or empty request body" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const parsed = ExpertChatBodySchema.safeParse(rawBody);
     if (!parsed.success) {
       console.error("Validation errors:", JSON.stringify(parsed.error.flatten()));

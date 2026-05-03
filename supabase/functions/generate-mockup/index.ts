@@ -4,6 +4,7 @@ import { authenticateRequest, authErrorResponse } from '../_shared/auth.ts';
 import { z } from "npm:zod@3.23.8";
 import { callAiWithTracking, QuotaExceededError } from '../_shared/ai-usage.ts';
 import { runBotProtection } from '../_shared/bot-protection.ts';
+import { safeJson } from '../_shared/json-parser.ts';
 
 const MockupBodySchema = z.object({
   productImageUrl: z.string().url().max(2000),
@@ -47,7 +48,12 @@ Deno.serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const rawBody = await req.json();
+    const rawBody = await safeJson(req);
+    if (!rawBody) {
+      return new Response(JSON.stringify({ error: "Invalid or empty request body" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     const parsed = MockupBodySchema.safeParse(rawBody);
     if (!parsed.success) {
       return new Response(
