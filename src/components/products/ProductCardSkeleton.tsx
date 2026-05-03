@@ -65,14 +65,14 @@ export function ProductCardSkeleton({
         </div>
         
         {/* Price and stock row */}
-        <div className="flex items-end justify-between pt-1">
-          <div className="space-y-1">
-            <Skeleton className="h-3 w-16" />
-            <Skeleton className="h-6 w-24" />
+        <div className="flex items-end justify-between pt-1 gap-2">
+          <div className="space-y-1.5 flex-1">
+            <Skeleton className="h-3 w-12 opacity-50" />
+            <Skeleton className="h-6 w-24 opacity-80" />
           </div>
-          <div className="flex flex-col items-end gap-1">
-            <Skeleton className="h-5 w-20 rounded-full" />
-            <Skeleton className="h-3 w-12" />
+          <div className="flex flex-col items-end gap-1.5 shrink-0">
+            <Skeleton className="h-5 w-20 rounded-full opacity-60" />
+            <Skeleton className="h-3 w-10 opacity-40" />
           </div>
         </div>
 
