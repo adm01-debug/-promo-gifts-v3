@@ -230,13 +230,17 @@ export const SortableCartItem = memo(function SortableCartItem({
             </h4>
           </div>
 
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between bg-muted/20 p-2 rounded-lg border border-border/10">
             <PriceLabel
               label="Unitário"
               value={item.product_price}
               testId="cart-item-unit-price"
               isPrimary
+              className="flex-row items-baseline gap-1.5 space-y-0"
             />
+            {item.quantity > 50 && (
+               <Badge variant="outline" className="text-[9px] h-4 px-1 bg-success/5 text-success border-success/20">Atacado</Badge>
+            )}
           </div>
 
           {/* Quantity stepper */}
