@@ -145,7 +145,7 @@ test.describe('Módulo Estoque - Testes Exaustivos', () => {
     await firstRow.click();
     const colorName = await page.locator('table tbody tr').nth(1).locator('.text-sm').first().innerText();
     
-    const searchInput = page.getByPlaceholder(/Buscar no Estoque (Nome, SKU ou Cor)... /i);
+    const searchInput = page.getByPlaceholder(/Buscar no Estoque \(Nome, SKU ou Cor\)... /i);
     
     // Teste Nome
     await searchInput.fill(productName);
