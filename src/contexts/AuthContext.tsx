@@ -389,6 +389,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const log = createClientLogger('auth.signOut');
     log.info('start');
     try {
+      // Security: Registrar auditoria de logout antes de limpar a sessão
+      if (user) {
+        await supabase.rpc('log_user_logout').catch(() => {});
+      }
+      
       await supabase.auth.signOut();
       setUser(null);
       setSession(null);
