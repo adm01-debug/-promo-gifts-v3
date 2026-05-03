@@ -99,7 +99,9 @@ export function useCrmInfiniteCompanySelector() {
   return useInfiniteQuery({
     queryKey: ["crm-companies-infinite"],
     queryFn: async ({ pageParam = 0 }) => {
+      const startedAt = performance.now();
       console.log(`[CRM-DB] useCrmInfiniteCompanySelector: Carregando offset=${pageParam}...`);
+      
       try {
         const result = await invokeCrmDb<CrmCompany[]>({
           table: "companies",
@@ -112,7 +114,8 @@ export function useCrmInfiniteCompanySelector() {
         });
 
         const records = result.data || [];
-        console.log(`[CRM-DB] useCrmInfiniteCompanySelector: OK. Recebidos ${records.length} registros.`);
+        const duration = Math.round(performance.now() - startedAt);
+        console.log(`[CRM-DB] useCrmInfiniteCompanySelector: OK. Recebidos ${records.length} registros em ${duration}ms.`);
 
         return {
           records: records.map((c) => ({
@@ -127,16 +130,32 @@ export function useCrmInfiniteCompanySelector() {
           nextOffset: records.length === 100 ? pageParam + 100 : undefined,
         };
       } catch (err) {
+        const duration = Math.round(performance.now() - startedAt);
         const msg = err instanceof Error ? err.message : String(err);
-        console.error("[CRM-DB] useCrmInfiniteCompanySelector: FALHA:", { message: msg, error: err });
-        toast.error(`Erro ao carregar empresas do CRM: ${msg}`);
+        console.error("[CRM-DB] useCrmInfiniteCompanySelector: FALHA:", { 
+          message: msg, 
+          durationMs: duration,
+          error: err 
+        });
         throw err;
       }
     },
     initialPageParam: 0,
     getNextPageParam: (lastPage) => lastPage.nextOffset,
     staleTime: 5 * 60 * 1000,
-    retry: 1,
+    retry: (failureCount, error) => {
+      // Retry automático com backoff apenas para erros que parecem temporários
+      const msg = error instanceof Error ? error.message.toLowerCase() : "";
+      const isRetryable = msg.includes("timeout") || 
+                        msg.includes("fetch") || 
+                        msg.includes("502") || 
+                        msg.includes("503") || 
+                        msg.includes("504") ||
+                        msg.includes("network");
+      
+      return isRetryable && failureCount < 3;
+    },
+    retryDelay: (attemptIndex) => Math.min(1000 * Math.pow(2, attemptIndex), 10000),
   });
 }
 
