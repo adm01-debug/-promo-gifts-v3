@@ -216,11 +216,16 @@ export const SortableCartItem = memo(function SortableCartItem({
 
         {/* Product info */}
         <div className="p-3.5 space-y-2.5">
-          <div className="flex flex-col gap-1">
-            {item.product_sku && (
-              <span data-testid="cart-item-sku" className="text-[10px] text-muted-foreground font-mono bg-muted/50 w-fit px-1.5 py-0.5 rounded-sm">{item.product_sku}</span>
-            )}
-            <h4 data-testid="cart-item-name" className="text-sm font-semibold leading-tight line-clamp-2 min-h-[2.5rem] group-hover:text-primary transition-colors">
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center justify-between">
+              {item.product_sku && (
+                <span data-testid="cart-item-sku" className="text-[10px] text-muted-foreground font-mono bg-muted/50 w-fit px-1.5 py-0.5 rounded-sm">{item.product_sku}</span>
+              )}
+              {isLowStock && !isOutOfStock && (
+                <span className="text-[9px] font-bold text-warning uppercase tracking-tight">Estoque Crítico</span>
+              )}
+            </div>
+            <h4 data-testid="cart-item-name" className="text-sm font-semibold leading-tight line-clamp-2 min-h-[2.5rem] group-hover:text-primary transition-colors cursor-pointer" onClick={() => onNavigate(`/produto/${item.product_id}`)}>
               {item.product_name}
             </h4>
           </div>
