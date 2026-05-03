@@ -7,6 +7,40 @@ import { useComparisonStore } from '../../src/stores/useComparisonStore';
 import { ProductsProvider } from '../../src/contexts/ProductsContext';
 import { TooltipProvider } from '../../src/components/ui/tooltip';
 
+// Mock do contexto de Auth
+vi.mock('../../src/contexts/AuthContext', () => ({
+  useAuth: () => ({
+    user: { id: 'user-123' },
+    session: { access_token: 'fake-token' },
+    profile: { id: 'prof-123', full_name: 'Test User' },
+    isLoading: false,
+    isAdmin: false,
+    role: 'agente',
+    isAuthenticated: true,
+  }),
+  AuthProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}));
+
+// Mock do contexto de Onboarding
+vi.mock('../../src/contexts/OnboardingContext', () => ({
+  useOnboarding: () => ({
+    isTourOpen: false,
+    startTour: vi.fn(),
+    completeTour: vi.fn(),
+  }),
+  OnboardingProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}));
+
+// Mock do contexto de Carrinho do Vendedor
+vi.mock('../../src/contexts/SellerCartContext', () => ({
+  useSellerCart: () => ({
+    items: [],
+    addItem: vi.fn(),
+    removeItem: vi.fn(),
+  }),
+  SellerCartProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}));
+
 // Mock do Supabase
 vi.mock('../../src/integrations/supabase/client', () => ({
   supabase: {
@@ -14,15 +48,7 @@ vi.mock('../../src/integrations/supabase/client', () => ({
       getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'user-123' } } }),
     },
     from: vi.fn().mockReturnThis(),
-    select: vi.fn().mockReturnThis(),
-    eq: vi.fn().mockReturnThis(),
-    is: vi.fn().mockReturnThis(),
-    order: vi.fn().mockReturnThis(),
-    limit: vi.fn().mockReturnThis(),
-    maybeSingle: vi.fn().mockResolvedValue({ data: null }),
-    rpc: vi.fn().mockResolvedValue({ data: [] }),
-  },
-}));
+... keep existing code
 
 // Mock do Store
 const mockProducts = [
