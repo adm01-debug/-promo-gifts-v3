@@ -203,12 +203,13 @@ export function MockupClientSelector({ selectedClient, onClientSelect }: MockupC
                       size="sm" 
                       onClick={(e) => {
                         e.stopPropagation();
+                        // Refetch preserva o estado atual da query (incluindo searchQuery que está fora da queryKey)
                         refetch();
                       }}
                       className="mt-1 h-8 gap-2 border-destructive/20 hover:bg-destructive/5 hover:text-destructive transition-colors"
                     >
-                      <RefreshCw className="h-3.5 w-3.5" />
-                      Tentar novamente
+                      <RefreshCw className={cn("h-3.5 w-3.5", isLoading && "animate-spin")} />
+                      {isLoading ? "Tentando..." : "Tentar novamente"}
                     </Button>
                   </div>
                 ) : filteredCompanies.length === 0 ? (
