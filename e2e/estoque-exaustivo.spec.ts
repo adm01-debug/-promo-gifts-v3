@@ -90,6 +90,9 @@ test.describe('Módulo Estoque - Testes Exaustivos', () => {
         exportButton.click(),
       ]);
       
+      // Valida Toast de Exportação
+      await expect(page.locator('text=/Exportação concluída/i')).toBeVisible();
+      
       const path = await download.path();
       const fs = require('fs');
       const content = fs.readFileSync(path, 'utf8');
