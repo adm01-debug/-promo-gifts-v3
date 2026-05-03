@@ -35,16 +35,16 @@ export function CartEmptyStateSmart({
     .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())[0];
 
   return (
-    <div className="space-y-4 animate-in fade-in zoom-in duration-500">
+    <div className="space-y-4 animate-in fade-in zoom-in duration-500 max-w-4xl mx-auto">
       <div className="text-center pt-8 pb-4">
-        <div className="relative w-16 h-16 mx-auto mb-4">
-          <div className="absolute inset-0 bg-primary/20 rounded-2xl blur-xl animate-pulse" />
-          <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/20">
-            <Sparkles className="h-7 w-7 text-primary animate-bounce" />
+        <div className="relative w-20 h-20 mx-auto mb-5">
+          <div className="absolute inset-0 bg-primary/20 rounded-[2rem] blur-2xl animate-pulse" />
+          <div className="relative w-20 h-20 rounded-[2rem] bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/20 shadow-inner">
+            <Sparkles className="h-9 w-9 text-primary animate-bounce-slow" />
           </div>
         </div>
-        <h3 className="font-display text-2xl font-bold mb-1 tracking-tight">O carrinho está aguardando você</h3>
-        <p className="text-sm text-muted-foreground">Selecione um ponto de partida para fechar este negócio</p>
+        <h3 className="font-display text-2xl font-bold mb-2 tracking-tight text-foreground/90">O carrinho está aguardando você</h3>
+        <p className="text-sm text-muted-foreground max-w-md mx-auto">Vincule uma empresa e adicione produtos para gerar orçamentos profissionais em segundos.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
