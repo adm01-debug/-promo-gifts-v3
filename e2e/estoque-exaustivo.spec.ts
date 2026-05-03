@@ -169,7 +169,7 @@ test.describe('Módulo Estoque - Testes Exaustivos', () => {
   });
 
   test('Deve persistir filtros, busca e ordenação ao navegar entre páginas', async ({ page }) => {
-    const searchInput = page.getByPlaceholder(/Buscar no Estoque (Nome, SKU ou Cor)... /i);
+    const searchInput = page.getByPlaceholder(/Buscar no Estoque \(Nome, SKU ou Cor\)... /i);
     const nextButton = page.getByRole('button', { name: /Próximo/i });
     
     // 1. Aplica Filtro de Status (Estoque Baixo)
