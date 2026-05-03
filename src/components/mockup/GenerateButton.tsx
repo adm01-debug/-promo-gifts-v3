@@ -45,6 +45,7 @@ export function GenerateButton({
         size="lg"
         onClick={onClick}
         disabled={disabled || isGenerating}
+        data-testid="mockup-generate-button"
         className={cn(
           "relative w-full font-semibold",
           isReady && "bg-gradient-to-r from-primary to-primary/80 shadow-lg"

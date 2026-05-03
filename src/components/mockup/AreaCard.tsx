@@ -52,6 +52,7 @@ export function AreaCard({
       onClick={onSelect}
       role="button"
       tabIndex={0}
+      data-testid={`mockup-area-card-${area.id}`}
       aria-pressed={isActive}
       onKeyDown={(e) => e.key === "Enter" && onSelect()}
     >
@@ -166,6 +167,7 @@ export function AreaCard({
               onClick={(e) => e.stopPropagation()}
               className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
               id={`logo-upload-${area.id}`}
+              data-testid={`mockup-logo-upload-input-${area.id}`}
               aria-label={`Upload logo para ${area.name}`}
             />
             <Button

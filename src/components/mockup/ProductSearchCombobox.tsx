@@ -96,6 +96,7 @@ export function ProductSearchCombobox({
           role="combobox"
           aria-expanded={open}
           disabled={disabled}
+          data-testid="mockup-product-combobox-trigger"
           className={cn(
             "w-full justify-between h-auto min-h-[42px] py-2 px-3 font-normal",
             !selectedProduct && "text-muted-foreground",
@@ -150,6 +151,7 @@ export function ProductSearchCombobox({
       <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start" sideOffset={-42}>
         <Command shouldFilter={false}>
           <CommandInput
+            data-testid="mockup-product-search-input"
             placeholder="Buscar por nome ou SKU..."
             value={search}
             onValueChange={setSearch}
@@ -186,6 +188,7 @@ export function ProductSearchCombobox({
                 <CommandItem
                   key={product.id}
                   value={product.id}
+                  data-testid={`mockup-product-option-${product.id}`}
                   onSelect={() => handleSelect(product)}
                   className="flex items-center gap-3 py-2"
                 >
