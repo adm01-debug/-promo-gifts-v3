@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -12,6 +12,9 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 import { PageSEO } from "@/components/seo/PageSEO";
+import { useDebounce } from "@/hooks/useDebounce";
+import { MockupHistorySkeleton } from "@/components/mockup/MockupSkeleton";
+import { DiagnosticProfiler } from "@/components/dev/DiagnosticProfiler";
 
 interface GeneratedMockup {
   id: string;
@@ -32,10 +35,11 @@ export default function MockupHistoryPage() {
   const { user } = useAuth();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 400);
   const pageSize = 20;
 
   const { data, isLoading, refetch } = useQuery({
-    queryKey: ["mockup-history", page, search],
+    queryKey: ["mockup-history", page, debouncedSearch],
     queryFn: async () => {
       let query = supabase
         .from("generated_mockups")
@@ -44,8 +48,8 @@ export default function MockupHistoryPage() {
         .order("created_at", { ascending: false })
         .range((page - 1) * pageSize, page * pageSize - 1);
 
-      if (search) {
-        query = query.or(`product_name.ilike.%${search}%,client_name.ilike.%${search}%,product_sku.ilike.%${search}%`);
+      if (debouncedSearch) {
+        query = query.or(`product_name.ilike.%${debouncedSearch}%,client_name.ilike.%${debouncedSearch}%,product_sku.ilike.%${debouncedSearch}%`);
       }
 
       const { data, error, count } = await query;
@@ -53,7 +57,14 @@ export default function MockupHistoryPage() {
       return { mockups: data as GeneratedMockup[], totalCount: count || 0 };
     },
     enabled: !!user,
+    staleTime: 1000 * 60 * 5, // 5 minutos
   });
+
+  // Memoize search field change to avoid re-renders on every keystroke
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(e.target.value);
+    setPage(1);
+  }, []);
 
   const handleDelete = async (id: string) => {
     const { error } = await supabase.from("generated_mockups").delete().eq("id", id);
@@ -68,6 +79,7 @@ export default function MockupHistoryPage() {
   const totalPages = Math.ceil((data?.totalCount || 0) / pageSize);
 
   return (
+    <DiagnosticProfiler id="MockupHistory">
     <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
       <PageSEO title="Histórico de Mockups" description="Visualize todos os mockups gerados anteriormente." path="/mockup-historico" noIndex />
       <div>
@@ -86,7 +98,7 @@ export default function MockupHistoryPage() {
             <Input
               placeholder="Buscar por produto, SKU ou cliente..."
               value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              onChange={handleSearchChange}
               className="pl-9"
             />
           </div>
@@ -125,8 +137,8 @@ export default function MockupHistoryPage() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
-                    Carregando...
+                  <TableCell colSpan={8} className="py-8">
+                    <MockupHistorySkeleton count={5} />
                   </TableCell>
                 </TableRow>
               ) : !data?.mockups.length ? (
@@ -225,5 +237,6 @@ export default function MockupHistoryPage() {
         </CardContent>
       </Card>
     </div>
+    </DiagnosticProfiler>
   );
 }
