@@ -42,15 +42,9 @@ describe("useLoginAttempts Hook", () => {
     const mockData = [{ id: "1", email: "test@example.com", success: true }];
     const fromSpy = vi.mocked(supabase.from);
     
-    // Setup the complex chain of mocks
-    const mockQuery = {
-      select: vi.fn().mockReturnThis(),
-      order: vi.fn().mockReturnThis(),
-      range: vi.fn().mockResolvedValue({ data: mockData, count: 1, error: null }),
-      ilike: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-    };
-    fromSpy.mockReturnValue(mockQuery as any);
+    // Get the mock query object from the spy's return value
+    const mockQuery = fromSpy() as any;
+    mockQuery.range.mockResolvedValue({ data: mockData, count: 1, error: null });
 
     const { result } = renderHook(() => useLoginAttempts({ emailFilter: "test" }), { wrapper });
 
