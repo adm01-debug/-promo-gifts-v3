@@ -111,6 +111,16 @@ export function CatalogActiveFilters({ filters, setFilters, activeFiltersCount }
           <span className="ml-1">×</span>
         </Badge>
       )}
+      {filters.inStock && (
+        <Badge
+          variant="secondary"
+          className="cursor-pointer hover:bg-destructive/10 border-success/30 text-success-foreground"
+          onClick={() => setFilters({ ...filters, inStock: false })}
+        >
+          ✅ Em estoque
+          <span className="ml-1">×</span>
+        </Badge>
+      )}
     </div>
   );
 }

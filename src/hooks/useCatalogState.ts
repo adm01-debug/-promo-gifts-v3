@@ -28,7 +28,7 @@ import { useSupplierSalesRanking } from "@/hooks/useSupplierSalesRanking";
 import { useCatalogFiltering } from "./useCatalogFiltering";
 
 export type ViewMode = "grid" | "list" | "table";
-export type SortOption = "name" | "price-asc" | "price-desc" | "stock" | "newest" | "color-match" | "best-seller-supplier" | "best-seller-promo";
+export type SortOption = "relevance" | "name" | "price-asc" | "price-desc" | "stock" | "newest" | "color-match" | "best-seller-supplier" | "best-seller-promo";
 
 const VIEW_MODE_KEY = "catalog-view-mode";
 
@@ -66,7 +66,7 @@ export function useCatalogState() {
     setGridColumnsState(cols);
     try { localStorage.setItem(GRID_COLUMNS_KEY, String(cols)); } catch {}
   }, []);
-  const [sortBy, setSortBy] = useState<SortOption>("name");
+  const [sortBy, setSortBy] = useState<SortOption>("relevance");
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedCount, setSelectedCount] = useState(0);
   const [activeProductId, setActiveProductId] = useState<string | null>(null);
@@ -108,6 +108,7 @@ export function useCatalogState() {
     isFetchingNextPage,
     hasNextPage,
     fetchNextPage,
+    refetch: refetchCatalog,
   } = useProductsCatalog(debouncedServerSearch ? { search: debouncedServerSearch } : undefined);
 
   const realProducts = useMemo(() => {
@@ -419,6 +420,7 @@ export function useCatalogState() {
     viewMode, setViewMode,
     gridColumns, setGridColumns,
     sortBy, setSortBy,
+    refetchCatalog,
     selectionMode, setSelectionMode,
     selectedCount, setSelectedCount,
     toggleSelectionMode,
