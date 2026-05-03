@@ -27,7 +27,7 @@ export function useSellerCartsPage() {
     carts, activeCart, activeCartId, isLoading, totalItems, canCreateCart,
     setActiveCartId, deleteCart, addToActiveCart, removeItem, updateItemQuantity,
     updateItemNotes, updateItemSortOrder, updateCartNotes, updateCartStatus,
-    duplicateCart, moveItemToCart, duplicateItemToCart,
+    duplicateCart, moveItemToCart, duplicateItemToCart, clearCart,
   } = useSellerCartContext();
 
   const { templates, saveTemplate, deleteTemplate } = useCartTemplates();
