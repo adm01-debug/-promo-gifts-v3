@@ -3,7 +3,7 @@
  * Refatorado: Lightbox extraído para MockupLightbox.tsx
  */
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useDeferredValue, memo } from "react";
 import { cn } from "@/lib/utils";
 import { LayoutPopover } from "@/components/products/LayoutPopover";
 import { getDefaultColumns, type ColumnCount } from "@/components/products/ColumnSelector";
@@ -69,6 +69,7 @@ export function MockupHistoryPanel({
 }: MockupHistoryPanelProps) {
   const [filterClient, setFilterClient] = useState("all");
   const [filterProduct, setFilterProduct] = useState("");
+  const deferredFilterProduct = useDeferredValue(filterProduct);
   const [filterTechnique, setFilterTechnique] = useState("all");
   const [filterDateRange, setFilterDateRange] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
@@ -78,8 +79,8 @@ export function MockupHistoryPanel({
   const [gridColumns, setGridColumns] = useState<ColumnCount>(() => getDefaultColumns());
   const [lightboxMockup, setLightboxMockup] = useState<GeneratedMockup | null>(null);
 
-  const handleSetViewMode = (mode: "grid" | "list") => { setViewMode(mode); setCurrentPage(1); };
-  const toggleCompareSelection = (id: string) => {
+  const handleSetViewMode = useCallback((mode: "grid" | "list") => { setViewMode(mode); setCurrentPage(1); }, []);
+  const toggleCompareSelection = useCallback((id: string) => {
     setSelectedForCompare(prev => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -109,8 +110,8 @@ export function MockupHistoryPanel({
       if (filterClient !== "all" && filterClient !== "none") {
         if (mockup.client_id !== filterClient && mockup.client_name !== filterClient) return false;
       }
-      if (filterProduct) {
-        const q = filterProduct.toLowerCase();
+      if (deferredFilterProduct) {
+        const q = deferredFilterProduct.toLowerCase();
         if (!mockup.product_name.toLowerCase().includes(q) && !mockup.product_sku?.toLowerCase().includes(q)) return false;
       }
       if (filterTechnique !== "all") {
@@ -280,11 +281,11 @@ export function MockupHistoryPanel({
 // Sub-components (inlined — small enough)
 // ============================================
 
-function MockupGridCard({ mockup, isCompareSelected, onToggleCompare, onOpenLightbox, onLoadFromHistory, onDownload, onDelete }: {
+const MockupGridCard = memo(({ mockup, isCompareSelected, onToggleCompare, onOpenLightbox, onLoadFromHistory, onDownload, onDelete }: {
   mockup: GeneratedMockup; isCompareSelected: boolean;
   onToggleCompare: (id: string) => void; onOpenLightbox: (m: GeneratedMockup) => void;
   onLoadFromHistory: (m: GeneratedMockup) => void; onDownload: (url: string) => void; onDelete: (id: string) => void;
-}) {
+}) => {
   return (
     <div className={cn("group relative border border-border/30 rounded-xl overflow-hidden hover:ring-2 hover:ring-primary/30 hover:shadow-lg transition-all duration-300 bg-card",
       isCompareSelected && "ring-2 ring-primary shadow-lg")}>
@@ -331,13 +332,13 @@ function MockupGridCard({ mockup, isCompareSelected, onToggleCompare, onOpenLigh
       </div>
     </div>
   );
-}
+});
 
-function MockupListRow({ mockup, isCompareSelected, onToggleCompare, onLoadFromHistory, onDownload, onDelete }: {
+const MockupListRow = memo(({ mockup, isCompareSelected, onToggleCompare, onLoadFromHistory, onDownload, onDelete }: {
   mockup: GeneratedMockup; isCompareSelected: boolean;
   onToggleCompare: (id: string) => void; onLoadFromHistory: (m: GeneratedMockup) => void;
   onDownload: (url: string) => void; onDelete: (id: string) => void;
-}) {
+}) => {
   return (
     <div className={cn("group flex items-center gap-4 p-3 border border-border/30 rounded-lg hover:ring-2 hover:ring-primary/30 hover:shadow-md transition-all duration-200 bg-card",
       isCompareSelected && "ring-2 ring-primary shadow-lg")}>
@@ -375,4 +376,4 @@ function MockupListRow({ mockup, isCompareSelected, onToggleCompare, onLoadFromH
       </div>
     </div>
   );
-}
+});

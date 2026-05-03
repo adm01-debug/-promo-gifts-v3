@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Trash2, MapPin, Upload, RefreshCw, X } from "lucide-react";
@@ -17,7 +18,7 @@ interface AreaCardProps {
   onRemove: () => void;
 }
 
-export function AreaCard({
+export const AreaCard = memo(({
   area,
   index,
   isActive,
@@ -28,7 +29,7 @@ export function AreaCard({
   onLogoUpload,
   onLogoRemove,
   onRemove,
-}: AreaCardProps) {
+}: AreaCardProps) => {
   
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -202,4 +203,4 @@ export function AreaCard({
       )}
     </div>
   );
-}
+});

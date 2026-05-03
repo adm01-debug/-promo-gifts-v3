@@ -249,7 +249,7 @@ export function useMockupGenerator() {
 
   // ─── Data fetching ──────────────────────────────────────────────────
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const { data: techniquesRes, error: techniquesErr } = await invokeWithRetry({
         table: "tabela_preco_gravacao_oficial", operation: "select",
@@ -273,7 +273,7 @@ export function useMockupGenerator() {
       console.error("Error fetching data:", error);
       toast.error("Erro ao carregar dados. Tente novamente.");
     } finally { setIsLoadingData(false); }
-  };
+  }, []);
 
   const fetchHistory = useCallback(async () => {
     setIsLoadingHistory(true);
@@ -285,25 +285,40 @@ export function useMockupGenerator() {
   }, [user?.id]);
 
   // ─── Handlers ───────────────────────────────────────────────────────
+  
+  const historyPushTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const updateActiveArea = useCallback((updates: Partial<PersonalizationArea>) => {
     if (!activeAreaId) return;
+    
     setPersonalizationAreas(prev => prev.map(area => area.id === activeAreaId ? { ...area, ...updates } : area));
-    if ('positionX' in updates || 'positionY' in updates || 'logoWidth' in updates || 'logoHeight' in updates || 'logoRotation' in updates || 'logoScale' in updates) {
+
+    const isPositioningUpdate = 'positionX' in updates || 'positionY' in updates || 'logoWidth' in updates || 'logoHeight' in updates || 'logoRotation' in updates || 'logoScale' in updates;
+    
+    if (isPositioningUpdate) {
       setHasUserInteractedPosition(true);
-      const current = personalizationAreas.find(a => a.id === activeAreaId);
-      if (current) {
-        positionHistory.pushState({
-          positionX: updates.positionX ?? current.positionX,
-          positionY: updates.positionY ?? current.positionY,
-          logoWidth: updates.logoWidth ?? current.logoWidth,
-          logoHeight: updates.logoHeight ?? current.logoHeight,
-          logoRotation: updates.logoRotation ?? current.logoRotation ?? 0,
-          logoScale: updates.logoScale ?? current.logoScale ?? 100,
+      
+      // Debounce history push to avoid excessive state snapshots during dragging/resizing
+      if (historyPushTimeout.current) clearTimeout(historyPushTimeout.current);
+      
+      historyPushTimeout.current = setTimeout(() => {
+        setPersonalizationAreas(currentAreas => {
+          const current = currentAreas.find(a => a.id === activeAreaId);
+          if (current) {
+            positionHistory.pushState({
+              positionX: current.positionX,
+              positionY: current.positionY,
+              logoWidth: current.logoWidth,
+              logoHeight: current.logoHeight,
+              logoRotation: current.logoRotation ?? 0,
+              logoScale: current.logoScale ?? 100,
+            });
+          }
+          return currentAreas;
         });
-      }
+      }, 500); // 500ms debounce for history
     }
-  }, [activeAreaId, personalizationAreas, positionHistory]);
+  }, [activeAreaId, positionHistory]);
 
   const handleAreaLogoUpload = useCallback(async (areaId: string, file: File) => {
     if (!file.type.startsWith("image/")) { toast.error("Por favor, selecione uma imagem válida"); return; }

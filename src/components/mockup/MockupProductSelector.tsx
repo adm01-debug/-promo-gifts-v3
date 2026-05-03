@@ -77,11 +77,12 @@ export function MockupProductSelector({ selection, onSelect, disabled }: MockupP
     }
   }, [filteredProducts, sortBy]);
 
+  const columnCount = 4; // Max columns as per grid class
   const rowVirtualizer = useVirtualizer({
-    count: Math.ceil(sortedProducts.length / 3), // Assuming 3 columns on average
+    count: Math.ceil(sortedProducts.length / columnCount),
     getScrollElement: () => scrollParentRef.current,
-    estimateSize: () => 240,
-    overscan: 5,
+    estimateSize: () => 280,
+    overscan: 3,
   });
 
   const formatCurrency = (value: number) =>
@@ -292,50 +293,68 @@ export function MockupProductSelector({ selection, onSelect, disabled }: MockupP
                     <Button variant="link" className="mt-2" onClick={() => setSearchQuery("")}>Limpar busca</Button>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {sortedProducts.map((product) => (
-                      <div
-                        key={product.id}
-                        onClick={() => handleProductPick(product)}
-                        className="group relative flex flex-col p-3 rounded-2xl border border-border/30 bg-card hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5 cursor-pointer transition-all duration-300 focus-visible:ring-2 focus-visible:ring-primary outline-none"
-                        role="button"
-                        tabIndex={0}
-                        onKeyDown={(e) => e.key === 'Enter' && handleProductPick(product)}
-                      >
-                        <div className="aspect-square rounded-xl bg-muted overflow-hidden mb-3 relative">
-                          <img
-                            src={product.image_url}
-                            alt={product.name}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                            loading="lazy"
-                            onError={(e) => { e.currentTarget.src = '/placeholder.svg'; }}
-                          />
-                          <div className="absolute top-2 right-2 flex flex-col gap-1">
-                             {product.stock > 0 ? (
-                              <Badge className="bg-success/90 hover:bg-success text-[9px] px-1.5 py-0 border-none shadow-sm">
-                                {product.stock >= 1000 ? `${(product.stock / 1000).toFixed(1)}k` : product.stock} un
-                              </Badge>
-                            ) : (
-                              <Badge variant="destructive" className="text-[9px] px-1.5 py-0 border-none shadow-sm">Esgotado</Badge>
-                            )}
-                          </div>
+                  <div 
+                    className="relative w-full" 
+                    style={{ height: `${rowVirtualizer.getTotalSize()}px` }}
+                  >
+                    {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+                      const startIndex = virtualRow.index * columnCount;
+                      const rowItems = sortedProducts.slice(startIndex, startIndex + columnCount);
+                      
+                      return (
+                        <div
+                          key={virtualRow.key}
+                          className="absolute top-0 left-0 w-full grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"
+                          style={{
+                            transform: `translateY(${virtualRow.start}px)`,
+                          }}
+                        >
+                          {rowItems.map((product) => (
+                            <div
+                              key={product.id}
+                              onClick={() => handleProductPick(product)}
+                              className="group relative flex flex-col p-3 rounded-2xl border border-border/30 bg-card hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5 cursor-pointer transition-all duration-300 focus-visible:ring-2 focus-visible:ring-primary outline-none"
+                              role="button"
+                              tabIndex={0}
+                              onKeyDown={(e) => e.key === 'Enter' && handleProductPick(product)}
+                            >
+                              <div className="aspect-square rounded-xl bg-muted overflow-hidden mb-3 relative">
+                                <img
+                                  src={product.image_url}
+                                  alt={product.name}
+                                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                  loading="lazy"
+                                  onError={(e) => { e.currentTarget.src = '/placeholder.svg'; }}
+                                />
+                                <div className="absolute top-2 right-2 flex flex-col gap-1">
+                                   {product.stock > 0 ? (
+                                    <Badge className="bg-success/90 hover:bg-success text-[9px] px-1.5 py-0 border-none shadow-sm">
+                                      {product.stock >= 1000 ? `${(product.stock / 1000).toFixed(1)}k` : product.stock} un
+                                    </Badge>
+                                  ) : (
+                                    <Badge variant="destructive" className="text-[9px] px-1.5 py-0 border-none shadow-sm">Esgotado</Badge>
+                                  )}
+                                </div>
+                              </div>
+                              
+                              <div className="flex-1 flex flex-col min-w-0">
+                                <h4 className="font-semibold text-sm leading-tight line-clamp-2 mb-1 group-hover:text-primary transition-colors">
+                                  {product.name}
+                                </h4>
+                                <div className="mt-auto flex items-center justify-between">
+                                  <span className="text-[10px] text-muted-foreground font-mono uppercase tracking-tighter">
+                                    {product.sku}
+                                  </span>
+                                  <p className="text-sm font-bold text-foreground tabular-nums">
+                                    {formatCurrency(product.price)}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                        
-                        <div className="flex-1 flex flex-col min-w-0">
-                          <h4 className="font-semibold text-sm leading-tight line-clamp-2 mb-1 group-hover:text-primary transition-colors">
-                            {product.name}
-                          </h4>
-                          <div className="mt-auto flex items-center justify-between">
-                            <span className="text-[10px] text-muted-foreground font-mono uppercase tracking-tighter">
-                              {product.sku}
-                            </span>
-                            <p className="text-sm font-bold text-foreground tabular-nums">
-                              {formatCurrency(product.price)}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>
