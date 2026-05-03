@@ -298,14 +298,25 @@ export function useMockupGenerator() {
   const updateActiveArea = useCallback((updates: Partial<PersonalizationArea>) => {
     if (!activeAreaId) return;
     
-    setPersonalizationAreas(prev => prev.map(area => area.id === activeAreaId ? { ...area, ...updates } : area));
+    setPersonalizationAreas(prev => {
+      const areaIndex = prev.findIndex(a => a.id === activeAreaId);
+      if (areaIndex === -1) return prev;
+      
+      const currentArea = prev[areaIndex];
+      // Only update if there are actual changes
+      const hasChanges = Object.entries(updates).some(([key, value]) => (currentArea as any)[key] !== value);
+      if (!hasChanges) return prev;
+
+      const newAreas = [...prev];
+      newAreas[areaIndex] = { ...currentArea, ...updates };
+      return newAreas;
+    });
 
     const isPositioningUpdate = 'positionX' in updates || 'positionY' in updates || 'logoWidth' in updates || 'logoHeight' in updates || 'logoRotation' in updates || 'logoScale' in updates;
     
     if (isPositioningUpdate) {
       setHasUserInteractedPosition(true);
       
-      // Debounce history push to avoid excessive state snapshots during dragging/resizing
       if (historyPushTimeout.current) clearTimeout(historyPushTimeout.current);
       
       historyPushTimeout.current = setTimeout(() => {
@@ -323,7 +334,7 @@ export function useMockupGenerator() {
           }
           return currentAreas;
         });
-      }, 500); // 500ms debounce for history
+      }, 300); // Slightly faster debounce for better responsiveness
     }
   }, [activeAreaId, positionHistory]);
 
