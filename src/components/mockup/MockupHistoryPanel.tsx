@@ -281,11 +281,11 @@ export function MockupHistoryPanel({
 // Sub-components (inlined — small enough)
 // ============================================
 
-function MockupGridCard({ mockup, isCompareSelected, onToggleCompare, onOpenLightbox, onLoadFromHistory, onDownload, onDelete }: {
+const MockupGridCard = memo(({ mockup, isCompareSelected, onToggleCompare, onOpenLightbox, onLoadFromHistory, onDownload, onDelete }: {
   mockup: GeneratedMockup; isCompareSelected: boolean;
   onToggleCompare: (id: string) => void; onOpenLightbox: (m: GeneratedMockup) => void;
   onLoadFromHistory: (m: GeneratedMockup) => void; onDownload: (url: string) => void; onDelete: (id: string) => void;
-}) {
+}) => {
   return (
     <div className={cn("group relative border border-border/30 rounded-xl overflow-hidden hover:ring-2 hover:ring-primary/30 hover:shadow-lg transition-all duration-300 bg-card",
       isCompareSelected && "ring-2 ring-primary shadow-lg")}>
