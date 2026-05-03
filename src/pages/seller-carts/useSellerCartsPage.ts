@@ -34,6 +34,7 @@ export function useSellerCartsPage() {
 
   const productsCtx = useContext(ProductsContext);
   const allProducts = productsCtx?.products || [];
+  const isLoadingProducts = productsCtx?.isLoading || false;
 
   const [showNewCart, setShowNewCart] = useState(false);
 
