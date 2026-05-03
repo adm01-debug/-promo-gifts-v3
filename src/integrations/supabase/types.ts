@@ -5528,6 +5528,7 @@ export type Database = {
         }
         Returns: string
       }
+      log_user_logout: { Args: never; Returns: undefined }
       lookup_request_id: { Args: { _request_id: string }; Returns: Json }
       mark_all_notifications_read: { Args: never; Returns: undefined }
       mark_notification_read: {
