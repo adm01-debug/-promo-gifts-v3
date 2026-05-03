@@ -244,7 +244,7 @@ export function useSellerCartsPage() {
     stockMap, weightVolume, sensors, handleDragEnd, handleRemoveItem, handleUpdateQuantity,
     handleMoveItem, handleDuplicateItem, handleSaveTemplate, handleLoadTemplate,
     confirmQuoteCart, setConfirmQuoteCart, confirmDeleteCart, setConfirmDeleteCart,
-    confirmClearCart, setConfirmClearCart, handleGenerateQuote, confirmGenerateQuote,
+    confirmClearCart, setConfirmClearCart, handleGenerateQuote, confirmGenerateQuote, handleClearCart,
     otherCarts, cartAge, cartSubtotal, cartTotalQty, companyAccentColor, isLoadingProducts,
     exportCartToCSV, exportCartToPDF, shareCartLink,
   };
