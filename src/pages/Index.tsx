@@ -16,22 +16,38 @@ export default function Index() {
   const catalog = useCatalogState();
   const [variantForShare, setVariantForShare] = useState<ExternalVariantStock | null | undefined>(undefined);
   const variantSelectedRef = useRef(false);
-  // undefined = picker not answered yet; null = "sem cor específica"; object = selected variant
+
+  // Dynamic JSON-LD based on current state
+  const structuredData = useMemo(() => ({
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": catalog.searchQuery ? `Resultados para "${catalog.searchQuery}" - Catálogo` : "Catálogo de Brindes Promocionais",
+    "description": catalog.searchQuery 
+      ? `Encontramos ${catalog.filteredProducts.length} brindes promocionais para sua busca "${catalog.searchQuery}".`
+      : "Explore nosso catálogo com mais de 15.000 brindes personalizáveis. Filtre por categoria, material, cor e preço.",
+    "url": window.location.href,
+    "numberOfItems": catalog.totalEstimate || catalog.filteredProducts.length,
+    "mainEntity": {
+      "@type": "ItemList",
+      "itemListElement": catalog.paginatedProducts.slice(0, 10).map((p, i) => ({
+        "@type": "ListItem",
+        "position": i + 1,
+        "url": `${window.location.origin}/produto/${p.id}`,
+        "name": p.name
+      }))
+    }
+  }), [catalog.searchQuery, catalog.filteredProducts.length, catalog.totalEstimate, catalog.paginatedProducts]);
 
   return (
     <MainLayout>
       <PageSEO
-        title="Catálogo de Produtos"
-        description="Explore nosso catálogo com mais de 15.000 brindes promocionais. Filtre por categoria, cor e preço."
+        title={catalog.searchQuery ? `Busca: ${catalog.searchQuery}` : "Catálogo de Produtos"}
+        description={catalog.searchQuery 
+          ? `Resultados de busca para ${catalog.searchQuery} em Brindes Promocionais. Melhores preços e variedades.`
+          : "Explore nosso catálogo com mais de 15.000 brindes promocionais. Filtre por categoria, cor e preço."
+        }
         path="/"
-        jsonLd={{
-          "@context": "https://schema.org",
-          "@type": "CollectionPage",
-          "name": "Catálogo de Produtos Promocionais",
-          "description": "Mais de 15.000 brindes promocionais com filtros inteligentes por categoria, cor, preço e fornecedor.",
-          "url": "https://criar-together-now.lovable.app/",
-          "isPartOf": { "@type": "WebSite", "name": "Promo Gifts", "url": "https://criar-together-now.lovable.app" }
-        }}
+        jsonLd={structuredData}
       />
       <div>
         <div className="flex-1 min-w-0">
