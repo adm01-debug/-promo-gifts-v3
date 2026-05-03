@@ -2,6 +2,8 @@ import { type ReactNode } from "react";
 import { Navigate, useLocation, Outlet } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { EnhancedErrorBoundary } from "@/components/errors/EnhancedErrorBoundary";
+import { EmptyState } from "@/components/common/EmptyState";
 
 type RequiredRole = "dev" | "supervisor" | "agente";
 
@@ -42,14 +44,41 @@ export function ProtectedRoute({
     requiredRole ?? (requireDev ? "dev" : requireAdmin ? "supervisor" : undefined);
 
   if (required === "dev" && !isDev) {
-    return <Navigate to="/" replace />;
+    return (
+      <EmptyState 
+        variant="security" 
+        title="Acesso Negado" 
+        description="Esta é uma área restrita para desenvolvedores."
+        action={{ label: "Voltar ao início", onClick: () => window.location.href = "/" }}
+      />
+    );
   }
+  
   if (required === "supervisor" && !isSupervisorOrAbove) {
-    return <Navigate to="/" replace />;
+    return (
+      <EmptyState 
+        variant="security" 
+        title="Acesso Restrito" 
+        description="Você precisa de nível de supervisor para acessar este conteúdo."
+        action={{ label: "Voltar ao início", onClick: () => window.location.href = "/" }}
+      />
+    );
   }
-  // 'agente' = qualquer usuário autenticado, sem checagem extra.
 
-  // Retorno único: Outlet (Layout Route) ou children. Sem forwardRef:
-  // Router não passa refs para `element={<ProtectedRoute />}`.
-  return children ? <>{children}</> : <Outlet />;
+  return (
+    <EnhancedErrorBoundary
+      fallback={
+        <div className="p-8">
+          <EmptyState 
+            variant="error" 
+            title="Falha no Módulo" 
+            description="Ocorreu um erro ao carregar esta seção. Tente recarregar a página."
+            action={{ label: "Recarregar", onClick: () => window.location.reload() }}
+          />
+        </div>
+      }
+    >
+      {children ? <>{children}</> : <Outlet />}
+    </EnhancedErrorBoundary>
+  );
 }

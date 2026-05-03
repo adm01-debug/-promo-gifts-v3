@@ -11,7 +11,9 @@ import {
   Bell,
   TrendingUp,
   Inbox,
-  Plus
+  Plus,
+  ShieldAlert,
+  AlertCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -27,6 +29,8 @@ type EmptyStateVariant =
   | "cart"
   | "notifications"
   | "analytics"
+  | "error"
+  | "security"
   | "generic";
 
 interface EmptyStateProps {
@@ -110,6 +114,18 @@ const variants: Record<EmptyStateVariant, {
     title: "Sem dados disponíveis",
     description: "Os dados analíticos aparecerão quando houver atividade.",
     color: "text-success"
+  },
+  error: {
+    icon: AlertCircle,
+    title: "Ocorreu um erro",
+    description: "Não foi possível carregar os dados. Tente novamente em instantes.",
+    color: "text-destructive"
+  },
+  security: {
+    icon: ShieldAlert,
+    title: "Acesso restrito",
+    description: "Você não tem permissão para visualizar este conteúdo.",
+    color: "text-warning"
   },
   generic: {
     icon: Inbox,
