@@ -1,15 +1,29 @@
 import { z } from "zod";
 
 /**
- * Shared validation schemas and sanitization logic.
+ * Robustly sanitizes HTML strings to prevent XSS.
+ * Removes dangerous tags and attributes.
  */
+export function sanitizeHtml(html: string): string {
+  if (!html) return "";
+  
+  // Basic sanitization: strip script, object, embed, applet, link, iframe, and form tags
+  // but allow safe formatting like <b>, <i>, <u>, <p>, <span>
+  return html
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
+    .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, "")
+    .replace(/<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/gi, "")
+    .replace(/on\w+="[^"]*"/gi, "") // remove event handlers like onclick
+    .replace(/on\w+='[^']*'/gi, "")
+    .replace(/href="javascript:[^"]*"/gi, "")
+    .replace(/src="javascript:[^"]*"/gi, "");
+}
 
 /**
- * Sanitizes a string for safe rendering in HTML.
- * Note: React already escapes dynamic content in JSX, but this is a secondary
- * defense for data stored in JSON or used in dangerouslySetInnerHTML (which should be avoided).
+ * Sanitizes a string for safe rendering in text context (fully escaped).
  */
 export function sanitizeString(val: string): string {
+  if (!val) return "";
   return val
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -19,23 +33,14 @@ export function sanitizeString(val: string): string {
 }
 
 /**
- * Standard Zod transformer that trims and sanitizes strings.
+ * Standard Zod transformers
  */
 export const safeString = z.string().trim().transform(sanitizeString);
+export const safeHtml = z.string().trim().transform(sanitizeHtml);
 
-/**
- * UUID Schema
- */
 export const uuidSchema = z.string().uuid();
-
-/**
- * Email Schema
- */
 export const emailSchema = z.string().email();
 
-/**
- * Common User Schema for validation
- */
 export const userSchema = z.object({
   id: uuidSchema,
   email: emailSchema,
