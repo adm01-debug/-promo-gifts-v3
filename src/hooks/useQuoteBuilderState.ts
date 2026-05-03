@@ -134,8 +134,8 @@ export function useQuoteBuilderState() {
   const [selectedProductForColor, setSelectedProductForColor] = useState<Product | null>(null);
   const [templateApplied, setTemplateApplied] = useState<string | null>(null);
   const [loadingQuote, setLoadingQuote] = useState(isEditMode);
-  const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
-  const [activeItemIndex, setActiveItemIndex] = useState<number | null>(null);
+  // Removido estado duplicado de items e activeItemIndex (gerenciados pelo useQuoteItems)
+
   const debouncedProductSearch = useDebounce(productSearch, 400);
 
   // ── Stepper ──
