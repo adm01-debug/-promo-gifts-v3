@@ -55,7 +55,7 @@ export function StockDashboard() {
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'R') {
         e.preventDefault();
         handleRefresh();
-        toast({ title: '🔄 Atualizando estoque...', description: 'Atalho: Ctrl+Shift+R' });
+        toast({ title: '🔄 Atualizando Estoque...', description: 'Atalho: Ctrl+Shift+R' });
       }
     };
     window.addEventListener('keydown', handler);
@@ -217,7 +217,7 @@ export function StockDashboard() {
               </TooltipTrigger>
               <TooltipContent>
                 <p className="text-xs max-w-[200px]">
-                  Índice de saúde do estoque: {summary.productsInStock} de {summary.totalProducts} produtos com estoque adequado.
+                  Saúde do Estoque: {summary.productsInStock} de {summary.totalProducts} produtos com estoque adequado.
                   {healthScore < 50 && ' ⚠️ Atenção: muitos produtos precisam de reposição.'}
                 </p>
               </TooltipContent>
@@ -348,7 +348,7 @@ export function StockDashboard() {
                       onClick={handleExportCSV}
                       disabled={productStocks.length === 0}
                       className="gap-1.5"
-                      aria-label="Exportar estoque em CSV"
+                      aria-label="Exportar Estoque em CSV"
                     >
                       <Download className="h-4 w-4" />
                       <span className="hidden sm:inline">Exportar</span>
@@ -365,7 +365,7 @@ export function StockDashboard() {
                 onClick={fetchStockData}
                 disabled={isFetching}
                 className="gap-1.5"
-                aria-label="Atualizar dados de estoque"
+                aria-label="Atualizar dados do Estoque"
               >
                 <RefreshCw className={cn("h-4 w-4", isFetching && "animate-spin")} />
                 {isFetching ? 'Atualizando...' : 'Atualizar'}
