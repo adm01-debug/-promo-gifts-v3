@@ -66,6 +66,7 @@ export function ProductStickyHeader({
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: -60, opacity: 0 }}
             transition={{ duration: 0.25, ease: "easeOut" }}
+            data-testid="product-sticky-header"
             className="fixed top-0 right-0 z-50 hidden md:block bg-background/95 backdrop-blur-md border-b border-border shadow-sm"
             style={{ left: "var(--header-left, 0px)" }}
           >
