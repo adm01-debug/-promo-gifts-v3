@@ -181,6 +181,14 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
       } as React.CSSProperties : undefined}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => { setIsHovered(false); setActionsOpen(false); }}
+      aria-label={`Ver detalhes de ${product.name}`}
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick?.();
+        }
+      }}
       onClick={(e) => {
         if (actionsOpen || actionBusyRef.current || variantPickerOpen || collectionModalOpen || quickViewOpen) { e.stopPropagation(); return; }
         if (currentVariant?.name) {
