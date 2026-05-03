@@ -28,7 +28,7 @@ test.describe('Módulo de Reposição - Testes Exaustivos', () => {
     await expect(page.locator('main')).toBeVisible();
     
     // Widget lateral
-    await expect(page.locator('aside:has-text("Atividade Recente")')).toBeVisible();
+    await expect(page.locator('aside:has-text("+ Recentes")')).toBeVisible();
     
     // Toolbar de filtros
     await expect(page.getByPlaceholder('Buscar reposições…')).toBeVisible();
