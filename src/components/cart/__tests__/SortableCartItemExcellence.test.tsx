@@ -92,7 +92,8 @@ describe("SortableCartItem Excellence UI", () => {
 
   it("shows correct labels for Unitário and Subtotal", () => {
     renderComponent();
-    expect(screen.getByText("UNITÁRIO")).toBeDefined();
-    expect(screen.getByText("SUBTOTAL")).toBeDefined();
+    // No PriceLabel, o label é renderizado em um span
+    expect(screen.getByText(/Unitário/i)).toBeDefined();
+    expect(screen.getByText(/Subtotal/i)).toBeDefined();
   });
 });
