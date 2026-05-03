@@ -24,6 +24,8 @@ import { createProductFuseOptions, dedupeById, rankProductSearchResults } from "
 import { getPriceFreshness } from "@/utils/price-freshness";
 import * as QuoteCalc from "@/logic/quotes/calculations";
 import { useQuoteItems } from "@/hooks/useQuoteItems";
+import { useAutoSaveQuote } from "@/hooks/useAutoSaveQuote";
+
 
 
 
