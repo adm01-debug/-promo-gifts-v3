@@ -98,7 +98,19 @@ vi.mock('../../src/contexts/ProductsContext', () => ({
   ProductsProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
-// Mock da biblioteca de Recharts para evitar erros de renderização em ambiente JSDOM
+// Mock do hook useComparisonScore
+vi.mock('../../src/hooks/useComparisonScore', () => ({
+  useComparisonScore: (products: any[]) => {
+    if (!products || products.length === 0) return { items: [] };
+    return {
+      items: products.map(p => ({ productId: p.id, score: 80 })),
+      total: 100
+    };
+  },
+  DEFAULT_SCORE_WEIGHTS: {}
+}));
+
+// Mock da biblioteca de Recharts
 vi.mock('recharts', () => ({
   ResponsiveContainer: ({ children }: any) => <div>{children}</div>,
   Radar: () => <div />,
@@ -106,6 +118,8 @@ vi.mock('recharts', () => ({
   PolarGrid: () => <div />,
   PolarAngleAxis: () => <div />,
   PolarRadiusAxis: () => <div />,
+  Legend: () => <div />,
+  Tooltip: () => <div />,
 }));
 
 describe('E2E Comparar — Módulo de Comparação', () => {
