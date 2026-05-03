@@ -40,6 +40,7 @@ export function useLogoDrag(
 
   const handlePointerUp = useCallback(() => {
     draggingRef.current = null;
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
     window.removeEventListener("pointermove", handlePointerMove);
     window.removeEventListener("pointerup", handlePointerUp);
   }, [handlePointerMove]);
