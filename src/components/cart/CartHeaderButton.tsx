@@ -15,7 +15,7 @@ import { CartCompanyPicker } from "./CartCompanyPicker";
 import { PriceLabel } from "./CartUtilComponents";
 import { formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 
