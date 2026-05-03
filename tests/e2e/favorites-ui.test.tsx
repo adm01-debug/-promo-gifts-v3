@@ -12,6 +12,7 @@ import { Toaster } from 'sonner';
 import { ProductsContext } from '@/contexts/ProductsContext';
 import { HelmetProvider } from 'react-helmet-async';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { AriaLiveProvider } from '@/components/a11y/AriaLive';
 
 // Mocks
 vi.mock('@/contexts/AuthContext', () => ({
@@ -42,7 +43,6 @@ vi.mock('@/integrations/supabase/client', () => ({
   },
 }));
 
-// Mock do Onboarding para evitar erros de renderização
 vi.mock('@/hooks/useOnboarding', () => ({
   useOnboarding: () => ({
     step: null,
@@ -72,10 +72,12 @@ const renderWithProviders = (ui: React.ReactElement) => {
       <QueryClientProvider client={queryClient}>
         <ProductsContext.Provider value={mockProductsContext}>
           <TooltipProvider>
-            <BrowserRouter>
-              <Toaster />
-              {ui}
-            </BrowserRouter>
+            <AriaLiveProvider>
+              <BrowserRouter>
+                <Toaster />
+                {ui}
+              </BrowserRouter>
+            </AriaLiveProvider>
           </TooltipProvider>
         </ProductsContext.Provider>
       </QueryClientProvider>
@@ -164,7 +166,3 @@ describe('E2E Favoritos — Acessibilidade UI', () => {
     expect(screen.getByLabelText('Favoritos')).toBeInTheDocument();
   });
 });
-
-
-
-
