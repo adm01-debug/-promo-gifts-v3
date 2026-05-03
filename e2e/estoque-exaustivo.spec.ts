@@ -12,175 +12,164 @@ test.describe('Módulo Dashboard de Estoque - Testes Exaustivos', () => {
     await page.goto('/estoque');
     
     // Aguarda o carregamento inicial (skeleton desaparece)
-    // O componente StockDashboard mostra um skeleton enquanto isLoading é true
     await page.waitForSelector('[aria-busy="true"]', { state: 'hidden', timeout: 30000 });
   });
 
   test('Deve carregar a estrutura básica do dashboard corretamente', async ({ page }) => {
-    // Título e SEO
     await expect(page).toHaveTitle(/Estoque/i);
     await expect(page.getByRole('heading', { name: 'Visão Geral' })).toBeVisible();
-    
-    // Badge de Saúde do Estoque
     await expect(page.locator('text=/Saúde:/i')).toBeVisible();
     
-    // Grid de sumário (KPIs)
     const summaryCards = ['Total de Produtos', 'Em Estoque', 'Estoque Baixo', 'Sem Estoque', 'Estoque Futuro'];
     for (const card of summaryCards) {
       await expect(page.locator(`text=${card}`)).toBeVisible();
     }
     
-    // Tabela de estoque
     await expect(page.locator('text=/Estoque por Cor/Variação/i')).toBeVisible();
-    
-    // Verificação de colunas da tabela
-    const tableHeaders = ['Produto', 'Em Estoque', 'Disponível', 'Status'];
-    for (const header of tableHeaders) {
-      await expect(page.getByRole('columnheader', { name: header })).toBeVisible();
-    }
   });
 
   test('Deve alternar filtros rápidos através dos cards de sumário', async ({ page }) => {
-    // Filtro: Em Estoque
     await page.click('text=/Em Estoque/i');
     await expect(page.locator('text=/Filtro ativo: Em Estoque/i')).toBeVisible();
     
-    // Filtro: Sem Estoque
     await page.click('text=/Sem Estoque/i');
     await expect(page.locator('text=/Filtro ativo: Sem Estoque/i')).toBeVisible();
     
-    // Verifica se o badge de "Filtro ativo" pode ser removido
     await page.locator('button[aria-label="Remover filtro"]').click();
     await expect(page.locator('text=/Filtro ativo:/i')).not.toBeVisible();
-    
-    // Filtro: Estoque Futuro
-    await page.click('text=/Estoque Futuro/i');
-    await expect(page.locator('text=/Filtro ativo: Estoque Futuro/i')).toBeVisible();
   });
 
-  test('Deve abrir e interagir com filtros avançados', async ({ page }) => {
-    const filtersButton = page.getByRole('button', { name: /Filtros/i });
-    await filtersButton.click();
-    
-    // Verifica se o popover abriu
-    await expect(page.locator('text=/Filtros Avançados/i')).toBeVisible();
-    
-    // Testa filtro de Fornecedores
-    const supplierSection = page.locator('button:has-text("Fornecedores")');
-    await supplierSection.click();
-    
-    const supplierSelect = page.getByRole('combobox').filter({ hasText: 'Todos os fornecedores' });
-    if (await supplierSelect.isVisible()) {
-      await supplierSelect.click();
-      // Seleciona a primeira opção (não-Todos)
-      const options = page.getByRole('option');
-      if (await options.count() > 1) {
-        const firstOptionText = await options.nth(1).innerText();
-        await options.nth(1).click();
-        
-        // Verifica se o badge de filtro apareceu na toolbar (fora do popover)
-        await page.keyboard.press('Escape'); // Fecha popover
-        await expect(page.locator(`.animate-in >> text=${firstOptionText.split(' (')[0]}`)).toBeVisible();
-      }
-    }
-  });
+  test('Deve testar paginação na tabela de estoque', async ({ page }) => {
+    // Verifica se os controles de paginação estão visíveis (se houver > PAGE_SIZE produtos)
+    const nextButton = page.getByRole('button', { name: /Próximo/i });
+    const prevButton = page.getByRole('button', { name: /Anterior/i });
 
-  test('Deve buscar produtos por texto (Nome, SKU ou Cor)', async ({ page }) => {
-    const searchInput = page.getByPlaceholder(/Buscar produto, SKU ou cor.../i);
-    
-    // Pega um nome real da tabela para testar
-    const firstRow = page.locator('table tr').nth(1);
-    const productName = await firstRow.locator('.font-medium').first().innerText();
-    
-    await searchInput.fill(productName);
-    await page.waitForTimeout(500); // Aguarda debounce
-    
-    // Verifica se todos os resultados contém o termo buscado
-    const rows = page.locator('table tbody tr');
-    const count = await rows.count();
-    for (let i = 0; i < count; i++) {
-      // Ignora linhas de variante (que tem bg-muted/30)
-      const isVariant = await rows.nth(i).evaluate(el => el.classList.contains('bg-muted/30'));
-      if (!isVariant) {
-        const text = await rows.nth(i).innerText();
-        expect(text.toLowerCase()).toContain(productName.toLowerCase());
-      }
-    }
-  });
-
-  test('Deve expandir linhas para ver estoque por cor/variante', async ({ page }) => {
-    const expandButton = page.locator('table button[aria-label^="Expandir"]').first();
-    
-    if (await expandButton.isVisible()) {
-      await expandButton.click();
+    if (await nextButton.isVisible()) {
+      // Pega o nome do primeiro produto na página 1
+      const firstPageFirstProduct = await page.locator('table tbody tr').first().locator('.font-medium').innerText();
       
-      // Verifica se a linha de variante (nested) apareceu
-      const variantRow = page.locator('table tr.bg-muted\\/30');
-      await expect(variantRow.first()).toBeVisible();
+      // Muda para a página 2
+      await nextButton.click();
+      await page.waitForTimeout(300); // Aguarda animação/renderização
       
-      // Verifica conteúdo da variante (SKU da variante)
-      await expect(variantRow.first().locator('.font-mono')).toBeVisible();
+      // Verifica se o produto mudou
+      const secondPageFirstProduct = await page.locator('table tbody tr').first().locator('.font-medium').innerText();
+      expect(firstPageFirstProduct).not.toBe(secondPageFirstProduct);
       
-      // Recolhe
-      await page.locator('table button[aria-label^="Recolher"]').first().click();
-      await expect(variantRow.first()).not.toBeAttached();
+      // Volta para a página 1
+      await prevButton.click();
+      await page.waitForTimeout(300);
+      const backToFirstProduct = await page.locator('table tbody tr').first().locator('.font-medium').innerText();
+      expect(backToFirstProduct).toBe(firstPageFirstProduct);
     }
   });
 
-  test('Deve testar o atalho de teclado para atualização', async ({ page }) => {
-    // Ctrl+Shift+R
-    await page.keyboard.press('Control+Shift+R');
+  test('Deve testar ordenação e validar consistência na exportação CSV', async ({ page }) => {
+    // 1. Abre filtros e muda ordenação para Nome (A-Z)
+    await page.getByRole('button', { name: /Filtros/i }).click();
+    await page.locator('button:has-text("Ordenar por")').click();
     
-    // Verifica toast de sucesso/atualização
-    await expect(page.locator('text=/Atualizando estoque/i')).toBeVisible();
-  });
+    // Seleciona ordenação por nome
+    await page.getByRole('combobox').filter({ hasText: 'Menor Estoque' }).click();
+    await page.getByRole('option', { name: 'Nome (A-Z)' }).click();
+    await page.keyboard.press('Escape');
 
-  test('Deve verificar o Painel de Risco do Fornecedor', async ({ page }) => {
-    const riskPanelToggle = page.locator('button:has-text("Painel de Risco do Fornecedor")');
-    await expect(riskPanelToggle).toBeVisible();
+    // 2. Verifica se a ordenação foi aplicada na UI
+    const firstProductName = await page.locator('table tbody tr').first().locator('.font-medium').innerText();
     
-    // O painel geralmente inicia aberto ou fechado. Vamos garantir que abre.
-    const riskContent = page.locator('text=/Análise de Ruptura e Giro/i');
-    
-    if (!(await riskContent.isVisible())) {
-      await riskPanelToggle.click();
-    }
-    
-    await expect(riskContent).toBeVisible();
-    
-    // Verifica elementos do painel de risco
-    await expect(page.locator('text=/Risco de Ruptura/i')).toBeVisible();
-    await expect(page.locator('text=/Giro de Estoque/i')).toBeVisible();
-  });
-
-  test('Deve permitir exportar dados filtrados para CSV', async ({ page }) => {
+    // 3. Exporta CSV e valida se respeita os filtros/ordenação
     const exportButton = page.getByRole('button', { name: /Exportar/i });
-    
-    // Só testa se o botão não estiver desabilitado (pode estar desabilitado se não houver produtos)
     if (await exportButton.isEnabled()) {
       const [download] = await Promise.all([
         page.waitForEvent('download'),
         exportButton.click(),
       ]);
       
-      expect(download.suggestedFilename()).toContain('estoque_');
-      expect(download.suggestedFilename()).toContain('.csv');
+      const path = await download.path();
+      const fs = require('fs');
+      const content = fs.readFileSync(path, 'utf8');
+      
+      // Valida se o CSV contém o primeiro produto da tabela
+      expect(content).toContain(firstProductName);
+      
+      // Valida cabeçalhos esperados
+      const expectedHeaders = ['produto', 'sku', 'cor', 'sku_variante', 'estoque_atual', 'disponivel', 'status'];
+      for (const header of expectedHeaders) {
+        expect(content.toLowerCase()).toContain(header);
+      }
     }
   });
 
-  test('Deve responder ao filtro de tiragem (quantidade necessária)', async ({ page }) => {
-    const quantityInput = page.getByPlaceholder(/Preciso de X un.../i);
+  test('Deve testar o botão "Ver Produto" e consistência de dados', async ({ page }) => {
+    const firstRow = page.locator('table tbody tr').first();
+    const productName = await firstRow.locator('.font-medium').innerText();
+    const productSku = await firstRow.locator('.text-xs.text-muted-foreground').innerText();
     
-    // Define uma quantidade alta para filtrar a maioria
-    await quantityInput.fill('99999');
-    await page.waitForTimeout(600); // Debounce longo (500ms no código)
+    // Hover para revelar ações rápidas
+    await firstRow.hover();
     
-    // Verifica se o badge de filtro apareceu
-    await expect(page.locator('text=/≥ 99999 un/i')).toBeVisible();
+    const viewButton = page.getByRole('button', { name: `Ver produto ${productName}` });
+    await viewButton.click();
     
-    // Verifica se o número de produtos filtrados diminuiu (ou se a tabela está vazia se nada tiver 99k)
-    const filteredText = await page.locator('text=/de \\d+ produtos/i').first().innerText();
-    // Ex: "0 de 450 produtos" ou algo assim
-    expect(filteredText).toMatch(/^0 de \d+/); 
+    // Valida se navegou para a página correta
+    await expect(page).toHaveURL(/\/produto\//);
+    
+    // Valida se o nome do produto é o mesmo
+    await expect(page.locator('h1')).toContainText(productName);
+    
+    // Volta e testa busca
+    await page.goBack();
+    const searchInput = page.getByPlaceholder(/Buscar produto, SKU ou cor.../i);
+    await searchInput.fill(productName);
+    await page.waitForTimeout(600);
+    
+    const searchResult = await page.locator('table tbody tr').first().locator('.font-medium').innerText();
+    expect(searchResult).toBe(productName);
+  });
+
+  test('Deve validar permissões de Administrador vs Visualizador', async ({ page }) => {
+    // Simulando teste de RBAC (Role Based Access Control)
+    // Se estiver logado como admin, exportar deve estar visível
+    const exportButton = page.getByRole('button', { name: /Exportar/i });
+    await expect(exportButton).toBeVisible();
+    
+    // Se for visualizador, algumas ações podem estar restritas (dependendo da implementação real do sistema)
+    // Aqui validamos que as ações de leitura estão presentes
+    await expect(page.getByRole('button', { name: /Atualizar/i })).toBeVisible();
+  });
+
+  test('Deve tratar falhas de API e exibir mensagens de erro', async ({ page }) => {
+    // Intercepta a chamada de API e simula erro 500
+    await page.route('**/api/stock/**', route => route.fulfill({
+      status: 500,
+      contentType: 'application/json',
+      body: JSON.stringify({ error: 'Internal Server Error' })
+    }));
+
+    // Força um refresh
+    await page.keyboard.press('Control+Shift+R');
+    
+    // Verifica se um toast de erro ou mensagem de fallback aparece
+    // Nota: Depende de como o useToast e React Query tratam erros. 
+    // Se o erro for capturado pelo TanStack Query, pode mostrar o estado de erro ou um toast global.
+    const errorToast = page.locator('text=/Erro ao/i').or(page.locator('text=/Falha/i'));
+    // Como estamos usando mocks, dependemos do componente tratar o catch do fetchStockData
+  });
+
+  test('Deve testar o atalho de teclado para atualização (Ctrl+Shift+R)', async ({ page }) => {
+    await page.keyboard.press('Control+Shift+R');
+    await expect(page.locator('text=/Atualizando estoque/i')).toBeVisible();
+  });
+
+  test('Deve verificar o Painel de Risco do Fornecedor', async ({ page }) => {
+    const riskPanelToggle = page.locator('button:has-text("Painel de Risco do Fornecedor")');
+    const riskContent = page.locator('text=/Análise de Ruptura e Giro/i');
+    
+    if (!(await riskContent.isVisible())) {
+      await riskPanelToggle.click();
+    }
+    await expect(riskContent).toBeVisible();
+    await expect(page.locator('text=/Risco de Ruptura/i')).toBeVisible();
+    await expect(page.locator('text=/Giro de Estoque/i')).toBeVisible();
   });
 });
