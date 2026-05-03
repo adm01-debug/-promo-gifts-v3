@@ -51,6 +51,7 @@ export function CartHeaderButton() {
     deleteCart,
     removeItem,
     updateItemQuantity,
+    clearCart,
   } = useSellerCartContext();
 
   return (
@@ -270,7 +271,7 @@ export function CartHeaderButton() {
                                         className="h-7 w-7 flex items-center justify-center rounded-md text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
                                         onClick={(e) => {
                                           e.stopPropagation();
-                                          cart.items.forEach((item) => removeItem(item.id));
+                                          clearCart(cart.id);
                                         }}
                                       >
                                         <Eraser className="h-3.5 w-3.5" />
