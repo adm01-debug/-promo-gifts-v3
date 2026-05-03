@@ -6,11 +6,47 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useConnectionsOverview } from "@/hooks/useConnectionsOverview";
 import { useConnectionTester } from "@/hooks/useConnectionTester";
 
-vi.mock("@/contexts/AuthContext", () => ({ useAuth: vi.fn() }));
-vi.mock("@/hooks/useConnectionsOverview", () => ({ useConnectionsOverview: vi.fn() }));
-vi.mock("@/hooks/useConnectionTester", () => ({ useConnectionTester: vi.fn() }));
-vi.mock("@/hooks/useConsecutiveFailures", () => ({ useConsecutiveFailures: vi.fn(() => ({ map: new Map() })) }));
-vi.mock("@/hooks/useSecretsManager", () => ({ useSecretsManager: vi.fn(() => ({ secrets: [] })) }));
+// Mocks
+vi.mock("@/contexts/AuthContext", () => ({
+  useAuth: vi.fn(),
+}));
+
+vi.mock("@/hooks/useConnectionsOverview", () => ({
+  useConnectionsOverview: vi.fn(),
+}));
+
+vi.mock("@/hooks/useConnectionTester", () => ({
+  useConnectionTester: vi.fn(),
+}));
+
+vi.mock("@/hooks/useConsecutiveFailures", () => ({
+  useConsecutiveFailures: vi.fn(() => ({
+    map: new Map(),
+    loading: false,
+  })),
+}));
+
+vi.mock("@/hooks/useSecretsManager", () => ({
+  useSecretsManager: vi.fn(() => ({
+    secrets: [],
+    list: vi.fn(),
+    refreshCache: vi.fn(), // Adicionado para evitar erro 'refreshSecrets is not a function'
+  })),
+}));
+
+vi.mock("@/hooks/useConnectionsOverviewFilters", () => ({
+  useConnectionsOverviewFilters: vi.fn(() => ({
+    filters: { types: [], status: [], window: "all", onlyConsecutiveFailures: false },
+    activeCount: 0,
+    reset: vi.fn(),
+    toggleType: vi.fn(),
+    setStatus: vi.fn(),
+    setWindow: vi.fn(),
+    removeType: vi.fn(),
+    setOnlyConsecutiveFailures: vi.fn(),
+  })),
+  applyFilters: vi.fn((rows) => rows),
+}));
 
 describe("ConnectionsOverviewTable Interações e Acessibilidade", () => {
   const mockRows = [
