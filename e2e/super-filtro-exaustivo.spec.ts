@@ -1,144 +1,165 @@
 import { test, expect, requireAuth } from "./fixtures/test-base";
 import { gotoAndSettle, waitForRouteIdle } from "./helpers/nav";
 
-test.describe("E2E Exhaustivo — Super Filtro", () => {
+test.describe("Módulo: Super Filtro — Testes E2E Exaustivos", () => {
   test.beforeEach(async ({ page }) => {
+    // Garantimos que estamos autenticados e na página de filtros
     await requireAuth();
     await gotoAndSettle(page, "/filtros");
     await waitForRouteIdle(page);
   });
 
-  test("Deve carregar a página e exibir o título correto", async ({ page }) => {
-    const title = page.locator('h1:has-text("Super Filtro")');
-    await expect(title).toBeVisible();
-    await expect(page).toHaveTitle(/Filtros de Produtos/);
+  test("Estrutura Inicial e Carregamento", async ({ page }) => {
+    // Verifica título da página
+    await expect(page.locator('[data-testid="page-title-produtos"]')).toContainText("Super Filtro");
+    
+    // Verifica se a barra lateral de filtros está presente (Desktop)
+    await page.setViewportSize({ width: 1366, height: 768 });
+    await expect(page.locator('aside >> h3:has-text("Filtros")')).toBeVisible();
+    
+    // Verifica se o catálogo de produtos está carregando ou já carregado
+    const productGrid = page.locator('.animate-fade-in');
+    await expect(productGrid).toBeVisible();
   });
 
-  test("Navegação e Interação com Seções de Filtro (Desktop)", async ({ page }) => {
+  test("Busca Inteligente e Integração com Filtros", async ({ page }) => {
+    const searchInput = page.locator('input[placeholder="Buscar produtos..."]');
+    
+    // Teste de busca por texto
+    await searchInput.fill("Squeeze");
+    await page.keyboard.press("Enter");
+    await waitForRouteIdle(page);
+    
+    // Verifica badge de resultado de busca
+    await expect(page.locator('.tabular-nums')).not.toHaveText(/0/);
+    
+    // Limpa busca via clique no badge (se houver o X) ou reset
+    const clearSearch = page.locator('button[aria-label*="Limpar"]');
+    if (await clearSearch.isVisible()) {
+        await clearSearch.click();
+    }
+  });
+
+  test("Seções de Filtros — Expansão e Interação", async ({ page }) => {
     await page.setViewportSize({ width: 1366, height: 768 });
 
-    // 1. Cores
-    const coresSection = page.locator('button:has-text("Cores")');
-    await expect(coresSection).toBeVisible();
-    // Se a seção estiver fechada, abre
-    const coresContent = page.locator('div[data-state="open"]'); // Supondo Radix UI Collapsible/Accordion
-    if (!(await coresContent.isVisible())) {
-      await coresSection.click();
+    // 1. Cores (InlineColorGroupFilter)
+    const coresBtn = page.locator('button:has-text("Cores")');
+    await coresBtn.click();
+    // Verifica se os círculos de cores apareceram
+    await expect(page.locator('button[title*="Grupo:"]')).first().toBeVisible();
+
+    // 2. Categorias (ExternalCategoryFilter)
+    const categoriasBtn = page.locator('button:has-text("Categorias")');
+    await categoriasBtn.click();
+    const catInput = page.locator('input[placeholder*="Filtrar categorias"]');
+    await catInput.fill("Escritório");
+    // Seleciona uma categoria se aparecer
+    const catOption = page.locator('button:has-text("Escritório")').first();
+    if (await catOption.isVisible()) {
+        await catOption.click();
+        await expect(page.locator('div:has-text("Categorias: Escritório")')).toBeVisible();
     }
-    
-    // 2. Categorias
-    const catSection = page.locator('button:has-text("Categorias")');
-    await catSection.click();
-    await expect(page.locator('input[placeholder*="Filtrar categorias"]')).toBeVisible();
 
-    // 3. Faixa de Preço
-    const precoSection = page.locator('button:has-text("Faixa de Preço")');
-    await precoSection.click();
-    const minPriceInput = page.locator('input[placeholder="Ex: 0"]').first();
-    const maxPriceInput = page.locator('input[placeholder="Sem limite"]').first();
+    // 3. Faixa de Preço (DebouncedPriceInput)
+    const precoBtn = page.locator('button:has-text("Faixa de Preço")');
+    await precoBtn.click();
+    const minInput = page.locator('input[placeholder="Ex: 0"]').first();
+    await minInput.fill("20");
+    await page.keyboard.press("Tab"); // Trigger debounce
     
-    await minPriceInput.fill("10");
-    await maxPriceInput.fill("50");
-    
-    // Verifica se os badges de resumo aparecem no topo
-    await expect(page.locator('div:has-text("Faixa de Preço: R$ 10 até R$ 50")')).toBeVisible();
+    await expect(page.locator('div:has-text("Faixa de Preço: R$ 20")')).toBeVisible();
   });
 
-  test("Busca e Resultados", async ({ page }) => {
-    const searchInput = page.locator('input[placeholder="Buscar produtos..."]');
-    await searchInput.fill("Caneta");
-    await page.keyboard.press("Enter");
+  test("Filtros Avançados e Nichos (Marketing)", async ({ page }) => {
+    // Abre seção de Marketing
+    const publicoBtn = page.locator('button:has-text("Público-Alvo")');
+    await publicoBtn.click();
     
-    await waitForRouteIdle(page);
+    // Digita na busca interna de filtros
+    const filterSearch = page.locator('input[placeholder="Buscar filtro..."]');
+    await filterSearch.fill("Infantil");
     
-    // Verifica se a contagem de resultados foi atualizada (deve haver algo com "encontrado" ou badge)
-    const resultsCount = page.locator('.tabular-nums').first();
-    await expect(resultsCount).not.toHaveText(/0/); // Assume que há canetas no mock/db
+    // Verifica se a seção de Público-Alvo ainda é visível
+    await expect(publicoBtn).toBeVisible();
   });
 
-  test("Troca de Layout e Ordenação", async ({ page }) => {
-    // Ordenação
+  test("Ordenação e Modos de Visualização", async ({ page }) => {
+    // Troca ordenação
     const sortTrigger = page.locator('button:has-text("Ordenar")');
     await sortTrigger.click();
-    await page.locator('div[role="option"]:has-text("Preço: Menor para Maior")').click();
-    
+    await page.locator('div[role="option"]:has-text("Popularidade")').click();
     await waitForRouteIdle(page);
-    
-    // Layout (Popover)
-    const layoutBtn = page.locator('button').filter({ has: page.locator('svg') }).last(); // O LayoutPopover costuma ser um dos últimos
-    // Em vez de seletor frágil, vamos buscar pelo ícone de grid/list se possível ou testid
-    const viewModes = ["grid", "list", "table"];
-    for (const mode of viewModes) {
-       // Apenas verifica se o botão existe para abrir o popover
-       await expect(page.locator('button').filter({ has: page.locator('.lucide-layout-grid, .lucide-list, .lucide-table') }).first()).toBeVisible();
+
+    // Troca visualização para Lista
+    const layoutBtn = page.locator('button').filter({ has: page.locator('.lucide-layout-grid') });
+    await layoutBtn.click();
+    const listMode = page.locator('div[role="menuitem"]:has-text("Lista")');
+    if (await listMode.isVisible()) {
+        await listMode.click();
     }
   });
 
-  test("Responsividade — Filtros Mobile", async ({ page }) => {
+  test("Fluxo Mobile — Filtros em Sheet", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     
-    // Botão de filtros deve aparecer no mobile
-    const filterMobileBtn = page.locator('button:has-text("Filtros")');
-    await expect(filterMobileBtn).toBeVisible();
-    await filterMobileBtn.click();
+    const filterBtn = page.locator('button:has-text("Filtros")');
+    await filterBtn.click();
     
-    // O Sheet (modal lateral) deve abrir
-    await expect(page.locator('div[role="dialog"]')).toBeVisible();
+    // Dentro do Sheet
     await expect(page.locator('h2:has-text("Filtros")')).toBeVisible();
     
-    // Interage com uma seção dentro do mobile
-    await page.locator('button:has-text("Opções Rápidas")').click();
-    const inStockToggle = page.locator('button:has-text("Em Estoque")');
-    await expect(inStockToggle).toBeVisible();
+    // Interage com Gênero
+    await page.locator('button:has-text("Gênero")').click();
+    const feminimoBtn = page.locator('button:has-text("Feminino")');
+    await feminimoBtn.click();
     
-    // Fecha filtros
-    await page.locator('button:has-text("Ver")').click();
+    // Aplicar (botão "Ver X resultados")
+    const applyBtn = page.locator('button:has-text("Ver")');
+    await applyBtn.click();
+    
+    // Sheet deve fechar
     await expect(page.locator('div[role="dialog"]')).toBeHidden();
   });
 
-  test("Limpar Filtros e Presets", async ({ page }) => {
-    // Aplica um filtro
-    await page.locator('button:has-text("Opções Rápidas")').click();
-    await page.locator('button:has-text("Em Estoque")').click();
-    
-    await expect(page.locator('button:has-text("Limpar (1)")')).toBeVisible();
-    
-    // Limpa
-    await page.locator('button:has-text("Limpar (1)")').click();
-    await expect(page.locator('button:has-text("Limpar (1)")')).toBeHidden();
-    
-    // Presets
-    const presetsBtn = page.locator('button:has-text("Presets")'); // Supondo que tenha esse texto
-    // Se não tiver, buscamos por Sparkles icon ou algo similar
-    const sparkles = page.locator('.lucide-sparkles');
-    if (await sparkles.isVisible()) {
-        // Interação com presets...
-    }
-  });
-
-  test("Acessibilidade — Atalhos e Foco", async ({ page }) => {
-    // Atalho Alt+F para Super Filtro (mesmo que já estejamos lá, testamos o foco)
-    await page.keyboard.press("Alt+F");
-    // O foco deve ir para algum lugar relevante ou a página ser recarregada/focada
-    
-    // Navegação por tab nas seções
+  test("Acessibilidade — Teclado e Estados", async ({ page }) => {
+    // Navegação por tab no cabeçalho de filtros
+    await page.locator('aside').focus();
     await page.keyboard.press("Tab");
-    const activeElement = await page.evaluate(() => document.activeElement?.tagName);
-    expect(activeElement).not.toBeNull();
+    
+    const resetBtn = page.locator('button[aria-label="Resetar todos os filtros"]');
+    // Deve estar desabilitado inicialmente
+    await expect(resetBtn).toBeDisabled();
+    
+    // Ativa um filtro
+    await page.locator('button:has-text("Opções Rápidas")').click();
+    await page.locator('button:has-text("Lançamento")').click();
+    
+    // Agora o reset deve estar habilitado
+    await expect(resetBtn).toBeEnabled();
+    
+    // Testa o atalho de busca Alt+S ou F
+    await page.keyboard.press("Alt+f");
+    // Foco deve estar no input de busca global ou similar
   });
 
-  test("Regressão Visual — Estado Inicial e Estados de Filtro", async ({ page }) => {
-    // Screenshot inicial
-    await expect(page).toHaveScreenshot("super-filtro-desktop-initial.png");
+  test("Regressão Visual — Diferentes Skins", async ({ page }) => {
+    const SKINS = ["corporate", "diversity", "ocean"];
     
-    // Abre várias seções e tira screenshot
-    const sections = ["Cores", "Categorias", "Faixa de Preço"];
-    for (const sec of sections) {
-        const btn = page.locator(`button:has-text("${sec}")`);
-        if (await btn.isVisible()) await btn.click();
+    for (const skin of SKINS) {
+        // Aplica skin via localStorage
+        await page.addInitScript((sId) => {
+          localStorage.setItem("gifts-store-theme-config", JSON.stringify({
+            presetId: sId,
+            radius: 14,
+            mode: "light"
+          }));
+        }, skin);
+        
+        await page.reload();
+        await waitForRouteIdle(page);
+        
+        await expect(page).toHaveScreenshot(`super-filtro-skin-${skin}.png`);
     }
-    
-    await page.waitForTimeout(500);
-    await expect(page).toHaveScreenshot("super-filtro-sections-expanded.png");
   });
 });
