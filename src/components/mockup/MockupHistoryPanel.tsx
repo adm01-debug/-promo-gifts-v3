@@ -3,7 +3,7 @@
  * Refatorado: Lightbox extraído para MockupLightbox.tsx
  */
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useDeferredValue, memo } from "react";
 import { cn } from "@/lib/utils";
 import { LayoutPopover } from "@/components/products/LayoutPopover";
 import { getDefaultColumns, type ColumnCount } from "@/components/products/ColumnSelector";
