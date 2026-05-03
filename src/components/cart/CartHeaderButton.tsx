@@ -1,8 +1,9 @@
 /**
  * CartHeaderButton - Ícone de carrinho no header com popover de resumo
+ * Melhorado com skeletons de carregamento e UX de acesso rápido (Onda 10/10)
  */
 
-import { ShoppingCart, Trash2, Plus, Building2, Package, X, ArrowRight, Eraser, Minus } from "lucide-react";
+import { ShoppingCart, Trash2, Plus, Building2, Package, X, ArrowRight, Eraser, Minus, Eye } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -149,16 +150,29 @@ export function CartHeaderButton() {
               </div>
 
               {isLoading ? (
-                <div className="p-3 space-y-2">
+                <div className="p-3 space-y-3">
                   {[...Array(2)].map((_, i) => (
-                    <div key={i} className="rounded-xl border border-border/40 p-3 space-y-2">
-                      <div className="flex items-center gap-2">
+                    <div key={i} className="rounded-xl border border-border/40 p-3 space-y-4 animate-pulse">
+                      <div className="flex items-center gap-2.5">
                         <Skeleton className="h-9 w-9 rounded-lg" />
-                        <div className="flex-1 space-y-1.5">
-                          <Skeleton className="h-3 w-1/2" />
-                          <Skeleton className="h-2 w-1/3" />
+                        <div className="flex-1 space-y-2">
+                          <Skeleton className="h-3.5 w-1/2" />
+                          <Skeleton className="h-2.5 w-1/3" />
                         </div>
                       </div>
+                      {i === 0 && (
+                        <div className="space-y-2.5 pt-2 border-t border-border/20">
+                          {[...Array(2)].map((_, j) => (
+                            <div key={j} className="flex items-center gap-2">
+                              <Skeleton className="h-8 w-8 rounded-lg" />
+                              <div className="flex-1 space-y-1.5">
+                                <Skeleton className="h-2.5 w-3/4" />
+                                <Skeleton className="h-2 w-1/4" />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -282,34 +296,44 @@ export function CartHeaderButton() {
                             {isActive && cart.items.length > 0 && (
                               <div className="border-t border-border/30 px-3 py-2 space-y-1.5">
                                 {cart.items.slice(0, 5).map((item) => (
-                                  <div
-                                    key={item.id}
-                                    className="flex items-start gap-2.5 py-1.5 px-1.5 rounded-lg hover:bg-background/60 group/item transition-colors"
-                                  >
-                                    {item.product_image_url ? (
-                                      <img
-                                        src={item.product_image_url}
-                                        alt="Logo da empresa"
-                                        className="w-9 h-9 rounded-lg object-contain bg-background border border-border/30 flex-shrink-0 p-0.5 mt-0.5" loading="lazy" />
-                                    ) : (
-                                      <div className="w-9 h-9 rounded-lg bg-muted/40 flex-shrink-0 flex items-center justify-center mt-0.5">
-                                        <Package className="h-3.5 w-3.5 text-muted-foreground/50" />
-                                      </div>
-                                    )}
-                                    
-                                    <div className="flex-1 min-w-0">
-                                      {/* Product name - 2 lines */}
-                                      <p className="text-xs text-foreground/90 leading-tight line-clamp-2">
-                                        {item.product_name}
-                                      </p>
+                                   <div
+                                     key={item.id}
+                                     className="flex items-start gap-2.5 py-1.5 px-1.5 rounded-lg hover:bg-background/60 group/item transition-colors relative"
+                                   >
+                                     <div className="relative flex-shrink-0 group/img">
+                                       {item.product_image_url ? (
+                                         <img
+                                           src={item.product_image_url}
+                                           alt={item.product_name}
+                                           className="w-9 h-9 rounded-lg object-contain bg-background border border-border/30 p-0.5 mt-0.5 transition-transform group-hover/img:scale-110" 
+                                           loading="lazy" 
+                                         />
+                                       ) : (
+                                         <div className="w-9 h-9 rounded-lg bg-muted/40 flex items-center justify-center mt-0.5">
+                                           <Package className="h-3.5 w-3.5 text-muted-foreground/50" />
+                                         </div>
+                                       )}
+                                       <button 
+                                         onClick={(e) => { e.stopPropagation(); navigate(`/produto/${item.product_id}`); setOpen(false); }}
+                                         className="absolute inset-0 bg-primary/10 flex items-center justify-center rounded-lg opacity-0 group-hover/img:opacity-100 transition-opacity"
+                                       >
+                                         <Eye className="h-3 w-3 text-primary" />
+                                       </button>
+                                     </div>
+                                     
+                                     <div className="flex-1 min-w-0">
+                                       <p className="text-[11px] font-medium text-foreground/90 leading-tight line-clamp-2 hover:text-primary transition-colors cursor-pointer"
+                                          onClick={(e) => { e.stopPropagation(); navigate(`/produto/${item.product_id}`); setOpen(false); }}>
+                                         {item.product_name}
+                                       </p>
                                       {/* Price + Qty stepper row */}
-                                      <div className="flex items-center justify-between mt-1.5 gap-2">
-                                        <PriceLabel 
-                                          label="Unitário" 
-                                          value={item.product_price}
-                                          isPrimary 
-                                          className="flex-row items-center gap-1.5 space-y-0"
-                                        />
+                                       <div className="flex items-center justify-between mt-1.5 gap-2">
+                                         <PriceLabel 
+                                           label="Unitário" 
+                                           value={item.product_price}
+                                           isPrimary 
+                                           className="flex-row items-center gap-1.5 space-y-0 text-[10px]"
+                                         />
                                         {/* Qty stepper */}
                                         <div className="flex items-center gap-0 border border-border/50 rounded-md overflow-hidden">
                                           <button
@@ -343,19 +367,26 @@ export function CartHeaderButton() {
                                           </button>
                                         </div>
                                       </div>
-                                    </div>
+                                     </div>
 
-                                    {/* Remove button */}
-                                    <button
-                                      className="h-5 w-5 flex items-center justify-center opacity-0 group-hover/item:opacity-100 text-muted-foreground hover:text-destructive transition-all flex-shrink-0 rounded mt-0.5"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        removeItem(item.id);
-                                      }}
-                                    >
-                                      <X className="h-3 w-3" />
-                                    </button>
-                                  </div>
+                                     {/* Subtotal vertical for quick scanning */}
+                                     <PriceLabel 
+                                       label="Total" 
+                                       value={item.product_price * item.quantity}
+                                       className="items-end min-w-[60px]"
+                                     />
+
+                                     {/* Remove button */}
+                                     <button
+                                       className="h-5 w-5 flex items-center justify-center opacity-0 group-hover/item:opacity-100 text-muted-foreground hover:text-destructive transition-all flex-shrink-0 rounded mt-0.5"
+                                       onClick={(e) => {
+                                         e.stopPropagation();
+                                         removeItem(item.id);
+                                       }}
+                                     >
+                                       <X className="h-3 w-3" />
+                                     </button>
+                                   </div>
                                 ))}
                                 {cart.items.length > 5 && (
                                   <p className="text-[10px] text-muted-foreground text-center py-1">

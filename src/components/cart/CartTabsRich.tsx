@@ -7,6 +7,7 @@ import { Building2, Plus, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { differenceInDays } from "date-fns";
 import { getStatusCfg } from "@/components/cart/CartUtilComponents";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface CartTabsRichProps {
   carts: SellerCart[];
@@ -14,9 +15,27 @@ interface CartTabsRichProps {
   canCreateCart: boolean;
   onSelect: (id: string) => void;
   onNew: () => void;
+  isLoading?: boolean;
 }
 
-export function CartTabsRich({ carts, activeCartId, canCreateCart, onSelect, onNew }: CartTabsRichProps) {
+export function CartTabsRich({ carts, activeCartId, canCreateCart, onSelect, onNew, isLoading }: CartTabsRichProps) {
+  if (isLoading) {
+    return (
+      <div className="flex gap-2 overflow-x-auto pb-1 animate-pulse">
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl border border-border/30 bg-muted/5 w-[180px] flex-shrink-0">
+            <Skeleton className="w-7 h-7 rounded-lg opacity-40" />
+            <div className="flex flex-col gap-1.5 flex-1">
+              <Skeleton className="h-3 w-2/3 opacity-30" />
+              <Skeleton className="h-2 w-1/3 opacity-20" />
+            </div>
+            <Skeleton className="w-5 h-5 rounded-full opacity-30" />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="flex gap-2 overflow-x-auto pb-1">
       {carts.map(cart => {

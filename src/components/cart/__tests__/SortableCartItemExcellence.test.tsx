@@ -96,4 +96,10 @@ describe("SortableCartItem Excellence UI", () => {
     expect(screen.getByText(/Unitário/i)).toBeDefined();
     expect(screen.getByText(/Subtotal/i)).toBeDefined();
   });
+
+  it("uses standard price styling", () => {
+    renderComponent();
+    const subtotalLabel = screen.getByText(/Subtotal/i);
+    expect(subtotalLabel).toHaveClass("uppercase", "font-bold", "opacity-60");
+  });
 });
