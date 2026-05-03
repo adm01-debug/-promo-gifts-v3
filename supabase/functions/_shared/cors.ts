@@ -162,8 +162,17 @@ export function getCorsHeaders(req?: Request): Record<string, string> {
     logPreflightFromRequest(req, origin);
   }
 
+  // Security Headers for non-OPTIONS responses
+  const securityHeaders = req?.method !== 'OPTIONS' ? {
+    'X-Content-Type-Options': CORS_HEADERS_BASE['X-Content-Type-Options'],
+    'X-Frame-Options': CORS_HEADERS_BASE['X-Frame-Options'],
+    'Strict-Transport-Security': CORS_HEADERS_BASE['Strict-Transport-Security'],
+    'Content-Security-Policy': CORS_HEADERS_BASE['Content-Security-Policy'],
+  } : {};
+
   return {
     ...CORS_HEADERS_BASE,
+    ...securityHeaders,
     'Access-Control-Allow-Origin': getBestAllowedOrigin(origin),
   };
 }
@@ -203,6 +212,9 @@ export function buildPublicCorsHeaders(opts: PublicCorsOptions = {}): Record<str
     'Access-Control-Allow-Headers': Array.from(merged).join(', '),
     'Access-Control-Allow-Methods': opts.allowMethods ?? CORS_HEADERS_BASE['Access-Control-Allow-Methods'],
     'Access-Control-Expose-Headers': 'x-request-id',
+    'X-Content-Type-Options': 'nosniff',
+    'X-Frame-Options': 'DENY',
+    'Content-Security-Policy': "default-src 'none'; frame-ancestors 'none'; sandbox",
   };
 }
 
