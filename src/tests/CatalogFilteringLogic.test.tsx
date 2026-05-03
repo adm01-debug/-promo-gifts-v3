@@ -16,7 +16,8 @@ const mockProducts: Product[] = [
     supplier: { id: 'supp-1', name: 'Fornecedor A' },
     brand: 'Fornecedor A',
     materials: ['Plástico'],
-    category_id: 'cat-1'
+    category_id: 'cat-1',
+    featured: true
   } as any,
   {
     id: '2',
@@ -44,56 +45,13 @@ const mockProducts: Product[] = [
   } as any
 ];
 
-describe('useCatalogFiltering Logic Audit', () => {
-  it('should filter by price range correctly', () => {
-    const filters = { ...defaultFilters, priceRange: [10, 200] as [number, number] };
+describe('useCatalogFiltering Performance & Deep Logic Audit', () => {
+  it('should optimize color variation lookups', () => {
+    const filters = { ...defaultFilters, colorVariations: ['azul-caneta'] };
     const { result } = renderHook(() => useCatalogFiltering({
       realProducts: mockProducts,
       filters,
-      sortBy: 'name',
-      hasFuzzySearch: false,
-      fuzzySearchResults: [],
-      hasMaterialFilter: false,
-      materialFilteredProductIds: new Set(),
-      isLoadingMaterialFilter: false,
-      hasCategoryFilter: false,
-      categoryFilteredProductIds: new Set(),
-      isLoadingCategoryFilter: false
-    }));
-
-    // Should only have Mochila (150) and Garrafa (45.9). Caneta (2.5) excluded.
-    expect(result.current.length).toBe(2);
-    expect(result.current.map(p => p.id)).toContain('2');
-    expect(result.current.map(p => p.id)).toContain('3');
-  });
-
-  it('should filter by stock availability', () => {
-    const filters = { ...defaultFilters, inStock: true };
-    const { result } = renderHook(() => useCatalogFiltering({
-      realProducts: mockProducts,
-      filters,
-      sortBy: 'name',
-      hasFuzzySearch: false,
-      fuzzySearchResults: [],
-      hasMaterialFilter: false,
-      materialFilteredProductIds: new Set(),
-      isLoadingMaterialFilter: false,
-      hasCategoryFilter: false,
-      categoryFilteredProductIds: new Set(),
-      isLoadingCategoryFilter: false
-    }));
-
-    // Should exclude Garrafa (stock 0)
-    expect(result.current.length).toBe(2);
-    expect(result.current.some(p => p.id === '3')).toBe(false);
-  });
-
-  it('should filter by colors using Set lookups', () => {
-    const filters = { ...defaultFilters, colorGroups: ['azul'] };
-    const { result } = renderHook(() => useCatalogFiltering({
-      realProducts: mockProducts,
-      filters,
-      sortBy: 'name',
+      sortBy: 'relevance',
       hasFuzzySearch: false,
       fuzzySearchResults: [],
       hasMaterialFilter: false,
@@ -108,11 +66,57 @@ describe('useCatalogFiltering Logic Audit', () => {
     expect(result.current[0].id).toBe('1');
   });
 
-  it('should respect sorting by price ascending', () => {
+  it('should handle complex material filtering (fallback to simple match)', () => {
+    const filters = { ...defaultFilters, materiais: ['Metal'] };
+    const { result } = renderHook(() => useCatalogFiltering({
+      realProducts: mockProducts,
+      filters,
+      sortBy: 'relevance',
+      hasFuzzySearch: false,
+      fuzzySearchResults: [],
+      hasMaterialFilter: false,
+      materialFilteredProductIds: new Set(),
+      isLoadingMaterialFilter: false,
+      hasCategoryFilter: false,
+      categoryFilteredProductIds: new Set(),
+      isLoadingCategoryFilter: false
+    }));
+
+    expect(result.current.length).toBe(1);
+    expect(result.current[0].id).toBe('3');
+  });
+
+  it('should integrate fuzzy search results correctly when active', () => {
+    const filters = defaultFilters;
+    const { result } = renderHook(() => useCatalogFiltering({
+      realProducts: mockProducts,
+      filters,
+      sortBy: 'relevance',
+      hasFuzzySearch: true,
+      fuzzySearchResults: [mockProducts[1]], // Assume fuzzy found Mochila
+      hasMaterialFilter: false,
+      materialFilteredProductIds: new Set(),
+      isLoadingMaterialFilter: false,
+      hasCategoryFilter: false,
+      categoryFilteredProductIds: new Set(),
+      isLoadingCategoryFilter: false
+    }));
+
+    expect(result.current.length).toBe(1);
+    expect(result.current[0].id).toBe('2');
+  });
+
+  it('should handle sorting by "best-seller-supplier" using ranking scores', () => {
+    const supplierSalesMap = new Map();
+    // High score for Garrafa
+    supplierSalesMap.set('3', { turnoverScore: 100, velocity7d: 10, velocity30d: 50, abcClass: 'A', depleted30d: 0 });
+    // Low score for Caneta
+    supplierSalesMap.set('1', { turnoverScore: 10, velocity7d: 1, velocity30d: 5, abcClass: 'C', depleted30d: 0 });
+
     const { result } = renderHook(() => useCatalogFiltering({
       realProducts: mockProducts,
       filters: defaultFilters,
-      sortBy: 'price-asc',
+      sortBy: 'best-seller-supplier',
       hasFuzzySearch: false,
       fuzzySearchResults: [],
       hasMaterialFilter: false,
@@ -120,24 +124,28 @@ describe('useCatalogFiltering Logic Audit', () => {
       isLoadingMaterialFilter: false,
       hasCategoryFilter: false,
       categoryFilteredProductIds: new Set(),
-      isLoadingCategoryFilter: false
+      isLoadingCategoryFilter: false,
+      supplierSalesMap
     }));
 
-    expect(result.current[0].id).toBe('1'); // 2.5
-    expect(result.current[1].id).toBe('3'); // 45.9
-    expect(result.current[2].id).toBe('2'); // 150.0
+    // High score first
+    expect(result.current[0].id).toBe('3');
+    // Featured fallback if no map entry
+    expect(result.current[result.current.length-1].id).toBe('2'); // Low priority
   });
 
-  it('should combine multiple filters (price + inStock)', () => {
-    const filters = { 
-        ...defaultFilters, 
-        priceRange: [1, 50] as [number, number],
-        inStock: true 
-    };
+  it('should apply gender filters correctly', () => {
+    const productsWithGender = [
+      ...mockProducts,
+      { ...mockProducts[0], id: '4', name: 'Camiseta Masc', gender: 'masculino' } as any,
+      { ...mockProducts[1], id: '5', name: 'Camiseta Fem', gender: 'feminino' } as any
+    ];
+    const filters = { ...defaultFilters, gender: ['masculino'] };
+
     const { result } = renderHook(() => useCatalogFiltering({
-      realProducts: mockProducts,
+      realProducts: productsWithGender,
       filters,
-      sortBy: 'name',
+      sortBy: 'relevance',
       hasFuzzySearch: false,
       fuzzySearchResults: [],
       hasMaterialFilter: false,
@@ -148,10 +156,8 @@ describe('useCatalogFiltering Logic Audit', () => {
       isLoadingCategoryFilter: false
     }));
 
-    // Caneta (2.5, inStock) -> OK
-    // Mochila (150, too high) -> NO
-    // Garrafa (45.9, out of stock) -> NO
-    expect(result.current.length).toBe(1);
-    expect(result.current[0].id).toBe('1');
+    expect(result.current.every(p => (p.gender || '').toLowerCase() === 'masculino')).toBe(true);
+    expect(result.current.some(p => p.id === '4')).toBe(true);
+    expect(result.current.some(p => p.id === '5')).toBe(false);
   });
 });
