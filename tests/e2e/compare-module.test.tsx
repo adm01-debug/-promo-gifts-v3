@@ -193,8 +193,8 @@ describe('E2E Comparar — Módulo de Comparação', () => {
     });
   });
 
-  const renderPage = () => {
-    return render(
+  const renderPage = async () => {
+    const res = render(
       <QueryClientProvider client={queryClient}>
         <HelmetProvider>
           <BrowserRouter>
@@ -205,13 +205,18 @@ describe('E2E Comparar — Módulo de Comparação', () => {
         </HelmetProvider>
       </QueryClientProvider>
     );
+    // Aguarda microtasks para evitar warnings de act() em hooks assíncronos
+    await waitFor(() => {});
+    return res;
   };
 
+
   it('exibe estado vazio inteligente quando menos de 2 produtos estão na comparação', async () => {
-    renderPage();
+    await renderPage();
     expect(screen.getByText(/Selecione pelo menos 2 produtos para comparar/i)).toBeInTheDocument();
     expect(screen.getByText(/Explorar catálogo/i)).toBeInTheDocument();
   });
+
 
   it('exibe a tabela de comparação quando 2 ou mais produtos são adicionados', async () => {
     useComparisonStore.setState({
@@ -223,7 +228,7 @@ describe('E2E Comparar — Módulo de Comparação', () => {
       compareIds: ['prod-1', 'prod-2'],
     });
     
-    renderPage();
+    await renderPage();
 
     await waitFor(() => {
       expect(screen.getByText(/Comparador de Produtos/i)).toBeInTheDocument();
@@ -238,7 +243,7 @@ describe('E2E Comparar — Módulo de Comparação', () => {
       compareIds: ['prod-1', 'prod-2'],
     });
 
-    renderPage();
+    await renderPage();
 
     await waitFor(() => {
       const duelBtns = screen.getAllByText(/Modo Duelo/i);
@@ -253,7 +258,7 @@ describe('E2E Comparar — Módulo de Comparação', () => {
       compareIds: ['prod-1', 'prod-2', 'prod-3'],
     });
 
-    renderPage();
+    await renderPage();
 
     const tableTab = await screen.findByText(/Tabela Detalhada/i);
     fireEvent.click(tableTab);
@@ -279,7 +284,7 @@ describe('E2E Comparar — Módulo de Comparação', () => {
       compareIds: ['prod-1', 'prod-2', 'prod-3'],
     });
 
-    renderPage();
+    await renderPage();
 
     const diffBtn = await screen.findByText(/Só diferenças/i);
     fireEvent.click(diffBtn);
@@ -298,7 +303,7 @@ describe('E2E Comparar — Módulo de Comparação', () => {
       compareIds: ['prod-1', 'prod-2'],
     });
 
-    renderPage();
+    await renderPage();
 
     const clearBtn = await screen.findByText(/Limpar/i);
     fireEvent.click(clearBtn);
@@ -313,7 +318,7 @@ describe('E2E Comparar — Módulo de Comparação', () => {
       compareIds: ['prod-1', 'prod-2'],
     });
 
-    renderPage();
+    await renderPage();
 
     const backBtn = await screen.findByLabelText(/Voltar/i);
     expect(backBtn).toBeInTheDocument();

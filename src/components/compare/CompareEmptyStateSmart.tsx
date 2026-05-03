@@ -40,20 +40,15 @@ export function CompareEmptyStateSmart() {
     return () => { cancelled = true; };
   }, []);
 
-  const rpcProducts = getProductsByIds(topIds);
-  let products = rpcProducts;
-  if (rpcProducts.length === 0 && allProducts.length > 0) {
-    products = allProducts.slice(0, 6);
-    if (!usedFallback) {
-      // Usamos setImmediate ou setTimeout para evitar "update during render"
-      setTimeout(() => {
-        setUsedFallback(true);
-      }, 0);
+  // Controla o fallback via useEffect para evitar warnings de update durante o render
+  useEffect(() => {
+    if (!loading && topIds.length === 0 && allProducts.length > 0 && !usedFallback) {
+      setUsedFallback(true);
       logger.warn("[CompareEmptyStateSmart] Usando fallback de produtos do contexto");
     }
-  }
+  }, [loading, topIds.length, allProducts.length, usedFallback]);
 
-
+  const products = topIds.length > 0 ? getProductsByIds(topIds) : (usedFallback ? allProducts.slice(0, 6) : []);
 
   const handleAdd = (id: string, name: string) => {
     if (!canAddMore) {
@@ -79,7 +74,7 @@ export function CompareEmptyStateSmart() {
       </div>
 
       {!loading && products.length > 0 && (
-        <section className="w-full max-w-5xl space-y-3">
+        <section className="w-full max-w-5xl space-y-3 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <header className="flex items-center gap-2 justify-center">
             {usedFallback ? <Sparkles className="h-4 w-4 text-primary" /> : <Flame className="h-4 w-4 text-primary" />}
             <h2 className="font-display text-sm font-semibold uppercase tracking-wider text-muted-foreground">
