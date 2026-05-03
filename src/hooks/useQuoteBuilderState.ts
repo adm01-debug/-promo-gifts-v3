@@ -330,29 +330,45 @@ export function useQuoteBuilderState() {
   }, []);
 
   const calculateItemPersonalizationTotal = useCallback((item: QuoteItem) => {
-    return (item.personalizations || []).reduce((sum, p) => sum + (p.total_cost || 0), 0);
+    return QuoteCalc.calculateItemPersonalizationTotal(item);
   }, []);
 
   const calculateItemTotal = useCallback((item: QuoteItem) => {
-    return item.quantity * item.unit_price + calculateItemPersonalizationTotal(item);
-  }, [calculateItemPersonalizationTotal]);
+    return QuoteCalc.calculateItemTotal({
+      quantity: item.quantity,
+      unitPrice: item.unit_price,
+      personalizations: item.personalizations
+    });
+  }, []);
 
   // ── Subtotal real (sem markup) e apresentado (com markup) ──
-  const realSubtotal = useMemo(() => items.reduce((sum, item) => sum + calculateItemTotal(item), 0), [items, calculateItemTotal]);
-  const markup = useMemo(() => Math.min(50, Math.max(0, negotiationMarkup || 0)), [negotiationMarkup]);
-  const subtotal = useMemo(
-    () => markup > 0 ? Math.round(realSubtotal * (1 + markup / 100) * 100) / 100 : realSubtotal,
-    [realSubtotal, markup]
+  const realSubtotal = useMemo(() => 
+    QuoteCalc.calculateSubtotal(items.map(item => ({
+      quantity: item.quantity,
+      unitPrice: item.unit_price,
+      personalizations: item.personalizations
+    }))), 
+    [items]
   );
-  const discountAmount = useMemo(() => discountType === "percent" ? subtotal * (discountValue / 100) : discountValue, [subtotal, discountType, discountValue]);
+
+  const subtotal = useMemo(
+    () => QuoteCalc.applyMarkup(realSubtotal, negotiationMarkup),
+    [realSubtotal, negotiationMarkup]
+  );
+
+  const discountAmount = useMemo(
+    () => QuoteCalc.calculateDiscountAmount(subtotal, discountType, discountValue),
+    [subtotal, discountType, discountValue]
+  );
+
   const total = useMemo(() => Math.max(0, subtotal - discountAmount), [subtotal, discountAmount]);
 
   // ── Desconto REAL (sobre subtotal real) — usado para alçada ──
-  const realDiscountPercent = useMemo(() => {
-    if (realSubtotal <= 0) return 0;
-    const finalBeforeShipping = Math.max(0, subtotal - discountAmount);
-    return Math.round(((realSubtotal - finalBeforeShipping) / realSubtotal) * 10000) / 100;
-  }, [realSubtotal, subtotal, discountAmount]);
+  const realDiscountPercent = useMemo(
+    () => QuoteCalc.calculateRealDiscountPercent(realSubtotal, subtotal, discountAmount),
+    [realSubtotal, subtotal, discountAmount]
+  );
+
 
   // ── Item actions ──
   const toggleExpanded = useCallback((index: number) => {
