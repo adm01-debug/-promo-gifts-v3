@@ -220,9 +220,9 @@ function SellerCartsContent() {
             <FollowUpTimer createdAt={s.activeCart.created_at} />
 
             {/* Notas sempre visíveis */}
-            <div className="space-y-1.5">
-              <label htmlFor="cart-notes" className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-                <FileText className="h-3.5 w-3.5" /> Notas da negociação
+            <div className="space-y-2 group/notes">
+              <label htmlFor="cart-notes" className="flex items-center gap-1.5 text-[11px] font-bold text-muted-foreground uppercase tracking-wider opacity-70 group-hover/notes:opacity-100 transition-opacity">
+                <FileText className="h-3 w-3" /> Notas da negociação
               </label>
               <Textarea
                 id="cart-notes"
@@ -230,8 +230,8 @@ function SellerCartsContent() {
                 value={s.localCartNotes}
                 onChange={(e) => s.handleCartNotesChange(e.target.value)}
                 placeholder={notesPlaceholder}
-                className="text-sm min-h-[64px] resize-y"
-                rows={2}
+                className="text-sm min-h-[80px] resize-y border-border/40 focus:border-primary/40 focus:ring-primary/10 transition-all rounded-xl"
+                rows={3}
               />
             </div>
 
