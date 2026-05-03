@@ -198,18 +198,20 @@ export const SortableCartItem = memo(function SortableCartItem({
 
           {/* Stock alert badge */}
           {(isLowStock || isOutOfStock) && (
-            <div
+            <motion.div
               data-testid={isOutOfStock ? "cart-item-stock-out" : "cart-item-stock-low"}
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
               className={cn(
-                "absolute bottom-2 right-2 flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-medium",
+                "absolute bottom-3 right-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold shadow-lg backdrop-blur-md z-20 border",
                 isOutOfStock
-                  ? "bg-destructive/90 text-destructive-foreground"
-                  : "bg-warning/90 text-warning-foreground",
+                  ? "bg-destructive/90 text-destructive-foreground border-destructive/20"
+                  : "bg-warning/90 text-warning-foreground border-warning/20",
               )}
             >
-              <AlertTriangle className="h-3 w-3" />
-              {isOutOfStock ? "Sem estoque" : `Estoque: ${stock}`}
-            </div>
+              <AlertTriangle className="h-3.5 w-3.5" />
+              {isOutOfStock ? "SEM ESTOQUE" : `ESTOQUE: ${stock}`}
+            </motion.div>
           )}
 
           {/* Color badge */}
