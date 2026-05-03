@@ -54,7 +54,7 @@ interface CartSidebarProps {
 
 export function CartSidebar({
   cart, otherCarts, cartSubtotal, cartTotalQty, cartAge, weightVolume,
-  allProducts, templates, canCreateCart,
+  allProducts, isLoadingProducts, templates, canCreateCart,
   onGenerateQuote, onShareCart, onDuplicateCart, onExportCSV, onExportPDF,
   onSaveTemplate, onLoadTemplate, onDeleteTemplate, onClear, onNavigate, onSetActiveCartId,
   onFocusNotes,
