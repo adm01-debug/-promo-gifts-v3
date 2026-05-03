@@ -20,8 +20,8 @@ export function ComparisonPresentationLauncher({ products, formatCurrency, trigg
   const [open, setOpen] = useState(false);
   const [slide, setSlide] = useState(0);
   const totalSlides = products.length + 1; // +1 para slide final tabela
-  const { items: scoreItems } = useComparisonScore(products);
-  const winnerIdx = scoreItems.length > 0
+  const { items: scoreItems = [] } = useComparisonScore(products) || { items: [] };
+  const winnerIdx = (scoreItems && scoreItems.length > 0)
     ? scoreItems.reduce((best, cur, idx, arr) => cur.score > arr[best].score ? idx : best, 0)
     : -1;
 
