@@ -80,12 +80,12 @@ test.describe("Módulo: Detalhe do Produto (PDP) — Testes Abrangentes", () => 
     
     // Rola para baixo
     await page.evaluate(() => window.scrollTo(0, 800));
-    await page.waitForTimeout(500);
+    // Espera a animação do Framer Motion e o debounce do scroll
+    await page.waitForTimeout(1000);
     
     // O Header Sticky deve aparecer
     const stickyHeader = page.locator('[data-testid="product-sticky-header"]');
-    // Nota: Verifique se o data-testid existe no componente ProductStickyHeader
-    await expect(page.locator('header')).toBeVisible(); 
+    await expect(stickyHeader).toBeVisible(); 
   });
 
   test("Favoritar Produto e Seleção de Variante", async ({ page }) => {
