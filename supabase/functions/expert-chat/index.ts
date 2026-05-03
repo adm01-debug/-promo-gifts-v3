@@ -405,8 +405,11 @@ async function semanticProductSearch(
     ...expansion.useCases,
   ];
 
-  // Deduplicate and limit
-  const uniqueTerms = [...new Set([...allTerms, ...fallbackTerms].map(t => t.toLowerCase()))].slice(0, 15);
+  // Deduplicate, limit and SANITIZE (remove PostgREST special chars: , . ( ) )
+  const uniqueTerms = [...new Set([...allTerms, ...fallbackTerms]
+    .map(t => t.toLowerCase().replace(/[(),.]/g, " ").trim()))]
+    .filter(t => t.length >= 3)
+    .slice(0, 15);
 
   if (uniqueTerms.length === 0) {
     return { products: [], searchMethod: "none" };
