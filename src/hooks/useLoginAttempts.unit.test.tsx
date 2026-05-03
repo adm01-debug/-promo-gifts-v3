@@ -57,12 +57,8 @@ describe("useLoginAttempts Hook", () => {
 
   it("handles errors from supabase gracefully", async () => {
     const fromSpy = vi.mocked(supabase.from);
-    const mockQuery = {
-      select: vi.fn().mockReturnThis(),
-      order: vi.fn().mockReturnThis(),
-      range: vi.fn().mockResolvedValue({ data: null, error: { message: "DB Error" } }),
-    };
-    fromSpy.mockReturnValue(mockQuery as any);
+    const mockQuery = fromSpy() as any;
+    mockQuery.range.mockResolvedValue({ data: null, error: { message: "DB Error" } });
 
     const { result } = renderHook(() => useLoginAttempts(), { wrapper });
 
