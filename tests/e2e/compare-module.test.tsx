@@ -193,8 +193,8 @@ describe('E2E Comparar — Módulo de Comparação', () => {
     });
   });
 
-  const renderPage = () => {
-    return render(
+  const renderPage = async () => {
+    const res = render(
       <QueryClientProvider client={queryClient}>
         <HelmetProvider>
           <BrowserRouter>
@@ -205,7 +205,11 @@ describe('E2E Comparar — Módulo de Comparação', () => {
         </HelmetProvider>
       </QueryClientProvider>
     );
+    // Aguarda microtasks para evitar warnings de act() em hooks assíncronos
+    await waitFor(() => {});
+    return res;
   };
+
 
   it('exibe estado vazio inteligente quando menos de 2 produtos estão na comparação', async () => {
     renderPage();
