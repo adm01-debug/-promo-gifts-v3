@@ -98,26 +98,27 @@ export const SortableCartItem = memo(function SortableCartItem({
            aria-label="Arrastar">
             <GripVertical className="h-3.5 w-3.5" />
           </button>
-
           <div
             data-testid="cart-item-image"
-            className="w-full h-full cursor-pointer"
+            className="w-full h-full cursor-pointer relative"
             onClick={() => onNavigate(`/produto/${item.product_id}`)}
           >
-            {item.product_image_url ? (
-              <motion.img 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                src={item.product_image_url} 
-                alt={item.product_name} 
-                className="w-full h-full object-contain p-4" 
-                loading="lazy" 
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
+            {!item.product_image_url && (
+              <div className="absolute inset-0 flex items-center justify-center">
                 <Package className="h-12 w-12 text-muted-foreground/30" />
               </div>
             )}
+            <motion.img 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              src={item.product_image_url || "/placeholder.svg"} 
+              alt={item.product_name} 
+              className={cn(
+                "w-full h-full object-contain p-4 transition-all duration-300",
+                !item.product_image_url && "opacity-0"
+              )} 
+              loading="lazy" 
+            />
           </div>
 
           {/* Quick view overlay */}
