@@ -28,7 +28,7 @@ import { useSupplierSalesRanking } from "@/hooks/useSupplierSalesRanking";
 import { useCatalogFiltering } from "./useCatalogFiltering";
 
 export type ViewMode = "grid" | "list" | "table";
-export type SortOption = "name" | "price-asc" | "price-desc" | "stock" | "newest" | "color-match" | "best-seller-supplier" | "best-seller-promo";
+export type SortOption = "relevance" | "name" | "price-asc" | "price-desc" | "stock" | "newest" | "color-match" | "best-seller-supplier" | "best-seller-promo";
 
 const VIEW_MODE_KEY = "catalog-view-mode";
 
