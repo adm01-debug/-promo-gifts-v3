@@ -181,6 +181,7 @@ export function ArtFileUpload({
           setIsDragging(false);
           if (e.dataTransfer.files?.length) handleFiles(e.dataTransfer.files);
         }}
+        data-testid="mockup-art-file-dropzone"
         className={cn(
           "border-2 border-dashed p-6 text-center transition-colors cursor-pointer",
           isDragging ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
