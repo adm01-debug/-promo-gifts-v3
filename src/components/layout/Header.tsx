@@ -92,13 +92,12 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
       data-testid="app-header"
       style={{
         "--header-h": `${headerHeightPx}px`,
+        left: "var(--header-left, 0px)",
       } as CSSProperties}
       className={cn(
-        "fixed top-0 left-0 right-0 z-50 border-b transition-all duration-300 print:hidden",
+        "fixed top-0 right-0 z-40 border-b transition-all duration-300 print:hidden",
         "bg-card/95 backdrop-blur-md border-border",
         "h-[var(--header-h)]",
-        // Em telas grandes, deixa espaço para a sidebar fixa de 256px (lg:w-64)
-        "lg:left-64",
         isScrolled && "bg-card/98 backdrop-blur-lg shadow-md border-border/80",
       )}
     >
