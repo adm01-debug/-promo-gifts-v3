@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { sanitizeString } from "./validation";
+import { sanitizeString } from "../validation";
 
 describe("Security Sanitization", () => {
   it("should escape HTML tags to prevent XSS", () => {
