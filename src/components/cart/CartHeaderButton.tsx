@@ -9,14 +9,12 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useSellerCartContext } from "@/contexts/SellerCartContext";
-import { CartCompanyPicker } from "./CartCompanyPicker";
-import { cn } from "@/lib/utils";
-import { useState, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { CartCompanyPicker } from \"./CartCompanyPicker\";
+import { PriceLabel } from \"./CartUtilComponents\";
+import { cn } from \"@/lib/utils\";
+import { useState, useEffect, useCallback } from \"react\";
+import { motion, AnimatePresence } from \"framer-motion\";
 
-function formatCurrency(value: number) {
-  return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-}
 
 export function CartHeaderButton() {
   const navigate = useNavigate();
@@ -306,9 +304,12 @@ export function CartHeaderButton() {
                                       </p>
                                       {/* Price + Qty stepper row */}
                                       <div className="flex items-center justify-between mt-1.5 gap-2">
-                                        <span className="text-[11px] font-semibold text-primary tabular-nums">
-                                          {formatCurrency(item.product_price)}
-                                        </span>
+                                        <PriceLabel 
+                                          label=\"Unitário\" 
+                                          value={item.product_price}
+                                          isPrimary 
+                                          className=\"flex-row items-center gap-1.5 space-y-0\"
+                                        />
                                         {/* Qty stepper */}
                                         <div className="flex items-center gap-0 border border-border/50 rounded-md overflow-hidden">
                                           <button

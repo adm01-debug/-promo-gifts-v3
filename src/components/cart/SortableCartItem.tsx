@@ -22,10 +22,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { type SellerCart, type SellerCartItem } from "@/hooks/useSellerCarts";
-
-function formatCurrency(value: number) {
-  return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-}
+import { PriceLabel } from "./CartUtilComponents";
 
 interface SortableCartItemProps {
   item: SellerCartItem;
@@ -227,13 +224,13 @@ export const SortableCartItem = memo(function SortableCartItem({
             </h4>
           </div>
 
-          <div className="flex items-center justify-between">
-            <div className="flex flex-col">
-              <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-tight opacity-60">Unitário</span>
-              <span data-testid="cart-item-unit-price" className="text-sm font-bold text-primary tabular-nums">
-                {formatCurrency(item.product_price)}
-              </span>
-            </div>
+          <div className=\"flex items-center justify-between\">
+            <PriceLabel 
+              label=\"Unitário\" 
+              value={item.product_price} 
+              testId=\"cart-item-unit-price\"
+              isPrimary 
+            />
           </div>
 
           {/* Quantity stepper */}
@@ -277,12 +274,12 @@ export const SortableCartItem = memo(function SortableCartItem({
                 <Plus className="h-3.5 w-3.5" />
               </button>
             </div>
-            <div className="flex flex-col items-end">
-              <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-tight opacity-60">Subtotal</span>
-              <span data-testid="cart-item-total" className="text-sm font-bold text-foreground tabular-nums">
-                {formatCurrency(itemTotal)}
-              </span>
-            </div>
+            <PriceLabel 
+              label=\"Subtotal\" 
+              value={itemTotal} 
+              testId=\"cart-item-total\"
+              className=\"items-end\" 
+            />
           </div>
 
           {/* Collapsible notes */}
