@@ -3,6 +3,7 @@ import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import QuoteBuilderPage from '../../src/pages/QuoteBuilderPage';
+import { useComparisonStore } from '../../src/stores/useComparisonStore';
 import { TooltipProvider } from '../../src/components/ui/tooltip';
 import { HelmetProvider } from 'react-helmet-async';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -13,7 +14,7 @@ const queryClient = new QueryClient({
 
 window.scrollTo = vi.fn();
 
-// Mocks consolidados para estabilidade
+// Mocks consolidados
 vi.mock('../../src/components/a11y/AriaLive', () => ({
   useAriaLive: () => ({ announce: vi.fn(), announceStatus: vi.fn() }),
   AriaLiveProvider: ({ children }: any) => <div>{children}</div>,
@@ -51,7 +52,7 @@ vi.mock('../../src/integrations/supabase/client', () => {
     supabase: {
       auth: { 
         getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'u1' } } }),
-        getSession: vi.fn().mockResolvedValue({ data: { session: null }, error: null })
+        getSession: vi.fn().mockResolvedValue({ data: { session: { user: { id: 'u1' } } }, error: null })
       },
       from: vi.fn().mockReturnValue(chain), rpc: vi.fn().mockResolvedValue({ data: [] }),
       functions: { invoke: vi.fn().mockResolvedValue({ data: {}, error: null }) }
@@ -63,9 +64,10 @@ vi.mock('../../src/components/layout/MainLayout', () => ({
   MainLayout: ({ children }: any) => <div data-testid="main-layout">{children}</div>,
 }));
 
-describe('Módulo Novo Orçamento - Suite Exaustiva', () => {
+describe('Módulo Novo Orçamento - Suite Exaustiva Final', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    sessionStorage.clear();
   });
 
   const renderPage = async () => {
@@ -91,10 +93,16 @@ describe('Módulo Novo Orçamento - Suite Exaustiva', () => {
 
   it('Formulário: Identifica labels de Empresa e Contato', async () => {
     await renderPage();
-    // Busca flexível em múltiplos elementos
-    const labels = await screen.findAllByText(/Empresa/i);
-    expect(labels.length).toBeGreaterThan(0);
-    expect(screen.getByText(/Contato/i)).toBeInTheDocument();
+    const companyLabels = await screen.findAllByText(/Empresa/i);
+    expect(companyLabels.length).toBeGreaterThan(0);
+    const contactLabels = await screen.findAllByText(/Contato/i);
+    expect(contactLabels.length).toBeGreaterThan(0);
+  });
+
+  it('Resiliência: Resumo Financeiro está presente', async () => {
+    await renderPage();
+    expect(screen.getByText(/Resumo Financeiro/i)).toBeInTheDocument();
   });
 });
+
 
