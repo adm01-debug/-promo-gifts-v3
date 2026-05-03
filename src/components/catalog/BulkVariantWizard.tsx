@@ -272,8 +272,8 @@ export function BulkVariantWizard({ open, onOpenChange, products, mode, onComple
   if (!currentProduct) return null;
 
   const modeConfig: Record<BulkWizardMode, { icon: typeof ShoppingBag; title: string; colorClass: string; bgClass: string }> = {
-    cart: { icon: ShoppingBag, title: 'Adicionar ao Carrinho', colorClass: 'text-cart', bgClass: 'bg-cart/15' },
-    quote: { icon: FileText, title: 'Enviar para Orçamento', colorClass: 'text-primary', bgClass: 'bg-primary/15' },
+    cart: { icon: ShoppingBag, title: 'Adicionar ao Carrinho', colorClass: 'text-primary', bgClass: 'bg-primary/15' },
+    quote: { icon: FileText, title: 'Enviar para Orçamento', colorClass: 'text-success', bgClass: 'bg-success/15' },
     favorite: { icon: Heart, title: 'Favoritar com Cor', colorClass: 'text-destructive', bgClass: 'bg-destructive/15' },
     compare: { icon: GitCompare, title: 'Comparar com Cor', colorClass: 'text-primary', bgClass: 'bg-primary/15' },
     collection: { icon: FolderPlus, title: 'Coleção com Cor', colorClass: 'text-info', bgClass: 'bg-info/15' },
