@@ -420,6 +420,7 @@ export function useCatalogState() {
     viewMode, setViewMode,
     gridColumns, setGridColumns,
     sortBy, setSortBy,
+    refetchCatalog,
     selectionMode, setSelectionMode,
     selectedCount, setSelectedCount,
     toggleSelectionMode,
