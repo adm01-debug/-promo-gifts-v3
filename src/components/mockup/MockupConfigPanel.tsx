@@ -258,6 +258,20 @@ export function MockupConfigPanel({
               />
             </MobileCollapsibleSection>
 
+            {/* Step 5: Art Files */}
+            <MobileCollapsibleSection
+              id="step-art-files"
+              label="Arquivos de Arte (Vetor)"
+              isCompleted={artAttachments.length > 0}
+              summary={artAttachments.length > 0 ? `${artAttachments.length} arquivo(s)` : undefined}
+            >
+              <ArtFileUpload
+                userId={userId || ""}
+                attachments={artAttachments}
+                onAttachmentsChange={onArtAttachmentsChange}
+              />
+            </MobileCollapsibleSection>
+
             {/* Logo Color Analysis — auto-appears after logo upload */}
             {logoColorAnalysis && (logoColorAnalysis.colors.length > 0 || logoColorAnalysis.isAnalyzing) && (
               <MobileCollapsibleSection
