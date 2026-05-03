@@ -111,14 +111,23 @@ describe('Módulo Comparar - Visual & Resiliência', () => {
     expect(await screen.findByText(/Comparador de Produtos/i)).toBeInTheDocument();
   });
 
-  it('Transição: Detecta visualmente o Modo Duelo habilitado', async () => {
+  it('Transição: Detecta o Modo Duelo habilitado para exatamente 2 produtos', async () => {
     await renderPage();
-    // No estado inicial (2 produtos), deve mostrar o botão para ativar modo duelo ou ele já ativo
-    expect(await screen.findByText(/Modo Duelo/i)).toBeInTheDocument();
+    // Verifica por texto que indica o estado (usando getAll pois o badge e o botão podem compartilhar o termo)
+    const elements = await screen.findAllByText(/Modo Duelo/i);
+    expect(elements.length).toBeGreaterThan(0);
   });
 
   it('Estabilidade: Gráficos de performance persistentes', async () => {
     await renderPage();
     expect(screen.getByTestId('recharts-container')).toBeInTheDocument();
   });
+
+  it('Resiliência: Fallback visual ao limpar comparação', async () => {
+    await renderPage();
+    const clearBtn = await screen.findByText(/Limpar/i);
+    fireEvent.click(clearBtn);
+    expect(await screen.findByText(/Selecione pelo menos 2 produtos/i)).toBeInTheDocument();
+  });
 });
+
