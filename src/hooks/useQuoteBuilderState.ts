@@ -378,79 +378,22 @@ export function useQuoteBuilderState() {
 
 
   // ── Item actions ──
-  const toggleExpanded = useCallback((index: number) => {
-    setExpandedItems(prev => { const n = new Set(prev); n.has(index) ? n.delete(index) : n.add(index); return n; });
-  }, []);
-
-  const handlePersonalizationsChange = useCallback((index: number, personalizations: QuoteItemPersonalization[]) => {
-    setItems(prev => prev.map((item, idx) => idx === index ? { ...item, personalizations } : item));
-  }, []);
-
-  const handleProductClick = useCallback((product: Product) => {
-    setSelectedProductForColor(product);
-  }, []);
-
   const addProductWithColor = useCallback((product: Product, variant: ExternalVariantStock | null) => {
-    const colorName = variant?.color_name || undefined;
-    const colorHex = variant?.color_hex || undefined;
-    const sizeCode = variant?.size_code || undefined;
-    const imageUrl = variant?.selected_thumbnail || (variant?.images?.length ? variant.images[0] : undefined) || (Array.isArray(product.images) && product.images.length > 0 ? product.images[0] : undefined);
-    const existingIndex = items.findIndex(i => i.product_id === product.id && i.color_name === colorName && i.size_code === sizeCode);
-    if (existingIndex >= 0) {
-      setItems(prev => prev.map((item, idx) => idx === existingIndex ? { ...item, quantity: item.quantity + 1 } : item));
-      setActiveItemIndex(existingIndex);
-    } else {
-      setItems(prev => {
-        const newItems = [...prev, {
-          product_id: product.id, product_name: product.name, product_sku: product.sku,
-          product_image_url: imageUrl, quantity: 1, unit_price: product.price,
-          color_name: colorName, color_hex: colorHex, size_code: sizeCode,
-          bitrix_product_id: variant?.bitrix_product_id ?? null,
-          price_updated_at: product.priceUpdatedAt ?? null,
-          price_freshness_threshold_days: product.priceFreshnessThresholdDays ?? null,
-          personalizations: [],
-        }];
-        setActiveItemIndex(newItems.length - 1);
-        return newItems;
-      });
-    }
-    setSelectedProductForColor(null); setProductSearchOpen(false); setProductSearch("");
-  }, [items]);
-
-  const updateItemQuantity = useCallback((index: number, quantity: number) => {
-    if (quantity < 1) return;
-    setItems(prev => prev.map((item, idx) => idx === index ? { ...item, quantity } : item));
-  }, []);
-
-  const updateItemPrice = useCallback((index: number, price: number) => {
-    setItems(prev => prev.map((item, idx) => idx === index ? { ...item, unit_price: price } : item));
-  }, []);
-
-  const removeItem = useCallback((index: number) => {
-    setItems(prev => prev.filter((_, idx) => idx !== index));
-  }, []);
-
-  // ── Confirmação de preço com fornecedor (suprime badge "stale") ──
-  const confirmItemPrice = useCallback((index: number) => {
-    const ts = new Date().toISOString();
-    setItems(prev => prev.map((item, idx) => idx === index ? { ...item, price_confirmed_at: ts } : item));
-  }, []);
+    addProductWithColorInternal(product, variant);
+    setSelectedProductForColor(null); 
+    setProductSearchOpen(false); 
+    setProductSearch("");
+  }, [addProductWithColorInternal]);
 
   const confirmAllStalePrices = useCallback(() => {
     const ts = new Date().toISOString();
     setItems(prev => prev.map(item => {
       if (item.price_confirmed_at) return item;
-      // Apenas itens cujo preço esteja em estado de alerta (aging/stale) e ainda não confirmado
-      const days = item.price_updated_at
-        ? Math.max(0, Math.floor((Date.now() - new Date(item.price_updated_at).getTime()) / (1000 * 60 * 60 * 24)))
-        : null;
-      const threshold = item.price_freshness_threshold_days && item.price_freshness_threshold_days > 0
-        ? item.price_freshness_threshold_days
-        : 60;
-      const shouldWarn = days !== null && days >= threshold * 0.5; // aging começa em 50% do threshold
-      return shouldWarn ? { ...item, price_confirmed_at: ts } : item;
+      const f = getPriceFreshness(item.price_updated_at, item.price_freshness_threshold_days);
+      return f.shouldWarn ? { ...item, price_confirmed_at: ts } : item;
     }));
-  }, []);
+  }, [setItems]);
+
 
   // ── Template ──
   const applyTemplate = useCallback((template: QuoteTemplate) => {
