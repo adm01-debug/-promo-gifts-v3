@@ -155,6 +155,7 @@ describe('E2E Favoritos — Exportação (CSV/PDF/JSON)', () => {
   it('gera nome de arquivo seguro', () => {
     const listName = 'Minha Lista de Verão!';
     const safeName = listName.toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Remove acentos
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-|-$/g, "");
     expect(safeName).toBe('minha-lista-de-verao');
