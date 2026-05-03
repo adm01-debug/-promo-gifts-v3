@@ -258,7 +258,7 @@ describe('E2E Comparar — Módulo de Comparação', () => {
       compareIds: ['prod-1', 'prod-2', 'prod-3'],
     });
 
-    renderPage();
+    await renderPage();
 
     const tableTab = await screen.findByText(/Tabela Detalhada/i);
     fireEvent.click(tableTab);
