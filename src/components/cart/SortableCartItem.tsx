@@ -127,10 +127,10 @@ export const SortableCartItem = memo(function SortableCartItem({
           {/* Quick view overlay */}
           <div
             data-testid="cart-item-view"
-            className="absolute inset-0 bg-background/60 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
+            className="absolute inset-0 bg-primary/10 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center cursor-pointer z-20"
             onClick={() => onNavigate(`/produto/${item.product_id}`)}
           >
-            <Button variant="secondary" size="sm" className="gap-1.5 text-xs">
+            <Button variant="secondary" size="sm" className="gap-2 text-[11px] font-bold shadow-lg border border-white/20 bg-card/90 hover:bg-card">
               <Eye className="h-3.5 w-3.5" />
               Ver Produto
             </Button>
