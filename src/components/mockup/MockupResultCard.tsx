@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -40,7 +40,7 @@ interface MockupResultCardProps {
   annotations?: Annotation[];
 }
 
-export function MockupResultCard({
+export const MockupResultCard = memo(function MockupResultCard({
   generatedMockup,
   isLoading,
   onDownload,
@@ -280,4 +280,4 @@ export function MockupResultCard({
   }
 
   return null;
-}
+});
