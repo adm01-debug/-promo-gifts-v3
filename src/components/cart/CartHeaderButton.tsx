@@ -356,19 +356,26 @@ export function CartHeaderButton() {
                                           </button>
                                         </div>
                                       </div>
-                                    </div>
+                                     </div>
 
-                                    {/* Remove button */}
-                                    <button
-                                      className="h-5 w-5 flex items-center justify-center opacity-0 group-hover/item:opacity-100 text-muted-foreground hover:text-destructive transition-all flex-shrink-0 rounded mt-0.5"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        removeItem(item.id);
-                                      }}
-                                    >
-                                      <X className="h-3 w-3" />
-                                    </button>
-                                  </div>
+                                     {/* Subtotal vertical for quick scanning */}
+                                     <PriceLabel 
+                                       label="Total" 
+                                       value={item.product_price * item.quantity}
+                                       className="items-end min-w-[60px]"
+                                     />
+
+                                     {/* Remove button */}
+                                     <button
+                                       className="h-5 w-5 flex items-center justify-center opacity-0 group-hover/item:opacity-100 text-muted-foreground hover:text-destructive transition-all flex-shrink-0 rounded mt-0.5"
+                                       onClick={(e) => {
+                                         e.stopPropagation();
+                                         removeItem(item.id);
+                                       }}
+                                     >
+                                       <X className="h-3 w-3" />
+                                     </button>
+                                   </div>
                                 ))}
                                 {cart.items.length > 5 && (
                                   <p className="text-[10px] text-muted-foreground text-center py-1">
