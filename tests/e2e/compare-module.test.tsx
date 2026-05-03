@@ -318,7 +318,7 @@ describe('E2E Comparar — Módulo de Comparação', () => {
       compareIds: ['prod-1', 'prod-2'],
     });
 
-    renderPage();
+    await renderPage();
 
     const backBtn = await screen.findByLabelText(/Voltar/i);
     expect(backBtn).toBeInTheDocument();
