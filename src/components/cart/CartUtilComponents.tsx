@@ -55,23 +55,27 @@ export function getStatusCfg(status: string | undefined | null) {
   * PriceLabel - Componente padronizado para exibir rótulo + valor monetário
   */
  export function PriceLabel({ label, value, testId, className, isPrimary }: PriceLabelProps) {
-   return (
-     <div className={cn("flex flex-col", className)}>
-       <span className=\"text-[10px] text-muted-foreground uppercase font-bold tracking-tight opacity-60\">
-         {label}
-       </span>
-       <span 
-         data-testid={testId} 
-         className={cn(
-           \"text-sm font-bold tabular-nums\",
-           isPrimary ? \"text-primary\" : \"text-foreground\"
-         )}
-       >
-         {formatCurrency(value)}
-       </span>
-     </div>
-   );
- }
+  return (
+    <div className={cn("flex flex-col space-y-0.5", className)}>
+      <span className={cn(
+        "text-muted-foreground uppercase font-bold tracking-tight opacity-60",
+        className?.includes("flex-row") ? "text-[9px]" : "text-[10px]"
+      )}>
+        {label}
+      </span>
+      <span 
+        data-testid={testId} 
+        className={cn(
+          "font-bold tabular-nums",
+          className?.includes("flex-row") ? "text-[11px]" : "text-sm",
+          isPrimary ? "text-primary" : "text-foreground"
+        )}
+      >
+        {formatCurrency(value)}
+      </span>
+    </div>
+  );
+}
 
 // ============================================
 // ACTION HISTORY (in-memory per session)
