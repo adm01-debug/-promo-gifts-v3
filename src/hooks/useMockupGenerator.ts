@@ -52,6 +52,7 @@ export function useMockupGenerator() {
   // Generation
   const [generatedMockup, setGeneratedMockup] = useState<string | null>(null);
   const [generatedBatchMockups, setGeneratedBatchMockups] = useState<{areaName: string; url: string}[]>([]);
+  const [artAttachments, setArtAttachments] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [generationError, setGenerationError] = useState<string | null>(null);
   const [mockupAnnotations, setMockupAnnotations] = useState<{id: string; x: number; y: number; text: string}[]>([]);
