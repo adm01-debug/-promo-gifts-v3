@@ -115,12 +115,12 @@ export function ProductStickyHeader({
                   buttonSize="sm"
                   labelOverride="Carrinho"
                   iconOverride="cart"
-                  className="h-9 rounded-full px-5 bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-sm"
+                  className="h-9 rounded-full px-5 bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-sm transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
                 />
 
                 <Button
                   size="sm"
-                  className="h-9 rounded-full px-5 bg-success hover:bg-success/90 text-success-foreground font-medium text-sm gap-1.5"
+                  className="h-9 rounded-full px-5 bg-success hover:bg-success/90 text-success-foreground font-medium text-sm gap-1.5 transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
                   onClick={() => setQuoteWizardOpen(true)}
                 >
                   <FileText className="h-3.5 w-3.5" />
