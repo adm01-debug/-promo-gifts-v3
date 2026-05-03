@@ -398,6 +398,14 @@ export function useSellerCarts() {
     duplicateCart,
     moveItemToCart,
     duplicateItemToCart,
+    clearCart: async (cartId: string) => {
+      const { error } = await supabase
+        .from("seller_cart_items")
+        .delete()
+        .eq("cart_id", cartId);
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
+    },
     refetch: cartsQuery.refetch,
   };
 }
