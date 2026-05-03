@@ -106,21 +106,21 @@ export function getActionHistory(cartId: string): CartAction[] {
 // SKELETON LOADER
 // ============================================
 
-export function CartItemSkeleton() {
+export { CartItemSkeleton };
+
+export function SuggestionSkeleton() {
   return (
-    <Card className="overflow-hidden">
-      <Skeleton className="aspect-square w-full" />
-      <div className="p-3 space-y-2">
-        <Skeleton className="h-3 w-16" />
-        <Skeleton className="h-4 w-full" />
-        <Skeleton className="h-4 w-2/3" />
-        <Skeleton className="h-5 w-20" />
-        <div className="flex items-center justify-between pt-1 border-t border-border/30">
-          <Skeleton className="h-8 w-24" />
-          <Skeleton className="h-5 w-16" />
+    <div className="space-y-2">
+      {[1, 2].map((i) => (
+        <div key={i} className="flex items-start gap-2.5 p-3 rounded-xl border border-border/20 bg-muted/5">
+          <Skeleton className="h-5 w-5 rounded-full flex-shrink-0" />
+          <div className="space-y-1.5 flex-1">
+            <Skeleton className="h-3 w-full" />
+            <Skeleton className="h-3 w-4/5" />
+          </div>
         </div>
-      </div>
-    </Card>
+      ))}
+    </div>
   );
 }
 
