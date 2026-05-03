@@ -181,12 +181,14 @@ export function SmartSuggestions({ cart, allProducts }: { cart: SellerCart; allP
   if (suggestions.length === 0) return null;
 
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-2">
       {suggestions.map((s, i) => {
         const Icon = s.icon;
         return (
-          <div key={i} className="flex items-start gap-2 text-[10px] text-muted-foreground/80 bg-muted/20 rounded-lg px-2.5 py-2 border border-border/20">
-            <Icon className="h-3 w-3 mt-0.5 text-warning flex-shrink-0" />
+          <div key={i} className="flex items-start gap-2.5 text-[10px] text-muted-foreground leading-relaxed bg-primary/5 hover:bg-primary/10 transition-colors rounded-xl px-3 py-2.5 border border-primary/10">
+            <div className="p-1 rounded-full bg-background/80 shadow-sm flex-shrink-0 mt-0.5">
+              <Icon className="h-3 w-3 text-primary" />
+            </div>
             <span>{s.text}</span>
           </div>
         );
