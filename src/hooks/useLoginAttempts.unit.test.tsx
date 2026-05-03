@@ -12,6 +12,11 @@ const mockQuery = {
   ilike: vi.fn().mockReturnThis(),
   eq: vi.fn().mockReturnThis(),
 };
+mockQuery.select.mockReturnValue(mockQuery);
+mockQuery.order.mockReturnValue(mockQuery);
+mockQuery.range.mockReturnValue(mockQuery);
+mockQuery.ilike.mockReturnValue(mockQuery);
+mockQuery.eq.mockReturnValue(mockQuery);
 
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
