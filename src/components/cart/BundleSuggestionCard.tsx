@@ -44,13 +44,15 @@ export function BundleSuggestionCard({ productId, onAdd, className }: BundleSugg
   if (!isLoading && !data?.length) return null;
 
   return (
-    <Card className={`border-primary/20 ${className ?? ""}`}>
+    <Card className={`border-primary/20 shadow-sm hover:shadow-md transition-shadow animate-in zoom-in-95 duration-300 ${className ?? ""}`}>
       <CardHeader className="pb-2">
         <CardTitle className="text-sm flex items-center gap-2">
-          <Sparkles className="h-4 w-4 text-primary" />
+          <div className="p-1 rounded-md bg-primary/10">
+            <Sparkles className="h-4 w-4 text-primary" />
+          </div>
           Frequentemente orçado em conjunto
         </CardTitle>
-        <CardDescription className="text-xs">
+        <CardDescription className="text-[11px] leading-tight">
           Vendedores que orçaram este produto também incluíram:
         </CardDescription>
       </CardHeader>

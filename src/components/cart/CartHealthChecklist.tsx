@@ -27,7 +27,7 @@ export function CartHealthChecklist({ cart, cartSubtotal, onFocusNotes, onAddPro
     const hasMinItems = cart.items.length >= 3;
     const hasNotes = !!cart.notes && cart.notes.trim().length > 10;
     const hasMinValue = cartSubtotal >= 500;
-    const hasVariants = cart.items.every(i => !i.color_name || i.color_name.length > 0);
+    const hasVariants = cart.items.every(i => (i.color_name && i.color_name.length > 0) || !i.product_sku?.includes("-")); // Heurística simples: se tem SKU composto, deve ter variante
     const isReady = cart.status === "pronto_orcamento";
 
       return [
@@ -45,10 +45,10 @@ export function CartHealthChecklist({ cart, cartSubtotal, onFocusNotes, onAddPro
   const pct = Math.round((okCount / total) * 100);
 
   return (
-    <Card className="p-4 space-y-3 border-border/30">
+    <Card className="p-4 space-y-3 border-border/30 shadow-sm bg-card/50">
       <div className="flex items-center justify-between">
-        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-          <Sparkles className="h-3.5 w-3.5 text-primary" /> Saúde do Carrinho
+        <h4 className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+          <Sparkles className="h-3.5 w-3.5 text-primary fill-primary/20" /> Saúde do Carrinho
         </h4>
         <span className={cn(
           "text-xs font-bold tabular-nums",

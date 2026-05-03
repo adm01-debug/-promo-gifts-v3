@@ -35,7 +35,7 @@ export function CartTabsRich({ carts, activeCartId, canCreateCart, onSelect, onN
             role="tab"
             aria-selected={isActive}
             className={cn(
-              "group relative flex items-center gap-2.5 px-3.5 py-2 rounded-xl border transition-all whitespace-nowrap flex-shrink-0",
+              "group relative flex items-center gap-2.5 px-3.5 py-2 rounded-xl border transition-all whitespace-nowrap flex-shrink-0 animate-in fade-in slide-in-from-left-2 duration-300",
               isActive
                 ? "border-primary/40 bg-primary/10 text-primary shadow-sm ring-2 ring-primary/20"
                 : "border-border/40 hover:border-border/60 hover:bg-muted/30"
