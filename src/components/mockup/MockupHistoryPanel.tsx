@@ -334,11 +334,11 @@ const MockupGridCard = memo(({ mockup, isCompareSelected, onToggleCompare, onOpe
   );
 });
 
-function MockupListRow({ mockup, isCompareSelected, onToggleCompare, onLoadFromHistory, onDownload, onDelete }: {
+const MockupListRow = memo(({ mockup, isCompareSelected, onToggleCompare, onLoadFromHistory, onDownload, onDelete }: {
   mockup: GeneratedMockup; isCompareSelected: boolean;
   onToggleCompare: (id: string) => void; onLoadFromHistory: (m: GeneratedMockup) => void;
   onDownload: (url: string) => void; onDelete: (id: string) => void;
-}) {
+}) => {
   return (
     <div className={cn("group flex items-center gap-4 p-3 border border-border/30 rounded-lg hover:ring-2 hover:ring-primary/30 hover:shadow-md transition-all duration-200 bg-card",
       isCompareSelected && "ring-2 ring-primary shadow-lg")}>
