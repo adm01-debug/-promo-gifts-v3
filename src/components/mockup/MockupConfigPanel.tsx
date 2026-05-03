@@ -5,7 +5,7 @@
  * Handles: Client, Product, Technique selection + Areas.
  */
 
-import { Loader2, Paintbrush, RefreshCw, Info, ChevronDown } from "lucide-react";
+import { Loader2, Paintbrush, RefreshCw, Info, ChevronDown, FileText } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
