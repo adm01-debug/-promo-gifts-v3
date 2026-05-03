@@ -275,10 +275,10 @@ export const SortableCartItem = memo(function SortableCartItem({
               </button>
             </div>
             <PriceLabel 
-              label=\"Subtotal\" 
+              label="Subtotal" 
               value={itemTotal} 
-              testId=\"cart-item-total\"
-              className=\"items-end\" 
+              testId="cart-item-total"
+              className="items-end" 
             />
           </div>
 
