@@ -277,6 +277,7 @@ export function ActionHistoryPanel({ cartId }: { cartId: string }) {
                   {action.type === "qty" && `Alterou qtd de ${action.itemName}${action.detail ? ` → ${action.detail}` : ""}`}
                   {action.type === "move" && `Moveu ${action.itemName}${action.detail ? ` → ${action.detail}` : ""}`}
                   {action.type === "duplicate" && `Duplicou ${action.itemName}${action.detail ? ` → ${action.detail}` : ""}`}
+                  {action.type === "clear" && `Limpou ${action.itemName}`}
                 </span>
                 <span className="text-[9px] tabular-nums flex-shrink-0">
                   {formatDistanceToNow(action.time, { addSuffix: true, locale: ptBR })}
