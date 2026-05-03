@@ -77,9 +77,10 @@ export function QuoteBuilderStepper({
               {/* Connector line */}
               {index < STEPS.length - 1 && (
                 <div className="flex-1 h-0.5 mx-3 mt-[-1rem]">
+                  <div
                     className={cn(
                       "h-full rounded-full transition-all duration-300",
-                      (isCompleted && STEPS.findIndex(s => s.id === activeStep) > index) || (STEPS.findIndex(s => s.id === activeStep) > index) ? "bg-primary" : "bg-border"
+                      STEPS.findIndex(s => s.id === activeStep) > index ? "bg-primary" : "bg-border"
                     )}
                   />
                 </div>
