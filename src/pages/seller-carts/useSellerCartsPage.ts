@@ -223,7 +223,7 @@ export function useSellerCartsPage() {
     handleMoveItem, handleDuplicateItem, handleSaveTemplate, handleLoadTemplate,
     confirmQuoteCart, setConfirmQuoteCart, confirmDeleteCart, setConfirmDeleteCart,
     confirmClearCart, setConfirmClearCart, handleGenerateQuote, confirmGenerateQuote,
-    otherCarts, cartAge, cartSubtotal, cartTotalQty, companyAccentColor,
+    otherCarts, cartAge, cartSubtotal, cartTotalQty, companyAccentColor, isLoadingProducts,
     exportCartToCSV, exportCartToPDF, shareCartLink,
   };
 }
