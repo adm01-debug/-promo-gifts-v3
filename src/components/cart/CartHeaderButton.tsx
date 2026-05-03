@@ -44,6 +44,7 @@ export function CartHeaderButton() {
     carts,
     activeCart,
     activeCartId,
+    isLoading,
     totalItems,
     canCreateCart,
     setActiveCartId,
