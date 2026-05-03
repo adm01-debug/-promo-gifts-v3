@@ -1,4 +1,5 @@
 import { getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts';
+import { logSecurityEvent } from '../_shared/security.ts';
 import { z } from "https://deno.land/x/zod@v3.23.8/mod.ts";
 
 const BodySchema = z.object({
@@ -76,6 +77,13 @@ Deno.serve(async (req) => {
 
     if (!allowed) {
       console.log(`Rate limit exceeded for ${clientIP} on ${endpoint}`);
+      
+      // Log suspicious activity
+      await logSecurityEvent('RATE_LIMIT_EXCEEDED', endpoint, clientIP, {
+        count: record.count,
+        limit: config.maxRequests,
+        userAgent: req.headers.get('user-agent'),
+      });
       
       return new Response(
         JSON.stringify({
