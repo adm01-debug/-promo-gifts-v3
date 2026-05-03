@@ -37,6 +37,11 @@ vi.mock('../../src/contexts/OnboardingContext', () => ({
     startTour: vi.fn(),
     completeTour: vi.fn(),
   }),
+  useOnboardingContext: () => ({
+    isTourOpen: false,
+    startTour: vi.fn(),
+    completeTour: vi.fn(),
+  }),
   OnboardingProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
@@ -94,12 +99,30 @@ const mockProducts = [
     sku: 'SKU-B',
     category: { name: 'Escritório', icon: '📎' },
     supplier: { name: 'Fornecedor Y', verified: false },
+  },
+  {
+    id: 'prod-3',
+    name: 'Produto C',
+    price: 120,
+    images: ['img3.jpg'],
+    minQuantity: 15,
+    stock: 100,
+    stockStatus: 'in-stock',
+    colors: [{ name: 'Verde', hex: '#00ff00' }],
+    sku: 'SKU-C',
+    category: { name: 'Escritório', icon: '📎' },
+    supplier: { name: 'Fornecedor Z', verified: true },
   }
 ];
 
 // Mock do ProductsContext
 vi.mock('../../src/contexts/ProductsContext', () => ({
   useProductsContext: () => ({
+    products: mockProducts,
+    getProductsByIds: (ids: string[]) => mockProducts.filter(p => ids.includes(p.id)),
+    isLoading: false,
+  }),
+  useProductsContextSafe: () => ({
     products: mockProducts,
     getProductsByIds: (ids: string[]) => mockProducts.filter(p => ids.includes(p.id)),
     isLoading: false,
@@ -200,6 +223,7 @@ describe('E2E Comparar — Módulo de Comparação', () => {
   });
 
   it('permite alternar entre Galeria Visual e Tabela Detalhada', async () => {
+    // Para testar as abas, usamos 3 produtos para que o modo duelo não seja o único
     useComparisonStore.setState({
       compareItems: [{ productId: 'prod-1' }, { productId: 'prod-2' }, { productId: 'prod-3' }],
       compareCount: 3,
