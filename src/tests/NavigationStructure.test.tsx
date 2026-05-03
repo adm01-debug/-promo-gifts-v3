@@ -4,8 +4,10 @@ import App from '../App';
 import React from 'react';
 
 // Mock complex providers/modules to avoid issues in testing environment
-vi.mock('@tanstack/react-query', () => {
+vi.mock('@tanstack/react-query', async (importOriginal) => {
+  const actual = await importOriginal<any>();
   return {
+    ...actual,
     QueryClient: class {
       setDefaultOptions = vi.fn();
       mount = vi.fn();
@@ -13,6 +15,9 @@ vi.mock('@tanstack/react-query', () => {
       clear = vi.fn();
     },
     QueryClientProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+    useQueryClient: vi.fn(() => ({
+      prefetchInfiniteQuery: vi.fn(),
+    })),
   };
 });
 
@@ -50,3 +55,4 @@ describe('App Structure and Navigation', () => {
     }
   });
 });
+
