@@ -50,8 +50,8 @@ vi.mock("@/hooks/useConnectionsOverviewFilters", () => ({
 
 describe("ConnectionsOverviewTable Interações e Acessibilidade", () => {
   const mockRows = [
-    { id: "1", type: "supabase", name: "DB Alpha", status: "active", env_key: "promobrind" },
-    { id: "2", type: "bitrix24", name: "CRM Beta", status: "error", env_key: "crm" },
+    { id: "1", key: "1", type: "supabase", name: "DB Alpha", status: "active", env_key: "promobrind" },
+    { id: "2", key: "2", type: "bitrix24", name: "CRM Beta", status: "error", env_key: "crm" },
   ];
 
   beforeEach(() => {
