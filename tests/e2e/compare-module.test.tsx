@@ -48,7 +48,15 @@ vi.mock('../../src/integrations/supabase/client', () => ({
       getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'user-123' } } }),
     },
     from: vi.fn().mockReturnThis(),
-... keep existing code
+    select: vi.fn().mockReturnThis(),
+    eq: vi.fn().mockReturnThis(),
+    is: vi.fn().mockReturnThis(),
+    order: vi.fn().mockReturnThis(),
+    limit: vi.fn().mockReturnThis(),
+    maybeSingle: vi.fn().mockResolvedValue({ data: null }),
+    rpc: vi.fn().mockResolvedValue({ data: [] }),
+  },
+}));
 
 // Mock do Store
 const mockProducts = [
@@ -118,10 +126,6 @@ describe('E2E Comparar — Módulo de Comparação', () => {
       compareCount: 2,
       compareIds: ['prod-1', 'prod-2'],
     });
-
-    // Mock do context de produtos para retornar nossos produtos mockados
-    // (A implementação real do ProductsProvider precisaria ser mockada ou populada)
-    // Para simplificar o teste E2E de UI, vamos assumir que o provider funciona
     
     renderPage();
 
@@ -210,7 +214,6 @@ describe('E2E Comparar — Módulo de Comparação', () => {
     const backBtn = screen.getByLabelText(/Voltar/i);
     expect(backBtn).toBeInTheDocument();
     
-    // Teste de foco básico
     backBtn.focus();
     expect(document.activeElement).toBe(backBtn);
   });
