@@ -2,7 +2,7 @@
  * CartHeaderButton - Ícone de carrinho no header com popover de resumo
  */
 
-import { ShoppingCart, Trash2, Plus, Building2, Package, X, ArrowRight, Eraser, Minus } from "lucide-react";
+import { ShoppingCart, Trash2, Plus, Building2, Package, X, ArrowRight, Eraser, Minus, Eye } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
