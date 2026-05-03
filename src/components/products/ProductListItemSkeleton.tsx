@@ -31,7 +31,7 @@ export function ProductListItemSkeleton() {
 
       {/* Price */}
       <div className="shrink-0 text-right min-w-[80px] sm:min-w-[100px]">
-        <Skeleton className="h-5 w-20 ml-auto" />
+        <Skeleton className="h-5 w-16 ml-auto opacity-70" />
       </div>
 
       {/* Actions */}
