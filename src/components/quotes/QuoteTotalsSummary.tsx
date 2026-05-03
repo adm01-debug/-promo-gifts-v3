@@ -54,7 +54,7 @@ export function QuoteTotalsSummary({ items, discountPercent, discountAmount, shi
           {discountValue > 0 && (
             <div className="flex justify-between text-sm text-destructive">
               <span>Desconto{discountPercent ? ` (${discountPercent}%)` : ""}:</span>
-              <span>-{formatCurrency(discountValue)}</span>
+              <span data-testid="summary-discount">-{formatCurrency(discountValue)}</span>
             </div>
           )}
           {shippingType && (
