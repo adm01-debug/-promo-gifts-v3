@@ -66,7 +66,7 @@ export function useCatalogState() {
     setGridColumnsState(cols);
     try { localStorage.setItem(GRID_COLUMNS_KEY, String(cols)); } catch {}
   }, []);
-  const [sortBy, setSortBy] = useState<SortOption>("name");
+  const [sortBy, setSortBy] = useState<SortOption>("relevance");
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedCount, setSelectedCount] = useState(0);
   const [activeProductId, setActiveProductId] = useState<string | null>(null);
