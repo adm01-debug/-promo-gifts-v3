@@ -66,7 +66,8 @@ export function ProductStickyHeader({
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: -60, opacity: 0 }}
             transition={{ duration: 0.25, ease: "easeOut" }}
-            className="fixed top-0 left-0 right-0 z-50 hidden md:block bg-background/95 backdrop-blur-md border-b border-border shadow-sm"
+            className="fixed top-0 right-0 z-50 hidden md:block bg-background/95 backdrop-blur-md border-b border-border shadow-sm"
+            style={{ left: "var(--header-left, 0px)" }}
           >
             <div className="max-w-7xl mx-auto px-4 lg:px-6 h-14 flex items-center gap-4">
               {/* Thumbnail */}
@@ -114,12 +115,12 @@ export function ProductStickyHeader({
                   buttonSize="sm"
                   labelOverride="Carrinho"
                   iconOverride="cart"
-                  className="h-9 rounded-full px-5 bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-sm"
+                  className="h-9 rounded-full px-5 bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-sm transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
                 />
 
                 <Button
                   size="sm"
-                  className="h-9 rounded-full px-5 bg-success hover:bg-success/90 text-success-foreground font-medium text-sm gap-1.5"
+                  className="h-9 rounded-full px-5 bg-success hover:bg-success/90 text-success-foreground font-medium text-sm gap-1.5 transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
                   onClick={() => setQuoteWizardOpen(true)}
                 >
                   <FileText className="h-3.5 w-3.5" />
