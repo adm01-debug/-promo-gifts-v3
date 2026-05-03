@@ -30,8 +30,6 @@ import { useCatalogFiltering } from "./useCatalogFiltering";
 export type ViewMode = "grid" | "list" | "table";
 export type SortOption = "name" | "price-asc" | "price-desc" | "stock" | "newest" | "color-match" | "best-seller-supplier" | "best-seller-promo";
 
-
-
 const VIEW_MODE_KEY = "catalog-view-mode";
 
 function getPersistedViewMode(): ViewMode {
@@ -71,6 +69,8 @@ export function useCatalogState() {
   const [sortBy, setSortBy] = useState<SortOption>("name");
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedCount, setSelectedCount] = useState(0);
+  const [activeProductId, setActiveProductId] = useState<string | null>(null);
+
   const toggleSelectionMode = useCallback(() => {
     setSelectionMode(prev => {
       if (prev) setSelectedCount(0);
@@ -78,7 +78,7 @@ export function useCatalogState() {
     });
   }, []);
 
-  // Responsive clamp: force appropriate columns on small screens (visual only — does NOT persist)
+  // Responsive clamp
   useEffect(() => {
     const handleResize = () => {
       const w = window.innerWidth;
@@ -88,20 +88,19 @@ export function useCatalogState() {
         setGridColumnsState(2);
       }
     };
-    handleResize(); // run on mount
+    handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, [gridColumns]);
+
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState(searchQueryFromUrl);
   const [isSearching, setIsSearching] = useState(false);
   const [displayCount, setDisplayCount] = useState(ITEMS_PER_PAGE);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
-  // Debounce for server-side search
   const debouncedServerSearch = useDebounce(searchQuery, 400);
 
-  // Fetch products from DB
   const {
     data: catalogData,
     isLoading: isLoadingProducts,
@@ -118,10 +117,8 @@ export function useCatalogState() {
 
   const totalEstimate = catalogData?.pages?.[0]?.totalEstimate ?? null;
 
-  // Auto-fetch all server pages in background so full catalog is available
   useEffect(() => {
     if (hasNextPage && !isFetchingNextPage) {
-      // Otimização: Background fetch com prioridade baixa (requestIdleCallback)
       if ('requestIdleCallback' in window) {
         window.requestIdleCallback(() => fetchNextPage());
       } else {
@@ -136,13 +133,11 @@ export function useCatalogState() {
 
   const { suggestions, quickSuggestions, history, addToHistory } = useSearch(realProducts);
 
-  // Material filter hook
   const { productIds: materialFilteredProductIds, hasFilter: hasMaterialFilter, isLoading: isLoadingMaterialFilter } = useProductsByMaterial({
     materialGroupSlugs: filters.materialGroups || [],
     materialTypeSlugs: filters.materialTypes || [],
   });
 
-  // Category filter hook
   const { productIds: categoryFilteredProductIds, hasFilter: hasCategoryFilter, isLoading: isLoadingCategoryFilter } = useProductsByCategory({
     categoryIds: filters.categories?.map(String) || [],
     includeDescendants: true,
@@ -152,20 +147,16 @@ export function useCatalogState() {
   const { data: realStats } = useCatalogRealStats();
 
   const isLoading = isLoadingProducts || isLoadingMaterialFilter || isLoadingCategoryFilter;
-  const isBackgroundFetching = isFetchingNextPage;
   const isInitialCatalogLoad = (isLoadingProducts || isFetchingProducts) && realProducts.length === 0;
 
-  // Sync search with URL
   useEffect(() => {
     setSearchQuery(searchQueryFromUrl);
   }, [searchQueryFromUrl]);
 
-  // Reset pagination on filter change
   useEffect(() => {
     setDisplayCount(ITEMS_PER_PAGE);
   }, [filters, sortBy, searchQuery]);
 
-  // Active filters count
   const activeFiltersCount = useMemo(() => {
     let count = 0;
     if (filters.colors.length) count += filters.colors.length;
@@ -190,11 +181,9 @@ export function useCatalogState() {
     return count;
   }, [filters]);
 
-  // Debounced search for fuzzy
   const debouncedSearchQuery = useDebounce(searchQuery, 350);
   const { results: fuzzySearchResults, hasSearch: hasFuzzySearch } = useProductFuzzySearch(realProducts, debouncedSearchQuery);
 
-  // Filter & sort products
   const filteredProducts = useCatalogFiltering({
     realProducts, filters, sortBy, hasFuzzySearch, fuzzySearchResults,
     hasMaterialFilter, materialFilteredProductIds, isLoadingMaterialFilter,
@@ -202,10 +191,8 @@ export function useCatalogState() {
     promoSalesMap, supplierSalesMap,
   });
 
-  // Paginated products
   const rawPaginatedProducts = useMemo(() => filteredProducts.slice(0, displayCount), [filteredProducts, displayCount]);
 
-  // Color enrichment: fetch variant images/stock for visible products when color filter is active
   const hasColorFilterActive = (filters.colorGroups?.length || 0) > 0 || (filters.colorVariations?.length || 0) > 0;
   const paginatedProductIds = useMemo(() => rawPaginatedProducts.map(p => p.id), [rawPaginatedProducts]);
   const { data: catalogColorEnrichmentMap } = useColorEnrichment({
@@ -214,7 +201,6 @@ export function useCatalogState() {
     colorVariations: filters.colorVariations || [],
   });
 
-  // Merge color enrichment into paginated products
   const paginatedProducts = useMemo(() => {
     if (!catalogColorEnrichmentMap || catalogColorEnrichmentMap.size === 0 || !hasColorFilterActive) return rawPaginatedProducts;
     return rawPaginatedProducts.map(product => {
@@ -243,14 +229,12 @@ export function useCatalogState() {
 
   const shouldShowCatalogSkeleton = isInitialCatalogLoad || (isLoading && paginatedProducts.length === 0);
   const hasActiveCatalogConstraints = activeFiltersCount > 0 || searchQuery.trim().length > 0;
-  // BUG-FIX: Don't show empty state if we are still fetching subsequent pages in background
   const shouldShowEmptyState = !shouldShowCatalogSkeleton && paginatedProducts.length === 0 && !isFetchingNextPage;
 
   const hasMoreProducts = useMemo(() => {
     return paginatedProducts.length < filteredProducts.length || !!hasNextPage;
   }, [paginatedProducts, filteredProducts, hasNextPage]);
 
-  // Infinite scroll
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const isUpdatingRef = useRef(false);
@@ -299,12 +283,8 @@ export function useCatalogState() {
     return () => { observerRef.current?.disconnect(); };
   }, [isLoading, hasMoreProducts, isLoadingMore, loadMore]);
 
-  // Stats — contextual to filtered products
   const statBadges = useMemo(() => {
     const hasActiveFilters = activeFiltersCount > 0 || searchQuery.trim().length > 0;
-    const isFullCatalogLoaded = !hasNextPage;
-
-    // BUG-004/EDGE-004: deduplicate products by ID
     const seen = new Set<string>();
     const deduped = filteredProducts.filter((p) => {
       if (seen.has(p.id)) return false;
@@ -312,45 +292,21 @@ export function useCatalogState() {
       return true;
     });
 
-    // "Produtos Únicos" — use totalEstimate (from countMode:exact on first catalog page)
-    const productCount = hasActiveFilters
-      ? deduped.length
-      : (totalEstimate || deduped.length);
-
-    // Variações: use real DB count when unfiltered, fallback to local count
+    const productCount = hasActiveFilters ? deduped.length : (totalEstimate || deduped.length);
     const localVariants = deduped.reduce((sum, p) => {
       const colorCount = p.colors?.filter((c: Record<string, string>) => c.name?.trim()).length || 0;
       const variationCount = !colorCount && p.variations?.length ? p.variations.length : 0;
       return sum + colorCount + variationCount;
     }, 0);
-    const totalVariants = hasActiveFilters
-      ? localVariants
-      : (realStats?.totalVariants ?? localVariants);
+    const totalVariants = hasActiveFilters ? localVariants : (realStats?.totalVariants ?? localVariants);
 
-    // Categorias: use real DB count when unfiltered
-    const uniqueCategoryIds = new Set(
-      deduped
-        .map((p) => p.category_id || (p.category?.id ? String(p.category.id) : ""))
-        .filter((id) => id && id !== "0")
-    );
-    const categoriesCount = hasActiveFilters
-      ? uniqueCategoryIds.size
-      : (realStats?.totalCategories ?? uniqueCategoryIds.size);
+    const uniqueCategoryIds = new Set(deduped.map((p) => p.category_id || (p.category?.id ? String(p.category.id) : "")).filter((id) => id && id !== "0"));
+    const categoriesCount = hasActiveFilters ? uniqueCategoryIds.size : (realStats?.totalCategories ?? uniqueCategoryIds.size);
 
-    // Fornecedores: use real DB count when unfiltered
-    const uniqueSuppliers = new Set(
-      deduped
-        .map((p) => p.supplier?.name?.trim().toLowerCase())
-        .filter((n): n is string => !!n && n !== "sem fornecedor")
-    );
-    const suppliersCount = hasActiveFilters
-      ? uniqueSuppliers.size
-      : (realStats?.totalSuppliers ?? uniqueSuppliers.size);
+    const uniqueSuppliers = new Set(deduped.map((p) => p.supplier?.name?.trim().toLowerCase()).filter((n): n is string => !!n && n !== "sem fornecedor"));
+    const suppliersCount = hasActiveFilters ? uniqueSuppliers.size : (realStats?.totalSuppliers ?? uniqueSuppliers.size);
 
-    // BUG-002: contextual favorite count — intersection with filtered products
-    const contextualFavoriteCount = isFavorite
-      ? deduped.filter((p) => isFavorite(p.id)).length
-      : favoriteCount;
+    const contextualFavoriteCount = isFavorite ? deduped.filter((p) => isFavorite(p.id)).length : favoriteCount;
 
     return [
       { id: "products", label: "Produtos Únicos", value: productCount, icon: React.createElement(Package, { className: "h-4 w-4" }) },
@@ -372,7 +328,6 @@ export function useCatalogState() {
     navigate(`/produto/${product.id}`);
   }, [navigate]);
 
-  // Share opens the WhatsApp dialog instead of clipboard/native share
   const [shareProduct, setShareProduct] = useState<Product | null>(null);
 
   const handleShareProduct = useCallback((product: Product) => {
@@ -382,7 +337,6 @@ export function useCatalogState() {
   const handleFavoriteProduct = useCallback((product: Product, e?: React.MouseEvent) => {
     const result = favQuickAdd.handleFavoriteClick(product, { shiftKey: e?.shiftKey });
     if (!result.resolved && result.reason === "picker-needed") {
-      // Fallback amigável: salva na default + toast com link "trocar lista"
       const target = favQuickAdd.defaultList;
       if (target) {
         void favQuickAdd.addToList(target.id, product);
@@ -403,50 +357,102 @@ export function useCatalogState() {
     setTimeout(() => setIsSearching(false), 300);
   }, [addToHistory]);
 
+  // Keyboard Navigation Logic
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if typing in input/textarea or if dialogs are open (heuristic)
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) return;
+      if (document.querySelector('[role="dialog"]') || document.querySelector('[role="menu"]')) return;
+
+      const currentIndex = paginatedProducts.findIndex(p => p.id === activeProductId);
+      
+      switch (e.key) {
+        case 'j':
+        case 'ArrowDown':
+          e.preventDefault();
+          if (currentIndex < paginatedProducts.length - 1) {
+            setActiveProductId(paginatedProducts[currentIndex + 1].id);
+          }
+          break;
+        case 'k':
+        case 'ArrowUp':
+          e.preventDefault();
+          if (currentIndex > 0) {
+            setActiveProductId(paginatedProducts[currentIndex - 1].id);
+          } else if (currentIndex === -1 && paginatedProducts.length > 0) {
+            setActiveProductId(paginatedProducts[0].id);
+          }
+          break;
+        case 'Enter':
+        case 'o':
+          if (activeProductId) {
+            e.preventDefault();
+            navigate(`/produto/${activeProductId}`);
+          }
+          break;
+        case 'f':
+          if (activeProductId) {
+            e.preventDefault();
+            const product = paginatedProducts.find(p => p.id === activeProductId);
+            if (product) handleFavoriteProduct(product);
+          }
+          break;
+        case 'Escape':
+          if (activeProductId) {
+            e.preventDefault();
+            setActiveProductId(null);
+          }
+          if (selectionMode) {
+            setSelectionMode(false);
+          }
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activeProductId, paginatedProducts, navigate, handleFavoriteProduct, selectionMode]);
+
   return {
-    // State
     filters, setFilters,
     viewMode, setViewMode,
     gridColumns, setGridColumns,
-    selectionMode, toggleSelectionMode, selectedCount, setSelectedCount,
     sortBy, setSortBy,
+    selectionMode, setSelectionMode,
+    selectedCount, setSelectedCount,
+    toggleSelectionMode,
     filterSheetOpen, setFilterSheetOpen,
-    searchQuery,
-
-    // Derived
-    filteredProducts,
-    paginatedProducts,
-    activeFiltersCount,
-    shouldShowCatalogSkeleton,
-    shouldShowEmptyState,
-    hasActiveCatalogConstraints,
-    hasMoreProducts,
-    isLoadingMore: isLoadingMore || isBackgroundFetching,
+    searchQuery, setSearchQuery,
+    isSearching,
+    displayCount, setDisplayCount,
+    isLoadingMore,
+    isInitialCatalogLoad,
+    isLoading,
     isBackgroundFetching,
+    paginatedProducts,
+    filteredProducts,
     totalEstimate,
-    hasNextPage,
-    statBadges,
-
-    // Refs
     loadMoreRef,
-
-    // Handlers
-    loadMore,
+    statBadges,
     resetFilters,
     handleViewProduct,
     handleShareProduct,
-    shareProduct, setShareProduct,
     handleFavoriteProduct,
     handleSearch,
-
-    // Context values
     isFavorite,
     toggleFavorite,
     isInCompare,
     toggleCompare,
     canAddMore,
-    navigate,
-
-    ITEMS_PER_PAGE,
+    activeFiltersCount,
+    hasActiveCatalogConstraints,
+    shouldShowCatalogSkeleton,
+    shouldShowEmptyState,
+    shareProduct,
+    setShareProduct,
+    hasNextPage,
+    activeProductId,
+    setActiveProductId
   };
 }
