@@ -15,9 +15,6 @@ import { cn } from \"@/lib/utils\";
 import { useState, useEffect, useCallback } from \"react\";
 import { motion, AnimatePresence } from \"framer-motion\";
 
-function formatCurrency(value: number) {
-  return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-}
 
 export function CartHeaderButton() {
   const navigate = useNavigate();
