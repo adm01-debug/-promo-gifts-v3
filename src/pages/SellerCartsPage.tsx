@@ -183,52 +183,58 @@ function SellerCartsContent() {
           <div className="space-y-4">
             {/* Cart header fundido (status Select óbvio + ações inline) */}
             <Card
-              className="p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-border/40"
-              style={s.companyAccentColor ? { borderTopColor: s.companyAccentColor, borderTopWidth: "3px" } : undefined}
+              className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-border/40 shadow-sm relative overflow-hidden group/header"
+              style={s.companyAccentColor ? { borderLeft: `4px solid ${s.companyAccentColor}` } : undefined}
             >
-              <div className="flex items-center gap-3 min-w-0">
-                {s.activeCart.company_logo_url ? (
-                  <img src={s.activeCart.company_logo_url} alt="" className="w-10 h-10 rounded-xl object-contain bg-background border border-border/50 p-1 flex-shrink-0" loading="lazy" />
-                ) : (
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <Building2 className="h-4.5 w-4.5 text-primary" />
-                  </div>
-                )}
-                <div className="min-w-0">
-                  <h2 className="font-display font-semibold text-base truncate">{s.activeCart.company_name}</h2>
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
+              <div className="flex items-center gap-4 min-w-0">
+                <div className="relative">
+                  {s.activeCart.company_logo_url ? (
+                    <img src={s.activeCart.company_logo_url} alt="" className="w-12 h-12 rounded-xl object-contain bg-background border border-border/40 p-1.5 flex-shrink-0 shadow-inner group-hover/header:scale-105 transition-transform duration-300" loading="lazy" />
+                  ) : (
+                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover/header:bg-primary/20 transition-colors">
+                      <Building2 className="h-5 w-5 text-primary" />
+                    </div>
+                  )}
+                  <div className={cn(
+                    "absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-background",
+                    getStatusCfg(s.activeCart.status).color.split(" ")[0]
+                  )} />
+                </div>
+                <div className="min-w-0 flex flex-col gap-0.5">
+                  <h2 className="font-display font-bold text-lg truncate tracking-tight text-foreground/90">{s.activeCart.company_name}</h2>
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground font-medium">
                     {s.activeCart.company_location && (
-                      <span className="flex items-center gap-1 truncate"><MapPin className="h-3 w-3" />{s.activeCart.company_location}</span>
+                      <span className="flex items-center gap-1.5 truncate"><MapPin className="h-3 w-3 opacity-60" />{s.activeCart.company_location}</span>
                     )}
-                    <span className="flex items-center gap-1 whitespace-nowrap">
-                      <Clock className="h-3 w-3" />
-                      {formatDistanceToNow(new Date(s.activeCart.updated_at), { addSuffix: true, locale: ptBR })}
+                    <span className="flex items-center gap-1.5 whitespace-nowrap">
+                      <Clock className="h-3 w-3 opacity-60" />
+                      Atualizado {formatDistanceToNow(new Date(s.activeCart.updated_at), { addSuffix: true, locale: ptBR })}
                     </span>
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
+              <div className="flex items-center gap-2.5 flex-shrink-0">
                 <Select
                   value={s.activeCart.status}
                   onValueChange={(v) => s.updateCartStatus(s.activeCart!.id, v as CartStatus)}
                 >
-                  <SelectTrigger className="h-8 text-xs w-auto min-w-[150px] gap-1.5">
-                    <span className={cn("w-1.5 h-1.5 rounded-full inline-block", getStatusCfg(s.activeCart.status).color.split(" ")[0])} />
+                  <SelectTrigger className="h-9 text-xs font-bold w-auto min-w-[170px] gap-2 rounded-xl border-border/40 bg-muted/20 hover:bg-muted/40 transition-all">
+                    <span className={cn("w-2 h-2 rounded-full inline-block ring-2 ring-background shadow-sm", getStatusCfg(s.activeCart.status).color.split(" ")[0])} />
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="rounded-xl p-1">
                     {(Object.entries(STATUS_CONFIG) as [CartStatus, typeof STATUS_CONFIG[CartStatus]][]).map(([key, cfg]) => (
-                      <SelectItem key={key} value={key}>
-                        <span className="flex items-center gap-2">
-                          <span className={cn("w-1.5 h-1.5 rounded-full", cfg.color.split(" ")[0])} />
-                          {cfg.label}
+                      <SelectItem key={key} value={key} className="rounded-lg py-2">
+                        <span className="flex items-center gap-2.5">
+                          <span className={cn("w-2 h-2 rounded-full shadow-sm", cfg.color.split(" ")[0])} />
+                          <span className="font-medium">{cfg.label}</span>
                         </span>
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                <Button variant="outline" size="sm" className="text-destructive hover:text-destructive gap-1.5 text-xs h-8" onClick={() => s.setConfirmDeleteCart(true)}>
-                  <Trash2 className="h-3.5 w-3.5" /> Excluir
+                <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive hover:bg-destructive/5 gap-2 text-xs font-bold h-9 rounded-xl px-3 transition-all" onClick={() => s.setConfirmDeleteCart(true)}>
+                  <Trash2 className="h-4 w-4" /> Excluir
                 </Button>
               </div>
             </Card>
