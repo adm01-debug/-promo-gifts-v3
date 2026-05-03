@@ -86,7 +86,7 @@ export const SmartSearchInput = forwardRef<HTMLDivElement, SmartSearchInputProps
   useEffect(() => { setSelectedIndex(-1); }, [suggestions]);
 
   const handleSelectResult = useCallback((result: SearchResult) => {
-    addToHistory(result.label);
+    addToHistory({ id: `history-${result.label}`, label: result.label, type: "general" });
     setQuery("");
     setIsFocused(false);
     setSelectedIndex(-1);
@@ -98,11 +98,8 @@ export const SmartSearchInput = forwardRef<HTMLDivElement, SmartSearchInputProps
       case "category": navigate(`/?categoria=${result.id}`); break;
       case "supplier": navigate(`/?fornecedor=${result.id}`); break;
       case "history":
-        // addToHistory already called above, but handleSelectResult logic
-        // is re-adding it. addToHistory handles duplicates.
         setQuery(result.label);
-        // Ensure it's in history even if it was just picked from history
-        addToHistory(result.label);
+        addToHistory({ id: `history-${result.label}`, label: result.label, type: "general" });
         navigate(`/?search=${encodeURIComponent(result.label)}`);
         break;
     }
@@ -223,21 +220,21 @@ export const SmartSearchInput = forwardRef<HTMLDivElement, SmartSearchInputProps
                           Limpar
                         </Button>
                       </div>
-                      {history.slice(0, 5).map((term, index) => (
+                      {history.slice(0, 5).map((item, index) => (
                         <motion.div
-                          key={term}
+                          key={item.id}
                           initial={{ opacity: 0, x: -8 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: index * 0.03 }}
                           className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-muted group cursor-pointer transition-colors"
-                          onClick={() => { addToHistory(term); submitSearch(term); }}
+                          onClick={() => { addToHistory(item); submitSearch(item.label); }}
                         >
                           <Clock className="h-4 w-4 text-muted-foreground" />
-                          <span className="flex-1 truncate text-sm">{term}</span>
+                          <span className="flex-1 truncate text-sm">{item.label}</span>
                           <Button
                             variant="ghost" size="sm"
                             className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                            onClick={(e) => { e.stopPropagation(); removeFromHistory(term); }}
+                            onClick={(e) => { e.stopPropagation(); removeFromHistory(item.id); }}
                           >
                             <X className="h-3 w-3" />
                           </Button>
@@ -290,7 +287,7 @@ export const SmartSearchInput = forwardRef<HTMLDivElement, SmartSearchInputProps
                 <span><kbd className="px-1 py-0.5 bg-muted rounded text-[9px] font-mono">Esc</kbd> fechar</span>
               </div>
               <span className="flex items-center gap-1">
-                <kbd className="px-1 py-0.5 bg-muted rounded text-[9px] font-mono">⌘K</kbd> busca global
+                <kbd className="px-1 py-0.5 bg-muted rounded text-[10px] font-mono">⌘K</kbd> busca global
               </span>
             </div>
           </motion.div>
