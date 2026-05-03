@@ -296,24 +296,17 @@ export const CatalogContent = memo(function CatalogContent({
       );
     }
 
-    switch (viewMode) {
       case "table":
         return (
-          <div className={`${CONTAINER_CLASS}`}>
-            <ProductTableView
-              products={paginatedProducts} onProductClick={(id) => navigate(`/produto/${id}`)}
-              isFavorite={isFavorite} onToggleFavorite={toggleFavorite}
-              isInCompare={isInCompare} onToggleCompare={onToggleCompare} canAddToCompare={canAddToCompare}
-              onShareProduct={handleShareProduct} selectionMode={selectionMode}
-              selectedIds={sel.selectedIds} onToggleSelect={sel.toggleSelect} activeColorFilter={activeColorFilter}
-            />
-            {hasMoreProducts && (
-              <div ref={loadMoreRef} className="flex flex-col items-center gap-3 pt-8 pb-4 px-4" style={{ minHeight: "60px" }}>
-                <p className="text-sm text-muted-foreground">Mostrando {paginatedProducts.length} de {(totalEstimate ?? filteredProducts.length).toLocaleString("pt-BR")} produtos</p>
-                {isLoadingMore && <Loader2 className="h-6 w-6 animate-spin text-primary" />}
-              </div>
-            )}
-          </div>
+          <ProductTableView
+            products={paginatedProducts} onProductClick={(id) => navigate(`/produto/${id}`)}
+            isFavorite={isFavorite} onToggleFavorite={toggleFavorite}
+            isInCompare={isInCompare} onToggleCompare={onToggleCompare} canAddToCompare={canAddToCompare}
+            onShareProduct={handleShareProduct} selectionMode={selectionMode}
+            selectedIds={sel.selectedIds} onToggleSelect={sel.toggleSelect} activeColorFilter={activeColorFilter}
+            hasMore={hasMoreProducts} isLoadingMore={isLoadingMore} totalEstimate={totalEstimate}
+            filteredCount={filteredProducts.length} loadMoreRef={loadMoreRef} itemsPerPage={itemsPerPage} onLoadMore={onLoadMore}
+          />
         );
       case "list":
         return (
