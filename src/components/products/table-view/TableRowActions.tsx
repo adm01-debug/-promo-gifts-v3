@@ -101,7 +101,7 @@ export function TableRowActions({
       {/* Orçamento */}
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full text-muted-foreground hover:text-foreground"
+          <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full text-muted-foreground hover:bg-success hover:text-success-foreground"
             onClick={(e) => { e.stopPropagation(); onOpenVariantPicker(product, 'quote'); }} aria-label="Orçamento">
             <FileText className="h-3 w-3" />
           </Button>
