@@ -84,4 +84,42 @@ describe('Cálculos de Orçamento (Unit Tests)', () => {
       expect(calculateRealDiscountPercent(0, 100, 10)).toBe(0);
     });
   });
+
+  describe('Casos de Borda e Precisão', () => {
+    it('deve lidar com descontos negativos (tratar como zero)', () => {
+      expect(calculateDiscountAmount(100, 'percent', -10)).toBe(0);
+      expect(calculateDiscountAmount(100, 'amount', -50)).toBe(0);
+    });
+
+    it('deve limitar markup excessivo ao teto de 50%', () => {
+      expect(applyMarkup(100, 1000)).toBe(150);
+    });
+
+    it('deve lidar com valores nulos ou undefined em applyMarkup', () => {
+      // @ts-ignore
+      expect(applyMarkup(100, null)).toBe(100);
+      // @ts-ignore
+      expect(applyMarkup(null, 10)).toBe(0);
+    });
+
+    it('deve manter alta precisão e arredondamento correto (ABNT/Financeiro)', () => {
+      // 10.125 deve arredondar para 10.13 se usarmos Math.round com 2 casas
+      // 10.125 * 100 = 1012.5 -> Math.round = 1013 -> / 100 = 10.13
+      expect(applyMarkup(10, 1.25)).toBe(10.13); 
+      
+      // Teste com muitos decimais
+      expect(applyMarkup(10.123456789, 10)).toBe(11.14); // 10.123456789 * 1.1 = 11.135802... -> 11.14
+    });
+
+    it('deve lidar com quantidades fracionadas (se permitido pelo sistema)', () => {
+      const params = {
+        quantity: 0.5,
+        unitPrice: 10.55
+      };
+      // 0.5 * 10.55 = 5.275 -> calculateItemTotal não arredonda, o subtotal ou final deve arredondar
+      // Mas o calculateItemTotal atual faz apenas a multiplicação
+      expect(calculateItemTotal(params)).toBe(5.275);
+    });
+  });
 });
+

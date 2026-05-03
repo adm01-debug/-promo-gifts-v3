@@ -33,6 +33,16 @@ test.describe("Módulo Orçamentos - Resiliência e AutoSave", () => {
     // O campo de empresa deve estar preenchido ou os itens devem estar na lista
     const itemsCount = page.locator("text=1 item(ns) adicionado(s)");
     await expect(itemsCount).toBeVisible();
+
+    // 5. Validação de Valores Numéricos (Subtotais, Markup, etc)
+    const subtotalText = page.locator('text=Subtotal:');
+    await expect(subtotalText).toBeVisible();
+    
+    // Verifica se os valores não estão zerados (foram restaurados)
+    // Usamos um seletor genérico que capture o valor monetário se data-testid não existir
+    const totalValue = page.locator('text=Total:').locator('xpath=following-sibling::*').first();
+    const value = await totalValue.innerText();
+    expect(value).not.toContain("R$ 0,00");
   });
 
   test("Stepper deve refletir o progresso corretamente", async ({ page }) => {
