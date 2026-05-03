@@ -17,7 +17,10 @@ const mockProduct = {
   minQuantity: 1,
   description: 'Desc',
   specifications: {},
-  supplier_name: 'XBZ',
+  supplier: {
+    id: 'sup1',
+    name: 'XBZ Brindes'
+  },
   categories: [],
   brand: 'Brand'
 };
@@ -27,12 +30,12 @@ describe('ProductDetailHero Button Colors', () => {
     render(
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
-          <ProductDetailHero product={mockProduct} id="123" />
+          <ProductDetailHero product={mockProduct as any} id="123" />
         </BrowserRouter>
       </QueryClientProvider>
     );
 
-    const cartBtn = screen.getByText(/Carrinho/i).closest('button');
+    const cartBtn = screen.getByLabelText(/Carrinho/i);
     const quoteBtn = screen.getByText(/Orçamento/i).closest('button');
 
     // Carrinho: azul (primary)
