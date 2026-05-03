@@ -35,13 +35,16 @@ export function CartEmptyStateSmart({
     .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())[0];
 
   return (
-    <div className="space-y-4">
-      <div className="text-center pt-6 pb-2">
-        <div className="w-14 h-14 mx-auto rounded-2xl bg-primary/10 flex items-center justify-center mb-3">
-          <Sparkles className="h-6 w-6 text-primary" />
+    <div className="space-y-4 animate-in fade-in zoom-in duration-500">
+      <div className="text-center pt-8 pb-4">
+        <div className="relative w-16 h-16 mx-auto mb-4">
+          <div className="absolute inset-0 bg-primary/20 rounded-2xl blur-xl animate-pulse" />
+          <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/20">
+            <Sparkles className="h-7 w-7 text-primary animate-bounce" />
+          </div>
         </div>
-        <h3 className="font-display text-xl font-semibold mb-1">Comece a montar o carrinho</h3>
-        <p className="text-sm text-muted-foreground">Escolha um caminho rápido ou explore o catálogo</p>
+        <h3 className="font-display text-2xl font-bold mb-1 tracking-tight">O carrinho está aguardando você</h3>
+        <p className="text-sm text-muted-foreground">Selecione um ponto de partida para fechar este negócio</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">

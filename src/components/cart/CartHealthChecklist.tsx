@@ -27,17 +27,26 @@ export function CartHealthChecklist({ cart, cartSubtotal, onFocusNotes, onAddPro
     const hasMinItems = cart.items.length >= 3;
     const hasNotes = !!cart.notes && cart.notes.trim().length > 10;
     const hasMinValue = cartSubtotal >= 500;
-    const hasVariants = cart.items.every(i => (i.color_name && i.color_name.length > 0) || !i.product_sku?.includes("-")); // Heurística simples: se tem SKU composto, deve ter variante
+    
+    // Improved variant detection: if SKU is composite (contains '-'), it MUST have color_name or notes
+    const hasVariants = cart.items.every(i => {
+      const isComposite = i.product_sku?.includes("-");
+      if (!isComposite) return true;
+      return (i.color_name && i.color_name.length > 0) || (i.notes && i.notes.length > 5);
+    });
+    
     const isReady = cart.status === "pronto_orcamento";
+    const hasItemNotes = cart.items.every(i => !!i.notes && i.notes.length > 5);
 
-      return [
-        { id: "company", label: "Empresa vinculada", ok: !!cart.company_id },
-        { id: "items", label: "≥ 3 SKUs no carrinho", ok: hasMinItems, onFix: onAddProducts },
-        { id: "value", label: "Valor mínimo (R$ 500,00)", ok: hasMinValue, onFix: onAddProducts },
-        { id: "notes", label: "Notas de negociação (detalhadas)", ok: hasNotes, onFix: onFocusNotes },
-        { id: "variants", label: "Variantes/Cores selecionadas", ok: hasVariants },
-        { id: "ready", label: "Status: Pronto p/ Orçamento", ok: isReady },
-      ];
+    return [
+      { id: "company", label: "Empresa vinculada", ok: !!cart.company_id },
+      { id: "items", label: "Mix de produtos (≥ 3 SKUs)", ok: hasMinItems, onFix: onAddProducts },
+      { id: "value", label: "Valor mínimo (R$ 500,00)", ok: hasMinValue, onFix: onAddProducts },
+      { id: "notes", label: "Observações do pedido", ok: hasNotes, onFocusNotes },
+      { id: "item_notes", label: "Instruções por item", ok: hasItemNotes },
+      { id: "variants", label: "Variantes e Cores", ok: hasVariants },
+      { id: "ready", label: "Status: Pronto p/ Orçamento", ok: isReady },
+    ];
   }, [cart, cartSubtotal, onFocusNotes, onAddProducts]);
 
   const okCount = checks.filter(c => c.ok).length;

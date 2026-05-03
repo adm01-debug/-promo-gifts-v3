@@ -31,9 +31,9 @@ export function CartActionsMenu({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="w-full gap-2 text-xs h-10 border-border/40 hover:bg-muted/30 transition-all rounded-xl">
-          <MoreHorizontal className="h-3.5 w-3.5" />
-          Ações secundárias
+        <Button variant="outline" size="sm" className="w-full gap-2 text-xs h-10 border-border/40 hover:bg-muted/30 transition-all rounded-xl relative group">
+          <MoreHorizontal className="h-3.5 w-3.5 group-hover:rotate-90 transition-transform duration-300" />
+          Gerenciar Carrinho
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
