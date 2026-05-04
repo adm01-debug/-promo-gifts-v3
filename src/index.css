@@ -291,6 +291,10 @@ html[data-scroll-locked] body {
     @apply badge-premium font-mono bg-muted/30 text-muted-foreground border-border/20 shadow-soft;
   }
 
+  .badge-premium-primary {
+    @apply badge-premium bg-primary/10 text-primary border-primary/20 shadow-sm;
+  }
+
   /* Premium Icon Wrapper */
   .icon-premium {
     @apply flex items-center justify-center transition-all duration-300;
