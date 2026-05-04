@@ -188,7 +188,7 @@ export const PresetsBar = React.forwardRef<HTMLDivElement, PresetsBarProps>(
                       <Plus className="h-3.5 w-3.5" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>Salvar preset</TooltipContent>
+                  <TooltipContent>Salvar combinação atual como preset</TooltipContent>
                 </Tooltip>
               </div>
 
