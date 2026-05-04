@@ -335,7 +335,6 @@ html[data-scroll-locked] body {
     color: hsl(var(--foreground));
   }
 
-...
   :root .font-bold {
     font-weight: 850;
     letter-spacing: -0.02em;
