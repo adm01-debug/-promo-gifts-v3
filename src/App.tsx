@@ -183,6 +183,7 @@ const App = () => {
                       <Sonner />
                       <CloudStatusBanner />
                       <BridgeStatusBanner />
+                      <GlobalOfflineAlert />
                       <DevOnlyBridgeOverlay />
                       <RouteScrollReset />
                       <RoutePrefetcher />

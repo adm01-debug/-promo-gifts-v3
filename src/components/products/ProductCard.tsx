@@ -266,7 +266,10 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
       />
 
       {/* Info section */}
-      <div className="relative p-2.5 sm:p-4 space-y-2 sm:space-y-3 bg-card" style={{ zIndex: 10 }}>
+      <div className={cn(
+        "relative p-2.5 sm:p-4 space-y-2 sm:space-y-3 transition-all duration-500",
+        isHovered ? "bg-card/95 backdrop-blur-md translate-y-[-4px]" : "bg-card"
+      )} style={{ zIndex: 10 }}>
         {!hideCategoryBadges && (
           <ProductCategoryBadges category={product.category} groups={product.groups} categoryUuid={product.category_id} className="flex-wrap" />
         )}
