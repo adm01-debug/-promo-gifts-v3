@@ -85,7 +85,7 @@ doc.addPage();
 doc.setFont('helvetica', 'bold');
 doc.setFontSize(18);
 doc.text('4. Checklist Auditável', 20, 25);
-doc.autoTable({
+autoTable(doc, {
   startY: 30,
   head: [['Funcionalidade', 'Critério', 'Status']],
   body: [
