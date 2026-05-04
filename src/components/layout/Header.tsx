@@ -172,7 +172,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
                   <span className="hidden sm:inline">Theme Safe-Mode</span>
                 </div>
               </TooltipTrigger>
-              <TooltipContent className="max-w-[200px]">
+              <TooltipContent className="max-w-[200px] bg-primary text-primary-foreground border-primary text-[11px]">
                 O ThemeProvider não foi detectado. O sistema está rodando em modo de segurança com o tema padrão.
               </TooltipContent>
             </Tooltip>
@@ -225,7 +225,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
                   )}
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>
+              <TooltipContent className="bg-primary text-primary-foreground border-primary text-[11px]">
                 Favoritos <kbd className="ml-1.5 px-1 py-0.5 rounded bg-primary-foreground/20 text-primary-foreground text-[10px] font-mono">Alt+F</kbd>
               </TooltipContent>
             </Tooltip>
@@ -249,7 +249,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
                   )}
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>
+              <TooltipContent className="bg-primary text-primary-foreground border-primary text-[11px]">
                 Comparar <kbd className="ml-1.5 px-1 py-0.5 rounded bg-primary-foreground/20 text-primary-foreground text-[10px] font-mono">Alt+C</kbd>
               </TooltipContent>
             </Tooltip>
@@ -266,7 +266,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
                   <span className="sr-only">Alternar tema</span>
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>
+              <TooltipContent className="bg-primary text-primary-foreground border-primary text-[11px]">
                 {actualTheme === "dark" ? "Modo Claro" : "Modo Escuro"} <kbd className="ml-1.5 px-1 py-0.5 rounded bg-primary-foreground/20 text-primary-foreground text-[10px] font-mono">Alt+T</kbd>
               </TooltipContent>
             </Tooltip>

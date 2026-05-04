@@ -343,7 +343,7 @@ export function PriceFreshnessBadge({
       <TooltipProvider delayDuration={150}>
         <Tooltip>
           <TooltipTrigger asChild>{confirmedBody}</TooltipTrigger>
-          <TooltipContent side="top" className="max-w-xs text-xs">
+          <TooltipContent side="top" className="max-w-xs text-xs bg-primary text-primary-foreground border-primary">
             <div className="flex flex-col gap-1.5">
               <div className="font-semibold">Preço confirmado com fornecedor</div>
               <div className="leading-snug text-muted-foreground">
@@ -528,7 +528,7 @@ export function PriceFreshnessBadge({
     <TooltipProvider delayDuration={150}>
       <Tooltip>
         <TooltipTrigger asChild>{body}</TooltipTrigger>
-        <TooltipContent side="top" className="max-w-xs text-xs">
+        <TooltipContent side="top" className="max-w-xs text-xs bg-primary text-primary-foreground border-primary">
           <FreshnessTooltipBody
             freshness={freshness}
             priceUpdatedAt={priceUpdatedAt}

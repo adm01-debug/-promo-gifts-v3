@@ -382,7 +382,7 @@ export const ProductQuickView = forwardRef<HTMLDivElement, ProductQuickViewProps
                      aria-label="Favoritar"><Heart className={cn("h-5 w-5", isFavorited && "fill-current")} />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>
+                  <TooltipContent className="bg-primary text-primary-foreground border-primary text-[11px]">
                     {isFavorited ? "Remover dos favoritos" : "Adicionar aos favoritos"}
                   </TooltipContent>
                 </Tooltip>
@@ -400,7 +400,7 @@ export const ProductQuickView = forwardRef<HTMLDivElement, ProductQuickViewProps
                      aria-label="Comparar"><GitCompare className="h-5 w-5" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>
+                  <TooltipContent className="bg-primary text-primary-foreground border-primary text-[11px]">
                     {isInCompare ? "Remover da comparação" : "Adicionar à comparação"}
                   </TooltipContent>
                 </Tooltip>
@@ -416,7 +416,7 @@ export const ProductQuickView = forwardRef<HTMLDivElement, ProductQuickViewProps
                       <Share2 className="h-5 w-5" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>Compartilhar</TooltipContent>
+                  <TooltipContent className="bg-primary text-primary-foreground border-primary text-[11px]">Compartilhar</TooltipContent>
                 </Tooltip>
 
                 <Button
