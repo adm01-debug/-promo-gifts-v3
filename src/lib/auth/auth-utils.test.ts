@@ -3,6 +3,14 @@ import { getGreeting, getHighestRole, isSupervisorOrAbove, getRandomGreeting, FL
 import { AppRole } from '@/contexts/AuthContext';
 
 describe('auth-utils', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   describe('getGreeting', () => {
     it('returns "Bom dia" for morning hours', () => {
       vi.setSystemTime(new Date(2024, 0, 1, 9, 0)); // 09:00
@@ -17,14 +25,6 @@ describe('auth-utils', () => {
     it('returns "Boa noite" for night hours', () => {
       vi.setSystemTime(new Date(2024, 0, 1, 21, 0)); // 21:00
       expect(getGreeting()).toBe('Boa noite');
-    });
-
-    afterEach(() => {
-      vi.useRealTimers();
-    });
-
-    beforeEach(() => {
-      vi.useFakeTimers();
     });
   });
 
@@ -81,26 +81,13 @@ describe('auth-utils', () => {
 
   describe('getRandomGreeting', () => {
     it('replaces templates correctly', () => {
+      vi.setSystemTime(new Date(2024, 0, 1, 9, 0)); // 09:00 -> "Bom dia"
       const name = 'John';
       const result = getRandomGreeting(name);
       
-      // Check if it contains the name
       expect(result).toContain(name);
-      
-      // Check if it starts with a valid greeting (Bom dia/Boa tarde/Boa noite)
-      const validGreetings = ['Bom dia', 'Boa tarde', 'Boa noite'];
-      const startsWithGreeting = validGreetings.some(g => result.includes(g));
-      expect(startsWithGreeting).toBe(true);
-      
-      // Check if it matches one of the patterns (ignoring placeholders)
-      const matchesPattern = FLOW_GREETINGS.some(pattern => {
-        const regexPattern = pattern
-          .replace('{greeting}', '.*')
-          .replace('{name}', '.*')
-          .replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // Escape regex special chars
-        return new RegExp(regexPattern).test(result);
-      });
-      // Note: the simple replace above is not perfect for regex, but should work for basic strings
+      expect(result).toContain('Bom dia');
     });
   });
 });
+
