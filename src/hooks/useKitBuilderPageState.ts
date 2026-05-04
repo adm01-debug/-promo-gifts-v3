@@ -1,6 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
-import { toast } from 'sonner';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useKitBuilder } from '@/hooks/useKitBuilder';
 import { useCustomKitPersistence } from '@/hooks/useCustomKitPersistence';
@@ -9,7 +8,6 @@ import { useKitUndoRedo } from '@/hooks/useKitUndoRedo';
 import { useKitBuilderQuote } from '@/pages/kit-builder/useKitBuilderQuote';
 import { useTemplateSnapshot } from '@/hooks/useTemplateSnapshot';
 import { useDuplicateKitDetector } from '@/hooks/useDuplicateKitDetector';
-import { useKitWizardShortcuts } from '@/hooks/useKitWizardShortcuts';
 import { transformToKitItem } from '@/hooks/useKitBuilderTransformers';
 import { invokeExternalDb } from '@/lib/external-db';
 import { supabase } from '@/integrations/supabase/client';
