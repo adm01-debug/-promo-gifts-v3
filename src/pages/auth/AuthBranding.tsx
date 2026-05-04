@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Gift, Package, Factory, SlidersHorizontal, Brain, Rocket } from "lucide-react";
 
-interface RocketData { id: number; left: number; size: number; duration: number; }
+interface RocketData { id: number; left: number; size: number; duration: number; rotation: number; scale: number; }
 
 export function ContinuousRockets() {
   const [rockets, setRockets] = useState<RocketData[]>([]);
