@@ -416,7 +416,7 @@ export const ProductQuickView = forwardRef<HTMLDivElement, ProductQuickViewProps
                       <Share2 className="h-5 w-5" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>Compartilhar</TooltipContent>
+                  <TooltipContent className="bg-primary text-primary-foreground border-primary text-[11px]">Compartilhar</TooltipContent>
                 </Tooltip>
 
                 <Button
