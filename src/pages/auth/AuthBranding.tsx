@@ -80,10 +80,13 @@ export function ContinuousRockets() {
           }}
         >
           <div style={{ transform: `scale(${r.scale})` }}>
-            <div style={{ 
-              animation: "rocketShake 0.15s ease-in-out infinite",
-              transform: `rotate(${r.rotation}deg)` 
-            }}>
+            <div 
+              className="relative"
+              style={{ 
+                animation: "rocketShake 0.15s ease-in-out infinite",
+                transform: `rotate(${r.rotation}deg)` 
+              }}
+            >
               <Rocket
                 className="-rotate-45"
                 style={{
@@ -98,31 +101,34 @@ export function ContinuousRockets() {
           <div
             className="absolute left-1/2 -translate-x-1/2 rounded-full opacity-70"
             style={{
-              top: `${r.size * 0.75}px`,
+              top: `${r.size * 0.7}px`,
               width: `${r.size * 0.3}px`,
-              height: `${r.size}px`,
+              height: `${r.size * 1.2}px`,
               animation: "flameTrail 0.3s ease-in-out infinite alternate",
               background: "linear-gradient(to bottom, #FB923C, #FBBF24, transparent)",
+              zIndex: -1,
             }}
           />
           <div
             className="absolute left-1/2 -translate-x-1/2 rounded-full opacity-40"
             style={{
-              top: `${r.size}px`,
+              top: `${r.size * 0.8}px`,
               width: `${r.size * 0.15}px`,
-              height: `${r.size * 1.5}px`,
+              height: `${r.size * 1.8}px`,
               animation: "flameTrail 0.2s ease-in-out infinite alternate-reverse",
               background: "linear-gradient(to bottom, #FB923C, transparent)",
+              zIndex: -1,
             }}
           />
           <div
-            className="absolute left-1/2 -translate-x-1/2 rounded-full bg-muted-foreground/10"
+            className="absolute left-1/2 -translate-x-1/2 rounded-full bg-orange/10"
             style={{
-              top: `${r.size * 1.2}px`,
+              top: `${r.size}px`,
               width: `${r.size * 2}px`,
               height: `${r.size * 2}px`,
               animation: "smokeRise 2s ease-out forwards",
-              filter: "blur(8px)",
+              filter: "blur(12px)",
+              zIndex: -2,
             }}
           />
         </div>
