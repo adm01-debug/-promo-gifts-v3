@@ -6,66 +6,48 @@ import { Gift, Package, Factory, SlidersHorizontal, Brain, Rocket } from "lucide
 
 interface RocketData { id: number; left: number; size: number; duration: number; rotation: number; scale: number; }
 
-export function ContinuousRockets() {
+export const ContinuousRockets = React.memo(() => {
   const [rockets, setRockets] = useState<RocketData[]>([]);
   const nextIdRef = useRef(0);
 
+  const spawnRocket = useCallback((isInitial = false) => {
+    const id = nextIdRef.current++;
+    
+    const left = 5 + Math.random() * 85;
+    const size = 20 + Math.random() * 30;
+    const duration = isInitial 
+      ? (1.8 + Math.random() * 1.5) 
+      : (2.5 + Math.random() * 3.0);
+    
+    const rotationOffset = -4 + Math.random() * 8;
+    const scale = 0.85 + Math.random() * 0.35;
+
+    const rocket: RocketData = { 
+      id, left, size, duration, rotation: rotationOffset, scale 
+    };
+    
+    setRockets((prev) => [...prev, rocket]);
+    
+    setTimeout(() => {
+      setRockets((prev) => prev.filter((r) => r.id !== id));
+    }, (duration + 0.5) * 1000);
+  }, []);
+
   useEffect(() => {
-    let mounted = true;
-    const cleanupTimers: ReturnType<typeof setTimeout>[] = [];
+    // Initial burst
+    const delays = [0, 300, 800, 1400, 2000];
+    const timers = delays.map(d => setTimeout(() => spawnRocket(true), d));
 
-    function spawnRocket(isInitial = false) {
-      if (!mounted) return;
-      const id = nextIdRef.current++;
-      
-      // Variedade premium: posição, tamanho, velocidade e rotação
-      const left = 5 + Math.random() * 85;
-      const size = 20 + Math.random() * 30; // 20px a 50px
-      const duration = isInitial 
-        ? (2.0 + Math.random() * 2.0) 
-        : (3.0 + Math.random() * 3.5);
-      
-      // Rotação sutil para parecer menos "perfeito" e mais dinâmico
-      const rotationOffset = -5 + Math.random() * 10; // -5deg a +5deg
-      const scale = 0.8 + Math.random() * 0.4; // 0.8x a 1.2x
-
-      const rocket: RocketData & { rotation: number; scale: number } = { 
-        id, left, size, duration, rotation: rotationOffset, scale 
-      };
-      
-      setRockets((prev) => [...prev, rocket]);
-      
-      const removeTimer = setTimeout(() => {
-        if (!mounted) return;
-        setRockets((prev) => prev.filter((r) => r.id !== id));
-      }, duration * 1000 + 600);
-      
-      cleanupTimers.push(removeTimer);
-    }
-
-    // Burst inicial agressivo para impacto imediato
-    const initialDelays = [0, 200, 600, 1100, 1800];
-    initialDelays.forEach(delay => {
-      const t = setTimeout(() => spawnRocket(true), delay);
-      cleanupTimers.push(t);
-    });
-
-    // Ciclo contínuo sustentável
-    function scheduleNext() {
-      const interval = 2000 + Math.random() * 3500;
-      const t = setTimeout(() => {
-        spawnRocket();
-        scheduleNext();
-      }, interval);
-      cleanupTimers.push(t);
-    }
-    scheduleNext();
+    // Sustained cycle
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'visible') spawnRocket();
+    }, 3500);
 
     return () => {
-      mounted = false;
-      cleanupTimers.forEach(clearTimeout);
+      timers.forEach(clearTimeout);
+      clearInterval(interval);
     };
-  }, []);
+  }, [spawnRocket]);
 
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden z-[1]" aria-hidden="true">
@@ -79,12 +61,11 @@ export function ContinuousRockets() {
             willChange: "transform, opacity",
           }}
         >
-          <div style={{ transform: `scale(${r.scale})` }}>
+          <div style={{ transform: `scale(${r.scale}) rotate(${r.rotation}deg)` }}>
             <div 
-              className="relative"
+              className="relative animate-rocket-shake"
               style={{ 
                 animation: "rocketShake 0.15s ease-in-out infinite",
-                transform: `rotate(${r.rotation}deg)` 
               }}
             >
               <Rocket
@@ -138,7 +119,54 @@ export function ContinuousRockets() {
   );
 }
 
-const FEATURES = [
+const Starfield = React.memo(() => {
+  return (
+    <>
+      {[...Array(32)].map((_, i) => {
+        const size = 1 + (i % 3);
+        const top = (i * 37 + 11) % 100;
+        const left = (i * 53 + 7) % 100;
+        const dur = 2 + (i % 5);
+        const delay = (i * 0.4) % 3;
+        return (
+          <div
+            key={`star-${i}`}
+            className="absolute rounded-full bg-white/30 shadow-[0_0_8px_rgba(255,255,255,0.3)]"
+            style={{
+              width: `${size}px`,
+              height: `${size}px`,
+              top: `${top}%`,
+              left: `${left}%`,
+              animation: `twinkle ${dur}s ease-in-out ${delay}s infinite`
+            }}
+          />
+        );
+      })}
+    </>
+  );
+});
+
+function FeatureCard({ item, index }: { item: typeof FEATURE_ITEMS[0]; index: number }) {
+  const IconComponent = item.icon;
+  return (
+    <div 
+      className="p-6 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl hover:bg-white/10 hover:border-orange/30 hover:scale-[1.02] transition-all duration-500 group opacity-0"
+      style={{ animation: `scale-fade-in 0.5s ease-out ${300 + index * 150}ms forwards` }}
+    >
+      <div className="flex items-start justify-between">
+        <div className="min-w-0">
+          <p className="text-2xl font-bold text-orange truncate">{item.label}</p>
+          <p className="text-sm font-medium text-white/50 truncate">{item.desc}</p>
+        </div>
+        <div className="w-11 h-11 rounded-xl bg-orange/15 flex items-center justify-center group-hover:bg-orange/25 transition-colors shrink-0">
+          <IconComponent className="h-5 w-5 text-orange" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const FEATURE_ITEMS = [
   { label: "+20.000", desc: "Produtos", icon: Package },
   { label: "+100", desc: "Fornecedores", icon: Factory },
   { label: "Filtros", desc: "Avançados", icon: SlidersHorizontal },
@@ -153,11 +181,7 @@ export function AuthBrandingPanel() {
         <div className="absolute top-1/4 -left-20 w-80 h-80 bg-orange/20 rounded-full blur-[120px] animate-pulse" />
         <div className="absolute bottom-1/4 right-0 w-96 h-96 bg-orange/10 rounded-full blur-[150px]" />
         <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-orange/5 rounded-full blur-[100px]" />
-        {[...Array(18)].map((_, i) => {
-          const size = 1 + (i % 3); const top = (i * 37 + 11) % 100; const left = (i * 53 + 7) % 100;
-          const dur = 2 + (i % 4); const delay = (i * 0.3) % 2;
-          return (<div key={`star-${i}`} className="absolute rounded-full bg-white/40 shadow-[0_0_8px_rgba(255,255,255,0.4)]" style={{ width: `${size}px`, height: `${size}px`, top: `${top}%`, left: `${left}%`, animation: `twinkle ${dur}s ease-in-out ${delay}s infinite` }} />);
-        })}
+        <Starfield />
         <ContinuousRockets />
       </div>
 
@@ -175,9 +199,12 @@ export function AuthBrandingPanel() {
           </div>
 
           <div className="space-y-4 max-w-md">
-            <h2 className="text-5xl xl:text-6xl font-display font-bold text-white leading-[1.1] tracking-tight">
+            <h2 className="text-5xl xl:text-6xl font-display font-bold text-white leading-[1.1] tracking-tight relative group">
               Um Universo de Produtos, para o{" "}
-              <span className="text-orange">Melhor Time das Galáxias!</span>
+              <span className="text-orange relative">
+                Melhor Time das Galáxias!
+                <div className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r from-orange/0 via-orange/60 to-orange/0 scale-x-0 group-hover:scale-x-100 transition-transform duration-700" />
+              </span>
             </h2>
             <p className="text-xl text-white/70 leading-relaxed font-light">
               Tenha acesso ao maior mix de produtos personalizados, consulte estoque em tempo real, visualize locais e técnicas de personalização. Feito especialmente para você decolar!!!
@@ -185,23 +212,9 @@ export function AuthBrandingPanel() {
           </div>
 
           <div className="grid grid-cols-2 gap-4 pt-6">
-            {FEATURES.map((item, i) => {
-              const IconComponent = item.icon;
-              return (
-                <div key={i} className="p-6 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl hover:bg-white/10 hover:border-orange/30 hover:scale-[1.02] transition-all duration-500 group opacity-0"
-                  style={{ animation: `scale-fade-in 0.5s ease-out ${300 + i * 150}ms forwards` }}>
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="text-2xl font-bold text-orange">{item.label}</p>
-                      <p className="text-sm font-medium text-white/50">{item.desc}</p>
-                    </div>
-                    <div className="w-11 h-11 rounded-xl bg-orange/15 flex items-center justify-center group-hover:bg-orange/25 transition-colors">
-                      <IconComponent className="h-5 w-5 text-orange" />
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+            {FEATURE_ITEMS.map((item, i) => (
+              <FeatureCard key={i} item={item} index={i} />
+            ))}
           </div>
 
           {/* Trust Indicators */}

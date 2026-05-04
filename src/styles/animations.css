@@ -335,3 +335,54 @@
 .spring-bounce:active {
   transform: scale(0.95);
 }
+
+/* ===== ROCKET & SPACE ANIMATIONS ===== */
+@keyframes rocketLaunch {
+  0% {
+    transform: translateY(10vh);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-110vh);
+    opacity: 0;
+  }
+}
+
+@keyframes rocketShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-0.5px); }
+  75% { transform: translateX(0.5px); }
+}
+
+@keyframes flameTrail {
+  0% { transform: translateX(-50%) scaleY(1); opacity: 0.8; }
+  100% { transform: translateX(-50%) scaleY(1.4); opacity: 0.4; }
+}
+
+@keyframes smokeRise {
+  0% { transform: translateX(-50%) scale(0.8); opacity: 0.5; filter: blur(8px); }
+  100% { transform: translateX(-50%) translateY(40px) scale(2.5); opacity: 0; filter: blur(24px); }
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+
+@keyframes scale-fade-in {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
