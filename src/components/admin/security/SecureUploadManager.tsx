@@ -59,7 +59,7 @@ export function SecureUploadManager() {
     formData.append("folder", "dev-test");
 
     try {
-      const { data, error } = await supabase.functions.invoke("secure-upload", {
+      const { error } = await supabase.functions.invoke("secure-upload", {
         body: formData,
       });
 
@@ -74,7 +74,7 @@ export function SecureUploadManager() {
 
       toast.success("Upload realizado com sucesso e verificado!");
       fetchLogs();
-    } catch (error: any) {
+    } catch (error) {
       console.error("Test upload error:", error);
       toast.error("Erro ao realizar upload de teste");
     } finally {
