@@ -62,9 +62,10 @@ export function BridgeProductsPreviewPanel() {
   const [pageSize, setPageSize] = useState<PageSize>(25);
 
   const totalPages = useMemo(() => {
-    if (count == null) return 1;
+    if (count === null || count === undefined) return 1;
     return Math.max(1, Math.ceil(count / pageSize));
   }, [count, pageSize]);
+
 
   // Monta o objeto de filtros no formato suportado pelo external-db-bridge
   const buildFilters = useCallback((): Record<string, unknown> => {
