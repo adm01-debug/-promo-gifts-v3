@@ -416,27 +416,6 @@ export default function FavoritesPage() {
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
-                  <AnimatePresence>
-                    {selectionMode && selectedIds.size > 0 && (
-                      <motion.div
-                        initial={{ scale: 0, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        exit={{ scale: 0, opacity: 0 }}
-                        transition={{ type: "spring", stiffness: 500, damping: 25 }}
-                        className="absolute -top-2 -right-2"
-                      >
-                        <Badge className="bg-destructive text-destructive-foreground h-5 min-w-5 text-[10px] font-bold px-1.5 py-0 flex items-center justify-center tabular-nums shadow-lg">
-                          {selectedIds.size}
-                        </Badge>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">
-                {selectionMode ? "Sair do modo seleção" : "Selecionar itens para ações em massa"}
-              </TooltipContent>
-            </Tooltip>
                 <div className="hidden sm:block">
                   <LayoutPopover
                     viewMode={viewMode}
