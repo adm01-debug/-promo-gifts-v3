@@ -126,7 +126,7 @@ export function StatCard({ title, value, icon, trend, variant = 'default', onCli
         <div className="flex items-center justify-between gap-3">
           <div className="space-y-1 text-left min-w-0 flex-1">
             <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider">{title}</p>
-            <p className="text-2xl font-bold tabular-nums tracking-tight">{displayValue}</p>
+            <p className="text-xl font-bold tabular-nums tracking-tight">{displayValue}</p>
             {subtitle && (
               <p className="text-[10px] text-muted-foreground/70 truncate">{subtitle}</p>
             )}

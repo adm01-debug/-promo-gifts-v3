@@ -15,7 +15,7 @@ export function KitStatsCards({ kitState, totalItems, itemsCount, personalizedCo
       <Card>
         <CardContent className="pt-6 text-center">
           <Package className="h-8 w-8 mx-auto text-primary mb-2" />
-          <p className="text-2xl font-bold">1</p>
+          <p className="text-xl font-bold">1</p>
           <p className="text-sm text-muted-foreground">Embalagem</p>
           {kitState.box && <p className="text-xs text-muted-foreground mt-1 truncate px-2">{kitState.box.name}</p>}
         </CardContent>
@@ -23,21 +23,21 @@ export function KitStatsCards({ kitState, totalItems, itemsCount, personalizedCo
       <Card>
         <CardContent className="pt-6 text-center">
           <Gift className="h-8 w-8 mx-auto text-primary mb-2" />
-          <p className="text-2xl font-bold">{totalItems}</p>
+          <p className="text-xl font-bold">{totalItems}</p>
           <p className="text-sm text-muted-foreground">{itemsCount} {itemsCount === 1 ? 'item' : 'itens diferentes'}</p>
         </CardContent>
       </Card>
       <Card>
         <CardContent className="pt-6 text-center">
           <Palette className="h-8 w-8 mx-auto text-primary mb-2" />
-          <p className="text-2xl font-bold">{personalizedCount}</p>
+          <p className="text-xl font-bold">{personalizedCount}</p>
           <p className="text-sm text-muted-foreground">{personalizedCount === 1 ? 'Personalização' : 'Personalizações'}</p>
         </CardContent>
       </Card>
       <Card>
         <CardContent className="pt-6 text-center">
           <Scale className="h-8 w-8 mx-auto text-primary mb-2" />
-          <p className="text-2xl font-bold">
+          <p className="text-xl font-bold">
             {kitState.totalWeight >= 1000 ? `${(kitState.totalWeight / 1000).toFixed(1)}kg` : `${kitState.totalWeight}g`}
           </p>
           <p className="text-sm text-muted-foreground">Peso estimado</p>

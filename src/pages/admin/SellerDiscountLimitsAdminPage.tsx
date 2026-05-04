@@ -423,7 +423,7 @@ function KpiCard({
         <div className={`p-2 rounded-lg ${toneCls}`}>{icon}</div>
         <div>
           <p className="text-xs text-muted-foreground">{label}</p>
-          <p className="text-2xl font-bold">{value}</p>
+          <p className="text-xl font-bold">{value}</p>
         </div>
       </CardContent>
     </Card>

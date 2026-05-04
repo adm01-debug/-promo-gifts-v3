@@ -72,7 +72,7 @@ export default function ClientsPage() {
       <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-4 pb-24 md:pb-6 animate-fade-in">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 data-testid="page-title-clientes" className="text-2xl font-bold font-display text-foreground flex items-center gap-2">
+            <h1 data-testid="page-title-clientes" className="text-xl font-bold font-display text-foreground flex items-center gap-2">
               <Users className="h-6 w-6 text-primary" /> Clientes
             </h1>
             <p className="text-muted-foreground text-sm mt-1">

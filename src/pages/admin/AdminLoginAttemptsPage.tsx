@@ -43,7 +43,7 @@ export default function AdminLoginAttemptsPage() {
             <div className="flex items-center gap-3">
               <Shield className="h-8 w-8 text-primary" />
               <div>
-                <p className="text-2xl font-bold">{stats?.total24h || 0}</p>
+                <p className="text-xl font-bold">{stats?.total24h || 0}</p>
                 <p className="text-sm text-muted-foreground">Total 24h</p>
               </div>
             </div>
@@ -54,7 +54,7 @@ export default function AdminLoginAttemptsPage() {
             <div className="flex items-center gap-3">
               <ShieldAlert className="h-8 w-8 text-destructive" />
               <div>
-                <p className="text-2xl font-bold">{stats?.failed24h || 0}</p>
+                <p className="text-xl font-bold">{stats?.failed24h || 0}</p>
                 <p className="text-sm text-muted-foreground">Falhas 24h</p>
               </div>
             </div>
@@ -65,7 +65,7 @@ export default function AdminLoginAttemptsPage() {
             <div className="flex items-center gap-3">
               <ShieldCheck className="h-8 w-8 text-primary" />
               <div>
-                <p className="text-2xl font-bold">{stats?.failRate24h || 0}%</p>
+                <p className="text-xl font-bold">{stats?.failRate24h || 0}%</p>
                 <p className="text-sm text-muted-foreground">Taxa de Falha</p>
               </div>
             </div>
@@ -76,7 +76,7 @@ export default function AdminLoginAttemptsPage() {
             <div className="flex items-center gap-3">
               <Shield className="h-8 w-8 text-muted-foreground" />
               <div>
-                <p className="text-2xl font-bold">{stats?.total7d || 0}</p>
+                <p className="text-xl font-bold">{stats?.total7d || 0}</p>
                 <p className="text-sm text-muted-foreground">Total 7 dias</p>
               </div>
             </div>

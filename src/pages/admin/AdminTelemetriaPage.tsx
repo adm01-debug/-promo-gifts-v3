@@ -256,7 +256,7 @@ export default function AdminTelemetriaPage() {
             <Card key={label}>
               <CardContent className="p-4 flex items-center gap-3">
                 <div className={`p-2 rounded-lg bg-${color}/10`}><Icon className={`h-5 w-5 text-${color}`} /></div>
-                <div><p className="text-2xl font-bold">{value}</p><p className="text-[11px] text-muted-foreground">{label}</p></div>
+                <div><p className="text-xl font-bold">{value}</p><p className="text-[11px] text-muted-foreground">{label}</p></div>
               </CardContent>
             </Card>
           ))}

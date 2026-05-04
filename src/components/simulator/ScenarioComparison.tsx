@@ -267,7 +267,7 @@ export function ScenarioComparison({
                 {comparison.priceDiff !== 0 && (
                   <div className="mt-4 p-3 rounded-xl bg-card/50 text-center">
                     <p className="text-sm text-muted-foreground">Economia escolhendo {comparison.winner}:</p>
-                    <p className="text-2xl font-bold text-success">
+                    <p className="text-xl font-bold text-success">
                       {formatCurrency(Math.abs(comparison.priceDiff))}
                     </p>
                   </div>

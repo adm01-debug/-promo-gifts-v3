@@ -433,7 +433,7 @@ export function FutureStockModal({
                     </div>
                   </div>
                   <div className="text-right">
-                    <span className="text-2xl font-bold text-primary">
+                    <span className="text-xl font-bold text-primary">
                       +{filteredAndSortedEntries.reduce((sum, e) => sum + e.expectedQuantity, 0).toLocaleString("pt-BR")}
                     </span>
                     <p className="text-[11px] text-muted-foreground">unidades no total</p>

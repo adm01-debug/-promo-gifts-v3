@@ -112,12 +112,12 @@ export function ConfirmedSummary({ wizard, onAddAnother, onGenerateQuote, onCopy
             <div className="p-4 rounded-xl bg-black/15 backdrop-blur-sm border border-white/10">
               <p className="text-xs font-semibold tracking-wider text-primary-foreground/70 mb-0.5">Por unidade</p>
               <p className="text-[11px] text-primary-foreground/50 mb-1.5">(produto + gravação)</p>
-              <p className="text-2xl font-bold text-primary-foreground">{formatCurrency(wizard.totals.grandTotalPerUnit)}</p>
+              <p className="text-xl font-bold text-primary-foreground">{formatCurrency(wizard.totals.grandTotalPerUnit)}</p>
             </div>
             <div className="p-4 rounded-xl bg-black/15 backdrop-blur-sm border border-white/10 flex flex-col justify-between">
               <p className="text-xs font-semibold tracking-wider text-primary-foreground/70 mb-1.5">Prazo máx.</p>
               {wizard.totals.maxDays > 0 ? (
-                <p className="text-2xl font-bold text-primary-foreground">~{wizard.totals.maxDays}d</p>
+                <p className="text-xl font-bold text-primary-foreground">~{wizard.totals.maxDays}d</p>
               ) : (
                 <div className="group relative flex items-center gap-2 cursor-help">
                   <AlertCircle className="h-4 w-4 text-primary-foreground/70 shrink-0" />

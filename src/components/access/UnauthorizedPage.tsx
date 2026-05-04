@@ -38,7 +38,7 @@ export function UnauthorizedPage() {
             <span className="inline-block text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
               Não Autenticado · 401
             </span>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">
+            <h1 className="text-xl font-bold tracking-tight text-foreground">
               Acesso Restrito
             </h1>
             <p className="text-sm leading-relaxed text-muted-foreground">

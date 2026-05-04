@@ -138,7 +138,7 @@ export default function AdminConexoesStatusPage() {
               <ArrowLeft className="h-4 w-4 mr-1" /> Voltar para Conexões
             </Link>
           </Button>
-          <h1 className="text-2xl font-display font-semibold">Status da sincronização</h1>
+          <h1 className="text-xl font-display font-semibold">Status da sincronização</h1>
           <p className="text-sm text-muted-foreground">
             Histórico recente e diagnóstico da sincronização entre <code>integration_credentials</code> e{" "}
             <code>external_connections</code>.

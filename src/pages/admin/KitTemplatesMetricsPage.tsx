@@ -126,7 +126,7 @@ export default function KitTemplatesMetricsPage() {
       />
       <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
         <div>
-          <h1 className="text-2xl font-display font-semibold">Métricas de Kits</h1>
+          <h1 className="text-xl font-display font-semibold">Métricas de Kits</h1>
           <p className="text-sm text-muted-foreground">
             Adoção de templates e itens mais usados pela equipe.
           </p>
@@ -141,7 +141,7 @@ export default function KitTemplatesMetricsPage() {
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Templates ativos</p>
-                <p className="text-2xl font-display font-semibold">{stats.total}</p>
+                <p className="text-xl font-display font-semibold">{stats.total}</p>
               </div>
             </CardContent>
           </Card>
@@ -152,7 +152,7 @@ export default function KitTemplatesMetricsPage() {
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Clonagens totais</p>
-                <p className="text-2xl font-display font-semibold">{stats.totalUsage}</p>
+                <p className="text-xl font-display font-semibold">{stats.totalUsage}</p>
               </div>
             </CardContent>
           </Card>
@@ -163,7 +163,7 @@ export default function KitTemplatesMetricsPage() {
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Templates populares (≥5 usos)</p>
-                <p className="text-2xl font-display font-semibold">{stats.popular}</p>
+                <p className="text-xl font-display font-semibold">{stats.popular}</p>
               </div>
             </CardContent>
           </Card>
@@ -277,19 +277,19 @@ export default function KitTemplatesMetricsPage() {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   <div className="rounded-lg border bg-card/40 p-3">
                     <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Gerados</p>
-                    <p className="text-2xl font-display font-semibold tabular-nums">{shareConversion.generated}</p>
+                    <p className="text-xl font-display font-semibold tabular-nums">{shareConversion.generated}</p>
                   </div>
                   <div className="rounded-lg border bg-card/40 p-3">
                     <p className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
                       <Eye className="h-3 w-3" /> Visualizados
                     </p>
-                    <p className="text-2xl font-display font-semibold tabular-nums">{shareConversion.viewed}</p>
+                    <p className="text-xl font-display font-semibold tabular-nums">{shareConversion.viewed}</p>
                   </div>
                   <div className="rounded-lg border bg-card/40 p-3">
                     <p className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
                       <Percent className="h-3 w-3" /> Taxa
                     </p>
-                    <p className="text-2xl font-display font-semibold tabular-nums text-primary">
+                    <p className="text-xl font-display font-semibold tabular-nums text-primary">
                       {shareConversion.rate.toFixed(1)}%
                     </p>
                   </div>

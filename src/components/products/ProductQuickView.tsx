@@ -276,7 +276,7 @@ export const ProductQuickView = forwardRef<HTMLDivElement, ProductQuickViewProps
                 </span>
               </div>
 
-              <h2 data-testid="product-quickview-name" className="text-2xl font-display font-bold text-foreground leading-tight">
+              <h2 data-testid="product-quickview-name" className="text-xl font-display font-bold text-foreground leading-tight">
                 {product.name}
               </h2>
 

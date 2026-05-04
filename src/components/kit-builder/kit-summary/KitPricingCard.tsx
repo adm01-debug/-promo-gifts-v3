@@ -40,7 +40,7 @@ export function KitPricingCard({ kitState, kitQuantity, onKitQuantityChange }: K
           <Separator className="my-4" />
           <div className="flex justify-between items-center">
             <div><p className="text-xl font-bold">Total</p><p className="text-sm text-muted-foreground">{formatCurrency(pricing.unitPrice)}/kit</p></div>
-            <p className="text-2xl font-bold text-primary">{formatCurrency(pricing.total)}</p>
+            <p className="text-xl font-bold text-primary">{formatCurrency(pricing.total)}</p>
           </div>
         </CardContent>
       </Card>

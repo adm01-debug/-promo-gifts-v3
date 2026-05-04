@@ -230,7 +230,7 @@ export function SalesGoalsCard() {
           <div className="flex items-end justify-between">
             <div>
               <p className="text-sm text-muted-foreground">Faturamento</p>
-              <p className="text-2xl font-bold text-foreground">
+              <p className="text-xl font-bold text-foreground">
                 {formatCurrency(activeGoal.current_value)}
               </p>
             </div>

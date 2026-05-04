@@ -333,7 +333,7 @@ export default function FavoritesPage() {
               <Heart className="h-6 w-6 text-destructive fill-destructive" />
             </div>
             <div>
-              <h1 data-testid="page-title-favoritos" className="text-2xl lg:text-3xl font-display font-bold text-foreground">
+              <h1 data-testid="page-title-favoritos" className="text-xl lg:text-3xl font-display font-bold text-foreground">
                 Meus Favoritos
               </h1>
               <p data-testid="favorites-count" className="text-muted-foreground text-sm">
@@ -467,7 +467,7 @@ export default function FavoritesPage() {
                         <Package className="h-5 w-5 text-primary" />
                       </div>
                       <div>
-                        <p className="text-2xl font-display font-bold text-foreground">{stats.total}</p>
+                        <p className="text-xl font-display font-bold text-foreground">{stats.total}</p>
                         <p className="text-xs text-muted-foreground">Produtos</p>
                       </div>
                     </div>
@@ -476,7 +476,7 @@ export default function FavoritesPage() {
                         <Layers className="h-5 w-5 text-primary" />
                       </div>
                       <div>
-                        <p className="text-2xl font-display font-bold text-foreground">{stats.categories}</p>
+                        <p className="text-xl font-display font-bold text-foreground">{stats.categories}</p>
                         <p className="text-xs text-muted-foreground">Categorias</p>
                       </div>
                     </div>
@@ -485,7 +485,7 @@ export default function FavoritesPage() {
                         <TrendingDown className="h-5 w-5 text-success" />
                       </div>
                       <div>
-                        <p className="text-2xl font-display font-bold text-foreground">{fmt(stats.minPrice)}</p>
+                        <p className="text-xl font-display font-bold text-foreground">{fmt(stats.minPrice)}</p>
                         <p className="text-xs text-muted-foreground">Menor preço</p>
                       </div>
                     </div>
@@ -494,7 +494,7 @@ export default function FavoritesPage() {
                         <TrendingUp className="h-5 w-5 text-primary" />
                       </div>
                       <div>
-                        <p className="text-2xl font-display font-bold text-foreground">{fmt(stats.maxPrice)}</p>
+                        <p className="text-xl font-display font-bold text-foreground">{fmt(stats.maxPrice)}</p>
                         <p className="text-xs text-muted-foreground">Maior preço</p>
                       </div>
                     </div>

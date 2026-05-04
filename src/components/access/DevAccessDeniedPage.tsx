@@ -242,7 +242,7 @@ export function DevAccessDeniedPage({
               </span>
               <h1
                 id="dev-access-denied-title"
-                className="text-2xl font-bold tracking-tight text-foreground"
+                className="text-xl font-bold tracking-tight text-foreground"
               >
                 {copy.title}
               </h1>

@@ -148,7 +148,7 @@ export function DiscountManagementPanel() {
                   <stat.icon className={cn("h-4 w-4", stat.color)} />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold tabular-nums leading-none">
+                  <p className="text-xl font-bold tabular-nums leading-none">
                     {stat.value}
                     {stat.suffix && <span className="text-sm font-normal text-muted-foreground">{stat.suffix}</span>}
                   </p>

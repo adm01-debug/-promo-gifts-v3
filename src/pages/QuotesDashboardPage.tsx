@@ -87,9 +87,9 @@ export default function QuotesDashboardPage() {
 
         {/* Secondary metrics */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="bg-card/50 backdrop-blur-sm border-border/50"><CardContent className="pt-6"><div className="flex items-center justify-between"><div><p className="text-sm text-muted-foreground">Ticket Médio</p><p className="text-2xl font-bold text-foreground">{formatCurrency(s.metrics.averageValue)}</p></div><div className="p-3 rounded-full bg-primary/10"><TrendingUp className="h-5 w-5 text-primary" /></div></div></CardContent></Card>
-          <Card className="bg-card/50 backdrop-blur-sm border-border/50"><CardContent className="pt-6"><div className="flex items-center justify-between"><div><p className="text-sm text-muted-foreground">Taxa de Rejeição</p><p className="text-2xl font-bold text-destructive">{s.metrics.rejectionRate.toFixed(1)}%</p></div><div className="p-3 rounded-full bg-destructive/10"><XCircle className="h-5 w-5 text-destructive" /></div></div></CardContent></Card>
-          <Card className="bg-card/50 backdrop-blur-sm border-border/50"><CardContent className="pt-6"><div className="flex items-center justify-between"><div><p className="text-sm text-muted-foreground">Aguardando Resposta</p><p className="text-2xl font-bold text-warning">{s.metrics.pendingQuotes}</p></div><div className="p-3 rounded-full bg-warning/10"><Clock className="h-5 w-5 text-warning" /></div></div></CardContent></Card>
+          <Card className="bg-card/50 backdrop-blur-sm border-border/50"><CardContent className="pt-6"><div className="flex items-center justify-between"><div><p className="text-sm text-muted-foreground">Ticket Médio</p><p className="text-xl font-bold text-foreground">{formatCurrency(s.metrics.averageValue)}</p></div><div className="p-3 rounded-full bg-primary/10"><TrendingUp className="h-5 w-5 text-primary" /></div></div></CardContent></Card>
+          <Card className="bg-card/50 backdrop-blur-sm border-border/50"><CardContent className="pt-6"><div className="flex items-center justify-between"><div><p className="text-sm text-muted-foreground">Taxa de Rejeição</p><p className="text-xl font-bold text-destructive">{s.metrics.rejectionRate.toFixed(1)}%</p></div><div className="p-3 rounded-full bg-destructive/10"><XCircle className="h-5 w-5 text-destructive" /></div></div></CardContent></Card>
+          <Card className="bg-card/50 backdrop-blur-sm border-border/50"><CardContent className="pt-6"><div className="flex items-center justify-between"><div><p className="text-sm text-muted-foreground">Aguardando Resposta</p><p className="text-xl font-bold text-warning">{s.metrics.pendingQuotes}</p></div><div className="p-3 rounded-full bg-warning/10"><Clock className="h-5 w-5 text-warning" /></div></div></CardContent></Card>
         </div>
 
         {/* Approval Links */}
@@ -105,7 +105,7 @@ export default function QuotesDashboardPage() {
                 ].map(t => (
                   <div key={t.label} className="text-center p-3 rounded-lg bg-muted/30">
                     <div className="flex items-center justify-center gap-1.5 mb-1">{t.icon}</div>
-                    <p className="text-2xl font-bold text-foreground">{t.value}</p>
+                    <p className="text-xl font-bold text-foreground">{t.value}</p>
                     <p className="text-xs text-muted-foreground">{t.label}</p>
                     {t.pct !== null && <p className="text-xs text-muted-foreground/70">({t.pct}%)</p>}
                   </div>
