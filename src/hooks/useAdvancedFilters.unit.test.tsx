@@ -58,8 +58,9 @@ describe('useAdvancedFilters', () => {
     });
   });
 
-  it('initializes with default filters', () => {
+  it('initializes with default filters', async () => {
     const { result } = renderHook(() => useAdvancedFilters());
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(result.current.filters).toEqual(defaultAdvancedFilters);
   });
 
@@ -71,8 +72,9 @@ describe('useAdvancedFilters', () => {
     });
   });
 
-  it('updates a single filter correctly', () => {
+  it('updates a single filter correctly', async () => {
     const { result } = renderHook(() => useAdvancedFilters());
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
     
     act(() => {
       result.current.updateFilter('search', 'test search');
@@ -82,8 +84,9 @@ describe('useAdvancedFilters', () => {
     expect(result.current.activeFiltersCount).toBe(1);
   });
 
-  it('toggles an array filter item', () => {
+  it('toggles an array filter item', async () => {
     const { result } = renderHook(() => useAdvancedFilters());
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
     
     act(() => {
       result.current.toggleArrayFilter('categories', '1');
@@ -96,8 +99,9 @@ describe('useAdvancedFilters', () => {
     expect(result.current.filters.categories).not.toContain('1');
   });
 
-  it('resets all filters to default', () => {
+  it('resets all filters to default', async () => {
     const { result } = renderHook(() => useAdvancedFilters());
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
     
     act(() => {
       result.current.updateFilter('search', 'dirty');
@@ -114,8 +118,9 @@ describe('useAdvancedFilters', () => {
     expect(result.current.activeFiltersCount).toBe(0);
   });
 
-  it('builds category tree correctly from flat data', () => {
+  it('builds category tree correctly from flat data', async () => {
     const { result } = renderHook(() => useAdvancedFilters());
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
     
     expect(result.current.categoryTree).toHaveLength(1);
     expect(result.current.categoryTree[0].name).toBe('Escrita');
@@ -123,8 +128,9 @@ describe('useAdvancedFilters', () => {
     expect(result.current.categoryTree[0].children?.[0].name).toBe('Canetas');
   });
 
-  it('correctly calculates active filters count for ranges', () => {
+  it('correctly calculates active filters count for ranges', async () => {
     const { result } = renderHook(() => useAdvancedFilters());
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
     
     act(() => {
       result.current.updateFilter('priceRange', [10, 500]);
@@ -133,8 +139,9 @@ describe('useAdvancedFilters', () => {
     expect(result.current.activeFiltersCount).toBe(1);
   });
 
-  it('detects active filters in a group', () => {
+  it('detects active filters in a group', async () => {
     const { result } = renderHook(() => useAdvancedFilters());
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
     
     expect(result.current.hasActiveFiltersInGroup(['categories', 'suppliers'])).toBe(false);
     
