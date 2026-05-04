@@ -44,15 +44,20 @@ export function GlobalOfflineAlert() {
             <p className="font-semibold text-sm">Você está offline</p>
             <p className="text-xs opacity-90 truncate">Algumas funcionalidades podem não estar disponíveis.</p>
           </div>
-          <Button 
-            size="icon" 
-            variant="ghost" 
-            className="h-8 w-8 text-white hover:bg-white/10 rounded-full"
-            onClick={() => setDismissed(true)}
-            aria-label="Dispensar aviso de offline"
-          >
-            <X className="h-4 w-4" />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                size="icon" 
+                variant="ghost" 
+                className="h-8 w-8 text-white hover:bg-white/10 rounded-full"
+                onClick={() => setDismissed(true)}
+                aria-label="Dispensar aviso de offline"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Dispensar alerta</TooltipContent>
+          </Tooltip>
         </div>
       </motion.div>
     </AnimatePresence>

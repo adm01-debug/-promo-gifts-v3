@@ -188,7 +188,7 @@ export const PresetsBar = React.forwardRef<HTMLDivElement, PresetsBarProps>(
                       <Plus className="h-3.5 w-3.5" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent side="top" className="bg-primary text-primary-foreground border-primary">Salvar combinação atual como preset</TooltipContent>
+                  <TooltipContent side="top" className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Salvar combinação atual como preset</TooltipContent>
                 </Tooltip>
               </div>
 
@@ -313,7 +313,7 @@ export const PresetsBar = React.forwardRef<HTMLDivElement, PresetsBarProps>(
                             </DropdownMenu>
                           </div>
                         </TooltipTrigger>
-                        <TooltipContent side="left" className="max-w-52 text-[11px] bg-primary text-primary-foreground border-primary">
+                        <TooltipContent side="left" className="max-w-52 bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">
                           {summary}
                         </TooltipContent>
                       </Tooltip>
