@@ -117,7 +117,7 @@ export function ConfirmDialog({
               <Icon className={cn("w-6 h-6", config.iconColor)} />
             </motion.div>
             <div className="space-y-2">
-              <AlertDialogTitle className="text-lg" data-testid={titleTestId}>
+              <AlertDialogTitle className="text-xl" data-testid={titleTestId}>
                 {title}
               </AlertDialogTitle>
               {description && (

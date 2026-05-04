@@ -127,7 +127,7 @@ export function SecurityDashboard() {
           <CardHeader className="pb-2"><CardTitle className="text-sm font-medium flex items-center gap-2"><Key className="h-4 w-4" />MFA</CardTitle></CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
-              {is2FAEnabled ? <><Lock className="h-5 w-5 text-success" /><span className="text-lg font-semibold text-success">Ativo</span></> : <><Unlock className="h-5 w-5 text-destructive" /><span className="text-lg font-semibold text-destructive">Inativo</span></>}
+              {is2FAEnabled ? <><Lock className="h-5 w-5 text-success" /><span className="text-xl font-semibold text-success">Ativo</span></> : <><Unlock className="h-5 w-5 text-destructive" /><span className="text-xl font-semibold text-destructive">Inativo</span></>}
             </div>
             <p className="text-xs text-muted-foreground mt-1">{is2FAEnabled ? 'Proteção extra ativada' : 'Recomendado ativar'}</p>
           </CardContent>
@@ -137,7 +137,7 @@ export function SecurityDashboard() {
           <CardHeader className="pb-2"><CardTitle className="text-sm font-medium flex items-center gap-2"><Bell className="h-4 w-4" />Alertas</CardTitle></CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
-              {metrics.securityAlerts > 0 ? <><AlertTriangle className="h-5 w-5 text-warning" /><span className="text-lg font-semibold text-warning">{metrics.securityAlerts}</span></> : <><CheckCircle2 className="h-5 w-5 text-success" /><span className="text-lg font-semibold text-success">0</span></>}
+              {metrics.securityAlerts > 0 ? <><AlertTriangle className="h-5 w-5 text-warning" /><span className="text-xl font-semibold text-warning">{metrics.securityAlerts}</span></> : <><CheckCircle2 className="h-5 w-5 text-success" /><span className="text-xl font-semibold text-success">0</span></>}
             </div>
             <p className="text-xs text-muted-foreground mt-1">{metrics.securityAlerts > 0 ? 'Alertas não lidos' : 'Nenhum alerta pendente'}</p>
           </CardContent>

@@ -116,7 +116,7 @@ export function BulkImportPanel() {
         >
           <CardContent className="flex flex-col items-center justify-center py-12">
             <FileUp className="h-12 w-12 text-muted-foreground mb-4" />
-            <p className="text-lg font-medium">Arraste seu arquivo aqui</p>
+            <p className="text-xl font-medium">Arraste seu arquivo aqui</p>
             <p className="text-sm text-muted-foreground mt-1">ou clique para selecionar</p>
             <p className="text-xs text-muted-foreground mt-4">Formatos suportados: CSV, XLSX, XLS</p>
             <input

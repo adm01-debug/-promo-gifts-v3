@@ -209,7 +209,7 @@ export function ConnectionTimelineDrawer({
                 <Card>
                   <CardHeader className="pb-2">
                     <CardDescription className="text-[10px]">Taxa de sucesso</CardDescription>
-                    <CardTitle className="text-lg">
+                    <CardTitle className="text-xl">
                       {stats.rate === null ? "—" : `${stats.rate.toFixed(0)}%`}
                     </CardTitle>
                   </CardHeader>
@@ -217,13 +217,13 @@ export function ConnectionTimelineDrawer({
                 <Card>
                   <CardHeader className="pb-2">
                     <CardDescription className="text-[10px]">Latência média</CardDescription>
-                    <CardTitle className="text-lg">{stats.avgLat}ms</CardTitle>
+                    <CardTitle className="text-xl">{stats.avgLat}ms</CardTitle>
                   </CardHeader>
                 </Card>
                 <Card>
                   <CardHeader className="pb-2">
                     <CardDescription className="text-[10px]">Total testes</CardDescription>
-                    <CardTitle className="text-lg">{stats.total}</CardTitle>
+                    <CardTitle className="text-xl">{stats.total}</CardTitle>
                   </CardHeader>
                 </Card>
               </div>

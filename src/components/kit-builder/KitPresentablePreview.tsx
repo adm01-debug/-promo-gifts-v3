@@ -161,15 +161,15 @@ export function KitPresentablePreview({
         <div className="grid grid-cols-3 gap-3 text-center">
           <div className="rounded-lg bg-muted/30 p-3">
             <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Quantidade</p>
-            <p className="text-lg font-bold font-display">{kitQuantity}<span className="text-xs font-normal text-muted-foreground"> kits</span></p>
+            <p className="text-xl font-bold font-display">{kitQuantity}<span className="text-xs font-normal text-muted-foreground"> kits</span></p>
           </div>
           <div className="rounded-lg bg-muted/30 p-3">
             <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Por kit</p>
-            <p className="text-lg font-bold font-display">{formatCurrency(kitState.totalPrice)}</p>
+            <p className="text-xl font-bold font-display">{formatCurrency(kitState.totalPrice)}</p>
           </div>
           <div className="rounded-lg bg-primary/10 p-3 border border-primary/20">
             <p className="text-[10px] uppercase tracking-wider text-primary">Investimento</p>
-            <p className="text-lg font-bold font-display text-primary">{formatCurrency(grandTotal)}</p>
+            <p className="text-xl font-bold font-display text-primary">{formatCurrency(grandTotal)}</p>
           </div>
         </div>
 

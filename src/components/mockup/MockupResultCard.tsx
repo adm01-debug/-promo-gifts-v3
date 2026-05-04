@@ -93,7 +93,7 @@ export const MockupResultCard = memo(function MockupResultCard({
               </div>
             </div>
             <div className="space-y-2">
-              <p className="text-lg font-semibold text-foreground">Criando seu mockup com IA...</p>
+              <p className="text-xl font-semibold text-foreground">Criando seu mockup com IA...</p>
               <p className="text-sm text-muted-foreground">Isso leva apenas alguns segundos</p>
             </div>
             <div className="flex justify-center gap-1.5">

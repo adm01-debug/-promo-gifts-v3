@@ -264,7 +264,7 @@ export function KeysValidationTab() {
             <ShieldCheck className="h-5 w-5 text-primary" aria-hidden="true" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold">Validação de chaves para UI e catálogos</h2>
+            <h2 className="text-xl font-semibold">Validação de chaves para UI e catálogos</h2>
             <p className="text-sm text-muted-foreground max-w-2xl">
               Confronta o contrato canônico (definido em <code className="text-xs px-1 py-0.5 rounded bg-muted">secrets-manager</code>) com o estado atual de <code className="text-xs px-1 py-0.5 rounded bg-muted">integration_credentials</code> e ENV. Bloqueadores destacam chaves obrigatórias faltando.
             </p>

@@ -144,7 +144,7 @@ export function SupplierRiskPanel({ products }: SupplierRiskPanelProps) {
     return (
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-lg flex items-center gap-2">
+          <CardTitle className="text-xl flex items-center gap-2">
             <div className="h-8 w-8 rounded-full bg-warning/10 flex items-center justify-center">
               <ShieldAlert className="h-4 w-4 text-warning" aria-hidden="true" />
             </div>
@@ -173,7 +173,7 @@ export function SupplierRiskPanel({ products }: SupplierRiskPanelProps) {
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div>
-            <CardTitle className="text-lg flex items-center gap-2">
+            <CardTitle className="text-xl flex items-center gap-2">
               <div className="h-8 w-8 rounded-full bg-warning/10 flex items-center justify-center">
                 <ShieldAlert className="h-4 w-4 text-warning" aria-hidden="true" />
               </div>
@@ -310,15 +310,15 @@ export function SupplierRiskPanel({ products }: SupplierRiskPanelProps) {
             {/* Summary — reflects filtered products */}
             <div className="grid grid-cols-3 gap-1.5 pt-2 border-t border-border">
               <div className="text-center p-1.5 rounded bg-destructive/10" role="status" aria-label={`${filteredCounts.critical} produtos críticos`}>
-                <p className="text-lg font-bold text-destructive">{filteredCounts.critical}</p>
+                <p className="text-xl font-bold text-destructive">{filteredCounts.critical}</p>
                 <p className="text-[9px] text-destructive">Críticos</p>
               </div>
               <div className="text-center p-1.5 rounded bg-warning/10" role="status" aria-label={`${filteredCounts.warning} produtos em atenção`}>
-                <p className="text-lg font-bold text-warning">{filteredCounts.warning}</p>
+                <p className="text-xl font-bold text-warning">{filteredCounts.warning}</p>
                 <p className="text-[9px] text-warning">Atenção</p>
               </div>
               <div className="text-center p-1.5 rounded bg-primary/10" role="status" aria-label={`${filteredCounts.ok} produtos OK`}>
-                <p className="text-lg font-bold text-primary">{filteredCounts.ok}</p>
+                <p className="text-xl font-bold text-primary">{filteredCounts.ok}</p>
                 <p className="text-[9px] text-primary">OK</p>
               </div>
             </div>

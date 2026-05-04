@@ -86,7 +86,7 @@ export function GroupInheritance({ productMembership, selectedProduct, technique
                 {isUsingGroupRules ? <Link className="h-5 w-5 text-primary" /> : <Unlink className="h-5 w-5 text-muted-foreground" />}
               </div>
               <div>
-                <CardTitle className="text-lg">Grupo: {productMembership.product_group?.group_name}</CardTitle>
+                <CardTitle className="text-xl">Grupo: {productMembership.product_group?.group_name}</CardTitle>
                 <CardDescription>{isUsingGroupRules ? "Este produto herda as regras do grupo" : "Este produto usa regras customizadas"}</CardDescription>
               </div>
             </div>

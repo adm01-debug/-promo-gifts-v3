@@ -165,7 +165,7 @@ export function KitCard({
         <div className="flex items-end justify-between pt-2 border-t border-border/40">
           <div>
             <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Total</p>
-            <p className="text-lg font-bold text-primary">{formatCurrency(data.totalPrice)}</p>
+            <p className="text-xl font-bold text-primary">{formatCurrency(data.totalPrice)}</p>
           </div>
 
           <div className="flex items-center gap-1">

@@ -66,7 +66,7 @@ export default function ProductEngravingSection({ productId, isEdit }: Props) {
         {COMMON_COMPONENTS.map(comp => (
           <button key={comp.code} type="button" onClick={() => w.handleSelectComponent(comp)}
             className="flex items-center gap-2.5 p-3 rounded-lg border transition-all duration-200 text-left hover:border-primary/50 hover:bg-primary/5 hover:shadow-sm border-border/40 bg-card/60">
-            <span className="text-lg">{comp.icon}</span>
+            <span className="text-xl">{comp.icon}</span>
             <span className="text-xs font-medium">{comp.name}</span>
           </button>
         ))}

@@ -57,7 +57,7 @@ function StatCard({ label, value, suffix = "", subtitle, icon, variant, delay = 
             {icon}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-lg sm:text-xl font-bold tabular-nums truncate leading-tight">
+            <p className="text-xl sm:text-xl font-bold tabular-nums truncate leading-tight">
               {animatedValue.toLocaleString('pt-BR')}{suffix}
             </p>
             <p className="text-[10px] sm:text-xs text-muted-foreground truncate leading-tight">
@@ -105,7 +105,7 @@ export function NoveltyStatsCards() {
                   <div className="w-4 h-4 border-2 border-primary/40 border-t-transparent rounded-full animate-spin" />
                 </div>
                 <div className="space-y-1.5">
-                  <div className="text-lg font-bold tabular-nums text-muted-foreground/40">--</div>
+                  <div className="text-xl font-bold tabular-nums text-muted-foreground/40">--</div>
                   <div className="text-[10px] text-muted-foreground/30">carregando...</div>
                 </div>
               </div>

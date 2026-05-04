@@ -77,14 +77,14 @@ export function QuantityPriceCalculator({ productBasePrice = 0, productName, onS
     <div className={cn("space-y-6", className)}>
       {/* Step 1: Product */}
       <Card className="animate-fade-in">
-        <CardHeader><div className="flex items-center gap-2"><Package className="w-5 h-5 text-primary" /><CardTitle className="text-lg font-display">1. Selecione o Produto</CardTitle></div><CardDescription>Escolha o produto base para simular preços de gravação em diferentes tiragens</CardDescription></CardHeader>
+        <CardHeader><div className="flex items-center gap-2"><Package className="w-5 h-5 text-primary" /><CardTitle className="text-xl font-display">1. Selecione o Produto</CardTitle></div><CardDescription>Escolha o produto base para simular preços de gravação em diferentes tiragens</CardDescription></CardHeader>
         <CardContent><UnifiedProductSearch onSelect={handleProductSelect} selectedProduct={selectedProduct as any} /></CardContent>
       </Card>
 
       {/* Step 2: Techniques */}
       {selectedProduct && (
         <Card className="animate-fade-in">
-          <CardHeader><div className="flex items-center gap-2"><Paintbrush className="w-5 h-5 text-primary" /><CardTitle className="text-lg font-display">2. Selecione as Técnicas de Gravação</CardTitle></div><CardDescription>Escolha uma ou mais técnicas para comparar preços</CardDescription></CardHeader>
+          <CardHeader><div className="flex items-center gap-2"><Paintbrush className="w-5 h-5 text-primary" /><CardTitle className="text-xl font-display">2. Selecione as Técnicas de Gravação</CardTitle></div><CardDescription>Escolha uma ou mais técnicas para comparar preços</CardDescription></CardHeader>
           <CardContent><TechniqueMultiSelector productId={selectedProduct.id} selectedTechniques={selectedConfigs} onToggleTechnique={handleToggleTechnique} /></CardContent>
         </Card>
       )}
@@ -92,7 +92,7 @@ export function QuantityPriceCalculator({ productBasePrice = 0, productName, onS
       {/* Step 3: Configure */}
       {selectedConfigs.length > 0 && (
         <Card className="animate-fade-in">
-          <CardHeader><div className="flex items-center gap-2"><Palette className="w-5 h-5 text-primary" /><CardTitle className="text-lg font-display">3. Configure as Opções</CardTitle></div><CardDescription>Defina cores e tamanho para cada técnica selecionada</CardDescription></CardHeader>
+          <CardHeader><div className="flex items-center gap-2"><Palette className="w-5 h-5 text-primary" /><CardTitle className="text-xl font-display">3. Configure as Opções</CardTitle></div><CardDescription>Defina cores e tamanho para cada técnica selecionada</CardDescription></CardHeader>
           <CardContent><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{selectedConfigs.map((config, index) => <TechniqueConfigCard key={config.technique.id} config={config} onUpdate={(u) => handleUpdateConfig(index, u)} onRemove={() => handleRemoveConfig(index)} />)}</div></CardContent>
         </Card>
       )}
@@ -100,7 +100,7 @@ export function QuantityPriceCalculator({ productBasePrice = 0, productName, onS
       {/* Step 4: Compare */}
       {selectedProduct && selectedConfigs.length > 0 && (
         <Card className="animate-fade-in">
-          <CardHeader><div className="flex items-center gap-2"><Calculator className="w-5 h-5 text-primary" /><CardTitle className="text-lg font-display">4. Compare Preços por Tiragem</CardTitle></div><CardDescription>Veja como o preço por unidade muda conforme a quantidade. <Trophy className="inline w-3 h-3 text-success" /> = melhor preço.</CardDescription></CardHeader>
+          <CardHeader><div className="flex items-center gap-2"><Calculator className="w-5 h-5 text-primary" /><CardTitle className="text-xl font-display">4. Compare Preços por Tiragem</CardTitle></div><CardDescription>Veja como o preço por unidade muda conforme a quantidade. <Trophy className="inline w-3 h-3 text-success" /> = melhor preço.</CardDescription></CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-3">
               <label className="text-sm font-medium">Tiragens para comparar:</label>

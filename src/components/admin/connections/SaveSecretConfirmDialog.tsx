@@ -74,7 +74,7 @@ export function SaveSecretConfirmDialog({
               <Icon className="w-6 h-6 text-primary" />
             </motion.div>
             <div className="space-y-1">
-              <AlertDialogTitle className="text-lg">
+              <AlertDialogTitle className="text-xl">
                 {verb} {secretName}?
               </AlertDialogTitle>
               <AlertDialogDescription>

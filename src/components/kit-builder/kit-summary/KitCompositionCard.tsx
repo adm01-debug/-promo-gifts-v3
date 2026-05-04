@@ -26,7 +26,7 @@ export function KitCompositionCard({ kitState, kitQuantity, stockByProduct }: Ki
 
   return (
     <Card>
-      <CardHeader className="pb-3"><CardTitle className="text-lg">Composição do Kit</CardTitle></CardHeader>
+      <CardHeader className="pb-3"><CardTitle className="text-xl">Composição do Kit</CardTitle></CardHeader>
       <CardContent>
         {box && (
           <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50 mb-3">

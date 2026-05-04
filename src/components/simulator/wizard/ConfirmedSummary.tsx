@@ -121,7 +121,7 @@ export function ConfirmedSummary({ wizard, onAddAnother, onGenerateQuote, onCopy
               ) : (
                 <div className="group relative flex items-center gap-2 cursor-help">
                   <AlertCircle className="h-4 w-4 text-primary-foreground/70 shrink-0" />
-                  <p className="text-lg font-bold text-primary-foreground">A consultar</p>
+                  <p className="text-xl font-bold text-primary-foreground">A consultar</p>
                   <div className="absolute bottom-full left-0 mb-2 px-3 py-2 rounded-lg bg-black/90 text-primary-foreground text-xs w-48 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-xl z-10">
                     Prazo depende da confirmação do fornecedor para esta técnica e quantidade.
                   </div>

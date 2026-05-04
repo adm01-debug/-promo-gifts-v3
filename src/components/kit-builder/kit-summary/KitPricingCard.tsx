@@ -19,7 +19,7 @@ export function KitPricingCard({ kitState, kitQuantity, onKitQuantityChange }: K
   return (
     <>
       <Card>
-        <CardHeader className="pb-3"><CardTitle className="text-lg">Detalhamento de Preços</CardTitle></CardHeader>
+        <CardHeader className="pb-3"><CardTitle className="text-xl">Detalhamento de Preços</CardTitle></CardHeader>
         <CardContent>
           <div className="space-y-2">
             {breakdown.map((item, index) => (
@@ -39,7 +39,7 @@ export function KitPricingCard({ kitState, kitQuantity, onKitQuantityChange }: K
           </div>
           <Separator className="my-4" />
           <div className="flex justify-between items-center">
-            <div><p className="text-lg font-bold">Total</p><p className="text-sm text-muted-foreground">{formatCurrency(pricing.unitPrice)}/kit</p></div>
+            <div><p className="text-xl font-bold">Total</p><p className="text-sm text-muted-foreground">{formatCurrency(pricing.unitPrice)}/kit</p></div>
             <p className="text-2xl font-bold text-primary">{formatCurrency(pricing.total)}</p>
           </div>
         </CardContent>

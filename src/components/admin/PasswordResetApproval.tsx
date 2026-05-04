@@ -136,7 +136,7 @@ export function PasswordResetApproval() {
       {processedRequests.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Histórico</CardTitle>
+            <CardTitle className="text-xl">Histórico</CardTitle>
             <CardDescription>
               Solicitações já processadas
             </CardDescription>

@@ -198,7 +198,7 @@ export function StockDashboard() {
       {/* Header with Health Score */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
         <div className="flex items-center gap-3">
-          <h2 className="text-lg font-semibold">Visão Geral</h2>
+          <h2 className="text-xl font-semibold">Visão Geral</h2>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger>
@@ -399,7 +399,7 @@ export function StockDashboard() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="text-lg flex items-center gap-2">
+              <CardTitle className="text-xl flex items-center gap-2">
                 <AlertCircle className="h-5 w-5" />
                 Outros Alertas ({infoAlerts.length})
               </CardTitle>

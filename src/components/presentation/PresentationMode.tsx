@@ -295,7 +295,7 @@ export function PresentationMode({ slides, title, subtitle, brandName, onClose }
                     {slide.title}
                   </h2>
                   {slide.subtitle && (
-                    <p className="text-lg text-white/50">{slide.subtitle}</p>
+                    <p className="text-xl text-white/50">{slide.subtitle}</p>
                   )}
                   {slide.description && (
                     <p className="text-base text-white/60 leading-relaxed line-clamp-4">

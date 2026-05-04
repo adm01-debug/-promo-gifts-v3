@@ -141,7 +141,7 @@ export function MockupPromptManager() {
 
       {techniquePrompts.length > 0 && (
         <Card className="border-border/50">
-          <CardHeader><CardTitle className="text-lg flex items-center gap-2"><Sparkles className="h-5 w-5 text-primary" />Prompts por Técnica</CardTitle>
+          <CardHeader><CardTitle className="text-xl flex items-center gap-2"><Sparkles className="h-5 w-5 text-primary" />Prompts por Técnica</CardTitle>
             <CardDescription>Prompts específicos que complementam o prompt principal para cada técnica</CardDescription></CardHeader>
           <CardContent>
             <Accordion type="multiple" className="space-y-2">

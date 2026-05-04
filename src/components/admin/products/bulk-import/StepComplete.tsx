@@ -73,7 +73,7 @@ export function StepComplete({ importResult, importMode, invalidCount, validatio
         ) : (
           <AlertTriangle className="h-12 w-12 text-warning mx-auto mb-3" />
         )}
-        <p className="text-lg font-semibold font-display">Importação Concluída</p>
+        <p className="text-xl font-semibold font-display">Importação Concluída</p>
         <div className="flex justify-center gap-4 mt-2 text-sm">
           <span className="text-success font-medium">{importResult.succeeded} importados</span>
           {importResult.failed > 0 && <span className="text-destructive font-medium">{importResult.failed} falharam</span>}

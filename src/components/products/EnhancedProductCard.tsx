@@ -375,7 +375,7 @@ export function EnhancedProductCard({
         <div className="flex items-end justify-between">
           <div>
             <p className="text-[10px] text-muted-foreground">A partir de</p>
-            <span className="text-lg font-bold inline-flex items-center gap-1.5">
+            <span className="text-xl font-bold inline-flex items-center gap-1.5">
               {formatPrice(product.price)}
               <PriceFreshnessBadge
                 priceUpdatedAt={product.priceUpdatedAt}

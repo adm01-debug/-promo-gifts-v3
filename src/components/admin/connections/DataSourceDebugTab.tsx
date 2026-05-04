@@ -292,7 +292,7 @@ export function DataSourceDebugTab() {
             <Bug className="h-5 w-5 text-amber-600" aria-hidden="true" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold">Debug de Origem de Dados</h2>
+            <h2 className="text-xl font-semibold">Debug de Origem de Dados</h2>
             <p className="text-sm text-muted-foreground max-w-2xl">
               Compara as duas fontes que alimentam esta tela: <code className="text-xs px-1 py-0.5 rounded bg-muted">integration_credentials</code> (SSOT, valores secretos) e <code className="text-xs px-1 py-0.5 rounded bg-muted">external_connections</code> (espelho operacional, histórico de testes).
             </p>

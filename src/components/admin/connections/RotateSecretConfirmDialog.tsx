@@ -69,7 +69,7 @@ export function RotateSecretConfirmDialog({
               <AlertTriangle className="w-6 h-6 text-warning" />
             </motion.div>
             <div className="space-y-1">
-              <AlertDialogTitle className="text-lg">
+              <AlertDialogTitle className="text-xl">
                 Rotacionar {secretName}?
               </AlertDialogTitle>
               <AlertDialogDescription>

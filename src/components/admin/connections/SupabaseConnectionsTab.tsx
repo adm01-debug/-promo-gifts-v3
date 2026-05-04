@@ -129,7 +129,7 @@ export function SupabaseConnectionsTab() {
               <div className="flex items-start justify-between gap-2">
                 <div className="flex items-center gap-2">
                   <Database className="h-5 w-5 text-primary" />
-                  <CardTitle className="text-lg">{env.name}</CardTitle>
+                  <CardTitle className="text-xl">{env.name}</CardTitle>
                 </div>
                 <ConnectionStatusBadge status={status} />
               </div>

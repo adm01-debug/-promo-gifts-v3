@@ -127,7 +127,7 @@ function MetricCard({ icon: Icon, label, value, color }: MetricCardProps) {
         <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center mb-1.5", bgColor[color])}>
           <Icon className={cn("h-3.5 w-3.5", iconColor[color])} />
         </div>
-        <p className="text-lg font-bold leading-none">{value}</p>
+        <p className="text-xl font-bold leading-none">{value}</p>
         <p className="text-[10px] text-muted-foreground mt-0.5">{label}</p>
       </CardContent>
     </Card>

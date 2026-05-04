@@ -73,7 +73,7 @@ export function ScenarioComparison({
               <GitCompare className="h-5 w-5 text-muted-foreground" />
             </div>
             <div>
-              <CardTitle className="text-lg flex items-center gap-2">
+              <CardTitle className="text-xl flex items-center gap-2">
                 Comparar Cenários
                 <Badge variant="outline" className="text-xs gap-1">
                   <Sparkles className="h-3 w-3" />

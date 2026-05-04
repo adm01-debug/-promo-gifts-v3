@@ -269,7 +269,7 @@ export function ClientSeasonalityHeatmap({ clientId, ramoAtividade }: Props) {
             </div>
             {seasonality.nextPeakMonth ? (
               <div>
-                <div className="text-lg font-bold text-foreground">
+                <div className="text-xl font-bold text-foreground">
                   {SEASONALITY_MONTH_LABELS_FULL[seasonality.nextPeakMonth - 1]}
                 </div>
                 <div className="text-[11px] text-muted-foreground">
@@ -293,7 +293,7 @@ export function ClientSeasonalityHeatmap({ clientId, ramoAtividade }: Props) {
             </div>
             {nextPeakName && seasonality.daysToNextPeak !== null ? (
               <>
-                <div className="text-lg font-bold text-foreground">
+                <div className="text-xl font-bold text-foreground">
                   Campanha em {nextPeakName}
                 </div>
                 <div className="text-xs text-muted-foreground mb-2">

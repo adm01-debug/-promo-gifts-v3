@@ -337,7 +337,7 @@ export const ProductQuickView = forwardRef<HTMLDivElement, ProductQuickViewProps
                 >
                   <Minus className="h-4 w-4" />
                 </Button>
-                <span className="text-lg font-semibold w-12 text-center">{quantity}</span>
+                <span className="text-xl font-semibold w-12 text-center">{quantity}</span>
                 <Button
                   variant="outline"
                   size="icon" aria-label="Adicionar"

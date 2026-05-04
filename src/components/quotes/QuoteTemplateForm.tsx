@@ -267,7 +267,7 @@ export function QuoteTemplateForm({
                   <Separator className="my-2" />
                   <div className="flex items-center justify-between font-medium">
                     <span>Total Estimado</span>
-                    <span className="text-lg">{formatCurrency(calculateTotal())}</span>
+                    <span className="text-xl">{formatCurrency(calculateTotal())}</span>
                   </div>
                 </div>
               </div>

@@ -78,7 +78,7 @@ export function KitComposition({ items, onViewProduct }: KitCompositionProps) {
                 <Layers className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <DialogTitle className="text-lg font-bold">Composição do Kit</DialogTitle>
+                <DialogTitle className="text-xl font-bold">Composição do Kit</DialogTitle>
                 <DialogDescription className="text-sm text-muted-foreground mt-0.5">
                   {items.length} {items.length === 1 ? "componente" : "componentes"} • {stats.totalPieces} {stats.totalPieces === 1 ? "peça" : "peças"}
                 </DialogDescription>

@@ -253,7 +253,7 @@ export function TechniqueSLACard({
                     </div>
 
                     <div className="text-right shrink-0">
-                      <div className="text-lg font-bold text-foreground">
+                      <div className="text-xl font-bold text-foreground">
                         {formatCurrency(totalCost)}
                       </div>
                       <div className="text-[11px] text-muted-foreground">

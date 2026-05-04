@@ -164,7 +164,7 @@ export function MiniStatCard({
       </div>
       <div className="min-w-0 flex-1">
         <p className="truncate text-xs text-muted-foreground">{title}</p>
-        <p className="text-lg font-semibold text-foreground">{value}</p>
+        <p className="text-xl font-semibold text-foreground">{value}</p>
       </div>
     </div>
   );

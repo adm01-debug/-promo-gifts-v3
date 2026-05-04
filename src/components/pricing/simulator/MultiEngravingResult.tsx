@@ -201,7 +201,7 @@ export function MultiEngravingResult({
       <Card className="border-primary/30 bg-primary/5">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg flex items-center gap-2">
+            <CardTitle className="text-xl flex items-center gap-2">
               <Calculator className="w-5 h-5 text-primary" />
               Resumo do Orçamento
               {isCalculating && <Loader2 className="w-4 h-4 animate-spin" />}

@@ -130,25 +130,25 @@ export function SupplierComparisonModal({
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
             <div className="p-3 rounded-lg bg-success/10 border border-success/20">
               <p className="text-xs text-muted-foreground mb-1">Menor Preço</p>
-              <p className="text-lg font-bold text-success">
+              <p className="text-xl font-bold text-success">
                 {formatCurrency(lowestPrice)}
               </p>
             </div>
             <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
               <p className="text-xs text-muted-foreground mb-1">Maior Estoque</p>
-              <p className="text-lg font-bold text-primary">
+              <p className="text-xl font-bold text-primary">
                 {highestStock.toLocaleString("pt-BR")} un.
               </p>
             </div>
             <div className="p-3 rounded-lg bg-muted border border-border">
               <p className="text-xs text-muted-foreground mb-1">Fornecedores</p>
-              <p className="text-lg font-bold">{allProducts.length}</p>
+              <p className="text-xl font-bold">{allProducts.length}</p>
             </div>
             <div className="p-3 rounded-lg bg-muted border border-border">
               <p className="text-xs text-muted-foreground mb-1">
                 Economia Máx.
               </p>
-              <p className="text-lg font-bold text-success">
+              <p className="text-xl font-bold text-success">
                 {formatCurrency(
                   Math.max(...alternatives.map((a) => -a.priceDiff), 0)
                 )}

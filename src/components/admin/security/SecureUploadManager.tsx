@@ -94,7 +94,7 @@ export function SecureUploadManager() {
         {/* Test Card */}
         <Card className="border-primary/20 bg-primary/5">
           <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2 text-primary">
+            <CardTitle className="text-xl flex items-center gap-2 text-primary">
               <Upload className="h-5 w-5" />
               Teste de Upload Seguro
             </CardTitle>
@@ -144,7 +144,7 @@ export function SecureUploadManager() {
         {/* Info Card */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
+            <CardTitle className="text-xl flex items-center gap-2">
               <Lock className="h-5 w-5" />
               Estado da Infraestrutura
             </CardTitle>
@@ -176,7 +176,7 @@ export function SecureUploadManager() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle className="text-lg flex items-center gap-2">
+            <CardTitle className="text-xl flex items-center gap-2">
               <History className="h-5 w-5" />
               Audit Log (Últimos 20 scans)
             </CardTitle>
