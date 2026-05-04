@@ -74,15 +74,15 @@ export function ContinuousRockets() {
           <div style={{ animation: "rocketShake 0.15s ease-in-out infinite" }}>
             <Rocket
               className="-rotate-45"
-              style={{ 
-                width: r.size, 
-                height: r.size, 
-                // Padronização: uso de variável HSL direta para evitar problemas de JIT
-                color: "hsl(var(--orange))" 
+              style={{
+                width: r.size,
+                height: r.size,
+                // Cor fixa "fogo" — independente do skin ativo (que pode mapear --orange para outra cor de marca)
+                color: "#FB923C",
               }}
             />
           </div>
-          {/* Rastro de chamas - também padronizado com HSL */}
+          {/* Rastro de chamas — gradiente fixo laranja→amarelo para efeito de propulsão consistente */}
           <div
             className="absolute left-1/2 -translate-x-1/2 rounded-full opacity-70"
             style={{
@@ -90,7 +90,7 @@ export function ContinuousRockets() {
               width: `${r.size * 0.3}px`,
               height: `${r.size}px`,
               animation: "flameTrail 0.3s ease-in-out infinite alternate",
-              background: "linear-gradient(to bottom, hsl(var(--orange)), hsl(var(--warning)), transparent)",
+              background: "linear-gradient(to bottom, #FB923C, #FBBF24, transparent)",
             }}
           />
           <div
@@ -100,7 +100,7 @@ export function ContinuousRockets() {
               width: `${r.size * 0.15}px`,
               height: `${r.size * 1.5}px`,
               animation: "flameTrail 0.2s ease-in-out infinite alternate-reverse",
-              background: "linear-gradient(to bottom, hsl(var(--orange)), transparent)",
+              background: "linear-gradient(to bottom, #FB923C, transparent)",
             }}
           />
           <div
