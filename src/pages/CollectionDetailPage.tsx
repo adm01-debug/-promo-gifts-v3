@@ -431,37 +431,60 @@ export default function CollectionDetailPage() {
                 </DropdownMenuContent>
               </DropdownMenu>
               {!isExternal && (
-                <>
-                  <Button
-                    variant={isSelectionMode ? "default" : "outline"}
-                    size="sm"
-                    className="gap-2"
-                    onClick={toggleSelectionMode}
-                  >
-                    <CheckSquare className="h-3.5 w-3.5" />
-                    {isSelectionMode ? "Selecionando" : "Selecionar"}
-                  </Button>
-                  <Button
-                    variant={manageMode ? "default" : "outline"}
-                    size="sm"
-                    className="gap-2"
-                    onClick={() => setManageMode((v) => !v)}
-                  >
-                    <Settings2 className="h-3.5 w-3.5" />
-                    {manageMode ? "Gerenciando" : "Gerenciar"}
-                  </Button>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant={isSelectionMode ? "default" : "outline"}
+                        size="sm"
+                        className="gap-2"
+                        onClick={toggleSelectionMode}
+                      >
+                        <CheckSquare className="h-3.5 w-3.5" />
+                        {isSelectionMode ? "Selecionando" : "Selecionar"}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-0.5 min-h-0">
+                      Ativar seleção múltipla
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant={manageMode ? "default" : "outline"}
+                        size="sm"
+                        className="gap-2"
+                        onClick={() => setManageMode((v) => !v)}
+                      >
+                        <Settings2 className="h-3.5 w-3.5" />
+                        {manageMode ? "Gerenciando" : "Gerenciar"}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-0.5 min-h-0">
+                      Ordenar itens e editar notas
+                    </TooltipContent>
+                  </Tooltip>
+
                   {priceDropCount > 0 && (
-                    <Button
-                      variant={onlyDrops ? "default" : "outline"}
-                      size="sm"
-                      className="gap-2"
-                      onClick={() => setOnlyDrops((v) => !v)}
-                    >
-                      <TrendingDown className="h-3.5 w-3.5" />
-                      Só com queda ({priceDropCount})
-                    </Button>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant={onlyDrops ? "default" : "outline"}
+                          size="sm"
+                          className="gap-2"
+                          onClick={() => setOnlyDrops((v) => !v)}
+                        >
+                          <TrendingDown className="h-3.5 w-3.5" />
+                          Só com queda ({priceDropCount})
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-0.5 min-h-0">
+                        Filtrar produtos com queda de preço
+                      </TooltipContent>
+                    </Tooltip>
                   )}
-                </>
+                </TooltipProvider>
               )}
               <div className="hidden sm:block">
                 <LayoutPopover
