@@ -103,14 +103,19 @@ export function CatalogHeader({
           <AnimatePresence>
             {searchHistory.length > 0 && (
               <Popover open={historyOpen} onOpenChange={setHistoryOpen}>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" size="icon" className="h-11 w-11 shrink-0 rounded-lg border-muted-foreground/20 hover:border-primary/50 relative group overflow-hidden">
-                    <Clock className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                    <Badge className="absolute -top-1 -right-1 h-4 min-w-4 px-1 bg-primary text-[8px] flex items-center justify-center border-2 border-background">
-                      {searchHistory.length}
-                    </Badge>
-                  </Button>
-                </PopoverTrigger>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" size="icon" className="h-11 w-11 shrink-0 rounded-lg border-muted-foreground/20 hover:border-primary/50 relative group overflow-hidden" aria-label="Histórico de buscas recentes">
+                        <Clock className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                        <Badge className="absolute -top-1 -right-1 h-4 min-w-4 px-1 bg-primary text-[8px] flex items-center justify-center border-2 border-background">
+                          {searchHistory.length}
+                        </Badge>
+                      </Button>
+                    </PopoverTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent>Histórico de buscas recentes ({searchHistory.length})</TooltipContent>
+                </Tooltip>
                 <PopoverContent className="w-64 p-2" align="end">
                   <div className="flex items-center justify-between px-2 pb-2 border-b border-border/50 mb-2">
                     <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Histórico</span>
