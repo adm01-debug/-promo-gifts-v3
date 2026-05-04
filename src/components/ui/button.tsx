@@ -5,30 +5,28 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[var(--radius)] text-[11px] font-bold uppercase tracking-wider ring-offset-background transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20 focus-visible:border-primary disabled:pointer-events-none disabled:opacity-50 disabled:grayscale [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 touch-manipulation active:scale-[0.96] hover:-translate-y-0.5 hover:shadow-lg",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[var(--radius)] text-[11px] font-bold uppercase tracking-widest ring-offset-background transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20 focus-visible:border-primary disabled:pointer-events-none disabled:opacity-40 disabled:grayscale [&_svg]:pointer-events-none [&_svg]:size-[1.2em] [&_svg]:shrink-0 touch-manipulation active:scale-[0.96] hover:-translate-y-0.5",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary-hover active:bg-primary-active shadow-sm active:shadow-inner border border-primary/20",
-        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-sm active:shadow-inner",
-        outline: "border-2 border-primary/30 bg-background text-primary hover:border-primary hover:bg-primary/5 active:bg-primary/10 active:shadow-inner",
-        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80 border border-divider shadow-sm active:shadow-inner",
-        ghost: "hover:bg-primary/10 hover:text-primary font-bold active:bg-primary/20",
+        default: "bg-primary text-primary-foreground hover:bg-primary-hover active:bg-primary-active shadow-soft hover:shadow-medium border border-primary/20",
+        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-soft hover:shadow-medium border border-destructive/20",
+        outline: "border-2 border-primary/20 bg-background text-primary hover:border-primary hover:bg-primary/5 active:bg-primary/10",
+        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80 border border-divider shadow-soft hover:shadow-medium",
+        ghost: "hover:bg-primary/10 hover:text-primary active:bg-primary/20",
         link: "link-primary",
         "link-secondary": "link-secondary",
         "link-disabled": "link-disabled",
-        orange: "bg-primary text-primary-foreground hover:bg-primary-hover active:bg-primary-active shadow-sm active:shadow-inner border border-white/20",
-        // Variante premium com gradiente e brilho intenso
-        premium: "bg-success text-success-foreground shadow-medium hover:shadow-premium-hover hover:scale-[1.02] active:scale-[0.98] active:shadow-premium border border-white/30",
-        // Variante success para ações de confirmação
-        success: "bg-success text-success-foreground hover:bg-success/90 shadow-md active:shadow-inner border border-success/20",
-        gradient: "bg-gradient-primary text-primary-foreground hover:shadow-premium-hover active:scale-[0.98] border border-white/20 shadow-md",
+        orange: "bg-primary text-primary-foreground hover:bg-primary-hover active:bg-primary-active shadow-soft hover:shadow-medium border border-white/10",
+        premium: "bg-success text-success-foreground shadow-medium hover:shadow-premium-hover hover:scale-[1.02] active:scale-[0.98] border border-white/20",
+        success: "bg-success text-success-foreground hover:bg-success/90 shadow-soft hover:shadow-medium border border-success/20",
+        gradient: "bg-gradient-primary text-primary-foreground hover:shadow-premium-hover active:scale-[0.98] border border-white/10 shadow-medium",
       },
       size: {
-        default: "h-10 px-4 py-2 min-h-[44px]",
-        sm: "h-9 rounded-xl px-3 min-h-[36px]",
-        lg: "h-12 rounded-xl px-8 min-h-[48px] text-base",
-        xl: "h-14 rounded-xl px-10 min-h-[56px] text-lg font-semibold",
+        default: "h-11 px-5 py-2.5 min-h-[44px]",
+        sm: "h-9 rounded-xl px-4 min-h-[36px]",
+        lg: "h-13 rounded-xl px-10 min-h-[52px] text-[13px]",
+        xl: "h-15 rounded-xl px-12 min-h-[60px] text-base font-extrabold tracking-widest",
         icon: "h-11 w-11 min-h-[44px] min-w-[44px]",
       },
     },
@@ -38,6 +36,7 @@ const buttonVariants = cva(
     },
   },
 );
+
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
