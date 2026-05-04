@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -149,9 +150,18 @@ export default function OrderDetailPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" aria-label="Voltar" onClick={() => navigate("/pedidos")}>
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
+            <TooltipProvider delayDuration={0}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" aria-label="Voltar" onClick={() => navigate("/pedidos")}>
+                    <ArrowLeft className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
+                  Voltar para lista de pedidos
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             <div>
               <h1 className="font-display text-2xl font-bold">Pedido #{order.order_number}</h1>
               <p className="text-sm text-muted-foreground">
@@ -269,15 +279,24 @@ export default function OrderDetailPage() {
                 </div>
 
                 {order.quote_id && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full gap-2"
-                    onClick={() => navigate(`/orcamentos/${order.quote_id}`)}
-                  >
-                    <FileText className="h-4 w-4" />
-                    Ver Orçamento Original
-                  </Button>
+                  <TooltipProvider delayDuration={0}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full gap-2"
+                          onClick={() => navigate(`/orcamentos/${order.quote_id}`)}
+                        >
+                          <FileText className="h-4 w-4" />
+                          Ver Orçamento Original
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
+                        Acessar a proposta comercial que gerou este pedido
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 )}
               </CardContent>
             </Card>
