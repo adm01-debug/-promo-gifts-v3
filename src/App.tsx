@@ -22,7 +22,7 @@ import { DevOnlyBridgeOverlay } from "@/components/dev/DevOnlyBridgeOverlay";
 import { RouteScrollReset } from "@/components/common/RouteScrollReset";
 import { useAppBootstrap } from "@/hooks/useAppBootstrap";
 import "./App.css";
-
+import { ThemeInitializer } from "@/components/ThemeInitializer";
 const queryClient = createQueryClient();
 
 // Auth Pages
@@ -151,7 +151,7 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        
+        <ThemeInitializer />
         <AccessibilityProvider>
           <AriaLiveProvider>
             <TooltipProvider>
