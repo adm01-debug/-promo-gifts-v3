@@ -101,14 +101,19 @@ export function CartHeaderButton() {
             >
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-display text-sm font-semibold">Novo Carrinho</h3>
-                <Button
-                  variant="ghost"
-                  size="icon" aria-label="Fechar"
-                  className="h-6 w-6"
-                  onClick={() => setShowPicker(false)}
-                >
-                  <X className="h-3.5 w-3.5" />
-                </Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon" aria-label="Fechar"
+                      className="h-6 w-6"
+                      onClick={() => setShowPicker(false)}
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Fechar</TooltipContent>
+                </Tooltip>
               </div>
               <CartCompanyPicker
                 onCreated={() => setShowPicker(false)}
