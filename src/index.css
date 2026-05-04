@@ -417,7 +417,7 @@ html[data-scroll-locked] body {
   h5,
   h6 {
     font-family: var(--font-display);
-    @apply font-bold tracking-tight text-foreground;
+    @apply font-bold tracking-tight text-foreground/95;
     line-height: 1.1;
   }
 
