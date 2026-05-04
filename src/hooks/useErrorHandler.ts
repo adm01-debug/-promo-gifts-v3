@@ -1,5 +1,6 @@
 import { useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
+import { createClientLogger } from '@/lib/telemetry/structuredLogger';
 
 interface ErrorHandlerOptions {
   /** Custom message shown in toast. Falls back to error.message */
@@ -25,11 +26,19 @@ interface ErrorHandlerOptions {
 export function useErrorHandler() {
   const handleError = useCallback(
     (error: unknown, options?: ErrorHandlerOptions) => {
+      const scope = options?.message ? 'useErrorHandler.custom' : 'useErrorHandler.generic';
+      const log = createClientLogger(scope);
+      
       const msg =
         options?.message ||
         (error instanceof Error ? error.message : 'Ocorreu um erro inesperado');
 
-      console.error('[useErrorHandler]', error);
+      // Log estruturado com suporte a Sentry e Correlação
+      log.error('error_captured', { 
+        err: error, 
+        custom_message: options?.message,
+        silent: options?.silent 
+      });
 
       if (!options?.silent) {
         toast.error(msg);
@@ -69,13 +78,15 @@ export function useErrorHandler() {
  */
 export function useGlobalErrorCatcher() {
   useEffect(() => {
+    const log = createClientLogger('GlobalCatcher');
+
     const onUnhandled = (event: ErrorEvent) => {
-      console.error('[GlobalError]', event.error);
+      log.error('unhandled_error', { err: event.error });
       toast.error('Erro inesperado. Tente recarregar a página.');
     };
 
     const onUnhandledRejection = (event: PromiseRejectionEvent) => {
-      console.error('[UnhandledRejection]', event.reason);
+      log.error('unhandled_rejection', { err: event.reason });
       toast.error('Erro inesperado. Tente recarregar a página.');
     };
 
