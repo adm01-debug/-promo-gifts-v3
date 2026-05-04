@@ -79,9 +79,9 @@ export function DevAccessDeniedPage({
   user,
   role,
   blockedPath,
-  blockedFullPath,
-  blockedState,
-}: DevAccessDeniedPageProps) {
+  _blockedFullPath,
+  _blockedState,
+}: DevAccessDeniedPageProps & { _blockedFullPath: string; _blockedState?: unknown }) {
   const navigate = useNavigate();
   const [reason, setReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -107,13 +107,13 @@ export function DevAccessDeniedPage({
       userRole: typeof role === "string" ? role : null,
       durationMs: sinceView(),
     });
-  const finalize = (
+  const finalize = useCallback((
     event: Parameters<typeof recordDevRouteTelemetry>[0]["event"],
   ) => {
     if (finalizedRef.current) return;
     finalizedRef.current = true;
     emit(event);
-  };
+  }, [blockedPath, role, sinceView]);
 
   // 1) Registra "view" uma única vez ao montar (sem duration).
   useEffect(() => {
@@ -139,7 +139,8 @@ export function DevAccessDeniedPage({
       document.removeEventListener("visibilitychange", onHide);
       if (!finalizedRef.current) finalize("abandon");
     };
-  }, []);
+  }, [finalize]);
+
   // -------------------------------------------------------------------------
 
   const handleRequestAccess = async () => {
