@@ -61,26 +61,9 @@ export function MainLayout({ children }: MainLayoutProps) {
 
   const layoutContent = (
     <div className="min-h-screen bg-background print:min-h-0" role="document">
-      <div className="print:hidden">
-        <Suspense fallback={null}>
-          <ScrollProgressIndicator color="primary" height={3} />
-        </Suspense>
-      </div>
-      
+      <GlobalOverlay />
       <div className="print:hidden">
         <SkipToContent />
-      </div>
-      
-      <div className="print:hidden">
-        <Suspense fallback={null}>
-          <EnhancedSpotlight />
-        </Suspense>
-      </div>
-      
-      <div className="print:hidden">
-        <Suspense fallback={null}>
-          <OnboardingTour />
-        </Suspense>
       </div>
       
       <div className="flex">
@@ -94,9 +77,6 @@ export function MainLayout({ children }: MainLayoutProps) {
         </div>
         
         <div className="flex-1 flex flex-col min-h-screen min-w-0 print:min-h-0 isolate">
-          {/* Header global agora é position: fixed → reservar espaço com pt
-              para evitar que o conteúdo fique atrás. Usa --header-h dinâmico
-              propagado pelo próprio Header. */}
           <Suspense fallback={<div style={{ height: 56 }} className="print:hidden" />}>
             <Header 
               onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
@@ -105,16 +85,12 @@ export function MainLayout({ children }: MainLayoutProps) {
             />
           </Suspense>
 
-          {/* Spacer para compensar o Header fixo */}
           <div
             aria-hidden="true"
             className="print:hidden shrink-0"
             style={{ height: "var(--header-h, 56px)" }}
           />
 
-          {/* Breadcrumb persistente — sticky logo abaixo do Header.
-              Como o Header agora é fixed, basta sticky em top:0 com a
-              hierarquia z-30 < z-40 do Header. */}
           <div
             className={cn(
               "sticky z-30 print:hidden transition-all duration-300",
@@ -140,45 +116,13 @@ export function MainLayout({ children }: MainLayoutProps) {
             role="main"
             aria-label="Conteúdo principal"
           >
-            
             <Suspense fallback={<div>{children}</div>}>
               <PageTransition variant="fade-slide" duration={0.2}>
                 {children}
               </PageTransition>
             </Suspense>
           </main>
-          
-          
-          <div className="print:hidden">
-            <Suspense fallback={null}>
-              <QuickQuoteFAB />
-            </Suspense>
-          </div>
         </div>
-      </div>
-      
-      <div className="print:hidden">
-        <Suspense fallback={null}>
-          <ScrollProgressIndicator />
-        </Suspense>
-      </div>
-      
-      <div className="print:hidden">
-        <Suspense fallback={null}>
-          <ScrollToTopButton threshold={150} />
-        </Suspense>
-      </div>
-      
-      <div className="print:hidden">
-        <Suspense fallback={null}>
-          <FloatingCompareBar />
-        </Suspense>
-      </div>
-      
-      <div className="print:hidden">
-        <Suspense fallback={null}>
-          <SmartMobileNav />
-        </Suspense>
       </div>
     </div>
   );
