@@ -246,6 +246,7 @@ const App = () => {
                               <Route path="/admin/limites-desconto" element={<SellerDiscountLimitsAdminPage />} />
                               <Route path="/admin/rls-denials" element={<RlsDenialsAdminPage />} />
                               <Route path="/admin/auditoria-propriedade" element={<OwnershipAuditAdminPage />} />
+                              <Route path="/admin/compliance" element={<ComplianceEvidencePage />} />
                               <Route path="/admin/cadastros" element={<AdminCadastrosPage />} />
                               <Route path="/admin/cadastros/produto/:id" element={<AdminProductFormPage />} />
                               <Route path="/admin/permissoes" element={<PermissionsPage />} />
@@ -275,55 +276,51 @@ const App = () => {
                                 <Route path="/admin/workflows" element={<AdminWorkflowsPage />} />
                                 <Route path="/admin/login-attempts" element={<AdminLoginAttemptsPage />} />
                                 <Route path="/admin/external-db" element={<AdminExternalDbPage />} />
-                                <Route path="/admin/consumo-ia" element={<AdminAiUsagePage />} />
                                 <Route path="/admin/conexoes" element={<AdminConexoesPage />} />
                                 <Route path="/admin/conexoes/status" element={<AdminConexoesStatusPage />} />
-                                <Route path="/status" element={<SystemStatusPage />} />
-                                 <Route path="/external-db-test" element={<ExternalDatabaseTest />} />
-                                 <Route path="/admin/rbac-rotas" element={<AdminRbacRoutesPage />} />
-                                 <Route path="/admin/qa" element={<QAPage />} />
-                                 <Route path="/admin/qa/sidebar" element={<SidebarQAPage />} />
-                               </Route>
+                                <Route path="/admin/rbac-rotas" element={<AdminRbacRoutesPage />} />
+                              </Route>
                             </Route>
 
-                            {/* Redirects */}
-                            <Route path="/configuracoes" element={<Navigate to="/admin/usuarios" replace />} />
-                            <Route path="/admin/personalizacao" element={<Navigate to="/admin/cadastros" replace />} />
-                            <Route path="/cadastro-produtos" element={<Navigate to="/admin/cadastros" replace />} />
-                            <Route path="/cadastro-gravacao" element={<Navigate to="/admin/cadastros" replace />} />
-                            <Route path="/comissoes" element={<DeprecatedRoute message="O módulo de Comissões foi descontinuado nesta plataforma." redirectTo="/" />} />
+                            {/* CRM (Clients) */}
+                            <Route path="/clientes" element={<ClientsPage />} />
+                            <Route path="/clientes/:id" element={<ClientDetailPage />} />
+                            <Route path="/clientes/comparar" element={<ClientComparatorPage />} />
 
                             {/* Tools */}
-                            <Route path="/simulador" element={<SimuladorWizard />} />
-                            <Route path="/simulador-precos" element={<PriceSimulatorPage />} />
-                            <Route path="/estoque" element={<StockDashboardPage />} />
-                            <Route path="/busca-preco" element={<AdvancedPriceSearchPage />} />
-                            <Route path="/montar-kit" element={<KitBuilderPage />} />
-                            <Route path="/kit-builder" element={<Navigate to="/montar-kit" replace />} />
-                            <Route path="/meus-kits" element={<MeusKitsPage />} />
-                            <Route path="/mockup" element={<Navigate to="/mockup-generator" replace />} />
-                            <Route path="/gerador-mockup" element={<Navigate to="/mockup-generator" replace />} />
-                            <Route path="/mockup-generator" element={<MockupGenerator />} />
-                            <Route path="/mockups/historico" element={<MockupHistoryPage />} />
-                            <Route path="/magic-up" element={<MagicUp />} />
-                            <Route path="/inteligencia-comercial" element={<CommercialIntelligencePage />} />
+                            <Route path="/ferramentas/mockup" element={<MockupGenerator />} />
+                            <Route path="/ferramentas/mockup/historico" element={<MockupHistoryPage />} />
+                            <Route path="/ferramentas/magic-up" element={<MagicUp />} />
+                            <Route path="/ferramentas/simulador" element={<SimuladorWizard />} />
+                            <Route path="/ferramentas/simulador-precos" element={<PriceSimulatorPage />} />
+                            <Route path="/ferramentas/estoque" element={<StockDashboardPage />} />
+                            <Route path="/ferramentas/busca-preco" element={<AdvancedPriceSearchPage />} />
+                            <Route path="/ferramentas/match" element={<ProductMatchPage />} />
                             <Route path="/ferramentas/bi" element={<BusinessIntelligencePage />} />
-                            <Route path="/ferramentas/bi/comparar" element={<ClientComparatorPage />} />
-                            <Route path="/match" element={<ProductMatchPage />} />
-                            <Route path="/dropbox" element={<DropboxBrowserPage />} />
-
+                            <Route path="/ferramentas/bi-comercial" element={<CommercialIntelligencePage />} />
+                            <Route path="/ferramentas/dropbox" element={<DropboxBrowserPage />} />
+                            
+                            <Route path="/ferramentas/personalizacao-sim" element={<PersonalizationSimulator />} />
+                            
+                            {/* Kits */}
+                            <Route path="/montar-kit" element={<KitBuilderPage />} />
+                            <Route path="/meus-kits" element={<MeusKitsPage />} />
+                            
                             {/* Orders */}
                             <Route path="/pedidos" element={<OrdersPage />} />
                             <Route path="/pedidos/:id" element={<OrderDetailPage />} />
 
-                            {/* Clients (CRM) */}
-                            <Route path="/clientes" element={<ClientsPage />} />
-                            <Route path="/clientes/:id" element={<ClientDetailPage />} />
+                            {/* System */}
+                            <Route path="/status" element={<SystemStatusPage />} />
+                            <Route path="/admin/external-db-test" element={<ExternalDatabaseTest />} />
 
-                            {/* Redirects legados */}
-                            <Route path="/perfil" element={<Navigate to="/admin/usuarios" replace />} />
-                            <Route path="*" element={<NotFound />} />
+                            {/* Legacy & QA */}
+                            <Route path="/qa" element={<QAPage />} />
+                            <Route path="/qa-sidebar" element={<SidebarQAPage />} />
                           </Route>
+
+                          {/* Fallback */}
+                          <Route path="*" element={<NotFound />} />
                         </Routes>
                       </RouteSuspense>
                     </AppProviders>
