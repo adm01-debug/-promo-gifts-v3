@@ -65,17 +65,26 @@ export function CatalogToolbar({
     <div className="flex items-center justify-between gap-2 flex-wrap">
       <div className="flex items-center gap-2 flex-shrink-0">
         <Sheet open={filterSheetOpen} onOpenChange={setFilterSheetOpen}>
-          <SheetTrigger asChild>
-            <Button variant="outline" size="sm" className="px-2.5 sm:px-3">
-              <Filter className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Filtros</span>
-              {activeFiltersCount > 0 && (
-                <Badge variant="secondary" className="ml-1 sm:ml-2 h-5 min-w-5 text-xs">
-                  {activeFiltersCount}
-                </Badge>
-              )}
-            </Button>
-          </SheetTrigger>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="sm" className="px-2.5 sm:px-3" aria-label="Abrir filtros do catálogo">
+                  <Filter className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Filtros</span>
+                  {activeFiltersCount > 0 && (
+                    <Badge variant="secondary" className="ml-1 sm:ml-2 h-5 min-w-5 text-xs">
+                      {activeFiltersCount}
+                    </Badge>
+                  )}
+                </Button>
+              </SheetTrigger>
+            </TooltipTrigger>
+            <TooltipContent>
+              {activeFiltersCount > 0
+                ? `Refinar busca · ${activeFiltersCount} filtro${activeFiltersCount > 1 ? "s" : ""} ativo${activeFiltersCount > 1 ? "s" : ""}`
+                : "Refinar por categoria, cor, preço e mais"}
+            </TooltipContent>
+          </Tooltip>
           <SheetContent side="left" className="w-80 overflow-y-auto">
             {filterSheetOpen && (
               <Suspense fallback={<FilterPanelSkeleton />}>
