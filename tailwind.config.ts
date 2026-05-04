@@ -177,6 +177,7 @@ export default {
       boxShadow: {
         xs: "0 1px 2px hsl(var(--primary) / 0.05)",
         sm: "var(--shadow-soft)",
+        soft: "var(--shadow-soft)",
         md: "var(--shadow-medium)",
         lg: "var(--shadow-lg, 0 10px 15px -3px hsl(var(--primary) / 0.1))",
         xl: "var(--shadow-premium)",
