@@ -126,9 +126,10 @@ export function BridgeProductsPreviewPanel() {
   const hasActiveFilters =
     appliedSearch.length > 0 ||
     appliedActive !== "all" ||
-    appliedMinPrice != null ||
-    appliedMaxPrice != null ||
-    appliedMinStock != null;
+    appliedMinPrice !== null ||
+    appliedMaxPrice !== null ||
+    appliedMinStock !== null;
+
 
   const products = data as ExternalProduct[];
   const startIdx = count === 0 ? 0 : (page - 1) * pageSize + 1;
