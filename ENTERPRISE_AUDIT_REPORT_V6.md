@@ -57,9 +57,13 @@ O sistema **Promo Gifts** consolidou-se como uma plataforma Tier 1 para o mercad
 
 ## 📜 5. Trilha de Auditoria Operacional (Evidence Genesis)
 
-*(Seção preenchida automaticamente pelo pipeline de CI)*
+| Funcionalidade | Data de Geração | Versão Ref | Commit Ref | Auditor Original |
+| :--- | :--- | :--- | :--- | :--- |
+| **Isolamento RLS** | 2025-12-14 | v25.12 | `3e80ba486` | gpt-engineer-app[bot] |
+| **MFA Integration** | 2025-12-14 | v25.12 | `3e80ba486` | gpt-engineer-app[bot] |
+| **Pricing Engine** | 2026-01-13 | v26.01 | `3ec111c0a` | gpt-engineer-app[bot] |
+| **Performance Catálogo** | 2025-12-15 | v25.12 | `499135659` | gpt-engineer-app[bot] |
 
----
 
 ## ⚖️ 6. Matriz de Riscos e Controles LGPD
 
@@ -73,9 +77,12 @@ O sistema **Promo Gifts** consolidou-se como uma plataforma Tier 1 para o mercad
 
 ## 📉 7. Seção de Lacunas Quantificadas (Gap Analysis)
 
-*(Seção preenchida automaticamente pelo pipeline de CI)*
+| Gap Identificado | Severidade | Evidência Relacionada | Status Atual | Caminho para Correção |
+| :--- | :---: | :--- | :--- | :--- |
+| Finance Hub Integration | **P0** | `docs/05_ROADMAP_PROXIMOS_PASSOS.md` | Roadmap Q3 | `docs/05_ROADMAP_PROXIMOS_PASSOS.md` |
+| AR Visualization | **P2** | `docs/05_ROADMAP_PROXIMOS_PASSOS.md` | Roadmap Q4 | `docs/05_ROADMAP_PROXIMOS_PASSOS.md` |
+| Cross-Org Data Leak Check | **P1** | `e2e/rls-scenarios.spec.ts` | Validation Pending | `e2e/rls-scenarios.spec.ts` |
 
----
 
 ## 🔄 8. Cronograma de Manutenção Operacional
 
