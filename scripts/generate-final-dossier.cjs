@@ -22,7 +22,7 @@ doc.setFont('helvetica', 'bold');
 doc.setFontSize(32);
 doc.setTextColor(41, 128, 185);
 doc.text('Dossiê de Auditoria', 105, 60, { align: 'center' });
-doc.text('Enterprise v7.0', 105, 75, { align: 'center' });
+doc.text('Enterprise v7.1', 105, 75, { align: 'center' });
 doc.setFontSize(14);
 doc.setTextColor(100, 100, 100);
 doc.text('Performance Operational & Compliance LGPD', 105, 85, { align: 'center' });
@@ -34,12 +34,13 @@ doc.addPage();
 doc.setFontSize(20);
 doc.setTextColor(0, 0, 0);
 doc.text('1. Sumário Executivo', 20, 20);
-const summary = `O sistema Promo Gifts atingiu maturidade operacional Tier 1. A auditoria técnica v7.0 confirma isolamento total de dados e automação cognitiva avançada.
+const summary = `O sistema Promo Gifts atingiu maturidade operacional Tier 1. A auditoria técnica v7.1 confirma isolamento total de dados e automação cognitiva avançada via Git e IA.
 
 KPIs Estratégicos:
 - Isolamento: 100% via PostgreSQL RLS.
 - Catálogo: < 400ms via TanStack Virtual.
-- Automação: Redução de 85% no lead time de propostas.`;
+- Automação: Redução de 85% no lead time de propostas.
+- Compliance: 100% dos links validados via CI.`;
 addText(summary, 20, 35, 170);
 
 // 3. Operational Risks
@@ -96,4 +97,4 @@ autoTable(doc, {
 
 // Save PDF
 doc.save('mnt/documents/ENTERPRISE_AUDIT_REPORT_V6.pdf');
-console.log('PDF Enterprise v7.0 generated successfully.');
+console.log('PDF Enterprise v7.1 generated successfully.');
