@@ -79,17 +79,54 @@ export default function Auth() {
     loadIPInfo();
   }, []);
 
-  // Redirect if already logged in
+  // Redirect if already logged in (only on initial load)
   useEffect(() => {
-    if (user && !authLoading) {
-      navigate("/");
+    if (user && !authLoading && !isSubmitting) {
+      navigate("/", { replace: true });
     }
-  }, [user, authLoading, navigate]);
+  }, [user, authLoading, navigate, isSubmitting]);
 
   const loginForm = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: "", password: "" },
   });
+
+  const validateAndRedirect = async (userId: string, email: string) => {
+    try {
+      const ipValidation = await validateIPForAuthenticatedUser(userId);
+      
+      if (!ipValidation.isAllowed && ipValidation.hasRestrictions) {
+        await signOut();
+        const reason = ipValidation.reason || 'access_blocked';
+        await logLoginAttempt(email, userId, false, `${reason}: ${ipValidation.error}`);
+        
+        setIpBlocked(true);
+        setBlockedIP(ipValidation.currentIP);
+        
+        toast({
+          variant: "destructive",
+          title: "Acesso Bloqueado",
+          description: ipValidation.error || `Seu IP (${ipValidation.currentIP}) não está autorizado.`,
+          duration: 10000,
+        });
+        return false;
+      }
+
+      await logLoginAttempt(email, userId, true);
+      
+      toast({
+        title: "Bem-vindo!",
+        description: "Login realizado com sucesso",
+      });
+      
+      navigate("/", { replace: true });
+      return true;
+    } catch (error) {
+      console.error("Validation error:", error);
+      navigate("/", { replace: true }); // Fail-open
+      return true;
+    }
+  };
 
   const handleLogin = async (data: LoginForm) => {
     setIsSubmitting(true);
@@ -101,19 +138,15 @@ export default function Auth() {
       if (error) {
         await logLoginAttempt(data.email, null, false, error.message);
         
-        if (error.message.includes("Invalid login credentials")) {
-          toast({
-            variant: "destructive",
-            title: "Erro ao entrar",
-            description: "Email ou senha incorretos",
-          });
-        } else {
-          toast({
-            variant: "destructive",
-            title: "Erro ao entrar",
-            description: error.message,
-          });
-        }
+        const description = error.message.includes("Invalid login credentials") 
+          ? "Email ou senha incorretos" 
+          : error.message;
+
+        toast({
+          variant: "destructive",
+          title: "Erro ao entrar",
+          description,
+        });
         return;
       }
 
@@ -121,33 +154,10 @@ export default function Auth() {
       const userId = sessionData?.session?.user?.id;
 
       if (userId) {
-        const ipValidation = await validateIPForAuthenticatedUser(userId);
-        
-        if (!ipValidation.isAllowed && ipValidation.hasRestrictions) {
-          await signOut();
-          const reason = ipValidation.reason || 'access_blocked';
-          await logLoginAttempt(data.email, userId, false, `${reason}: ${ipValidation.error}`);
-          
-          setIpBlocked(true);
-          setBlockedIP(ipValidation.currentIP);
-          
-          toast({
-            variant: "destructive",
-            title: "Acesso Bloqueado",
-            description: ipValidation.error || `Seu IP (${ipValidation.currentIP}) não está autorizado.`,
-            duration: 10000,
-          });
-          return;
-        }
-
-        await logLoginAttempt(data.email, userId, true);
+        await validateAndRedirect(userId, data.email);
+      } else {
+        navigate("/");
       }
-
-      toast({
-        title: "Bem-vindo!",
-        description: "Login realizado com sucesso",
-      });
-      navigate("/");
     } catch (error) {
       toast({
         variant: "destructive",
@@ -388,11 +398,12 @@ export default function Auth() {
                       email={loginForm.watch("email")}
                       disabled={isSubmitting}
                       onSuccess={async (userId) => {
-                        toast({
-                          title: "Autenticação biométrica",
-                          description: "Autenticado com sucesso via passkey!",
-                        });
-                        navigate("/");
+                        setIsSubmitting(true);
+                        try {
+                          await validateAndRedirect(userId, loginForm.getValues("email"));
+                        } finally {
+                          setIsSubmitting(false);
+                        }
                       }}
                     />
                   </form>

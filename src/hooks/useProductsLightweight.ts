@@ -8,8 +8,7 @@ import { fetchPromobrindProductsLightweight, invokeBatchBridge, type Lightweight
 
 // Re-export type for consumers
 export type { ProductLightweight } from '@/types/product-catalog';
-import type { ProductLightweight } from '@/types/product-catalog';
-import type { Product } from '@/types/product';
+import type { ProductLightweight, Product } from '@/types/product-catalog';
 
 function mapLightweight(p: LightweightProduct): ProductLightweight {
   const price = (p.sale_price ?? p.cost_price ?? 0);
@@ -64,7 +63,7 @@ export function mapLightweightToProduct(p: LightweightProduct): Product {
     isKit: p.is_kit ?? false,
     gender: p.gender || null,
     category: {
-      id: parseInt(p.category_id || p.main_category_id || "0") || 0,
+      id: p.category_id || p.main_category_id || "0",
       name: "Sem categoria",
     },
     supplier: {
