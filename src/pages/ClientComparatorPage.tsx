@@ -53,7 +53,7 @@ export default function ClientComparatorPage() {
               <ArrowLeft className="h-4 w-4" /> Voltar
             </Button>
             <div className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-600 to-fuchsia-700 flex items-center justify-center shadow-lg shadow-violet-500/25">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-600 to-fuchsia-700 flex items-center justify-center shadow-lg shadow-primary/25">
                 <GitCompare className="h-4 w-4 text-primary-foreground" />
               </div>
               <div>

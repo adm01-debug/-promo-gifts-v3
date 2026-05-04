@@ -408,7 +408,7 @@ export function QuoteBuilderSummaryColumn({
             {isDiscountExceeded ? (
               <Button
                 size="lg"
-                className="w-full gap-2 h-12 text-sm font-bold bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-lg shadow-amber-500/20"
+                className="w-full gap-2 h-12 text-sm font-bold bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-lg shadow-warning/20"
                 onClick={() => setApprovalDialogOpen(true)}
                 disabled={quotesLoading || !isFormValid}
               >
