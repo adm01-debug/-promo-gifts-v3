@@ -112,7 +112,7 @@ html[data-scroll-locked] body {
     --radius: 0.75rem;
 
     /* 8b. Border Width Tokens */
-    --border-width: 1.5px;
+    --border-width: 1px;
     --border-width-strong: 2px;
     --border-width-hairline: 1px;
 
