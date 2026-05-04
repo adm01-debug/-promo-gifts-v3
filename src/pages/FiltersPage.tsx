@@ -221,7 +221,7 @@ export default function FiltersPage() {
                       </SelectContent>
                     </Select>
                   </TooltipTrigger>
-                  <TooltipContent>Ordenar resultados (nome, preço, novidades, popularidade)</TooltipContent>
+                  <TooltipContent className="bg-primary text-primary-foreground border-primary text-[11px]">Ordenar resultados (nome, preço, novidades, popularidade)</TooltipContent>
                 </Tooltip>
                 <Tooltip>
                   <TooltipTrigger asChild>
