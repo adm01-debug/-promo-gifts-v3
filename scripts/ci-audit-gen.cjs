@@ -90,9 +90,13 @@ async function run() {
     const genesisStartIdx = mdContent.indexOf(genesisMarker);
     const nextIdx = mdContent.indexOf(nextSectionMarker, genesisStartIdx + genesisMarker.length);
     
-    if (genesisStartIdx !== -1 && nextIdx !== -1) {
+    if (genesisStartIdx !== -1) {
+      // Find end of section by looking for the next header or a significant divider
+      let nextSectionIdx = mdContent.indexOf('## ', genesisStartIdx + genesisMarker.length);
+      if (nextSectionIdx === -1) nextSectionIdx = mdContent.indexOf('---', genesisStartIdx + genesisMarker.length);
+      
       const newGenesis = `\n\n${generateEvidenceGenesis()}\n\n`;
-      mdContent = mdContent.slice(0, genesisStartIdx + genesisMarker.length) + newGenesis + mdContent.slice(nextIdx);
+      mdContent = mdContent.slice(0, genesisStartIdx + genesisMarker.length) + newGenesis + (nextSectionIdx !== -1 ? mdContent.slice(nextSectionIdx) : '');
       fs.writeFileSync(DOSSIER_PATH, mdContent);
     }
 
