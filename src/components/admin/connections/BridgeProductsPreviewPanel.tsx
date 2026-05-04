@@ -62,9 +62,10 @@ export function BridgeProductsPreviewPanel() {
   const [pageSize, setPageSize] = useState<PageSize>(25);
 
   const totalPages = useMemo(() => {
-    if (count == null) return 1;
+    if (count === null || count === undefined) return 1;
     return Math.max(1, Math.ceil(count / pageSize));
   }, [count, pageSize]);
+
 
   // Monta o objeto de filtros no formato suportado pelo external-db-bridge
   const buildFilters = useCallback((): Record<string, unknown> => {
@@ -72,9 +73,10 @@ export function BridgeProductsPreviewPanel() {
     if (appliedSearch.trim().length > 0) f._search = appliedSearch.trim();
     if (appliedActive === "active") f.is_active = true;
     if (appliedActive === "inactive") f.is_active = false;
-    if (appliedMinPrice != null) f.price_gte = appliedMinPrice;
-    if (appliedMaxPrice != null) f.price_lte = appliedMaxPrice;
-    if (appliedMinStock != null) f.stock_gte = appliedMinStock;
+    if (appliedMinPrice !== null) f.price_gte = appliedMinPrice;
+    if (appliedMaxPrice !== null) f.price_lte = appliedMaxPrice;
+    if (appliedMinStock !== null) f.stock_gte = appliedMinStock;
+
     return f;
   }, [appliedSearch, appliedActive, appliedMinPrice, appliedMaxPrice, appliedMinStock]);
 
@@ -124,9 +126,10 @@ export function BridgeProductsPreviewPanel() {
   const hasActiveFilters =
     appliedSearch.length > 0 ||
     appliedActive !== "all" ||
-    appliedMinPrice != null ||
-    appliedMaxPrice != null ||
-    appliedMinStock != null;
+    appliedMinPrice !== null ||
+    appliedMaxPrice !== null ||
+    appliedMinStock !== null;
+
 
   const products = data as ExternalProduct[];
   const startIdx = count === 0 ? 0 : (page - 1) * pageSize + 1;
@@ -271,9 +274,10 @@ export function BridgeProductsPreviewPanel() {
                     {[
                       appliedSearch && "busca",
                       appliedActive !== "all" && "status",
-                      appliedMinPrice != null && "preço mín.",
-                      appliedMaxPrice != null && "preço máx.",
-                      appliedMinStock != null && "estoque",
+                    appliedMinPrice !== null && "preço mín.",
+                    appliedMaxPrice !== null && "preço máx.",
+                    appliedMinStock !== null && "estoque",
+
                     ]
                       .filter(Boolean)
                       .length}{" "}
@@ -383,8 +387,9 @@ export function BridgeProductsPreviewPanel() {
           <div className="text-xs text-muted-foreground tabular-nums">
             {isLoading && products.length === 0
               ? "Carregando…"
-              : count != null
+              : count !== null && count !== undefined
                 ? `${startIdx}–${endIdx} de ${count.toLocaleString("pt-BR")} produto(s)`
+
                 : `${products.length} produto(s) carregado(s)`}
           </div>
           <div className="flex items-center gap-2">
