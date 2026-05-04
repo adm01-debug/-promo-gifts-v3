@@ -172,7 +172,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
                   <span className="hidden sm:inline">Theme Safe-Mode</span>
                 </div>
               </TooltipTrigger>
-              <TooltipContent className="max-w-[200px] text-xs">
+              <TooltipContent className="max-w-[200px]">
                 O ThemeProvider não foi detectado. O sistema está rodando em modo de segurança com o tema padrão.
               </TooltipContent>
             </Tooltip>
