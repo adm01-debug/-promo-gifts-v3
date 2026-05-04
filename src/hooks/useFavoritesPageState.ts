@@ -21,7 +21,9 @@ function loadViewMode(): ViewMode {
   try {
     const v = localStorage.getItem(VIEW_MODE_KEY);
     if (v === "grid" || v === "list" || v === "table") return v as ViewMode;
-  } catch {}
+  } catch (e) {
+    // Ignore localStorage errors
+  }
   return "grid";
 }
 
@@ -32,7 +34,9 @@ function loadGridColumns(): ColumnCount {
       const n = Number(v) as ColumnCount;
       if ([3, 4, 5, 6, 8].includes(n)) return n as ColumnCount;
     }
-  } catch {}
+  } catch (e) {
+    // Ignore localStorage errors
+  }
   return getDefaultColumns();
 }
 
@@ -41,7 +45,9 @@ function loadSort(): FavoritesSort {
     const v = localStorage.getItem(SORT_KEY) as FavoritesSort | null;
     const allowed: FavoritesSort[] = ["recent", "oldest", "price-asc", "price-desc", "name-asc", "name-desc", "category"];
     if (v && allowed.includes(v)) return v;
-  } catch {}
+  } catch (e) {
+    // Ignore localStorage errors
+  }
   return "recent";
 }
 
