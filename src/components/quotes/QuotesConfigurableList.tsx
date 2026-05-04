@@ -49,6 +49,14 @@ import { QuoteViewedBadge } from "./QuoteViewedBadge";
 import { QuoteRowQuickActions } from "./QuoteRowQuickActions";
 import { QuoteOrderBadge } from "./QuoteOrderBadge";
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
   DndContext,
   closestCenter,
   KeyboardSensor,
@@ -65,6 +73,7 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+
 
 // ── Column definitions ──
 export interface ColumnDef {
