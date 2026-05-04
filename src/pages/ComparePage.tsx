@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { GitCompare, X, ArrowLeft, Share2, Image as ImageIcon, List, Filter, FileText, Building2, Swords } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SyncedZoomGallery } from "@/components/compare/SyncedZoomGallery";
@@ -143,6 +144,7 @@ export default function ComparePage() {
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
+            <Popover>
             <Tooltip>
               <TooltipTrigger asChild>
                 <PopoverTrigger asChild>
