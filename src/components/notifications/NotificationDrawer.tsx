@@ -382,7 +382,7 @@ export const NotificationBell = React.forwardRef<HTMLDivElement, NotificationBel
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={markAllAsRead} aria-label="CheckCheck"><CheckCheck className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>Marcar todas como lidas</TooltipContent>
+                  <TooltipContent className="bg-primary text-primary-foreground border-primary text-[11px]">Marcar todas como lidas</TooltipContent>
                 </Tooltip>
               )}
               {notifications.length > 0 && (
