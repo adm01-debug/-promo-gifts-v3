@@ -5,6 +5,7 @@
 import { useState } from "react";
 import { TableProperties, Palette, Target, Layers } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { InlinePriceCalculator } from "@/components/products/InlinePriceCalculator";
 import { ProductCustomizationOptions } from "@/components/products/ProductCustomizationOptions";
