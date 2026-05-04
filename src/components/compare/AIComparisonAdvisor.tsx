@@ -171,7 +171,7 @@ export function AIComparisonAdvisor({ products }: AIComparisonAdvisorProps) {
 
 function BestForCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border bg-card p-2.5">
+    <div className="rounded-md border bg-card p-2.5">
       <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
         {label}
       </p>

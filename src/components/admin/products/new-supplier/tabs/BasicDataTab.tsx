@@ -19,7 +19,7 @@ export function BasicDataTab({ form }: BasicDataTabProps) {
       <div className="flex items-center gap-4">
         <div className="relative shrink-0">
           {form.logoUrl ? (
-            <div className="relative w-20 h-20 rounded-lg border border-border overflow-hidden bg-muted">
+            <div className="relative w-20 h-20 rounded-md border border-border overflow-hidden bg-muted">
               
 <img src={form.logoUrl} alt="Logo" className="w-full h-full object-contain"  loading="lazy" />
               <button type="button" onClick={() => form.setLogoUrl('')} className="absolute -top-1 -right-1 rounded-full bg-destructive text-destructive-foreground p-0.5">
@@ -27,7 +27,7 @@ export function BasicDataTab({ form }: BasicDataTabProps) {
               </button>
             </div>
           ) : (
-            <button type="button" onClick={() => form.logoInputRef.current?.click()} disabled={form.uploadingLogo} className="w-20 h-20 rounded-lg border-2 border-dashed border-border hover:border-primary/50 flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-primary transition-colors">
+            <button type="button" onClick={() => form.logoInputRef.current?.click()} disabled={form.uploadingLogo} className="w-20 h-20 rounded-md border-2 border-dashed border-border hover:border-primary/50 flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-primary transition-colors">
               {form.uploadingLogo ? <Loader2 className="h-5 w-5 animate-spin" /> : <><ImagePlus className="h-5 w-5" /><span className="text-[10px]">Logo</span></>}
             </button>
           )}
@@ -104,7 +104,7 @@ export function BasicDataTab({ form }: BasicDataTabProps) {
         </div>
       </div>
 
-      <div className="flex items-center justify-between rounded-lg border border-border p-3">
+      <div className="flex items-center justify-between rounded-md border border-border p-3">
         <Label className="text-sm">Ativo</Label>
         <Switch checked={form.isActive} onCheckedChange={form.setIsActive} />
       </div>

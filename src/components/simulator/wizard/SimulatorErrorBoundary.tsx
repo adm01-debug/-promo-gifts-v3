@@ -81,7 +81,7 @@ export class SimulatorErrorBoundary extends Component<Props, State> {
         </p>
 
         {this.state.error?.message && (
-          <div className="mb-6 p-3 rounded-lg bg-muted text-xs font-mono text-muted-foreground text-left break-all">
+          <div className="mb-6 p-3 rounded-md bg-muted text-xs font-mono text-muted-foreground text-left break-all">
             {this.state.error.message}
           </div>
         )}

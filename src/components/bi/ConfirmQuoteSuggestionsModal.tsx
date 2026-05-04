@@ -124,7 +124,7 @@ export function ConfirmQuoteSuggestionsModal({
                   key={s.name}
                   htmlFor={`sug-${s.name}`}
                   className={cn(
-                    "flex items-center gap-3 p-3 rounded-lg border-[1.5px] cursor-pointer transition-all",
+                    "flex items-center gap-3 p-3 rounded-md border-[1.5px] cursor-pointer transition-all",
                     isSelected
                       ? "border-primary/40 bg-primary/5"
                       : "border-border hover:border-primary/20 hover:bg-muted/40",

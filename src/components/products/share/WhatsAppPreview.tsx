@@ -91,7 +91,7 @@ export function WhatsAppPreview({
         {selectedPhotos.length > 0 && (
           <div className="flex justify-end mb-1">
             <div
-              className="rounded-lg p-1 max-w-[65%] shadow-sm"
+              className="rounded-md p-1 max-w-[65%] shadow-sm"
               style={{ backgroundColor: bubbleOut }}
             >
               <div
@@ -136,7 +136,7 @@ export function WhatsAppPreview({
         {/* Text message bubble */}
         <div className="flex justify-end">
           <div
-            className="rounded-lg px-3 py-2 max-w-[85%] shadow-sm relative"
+            className="rounded-md px-3 py-2 max-w-[85%] shadow-sm relative"
             style={{ backgroundColor: bubbleOut }}
           >
             {/* Tail */}

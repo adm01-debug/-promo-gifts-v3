@@ -195,7 +195,7 @@ export function MiniStatCard({
 }: MiniStatCardProps) {
   return (
     <div className={cn(
-      "flex items-center gap-2 px-3 py-2 rounded-lg",
+      "flex items-center gap-2 px-3 py-2 rounded-md",
       colorStyles[color],
       className
     )}>

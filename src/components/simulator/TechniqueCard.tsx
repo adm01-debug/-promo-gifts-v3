@@ -73,11 +73,11 @@ export function TechniqueCard({
             <HoverCardTrigger asChild>
               <div className="relative flex-shrink-0">
                 {thumbnail ? (
-                  <div className="w-10 h-10 rounded-lg overflow-hidden ring-2 ring-border">
+                  <div className="w-10 h-10 rounded-md overflow-hidden ring-2 ring-border">
                     <img src={thumbnail} alt={technique.name} className="w-full h-full object-cover" loading="lazy" />
                   </div>
                 ) : (
-                  <div className={cn('w-10 h-10 rounded-lg flex items-center justify-center text-lg', style.color, 'text-primary-foreground')}>{style.icon}</div>
+                  <div className={cn('w-10 h-10 rounded-md flex items-center justify-center text-lg', style.color, 'text-primary-foreground')}>{style.icon}</div>
                 )}
                 {isSelected && (
                   <motion.div className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full flex items-center justify-center" initial={{ scale: 0 }} animate={{ scale: 1 }}>

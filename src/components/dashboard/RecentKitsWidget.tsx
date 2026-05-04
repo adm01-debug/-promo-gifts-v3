@@ -61,7 +61,7 @@ export function RecentKitsWidget() {
         {recentKits.map((kit: any) => (
           <div
             key={kit.id}
-            className="flex items-center gap-3 p-2 rounded-lg hover:bg-secondary/50 cursor-pointer transition-colors"
+            className="flex items-center gap-3 p-2 rounded-md hover:bg-secondary/50 cursor-pointer transition-colors"
             onClick={() => navigate(`/montar-kit?kit=${kit.id}`)}
           >
             <div className="w-8 h-8 rounded-md bg-primary/10 flex items-center justify-center flex-shrink-0">

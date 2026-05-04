@@ -78,7 +78,7 @@ export function CardSkeleton({
       aria-label="Carregando card..."
     >
       {showImage && (
-        <SkeletonShimmer className="h-40 w-full rounded-lg" />
+        <SkeletonShimmer className="h-40 w-full rounded-md" />
       )}
       <div className="space-y-2">
         <SkeletonShimmer className="h-5 w-3/4" />
@@ -139,7 +139,7 @@ export function TableSkeleton({
 }: TableSkeletonProps) {
   return (
     <div 
-      className={cn("rounded-lg border bg-card overflow-hidden", className)}
+      className={cn("rounded-md border bg-card overflow-hidden", className)}
       aria-label="Carregando tabela..."
     >
       {showHeader && (
@@ -197,7 +197,7 @@ export function StatsCardSkeleton({ className }: { className?: string }) {
     >
       <div className="flex items-center justify-between">
         <SkeletonShimmer className="h-4 w-24" />
-        <SkeletonShimmer className="h-8 w-8 rounded-lg" />
+        <SkeletonShimmer className="h-8 w-8 rounded-md" />
       </div>
       <SkeletonShimmer className="h-8 w-32" />
       <div className="flex items-center gap-2">
@@ -271,12 +271,12 @@ export function ListItemSkeleton({ className }: { className?: string }) {
   return (
     <div 
       className={cn(
-        "flex items-center gap-4 p-4 rounded-lg border bg-card",
+        "flex items-center gap-4 p-4 rounded-md border bg-card",
         className
       )}
       aria-label="Carregando item..."
     >
-      <SkeletonShimmer className="h-12 w-12 rounded-lg flex-shrink-0" />
+      <SkeletonShimmer className="h-12 w-12 rounded-md flex-shrink-0" />
       <div className="flex-1 space-y-2">
         <SkeletonShimmer className="h-4 w-3/4" />
         <SkeletonShimmer className="h-3 w-1/2" />

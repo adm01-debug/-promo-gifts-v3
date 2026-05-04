@@ -37,22 +37,22 @@ function AlertSummaryBar({ alerts, variant }: { alerts: StockAlert[]; variant: '
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-      <div className={`rounded-lg border p-2.5 text-center ${isCritical ? 'bg-destructive/5 border-destructive/15' : 'bg-warning/5 border-warning/15'}`}>
+      <div className={`rounded-md border p-2.5 text-center ${isCritical ? 'bg-destructive/5 border-destructive/15' : 'bg-warning/5 border-warning/15'}`}>
         <p className="text-[11px] text-muted-foreground">Alertas</p>
         <p className={`text-xl font-bold tabular-nums ${isCritical ? 'text-destructive' : 'text-warning'}`}>{alerts.length}</p>
       </div>
-      <div className="rounded-lg border bg-muted/30 p-2.5 text-center">
+      <div className="rounded-md border bg-muted/30 p-2.5 text-center">
         <p className="text-[11px] text-muted-foreground">Produtos</p>
         <p className="text-xl font-bold tabular-nums">{stats.products}</p>
       </div>
       {stats.outOfStock > 0 && (
-        <div className="rounded-lg border bg-destructive/5 border-destructive/15 p-2.5 text-center">
+        <div className="rounded-md border bg-destructive/5 border-destructive/15 p-2.5 text-center">
           <p className="text-xs text-muted-foreground flex items-center justify-center gap-1"><XCircle className="h-3 w-3" />Esgotados</p>
           <p className="text-xl font-bold tabular-nums text-destructive">{stats.outOfStock}</p>
         </div>
       )}
       {stats.lowStock > 0 && (
-        <div className="rounded-lg border bg-warning/5 border-warning/15 p-2.5 text-center">
+        <div className="rounded-md border bg-warning/5 border-warning/15 p-2.5 text-center">
           <p className="text-xs text-muted-foreground flex items-center justify-center gap-1"><TrendingDown className="h-3 w-3" />Baixo</p>
           <p className="text-xl font-bold tabular-nums text-warning">{stats.lowStock}</p>
         </div>

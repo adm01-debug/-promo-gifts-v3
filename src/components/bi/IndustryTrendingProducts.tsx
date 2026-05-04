@@ -102,7 +102,7 @@ export function IndustryTrendingProducts({ ramoAtividade, clientId }: Props) {
       <CardContent className="p-5 space-y-4">
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-info/10 flex items-center justify-center">
+            <div className="h-8 w-8 rounded-md bg-info/10 flex items-center justify-center">
               <TrendingUp className="h-4 w-4 text-info" />
             </div>
             <div>
@@ -206,13 +206,13 @@ export function IndustryTrendingProducts({ ramoAtividade, clientId }: Props) {
                         src={t.imageUrl}
                         alt={t.productName}
                         loading="lazy"
-                        className="h-16 w-16 rounded-lg object-contain bg-background border shrink-0"
+                        className="h-16 w-16 rounded-md object-contain bg-background border shrink-0"
                         onError={(e) => {
                           (e.currentTarget as HTMLImageElement).style.display = "none";
                         }}
                       />
                     ) : (
-                      <div className="h-16 w-16 rounded-lg bg-muted/40 flex items-center justify-center shrink-0">
+                      <div className="h-16 w-16 rounded-md bg-muted/40 flex items-center justify-center shrink-0">
                         <Package className="h-6 w-6 text-muted-foreground" />
                       </div>
                     )}
@@ -251,7 +251,7 @@ export function IndustryTrendingProducts({ ramoAtividade, clientId }: Props) {
                 <div
                   key={`${t.productName}-${i}`}
                   className={cn(
-                    "flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/60 transition-colors group",
+                    "flex items-center gap-3 p-2.5 rounded-md hover:bg-muted/60 transition-colors group",
                     t.alreadyBuys && "opacity-90",
                   )}
                 >

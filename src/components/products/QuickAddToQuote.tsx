@@ -166,7 +166,7 @@ export function QuickAddToQuote({
 
             {/* Selected variant summary */}
             {selectedVariant && (
-              <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/40 border border-border/50">
+              <div className="flex items-center gap-2 p-2 rounded-md bg-muted/40 border border-border/50">
                 {selectedVariant.selected_thumbnail ? (
                   <img
                     src={`${selectedVariant.selected_thumbnail}/thumbnail`}

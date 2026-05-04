@@ -198,7 +198,7 @@ export function RankingFilterToolbar({
       {/* Filters row */}
       <div className="flex flex-wrap items-center gap-2">
         {/* Period */}
-        <div className="flex items-center gap-0.5 bg-muted/50 rounded-lg p-0.5 border border-border/50">
+        <div className="flex items-center gap-0.5 bg-muted/50 rounded-md p-0.5 border border-border/50">
           {PERIOD_OPTIONS.map((p) => (
             <Button
               key={p.days}

@@ -95,7 +95,7 @@ export function SortableProductItem({
           <img
             src={displayImage}
             alt={product.name}
-            className="w-12 h-12 rounded-lg object-cover"
+            className="w-12 h-12 rounded-md object-cover"
             loading="lazy"
           />
         )}

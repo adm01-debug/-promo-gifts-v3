@@ -68,7 +68,7 @@ export function AutoTestJobStatusCard() {
   const successRate24 = total24 > 0 ? Math.round((ok24 / total24) * 100) : null;
 
   return (
-    <div className="rounded-lg border bg-card p-4 space-y-4">
+    <div className="rounded-md border bg-card p-4 space-y-4">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-2">
           <div className="h-9 w-9 rounded-md bg-primary/10 flex items-center justify-center">

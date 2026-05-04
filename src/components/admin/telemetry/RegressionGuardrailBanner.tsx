@@ -67,7 +67,7 @@ export function RegressionGuardrailBanner() {
         <div className="flex items-start gap-3">
           <div
             className={cn(
-              'p-2.5 rounded-lg shrink-0',
+              'p-2.5 rounded-md shrink-0',
               meta.tone === 'destructive' && 'bg-destructive/15 text-destructive',
               meta.tone === 'warning' && 'bg-warning/15 text-warning',
               meta.tone === 'success' && 'bg-success/15 text-success',

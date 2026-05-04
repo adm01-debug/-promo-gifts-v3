@@ -143,9 +143,9 @@ export const NoveltyListCard = memo(function NoveltyListCard({ product, onClick,
     <Card className={cn("group cursor-pointer transition-all duration-200 hover:shadow-md hover:border-primary/30", fresh && "border-success/30 shadow-[0_0_12px_hsl(var(--success)/0.08)]", isSelected && "ring-2 ring-primary border-primary/50 shadow-[0_0_20px_hsl(var(--primary)/0.15)]")} onClick={selectionMode ? onToggleSelect : onClick}>
       <CardContent className="p-2.5 flex items-center gap-2.5">
         {selectionMode && <div className="shrink-0" onClick={(e) => e.stopPropagation()}><SelectionCheckbox checked={isSelected} onChange={onToggleSelect} size="md" animateEntry /></div>}
-        <div className="shrink-0 w-12 h-12 sm:w-14 sm:h-14 rounded-lg bg-muted overflow-hidden relative">
+        <div className="shrink-0 w-12 h-12 sm:w-14 sm:h-14 rounded-md bg-muted overflow-hidden relative">
           {product.product_image ? <img src={product.product_image} alt={product.product_name} className="w-full h-full object-cover" loading="lazy" /> : <div className="w-full h-full flex items-center justify-center"><Package className="h-5 w-5 text-muted-foreground/30" /></div>}
-          {fresh && <div className="absolute inset-0 ring-2 ring-success/40 rounded-lg" />}
+          {fresh && <div className="absolute inset-0 ring-2 ring-success/40 rounded-md" />}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-0.5">
@@ -174,7 +174,7 @@ export function NoveltyTableView({ products, onProductClick, selectionMode, sele
   selectionMode: boolean; selectedIds: Set<string>; onToggleSelect: (id: string) => void;
 }) {
   return (
-    <div className="rounded-lg border border-border/50 overflow-hidden">
+    <div className="rounded-md border border-border/50 overflow-hidden">
       <Table>
         <TableHeader>
           <TableRow className="bg-muted/30 hover:bg-muted/30">
@@ -224,7 +224,7 @@ type ViewMode = "grid" | "list" | "table";
 
 export function NoveltyCardSkeleton({ viewMode }: { viewMode: ViewMode }) {
   if (viewMode === "list") {
-    return (<Card className="border-border/50"><CardContent className="p-2.5 flex items-center gap-2.5"><div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg shimmer" /><div className="flex-1 space-y-1.5"><div className="h-3 w-16 rounded shimmer" /><div className="h-3.5 w-full rounded shimmer" style={{ animationDelay: '150ms' }} /><div className="h-3 w-24 rounded shimmer" style={{ animationDelay: '300ms' }} /></div></CardContent></Card>);
+    return (<Card className="border-border/50"><CardContent className="p-2.5 flex items-center gap-2.5"><div className="w-12 h-12 sm:w-14 sm:h-14 rounded-md shimmer" /><div className="flex-1 space-y-1.5"><div className="h-3 w-16 rounded shimmer" /><div className="h-3.5 w-full rounded shimmer" style={{ animationDelay: '150ms' }} /><div className="h-3 w-24 rounded shimmer" style={{ animationDelay: '300ms' }} /></div></CardContent></Card>);
   }
   if (viewMode === "table") {
     return (<div className="flex items-center gap-2 px-2 py-1.5 border-b border-border/30"><div className="w-9 h-9 rounded shimmer" /><div className="flex-1 h-3 rounded shimmer" style={{ animationDelay: '100ms' }} /><div className="w-14 h-3 rounded shimmer" style={{ animationDelay: '200ms' }} /><div className="w-14 h-3 rounded shimmer" style={{ animationDelay: '300ms' }} /></div>);

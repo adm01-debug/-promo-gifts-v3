@@ -183,7 +183,7 @@ export function PresentationMode({ slides, title, subtitle, brandName, onClose }
             <button
               onClick={() => goTo(0)}
               className={cn(
-                "aspect-video rounded-lg border-2 overflow-hidden transition-all hover:scale-105",
+                "aspect-video rounded-md border-2 overflow-hidden transition-all hover:scale-105",
                 current === 0 ? "border-primary ring-2 ring-primary/50" : "border-white/20"
               )}
             >
@@ -197,7 +197,7 @@ export function PresentationMode({ slides, title, subtitle, brandName, onClose }
                 key={s.id}
                 onClick={() => goTo(i + 1)}
                 className={cn(
-                  "aspect-video rounded-lg border-2 overflow-hidden transition-all hover:scale-105 relative",
+                  "aspect-video rounded-md border-2 overflow-hidden transition-all hover:scale-105 relative",
                   current === i + 1 ? "border-primary ring-2 ring-primary/50" : "border-white/20"
                 )}
               >

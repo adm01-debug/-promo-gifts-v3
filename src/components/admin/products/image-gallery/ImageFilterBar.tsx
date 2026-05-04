@@ -20,7 +20,7 @@ export function ImageFilterBar({ filterMode, setFilterMode, typeFilter, setTypeF
     <div className="space-y-2">
       <div className="flex flex-wrap items-center gap-2">
         {/* View mode pills */}
-        <div className="flex items-center gap-1 p-0.5 rounded-lg bg-muted/50 border border-border/40">
+        <div className="flex items-center gap-1 p-0.5 rounded-md bg-muted/50 border border-border/40">
           <button type="button" onClick={() => setFilterMode('all')}
             className={cn("px-2.5 py-1 rounded-md text-[11px] font-medium transition-all", filterMode === 'all' ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground")}>
             Todas

@@ -198,7 +198,7 @@ export function MyClientsWidget() {
             filtered.map((c) => (
               <div
                 key={c.key}
-                className="flex items-center gap-3 p-2 rounded-lg hover:bg-secondary/50 transition-colors"
+                className="flex items-center gap-3 p-2 rounded-md hover:bg-secondary/50 transition-colors"
               >
                 <div className="w-8 h-8 rounded-md bg-primary/10 flex items-center justify-center flex-shrink-0">
                   <Users className="h-4 w-4 text-primary" />

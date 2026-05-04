@@ -210,7 +210,7 @@ export function StepSpecs({ wizard }: StepSpecsProps) {
                   <Button
                     variant="outline"
                     size="icon"
-                    className="h-7 w-7 rounded-lg"
+                    className="h-7 w-7 rounded-md"
                     onClick={() => wizard.updateSpecs({ width: Math.max(0.5, engravingSpecs.width - 0.5) })}
                     disabled={engravingSpecs.width <= 0.5}
                     aria-label="Diminuir largura"
@@ -227,12 +227,12 @@ export function StepSpecs({ wizard }: StepSpecsProps) {
                     min={0.5}
                     max={maxWidth}
                     step={0.5}
-                    className="w-20 h-7 text-center text-sm font-bold rounded-lg"
+                    className="w-20 h-7 text-center text-sm font-bold rounded-md"
                   />
                   <Button
                     variant="outline"
                     size="icon"
-                    className="h-7 w-7 rounded-lg"
+                    className="h-7 w-7 rounded-md"
                     onClick={() => wizard.updateSpecs({ width: Math.min(maxWidth, engravingSpecs.width + 0.5) })}
                     disabled={engravingSpecs.width >= maxWidth}
                     aria-label="Aumentar largura"
@@ -260,7 +260,7 @@ export function StepSpecs({ wizard }: StepSpecsProps) {
                   <Button
                     variant="outline"
                     size="icon"
-                    className="h-7 w-7 rounded-lg"
+                    className="h-7 w-7 rounded-md"
                     onClick={() => wizard.updateSpecs({ height: Math.max(0.5, engravingSpecs.height - 0.5) })}
                     disabled={engravingSpecs.height <= 0.5}
                     aria-label="Diminuir altura"
@@ -277,12 +277,12 @@ export function StepSpecs({ wizard }: StepSpecsProps) {
                     min={0.5}
                     max={maxHeight}
                     step={0.5}
-                    className="w-20 h-7 text-center text-sm font-bold rounded-lg"
+                    className="w-20 h-7 text-center text-sm font-bold rounded-md"
                   />
                   <Button
                     variant="outline"
                     size="icon"
-                    className="h-7 w-7 rounded-lg"
+                    className="h-7 w-7 rounded-md"
                     onClick={() => wizard.updateSpecs({ height: Math.min(maxHeight, engravingSpecs.height + 0.5) })}
                     disabled={engravingSpecs.height >= maxHeight}
                     aria-label="Aumentar altura"

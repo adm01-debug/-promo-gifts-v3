@@ -64,7 +64,7 @@ export function TechniquePreview({
   return (
     <div className="space-y-3">
       {thumbnail && (
-        <div className="w-full aspect-video rounded-lg overflow-hidden bg-muted">
+        <div className="w-full aspect-video rounded-md overflow-hidden bg-muted">
           <img
             src={thumbnail.replace('w=100&h=100', 'w=400&h=225')}
             alt={technique.name}
@@ -74,7 +74,7 @@ export function TechniquePreview({
 
       <div className="flex items-center gap-2">
         <div className={cn(
-          'w-8 h-8 rounded-lg flex items-center justify-center text-lg',
+          'w-8 h-8 rounded-md flex items-center justify-center text-lg',
           style.color, 'text-primary-foreground'
         )}>
           {style.icon}
@@ -103,7 +103,7 @@ export function TechniquePreview({
           </div>
 
           {technique.recommendation.isRecommended && (
-            <div className="flex items-center gap-2 p-2 bg-warning/5 rounded-lg">
+            <div className="flex items-center gap-2 p-2 bg-warning/5 rounded-md">
               <Sparkles className="h-4 w-4 text-warning" />
               <p className="text-xs text-warning">
                 {technique.recommendation.recommendationReason}

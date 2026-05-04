@@ -48,7 +48,7 @@ export function SearchResultItem({ result, index, selectedIndex, query, onSelect
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: index * 0.02, duration: 0.15 }}
       className={cn(
-        "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-all duration-150 group",
+        "w-full flex items-center gap-3 px-3 py-2 rounded-md text-left transition-all duration-150 group",
         selectedIndex === index
           ? "bg-primary/10 text-foreground shadow-sm"
           : "hover:bg-muted/80"
@@ -57,7 +57,7 @@ export function SearchResultItem({ result, index, selectedIndex, query, onSelect
       onMouseEnter={() => onHover(index)}
     >
       <div className={cn(
-        "flex items-center justify-center w-10 h-10 rounded-lg flex-shrink-0 transition-all duration-200 overflow-hidden border border-transparent",
+        "flex items-center justify-center w-10 h-10 rounded-md flex-shrink-0 transition-all duration-200 overflow-hidden border border-transparent",
         selectedIndex === index ? "bg-primary/15 border-primary/20 scale-105" : "bg-muted"
       )}>
         {productImg ? (

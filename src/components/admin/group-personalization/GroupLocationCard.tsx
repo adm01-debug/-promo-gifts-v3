@@ -50,7 +50,7 @@ export function GroupLocationCard({
   };
 
   return (
-    <div className="border rounded-lg p-3 bg-muted/30">
+    <div className="border rounded-md p-3 bg-muted/30">
       <div className="grid grid-cols-2 md:grid-cols-6 gap-3 mb-3">
         <div>
           <Label className="text-[11px] text-muted-foreground">Código</Label>

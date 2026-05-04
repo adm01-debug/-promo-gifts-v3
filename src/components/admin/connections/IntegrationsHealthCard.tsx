@@ -173,7 +173,7 @@ function Metric({ icon: Icon, label, value, badge, tone = "default" }: MetricPro
   }[tone];
 
   return (
-    <div className="flex flex-col gap-1.5 p-3 rounded-lg bg-muted/30 border border-border/50">
+    <div className="flex flex-col gap-1.5 p-3 rounded-md bg-muted/30 border border-border/50">
       <div className="flex items-center justify-between">
         <Icon className={cn("h-4 w-4", iconCls)} aria-hidden="true" />
         {badge}
@@ -318,7 +318,7 @@ export function IntegrationsHealthCard({ secrets = [] }: { secrets?: SecretStatu
         {isLoading || !data ? (
           <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
             {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="h-20 rounded-lg bg-muted/30 animate-pulse" />
+              <div key={i} className="h-20 rounded-md bg-muted/30 animate-pulse" />
             ))}
           </div>
         ) : (

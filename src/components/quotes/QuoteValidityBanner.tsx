@@ -17,7 +17,7 @@ export function QuoteValidityBanner({ validUntil, status }: QuoteValidityBannerP
 
   if (status === "expired" || daysLeft < 0) {
     return (
-      <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive">
+      <div className="flex items-center gap-2 px-4 py-2.5 rounded-md bg-destructive/10 border border-destructive/20 text-destructive">
         <AlertTriangle className="h-4 w-4 shrink-0" />
         <span className="text-sm font-medium">
           Expirado há {Math.abs(daysLeft)} dia{Math.abs(daysLeft) !== 1 ? "s" : ""}
@@ -28,7 +28,7 @@ export function QuoteValidityBanner({ validUntil, status }: QuoteValidityBannerP
 
   if (daysLeft <= 3) {
     return (
-      <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-warning/10 border border-warning/20 text-warning">
+      <div className="flex items-center gap-2 px-4 py-2.5 rounded-md bg-warning/10 border border-warning/20 text-warning">
         <Clock className="h-4 w-4 shrink-0 animate-pulse" />
         <span className="text-sm font-medium">
           Expira em {daysLeft} dia{daysLeft !== 1 ? "s" : ""}
@@ -38,7 +38,7 @@ export function QuoteValidityBanner({ validUntil, status }: QuoteValidityBannerP
   }
 
   return (
-    <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-primary/10 border border-primary/20 text-primary dark:text-primary">
+    <div className="flex items-center gap-2 px-4 py-2.5 rounded-md bg-primary/10 border border-primary/20 text-primary dark:text-primary">
       <CheckCircle2 className="h-4 w-4 shrink-0" />
       <span className="text-sm font-medium">
         Válido por mais {daysLeft} dia{daysLeft !== 1 ? "s" : ""}

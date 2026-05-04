@@ -88,7 +88,7 @@ export function BulkAddToCartModal({ open, onOpenChange, products, variantSelect
           />
         ) : (
           <div className="space-y-4 py-2">
-            <div className="rounded-lg bg-muted/40 border border-border/50 p-3">
+            <div className="rounded-md bg-muted/40 border border-border/50 p-3">
               <p className="text-xs text-muted-foreground mb-1">Carrinho ativo</p>
               <p className="text-sm font-medium">{activeCart.company_name}</p>
             </div>

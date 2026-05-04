@@ -75,9 +75,9 @@ export function GlobalSearchPalette() {
           className="group relative flex items-center gap-2.5 px-3.5 py-2 text-sm rounded-xl border [border-color:hsl(var(--command-border))] hover:[border-color:hsl(var(--command-border-strong))] [background-color:hsl(var(--command-surface-raised))] hover:[background-color:hsl(var(--command-surface-soft))] transition-all duration-300 flex-1 md:w-64 overflow-hidden"
         >
           <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/[0.03] to-primary/0 group-hover:via-primary/[0.06] transition-all duration-500 pointer-events-none" />
-          <div className="relative h-6 w-6 rounded-lg bg-primary/8 group-hover:bg-primary/12 flex items-center justify-center transition-colors duration-300 shrink-0">
+          <div className="relative h-6 w-6 rounded-md bg-primary/8 group-hover:bg-primary/12 flex items-center justify-center transition-colors duration-300 shrink-0">
             <Brain className="h-3.5 w-3.5 text-primary/60 group-hover:text-primary transition-colors duration-300" />
-            <div className="absolute inset-0 rounded-lg bg-primary/10 animate-[brain-glow_3s_ease-in-out_infinite] pointer-events-none" />
+            <div className="absolute inset-0 rounded-md bg-primary/10 animate-[brain-glow_3s_ease-in-out_infinite] pointer-events-none" />
           </div>
           <span className="relative flex-1 text-left [color:hsl(var(--command-text-muted))] group-hover:text-foreground transition-colors duration-300 text-[13px]">Busca inteligente...</span>
           <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md border border-border/50 bg-muted/50 text-[10px] font-medium text-muted-foreground/60 group-hover:border-primary/20 group-hover:text-primary/50 transition-colors shrink-0">⌘K</kbd>
@@ -122,18 +122,18 @@ export function GlobalSearchPalette() {
           {/* Intent chips */}
           {s.searchIntent && !s.isSearching && s.results.length > 0 && (
             <div className="flex flex-wrap items-center gap-2 px-4 py-3 mx-2 mt-3 rounded-xl border [border-color:hsl(var(--command-border))] [background:linear-gradient(90deg,hsl(var(--command-surface-raised)),hsl(var(--command-surface)))] animate-in fade-in-0 slide-in-from-top-1 duration-200">
-              <div className="h-6 w-6 rounded-lg bg-primary/12 flex items-center justify-center"><Brain className="h-3.5 w-3.5 text-primary" /></div>
+              <div className="h-6 w-6 rounded-md bg-primary/12 flex items-center justify-center"><Brain className="h-3.5 w-3.5 text-primary" /></div>
               <span className="text-[11px] font-semibold [color:hsl(var(--command-text-muted))]">Entendi:</span>
               {s.searchIntent.type !== "mixed" && typeConfig[s.searchIntent.type] && (
-                <Badge variant="outline" className="text-[11px] h-5.5 rounded-lg font-semibold [border-color:hsl(var(--command-border-strong))] [background-color:hsl(var(--command-accent))]">
+                <Badge variant="outline" className="text-[11px] h-5.5 rounded-md font-semibold [border-color:hsl(var(--command-border-strong))] [background-color:hsl(var(--command-accent))]">
                   {typeConfig[s.searchIntent.type].label}s
                 </Badge>
               )}
-              {s.searchIntent.filters.category && <Badge variant="secondary" className="text-[11px] h-5.5 rounded-lg [background-color:hsl(var(--command-accent))] [color:hsl(var(--command-text-muted))]">{s.searchIntent.filters.category}</Badge>}
-              {s.searchIntent.filters.color && <Badge variant="secondary" className="text-[11px] h-5.5 rounded-lg [background-color:hsl(var(--command-accent))] [color:hsl(var(--command-text-muted))]">Cor: {s.searchIntent.filters.color}</Badge>}
-              {s.searchIntent.filters.priceRange && <Badge variant="secondary" className="text-[11px] h-5.5 rounded-lg [background-color:hsl(var(--command-accent))] [color:hsl(var(--command-text-muted))]">{{ low: "Preço baixo", medium: "Preço médio", high: "Premium" }[s.searchIntent.filters.priceRange]}</Badge>}
-              {s.searchIntent.filters.status && <Badge variant="secondary" className="text-[11px] h-5.5 rounded-lg [background-color:hsl(var(--command-accent))] [color:hsl(var(--command-text-muted))]">Status: {s.searchIntent.filters.status}</Badge>}
-              {s.searchIntent.filters.clientName && <Badge variant="secondary" className="text-[11px] h-5.5 rounded-lg [background-color:hsl(var(--command-accent))] [color:hsl(var(--command-text-muted))]">Cliente: {s.searchIntent.filters.clientName}</Badge>}
+              {s.searchIntent.filters.category && <Badge variant="secondary" className="text-[11px] h-5.5 rounded-md [background-color:hsl(var(--command-accent))] [color:hsl(var(--command-text-muted))]">{s.searchIntent.filters.category}</Badge>}
+              {s.searchIntent.filters.color && <Badge variant="secondary" className="text-[11px] h-5.5 rounded-md [background-color:hsl(var(--command-accent))] [color:hsl(var(--command-text-muted))]">Cor: {s.searchIntent.filters.color}</Badge>}
+              {s.searchIntent.filters.priceRange && <Badge variant="secondary" className="text-[11px] h-5.5 rounded-md [background-color:hsl(var(--command-accent))] [color:hsl(var(--command-text-muted))]">{{ low: "Preço baixo", medium: "Preço médio", high: "Premium" }[s.searchIntent.filters.priceRange]}</Badge>}
+              {s.searchIntent.filters.status && <Badge variant="secondary" className="text-[11px] h-5.5 rounded-md [background-color:hsl(var(--command-accent))] [color:hsl(var(--command-text-muted))]">Status: {s.searchIntent.filters.status}</Badge>}
+              {s.searchIntent.filters.clientName && <Badge variant="secondary" className="text-[11px] h-5.5 rounded-md [background-color:hsl(var(--command-accent))] [color:hsl(var(--command-text-muted))]">Cliente: {s.searchIntent.filters.clientName}</Badge>}
             </div>
           )}
 
@@ -166,7 +166,7 @@ export function GlobalSearchPalette() {
           {/* Short query hint */}
           {!s.isSearching && s.query.length >= 1 && s.query.length < 3 && (
             <div className="flex items-center justify-center gap-2.5 px-4 py-8 animate-in fade-in-0 duration-200">
-              <div className="h-7 w-7 rounded-lg [background-color:hsl(var(--command-accent))] flex items-center justify-center">
+              <div className="h-7 w-7 rounded-md [background-color:hsl(var(--command-accent))] flex items-center justify-center">
                 <Search className="h-3.5 w-3.5 [color:hsl(var(--command-text-subtle))]" />
               </div>
               <span className="text-xs [color:hsl(var(--command-text-subtle))]">Continue digitando para buscar...</span>
@@ -201,7 +201,7 @@ export function GlobalSearchPalette() {
                         </p>
                       )}
                     </div>
-                    <Badge variant="outline" className="shrink-0 text-[10px] h-5 rounded-lg [border-color:hsl(var(--command-border-strong))] [background-color:hsl(var(--command-accent))] font-medium">{config.label}</Badge>
+                    <Badge variant="outline" className="shrink-0 text-[10px] h-5 rounded-md [border-color:hsl(var(--command-border-strong))] [background-color:hsl(var(--command-accent))] font-medium">{config.label}</Badge>
                     <ChevronRight className="h-3.5 w-3.5 [color:hsl(var(--command-text-subtle))]" />
                   </CommandItem>
                 ))}

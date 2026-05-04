@@ -94,7 +94,7 @@ export function MockupAnnotations({
       <div
         ref={containerRef}
         className={cn(
-          "relative rounded-lg border",
+          "relative rounded-md border",
           isAnnotating && "cursor-crosshair ring-2 ring-primary"
         )}
         onClick={handleClick}
@@ -128,7 +128,7 @@ export function MockupAnnotations({
               )}
               {/* Edit form */}
               {editingId === ann.id && (
-                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-background border rounded-lg shadow-lg p-2 z-20 min-w-[200px]"
+                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-background border rounded-md shadow-lg p-2 z-20 min-w-[200px]"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <Input

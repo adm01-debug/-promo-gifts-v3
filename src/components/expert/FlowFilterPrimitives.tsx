@@ -26,7 +26,7 @@ export function SectionRow({ icon: Icon, label, isOpen, onToggle, count, totalOp
   return (
     <button onClick={onToggle} className="w-full flex items-center justify-between px-1 py-2 group/sec">
       <div className="flex items-center gap-2.5">
-        <div className={cn("h-6 w-6 rounded-lg flex items-center justify-center transition-all duration-200",
+        <div className={cn("h-6 w-6 rounded-md flex items-center justify-center transition-all duration-200",
           isOpen ? "bg-primary/15 text-primary shadow-sm shadow-primary/10"
             : count && count > 0 ? "bg-primary/10 text-primary"
             : "bg-muted/20 text-muted-foreground/40 group-hover/sec:bg-muted/40"

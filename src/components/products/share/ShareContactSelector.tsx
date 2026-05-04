@@ -152,7 +152,7 @@ export function ShareContactSelector({ onSelect, selection }: ShareContactSelect
     return (
       <div className="space-y-2">
         {/* Company badge */}
-        <div className="flex items-center gap-2 p-2 rounded-lg bg-secondary/50 border border-border">
+        <div className="flex items-center gap-2 p-2 rounded-md bg-secondary/50 border border-border">
           <Building2 className="h-4 w-4 text-muted-foreground shrink-0" />
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium truncate">{selectedCompany.name}</p>

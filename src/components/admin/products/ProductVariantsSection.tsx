@@ -35,7 +35,7 @@ function isLightColor(hex: string | null) {
 export function ProductVariantsSection({ productId, productName, productSku }: ProductVariantsSectionProps) {
   const m = useProductVariants(productId, productName, productSku);
 
-  if (m.isLoading) return <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-16 rounded-lg" />)}</div>;
+  if (m.isLoading) return <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-16 rounded-md" />)}</div>;
   if (m.error) return <div className="flex items-center gap-2 text-sm text-destructive"><AlertCircle className="h-4 w-4" />Erro ao carregar variações</div>;
 
   return (
@@ -113,7 +113,7 @@ export function ProductVariantsSection({ productId, productName, productSku }: P
               onSave={data => m.handleUpdate(variant.id, data)} onCancel={() => m.setEditingId(null)} isSaving={m.isSaving} />;
           }
           return (
-            <div key={variant.id} className={cn('flex items-center gap-2.5 rounded-lg border p-2 transition-colors group hover:bg-accent/50', !variant.stock_quantity && 'opacity-60')}>
+            <div key={variant.id} className={cn('flex items-center gap-2.5 rounded-md border p-2 transition-colors group hover:bg-accent/50', !variant.stock_quantity && 'opacity-60')}>
               {variant.selected_thumbnail ? <img src={variant.selected_thumbnail} alt={variant.color_name || variant.name} className="w-10 h-10 rounded-md object-cover border shrink-0" loading="lazy" />
                 : variant.color_hex ? <div className="w-10 h-10 rounded-md border shrink-0" style={{ backgroundColor: variant.color_hex }} title={variant.color_name || ''} />
                 : <div className="w-10 h-10 rounded-md border shrink-0 bg-muted flex items-center justify-center"><Palette className="h-4 w-4 text-muted-foreground" /></div>}

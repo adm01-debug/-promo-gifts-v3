@@ -210,7 +210,7 @@ export const SmartMobileNav = forwardRef<HTMLDivElement>(function SmartMobileNav
                 key={item.href}
                 to={item.href}
                 className={cn(
-                  "relative flex flex-col items-center justify-center min-w-[56px] sm:min-w-[64px] min-h-[44px] sm:min-h-[48px] px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg transition-all",
+                  "relative flex flex-col items-center justify-center min-w-[56px] sm:min-w-[64px] min-h-[44px] sm:min-h-[48px] px-2 sm:px-3 py-1.5 sm:py-2 rounded-md transition-all",
                   "touch-manipulation tap-highlight-transparent",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
                   "active:scale-95",

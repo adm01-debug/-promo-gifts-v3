@@ -227,7 +227,7 @@ export function SecretsManagerHealthPanel({ className }: { className?: string })
 
       <CardContent className="space-y-4">
         {/* Linha de status do boot */}
-        <div className="flex items-center gap-3 flex-wrap rounded-lg border bg-muted/20 px-3 py-2">
+        <div className="flex items-center gap-3 flex-wrap rounded-md border bg-muted/20 px-3 py-2">
           <Badge
             variant="outline"
             className={`text-[10px] font-mono uppercase ${bootBadge.cls}`}

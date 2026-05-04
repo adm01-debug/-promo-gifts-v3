@@ -249,7 +249,7 @@ export function InlineEmptyState({
 }) {
   return (
     <div className={cn(
-      "flex items-center gap-3 py-4 px-4 rounded-lg bg-muted/30",
+      "flex items-center gap-3 py-4 px-4 rounded-md bg-muted/30",
       "text-muted-foreground text-sm",
       className
     )}>

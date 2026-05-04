@@ -157,10 +157,10 @@ export function ProductVariationAxesConfig({ productId, gender, onGenderChange }
   if (isLoading) {
     return (
       <div className="space-y-2">
-        <Skeleton className="h-10 w-full rounded-lg" />
-        <Skeleton className="h-10 w-full rounded-lg" />
-        <Skeleton className="h-10 w-full rounded-lg" />
-        <Skeleton className="h-10 w-full rounded-lg" />
+        <Skeleton className="h-10 w-full rounded-md" />
+        <Skeleton className="h-10 w-full rounded-md" />
+        <Skeleton className="h-10 w-full rounded-md" />
+        <Skeleton className="h-10 w-full rounded-md" />
       </div>
     );
   }
@@ -200,13 +200,13 @@ export function ProductVariationAxesConfig({ productId, gender, onGenderChange }
           >
             <div
               className={cn(
-                'rounded-lg border transition-colors',
+                'rounded-md border transition-colors',
                 state.active
                   ? 'border-primary/30 bg-primary/5'
                   : 'border-border/40 bg-muted/10 opacity-60',
               )}
             >
-              <CollapsibleTrigger className="w-full flex items-center gap-3 p-3 text-left hover:bg-accent/30 transition-colors rounded-lg">
+              <CollapsibleTrigger className="w-full flex items-center gap-3 p-3 text-left hover:bg-accent/30 transition-colors rounded-md">
                 <div className={cn(
                   'flex items-center justify-center w-8 h-8 rounded-md',
                   state.active ? 'bg-primary/15 text-primary' : 'bg-muted text-muted-foreground',
@@ -326,13 +326,13 @@ function GenderAxis({
     <Collapsible open={isExpanded} onOpenChange={onToggle}>
       <div
         className={cn(
-          'rounded-lg border transition-colors',
+          'rounded-md border transition-colors',
           hasValue
             ? 'border-primary/30 bg-primary/5'
             : 'border-border/40 bg-muted/10 opacity-60',
         )}
       >
-        <CollapsibleTrigger className="w-full flex items-center gap-3 p-3 text-left hover:bg-accent/30 transition-colors rounded-lg">
+        <CollapsibleTrigger className="w-full flex items-center gap-3 p-3 text-left hover:bg-accent/30 transition-colors rounded-md">
           <div className={cn(
             'flex items-center justify-center w-8 h-8 rounded-md',
             hasValue ? 'bg-primary/15 text-primary' : 'bg-muted text-muted-foreground',

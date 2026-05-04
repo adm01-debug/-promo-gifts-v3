@@ -146,7 +146,7 @@ function SortableItem({
             </button>
 
             {/* Product Image */}
-            <div className="shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-muted">
+            <div className="shrink-0 w-16 h-16 rounded-md overflow-hidden bg-muted">
               {item.product_image_url ? (
                 <img
                   src={item.product_image_url}
@@ -240,7 +240,7 @@ function SortableItem({
                 variant="ghost"
                 size="sm"
                 className={cn(
-                  "w-full justify-between text-sm font-medium rounded-lg border transition-all",
+                  "w-full justify-between text-sm font-medium rounded-md border transition-all",
                   isExpanded
                     ? "bg-primary/10 border-primary/30 text-primary hover:bg-primary/15"
                     : "bg-accent/50 border-border hover:bg-accent hover:border-primary/20"
@@ -376,12 +376,12 @@ export function DraggableQuoteItems({
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <GripVertical className="h-5 w-5 text-muted-foreground" />
-                <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center">
+                <div className="w-12 h-12 rounded-md bg-muted flex items-center justify-center">
                   {activeItem.product_image_url ? (
                     <img
                       src={activeItem.product_image_url}
                       alt={activeItem.product_name}
-                      className="w-full h-full object-cover rounded-lg" loading="lazy" />
+                      className="w-full h-full object-cover rounded-md" loading="lazy" />
                   ) : (
                     <Package className="h-5 w-5 text-muted-foreground" />
                   )}

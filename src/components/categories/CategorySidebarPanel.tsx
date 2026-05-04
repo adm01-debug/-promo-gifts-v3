@@ -62,7 +62,7 @@ function TreeNode({
     >
       <div
         className={cn(
-          "flex items-center gap-2 py-2.5 px-3 rounded-lg cursor-pointer transition-all duration-200",
+          "flex items-center gap-2 py-2.5 px-3 rounded-md cursor-pointer transition-all duration-200",
           "hover:bg-accent/60",
           isSelected && "bg-primary/15 text-primary font-semibold border-l-2 border-primary"
         )}
@@ -389,7 +389,7 @@ export function CategorySidebarPanel({
                 <div
                   key={cat.id}
                   className={cn(
-                    "flex items-center gap-2 py-2 px-3 rounded-lg cursor-pointer",
+                    "flex items-center gap-2 py-2 px-3 rounded-md cursor-pointer",
                     "hover:bg-accent/60 transition-colors",
                     selectedCategoryId === cat.id && "bg-primary/15 text-primary"
                   )}

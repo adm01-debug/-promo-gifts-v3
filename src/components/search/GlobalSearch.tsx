@@ -295,7 +295,7 @@ export function GlobalSearch({ isOpen, onClose, placeholder = "Buscar produtos, 
                             )}
                           >
                             <div className={cn(
-                              "p-2 rounded-lg bg-muted",
+                              "p-2 rounded-md bg-muted",
                               categoryConfig[result.category].color
                             )}>
                               <CategoryIcon className="h-4 w-4" />
@@ -392,7 +392,7 @@ export function GlobalSearch({ isOpen, onClose, placeholder = "Buscar produtos, 
                                 : "hover:bg-muted/50"
                             )}
                           >
-                            <div className="p-2 rounded-lg bg-primary/10">
+                            <div className="p-2 rounded-md bg-primary/10">
                               <Icon className="h-4 w-4 text-primary" />
                             </div>
                             <span className="text-sm font-medium text-foreground">

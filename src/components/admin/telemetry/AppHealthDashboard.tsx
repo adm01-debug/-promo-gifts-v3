@@ -175,7 +175,7 @@ export function AppHealthDashboard() {
                 <code className="font-mono">{lookupResult.request_id}</code>
               </div>
               {lookupResult.event_count > 0 && (
-                <div className="overflow-x-auto rounded-lg border border-border/60">
+                <div className="overflow-x-auto rounded-md border border-border/60">
                   <table className="w-full text-xs">
                     <thead className="bg-muted/40">
                       <tr className="text-left">
@@ -381,7 +381,7 @@ function KpiCard({
     )}>
       <CardContent className="p-3 flex items-center gap-3">
         <div className={cn(
-          'p-2 rounded-lg',
+          'p-2 rounded-md',
           tone === 'destructive' && 'bg-destructive/15 text-destructive',
           tone === 'warning' && 'bg-warning/15 text-warning',
           tone === 'muted' && 'bg-muted text-muted-foreground',

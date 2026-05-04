@@ -134,7 +134,7 @@ export function ConversionFunnel({ days }: ConversionFunnelProps) {
                     </div>
                   )}
                   <div
-                    className={`h-12 rounded-lg flex items-center px-3 transition-all ${stage.bgClass}`}
+                    className={`h-12 rounded-md flex items-center px-3 transition-all ${stage.bgClass}`}
                     style={{ width: `${widthPercent}%`, minWidth: "180px" }}
                   >
                     <div className={`p-1.5 rounded-md mr-3 ${stage.bgSoftClass}`}>

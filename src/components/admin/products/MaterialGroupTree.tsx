@@ -79,7 +79,7 @@ export function MaterialGroupTree({
           <div
             key={group.group_id}
             className={cn(
-              "rounded-lg overflow-hidden transition-all duration-200",
+              "rounded-md overflow-hidden transition-all duration-200",
               hasAnySelection
                 ? "bg-gradient-to-r from-primary/10 to-primary/5 ring-1 ring-primary/30"
                 : "bg-muted/30 hover:bg-muted/50"

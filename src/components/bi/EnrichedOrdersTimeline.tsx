@@ -71,7 +71,7 @@ export function EnrichedOrdersTimeline({ clientId }: Props) {
       <CardContent className="p-5">
         <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+            <div className="h-8 w-8 rounded-md bg-primary/10 flex items-center justify-center">
               <ShoppingBag className="h-4 w-4 text-primary" />
             </div>
             <div>

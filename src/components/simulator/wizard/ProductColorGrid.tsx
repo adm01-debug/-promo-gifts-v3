@@ -31,7 +31,7 @@ export function ProductColorGrid({ colors, className }: ProductColorGridProps) {
         {colors.map((color) => (
           <div
             key={color.code || color.name}
-            className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-muted/50 border border-border/50"
+            className="flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-muted/50 border border-border/50"
             title={`${color.name}${color.stock !== undefined ? ` • ${color.stock} un.` : ''}`}
           >
             <div

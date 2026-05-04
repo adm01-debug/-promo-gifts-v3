@@ -388,7 +388,7 @@ function MarketMacroTooltip({ active, payload }: any) {
   if (!data) return null;
 
   return (
-    <div className="bg-popover border border-border rounded-lg p-3 shadow-lg min-w-[180px]">
+    <div className="bg-popover border border-border rounded-md p-3 shadow-lg min-w-[180px]">
       <p className="text-xs font-medium text-foreground">{data.fullDate}</p>
       <div className="mt-2 space-y-1.5">
         {data.stockClose > 0 && (

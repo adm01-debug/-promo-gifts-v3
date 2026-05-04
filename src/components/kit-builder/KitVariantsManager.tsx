@@ -70,7 +70,7 @@ export function KitVariantsManager({ kitMasterId, currentState, currentQuantity 
               return (
                 <div
                   key={v.id}
-                  className="border rounded-lg p-3 space-y-1 bg-muted/30"
+                  className="border rounded-md p-3 space-y-1 bg-muted/30"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <span className="font-medium text-sm">{v.label}</span>

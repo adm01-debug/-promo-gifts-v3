@@ -111,7 +111,7 @@ export function GeneratingOverlay({
                 <div
                   key={index}
                   className={cn(
-                    "flex items-center gap-3 p-2 rounded-lg transition-all duration-300",
+                    "flex items-center gap-3 p-2 rounded-md transition-all duration-300",
                     isCurrent && "bg-primary/10",
                     isComplete && "opacity-60"
                   )}

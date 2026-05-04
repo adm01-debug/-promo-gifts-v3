@@ -154,7 +154,7 @@ export function CredentialsSourceIndicator({ secrets, isLoading, onRefresh, clas
   return (
     <div
       className={[
-        "rounded-lg border bg-card px-4 py-3",
+        "rounded-md border bg-card px-4 py-3",
         "flex items-start gap-3 flex-wrap",
         className ?? "",
       ].join(" ")}

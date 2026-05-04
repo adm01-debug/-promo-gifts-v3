@@ -209,7 +209,7 @@ export function ProductFiltersBar({ filters, onChange }: ProductFiltersBarProps)
       </div>
 
       <CollapsibleContent>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-3 p-3 bg-muted/30 rounded-lg border border-border/50">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-3 p-3 bg-muted/30 rounded-md border border-border/50">
           {/* Categoria */}
           <div className="space-y-1.5">
             <label className="text-xs font-medium text-muted-foreground">Categoria</label>

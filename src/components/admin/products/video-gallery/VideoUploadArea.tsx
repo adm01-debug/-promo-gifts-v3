@@ -105,7 +105,7 @@ export function VideoUploadArea({
         ) : (
           <>
             <div className={cn(
-              "w-10 h-10 rounded-lg flex items-center justify-center transition-colors",
+              "w-10 h-10 rounded-md flex items-center justify-center transition-colors",
               isDragOver ? "bg-primary/15" : "bg-muted/30"
             )}>
               {isDragOver ? <FileVideo className="h-5 w-5 text-primary" /> : <Upload className="h-5 w-5 text-muted-foreground/50" />}

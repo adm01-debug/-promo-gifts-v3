@@ -121,7 +121,7 @@ export function ComparisonScoreCard({ products, className }: ComparisonScoreCard
               <div
                 key={s.productId}
                 className={cn(
-                  "flex items-center gap-2 rounded-lg border px-2.5 py-1.5 text-xs",
+                  "flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-xs",
                   s.isWinner
                     ? "border-primary/40 bg-primary/5 font-medium"
                     : "border-border bg-muted/30"

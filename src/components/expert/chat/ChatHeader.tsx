@@ -94,7 +94,7 @@ export function ChatHeader({
 
       {clientName && (
         <div className="mt-2">
-          <Badge variant="outline" className="text-[10px] rounded-lg font-normal text-muted-foreground">
+          <Badge variant="outline" className="text-[10px] rounded-md font-normal text-muted-foreground">
             Cliente: {clientName}
           </Badge>
         </div>

@@ -288,7 +288,7 @@ export function DataSourceDebugTab() {
       {/* Header */}
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="flex items-start gap-3">
-          <div className="h-10 w-10 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
+          <div className="h-10 w-10 rounded-md bg-amber-500/10 flex items-center justify-center shrink-0">
             <Bug className="h-5 w-5 text-amber-600" aria-hidden="true" />
           </div>
           <div>

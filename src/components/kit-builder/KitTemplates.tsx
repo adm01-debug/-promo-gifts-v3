@@ -83,7 +83,7 @@ export function KitTemplates({ onSelectTemplate, visible }: KitTemplatesProps) {
                 key={template.id}
                 onClick={() => onSelectTemplate(template)}
                 className={cn(
-                  "flex flex-col items-center gap-1.5 p-3 rounded-lg border border-border/50",
+                  "flex flex-col items-center gap-1.5 p-3 rounded-md border border-border/50",
                   "bg-card hover:bg-accent hover:border-primary/30 transition-all",
                   "text-center cursor-pointer group"
                 )}

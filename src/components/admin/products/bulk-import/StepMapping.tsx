@@ -30,7 +30,7 @@ export function StepMapping({ headers, rawData, mapping, setMapping, requiredMap
           {headers.map((col) => {
             const sample = rawData.slice(0, 3).map(r => String(r[col] ?? '')).filter(Boolean).join(' | ');
             return (
-              <div key={col} className="flex items-center gap-3 p-2 rounded-lg border bg-card">
+              <div key={col} className="flex items-center gap-3 p-2 rounded-md border bg-card">
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{col}</p>
                   <p className="text-[10px] text-muted-foreground truncate">{sample || '(vazio)'}</p>

@@ -118,7 +118,7 @@ export function ComponentMediaManager({ componentId, productId, componentName }:
                 <div
                   key={item.id}
                   className={cn(
-                    'relative group rounded-lg border overflow-hidden aspect-square bg-muted/30',
+                    'relative group rounded-md border overflow-hidden aspect-square bg-muted/30',
                     item.is_cover && 'ring-2 ring-primary ring-offset-1 ring-offset-background',
                   )}
                 >

@@ -83,7 +83,7 @@ export function SellerDiscountLimitsPanel() {
               const current = edits[row.user_id] ?? row.max_discount_percent;
               const dirty = current !== row.max_discount_percent;
               return (
-                <div key={row.user_id} className="flex items-center gap-3 rounded-lg border p-2">
+                <div key={row.user_id} className="flex items-center gap-3 rounded-md border p-2">
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{row.full_name || "Sem nome"}</p>
                     <p className="text-xs text-muted-foreground truncate">{row.email}</p>

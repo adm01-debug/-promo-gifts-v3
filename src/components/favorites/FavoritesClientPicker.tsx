@@ -91,7 +91,7 @@ export function FavoritesClientPicker({ selectedClientId, selectedClientName, on
   // Quando já tem cliente selecionado, mostra chip e permite remover
   if (selectedClientId && selectedClientName) {
     return (
-      <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-lg border border-primary/30 bg-primary/5">
+      <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-md border border-primary/30 bg-primary/5">
         <div className="flex items-center gap-2 min-w-0">
           <div className="w-8 h-8 rounded-md bg-primary/10 flex items-center justify-center shrink-0">
             <Building2 className="h-4 w-4 text-primary" />

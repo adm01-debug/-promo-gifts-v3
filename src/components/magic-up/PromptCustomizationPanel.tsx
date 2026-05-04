@@ -42,7 +42,7 @@ export function PromptCustomizationPanel({
   }, [selectedArea]);
 
   return (
-    <div className="space-y-2.5 p-3 rounded-lg border border-primary/20 bg-primary/5">
+    <div className="space-y-2.5 p-3 rounded-md border border-primary/20 bg-primary/5">
       <p className="text-[11px] font-semibold text-primary flex items-center gap-1.5">
         <MapPin className="h-3.5 w-3.5" />
         Personalização do Produto

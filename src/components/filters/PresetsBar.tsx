@@ -246,7 +246,7 @@ export const PresetsBar = React.forwardRef<HTMLDivElement, PresetsBarProps>(
                             aria-label={`Aplicar preset ${preset.name}`}
                             aria-pressed={isActive}
                             className={cn(
-                              "group flex items-center gap-2 pl-0 pr-2 py-2 rounded-lg transition-all cursor-pointer hover:bg-accent",
+                              "group flex items-center gap-2 pl-0 pr-2 py-2 rounded-md transition-all cursor-pointer hover:bg-accent",
                               isActive ? "bg-primary/10 border border-primary/30" : "border border-transparent"
                             )}
                             onClick={() => isActive ? handleClearPreset() : handleApplyPreset(preset)}

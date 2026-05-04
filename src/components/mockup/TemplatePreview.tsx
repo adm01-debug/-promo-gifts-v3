@@ -126,7 +126,7 @@ export function TemplatePreviewExpanded({
   return (
     <div 
       className={cn(
-        "relative w-full aspect-square rounded-lg border border-border overflow-hidden bg-muted/30",
+        "relative w-full aspect-square rounded-md border border-border overflow-hidden bg-muted/30",
         className
       )}
     >

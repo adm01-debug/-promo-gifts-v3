@@ -19,7 +19,7 @@ export function AlertCard({ alert, onDismiss }: { alert: StockAlert; onDismiss: 
   return (
     <div
       className={cn(
-        "flex items-start gap-3 p-3 rounded-lg border transition-all duration-200",
+        "flex items-start gap-3 p-3 rounded-md border transition-all duration-200",
         severityStyles[alert.severity],
       )}
       role="alert"

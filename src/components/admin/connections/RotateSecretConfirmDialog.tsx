@@ -88,7 +88,7 @@ export function RotateSecretConfirmDialog({
         />
 
         {/* Impacto */}
-        <div className="rounded-lg border border-border bg-muted/30 p-4">
+        <div className="rounded-md border border-border bg-muted/30 p-4">
           <h4 className="text-sm font-medium mb-2">Isto irá:</h4>
           <ul className="space-y-1.5 text-sm text-muted-foreground">
             <li className="flex items-center gap-2">

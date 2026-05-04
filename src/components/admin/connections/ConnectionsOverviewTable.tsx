@@ -356,7 +356,7 @@ export function ConnectionsOverviewTable({ refreshSignal }: ConnectionsOverviewT
             ))}
           </div>
         ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed py-10 text-center">
+          <div className="flex flex-col items-center justify-center gap-2 rounded-md border border-dashed py-10 text-center">
             <Clock className="h-6 w-6 text-muted-foreground" />
             <p className="text-sm text-muted-foreground">
               {activeCount > 0

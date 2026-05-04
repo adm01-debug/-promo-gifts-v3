@@ -114,7 +114,7 @@ export function CredentialCacheMetricsPanel() {
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div className="flex items-start gap-3">
-            <div className="h-9 w-9 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
+            <div className="h-9 w-9 rounded-md bg-blue-500/10 flex items-center justify-center shrink-0">
               <Activity className="h-4.5 w-4.5 text-blue-600" aria-hidden="true" />
             </div>
             <div>
@@ -314,7 +314,7 @@ function Kpi({
           ? "text-destructive"
           : "text-foreground";
   return (
-    <div className="rounded-lg border p-3 space-y-1.5">
+    <div className="rounded-md border p-3 space-y-1.5">
       <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
         <span className={toneCls}>{icon}</span>
         <span>{label}</span>

@@ -121,7 +121,7 @@ export function MyRecentQuotesWidget() {
               <button
                 key={q.id}
                 onClick={() => navigate(`/orcamentos/${q.id}`)}
-                className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-secondary/50 transition-colors text-left"
+                className="w-full flex items-center gap-3 p-2 rounded-md hover:bg-secondary/50 transition-colors text-left"
               >
                 <div className="w-8 h-8 rounded-md bg-primary/10 flex items-center justify-center flex-shrink-0">
                   <FileText className="h-4 w-4 text-primary" />

@@ -8,7 +8,7 @@ interface MagicUpQualityChecklistProps {
 
 export function MagicUpQualityChecklist({ diagnosis }: MagicUpQualityChecklistProps) {
   return (
-    <section className="rounded-lg border bg-muted/30 p-3" aria-label="Checklist de curadoria">
+    <section className="rounded-md border bg-muted/30 p-3" aria-label="Checklist de curadoria">
       <p className="text-sm font-semibold">Checklist comercial</p>
       <ul role="list" className="mt-2 space-y-2">
         {diagnosis.criteria.map((criterion) => (

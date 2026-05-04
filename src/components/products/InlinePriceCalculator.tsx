@@ -135,7 +135,7 @@ export function InlinePriceCalculator({
         </CollapsibleTrigger>
         <CollapsibleContent>
           <CardContent className="pt-0 space-y-6">
-            <div className="overflow-hidden rounded-lg border border-border">
+            <div className="overflow-hidden rounded-md border border-border">
               <PriceTiersTable tiers={priceTiers} isLoading={isLoading} formatPrice={formatPrice} />
             </div>
             <Separator />

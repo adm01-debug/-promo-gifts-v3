@@ -165,16 +165,16 @@ export function CartCompanyPickerDialog({ open, onOpenChange, onCreated }: CartC
       data-testid="cart-company-picker-select"
       data-company-id={company.id}
       className={cn(
-        "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left",
+        "w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-left",
         "hover:bg-accent/60 transition-colors group"
       )}
       onClick={() => handleSelect(company)}
       disabled={!canCreateCart}
     >
       {company.logo_url ? (
-        <img src={company.logo_url} alt="" className="w-9 h-9 rounded-lg object-contain bg-background border border-border/40 flex-shrink-0" loading="lazy" />
+        <img src={company.logo_url} alt="" className="w-9 h-9 rounded-md object-contain bg-background border border-border/40 flex-shrink-0" loading="lazy" />
       ) : (
-        <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+        <div className="w-9 h-9 rounded-md bg-muted flex items-center justify-center flex-shrink-0">
           <Building2 className="h-4 w-4 text-muted-foreground" />
         </div>
       )}
@@ -220,8 +220,8 @@ export function CartCompanyPickerDialog({ open, onOpenChange, onCreated }: CartC
               {isLoading ? (
                 <div className="space-y-1 py-1">
                   {[...Array(4)].map((_, i) => (
-                    <div key={i} className="flex items-center gap-3 px-3 py-2.5 rounded-lg">
-                      <Skeleton className="w-9 h-9 rounded-lg opacity-20" />
+                    <div key={i} className="flex items-center gap-3 px-3 py-2.5 rounded-md">
+                      <Skeleton className="w-9 h-9 rounded-md opacity-20" />
                       <div className="flex-1 space-y-2">
                         <Skeleton className="h-3 w-3/4 opacity-15" />
                         <Skeleton className="h-2 w-1/2 opacity-10" />
@@ -242,8 +242,8 @@ export function CartCompanyPickerDialog({ open, onOpenChange, onCreated }: CartC
               {isLoading ? (
                 <div className="space-y-1 py-1">
                   {[...Array(3)].map((_, i) => (
-                    <div key={i} className="flex items-center gap-3 px-3 py-2.5 rounded-lg">
-                      <Skeleton className="w-9 h-9 rounded-lg opacity-20" />
+                    <div key={i} className="flex items-center gap-3 px-3 py-2.5 rounded-md">
+                      <Skeleton className="w-9 h-9 rounded-md opacity-20" />
                       <div className="flex-1 space-y-2">
                         <Skeleton className="h-3 w-3/4 opacity-15" />
                         <Skeleton className="h-2 w-1/2 opacity-10" />
@@ -275,8 +275,8 @@ export function CartCompanyPickerDialog({ open, onOpenChange, onCreated }: CartC
               {isLoading && filteredCompanies.length === 0 ? (
                 <div className="space-y-1 px-1">
                   {[...Array(6)].map((_, i) => (
-                    <div key={i} className="flex items-center gap-3 px-3 py-2.5 rounded-lg">
-                      <Skeleton className="w-9 h-9 rounded-lg opacity-20" />
+                    <div key={i} className="flex items-center gap-3 px-3 py-2.5 rounded-md">
+                      <Skeleton className="w-9 h-9 rounded-md opacity-20" />
                       <div className="flex-1 space-y-2">
                         <Skeleton className="h-3 w-3/4 opacity-15" />
                         <Skeleton className="h-2 w-1/2 opacity-10" />

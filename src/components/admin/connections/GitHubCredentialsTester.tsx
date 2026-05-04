@@ -79,7 +79,7 @@ export function GitHubCredentialsTester() {
   };
 
   return (
-    <div className="space-y-3 rounded-lg border border-border bg-muted/20 p-4">
+    <div className="space-y-3 rounded-md border border-border bg-muted/20 p-4">
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <div className="flex items-center gap-2">
           <ShieldCheck className="h-4 w-4 text-primary" />

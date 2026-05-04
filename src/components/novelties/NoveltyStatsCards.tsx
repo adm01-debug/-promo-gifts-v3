@@ -53,7 +53,7 @@ function StatCard({ label, value, suffix = "", subtitle, icon, variant, delay = 
     >
       <CardContent className="p-2.5 sm:p-3">
         <div className="flex items-center gap-2.5">
-          <div className={cn("shrink-0 p-2 rounded-lg", styles.iconBg)}>
+          <div className={cn("shrink-0 p-2 rounded-md", styles.iconBg)}>
             {icon}
           </div>
           <div className="min-w-0 flex-1">
@@ -80,7 +80,7 @@ function StatCardSkeleton() {
     <Card className="border-border/50">
       <CardContent className="p-3 sm:p-4">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 sm:h-11 sm:w-11 rounded-lg shimmer" />
+          <div className="h-10 w-10 sm:h-11 sm:w-11 rounded-md shimmer" />
           <div className="space-y-2">
             <div className="h-6 w-16 rounded shimmer" style={{ animationDelay: '100ms' }} />
             <div className="h-4 w-24 rounded shimmer" style={{ animationDelay: '200ms' }} />
@@ -101,7 +101,7 @@ export function NoveltyStatsCards() {
           <Card key={i} className="border-border/50">
             <CardContent className="p-3 sm:p-4">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 sm:h-11 sm:w-11 rounded-lg bg-muted/50 flex items-center justify-center">
+                <div className="h-10 w-10 sm:h-11 sm:w-11 rounded-md bg-muted/50 flex items-center justify-center">
                   <div className="w-4 h-4 border-2 border-primary/40 border-t-transparent rounded-full animate-spin" />
                 </div>
                 <div className="space-y-1.5">

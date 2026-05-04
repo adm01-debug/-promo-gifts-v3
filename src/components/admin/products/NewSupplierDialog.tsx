@@ -92,7 +92,7 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
                 <Button type="button" variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={form.addPixKey}><Plus className="h-3 w-3" /> Adicionar</Button>
               </div>
               {form.pixKeys.map((pix: { id: string; tipo: string; chave: string; favorecido: string; principal: boolean }) => (
-                <div key={pix.id} className="rounded-lg border border-border bg-muted/30 p-3 space-y-2">
+                <div key={pix.id} className="rounded-md border border-border bg-muted/30 p-3 space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Switch checked={pix.principal} onCheckedChange={(v) => form.updatePixKey(pix.id, 'principal', v)} />
@@ -133,11 +133,11 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
 
           {/* Classification */}
           <TabsContent value="classification" className="space-y-4 pt-3">
-            <div className="flex items-center justify-between rounded-lg border border-border p-3">
+            <div className="flex items-center justify-between rounded-md border border-border p-3">
               <div><Label className="text-sm">Fornecedor de Produtos</Label><p className="text-[11px] text-muted-foreground">Fornece brindes e produtos</p></div>
               <Switch checked={form.isProductSupplier} onCheckedChange={form.setIsProductSupplier} />
             </div>
-            <div className="flex items-center justify-between rounded-lg border border-border p-3">
+            <div className="flex items-center justify-between rounded-md border border-border p-3">
               <div><Label className="text-sm">Fornecedor de Gravação</Label><p className="text-[11px] text-muted-foreground">Realiza personalização/gravação</p></div>
               <Switch checked={form.isEngravingSupplier} onCheckedChange={form.setIsEngravingSupplier} />
             </div>

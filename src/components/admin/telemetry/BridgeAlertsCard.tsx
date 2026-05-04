@@ -191,7 +191,7 @@ function ThresholdEditor({
   const respCritKb = Math.round(t.avgRespCritBytes / 1024);
 
   return (
-    <div className="rounded-lg border border-border/60 p-3 bg-muted/20 space-y-3">
+    <div className="rounded-md border border-border/60 p-3 bg-muted/20 space-y-3">
       <div className="flex items-center justify-between">
         <h4 className="text-sm font-semibold">{label}</h4>
         <Button variant="ghost" size="sm" onClick={() => resetThresholds(bridge)}>

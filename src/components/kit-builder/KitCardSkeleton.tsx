@@ -35,7 +35,7 @@ export function BoxCardSkeleton() {
     <Card className="rounded-xl border-border/40">
       <CardContent className="p-4">
         <div className="flex gap-3">
-          <Skeleton className="w-20 h-20 rounded-lg flex-shrink-0" />
+          <Skeleton className="w-20 h-20 rounded-md flex-shrink-0" />
           <div className="flex-1 min-w-0 space-y-2">
             <Skeleton className="h-4 w-3/4 rounded" />
             <Skeleton className="h-3 w-1/3 rounded" />

@@ -79,7 +79,7 @@ export function LastSyncRunPanel() {
       <CardHeader>
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div className="flex items-start gap-3">
-            <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+            <div className="h-9 w-9 rounded-md bg-primary/10 flex items-center justify-center shrink-0">
               <Clock className="h-4 w-4 text-primary" aria-hidden="true" />
             </div>
             <div>
@@ -112,17 +112,17 @@ export function LastSyncRunPanel() {
             <Skeleton className="h-20 w-full" />
           </div>
         ) : error ? (
-          <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+          <div className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
             Erro ao ler logs: <code className="text-xs">{error}</code>
           </div>
         ) : !last ? (
-          <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-sm text-amber-700 dark:text-amber-400">
+          <div className="rounded-md border border-amber-500/30 bg-amber-500/5 p-3 text-sm text-amber-700 dark:text-amber-400">
             Nenhuma execução registrada ainda. Use <strong>Rodar agora</strong> ou edite uma credencial <code className="text-[11px]">EXTERNAL_*</code> para disparar o trigger.
           </div>
         ) : (
           <div className="space-y-3">
             {/* Header com status e timestamp */}
-            <div className="flex items-center justify-between gap-3 flex-wrap rounded-lg border p-3 bg-muted/20">
+            <div className="flex items-center justify-between gap-3 flex-wrap rounded-md border p-3 bg-muted/20">
               <div className="flex items-center gap-3">
                 {ok ? (
                   <CheckCircle2 className="h-5 w-5 text-green-600 shrink-0" />
@@ -155,26 +155,26 @@ export function LastSyncRunPanel() {
 
             {/* KPIs */}
             <div className="grid gap-2 md:grid-cols-4">
-              <div className="rounded-lg border p-3">
+              <div className="rounded-md border p-3">
                 <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Processadas</div>
                 <div className="text-2xl font-bold tabular-nums">{last.processed}</div>
                 <div className="text-[10px] text-muted-foreground">env_keys avaliadas</div>
               </div>
-              <div className="rounded-lg border p-3 bg-green-500/5 border-green-500/20">
+              <div className="rounded-md border p-3 bg-green-500/5 border-green-500/20">
                 <div className="text-[11px] uppercase tracking-wide text-green-700 flex items-center gap-1">
                   <Plus className="h-3 w-3" /> Criadas
                 </div>
                 <div className="text-2xl font-bold tabular-nums text-green-700">{last.created_count}</div>
                 <div className="text-[10px] text-muted-foreground">novas linhas em external_connections</div>
               </div>
-              <div className="rounded-lg border p-3 bg-blue-500/5 border-blue-500/20">
+              <div className="rounded-md border p-3 bg-blue-500/5 border-blue-500/20">
                 <div className="text-[11px] uppercase tracking-wide text-blue-700 flex items-center gap-1">
                   <Pencil className="h-3 w-3" /> Atualizadas
                 </div>
                 <div className="text-2xl font-bold tabular-nums text-blue-700">{last.updated_count}</div>
                 <div className="text-[10px] text-muted-foreground">linhas existentes alteradas</div>
               </div>
-              <div className="rounded-lg border p-3">
+              <div className="rounded-md border p-3">
                 <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Duração</div>
                 <div className="text-2xl font-bold tabular-nums">
                   {typeof last.duration_ms === "number" ? `${last.duration_ms}` : "—"}
@@ -185,7 +185,7 @@ export function LastSyncRunPanel() {
             </div>
 
             {/* Disparador */}
-            <div className="rounded-lg border p-3 text-xs space-y-1">
+            <div className="rounded-md border p-3 text-xs space-y-1">
               <div className="font-semibold text-muted-foreground uppercase tracking-wide text-[10px]">
                 Disparo
               </div>
@@ -211,7 +211,7 @@ export function LastSyncRunPanel() {
 
             {/* Erro, se houver */}
             {last.error_message && (
-              <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-xs text-destructive">
+              <div className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-xs text-destructive">
                 <div className="font-semibold mb-1">Erro registrado</div>
                 <code className="text-[11px] whitespace-pre-wrap break-words">{last.error_message}</code>
               </div>

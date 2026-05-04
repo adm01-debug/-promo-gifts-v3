@@ -203,7 +203,7 @@ export function ProductFormStepContent({
           <SectionCard id="kit-flag" title="Tipo de Produto" icon={Package} subtitle="Defina se este produto é um kit">
             <div
               className={cn(
-                'flex items-center justify-between rounded-lg border p-3 transition-all duration-200 cursor-pointer hover:bg-accent/30',
+                'flex items-center justify-between rounded-md border p-3 transition-all duration-200 cursor-pointer hover:bg-accent/30',
                 formValues.is_kit ? 'bg-primary/5 border-primary/20' : 'border-border/50',
               )}
               onClick={() => setValue('is_kit', !formValues.is_kit)}

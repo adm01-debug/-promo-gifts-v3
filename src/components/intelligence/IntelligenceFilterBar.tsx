@@ -102,7 +102,7 @@ export function IntelligenceFilterBar({ filters, onFiltersChange }: Intelligence
               variant={filters.days === p.days ? "default" : "ghost"}
               size="sm"
               className={cn(
-                "h-7 text-xs px-2.5 rounded-lg shrink-0 transition-all",
+                "h-7 text-xs px-2.5 rounded-md shrink-0 transition-all",
                 filters.days === p.days && "bg-primary shadow-sm"
               )}
               onClick={() => onFiltersChange({ ...filters, days: p.days })}

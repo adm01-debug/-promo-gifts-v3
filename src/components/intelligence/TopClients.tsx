@@ -25,7 +25,7 @@ export function TopClients({ days = 30, categoryId, supplierId }: { days?: numbe
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg skin-icon flex items-center justify-center">
+            <div className="w-7 h-7 rounded-md skin-icon flex items-center justify-center">
               <Users className="h-3.5 w-3.5" />
             </div>
             🏆 Top Clientes
@@ -44,7 +44,7 @@ export function TopClients({ days = 30, categoryId, supplierId }: { days?: numbe
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg skin-icon flex items-center justify-center">
+          <div className="w-7 h-7 rounded-md skin-icon flex items-center justify-center">
             <Users className="h-3.5 w-3.5" />
           </div>
           🏆 Top Clientes por Faturamento

@@ -235,7 +235,7 @@ export function ExpandablePanel({
   return (
     <motion.div
       layout
-      className={cn('rounded-lg border bg-card', className)}
+      className={cn('rounded-md border bg-card', className)}
     >
       <button
         onClick={onToggle}

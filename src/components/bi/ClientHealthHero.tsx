@@ -223,7 +223,7 @@ export function ClientHealthHero({ clientId, ramoAtividade, clientName }: Props)
               {(favoriteCategory || opportunityCategory) && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {favoriteCategory && (
-                    <div className="flex items-center gap-2 p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                    <div className="flex items-center gap-2 p-2.5 rounded-md bg-emerald-500/10 border border-emerald-500/20">
                       <Star className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                       <div className="min-w-0">
                         <div className="text-[10px] font-medium text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">
@@ -239,7 +239,7 @@ export function ClientHealthHero({ clientId, ramoAtividade, clientName }: Props)
                     </div>
                   )}
                   {opportunityCategory && (
-                    <div className="flex items-center gap-2 p-2.5 rounded-lg bg-violet-500/10 border border-violet-500/20">
+                    <div className="flex items-center gap-2 p-2.5 rounded-md bg-violet-500/10 border border-violet-500/20">
                       <TargetIcon className="h-4 w-4 text-violet-600 dark:text-violet-400 shrink-0" />
                       <div className="min-w-0">
                         <div className="text-[10px] font-medium text-violet-700 dark:text-violet-300 uppercase tracking-wider">
@@ -262,7 +262,7 @@ export function ClientHealthHero({ clientId, ramoAtividade, clientName }: Props)
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <div className="flex items-start gap-2 p-2.5 rounded-lg bg-background/60 border cursor-help">
+                      <div className="flex items-start gap-2 p-2.5 rounded-md bg-background/60 border cursor-help">
                         <Phone className="h-3.5 w-3.5 text-primary mt-0.5 shrink-0" />
                         <div className="min-w-0">
                           <div className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
@@ -281,7 +281,7 @@ export function ClientHealthHero({ clientId, ramoAtividade, clientName }: Props)
 
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <div className="flex items-start gap-2 p-2.5 rounded-lg bg-background/60 border cursor-help">
+                      <div className="flex items-start gap-2 p-2.5 rounded-md bg-background/60 border cursor-help">
                         <CalendarClock className="h-3.5 w-3.5 text-primary mt-0.5 shrink-0" />
                         <div className="min-w-0">
                           <div className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
@@ -302,7 +302,7 @@ export function ClientHealthHero({ clientId, ramoAtividade, clientName }: Props)
 
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <div className="flex items-start gap-2 p-2.5 rounded-lg bg-background/60 border cursor-help">
+                      <div className="flex items-start gap-2 p-2.5 rounded-md bg-background/60 border cursor-help">
                         <MessageSquare className="h-3.5 w-3.5 text-primary mt-0.5 shrink-0" />
                         <div className="min-w-0">
                           <div className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
@@ -365,7 +365,7 @@ export function ClientHealthHero({ clientId, ramoAtividade, clientName }: Props)
                 Pré-popula orçamento com top 3 afinidade + top 2 tendência setor
               </p>
               {health.shareOfWalletPct > 0 && (
-                <div className="rounded-lg border bg-background/60 p-2.5 mt-1">
+                <div className="rounded-md border bg-background/60 p-2.5 mt-1">
                   <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground uppercase tracking-wider">
                     <TrendingUp className="h-3 w-3" />
                     Share-of-wallet

@@ -118,7 +118,7 @@ export function GalleryFullscreen({
                 key={index}
                 onClick={() => onSelectIndex(index)}
                 className={cn(
-                  "relative shrink-0 w-14 h-14 rounded-lg overflow-hidden transition-all duration-200",
+                  "relative shrink-0 w-14 h-14 rounded-md overflow-hidden transition-all duration-200",
                   selectedIndex === index
                     ? "ring-2 ring-primary ring-offset-1 ring-offset-card"
                     : "opacity-50 hover:opacity-100"

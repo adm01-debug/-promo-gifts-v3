@@ -95,9 +95,9 @@ export function ProductRamosSection({ productId }: ProductRamosSectionProps) {
   if (isLoading) {
     return (
       <div className="space-y-2">
-        <Skeleton className="h-12 w-full rounded-lg" />
-        <Skeleton className="h-12 w-full rounded-lg" />
-        <Skeleton className="h-12 w-full rounded-lg" />
+        <Skeleton className="h-12 w-full rounded-md" />
+        <Skeleton className="h-12 w-full rounded-md" />
+        <Skeleton className="h-12 w-full rounded-md" />
       </div>
     );
   }
@@ -135,7 +135,7 @@ export function ProductRamosSection({ productId }: ProductRamosSectionProps) {
     <div className="space-y-3">
       {/* Badges dos selecionados */}
       {linkedCount > 0 && (
-        <div className="p-2.5 bg-primary/5 rounded-lg border border-primary/20">
+        <div className="p-2.5 bg-primary/5 rounded-md border border-primary/20">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-medium text-primary flex items-center gap-1.5">
               <Building2 className="h-3 w-3" />
@@ -227,7 +227,7 @@ export function ProductRamosSection({ productId }: ProductRamosSectionProps) {
               <div
                 key={ramo.id}
                 className={cn(
-                  "rounded-lg overflow-hidden transition-all duration-200",
+                  "rounded-md overflow-hidden transition-all duration-200",
                   hasAnySelection
                     ? "bg-gradient-to-r from-primary/10 to-primary/5 ring-1 ring-primary/30"
                     : "bg-muted/30 hover:bg-muted/50"

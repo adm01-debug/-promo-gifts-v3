@@ -92,7 +92,7 @@ export function QuoteSignaturePad({ onSign, isSubmitting }: QuoteSignaturePadPro
         </div>
         <div className="space-y-2">
           <Label>Assine no quadro abaixo</Label>
-          <div className="rounded-lg border bg-muted/20">
+          <div className="rounded-md border bg-muted/20">
             <canvas
               ref={canvasRef}
               width={500}

@@ -19,7 +19,7 @@ export function ImageMetaEditor({ image, onSave, onCancel }: Props) {
   const [caption, setCaption] = useState(image.caption || '');
 
   return (
-    <div className="absolute inset-0 bg-black/85 backdrop-blur-sm p-2 flex flex-col gap-1.5 z-10 rounded-lg">
+    <div className="absolute inset-0 bg-black/85 backdrop-blur-sm p-2 flex flex-col gap-1.5 z-10 rounded-md">
       <Input value={altText} onChange={(e) => setAltText(e.target.value)} placeholder="Alt text (SEO)" className="h-6 text-[10px] bg-white/10 border-white/20 text-white placeholder:text-white/50" />
       <Select value={imageType} onValueChange={setImageType}>
         <SelectTrigger className="h-6 text-[10px] bg-white/10 border-white/20 text-white"><SelectValue /></SelectTrigger>

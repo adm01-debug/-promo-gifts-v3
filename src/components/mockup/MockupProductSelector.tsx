@@ -125,8 +125,8 @@ export function MockupProductSelector({ selection, onSelect, disabled }: MockupP
   // ─── State: Product + Color confirmed ──────────────────────────────
   if (selection) {
     return (
-      <div className="flex items-center gap-3 p-3 rounded-lg border border-border/30 bg-card">
-        <div className="w-11 h-11 rounded-lg bg-muted overflow-hidden shrink-0">
+      <div className="flex items-center gap-3 p-3 rounded-md border border-border/30 bg-card">
+        <div className="w-11 h-11 rounded-md bg-muted overflow-hidden shrink-0">
           <img
             src={selection.imageUrl}
             alt={selection.product.name}

@@ -13,7 +13,7 @@ export function MagicUpCurationStatus({ value, disabled, onChange }: MagicUpCura
   const current = CURATION_STATUSES.find((status) => status.value === value);
 
   return (
-    <section className="rounded-lg border bg-card p-3" aria-label="Status de curadoria">
+    <section className="rounded-md border bg-card p-3" aria-label="Status de curadoria">
       <div className="flex items-center justify-between gap-2">
         <p className="text-sm font-semibold" id="curation-status-label">Curadoria</p>
         <Badge variant="outline" aria-live="polite">{current?.label || "Rascunho"}</Badge>

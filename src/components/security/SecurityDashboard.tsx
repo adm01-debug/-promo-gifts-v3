@@ -100,7 +100,7 @@ export function SecurityDashboard() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-6">
-              <div className="flex flex-col items-center justify-center p-4 bg-muted rounded-lg">
+              <div className="flex flex-col items-center justify-center p-4 bg-muted rounded-md">
                 {getScoreIcon(metrics.score)}
                 <span className={`text-3xl font-bold mt-2 ${getScoreColor(metrics.score)}`}>{metrics.score}%</span>
                 <Badge variant={metrics.score >= 60 ? 'default' : 'destructive'} className="mt-1">{getScoreLabel(metrics.score)}</Badge>
@@ -151,7 +151,7 @@ export function SecurityDashboard() {
           <CardContent>
             <div className="space-y-3">
               {recommendations.map((rec, idx) => (
-                <div key={idx} className="flex items-start gap-3 p-3 rounded-lg bg-background">
+                <div key={idx} className="flex items-start gap-3 p-3 rounded-md bg-background">
                   <div className={`p-2 rounded-full ${rec.priority === 'high' ? 'bg-destructive/10 text-destructive' : 'bg-orange/10 text-orange'}`}>{rec.icon}</div>
                   <div className="flex-1"><h4 className="font-medium text-sm">{rec.title}</h4><p className="text-[11px] text-muted-foreground">{rec.description}</p></div>
                   <Badge variant={rec.priority === 'high' ? 'destructive' : 'secondary'}>{rec.priority === 'high' ? 'Alta' : 'Média'}</Badge>
@@ -183,7 +183,7 @@ export function SecurityDashboard() {
                 <ScrollArea className="h-[300px]">
                   <div className="space-y-3">
                     {loginAttempts.slice(0, 10).map((attempt) => (
-                      <div key={attempt.id} className="flex items-center justify-between p-2 rounded-lg border">
+                      <div key={attempt.id} className="flex items-center justify-between p-2 rounded-md border">
                         <div className="flex items-center gap-3">
                           {attempt.success ? <CheckCircle2 className="h-4 w-4 text-success" /> : <XCircle className="h-4 w-4 text-destructive" />}
                           <div>
@@ -206,7 +206,7 @@ export function SecurityDashboard() {
                 <ScrollArea className="h-[300px]">
                   <div className="space-y-3">
                     {notifications.map((notif) => (
-                      <div key={notif.id} className={`p-3 rounded-lg border ${!notif.is_read ? 'bg-primary/5 border-primary/20' : ''}`}>
+                      <div key={notif.id} className={`p-3 rounded-md border ${!notif.is_read ? 'bg-primary/5 border-primary/20' : ''}`}>
                         <div className="flex items-start gap-3">
                           <AlertTriangle className="h-4 w-4 text-orange mt-0.5" />
                           <div className="flex-1">
@@ -249,7 +249,7 @@ export function SecurityDashboard() {
               <ScrollArea className="h-[400px]">
                 <div className="space-y-2">
                   {loginAttempts.map((attempt) => (
-                    <div key={attempt.id} className={`flex items-center justify-between p-3 rounded-lg border ${!attempt.success ? 'border-destructive/20 bg-destructive/5' : ''}`}>
+                    <div key={attempt.id} className={`flex items-center justify-between p-3 rounded-md border ${!attempt.success ? 'border-destructive/20 bg-destructive/5' : ''}`}>
                       <div className="flex items-center gap-4">
                         {attempt.success ? (
                           <div className="p-2 rounded-full bg-success/10"><CheckCircle2 className="h-4 w-4 text-success" /></div>

@@ -124,7 +124,7 @@ export function ImageUploadArea({
         ) : (
           <>
             <div className={cn(
-              "w-10 h-10 rounded-lg flex items-center justify-center transition-colors",
+              "w-10 h-10 rounded-md flex items-center justify-center transition-colors",
               isDragOverZone ? "bg-primary/15" : "bg-muted/30"
             )}>
               {isDragOverZone ? <FileImage className="h-5 w-5 text-primary" /> : <Upload className="h-5 w-5 text-muted-foreground/50" />}

@@ -314,7 +314,7 @@ function ItemPersonalizationCard({
 
             {/* Preço detalhado */}
             {priceData?.success && (
-              <div className="bg-secondary/50 rounded-lg p-3 space-y-1 text-sm">
+              <div className="bg-secondary/50 rounded-md p-3 space-y-1 text-sm">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Preço unitário</span>
                   <span>{formatCurrency(priceData.preco_unitario)}</span>
@@ -382,7 +382,7 @@ export function PersonalizationConfig({
 
       {/* Alerta de quantidade mínima */}
       {kitQuantity < 50 && totalPersonalizations > 0 && (
-        <div className="flex items-center gap-2.5 text-sm bg-warning/10 border border-warning/20 rounded-lg p-3">
+        <div className="flex items-center gap-2.5 text-sm bg-warning/10 border border-warning/20 rounded-md p-3">
           <AlertTriangle className="h-4 w-4 text-warning flex-shrink-0" />
           <div>
             <p className="font-medium text-warning">Quantidade baixa para personalização</p>

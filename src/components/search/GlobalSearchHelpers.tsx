@@ -46,7 +46,7 @@ export function SectionHeader({ icon, label, count, gradient }: {
   return (
     <div className="flex items-center gap-3 px-4 pt-5 pb-2.5">
       <div className={cn(
-        "h-6 w-6 rounded-lg flex items-center justify-center shrink-0",
+        "h-6 w-6 rounded-md flex items-center justify-center shrink-0",
         gradient || "bg-primary/10"
       )}>
         <span className="text-primary [&>svg]:h-3.5 [&>svg]:w-3.5">{icon}</span>

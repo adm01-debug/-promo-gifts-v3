@@ -199,7 +199,7 @@ export function ReplenishmentTableView({
   onToggleSelect,
 }: ReplenishmentTableViewProps) {
   return (
-    <div className="rounded-lg border border-border/50 overflow-hidden" role="region" aria-label="Tabela de produtos repostos">
+    <div className="rounded-md border border-border/50 overflow-hidden" role="region" aria-label="Tabela de produtos repostos">
       <Table>
         <TableHeader>
           <TableRow className="bg-muted/30 hover:bg-muted/30">

@@ -113,7 +113,7 @@ export function WizardMockupPreview({
               </div>
             ) : (
               <div
-                className="absolute border-2 border-dashed border-primary/50 rounded-lg bg-primary/10 flex items-center justify-center"
+                className="absolute border-2 border-dashed border-primary/50 rounded-md bg-primary/10 flex items-center justify-center"
                 style={{
                   left: `${logoPosition.x}%`,
                   top: `${logoPosition.y}%`,
@@ -147,11 +147,11 @@ export function WizardMockupPreview({
                 {product.name}
               </div>
               <div className="grid grid-cols-2 gap-2 text-sm">
-                <div className="p-2 rounded-lg bg-muted/50">
+                <div className="p-2 rounded-md bg-muted/50">
                   <p className="text-muted-foreground text-xs">Área</p>
                   <p className="font-semibold">{personalization.specs.width}×{personalization.specs.height}cm</p>
                 </div>
-                <div className="p-2 rounded-lg bg-muted/50">
+                <div className="p-2 rounded-md bg-muted/50">
                   <p className="text-muted-foreground text-xs">Cores</p>
                   <p className="font-semibold">{personalization.specs.colors}</p>
                 </div>

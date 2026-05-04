@@ -92,7 +92,7 @@ export function ClientSeasonalityHeatmap({ clientId, ramoAtividade }: Props) {
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-lg bg-violet-100 dark:bg-violet-900/40 flex items-center justify-center">
+            <div className="w-9 h-9 rounded-md bg-violet-100 dark:bg-violet-900/40 flex items-center justify-center">
               <Calendar className="h-4 w-4 text-violet-600 dark:text-violet-300" />
             </div>
             <div>
@@ -210,7 +210,7 @@ export function ClientSeasonalityHeatmap({ clientId, ramoAtividade }: Props) {
 
         {/* Forecast preditivo */}
         {forecastSeries.length > 0 && (
-          <div className="rounded-lg border bg-card p-3">
+          <div className="rounded-md border bg-card p-3">
             <div className="flex items-center gap-2 mb-2">
               <TrendingUp className="h-4 w-4 text-violet-600 dark:text-violet-300" />
               <span className="text-xs font-semibold uppercase tracking-wide text-foreground">
@@ -260,7 +260,7 @@ export function ClientSeasonalityHeatmap({ clientId, ramoAtividade }: Props) {
 
         {/* Cards inferiores: Próximo pico + Próxima janela ideal */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
-          <div className="rounded-lg border border-violet-200 dark:border-violet-800/50 bg-violet-50/50 dark:bg-violet-950/30 p-3">
+          <div className="rounded-md border border-violet-200 dark:border-violet-800/50 bg-violet-50/50 dark:bg-violet-950/30 p-3">
             <div className="flex items-center gap-2 mb-1.5">
               <TrendingUp className="h-4 w-4 text-violet-600 dark:text-violet-300" />
               <span className="text-[11px] font-semibold uppercase tracking-wide text-violet-700 dark:text-violet-300">
@@ -284,7 +284,7 @@ export function ClientSeasonalityHeatmap({ clientId, ramoAtividade }: Props) {
           </div>
 
           {/* Próxima janela ideal de campanha — CTA */}
-          <div className="rounded-lg border border-success/40 bg-success/5 p-3 flex flex-col">
+          <div className="rounded-md border border-success/40 bg-success/5 p-3 flex flex-col">
             <div className="flex items-center gap-2 mb-1.5">
               <Target className="h-4 w-4 text-success" />
               <span className="text-[11px] font-semibold uppercase tracking-wide text-success">
@@ -338,7 +338,7 @@ export function ClientSeasonalityHeatmap({ clientId, ramoAtividade }: Props) {
 
         {/* Insight textual */}
         {seasonality.insight && (
-          <div className="rounded-lg border bg-card p-3 flex items-start gap-2">
+          <div className="rounded-md border bg-card p-3 flex items-start gap-2">
             <Sparkles className="h-4 w-4 text-violet-600 dark:text-violet-300 shrink-0 mt-0.5" />
             <p className="text-xs leading-relaxed text-foreground">{seasonality.insight}</p>
           </div>

@@ -35,7 +35,7 @@ export function RelatedTemplates({ current, all, onSelect }: Props) {
               type="button"
               onClick={() => onSelect(t)}
               className={cn(
-                'flex items-center gap-2 p-2 rounded-lg border text-left',
+                'flex items-center gap-2 p-2 rounded-md border text-left',
                 'hover:bg-muted/60 hover:border-primary/40 transition-colors',
               )}
             >

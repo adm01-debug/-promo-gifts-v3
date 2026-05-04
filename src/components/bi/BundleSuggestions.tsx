@@ -98,7 +98,7 @@ export function BundleSuggestions({ clientId }: Props) {
       <CardContent className="p-5 space-y-4">
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-2 min-w-0">
-            <div className="h-8 w-8 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0">
+            <div className="h-8 w-8 rounded-md bg-emerald-500/10 flex items-center justify-center shrink-0">
               <ShoppingBasket className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
             </div>
             <div className="min-w-0">
@@ -136,7 +136,7 @@ export function BundleSuggestions({ clientId }: Props) {
             {data.map((b) => (
               <div
                 key={b.product_id}
-                className="p-3 rounded-lg border bg-card hover:border-primary/30 hover:shadow-sm transition-all"
+                className="p-3 rounded-md border bg-card hover:border-primary/30 hover:shadow-sm transition-all"
               >
                 {b.product_image_url ? (
                   <div className="aspect-square rounded-md overflow-hidden bg-muted/40 mb-2 border">

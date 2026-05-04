@@ -70,7 +70,7 @@ export function LogoColorAnalyzer({
 
       {/* Warning if exceeds max */}
       {exceedsMax && (
-        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-destructive/10 border border-destructive/20">
+        <div className="flex items-center gap-2 px-3 py-2 rounded-md bg-destructive/10 border border-destructive/20">
           <AlertTriangle className="h-4 w-4 text-destructive shrink-0" />
           <span className="text-xs text-destructive">
             O número máximo de cores é <strong>{maxColors}</strong>. Substitua uma ou mais cores para continuar.

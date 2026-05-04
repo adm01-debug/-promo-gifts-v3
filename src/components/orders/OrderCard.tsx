@@ -40,7 +40,7 @@ export function OrderCard({ order, onClick }: OrderCardProps) {
     >
       <CardContent className="p-4 flex items-center justify-between gap-3">
         <div className="flex items-center gap-4 min-w-0">
-          <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+          <div className="h-10 w-10 rounded-md bg-primary/10 flex items-center justify-center flex-shrink-0">
             <Package className="h-5 w-5 text-primary" />
           </div>
           <div className="min-w-0">

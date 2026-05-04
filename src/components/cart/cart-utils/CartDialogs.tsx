@@ -44,9 +44,9 @@ export function CompareCartsDialog({ carts }: { carts: SellerCart[] }) {
                 <Card key={cart.id} className="p-4 space-y-3">
                   <div className="flex items-center gap-2">
                     {cart.company_logo_url ? (
-                      <img src={cart.company_logo_url} alt="Logo da empresa" className="w-8 h-8 rounded-lg object-contain bg-background border border-border/50 p-0.5" loading="lazy" />
+                      <img src={cart.company_logo_url} alt="Logo da empresa" className="w-8 h-8 rounded-md object-contain bg-background border border-border/50 p-0.5" loading="lazy" />
                     ) : (
-                      <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center">
+                      <div className="w-8 h-8 rounded-md bg-muted flex items-center justify-center">
                         <Building2 className="h-4 w-4 text-muted-foreground" />
                       </div>
                     )}
@@ -73,7 +73,7 @@ export function CompareCartsDialog({ carts }: { carts: SellerCart[] }) {
                   </div>
                   <div className="space-y-1.5 max-h-48 overflow-y-auto">
                     {cart.items.map(item => (
-                      <div key={item.id} className="flex items-center gap-2 text-xs p-1.5 rounded-lg bg-muted/30">
+                      <div key={item.id} className="flex items-center gap-2 text-xs p-1.5 rounded-md bg-muted/30">
                         {item.product_image_url ? (
                           <img src={item.product_image_url} alt="Produto" className="w-8 h-8 rounded object-contain bg-background" loading="lazy" />
                         ) : (

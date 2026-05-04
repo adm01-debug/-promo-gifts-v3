@@ -158,7 +158,7 @@ export function QuickQuoteFAB({ productId, productName }: QuickQuoteFABProps) {
                       transition={{ delay: index * 0.05 }}
                       className="flex items-center gap-3"
                     >
-                      <div className="bg-card rounded-lg px-3 py-2 shadow-lg border border-border">
+                      <div className="bg-card rounded-md px-3 py-2 shadow-lg border border-border">
                         <div className="text-sm font-medium text-foreground whitespace-nowrap">
                           {action.label}
                         </div>

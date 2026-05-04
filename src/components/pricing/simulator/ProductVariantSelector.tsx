@@ -71,7 +71,7 @@ export function ProductVariantSelector({
   // Single variant — just show info
   if (variants.length === 1 && !hasSizes) {
     return (
-      <div className="p-3 rounded-lg bg-muted/50 flex items-center gap-3">
+      <div className="p-3 rounded-md bg-muted/50 flex items-center gap-3">
         <div
           className="w-6 h-6 rounded-full border-2 border-border"
           style={{ backgroundColor: variants[0].hex || '#888' }}
@@ -103,7 +103,7 @@ export function ProductVariantSelector({
               <div
                 key={colorName}
                 className={cn(
-                  'rounded-lg border p-3 space-y-2 transition-colors',
+                  'rounded-md border p-3 space-y-2 transition-colors',
                   anySelected ? 'border-primary/40 bg-primary/5' : 'border-border',
                 )}
               >
@@ -162,7 +162,7 @@ export function ProductVariantSelector({
                 onClick={() => onSelect(isSelected ? null : variant)}
                 disabled={isOutOfStock}
                 className={cn(
-                  'group relative flex items-center gap-2 px-3 py-2 rounded-lg border transition-all',
+                  'group relative flex items-center gap-2 px-3 py-2 rounded-md border transition-all',
                   isSelected
                     ? 'border-primary bg-primary/10 ring-2 ring-primary/30'
                     : 'border-border bg-card hover:border-primary/50 hover:bg-accent',

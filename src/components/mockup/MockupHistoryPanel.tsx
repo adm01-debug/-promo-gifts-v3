@@ -157,7 +157,7 @@ export function MockupHistoryPanel({
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Filters */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-muted/30 rounded-lg">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-muted/30 rounded-md">
           <div className="space-y-1.5">
             <Label className="text-[11px] text-muted-foreground">Cliente</Label>
             <Select value={filterClient} onValueChange={(v) => { setFilterClient(v); setCurrentPage(1); }}>
@@ -340,7 +340,7 @@ const MockupListRow = memo(({ mockup, isCompareSelected, onToggleCompare, onLoad
   onDownload: (url: string) => void; onDelete: (id: string) => void;
 }) => {
   return (
-    <div className={cn("group flex items-center gap-4 p-3 border border-border/30 rounded-lg hover:ring-2 hover:ring-primary/30 hover:shadow-md transition-all duration-200 bg-card",
+    <div className={cn("group flex items-center gap-4 p-3 border border-border/30 rounded-md hover:ring-2 hover:ring-primary/30 hover:shadow-md transition-all duration-200 bg-card",
       isCompareSelected && "ring-2 ring-primary shadow-lg")}>
       <div className={cn("flex-shrink-0 flex items-center justify-center w-5 h-5 rounded border-2 cursor-pointer transition-all",
         isCompareSelected ? "border-primary bg-primary text-primary-foreground" : "border-muted-foreground/30")}

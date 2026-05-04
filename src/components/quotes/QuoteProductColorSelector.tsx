@@ -57,7 +57,7 @@ export function QuoteProductColorSelector({ product, onSelect, onBack }: QuotePr
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-20 rounded-lg" />
+            <Skeleton key={i} className="h-20 rounded-md" />
           ))}
         </div>
       </div>
@@ -90,7 +90,7 @@ export function QuoteProductColorSelector({ product, onSelect, onBack }: QuotePr
       {/* Opção sem cor específica */}
       <button
         onClick={() => onSelect(null)}
-        className="w-full flex items-center gap-3 p-3 rounded-lg border border-dashed border-border hover:border-primary/50 hover:bg-muted/50 transition-colors text-left text-sm text-muted-foreground"
+        className="w-full flex items-center gap-3 p-3 rounded-md border border-dashed border-border hover:border-primary/50 hover:bg-muted/50 transition-colors text-left text-sm text-muted-foreground"
       >
         <div className="w-8 h-8 rounded-full bg-gradient-to-br from-destructive/80 via-success/80 to-info/80 border border-border shrink-0" />
         <span>Adicionar sem cor específica</span>
@@ -108,7 +108,7 @@ export function QuoteProductColorSelector({ product, onSelect, onBack }: QuotePr
               key={variant.id}
               onClick={() => onSelect(variant)}
               className={cn(
-                'relative flex items-center gap-2.5 p-3 rounded-lg border transition-all text-left',
+                'relative flex items-center gap-2.5 p-3 rounded-md border transition-all text-left',
                 'hover:border-primary/50 hover:bg-accent',
                 isOutOfStock
                   ? 'opacity-60 border-border bg-muted/30'

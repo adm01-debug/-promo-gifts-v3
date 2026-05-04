@@ -165,7 +165,7 @@ export function SearchWithSuggestions({
       {isFocused && allSuggestions.length > 0 && (
         <div 
           id="search-suggestions"
-          className="absolute top-full left-0 right-0 mt-1 bg-popover border rounded-lg shadow-lg z-50 overflow-hidden"
+          className="absolute top-full left-0 right-0 mt-1 bg-popover border rounded-md shadow-lg z-50 overflow-hidden"
           role="listbox"
         >
           {query.length === 0 && recentSearches.length > 0 && (

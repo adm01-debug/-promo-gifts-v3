@@ -129,7 +129,7 @@ function KpiCard({ label, value, sub, icon: Icon, variant = 'default' }: {
   return (
     <div className={cn("rounded-xl border p-3 transition-all hover:shadow-sm", styles[variant])}>
       <div className="flex items-center gap-2 mb-2">
-        <div className={cn("h-7 w-7 rounded-lg flex items-center justify-center", iconStyles[variant])}>
+        <div className={cn("h-7 w-7 rounded-md flex items-center justify-center", iconStyles[variant])}>
           <Icon className="h-3.5 w-3.5" />
         </div>
         <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">{label}</p>
@@ -427,7 +427,7 @@ export function FutureStockDialog({ open, onOpenChange, entries }: FutureStockDi
 
         {/* Overdue alert */}
         {stats.overdueCount > 0 && (
-          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
+          <div className="flex items-center gap-2 px-3 py-2 rounded-md bg-destructive/10 border border-destructive/20 text-destructive text-sm">
             <AlertCircle className="h-4 w-4 shrink-0" />
             <span>
               <strong>{stats.overdueCount}</strong> {stats.overdueCount === 1 ? 'reposição atrasada' : 'reposições atrasadas'} — verifique com o fornecedor.

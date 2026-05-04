@@ -104,7 +104,7 @@ export function SectionCard({ id, title, icon: Icon, children, subtitle }: {
     <Card id={`section-${id}`} className="border-border/50 bg-card/60 backdrop-blur-sm overflow-hidden scroll-mt-4">
       <div className="p-5 pb-4 border-b border-border/30">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+          <div className="w-8 h-8 rounded-md bg-primary/10 flex items-center justify-center shrink-0">
             <Icon className="h-4 w-4 text-primary" />
           </div>
           <div>

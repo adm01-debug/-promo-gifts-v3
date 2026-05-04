@@ -179,7 +179,7 @@ export function BITourGuide({ force = false, onClose }: Props) {
         <Card className="p-4 border-2 border-primary/40 shadow-2xl">
           <div className="flex items-start justify-between gap-2 mb-2">
             <div className="flex items-center gap-2">
-              <div className="h-7 w-7 rounded-lg bg-primary/15 flex items-center justify-center">
+              <div className="h-7 w-7 rounded-md bg-primary/15 flex items-center justify-center">
                 <Sparkles className="h-3.5 w-3.5 text-primary" />
               </div>
               <div>

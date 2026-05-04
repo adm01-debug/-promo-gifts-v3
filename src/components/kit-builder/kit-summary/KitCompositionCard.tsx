@@ -29,7 +29,7 @@ export function KitCompositionCard({ kitState, kitQuantity, stockByProduct }: Ki
       <CardHeader className="pb-3"><CardTitle className="text-xl">Composição do Kit</CardTitle></CardHeader>
       <CardContent>
         {box && (
-          <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50 mb-3">
+          <div className="flex items-center gap-3 p-3 rounded-md bg-secondary/50 mb-3">
             <div className="w-12 h-12 rounded-md bg-background overflow-hidden">
               {box.imageUrl ? <img src={box.imageUrl} alt={box.name} className="w-full h-full object-cover" loading="lazy" /> : <div className="w-full h-full flex items-center justify-center"><Package className="h-6 w-6 text-muted-foreground" /></div>}
             </div>
@@ -44,7 +44,7 @@ export function KitCompositionCard({ kitState, kitQuantity, stockByProduct }: Ki
           {items.map(item => {
             const itemP = personalization.items[item.id];
             return (
-              <div key={item.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-secondary/30">
+              <div key={item.id} className="flex items-center gap-3 p-2 rounded-md hover:bg-secondary/30">
                 <div className="w-10 h-10 rounded-md bg-secondary overflow-hidden">
                   {item.imageUrl ? <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" loading="lazy" /> : <div className="w-full h-full flex items-center justify-center"><Gift className="h-5 w-5 text-muted-foreground" /></div>}
                 </div>

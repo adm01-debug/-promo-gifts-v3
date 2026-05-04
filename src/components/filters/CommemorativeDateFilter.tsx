@@ -34,9 +34,9 @@ export function CommemorativeDateFilter({
   if (isLoading) {
     return (
       <div className={cn("space-y-2", className)}>
-        <Skeleton className="h-9 w-full rounded-lg" />
-        <Skeleton className="h-9 w-full rounded-lg" />
-        <Skeleton className="h-9 w-3/4 rounded-lg" />
+        <Skeleton className="h-9 w-full rounded-md" />
+        <Skeleton className="h-9 w-full rounded-md" />
+        <Skeleton className="h-9 w-3/4 rounded-md" />
       </div>
     );
   }

@@ -266,7 +266,7 @@ export const ProductListItem = memo(function ProductListItem({
         onClick={handleClick}
       >
         {/* Thumbnail — compact square */}
-        <div className="relative shrink-0 w-14 h-14 sm:w-[72px] sm:h-[72px] rounded-lg overflow-hidden bg-muted/30 border border-border/30">
+        <div className="relative shrink-0 w-14 h-14 sm:w-[72px] sm:h-[72px] rounded-md overflow-hidden bg-muted/30 border border-border/30">
           <img
             src={thumbUrl}
             alt={product.name}

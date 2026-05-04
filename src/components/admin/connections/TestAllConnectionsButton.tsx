@@ -214,7 +214,7 @@ export function TestAllConnectionsButton({ className }: { className?: string }) 
           )}
 
           {summary && (
-            <div className="flex items-center flex-wrap gap-2 rounded-lg border bg-muted/20 px-3 py-2 text-xs">
+            <div className="flex items-center flex-wrap gap-2 rounded-md border bg-muted/20 px-3 py-2 text-xs">
               {summary.ok > 0 && (
                 <Badge
                   variant="outline"
@@ -269,7 +269,7 @@ function ResultRow({ result }: { result: PerEnvResult }) {
       : "border-destructive/40 bg-destructive/5";
 
   return (
-    <li className={`rounded-lg border p-3 ${headerTone}`}>
+    <li className={`rounded-md border p-3 ${headerTone}`}>
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-2 min-w-0">
           <Database className="h-4 w-4 text-primary shrink-0" />
