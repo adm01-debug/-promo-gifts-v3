@@ -21,7 +21,6 @@ import { CloudStatusBanner } from "@/components/system/CloudStatusBanner";
 import { DevOnlyBridgeOverlay } from "@/components/dev/DevOnlyBridgeOverlay";
 import { RouteScrollReset } from "@/components/common/RouteScrollReset";
 import { useAppBootstrap } from "@/hooks/useAppBootstrap";
-import { ThemeInitializer } from "@/components/ThemeInitializer";
 import "./App.css";
 
 const queryClient = createQueryClient();
@@ -152,7 +151,7 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <ThemeInitializer />
+        
         <AccessibilityProvider>
           <AriaLiveProvider>
             <TooltipProvider>
