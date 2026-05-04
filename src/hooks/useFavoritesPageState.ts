@@ -88,13 +88,13 @@ export function useFavoritesPageState() {
     try {
       if (selectedListId) localStorage.setItem(SELECTED_LIST_KEY, selectedListId);
       else localStorage.removeItem(SELECTED_LIST_KEY);
-    } catch {}
+    } catch (e) { /* ignore */ }
   }, [selectedListId]);
 
-  useEffect(() => { try { localStorage.setItem(VIEW_MODE_KEY, viewMode); } catch {} }, [viewMode]);
-  useEffect(() => { try { localStorage.setItem(GRID_COLS_KEY, String(gridColumns)); } catch {} }, [gridColumns]);
-  useEffect(() => { try { localStorage.setItem(SORT_KEY, sort); } catch {} }, [sort]);
-  useEffect(() => { try { localStorage.setItem(PRICE_DROP_FILTER_KEY, onlyPriceDrops ? "1" : "0"); } catch {} }, [onlyPriceDrops]);
+  useEffect(() => { try { localStorage.setItem(VIEW_MODE_KEY, viewMode); } catch (e) { /* ignore */ } }, [viewMode]);
+  useEffect(() => { try { localStorage.setItem(GRID_COLS_KEY, String(gridColumns)); } catch (e) { /* ignore */ } }, [gridColumns]);
+  useEffect(() => { try { localStorage.setItem(SORT_KEY, sort); } catch (e) { /* ignore */ } }, [sort]);
+  useEffect(() => { try { localStorage.setItem(PRICE_DROP_FILTER_KEY, onlyPriceDrops ? "1" : "0"); } catch (e) { /* ignore */ } }, [onlyPriceDrops]);
 
   // Maps and Products
   const variantMap = useMemo(() => {
