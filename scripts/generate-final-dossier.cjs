@@ -93,5 +93,5 @@ autoTable(doc, {
   headStyles: { fillColor: [52, 73, 94] }
 });
 
-doc.save('/mnt/documents/FINAL_ENTERPRISE_AUDIT_REPORT.pdf');
+doc.save('mnt/documents/FINAL_ENTERPRISE_AUDIT_REPORT.pdf');
 console.log('Final Enterprise Audit PDF v5.3 generated successfully.');
