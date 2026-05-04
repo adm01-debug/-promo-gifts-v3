@@ -121,6 +121,7 @@ const navGroups: NavGroup[] = [
       { icon: Settings, label: "Configurações", href: "/configuracoes", adminOnly: true },
       { icon: ShieldCheck, label: "Segurança", href: "/admin/seguranca", devOnly: true },
       { icon: ShieldCheck, label: "Acesso & Bots", href: "/admin/seguranca-acesso", devOnly: true },
+      { icon: ShieldCheck, label: "Compliance", href: "/admin/compliance", devOnly: true },
       { icon: Plug, label: "Conexões", href: "/admin/conexoes", devOnly: true },
       { icon: FolderOpen, label: "Cadastros", href: "/admin/cadastros", adminOnly: true, children: [
         { icon: Package, label: "Produtos", href: "/admin/cadastros?tab=products" },
