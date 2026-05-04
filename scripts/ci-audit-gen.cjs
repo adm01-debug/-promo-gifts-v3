@@ -107,7 +107,7 @@ function generateEvidenceGenesis() {
   return table;
 }
 
-/** Automatically updates checklist based on evidence existence */
+/** Automatically updates checklist based on evidence existence and adds links */
 function updateChecklist(mdContent) {
   const lines = mdContent.split('\n');
   let inChecklist = false;
@@ -129,6 +129,8 @@ function updateChecklist(mdContent) {
           const exists = checkLocalPath(path);
           if (exists) {
             parts[4] = ' ✅ '; // Status Column
+            // Add clickable link to evidence path
+            parts[5] = ` [\`${path}\`](${getGithubLink('file', path)}) `;
           } else {
             parts[4] = ' ⏳ '; // Status Column
           }
