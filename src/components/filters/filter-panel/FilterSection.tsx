@@ -70,7 +70,7 @@ export function FilterSection({
                     <SlidersHorizontal className="h-3 w-3" />
                   </span>
                 </TooltipTrigger>
-                <TooltipContent side="right" className="max-w-48 text-xs bg-primary text-primary-foreground border-primary z-[100]">{tooltip}</TooltipContent>
+                <TooltipContent side="right" className="max-w-48 bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none z-[100]">{tooltip}</TooltipContent>
               </Tooltip>
             )}
           </div>

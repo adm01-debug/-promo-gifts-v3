@@ -267,7 +267,7 @@ export function StockAlertsIndicator({
                 </PopoverTrigger>
               </span>
             </TooltipTrigger>
-            <TooltipContent side="bottom" className="bg-primary text-primary-foreground border-primary text-[11px]">
+            <TooltipContent side="bottom" className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">
               Alerta de Estoque
             </TooltipContent>
           </Tooltip>
@@ -411,7 +411,7 @@ export function StockAlertsIndicator({
                               <ExternalLink className="h-3 w-3" />
                             </button>
                           </TooltipTrigger>
-                          <TooltipContent side="left" className="bg-primary text-primary-foreground border-primary text-[11px]">Ver produto</TooltipContent>
+                          <TooltipContent side="left" className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Ver produto</TooltipContent>
                         </Tooltip>
                         <button
                           className="h-6 w-6 flex items-center justify-center rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors opacity-0 group-hover:opacity-100"

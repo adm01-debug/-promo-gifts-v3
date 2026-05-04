@@ -93,7 +93,7 @@ export const BackButton = forwardRef<HTMLButtonElement, BackButtonProps>(
             </Button>
           </motion.div>
         </TooltipTrigger>
-        <TooltipContent side="bottom" className="text-xs">
+        <TooltipContent side="bottom" className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">
           {ariaLabel}
         </TooltipContent>
       </Tooltip>
