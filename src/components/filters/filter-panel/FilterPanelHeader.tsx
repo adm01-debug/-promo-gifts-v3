@@ -78,7 +78,7 @@ export function FilterPanelHeader({
               Fechar
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="bottom" className="text-xs bg-card border-border">Recolher todas as seções</TooltipContent>
+          <TooltipContent side="bottom" className="text-[11px] bg-primary text-primary-foreground border-primary">Recolher todas as seções</TooltipContent>
         </Tooltip>
       </div>
 
