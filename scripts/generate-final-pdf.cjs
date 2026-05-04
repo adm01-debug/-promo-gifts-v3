@@ -46,7 +46,7 @@ addWrappedText(execSummary, 20, 35, 170, 6);
 doc.setFont('helvetica', 'bold');
 doc.setFontSize(18);
 doc.text('2. Matriz de Riscos', 20, 90);
-doc.autoTable({
+autoTable(doc, {
   startY: 95,
   head: [['Categoria', 'Risco', 'Probabilidade', 'Impacto', 'Mitigação']],
   body: [
