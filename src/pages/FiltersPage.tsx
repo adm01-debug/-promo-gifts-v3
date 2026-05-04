@@ -201,46 +201,59 @@ export default function FiltersPage() {
                     </div>
                   </SheetContent>
                 </Sheet>
-                <Select value={state.sortBy} onValueChange={state.setSortBy}>
-                  <SelectTrigger className="w-44 sm:w-52 shrink-0"><ArrowUpDown className="h-4 w-4 mr-2" /><SelectValue placeholder="Ordenar" /></SelectTrigger>
-                  <SelectContent>
-                    {SORT_OPTIONS.map(option => (
-                      <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Select value={state.sortBy} onValueChange={state.setSortBy}>
+                      <SelectTrigger className="w-44 sm:w-52 shrink-0" aria-label="Ordenar produtos"><ArrowUpDown className="h-4 w-4 mr-2" /><SelectValue placeholder="Ordenar" /></SelectTrigger>
+                      <SelectContent>
+                        {SORT_OPTIONS.map(option => (
+                          <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </TooltipTrigger>
+                  <TooltipContent>Ordenar resultados (nome, preço, novidades, popularidade)</TooltipContent>
+                </Tooltip>
                 <PresetsBar currentFilters={state.filters} onApplyPreset={(f, id) => state.handleApplyPreset(f, id)} activePresetId={state.activePresetId} />
 
                 {/* Selection toggle */}
-                <Button
-                  variant={state.selectionMode ? "default" : "outline"}
-                  size="sm"
-                  className={cn(
-                    "gap-1.5 h-8 transition-all relative",
-                    state.selectionMode
-                      ? "bg-primary text-primary-foreground shadow-md hover:bg-primary/90"
-                      : "hover:border-primary/50"
-                  )}
-                  onClick={toggleSelectionMode}
-                >
-                  <CheckSquare className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline text-xs">{state.selectionMode ? "Cancelar" : "Selecionar"}</span>
-                  <AnimatePresence>
-                    {state.selectionMode && sel.selectedCount > 0 && (
-                      <motion.div
-                        initial={{ scale: 0, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        exit={{ scale: 0, opacity: 0 }}
-                        transition={{ type: "spring", stiffness: 500, damping: 25 }}
-                        className="absolute -top-2 -right-2"
-                      >
-                        <Badge className="bg-destructive text-destructive-foreground h-5 min-w-5 text-[10px] font-bold px-1.5 py-0 flex items-center justify-center tabular-nums shadow-lg">
-                          {sel.selectedCount}
-                        </Badge>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant={state.selectionMode ? "default" : "outline"}
+                      size="sm"
+                      className={cn(
+                        "gap-1.5 h-8 transition-all relative",
+                        state.selectionMode
+                          ? "bg-primary text-primary-foreground shadow-md hover:bg-primary/90"
+                          : "hover:border-primary/50"
+                      )}
+                      onClick={toggleSelectionMode}
+                      aria-label={state.selectionMode ? "Cancelar seleção" : "Ativar modo de seleção em massa"}
+                    >
+                      <CheckSquare className="h-3.5 w-3.5" />
+                      <span className="hidden sm:inline text-xs">{state.selectionMode ? "Cancelar" : "Selecionar"}</span>
+                      <AnimatePresence>
+                        {state.selectionMode && sel.selectedCount > 0 && (
+                          <motion.div
+                            initial={{ scale: 0, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0, opacity: 0 }}
+                            transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                            className="absolute -top-2 -right-2"
+                          >
+                            <Badge className="bg-destructive text-destructive-foreground h-5 min-w-5 text-[10px] font-bold px-1.5 py-0 flex items-center justify-center tabular-nums shadow-lg">
+                              {sel.selectedCount}
+                            </Badge>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {state.selectionMode ? "Sair do modo de seleção" : "Selecionar vários produtos para ações em massa"}
+                  </TooltipContent>
+                </Tooltip>
 
                 <div className="hidden sm:block shrink-0">
                   <LayoutPopover viewMode={state.viewMode} setViewMode={state.setViewMode} gridColumns={state.gridColumns} setGridColumns={state.setGridColumns} />
