@@ -12,7 +12,7 @@ describe('Audit Automation Scripts', () => {
     // We expect it to run without throwing
     const output = execSync('node scripts/ci-audit-gen.cjs').toString();
     
-    expect(output).toContain('Audit artifacts generated and verified');
+    expect(output).toContain('CI Audit Process Completed Successfully');
     expect(fs.existsSync(dossierPath)).toBe(true);
     expect(fs.existsSync(pdfPath)).toBe(true);
     expect(fs.existsSync(filteredPath)).toBe(true);
