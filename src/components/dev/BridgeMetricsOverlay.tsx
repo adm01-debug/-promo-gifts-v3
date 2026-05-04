@@ -110,7 +110,13 @@ export default function BridgeMetricsOverlay() {
   );
 }
 
-const Header = memo(({ paused, onTogglePause, onClear, onClose, onShowInfo }: any) => (
+const Header = memo(({ paused, onTogglePause, onClear, onClose, onShowInfo }: {
+  paused: boolean;
+  onTogglePause: () => void;
+  onClear: () => void;
+  onClose: () => void;
+  onShowInfo: () => void;
+}) => (
   <div className="flex items-center justify-between gap-2 border-b border-white/10 bg-zinc-900/80 px-3 py-2">
     <div className="flex items-center gap-2">
       <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
