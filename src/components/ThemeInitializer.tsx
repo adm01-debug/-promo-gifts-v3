@@ -16,8 +16,8 @@ export function ThemeInitializer() {
   useEffect(() => {
     // Only run when context is actually available
     if (!ctx) {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[ThemeInitializer] Waiting for ThemeContext to be mounted...');
+      if (import.meta.env.DEV) {
+        console.warn('[ThemeInitializer] Waiting for ThemeContext to be mounted...');
       }
       return;
     }
@@ -25,7 +25,8 @@ export function ThemeInitializer() {
     const cfg = loadThemeConfig();
     applyThemePreset(cfg.presetId, ctx.actualTheme);
     applyRadius(cfg.radius);
-  }, [ctx?.actualTheme]);
+  }, [ctx, ctx?.actualTheme]);
 
   return null;
 }
+
