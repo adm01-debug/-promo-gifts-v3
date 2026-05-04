@@ -5,6 +5,7 @@
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -141,7 +142,16 @@ export default function AdvancedPriceSearchPage() {
 
               <div className="flex gap-2 pt-4 border-t">
                 <Button onClick={handleSearch} className="flex-1" disabled={isLoading}><Search className="h-4 w-4 mr-2" />Buscar</Button>
-                <Button variant="outline" onClick={handleReset}><RotateCcw className="h-4 w-4" /></Button>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="outline" onClick={handleReset}><RotateCcw className="h-4 w-4" /></Button>
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-0.5 min-h-0">
+                      Resetar filtros
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
             </CardContent>
           </Card>
@@ -155,9 +165,18 @@ export default function AdvancedPriceSearchPage() {
                   : 'Configure os filtros e clique em "Buscar"'}
               </p>
               <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1">
-                {([['cards', Grid3X3], ['table', Table2], ['list', List]] as const).map(([mode, Icon]) => (
-                  <Button key={mode} variant={viewMode === mode ? 'secondary' : 'ghost'} size="sm" onClick={() => setViewMode(mode)}><Icon className="h-4 w-4" /></Button>
-                ))}
+                <TooltipProvider>
+                  {([['cards', Grid3X3, 'Ver em Cards'], ['table', Table2, 'Ver em Tabela'], ['list', List, 'Ver em Lista']] as const).map(([mode, Icon, label]) => (
+                    <Tooltip key={mode}>
+                      <TooltipTrigger asChild>
+                        <Button variant={viewMode === mode ? 'secondary' : 'ghost'} size="sm" onClick={() => setViewMode(mode)}><Icon className="h-4 w-4" /></Button>
+                      </TooltipTrigger>
+                      <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-0.5 min-h-0">
+                        {label}
+                      </TooltipContent>
+                    </Tooltip>
+                  ))}
+                </TooltipProvider>
               </div>
             </div>
 
