@@ -62,7 +62,7 @@ export function FilterPanelHeader({
               Reset
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="bottom" className="text-xs bg-card border-border">Limpar todos os filtros ativos</TooltipContent>
+          <TooltipContent side="bottom" className="text-[11px] bg-primary text-primary-foreground border-primary">Limpar todos os filtros ativos</TooltipContent>
         </Tooltip>
 
         <Tooltip delayDuration={200}>
@@ -78,7 +78,7 @@ export function FilterPanelHeader({
               Fechar
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="bottom" className="text-xs bg-card border-border">Recolher todas as seções</TooltipContent>
+          <TooltipContent side="bottom" className="text-[11px] bg-primary text-primary-foreground border-primary">Recolher todas as seções</TooltipContent>
         </Tooltip>
       </div>
 

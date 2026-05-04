@@ -78,7 +78,7 @@ function InlineColorSwatch({
             )}
           </button>
         </TooltipTrigger>
-        <TooltipContent side="top" className="text-xs">
+        <TooltipContent side="top" className="text-[11px] bg-primary text-primary-foreground border-primary px-2 py-1">
           {label}{hasVariations ? ' (clique ▾ para variações)' : ''}
         </TooltipContent>
       </Tooltip>

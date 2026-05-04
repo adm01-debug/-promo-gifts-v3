@@ -35,7 +35,7 @@ export const LayoutPopover = React.forwardRef<HTMLDivElement, LayoutPopoverProps
                 </Button>
               </PopoverTrigger>
             </TooltipTrigger>
-            <TooltipContent>Alterar visualização (grid, lista, tabela) e densidade de colunas</TooltipContent>
+            <TooltipContent className="bg-primary text-primary-foreground border-primary text-[11px]">Alterar visualização (grid, lista, tabela) e densidade de colunas</TooltipContent>
           </Tooltip>
           <PopoverContent align="end" className="w-60 p-4" sideOffset={8}>
             <div className="space-y-4">
