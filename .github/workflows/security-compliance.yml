@@ -35,7 +35,9 @@ jobs:
           PGDATABASE: ${{ secrets.DB_NAME }}
 
       - name: Generate Audit Dossier
-        run: node scripts/ci-audit-gen.cjs
+        run: |
+          mv DOSSIA_AUDITORIA_ENTERPRISE_V5.md FINAL_ENTERPRISE_AUDIT_REPORT.md || true
+          node scripts/ci-audit-gen.cjs
 
       - name: Upload Audit Artifacts
         uses: actions/upload-artifact@v4

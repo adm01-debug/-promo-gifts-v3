@@ -21,7 +21,7 @@ doc.setFont('helvetica', 'bold');
 doc.setFontSize(32);
 doc.setTextColor(41, 128, 185);
 doc.text('Dossiê de Auditoria', 105, 60, { align: 'center' });
-doc.text('Enterprise v5.1', 105, 75, { align: 'center' });
+doc.text('Relatório Final de Auditoria Enterprise v5.3', 105, 75, { align: 'center' });
 doc.setFontSize(14);
 doc.setTextColor(100, 100, 100);
 doc.text('Compliance LGPD & Performance Operational', 105, 85, { align: 'center' });
@@ -93,5 +93,5 @@ autoTable(doc, {
   headStyles: { fillColor: [52, 73, 94] }
 });
 
-doc.save('/mnt/documents/DOSSIER_AUDITORIA_ENTERPRISE_V5.pdf');
-console.log('Enterprise Audit PDF v5.1 generated successfully.');
+doc.save('mnt/documents/FINAL_ENTERPRISE_AUDIT_REPORT.pdf');
+console.log('Final Enterprise Audit PDF v5.3 generated successfully.');

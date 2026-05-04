@@ -23,7 +23,7 @@ try {
 
   // 2. Validate paths in Markdown (Self-healing check)
   console.log('🔍 Validating Markdown evidence paths...');
-  const mdContent = fs.readFileSync('DOSSIA_AUDITORIA_ENTERPRISE_V5.md', 'utf8');
+  const mdContent = fs.readFileSync('FINAL_ENTERPRISE_AUDIT_REPORT.md', 'utf8');
   const pathRegex = /`([^`]+\.(tsx|ts|sql|js|cjs|json|md))`|path: `([^`]+)`/g;
   let match;
   let brokenPaths = 0;
