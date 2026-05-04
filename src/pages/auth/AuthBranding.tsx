@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Gift, Package, Factory, SlidersHorizontal, Brain, Rocket } from "lucide-react";
 
-interface RocketData { id: number; left: number; size: number; duration: number; }
+interface RocketData { id: number; left: number; size: number; duration: number; rotation: number; scale: number; }
 
 export function ContinuousRockets() {
   const [rockets, setRockets] = useState<RocketData[]>([]);
@@ -18,12 +18,20 @@ export function ContinuousRockets() {
       if (!mounted) return;
       const id = nextIdRef.current++;
       
-      // Ajuste de posição para garantir visibilidade em qualquer viewport
+      // Variedade premium: posição, tamanho, velocidade e rotação
       const left = 5 + Math.random() * 85;
-      const size = 24 + Math.random() * 26;
-      const duration = isInitial ? (2.5 + Math.random() * 1.5) : (3 + Math.random() * 2.5);
+      const size = 20 + Math.random() * 30; // 20px a 50px
+      const duration = isInitial 
+        ? (2.0 + Math.random() * 2.0) 
+        : (3.0 + Math.random() * 3.5);
+      
+      // Rotação sutil para parecer menos "perfeito" e mais dinâmico
+      const rotationOffset = -5 + Math.random() * 10; // -5deg a +5deg
+      const scale = 0.8 + Math.random() * 0.4; // 0.8x a 1.2x
 
-      const rocket: RocketData = { id, left, size, duration };
+      const rocket: RocketData & { rotation: number; scale: number } = { 
+        id, left, size, duration, rotation: rotationOffset, scale 
+      };
       
       setRockets((prev) => [...prev, rocket]);
       
@@ -71,17 +79,21 @@ export function ContinuousRockets() {
             willChange: "transform, opacity",
           }}
         >
-          <div style={{ animation: "rocketShake 0.15s ease-in-out infinite" }}>
-            <Rocket
-              className="-rotate-45"
-              style={{
-                width: r.size,
-                height: r.size,
-                // Cor fixa "fogo" — independente do skin ativo (que pode mapear --orange para outra cor de marca)
-                color: "#FB923C",
-              }}
-            />
-          </div>
+          <div style={{ transform: `scale(${r.scale})` }}>
+            <div style={{ 
+              animation: "rocketShake 0.15s ease-in-out infinite",
+              transform: `rotate(${r.rotation}deg)` 
+            }}>
+              <Rocket
+                className="-rotate-45"
+                style={{
+                  width: r.size,
+                  height: r.size,
+                  color: "#FB923C",
+                  filter: "drop-shadow(0 0 8px rgba(251, 146, 60, 0.4))",
+                }}
+              />
+            </div>
           {/* Rastro de chamas — gradiente fixo laranja→amarelo para efeito de propulsão consistente */}
           <div
             className="absolute left-1/2 -translate-x-1/2 rounded-full opacity-70"
@@ -114,6 +126,7 @@ export function ContinuousRockets() {
             }}
           />
         </div>
+      </div>
       ))}
     </div>
   );
