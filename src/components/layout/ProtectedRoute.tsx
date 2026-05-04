@@ -4,26 +4,22 @@ import { Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { EnhancedErrorBoundary } from "@/components/errors/EnhancedErrorBoundary";
 import { EmptyState } from "@/components/common/EmptyState";
+import { checkAccess, AccessPolicy } from "@/lib/access/access-policy";
 
-type RequiredRole = "dev" | "supervisor" | "agente";
-
-interface ProtectedRouteProps {
+interface ProtectedRouteProps extends AccessPolicy {
   children?: ReactNode;
-  /** Hierarquia: 'dev' (somente dev), 'supervisor' (dev OU supervisor), 'agente' (qualquer autenticado). */
-  requiredRole?: RequiredRole;
-  /** @deprecated Use requiredRole="supervisor" — mantido para compatibilidade. */
+  /** @deprecated Use requiredRole="supervisor" */
   requireAdmin?: boolean;
-  /** Marca rotas técnicas (telemetria, MCP, hardening, etc.) — equivale a requiredRole="dev". */
-  requireDev?: boolean;
 }
 
 export function ProtectedRoute({
   children,
   requiredRole,
+  requireMfa,
+  requireDev,
   requireAdmin = false,
-  requireDev = false,
 }: ProtectedRouteProps) {
-  const { user, isDev, isSupervisorOrAbove, isLoading } = useAuth();
+  const { user, roles, currentAAL, isLoading } = useAuth();
   const location = useLocation();
 
   if (isLoading) {
@@ -35,31 +31,27 @@ export function ProtectedRoute({
   }
 
   if (!user) {
-    // Redireciona para página de erro 401 que fornece contexto e link de login
     return <Navigate to="/unauthorized" state={{ from: location }} replace />;
   }
 
-  // Resolução do nível exigido (props mais explícitas têm prioridade)
-  const required: RequiredRole | undefined =
-    requiredRole ?? (requireDev ? "dev" : requireAdmin ? "supervisor" : undefined);
+  const effectiveRole = requiredRole || (requireDev ? "dev" : requireAdmin ? "supervisor" : undefined);
+  const { allowed, reason } = checkAccess(roles, currentAAL, { 
+    requiredRole: effectiveRole, 
+    requireMfa, 
+    requireDev 
+  });
 
-  if (required === "dev" && !isDev) {
-    return (
-      <EmptyState 
-        variant="security" 
-        title="Acesso Negado" 
-        description="Esta é uma área restrita para desenvolvedores."
-        action={{ label: "Voltar ao início", onClick: () => window.location.href = "/" }}
-      />
-    );
-  }
-  
-  if (required === "supervisor" && !isSupervisorOrAbove) {
+  if (!allowed) {
+    if (reason === 'mfa_required') {
+       // O AdminRoute/DevRoute tratam o diálogo de MFA, aqui apenas bloqueamos se for o caso
+       // mas o ProtectedRoute genérico geralmente não exige MFA a menos que passado explicitamente
+    }
+    
     return (
       <EmptyState 
         variant="security" 
         title="Acesso Restrito" 
-        description="Você precisa de nível de supervisor para acessar este conteúdo."
+        description={reason === 'insufficient_role' ? "Você não tem permissão para acessar esta área." : "Autenticação adicional necessária."}
         action={{ label: "Voltar ao início", onClick: () => window.location.href = "/" }}
       />
     );
@@ -82,3 +74,4 @@ export function ProtectedRoute({
     </EnhancedErrorBoundary>
   );
 }
+
