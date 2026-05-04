@@ -73,7 +73,8 @@ describe('Auth Page', () => {
     fireEvent.click(forgotLink);
     
     // Check for forgot password form elements
-    expect(screen.getByText(/Recuperar senha/i)).toBeInTheDocument();
+    expect(screen.getByText(/Esqueceu sua senha\?/i)).toBeInTheDocument();
+
     expect(screen.queryByTestId('login-password-input')).not.toBeInTheDocument();
   });
 });
