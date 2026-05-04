@@ -77,8 +77,8 @@ export function CartHeaderButton() {
             </PopoverTrigger>
           </span>
         </TooltipTrigger>
-        <TooltipContent className="bg-card border-border text-xs">
-          Carrinho de Orçamentos <kbd className="ml-1.5 px-1 py-0.5 bg-muted rounded text-[9px] font-mono">Alt+O</kbd>
+        <TooltipContent>
+          Carrinho de Orçamentos <kbd className="ml-1.5 px-1 py-0.5 bg-primary-foreground/20 text-primary-foreground rounded text-[9px] font-mono">Alt+O</kbd>
         </TooltipContent>
       </Tooltip>
 
