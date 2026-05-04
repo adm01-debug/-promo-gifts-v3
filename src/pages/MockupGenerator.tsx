@@ -240,7 +240,14 @@ export default function MockupGenerator() {
             <AlertTitle>Erro na geração</AlertTitle>
             <AlertDescription className="flex items-center justify-between">
               <span>{mg.generationError}</span>
-              <Button variant="outline" size="sm" onClick={() => mg.setGenerationError(null)}>Dispensar</Button>
+              <TooltipProvider delayDuration={0}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="outline" size="sm" onClick={() => mg.setGenerationError(null)}>Dispensar</Button>
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Remover aviso de erro</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </AlertDescription>
           </Alert>
         )}
