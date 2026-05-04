@@ -151,15 +151,22 @@ export function CartHeaderButton() {
                   </div>
                 </div>
                 {canCreateCart && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 text-[11px] gap-1.5 px-3 rounded-lg text-primary hover:bg-primary/10 font-bold transition-all hover:scale-105 active:scale-95"
-                    onClick={() => setShowPicker(true)}
-                  >
-                    <Plus className="h-3.5 w-3.5" />
-                    Novo
-                  </Button>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 text-[11px] gap-1.5 px-3 rounded-lg text-primary hover:bg-primary/10 font-bold transition-all hover:scale-105 active:scale-95"
+                        onClick={() => setShowPicker(true)}
+                      >
+                        <Plus className="h-3.5 w-3.5" />
+                        Novo
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">
+                      Criar um novo carrinho para outra empresa
+                    </TooltipContent>
+                  </Tooltip>
                 )}
               </div>
 
