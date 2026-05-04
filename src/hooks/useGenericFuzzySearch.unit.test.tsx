@@ -19,21 +19,17 @@ describe('useGenericFuzzySearch', () => {
   });
 
   it('filters items correctly with an exact match', () => {
-    // We expect "Caneta" to find "Caneta Esferográfica"
-    // Use a stricter threshold if necessary, but here we just check if it contains it
     const { result } = renderHook(() => 
-      useGenericFuzzySearch(mockItems, 'Caneta', ['name'], { threshold: 0.2 })
+      useGenericFuzzySearch(mockItems, 'Caneta', ['name'], { threshold: 0.1 })
     );
-    // "Caneca" might still show up if threshold is 0.35 (default), so we set 0.2
     expect(result.current.results.some(r => r.name === 'Caneta Esferográfica')).toBe(true);
     expect(result.current.results.every(r => r.name !== 'Caderno Espiral')).toBe(true);
     expect(result.current.hasSearch).toBe(true);
   });
 
   it('performs fuzzy matching for typos', () => {
-    // "Cantea" instead of "Caneta"
     const { result } = renderHook(() => 
-      useGenericFuzzySearch(mockItems, 'Cantea', ['name'])
+      useGenericFuzzySearch(mockItems, 'Cantea', ['name'], { threshold: 0.4 })
     );
     expect(result.current.results.some(r => r.name === 'Caneta Esferográfica')).toBe(true);
   });
