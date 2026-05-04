@@ -274,9 +274,10 @@ export function BridgeProductsPreviewPanel() {
                     {[
                       appliedSearch && "busca",
                       appliedActive !== "all" && "status",
-                      appliedMinPrice != null && "preço mín.",
-                      appliedMaxPrice != null && "preço máx.",
-                      appliedMinStock != null && "estoque",
+                    appliedMinPrice !== null && "preço mín.",
+                    appliedMaxPrice !== null && "preço máx.",
+                    appliedMinStock !== null && "estoque",
+
                     ]
                       .filter(Boolean)
                       .length}{" "}
