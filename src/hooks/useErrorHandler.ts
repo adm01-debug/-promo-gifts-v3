@@ -78,13 +78,15 @@ export function useErrorHandler() {
  */
 export function useGlobalErrorCatcher() {
   useEffect(() => {
+    const log = createClientLogger('GlobalCatcher');
+
     const onUnhandled = (event: ErrorEvent) => {
-      console.error('[GlobalError]', event.error);
+      log.error('unhandled_error', { err: event.error });
       toast.error('Erro inesperado. Tente recarregar a página.');
     };
 
     const onUnhandledRejection = (event: PromiseRejectionEvent) => {
-      console.error('[UnhandledRejection]', event.reason);
+      log.error('unhandled_rejection', { err: event.reason });
       toast.error('Erro inesperado. Tente recarregar a página.');
     };
 
