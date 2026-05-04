@@ -101,14 +101,14 @@ export default function BusinessIntelligencePage() {
           </div>
           {clientId && (
             <div className="flex items-center gap-2 flex-wrap">
-              <TooltipProvider>
+              <TooltipProvider delayDuration={0}>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button size="sm" variant="ghost" className="gap-1.5" onClick={() => setTourForce(true)}>
                       <HelpCircle className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-0.5 min-h-0">
+                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
                     Tour guiado pelo BI
                   </TooltipContent>
                 </Tooltip>
@@ -120,7 +120,7 @@ export default function BusinessIntelligencePage() {
                       Comparar
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-0.5 min-h-0">
+                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
                     Comparar com média do setor
                   </TooltipContent>
                 </Tooltip>
@@ -137,7 +137,7 @@ export default function BusinessIntelligencePage() {
                       Briefing
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-0.5 min-h-0">
+                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
                     Abrir modo briefing
                   </TooltipContent>
                 </Tooltip>
@@ -155,7 +155,7 @@ export default function BusinessIntelligencePage() {
                       Pergunte ao BI
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-0.5 min-h-0">
+                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
                     Inicie o Copilot AI
                   </TooltipContent>
                 </Tooltip>

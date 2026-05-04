@@ -97,7 +97,16 @@ export default function AdvancedPriceSearchPage() {
                     ))}
                   </div>
                 </ScrollArea>
-                {filters.colors.length > 0 && <Button variant="ghost" size="sm" className="w-full mt-2" onClick={() => updateFilter('colors', [])}>Limpar cores</Button>}
+                {filters.colors.length > 0 && (
+                  <TooltipProvider delayDuration={0}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button variant="ghost" size="sm" className="w-full mt-2" onClick={() => updateFilter('colors', [])}>Limpar cores</Button>
+                      </TooltipTrigger>
+                      <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Desmarcar todas as cores selecionadas</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
               </FilterSection>
 
               <FilterSection title="Técnica de Personalização" icon={Layers}>
