@@ -382,7 +382,7 @@ export const ProductQuickView = forwardRef<HTMLDivElement, ProductQuickViewProps
                      aria-label="Favoritar"><Heart className={cn("h-5 w-5", isFavorited && "fill-current")} />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>
+                  <TooltipContent className="bg-primary text-primary-foreground border-primary text-[11px]">
                     {isFavorited ? "Remover dos favoritos" : "Adicionar aos favoritos"}
                   </TooltipContent>
                 </Tooltip>
