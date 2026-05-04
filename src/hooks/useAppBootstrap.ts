@@ -34,7 +34,6 @@ export function useAppBootstrap() {
     markBootSuccessful();
   }, []);
 
-  // 2. Sincronização de Tema e Configurações Visuais
   useEffect(() => {
     const cfg = loadThemeConfig();
     applyThemePreset(cfg.presetId, actualTheme);
