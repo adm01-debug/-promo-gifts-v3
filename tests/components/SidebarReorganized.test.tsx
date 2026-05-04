@@ -2,7 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import { SidebarReorganized } from '@/components/layout/SidebarReorganized';
 import { BrowserRouter } from 'react-router-dom';
-import { AuthContext } from '@/contexts/AuthContext';
+import * as AuthModule from '@/contexts/AuthContext';
+const { AuthContext } = AuthModule;
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 
