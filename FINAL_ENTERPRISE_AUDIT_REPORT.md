@@ -61,7 +61,7 @@ O sistema **Promo Gifts** é uma plataforma Tier 1 projetada para alta performan
 export type RoleName = 'dev' | 'supervisor' | 'agente';
 // Lógica de proteção em nível de UI e rotas
 ```
-**Validação:** Teste Playwright `tests/e2e/ui-navigation-rbac.spec.ts`.
+**Validação:** Teste Playwright `e2e/ui-navigation-rbac.spec.ts`.
 
 ### 📂 Evidência 02: Resiliência Financeira (Pricing Engine)
 **Path:** `src/lib/personalization/calculators.ts`  
