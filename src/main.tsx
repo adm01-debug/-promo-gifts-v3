@@ -34,14 +34,8 @@ createRoot(root).render(
   </Fragment>
 );
 
-// Registrar Service Worker para PWA (apenas em produção para evitar cache issues no preview)
-if ('serviceWorker' in navigator && import.meta.env.PROD) {
-  registerServiceWorker()
-    .catch(() => {
-      // SW registration failed silently
-    });
-} else if ('serviceWorker' in navigator && import.meta.env.DEV) {
-  // Em dev, desregistrar SWs antigos que possam estar cacheando
+// Service Worker disabled in all environments to resolve 412 caching issues
+if ('serviceWorker' in navigator) {
   navigator.serviceWorker.getRegistrations().then(registrations => {
     registrations.forEach(r => r.unregister());
   });
