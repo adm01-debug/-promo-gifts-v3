@@ -1,49 +1,112 @@
 /**
  * Left-side branding panel for Auth page — extracted for modularity
  */
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Gift, Package, Factory, SlidersHorizontal, Brain, Rocket } from "lucide-react";
 
 interface RocketData { id: number; left: number; size: number; duration: number; }
 
-export const ContinuousRockets = React.forwardRef<HTMLDivElement>(function ContinuousRockets(_props, _ref) {
+export function ContinuousRockets() {
   const [rockets, setRockets] = useState<RocketData[]>([]);
-  const nextId = React.useRef(0);
+  const nextIdRef = useRef(0);
 
   useEffect(() => {
+    let mounted = true;
+    const cleanupTimers: ReturnType<typeof setTimeout>[] = [];
+
     function spawnRocket() {
-      const id = nextId.current++;
-      const rocket: RocketData = { id, left: 5 + Math.random() * 85, size: 20 + Math.random() * 24, duration: 3 + Math.random() * 2.5 };
+      if (!mounted) return;
+      const id = nextIdRef.current++;
+      const rocket: RocketData = {
+        id,
+        left: 5 + Math.random() * 85,
+        size: 22 + Math.random() * 26,
+        duration: 3 + Math.random() * 2.5,
+      };
       setRockets((prev) => [...prev, rocket]);
-      setTimeout(() => setRockets((prev) => prev.filter((r) => r.id !== id)), rocket.duration * 1000 + 500);
+      const removeTimer = setTimeout(() => {
+        if (!mounted) return;
+        setRockets((prev) => prev.filter((r) => r.id !== id));
+      }, rocket.duration * 1000 + 600);
+      cleanupTimers.push(removeTimer);
     }
+
+    // Burst inicial — garante foguetes visíveis logo no carregamento
     spawnRocket();
-    const t1 = setTimeout(spawnRocket, 800);
-    const t2 = setTimeout(spawnRocket, 1800);
-    let timer: ReturnType<typeof setTimeout>;
+    cleanupTimers.push(setTimeout(spawnRocket, 600));
+    cleanupTimers.push(setTimeout(spawnRocket, 1500));
+    cleanupTimers.push(setTimeout(spawnRocket, 2400));
+
+    // Loop contínuo
     function scheduleNext() {
-      const interval = 3000 + Math.random() * 5000;
-      timer = setTimeout(() => { spawnRocket(); scheduleNext(); }, interval);
+      const interval = 2500 + Math.random() * 4000;
+      const t = setTimeout(() => {
+        spawnRocket();
+        scheduleNext();
+      }, interval);
+      cleanupTimers.push(t);
     }
     scheduleNext();
-    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(timer); };
+
+    return () => {
+      mounted = false;
+      cleanupTimers.forEach(clearTimeout);
+    };
   }, []);
 
   return (
-    <>
+    <div className="pointer-events-none absolute inset-0 overflow-hidden z-[1]" aria-hidden="true">
       {rockets.map((r) => (
-        <div key={r.id} className="absolute bottom-0" style={{ left: `${r.left}%`, animation: `rocketLaunch ${r.duration}s ease-out forwards` }}>
-          <div style={{ animation: 'rocketShake 0.15s ease-in-out infinite' }}>
-            <Rocket className="text-orange -rotate-45" style={{ width: r.size, height: r.size }} />
+        <div
+          key={r.id}
+          className="absolute bottom-0"
+          style={{
+            left: `${r.left}%`,
+            animation: `rocketLaunch ${r.duration}s ease-out forwards`,
+            willChange: "transform, opacity",
+          }}
+        >
+          <div style={{ animation: "rocketShake 0.15s ease-in-out infinite" }}>
+            <Rocket
+              className="-rotate-45"
+              style={{ width: r.size, height: r.size, color: "hsl(var(--orange))" }}
+            />
           </div>
-          <div className="absolute left-1/2 -translate-x-1/2 rounded-full opacity-70" style={{ top: `${r.size * 0.75}px`, width: `${r.size * 0.3}px`, height: `${r.size}px`, animation: 'flameTrail 0.3s ease-in-out infinite alternate', background: 'linear-gradient(to bottom, #f97316, #eab308, transparent)' }} />
-          <div className="absolute left-1/2 -translate-x-1/2 rounded-full opacity-40" style={{ top: `${r.size}px`, width: `${r.size * 0.15}px`, height: `${r.size * 1.5}px`, animation: 'flameTrail 0.2s ease-in-out infinite alternate-reverse', background: 'linear-gradient(to bottom, #f97316, transparent)' }} />
-          <div className="absolute left-1/2 -translate-x-1/2 rounded-full bg-muted-foreground/10" style={{ top: `${r.size * 1.2}px`, width: `${r.size * 2}px`, height: `${r.size * 2}px`, animation: 'smokeRise 2s ease-out forwards', filter: 'blur(8px)' }} />
+          <div
+            className="absolute left-1/2 -translate-x-1/2 rounded-full opacity-70"
+            style={{
+              top: `${r.size * 0.75}px`,
+              width: `${r.size * 0.3}px`,
+              height: `${r.size}px`,
+              animation: "flameTrail 0.3s ease-in-out infinite alternate",
+              background: "linear-gradient(to bottom, #f97316, #eab308, transparent)",
+            }}
+          />
+          <div
+            className="absolute left-1/2 -translate-x-1/2 rounded-full opacity-40"
+            style={{
+              top: `${r.size}px`,
+              width: `${r.size * 0.15}px`,
+              height: `${r.size * 1.5}px`,
+              animation: "flameTrail 0.2s ease-in-out infinite alternate-reverse",
+              background: "linear-gradient(to bottom, #f97316, transparent)",
+            }}
+          />
+          <div
+            className="absolute left-1/2 -translate-x-1/2 rounded-full bg-muted-foreground/10"
+            style={{
+              top: `${r.size * 1.2}px`,
+              width: `${r.size * 2}px`,
+              height: `${r.size * 2}px`,
+              animation: "smokeRise 2s ease-out forwards",
+              filter: "blur(8px)",
+            }}
+          />
         </div>
       ))}
-    </>
+    </div>
   );
-});
+}
 
 const FEATURES = [
   { label: "+20.000", desc: "Produtos", icon: Package },
