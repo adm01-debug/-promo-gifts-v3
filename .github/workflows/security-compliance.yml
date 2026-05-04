@@ -1,0 +1,44 @@
+name: Security & Compliance Audit
+
+on:
+  schedule:
+    - cron: '0 0 * * 1' # Weekly on Mondays
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/hooks/useRBAC.tsx'
+      - 'src/contexts/AuthContext.tsx'
+      - 'supabase/migrations/**'
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Run RLS Verification
+        run: node scripts/verify-rls.cjs
+        env:
+          PGPASSWORD: ${{ secrets.DB_PASSWORD }}
+          PGHOST: ${{ secrets.DB_HOST }}
+          PGUSER: ${{ secrets.DB_USER }}
+          PGDATABASE: ${{ secrets.DB_NAME }}
+
+      - name: Generate Audit Dossier
+        run: node scripts/ci-audit-gen.cjs
+
+      - name: Upload Audit Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: enterprise-audit-report
+          path: mnt/documents/
