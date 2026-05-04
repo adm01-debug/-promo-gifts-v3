@@ -79,7 +79,7 @@ export function CatalogToolbar({
                 </Button>
               </SheetTrigger>
             </TooltipTrigger>
-            <TooltipContent>
+            <TooltipContent className="bg-primary text-primary-foreground border-primary text-[11px]">
               {activeFiltersCount > 0
                 ? `Refinar busca · ${activeFiltersCount} filtro${activeFiltersCount > 1 ? "s" : ""} ativo${activeFiltersCount > 1 ? "s" : ""}`
                 : "Refinar por categoria, cor, preço e mais"}
