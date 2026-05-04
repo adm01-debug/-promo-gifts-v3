@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { WifiOff, X } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 
 /**
  * Global component to detect and display browser-level offline status.
