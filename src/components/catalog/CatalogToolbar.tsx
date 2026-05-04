@@ -126,39 +126,49 @@ export function CatalogToolbar({
 
       <div className="flex items-center gap-2">
         {/* Selecionar / Cancelar toggle */}
-        <Button
-          variant={selectionMode ? "default" : "outline"}
-          size="sm"
-          className={cn(
-            "gap-1.5 h-8 transition-all relative",
-            selectionMode
-              ? "bg-primary text-primary-foreground shadow-md hover:bg-primary/90"
-              : "hover:border-primary/50"
-          )}
-          onClick={onToggleSelectionMode}
-        >
-          <CheckSquare className="h-3.5 w-3.5" />
-          <span className="hidden sm:inline text-xs">{selectionMode ? "Cancelar" : "Selecionar"}</span>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant={selectionMode ? "default" : "outline"}
+              size="sm"
+              className={cn(
+                "gap-1.5 h-8 transition-all relative",
+                selectionMode
+                  ? "bg-primary text-primary-foreground shadow-md hover:bg-primary/90"
+                  : "hover:border-primary/50"
+              )}
+              onClick={onToggleSelectionMode}
+              aria-label={selectionMode ? "Cancelar seleção de produtos" : "Selecionar vários produtos"}
+            >
+              <CheckSquare className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline text-xs">{selectionMode ? "Cancelar" : "Selecionar"}</span>
 
-          {/* Animated counter badge */}
-          <AnimatePresence>
-            {selectionMode && selectedCount > 0 && (
-              <motion.div
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0, opacity: 0 }}
-                transition={{ type: "spring", stiffness: 500, damping: 25 }}
-                className="absolute -top-2 -right-2"
-              >
-                <Badge
-                  className="bg-destructive text-destructive-foreground h-5 min-w-5 text-[10px] font-bold px-1.5 py-0 flex items-center justify-center tabular-nums shadow-lg"
-                >
-                  {selectedCount}
-                </Badge>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </Button>
+              {/* Animated counter badge */}
+              <AnimatePresence>
+                {selectionMode && selectedCount > 0 && (
+                  <motion.div
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0, opacity: 0 }}
+                    transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                    className="absolute -top-2 -right-2"
+                  >
+                    <Badge
+                      className="bg-destructive text-destructive-foreground h-5 min-w-5 text-[10px] font-bold px-1.5 py-0 flex items-center justify-center tabular-nums shadow-lg"
+                    >
+                      {selectedCount}
+                    </Badge>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            {selectionMode
+              ? `Sair do modo seleção${selectedCount > 0 ? ` (${selectedCount} selecionado${selectedCount > 1 ? "s" : ""})` : ""}`
+              : "Selecionar vários produtos para orçamento, coleção ou comparação"}
+          </TooltipContent>
+        </Tooltip>
 
         <div className="hidden sm:block">
           <LayoutPopover
