@@ -147,7 +147,27 @@ const Starfield = React.memo(() => {
   );
 });
 
-const FEATURES = [
+function FeatureCard({ item, index }: { item: typeof FEATURES[0]; index: number }) {
+  const IconComponent = item.icon;
+  return (
+    <div 
+      className="p-6 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl hover:bg-white/10 hover:border-orange/30 hover:scale-[1.02] transition-all duration-500 group opacity-0"
+      style={{ animation: `scale-fade-in 0.5s ease-out ${300 + index * 150}ms forwards` }}
+    >
+      <div className="flex items-start justify-between">
+        <div className="min-w-0">
+          <p className="text-2xl font-bold text-orange truncate">{item.label}</p>
+          <p className="text-sm font-medium text-white/50 truncate">{item.desc}</p>
+        </div>
+        <div className="w-11 h-11 rounded-xl bg-orange/15 flex items-center justify-center group-hover:bg-orange/25 transition-colors shrink-0">
+          <IconComponent className="h-5 w-5 text-orange" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const FEATURE_ITEMS = [
   { label: "+20.000", desc: "Produtos", icon: Package },
   { label: "+100", desc: "Fornecedores", icon: Factory },
   { label: "Filtros", desc: "Avançados", icon: SlidersHorizontal },
@@ -190,23 +210,9 @@ export function AuthBrandingPanel() {
           </div>
 
           <div className="grid grid-cols-2 gap-4 pt-6">
-            {FEATURES.map((item, i) => {
-              const IconComponent = item.icon;
-              return (
-                <div key={i} className="p-6 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl hover:bg-white/10 hover:border-orange/30 hover:scale-[1.02] transition-all duration-500 group opacity-0"
-                  style={{ animation: `scale-fade-in 0.5s ease-out ${300 + i * 150}ms forwards` }}>
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="text-2xl font-bold text-orange">{item.label}</p>
-                      <p className="text-sm font-medium text-white/50">{item.desc}</p>
-                    </div>
-                    <div className="w-11 h-11 rounded-xl bg-orange/15 flex items-center justify-center group-hover:bg-orange/25 transition-colors">
-                      <IconComponent className="h-5 w-5 text-orange" />
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+            {FEATURES.map((item, i) => (
+              <FeatureCard key={i} item={item} index={i} />
+            ))}
           </div>
 
           {/* Trust Indicators */}
