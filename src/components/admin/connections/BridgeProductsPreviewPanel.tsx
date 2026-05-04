@@ -387,8 +387,9 @@ export function BridgeProductsPreviewPanel() {
           <div className="text-xs text-muted-foreground tabular-nums">
             {isLoading && products.length === 0
               ? "Carregando…"
-              : count != null
+              : count !== null && count !== undefined
                 ? `${startIdx}–${endIdx} de ${count.toLocaleString("pt-BR")} produto(s)`
+
                 : `${products.length} produto(s) carregado(s)`}
           </div>
           <div className="flex items-center gap-2">
