@@ -113,7 +113,7 @@ export function CatalogHeader({
                       </Button>
                     </PopoverTrigger>
                   </TooltipTrigger>
-                  <TooltipContent>Histórico de buscas recentes ({searchHistory.length})</TooltipContent>
+                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Histórico de buscas recentes ({searchHistory.length})</TooltipContent>
                 </Tooltip>
                 <PopoverContent className="w-64 p-2" align="end">
                   <div className="flex items-center justify-between px-2 pb-2 border-b border-border/50 mb-2">
