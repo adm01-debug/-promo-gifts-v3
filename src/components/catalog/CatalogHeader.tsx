@@ -156,9 +156,22 @@ export function CatalogHeader({
           className="flex-1"
         />
         {searchHistory.length > 0 && (
-          <Button variant="outline" size="icon" className="h-11 w-11 shrink-0" onClick={() => setHistoryOpen(!historyOpen)}>
-            <Clock className="h-4 w-4" />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                variant="outline" 
+                size="icon" 
+                className="h-11 w-11 shrink-0" 
+                onClick={() => setHistoryOpen(!historyOpen)}
+                aria-label="Ver histórico de buscas"
+              >
+                <Clock className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">
+              Histórico de buscas
+            </TooltipContent>
+          </Tooltip>
         )}
       </div>
     </div>
