@@ -78,7 +78,7 @@ export const ProductCardImage = memo(function ProductCardImage({
         className={cn(
           "w-full h-full object-contain ease-out",
           hasMultipleVariants ? "transition-all duration-300" : "transition-all duration-700",
-          imageLoaded ? "opacity-100 blur-0 scale-100" : "opacity-40 blur-sm scale-[1.02]"
+          imageLoaded ? "opacity-100 blur-0 scale-100" : "opacity-0 blur-sm scale-[1.05]"
         )}
         style={imageLoaded ? { transform: `scale(${computedImageScale})` } : undefined}
         loading="lazy"
