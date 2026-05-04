@@ -101,10 +101,15 @@ export function CatalogToolbar({
 
         <div className="flex items-center gap-1.5">
           <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
-            <SelectTrigger className="w-10 sm:w-44 h-9 sm:h-10 text-xs sm:text-sm font-medium" aria-label="Ordenar por">
-              <ArrowUpDown className="h-3.5 w-3.5 sm:mr-2 shrink-0 text-muted-foreground" />
-              <span className="hidden sm:inline"><SelectValue placeholder="Ordenar" /></span>
-            </SelectTrigger>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <SelectTrigger className="w-10 sm:w-44 h-9 sm:h-10 text-xs sm:text-sm font-medium" aria-label="Ordenar por">
+                  <ArrowUpDown className="h-3.5 w-3.5 sm:mr-2 shrink-0 text-muted-foreground" />
+                  <span className="hidden sm:inline"><SelectValue placeholder="Ordenar" /></span>
+                </SelectTrigger>
+              </TooltipTrigger>
+              <TooltipContent>Ordenar produtos (relevância, preço, novidades…)</TooltipContent>
+            </Tooltip>
             <SelectContent>
               {SORT_OPTIONS.map(option => (
                 <SelectItem key={option.value} value={option.value} className="text-xs sm:text-sm">
