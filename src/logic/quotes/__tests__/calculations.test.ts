@@ -78,8 +78,16 @@ describe('calculations.ts edge cases', () => {
     });
 
     it('handles cases where presented subtotal is higher than real (markup)', () => {
-      // real: 100, presented: 120, discount: 10 -> final: 110. Real discount: -10% (markup wins)
+      // real: 100, presented: 120, discount: 10 -> final: 110. 
+      // formula: ((realSubtotal - finalBeforeShipping) / realSubtotal) * 100
+      // ((100 - (120 - 10)) / 100) * 100 = -10%
       expect(calculateRealDiscountPercent(100, 120, 10)).toBe(-10);
+    });
+
+    it('handles negative result when markup exceeds discount', () => {
+      // real: 1000, presented: 1200, discount: 50 -> final: 1150
+      // ((1000 - 1150) / 1000) * 100 = -15%
+      expect(calculateRealDiscountPercent(1000, 1200, 50)).toBe(-15);
     });
 
     it('handles high precision rounding (2 decimal places)', () => {
