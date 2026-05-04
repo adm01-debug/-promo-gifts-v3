@@ -201,11 +201,23 @@ export default function FiltersPage() {
                         </div>
                       )}
                       <div className="flex gap-2">
-                        {state.activeFiltersCount > 0 && <Button variant="outline" size="sm" onClick={state.handleReset} className="text-xs shrink-0">Limpar ({state.activeFiltersCount})</Button>}
-                        <Button size="sm" className="flex-1 tabular-nums" onClick={() => state.setMobileFiltersOpen(false)}>
-                          <Filter className="h-3.5 w-3.5 mr-1.5" />
-                          {state.isLoadingProducts && state.realProducts.length === 0 ? 'Carregando...' : state.activeFiltersCount > 0 ? `Ver ${state.filteredProducts.length.toLocaleString('pt-BR')} resultado${state.filteredProducts.length !== 1 ? 's' : ''}` : `${(state.totalEstimate ?? state.filteredProducts.length).toLocaleString('pt-BR')} produtos`}
-                        </Button>
+                        {state.activeFiltersCount > 0 && (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button variant="outline" size="sm" onClick={state.handleReset} className="text-xs shrink-0">Limpar ({state.activeFiltersCount})</Button>
+                            </TooltipTrigger>
+                            <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Remover todos os filtros aplicados</TooltipContent>
+                          </Tooltip>
+                        )}
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button size="sm" className="flex-1 tabular-nums" onClick={() => state.setMobileFiltersOpen(false)}>
+                              <Filter className="h-3.5 w-3.5 mr-1.5" />
+                              {state.isLoadingProducts && state.realProducts.length === 0 ? 'Carregando...' : state.activeFiltersCount > 0 ? `Ver ${state.filteredProducts.length.toLocaleString('pt-BR')} resultado${state.filteredProducts.length !== 1 ? 's' : ''}` : `${(state.totalEstimate ?? state.filteredProducts.length).toLocaleString('pt-BR')} produtos`}
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Aplicar filtros e fechar</TooltipContent>
+                        </Tooltip>
                       </div>
                     </div>
                   </SheetContent>
@@ -283,7 +295,12 @@ export default function FiltersPage() {
                     </Badge>
                   ))}
                   {state.activeFiltersSummary.length > 3 && <Badge variant="outline" className="text-xs py-0.5 px-2">+{state.activeFiltersSummary.length - 3}</Badge>}
-                  <Button variant="ghost" size="sm" onClick={state.handleReset} className="text-muted-foreground h-6 px-2 text-xs">Limpar</Button>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="sm" onClick={state.handleReset} className="text-muted-foreground h-6 px-2 text-xs">Limpar</Button>
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Remover filtros ativos</TooltipContent>
+                  </Tooltip>
                 </div>
               )}
             </div>
