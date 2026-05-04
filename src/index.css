@@ -732,8 +732,8 @@ html[data-scroll-locked] body {
     transform: translateY(0);
   }
   100% {
-    transform: translateY(-120vh);
-    opacity: 1;
+    transform: translateY(-120vh) rotate(-15deg);
+    opacity: 0.8;
   }
 }
 

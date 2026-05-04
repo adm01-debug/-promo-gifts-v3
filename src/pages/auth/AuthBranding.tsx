@@ -150,13 +150,13 @@ export function AuthBrandingPanel() {
     <div className="hidden lg:flex lg:w-1/2 bg-[#0A0D14] relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/4 -left-20 w-80 h-80 bg-orange/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-0 w-96 h-96 bg-orange/5 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-success/5 rounded-full blur-3xl" />
+        <div className="absolute top-1/4 -left-20 w-80 h-80 bg-orange/20 rounded-full blur-[120px] animate-pulse" />
+        <div className="absolute bottom-1/4 right-0 w-96 h-96 bg-orange/10 rounded-full blur-[150px]" />
+        <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-orange/5 rounded-full blur-[100px]" />
         {[...Array(18)].map((_, i) => {
           const size = 1 + (i % 3); const top = (i * 37 + 11) % 100; const left = (i * 53 + 7) % 100;
           const dur = 2 + (i % 4); const delay = (i * 0.3) % 2;
-          return (<div key={`star-${i}`} className="absolute rounded-full bg-foreground/30" style={{ width: `${size}px`, height: `${size}px`, top: `${top}%`, left: `${left}%`, animation: `twinkle ${dur}s ease-in-out ${delay}s infinite` }} />);
+          return (<div key={`star-${i}`} className="absolute rounded-full bg-white/40 shadow-[0_0_8px_rgba(255,255,255,0.4)]" style={{ width: `${size}px`, height: `${size}px`, top: `${top}%`, left: `${left}%`, animation: `twinkle ${dur}s ease-in-out ${delay}s infinite` }} />);
         })}
         <ContinuousRockets />
       </div>
@@ -213,7 +213,7 @@ export function AuthBrandingPanel() {
             ].map((item, i) => (
               <React.Fragment key={i}>
                 {i > 0 && <div className="w-px h-4 bg-border" />}
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <div className="flex items-center gap-2 text-xs text-white/40">
                   <svg className="h-4 w-4 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.path} />
                   </svg>
