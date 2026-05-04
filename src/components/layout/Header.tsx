@@ -95,16 +95,23 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
 
   const handleSignOut = async () => {
     try {
+      // Mostra toast imediato de processamento se desejar, ou apenas aguarda
       await signOut();
+      toast({
+        title: "Até logo!",
+        description: "Você saiu da sua conta com segurança.",
+      });
     } catch (err) {
-      // Mesmo em caso de erro, prosseguimos com redirect — estado local já foi limpo
       console.error("[Header] signOut error:", err);
+      toast({
+        variant: "destructive",
+        title: "Aviso",
+        description: "Sessão encerrada localmente, mas houve um erro ao sincronizar com o servidor.",
+      });
+    } finally {
+      // Força redirect para a página de login correta
+      navigate("/login", { replace: true });
     }
-    toast({
-      title: "Até logo!",
-      description: "Você saiu da sua conta",
-    });
-    navigate("/login", { replace: true });
   };
 
   const displayName = profile?.full_name || user?.email?.split("@")[0] || "Usuário";

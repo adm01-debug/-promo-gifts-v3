@@ -391,13 +391,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       // Security: Registrar auditoria de logout antes de limpar a sessão
       if (user) {
-        await supabase.rpc('log_user_logout').catch(() => {});
+        // Use timeout para garantir que o logout não trave se o RPC demorar
+        await Promise.race([
+          supabase.rpc('log_user_logout'),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout RPC')), 2000))
+        ]).catch((err) => {
+          log.warn('log_user_logout_failed', { err: String(err) });
+        });
       }
 
       // Tenta encerrar sessão remota — não bloqueia limpeza local em caso de falha
       await supabase.auth.signOut().catch((err) => {
         log.warn('remote_signout_failed', { err: String(err) });
       });
+    } catch (err) {
+      log.error('signOut_unexpected_error', { err: String(err) });
     } finally {
       // Limpeza local SEMPRE acontece, mesmo se chamadas remotas falharem
       setUser(null);
