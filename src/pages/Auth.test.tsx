@@ -2,8 +2,8 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import Auth from './Auth';
 import { BrowserRouter } from 'react-router-dom';
-import { AuthProvider } from '@/contexts/AuthContext';
 import { Toaster } from '@/components/ui/toaster';
+import { HelmetProvider } from 'react-helmet-async';
 
 // Mocking useIPValidation
 vi.mock('@/hooks/useIPValidation', () => ({
@@ -30,12 +30,15 @@ vi.mock('@/contexts/AuthContext', async (importOriginal) => {
 
 const renderAuth = () => {
   return render(
-    <BrowserRouter>
-      <Auth />
-      <Toaster />
-    </BrowserRouter>
+    <HelmetProvider>
+      <BrowserRouter>
+        <Auth />
+        <Toaster />
+      </BrowserRouter>
+    </HelmetProvider>
   );
 };
+
 
 describe('Auth Page', () => {
   beforeEach(() => {
