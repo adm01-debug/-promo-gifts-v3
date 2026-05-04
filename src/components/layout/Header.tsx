@@ -225,7 +225,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
                   )}
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>
+              <TooltipContent className="bg-primary text-primary-foreground border-primary text-[11px]">
                 Favoritos <kbd className="ml-1.5 px-1 py-0.5 rounded bg-primary-foreground/20 text-primary-foreground text-[10px] font-mono">Alt+F</kbd>
               </TooltipContent>
             </Tooltip>
