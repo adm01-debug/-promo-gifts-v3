@@ -316,7 +316,7 @@ export function FutureStockModal({
                     Previsões de reposição ({filteredAndSortedEntries.length})
                   </span>
                   {filteredAndSortedEntries.length === 0 && hasActiveFilters && (
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-[11px] text-muted-foreground">
                       Nenhum resultado para os filtros selecionados
                     </span>
                   )}
@@ -406,7 +406,7 @@ export function FutureStockModal({
                           <span className="text-xl font-bold text-primary">
                             +{entry.expectedQuantity.toLocaleString("pt-BR")}
                           </span>
-                          <p className="text-xs text-muted-foreground">unidades</p>
+                          <p className="text-[11px] text-muted-foreground">unidades</p>
                         </div>
                       </div>
                     );
@@ -436,7 +436,7 @@ export function FutureStockModal({
                     <span className="text-2xl font-bold text-primary">
                       +{filteredAndSortedEntries.reduce((sum, e) => sum + e.expectedQuantity, 0).toLocaleString("pt-BR")}
                     </span>
-                    <p className="text-xs text-muted-foreground">unidades no total</p>
+                    <p className="text-[11px] text-muted-foreground">unidades no total</p>
                   </div>
                 </div>
               </div>

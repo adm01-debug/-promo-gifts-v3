@@ -247,7 +247,7 @@ function FullDateCard({ date, onClick, isFirst }: DateCardProps) {
         </div>
         <div className="flex items-center gap-2 mt-0.5">
           {date.formatted_date && (
-            <span className="text-xs text-muted-foreground">{date.formatted_date}</span>
+            <span className="text-[11px] text-muted-foreground">{date.formatted_date}</span>
           )}
           {date.product_count !== undefined && (
             <span className="text-xs text-primary">

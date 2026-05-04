@@ -62,7 +62,7 @@ export function ConfirmedSummary({ wizard, onAddAnother, onGenerateQuote, onCopy
             <h2 className="font-display text-lg font-bold leading-tight">
               {wizard.personalizations.length} {wizard.personalizations.length === 1 ? 'gravação pronta' : 'gravações prontas'}
             </h2>
-            <p className="text-xs text-muted-foreground">Revise abaixo e gere o orçamento</p>
+            <p className="text-[11px] text-muted-foreground">Revise abaixo e gere o orçamento</p>
           </div>
         </div>
         <div className="flex items-center gap-1">

@@ -123,7 +123,7 @@ export const AddToCollectionModal = ({
                       </motion.div>
                       <div className="flex-1 text-left min-w-0">
                         <p className="font-display font-medium text-sm truncate">{collection.name}</p>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-[11px] text-muted-foreground">
                           {collection.productIds.length} produtos
                         </p>
                       </div>
@@ -293,7 +293,7 @@ export const AddToCollectionModal = ({
               className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/40 border border-border/50"
             >
               <Package className="h-3.5 w-3.5 text-primary shrink-0" />
-              <p className="text-xs text-muted-foreground">
+              <p className="text-[11px] text-muted-foreground">
                 Em <span className="font-medium text-foreground">{collectionsWithProduct.length}</span> coleção{collectionsWithProduct.length > 1 ? "ões" : ""}
                 {collectionsWithProduct.length <= 3 && (
                   <span className="text-muted-foreground"> · {collectionsWithProduct.map(c => c.name).join(", ")}</span>

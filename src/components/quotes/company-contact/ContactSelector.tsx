@@ -44,7 +44,7 @@ export function ContactDropdown({ contacts, contactId, onContactChange, onContac
               <div className={cn("w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0", contactId === contact.id ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary")}>
                 {contactId === contact.id ? <Check className="h-3.5 w-3.5" /> : <User className="h-3.5 w-3.5" />}
               </div>
-              <div className="flex-1 min-w-0"><p className="font-medium truncate">{contact.name}</p>{contact.cargo && <p className="text-xs text-muted-foreground">{contact.cargo}</p>}</div>
+              <div className="flex-1 min-w-0"><p className="font-medium truncate">{contact.name}</p>{contact.cargo && <p className="text-[11px] text-muted-foreground">{contact.cargo}</p>}</div>
             </button>
           ))}
         </div>

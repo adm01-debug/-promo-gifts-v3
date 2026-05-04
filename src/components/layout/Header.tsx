@@ -385,7 +385,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
               <DropdownMenuLabel>
                 <div className="flex flex-col gap-1">
                   <span className="font-medium">{displayName}</span>
-                  <span className="text-xs text-muted-foreground">{user?.email}</span>
+                  <span className="text-[11px] text-muted-foreground">{user?.email}</span>
                   {rolesLoaded ? (
                     <RoleBadge role={role} className="self-start mt-1" />
                   ) : (

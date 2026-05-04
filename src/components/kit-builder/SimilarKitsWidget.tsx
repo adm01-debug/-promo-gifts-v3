@@ -44,7 +44,7 @@ export function SimilarKitsWidget({ currentSkus, excludeId }: Props) {
           </>
         )}
         {!isLoading && (data ?? []).length === 0 && (
-          <p className="text-xs text-muted-foreground">
+          <p className="text-[11px] text-muted-foreground">
             Nenhum template parecido. Continue montando — sua criação é única!
           </p>
         )}

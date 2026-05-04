@@ -18,7 +18,7 @@ export function MagicUpLogoLibrary({ logos, activeLogoUrl, onUseLogo, onAddCurre
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-2">
-        <Label className="text-xs text-muted-foreground">Biblioteca de logos</Label>
+        <Label className="text-[11px] text-muted-foreground">Biblioteca de logos</Label>
         <Button type="button" variant="outline" size="sm" className="h-8 gap-1.5 text-xs" onClick={onAddCurrentLogo}>
           <ImagePlus className="h-3.5 w-3.5" /> Adicionar logo atual
         </Button>

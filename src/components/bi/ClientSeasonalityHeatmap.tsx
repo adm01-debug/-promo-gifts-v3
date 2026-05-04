@@ -272,14 +272,14 @@ export function ClientSeasonalityHeatmap({ clientId, ramoAtividade }: Props) {
                 <div className="text-lg font-bold text-foreground">
                   {SEASONALITY_MONTH_LABELS_FULL[seasonality.nextPeakMonth - 1]}
                 </div>
-                <div className="text-xs text-muted-foreground">
+                <div className="text-[11px] text-muted-foreground">
                   {seasonality.daysToNextPeak === 0
                     ? "Estamos no pico agora!"
                     : `em ${seasonality.daysToNextPeak} dia${seasonality.daysToNextPeak === 1 ? "" : "s"}`}
                 </div>
               </div>
             ) : (
-              <div className="text-xs text-muted-foreground">Sem padrão sazonal claro identificado.</div>
+              <div className="text-[11px] text-muted-foreground">Sem padrão sazonal claro identificado.</div>
             )}
           </div>
 

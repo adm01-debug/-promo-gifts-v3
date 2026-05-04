@@ -193,7 +193,7 @@ export function KitPresentablePreview({
             </Button>
           ) : (
             <div className="rounded-lg border bg-muted/30 p-3 space-y-2">
-              <p className="text-xs text-muted-foreground">Link válido por 30 dias</p>
+              <p className="text-[11px] text-muted-foreground">Link válido por 30 dias</p>
               <div className="flex gap-2">
                 <input
                   readOnly

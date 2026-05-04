@@ -124,7 +124,7 @@ export function ProductSearchCombobox({
                 <p className="text-sm font-medium text-foreground truncate">
                   {selectedProduct.name}
                 </p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-[11px] text-muted-foreground">
                   SKU: {selectedProduct.sku}
                 </p>
               </div>

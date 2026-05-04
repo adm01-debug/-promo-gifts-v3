@@ -159,7 +159,7 @@ function AlertRow({ alert }: { alert: BridgeAlert }) {
           {' — '}
           {alert.metric === 'p95' ? 'p95 latência' : 'tam. médio resp.'}
         </p>
-        <p className="text-xs text-muted-foreground">
+        <p className="text-[11px] text-muted-foreground">
           atual <span className="font-mono">{valueStr}</span> · limite <span className="font-mono">{limitStr}</span> · {alert.count} amostras
         </p>
       </div>

@@ -153,7 +153,7 @@ export function SecurityDashboard() {
               {recommendations.map((rec, idx) => (
                 <div key={idx} className="flex items-start gap-3 p-3 rounded-lg bg-background">
                   <div className={`p-2 rounded-full ${rec.priority === 'high' ? 'bg-destructive/10 text-destructive' : 'bg-orange/10 text-orange'}`}>{rec.icon}</div>
-                  <div className="flex-1"><h4 className="font-medium text-sm">{rec.title}</h4><p className="text-xs text-muted-foreground">{rec.description}</p></div>
+                  <div className="flex-1"><h4 className="font-medium text-sm">{rec.title}</h4><p className="text-[11px] text-muted-foreground">{rec.description}</p></div>
                   <Badge variant={rec.priority === 'high' ? 'destructive' : 'secondary'}>{rec.priority === 'high' ? 'Alta' : 'Média'}</Badge>
                 </div>
               ))}
@@ -188,7 +188,7 @@ export function SecurityDashboard() {
                           {attempt.success ? <CheckCircle2 className="h-4 w-4 text-success" /> : <XCircle className="h-4 w-4 text-destructive" />}
                           <div>
                             <p className="text-sm font-medium">{attempt.ip_address}</p>
-                            <p className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(attempt.created_at), { addSuffix: true, locale: ptBR })}</p>
+                            <p className="text-[11px] text-muted-foreground">{formatDistanceToNow(new Date(attempt.created_at), { addSuffix: true, locale: ptBR })}</p>
                           </div>
                         </div>
                         <Badge variant={attempt.success ? 'default' : 'destructive'}>{attempt.success ? 'Sucesso' : 'Falha'}</Badge>
@@ -222,7 +222,7 @@ export function SecurityDashboard() {
                       <div className="text-center py-8">
                         <CheckCircle2 className="h-12 w-12 text-success mx-auto mb-2" />
                         <p className="text-sm font-medium">Tudo seguro!</p>
-                        <p className="text-xs text-muted-foreground">Nenhum alerta de segurança pendente</p>
+                        <p className="text-[11px] text-muted-foreground">Nenhum alerta de segurança pendente</p>
                       </div>
                     )}
                   </div>

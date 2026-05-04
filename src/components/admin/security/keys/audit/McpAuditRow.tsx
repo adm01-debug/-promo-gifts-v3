@@ -43,7 +43,7 @@ export function McpAuditRow({ row }: Props) {
             <Badge variant="destructive" className="text-xs">ESCALAÇÃO</Badge>
           )}
         </div>
-        <span className="text-xs text-muted-foreground">
+        <span className="text-[11px] text-muted-foreground">
           {format(new Date(row.created_at), "dd/MM/yyyy HH:mm:ss", { locale: ptBR })}
         </span>
       </div>

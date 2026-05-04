@@ -100,7 +100,7 @@ export const NoveltyGridCard = memo(function NoveltyGridCard({ product, onClick,
                   <span className="text-base sm:text-xl font-display font-bold text-foreground">{formatPrice(product.base_price)}</span>
                 </>
               ) : (
-                <span className="text-xs text-muted-foreground">Preço sob consulta</span>
+                <span className="text-[11px] text-muted-foreground">Preço sob consulta</span>
               )}
             </div>
             <div className="flex flex-col items-end gap-0.5 sm:gap-1">

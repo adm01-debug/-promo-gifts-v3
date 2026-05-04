@@ -92,7 +92,7 @@ function NextTierHint({ currentQty }: { currentQty: number }) {
         <TrendingDown className="h-3.5 w-3.5 text-primary" />
         Próxima faixa de desconto
       </div>
-      <div className="text-xs text-muted-foreground">
+      <div className="text-[11px] text-muted-foreground">
         Faltam <span className="font-bold text-foreground">{unitsNeeded} {unitsNeeded === 1 ? "unidade" : "unidades"}</span> para a faixa de{" "}
         <span className="font-bold text-foreground">{nextTierLabel} un</span>
       </div>

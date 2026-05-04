@@ -379,7 +379,7 @@ export function StepSpecs({ wizard }: StepSpecsProps) {
                 <p className="font-bold text-primary">
                   {formatCurrency(estimate.totalPrice)}
                 </p>
-                <p className="text-xs text-muted-foreground">total gravação</p>
+                <p className="text-[11px] text-muted-foreground">total gravação</p>
               </div>
             )}
           </div>

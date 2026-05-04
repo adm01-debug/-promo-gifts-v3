@@ -112,7 +112,7 @@ export function RotateSecretConfirmDialog({
             <Label htmlFor="rotation-notes" className="text-sm">
               Motivo <span className="text-muted-foreground">(opcional)</span>
             </Label>
-            <span className="text-xs text-muted-foreground">
+            <span className="text-[11px] text-muted-foreground">
               {notes.length}/{MAX_NOTES}
             </span>
           </div>

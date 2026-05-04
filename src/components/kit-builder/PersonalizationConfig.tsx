@@ -282,7 +282,7 @@ function ItemPersonalizationCard({
             {currentTech?.usa_dimensao && (
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Largura (cm) <span className="text-xs text-muted-foreground">máx {currentTech.efetiva_largura_max}</span></Label>
+                  <Label>Largura (cm) <span className="text-[11px] text-muted-foreground">máx {currentTech.efetiva_largura_max}</span></Label>
                   <Input
                     type="number"
                     step="0.1"
@@ -296,7 +296,7 @@ function ItemPersonalizationCard({
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Altura (cm) <span className="text-xs text-muted-foreground">máx {currentTech.efetiva_altura_max}</span></Label>
+                  <Label>Altura (cm) <span className="text-[11px] text-muted-foreground">máx {currentTech.efetiva_altura_max}</span></Label>
                   <Input
                     type="number"
                     step="0.1"
@@ -386,7 +386,7 @@ export function PersonalizationConfig({
           <AlertTriangle className="h-4 w-4 text-warning flex-shrink-0" />
           <div>
             <p className="font-medium text-warning">Quantidade baixa para personalização</p>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-[11px] text-muted-foreground">
               A maioria das técnicas de gravação exige lote mínimo de 50 unidades.
               Com {kitQuantity} {kitQuantity === 1 ? 'kit' : 'kits'}, o custo por unidade pode ser significativamente maior.
             </p>

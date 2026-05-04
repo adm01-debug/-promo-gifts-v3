@@ -118,7 +118,7 @@ export function SaveTemplateDialog({ cart, onSave }: { cart: SellerCart; onSave:
         <div className="space-y-3">
           <Input placeholder='Ex: "Kit Onboarding"' value={name} onChange={(e) => setName(e.target.value)} />
           <Textarea placeholder="Descrição opcional..." value={desc} onChange={(e) => setDesc(e.target.value)} rows={2} />
-          <p className="text-xs text-muted-foreground">{cart.items.length} itens serão salvos no template</p>
+          <p className="text-[11px] text-muted-foreground">{cart.items.length} itens serão salvos no template</p>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
@@ -170,7 +170,7 @@ export function LoadTemplateDialog({
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-semibold">{t.name}</p>
-                    {t.description && <p className="text-xs text-muted-foreground">{t.description}</p>}
+                    {t.description && <p className="text-[11px] text-muted-foreground">{t.description}</p>}
                     <p className="text-[10px] text-muted-foreground mt-1">{t.items.length} itens</p>
                   </div>
                   <div className="flex gap-1.5">

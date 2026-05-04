@@ -119,7 +119,7 @@ export function ClientLookalikes({ clientId, ramoAtividade }: Props) {
             </div>
             <div>
               <h2 className="font-display font-semibold">Clientes parecidos também compram</h2>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-[11px] text-muted-foreground">
                 Produtos comprados por outras {data.lookalikeCount} empresas de{" "}
                 <span className="font-medium">{ramoAtividade}</span> · que este cliente ainda NÃO leva
               </p>

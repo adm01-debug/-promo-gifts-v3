@@ -69,7 +69,7 @@ export function KitTemplatePreviewDialog({
             <div className="p-3 rounded-lg border bg-muted/30">
               <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Embalagem</p>
               <p className="font-medium text-sm">{box.name || 'Caixa selecionada'}</p>
-              {box.sku && <p className="text-xs text-muted-foreground">SKU: {box.sku}</p>}
+              {box.sku && <p className="text-[11px] text-muted-foreground">SKU: {box.sku}</p>}
             </div>
           )}
 
@@ -87,10 +87,10 @@ export function KitTemplatePreviewDialog({
                     <li key={i} className="p-3 flex items-center justify-between gap-3 text-sm">
                       <div className="min-w-0">
                         <p className="font-medium truncate">{item.name || `Item ${i + 1}`}</p>
-                        {item.sku && <p className="text-xs text-muted-foreground">{item.sku}</p>}
+                        {item.sku && <p className="text-[11px] text-muted-foreground">{item.sku}</p>}
                       </div>
                       <div className="text-right shrink-0">
-                        <p className="text-xs text-muted-foreground">x{item.quantity ?? 1}</p>
+                        <p className="text-[11px] text-muted-foreground">x{item.quantity ?? 1}</p>
                         {typeof item.price === 'number' && (
                           <p className="text-xs font-medium">{formatCurrency(item.price)}</p>
                         )}

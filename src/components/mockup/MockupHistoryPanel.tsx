@@ -159,7 +159,7 @@ export function MockupHistoryPanel({
         {/* Filters */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-muted/30 rounded-lg">
           <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">Cliente</Label>
+            <Label className="text-[11px] text-muted-foreground">Cliente</Label>
             <Select value={filterClient} onValueChange={(v) => { setFilterClient(v); setCurrentPage(1); }}>
               <SelectTrigger className="h-9"><SelectValue placeholder="Todos" /></SelectTrigger>
               <SelectContent>
@@ -170,12 +170,12 @@ export function MockupHistoryPanel({
             </Select>
           </div>
           <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">Produto</Label>
+            <Label className="text-[11px] text-muted-foreground">Produto</Label>
             <Input placeholder="Buscar por nome ou SKU..." value={filterProduct}
               onChange={(e) => { setFilterProduct(e.target.value); setCurrentPage(1); }} className="h-9" />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">Técnica</Label>
+            <Label className="text-[11px] text-muted-foreground">Técnica</Label>
             <Select value={filterTechnique} onValueChange={(v) => { setFilterTechnique(v); setCurrentPage(1); }}>
               <SelectTrigger className="h-9"><SelectValue placeholder="Todas" /></SelectTrigger>
               <SelectContent>
@@ -307,7 +307,7 @@ const MockupGridCard = memo(({ mockup, isCompareSelected, onToggleCompare, onOpe
       </div>
       <div className="p-3 space-y-1.5 border-t bg-gradient-to-t from-muted/50 to-transparent">
         <Tooltip><TooltipTrigger asChild><span className="font-medium text-sm truncate cursor-default block">{mockup.product_name}</span></TooltipTrigger>
-          <TooltipContent><p>{mockup.product_name}</p>{mockup.product_sku && <p className="text-xs text-muted-foreground">SKU: {mockup.product_sku}</p>}</TooltipContent></Tooltip>
+          <TooltipContent><p>{mockup.product_name}</p>{mockup.product_sku && <p className="text-[11px] text-muted-foreground">SKU: {mockup.product_sku}</p>}</TooltipContent></Tooltip>
         {mockup.product_sku && <span className="text-[10px] text-muted-foreground font-mono">{mockup.product_sku}</span>}
         <div className="flex flex-wrap items-center gap-1">
           <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{mockup.technique_name}</Badge>

@@ -46,7 +46,7 @@ export function QuoteVersionsList({ quoteId, parentQuoteId }: QuoteVersionsListP
           </div>
           <div className="flex items-center gap-2">
             {v.is_latest_version && <Badge variant="default">Atual</Badge>}
-            <span className="text-xs text-muted-foreground">
+            <span className="text-[11px] text-muted-foreground">
               {new Date(v.created_at).toLocaleDateString("pt-BR")}
             </span>
           </div>

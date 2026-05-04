@@ -215,7 +215,7 @@ export function BITourGuide({ force = false, onClose }: Props) {
               variant="ghost"
               size="sm"
               onClick={finish}
-              className="text-xs text-muted-foreground"
+              className="text-[11px] text-muted-foreground"
             >
               Pular
             </Button>

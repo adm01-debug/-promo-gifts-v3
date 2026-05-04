@@ -256,7 +256,7 @@ export function TechniqueSLACard({
                       <div className="text-lg font-bold text-foreground">
                         {formatCurrency(totalCost)}
                       </div>
-                      <div className="text-xs text-muted-foreground">
+                      <div className="text-[11px] text-muted-foreground">
                         p/ {quantity} un.
                       </div>
                       {technique.setup_cost ? (

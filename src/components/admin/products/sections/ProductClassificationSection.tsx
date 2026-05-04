@@ -75,7 +75,7 @@ function ClassificationCard({ title, subtitle, icon: Icon, iconColor, children, 
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-foreground">{title}</p>
-          <p className="text-xs text-muted-foreground">{subtitle}</p>
+          <p className="text-[11px] text-muted-foreground">{subtitle}</p>
         </div>
         {disabled && (
           <Badge variant="outline" className="text-[10px] shrink-0 opacity-60">Salvar primeiro</Badge>
@@ -114,7 +114,7 @@ export default function ProductClassificationSection({
         </div>
         <div>
           <h3 className="font-display text-base font-bold text-foreground">Classificação & Vínculos</h3>
-          <p className="text-xs text-muted-foreground">Configure variações, materiais, tags e vínculos comerciais</p>
+          <p className="text-[11px] text-muted-foreground">Configure variações, materiais, tags e vínculos comerciais</p>
         </div>
       </div>
 

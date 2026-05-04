@@ -110,7 +110,7 @@ export function IndustryTrendingProducts({ ramoAtividade, clientId }: Props) {
                 Tendência do setor
                 {ramoAtividade && <span className="text-muted-foreground font-normal"> · {ramoAtividade}</span>}
               </h2>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-[11px] text-muted-foreground">
                 {data?.isMock
                   ? "Top produtos dos últimos 90 dias · setor"
                   : `Agregado de ${data?.companiesInRamo} empresas do mesmo ramo · 90 dias`}
@@ -277,7 +277,7 @@ export function IndustryTrendingProducts({ ramoAtividade, clientId }: Props) {
                   )}
                   <div className="flex-1 min-w-0">
                     <div className="font-medium text-sm truncate">{t.productName}</div>
-                    <div className="text-xs text-muted-foreground">{t.category}</div>
+                    <div className="text-[11px] text-muted-foreground">{t.category}</div>
                   </div>
 
                   {/* Status: cliente já compra? */}
@@ -294,11 +294,11 @@ export function IndustryTrendingProducts({ ramoAtividade, clientId }: Props) {
                   </div>
 
                   <div className="text-right shrink-0 hidden md:block">
-                    <div className="text-xs text-muted-foreground">unidades</div>
+                    <div className="text-[11px] text-muted-foreground">unidades</div>
                     <div className="font-semibold text-sm">{t.unitsSold.toLocaleString("pt-BR")}</div>
                   </div>
                   <div className="text-right shrink-0 hidden lg:block">
-                    <div className="text-xs text-muted-foreground">preço médio</div>
+                    <div className="text-[11px] text-muted-foreground">preço médio</div>
                     <div className="font-semibold text-sm">{fmtBRL(t.avgPrice)}</div>
                   </div>
                   <Trend.icon className={cn("h-4 w-4 shrink-0", Trend.className)} />

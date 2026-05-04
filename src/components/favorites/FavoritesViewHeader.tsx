@@ -76,7 +76,7 @@ export function FavoritesViewHeader({
               </Badge>
             )}
           </div>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-[11px] text-muted-foreground">
             {itemCount} {itemCount === 1 ? "item" : "itens"}
             {fallbackSubtitle && ` • ${fallbackSubtitle}`}
           </p>
@@ -113,7 +113,7 @@ export function FavoritesViewHeader({
             <FileText className="h-3.5 w-3.5" />
             Gerar Orçamento
           </Button>
-          <div className="text-xs text-muted-foreground">
+          <div className="text-[11px] text-muted-foreground">
             Valor potencial: <span className="font-semibold text-foreground">{formatCurrency(potentialValue)}</span>
           </div>
         </div>

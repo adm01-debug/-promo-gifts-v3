@@ -126,7 +126,7 @@ export function ProductSearch({ onSelect, selectedProduct }: ProductSearchProps)
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-medium truncate">{product.name}</p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-[11px] text-muted-foreground">
                     {product.sku} • {formatCurrency(product.price)}
                   </p>
                 </div>

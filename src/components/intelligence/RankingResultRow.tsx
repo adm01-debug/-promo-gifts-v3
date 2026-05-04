@@ -101,7 +101,7 @@ export function RankingResultRow({ product, index, topRevenue, searchQuery, form
 
       {/* Avg unit price — desktop */}
       <div className="hidden sm:block text-right">
-        <p className="text-xs text-muted-foreground">{formatCurrency(avgUnit)}</p>
+        <p className="text-[11px] text-muted-foreground">{formatCurrency(avgUnit)}</p>
         <p className="text-[9px] text-muted-foreground/70">p/ un.</p>
       </div>
 

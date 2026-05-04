@@ -316,7 +316,7 @@ export function ProductFiltersBar({ filters, onChange }: ProductFiltersBarProps)
                 min={0}
                 step={0.01}
               />
-              <span className="text-xs text-muted-foreground">–</span>
+              <span className="text-[11px] text-muted-foreground">–</span>
               <Input
                 type="number"
                 placeholder="Máx"

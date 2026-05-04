@@ -105,7 +105,7 @@ export function QuoteVersionHistory({ quoteId, currentQuoteId, onCreateVersion }
       </CardHeader>
       <CardContent className="pt-0">
         {versions.length <= 1 ? (
-          <p className="text-xs text-muted-foreground">
+          <p className="text-[11px] text-muted-foreground">
             Este é o orçamento original (v1). Crie uma nova versão para registrar alterações.
           </p>
         ) : (

@@ -100,7 +100,7 @@ export function PackagingModal({
               ) : (
                 <div className="flex flex-col items-center justify-center h-full bg-gradient-to-br from-secondary to-secondary/50">
                   <Package className="h-16 w-16 text-muted-foreground/30 mb-2" />
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-[11px] text-muted-foreground">
                     Imagem não disponível
                   </span>
                 </div>
@@ -123,7 +123,7 @@ export function PackagingModal({
                   {packingType}
                 </Badge>
                 {packagingContext && contextLabels[packagingContext] && (
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-[11px] text-muted-foreground">
                     {contextLabels[packagingContext]}
                   </span>
                 )}

@@ -50,7 +50,7 @@ export function KitPersonalizationPreview({ kitState, className }: KitPersonaliz
         </div>
 
         {!hasAnyPersonalization && (
-          <p className="text-xs text-muted-foreground">
+          <p className="text-[11px] text-muted-foreground">
             Configure gravação na etapa de personalização para ver o preview aqui.
           </p>
         )}

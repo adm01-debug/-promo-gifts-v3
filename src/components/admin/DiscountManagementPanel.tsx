@@ -235,7 +235,7 @@ export function DiscountManagementPanel() {
                               </div>
                               <div>
                                 <p className="font-medium text-sm">{seller.full_name || seller.email}</p>
-                                <p className="text-xs text-muted-foreground">{seller.email}</p>
+                                <p className="text-[11px] text-muted-foreground">{seller.email}</p>
                               </div>
                             </div>
                             <div className="flex items-center gap-2">

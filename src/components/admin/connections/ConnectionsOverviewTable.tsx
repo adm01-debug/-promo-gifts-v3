@@ -454,7 +454,7 @@ export function ConnectionsOverviewTable({ refreshSignal }: ConnectionsOverviewT
                       </TableCell>
                       <TableCell>
                         {failCount === 0 ? (
-                          <span className="text-xs text-muted-foreground">—</span>
+                          <span className="text-[11px] text-muted-foreground">—</span>
                         ) : (
                           <Tooltip>
                             <TooltipTrigger asChild>
@@ -526,7 +526,7 @@ export function ConnectionsOverviewTable({ refreshSignal }: ConnectionsOverviewT
                             </TooltipContent>
                           </Tooltip>
                         ) : (
-                          <span className="text-xs text-muted-foreground">—</span>
+                          <span className="text-[11px] text-muted-foreground">—</span>
                         )}
                       </TableCell>
                       <TableCell className="text-right">

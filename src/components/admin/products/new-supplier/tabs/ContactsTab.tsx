@@ -19,7 +19,7 @@ export function ContactsTab({ contacts, updateContact, addContact, removeContact
   return (
     <div className="space-y-3 pt-3">
       <div className="flex items-center justify-between mb-1">
-        <p className="text-xs text-muted-foreground">Adicione os contatos do fornecedor</p>
+        <p className="text-[11px] text-muted-foreground">Adicione os contatos do fornecedor</p>
         <Button type="button" variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={addContact}>
           <UserPlus className="h-3.5 w-3.5" /> Adicionar Contato
         </Button>

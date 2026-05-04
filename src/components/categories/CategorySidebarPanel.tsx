@@ -272,7 +272,7 @@ export function CategorySidebarPanel({
         <div className="text-center text-destructive">
           <Folder className="w-8 h-8 mx-auto mb-2 opacity-50" />
           <p className="text-sm font-medium">Erro ao carregar</p>
-          <p className="text-xs text-muted-foreground">{error}</p>
+          <p className="text-[11px] text-muted-foreground">{error}</p>
         </div>
       </div>
     );

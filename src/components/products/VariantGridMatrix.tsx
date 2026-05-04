@@ -84,7 +84,7 @@ export function VariantGridMatrix({ variants, selectedId, onSelect, mode = "view
                     {formatStock(stock)}
                   </span>
                 </button></TooltipTrigger>
-                <TooltipContent>{variant.sku && <p className="font-mono text-xs">{variant.sku}</p>}<p>{stock} un. em estoque</p>{isAdmin && <p className="text-xs text-muted-foreground">Clique para selecionar</p>}</TooltipContent>
+                <TooltipContent>{variant.sku && <p className="font-mono text-xs">{variant.sku}</p>}<p>{stock} un. em estoque</p>{isAdmin && <p className="text-[11px] text-muted-foreground">Clique para selecionar</p>}</TooltipContent>
               </Tooltip>
             );
           })}

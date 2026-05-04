@@ -85,7 +85,7 @@ export function RlsAuditPanel() {
             <div key={table} className="border rounded-lg overflow-hidden">
               <div className="px-3 py-2 bg-muted/40 font-medium text-sm flex items-center justify-between">
                 <span><code>{table}</code></span>
-                <span className="text-xs text-muted-foreground">
+                <span className="text-[11px] text-muted-foreground">
                   {rows.filter((r) => r.passed).length}/{rows.length}
                 </span>
               </div>

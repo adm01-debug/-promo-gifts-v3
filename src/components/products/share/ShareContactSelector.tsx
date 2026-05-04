@@ -157,7 +157,7 @@ export function ShareContactSelector({ onSelect, selection }: ShareContactSelect
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium truncate">{selectedCompany.name}</p>
             {selectedCompany.cnpj && (
-              <p className="text-xs text-muted-foreground">{selectedCompany.cnpj}</p>
+              <p className="text-[11px] text-muted-foreground">{selectedCompany.cnpj}</p>
             )}
           </div>
           <button type="button" onClick={handleClear} className="text-muted-foreground hover:text-foreground" aria-label="Fechar">
@@ -252,7 +252,7 @@ export function ShareContactSelector({ onSelect, selection }: ShareContactSelect
                   <Building2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="font-medium truncate">{c.name}</p>
-                    {c.cnpj && <p className="text-xs text-muted-foreground">{c.cnpj}</p>}
+                    {c.cnpj && <p className="text-[11px] text-muted-foreground">{c.cnpj}</p>}
                   </div>
                 </button>
               ))}

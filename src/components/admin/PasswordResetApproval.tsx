@@ -153,7 +153,7 @@ export function PasswordResetApproval() {
                       <span className="text-sm">{request.email}</span>
                       {getStatusBadge(request.status)}
                     </div>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-[11px] text-muted-foreground">
                       Processado em {request.reviewed_at && format(new Date(request.reviewed_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                     </p>
                     {request.reviewer_notes && (

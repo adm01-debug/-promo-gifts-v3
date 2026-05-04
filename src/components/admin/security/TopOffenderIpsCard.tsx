@@ -80,7 +80,7 @@ export function TopOffenderIpsCard() {
       </CardHeader>
       <CardContent className="pt-0">
         {!loading && rows.length === 0 && (
-          <p className="text-xs text-muted-foreground">Nenhuma atividade ofensiva nas últimas 24h.</p>
+          <p className="text-[11px] text-muted-foreground">Nenhuma atividade ofensiva nas últimas 24h.</p>
         )}
         {rows.length > 0 && (
           <div className="space-y-1.5">

@@ -58,7 +58,7 @@ export function LogoPreviewCanvas({
                   : "linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.7))",
             }}
           />
-          <span className="text-xs text-muted-foreground">
+          <span className="text-[11px] text-muted-foreground">
             Simulando: <span className="font-medium text-foreground">{techniqueName}</span>
           </span>
           <Badge variant="secondary" className="text-[10px] ml-auto">

@@ -318,7 +318,7 @@ export function InboundEventsPanel() {
               {pages > 1 && (
                 <div className="flex items-center justify-between p-2 border-t">
                   <Button size="sm" variant="ghost" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>Anterior</Button>
-                  <span className="text-xs text-muted-foreground">{page + 1} / {pages}</span>
+                  <span className="text-[11px] text-muted-foreground">{page + 1} / {pages}</span>
                   <Button size="sm" variant="ghost" disabled={page >= pages - 1} onClick={() => setPage((p) => p + 1)}>Próximo</Button>
                 </div>
               )}

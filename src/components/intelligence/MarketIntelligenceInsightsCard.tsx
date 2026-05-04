@@ -125,7 +125,7 @@ export function MarketIntelligenceInsightsCard({
               <Inbox className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
               <div className="space-y-1.5">
                 <p className="text-sm font-medium text-foreground">{data.summary}</p>
-                <p className="text-xs text-muted-foreground">{data.next_action}</p>
+                <p className="text-[11px] text-muted-foreground">{data.next_action}</p>
               </div>
             </div>
           ) : data ? (

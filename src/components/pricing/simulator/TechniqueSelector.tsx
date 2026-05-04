@@ -173,7 +173,7 @@ export function TechniqueSelector({
                   </div>
                   <div>
                     <p className="font-medium">{comp.name}</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-[11px] text-muted-foreground">
                       {comp.locations.length} {comp.locations.length === 1 ? 'local' : 'locais'}{' '}
                       disponíveis
                     </p>
@@ -214,7 +214,7 @@ export function TechniqueSelector({
                     </div>
                     <div>
                       <p className="font-medium">{loc.name}</p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-[11px] text-muted-foreground">
                         {maxWidth && maxHeight ? `${maxWidth}x${maxHeight}mm` : 'Área variável'}
                         {' • '}
                         {loc.techniques.length}{' '}
@@ -252,7 +252,7 @@ export function TechniqueSelector({
                     </div>
                     <div>
                       <p className="font-medium">{tech.areaName || tech.techniqueCode}</p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-[11px] text-muted-foreground">
                         {tech.techniqueCode && `Código: ${tech.techniqueCode}`}
                         {tech.maxColors && ` • Até ${tech.maxColors} cores`}
                         {tech.areaCm2 && ` • ${tech.areaCm2}cm²`}

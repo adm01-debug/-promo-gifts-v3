@@ -37,7 +37,7 @@ export function ClientAffinityProducts({ clientId }: Props) {
             </div>
             <div>
               <h2 className="font-display font-semibold">Produtos das categorias favoritas</h2>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-[11px] text-muted-foreground">
                 {data?.isMock
                   ? "Categorias preferidas + sugestões dentro de cada uma"
                   : `Baseado em ${data?.realProductsCount} produtos já orçados · agrupados por categoria`}

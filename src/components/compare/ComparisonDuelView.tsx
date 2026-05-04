@@ -100,7 +100,7 @@ export function ComparisonDuelView({ products, formatCurrency, onRemove, onProdu
       </h3>
       <p className="text-2xl font-bold text-primary tabular-nums">{formatCurrency(p.price)}</p>
       {p.supplier?.name && (
-        <p className="text-xs text-muted-foreground">por {p.supplier.name}</p>
+        <p className="text-[11px] text-muted-foreground">por {p.supplier.name}</p>
       )}
     </div>
   );
@@ -109,7 +109,7 @@ export function ComparisonDuelView({ products, formatCurrency, onRemove, onProdu
     <div className="space-y-6 rounded-2xl border-2 border-primary/20 bg-card p-4 sm:p-6 shadow-sm">
       <div className="flex items-center justify-center gap-3 pb-2">
         <Badge variant="outline" className="text-xs">⚔️ Modo Duelo</Badge>
-        <span className="text-xs text-muted-foreground">Comparação 1 a 1 com destaques</span>
+        <span className="text-[11px] text-muted-foreground">Comparação 1 a 1 com destaques</span>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] gap-6 items-start">

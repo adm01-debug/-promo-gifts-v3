@@ -150,7 +150,7 @@ export function BIAiCopilot({ open, onOpenChange, clientId, clientName, ramoAtiv
               <div className="space-y-3">
                 <div className="rounded-lg border border-dashed p-4 text-center space-y-2">
                   <Bot className="h-8 w-8 text-muted-foreground mx-auto" />
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-[11px] text-muted-foreground">
                     Faça uma pergunta sobre este cliente. Eu uso todos os dados do BI para responder.
                   </p>
                 </div>

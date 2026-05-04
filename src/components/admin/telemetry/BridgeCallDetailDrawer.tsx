@@ -146,7 +146,7 @@ export function BridgeCallDetailDrawer({ sample, open, onOpenChange }: Props) {
           </div>
 
           {/* Timestamps */}
-          <div className="text-xs text-muted-foreground">
+          <div className="text-[11px] text-muted-foreground">
             <p>
               <span className="font-medium text-foreground">Quando:</span>{' '}
               {new Date(sample.ts).toLocaleString('pt-BR')}

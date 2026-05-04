@@ -60,7 +60,7 @@ function AttemptRow({ row }: { row: StepUpAttemptRow }) {
           <ReasonBadge reason={row.reason} />
           {row.scope === "full" && <Badge variant="destructive" className="text-xs">FULL</Badge>}
         </div>
-        <span className="text-xs text-muted-foreground">
+        <span className="text-[11px] text-muted-foreground">
           {format(new Date(row.created_at), "dd/MM/yyyy HH:mm:ss", { locale: ptBR })}
         </span>
       </div>

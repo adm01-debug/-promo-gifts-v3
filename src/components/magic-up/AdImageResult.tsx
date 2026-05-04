@@ -309,7 +309,7 @@ export function AdImageResult({
                     <Copy className="h-3.5 w-3.5" /> Copiar WhatsApp
                   </Button>
                 </div>
-                <p className="text-xs text-muted-foreground">{copyPack.whatsapp}</p>
+                <p className="text-[11px] text-muted-foreground">{copyPack.whatsapp}</p>
               </div>
             )}
           </div>

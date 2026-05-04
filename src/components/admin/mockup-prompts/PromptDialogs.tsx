@@ -41,7 +41,7 @@ export function HistoryDialog({ open, label, history, loading, onClose, onRestor
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Badge variant="outline">v{entry.version}</Badge>
-                        <span className="text-xs text-muted-foreground">{new Date(entry.changed_at).toLocaleString("pt-BR")}</span>
+                        <span className="text-[11px] text-muted-foreground">{new Date(entry.changed_at).toLocaleString("pt-BR")}</span>
                       </div>
                       <Button variant="ghost" size="sm" onClick={() => onRestore(entry)}><RotateCcw className="h-3 w-3 mr-1" />Restaurar</Button>
                     </div>

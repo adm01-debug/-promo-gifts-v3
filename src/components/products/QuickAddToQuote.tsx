@@ -218,7 +218,7 @@ export function QuickAddToQuote({
                   +
                 </Button>
               </div>
-              <p className="text-xs text-muted-foreground">Mínimo: {minQuantity} un.</p>
+              <p className="text-[11px] text-muted-foreground">Mínimo: {minQuantity} un.</p>
             </div>
 
             <Button data-testid="product-card-add-to-cart" className="w-full gap-2" onClick={handleAddToQuote} disabled={isAdded || !activeCart}>

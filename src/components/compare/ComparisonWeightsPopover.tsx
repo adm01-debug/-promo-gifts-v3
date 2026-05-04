@@ -42,7 +42,7 @@ export function ComparisonWeightsPopover() {
               <RotateCcw className="h-3 w-3 mr-1" /> Reset
             </Button>
           </div>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-[11px] text-muted-foreground">
             Total: <span className={total === 100 ? "text-primary font-medium" : "text-amber-500 font-medium"}>{total}</span>
             {total !== 100 && " (normalizado automaticamente)"}
           </p>

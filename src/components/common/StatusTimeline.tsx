@@ -280,7 +280,7 @@ export function CurrentStatus({ status, label, since, className }: CurrentStatus
           {label}
         </p>
         {sinceDate && (
-          <p className="text-xs text-muted-foreground">
+          <p className="text-[11px] text-muted-foreground">
             desde {format(sinceDate, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
           </p>
         )}

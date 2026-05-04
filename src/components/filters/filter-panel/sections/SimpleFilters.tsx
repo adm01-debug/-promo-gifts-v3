@@ -70,7 +70,7 @@ export function PublicoFilter({
   setPublicoSearch: (v: string) => void;
   toggleArrayFilter: (key: keyof FilterState, value: string) => void;
 }) {
-  if (publicoAlvoOptions.length === 0) return <p className="text-xs text-muted-foreground">Carregando opções dos produtos...</p>;
+  if (publicoAlvoOptions.length === 0) return <p className="text-[11px] text-muted-foreground">Carregando opções dos produtos...</p>;
   return (
     <SearchableCheckboxList
       items={publicoAlvoOptions.map(p => ({ id: `pub-${p}`, label: toTitleCase(p) }))}
@@ -97,7 +97,7 @@ export function EndomarketingFilter({
   setEndoSearch: (v: string) => void;
   toggleArrayFilter: (key: keyof FilterState, value: string) => void;
 }) {
-  if (endomarketingOptions.length === 0) return <p className="text-xs text-muted-foreground">Carregando opções dos produtos...</p>;
+  if (endomarketingOptions.length === 0) return <p className="text-[11px] text-muted-foreground">Carregando opções dos produtos...</p>;
   return (
     <SearchableCheckboxList
       items={endomarketingOptions.map(e => ({ id: `endo-${e}`, label: toTitleCase(e) }))}

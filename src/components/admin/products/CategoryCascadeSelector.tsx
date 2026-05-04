@@ -358,7 +358,7 @@ export function CategoryCascadeSelector({ value, onChange, error }: CategoryCasc
             <FolderTree className="h-4 w-4 text-muted-foreground/60" />
           </div>
           <div>
-            <p className="text-xs text-muted-foreground">Nenhuma categoria selecionada</p>
+            <p className="text-[11px] text-muted-foreground">Nenhuma categoria selecionada</p>
             <p className="text-[11px] text-muted-foreground/50">Selecione uma categoria acima ou navegue pela árvore</p>
           </div>
         </div>

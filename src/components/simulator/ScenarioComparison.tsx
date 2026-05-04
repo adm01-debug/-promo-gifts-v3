@@ -112,9 +112,9 @@ export function ScenarioComparison({
                 className="p-3 rounded-lg bg-primary/10 border border-primary/30"
               >
                 <p className="font-medium text-sm truncate">{scenarioA.productName}</p>
-                <p className="text-xs text-muted-foreground">{scenarioA.quantity} un</p>
+                <p className="text-[11px] text-muted-foreground">{scenarioA.quantity} un</p>
                 <div className="mt-2 flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">Melhor:</span>
+                  <span className="text-[11px] text-muted-foreground">Melhor:</span>
                   <span className="font-bold text-primary">
                     {formatCurrency(scenarioA.bestOption?.grandTotal || 0)}
                   </span>
@@ -155,9 +155,9 @@ export function ScenarioComparison({
                 className="p-3 rounded-lg bg-primary/15 border border-primary/25"
               >
                 <p className="font-medium text-sm truncate">{scenarioB.productName}</p>
-                <p className="text-xs text-muted-foreground">{scenarioB.quantity} un</p>
+                <p className="text-[11px] text-muted-foreground">{scenarioB.quantity} un</p>
                 <div className="mt-2 flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">Melhor:</span>
+                  <span className="text-[11px] text-muted-foreground">Melhor:</span>
                   <span className="font-bold text-primary/80">
                     {formatCurrency(scenarioB.bestOption?.grandTotal || 0)}
                   </span>
@@ -202,7 +202,7 @@ export function ScenarioComparison({
                     <p className="font-bold text-lg">
                       {formatCurrency(scenarioA?.bestOption?.grandTotal || 0)}
                     </p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-[11px] text-muted-foreground">
                       {scenarioA?.bestOption?.estimatedDays}d
                     </p>
                     {comparison.winner === 'A' && (
@@ -251,7 +251,7 @@ export function ScenarioComparison({
                     <p className="font-bold text-lg">
                       {formatCurrency(scenarioB?.bestOption?.grandTotal || 0)}
                     </p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-[11px] text-muted-foreground">
                       {scenarioB?.bestOption?.estimatedDays}d
                     </p>
                     {comparison.winner === 'B' && (

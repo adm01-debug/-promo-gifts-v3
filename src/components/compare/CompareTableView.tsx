@@ -238,7 +238,7 @@ export function CompareTableView({
               <SimpleRow label="Cores disponíveis" products={products} render={(p) => (
                 <div className="flex flex-wrap justify-center gap-1">
                   {p.colors?.slice(0, 6).map((c: any, i: number) => <div key={i} className="w-5 h-5 rounded-full border border-border" style={{ backgroundColor: c.hex }} title={c.name} />)}
-                  {(p.colors?.length ?? 0) > 6 && <span className="text-xs text-muted-foreground">+{p.colors.length - 6}</span>}
+                  {(p.colors?.length ?? 0) > 6 && <span className="text-[11px] text-muted-foreground">+{p.colors.length - 6}</span>}
                 </div>
               )} />
               {showRow("materials") && (

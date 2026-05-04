@@ -219,7 +219,7 @@ export function ArtFileUpload({
               <FileText className="h-5 w-5 text-primary shrink-0" />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{att.original_name}</p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-[11px] text-muted-foreground">
                   {att.file_extension?.toUpperCase().replace(".", "")} • {formatBytes(att.file_size_bytes)}
                 </p>
               </div>

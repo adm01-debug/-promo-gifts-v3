@@ -51,7 +51,7 @@ export function KitComposition({ items, onViewProduct }: KitCompositionProps) {
             </div>
             <div className="text-left">
               <h3 className="font-display font-semibold text-foreground text-base">Composição do Kit</h3>
-              <span className="text-xs text-muted-foreground">{items.length} componentes • {stats.totalPieces} peças</span>
+              <span className="text-[11px] text-muted-foreground">{items.length} componentes • {stats.totalPieces} peças</span>
             </div>
           </div>
           <div className="flex items-center gap-2">

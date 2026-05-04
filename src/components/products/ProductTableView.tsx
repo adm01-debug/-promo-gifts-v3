@@ -219,7 +219,7 @@ export const ProductTableView = memo(function ProductTableView({
             if (!product) {
               return (
                 <div key="loader" style={{ position: "absolute", top: 0, left: 0, width: "100%", transform: `translateY(${vr.start}px)` }} className="py-8 flex flex-col items-center gap-2">
-                  <p className="text-xs text-muted-foreground">Mostrando {sorted.length} de {(totalEstimate ?? filteredCount ?? sorted.length).toLocaleString("pt-BR")} produtos</p>
+                  <p className="text-[11px] text-muted-foreground">Mostrando {sorted.length} de {(totalEstimate ?? filteredCount ?? sorted.length).toLocaleString("pt-BR")} produtos</p>
                   {isLoadingMore && <Loader2 className="h-5 w-5 animate-spin text-primary" />}
                   <div ref={loadMoreRef} className="h-1" />
                 </div>

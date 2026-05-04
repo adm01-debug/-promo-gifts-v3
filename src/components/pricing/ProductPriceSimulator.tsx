@@ -296,7 +296,7 @@ export function ProductPriceSimulator({ className }: ProductPriceSimulatorProps)
               <Check className="w-5 h-5 text-success shrink-0" />
               <div className="flex-1 min-w-0">
                 <span className="font-medium truncate block">{selectedProduct.name}</span>
-                <span className="text-xs text-muted-foreground">SKU: {selectedProduct.sku}</span>
+                <span className="text-[11px] text-muted-foreground">SKU: {selectedProduct.sku}</span>
               </div>
               <Badge variant="secondary">{formatCurrency(selectedProduct.price)}</Badge>
             </div>
@@ -372,7 +372,7 @@ export function ProductPriceSimulator({ className }: ProductPriceSimulatorProps)
                       <Check className="w-5 h-5 text-success shrink-0" />
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-sm">{currentTechnique.techniqueName}</p>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-[11px] text-muted-foreground">
                           {currentTechnique.componentName} → {currentTechnique.locationName}
                         </p>
                       </div>

@@ -26,7 +26,7 @@ export function KitPricingCard({ kitState, kitQuantity, onKitQuantityChange }: K
               <div key={index} className={cn("flex items-center justify-between py-2", item.isPersonalization && "text-primary pl-4")}>
                 <div className="flex items-center gap-2">
                   <span className={cn(item.isPersonalization && "text-sm")}>{item.label}</span>
-                  {item.quantity && item.quantity > 1 && <span className="text-xs text-muted-foreground">({item.quantity}x {formatCurrency(item.unitPrice)})</span>}
+                  {item.quantity && item.quantity > 1 && <span className="text-[11px] text-muted-foreground">({item.quantity}x {formatCurrency(item.unitPrice)})</span>}
                 </div>
                 <span className={cn("font-medium", item.isPersonalization && "text-sm")}>{formatCurrency(item.totalPrice)}</span>
               </div>

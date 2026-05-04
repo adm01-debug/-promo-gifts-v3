@@ -196,7 +196,7 @@ export function ProductVariantSelector({
 
       {/* Selection summary */}
       {selectedVariant && (
-        <p className="text-xs text-muted-foreground">
+        <p className="text-[11px] text-muted-foreground">
           Selecionado: <strong>{selectedVariant.name}</strong>
           {selectedVariant.size_code && (
             <span className="ml-1">

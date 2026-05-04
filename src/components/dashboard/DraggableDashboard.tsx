@@ -319,7 +319,7 @@ export function WidgetPicker({ availableWidgets, onAddWidget, className }: Widge
         <div className="space-y-4">
           <div>
             <h4 className="font-semibold text-sm">Widgets Disponíveis</h4>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-[11px] text-muted-foreground">
               Clique para adicionar ao dashboard
             </p>
           </div>
@@ -339,7 +339,7 @@ export function WidgetPicker({ availableWidgets, onAddWidget, className }: Widge
                 <div>
                   <p className="font-medium text-sm">{config.title}</p>
                   {config.description && (
-                    <p className="text-xs text-muted-foreground">{config.description}</p>
+                    <p className="text-[11px] text-muted-foreground">{config.description}</p>
                   )}
                 </div>
               </button>

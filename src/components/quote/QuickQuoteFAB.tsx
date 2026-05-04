@@ -162,7 +162,7 @@ export function QuickQuoteFAB({ productId, productName }: QuickQuoteFABProps) {
                         <div className="text-sm font-medium text-foreground whitespace-nowrap">
                           {action.label}
                         </div>
-                        <div className="text-xs text-muted-foreground">
+                        <div className="text-[11px] text-muted-foreground">
                           {action.description}
                         </div>
                       </div>

@@ -61,7 +61,7 @@ export function KitVariantsManager({ kitMasterId, currentState, currentQuantity 
           </Button>
         </div>
 
-        {isLoading && <p className="text-xs text-muted-foreground">Carregando…</p>}
+        {isLoading && <p className="text-[11px] text-muted-foreground">Carregando…</p>}
 
         {variants.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -84,7 +84,7 @@ export function KitVariantsManager({ kitMasterId, currentState, currentQuantity 
                       <Trash2 className="h-3 w-3" />
                     </Button>
                   </div>
-                  <p className="text-xs text-muted-foreground">{itemsCount} {itemsCount === 1 ? 'item' : 'itens'} · qtd {v.kit_quantity}</p>
+                  <p className="text-[11px] text-muted-foreground">{itemsCount} {itemsCount === 1 ? 'item' : 'itens'} · qtd {v.kit_quantity}</p>
                   <p className="text-sm font-semibold text-primary">{formatCurrency(Number(v.total_price))}</p>
                 </div>
               );
@@ -93,7 +93,7 @@ export function KitVariantsManager({ kitMasterId, currentState, currentQuantity 
         )}
 
         {!isLoading && variants.length === 0 && (
-          <p className="text-xs text-muted-foreground">
+          <p className="text-[11px] text-muted-foreground">
             Nenhuma variante. Crie versões (P/M/G) para apresentar ao cliente lado a lado.
           </p>
         )}
