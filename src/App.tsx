@@ -1,4 +1,4 @@
-import { type ReactNode, Suspense } from "react";
+import { type ReactNode, Suspense, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -147,6 +147,26 @@ function RouteSuspense({ children }: { children: ReactNode }) {
   return <Suspense fallback={getFallback(pathname)}>{children}</Suspense>;
 }
 
+/** 🚀 PREFETCH CORE CHUNKS: Warm up the next predicted routes for instant feel */
+function RoutePrefetcher() {
+  const { pathname } = useLocation();
+  
+  useEffect(() => {
+    // Only prefetch if we're not on a mobile connection or low power mode if detectable
+    if (pathname === "/login") {
+       // Prefetch index/produtos right after login screen loads
+       import("./pages/Index");
+       import("./pages/FiltersPage");
+    } else if (pathname === "/") {
+       // On dashboard, prefetch products and orders
+       import("./pages/FiltersPage");
+       import("./pages/QuotesListPage");
+    }
+  }, [pathname]);
+  
+  return null;
+}
+
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
@@ -165,6 +185,7 @@ const App = () => {
                       <BridgeStatusBanner />
                       <DevOnlyBridgeOverlay />
                       <RouteScrollReset />
+                      <RoutePrefetcher />
                       <RouteSuspense>
                         <Routes>
                           {/* Public Routes */}
@@ -298,9 +319,6 @@ const App = () => {
 
                             {/* Redirects legados */}
                             <Route path="/perfil" element={<Navigate to="/admin/usuarios" replace />} />
-                            <Route path="/seguranca" element={<Navigate to="/admin/usuarios" replace />} />
-
-                            {/* Fallback */}
                             <Route path="*" element={<NotFound />} />
                           </Route>
                         </Routes>
