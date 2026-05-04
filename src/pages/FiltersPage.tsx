@@ -266,7 +266,7 @@ export default function FiltersPage() {
                       </AnimatePresence>
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>
+                  <TooltipContent className="bg-primary text-primary-foreground border-primary text-[11px]">
                     {state.selectionMode ? "Sair do modo de seleção" : "Selecionar vários produtos para ações em massa"}
                   </TooltipContent>
                 </Tooltip>
