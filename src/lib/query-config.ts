@@ -12,25 +12,25 @@ import { QueryClient, type DefaultOptions } from '@tanstack/react-query';
 
 export const CACHE_TIMES = {
   // Dados muito estáveis - raramente mudam
-  VERY_STABLE: 60 * 60 * 1000, // 1 hora
+  VERY_STABLE: 24 * 60 * 60 * 1000, // 24 hours
   
   // Dados estáveis - podem mudar ocasionalmente
-  STABLE: 30 * 60 * 1000, // 30 minutos
+  STABLE: 60 * 60 * 1000, // 1 hour
   
   // Dados de técnicas - fonte externa, atualização moderada
-  TECNICAS: 15 * 60 * 1000, // 15 minutos
+  TECNICAS: 30 * 60 * 1000, // 30 minutes
   
   // Dados de tabelas de preço - atualização moderada
-  TABELAS_PRECO: 10 * 60 * 1000, // 10 minutos
+  TABELAS_PRECO: 20 * 60 * 1000, // 20 minutes
   
   // Dados de produtos - podem ter atualizações frequentes
-  PRODUTOS: 5 * 60 * 1000, // 5 minutos
+  PRODUTOS: 10 * 60 * 1000, // 10 minutes
   
   // Dados dinâmicos - mudam frequentemente
-  DYNAMIC: 2 * 60 * 1000, // 2 minutos
+  DYNAMIC: 5 * 60 * 1000, // 5 minutes
   
   // Dados em tempo real - sempre frescos
-  REALTIME: 30 * 1000, // 30 segundos
+  REALTIME: 1 * 60 * 1000, // 1 minute
   
   // Sem cache
   NONE: 0,
