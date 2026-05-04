@@ -22,6 +22,7 @@ const buttonVariants = cva(
         premium: "bg-success text-success-foreground shadow-medium hover:shadow-premium-hover hover:scale-[1.02] active:scale-[0.98] active:shadow-premium border border-white/30",
         // Variante success para ações de confirmação
         success: "bg-success text-success-foreground hover:bg-success/90 shadow-md active:shadow-inner border border-success/20",
+        gradient: "bg-gradient-primary text-primary-foreground hover:shadow-premium-hover active:scale-[0.98] border border-white/20 shadow-md",
       },
       size: {
         default: "h-10 px-4 py-2 min-h-[44px]",
