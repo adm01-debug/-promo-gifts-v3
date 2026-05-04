@@ -161,7 +161,15 @@ html[data-scroll-locked] body {
     --gradient-success: linear-gradient(135deg, hsl(var(--success)) 0%, hsl(142 100% 45%) 100%);
     --gradient-highlight: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(38 100% 55%) 100%);
     --gradient-card: linear-gradient(180deg, hsl(var(--card)) 0%, hsl(var(--surface)) 100%);
-
+    
+    /* 13. Premium Badge & Status Tokens */
+    --status-badge-font-size: 11px;
+    --status-badge-font-weight: 800;
+    --status-badge-letter-spacing: 0.1em;
+    --status-badge-radius: var(--radius-xl);
+    --status-badge-padding-x: 0.5rem;
+    --status-badge-padding-y: 0.125rem;
+    
     /* 12. Glassmorphism Tokens */
     --glass-background: 0 0% 100% / 0.7;
     --glass-border: 0 0% 100% / 0.2;
@@ -265,6 +273,28 @@ html[data-scroll-locked] body {
 }
 
 @layer components {
+  /* Premium Badge & Status Base */
+  .badge-premium {
+    font-size: var(--status-badge-font-size);
+    font-weight: var(--status-badge-font-weight);
+    letter-spacing: var(--status-badge-letter-spacing);
+    border-radius: var(--status-badge-radius);
+    padding: var(--status-badge-padding-y) var(--status-badge-padding-x);
+    @apply inline-flex items-center uppercase tracking-widest border transition-all duration-300;
+  }
+
+  .badge-premium-destructive {
+    @apply badge-premium bg-destructive/10 text-destructive border-destructive/20 shadow-sm;
+  }
+
+  .badge-premium-mono {
+    @apply badge-premium font-mono bg-muted/30 text-muted-foreground border-border/20 shadow-sm;
+  }
+
+  .badge-premium-primary {
+    @apply badge-premium bg-primary/10 text-primary border-primary/20 shadow-sm;
+  }
+
   /* Premium Icon Wrapper */
   .icon-premium {
     @apply flex items-center justify-center transition-all duration-300;

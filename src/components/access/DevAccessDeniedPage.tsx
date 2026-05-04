@@ -237,7 +237,7 @@ export function DevAccessDeniedPage({
 
           <div className="space-y-4 w-full">
             <div className="space-y-1">
-              <span className="inline-block text-[11px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-xl bg-destructive/10 text-destructive border border-destructive/20">
+              <span className="badge-premium-destructive">
                 {copy.badge} · 403
               </span>
               <h1
@@ -268,7 +268,7 @@ export function DevAccessDeniedPage({
               <p className="text-[11px] font-medium text-muted-foreground/50 uppercase tracking-widest">
                 Identificador de Segurança
               </p>
-              <p className="text-[11px] font-mono text-muted-foreground mt-1 bg-muted/30 py-1 px-2 rounded-xl inline-block border border-border/20">
+              <p className="badge-premium-mono mt-1">
                 {securityId}
               </p>
             </div>
