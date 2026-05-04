@@ -1,5 +1,5 @@
 const { jsPDF } = require('jspdf');
-require('jspdf-autotable');
+const autoTable = require('jspdf-autotable').default;
 
 const doc = new jsPDF({
   orientation: 'p',
