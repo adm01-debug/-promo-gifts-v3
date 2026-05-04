@@ -391,7 +391,7 @@ export const NotificationBell = React.forwardRef<HTMLDivElement, NotificationBel
                     <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={clearAll} aria-label="Excluir"><Trash2 className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>Limpar todas</TooltipContent>
+                  <TooltipContent className="bg-primary text-primary-foreground border-primary text-[11px]">Limpar todas</TooltipContent>
                 </Tooltip>
               )}
             </div>
