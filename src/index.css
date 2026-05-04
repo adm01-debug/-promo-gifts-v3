@@ -109,7 +109,7 @@ html[data-scroll-locked] body {
     --radius-xl: 1.5rem;
     --radius-2xl: 2rem;
     --radius-full: 9999px;
-    --radius: 0.75rem;
+    --radius: var(--radius-sm);
 
     /* 8b. Border Width Tokens */
     --border-width: 1px;

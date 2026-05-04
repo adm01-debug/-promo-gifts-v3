@@ -115,8 +115,8 @@ export function SecurityAnalytics({ botLogs, onBlockIp }: Props) {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.4} />
-                <XAxis dataKey="hour" stroke="hsl(var(--muted-foreground))" fontSize={11} />
-                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} allowDecimals={false} />
+                <XAxis dataKey="hour" stroke="hsl(var(--muted-foreground))" fontSize={10} fontWeight={700} tickFormatter={(v) => v.toUpperCase()} />
+                <YAxis stroke="hsl(var(--muted-foreground))" fontSize={10} fontWeight={700} allowDecimals={false} />
                 <Tooltip
                   contentStyle={{
                     background: "hsl(var(--popover))",
@@ -145,10 +145,10 @@ export function SecurityAnalytics({ botLogs, onBlockIp }: Props) {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>IP</TableHead>
-                  <TableHead className="text-right">Total</TableHead>
-                  <TableHead className="text-right">Block</TableHead>
-                  <TableHead>Razões</TableHead>
+                  <TableHead className="text-[10px] font-bold uppercase tracking-wider">IP</TableHead>
+                  <TableHead className="text-right text-[10px] font-bold uppercase tracking-wider">Total</TableHead>
+                  <TableHead className="text-right text-[10px] font-bold uppercase tracking-wider">Block</TableHead>
+                  <TableHead className="text-[10px] font-bold uppercase tracking-wider">Razões</TableHead>
                   <TableHead />
                 </TableRow>
               </TableHeader>
@@ -221,7 +221,7 @@ export function SecurityAnalytics({ botLogs, onBlockIp }: Props) {
             {topReasons.length === 0 ? (
               <span className="text-[11px] text-muted-foreground">Sem dados na janela atual.</span>
             ) : topReasons.map(({ reason, count }) => (
-              <Badge key={reason} variant="outline" className="text-xs">
+              <Badge key={reason} variant="outline" className="text-[10px] font-bold uppercase tracking-tight py-0.5 px-2 bg-muted/20 border-border/40">
                 {reason} <span className="ml-1.5 font-semibold text-foreground">{count}</span>
               </Badge>
             ))}
