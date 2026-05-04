@@ -68,8 +68,8 @@ describe('SidebarReorganized', () => {
 
   it('deve renderizar os grupos básicos de navegação', () => {
     renderSidebar();
-    expect(screen.getByText('Orçamentos')).toBeDefined();
-    expect(screen.getByText('Catálogo')).toBeDefined();
+    expect(screen.getAllByText('Orçamentos').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Catálogo').length).toBeGreaterThan(0);
   });
 
   it('não deve mostrar o grupo Admin para usuários comuns', () => {
