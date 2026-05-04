@@ -53,7 +53,7 @@ export function useCatalogPrefetch() {
           };
         },
         initialPageParam: 0,
-        staleTime: 15 * 60 * 1000, // Aumentado para 15 min
+        staleTime: 30 * 60 * 1000, // Matching useProductsCatalog staleTime
       });
     }, 400);
 
