@@ -69,7 +69,7 @@ export function WizardSteps({ currentStep, completedSteps, onStepClick, kitState
                       disabled={!isClickable}
                       aria-current={isActive ? 'step' : undefined}
                       className={cn(
-                        'group flex items-center gap-2.5 flex-1 min-w-0 px-1 py-1 transition-all rounded-md',
+                        'group flex items-center gap-2.5 flex-1 min-w-0 px-1 py-1 transition-all rounded-2xl',
                         isClickable ? 'cursor-pointer' : 'cursor-not-allowed opacity-60',
                       )}
                     >

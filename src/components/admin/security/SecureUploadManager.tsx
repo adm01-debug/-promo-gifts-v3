@@ -103,7 +103,7 @@ export function SecureUploadManager() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex flex-col items-center justify-center border-2 border-dashed border-primary/30 rounded-md p-6 bg-background/50 hover:bg-background/80 transition-colors">
+            <div className="flex flex-col items-center justify-center border-2 border-dashed border-primary/30 rounded-2xl p-6 bg-background/50 hover:bg-background/80 transition-colors">
               <Upload className="h-8 w-8 text-primary/50 mb-2" />
               <p className="text-sm text-muted-foreground mb-4 text-center">
                 Arraste um arquivo ou clique para selecionar
@@ -198,7 +198,7 @@ export function SecureUploadManager() {
             />
           </div>
 
-          <div className="rounded-md border overflow-hidden">
+          <div className="rounded-2xl border overflow-hidden">
             <table className="w-full text-sm">
               <thead className="bg-muted">
                 <tr>

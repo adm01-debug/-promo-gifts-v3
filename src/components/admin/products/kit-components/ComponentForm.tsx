@@ -30,7 +30,7 @@ export function ComponentForm({ initial, onSave, onCancel, isSaving }: Props) {
   };
 
   return (
-    <div className="rounded-md border border-primary/30 bg-accent/30 p-3 space-y-3">
+    <div className="rounded-2xl border border-primary/30 bg-accent/30 p-3 space-y-3">
       <div className="grid grid-cols-3 gap-3">
         <div className="space-y-1">
           <Label className="text-xs">Nome *</Label>

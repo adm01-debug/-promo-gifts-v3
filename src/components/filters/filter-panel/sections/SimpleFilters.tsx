@@ -249,7 +249,7 @@ export function QuickOptionsFilter({
         <Checkbox id="filter-inStock" checked={filters.inStock} onCheckedChange={() => toggleBooleanFilter('inStock')} />
         <Label htmlFor="filter-inStock" className="text-sm cursor-pointer">Em Estoque</Label>
       </div>
-      <div className="flex items-center gap-2 p-2 rounded-md border border-warning/20 bg-warning/5">
+      <div className="flex items-center gap-2 p-2 rounded-2xl border border-warning/20 bg-warning/5">
         <Checkbox
           id="has-commercial-packaging"
           checked={filters.hasCommercialPackaging}

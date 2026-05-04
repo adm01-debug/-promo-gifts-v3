@@ -180,7 +180,7 @@ export const MockupResultCard = memo(function MockupResultCard({
                   style={{ transform: `scale(${zoom})` }} loading="lazy" />
               </div>
               {/* Zoom Controls */}
-              <div className="absolute bottom-3 right-3 flex items-center gap-1 p-1 bg-background/80 backdrop-blur-sm rounded-md border shadow-sm">
+              <div className="absolute bottom-3 right-3 flex items-center gap-1 p-1 bg-background/80 backdrop-blur-sm rounded-2xl border shadow-sm">
                 <Button size="icon" variant="ghost" className="h-7 w-7" onClick={handleZoomOut} disabled={zoom <= 0.5} aria-label="Reduzir"><ZoomOut className="h-4 w-4" />
                 </Button>
                 <span className="text-xs font-medium w-12 text-center">{Math.round(zoom * 100)}%</span>
@@ -248,7 +248,7 @@ export const MockupResultCard = memo(function MockupResultCard({
               )}
 
               {!isClientMode && (
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1 p-1.5 bg-background/90 backdrop-blur-sm rounded-md border shadow-lg">
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1 p-1.5 bg-background/90 backdrop-blur-sm rounded-2xl border shadow-lg">
                   <Button size="icon" aria-label="Reduzir" variant="ghost" className="h-8 w-8" onClick={() => setFullscreenZoom(z => Math.max(z - 0.25, 0.25))} disabled={fullscreenZoom <= 0.25}>
                     <ZoomOut className="h-4 w-4" />
                   </Button>

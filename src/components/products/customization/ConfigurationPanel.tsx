@@ -160,7 +160,7 @@ export function ConfigurationPanel({ area, quantity, onPriceCalculated }: Config
   }
 
   return (
-    <div className="space-y-4 p-4 rounded-md bg-secondary/30 border border-border/50">
+    <div className="space-y-4 p-4 rounded-2xl bg-secondary/30 border border-border/50">
       <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
         Etapa 4 · Configure a gravação
       </p>
@@ -225,7 +225,7 @@ export function ConfigurationPanel({ area, quantity, onPriceCalculated }: Config
               <button
                 key={n}
                 className={cn(
-                  "w-9 h-9 rounded-md text-sm font-medium transition-colors",
+                  "w-9 h-9 rounded-2xl text-sm font-medium transition-colors",
                   n === numCores
                     ? "bg-primary text-primary-foreground"
                     : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
@@ -249,24 +249,24 @@ export function ConfigurationPanel({ area, quantity, onPriceCalculated }: Config
 
       {/* Price result */}
       {loading && (
-        <div className="flex items-center gap-2 p-3 rounded-md bg-muted/50 text-sm text-muted-foreground">
+        <div className="flex items-center gap-2 p-3 rounded-2xl bg-muted/50 text-sm text-muted-foreground">
           <Loader2 className="h-3.5 w-3.5 animate-spin" />
           Calculando preço...
         </div>
       )}
 
       {error && (
-        <div className="flex items-center gap-2 p-3 rounded-md bg-destructive/10 border border-destructive/20 text-sm text-destructive">
+        <div className="flex items-center gap-2 p-3 rounded-2xl bg-destructive/10 border border-destructive/20 text-sm text-destructive">
           <AlertCircle className="h-3.5 w-3.5" />
           {error}
         </div>
       )}
 
       {priceData && !loading && (
-        <div className="p-3 rounded-md bg-primary/5 border border-primary/20 space-y-2">
+        <div className="p-3 rounded-2xl bg-primary/5 border border-primary/20 space-y-2">
           {/* Redirect notice */}
           {priceData.redirected_from && priceData.redirected_to && (
-            <div className="flex items-center gap-1.5 text-xs text-warning bg-warning/10 p-2 rounded-md border border-warning/20">
+            <div className="flex items-center gap-1.5 text-xs text-warning bg-warning/10 p-2 rounded-2xl border border-warning/20">
               <AlertCircle className="h-3 w-3 flex-shrink-0" />
               <span>
                 Redirecionado automaticamente: as dimensões excedem o limite da técnica original. 
@@ -323,7 +323,7 @@ export function ConfigurationPanel({ area, quantity, onPriceCalculated }: Config
 
       {/* Waiting for inputs */}
       {!canCalculate && !loading && !priceData && (
-        <div className="p-3 rounded-md bg-muted/30 text-xs text-muted-foreground text-center">
+        <div className="p-3 rounded-2xl bg-muted/30 text-xs text-muted-foreground text-center">
           {usaDimensao
             ? "Preencha largura e altura para calcular o preço"
             : "Aguardando configuração..."}

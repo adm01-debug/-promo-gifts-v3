@@ -353,7 +353,7 @@ export const ProductQuickView = forwardRef<HTMLDivElement, ProductQuickViewProps
             </div>
 
             {/* Delivery info */}
-            <div className="mt-4 p-3 rounded-md bg-muted/30 flex items-center gap-3">
+            <div className="mt-4 p-3 rounded-2xl bg-muted/30 flex items-center gap-3">
               <Truck className="h-5 w-5 text-muted-foreground" />
               <div className="text-sm">
                 <p className="font-medium text-foreground">Entrega estimada</p>

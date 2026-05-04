@@ -245,7 +245,7 @@ export const ProductTableView = memo(function ProductTableView({
                 {selectionMode && <div className="w-10 px-2 flex justify-center"><SelectionCheckbox checked={!!isSelected} onChange={() => onToggleSelect?.(product.id)} size="sm" /></div>}
                 
                 <div className="w-12 px-2">
-                  <div className="w-10 h-10 rounded-md overflow-hidden bg-muted/30 border border-border/30">
+                  <div className="w-10 h-10 rounded-2xl overflow-hidden bg-muted/30 border border-border/30">
                     <img src={thumbUrl} alt="" className="w-full h-full object-contain" loading="lazy" />
                   </div>
                 </div>

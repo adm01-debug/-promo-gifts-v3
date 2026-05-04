@@ -114,7 +114,7 @@ export function AnomalyCards() {
                 <p className="text-xs font-medium text-muted-foreground">{c.label}</p>
                 <div
                   className={cn(
-                    "rounded-md p-1.5",
+                    "rounded-2xl p-1.5",
                     c.severity === "high" && "bg-destructive/10 text-destructive",
                     c.severity === "medium" && "bg-warning/10 text-warning",
                     c.severity === "low" && "bg-muted text-muted-foreground"
@@ -139,7 +139,7 @@ export function AnomalyCards() {
       </div>
 
       {showQuickBlock && (
-        <div className="flex items-center justify-between gap-3 rounded-md border border-warning/40 bg-warning/5 p-3">
+        <div className="flex items-center justify-between gap-3 rounded-2xl border border-warning/40 bg-warning/5 p-3">
           <div className="text-sm">
             <p className="font-medium">Atividade suspeita detectada nas últimas 24h</p>
             <p className="text-[11px] text-muted-foreground">

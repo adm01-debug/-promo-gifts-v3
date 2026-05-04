@@ -62,7 +62,7 @@ export function CollectionsEmptyStateSmart({ onAddProduct }: Props) {
             key={p.id}
             type="button"
             onClick={() => onAddProduct?.(p.id) ?? navigate(`/produto/${p.id}`)}
-            className="group text-left rounded-md border border-border bg-card hover:border-primary hover:shadow-md transition-all overflow-hidden"
+            className="group text-left rounded-2xl border border-border bg-card hover:border-primary hover:shadow-md transition-all overflow-hidden"
           >
             <div className="aspect-square bg-muted overflow-hidden">
               {p.images?.[0] ? (

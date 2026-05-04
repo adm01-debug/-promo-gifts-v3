@@ -73,7 +73,7 @@ export function FormSection({
           <CollapsibleTrigger asChild>
             <button
               type="button"
-              className="p-1 rounded-md hover:bg-muted transition-colors"
+              className="p-1 rounded-2xl hover:bg-muted transition-colors"
               aria-label={isOpen ? "Recolher seção" : "Expandir seção"}
             >
               <ChevronDown 

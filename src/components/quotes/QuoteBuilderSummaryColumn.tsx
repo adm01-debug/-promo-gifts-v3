@@ -105,7 +105,7 @@ export function QuoteBuilderSummaryColumn({
         <div className="flex flex-col rounded-2xl border border-border/50 bg-card shadow-xl overflow-hidden">
           {/* Header */}
           <div className="flex items-center gap-2 p-4 pb-3 shrink-0">
-            <div className="p-2 rounded-md bg-primary/10">
+            <div className="p-2 rounded-2xl bg-primary/10">
               <ShoppingCart className="h-4 w-4 text-primary" />
             </div>
             <h3 className="font-display font-semibold text-base">Resumo</h3>
@@ -195,9 +195,9 @@ export function QuoteBuilderSummaryColumn({
                       <div className="flex items-start gap-3">
                         <div className="shrink-0">
                           {item.product_image_url ? (
-                            <img src={item.product_image_url} alt={item.product_name} className="w-12 h-12 object-cover rounded-md bg-muted" loading="lazy" />
+                            <img src={item.product_image_url} alt={item.product_name} className="w-12 h-12 object-cover rounded-2xl bg-muted" loading="lazy" />
                           ) : (
-                            <div className="w-12 h-12 bg-muted rounded-md flex items-center justify-center">
+                            <div className="w-12 h-12 bg-muted rounded-2xl flex items-center justify-center">
                               <Package className="h-5 w-5 text-muted-foreground" />
                             </div>
                           )}
@@ -278,7 +278,7 @@ export function QuoteBuilderSummaryColumn({
                         </div>
                         <div className="space-y-1">
                           {item.personalizations.map((p, pIdx) => (
-                            <div key={pIdx} className="flex items-center justify-between gap-1 px-2 py-1 rounded-md border border-border/40 bg-card text-xs">
+                            <div key={pIdx} className="flex items-center justify-between gap-1 px-2 py-1 rounded-2xl border border-border/40 bg-card text-xs">
                               <div className="flex items-center gap-1.5 min-w-0 flex-1">
                                 <Badge variant="secondary" className="text-[9px] px-1 py-0 h-4 shrink-0 font-bold">{pIdx + 1}</Badge>
                                 <div className="min-w-0">
@@ -306,7 +306,7 @@ export function QuoteBuilderSummaryColumn({
           <div className="px-4 pt-3 space-y-2.5">
               {maxDiscountPercent != null && (
                 <div className={cn(
-                  "flex items-center gap-2 px-2.5 py-1.5 rounded-md text-xs transition-colors",
+                  "flex items-center gap-2 px-2.5 py-1.5 rounded-2xl text-xs transition-colors",
                   isDiscountExceeded ? "bg-amber-500/10 border border-amber-500/30" : "bg-muted/50"
                 )}>
                   <Shield className={cn("h-3.5 w-3.5 shrink-0", isDiscountExceeded ? "text-amber-500" : "text-muted-foreground")} />
@@ -341,7 +341,7 @@ export function QuoteBuilderSummaryColumn({
                 />
               </div>
               {isDiscountExceeded && (
-                <div className="flex items-start gap-2 rounded-md bg-amber-500/10 border border-amber-500/30 px-3 py-2">
+                <div className="flex items-start gap-2 rounded-2xl bg-amber-500/10 border border-amber-500/30 px-3 py-2">
                   <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
                   <div>
                     <p className="text-xs text-amber-600 font-semibold">Desconto acima do autorizado</p>
@@ -389,7 +389,7 @@ export function QuoteBuilderSummaryColumn({
             </div>
 
             {!isFormValid && (
-              <div className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 space-y-1">
+              <div className="rounded-2xl border border-destructive/30 bg-destructive/5 px-3 py-2 space-y-1">
                 <p className="text-xs font-semibold text-destructive flex items-center gap-1">
                   <AlertTriangle className="h-3 w-3" /> Campos obrigatórios pendentes:
                 </p>

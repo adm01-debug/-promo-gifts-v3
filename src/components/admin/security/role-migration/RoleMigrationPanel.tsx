@@ -172,7 +172,7 @@ export function RoleMigrationPanel() {
       <Card>
         <CardHeader>
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-md bg-primary/10"><Users className="h-5 w-5 text-primary" /></div>
+            <div className="p-2 rounded-2xl bg-primary/10"><Users className="h-5 w-5 text-primary" /></div>
             <div>
               <CardTitle>Migração de papéis em lote</CardTitle>
               <CardDescription>
@@ -254,7 +254,7 @@ export function RoleMigrationPanel() {
                 <Button variant="ghost" size="sm" onClick={() => setSelected(new Set())}>Limpar</Button>
               </div>
             </div>
-            <ScrollArea className="h-72 border rounded-md">
+            <ScrollArea className="h-72 border rounded-2xl">
               {loadingProfiles ? (
                 <div className="p-6 flex items-center justify-center text-muted-foreground">
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Carregando…
@@ -299,7 +299,7 @@ export function RoleMigrationPanel() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-md bg-muted"><History className="h-5 w-5 text-muted-foreground" /></div>
+              <div className="p-2 rounded-2xl bg-muted"><History className="h-5 w-5 text-muted-foreground" /></div>
               <div>
                 <CardTitle>Histórico de lotes</CardTitle>
                 <CardDescription>Últimos 50 lotes (dry-run incluso)</CardDescription>
@@ -322,7 +322,7 @@ export function RoleMigrationPanel() {
                   <button
                     key={b.id}
                     onClick={() => void drillDown(b)}
-                    className="w-full text-left p-3 rounded-md border hover:bg-muted/40 flex items-center gap-3"
+                    className="w-full text-left p-3 rounded-2xl border hover:bg-muted/40 flex items-center gap-3"
                   >
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">

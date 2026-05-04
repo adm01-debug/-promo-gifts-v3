@@ -64,7 +64,7 @@ export function FavoriteListsSidebar({
               key={list.id}
               whileHover={{ x: 2 }}
               className={cn(
-                "group relative flex items-center gap-2 px-2 py-2 rounded-md cursor-pointer transition-all",
+                "group relative flex items-center gap-2 px-2 py-2 rounded-2xl cursor-pointer transition-all",
                 isActive
                   ? "bg-primary/10 border border-primary/30"
                   : "hover:bg-muted/50 border border-transparent"
@@ -72,7 +72,7 @@ export function FavoriteListsSidebar({
               onClick={() => { onToggleTrash(false); onSelectList(list.id); }}
             >
               <div
-                className="w-8 h-8 rounded-md flex items-center justify-center shrink-0"
+                className="w-8 h-8 rounded-2xl flex items-center justify-center shrink-0"
                 style={{ backgroundColor: `${list.color}20`, color: list.color }}
               >
                 <Heart className="h-4 w-4" fill="currentColor" />
@@ -150,7 +150,7 @@ export function FavoriteListsSidebar({
         <button
           onClick={() => onToggleTrash(!showTrash)}
           className={cn(
-            "w-full flex items-center gap-2 px-2 py-2 rounded-md text-sm transition-colors",
+            "w-full flex items-center gap-2 px-2 py-2 rounded-2xl text-sm transition-colors",
             showTrash
               ? "bg-muted text-foreground border border-border"
               : "text-muted-foreground hover:bg-muted/40"

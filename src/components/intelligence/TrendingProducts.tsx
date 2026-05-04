@@ -27,7 +27,7 @@ export function TrendingProducts({ days = 30, categoryId, supplierId, productId,
       <Card>
         <CardHeader className="pb-3"><Skeleton className="h-5 w-40" /></CardHeader>
         <CardContent className="space-y-3">
-          {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-14 rounded-md" />)}
+          {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-14 rounded-2xl" />)}
         </CardContent>
       </Card>
     );
@@ -39,7 +39,7 @@ export function TrendingProducts({ days = 30, categoryId, supplierId, productId,
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="text-base flex items-center gap-2">
-              <div className="w-7 h-7 rounded-md bg-gradient-to-br from-orange to-warning flex items-center justify-center">
+              <div className="w-7 h-7 rounded-2xl bg-gradient-to-br from-orange to-warning flex items-center justify-center">
                 <TrendingUp className="h-3.5 w-3.5 text-primary-foreground" />
               </div>
               🔥 Produtos em Alta
@@ -76,7 +76,7 @@ export function TrendingProducts({ days = 30, categoryId, supplierId, productId,
                 </span>
 
                 {/* Image */}
-                <div className="w-9 h-9 rounded-md overflow-hidden bg-muted border border-border/50 shrink-0">
+                <div className="w-9 h-9 rounded-2xl overflow-hidden bg-muted border border-border/50 shrink-0">
                   {product.productImage ? (
                     
 <img src={product.productImage} alt="Imagem do produto" className="w-full h-full object-contain" loading="lazy" />

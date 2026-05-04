@@ -52,7 +52,7 @@ function ClientColumn({ clientId, onRemove }: { clientId: string; onRemove: () =
     <div className="flex-1 min-w-[240px] border-l first:border-l-0 p-4 space-y-3 relative">
       <button
         onClick={onRemove}
-        className="absolute top-2 right-2 h-6 w-6 rounded-md hover:bg-muted flex items-center justify-center text-muted-foreground"
+        className="absolute top-2 right-2 h-6 w-6 rounded-2xl hover:bg-muted flex items-center justify-center text-muted-foreground"
         aria-label="Remover"
       >
         <X className="h-3.5 w-3.5" />

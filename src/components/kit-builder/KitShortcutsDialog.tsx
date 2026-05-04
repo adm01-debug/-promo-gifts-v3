@@ -48,7 +48,7 @@ export function KitShortcutsDialog() {
               <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">{section}</p>
               <div className="space-y-1.5">
                 {SHORTCUTS.filter(s => s.section === section).map(shortcut => (
-                  <div key={shortcut.label} className="flex items-center justify-between py-1.5 px-2 rounded-md hover:bg-muted/40">
+                  <div key={shortcut.label} className="flex items-center justify-between py-1.5 px-2 rounded-2xl hover:bg-muted/40">
                     <span className="text-sm">{shortcut.label}</span>
                     <div className="flex items-center gap-1">
                       {shortcut.keys.map((key, i) => (

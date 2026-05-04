@@ -251,7 +251,7 @@ function KanbanColumn({ column, quotes, totalValue }: KanbanColumnProps) {
               <SortableQuoteCard key={quote.id} quote={quote} />
             ))}
             {quotes.length === 0 && (
-              <div className="text-center text-muted-foreground text-sm py-8 border border-dashed border-border/50 rounded-md">
+              <div className="text-center text-muted-foreground text-sm py-8 border border-dashed border-border/50 rounded-2xl">
                 Nenhum orçamento
               </div>
             )}

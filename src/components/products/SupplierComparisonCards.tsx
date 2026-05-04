@@ -49,7 +49,7 @@ export function SupplierComparisonCards({ velocities, supplierNames }: SupplierC
             <div
               key={v.variant_supplier_source_id || v.supplier_id}
               className={cn(
-                "flex flex-col gap-1 p-2 rounded-md bg-muted/40 border-l-2",
+                "flex flex-col gap-1 p-2 rounded-2xl bg-muted/40 border-l-2",
                 SUPPLIER_COLORS[idx % SUPPLIER_COLORS.length]
               )}
             >

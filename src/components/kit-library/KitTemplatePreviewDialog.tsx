@@ -66,7 +66,7 @@ export function KitTemplatePreviewDialog({
 
         <div className="space-y-4">
           {box && (
-            <div className="p-3 rounded-md border bg-muted/30">
+            <div className="p-3 rounded-2xl border bg-muted/30">
               <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Embalagem</p>
               <p className="font-medium text-sm">{box.name || 'Caixa selecionada'}</p>
               {box.sku && <p className="text-[11px] text-muted-foreground">SKU: {box.sku}</p>}
@@ -77,7 +77,7 @@ export function KitTemplatePreviewDialog({
             <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">
               Itens ({items.length})
             </p>
-            <ScrollArea className="max-h-64 rounded-md border">
+            <ScrollArea className="max-h-64 rounded-2xl border">
               <ul className="divide-y">
                 {items.length === 0 ? (
                   <li className="p-3 text-xs text-muted-foreground">Sem itens cadastrados.</li>
@@ -102,7 +102,7 @@ export function KitTemplatePreviewDialog({
             </ScrollArea>
           </div>
 
-          <div className="flex items-center justify-between p-3 rounded-md border bg-primary/5">
+          <div className="flex items-center justify-between p-3 rounded-2xl border bg-primary/5">
             <span className="text-sm text-muted-foreground">Total estimado</span>
             <span className="text-xl font-bold text-primary">{formatCurrency(Number(template.total_price))}</span>
           </div>

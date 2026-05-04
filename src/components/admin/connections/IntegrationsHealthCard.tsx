@@ -173,7 +173,7 @@ function Metric({ icon: Icon, label, value, badge, tone = "default" }: MetricPro
   }[tone];
 
   return (
-    <div className="flex flex-col gap-1.5 p-3 rounded-md bg-muted/30 border border-border/50">
+    <div className="flex flex-col gap-1.5 p-3 rounded-2xl bg-muted/30 border border-border/50">
       <div className="flex items-center justify-between">
         <Icon className={cn("h-4 w-4", iconCls)} aria-hidden="true" />
         {badge}
@@ -302,13 +302,13 @@ export function IntegrationsHealthCard({ secrets = [] }: { secrets?: SecretStatu
         {data && (data.staleSecrets > 0 || data.autoDisabledWebhooks > 0) && (
           <div className="flex flex-wrap gap-2">
             {data.staleSecrets > 0 && (
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-warning/10 border border-warning/20 text-xs text-warning">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-warning/10 border border-warning/20 text-xs text-warning">
                 <AlertTriangle className="h-3 w-3" />
                 {data.staleSecrets} {data.staleSecrets === 1 ? "credencial" : "credenciais"} sem rotação há &gt;90 dias
               </div>
             )}
             {data.autoDisabledWebhooks > 0 && (
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-destructive/10 border border-destructive/20 text-xs text-destructive">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-destructive/10 border border-destructive/20 text-xs text-destructive">
                 <AlertTriangle className="h-3 w-3" />
                 {data.autoDisabledWebhooks} webhook(s) desativados pelo circuit breaker
               </div>
@@ -318,7 +318,7 @@ export function IntegrationsHealthCard({ secrets = [] }: { secrets?: SecretStatu
         {isLoading || !data ? (
           <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
             {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="h-20 rounded-md bg-muted/30 animate-pulse" />
+              <div key={i} className="h-20 rounded-2xl bg-muted/30 animate-pulse" />
             ))}
           </div>
         ) : (

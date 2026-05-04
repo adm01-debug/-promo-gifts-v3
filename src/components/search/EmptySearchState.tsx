@@ -87,7 +87,7 @@ export const EmptySearchState = memo(function EmptySearchState({
               "hover:[background-color:hsl(var(--command-accent))] hover:[border-color:hsl(var(--command-border-strong))]"
             )}
           >
-            <div className="h-8 w-8 rounded-md bg-primary/10 text-primary flex items-center justify-center shrink-0">
+            <div className="h-8 w-8 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
               {a.icon}
             </div>
             <div className="flex-1 min-w-0">
@@ -108,7 +108,7 @@ export const EmptySearchState = memo(function EmptySearchState({
               <button
                 key={term}
                 onClick={() => onPickRecent(term)}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] border [border-color:hsl(var(--command-border))] [background-color:hsl(var(--command-surface-raised))] hover:[background-color:hsl(var(--command-accent))] transition-colors"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-2xl text-[11px] border [border-color:hsl(var(--command-border))] [background-color:hsl(var(--command-surface-raised))] hover:[background-color:hsl(var(--command-accent))] transition-colors"
               >
                 <Clock className="h-3 w-3 [color:hsl(var(--command-text-subtle))]" />
                 <span className="truncate max-w-[160px]">{term}</span>

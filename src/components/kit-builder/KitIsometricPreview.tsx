@@ -197,7 +197,7 @@ export function KitIsometricPreview({ kitState, className }: KitIsometricPreview
           </Badge>
         </div>
 
-        <div className="bg-muted/30 rounded-md p-2 flex items-center justify-center">
+        <div className="bg-muted/30 rounded-2xl p-2 flex items-center justify-center">
           <svg
             viewBox={`0 0 ${vbW} ${vbH}`}
             className="w-full h-auto max-h-[280px]"

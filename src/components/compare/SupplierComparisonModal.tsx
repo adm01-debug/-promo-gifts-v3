@@ -128,23 +128,23 @@ export function SupplierComparisonModal({
         <ScrollArea className="h-[60vh]">
           {/* Summary Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-            <div className="p-3 rounded-md bg-success/10 border border-success/20">
+            <div className="p-3 rounded-2xl bg-success/10 border border-success/20">
               <p className="text-xs text-muted-foreground mb-1">Menor Preço</p>
               <p className="text-xl font-bold text-success">
                 {formatCurrency(lowestPrice)}
               </p>
             </div>
-            <div className="p-3 rounded-md bg-primary/10 border border-primary/20">
+            <div className="p-3 rounded-2xl bg-primary/10 border border-primary/20">
               <p className="text-xs text-muted-foreground mb-1">Maior Estoque</p>
               <p className="text-xl font-bold text-primary">
                 {highestStock.toLocaleString("pt-BR")} un.
               </p>
             </div>
-            <div className="p-3 rounded-md bg-muted border border-border">
+            <div className="p-3 rounded-2xl bg-muted border border-border">
               <p className="text-xs text-muted-foreground mb-1">Fornecedores</p>
               <p className="text-xl font-bold">{allProducts.length}</p>
             </div>
-            <div className="p-3 rounded-md bg-muted border border-border">
+            <div className="p-3 rounded-2xl bg-muted border border-border">
               <p className="text-xs text-muted-foreground mb-1">
                 Economia Máx.
               </p>
@@ -193,7 +193,7 @@ export function SupplierComparisonModal({
                           <img
                             src={product.images[0]}
                             alt={product.name}
-                            className="w-16 h-16 rounded-md object-cover" loading="lazy" />
+                            className="w-16 h-16 rounded-2xl object-cover" loading="lazy" />
                           {isBase && (
                             <Badge
                               variant="default"
@@ -308,14 +308,14 @@ export function SupplierComparisonModal({
           </Table>
 
           {/* Materials Comparison */}
-          <div className="mt-6 p-4 rounded-md bg-muted/50 border border-border">
+          <div className="mt-6 p-4 rounded-2xl bg-muted/50 border border-border">
             <h4 className="font-medium mb-3">Materiais Comparados</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {allProducts.map(({ product, isBase }) => (
                 <div
                   key={product.id}
                   className={cn(
-                    "p-3 rounded-md bg-background border",
+                    "p-3 rounded-2xl bg-background border",
                     isBase ? "border-primary" : "border-border"
                   )}
                 >
@@ -346,14 +346,14 @@ export function SupplierComparisonModal({
           </div>
 
           {/* Colors Comparison */}
-          <div className="mt-4 p-4 rounded-md bg-muted/50 border border-border">
+          <div className="mt-4 p-4 rounded-2xl bg-muted/50 border border-border">
             <h4 className="font-medium mb-3">Cores Disponíveis</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {allProducts.map(({ product, isBase }) => (
                 <div
                   key={product.id}
                   className={cn(
-                    "p-3 rounded-md bg-background border",
+                    "p-3 rounded-2xl bg-background border",
                     isBase ? "border-primary" : "border-border"
                   )}
                 >

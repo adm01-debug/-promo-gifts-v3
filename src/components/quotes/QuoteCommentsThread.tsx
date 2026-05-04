@@ -62,7 +62,7 @@ export function QuoteCommentsThread({ quoteId }: QuoteCommentsThreadProps) {
       ) : (
         <ul className="space-y-3">
           {data.map((c) => (
-            <li key={c.id} className="rounded-md border bg-muted/30 p-3 text-sm">
+            <li key={c.id} className="rounded-2xl border bg-muted/30 p-3 text-sm">
               <p className="whitespace-pre-wrap">{c.content}</p>
               <p className="text-xs text-muted-foreground mt-1">
                 {new Date(c.created_at).toLocaleString("pt-BR")}

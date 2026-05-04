@@ -180,7 +180,7 @@ export function AIMockupAssistant({
         className="flex items-center gap-3 p-3 border-b bg-primary/15 cursor-pointer"
         onClick={() => setIsMinimized(!isMinimized)}
       >
-        <div className="p-2 rounded-md bg-primary/25">
+        <div className="p-2 rounded-2xl bg-primary/25">
           <Bot className="h-4 w-4 text-primary" />
         </div>
         <div className="flex-1 min-w-0">
@@ -226,7 +226,7 @@ export function AIMockupAssistant({
                   >
                     <div
                       className={cn(
-                        "p-2 rounded-md shrink-0",
+                        "p-2 rounded-2xl shrink-0",
                         message.role === "user"
                           ? "bg-primary text-white"
                           : "bg-muted"
@@ -276,7 +276,7 @@ export function AIMockupAssistant({
                   animate={{ opacity: 1 }}
                   className="flex gap-2"
                 >
-                  <div className="p-2 rounded-md bg-muted">
+                  <div className="p-2 rounded-2xl bg-muted">
                     <Sparkles className="h-4 w-4" />
                   </div>
                   <div className="bg-muted rounded-xl p-3">

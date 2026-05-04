@@ -54,7 +54,7 @@ export function ComparisonDuelView({ products, formatCurrency, onRemove, onProdu
       }
     }
     return (
-      <div key={row.key} className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 py-3 odd:bg-muted/30 px-4 rounded-md">
+      <div key={row.key} className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 py-3 odd:bg-muted/30 px-4 rounded-2xl">
         <div className={cn("text-right text-sm font-medium tabular-nums", aWin && "text-success font-bold")}>
           {row.key === "price" ? formatCurrency(row.raw(a)) : row.format(a)}
           {aWin && <Check className="h-3.5 w-3.5 inline ml-1.5" />}

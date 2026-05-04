@@ -174,7 +174,7 @@ export function RecentAuditTable() {
               </div>
               <div>
                 <Label>Details (JSON)</Label>
-                <pre className="mt-1 p-3 bg-muted rounded-md text-xs overflow-auto max-h-[300px]">
+                <pre className="mt-1 p-3 bg-muted rounded-2xl text-xs overflow-auto max-h-[300px]">
                   {JSON.stringify(selected.details, null, 2)}
                 </pre>
               </div>

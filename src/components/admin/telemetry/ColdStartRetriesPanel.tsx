@@ -49,7 +49,7 @@ function IncidentRow({ incident }: { incident: ColdStartIncident }) {
       <CollapsibleTrigger asChild>
         <button
           type="button"
-          className="w-full flex items-center justify-between gap-2 p-2 rounded-md hover:bg-muted/40 text-left transition-colors"
+          className="w-full flex items-center justify-between gap-2 p-2 rounded-2xl hover:bg-muted/40 text-left transition-colors"
         >
           <div className="flex items-center gap-2 min-w-0">
             <Snowflake className="h-3.5 w-3.5 text-primary shrink-0" aria-hidden />

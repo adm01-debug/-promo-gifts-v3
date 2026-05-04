@@ -128,11 +128,11 @@ export function BridgesLiveCard() {
       <CardContent>
         {/* Totais — KPIs em tempo real */}
         <div className="grid grid-cols-2 md:grid-cols-6 gap-3 mb-4">
-          <div className="p-3 rounded-md border border-border/50 bg-muted/30">
+          <div className="p-3 rounded-2xl border border-border/50 bg-muted/30">
             <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Chamadas</p>
             <p className="font-display text-2xl font-bold tabular-nums">{totals.total}</p>
           </div>
-          <div className="p-3 rounded-md border border-border/50 bg-muted/30">
+          <div className="p-3 rounded-2xl border border-border/50 bg-muted/30">
             <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Erros</p>
             <p
               className={`font-display text-2xl font-bold tabular-nums ${
@@ -142,11 +142,11 @@ export function BridgesLiveCard() {
               {totals.errors}
             </p>
           </div>
-          <div className="p-3 rounded-md border border-border/50 bg-muted/30">
+          <div className="p-3 rounded-2xl border border-border/50 bg-muted/30">
             <p className="text-[10px] uppercase tracking-wide text-muted-foreground">p50 latência</p>
             <p className="font-display text-2xl font-bold tabular-nums">{formatMs(totals.p50Ms)}</p>
           </div>
-          <div className="p-3 rounded-md border border-border/50 bg-muted/30">
+          <div className="p-3 rounded-2xl border border-border/50 bg-muted/30">
             <p className="text-[10px] uppercase tracking-wide text-muted-foreground">p95 latência</p>
             <p
               className={`font-display text-2xl font-bold tabular-nums ${
@@ -160,13 +160,13 @@ export function BridgesLiveCard() {
               {formatMs(totals.p95Ms)}
             </p>
           </div>
-          <div className="p-3 rounded-md border border-border/50 bg-muted/30">
+          <div className="p-3 rounded-2xl border border-border/50 bg-muted/30">
             <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Tam. médio resp.</p>
             <p className="font-display text-2xl font-bold tabular-nums">
               {formatBytes(totals.avgRespBytes)}
             </p>
           </div>
-          <div className="p-3 rounded-md border border-border/50 bg-muted/30">
+          <div className="p-3 rounded-2xl border border-border/50 bg-muted/30">
             <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Total recebido</p>
             <p className="font-display text-2xl font-bold tabular-nums">{formatBytes(totals.respBytes)}</p>
           </div>

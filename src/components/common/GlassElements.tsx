@@ -57,7 +57,7 @@ export function GlassPanel({
     <div
       className={cn(
         "backdrop-blur-sm bg-background/60",
-        "border border-border/50 rounded-md",
+        "border border-border/50 rounded-2xl",
         "shadow-sm",
         className
       )}
@@ -106,7 +106,7 @@ export function GlassButton({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "px-4 py-2 rounded-md",
+        "px-4 py-2 rounded-2xl",
         "backdrop-blur-md bg-background/10",
         "border border-white/20 dark:border-white/10",
         "text-foreground font-medium",
@@ -176,7 +176,7 @@ export function GlassInput({
   return (
     <input
       className={cn(
-        "w-full px-4 py-2 rounded-md",
+        "w-full px-4 py-2 rounded-2xl",
         "backdrop-blur-sm bg-background/10",
         "border border-white/20 dark:border-white/10",
         "text-foreground placeholder:text-muted-foreground",
@@ -201,7 +201,7 @@ export function GlassTooltip({
     <div
       className={cn(
         "backdrop-blur-xl bg-popover/90",
-        "border border-border/50 rounded-md",
+        "border border-border/50 rounded-2xl",
         "shadow-lg",
         "p-3",
         className

@@ -42,7 +42,7 @@ export function PhotoSelector({
               type="button"
               onClick={() => onToggle(idx)}
               className={cn(
-                "relative w-16 h-16 rounded-md overflow-hidden bg-secondary shrink-0 border-2 transition-all",
+                "relative w-16 h-16 rounded-2xl overflow-hidden bg-secondary shrink-0 border-2 transition-all",
                 selected
                   ? "border-primary ring-2 ring-primary/20"
                   : "border-transparent opacity-60 hover:opacity-100"

@@ -144,7 +144,7 @@ export function DiscountManagementPanel() {
           <motion.div key={stat.label} custom={i} initial="hidden" animate="visible" variants={cardVariants}>
             <Card className={cn("border", stat.border)}>
               <CardContent className="p-4 flex items-center gap-3">
-                <div className={cn("p-2 rounded-md shrink-0", stat.bg)}>
+                <div className={cn("p-2 rounded-2xl shrink-0", stat.bg)}>
                   <stat.icon className={cn("h-4 w-4", stat.color)} />
                 </div>
                 <div>
@@ -444,13 +444,13 @@ export function DiscountManagementPanel() {
                               </div>
                             )}
                             {req.seller_notes && (
-                              <div className="rounded-md bg-muted/50 border border-border/40 px-3 py-2 text-sm">
+                              <div className="rounded-2xl bg-muted/50 border border-border/40 px-3 py-2 text-sm">
                                 <span className="font-semibold text-xs text-muted-foreground uppercase tracking-wide">Nota do vendedor</span>
                                 <p className="mt-0.5 text-foreground/80">{req.seller_notes}</p>
                               </div>
                             )}
                             {req.admin_notes && (
-                              <div className="rounded-md bg-primary/5 border border-primary/20 px-3 py-2 text-sm">
+                              <div className="rounded-2xl bg-primary/5 border border-primary/20 px-3 py-2 text-sm">
                                 <span className="font-semibold text-xs text-primary uppercase tracking-wide">Nota do admin</span>
                                 <p className="mt-0.5 text-foreground/80">{req.admin_notes}</p>
                               </div>

@@ -82,7 +82,7 @@ export function RlsAuditPanel() {
 
         {grouped &&
           Object.entries(grouped).map(([table, rows]) => (
-            <div key={table} className="border rounded-md overflow-hidden">
+            <div key={table} className="border rounded-2xl overflow-hidden">
               <div className="px-3 py-2 bg-muted/40 font-medium text-sm flex items-center justify-between">
                 <span><code>{table}</code></span>
                 <span className="text-[11px] text-muted-foreground">

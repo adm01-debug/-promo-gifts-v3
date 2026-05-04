@@ -112,7 +112,7 @@ export function HardeningHealthCard() {
             {checks.map((c) => (
               <li
                 key={c.label}
-                className="flex items-start gap-2 rounded-md border border-border/50 p-2.5"
+                className="flex items-start gap-2 rounded-2xl border border-border/50 p-2.5"
               >
                 {c.ok ? (
                   <CheckCircle2 className="h-4 w-4 mt-0.5 text-success shrink-0" />

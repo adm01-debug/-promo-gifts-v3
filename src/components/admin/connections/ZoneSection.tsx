@@ -73,7 +73,7 @@ export function ZoneSection({
         />
         <div
           className={cn(
-            "h-9 w-9 rounded-md flex items-center justify-center shrink-0",
+            "h-9 w-9 rounded-2xl flex items-center justify-center shrink-0",
             tcls.iconBg,
           )}
           aria-hidden="true"

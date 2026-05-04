@@ -109,7 +109,7 @@ export function TrendsInsightsCard({ days }: TrendsInsightsCardProps) {
 function InsightRow({ icon, label, text }: { icon: React.ReactNode; label: string; text?: string }) {
   if (!text) return null;
   return (
-    <div className="flex items-start gap-2 p-2.5 rounded-md bg-card/60 border border-border/40">
+    <div className="flex items-start gap-2 p-2.5 rounded-2xl bg-card/60 border border-border/40">
       <div className="shrink-0 mt-0.5">{icon}</div>
       <div className="min-w-0">
         <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">{label}</p>

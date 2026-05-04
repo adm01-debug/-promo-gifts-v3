@@ -198,7 +198,7 @@ export function CollectionGridCard({
         {/* Row 2: Meta chips */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 text-xs text-muted-foreground">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-muted/50 font-medium">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-2xl bg-muted/50 font-medium">
               <Package className="h-3 w-3 text-primary" />
               {productCount} {productCount === 1 ? "item" : "itens"}
             </span>

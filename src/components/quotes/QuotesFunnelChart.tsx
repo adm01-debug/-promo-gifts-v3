@@ -26,7 +26,7 @@ export function QuotesFunnelChart({ data }: QuotesFunnelChartProps) {
           {avgCycleDays !== null && (
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-info/10 text-info">
+                <div className="flex items-center gap-1.5 px-2 py-1 rounded-2xl bg-info/10 text-info">
                   <Clock className="h-3 w-3" />
                   <span className="text-xs font-semibold">{avgCycleDays.toFixed(1)}d</span>
                 </div>

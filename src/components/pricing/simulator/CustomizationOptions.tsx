@@ -67,7 +67,7 @@ export function CustomizationOptions({
 
   if (error) {
     return (
-      <div className="p-4 rounded-md bg-destructive/10 border border-destructive/20 text-destructive">
+      <div className="p-4 rounded-2xl bg-destructive/10 border border-destructive/20 text-destructive">
         <AlertCircle className="w-5 h-5 mb-2" />
         <p className="text-sm">{error}</p>
       </div>
@@ -77,7 +77,7 @@ export function CustomizationOptions({
   // Se não há opções configuráveis, mostrar mensagem
   if (!hasPriceByColor && sizeOptions.length === 0) {
     return (
-      <div className="p-4 rounded-md bg-muted/50 text-center">
+      <div className="p-4 rounded-2xl bg-muted/50 text-center">
         <p className="text-sm text-muted-foreground">
           Esta técnica não possui opções configuráveis de cores ou tamanho.
         </p>
@@ -147,7 +147,7 @@ export function CustomizationOptions({
 
       {/* Size único - mostrar informação */}
       {sizeOptions.length === 1 && (
-        <div className="p-3 rounded-md bg-muted/50 text-sm">
+        <div className="p-3 rounded-2xl bg-muted/50 text-sm">
           <p className="text-muted-foreground flex items-center gap-2">
             <Ruler className="w-4 h-4" />
             Tamanho da gravação:{' '}
@@ -160,7 +160,7 @@ export function CustomizationOptions({
 
       {/* Area info from technique if no size options */}
       {sizeOptions.length === 0 && technique.maxWidth && technique.maxHeight && (
-        <div className="p-3 rounded-md bg-muted/50 text-sm">
+        <div className="p-3 rounded-2xl bg-muted/50 text-sm">
           <p className="text-muted-foreground">
             Área máxima de gravação:{' '}
             <strong>

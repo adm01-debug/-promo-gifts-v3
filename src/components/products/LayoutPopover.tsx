@@ -52,7 +52,7 @@ export const LayoutPopover = React.forwardRef<HTMLDivElement, LayoutPopoverProps
                       <button
                         key={mode.value}
                         className={cn(
-                          "relative flex-1 flex items-center justify-center gap-1.5 h-9 rounded-md text-xs font-medium transition-colors duration-150 z-10",
+                          "relative flex-1 flex items-center justify-center gap-1.5 h-9 rounded-2xl text-xs font-medium transition-colors duration-150 z-10",
                           isActive
                             ? "text-primary-foreground"
                             : "text-muted-foreground hover:text-foreground"
@@ -62,7 +62,7 @@ export const LayoutPopover = React.forwardRef<HTMLDivElement, LayoutPopoverProps
                         {isActive && (
                           <motion.div
                             layoutId="viewmode-pill"
-                            className="absolute inset-0 rounded-md bg-primary shadow-sm"
+                            className="absolute inset-0 rounded-2xl bg-primary shadow-sm"
                             transition={{ type: "spring", stiffness: 500, damping: 35 }}
                           />
                         )}

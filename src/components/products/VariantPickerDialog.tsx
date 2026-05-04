@@ -86,7 +86,7 @@ export function VariantPickerDialog({
         <div className="px-5 pt-5 pb-3 space-y-2">
           <DialogHeader className="p-0">
             <div className="flex items-center gap-2.5 text-base font-display font-semibold">
-              <div className={cn('w-8 h-8 rounded-md flex items-center justify-center shrink-0', config.bgClass)}>
+              <div className={cn('w-8 h-8 rounded-2xl flex items-center justify-center shrink-0', config.bgClass)}>
                 <Icon className={cn('h-4 w-4', config.colorClass)} />
               </div>
               {config.title}

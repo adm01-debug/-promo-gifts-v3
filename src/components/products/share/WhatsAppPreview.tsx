@@ -91,12 +91,12 @@ export function WhatsAppPreview({
         {selectedPhotos.length > 0 && (
           <div className="flex justify-end mb-1">
             <div
-              className="rounded-md p-1 max-w-[65%] shadow-sm"
+              className="rounded-2xl p-1 max-w-[65%] shadow-sm"
               style={{ backgroundColor: bubbleOut }}
             >
               <div
                 className={cn(
-                  "grid gap-0.5 rounded-md overflow-hidden",
+                  "grid gap-0.5 rounded-2xl overflow-hidden",
                   selectedPhotos.length === 1 && "grid-cols-1",
                   selectedPhotos.length === 2 && "grid-cols-2",
                   selectedPhotos.length >= 3 && "grid-cols-2"
@@ -136,7 +136,7 @@ export function WhatsAppPreview({
         {/* Text message bubble */}
         <div className="flex justify-end">
           <div
-            className="rounded-md px-3 py-2 max-w-[85%] shadow-sm relative"
+            className="rounded-2xl px-3 py-2 max-w-[85%] shadow-sm relative"
             style={{ backgroundColor: bubbleOut }}
           >
             {/* Tail */}

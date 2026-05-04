@@ -44,7 +44,7 @@ export function McpKeyRow({ row, onRotate, onRevoke, onDetails, onEdit }: Props)
   const expiresLabel = formatExpiresIn(row.expires_at);
 
   return (
-    <div className="flex items-start justify-between gap-3 p-3 border border-border rounded-md hover:bg-muted/30 transition">
+    <div className="flex items-start justify-between gap-3 p-3 border border-border rounded-2xl hover:bg-muted/30 transition">
       <div className="flex-1 min-w-0 space-y-1.5">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="font-medium truncate">{row.name}</span>

@@ -151,9 +151,9 @@ export function ProductMarketingSection({ productId }: ProductMarketingSectionPr
   if (loading) {
     return (
       <div className="space-y-2">
-        <Skeleton className="h-12 w-full rounded-md" />
-        <Skeleton className="h-12 w-full rounded-md" />
-        <Skeleton className="h-12 w-full rounded-md" />
+        <Skeleton className="h-12 w-full rounded-2xl" />
+        <Skeleton className="h-12 w-full rounded-2xl" />
+        <Skeleton className="h-12 w-full rounded-2xl" />
       </div>
     );
   }
@@ -166,7 +166,7 @@ export function ProductMarketingSection({ productId }: ProductMarketingSectionPr
     <div className="space-y-3">
       {/* Badges dos selecionados */}
       {totalSelected > 0 && (
-        <div className="p-2.5 bg-primary/5 rounded-md border border-primary/20">
+        <div className="p-2.5 bg-primary/5 rounded-2xl border border-primary/20">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-medium text-primary flex items-center gap-1.5">
               <Megaphone className="h-3 w-3" />
@@ -259,7 +259,7 @@ export function ProductMarketingSection({ productId }: ProductMarketingSectionPr
               <div
                 key={key}
                 className={cn(
-                  "rounded-md overflow-hidden transition-all duration-200",
+                  "rounded-2xl overflow-hidden transition-all duration-200",
                   hasAnySelection
                     ? "bg-gradient-to-r from-primary/10 to-primary/5 ring-1 ring-primary/30"
                     : "bg-muted/30 hover:bg-muted/50"
@@ -271,7 +271,7 @@ export function ProductMarketingSection({ productId }: ProductMarketingSectionPr
                     type="button"
                     onClick={() => toggleGroup(key)}
                     className={cn(
-                      "p-1 rounded-md transition-all duration-200",
+                      "p-1 rounded-2xl transition-all duration-200",
                       isOpen ? "bg-primary/10" : "bg-muted hover:bg-muted/80"
                     )}
                   >
@@ -331,7 +331,7 @@ export function ProductMarketingSection({ productId }: ProductMarketingSectionPr
                           <label
                             key={opt}
                             className={cn(
-                              "flex items-center gap-2.5 py-1.5 px-2.5 rounded-md cursor-pointer text-sm transition-all duration-150",
+                              "flex items-center gap-2.5 py-1.5 px-2.5 rounded-2xl cursor-pointer text-sm transition-all duration-150",
                               isSelected
                                 ? "bg-primary/15 text-foreground font-medium shadow-sm"
                                 : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"

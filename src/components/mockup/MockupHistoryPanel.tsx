@@ -157,7 +157,7 @@ export function MockupHistoryPanel({
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Filters */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-muted/30 rounded-md">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-muted/30 rounded-2xl">
           <div className="space-y-1.5">
             <Label className="text-[11px] text-muted-foreground">Cliente</Label>
             <Select value={filterClient} onValueChange={(v) => { setFilterClient(v); setCurrentPage(1); }}>
@@ -290,7 +290,7 @@ const MockupGridCard = memo(({ mockup, isCompareSelected, onToggleCompare, onOpe
     <div className={cn("group relative border border-border/30 rounded-xl overflow-hidden hover:ring-2 hover:ring-primary/30 hover:shadow-lg transition-all duration-300 bg-card",
       isCompareSelected && "ring-2 ring-primary shadow-lg")}>
       <div className="absolute top-2 left-2 z-10">
-        <div className={cn("flex items-center justify-center w-6 h-6 rounded-md border-2 bg-background/80 backdrop-blur-sm cursor-pointer transition-all",
+        <div className={cn("flex items-center justify-center w-6 h-6 rounded-2xl border-2 bg-background/80 backdrop-blur-sm cursor-pointer transition-all",
           isCompareSelected ? "border-primary bg-primary text-primary-foreground" : "border-muted-foreground/30 opacity-0 group-hover:opacity-100")}
           onClick={(e) => { e.stopPropagation(); onToggleCompare(mockup.id); }}>
           {isCompareSelected && <span className="text-xs font-bold">✓</span>}
@@ -340,14 +340,14 @@ const MockupListRow = memo(({ mockup, isCompareSelected, onToggleCompare, onLoad
   onDownload: (url: string) => void; onDelete: (id: string) => void;
 }) => {
   return (
-    <div className={cn("group flex items-center gap-4 p-3 border border-border/30 rounded-md hover:ring-2 hover:ring-primary/30 hover:shadow-md transition-all duration-200 bg-card",
+    <div className={cn("group flex items-center gap-4 p-3 border border-border/30 rounded-2xl hover:ring-2 hover:ring-primary/30 hover:shadow-md transition-all duration-200 bg-card",
       isCompareSelected && "ring-2 ring-primary shadow-lg")}>
       <div className={cn("flex-shrink-0 flex items-center justify-center w-5 h-5 rounded border-2 cursor-pointer transition-all",
         isCompareSelected ? "border-primary bg-primary text-primary-foreground" : "border-muted-foreground/30")}
         onClick={(e) => { e.stopPropagation(); onToggleCompare(mockup.id); }}>
         {isCompareSelected && <span className="text-[10px] font-bold">✓</span>}
       </div>
-      <div className="flex-shrink-0 w-16 h-20 rounded-md bg-muted/30 overflow-hidden border">
+      <div className="flex-shrink-0 w-16 h-20 rounded-2xl bg-muted/30 overflow-hidden border">
         <img src={mockup.layout_url || mockup.mockup_url} alt={mockup.product_name} className="w-full h-full object-contain" loading="lazy" />
       </div>
       <div className="flex-1 min-w-0 space-y-1">

@@ -91,7 +91,7 @@ export function GalleryVideoPlayer({ productVideos, productName, open, onOpenCha
                   key={pv.id}
                   onClick={() => setActiveVideoIndex(idx)}
                   className={cn(
-                    "relative shrink-0 w-24 aspect-video rounded-md overflow-hidden transition-all duration-200",
+                    "relative shrink-0 w-24 aspect-video rounded-2xl overflow-hidden transition-all duration-200",
                     activeVideoIndex === idx
                       ? "ring-2 ring-primary scale-105"
                       : "opacity-60 hover:opacity-100"

@@ -200,7 +200,7 @@ export function IssueMcpKeyForm({ onIssued }: Props) {
             puro. Apenas o hash fica armazenado no banco.
           </AlertDescription>
         </Alert>
-        <div className="p-3 rounded-md bg-muted font-mono text-xs break-all">
+        <div className="p-3 rounded-2xl bg-muted font-mono text-xs break-all">
           {generated}
         </div>
         <Button onClick={() => copy(generated)} className="w-full">

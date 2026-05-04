@@ -71,7 +71,7 @@ export function ProductRankingSearch() {
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="text-base flex items-center gap-2">
-              <div className="w-7 h-7 rounded-md skin-icon flex items-center justify-center">
+              <div className="w-7 h-7 rounded-2xl skin-icon flex items-center justify-center">
                 <Trophy className="h-3.5 w-3.5" />
               </div>
               🏆 Ranking de Produtos Mais Vendidos
@@ -99,22 +99,22 @@ export function ProductRankingSearch() {
         {/* Summary KPIs */}
         {summary && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            <div className="bg-muted/30 rounded-md px-3 py-2 text-center">
+            <div className="bg-muted/30 rounded-2xl px-3 py-2 text-center">
               <div className="flex items-center justify-center gap-1 mb-0.5"><DollarSign className="h-3 w-3 text-success" /></div>
               <p className="text-base sm:text-lg font-bold text-foreground">{formatCurrency(summary.totalRev)}</p>
               <p className="text-[10px] text-muted-foreground">Faturamento</p>
             </div>
-            <div className="bg-muted/30 rounded-md px-3 py-2 text-center">
+            <div className="bg-muted/30 rounded-2xl px-3 py-2 text-center">
               <div className="flex items-center justify-center gap-1 mb-0.5"><ShoppingBag className="h-3 w-3 text-primary" /></div>
               <p className="text-base sm:text-lg font-bold text-foreground">{summary.totalQty.toLocaleString('pt-BR')}</p>
               <p className="text-[10px] text-muted-foreground">Unidades</p>
             </div>
-            <div className="bg-muted/30 rounded-md px-3 py-2 text-center">
+            <div className="bg-muted/30 rounded-2xl px-3 py-2 text-center">
               <div className="flex items-center justify-center gap-1 mb-0.5"><BarChart3 className="h-3 w-3 text-primary" /></div>
               <p className="text-base sm:text-lg font-bold text-foreground">{summary.totalOrders}</p>
               <p className="text-[10px] text-muted-foreground">Pedidos</p>
             </div>
-            <div className="bg-muted/30 rounded-md px-3 py-2 text-center">
+            <div className="bg-muted/30 rounded-2xl px-3 py-2 text-center">
               <div className="flex items-center justify-center gap-1 mb-0.5"><Medal className="h-3 w-3 text-warning" /></div>
               <p className="text-base sm:text-lg font-bold text-foreground">{formatCurrency(summary.avgTicket)}</p>
               <p className="text-[10px] text-muted-foreground">Ticket Médio</p>
@@ -124,7 +124,7 @@ export function ProductRankingSearch() {
 
         {isLoading && (
           <div className="space-y-2">
-            {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-14 rounded-md" />)}
+            {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-14 rounded-2xl" />)}
           </div>
         )}
 
@@ -144,7 +144,7 @@ export function ProductRankingSearch() {
         )}
 
         {!isLoading && hasResults && (
-          <div className="divide-y divide-border rounded-md border border-border overflow-hidden">
+          <div className="divide-y divide-border rounded-2xl border border-border overflow-hidden">
             <div className="hidden sm:grid grid-cols-[2rem_2.5rem_1fr_4.5rem_5rem_5rem_4rem] gap-2 px-3 py-2 bg-muted/40 text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
               <span>#</span>
               <span></span>

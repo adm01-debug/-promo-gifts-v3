@@ -54,7 +54,7 @@ export function TrendsTour() {
         <CardContent className="p-4 space-y-3">
           <div className="flex items-start justify-between gap-2">
             <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-md bg-primary/15">
+              <div className="p-1.5 rounded-2xl bg-primary/15">
                 <Sparkles className="h-4 w-4 text-primary" />
               </div>
               <div>

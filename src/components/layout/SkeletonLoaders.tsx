@@ -85,8 +85,8 @@ export const ProductDetailSkeleton = makeSkeleton(
             <Skeleton className="h-4 w-4/6" />
           </div>
           <div className="flex gap-3 pt-4">
-            <Skeleton className="h-12 w-40 rounded-md" />
-            <Skeleton className="h-12 w-40 rounded-md" />
+            <Skeleton className="h-12 w-40 rounded-2xl" />
+            <Skeleton className="h-12 w-40 rounded-2xl" />
           </div>
         </div>
       </div>
@@ -135,9 +135,9 @@ export const AdminSkeleton = makeSkeleton(
         ))}
       </div>
       {/* Table */}
-      <Skeleton className="h-10 w-full rounded-md" />
+      <Skeleton className="h-10 w-full rounded-2xl" />
       {Array.from({ length: 8 }).map((_, i) => (
-        <Skeleton key={i} className="h-14 w-full rounded-md" />
+        <Skeleton key={i} className="h-14 w-full rounded-2xl" />
       ))}
     </>
   ),
@@ -192,8 +192,8 @@ export const ToolsSkeleton = makeSkeleton(
       <div className="flex items-center justify-between">
         <Skeleton className="h-8 w-52" />
         <div className="flex gap-2">
-          <Skeleton className="h-10 w-10 rounded-md" />
-          <Skeleton className="h-10 w-10 rounded-md" />
+          <Skeleton className="h-10 w-10 rounded-2xl" />
+          <Skeleton className="h-10 w-10 rounded-2xl" />
         </div>
       </div>
       {/* Wizard steps */}
@@ -206,11 +206,11 @@ export const ToolsSkeleton = makeSkeleton(
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-4">
           <Skeleton className="h-64 w-full rounded-xl" />
-          <Skeleton className="h-10 w-full rounded-md" />
+          <Skeleton className="h-10 w-full rounded-2xl" />
         </div>
         <div className="space-y-4">
           <Skeleton className="h-48 w-full rounded-xl" />
-          <Skeleton className="h-12 w-full rounded-md" />
+          <Skeleton className="h-12 w-full rounded-2xl" />
         </div>
       </div>
     </>
@@ -232,10 +232,10 @@ export const ProfileSkeleton = makeSkeleton(
       </div>
       <div className="space-y-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <Skeleton key={i} className="h-14 w-full rounded-md" />
+          <Skeleton key={i} className="h-14 w-full rounded-2xl" />
         ))}
       </div>
-      <Skeleton className="h-12 w-32 rounded-md" />
+      <Skeleton className="h-12 w-32 rounded-2xl" />
     </>
   ),
   "p-4 lg:p-6 space-y-6 max-w-2xl mx-auto",

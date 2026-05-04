@@ -30,7 +30,7 @@ export function SecuritySettingsCard({ settings, onUpdate }: SecuritySettingsCar
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="flex items-center justify-between p-4 rounded-md border border-border/50 bg-muted/20">
+          <div className="flex items-center justify-between p-4 rounded-2xl border border-border/50 bg-muted/20">
             <div className="space-y-1">
               <Label className="font-medium flex items-center gap-2">
                 <Wifi className="h-4 w-4" />
@@ -45,7 +45,7 @@ export function SecuritySettingsCard({ settings, onUpdate }: SecuritySettingsCar
               onCheckedChange={(checked) => onUpdate({ ip_whitelist_enabled: checked })}
             />
           </div>
-          <div className="flex items-center justify-between p-4 rounded-md border border-border/50 bg-muted/20">
+          <div className="flex items-center justify-between p-4 rounded-2xl border border-border/50 bg-muted/20">
             <div className="space-y-1">
               <Label className="font-medium flex items-center gap-2">
                 <MapPin className="h-4 w-4" />

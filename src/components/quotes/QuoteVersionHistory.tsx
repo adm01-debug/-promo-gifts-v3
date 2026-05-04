@@ -121,7 +121,7 @@ export function QuoteVersionHistory({ quoteId, currentQuoteId, onCreateVersion }
                     <button
                       onClick={() => !isCurrent && navigate(`/orcamentos/${version.id}`)}
                       disabled={isCurrent}
-                      className={`w-full text-left p-2 rounded-md transition-colors ${
+                      className={`w-full text-left p-2 rounded-2xl transition-colors ${
                         isCurrent
                           ? "bg-primary/10 border border-primary/20"
                           : "hover:bg-muted/50 cursor-pointer"

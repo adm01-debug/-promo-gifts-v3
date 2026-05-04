@@ -36,7 +36,7 @@ export function VariationSelector({ variations, selectedAreaId, onSelect }: Vari
           Etapa 3 · Variação
         </p>
         <div className={cn(
-          "p-3 rounded-md flex items-center justify-between border",
+          "p-3 rounded-2xl flex items-center justify-between border",
           isSelected
             ? "bg-primary/10 border-primary/40"
             : "bg-secondary/50 border-border/50"
@@ -78,7 +78,7 @@ export function VariationSelector({ variations, selectedAreaId, onSelect }: Vari
             <button
               key={area.area_id}
               className={cn(
-                "w-full p-3 rounded-md flex items-center justify-between transition-all duration-200 border text-left",
+                "w-full p-3 rounded-2xl flex items-center justify-between transition-all duration-200 border text-left",
                 isSelected
                   ? "bg-primary/10 border-primary/40 ring-1 ring-primary/20"
                   : "bg-secondary/50 border-border/50 hover:bg-secondary/80 hover:border-border"

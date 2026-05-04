@@ -81,7 +81,7 @@ export function HotSearchesCard({ days }: HotSearchesCardProps) {
         <div className="flex items-start justify-between gap-3">
           <div>
             <CardTitle className="text-base flex items-center gap-2">
-              <div className="w-7 h-7 rounded-md bg-primary/20 flex items-center justify-center">
+              <div className="w-7 h-7 rounded-2xl bg-primary/20 flex items-center justify-center">
                 <Flame className="h-3.5 w-3.5 text-primary" />
               </div>
               Buscas Quentes
@@ -100,7 +100,7 @@ export function HotSearchesCard({ days }: HotSearchesCardProps) {
       <CardContent className="p-0">
         {isLoading ? (
           <div className="p-3 space-y-2">
-            {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-12 rounded-md" />)}
+            {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-12 rounded-2xl" />)}
           </div>
         ) : !data?.length ? (
           <div className="flex flex-col items-center py-10 text-muted-foreground">

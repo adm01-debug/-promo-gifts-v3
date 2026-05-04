@@ -170,7 +170,7 @@ export function RankingFilterToolbar({
                   className="flex items-center group/item"
                 >
                   <button
-                    className="flex-1 flex items-center gap-3 px-3 py-2 text-sm text-left hover:bg-accent rounded-md transition-colors truncate"
+                    className="flex-1 flex items-center gap-3 px-3 py-2 text-sm text-left hover:bg-accent rounded-2xl transition-colors truncate"
                     onClick={() => {
                       onSearchChange(item.label);
                       setHistoryOpen(false);
@@ -198,14 +198,14 @@ export function RankingFilterToolbar({
       {/* Filters row */}
       <div className="flex flex-wrap items-center gap-2">
         {/* Period */}
-        <div className="flex items-center gap-0.5 bg-muted/50 rounded-md p-0.5 border border-border/50">
+        <div className="flex items-center gap-0.5 bg-muted/50 rounded-2xl p-0.5 border border-border/50">
           {PERIOD_OPTIONS.map((p) => (
             <Button
               key={p.days}
               variant={filters.days === p.days ? "default" : "ghost"}
               size="sm"
               className={cn(
-                "h-6 text-[10px] px-2 rounded-md",
+                "h-6 text-[10px] px-2 rounded-2xl",
                 filters.days === p.days && "bg-primary shadow-sm text-primary-foreground"
               )}
               onClick={() => onDaysChange(p.days)}
@@ -304,7 +304,7 @@ export function RankingFilterToolbar({
         {/* Limit selector */}
         <div className="flex items-center gap-1.5 ml-auto sm:ml-0">
           <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-tighter">Top</span>
-          <div className="flex items-center gap-0.5 bg-muted/50 rounded-md p-0.5 border border-border/50">
+          <div className="flex items-center gap-0.5 bg-muted/50 rounded-2xl p-0.5 border border-border/50">
             {LIMIT_OPTIONS.map((n) => (
               <Button
                 key={n}

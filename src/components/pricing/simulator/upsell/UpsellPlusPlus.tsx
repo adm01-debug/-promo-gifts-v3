@@ -154,7 +154,7 @@ export function UpsellPlusPlus({
                     whileHover={{ scale: 1.01, x: 2 }}
                     whileTap={{ scale: 0.99 }}
                     className={cn(
-                      "w-full text-left rounded-md border-l-4 p-3 transition-colors",
+                      "w-full text-left rounded-2xl border-l-4 p-3 transition-colors",
                       PRIORITY_STYLES[s.priority]
                     )}
                   >

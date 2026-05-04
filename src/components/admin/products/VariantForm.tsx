@@ -33,7 +33,7 @@ export function VariantForm({ initial, onSave, onCancel, isSaving }: VariantForm
   const hasExtraData = !!(form.supplier_sku || form.ean || form.size_code || form.capacity_ml || form.height_mm || form.width_mm || form.length_mm || form.weight_g);
 
   return (
-    <div className="rounded-md border border-primary/30 bg-accent/30 p-3 space-y-3">
+    <div className="rounded-2xl border border-primary/30 bg-accent/30 p-3 space-y-3">
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1">
           <Label className="text-xs">Nome *</Label>

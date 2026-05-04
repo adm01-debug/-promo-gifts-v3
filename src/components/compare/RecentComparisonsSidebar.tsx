@@ -72,7 +72,7 @@ export function RecentComparisonsSidebar() {
             <p className="text-sm text-muted-foreground text-center py-8">Nenhuma comparação salva ainda.</p>
           )}
           {items.map(item => (
-            <div key={item.id} className="rounded-md border border-border bg-card p-3 hover:border-primary/40 transition-colors">
+            <div key={item.id} className="rounded-2xl border border-border bg-card p-3 hover:border-primary/40 transition-colors">
               <p className="font-medium text-sm truncate">{item.name || item.client_name || "Sem título"}</p>
               <p className="text-xs text-muted-foreground mb-2">
                 {item.item_count ?? item.items?.length ?? 0} produtos · {formatDistanceToNow(new Date(item.updated_at), { addSuffix: true, locale: ptBR })}

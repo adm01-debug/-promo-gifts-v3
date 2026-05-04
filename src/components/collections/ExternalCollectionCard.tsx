@@ -35,7 +35,7 @@ export function ExternalCollectionCard({
         onClick={onNavigate}
       >
         <div
-          className="w-12 h-12 rounded-md flex items-center justify-center text-lg shrink-0 overflow-hidden"
+          className="w-12 h-12 rounded-2xl flex items-center justify-center text-lg shrink-0 overflow-hidden"
           style={{ backgroundColor: collection.color ? `${collection.color}20` : "hsl(var(--muted))" }}
         >
           {collection.image_url ? (
@@ -129,7 +129,7 @@ export function ExternalCollectionCard({
         </div>
 
         <div className="flex items-center justify-between">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-muted/50 text-xs text-muted-foreground font-medium">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-2xl bg-muted/50 text-xs text-muted-foreground font-medium">
             <Package className="h-3 w-3 text-primary" />
             {productCount ?? "…"} produtos
           </span>

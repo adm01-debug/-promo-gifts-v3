@@ -209,7 +209,7 @@ export function SalesGoalsCard() {
         <CardTitle className="flex items-center gap-2 text-lg">
           <div
             className={cn(
-              "p-2 rounded-md",
+              "p-2 rounded-2xl",
               activeGoal.is_achieved ? "bg-success/20" : "bg-primary/20"
             )}
           >
@@ -253,7 +253,7 @@ export function SalesGoalsCard() {
         {/* Secondary Metrics */}
         <div className="grid grid-cols-2 gap-3">
           {activeGoal.target_quotes > 0 && (
-            <div className="p-3 rounded-md bg-background/50">
+            <div className="p-3 rounded-2xl bg-background/50">
               <div className="flex items-center gap-2 mb-1">
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
                 <span className="text-[11px] text-muted-foreground">Orçamentos</span>
@@ -265,7 +265,7 @@ export function SalesGoalsCard() {
             </div>
           )}
           {activeGoal.target_conversions > 0 && (
-            <div className="p-3 rounded-md bg-background/50">
+            <div className="p-3 rounded-2xl bg-background/50">
               <div className="flex items-center gap-2 mb-1">
                 <Sparkles className="h-4 w-4 text-muted-foreground" />
                 <span className="text-[11px] text-muted-foreground">Conversões</span>

@@ -39,7 +39,7 @@ interface SectionProps {
 function Section({ title, defaultOpen = true, children }: SectionProps) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <Collapsible open={open} onOpenChange={setOpen} className="rounded-md border bg-card">
+    <Collapsible open={open} onOpenChange={setOpen} className="rounded-2xl border bg-card">
       <CollapsibleTrigger
         className="flex w-full items-center justify-between px-3 py-2 text-sm font-medium hover:bg-muted/50 transition-colors"
         aria-expanded={open}
@@ -148,7 +148,7 @@ export function ErrorDetailsDialog({
           )}
 
           {!loading && !details && (
-            <div className="rounded-md border border-dashed bg-muted/30 px-3 py-6 text-center text-xs text-muted-foreground">
+            <div className="rounded-2xl border border-dashed bg-muted/30 px-3 py-6 text-center text-xs text-muted-foreground">
               Sem registro de teste disponível para esta conexão ainda.
             </div>
           )}

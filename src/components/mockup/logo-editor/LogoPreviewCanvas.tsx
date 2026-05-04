@@ -47,7 +47,7 @@ export function LogoPreviewCanvas({
     <>
       {/* Technique preview indicator */}
       {techniqueName && (
-        <div className="flex items-center gap-2 p-2 rounded-md bg-primary/5 border border-primary/20">
+        <div className="flex items-center gap-2 p-2 rounded-2xl bg-primary/5 border border-primary/20">
           <div
             className="w-4 h-4 rounded-full border-2 border-primary"
             style={{
@@ -70,7 +70,7 @@ export function LogoPreviewCanvas({
       {/* Preview area */}
       <div
         ref={containerRef}
-        className="relative rounded-md border overflow-hidden bg-muted/30 aspect-square"
+        className="relative rounded-2xl border overflow-hidden bg-muted/30 aspect-square"
       >
         <img
           src={productImageUrl}

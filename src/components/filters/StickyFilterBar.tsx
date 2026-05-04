@@ -98,7 +98,7 @@ export function StickyFilterBar({
               {/* Right side - Sort & View */}
               <div className="flex items-center gap-2">
                 {/* View mode toggle */}
-                <div className="hidden sm:flex border border-border rounded-md p-0.5">
+                <div className="hidden sm:flex border border-border rounded-2xl p-0.5">
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
@@ -238,7 +238,7 @@ export function InlineFilterBar({
           {/* Column selector */}
           {viewMode === "grid" && columnSelector}
           {/* View mode toggle */}
-          <div className="hidden sm:flex border border-border rounded-md p-0.5">
+          <div className="hidden sm:flex border border-border rounded-2xl p-0.5">
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button

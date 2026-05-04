@@ -144,7 +144,7 @@ export function MockupApprovalPreview({ data, open, onOpenChange, onLayoutCaptur
 
         <div className="overflow-auto max-h-[calc(95vh-80px)] bg-muted/30 p-4">
           <div className="mx-auto" style={{ width: "794px" }}>
-            <div className="shadow-xl rounded-md overflow-hidden bg-white">
+            <div className="shadow-xl rounded-2xl overflow-hidden bg-white">
               <MockupApprovalTemplate ref={templateRef} data={data} />
             </div>
           </div>

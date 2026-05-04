@@ -53,7 +53,7 @@ export function IdentitySuggestionButton({ kitName, items, description, current,
       <CardContent className="p-3 space-y-2">
         <div className="flex items-center gap-2">
           <div
-            className="h-8 w-8 rounded-md flex items-center justify-center"
+            className="h-8 w-8 rounded-2xl flex items-center justify-center"
             style={{ backgroundColor: `${suggestion.color}22`, color: suggestion.color }}
           >
             <Icon className="h-4 w-4" />

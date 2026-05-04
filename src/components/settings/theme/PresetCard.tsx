@@ -56,7 +56,7 @@ export function PresetCard({ preset, isActive, onSelect }: PresetCardProps) {
           </AnimatePresence>
 
           {/* Swatches bar with rounded edges */}
-          <div className="relative flex h-8 rounded-md overflow-hidden mb-3 shadow-sm">
+          <div className="relative flex h-8 rounded-2xl overflow-hidden mb-3 shadow-sm">
             {preset.swatches.map((color, i) => (
               <motion.div
                 key={i}

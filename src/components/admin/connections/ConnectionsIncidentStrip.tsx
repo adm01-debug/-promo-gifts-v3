@@ -68,7 +68,7 @@ function IncidentCard({
   return (
     <article
       className={cn(
-        "group relative flex flex-col gap-1.5 rounded-md border px-3 py-2 min-w-[280px] max-w-[340px] shrink-0 snap-start",
+        "group relative flex flex-col gap-1.5 rounded-2xl border px-3 py-2 min-w-[280px] max-w-[340px] shrink-0 snap-start",
         meta.cardCls,
       )}
       aria-label={`Incidente ${meta.label}: ${incident.title}`}
@@ -209,7 +209,7 @@ export function ConnectionsIncidentStrip() {
     <TooltipProvider delayDuration={150}>
       <section
         aria-label="Incidentes recentes"
-        className="-mt-3 rounded-md border border-border/60 bg-card/40 backdrop-blur-sm"
+        className="-mt-3 rounded-2xl border border-border/60 bg-card/40 backdrop-blur-sm"
       >
         <header className="flex items-center justify-between px-3 py-1.5 border-b border-border/40">
           <div className="flex items-center gap-2">

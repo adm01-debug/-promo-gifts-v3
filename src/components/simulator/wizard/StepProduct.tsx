@@ -141,7 +141,7 @@ export function StepProduct({ wizard }: StepProductProps) {
               key={draft.id}
               variant="outline"
               size="sm"
-              className="h-7 text-xs gap-1.5 shrink-0 rounded-md"
+              className="h-7 text-xs gap-1.5 shrink-0 rounded-2xl"
               onClick={() => {
                 if (draft.product_data) {
                   wizard.selectProduct(draft.product_data);

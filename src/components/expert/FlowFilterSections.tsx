@@ -38,7 +38,7 @@ export function SectionContent({ id, filters, options, update, toggleArray }: Se
               const isActive = filters.priceMin === p.min && filters.priceMax === p.max;
               return (
                 <button key={p.label} onClick={() => handlePreset(p.min, p.max)}
-                  className={cn("px-2.5 py-1 rounded-md text-[10px] font-semibold border transition-all duration-150",
+                  className={cn("px-2.5 py-1 rounded-2xl text-[10px] font-semibold border transition-all duration-150",
                     isActive ? "bg-primary/15 text-primary border-primary/30 shadow-sm shadow-primary/5" : "bg-muted/5 border-border/15 text-muted-foreground/45 hover:border-primary/20 hover:text-foreground"
                   )}>{p.label}</button>
               );
@@ -50,7 +50,7 @@ export function SectionContent({ id, filters, options, update, toggleArray }: Se
               <input type="number" min={0} step="0.01" value={filters.priceMin}
                 onChange={(e) => { const v = e.target.value; if (v === "" || Number(v) >= 0) update({ priceMin: v }); }}
                 placeholder="Mín"
-                className={cn("w-full h-7 pl-6 pr-2 rounded-md text-[11px] bg-background/30 border transition-all focus:outline-none focus:ring-1 focus:ring-primary/25",
+                className={cn("w-full h-7 pl-6 pr-2 rounded-2xl text-[11px] bg-background/30 border transition-all focus:outline-none focus:ring-1 focus:ring-primary/25",
                   filters.priceMin ? "border-primary/30 text-primary font-medium" : "border-border/15 text-foreground/70")} />
             </div>
             <div className="h-px w-3 bg-border/25" />
@@ -59,7 +59,7 @@ export function SectionContent({ id, filters, options, update, toggleArray }: Se
               <input type="number" min={0} step="0.01" value={filters.priceMax}
                 onChange={(e) => { const v = e.target.value; if (v === "" || Number(v) >= 0) update({ priceMax: v }); }}
                 placeholder="Máx"
-                className={cn("w-full h-7 pl-6 pr-2 rounded-md text-[11px] bg-background/30 border transition-all focus:outline-none focus:ring-1 focus:ring-primary/25",
+                className={cn("w-full h-7 pl-6 pr-2 rounded-2xl text-[11px] bg-background/30 border transition-all focus:outline-none focus:ring-1 focus:ring-primary/25",
                   filters.priceMax ? "border-primary/30 text-primary font-medium" : "border-border/15 text-foreground/70")} />
             </div>
           </div>

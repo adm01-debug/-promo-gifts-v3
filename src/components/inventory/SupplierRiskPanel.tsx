@@ -271,7 +271,7 @@ export function SupplierRiskPanel({ products }: SupplierRiskPanelProps) {
                           role="option"
                           aria-selected={selectedProductId === product.id}
                           className={cn(
-                            "w-full text-left p-2 rounded-md text-xs transition-colors",
+                            "w-full text-left p-2 rounded-2xl text-xs transition-colors",
                             selectedProductId === product.id
                               ? "bg-primary/10 border border-primary/20"
                               : "hover:bg-muted/50"

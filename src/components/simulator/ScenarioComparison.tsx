@@ -69,7 +69,7 @@ export function ScenarioComparison({
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-md bg-muted">
+            <div className="p-2 rounded-2xl bg-muted">
               <GitCompare className="h-5 w-5 text-muted-foreground" />
             </div>
             <div>
@@ -109,7 +109,7 @@ export function ScenarioComparison({
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="p-3 rounded-md bg-primary/10 border border-primary/30"
+                className="p-3 rounded-2xl bg-primary/10 border border-primary/30"
               >
                 <p className="font-medium text-sm truncate">{scenarioA.productName}</p>
                 <p className="text-[11px] text-muted-foreground">{scenarioA.quantity} un</p>
@@ -152,7 +152,7 @@ export function ScenarioComparison({
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="p-3 rounded-md bg-primary/15 border border-primary/25"
+                className="p-3 rounded-2xl bg-primary/15 border border-primary/25"
               >
                 <p className="font-medium text-sm truncate">{scenarioB.productName}</p>
                 <p className="text-[11px] text-muted-foreground">{scenarioB.quantity} un</p>
@@ -195,7 +195,7 @@ export function ScenarioComparison({
                 <div className="grid grid-cols-3 gap-4 text-center">
                   {/* Scenario A */}
                   <div className={cn(
-                    "p-3 rounded-md transition-all",
+                    "p-3 rounded-2xl transition-all",
                     comparison.winner === 'A' && "bg-success/20 ring-2 ring-success"
                   )}>
                     <p className="text-xs text-muted-foreground mb-1">Cenário A</p>
@@ -244,7 +244,7 @@ export function ScenarioComparison({
 
                   {/* Scenario B */}
                   <div className={cn(
-                    "p-3 rounded-md transition-all",
+                    "p-3 rounded-2xl transition-all",
                     comparison.winner === 'B' && "bg-success/20 ring-2 ring-success"
                   )}>
                     <p className="text-xs text-muted-foreground mb-1">Cenário B</p>
@@ -265,7 +265,7 @@ export function ScenarioComparison({
 
                 {/* Savings highlight */}
                 {comparison.priceDiff !== 0 && (
-                  <div className="mt-4 p-3 rounded-md bg-card/50 text-center">
+                  <div className="mt-4 p-3 rounded-2xl bg-card/50 text-center">
                     <p className="text-sm text-muted-foreground">Economia escolhendo {comparison.winner}:</p>
                     <p className="text-2xl font-bold text-success">
                       {formatCurrency(Math.abs(comparison.priceDiff))}

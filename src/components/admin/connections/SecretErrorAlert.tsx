@@ -66,7 +66,7 @@ export function SecretErrorAlert({
     <div
       role="alert"
       className={cn(
-        "rounded-md border border-destructive/30 bg-destructive/5 animate-in fade-in duration-200",
+        "rounded-2xl border border-destructive/30 bg-destructive/5 animate-in fade-in duration-200",
         variant === "expanded" ? "p-3 space-y-2" : "px-2.5 py-2 text-xs",
         className,
       )}

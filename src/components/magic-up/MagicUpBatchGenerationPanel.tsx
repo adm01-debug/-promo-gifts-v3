@@ -28,7 +28,7 @@ export function MagicUpBatchGenerationPanel({ queue, running, canGenerate, onSet
           {BATCH_PRESETS.map((preset) => {
             const active = queue.length === preset.variants.length && preset.variants.every((variant, index) => queue[index]?.id === variant.id);
             return (
-              <button key={preset.id} type="button" onClick={() => onSetQueue(preset.variants)} className={cn("rounded-md border px-2.5 py-2 text-left text-xs font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", active ? "border-primary bg-primary/10 text-primary" : "border-border bg-muted/30 text-foreground hover:border-primary/50")} aria-pressed={active}>
+              <button key={preset.id} type="button" onClick={() => onSetQueue(preset.variants)} className={cn("rounded-2xl border px-2.5 py-2 text-left text-xs font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", active ? "border-primary bg-primary/10 text-primary" : "border-border bg-muted/30 text-foreground hover:border-primary/50")} aria-pressed={active}>
                 {preset.label}
               </button>
             );
@@ -36,7 +36,7 @@ export function MagicUpBatchGenerationPanel({ queue, running, canGenerate, onSet
         </div>
 
         {queue.length > 0 && (
-          <div className="rounded-md border bg-muted/30 p-2.5 space-y-2">
+          <div className="rounded-2xl border bg-muted/30 p-2.5 space-y-2">
             <div className="flex items-center justify-between gap-2">
               <Badge variant="outline" className="text-[10px]">{queue.length} variações na fila</Badge>
               <Button type="button" variant="ghost" size="sm" className="h-7 px-2 text-[10px]" onClick={onClearQueue}>Limpar</Button>

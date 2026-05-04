@@ -93,7 +93,7 @@ export function ProductPriceSection({
                 setValue('is_kit', e.target.value === 'kit');
               },
             })}
-            className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+            className="h-9 w-full rounded-2xl border border-input bg-background px-3 text-sm"
           >
             <option value="product">Produto Unitário</option>
             <option value="kit">Kit</option>

@@ -274,7 +274,7 @@ export function EnhancedSpotlight() {
                           onClick={() => handleSelect(item)}
                           onMouseEnter={() => setSelectedIndex(globalIndex)}
                           className={cn(
-                            "flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left",
+                            "flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left",
                             "transition-colors duration-100",
                             "focus:outline-none",
                             isSelected
@@ -284,7 +284,7 @@ export function EnhancedSpotlight() {
                         >
                           <div
                             className={cn(
-                              "flex h-9 w-9 items-center justify-center rounded-md shrink-0",
+                              "flex h-9 w-9 items-center justify-center rounded-2xl shrink-0",
                               isSelected ? "bg-primary text-primary-foreground" : "bg-muted"
                             )}
                           >
@@ -363,7 +363,7 @@ export function EnhancedSpotlightTrigger({ className }: { className?: string }) 
     <button
       onClick={handleClick}
       className={cn(
-        "flex items-center gap-2 rounded-md border border-border bg-muted/50 px-3 py-2 text-sm text-muted-foreground",
+        "flex items-center gap-2 rounded-2xl border border-border bg-muted/50 px-3 py-2 text-sm text-muted-foreground",
         "hover:bg-muted hover:text-foreground hover:border-border/80 transition-all duration-150",
         "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
         "active:scale-[0.98]",

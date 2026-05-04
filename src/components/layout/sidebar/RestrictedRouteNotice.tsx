@@ -60,7 +60,7 @@ export function RestrictedRouteNotice({
               role="status"
               aria-label={`${title}: ${description}`}
               className={cn(
-                "mx-auto my-2 flex h-8 w-8 items-center justify-center rounded-md",
+                "mx-auto my-2 flex h-8 w-8 items-center justify-center rounded-2xl",
                 "bg-destructive/10 text-destructive border border-destructive/30"
               )}
             >
@@ -87,7 +87,7 @@ export function RestrictedRouteNotice({
       role="status"
       aria-live="polite"
       data-testid="sidebar-restricted-notice"
-      className="mx-2 my-2 rounded-md border border-destructive/30 bg-destructive/10 p-2.5 text-xs"
+      className="mx-2 my-2 rounded-2xl border border-destructive/30 bg-destructive/10 p-2.5 text-xs"
     >
       <div className="flex items-start gap-2">
         <ShieldAlert

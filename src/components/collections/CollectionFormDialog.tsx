@@ -153,7 +153,7 @@ export function CollectionFormDialog({
                   whileTap={{ scale: 0.9 }}
                   onClick={() => onFormChange({ ...formData, icon })}
                   className={cn(
-                    "w-10 h-10 rounded-md text-lg flex items-center justify-center border transition-all",
+                    "w-10 h-10 rounded-2xl text-lg flex items-center justify-center border transition-all",
                     formData.icon === icon
                       ? "border-primary bg-primary/10 shadow-sm"
                       : "border-border hover:border-primary/50"

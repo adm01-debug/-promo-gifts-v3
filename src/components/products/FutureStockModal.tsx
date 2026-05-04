@@ -231,7 +231,7 @@ export function FutureStockModal({
                           onClick={() => setSelectedColor(isSelected ? null : color.name)}
                           title={`${color.name}\nAtual: ${color.currentStock.toLocaleString("pt-BR")}\nPrevisto: +${color.incomingTotal.toLocaleString("pt-BR")}`}
                           className={cn(
-                            "relative rounded-md overflow-hidden transition-all duration-200",
+                            "relative rounded-2xl overflow-hidden transition-all duration-200",
                             "border bg-card hover:shadow-md hover:scale-105",
                             isSelected && "ring-2 ring-primary ring-offset-1 ring-offset-background",
                             !hasEntries && "opacity-40 grayscale"
@@ -420,7 +420,7 @@ export function FutureStockModal({
               <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-md bg-primary/20 flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-2xl bg-primary/20 flex items-center justify-center">
                       <Truck className="h-5 w-5 text-primary" />
                     </div>
                     <div>

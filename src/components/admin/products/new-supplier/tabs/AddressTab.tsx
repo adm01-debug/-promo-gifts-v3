@@ -21,7 +21,7 @@ export function AddressTab({ form }: AddressTabProps) {
         </div>
         <div>
           <Label className="text-xs font-semibold">Tipo Logradouro</Label>
-          <select value={form.tipoLogradouro} onChange={(e) => form.setTipoLogradouro(e.target.value)} className="mt-1.5 h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
+          <select value={form.tipoLogradouro} onChange={(e) => form.setTipoLogradouro(e.target.value)} className="mt-1.5 h-9 w-full rounded-2xl border border-input bg-background px-3 text-sm">
             <option value="">Selecione</option>
             {['Rua', 'Avenida', 'Alameda', 'Travessa', 'Praça', 'Rodovia', 'Estrada', 'Viela', 'Largo', 'Outro'].map(t => <option key={t} value={t}>{t}</option>)}
           </select>
@@ -42,7 +42,7 @@ export function AddressTab({ form }: AddressTabProps) {
       <div className="grid grid-cols-2 gap-4">
         <div>
           <Label className="text-xs font-semibold">Estado</Label>
-          <select value={form.estado} onChange={(e) => form.setEstado(e.target.value)} className="mt-1.5 h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
+          <select value={form.estado} onChange={(e) => form.setEstado(e.target.value)} className="mt-1.5 h-9 w-full rounded-2xl border border-input bg-background px-3 text-sm">
             <option value="">Selecione</option>
             {ESTADOS_BR.map(uf => <option key={uf} value={uf}>{uf}</option>)}
           </select>
@@ -74,7 +74,7 @@ export function AddressTab({ form }: AddressTabProps) {
             <Input value={form.carrierSearch} onChange={(e: React.ChangeEvent<HTMLInputElement>) => { const val = e.target.value; form.setCarrierSearch(val); clearTimeout(form.carrierSearchTimeout.current); form.carrierSearchTimeout.current = setTimeout(() => form.searchCarriers(val), 400); }} onFocus={() => { if (form.carrierResults.length > 0) form.setShowCarrierDropdown(true); }} onBlur={() => setTimeout(() => form.setShowCarrierDropdown(false), 200)} placeholder="Buscar transportadora..." className={`${fieldClass} pl-9`} />
             {form.searchingCarriers && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-muted-foreground" />}
             {form.showCarrierDropdown && form.carrierResults.length > 0 && (
-              <div className="absolute z-50 w-full mt-1 max-h-48 overflow-y-auto rounded-md border bg-popover shadow-lg">
+              <div className="absolute z-50 w-full mt-1 max-h-48 overflow-y-auto rounded-2xl border bg-popover shadow-lg">
                 {form.carrierResults.map((c: any) => (
                   <button key={c.id} type="button" className="w-full text-left px-3 py-2 text-sm hover:bg-accent/50 transition-colors" onMouseDown={(e) => { e.preventDefault(); form.setTransportadoraPadrao(c.nome_fantasia || c.razao_social); form.setTransportadoraId(c.id); form.setCarrierSearch(''); form.setShowCarrierDropdown(false); }}>
                     <span className="font-medium">{c.nome_fantasia || c.razao_social}</span>

@@ -26,7 +26,7 @@ export function BulkToolbar({ selectedCount, totalCount, onSelectAll, onDeselect
   };
 
   return (
-    <div className="flex items-center gap-2 flex-wrap bg-primary/5 border border-primary/20 rounded-md px-3 py-2 animate-in slide-in-from-top-2 duration-200">
+    <div className="flex items-center gap-2 flex-wrap bg-primary/5 border border-primary/20 rounded-2xl px-3 py-2 animate-in slide-in-from-top-2 duration-200">
       <div className="flex items-center gap-2 mr-2">
         <Badge variant="secondary" className="text-xs font-semibold">{selectedCount}/{totalCount} selecionados</Badge>
         <Button variant="ghost" size="sm" className="h-7 text-xs px-2" onClick={selectedCount === totalCount ? onDeselectAll : onSelectAll}>

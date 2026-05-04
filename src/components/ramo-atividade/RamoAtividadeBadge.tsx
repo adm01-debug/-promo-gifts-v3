@@ -167,7 +167,7 @@ export function CompactRamoAtividadeBadge({
       type="button"
       onClick={onClick}
       className={cn(
-        "inline-flex items-center gap-1.5 text-xs px-2 py-1 rounded-md transition-all duration-150",
+        "inline-flex items-center gap-1.5 text-xs px-2 py-1 rounded-2xl transition-all duration-150",
         isSelected
           ? "bg-primary/15 text-primary font-medium ring-1 ring-primary/30"
           : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"

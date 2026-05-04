@@ -21,7 +21,7 @@ export function FilterPanelHeader({
     <div className="pb-3 mb-1">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2.5">
-          <div className="h-8 w-8 rounded-md bg-gradient-to-br from-orange to-orange-hover flex items-center justify-center shadow-md shadow-orange/20">
+          <div className="h-8 w-8 rounded-2xl bg-gradient-to-br from-orange to-orange-hover flex items-center justify-center shadow-md shadow-orange/20">
             <SlidersHorizontal className="h-4 w-4 text-orange-foreground" />
           </div>
           <div>

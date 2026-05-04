@@ -178,7 +178,7 @@ export function LoadingButton({
 }) {
   return (
     <Skeleton 
-      className={cn("h-10 rounded-md", className)} 
+      className={cn("h-10 rounded-2xl", className)} 
       style={{ width }} 
     />
   );

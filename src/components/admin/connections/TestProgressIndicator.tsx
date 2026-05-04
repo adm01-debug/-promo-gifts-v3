@@ -77,7 +77,7 @@ export function TestProgressIndicator({
       role="status"
       aria-live="polite"
       className={cn(
-        "flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-xs animate-in fade-in slide-in-from-top-1 duration-200",
+        "flex items-center gap-2 rounded-2xl border px-2.5 py-1.5 text-xs animate-in fade-in slide-in-from-top-1 duration-200",
         tone,
         className,
       )}

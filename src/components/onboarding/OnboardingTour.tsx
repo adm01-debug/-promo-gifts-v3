@@ -159,7 +159,7 @@ export function OnboardingTour() {
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="absolute border-2 border-primary rounded-md pointer-events-none"
+            className="absolute border-2 border-primary rounded-2xl pointer-events-none"
             style={{
               top: highlightRect.top - 4,
               left: highlightRect.left - 4,

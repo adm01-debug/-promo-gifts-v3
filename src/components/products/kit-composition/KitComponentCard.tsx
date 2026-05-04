@@ -87,7 +87,7 @@ export function KitComponentCard({ item, index, variant, onViewProduct, onZoomIm
         <div className="shrink-0">
           <div className="relative">
             <div
-              className={cn("w-16 h-16 rounded-md flex items-center justify-center overflow-hidden border", isPackaging ? "bg-warning/5 border-warning/20" : "bg-muted/60 border-border/50", item.imageUrl && "cursor-zoom-in hover:ring-2 hover:ring-primary/40 transition-all")}
+              className={cn("w-16 h-16 rounded-2xl flex items-center justify-center overflow-hidden border", isPackaging ? "bg-warning/5 border-warning/20" : "bg-muted/60 border-border/50", item.imageUrl && "cursor-zoom-in hover:ring-2 hover:ring-primary/40 transition-all")}
               onClick={(e) => { if (item.imageUrl && onZoomImage) { e.stopPropagation(); onZoomImage(item.imageUrl); } }}
             >
               {item.imageUrl ? (
@@ -162,7 +162,7 @@ export function KitComponentCard({ item, index, variant, onViewProduct, onZoomIm
       {/* Specs */}
       {hasSpecs && (
         <div className="px-4 pb-2.5">
-          <div className="flex items-center gap-1 rounded-md border border-border bg-muted/20 px-1 py-0.5 divide-x divide-border">
+          <div className="flex items-center gap-1 rounded-2xl border border-border bg-muted/20 px-1 py-0.5 divide-x divide-border">
             {(item.heightMm ?? 0) > 0 && (
               <div className="flex items-center gap-1 px-2 py-0.5 min-w-0">
                 <ArrowUpDown className="h-3 w-3 text-primary shrink-0" />
@@ -208,11 +208,11 @@ export function KitComponentCard({ item, index, variant, onViewProduct, onZoomIm
           {item.description && (
             <div className="pt-3">
               <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 mb-1.5"><FileText className="h-3 w-3" />Descrição</div>
-              <p className="text-xs text-muted-foreground/90 whitespace-pre-line leading-relaxed bg-muted/20 rounded-md p-3">{item.description}</p>
+              <p className="text-xs text-muted-foreground/90 whitespace-pre-line leading-relaxed bg-muted/20 rounded-2xl p-3">{item.description}</p>
             </div>
           )}
           {item.personalizationNotes && (
-            <div className="rounded-md bg-primary/5 border border-primary/15 p-3">
+            <div className="rounded-2xl bg-primary/5 border border-primary/15 p-3">
               <div className="text-[11px] font-semibold uppercase tracking-wider text-primary flex items-center gap-1.5 mb-1.5"><Palette className="h-3 w-3" />Notas de Personalização</div>
               <p className="text-xs text-muted-foreground whitespace-pre-line leading-relaxed">{item.personalizationNotes}</p>
             </div>

@@ -164,34 +164,34 @@ export const SortableCartItem = memo(function SortableCartItem({
                 </TooltipContent>
               </Tooltip>
               <DropdownMenuContent align="end" className="w-56 p-1.5 rounded-xl">
-                <DropdownMenuItem data-testid="cart-item-action-view" className="rounded-md py-2" onClick={() => onNavigate(`/produto/${item.product_id}`)}>
+                <DropdownMenuItem data-testid="cart-item-action-view" className="rounded-2xl py-2" onClick={() => onNavigate(`/produto/${item.product_id}`)}>
                   <Eye className="h-4 w-4 mr-2.5 opacity-70" /> Ver Produto
                 </DropdownMenuItem>
-                <DropdownMenuItem data-testid="cart-item-action-simulate" className="rounded-md py-2" onClick={() => onNavigate(`/simulador?product=${item.product_id}`)}>
+                <DropdownMenuItem data-testid="cart-item-action-simulate" className="rounded-2xl py-2" onClick={() => onNavigate(`/simulador?product=${item.product_id}`)}>
                   <Calculator className="h-4 w-4 mr-2.5 opacity-70" /> Simular Personalização
                 </DropdownMenuItem>
                 {otherCarts.length > 0 && (
                   <>
                     <DropdownMenuSeparator className="my-1.5" />
                     <DropdownMenuSub>
-                      <DropdownMenuSubTrigger data-testid="cart-item-action-move" className="rounded-md py-2">
+                      <DropdownMenuSubTrigger data-testid="cart-item-action-move" className="rounded-2xl py-2">
                         <MoveRight className="h-4 w-4 mr-2.5 opacity-70" /> Mover para...
                       </DropdownMenuSubTrigger>
                       <DropdownMenuSubContent className="p-1.5 rounded-xl min-w-[180px]">
                         {otherCarts.map(c => (
-                          <DropdownMenuItem key={c.id} data-testid="cart-item-move-target" data-target-cart-id={c.id} className="rounded-md py-2" onClick={() => onMoveToCart(item.id, c.id)}>
+                          <DropdownMenuItem key={c.id} data-testid="cart-item-move-target" data-target-cart-id={c.id} className="rounded-2xl py-2" onClick={() => onMoveToCart(item.id, c.id)}>
                             {c.company_name}
                           </DropdownMenuItem>
                         ))}
                       </DropdownMenuSubContent>
                     </DropdownMenuSub>
                     <DropdownMenuSub>
-                      <DropdownMenuSubTrigger data-testid="cart-item-action-duplicate" className="rounded-md py-2">
+                      <DropdownMenuSubTrigger data-testid="cart-item-action-duplicate" className="rounded-2xl py-2">
                         <CopyPlus className="h-4 w-4 mr-2.5 opacity-70" /> Duplicar para...
                       </DropdownMenuSubTrigger>
                       <DropdownMenuSubContent className="p-1.5 rounded-xl min-w-[180px]">
                         {otherCarts.map(c => (
-                          <DropdownMenuItem key={c.id} data-testid="cart-item-duplicate-target" data-target-cart-id={c.id} className="rounded-md py-2" onClick={() => onDuplicateToCart(item.id, c.id)}>
+                          <DropdownMenuItem key={c.id} data-testid="cart-item-duplicate-target" data-target-cart-id={c.id} className="rounded-2xl py-2" onClick={() => onDuplicateToCart(item.id, c.id)}>
                             {c.company_name}
                           </DropdownMenuItem>
                         ))}
@@ -202,7 +202,7 @@ export const SortableCartItem = memo(function SortableCartItem({
                 <DropdownMenuSeparator className="my-1.5" />
                 <DropdownMenuItem
                   data-testid="cart-item-action-remove"
-                  className="text-destructive focus:text-destructive focus:bg-destructive/5 rounded-md py-2"
+                  className="text-destructive focus:text-destructive focus:bg-destructive/5 rounded-2xl py-2"
                   onClick={() => onRemove(item.id, item.product_name)}
                 >
                   <Trash2 className="h-4 w-4 mr-2.5 opacity-70" /> Remover Item
@@ -254,7 +254,7 @@ export const SortableCartItem = memo(function SortableCartItem({
             </h4>
           </div>
 
-          <div className="flex items-center justify-between bg-muted/20 p-2 rounded-md border border-border/10">
+          <div className="flex items-center justify-between bg-muted/20 p-2 rounded-2xl border border-border/10">
             <PriceLabel
               label="Unitário"
               value={item.product_price}
@@ -269,7 +269,7 @@ export const SortableCartItem = memo(function SortableCartItem({
 
           {/* Quantity stepper & Subtotal */}
           <div className="flex items-center justify-between pt-2 border-t border-border/30 gap-3">
-            <div data-testid="cart-item-qty-stepper" className="flex items-center gap-0 border border-border/50 rounded-md overflow-hidden bg-background shadow-sm hover:border-primary/30 transition-colors">
+            <div data-testid="cart-item-qty-stepper" className="flex items-center gap-0 border border-border/50 rounded-2xl overflow-hidden bg-background shadow-sm hover:border-primary/30 transition-colors">
               <button
                 data-testid="cart-qty-decrement"
                 aria-label="Diminuir quantidade"
@@ -326,7 +326,7 @@ export const SortableCartItem = memo(function SortableCartItem({
               <button 
                 data-testid="cart-item-notes-toggle" 
                 className={cn(
-                  "flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider transition-all w-full p-2 rounded-md border border-transparent",
+                  "flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider transition-all w-full p-2 rounded-2xl border border-transparent",
                   item.notes 
                     ? "text-primary bg-primary/5 border-primary/10" 
                     : "text-muted-foreground hover:text-foreground hover:bg-muted/50"

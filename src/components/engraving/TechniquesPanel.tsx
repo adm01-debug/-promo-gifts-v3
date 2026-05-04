@@ -166,7 +166,7 @@ export function TechniquesPanel() {
         </div>
 
         {/* Tabela */}
-        <div className="rounded-md border">
+        <div className="rounded-2xl border">
           <Table>
             <TableHeader>
               <TableRow>

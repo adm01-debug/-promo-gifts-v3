@@ -14,7 +14,7 @@ export function RiskKpi({ icon: Icon, label, value, sub, alert, warning }: RiskK
   return (
     <div
       className={cn(
-        "rounded-md p-1.5 text-center",
+        "rounded-2xl p-1.5 text-center",
         alert ? "bg-destructive/10 border border-destructive/20" :
         warning ? "bg-warning/10 border border-warning/20" : "bg-muted/50"
       )}
