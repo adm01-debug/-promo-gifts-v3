@@ -249,8 +249,8 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
                   )}
                 </Button>
               </TooltipTrigger>
-              <TooltipContent className="bg-card border-border text-xs">
-                Comparar <kbd className="ml-1.5 px-1 py-0.5 rounded bg-muted text-muted-foreground text-[10px] font-mono">Alt+C</kbd>
+              <TooltipContent>
+                Comparar <kbd className="ml-1.5 px-1 py-0.5 rounded bg-primary-foreground/20 text-primary-foreground text-[10px] font-mono">Alt+C</kbd>
               </TooltipContent>
             </Tooltip>
 
