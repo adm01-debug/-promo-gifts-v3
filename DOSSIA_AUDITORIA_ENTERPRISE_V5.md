@@ -49,16 +49,16 @@ O sistema **Promo Gifts** consolidou-se como uma plataforma Tier 1 para o mercad
 ### 4.2 Módulo: Inteligência Artificial (Flow Engine)
 | Funcionalidade | Motivo de Existir | Impacto | Evidência (Path) | Snippet de Validação |
 | :--- | :--- | :--- | :--- | :--- |
-| **AI Mockup Studio** | Prova virtual imediata. | Acelera fechamento de vendas complexas. | `supabase/functions/` | `generate-mockup-nanobanana/index.ts` |
-| **Edge Detection** | Detecção de área útil. | Evita distorções em logos de clientes. | `src/lib/` | `product-bounds-detector.ts` |
-| **Semantic Search** | Busca por intenção. | Melhora conversão em buscas genéricas. | `supabase/functions/` | `semantic-search/index.ts` |
+| **AI Mockup Studio** | Prova virtual imediata. | Acelera fechamento de vendas complexas. | `supabase/functions/generate-mockup-nanobanana/index.ts` | Interface com NanoBanana API |
+| **Edge Detection** | Detecção de área útil. | Evita distorções em logos de clientes. | `src/lib/product-bounds-detector.ts` | Lógica de transparência via Canvas API |
+| **Semantic Search** | Busca por intenção. | Melhora conversão em buscas genéricas. | `supabase/functions/semantic-search/index.ts` | Busca via Embeddings |
 
 ### 4.3 Módulo: Vendas e Finanças (Revenue Core)
 | Funcionalidade | Motivo de Existir | Impacto | Evidência (Path) | Snippet de Validação |
 | :--- | :--- | :--- | :--- | :--- |
-| **Pricing Engine** | Cálculo de impostos/margens. | Elimina erro humano em propostas. | `src/lib/personalization/` | `calculators.ts:22: calculatePrice` |
-| **E-Signature** | Validade jurídica. | Reduz fraude na aprovação de orçamentos. | `src/pages/` | `PublicQuoteApprovalPage.tsx` |
-| **CRM Bridge** | Sync com Bitrix24. | Mantém dados de pedidos centralizados. | `supabase/functions/` | `crm-db-bridge/index.ts` |
+| **Pricing Engine** | Cálculo de impostos/margens. | Elimina erro humano em propostas. | `src/lib/personalization/calculators.ts` | `export function calculatePrice` |
+| **E-Signature** | Validade jurídica. | Reduz fraude na aprovação de orçamentos. | `src/pages/PublicQuoteApprovalPage.tsx` | Captura de Hash e IP |
+| **CRM Bridge** | Sync com Bitrix24. | Mantém dados de pedidos centralizados. | `supabase/functions/crm-db-bridge/index.ts` | Sincronia bidirecional |
 
 ---
 
