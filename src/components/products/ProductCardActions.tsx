@@ -137,7 +137,7 @@ function ActionButton({
           <Icon className={cn("h-4 w-4 md:h-5 md:w-5 transition-all duration-300", iconClassName)} />
         </Button>
       </TooltipTrigger>
-      <TooltipContent side="left">{label}</TooltipContent>
+      <TooltipContent side="left" className="bg-primary text-primary-foreground border-primary text-[11px]">{label}</TooltipContent>
     </Tooltip>
   );
 }
