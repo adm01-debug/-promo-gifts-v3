@@ -39,8 +39,8 @@ export function SimilarKitsWidget({ currentSkus, excludeId }: Props) {
       <CardContent className="space-y-2">
         {isLoading && (
           <>
-            <Skeleton className="h-14 w-full rounded-md" />
-            <Skeleton className="h-14 w-full rounded-md" />
+            <Skeleton className="h-14 w-full rounded-xl" />
+            <Skeleton className="h-14 w-full rounded-xl" />
           </>
         )}
         {!isLoading && (data ?? []).length === 0 && (
@@ -54,10 +54,10 @@ export function SimilarKitsWidget({ currentSkus, excludeId }: Props) {
             <button
               key={template.id}
               onClick={() => navigate(`/montar-kit?template=${template.id}`)}
-              className="w-full text-left rounded-md border p-2 hover:bg-accent/50 transition-colors flex items-center gap-2"
+              className="w-full text-left rounded-xl border p-2 hover:bg-accent/50 transition-colors flex items-center gap-2"
             >
               <div
-                className="h-8 w-8 rounded-md flex items-center justify-center shrink-0"
+                className="h-8 w-8 rounded-xl flex items-center justify-center shrink-0"
                 style={{ backgroundColor: `${template.color}22`, color: template.color }}
               >
                 <Icon className="h-4 w-4" />

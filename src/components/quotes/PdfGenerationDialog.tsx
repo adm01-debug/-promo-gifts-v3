@@ -149,7 +149,7 @@ export function PdfGenerationDialog({
         <DialogHeader className="px-6 pt-6 pb-4 border-b border-border">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <DialogTitle className="text-lg font-bold">
+              <DialogTitle className="text-xl font-bold">
                 Proposta Comercial {quoteNumber}
               </DialogTitle>
               {isDraft && (
@@ -173,7 +173,7 @@ export function PdfGenerationDialog({
               {/* Preview area — scrollable */}
               <div className="flex-1 overflow-auto bg-muted/30 p-4" style={{ maxHeight: "calc(90vh - 160px)" }}>
                 <div className="mx-auto" style={{ maxWidth: "794px" }}>
-                  <div className="relative bg-white rounded-lg shadow-lg overflow-hidden">
+                  <div className="relative bg-white rounded-xl shadow-lg overflow-hidden">
                     {/* Watermark for drafts */}
                     {isDraft && (
                       <div 
@@ -198,8 +198,8 @@ export function PdfGenerationDialog({
 
               {/* Actions footer */}
               <div className="px-6 py-4 border-t border-border bg-card flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2 bg-warning/10 border border-warning/30 text-warning dark:text-warning rounded-lg px-3 py-2">
-                  <span className="text-lg">⚠️</span>
+                <div className="flex items-center gap-2 bg-warning/10 border border-warning/30 text-warning dark:text-warning rounded-xl px-3 py-2">
+                  <span className="text-xl">⚠️</span>
                   <p className="text-sm font-semibold">
                     Confira as informações antes de enviar
                   </p>

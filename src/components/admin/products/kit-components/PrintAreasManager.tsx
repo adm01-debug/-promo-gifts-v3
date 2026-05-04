@@ -112,7 +112,7 @@ export function PrintAreasManager({ componentId, componentName }: { componentId:
           <button
             type="button"
             className={cn(
-              'flex items-center gap-1.5 text-[10px] px-2 py-1 rounded-md transition-colors',
+              'flex items-center gap-1.5 text-[10px] px-2 py-1 rounded-xl transition-colors',
               'text-muted-foreground hover:text-foreground hover:bg-accent/50',
               isOpen && 'text-primary bg-primary/10',
               areas.length > 0 && !isOpen && 'text-primary'
@@ -176,7 +176,7 @@ export function PrintAreasManager({ componentId, componentName }: { componentId:
                 : area.technique_name;
 
               return (
-                <div key={area.id} className="flex items-center gap-2 rounded-md border border-border/50 p-1.5 text-[10px] group hover:bg-accent/30 transition-colors">
+                <div key={area.id} className="flex items-center gap-2 rounded-xl border border-border/50 p-1.5 text-[10px] group hover:bg-accent/30 transition-colors">
                   <Target className="h-3 w-3 text-primary/60 shrink-0" />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1">

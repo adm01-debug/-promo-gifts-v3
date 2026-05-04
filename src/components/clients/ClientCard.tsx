@@ -29,7 +29,7 @@ export function ClientCard({ client, onClick }: ClientCardProps) {
       className="hover:border-primary/30 transition-colors cursor-pointer focus-visible:ring-2 focus-visible:ring-primary"
     >
       <CardContent className="p-4 flex items-center gap-4">
-        <div className="h-11 w-11 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
+        <div className="h-11 w-11 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
           {client.logo_url ? (
             <img src={client.logo_url} alt={name} className="h-full w-full object-cover" loading="lazy" />
           ) : (

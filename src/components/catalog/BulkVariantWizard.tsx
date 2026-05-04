@@ -100,7 +100,7 @@ function ProductVariantStep({
           <img
             src={product.images[0]}
             alt={product.name}
-            className="w-12 h-12 rounded-lg object-cover border border-border/60 shrink-0 shadow-sm"
+            className="w-12 h-12 rounded-xl object-cover border border-border/60 shrink-0 shadow-sm"
           />
         )}
         <div className="flex-1 min-w-0">
@@ -146,7 +146,7 @@ function ProductVariantStep({
                 <img
                   src={`${variant.selected_thumbnail}/thumbnail`}
                   alt={variant.color_name ?? ''}
-                  className="w-10 h-10 rounded-lg object-cover border border-border/50 shrink-0 shadow-sm group-hover:scale-105 transition-transform"
+                  className="w-10 h-10 rounded-xl object-cover border border-border/50 shrink-0 shadow-sm group-hover:scale-105 transition-transform"
                   onError={(e) => {
                     const t = e.currentTarget;
                     if (t.src.includes('/thumbnail')) {
@@ -158,7 +158,7 @@ function ProductVariantStep({
                 />
               ) : (
                 <div
-                  className="w-10 h-10 rounded-lg border border-border/50 shrink-0 shadow-sm group-hover:scale-105 transition-transform"
+                  className="w-10 h-10 rounded-xl border border-border/50 shrink-0 shadow-sm group-hover:scale-105 transition-transform"
                   style={{ backgroundColor: variant.color_hex || '#CCC' }}
                 />
               )}
@@ -206,7 +206,7 @@ function ProductHeader({
         <img
           src={product.images[0]}
           alt={product.name}
-          className="w-12 h-12 rounded-lg object-cover border border-border/60 shrink-0 shadow-sm"
+          className="w-12 h-12 rounded-xl object-cover border border-border/60 shrink-0 shadow-sm"
         />
       )}
       <div className="flex-1 min-w-0">
@@ -289,7 +289,7 @@ export function BulkVariantWizard({ open, onOpenChange, products, mode, onComple
           <DialogHeader className="p-0">
             <DialogTitle className="flex items-center gap-2.5 text-base font-display font-semibold">
               <div className={cn(
-                'w-8 h-8 rounded-lg flex items-center justify-center shrink-0',
+                'w-8 h-8 rounded-xl flex items-center justify-center shrink-0',
                 bgClass,
               )}>
                 <Icon className={cn('h-4 w-4', colorClass)} />

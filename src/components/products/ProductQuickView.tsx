@@ -337,7 +337,7 @@ export const ProductQuickView = forwardRef<HTMLDivElement, ProductQuickViewProps
                 >
                   <Minus className="h-4 w-4" />
                 </Button>
-                <span className="text-lg font-semibold w-12 text-center">{quantity}</span>
+                <span className="text-xl font-semibold w-12 text-center">{quantity}</span>
                 <Button
                   variant="outline"
                   size="icon" aria-label="Adicionar"
@@ -353,7 +353,7 @@ export const ProductQuickView = forwardRef<HTMLDivElement, ProductQuickViewProps
             </div>
 
             {/* Delivery info */}
-            <div className="mt-4 p-3 rounded-lg bg-muted/30 flex items-center gap-3">
+            <div className="mt-4 p-3 rounded-xl bg-muted/30 flex items-center gap-3">
               <Truck className="h-5 w-5 text-muted-foreground" />
               <div className="text-sm">
                 <p className="font-medium text-foreground">Entrega estimada</p>

@@ -20,7 +20,7 @@ export function OtherSuppliersRow({ product, formatCurrency, onAddToCompare }: P
   const result = useSupplierComparison(open ? product : null);
 
   return (
-    <div className="rounded-lg border border-border bg-muted/20">
+    <div className="rounded-xl border border-border bg-muted/20">
       <button
         type="button"
         onClick={() => setOpen(v => !v)}

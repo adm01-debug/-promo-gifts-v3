@@ -57,7 +57,7 @@ export function MockupSkeleton({
               <div className={cn("h-4 w-4 rounded", shimmerClass)} />
               <div className={cn("h-4 w-28 rounded", shimmerClass)} />
             </div>
-            <div className={cn("h-8 w-20 rounded-md", shimmerClass)} />
+            <div className={cn("h-8 w-20 rounded-xl", shimmerClass)} />
           </div>
 
           {/* Canvas area */}
@@ -65,8 +65,8 @@ export function MockupSkeleton({
 
           {/* Quick actions */}
           <div className="flex gap-2">
-            <div className={cn("h-9 flex-1 rounded-md", shimmerClass)} />
-            <div className={cn("h-9 flex-1 rounded-md", shimmerClass)} />
+            <div className={cn("h-9 flex-1 rounded-xl", shimmerClass)} />
+            <div className={cn("h-9 flex-1 rounded-xl", shimmerClass)} />
           </div>
 
           {/* Sliders */}
@@ -103,14 +103,14 @@ export function MockupSkeleton({
           {[1, 2, 3].map((i) => (
             <div key={i} className="space-y-2" style={{ animationDelay: `${i * 100}ms` }}>
               <div className={cn("h-4 w-24 rounded", shimmerClass)} />
-              <div className={cn("h-10 w-full rounded-md", shimmerClass)} />
+              <div className={cn("h-10 w-full rounded-xl", shimmerClass)} />
             </div>
           ))}
 
           {/* Button skeleton */}
           <div className="flex gap-2 pt-4">
-            <div className={cn("h-10 flex-1 rounded-md", shimmerClass)} />
-            <div className={cn("h-10 w-10 rounded-md", shimmerClass)} />
+            <div className={cn("h-10 flex-1 rounded-xl", shimmerClass)} />
+            <div className={cn("h-10 w-10 rounded-xl", shimmerClass)} />
           </div>
         </CardContent>
       </Card>

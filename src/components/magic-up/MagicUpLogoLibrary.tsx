@@ -24,7 +24,7 @@ export function MagicUpLogoLibrary({ logos, activeLogoUrl, onUseLogo, onAddCurre
         </Button>
       </div>
       {logos.length === 0 ? (
-        <div className="rounded-lg border border-dashed bg-muted/20 p-3 text-xs text-muted-foreground">
+        <div className="rounded-xl border border-dashed bg-muted/20 p-3 text-xs text-muted-foreground">
           Envie ou selecione um logo para montar a biblioteca do cliente.
         </div>
       ) : (
@@ -32,9 +32,9 @@ export function MagicUpLogoLibrary({ logos, activeLogoUrl, onUseLogo, onAddCurre
           {logos.map((logo) => {
             const active = activeLogoUrl === logo.url || logo.isPrimary;
             return (
-              <div key={logo.id} className={cn("rounded-lg border bg-card p-2 space-y-2", active ? "border-primary/40 ring-1 ring-primary/20" : "border-border")}>
+              <div key={logo.id} className={cn("rounded-xl border bg-card p-2 space-y-2", active ? "border-primary/40 ring-1 ring-primary/20" : "border-border")}>
                 <button type="button" className="flex w-full items-center gap-2 text-left" onClick={() => onUseLogo(logo)} aria-label={`Aplicar ${logo.label}`}>
-                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md border bg-background p-1">
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border bg-background p-1">
                     <img src={logo.url} alt={logo.label} className="h-full w-full object-contain" loading="lazy" />
                   </span>
                   <span className="min-w-0 flex-1">

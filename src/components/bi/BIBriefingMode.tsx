@@ -192,8 +192,8 @@ export function BIBriefingMode({ open, onOpenChange, clientId, clientName, ramoA
         <ScrollArea className="flex-1">
           <div className="p-5 space-y-5">
             {/* Score hero */}
-            <div className={cn("rounded-2xl p-4 flex items-center gap-4", tierStyles.bg)}>
-              <div className="h-20 w-20 rounded-2xl bg-background/80 border-[1.5px] flex flex-col items-center justify-center shadow-sm shrink-0">
+            <div className={cn("rounded-xl p-4 flex items-center gap-4", tierStyles.bg)}>
+              <div className="h-20 w-20 rounded-xl bg-background/80 border-[1.5px] flex flex-col items-center justify-center shadow-sm shrink-0">
                 <span className={cn("font-display font-bold text-3xl leading-none", tierStyles.color)}>
                   {health.score}
                 </span>
@@ -220,7 +220,7 @@ export function BIBriefingMode({ open, onOpenChange, clientId, clientName, ramoA
                   {categoryHighlights.favorites.map((f, i) => (
                     <div
                       key={`fav-${i}`}
-                      className="flex items-center justify-between gap-2 p-2.5 rounded-lg border bg-emerald-500/5 border-emerald-500/20"
+                      className="flex items-center justify-between gap-2 p-2.5 rounded-xl border bg-emerald-500/5 border-emerald-500/20"
                     >
                       <div className="flex items-center gap-2 min-w-0">
                         <Badge className="bg-emerald-600 text-white text-[9px] h-4 shrink-0">
@@ -244,7 +244,7 @@ export function BIBriefingMode({ open, onOpenChange, clientId, clientName, ramoA
                     </div>
                   ))}
                   {categoryHighlights.gap && (
-                    <div className="flex items-center justify-between gap-2 p-2.5 rounded-lg border bg-violet-500/5 border-violet-500/20">
+                    <div className="flex items-center justify-between gap-2 p-2.5 rounded-xl border bg-violet-500/5 border-violet-500/20">
                       <div className="flex items-center gap-2 min-w-0">
                         <Badge className="bg-violet-600 text-white text-[9px] h-4 gap-0.5 shrink-0">
                           <Target className="h-2.5 w-2.5" />
@@ -267,8 +267,8 @@ export function BIBriefingMode({ open, onOpenChange, clientId, clientName, ramoA
               {talkingPoints.map((tp, i) => {
                 const Icon = tp.icon;
                 return (
-                  <div key={i} className="flex items-start gap-3 p-3 rounded-lg border bg-card">
-                    <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                  <div key={i} className="flex items-start gap-3 p-3 rounded-xl border bg-card">
+                    <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                       <Icon className="h-4 w-4 text-primary" />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -287,7 +287,7 @@ export function BIBriefingMode({ open, onOpenChange, clientId, clientName, ramoA
               <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                 <Phone className="h-3 w-3" /> Script de abertura
               </h4>
-              <div className="rounded-lg border-l-4 border-primary bg-primary/5 p-3">
+              <div className="rounded-xl border-l-4 border-primary bg-primary/5 p-3">
                 <p className="text-sm italic leading-relaxed">"{health.scriptHint}"</p>
               </div>
             </div>
@@ -301,12 +301,12 @@ export function BIBriefingMode({ open, onOpenChange, clientId, clientName, ramoA
               </h4>
               <div className="space-y-1.5">
                 {products.map((p, i) => (
-                  <div key={i} className="flex items-center gap-3 p-2 rounded-lg border bg-card">
-                    <div className="h-6 w-6 rounded-md bg-muted flex items-center justify-center text-[10px] font-bold text-muted-foreground shrink-0">
+                  <div key={i} className="flex items-center gap-3 p-2 rounded-xl border bg-card">
+                    <div className="h-6 w-6 rounded-xl bg-muted flex items-center justify-center text-[10px] font-bold text-muted-foreground shrink-0">
                       {i + 1}
                     </div>
                     {p.image ? (
-                      <div className="h-9 w-9 rounded-md overflow-hidden bg-muted border shrink-0">
+                      <div className="h-9 w-9 rounded-xl overflow-hidden bg-muted border shrink-0">
                         <img
                           src={p.image}
                           alt={p.name}
@@ -318,7 +318,7 @@ export function BIBriefingMode({ open, onOpenChange, clientId, clientName, ramoA
                         />
                       </div>
                     ) : (
-                      <div className="h-9 w-9 rounded-md bg-muted flex items-center justify-center shrink-0">
+                      <div className="h-9 w-9 rounded-xl bg-muted flex items-center justify-center shrink-0">
                         <Package className="h-4 w-4 text-muted-foreground" />
                       </div>
                     )}

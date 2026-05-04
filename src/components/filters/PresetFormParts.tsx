@@ -26,7 +26,7 @@ export function ColorEmojiPicker({
               type="button"
               onClick={() => onEmojiChange(e)}
               className={cn(
-                "w-8 h-8 rounded-lg text-base flex items-center justify-center transition-all",
+                "w-8 h-8 rounded-xl text-base flex items-center justify-center transition-all",
                 "hover:bg-accent hover:scale-110",
                 emoji === e
                   ? "bg-primary/15 ring-2 ring-primary scale-110"
@@ -78,9 +78,9 @@ export function PresetPreviewHeader({
   description: string;
 }) {
   return (
-    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 border border-border/50">
+    <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50 border border-border/50">
       <div
-        className="w-10 h-10 rounded-lg flex items-center justify-center text-xl shrink-0 transition-colors"
+        className="w-10 h-10 rounded-xl flex items-center justify-center text-xl shrink-0 transition-colors"
         style={{ backgroundColor: color + "25" }}
       >
         {emoji}

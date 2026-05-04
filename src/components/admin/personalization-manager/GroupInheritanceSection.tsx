@@ -25,11 +25,11 @@ export function GroupInheritanceSection({
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary/10">
+              <div className="p-2 rounded-xl bg-primary/10">
                 {isUsingGroupRules ? <Link className="h-5 w-5 text-primary" /> : <Unlink className="h-5 w-5 text-muted-foreground" />}
               </div>
               <div>
-                <CardTitle className="text-lg">Grupo: {productMembership.product_group?.group_name}</CardTitle>
+                <CardTitle className="text-xl">Grupo: {productMembership.product_group?.group_name}</CardTitle>
                 <CardDescription>{isUsingGroupRules ? "Este produto herda as regras do grupo" : "Este produto usa regras customizadas"}</CardDescription>
               </div>
             </div>

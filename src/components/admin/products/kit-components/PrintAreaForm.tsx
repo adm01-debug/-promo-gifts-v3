@@ -30,7 +30,7 @@ export function PrintAreaForm({ initial, onSave, onCancel, isSaving }: Props) {
   const areaNamePreview = [form.location_name, form.technique_name].filter(Boolean).join(' — ');
 
   return (
-    <div className="rounded-md border border-primary/20 bg-primary/5 p-2.5 space-y-2.5 ml-6">
+    <div className="rounded-xl border border-primary/20 bg-primary/5 p-2.5 space-y-2.5 ml-6">
       <div className="flex items-center gap-1.5 text-xs font-medium text-primary">
         <Target className="h-3 w-3" />
         Área de Gravação

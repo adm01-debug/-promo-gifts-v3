@@ -150,7 +150,7 @@ export function StockDashboard() {
     return (
       <div className="space-y-5" aria-live="polite" aria-busy="true">
         <div className="flex items-center gap-3 rounded-xl border border-border/40 bg-card px-4 py-3">
-          <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+          <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
             <Package className="h-4 w-4 text-primary animate-pulse" />
           </div>
           <div className="flex-1 min-w-0">
@@ -198,7 +198,7 @@ export function StockDashboard() {
       {/* Header with Health Score */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
         <div className="flex items-center gap-3">
-          <h2 className="text-lg font-semibold">Visão Geral</h2>
+          <h2 className="text-xl font-semibold">Visão Geral</h2>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger>
@@ -399,7 +399,7 @@ export function StockDashboard() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="text-lg flex items-center gap-2">
+              <CardTitle className="text-xl flex items-center gap-2">
                 <AlertCircle className="h-5 w-5" />
                 Outros Alertas ({infoAlerts.length})
               </CardTitle>

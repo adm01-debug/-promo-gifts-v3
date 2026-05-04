@@ -57,7 +57,7 @@ export const ReplenishmentGridCard = memo(function ReplenishmentGridCard({
   return (
     <Card
       className={cn(
-        "group cursor-pointer overflow-hidden transition-all duration-300 rounded-xl sm:rounded-2xl",
+        "group cursor-pointer overflow-hidden transition-all duration-300 rounded-xl sm:rounded-xl",
         "border-border/50 hover:shadow-lg hover:-translate-y-1 hover:border-primary/30",
         recent && "shadow-[0_0_16px_hsl(var(--info)/0.06)]",
         isSelected && "ring-2 ring-primary border-primary/50 shadow-[0_0_20px_hsl(var(--primary)/0.15)]"
@@ -199,7 +199,7 @@ export function ReplenishmentTableView({
   onToggleSelect,
 }: ReplenishmentTableViewProps) {
   return (
-    <div className="rounded-lg border border-border/50 overflow-hidden" role="region" aria-label="Tabela de produtos repostos">
+    <div className="rounded-xl border border-border/50 overflow-hidden" role="region" aria-label="Tabela de produtos repostos">
       <Table>
         <TableHeader>
           <TableRow className="bg-muted/30 hover:bg-muted/30">

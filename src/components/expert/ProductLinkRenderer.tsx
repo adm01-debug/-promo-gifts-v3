@@ -85,12 +85,12 @@ export function ProductAwareLink({ href, children, ...props }: React.AnchorHTMLA
           <img
             src={proxiedImage}
             alt={name}
-            className="h-10 w-10 rounded-lg object-contain bg-muted/30 flex-shrink-0"
+            className="h-10 w-10 rounded-xl object-contain bg-muted/30 flex-shrink-0"
             loading="lazy"
             onError={() => setImgError(true)}
           />
         ) : (
-          <div className="h-6 w-6 rounded-md bg-primary/8 flex items-center justify-center flex-shrink-0">
+          <div className="h-6 w-6 rounded-xl bg-primary/8 flex items-center justify-center flex-shrink-0">
             <Package className="h-3 w-3 text-primary/60" />
           </div>
         )}

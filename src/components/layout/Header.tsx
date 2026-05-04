@@ -151,7 +151,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
                   onClick={onMenuToggle}
                   aria-label="Abrir menu"
                 >
-                  <div className="p-2 rounded-lg bg-primary/10">
+                  <div className="p-2 rounded-xl bg-primary/10">
                     <Menu className="h-5 w-5 text-primary" />
                   </div>
                 </Button>
@@ -345,7 +345,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="ghost"
-                      className="flex items-center gap-2 h-9 px-1.5 sm:px-2 hover:bg-primary/10 rounded-lg"
+                      className="flex items-center gap-2 h-9 px-1.5 sm:px-2 hover:bg-primary/10 rounded-xl"
                       aria-label="Menu do usuário"
                     >
                       <div className="relative">

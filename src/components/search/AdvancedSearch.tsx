@@ -259,7 +259,7 @@ export function AdvancedSearch({ onSearch, onVisualSearchResults, className }: A
                   onClick={() => handleSelect(result)}
                   onMouseEnter={() => setSelectedIndex(index)}
                 >
-                  <span className="text-lg shrink-0">{result.icon}</span>
+                  <span className="text-xl shrink-0">{result.icon}</span>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-foreground truncate">
                       {result.label}

@@ -183,7 +183,7 @@ export function PresentationMode({ slides, title, subtitle, brandName, onClose }
             <button
               onClick={() => goTo(0)}
               className={cn(
-                "aspect-video rounded-lg border-2 overflow-hidden transition-all hover:scale-105",
+                "aspect-video rounded-xl border-2 overflow-hidden transition-all hover:scale-105",
                 current === 0 ? "border-primary ring-2 ring-primary/50" : "border-white/20"
               )}
             >
@@ -197,7 +197,7 @@ export function PresentationMode({ slides, title, subtitle, brandName, onClose }
                 key={s.id}
                 onClick={() => goTo(i + 1)}
                 className={cn(
-                  "aspect-video rounded-lg border-2 overflow-hidden transition-all hover:scale-105 relative",
+                  "aspect-video rounded-xl border-2 overflow-hidden transition-all hover:scale-105 relative",
                   current === i + 1 ? "border-primary ring-2 ring-primary/50" : "border-white/20"
                 )}
               >
@@ -276,9 +276,9 @@ export function PresentationMode({ slides, title, subtitle, brandName, onClose }
                     <img
                       src={slide.imageUrl}
                       alt={slide.title}
-                      className="max-w-full max-h-[65vh] object-contain rounded-2xl shadow-2xl" loading="lazy" />
+                      className="max-w-full max-h-[65vh] object-contain rounded-xl shadow-2xl" loading="lazy" />
                   ) : (
-                    <div className="w-80 h-80 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
+                    <div className="w-80 h-80 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center">
                       <span className="text-white/20 text-lg">Sem imagem</span>
                     </div>
                   )}
@@ -295,7 +295,7 @@ export function PresentationMode({ slides, title, subtitle, brandName, onClose }
                     {slide.title}
                   </h2>
                   {slide.subtitle && (
-                    <p className="text-lg text-white/50">{slide.subtitle}</p>
+                    <p className="text-xl text-white/50">{slide.subtitle}</p>
                   )}
                   {slide.description && (
                     <p className="text-base text-white/60 leading-relaxed line-clamp-4">

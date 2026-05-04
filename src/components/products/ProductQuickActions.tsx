@@ -92,7 +92,7 @@ export function ProductQuickActions({
                     disabled={disabled}
                     onClick={() => handleClick(key)}
                     className={cn(
-                      "group relative inline-flex items-center justify-center gap-2 flex-1 px-4 py-3 rounded-lg text-xs font-bold border overflow-hidden",
+                      "group relative inline-flex items-center justify-center gap-2 flex-1 px-4 py-3 rounded-xl text-xs font-bold border overflow-hidden",
                       "transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                       disabled
                         ? "bg-muted/30 text-muted-foreground/50 border-border/20 cursor-not-allowed"
@@ -179,7 +179,7 @@ export function ProductQuickActions({
                     {items.map((item) => (
                       <span
                         key={item}
-                        className="px-3 py-1.5 rounded-lg text-xs font-medium bg-muted text-foreground border border-border/40"
+                        className="px-3 py-1.5 rounded-xl text-xs font-medium bg-muted text-foreground border border-border/40"
                       >
                         {item}
                       </span>

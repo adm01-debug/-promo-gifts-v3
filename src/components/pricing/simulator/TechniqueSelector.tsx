@@ -106,7 +106,7 @@ export function TechniqueSelector({
 
   if (error) {
     return (
-      <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive">
+      <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive">
         <AlertCircle className="w-5 h-5 mb-2" />
         <p>Erro ao carregar técnicas</p>
       </div>
@@ -165,10 +165,10 @@ export function TechniqueSelector({
               <button
                 key={`${comp.code}-${idx}`}
                 onClick={() => handleComponentSelect(comp)}
-                className="p-4 rounded-lg border bg-card hover:bg-accent hover:border-primary/50 transition-all text-left group"
+                className="p-4 rounded-xl border bg-card hover:bg-accent hover:border-primary/50 transition-all text-left group"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
                     <Package className="w-5 h-5 text-primary" />
                   </div>
                   <div>
@@ -206,10 +206,10 @@ export function TechniqueSelector({
                 <button
                   key={`${loc.code}-${idx}`}
                   onClick={() => handleLocationSelect(loc)}
-                  className="p-4 rounded-lg border bg-card hover:bg-accent hover:border-primary/50 transition-all text-left group"
+                  className="p-4 rounded-xl border bg-card hover:bg-accent hover:border-primary/50 transition-all text-left group"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-orange/10 flex items-center justify-center group-hover:bg-orange/20 transition-colors">
+                    <div className="w-10 h-10 rounded-xl bg-orange/10 flex items-center justify-center group-hover:bg-orange/20 transition-colors">
                       <Ruler className="w-5 h-5 text-orange" />
                     </div>
                     <div>
@@ -243,11 +243,11 @@ export function TechniqueSelector({
               <button
                 key={tech.id}
                 onClick={() => handleTechniqueSelect(tech)}
-                className="p-4 rounded-lg border bg-card hover:bg-accent hover:border-primary/50 transition-all text-left group"
+                className="p-4 rounded-xl border bg-card hover:bg-accent hover:border-primary/50 transition-all text-left group"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center group-hover:bg-success/20 transition-colors">
+                    <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center group-hover:bg-success/20 transition-colors">
                       <Paintbrush className="w-5 h-5 text-success" />
                     </div>
                     <div>
@@ -274,7 +274,7 @@ export function TechniqueSelector({
 
       {/* Selected summary */}
       {selectedTechnique && (
-        <div className="p-4 rounded-lg bg-primary/5 border border-primary/20 space-y-3">
+        <div className="p-4 rounded-xl bg-primary/5 border border-primary/20 space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Check className="w-5 h-5 text-success" />

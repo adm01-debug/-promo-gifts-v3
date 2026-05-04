@@ -35,7 +35,7 @@ export function ComparisonMobileView({ products, formatCurrency, onRemove, onPro
     switch (rowKey) {
       case "image":
         return (
-          <div className="relative aspect-square w-full rounded-lg overflow-hidden bg-muted">
+          <div className="relative aspect-square w-full rounded-xl overflow-hidden bg-muted">
             <img src={p.images?.[0]} alt={p.name} className="w-full h-full object-contain" loading="lazy" />
             {winnerIdx === idx && (
               <Badge className="absolute top-1 left-1 text-[9px] gap-0.5 px-1 py-0">
@@ -92,7 +92,7 @@ export function ComparisonMobileView({ products, formatCurrency, onRemove, onPro
               <div
                 key={`${p.id}-${idx}`}
                 className={cn(
-                  "shrink-0 snap-start min-w-[42%] max-w-[42%] flex items-center justify-center p-2 rounded-lg border border-border bg-background",
+                  "shrink-0 snap-start min-w-[42%] max-w-[42%] flex items-center justify-center p-2 rounded-xl border border-border bg-background",
                   winnerIdx === idx && "border-primary/60 ring-1 ring-primary/30"
                 )}
               >

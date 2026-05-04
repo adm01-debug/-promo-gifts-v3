@@ -194,7 +194,7 @@ export const PresetsBar = React.forwardRef<HTMLDivElement, PresetsBarProps>(
 
               {/* Active preset indicator with clear */}
               {activePresetId && presets.find(p => p.id === activePresetId) && (
-                <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-primary/10 border border-primary/20 text-xs">
+                <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-primary/10 border border-primary/20 text-xs">
                   <Check className="h-3 w-3 text-primary shrink-0" />
                   <span className="text-primary font-medium truncate flex-1">
                     {presets.find(p => p.id === activePresetId)?.name}
@@ -246,7 +246,7 @@ export const PresetsBar = React.forwardRef<HTMLDivElement, PresetsBarProps>(
                             aria-label={`Aplicar preset ${preset.name}`}
                             aria-pressed={isActive}
                             className={cn(
-                              "group flex items-center gap-2 pl-0 pr-2 py-2 rounded-lg transition-all cursor-pointer hover:bg-accent",
+                              "group flex items-center gap-2 pl-0 pr-2 py-2 rounded-xl transition-all cursor-pointer hover:bg-accent",
                               isActive ? "bg-primary/10 border border-primary/30" : "border border-transparent"
                             )}
                             onClick={() => isActive ? handleClearPreset() : handleApplyPreset(preset)}
@@ -259,7 +259,7 @@ export const PresetsBar = React.forwardRef<HTMLDivElement, PresetsBarProps>(
                             />
                             {/* Icon */}
                             <div
-                              className="w-7 h-7 rounded-md flex items-center justify-center shrink-0 text-sm"
+                              className="w-7 h-7 rounded-xl flex items-center justify-center shrink-0 text-sm"
                               style={{ backgroundColor: presetColor + "20" }}
                             >
                               {preset.icon || "🔖"}

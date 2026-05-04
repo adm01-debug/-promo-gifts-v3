@@ -170,7 +170,7 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
       data-testid="product-card"
       data-product-id={product.id}
       className={cn(
-        "group relative overflow-hidden rounded-xl sm:rounded-2xl bg-card cursor-pointer",
+        "group relative overflow-hidden rounded-xl sm:rounded-xl bg-card cursor-pointer",
         "transition-all duration-500 ease-in-out active:scale-[0.98] active:transition-transform active:duration-100 touch-manipulation",
         "hover:shadow-premium hover:-translate-y-2",
         product.featured && "ring-2 ring-primary/20 shadow-lg",

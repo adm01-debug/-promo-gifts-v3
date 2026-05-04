@@ -63,7 +63,7 @@ export function CartEmptyStateSmart({
             <>
               <ul className="space-y-2 text-xs text-muted-foreground flex-1">
                 {topTemplates.map(t => (
-                  <li key={t.id} className="flex items-center justify-between gap-3 p-2 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+                  <li key={t.id} className="flex items-center justify-between gap-3 p-2 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
                     <span className="truncate font-medium">{t.name}</span>
                     <span className="tabular-nums text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">{t.items.length} itens</span>
                   </li>

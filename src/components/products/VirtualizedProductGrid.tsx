@@ -263,7 +263,7 @@ export function VirtualizedProductGrid({
                       transition={{ delay: colIndex * 0.05 }}
                       className={cn(
                         "relative transition-all duration-200",
-                        selectionMode && selectedIds?.has(product.id) && "ring-2 ring-primary/50 rounded-2xl shadow-md"
+                        selectionMode && selectedIds?.has(product.id) && "ring-2 ring-primary/50 rounded-xl shadow-md"
                       )}
                       style={{ zIndex: 1 }}
                     >

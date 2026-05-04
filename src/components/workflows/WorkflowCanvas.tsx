@@ -123,7 +123,7 @@ export function WorkflowCanvas() {
                 <Input
                   value={workflow.name}
                   onChange={(e) => setWorkflow((p) => ({ ...p, name: e.target.value }))}
-                  className="text-lg font-bold border-none p-0 h-auto focus-visible:ring-0 bg-transparent"
+                  className="text-xl font-bold border-none p-0 h-auto focus-visible:ring-0 bg-transparent"
                 />
                 <Input
                   value={workflow.description}

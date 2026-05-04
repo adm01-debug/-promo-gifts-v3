@@ -279,7 +279,7 @@ export function StockAlertsIndicator({
           >
             {/* Close */}
             <button aria-label="Fechar"
-              className="absolute top-3 right-3 h-7 w-7 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors z-10"
+              className="absolute top-3 right-3 h-7 w-7 flex items-center justify-center rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors z-10"
               onClick={() => setIsOpen(false)}
             >
               <X className="h-4 w-4" />
@@ -288,7 +288,7 @@ export function StockAlertsIndicator({
             {/* Header */}
             <div className="px-4 pt-4 pb-3 border-b border-border/40">
               <div className="flex items-center gap-2 pr-8">
-                <div className="h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center">
+                <div className="h-7 w-7 rounded-xl bg-primary/10 flex items-center justify-center">
                   <Package className="h-3.5 w-3.5 text-primary" />
                 </div>
                 <h3 className="font-display font-semibold text-sm">Notificações</h3>
@@ -308,7 +308,7 @@ export function StockAlertsIndicator({
                     key={tab.key}
                     onClick={() => setActiveTab(tab.key)}
                     className={cn(
-                      "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium border transition-all",
+                      "flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[11px] font-medium border transition-all",
                       isActive
                         ? tab.activeColor
                         : "border-transparent text-muted-foreground hover:bg-muted/40"
@@ -350,9 +350,9 @@ export function StockAlertsIndicator({
                         <img
                           src={item.imageUrl}
                           alt=""
-                          className="w-10 h-10 rounded-lg object-contain bg-background border border-border/30 flex-shrink-0 p-0.5" loading="lazy" />
+                          className="w-10 h-10 rounded-xl object-contain bg-background border border-border/30 flex-shrink-0 p-0.5" loading="lazy" />
                       ) : (
-                        <div className="w-10 h-10 rounded-lg bg-muted/40 flex-shrink-0 flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-xl bg-muted/40 flex-shrink-0 flex items-center justify-center">
                           <Package className="h-4 w-4 text-muted-foreground/50" />
                         </div>
                       )}
@@ -401,7 +401,7 @@ export function StockAlertsIndicator({
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <button
-                              className="h-6 w-6 flex items-center justify-center rounded-md text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors opacity-0 group-hover:opacity-100"
+                              className="h-6 w-6 flex items-center justify-center rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors opacity-0 group-hover:opacity-100"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setIsOpen(false);
@@ -414,7 +414,7 @@ export function StockAlertsIndicator({
                           <TooltipContent side="left" className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Ver produto</TooltipContent>
                         </Tooltip>
                         <button
-                          className="h-6 w-6 flex items-center justify-center rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors opacity-0 group-hover:opacity-100"
+                          className="h-6 w-6 flex items-center justify-center rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors opacity-0 group-hover:opacity-100"
                           onClick={(e) => {
                             e.stopPropagation();
                             dismiss(item.id);

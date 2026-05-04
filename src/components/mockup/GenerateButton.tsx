@@ -35,7 +35,7 @@ export function GenerateButton({
       {isReady && (
         <motion.span
           aria-hidden
-          className="absolute inset-0 rounded-md bg-primary/40 blur-md"
+          className="absolute inset-0 rounded-xl bg-primary/40 blur-md"
           animate={{ opacity: [0.3, 0.7, 0.3] }}
           transition={{ duration: 2, repeat: Infinity }}
         />

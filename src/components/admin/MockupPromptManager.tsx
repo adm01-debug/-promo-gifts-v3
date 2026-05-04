@@ -141,12 +141,12 @@ export function MockupPromptManager() {
 
       {techniquePrompts.length > 0 && (
         <Card className="border-border/50">
-          <CardHeader><CardTitle className="text-lg flex items-center gap-2"><Sparkles className="h-5 w-5 text-primary" />Prompts por Técnica</CardTitle>
+          <CardHeader><CardTitle className="text-xl flex items-center gap-2"><Sparkles className="h-5 w-5 text-primary" />Prompts por Técnica</CardTitle>
             <CardDescription>Prompts específicos que complementam o prompt principal para cada técnica</CardDescription></CardHeader>
           <CardContent>
             <Accordion type="multiple" className="space-y-2">
               {techniquePrompts.map(config => (
-                <AccordionItem key={config.id} value={config.id} className="border rounded-lg px-4">
+                <AccordionItem key={config.id} value={config.id} className="border rounded-xl px-4">
                   <AccordionTrigger className="hover:no-underline">
                     <div className="flex items-center gap-3"><span className="font-medium">{config.label}</span><Badge variant="outline" className="text-xs">v{config.version}</Badge>
                       {hasChanges(config) && <Badge variant="secondary" className="text-xs bg-warning/10 text-warning">Alterado</Badge>}</div>

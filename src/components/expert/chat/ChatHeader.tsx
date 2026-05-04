@@ -71,7 +71,7 @@ export function ChatHeader({
         <div className="flex flex-wrap gap-1 mt-2">
           {getActiveFilterLabels(flowFilters).map(({ label, key, value }) => (
             <Badge key={`${key}-${value || label}`} variant="secondary"
-              className="text-[9px] rounded-md px-1.5 py-0.5 gap-0.5 cursor-pointer hover:bg-destructive/10 hover:text-destructive transition-colors"
+              className="text-[9px] rounded-xl px-1.5 py-0.5 gap-0.5 cursor-pointer hover:bg-destructive/10 hover:text-destructive transition-colors"
               onClick={() => {
                 if (key === "price") {
                   setFlowFilters(prev => ({ ...prev, priceMin: "", priceMax: "" }));
@@ -94,7 +94,7 @@ export function ChatHeader({
 
       {clientName && (
         <div className="mt-2">
-          <Badge variant="outline" className="text-[10px] rounded-lg font-normal text-muted-foreground">
+          <Badge variant="outline" className="text-[10px] rounded-xl font-normal text-muted-foreground">
             Cliente: {clientName}
           </Badge>
         </div>

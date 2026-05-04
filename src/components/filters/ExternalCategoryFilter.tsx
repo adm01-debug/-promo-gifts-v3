@@ -136,7 +136,7 @@ export function ExternalCategoryFilter({
       <div key={node.id} className="select-none">
         <div
           className={cn(
-            "flex items-center gap-2 py-1.5 px-2 rounded-md transition-colors",
+            "flex items-center gap-2 py-1.5 px-2 rounded-xl transition-colors",
             isSelected
               ? "bg-orange/10 ring-1 ring-inset ring-orange/20"
               : "hover:bg-muted/50"
@@ -221,7 +221,7 @@ export function ExternalCategoryFilter({
     <div className="space-y-3">
       {/* Categorias selecionadas */}
       {selectedCategories.length > 0 && (
-        <div className="p-2 bg-orange/5 rounded-lg border border-orange/20">
+        <div className="p-2 bg-orange/5 rounded-xl border border-orange/20">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-medium text-orange flex items-center gap-1.5">
               <Layers className="h-3 w-3" />

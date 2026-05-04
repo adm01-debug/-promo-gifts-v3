@@ -27,8 +27,8 @@ export function KitCardSkeleton() {
             <Skeleton className="h-5 w-20" />
           </div>
           <div className="flex gap-1">
-            <Skeleton className="h-8 w-8 rounded-md" />
-            <Skeleton className="h-8 w-8 rounded-md" />
+            <Skeleton className="h-8 w-8 rounded-xl" />
+            <Skeleton className="h-8 w-8 rounded-xl" />
           </div>
         </div>
       </CardContent>

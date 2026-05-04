@@ -33,7 +33,7 @@ export function ProductIntelligence({ productId, productSku, productName }: Prod
     <div className="space-y-3">
       {/* Header compacto */}
       <div className="flex items-center gap-2">
-        <div className="w-7 h-7 rounded-lg skin-icon flex items-center justify-center">
+        <div className="w-7 h-7 rounded-xl skin-icon flex items-center justify-center">
           <BarChart3 className="h-3.5 w-3.5" />
         </div>
         <div>
@@ -78,7 +78,7 @@ export function ProductIntelligence({ productId, productSku, productName }: Prod
                   className="group flex-shrink-0 w-16 cursor-pointer"
                   onClick={() => product.productId && navigate(`/produto/${product.productId}`)}
                 >
-                  <div className="w-16 h-16 rounded-lg overflow-hidden bg-muted border border-border/50 group-hover:border-primary/30 transition-colors">
+                  <div className="w-16 h-16 rounded-xl overflow-hidden bg-muted border border-border/50 group-hover:border-primary/30 transition-colors">
                     {product.productImage ? (
                       
 <img src={product.productImage} alt={product.productName} className="w-full h-full object-cover"  loading="lazy" />
@@ -124,10 +124,10 @@ function MetricCard({ icon: Icon, label, value, color }: MetricCardProps) {
   return (
     <Card>
       <CardContent className="p-2.5">
-        <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center mb-1.5", bgColor[color])}>
+        <div className={cn("w-7 h-7 rounded-xl flex items-center justify-center mb-1.5", bgColor[color])}>
           <Icon className={cn("h-3.5 w-3.5", iconColor[color])} />
         </div>
-        <p className="text-lg font-bold leading-none">{value}</p>
+        <p className="text-xl font-bold leading-none">{value}</p>
         <p className="text-[10px] text-muted-foreground mt-0.5">{label}</p>
       </CardContent>
     </Card>
@@ -138,7 +138,7 @@ function ProductIntelligenceSkeleton() {
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2">
-        <Skeleton className="w-7 h-7 rounded-lg" />
+        <Skeleton className="w-7 h-7 rounded-xl" />
         <div>
           <Skeleton className="h-4 w-36" />
           <Skeleton className="h-3 w-48 mt-1" />
@@ -148,7 +148,7 @@ function ProductIntelligenceSkeleton() {
         {[...Array(4)].map((_, i) => (
           <Card key={i}>
             <CardContent className="p-2.5">
-              <Skeleton className="w-7 h-7 rounded-lg" />
+              <Skeleton className="w-7 h-7 rounded-xl" />
               <Skeleton className="h-5 w-10 mt-1.5" />
               <Skeleton className="h-3 w-16 mt-1" />
             </CardContent>

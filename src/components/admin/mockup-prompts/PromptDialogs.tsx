@@ -49,7 +49,7 @@ export function HistoryDialog({ open, label, history, loading, onClose, onRestor
                   </CardHeader>
                   <CardContent>
                     <div className="text-xs mb-1 text-muted-foreground">Modelo: {entry.ai_model}</div>
-                    <pre className="text-xs bg-muted/50 p-3 rounded-md whitespace-pre-wrap max-h-40 overflow-auto">{entry.prompt_text}</pre>
+                    <pre className="text-xs bg-muted/50 p-3 rounded-xl whitespace-pre-wrap max-h-40 overflow-auto">{entry.prompt_text}</pre>
                   </CardContent>
                 </Card>
               ))}
@@ -72,7 +72,7 @@ export function TestDialog({ open, label, result, loading, onClose }: TestDialog
           <DialogDescription>Visualização do prompt com variáveis substituídas por valores de exemplo</DialogDescription>
         </DialogHeader>
         {loading ? <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin" /></div>
-          : result ? <ScrollArea className="max-h-[60vh]"><pre className="text-sm bg-muted/50 p-4 rounded-md whitespace-pre-wrap">{result}</pre></ScrollArea> : null}
+          : result ? <ScrollArea className="max-h-[60vh]"><pre className="text-sm bg-muted/50 p-4 rounded-xl whitespace-pre-wrap">{result}</pre></ScrollArea> : null}
       </DialogContent>
     </Dialog>
   );

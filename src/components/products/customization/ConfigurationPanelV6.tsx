@@ -64,7 +64,7 @@ export function ConfigurationPanelV6({ technique, quantity, onPriceCalculated }:
   }, [price, technique.technique_id, technique.usa_dimensao, larguraNum, alturaNum]);
 
   return (
-    <div className="space-y-4 p-4 rounded-lg bg-secondary/30 border border-border/50">
+    <div className="space-y-4 p-4 rounded-xl bg-secondary/30 border border-border/50">
       <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
         Configure a gravação
       </p>
@@ -129,7 +129,7 @@ export function ConfigurationPanelV6({ technique, quantity, onPriceCalculated }:
               <button
                 key={n}
                 className={cn(
-                  "px-3 h-9 rounded-md text-sm font-medium transition-colors",
+                  "px-3 h-9 rounded-xl text-sm font-medium transition-colors",
                   n === numCores
                     ? "bg-primary text-primary-foreground"
                     : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
@@ -155,7 +155,7 @@ export function ConfigurationPanelV6({ technique, quantity, onPriceCalculated }:
 
       {/* Loading */}
       {loading && (
-        <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 text-sm text-muted-foreground">
+        <div className="flex items-center gap-2 p-3 rounded-xl bg-muted/50 text-sm text-muted-foreground">
           <Loader2 className="h-3.5 w-3.5 animate-spin" />
           Calculando preço...
         </div>
@@ -163,7 +163,7 @@ export function ConfigurationPanelV6({ technique, quantity, onPriceCalculated }:
 
       {/* Error */}
       {error && !loading && (
-        <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-sm text-destructive">
+        <div className="flex items-center gap-2 p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-sm text-destructive">
           <AlertCircle className="h-3.5 w-3.5" />
           {error}
         </div>
@@ -171,7 +171,7 @@ export function ConfigurationPanelV6({ technique, quantity, onPriceCalculated }:
 
       {/* Price result */}
       {price && !loading && (
-        <div className="p-3 rounded-lg bg-primary/5 border border-primary/20 space-y-2">
+        <div className="p-3 rounded-xl bg-primary/5 border border-primary/20 space-y-2">
           <div className="flex items-center gap-2">
             <Check className="h-4 w-4 text-primary" />
             <span className="text-sm font-semibold text-foreground">
@@ -223,7 +223,7 @@ export function ConfigurationPanelV6({ technique, quantity, onPriceCalculated }:
 
       {/* Waiting for inputs */}
       {!price && !loading && !error && (
-        <div className="p-3 rounded-lg bg-muted/30 text-xs text-muted-foreground text-center">
+        <div className="p-3 rounded-xl bg-muted/30 text-xs text-muted-foreground text-center">
           {technique.usa_dimensao && (larguraNum <= 0 || alturaNum <= 0)
             ? "Preencha largura e altura para calcular o preço"
             : "Aguardando cálculo..."}

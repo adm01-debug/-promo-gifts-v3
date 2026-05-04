@@ -82,7 +82,7 @@ export function ConnectionRowSourceBadge({
     return (
       <span
         className={cn(
-          "inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
+          "inline-flex items-center gap-1 rounded-xl border px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
           m.cls,
           className,
         )}
@@ -104,7 +104,7 @@ export function ConnectionRowSourceBadge({
         <span
           tabIndex={0}
           className={cn(
-            "inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide cursor-help focus:outline-none focus:ring-2 focus:ring-ring",
+            "inline-flex items-center gap-1 rounded-xl border px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide cursor-help focus:outline-none focus:ring-2 focus:ring-ring",
             m.cls,
             className,
           )}

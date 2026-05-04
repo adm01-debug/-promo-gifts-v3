@@ -40,7 +40,7 @@ function TreeNode({
     <div>
       <div
         className={cn(
-          "flex items-center gap-1 py-1.5 px-2 rounded-md cursor-pointer transition-colors",
+          "flex items-center gap-1 py-1.5 px-2 rounded-xl cursor-pointer transition-colors",
           "hover:bg-accent/50",
           isSelected && "bg-primary/10 text-primary font-medium"
         )}
@@ -123,7 +123,7 @@ function SearchResult({
   return (
     <div
       className={cn(
-        "flex items-center gap-2 py-2 px-3 rounded-md cursor-pointer transition-colors",
+        "flex items-center gap-2 py-2 px-3 rounded-xl cursor-pointer transition-colors",
         "hover:bg-accent/50",
         isSelected && "bg-primary/10 text-primary"
       )}

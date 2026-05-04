@@ -14,7 +14,7 @@ export const RiskTooltip = forwardRef<HTMLDivElement, any>(function RiskTooltip(
   const hasActivity = (depleted != null && depleted > 0) || (restocked != null && restocked > 0);
 
   return (
-    <div ref={ref} className="bg-popover border border-border rounded-lg p-2.5 shadow-lg min-w-[150px]">
+    <div ref={ref} className="bg-popover border border-border rounded-xl p-2.5 shadow-lg min-w-[150px]">
       <p className="text-[10px] font-medium text-foreground">{data.fullDate}</p>
       <div className="mt-1.5 space-y-1">
         <div className="flex justify-between text-[10px]">

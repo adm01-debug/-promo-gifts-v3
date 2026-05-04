@@ -10,8 +10,8 @@ export function CartItemSkeleton() {
       <div className="aspect-square w-full bg-muted/10 relative">
         <Skeleton className="absolute inset-0 rounded-none opacity-20" />
         {/* Quick actions placeholders */}
-        <div className="absolute top-2 left-2 h-7 w-7 rounded-lg bg-card/40 backdrop-blur-sm border border-white/10" />
-        <div className="absolute top-2 right-2 h-7 w-7 rounded-lg bg-card/40 backdrop-blur-sm border border-white/10" />
+        <div className="absolute top-2 left-2 h-7 w-7 rounded-xl bg-card/40 backdrop-blur-sm border border-white/10" />
+        <div className="absolute top-2 right-2 h-7 w-7 rounded-xl bg-card/40 backdrop-blur-sm border border-white/10" />
         {/* Center icon placeholder */}
         <div className="absolute inset-0 flex items-center justify-center opacity-10">
           <Skeleton className="h-12 w-12 rounded-full" />
@@ -37,7 +37,7 @@ export function CartItemSkeleton() {
         
         {/* Footer/Stepper skeleton */}
         <div className="flex items-center justify-between pt-3.5 border-t border-border/10">
-          <Skeleton className="h-8 w-24 rounded-lg opacity-30" />
+          <Skeleton className="h-8 w-24 rounded-xl opacity-30" />
           <div className="flex flex-col items-end space-y-2">
             <Skeleton className="h-2.5 w-14 opacity-50" />
             <Skeleton className="h-4.5 w-20 opacity-30" />

@@ -150,7 +150,7 @@ export function ConnectionDetailsDialog({
         <ScrollArea className="max-h-[60vh] pr-3">
           <div className="space-y-5">
             {/* Resumo do último teste */}
-            <section className="rounded-lg border bg-muted/30 p-3">
+            <section className="rounded-xl border bg-muted/30 p-3">
               <h3 className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 <Clock className="h-3.5 w-3.5" />
                 Último teste
@@ -210,7 +210,7 @@ export function ConnectionDetailsDialog({
                   return (
                     <li
                       key={f.secretName}
-                      className="rounded-md border bg-background p-3"
+                      className="rounded-xl border bg-background p-3"
                     >
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <div className="flex items-center gap-2">

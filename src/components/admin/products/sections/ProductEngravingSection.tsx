@@ -65,8 +65,8 @@ export default function ProductEngravingSection({ productId, isEdit }: Props) {
       <div className="grid grid-cols-3 gap-2">
         {COMMON_COMPONENTS.map(comp => (
           <button key={comp.code} type="button" onClick={() => w.handleSelectComponent(comp)}
-            className="flex items-center gap-2.5 p-3 rounded-lg border transition-all duration-200 text-left hover:border-primary/50 hover:bg-primary/5 hover:shadow-sm border-border/40 bg-card/60">
-            <span className="text-lg">{comp.icon}</span>
+            className="flex items-center gap-2.5 p-3 rounded-xl border transition-all duration-200 text-left hover:border-primary/50 hover:bg-primary/5 hover:shadow-sm border-border/40 bg-card/60">
+            <span className="text-xl">{comp.icon}</span>
             <span className="text-xs font-medium">{comp.name}</span>
           </button>
         ))}
@@ -89,7 +89,7 @@ export default function ProductEngravingSection({ productId, isEdit }: Props) {
       <div className="grid grid-cols-2 gap-2">
         {COMMON_LOCATIONS.map(loc => (
           <button key={loc.code} type="button" onClick={() => w.handleSelectLocation(loc)}
-            className="flex items-center gap-2.5 p-3 rounded-lg border transition-all duration-200 text-left hover:border-primary/50 hover:bg-primary/5 hover:shadow-sm border-border/40 bg-card/60">
+            className="flex items-center gap-2.5 p-3 rounded-xl border transition-all duration-200 text-left hover:border-primary/50 hover:bg-primary/5 hover:shadow-sm border-border/40 bg-card/60">
             <MapPin className="h-3.5 w-3.5 text-muted-foreground" /><span className="text-xs font-medium">{loc.name}</span>
           </button>
         ))}
@@ -115,7 +115,7 @@ export default function ProductEngravingSection({ productId, isEdit }: Props) {
         <Input placeholder="Buscar técnica..." value={w.techSearch} onChange={e => w.setTechSearch(e.target.value)} className="h-8 text-sm pl-8" />
       </div>
       {w.loadingTechs ? (
-        <div className="space-y-2"><Skeleton className="h-12 w-full rounded-lg" /><Skeleton className="h-12 w-full rounded-lg" /></div>
+        <div className="space-y-2"><Skeleton className="h-12 w-full rounded-xl" /><Skeleton className="h-12 w-full rounded-xl" /></div>
       ) : (
         <ScrollArea className="h-60">
           <div className="space-y-3 pr-2">
@@ -127,7 +127,7 @@ export default function ProductEngravingSection({ productId, isEdit }: Props) {
                     const code = tech.codigo_curto || tech.grupo_tecnica || '';
                     return (
                       <button key={tech.id} type="button" onClick={() => w.handleSelectTechnique(tech)}
-                        className={cn('flex items-center gap-2 p-2.5 rounded-lg border transition-all duration-200 text-left hover:shadow-md hover:scale-[1.01]', `bg-gradient-to-br ${getTechniqueColor(code)}`)}>
+                        className={cn('flex items-center gap-2 p-2.5 rounded-xl border transition-all duration-200 text-left hover:shadow-md hover:scale-[1.01]', `bg-gradient-to-br ${getTechniqueColor(code)}`)}>
                         <span className="text-base">{getTechniqueIcon(code)}</span>
                         <div className="min-w-0 flex-1">
                           <p className="text-xs font-medium truncate">{tech.nome}</p>
@@ -156,7 +156,7 @@ export default function ProductEngravingSection({ productId, isEdit }: Props) {
     return (
       <div className="space-y-4">
         <div className="flex items-center gap-2 mb-1"><Ruler className="h-4 w-4 text-primary" /><h4 className="text-sm font-semibold">Detalhes da personalização</h4></div>
-        <div className="flex flex-wrap items-center gap-1.5 text-xs p-2.5 rounded-lg bg-muted/30 border border-border/30">
+        <div className="flex flex-wrap items-center gap-1.5 text-xs p-2.5 rounded-xl bg-muted/30 border border-border/30">
           <Badge variant="outline" className="text-[10px] gap-1"><Layers className="h-2.5 w-2.5" />{w.selectedComponent?.name}</Badge>
           <ChevronRight className="h-3 w-3 text-muted-foreground" />
           <Badge variant="outline" className="text-[10px] gap-1"><MapPin className="h-2.5 w-2.5" />{w.selectedLocation?.name}</Badge>
@@ -164,7 +164,7 @@ export default function ProductEngravingSection({ productId, isEdit }: Props) {
           <Badge className="text-[10px] gap-1 bg-primary/15 text-primary border-primary/30">{getTechniqueIcon(w.selectedTechnique?.codigo_curto || '')} {w.selectedTechnique?.nome}</Badge>
         </div>
         {(maxCores || custoSetup) && (
-          <div className="flex items-center gap-4 text-xs p-2 rounded-md bg-muted/20 border border-border/20">
+          <div className="flex items-center gap-4 text-xs p-2 rounded-xl bg-muted/20 border border-border/20">
             <Info className="h-3.5 w-3.5 text-muted-foreground shrink-0" /><span className="text-muted-foreground">Dados da técnica:</span>
             {maxCores != null && <span><Palette className="h-3 w-3 inline mr-0.5" />{maxCores} cores máx.</span>}
             {custoSetup != null && custoSetup > 0 && <span><DollarSign className="h-3 w-3 inline mr-0.5" />Setup R${custoSetup}</span>}
@@ -195,7 +195,7 @@ export default function ProductEngravingSection({ productId, isEdit }: Props) {
   return (
     <SectionCard id="engraving" title="Gravação e Personalização" icon={Paintbrush} subtitle="Configure locais e técnicas de personalização (BD externo)">
       {w.isLoading ? (
-        <div className="space-y-2"><Skeleton className="h-14 w-full rounded-lg" /><Skeleton className="h-14 w-full rounded-lg" /></div>
+        <div className="space-y-2"><Skeleton className="h-14 w-full rounded-xl" /><Skeleton className="h-14 w-full rounded-xl" /></div>
       ) : (
         <AnimatePresence mode="wait">
           {w.wizardStep === 'list' ? (
@@ -210,7 +210,7 @@ export default function ProductEngravingSection({ productId, isEdit }: Props) {
               </div>
               {w.displayAreas.length === 0 && (
                 <div className="text-center py-10 border border-dashed border-border/50 rounded-xl">
-                  <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-3"><Paintbrush className="h-7 w-7 text-primary" /></div>
+                  <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3"><Paintbrush className="h-7 w-7 text-primary" /></div>
                   <p className="text-sm font-medium mb-1">Nenhuma personalização configurada</p>
                   <p className="text-xs text-muted-foreground mb-4 max-w-[300px] mx-auto">Use o assistente para definir componentes, locais e técnicas de gravação do produto.</p>
                   <Button type="button" size="sm" onClick={w.startWizard} className="gap-1.5"><Zap className="h-3.5 w-3.5" /> Iniciar Configuração</Button>

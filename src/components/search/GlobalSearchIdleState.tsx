@@ -28,7 +28,7 @@ function SectionHeader({ icon, label, count, gradient }: {
 }) {
   return (
     <div className="flex items-center gap-3 px-4 pt-5 pb-2.5">
-      <div className={cn("h-6 w-6 rounded-lg flex items-center justify-center shrink-0", gradient || "bg-primary/10")}>
+      <div className={cn("h-6 w-6 rounded-xl flex items-center justify-center shrink-0", gradient || "bg-primary/10")}>
         <span className="text-primary [&>svg]:h-3.5 [&>svg]:w-3.5">{icon}</span>
       </div>
       <span className="text-[11px] font-bold uppercase tracking-[0.1em] [color:hsl(var(--command-text-subtle))] font-display">{label}</span>
@@ -103,7 +103,7 @@ function NavCard({ action, index, onSelect }: {
         <p className="text-[10px] [color:hsl(var(--command-text-subtle))] truncate leading-tight mt-0.5">{action.description}</p>
       </div>
       {action.shortcut && (
-        <kbd className="hidden md:inline-flex h-5 min-w-[22px] items-center justify-center rounded-md bg-primary/10 border border-primary/20 px-1.5 font-mono text-[10px] font-semibold text-primary/60">
+        <kbd className="hidden md:inline-flex h-5 min-w-[22px] items-center justify-center rounded-xl bg-primary/10 border border-primary/20 px-1.5 font-mono text-[10px] font-semibold text-primary/60">
           {action.shortcut}
         </kbd>
       )}
@@ -151,7 +151,7 @@ export function GlobalSearchIdleState({
                 <button
                   onClick={e => onRemoveFromHistory(e, term)}
                   aria-label={`Remover "${term}" do histórico`}
-                  className="opacity-0 group-hover:opacity-100 group-data-[selected=true]:opacity-100 h-7 w-7 flex items-center justify-center hover:bg-destructive/10 rounded-lg transition-all"
+                  className="opacity-0 group-hover:opacity-100 group-data-[selected=true]:opacity-100 h-7 w-7 flex items-center justify-center hover:bg-destructive/10 rounded-xl transition-all"
                 >
                   <X className="h-3 w-3 [color:hsl(var(--command-text-subtle))] hover:text-destructive" aria-hidden="true" />
                 </button>
@@ -190,7 +190,7 @@ export function GlobalSearchIdleState({
                   </div>
                 </div>
                 {idx === 0 ? (
-                  <Badge className="shrink-0 text-[10px] h-6 rounded-lg bg-gradient-to-r from-orange/20 to-orange/10 text-orange border-orange/20 hover:bg-orange/25 font-semibold shadow-sm shadow-orange/10">
+                  <Badge className="shrink-0 text-[10px] h-6 rounded-xl bg-gradient-to-r from-orange/20 to-orange/10 text-orange border-orange/20 hover:bg-orange/25 font-semibold shadow-sm shadow-orange/10">
                     🔥 Top 1
                   </Badge>
                 ) : (

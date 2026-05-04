@@ -94,7 +94,7 @@ export function SecureUploadManager() {
         {/* Test Card */}
         <Card className="border-primary/20 bg-primary/5">
           <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2 text-primary">
+            <CardTitle className="text-xl flex items-center gap-2 text-primary">
               <Upload className="h-5 w-5" />
               Teste de Upload Seguro
             </CardTitle>
@@ -103,7 +103,7 @@ export function SecureUploadManager() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex flex-col items-center justify-center border-2 border-dashed border-primary/30 rounded-lg p-6 bg-background/50 hover:bg-background/80 transition-colors">
+            <div className="flex flex-col items-center justify-center border-2 border-dashed border-primary/30 rounded-xl p-6 bg-background/50 hover:bg-background/80 transition-colors">
               <Upload className="h-8 w-8 text-primary/50 mb-2" />
               <p className="text-sm text-muted-foreground mb-4 text-center">
                 Arraste um arquivo ou clique para selecionar
@@ -144,7 +144,7 @@ export function SecureUploadManager() {
         {/* Info Card */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
+            <CardTitle className="text-xl flex items-center gap-2">
               <Lock className="h-5 w-5" />
               Estado da Infraestrutura
             </CardTitle>
@@ -176,7 +176,7 @@ export function SecureUploadManager() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle className="text-lg flex items-center gap-2">
+            <CardTitle className="text-xl flex items-center gap-2">
               <History className="h-5 w-5" />
               Audit Log (Últimos 20 scans)
             </CardTitle>
@@ -198,7 +198,7 @@ export function SecureUploadManager() {
             />
           </div>
 
-          <div className="rounded-md border overflow-hidden">
+          <div className="rounded-xl border overflow-hidden">
             <table className="w-full text-sm">
               <thead className="bg-muted">
                 <tr>

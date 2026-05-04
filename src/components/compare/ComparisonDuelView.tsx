@@ -54,7 +54,7 @@ export function ComparisonDuelView({ products, formatCurrency, onRemove, onProdu
       }
     }
     return (
-      <div key={row.key} className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 py-3 odd:bg-muted/30 px-4 rounded-md">
+      <div key={row.key} className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 py-3 odd:bg-muted/30 px-4 rounded-xl">
         <div className={cn("text-right text-sm font-medium tabular-nums", aWin && "text-success font-bold")}>
           {row.key === "price" ? formatCurrency(row.raw(a)) : row.format(a)}
           {aWin && <Check className="h-3.5 w-3.5 inline ml-1.5" />}
@@ -70,7 +70,7 @@ export function ComparisonDuelView({ products, formatCurrency, onRemove, onProdu
 
   const renderHeader = (p: any, idx: number, side: "left" | "right") => (
     <div className={cn("space-y-3", side === "right" && "lg:text-right")}>
-      <div className="relative aspect-square rounded-2xl overflow-hidden bg-muted border-2 border-border group">
+      <div className="relative aspect-square rounded-xl overflow-hidden bg-muted border-2 border-border group">
         <img
           src={p.images?.[0]}
           alt={p.name}
@@ -106,7 +106,7 @@ export function ComparisonDuelView({ products, formatCurrency, onRemove, onProdu
   );
 
   return (
-    <div className="space-y-6 rounded-2xl border-2 border-primary/20 bg-card p-4 sm:p-6 shadow-sm">
+    <div className="space-y-6 rounded-xl border-2 border-primary/20 bg-card p-4 sm:p-6 shadow-sm">
       <div className="flex items-center justify-center gap-3 pb-2">
         <Badge variant="outline" className="text-xs">⚔️ Modo Duelo</Badge>
         <span className="text-[11px] text-muted-foreground">Comparação 1 a 1 com destaques</span>

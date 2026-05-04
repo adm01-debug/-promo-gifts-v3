@@ -129,7 +129,7 @@ export function SmartSuggestions({
           </div>
         )}
         {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="h-16 bg-muted rounded-lg animate-pulse" />
+          <div key={i} className="h-16 bg-muted rounded-xl animate-pulse" />
         ))}
       </div>
     );
@@ -175,7 +175,7 @@ export function SmartSuggestions({
                 )}
               >
                 <div className={cn(
-                  "p-2 rounded-lg flex-shrink-0",
+                  "p-2 rounded-xl flex-shrink-0",
                   config.bg
                 )}>
                   <Icon className={cn("h-4 w-4", config.color)} />
@@ -324,7 +324,7 @@ export function SmartFilters({
             key={`${filter.key}-${filter.value}`}
             onClick={() => toggleFilter(filter.key, filter.value)}
             className={cn(
-              "px-3 py-1.5 text-xs rounded-lg border transition-all",
+              "px-3 py-1.5 text-xs rounded-xl border transition-all",
               isFilterActive(filter.key, filter.value)
                 ? "border-primary bg-primary/10 text-primary"
                 : "border-border bg-card text-muted-foreground hover:border-primary/30"

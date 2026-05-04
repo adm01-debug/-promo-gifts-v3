@@ -95,7 +95,7 @@ export function FullOpDiagnosticsPanel() {
     <Card>
       <CardHeader>
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-primary/10">
+          <div className="p-2 rounded-xl bg-primary/10">
             <Stethoscope className="h-5 w-5 text-primary" />
           </div>
           <div>
@@ -223,7 +223,7 @@ export function FullOpDiagnosticsPanel() {
                   return (
                     <div
                       key={c.id}
-                      className="flex items-start gap-3 p-3 rounded-lg border bg-card"
+                      className="flex items-start gap-3 p-3 rounded-xl border bg-card"
                     >
                       <Icon className={`h-5 w-5 mt-0.5 shrink-0 ${meta.className}`} />
                       <div className="flex-1 min-w-0 space-y-1">

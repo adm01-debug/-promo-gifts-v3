@@ -78,7 +78,7 @@ export function AdminTemplatesManager({ onEditTemplate }: AdminTemplatesManagerP
             </SelectContent>
           </Select>
           {filteredTemplates.length > 0 && <Button variant="outline" size="sm" onClick={() => exportTemplatesToJson(filteredTemplates, `templates-all-${new Date().toISOString().split('T')[0]}.json`)}><Download className="h-4 w-4 mr-2" />Exportar</Button>}
-          <div className="flex items-center border rounded-md">
+          <div className="flex items-center border rounded-xl">
             <Button variant={viewMode === "table" ? "secondary" : "ghost"} size="icon" aria-label="Lista" className="h-9 w-9 rounded-r-none" onClick={() => setViewMode("table")}><List className="h-4 w-4" /></Button>
             <Button variant={viewMode === "grid" ? "secondary" : "ghost"} size="icon" aria-label="Grid" className="h-9 w-9 rounded-l-none" onClick={() => setViewMode("grid")}><LayoutGrid className="h-4 w-4" /></Button>
           </div>

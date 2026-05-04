@@ -99,7 +99,7 @@ export function CollectionGridCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.035, type: "spring", stiffness: 380, damping: 28 }}
       className={cn(
-        "group relative rounded-2xl overflow-hidden cursor-pointer bg-card shadow-sm transition-all duration-500",
+        "group relative rounded-xl overflow-hidden cursor-pointer bg-card shadow-sm transition-all duration-500",
         "border-[1.5px] border-border/40 hover:border-primary/40",
         isSelected && "border-primary ring-2 ring-primary/25 shadow-lg shadow-primary/10"
       )}
@@ -164,7 +164,7 @@ export function CollectionGridCard({
           </>
         ) : (
           <div className="flex flex-col items-center justify-center h-full gap-4">
-            <div className="w-16 h-16 rounded-2xl flex items-center justify-center bg-muted/15 border border-border/20">
+            <div className="w-16 h-16 rounded-xl flex items-center justify-center bg-muted/15 border border-border/20">
               <FolderOpen className="h-8 w-8 text-muted-foreground/25" />
             </div>
             <span className="text-xs text-muted-foreground/35 font-medium tracking-wide">Coleção vazia</span>
@@ -198,7 +198,7 @@ export function CollectionGridCard({
         {/* Row 2: Meta chips */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 text-xs text-muted-foreground">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-muted/50 font-medium">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-muted/50 font-medium">
               <Package className="h-3 w-3 text-primary" />
               {productCount} {productCount === 1 ? "item" : "itens"}
             </span>

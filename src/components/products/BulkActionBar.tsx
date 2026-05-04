@@ -98,7 +98,7 @@ export const BulkActionBar = memo(function BulkActionBar({
           transition={{ type: "spring", stiffness: 400, damping: 30 }}
           className={cn(
             "fixed bottom-6 left-1/2 -translate-x-1/2 z-50",
-            "flex items-center gap-1.5 sm:gap-3 px-3 sm:px-5 py-2.5 rounded-2xl",
+            "flex items-center gap-1.5 sm:gap-3 px-3 sm:px-5 py-2.5 rounded-xl",
             "bg-card/95 backdrop-blur-xl border border-primary/20",
             "shadow-[0_8px_40px_-8px_hsl(var(--primary)/0.25),0_2px_12px_-2px_rgba(0,0,0,0.4)]"
           )}

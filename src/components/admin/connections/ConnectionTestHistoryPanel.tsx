@@ -458,7 +458,7 @@ export function ConnectionTestHistoryPanel({
           disabled={empty}
           className={cn(
             "flex-1 flex items-center justify-between gap-2 text-xs font-medium",
-            "rounded-md px-1 py-1 transition-colors",
+            "rounded-xl px-1 py-1 transition-colors",
             empty ? "text-muted-foreground/60 cursor-not-allowed" : "text-foreground hover:bg-muted/50",
           )}
           aria-expanded={expanded}

@@ -101,11 +101,11 @@ export function KitHealthCard({ kitState, kitQuantity, className }: KitHealthCar
         </div>
 
         <div className="grid grid-cols-2 gap-2 text-xs">
-          <div className="rounded-md bg-muted/40 p-2">
+          <div className="rounded-xl bg-muted/40 p-2">
             <div className="text-muted-foreground">Margem estimada</div>
             <div className="font-semibold text-foreground">{grossMargin.toFixed(0)}%</div>
           </div>
-          <div className="rounded-md bg-muted/40 p-2">
+          <div className="rounded-xl bg-muted/40 p-2">
             <div className="text-muted-foreground">Receita ({kitQuantity}×)</div>
             <div className="font-semibold text-foreground">{formatCurrency(totalRevenue)}</div>
           </div>
@@ -125,13 +125,13 @@ export function KitHealthCard({ kitState, kitQuantity, className }: KitHealthCar
             </div>
 
             {inRange && totalPrice > 0 && (
-              <div className="flex items-start gap-2 rounded-md bg-success/10 p-2 text-xs text-success">
+              <div className="flex items-start gap-2 rounded-xl bg-success/10 p-2 text-xs text-success">
                 <CheckCircle2 className="h-3.5 w-3.5 shrink-0 mt-0.5" />
                 <span>Preço dentro do range competitivo do mercado.</span>
               </div>
             )}
             {aboveRange && (
-              <div className="flex items-start gap-2 rounded-md bg-warning/10 p-2 text-xs text-warning-foreground">
+              <div className="flex items-start gap-2 rounded-xl bg-warning/10 p-2 text-xs text-warning-foreground">
                 <TrendingUp className="h-3.5 w-3.5 shrink-0 mt-0.5 text-warning" />
                 <span>
                   Acima da faixa competitiva ({diffVsAvg > 0 ? '+' : ''}
@@ -140,7 +140,7 @@ export function KitHealthCard({ kitState, kitQuantity, className }: KitHealthCar
               </div>
             )}
             {belowRange && (
-              <div className="flex items-start gap-2 rounded-md bg-destructive/10 p-2 text-xs text-destructive">
+              <div className="flex items-start gap-2 rounded-xl bg-destructive/10 p-2 text-xs text-destructive">
                 <TrendingDown className="h-3.5 w-3.5 shrink-0 mt-0.5" />
                 <span>
                   Abaixo da faixa competitiva ({diffVsAvg.toFixed(0)}% vs. média). Risco de margem baixa.
@@ -151,7 +151,7 @@ export function KitHealthCard({ kitState, kitQuantity, className }: KitHealthCar
         )}
 
         {sortedHist.length < 5 && totalPrice > 0 && (
-          <div className="flex items-start gap-2 rounded-md bg-muted/40 p-2 text-xs text-muted-foreground">
+          <div className="flex items-start gap-2 rounded-xl bg-muted/40 p-2 text-xs text-muted-foreground">
             <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
             <span>Histórico insuficiente para comparativo competitivo.</span>
           </div>

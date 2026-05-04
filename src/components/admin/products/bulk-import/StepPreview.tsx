@@ -37,7 +37,7 @@ export function StepPreview({ validationResults, rawData, mapping, importMode, s
         <Badge variant="outline" className="gap-1 text-success border-success/30">+ {newCount} novos</Badge>
       </div>
 
-      <div className="rounded-lg border p-3 space-y-2">
+      <div className="rounded-xl border p-3 space-y-2">
         <p className="text-sm font-medium">Modo de Importação</p>
         <RadioGroup value={importMode} onValueChange={(v) => setImportMode(v as ImportMode)} className="flex gap-4">
           <div className="flex items-center space-x-2">

@@ -65,7 +65,7 @@ export function CollectionListItem({
         />
       </div>
       <div
-        className="w-12 h-12 rounded-lg flex items-center justify-center text-lg shrink-0 overflow-hidden"
+        className="w-12 h-12 rounded-xl flex items-center justify-center text-lg shrink-0 overflow-hidden"
         style={{ backgroundColor: `${collection.color}20` }}
       >
         {previewImage ? (

@@ -260,11 +260,11 @@ export function KeysValidationTab() {
       {/* Header */}
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="flex items-start gap-3">
-          <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+          <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
             <ShieldCheck className="h-5 w-5 text-primary" aria-hidden="true" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold">Validação de chaves para UI e catálogos</h2>
+            <h2 className="text-xl font-semibold">Validação de chaves para UI e catálogos</h2>
             <p className="text-sm text-muted-foreground max-w-2xl">
               Confronta o contrato canônico (definido em <code className="text-xs px-1 py-0.5 rounded bg-muted">secrets-manager</code>) com o estado atual de <code className="text-xs px-1 py-0.5 rounded bg-muted">integration_credentials</code> e ENV. Bloqueadores destacam chaves obrigatórias faltando.
             </p>
@@ -408,7 +408,7 @@ export function KeysValidationTab() {
                         )}
                       </div>
                       <div className={cn(
-                        "h-9 w-9 rounded-lg flex items-center justify-center shrink-0",
+                        "h-9 w-9 rounded-xl flex items-center justify-center shrink-0",
                         groupOk ? "bg-green-500/10" : groupBlockers > 0 ? "bg-destructive/10" : "bg-amber-500/10",
                       )}>
                         <Icon className={cn(

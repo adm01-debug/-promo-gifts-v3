@@ -78,7 +78,7 @@ export function FreightEstimator({ totalWeightGrams, kitQuantity }: FreightEstim
       </CardHeader>
       <CardContent className="space-y-3">
         {noWeight && (
-          <div className="flex items-center gap-2 text-xs text-warning bg-warning/10 border border-warning/20 rounded-lg p-2.5">
+          <div className="flex items-center gap-2 text-xs text-warning bg-warning/10 border border-warning/20 rounded-xl p-2.5">
             <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
             <span>Peso dos itens não informado. Estimativa pode ser imprecisa.</span>
           </div>
@@ -99,15 +99,15 @@ export function FreightEstimator({ totalWeightGrams, kitQuantity }: FreightEstim
         </div>
 
         <div className="grid grid-cols-3 gap-2 text-center">
-          <div className="rounded-lg bg-secondary/50 p-2">
+          <div className="rounded-xl bg-secondary/50 p-2">
             <p className="text-[11px] text-muted-foreground">Peso Total</p>
             <p className="font-bold text-sm">{totalWeightKg.toFixed(1)}kg</p>
           </div>
-          <div className="rounded-lg bg-secondary/50 p-2">
+          <div className="rounded-xl bg-secondary/50 p-2">
             <p className="text-[11px] text-muted-foreground">{METHOD_LABELS[method]}</p>
             <p className="font-bold text-sm text-primary">{formatCurrency(perShipmentCost)}</p>
           </div>
-          <div className="rounded-lg bg-primary/10 p-2">
+          <div className="rounded-xl bg-primary/10 p-2">
             <p className="text-[11px] text-muted-foreground">Por Kit</p>
             <p className="font-bold text-sm text-primary">{formatCurrency(perShipmentCost / kitQuantity)}</p>
           </div>

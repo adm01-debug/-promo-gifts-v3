@@ -72,7 +72,7 @@ export function ForceGlobalLogoutDialog() {
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
-          <div className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm">
+          <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-3 text-sm">
             <p className="font-medium text-destructive">Esta ação não pode ser desfeita.</p>
             <p className="mt-1 text-muted-foreground text-xs">
               Todos os vendedores precisarão fazer login novamente. Recomenda-se notificar a equipe

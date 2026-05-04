@@ -254,7 +254,7 @@ export function DevAccessDeniedPage({
               </p>
               
               {isSupervisor && (
-                <div className="mx-auto max-w-sm p-3 rounded-lg bg-muted/40 border border-border/50 text-xs text-left">
+                <div className="mx-auto max-w-sm p-3 rounded-xl bg-muted/40 border border-border/50 text-xs text-left">
                   <p className="font-medium text-foreground mb-1">Nota de Permissão:</p>
                   <p className="text-muted-foreground leading-normal">
                     Seus privilégios administrativos estão configurados para gestão de negócio e usuários. 
@@ -301,7 +301,7 @@ export function DevAccessDeniedPage({
             </div>
           )}
 
-          <div className="w-full text-left rounded-lg border border-border/60 bg-muted/20 p-3">
+          <div className="w-full text-left rounded-xl border border-border/60 bg-muted/20 p-3">
             <p className="text-[10px] leading-relaxed text-muted-foreground">{copy.hint}</p>
           </div>
 

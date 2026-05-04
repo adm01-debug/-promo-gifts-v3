@@ -69,7 +69,7 @@ export class SimulatorErrorBoundary extends Component<Props, State> {
         animate={{ opacity: 1, y: 0 }}
         className="max-w-lg mx-auto text-center py-16 px-4"
       >
-        <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-destructive/10 flex items-center justify-center">
+        <div className="w-16 h-16 mx-auto mb-6 rounded-xl bg-destructive/10 flex items-center justify-center">
           <AlertTriangle className="h-8 w-8 text-destructive" />
         </div>
 
@@ -81,7 +81,7 @@ export class SimulatorErrorBoundary extends Component<Props, State> {
         </p>
 
         {this.state.error?.message && (
-          <div className="mb-6 p-3 rounded-lg bg-muted text-xs font-mono text-muted-foreground text-left break-all">
+          <div className="mb-6 p-3 rounded-xl bg-muted text-xs font-mono text-muted-foreground text-left break-all">
             {this.state.error.message}
           </div>
         )}

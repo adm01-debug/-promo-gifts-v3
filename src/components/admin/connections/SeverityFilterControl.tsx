@@ -75,7 +75,7 @@ export function SeverityFilterControl({ counts, className }: Props) {
     <TooltipProvider delayDuration={150}>
       <div
         className={cn(
-          "flex items-center gap-2 flex-wrap rounded-lg border bg-card px-3 py-2",
+          "flex items-center gap-2 flex-wrap rounded-xl border bg-card px-3 py-2",
           className,
         )}
         role="toolbar"

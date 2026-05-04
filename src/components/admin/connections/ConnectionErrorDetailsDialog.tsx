@@ -173,7 +173,7 @@ export function ConnectionErrorDetailsDialog({
             {kindMeta && (
               <span
                 className={cn(
-                  "inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-xs font-medium",
+                  "inline-flex items-center gap-1 rounded-xl border px-1.5 py-0.5 text-xs font-medium",
                   kindMeta.className,
                 )}
                 title={`Categoria do erro: ${kindMeta.label}`}
@@ -215,7 +215,7 @@ export function ConnectionErrorDetailsDialog({
           {/* Mensagem */}
           <div>
             <div className="text-xs text-muted-foreground mb-1">Mensagem</div>
-            <div className="rounded-md border bg-muted/50 p-3 text-xs font-mono whitespace-pre-wrap max-h-[200px] overflow-auto">
+            <div className="rounded-xl border bg-muted/50 p-3 text-xs font-mono whitespace-pre-wrap max-h-[200px] overflow-auto">
               {loading ? "Carregando…" : message || "(sem mensagem)"}
             </div>
           </div>
@@ -229,7 +229,7 @@ export function ConnectionErrorDetailsDialog({
                 </button>
               </CollapsibleTrigger>
               <CollapsibleContent className="mt-2">
-                <pre className="rounded-md border bg-muted/30 p-3 text-[11px] text-muted-foreground whitespace-pre-wrap max-h-[400px] overflow-auto">
+                <pre className="rounded-xl border bg-muted/30 p-3 text-[11px] text-muted-foreground whitespace-pre-wrap max-h-[400px] overflow-auto">
 {JSON.stringify({
   id: detail.id,
   tested_at: detail.tested_at,
@@ -246,7 +246,7 @@ export function ConnectionErrorDetailsDialog({
 
           {/* Sugestão */}
           {suggestion && (
-            <div className={cn("flex items-start gap-2 rounded-md border border-primary/20 bg-primary/5 p-3 text-xs")}>
+            <div className={cn("flex items-start gap-2 rounded-xl border border-primary/20 bg-primary/5 p-3 text-xs")}>
               <Lightbulb className="h-4 w-4 text-primary shrink-0 mt-0.5" />
               <span>{suggestion}</span>
             </div>

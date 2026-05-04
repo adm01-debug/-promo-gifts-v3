@@ -21,7 +21,7 @@ export function MagicUpBrandSafetyChecklist({ kit, hasClient, hasLogo }: MagicUp
   const passedCount = checks.filter((check) => check.passed).length;
 
   return (
-    <div className="rounded-lg border bg-muted/20 p-3 space-y-2" aria-label="Checklist de segurança de marca">
+    <div className="rounded-xl border bg-muted/20 p-3 space-y-2" aria-label="Checklist de segurança de marca">
       <div className="flex items-center justify-between gap-2">
         <p className="text-xs font-medium">Segurança da marca</p>
         <Badge variant={passedCount >= 5 ? "secondary" : "outline"} className="text-[10px]">{passedCount}/6</Badge>

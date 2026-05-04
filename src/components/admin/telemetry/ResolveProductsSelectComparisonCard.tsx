@@ -214,7 +214,7 @@ export function ResolveProductsSelectComparisonCard() {
             />
 
             {insufficient && (
-              <div className="mt-3 p-2 rounded-md bg-warning/10 border border-warning/30">
+              <div className="mt-3 p-2 rounded-xl bg-warning/10 border border-warning/30">
                 <p className="text-xs text-warning">
                   ⚠️ Janela com poucas amostras (mínimo recomendado: 5 antes e 5 depois).
                   Aumente a janela ou aguarde mais tráfego para conclusões confiáveis.

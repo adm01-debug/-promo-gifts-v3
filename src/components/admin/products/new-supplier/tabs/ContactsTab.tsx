@@ -26,7 +26,7 @@ export function ContactsTab({ contacts, updateContact, addContact, removeContact
       </div>
       <div className="space-y-3 max-h-[320px] overflow-y-auto pr-1">
         {contacts.map((contact, index) => (
-          <div key={contact.id} className="rounded-lg border border-border bg-muted/30 p-3 space-y-3 relative">
+          <div key={contact.id} className="rounded-xl border border-border bg-muted/30 p-3 space-y-3 relative">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-muted-foreground">Contato {index + 1}</span>
               {contacts.length > 1 && (

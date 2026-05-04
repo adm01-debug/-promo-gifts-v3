@@ -125,8 +125,8 @@ export function MockupProductSelector({ selection, onSelect, disabled }: MockupP
   // ─── State: Product + Color confirmed ──────────────────────────────
   if (selection) {
     return (
-      <div className="flex items-center gap-3 p-3 rounded-lg border border-border/30 bg-card">
-        <div className="w-11 h-11 rounded-lg bg-muted overflow-hidden shrink-0">
+      <div className="flex items-center gap-3 p-3 rounded-xl border border-border/30 bg-card">
+        <div className="w-11 h-11 rounded-xl bg-muted overflow-hidden shrink-0">
           <img
             src={selection.imageUrl}
             alt={selection.product.name}
@@ -274,7 +274,7 @@ export function MockupProductSelector({ selection, onSelect, disabled }: MockupP
                 {isLoadingProducts || isFilterPending ? (
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                     {Array.from({ length: 12 }).map((_, i) => (
-                      <div key={i} className="space-y-3 p-3 rounded-2xl border border-border/30 bg-card">
+                      <div key={i} className="space-y-3 p-3 rounded-xl border border-border/30 bg-card">
                         <Skeleton className="aspect-square w-full rounded-xl" />
                         <div className="space-y-2">
                           <Skeleton className="h-4 w-3/4" />
@@ -313,7 +313,7 @@ export function MockupProductSelector({ selection, onSelect, disabled }: MockupP
                             <div
                               key={product.id}
                               onClick={() => handleProductPick(product)}
-                              className="group relative flex flex-col p-3 rounded-2xl border border-border/30 bg-card hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5 cursor-pointer transition-all duration-300 focus-visible:ring-2 focus-visible:ring-primary outline-none"
+                              className="group relative flex flex-col p-3 rounded-xl border border-border/30 bg-card hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5 cursor-pointer transition-all duration-300 focus-visible:ring-2 focus-visible:ring-primary outline-none"
                               role="button"
                               tabIndex={0}
                               onKeyDown={(e) => e.key === 'Enter' && handleProductPick(product)}

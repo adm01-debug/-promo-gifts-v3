@@ -118,7 +118,7 @@ export function MfaEnrollmentDialog({ open, onOpenChange, enforce = false }: Mfa
 
         {step === "intro" && (
           <div className="space-y-4">
-            <div className="rounded-lg border bg-muted/40 p-4 space-y-3">
+            <div className="rounded-xl border bg-muted/40 p-4 space-y-3">
               <div className="flex items-start gap-3">
                 <Smartphone className="h-5 w-5 text-primary shrink-0 mt-0.5" />
                 <div className="text-sm space-y-1">
@@ -142,7 +142,7 @@ export function MfaEnrollmentDialog({ open, onOpenChange, enforce = false }: Mfa
         {step === "qr" && qrCode && (
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">Escaneie o QR code no seu app autenticador:</p>
-            <div className="flex justify-center bg-white rounded-lg p-4 border">
+            <div className="flex justify-center bg-white rounded-xl p-4 border">
               <img src={qrCode} alt="QR code MFA" className="h-48 w-48" />
             </div>
             {secret && (

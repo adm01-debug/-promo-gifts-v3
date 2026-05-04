@@ -45,7 +45,7 @@ export const AreaCard = memo(({
   return (
     <div
       className={cn(
-        "flex items-center gap-2 p-2.5 rounded-lg border transition-all duration-200 cursor-pointer group",
+        "flex items-center gap-2 p-2.5 rounded-xl border transition-all duration-200 cursor-pointer group",
         isActive
           ? "border-primary/60 bg-primary/5 shadow-sm shadow-primary/10"
           : "border-border/30 hover:border-primary/40 hover:bg-muted/50"
