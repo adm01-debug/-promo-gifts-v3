@@ -79,12 +79,12 @@ export default function Auth() {
     loadIPInfo();
   }, []);
 
-  // Redirect if already logged in
+  // Redirect if already logged in (only on initial load)
   useEffect(() => {
-    if (user && !authLoading) {
-      navigate("/");
+    if (user && !authLoading && !isSubmitting) {
+      navigate("/", { replace: true });
     }
-  }, [user, authLoading, navigate]);
+  }, [user, authLoading, navigate, isSubmitting]);
 
   const loginForm = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
