@@ -12,6 +12,7 @@ import {
   DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuSub,
   DropdownMenuSubContent, DropdownMenuSubTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { motion } from "framer-motion";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -91,14 +92,21 @@ export const SortableCartItem = memo(function SortableCartItem({
 
         {/* Product image */}
         <div className="relative aspect-square bg-muted/20 group/img-container overflow-hidden">
-          <button
-            {...attributes}
-            {...listeners}
-            className="absolute top-2.5 left-2.5 z-20 h-8 w-8 flex items-center justify-center rounded-xl bg-card/90 backdrop-blur-md text-muted-foreground hover:text-primary cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-sm border border-border/50"
-            aria-label="Arrastar"
-          >
-            <GripVertical className="h-4 w-4" />
-          </button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                {...attributes}
+                {...listeners}
+                className="absolute top-2.5 left-2.5 z-20 h-8 w-8 flex items-center justify-center rounded-xl bg-card/90 backdrop-blur-md text-muted-foreground hover:text-primary cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-sm border border-border/50"
+                aria-label="Arrastar"
+              >
+                <GripVertical className="h-4 w-4" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="right" className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">
+              Arraste para reordenar
+            </TooltipContent>
+          </Tooltip>
           
           <div
             data-testid="cart-item-image"
@@ -139,15 +147,22 @@ export const SortableCartItem = memo(function SortableCartItem({
           {/* Actions menu */}
           <div className="absolute top-2.5 right-2.5 opacity-0 group-hover:opacity-100 transition-all duration-300 z-20">
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button 
-                  data-testid="cart-item-menu-trigger" 
-                  className="h-8 w-8 flex items-center justify-center rounded-xl bg-card/90 backdrop-blur-md text-muted-foreground hover:text-primary transition-all shadow-sm border border-border/50" 
-                  aria-label="Mais opções"
-                >
-                  <MoreHorizontal className="h-4 w-4" />
-                </button>
-              </DropdownMenuTrigger>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuTrigger asChild>
+                    <button 
+                      data-testid="cart-item-menu-trigger" 
+                      className="h-8 w-8 flex items-center justify-center rounded-xl bg-card/90 backdrop-blur-md text-muted-foreground hover:text-primary transition-all shadow-sm border border-border/50" 
+                      aria-label="Mais opções"
+                    >
+                      <MoreHorizontal className="h-4 w-4" />
+                    </button>
+                  </DropdownMenuTrigger>
+                </TooltipTrigger>
+                <TooltipContent side="left" className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">
+                  Ações do item
+                </TooltipContent>
+              </Tooltip>
               <DropdownMenuContent align="end" className="w-56 p-1.5 rounded-xl">
                 <DropdownMenuItem data-testid="cart-item-action-view" className="rounded-lg py-2" onClick={() => onNavigate(`/produto/${item.product_id}`)}>
                   <Eye className="h-4 w-4 mr-2.5 opacity-70" /> Ver Produto
@@ -266,6 +281,7 @@ export const SortableCartItem = memo(function SortableCartItem({
                     onUpdateQuantity(item.id, item.quantity - 1);
                   }
                 }}
+                title={item.quantity <= 1 ? "Remover item" : "Diminuir quantidade"}
               >
                 {item.quantity <= 1 ? (
                   <Trash2 data-testid="cart-qty-remove-icon" className="h-4 w-4 text-destructive" />
@@ -289,6 +305,7 @@ export const SortableCartItem = memo(function SortableCartItem({
                 aria-label="Aumentar quantidade"
                 className="h-9 w-9 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 active:bg-muted/80 transition-all active:scale-90"
                 onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
+                title="Aumentar quantidade"
               >
                 <Plus className="h-4 w-4" />
               </button>

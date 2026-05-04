@@ -101,14 +101,19 @@ export function CartHeaderButton() {
             >
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-display text-sm font-semibold">Novo Carrinho</h3>
-                <Button
-                  variant="ghost"
-                  size="icon" aria-label="Fechar"
-                  className="h-6 w-6"
-                  onClick={() => setShowPicker(false)}
-                >
-                  <X className="h-3.5 w-3.5" />
-                </Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon" aria-label="Fechar"
+                      className="h-6 w-6"
+                      onClick={() => setShowPicker(false)}
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Fechar</TooltipContent>
+                </Tooltip>
               </div>
               <CartCompanyPicker
                 onCreated={() => setShowPicker(false)}
@@ -146,15 +151,22 @@ export function CartHeaderButton() {
                   </div>
                 </div>
                 {canCreateCart && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 text-[11px] gap-1.5 px-3 rounded-lg text-primary hover:bg-primary/10 font-bold transition-all hover:scale-105 active:scale-95"
-                    onClick={() => setShowPicker(true)}
-                  >
-                    <Plus className="h-3.5 w-3.5" />
-                    Novo
-                  </Button>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 text-[11px] gap-1.5 px-3 rounded-lg text-primary hover:bg-primary/10 font-bold transition-all hover:scale-105 active:scale-95"
+                        onClick={() => setShowPicker(true)}
+                      >
+                        <Plus className="h-3.5 w-3.5" />
+                        Novo
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">
+                      Criar um novo carrinho para outra empresa
+                    </TooltipContent>
+                  </Tooltip>
                 )}
               </div>
 
@@ -355,6 +367,7 @@ export function CartHeaderButton() {
                                                 updateItemQuantity(item.id, item.quantity - 1);
                                               }
                                             }}
+                                            title={item.quantity <= 1 ? "Remover" : "Diminuir"}
                                           >
                                             {item.quantity <= 1 ? (
                                               <Trash2 className="h-3 w-3 text-destructive" />
@@ -371,6 +384,7 @@ export function CartHeaderButton() {
                                               e.stopPropagation();
                                               updateItemQuantity(item.id, item.quantity + 1);
                                             }}
+                                            title="Aumentar"
                                           >
                                             <Plus className="h-3 w-3" />
                                           </button>
@@ -392,6 +406,7 @@ export function CartHeaderButton() {
                                          e.stopPropagation();
                                          removeItem(item.id);
                                        }}
+                                       title="Remover item"
                                      >
                                        <X className="h-3 w-3" />
                                      </button>
