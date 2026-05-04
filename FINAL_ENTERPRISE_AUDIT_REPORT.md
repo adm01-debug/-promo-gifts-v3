@@ -66,13 +66,6 @@ O sistema **Promo Gifts** consolidou-se como uma plataforma Tier 1 para o mercad
 | **Performance Catálogo** | 2025-12-15 | v25.12 | `499135659` | gpt-engineer-app[bot] |
 
 
---- | :--- | :--- | :--- |
-| **Isolamento RLS** | 15/04/2026 | v2.1.0 | Flow Alpha |
-| **MFA Integration** | 22/04/2026 | v3.0.4 | Security Agent |
-| **Pricing Engine** | 13/01/2026 | v2.0.0 | Financial Auditor |
-
----
-
 ## 🔄 6. Cronograma de Auditoria Contínua (Operational)
 
 | Atividade | Responsável | Frequência | Ferramenta |
