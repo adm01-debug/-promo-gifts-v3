@@ -94,12 +94,17 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
   };
 
   const handleSignOut = async () => {
-    await signOut();
+    try {
+      await signOut();
+    } catch (err) {
+      // Mesmo em caso de erro, prosseguimos com redirect — estado local já foi limpo
+      console.error("[Header] signOut error:", err);
+    }
     toast({
       title: "Até logo!",
       description: "Você saiu da sua conta",
     });
-    navigate("/auth");
+    navigate("/login", { replace: true });
   };
 
   const displayName = profile?.full_name || user?.email?.split("@")[0] || "Usuário";

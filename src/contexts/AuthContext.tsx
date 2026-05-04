@@ -393,8 +393,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (user) {
         await supabase.rpc('log_user_logout').catch(() => {});
       }
-      
-      await supabase.auth.signOut();
+
+      // Tenta encerrar sessão remota — não bloqueia limpeza local em caso de falha
+      await supabase.auth.signOut().catch((err) => {
+        log.warn('remote_signout_failed', { err: String(err) });
+      });
+    } finally {
+      // Limpeza local SEMPRE acontece, mesmo se chamadas remotas falharem
       setUser(null);
       setSession(null);
       setProfile(null);
@@ -405,9 +410,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Permite prewarm no próximo login (mesma aba)
       import('@/lib/external-db-prewarm').then(m => m.resetPrewarmSession()).catch(() => {});
       log.info('ok');
-    } catch (err) {
-      log.error('failed', { err });
-      throw err;
     }
   };
 
