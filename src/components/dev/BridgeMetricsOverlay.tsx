@@ -203,13 +203,13 @@ const CallsList = memo(({ samples }: { samples: BridgeCallSample[] }) => {
   );
 });
 
-const LongTasksList = memo(({ tasks }: any) => {
+const LongTasksList = memo(({ tasks }: { tasks: LongTaskEvent[] }) => {
   if (tasks.length === 0) {
     return <div className="px-3 py-6 text-center text-zinc-500">Nenhuma long task detectada.</div>;
   }
   return (
     <ul className="divide-y divide-white/5">
-      {[...tasks].slice(-50).reverse().map((lt: any) => (
+      {[...tasks].slice(-50).reverse().map((lt) => (
         <li key={lt.id} className="px-3 py-1.5 hover:bg-white/5">
           <div className="flex items-center justify-between gap-2">
             <span className="truncate text-zinc-200">{new Date(lt.startedAtWallMs).toISOString().slice(11, 23)}</span>
