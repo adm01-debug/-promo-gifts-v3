@@ -199,7 +199,7 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
           navigate(`/produto/${product.id}?${params.toString()}`);
           return;
         }
-        onClick?.();
+        setVariantPickerMode('view'); setVariantPickerOpen(true);
       }}
     >
       {/* Image Section */}
