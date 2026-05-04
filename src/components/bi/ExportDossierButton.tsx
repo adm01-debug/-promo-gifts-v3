@@ -28,24 +28,29 @@ export function ExportDossierButton({ clientId }: Props) {
   };
 
   return (
-    <Button
-      onClick={handleClick}
-      disabled={!isReady || isExporting}
-      variant="outline"
-      size="sm"
-      className="gap-2"
-    >
-      {isExporting ? (
-        <>
-          <Loader2 className="h-4 w-4 animate-spin" />
-          Gerando...
-        </>
-      ) : (
-        <>
-          <FileDown className="h-4 w-4" />
-          Exportar Dossiê PDF
-        </>
-      )}
-    </Button>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          onClick={handleClick}
+          disabled={!isReady || isExporting}
+          variant="outline"
+          size="sm"
+          className="gap-2"
+        >
+          {isExporting ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Gerando...
+            </>
+          ) : (
+            <>
+              <FileDown className="h-4 w-4" />
+              Exportar Dossiê PDF
+            </>
+          )}
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Baixar dossiê BI completo em PDF</TooltipContent>
+    </Tooltip>
   );
 }

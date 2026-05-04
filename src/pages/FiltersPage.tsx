@@ -441,10 +441,15 @@ export default function FiltersPage() {
                       : 'Tente ajustar os filtros ou buscar por outro termo.'}
                   </p>
                   <div className="flex items-center justify-center gap-2">
-                    <Button variant="outline" onClick={state.handleReset} className="gap-1.5">
-                      <Sparkles className="h-3.5 w-3.5" />
-                      Limpar filtros
-                    </Button>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button variant="outline" onClick={state.handleReset} className="gap-1.5">
+                          <Sparkles className="h-3.5 w-3.5" />
+                          Limpar filtros
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Resetar busca e ver todo o catálogo</TooltipContent>
+                    </Tooltip>
                   </div>
                 </div>
               )}

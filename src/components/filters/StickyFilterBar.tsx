@@ -51,32 +51,42 @@ export function StickyFilterBar({
               {/* Left side - Filters */}
               <div className="flex items-center gap-3">
                 {/* Botão Filtros */}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={onOpenFilters}
-                  className="gap-2"
-                >
-                  <SlidersHorizontal className="h-4 w-4" />
-                  <span className="hidden sm:inline">Filtros</span>
-                  {activeFiltersCount > 0 && (
-                    <Badge variant="secondary" className="ml-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
-                      {activeFiltersCount}
-                    </Badge>
-                  )}
-                </Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={onOpenFilters}
+                      className="gap-2"
+                    >
+                      <SlidersHorizontal className="h-4 w-4" />
+                      <span className="hidden sm:inline">Filtros</span>
+                      {activeFiltersCount > 0 && (
+                        <Badge variant="secondary" className="ml-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
+                          {activeFiltersCount}
+                        </Badge>
+                      )}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Abrir painel de filtros</TooltipContent>
+                </Tooltip>
 
                 {/* Limpar filtros (se houver) */}
                 {activeFiltersCount > 0 && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={onClearFilters}
-                    className="gap-1 text-muted-foreground hover:text-foreground"
-                  >
-                    <X className="h-3 w-3" />
-                    <span className="hidden sm:inline">Limpar</span>
-                  </Button>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={onClearFilters}
+                        className="gap-1 text-muted-foreground hover:text-foreground"
+                      >
+                        <X className="h-3 w-3" />
+                        <span className="hidden sm:inline">Limpar</span>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Remover todos os filtros</TooltipContent>
+                  </Tooltip>
                 )}
 
                 {/* Contador de produtos */}
@@ -89,47 +99,68 @@ export function StickyFilterBar({
               <div className="flex items-center gap-2">
                 {/* View mode toggle */}
                 <div className="hidden sm:flex border border-border rounded-lg p-0.5">
-                  <Button
-                    variant={viewMode === "grid" ? "secondary" : "ghost"}
-                    size="icon" aria-label="LayoutGrid"
-                    className="h-7 w-7"
-                    onClick={() => onViewModeChange("grid")}
-                  >
-                    <LayoutGrid className="h-3.5 w-3.5" />
-                  </Button>
-                  <Button
-                    variant={viewMode === "list" ? "secondary" : "ghost"}
-                    size="icon" aria-label="Lista"
-                    className="h-7 w-7"
-                    onClick={() => onViewModeChange("list")}
-                  >
-                    <List className="h-3.5 w-3.5" />
-                  </Button>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant={viewMode === "grid" ? "secondary" : "ghost"}
+                        size="icon" aria-label="LayoutGrid"
+                        className="h-7 w-7"
+                        onClick={() => onViewModeChange("grid")}
+                      >
+                        <LayoutGrid className="h-3.5 w-3.5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Visualização em Grade</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant={viewMode === "list" ? "secondary" : "ghost"}
+                        size="icon" aria-label="Lista"
+                        className="h-7 w-7"
+                        onClick={() => onViewModeChange("list")}
+                      >
+                        <List className="h-3.5 w-3.5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Visualização em Lista</TooltipContent>
+                  </Tooltip>
                 </div>
 
                 {/* Sort */}
-                <Select value={sortBy} onValueChange={onSortChange}>
-                  <SelectTrigger className="w-[180px] h-8 text-sm">
-                    <ArrowUpDown className="h-3.5 w-3.5 mr-1.5" />
-                    <SelectValue placeholder="Ordenar" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {SORT_OPTIONS.map(option => (
-                      <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex items-center">
+                      <Select value={sortBy} onValueChange={onSortChange}>
+                        <SelectTrigger className="w-[180px] h-8 text-sm">
+                          <ArrowUpDown className="h-3.5 w-3.5 mr-1.5" />
+                          <SelectValue placeholder="Ordenar" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {SORT_OPTIONS.map(option => (
+                            <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Ordenar resultados</TooltipContent>
+                </Tooltip>
 
                 {/* Voltar ao topo */}
-                <Button
-                  variant="secondary"
-                  size="icon" aria-label="Expandir"
-                  className="h-8 w-8"
-                  onClick={onScrollToTop}
-                  title="Voltar ao topo"
-                >
-                  <ChevronUp className="h-4 w-4" />
-                </Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="secondary"
+                      size="icon" aria-label="Expandir"
+                      className="h-8 w-8"
+                      onClick={onScrollToTop}
+                    >
+                      <ChevronUp className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Voltar ao topo</TooltipContent>
+                </Tooltip>
               </div>
             </div>
           </div>

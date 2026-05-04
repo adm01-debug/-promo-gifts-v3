@@ -103,12 +103,17 @@ export function ExecutiveSummaryButton({ clientId, clientName, ramoAtividade }: 
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button size="sm" variant="outline" className="gap-1.5" disabled={busy !== null}>
-          {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4 text-violet-500" />}
-          Resumo
-        </Button>
-      </DropdownMenuTrigger>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <DropdownMenuTrigger asChild>
+            <Button size="sm" variant="outline" className="gap-1.5" disabled={busy !== null}>
+              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4 text-violet-500" />}
+              Resumo
+            </Button>
+          </DropdownMenuTrigger>
+        </TooltipTrigger>
+        <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Gerar resumo executivo para WhatsApp ou PPTX</TooltipContent>
+      </Tooltip>
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel className="text-xs">Resumo executivo</DropdownMenuLabel>
         <DropdownMenuSeparator />
