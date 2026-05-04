@@ -237,7 +237,7 @@ export function DevAccessDeniedPage({
 
           <div className="space-y-4 w-full">
             <div className="space-y-1">
-              <span className="inline-block text-[11px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-xl bg-destructive/10 text-destructive border border-destructive/20">
+              <span className="badge-premium-destructive">
                 {copy.badge} · 403
               </span>
               <h1
