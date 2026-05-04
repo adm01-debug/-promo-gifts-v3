@@ -55,7 +55,7 @@ export function useCatalogPrefetch() {
         initialPageParam: 0,
         staleTime: 15 * 60 * 1000, // Aumentado para 15 min
       });
-    }, 2000);
+    }, 400);
 
     return () => clearTimeout(timer);
   }, [isAuthenticated, isLoading, queryClient]);
