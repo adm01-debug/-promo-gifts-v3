@@ -151,13 +151,13 @@ export default function AdvancedPriceSearchPage() {
 
               <div className="flex gap-2 pt-4 border-t">
                 <Button onClick={handleSearch} className="flex-1" disabled={isLoading}><Search className="h-4 w-4 mr-2" />Buscar</Button>
-                <TooltipProvider>
+                <TooltipProvider delayDuration={0}>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button variant="outline" onClick={handleReset}><RotateCcw className="h-4 w-4" /></Button>
                     </TooltipTrigger>
-                    <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-0.5 min-h-0">
-                      Resetar filtros
+                    <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
+                      Limpar todos os filtros da busca
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -174,13 +174,13 @@ export default function AdvancedPriceSearchPage() {
                   : 'Configure os filtros e clique em "Buscar"'}
               </p>
               <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1">
-                <TooltipProvider>
+                <TooltipProvider delayDuration={0}>
                   {([['cards', Grid3X3, 'Ver em Cards'], ['table', Table2, 'Ver em Tabela'], ['list', List, 'Ver em Lista']] as const).map(([mode, Icon, label]) => (
                     <Tooltip key={mode}>
                       <TooltipTrigger asChild>
                         <Button variant={viewMode === mode ? 'secondary' : 'ghost'} size="sm" onClick={() => setViewMode(mode)}><Icon className="h-4 w-4" /></Button>
                       </TooltipTrigger>
-                      <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-0.5 min-h-0">
+                      <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
                         {label}
                       </TooltipContent>
                     </Tooltip>
