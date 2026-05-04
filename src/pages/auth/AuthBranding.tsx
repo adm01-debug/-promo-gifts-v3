@@ -147,7 +147,7 @@ const Starfield = React.memo(() => {
   );
 });
 
-function FeatureCard({ item, index }: { item: typeof FEATURES[0]; index: number }) {
+function FeatureCard({ item, index }: { item: typeof FEATURE_ITEMS[0]; index: number }) {
   const IconComponent = item.icon;
   return (
     <div 
@@ -210,7 +210,7 @@ export function AuthBrandingPanel() {
           </div>
 
           <div className="grid grid-cols-2 gap-4 pt-6">
-            {FEATURES.map((item, i) => (
+            {FEATURE_ITEMS.map((item, i) => (
               <FeatureCard key={i} item={item} index={i} />
             ))}
           </div>
