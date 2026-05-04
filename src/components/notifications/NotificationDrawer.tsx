@@ -361,7 +361,7 @@ export const NotificationBell = React.forwardRef<HTMLDivElement, NotificationBel
 
               </Button>
             </TooltipTrigger>
-            <TooltipContent className="bg-primary text-primary-foreground border-primary text-[11px]">
+            <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">
               Notificações {unreadCount > 0 && `(${unreadCount})`}
             </TooltipContent>
           </Tooltip>
@@ -382,7 +382,7 @@ export const NotificationBell = React.forwardRef<HTMLDivElement, NotificationBel
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={markAllAsRead} aria-label="CheckCheck"><CheckCheck className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent className="bg-primary text-primary-foreground border-primary text-[11px]">Marcar todas como lidas</TooltipContent>
+                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Marcar todas como lidas</TooltipContent>
                 </Tooltip>
               )}
               {notifications.length > 0 && (
@@ -391,7 +391,7 @@ export const NotificationBell = React.forwardRef<HTMLDivElement, NotificationBel
                     <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={clearAll} aria-label="Excluir"><Trash2 className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent className="bg-primary text-primary-foreground border-primary text-[11px]">Limpar todas</TooltipContent>
+                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Limpar todas</TooltipContent>
                 </Tooltip>
               )}
             </div>

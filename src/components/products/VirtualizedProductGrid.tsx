@@ -268,24 +268,31 @@ export function VirtualizedProductGrid({
                       style={{ zIndex: 1 }}
                     >
                       {selectionMode && (
-                        <button
-                          className={cn(
-                            "absolute top-2 left-2 z-20 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200",
-                            selectedIds?.has(product.id)
-                              ? "bg-primary border-primary text-primary-foreground scale-100"
-                              : "border-muted-foreground/40 bg-card/80 backdrop-blur-sm hover:border-primary/60"
-                          )}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onToggleSelect?.(product.id);
-                          }}
-                        >
-                          {selectedIds?.has(product.id) && (
-                            <svg className="w-3.5 h-3.5" viewBox="0 0 14 14" fill="none">
-                              <path d="M11.5 3.5L5.5 10L2.5 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                          )}
-                        </button>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              className={cn(
+                                "absolute top-2 left-2 z-20 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200",
+                                selectedIds?.has(product.id)
+                                  ? "bg-primary border-primary text-primary-foreground scale-100"
+                                  : "border-muted-foreground/40 bg-card/80 backdrop-blur-sm hover:border-primary/60"
+                              )}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onToggleSelect?.(product.id);
+                              }}
+                            >
+                              {selectedIds?.has(product.id) && (
+                                <svg className="w-3.5 h-3.5" viewBox="0 0 14 14" fill="none">
+                                  <path d="M11.5 3.5L5.5 10L2.5 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
+                              )}
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">
+                            {selectedIds?.has(product.id) ? "Desmarcar" : "Selecionar"}
+                          </TooltipContent>
+                        </Tooltip>
                       )}
                       <ProductCard
                         product={product}
@@ -310,16 +317,21 @@ export function VirtualizedProductGrid({
       {/* Scroll to top button - posicionado dentro do container */}
       <AnimatePresence>
         {showScrollTop && (
-          <motion.button
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            className="absolute bottom-4 right-4 p-3 rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 transition-colors z-30"
-            onClick={scrollToTop}
-            title="Voltar ao topo"
-          >
-            <ArrowUp className="h-5 w-5" />
-          </motion.button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <motion.button
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                className="absolute bottom-4 right-4 p-3 rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 transition-colors z-30"
+                onClick={scrollToTop}
+                aria-label="Voltar ao topo"
+              >
+                <ArrowUp className="h-5 w-5" />
+              </motion.button>
+            </TooltipTrigger>
+            <TooltipContent side="left" className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Voltar ao topo</TooltipContent>
+          </Tooltip>
         )}
       </AnimatePresence>
     </div>

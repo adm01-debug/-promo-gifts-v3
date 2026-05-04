@@ -353,10 +353,15 @@ export default function FavoritesPage() {
           <div className="flex gap-2 items-center flex-wrap">
             <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
               <SheetTrigger asChild>
-                <Button variant="outline" size="sm" className="lg:hidden">
-                  <FolderOpen className="h-4 w-4 mr-1.5" />
-                  Listas
-                </Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="outline" size="sm" className="lg:hidden">
+                      <FolderOpen className="h-4 w-4 mr-1.5" />
+                      Listas
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Gerenciar listas de favoritos</TooltipContent>
+                </Tooltip>
               </SheetTrigger>
               <SheetContent side="left" className="w-72 p-4 overflow-y-auto">
                 {sidebarNode}
@@ -368,10 +373,15 @@ export default function FavoritesPage() {
                 {!isRemoteListView && (
                   <DeleteConfirmDialog
                     trigger={
-                      <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Limpar Tudo
-                      </Button>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Limpar Tudo
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Remover todos os itens desta lista</TooltipContent>
+                      </Tooltip>
                     }
                     title="Limpar todos os favoritos?"
                     description={`Esta ação irá remover todos os ${favoriteCount} produtos.`}
@@ -379,15 +389,17 @@ export default function FavoritesPage() {
                     itemName="favoritos"
                   />
                 )}
-                <Button
-                  variant={selectionMode ? "default" : "outline"}
-                  size="sm"
-                  className={cn("gap-1.5 h-8 transition-all relative",
-                    selectionMode ? "bg-primary text-primary-foreground" : "hover:border-primary/50")}
-                  onClick={toggleSelectionMode}
-                >
-                  <CheckSquare className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline text-xs">{selectionMode ? "Cancelar" : "Selecionar"}</span>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant={selectionMode ? "default" : "outline"}
+                      size="sm"
+                      className={cn("gap-1.5 h-8 transition-all relative",
+                        selectionMode ? "bg-primary text-primary-foreground" : "hover:border-primary/50")}
+                      onClick={toggleSelectionMode}
+                    >
+                      <CheckSquare className="h-3.5 w-3.5" />
+                      <span className="hidden sm:inline text-xs">{selectionMode ? "Cancelar" : "Selecionar"}</span>
                   <AnimatePresence>
                     {selectionMode && selectedIds.size > 0 && (
                       <motion.div
@@ -404,6 +416,11 @@ export default function FavoritesPage() {
                     )}
                   </AnimatePresence>
                 </Button>
+              </TooltipTrigger>
+              <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">
+                {selectionMode ? "Sair do modo seleção" : "Selecionar itens para ações em massa"}
+              </TooltipContent>
+            </Tooltip>
                 <div className="hidden sm:block">
                   <LayoutPopover
                     viewMode={viewMode}

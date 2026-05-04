@@ -130,12 +130,13 @@ export const PersistentBreadcrumbs = forwardRef<HTMLElement, PersistentBreadcrum
       )}
     >
       {showBackButton && isNotHome && (
-        <button
-          onClick={handleBack}
-          aria-label="Teletransporte — Voltar"
-          title="Teletransporte"
-          className="hidden sm:inline-flex items-center justify-center gap-1.5 h-7 px-3 rounded-full text-xs font-medium text-muted-foreground hover:text-foreground bg-muted/60 hover:bg-muted border border-border/40 hover:border-border transition-all duration-200 flex-shrink-0 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 group"
-        >
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              onClick={handleBack}
+              aria-label="Teletransporte — Voltar"
+              className="hidden sm:inline-flex items-center justify-center gap-1.5 h-7 px-3 rounded-full text-xs font-medium text-muted-foreground hover:text-foreground bg-muted/60 hover:bg-muted border border-border/40 hover:border-border transition-all duration-200 flex-shrink-0 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 group"
+            >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
@@ -156,6 +157,9 @@ export const PersistentBreadcrumbs = forwardRef<HTMLElement, PersistentBreadcrum
           </svg>
           <span className="hidden md:inline">Teletransporte</span>
         </button>
+      </TooltipTrigger>
+      <TooltipContent side="bottom" className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Voltar para página anterior</TooltipContent>
+    </Tooltip>
       )}
 
       <Breadcrumb>

@@ -186,7 +186,7 @@ export default function FiltersPage() {
                         </Button>
                       </SheetTrigger>
                     </TooltipTrigger>
-                    <TooltipContent className="bg-primary text-primary-foreground border-primary text-[11px]">Abrir painel de filtros detalhados</TooltipContent>
+                    <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Abrir painel de filtros detalhados</TooltipContent>
                   </Tooltip>
                   <SheetContent side="left" className="w-80 flex flex-col p-0">
                     <SheetHeader className="px-6 pt-6 pb-2"><SheetTitle>Filtros</SheetTitle></SheetHeader>
@@ -201,11 +201,23 @@ export default function FiltersPage() {
                         </div>
                       )}
                       <div className="flex gap-2">
-                        {state.activeFiltersCount > 0 && <Button variant="outline" size="sm" onClick={state.handleReset} className="text-xs shrink-0">Limpar ({state.activeFiltersCount})</Button>}
-                        <Button size="sm" className="flex-1 tabular-nums" onClick={() => state.setMobileFiltersOpen(false)}>
-                          <Filter className="h-3.5 w-3.5 mr-1.5" />
-                          {state.isLoadingProducts && state.realProducts.length === 0 ? 'Carregando...' : state.activeFiltersCount > 0 ? `Ver ${state.filteredProducts.length.toLocaleString('pt-BR')} resultado${state.filteredProducts.length !== 1 ? 's' : ''}` : `${(state.totalEstimate ?? state.filteredProducts.length).toLocaleString('pt-BR')} produtos`}
-                        </Button>
+                        {state.activeFiltersCount > 0 && (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button variant="outline" size="sm" onClick={state.handleReset} className="text-xs shrink-0">Limpar ({state.activeFiltersCount})</Button>
+                            </TooltipTrigger>
+                            <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Remover todos os filtros aplicados</TooltipContent>
+                          </Tooltip>
+                        )}
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button size="sm" className="flex-1 tabular-nums" onClick={() => state.setMobileFiltersOpen(false)}>
+                              <Filter className="h-3.5 w-3.5 mr-1.5" />
+                              {state.isLoadingProducts && state.realProducts.length === 0 ? 'Carregando...' : state.activeFiltersCount > 0 ? `Ver ${state.filteredProducts.length.toLocaleString('pt-BR')} resultado${state.filteredProducts.length !== 1 ? 's' : ''}` : `${(state.totalEstimate ?? state.filteredProducts.length).toLocaleString('pt-BR')} produtos`}
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Aplicar filtros e fechar</TooltipContent>
+                        </Tooltip>
                       </div>
                     </div>
                   </SheetContent>
@@ -221,7 +233,7 @@ export default function FiltersPage() {
                       </SelectContent>
                     </Select>
                   </TooltipTrigger>
-                  <TooltipContent className="bg-primary text-primary-foreground border-primary text-[11px]">Ordenar resultados (nome, preço, novidades, popularidade)</TooltipContent>
+                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Ordenar resultados (nome, preço, novidades, popularidade)</TooltipContent>
                 </Tooltip>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -229,7 +241,7 @@ export default function FiltersPage() {
                       <PresetsBar currentFilters={state.filters} onApplyPreset={(f, id) => state.handleApplyPreset(f, id)} activePresetId={state.activePresetId} />
                     </div>
                   </TooltipTrigger>
-                  <TooltipContent className="bg-primary text-primary-foreground border-primary text-[11px]">Presets de filtros salvos para acesso rápido</TooltipContent>
+                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Presets de filtros salvos para acesso rápido</TooltipContent>
                 </Tooltip>
 
                 {/* Selection toggle */}
@@ -266,7 +278,7 @@ export default function FiltersPage() {
                       </AnimatePresence>
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent className="bg-primary text-primary-foreground border-primary text-[11px]">
+                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">
                     {state.selectionMode ? "Sair do modo de seleção" : "Selecionar vários produtos para ações em massa"}
                   </TooltipContent>
                 </Tooltip>
@@ -283,7 +295,12 @@ export default function FiltersPage() {
                     </Badge>
                   ))}
                   {state.activeFiltersSummary.length > 3 && <Badge variant="outline" className="text-xs py-0.5 px-2">+{state.activeFiltersSummary.length - 3}</Badge>}
-                  <Button variant="ghost" size="sm" onClick={state.handleReset} className="text-muted-foreground h-6 px-2 text-xs">Limpar</Button>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="ghost" size="sm" onClick={state.handleReset} className="text-muted-foreground h-6 px-2 text-xs">Limpar</Button>
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Remover filtros ativos</TooltipContent>
+                  </Tooltip>
                 </div>
               )}
             </div>
@@ -424,10 +441,15 @@ export default function FiltersPage() {
                       : 'Tente ajustar os filtros ou buscar por outro termo.'}
                   </p>
                   <div className="flex items-center justify-center gap-2">
-                    <Button variant="outline" onClick={state.handleReset} className="gap-1.5">
-                      <Sparkles className="h-3.5 w-3.5" />
-                      Limpar filtros
-                    </Button>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button variant="outline" onClick={state.handleReset} className="gap-1.5">
+                          <Sparkles className="h-3.5 w-3.5" />
+                          Limpar filtros
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Resetar busca e ver todo o catálogo</TooltipContent>
+                    </Tooltip>
                   </div>
                 </div>
               )}

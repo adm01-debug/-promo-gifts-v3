@@ -79,7 +79,7 @@ export function CatalogToolbar({
                 </Button>
               </SheetTrigger>
             </TooltipTrigger>
-            <TooltipContent className="bg-primary text-primary-foreground border-primary text-[11px]">
+            <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">
               {activeFiltersCount > 0
                 ? `Refinar busca · ${activeFiltersCount} filtro${activeFiltersCount > 1 ? "s" : ""} ativo${activeFiltersCount > 1 ? "s" : ""}`
                 : "Refinar por categoria, cor, preço e mais"}
@@ -108,7 +108,7 @@ export function CatalogToolbar({
                   <span className="hidden sm:inline"><SelectValue placeholder="Ordenar" /></span>
                 </SelectTrigger>
               </TooltipTrigger>
-              <TooltipContent className="bg-primary text-primary-foreground border-primary text-[11px]">Ordenar produtos (relevância, preço, novidades…)</TooltipContent>
+              <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Ordenar produtos (relevância, preço, novidades…)</TooltipContent>
             </Tooltip>
             <SelectContent>
               {SORT_OPTIONS.map(option => (
@@ -163,7 +163,7 @@ export function CatalogToolbar({
               </AnimatePresence>
             </Button>
           </TooltipTrigger>
-          <TooltipContent className="bg-primary text-primary-foreground border-primary text-[11px]">
+          <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">
             {selectionMode
               ? `Sair do modo seleção${selectedCount > 0 ? ` (${selectedCount} selecionado${selectedCount > 1 ? "s" : ""})` : ""}`
               : "Selecionar vários produtos para orçamento, coleção ou comparação"}

@@ -110,7 +110,7 @@ export const ProductCardActions = memo(function ProductCardActions({
               className="h-9 w-9 md:h-11 md:w-11 min-h-[36px] min-w-[36px] md:min-h-[44px] md:min-w-[44px] bg-primary hover:bg-primary/90 text-primary-foreground border-primary/20 shadow-primary/20 hover:scale-110 active:scale-95 disabled:opacity-50"
             />
           </TooltipTrigger>
-          <TooltipContent side="left" className="bg-primary text-primary-foreground border-primary text-[11px]">Adicionar ao carrinho</TooltipContent>
+          <TooltipContent side="left" className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Adicionar ao carrinho</TooltipContent>
         </Tooltip>
 
         {/* Quick View */}
@@ -142,7 +142,7 @@ function ActionButton({
           <Icon className={cn("h-4 w-4 md:h-5 md:w-5 transition-all duration-300", iconClassName)} />
         </Button>
       </TooltipTrigger>
-      <TooltipContent side="left" className="bg-primary text-primary-foreground border-primary text-[11px]">{label}</TooltipContent>
+      <TooltipContent side="left" className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">{label}</TooltipContent>
     </Tooltip>
   );
 }
