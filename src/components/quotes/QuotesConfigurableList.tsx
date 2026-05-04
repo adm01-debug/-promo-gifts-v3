@@ -49,6 +49,14 @@ import { QuoteViewedBadge } from "./QuoteViewedBadge";
 import { QuoteRowQuickActions } from "./QuoteRowQuickActions";
 import { QuoteOrderBadge } from "./QuoteOrderBadge";
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
   DndContext,
   closestCenter,
   KeyboardSensor,
@@ -65,6 +73,7 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+
 
 // ── Column definitions ──
 export interface ColumnDef {
@@ -308,98 +317,100 @@ export function QuotesConfigurableList({
       </div>
 
       {/* Table */}
-      <div className="rounded-xl border border-border overflow-x-hidden overflow-y-auto max-h-[calc(100vh-420px)] pb-16">
-        {/* Header */}
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          <div
-            className="grid gap-4 px-4 py-3 bg-primary text-primary-foreground text-sm font-semibold border-b border-primary/80 sticky top-0 z-10"
-            style={{ gridTemplateColumns: gridTemplate }}
-          >
-            <div className="flex items-center justify-center">
-              <Checkbox
-                checked={isAllSelected}
-                onCheckedChange={handleToggleAll}
-                className="border-primary-foreground/50 data-[state=checked]:bg-primary-foreground data-[state=checked]:text-primary"
-              />
-            </div>
-            <SortableContext items={visibleColumns.map((c) => c.id)} strategy={horizontalListSortingStrategy}>
+      <Table>
+        <TableHeader>
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <TableRow className="hover:bg-transparent border-primary/20">
+              <TableHead className="w-[40px] text-center">
+                <Checkbox
+                  checked={isAllSelected}
+                  onCheckedChange={handleToggleAll}
+                />
+              </TableHead>
+              <SortableContext items={visibleColumns.map((c) => c.id)} strategy={horizontalListSortingStrategy}>
+                {visibleColumns.map((col) => (
+                  <TableHead key={col.id} style={{ width: col.width }}>
+                    <SortableHeaderCell column={col} />
+                  </TableHead>
+                ))}
+              </SortableContext>
+              <TableHead className="w-[180px] text-right">Ações</TableHead>
+            </TableRow>
+          </DndContext>
+        </TableHeader>
+        <TableBody>
+          {paginatedQuotes.map((quote) => (
+            <TableRow
+              key={quote.id}
+              className={cn(
+                "group cursor-pointer",
+                (isSelected(quote.id!) || allPagesSelected) && "bg-primary/10 border-l-2 border-l-primary"
+              )}
+              onClick={() => navigate(`/orcamentos/${quote.id}`)}
+            >
+              <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
+                <Checkbox
+                  checked={isSelected(quote.id!) || allPagesSelected}
+                  onCheckedChange={() => {
+                    if (allPagesSelected) {
+                      setAllPagesSelected(false);
+                      toggleAll();
+                      toggleItem(quote.id!);
+                    } else {
+                      toggleItem(quote.id!);
+                    }
+                  }}
+                />
+              </TableCell>
               {visibleColumns.map((col) => (
-                <SortableHeaderCell key={col.id} column={col} />
+                <TableCell key={col.id} className={cn(col.align === "right" && "text-right")}>
+                  {col.id === "client" ? (
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="min-w-0 flex-1">{renderCell(quote, col.id)}</div>
+                      <QuoteViewedBadge info={viewedMap[quote.id!]} />
+                      <QuoteOrderBadge quoteId={quote.id!} />
+                    </div>
+                  ) : (
+                    renderCell(quote, col.id)
+                  )}
+                </TableCell>
               ))}
-            </SortableContext>
-            <span />
-          </div>
-        </DndContext>
+              <TableCell className="text-right">
+                <div className="flex items-center justify-end gap-0.5">
+                  <QuoteRowQuickActions
+                    quote={quote}
+                    onDuplicate={onDuplicate}
+                    onMarkApproved={(id) => onMarkApproved?.(id)}
+                  />
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/20 hover:text-primary transition-all duration-300">
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                      <DropdownMenuItem onClick={() => navigate(`/orcamentos/${quote.id}`)}>
+                        <Eye className="h-4 w-4 mr-2" /> Visualizar
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate(`/orcamentos/${quote.id}/editar`)}>
+                        <Edit className="h-4 w-4 mr-2" /> Editar
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => onDuplicate(quote.id!)}>
+                        <Copy className="h-4 w-4 mr-2" /> Duplicar
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem className="text-destructive focus:bg-destructive/10" onClick={() => onDelete(quote.id!)}>
+                        <Trash2 className="h-4 w-4 mr-2" /> Excluir
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
 
-        {/* Rows */}
-        {paginatedQuotes.map((quote) => (
-          <div
-            key={quote.id}
-            className={`group grid gap-4 px-4 py-3 items-center border-b border-border/40 cursor-pointer transition-all duration-150 hover:bg-muted/40 hover:border-l-2 hover:border-l-primary/60 ${
-              isSelected(quote.id!) || allPagesSelected ? "bg-primary/5 border-l-2 border-l-primary" : ""
-            }`}
-            style={{ gridTemplateColumns: gridTemplate }}
-            onClick={() => navigate(`/orcamentos/${quote.id}`)}
-          >
-            <div className="flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
-              <Checkbox
-                checked={isSelected(quote.id!) || allPagesSelected}
-                onCheckedChange={() => {
-                  if (allPagesSelected) {
-                    setAllPagesSelected(false);
-                    toggleAll();
-                    toggleItem(quote.id!);
-                  } else {
-                    toggleItem(quote.id!);
-                  }
-                }}
-              />
-            </div>
-            {visibleColumns.map((col) => (
-              <div key={col.id} className={`min-w-0 ${col.align === "right" ? "text-right" : ""}`}>
-                {col.id === "client" ? (
-                  <div className="flex items-center gap-2 min-w-0">
-                    <div className="min-w-0 flex-1">{renderCell(quote, col.id)}</div>
-                    <QuoteViewedBadge info={viewedMap[quote.id!]} />
-                    <QuoteOrderBadge quoteId={quote.id!} />
-                  </div>
-                ) : (
-                  renderCell(quote, col.id)
-                )}
-              </div>
-            ))}
-            <div className="flex items-center justify-end gap-0.5">
-              <QuoteRowQuickActions
-                quote={quote}
-                onDuplicate={onDuplicate}
-                onMarkApproved={(id) => onMarkApproved?.(id)}
-              />
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                  <Button variant="ghost" size="icon" className="h-7 w-7" aria-label="Mais opções">
-                    <MoreVertical className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                  <DropdownMenuItem onClick={() => navigate(`/orcamentos/${quote.id}`)}>
-                    <Eye className="h-4 w-4 mr-2" /> Visualizar
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate(`/orcamentos/${quote.id}/editar`)}>
-                    <Edit className="h-4 w-4 mr-2" /> Editar
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onDuplicate(quote.id!)}>
-                    <Copy className="h-4 w-4 mr-2" /> Duplicar
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem className="text-destructive" onClick={() => onDelete(quote.id!)}>
-                    <Trash2 className="h-4 w-4 mr-2" /> Excluir
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-        ))}
-      </div>
 
       {/* Pagination Footer */}
       <div className="flex items-center justify-between px-2 py-2">

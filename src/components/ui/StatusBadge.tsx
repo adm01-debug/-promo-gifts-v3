@@ -13,7 +13,8 @@ import {
 } from "lucide-react";
 
 const statusBadgeVariants = cva(
-  "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider transition-colors",
+  "inline-flex items-center gap-1.5 rounded-[var(--radius-xl)] px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-widest transition-all duration-300",
+
   {
     variants: {
       status: {
