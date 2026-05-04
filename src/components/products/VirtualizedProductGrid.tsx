@@ -160,7 +160,7 @@ export function VirtualizedProductGrid({
       >
         {/* Barra de filtros sticky DENTRO do container de scroll */}
         {showFilterBar && onSortChange && onOpenFilters && onClearFilters && onViewModeChange && (
-          <div className="sticky top-[calc(var(--header-h,56px)+var(--breadcrumb-h,0px))] z-20 bg-background/95 backdrop-blur-md border-b border-border px-4 py-2.5 mb-2">
+          <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-md border-b border-primary/10 px-4 py-2.5 mb-2 shadow-sm">
              <InlineFilterBar
               activeFiltersCount={activeFiltersCount}
               totalProducts={products.length}
