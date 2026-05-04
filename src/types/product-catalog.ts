@@ -133,7 +133,18 @@ export interface ProductVariation {
   stock: number;
   image?: string | null;
   images?: string[];
-  videos?: any[];
+  videos?: Array<{
+    id: string;
+    url_stream: string | null;
+    url_hls: string | null;
+    url_thumbnail: string | null;
+    url_original: string | null;
+    source_youtube_id: string | null;
+    video_type: string | null;
+    display_order: number;
+    is_primary: boolean;
+    title: string | null;
+  }>;
   size_code?: string | null;
 }
 
