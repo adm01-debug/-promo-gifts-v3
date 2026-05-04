@@ -1,9 +1,9 @@
-import { test, expect } from 'vitest';
+import { describe, test, expect } from 'vitest';
 import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 
-test.describe('Audit System Consistency', () => {
+describe('Audit System Consistency', () => {
 
   test('ci-audit-gen.cjs should execute without errors', () => {
     const output = execSync('node scripts/ci-audit-gen.cjs').toString();
@@ -28,7 +28,7 @@ test.describe('Audit System Consistency', () => {
     expect(mdContent).toContain('| Funcionalidade | Data de Geração | Versão Ref | Commit Ref | Auditor Original |');
     
     // Ensure we have at least some rows with commit hashes
-    const commitHashes = mdContent.match(/`[a-f0-9]{7}`/g);
+    const commitHashes = mdContent.match(/`[a-f0-9]{7,}`/g);
     expect(commitHashes?.length).toBeGreaterThan(0);
   });
 
@@ -38,7 +38,7 @@ test.describe('Audit System Consistency', () => {
     
     try {
       // Temporarily inject a broken path
-      fs.writeFileSync(mdPath, originalContent + '\n`src/non-existent-file.ts`');
+      fs.appendFileSync(mdPath, '\n`src/non-existent-file.ts`');
       
       expect(() => {
         execSync('node scripts/ci-audit-gen.cjs', { stdio: 'pipe' });
