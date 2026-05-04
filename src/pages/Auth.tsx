@@ -398,11 +398,12 @@ export default function Auth() {
                       email={loginForm.watch("email")}
                       disabled={isSubmitting}
                       onSuccess={async (userId) => {
-                        toast({
-                          title: "Autenticação biométrica",
-                          description: "Autenticado com sucesso via passkey!",
-                        });
-                        navigate("/");
+                        setIsSubmitting(true);
+                        try {
+                          await validateAndRedirect(userId, loginForm.getValues("email"));
+                        } finally {
+                          setIsSubmitting(false);
+                        }
                       }}
                     />
                   </form>
