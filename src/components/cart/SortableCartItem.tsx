@@ -281,6 +281,7 @@ export const SortableCartItem = memo(function SortableCartItem({
                     onUpdateQuantity(item.id, item.quantity - 1);
                   }
                 }}
+                title={item.quantity <= 1 ? "Remover item" : "Diminuir quantidade"}
               >
                 {item.quantity <= 1 ? (
                   <Trash2 data-testid="cart-qty-remove-icon" className="h-4 w-4 text-destructive" />
