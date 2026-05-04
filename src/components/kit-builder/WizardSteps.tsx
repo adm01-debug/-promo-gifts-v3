@@ -5,6 +5,7 @@
 
 import { Check, Package, Gift, Palette, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import type { KitBuilderStep, KitState } from '@/lib/kit-builder';
 
 interface WizardStepsProps {
@@ -60,15 +61,18 @@ export function WizardSteps({ currentStep, completedSteps, onStepClick, kitState
 
           return (
             <div key={step.id} className="flex items-center flex-1 min-w-0">
-              <button
-                onClick={() => isClickable && onStepClick?.(step.id)}
-                disabled={!isClickable}
-                aria-current={isActive ? 'step' : undefined}
-                className={cn(
-                  'group flex items-center gap-2.5 flex-1 min-w-0 px-1 py-1 transition-all rounded-lg',
-                  isClickable ? 'cursor-pointer' : 'cursor-not-allowed opacity-60',
-                )}
-              >
+              <TooltipProvider delayDuration={0}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={() => isClickable && onStepClick?.(step.id)}
+                      disabled={!isClickable}
+                      aria-current={isActive ? 'step' : undefined}
+                      className={cn(
+                        'group flex items-center gap-2.5 flex-1 min-w-0 px-1 py-1 transition-all rounded-lg',
+                        isClickable ? 'cursor-pointer' : 'cursor-not-allowed opacity-60',
+                      )}
+                    >
                 <div
                   className={cn(
                     'relative flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border-2 transition-all duration-300',
@@ -105,7 +109,13 @@ export function WizardSteps({ currentStep, completedSteps, onStepClick, kitState
                     </p>
                   )}
                 </div>
-              </button>
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
+                    {isClickable ? `Ir para etapa: ${step.label}` : `Complete as etapas anteriores para acessar ${step.label}`}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
 
               {/* Connector */}
               {index < STEPS.length - 1 && (

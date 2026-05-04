@@ -128,24 +128,25 @@ export function KitBuilderHeader({
 
           {/* TIER 2 — Primary actions */}
           <div className="flex items-center gap-2 shrink-0">
-            <TooltipProvider>
+            <TooltipProvider delayDuration={0}>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button variant="ghost" size="icon" aria-label="Desfazer" disabled={!canUndo} onClick={onUndo}>
                     <Undo2 className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>Desfazer (Ctrl+Z)</TooltipContent>
+                <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Desfazer (Ctrl+Z)</TooltipContent>
               </Tooltip>
             </TooltipProvider>
-            <TooltipProvider>
+
+            <TooltipProvider delayDuration={0}>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button variant="ghost" size="icon" aria-label="Refazer" disabled={!canRedo} onClick={onRedo}>
                     <Redo2 className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>Refazer (Ctrl+Y)</TooltipContent>
+                <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Refazer (Ctrl+Y)</TooltipContent>
               </Tooltip>
             </TooltipProvider>
 
@@ -153,7 +154,7 @@ export function KitBuilderHeader({
 
             <KitShareLinkDialog kitId={currentKitId} kitName={kitName} />
 
-            <TooltipProvider>
+            <TooltipProvider delayDuration={0}>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
@@ -167,48 +168,62 @@ export function KitBuilderHeader({
                     <span className="hidden md:inline">Biblioteca</span>
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>Abrir biblioteca de kits</TooltipContent>
+                <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Abrir biblioteca de kits</TooltipContent>
               </Tooltip>
             </TooltipProvider>
 
             {isAdmin && kitState && hasContent && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => saveAsTemplate({ kitState, templateId })}
-                      disabled={isSavingTemplate}
-                      className="gap-2 border-primary/40 text-primary hover:bg-primary/10"
-                      aria-label="Salvar como template do sistema"
-                    >
-                      {isSavingTemplate ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                      <span className="hidden md:inline">{templateId ? 'Atualizar template' : 'Salvar como template'}</span>
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>{templateId ? 'Atualizar template do sistema' : 'Salvar este kit como template do sistema (admin)'}</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+                <TooltipProvider delayDuration={0}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => saveAsTemplate({ kitState, templateId })}
+                        disabled={isSavingTemplate}
+                        className="gap-2 border-primary/40 text-primary hover:bg-primary/10"
+                        aria-label="Salvar como template do sistema"
+                      >
+                        {isSavingTemplate ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                        <span className="hidden md:inline">{templateId ? 'Atualizar template' : 'Salvar como template'}</span>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">{templateId ? 'Atualizar template do sistema' : 'Salvar este kit como template do sistema (admin)'}</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
             )}
 
-            <Button
-              variant={isValid && hasContent ? 'default' : 'outline'}
-              onClick={onSave}
-              disabled={isSaving || !hasContent}
-              className="font-medium"
-            >
-              <SaveIcon className={cn('h-4 w-4 mr-2', isSaving && 'animate-spin')} />
-              {isExistingKit ? 'Atualizar' : 'Salvar'}
-            </Button>
+            <TooltipProvider delayDuration={0}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={isValid && hasContent ? 'default' : 'outline'}
+                    onClick={onSave}
+                    disabled={isSaving || !hasContent}
+                    className="font-medium"
+                  >
+                    <SaveIcon className={cn('h-4 w-4 mr-2', isSaving && 'animate-spin')} />
+                    {isExistingKit ? 'Atualizar' : 'Salvar'}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Salvar alterações no kit atual</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
 
-            <Button
-              variant="outline"
-              onClick={onReset}
-              className="font-medium text-destructive hover:text-destructive"
-            >
-              <RotateCcw className="h-4 w-4 mr-2" /> Novo kit
-            </Button>
+            <TooltipProvider delayDuration={0}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    onClick={onReset}
+                    className="font-medium text-destructive hover:text-destructive"
+                  >
+                    <RotateCcw className="h-4 w-4 mr-2" /> Novo kit
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Limpar tudo e começar um novo kit</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
 
             <div className="hidden lg:block">
               <KitAIPromptDialog onApply={onAIApply} />
