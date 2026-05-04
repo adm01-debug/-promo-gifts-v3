@@ -852,7 +852,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     description: 'Verde Matrix de hacker',
     h: 127,
     s: 65,
-    l: 38, // Ajuste para 38 (era 46) para contraste no Hackerman
+    l: 46,
     gh: 135,
     sh: 115,
     ss: 60,
@@ -865,7 +865,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     description: 'Azul-petróleo do fundo do mar',
     h: 182,
     s: 90,
-    l: 35, // Ajuste para 35 (era 42) para contraste no Frutti di Mare
+    l: 42,
     gh: 190,
     sh: 200,
     ss: 75,
@@ -878,7 +878,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     description: 'Amarelo neon de Night City',
     h: 55,
     s: 100,
-    l: 25, // Ajuste drástico para 25 (era 45) para contraste 3:1 com branco no Cyberpunk
+    l: 51,
     gh: 180,
     sh: 320,
     ss: 95,
@@ -891,7 +891,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     description: 'Verde RGB Razer Chroma',
     h: 113,
     s: 70,
-    l: 32, // Ajuste para 32 (era 51) para contraste no Razer Chroma
+    l: 51,
     gh: 120,
     sh: 100,
     ss: 60,
