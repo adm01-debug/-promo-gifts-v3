@@ -541,27 +541,27 @@ const diversityPreset: ThemePreset = {
 // identidade "GX" em todas as superfícies do dark mode.
 function applyGxDarkSurfaces(preset: ThemePreset): ThemePreset {
   const d = preset.dark;
-  // Fundo roxo escuro #1A1625 (hue 260) - ajuste de contraste para legibilidade
-  d.background = '260 25% 6%';
-  d.card = '260 25% 10%';
-  d['card-elevated'] = '260 20% 14%';
-  d.popover = '260 25% 12%';
-  d.muted = '260 20% 14%';
-  d.input = '260 20% 14%';
-  d.border = '260 20% 18%';
-  d.secondary = '260 20% 14%';
-  d.accent = '260 20% 14%';
+  // Fundo roxo escuro #251F33 (hue 265) - paridade canônica Zapp Web
+  d.background = '265 22% 8%';
+  d.card = '265 22% 12%';
+  d['card-elevated'] = '265 18% 17%';
+  d.popover = '265 22% 14%';
+  d.muted = '265 18% 17%';
+  d.input = '265 18% 17%';
+  d.border = '265 18% 22%';
+  d.secondary = '265 18% 17%';
+  d.accent = '265 18% 17%';
   
   // Tokens específicos mantendo a coesão visual e legibilidade
-  d.surface = '260 25% 8%';
-  d['surface-hover'] = '260 20% 14%';
-  d.divider = '260 20% 18%';
-  d['sidebar-background'] = '260 30% 8%';
-  d['sidebar-accent'] = '260 20% 15%';
-  d['sidebar-border'] = '260 20% 16%';
-  d.elevated = '260 20% 14%';
-  d['elevated-hover'] = '260 20% 18%';
-  d['gradient-surface'] = 'linear-gradient(180deg, hsl(260 25% 10%), hsl(260 30% 6%))';
+  d.surface = '265 22% 10%';
+  d['surface-hover'] = '265 18% 17%';
+  d.divider = '265 18% 22%';
+  d['sidebar-background'] = '265 24% 10%';
+  d['sidebar-accent'] = '265 18% 17%';
+  d['sidebar-border'] = '265 18% 20%';
+  d.elevated = '265 18% 17%';
+  d['elevated-hover'] = '265 18% 22%';
+  d['gradient-surface'] = 'linear-gradient(180deg, hsl(265 22% 12%), hsl(265 24% 8%))';
   
   // Garantir contraste do foreground em superfícies GX
   d.foreground = '210 40% 98%';
