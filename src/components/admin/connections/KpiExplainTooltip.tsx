@@ -49,39 +49,39 @@ export function KpiExplainTooltip({
           <Info className="h-3 w-3" />
         </button>
       </TooltipTrigger>
-      <TooltipContent side="bottom" className="max-w-sm p-0 overflow-hidden">
-        <div className="px-3 py-2 bg-primary/5 border-b border-border/40">
-          <p className="text-xs font-semibold leading-snug">{explain.summary}</p>
+      <TooltipContent side="bottom" className="max-w-sm p-0 overflow-hidden bg-primary text-primary-foreground border-primary/40">
+        <div className="px-3 py-2 bg-black/10 border-b border-white/10">
+          <p className="text-[11px] font-semibold leading-snug">{explain.summary}</p>
         </div>
-        <dl className="px-3 py-2 space-y-2 text-[11px]">
+        <dl className="px-3 py-2 space-y-2 text-[10px]">
           <div className="flex gap-2">
-            <Calculator className="h-3 w-3 mt-0.5 shrink-0 text-muted-foreground" />
+            <Calculator className="h-2.5 w-2.5 mt-0.5 shrink-0 text-primary-foreground/70" />
             <div className="min-w-0">
-              <dt className="font-semibold text-muted-foreground uppercase tracking-wide text-[9px]">Fórmula</dt>
-              <dd className="font-mono text-[10.5px] leading-snug break-words bg-muted/40 rounded px-1.5 py-0.5 mt-0.5">
+              <dt className="font-semibold text-primary-foreground/60 uppercase tracking-wide text-[8px]">Fórmula</dt>
+              <dd className="font-mono text-[10px] leading-snug break-words bg-black/20 rounded px-1.5 py-0.5 mt-0.5">
                 {explain.formula}
               </dd>
             </div>
           </div>
           <div className="flex gap-2">
-            <Clock className="h-3 w-3 mt-0.5 shrink-0 text-muted-foreground" />
+            <Clock className="h-2.5 w-2.5 mt-0.5 shrink-0 text-primary-foreground/70" />
             <div className="min-w-0">
-              <dt className="font-semibold text-muted-foreground uppercase tracking-wide text-[9px]">Janela</dt>
+              <dt className="font-semibold text-primary-foreground/60 uppercase tracking-wide text-[8px]">Janela</dt>
               <dd className="leading-snug">{explain.window}</dd>
             </div>
           </div>
           <div className="flex gap-2">
-            <Database className="h-3 w-3 mt-0.5 shrink-0 text-muted-foreground" />
+            <Database className="h-2.5 w-2.5 mt-0.5 shrink-0 text-primary-foreground/70" />
             <div className="min-w-0">
-              <dt className="font-semibold text-muted-foreground uppercase tracking-wide text-[9px]">Fonte</dt>
-              <dd className="font-mono text-[10.5px] leading-snug break-words">{explain.source}</dd>
+              <dt className="font-semibold text-primary-foreground/60 uppercase tracking-wide text-[8px]">Fonte</dt>
+              <dd className="font-mono text-[10px] leading-snug break-words">{explain.source}</dd>
             </div>
           </div>
           {explain.threshold && (
             <div className="flex gap-2">
-              <Target className="h-3 w-3 mt-0.5 shrink-0 text-muted-foreground" />
+              <Target className="h-2.5 w-2.5 mt-0.5 shrink-0 text-primary-foreground/70" />
               <div className="min-w-0">
-                <dt className="font-semibold text-muted-foreground uppercase tracking-wide text-[9px]">Alvo</dt>
+                <dt className="font-semibold text-primary-foreground/60 uppercase tracking-wide text-[8px]">Alvo</dt>
                 <dd className="leading-snug">{explain.threshold}</dd>
               </div>
             </div>
