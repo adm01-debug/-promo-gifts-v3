@@ -60,10 +60,10 @@ export function UnauthorizedPage() {
           </div>
 
           <div className="pt-2">
-            <p className="text-[10px] font-medium text-muted-foreground/40 uppercase tracking-widest">
+            <p className="text-[11px] font-medium text-muted-foreground/40 uppercase tracking-widest">
               Identificador de Segurança
             </p>
-            <p className="text-[10px] font-mono text-muted-foreground/60 mt-1 bg-muted/20 py-1 px-2 rounded inline-block">
+            <p className="badge-premium-mono mt-1 opacity-60">
               {requestId}
             </p>
           </div>
