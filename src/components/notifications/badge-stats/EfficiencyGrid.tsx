@@ -1,6 +1,6 @@
 import { Zap, MousePointerClick, Wifi } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { ratioTone } from "./utils";
+// EfficiencyGrid displays the trigger/fetch ratio and TTL window stats
 
 interface EfficiencyGridProps {
   triggers: number;
