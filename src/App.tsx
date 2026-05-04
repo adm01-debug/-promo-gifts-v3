@@ -20,7 +20,6 @@ import { BridgeStatusBanner } from "@/components/BridgeStatusBanner";
 import { CloudStatusBanner } from "@/components/system/CloudStatusBanner";
 import { GlobalOfflineAlert } from "@/components/common/GlobalOfflineAlert";
 import { DevOnlyBridgeOverlay } from "@/components/dev/DevOnlyBridgeOverlay";
-import { HttpErrorOverlay } from "@/components/dev/HttpErrorOverlay";
 import { RouteScrollReset } from "@/components/common/RouteScrollReset";
 import { useAppBootstrap } from "@/hooks/useAppBootstrap";
 import "./App.css";
@@ -187,7 +186,6 @@ const App = () => {
                       <BridgeStatusBanner />
                       <GlobalOfflineAlert />
                       <DevOnlyBridgeOverlay />
-                      <HttpErrorOverlay />
                       <RouteScrollReset />
                       <RoutePrefetcher />
                       <RouteSuspense>
