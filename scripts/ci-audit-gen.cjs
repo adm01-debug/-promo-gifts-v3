@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 
 /**
- * CI/CD Audit Artifact Generator v7.0
+ * CI/CD Audit Artifact Generator v7.1
  * Features:
  * - Automated Evidence Genesis via git log
  * - Quantified Gaps analysis
  * - Filtered Inventory Export (.md)
- * - Path and External URL validation
+ * - Path and External URL validation (with configurable timeout & User-Agent)
  * - Automated CI Failure on broken links
  * - Sync with PDF generation
  */
@@ -22,13 +22,14 @@ if (!fs.existsSync(ARTIFACTS_DIR)) {
 }
 
 const DOSSIER_PATH = 'ENTERPRISE_AUDIT_REPORT_V6.md';
+const EXTERNAL_LINK_TIMEOUT = parseInt(process.env.AUDIT_LINK_TIMEOUT || '5000', 10);
 
-console.log('🚀 Starting Advanced Audit Artifacts Generation v7.0...');
+console.log('🚀 Starting Advanced Audit Artifacts Generation v7.1...');
 
 /** Validates if a local file path exists */
 function checkLocalPath(filePath) {
   if (filePath.startsWith('/') || filePath.startsWith('./') || filePath.includes('/')) {
-    const cleanPath = filePath.replace(/^\.\//, '').replace(/`|'/g, '');
+    const cleanPath = filePath.replace(/^\.\//, '').replace(/[`']/g, '');
     if (cleanPath && !fs.existsSync(cleanPath)) {
       return false;
     }
@@ -37,9 +38,16 @@ function checkLocalPath(filePath) {
 }
 
 /** Validates if an external URL is reachable */
-function checkExternalUrl(url, timeout = 5000) {
+function checkExternalUrl(url, timeout = EXTERNAL_LINK_TIMEOUT) {
   return new Promise((resolve) => {
-    const req = https.get(url, { timeout }, (res) => {
+    const options = {
+      timeout,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AuditBot/1.0'
+      }
+    };
+    const req = https.get(url, options, (res) => {
+      // 2xx and 3xx are considered OK
       resolve(res.statusCode >= 200 && res.statusCode < 400);
     });
     req.on('error', () => resolve(false));
@@ -129,7 +137,7 @@ async function run() {
     let mdContent = fs.readFileSync(DOSSIER_PATH, 'utf8');
 
     // 1. Automate Evidence Genesis
-    console.log('📜 Updating Evidence Genesis...');
+    console.log('📜 Updating Evidence Genesis via Git history...');
     const genesisMarker = '## 📜 5. Trilha de Auditoria Operacional (Evidence Genesis)';
     const genesisStartIdx = mdContent.indexOf(genesisMarker);
     if (genesisStartIdx !== -1) {
@@ -160,12 +168,13 @@ async function run() {
     exportFilteredInventory(mdContent);
 
     // 4. Validate paths and links
-    console.log('🔍 Validating references...');
-    const pathRegex = /`([^`]+\.(tsx|ts|sql|js|cjs|json|md|sh|yml|mjs|txt))`|path: `([^`]+)`/g;
+    console.log('🔍 Validating all references (local and external)...');
+    const pathRegex = /`([^`\s]+\.(tsx|ts|sql|js|cjs|json|md|sh|yml|mjs|txt))`|path: `([^`\s]+)`/g;
     const urlRegex = /https?:\/\/[^\s\)]+/g;
     let brokenCount = 0;
     let match;
 
+    // Local Files
     while ((match = pathRegex.exec(mdContent)) !== null) {
       const filePath = match[1] || match[3];
       if (filePath && !filePath.includes('*') && !checkLocalPath(filePath)) {
@@ -174,27 +183,33 @@ async function run() {
       }
     }
 
+    // External URLs
     const urls = mdContent.match(urlRegex) || [];
-    for (const url of urls) {
+    const uniqueUrls = [...new Set(urls)];
+    console.log(`📡 Checking ${uniqueUrls.length} unique external links with ${EXTERNAL_LINK_TIMEOUT}ms timeout...`);
+    
+    for (const url of uniqueUrls) {
       const ok = await checkExternalUrl(url);
       if (!ok) {
         console.error(`❌ BROKEN EXTERNAL URL: ${url}`);
         brokenCount++;
+      } else {
+        console.log(`✅ OK: ${url}`);
       }
     }
 
     if (brokenCount > 0) {
-      console.error(`\n🚨 AUDIT FAILED: ${brokenCount} broken references found.`);
+      console.error(`\n🚨 AUDIT FAILED: ${brokenCount} broken references found. Fix them to pass CI.`);
       process.exit(1);
     }
 
     console.log('✅ All references validated.');
 
     // 5. Generate PDF
-    console.log('📄 Generating PDF...');
+    console.log('📄 Syncing PDF generation...');
     execSync('node scripts/generate-final-dossier.cjs', { stdio: 'inherit' });
 
-    console.log('✨ Audit artifacts generated and verified.');
+    console.log('✨ CI Audit Process Completed Successfully.');
   } catch (error) {
     console.error('❌ CI Audit Script failed:', error.message);
     process.exit(1);
