@@ -406,6 +406,7 @@ export function CartHeaderButton() {
                                          e.stopPropagation();
                                          removeItem(item.id);
                                        }}
+                                       title="Remover item"
                                      >
                                        <X className="h-3 w-3" />
                                      </button>
