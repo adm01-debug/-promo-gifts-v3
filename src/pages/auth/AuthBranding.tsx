@@ -80,10 +80,13 @@ export function ContinuousRockets() {
           }}
         >
           <div style={{ transform: `scale(${r.scale})` }}>
-            <div style={{ 
-              animation: "rocketShake 0.15s ease-in-out infinite",
-              transform: `rotate(${r.rotation}deg)` 
-            }}>
+            <div 
+              className="relative"
+              style={{ 
+                animation: "rocketShake 0.15s ease-in-out infinite",
+                transform: `rotate(${r.rotation}deg)` 
+              }}
+            >
               <Rocket
                 className="-rotate-45"
                 style={{
@@ -98,31 +101,34 @@ export function ContinuousRockets() {
           <div
             className="absolute left-1/2 -translate-x-1/2 rounded-full opacity-70"
             style={{
-              top: `${r.size * 0.75}px`,
+              top: `${r.size * 0.7}px`,
               width: `${r.size * 0.3}px`,
-              height: `${r.size}px`,
+              height: `${r.size * 1.2}px`,
               animation: "flameTrail 0.3s ease-in-out infinite alternate",
               background: "linear-gradient(to bottom, #FB923C, #FBBF24, transparent)",
+              zIndex: -1,
             }}
           />
           <div
             className="absolute left-1/2 -translate-x-1/2 rounded-full opacity-40"
             style={{
-              top: `${r.size}px`,
+              top: `${r.size * 0.8}px`,
               width: `${r.size * 0.15}px`,
-              height: `${r.size * 1.5}px`,
+              height: `${r.size * 1.8}px`,
               animation: "flameTrail 0.2s ease-in-out infinite alternate-reverse",
               background: "linear-gradient(to bottom, #FB923C, transparent)",
+              zIndex: -1,
             }}
           />
           <div
-            className="absolute left-1/2 -translate-x-1/2 rounded-full bg-muted-foreground/10"
+            className="absolute left-1/2 -translate-x-1/2 rounded-full bg-orange/10"
             style={{
-              top: `${r.size * 1.2}px`,
+              top: `${r.size}px`,
               width: `${r.size * 2}px`,
               height: `${r.size * 2}px`,
               animation: "smokeRise 2s ease-out forwards",
-              filter: "blur(8px)",
+              filter: "blur(12px)",
+              zIndex: -2,
             }}
           />
         </div>
@@ -141,39 +147,39 @@ const FEATURES = [
 
 export function AuthBrandingPanel() {
   return (
-    <div className="hidden lg:flex lg:w-1/2 bg-gradient-hero relative overflow-hidden">
+    <div className="hidden lg:flex lg:w-1/2 bg-[#0A0D14] relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/4 -left-20 w-80 h-80 bg-orange/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-0 w-96 h-96 bg-orange/5 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-success/5 rounded-full blur-3xl" />
+        <div className="absolute top-1/4 -left-20 w-80 h-80 bg-orange/20 rounded-full blur-[120px] animate-pulse" />
+        <div className="absolute bottom-1/4 right-0 w-96 h-96 bg-orange/10 rounded-full blur-[150px]" />
+        <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-orange/5 rounded-full blur-[100px]" />
         {[...Array(18)].map((_, i) => {
           const size = 1 + (i % 3); const top = (i * 37 + 11) % 100; const left = (i * 53 + 7) % 100;
           const dur = 2 + (i % 4); const delay = (i * 0.3) % 2;
-          return (<div key={`star-${i}`} className="absolute rounded-full bg-foreground/30" style={{ width: `${size}px`, height: `${size}px`, top: `${top}%`, left: `${left}%`, animation: `twinkle ${dur}s ease-in-out ${delay}s infinite` }} />);
+          return (<div key={`star-${i}`} className="absolute rounded-full bg-white/40 shadow-[0_0_8px_rgba(255,255,255,0.4)]" style={{ width: `${size}px`, height: `${size}px`, top: `${top}%`, left: `${left}%`, animation: `twinkle ${dur}s ease-in-out ${delay}s infinite` }} />);
         })}
         <ContinuousRockets />
       </div>
 
       {/* Content */}
       <div className="relative z-10 flex flex-col justify-center items-center px-12 xl:px-20 w-full">
-        <div className="space-y-6">
-          <div className="flex items-center gap-3">
+        <div className="space-y-6 w-full max-w-xl">
+          <div className="flex items-center gap-4">
             <div className="w-14 h-14 rounded-xl bg-orange flex items-center justify-center shadow-lg shadow-orange/30">
               <Gift className="h-7 w-7 text-orange-foreground" />
             </div>
             <div>
-              <h1 className="font-display text-3xl font-bold text-foreground">Promo Gifts</h1>
+              <h1 className="font-display text-4xl font-bold text-white tracking-tight">Promo Gifts</h1>
               <p className="text-orange font-semibold uppercase tracking-widest text-sm -mt-1">Plataforma de Vendas</p>
             </div>
           </div>
 
           <div className="space-y-4 max-w-md">
-            <h2 className="text-4xl xl:text-5xl font-display font-bold text-foreground leading-tight">
+            <h2 className="text-5xl xl:text-6xl font-display font-bold text-white leading-[1.1] tracking-tight">
               Um Universo de Produtos, para o{" "}
               <span className="text-orange">Melhor Time das Galáxias!</span>
             </h2>
-            <p className="text-lg text-muted-foreground">
+            <p className="text-xl text-white/70 leading-relaxed font-light">
               Tenha acesso ao maior mix de produtos personalizados, consulte estoque em tempo real, visualize locais e técnicas de personalização. Feito especialmente para você decolar!!!
             </p>
           </div>
@@ -182,12 +188,12 @@ export function AuthBrandingPanel() {
             {FEATURES.map((item, i) => {
               const IconComponent = item.icon;
               return (
-                <div key={i} className="p-4 rounded-xl bg-card/95 backdrop-blur-md border border-border shadow-lg hover:shadow-xl hover:border-orange/50 hover:scale-[1.02] transition-all duration-300 group opacity-0"
+                <div key={i} className="p-6 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl hover:bg-white/10 hover:border-orange/30 hover:scale-[1.02] transition-all duration-500 group opacity-0"
                   style={{ animation: `scale-fade-in 0.5s ease-out ${300 + i * 150}ms forwards` }}>
                   <div className="flex items-start justify-between">
                     <div>
                       <p className="text-2xl font-bold text-orange">{item.label}</p>
-                      <p className="text-sm font-medium text-foreground">{item.desc}</p>
+                      <p className="text-sm font-medium text-white/50">{item.desc}</p>
                     </div>
                     <div className="w-11 h-11 rounded-xl bg-orange/15 flex items-center justify-center group-hover:bg-orange/25 transition-colors">
                       <IconComponent className="h-5 w-5 text-orange" />
@@ -207,7 +213,7 @@ export function AuthBrandingPanel() {
             ].map((item, i) => (
               <React.Fragment key={i}>
                 {i > 0 && <div className="w-px h-4 bg-border" />}
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <div className="flex items-center gap-2 text-xs text-white/40">
                   <svg className="h-4 w-4 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.path} />
                   </svg>
