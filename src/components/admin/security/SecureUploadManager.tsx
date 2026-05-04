@@ -5,9 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { 
-  ShieldCheck, 
   Upload, 
-  AlertTriangle, 
   CheckCircle2, 
   XCircle, 
   History, 
