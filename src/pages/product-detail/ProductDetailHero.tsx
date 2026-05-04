@@ -9,6 +9,7 @@ import {
   Heart, Package, Clock, Tag, Layers, Sparkles, FileText, Eye,
 } from "lucide-react";
 import { ProductGallery } from "@/components/products/ProductGallery";
+import { VariantGridMatrix } from "@/components/products/VariantGridMatrix";
 import { KitComposition } from "@/components/products/KitComposition";
 import { ProductCategoryBadges } from "@/components/products/ProductCategoryBadges";
 import { GenderBadge } from "@/components/products/GenderBadge";
@@ -176,38 +177,25 @@ export function ProductDetailHero({
                 </div>
               </div>
 
-              {/* Stock per color */}
+              {/* Multi-axis Matrix or Simple Stock list */}
               {product.variations && product.variations.length > 0 ? (
-                <div className="space-y-1.5">
-                  <p className="text-[10px] text-muted-foreground/50 uppercase tracking-wider font-semibold">Estoque por cor</p>
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    {sortVariationsByColor(product.variations).map((variation: any) => {
-                      const isSelected = selectedVariation?.id === variation.id;
-                      const stock = Math.max(0, variation.stock);
-                      return (
-                        <button key={variation.id} onClick={() => setSelectedVariation(variation)}
-                          title={`${variation.color.name}: ${stock.toLocaleString("pt-BR")} un.`}
-                          aria-label={`Cor ${variation.color.name}, ${stock} unidades`}
-                          className={cn(
-                            "flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[11.5px] font-medium transition-all duration-200",
-                            !isSelected && "bg-secondary/30 border border-border/30 hover:bg-secondary/50",
-                            stock === 0 && "opacity-40"
-                          )}
-                          style={isSelected ? {
-                            backgroundColor: `${variation.color.hex}15`,
-                            border: `1.5px solid ${variation.color.hex}`,
-                            boxShadow: `0 0 0 2px ${variation.color.hex}20`
-                          } : undefined}
-                        >
-                          <div className="w-3 h-3 rounded-full border border-border/40 shrink-0" style={{ backgroundColor: variation.color.hex }} />
-                          <span className={cn(stock === 0 ? "text-destructive" : stock < 100 ? "text-warning" : "text-muted-foreground")}>
-                            {stock >= 1000 ? `${(stock / 1000).toFixed(1)}k` : stock.toLocaleString("pt-BR")}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
+                <VariantGridMatrix
+                  variants={product.variations.map((v: any) => ({
+                    id: v.id,
+                    color_name: v.color?.name || "Sem cor",
+                    color_hex: v.color?.hex || "#CCC",
+                    size_code: v.size_code,
+                    stock: v.stock || 0,
+                    sku: v.sku,
+                    image: v.image,
+                  }))}
+                  selectedId={selectedVariation?.id}
+                  onSelect={(v) => {
+                    const match = product.variations.find((pv: any) => pv.id === v.id);
+                    if (match) setSelectedVariation(match);
+                  }}
+                  compact
+                />
               ) : (
                 <span className={cn("inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border w-fit", stockInfo.class)}>
                   <Package className="h-3.5 w-3.5" />{Math.max(0, product.stock).toLocaleString("pt-BR")} un.
