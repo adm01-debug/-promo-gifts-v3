@@ -183,11 +183,13 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
         setIsHovered(true);
         // Prefetch product details when hovering to make "click to open" instant
         const prefetchKey = ['promobrind-product', product.id];
-        // @ts-ignore - Accessing queryClient via global or hook is better but prefetch is safe here
-        import("@tanstack/react-query").then(({ useQueryClient }) => {
-          // This is a bit hacky inside a component, better use queryClient from context 
-          // but for instant "click-open" speed, prefetching on hover is the way.
-        });
+        // Global prefetch helper if available
+        if ((window as any).queryClient) {
+          (window as any).queryClient.prefetchQuery({
+             queryKey: ['promobrind-product', product.id],
+             staleTime: 15 * 60 * 1000
+          });
+        }
       }}
       onMouseLeave={() => { setIsHovered(false); setActionsOpen(false); }}
       aria-label={`Ver detalhes de ${product.name}`}

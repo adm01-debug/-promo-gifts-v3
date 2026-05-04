@@ -118,9 +118,16 @@ const defaultQueryOptions: DefaultOptions = {
 // ============================================
 
 export function createQueryClient(): QueryClient {
-  return new QueryClient({
+  const client = new QueryClient({
     defaultOptions: defaultQueryOptions,
   });
+  
+  // Expose to window for edge-case prefetching (e.g. hover on cards)
+  if (typeof window !== 'undefined') {
+    (window as any).queryClient = client;
+  }
+  
+  return client;
 }
 
 // ============================================
