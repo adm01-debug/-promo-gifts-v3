@@ -26,12 +26,17 @@ export const LayoutPopover = React.forwardRef<HTMLDivElement, LayoutPopoverProps
     return (
       <div ref={ref}>
         <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="outline" size="sm" className="gap-1.5 h-8" aria-label="Alterar layout">
-              <Settings2 className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline text-xs">Layout</span>
-            </Button>
-          </PopoverTrigger>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-1.5 h-8" aria-label="Alterar layout">
+                  <Settings2 className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline text-xs">Layout</span>
+                </Button>
+              </PopoverTrigger>
+            </TooltipTrigger>
+            <TooltipContent>Alterar visualização (grid, lista, tabela) e densidade de colunas</TooltipContent>
+          </Tooltip>
           <PopoverContent align="end" className="w-60 p-4" sideOffset={8}>
             <div className="space-y-4">
               {/* View Mode */}
