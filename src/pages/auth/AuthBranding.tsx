@@ -90,6 +90,7 @@ export function ContinuousRockets() {
                   width: r.size,
                   height: r.size,
                   color: "#FB923C",
+                  filter: "drop-shadow(0 0 8px rgba(251, 146, 60, 0.4))",
                 }}
               />
             </div>
