@@ -35,7 +35,7 @@ export function StatsPopover({ stats, isFiltered = false }: StatsPopoverProps) {
             </Button>
           </PopoverTrigger>
         </TooltipTrigger>
-        <TooltipContent className="bg-primary text-primary-foreground border-primary text-[11px]">
+        <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">
           {isFiltered ? "Resumo dos resultados filtrados" : "Resumo geral do catálogo (totais, categorias, etc.)"}
         </TooltipContent>
       </Tooltip>

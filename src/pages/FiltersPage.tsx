@@ -186,7 +186,7 @@ export default function FiltersPage() {
                         </Button>
                       </SheetTrigger>
                     </TooltipTrigger>
-                    <TooltipContent className="bg-primary text-primary-foreground border-primary text-[11px]">Abrir painel de filtros detalhados</TooltipContent>
+                    <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Abrir painel de filtros detalhados</TooltipContent>
                   </Tooltip>
                   <SheetContent side="left" className="w-80 flex flex-col p-0">
                     <SheetHeader className="px-6 pt-6 pb-2"><SheetTitle>Filtros</SheetTitle></SheetHeader>
@@ -221,7 +221,7 @@ export default function FiltersPage() {
                       </SelectContent>
                     </Select>
                   </TooltipTrigger>
-                  <TooltipContent className="bg-primary text-primary-foreground border-primary text-[11px]">Ordenar resultados (nome, preço, novidades, popularidade)</TooltipContent>
+                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Ordenar resultados (nome, preço, novidades, popularidade)</TooltipContent>
                 </Tooltip>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -229,7 +229,7 @@ export default function FiltersPage() {
                       <PresetsBar currentFilters={state.filters} onApplyPreset={(f, id) => state.handleApplyPreset(f, id)} activePresetId={state.activePresetId} />
                     </div>
                   </TooltipTrigger>
-                  <TooltipContent className="bg-primary text-primary-foreground border-primary text-[11px]">Presets de filtros salvos para acesso rápido</TooltipContent>
+                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Presets de filtros salvos para acesso rápido</TooltipContent>
                 </Tooltip>
 
                 {/* Selection toggle */}
@@ -266,7 +266,7 @@ export default function FiltersPage() {
                       </AnimatePresence>
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent className="bg-primary text-primary-foreground border-primary text-[11px]">
+                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">
                     {state.selectionMode ? "Sair do modo de seleção" : "Selecionar vários produtos para ações em massa"}
                   </TooltipContent>
                 </Tooltip>
