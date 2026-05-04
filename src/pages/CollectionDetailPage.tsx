@@ -18,6 +18,7 @@ import { ProductListItem } from "@/components/products/ProductListItem";
 import { LayoutPopover } from "@/components/products/LayoutPopover";
 import { getDefaultColumns, type ColumnCount } from "@/components/products/ColumnSelector";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -391,10 +392,19 @@ export default function CollectionDetailPage() {
                   </Button>
                 </motion.div>
                 <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 }}>
-                  <Button size="sm" variant="outline" className="gap-1.5 text-xs text-destructive border-destructive/30 hover:bg-destructive/10" onClick={handleBulkRemove}>
-                    <Trash2 className="h-3.5 w-3.5" />
-                    Remover
-                  </Button>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button size="sm" variant="outline" className="gap-1.5 text-xs text-destructive border-destructive/30 hover:bg-destructive/10" onClick={handleBulkRemove}>
+                          <Trash2 className="h-3.5 w-3.5" />
+                          Remover
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-0.5 min-h-0">
+                        Remover itens selecionados
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </motion.div>
               </>
             }
