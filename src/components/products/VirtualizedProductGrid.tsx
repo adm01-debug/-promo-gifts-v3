@@ -16,7 +16,7 @@ interface VirtualizedProductGridProps {
   hasMore?: boolean;
   onLoadMore?: () => void;
   columns?: number;
-  onProductClick?: (product: Product) => void;
+  onProductClick?: (productId: string) => void;
   isFavorited?: (productId: string) => boolean;
   onToggleFavorite?: (productId: string) => void;
   isInCompare?: (productId: string) => boolean;
@@ -247,7 +247,7 @@ export function VirtualizedProductGrid({
                     <ProductListItem
                       key={product.id}
                       product={product}
-                      onClick={() => onProductClick?.(product)}
+                      onClick={() => onProductClick?.(product.id)}
                       isFavorited={isFavorited?.(product.id)}
                       onToggleFavorite={onToggleFavorite}
                       isInCompare={isInCompare?.(product.id)}
@@ -289,7 +289,7 @@ export function VirtualizedProductGrid({
                       )}
                       <ProductCard
                         product={product}
-                        onClick={() => onProductClick?.(product)}
+                        onClick={() => onProductClick?.(product.id)}
                         isFavorited={isFavorited?.(product.id)}
                         onToggleFavorite={onToggleFavorite}
                         isInCompare={isInCompare?.(product.id)}
