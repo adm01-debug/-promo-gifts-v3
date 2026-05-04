@@ -226,21 +226,33 @@ export default function QuotesListPage() {
               </div>
             </FadeInView>
             <div className="flex gap-2">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="outline" onClick={() => navigate("/orcamentos/templates")}>
-                    <BookTemplate className="h-4 w-4 mr-2" />
-                    Templates
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Modelos pré-configurados para agilizar orçamentos</p>
-                </TooltipContent>
-              </Tooltip>
-              <Button data-testid="quote-new-button" onClick={() => navigate("/orcamentos/novo")}>
-                <Plus className="h-4 w-4 mr-2" />
-                Novo Orçamento
-              </Button>
+              <TooltipProvider delayDuration={0}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="outline" onClick={() => navigate("/orcamentos/templates")}>
+                      <BookTemplate className="h-4 w-4 mr-2" />
+                      Templates
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
+                    Modelos pré-configurados para agilizar orçamentos
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
+              <TooltipProvider delayDuration={0}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button data-testid="quote-new-button" onClick={() => navigate("/orcamentos/novo")}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Novo Orçamento
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
+                    Criar um novo orçamento do zero
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           </div>
 
