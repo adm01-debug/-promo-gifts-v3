@@ -50,11 +50,13 @@ const mockAuthValue = {
 const renderSidebar = (props = { isOpen: true, onToggle: vi.fn() }, authValue = mockAuthValue) => {
   return render(
     <QueryClientProvider client={queryClient}>
-      <AuthContext.Provider value={authValue as any}>
-        <BrowserRouter>
-          <SidebarReorganized {...props} />
-        </BrowserRouter>
-      </AuthContext.Provider>
+      <TooltipProvider>
+        <AuthContext.Provider value={authValue as any}>
+          <BrowserRouter>
+            <SidebarReorganized {...props} />
+          </BrowserRouter>
+        </AuthContext.Provider>
+      </TooltipProvider>
     </QueryClientProvider>
   );
 };
