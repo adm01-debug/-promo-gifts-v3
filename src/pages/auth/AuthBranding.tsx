@@ -61,12 +61,11 @@ export const ContinuousRockets = React.memo(() => {
             willChange: "transform, opacity",
           }}
         >
-          <div style={{ transform: `scale(${r.scale})` }}>
+          <div style={{ transform: `scale(${r.scale}) rotate(${r.rotation}deg)` }}>
             <div 
-              className="relative"
+              className="relative animate-rocket-shake"
               style={{ 
                 animation: "rocketShake 0.15s ease-in-out infinite",
-                transform: `rotate(${r.rotation}deg)` 
               }}
             >
               <Rocket
