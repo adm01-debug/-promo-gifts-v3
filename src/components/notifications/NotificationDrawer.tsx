@@ -361,7 +361,7 @@ export const NotificationBell = React.forwardRef<HTMLDivElement, NotificationBel
 
               </Button>
             </TooltipTrigger>
-            <TooltipContent>
+            <TooltipContent className="bg-primary text-primary-foreground border-primary text-[11px]">
               Notificações {unreadCount > 0 && `(${unreadCount})`}
             </TooltipContent>
           </Tooltip>
