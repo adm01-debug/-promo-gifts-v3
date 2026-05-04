@@ -5,7 +5,7 @@
 import { motion } from "framer-motion";
 import { Flame, Zap, Package, Rocket, AlertTriangle, Sparkles, Star, Tag } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import type { IntelligenceBadge, IntelligenceBadgeType } from "@/hooks/useProductIntelligenceBadges";
 
@@ -63,6 +63,7 @@ export function IntelligenceBadges({ badges, turnoverScore, isDemo, className }:
 
   return (
     <div className={cn("flex flex-wrap items-center gap-2", className)}>
+      <TooltipProvider delayDuration={0}>
       {badges.map((badge, i) => {
         const config = badgeConfig[badge.type];
         const Icon = config.icon;
