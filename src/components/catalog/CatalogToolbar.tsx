@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import type { FilterState } from "@/components/filters/FilterPanel";
 import { StatsPopover } from "@/components/products/StatsPopover";
 import { LayoutPopover } from "@/components/products/LayoutPopover";
@@ -65,26 +65,28 @@ export function CatalogToolbar({
     <div className="flex items-center justify-between gap-2 flex-wrap">
       <div className="flex items-center gap-2 flex-shrink-0">
         <Sheet open={filterSheetOpen} onOpenChange={setFilterSheetOpen}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="sm" className="px-2.5 sm:px-3" aria-label="Abrir filtros do catálogo">
-                  <Filter className="h-4 w-4 sm:mr-2" />
-                  <span className="hidden sm:inline">Filtros</span>
-                  {activeFiltersCount > 0 && (
-                    <Badge variant="secondary" className="ml-1 sm:ml-2 h-5 min-w-5 text-xs">
-                      {activeFiltersCount}
-                    </Badge>
-                  )}
-                </Button>
-              </SheetTrigger>
-            </TooltipTrigger>
-            <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">
-              {activeFiltersCount > 0
-                ? `Refinar busca · ${activeFiltersCount} filtro${activeFiltersCount > 1 ? "s" : ""} ativo${activeFiltersCount > 1 ? "s" : ""}`
-                : "Refinar por categoria, cor, preço e mais"}
-            </TooltipContent>
-          </Tooltip>
+          <TooltipProvider delayDuration={0}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <SheetTrigger asChild>
+                  <Button variant="outline" size="sm" className="px-2.5 sm:px-3" aria-label="Abrir filtros do catálogo">
+                    <Filter className="h-4 w-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Filtros</span>
+                    {activeFiltersCount > 0 && (
+                      <Badge variant="secondary" className="ml-1 sm:ml-2 h-5 min-w-5 text-xs">
+                        {activeFiltersCount}
+                      </Badge>
+                    )}
+                  </Button>
+                </SheetTrigger>
+              </TooltipTrigger>
+              <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
+                {activeFiltersCount > 0
+                  ? `Refinar busca · ${activeFiltersCount} filtro${activeFiltersCount > 1 ? "s" : ""} ativo${activeFiltersCount > 1 ? "s" : ""}`
+                  : "Refinar por categoria, cor, preço e mais"}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
           <SheetContent side="left" className="w-80 overflow-y-auto">
             {filterSheetOpen && (
               <Suspense fallback={<FilterPanelSkeleton />}>
@@ -101,15 +103,17 @@ export function CatalogToolbar({
 
         <div className="flex items-center gap-1.5">
           <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <SelectTrigger className="w-10 sm:w-44 h-9 sm:h-10 text-xs sm:text-sm font-medium" aria-label="Ordenar por">
-                  <ArrowUpDown className="h-3.5 w-3.5 sm:mr-2 shrink-0 text-muted-foreground" />
-                  <span className="hidden sm:inline"><SelectValue placeholder="Ordenar" /></span>
-                </SelectTrigger>
-              </TooltipTrigger>
-              <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Ordenar produtos (relevância, preço, novidades…)</TooltipContent>
-            </Tooltip>
+            <TooltipProvider delayDuration={0}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <SelectTrigger className="w-10 sm:w-44 h-9 sm:h-10 text-xs sm:text-sm font-medium" aria-label="Ordenar por">
+                    <ArrowUpDown className="h-3.5 w-3.5 sm:mr-2 shrink-0 text-muted-foreground" />
+                    <span className="hidden sm:inline"><SelectValue placeholder="Ordenar" /></span>
+                  </SelectTrigger>
+                </TooltipTrigger>
+                <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Ordenar produtos (relevância, preço, novidades…)</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             <SelectContent>
               {SORT_OPTIONS.map(option => (
                 <SelectItem key={option.value} value={option.value} className="text-xs sm:text-sm">
@@ -126,49 +130,51 @@ export function CatalogToolbar({
 
       <div className="flex items-center gap-2">
         {/* Selecionar / Cancelar toggle */}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant={selectionMode ? "default" : "outline"}
-              size="sm"
-              className={cn(
-                "gap-1.5 h-8 transition-all relative",
-                selectionMode
-                  ? "bg-primary text-primary-foreground shadow-md hover:bg-primary/90"
-                  : "hover:border-primary/50"
-              )}
-              onClick={onToggleSelectionMode}
-              aria-label={selectionMode ? "Cancelar seleção de produtos" : "Selecionar vários produtos"}
-            >
-              <CheckSquare className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline text-xs">{selectionMode ? "Cancelar" : "Selecionar"}</span>
-
-              {/* Animated counter badge */}
-              <AnimatePresence>
-                {selectionMode && selectedCount > 0 && (
-                  <motion.div
-                    initial={{ scale: 0, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0, opacity: 0 }}
-                    transition={{ type: "spring", stiffness: 500, damping: 25 }}
-                    className="absolute -top-2 -right-2"
-                  >
-                    <Badge
-                      className="bg-destructive text-destructive-foreground h-5 min-w-5 text-[10px] font-bold px-1.5 py-0 flex items-center justify-center tabular-nums shadow-lg"
-                    >
-                      {selectedCount}
-                    </Badge>
-                  </motion.div>
+        <TooltipProvider delayDuration={0}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant={selectionMode ? "default" : "outline"}
+                size="sm"
+                className={cn(
+                  "gap-1.5 h-8 transition-all relative",
+                  selectionMode
+                    ? "bg-primary text-primary-foreground shadow-md hover:bg-primary/90"
+                    : "hover:border-primary/50"
                 )}
-              </AnimatePresence>
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">
-            {selectionMode
-              ? `Sair do modo seleção${selectedCount > 0 ? ` (${selectedCount} selecionado${selectedCount > 1 ? "s" : ""})` : ""}`
-              : "Selecionar vários produtos para orçamento, coleção ou comparação"}
-          </TooltipContent>
-        </Tooltip>
+                onClick={onToggleSelectionMode}
+                aria-label={selectionMode ? "Cancelar seleção de produtos" : "Selecionar vários produtos"}
+              >
+                <CheckSquare className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline text-xs">{selectionMode ? "Cancelar" : "Selecionar"}</span>
+
+                {/* Animated counter badge */}
+                <AnimatePresence>
+                  {selectionMode && selectedCount > 0 && (
+                    <motion.div
+                      initial={{ scale: 0, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{ scale: 0, opacity: 0 }}
+                      transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                      className="absolute -top-2 -right-2"
+                    >
+                      <Badge
+                        className="bg-destructive text-destructive-foreground h-5 min-w-5 text-[10px] font-bold px-1.5 py-0 flex items-center justify-center tabular-nums shadow-lg"
+                      >
+                        {selectedCount}
+                      </Badge>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
+              {selectionMode
+                ? `Sair do modo seleção${selectedCount > 0 ? ` (${selectedCount} selecionado${selectedCount > 1 ? "s" : ""})` : ""}`
+                : "Selecionar vários produtos para orçamento, coleção ou comparação"}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
 
         <div className="hidden sm:block">
           <LayoutPopover
