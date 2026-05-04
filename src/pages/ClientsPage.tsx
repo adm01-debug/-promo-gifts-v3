@@ -121,17 +121,26 @@ export default function ClientsPage() {
                 <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                   <History className="h-3 w-3" /> Buscas Recentes
                 </span>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="h-6 text-[10px] px-2 hover:text-destructive transition-colors"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    clearHistory();
-                  }}
-                >
-                  Limpar
-                </Button>
+                <TooltipProvider delayDuration={0}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-6 text-[10px] px-2 hover:text-destructive transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          clearHistory();
+                        }}
+                      >
+                        Limpar
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
+                      Excluir todo o histórico de buscas de clientes
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
               <div className="p-1">
                 {searchHistory.map((item) => (
@@ -179,10 +188,19 @@ export default function ClientsPage() {
               <p className="text-muted-foreground text-sm mb-4 max-w-md">
                 {error instanceof Error ? error.message : "Não foi possível conectar ao banco de clientes. Verifique sua conexão e tente novamente."}
               </p>
-              <Button variant="outline" onClick={() => refetch()} className="gap-2">
-                <RefreshCw className="h-4 w-4" />
-                Tentar novamente
-              </Button>
+              <TooltipProvider delayDuration={0}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="outline" onClick={() => refetch()} className="gap-2">
+                      <RefreshCw className="h-4 w-4" />
+                      Tentar novamente
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
+                    Recarregar a lista de clientes do CRM
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </CardContent>
           </Card>
         ) : isLoading ? (
