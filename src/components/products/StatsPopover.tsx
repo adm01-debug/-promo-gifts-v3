@@ -21,17 +21,24 @@ interface StatsPopoverProps {
 export function StatsPopover({ stats, isFiltered = false }: StatsPopoverProps) {
   return (
     <Popover>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className="gap-1.5 h-8"
-          aria-label="Resumo de estatísticas do catálogo"
-        >
-          <BarChart3 className="h-3.5 w-3.5" />
-          <span className="hidden sm:inline text-xs">Resumo</span>
-        </Button>
-      </PopoverTrigger>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5 h-8"
+              aria-label="Resumo de estatísticas do catálogo"
+            >
+              <BarChart3 className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline text-xs">Resumo</span>
+            </Button>
+          </PopoverTrigger>
+        </TooltipTrigger>
+        <TooltipContent>
+          {isFiltered ? "Resumo dos resultados filtrados" : "Resumo geral do catálogo (totais, categorias, etc.)"}
+        </TooltipContent>
+      </Tooltip>
       <PopoverContent
         align="start"
         className="w-56 p-3"
