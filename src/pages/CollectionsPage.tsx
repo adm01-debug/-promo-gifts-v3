@@ -16,6 +16,7 @@ import { useCollectionsGlobalShortcuts } from "@/hooks/useCollectionsGlobalShort
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { LayoutPopover } from "@/components/products/LayoutPopover";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -95,10 +96,19 @@ export default function CollectionsPage() {
 
         {/* Toolbar */}
         <div className="flex items-center gap-3">
-          <Button size="sm" className="h-8 px-3 text-xs" onClick={() => setIsCreateOpen(true)}>
-            <Plus className="h-3 w-3 mr-1" />
-            Nova Coleção
-          </Button>
+          <TooltipProvider delayDuration={0}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button size="sm" className="h-8 px-3 text-xs" onClick={() => setIsCreateOpen(true)}>
+                  <Plus className="h-3 w-3 mr-1" />
+                  Nova Coleção
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
+                Criar uma nova coleção personalizada
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
           <div className="relative max-w-md flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input placeholder="Buscar coleções..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-9" />
@@ -106,21 +116,30 @@ export default function CollectionsPage() {
           <div className="hidden sm:flex items-center gap-2 ml-auto">
             <CollectionsHeatmap />
             {localCollections.length > 0 && (
-              <Button
-                size="sm"
-                variant={isSelectionMode ? "default" : "outline"}
-                className="h-8 px-3 text-xs gap-1.5"
-                onClick={() => {
-                  if (isSelectionMode) {
-                    clearSelection();
-                  } else {
-                    toggleSelectCollection(localCollections[0].id);
-                  }
-                }}
-              >
-                <CheckSquare className="h-3.5 w-3.5" />
-                {isSelectionMode ? "Selecionando" : "Selecionar"}
-              </Button>
+              <TooltipProvider delayDuration={0}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant={isSelectionMode ? "default" : "outline"}
+                      className="h-8 px-3 text-xs gap-1.5"
+                      onClick={() => {
+                        if (isSelectionMode) {
+                          clearSelection();
+                        } else {
+                          toggleSelectCollection(localCollections[0].id);
+                        }
+                      }}
+                    >
+                      <CheckSquare className="h-3.5 w-3.5" />
+                      {isSelectionMode ? "Selecionando" : "Selecionar"}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
+                    {isSelectionMode ? "Cancelar seleção múltipla" : "Habilitar seleção múltipla de coleções"}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             )}
             <LayoutPopover viewMode={viewMode} setViewMode={setViewMode} gridColumns={gridColumns} setGridColumns={setGridColumns} />
           </div>
@@ -165,24 +184,51 @@ export default function CollectionsPage() {
                   <div className="flex items-center gap-2">
                     {selectedCollectionIds.size < localCollections.length && (
                       <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}>
-                        <Button size="sm" variant="ghost" onClick={selectAllLocal} className="gap-1.5 text-xs">
-                          <CheckSquare className="h-3.5 w-3.5" />
-                          <span className="hidden sm:inline">Selecionar Todas</span>
-                        </Button>
+                        <TooltipProvider delayDuration={0}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button size="sm" variant="ghost" onClick={selectAllLocal} className="gap-1.5 text-xs">
+                                <CheckSquare className="h-3.5 w-3.5" />
+                                <span className="hidden sm:inline">Selecionar Todas</span>
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
+                              Selecionar todas as suas coleções locais
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </motion.div>
                     )}
                     <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 }}>
-                      <Button size="default" className="gap-2 font-semibold shadow-lg hover:shadow-xl transition-shadow" onClick={handleSendSelectedToQuote} disabled={selectedSummary.uniqueProductCount === 0}>
-                        <FileText className="h-4 w-4" />
-                        Criar Orçamento
-                        <ArrowRight className="h-4 w-4" />
-                      </Button>
+                      <TooltipProvider delayDuration={0}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button size="default" className="gap-2 font-semibold shadow-lg hover:shadow-xl transition-shadow" onClick={handleSendSelectedToQuote} disabled={selectedSummary.uniqueProductCount === 0}>
+                              <FileText className="h-4 w-4" />
+                              Criar Orçamento
+                              <ArrowRight className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
+                            Enviar produtos das coleções selecionadas para um novo orçamento
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </motion.div>
                     <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
-                      <Button size="sm" variant="outline" onClick={clearSelection} className="gap-1.5 text-xs hover:text-destructive hover:border-destructive/50 transition-colors">
-                        <X className="h-3.5 w-3.5" />
-                        Limpar
-                      </Button>
+                      <TooltipProvider delayDuration={0}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button size="sm" variant="outline" onClick={clearSelection} className="gap-1.5 text-xs hover:text-destructive hover:border-destructive/50 transition-colors">
+                              <X className="h-3.5 w-3.5" />
+                              Limpar
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
+                            Remover seleção de todas as coleções
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </motion.div>
                   </div>
                 </div>
