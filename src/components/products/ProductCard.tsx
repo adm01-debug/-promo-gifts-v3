@@ -111,15 +111,6 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
     } else if (variantPickerMode === 'share') {
       setShareVariant(variant ? { variantName: variant.color_name, colorHex: variant.color_hex, thumbnailUrl: variant.selected_thumbnail } : null);
       setShareDialogOpen(true);
-    } else if (variantPickerMode === 'view') {
-      if (variant?.color_name) {
-        const params = new URLSearchParams();
-        params.set('cor', variant.color_name);
-        if (variant.color_hex) params.set('hex', variant.color_hex);
-        navigate(`/produto/${product.id}?${params.toString()}`);
-      } else {
-        navigate(`/produto/${product.id}`);
-      }
     }
   }, [variantPickerMode, product, favStore, compStore, navigate]);
 
@@ -208,7 +199,7 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
           navigate(`/produto/${product.id}?${params.toString()}`);
           return;
         }
-        setVariantPickerMode('view'); setVariantPickerOpen(true);
+        onClick?.();
       }}
     >
       {/* Image Section */}
