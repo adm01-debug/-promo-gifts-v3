@@ -328,31 +328,46 @@ export const SidebarReorganized = React.forwardRef<HTMLElement, SidebarProps>(
           {/* Collapse controls (desktop) */}
           <div className="hidden lg:flex items-center justify-between px-2 mb-1">
             {!isCollapsed && hasAnyGroupOpen && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-7 gap-1.5 text-[10px] border-sidebar-border/50 hover:bg-orange/10 hover:text-orange text-sidebar-foreground/40"
-                onClick={collapseAllGroups}
-              >
-                <X className="h-3 w-3" />
-                Fechar
-              </Button>
+              <TooltipProvider delayDuration={0}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 gap-1.5 text-[10px] border-sidebar-border/50 hover:bg-orange/10 hover:text-orange text-sidebar-foreground/40"
+                      onClick={collapseAllGroups}
+                    >
+                      <X className="h-3 w-3" />
+                      Fechar
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Recolher todas as seções abertas</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             )}
             {!isCollapsed && !hasAnyGroupOpen && <div />}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7 hover:bg-sidebar-accent/50 hover:text-orange ml-auto text-sidebar-foreground/30"
-              onClick={toggleCollapse}
-              aria-label={isCollapsed ? "Expandir menu" : "Recolher menu"}
-              title={isCollapsed ? "Expandir menu" : "Recolher menu"}
-            >
-              {isCollapsed ? (
-                <ChevronRight className="h-3.5 w-3.5" />
-              ) : (
-                <ChevronLeft className="h-3.5 w-3.5" />
-              )}
-            </Button>
+            <TooltipProvider delayDuration={0}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 hover:bg-sidebar-accent/50 hover:text-orange ml-auto text-sidebar-foreground/30"
+                    onClick={toggleCollapse}
+                    aria-label={isCollapsed ? "Expandir menu" : "Recolher menu"}
+                  >
+                    {isCollapsed ? (
+                      <ChevronRight className="h-3.5 w-3.5" />
+                    ) : (
+                      <ChevronLeft className="h-3.5 w-3.5" />
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="right" className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
+                  {isCollapsed ? "Expandir menu lateral" : "Recolher menu lateral"}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
 
           {/* Aviso quando vendedor/admin tenta abrir rota técnica via URL/histórico */}
