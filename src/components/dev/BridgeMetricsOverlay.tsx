@@ -16,6 +16,8 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Info } from "lucide-react";
+import type { BridgeCallSample } from '@/lib/telemetry/bridgeCallMetrics';
+import type { LongTaskEvent } from '@/lib/telemetry/longTaskWatchdog';
 
 export default function BridgeMetricsOverlay() {
   // ⚠️ Rules of Hooks: TODOS os hooks devem ser chamados antes de qualquer
