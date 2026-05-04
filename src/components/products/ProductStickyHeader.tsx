@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShoppingCart, Heart, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { QuickAddToQuote } from "./QuickAddToQuote";
 import { BulkVariantWizard } from "@/components/catalog/BulkVariantWizard";
 import { PriceFreshnessBadge } from "./PriceFreshnessBadge";
@@ -96,15 +97,26 @@ export function ProductStickyHeader({
 
               {/* Actions */}
               <div className="flex items-center gap-2 shrink-0">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-9 w-9 rounded-full"
-                  onClick={onToggleFavorite}
-                  data-testid="product-favorite"
-                  aria-pressed={isFavorite}
-                 aria-label="Favoritar"><Heart className={cn("h-4 w-4", isFavorite && "fill-destructive text-destructive")} />
-                </Button>
+                <TooltipProvider delayDuration={0}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-9 w-9 rounded-full"
+                        onClick={onToggleFavorite}
+                        data-testid="product-favorite"
+                        aria-pressed={isFavorite}
+                        aria-label="Favoritar"
+                      >
+                        <Heart className={cn("h-4 w-4", isFavorite && "fill-destructive text-destructive")} />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
+                      {isFavorite ? "Remover dos favoritos" : "Salvar em meus favoritos"}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
 
                 <QuickAddToQuote
                   productId={productId}
@@ -119,14 +131,21 @@ export function ProductStickyHeader({
                   className="h-9 rounded-full px-5 bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-sm transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
                 />
 
-                <Button
-                  size="sm"
-                  className="h-9 rounded-full px-5 bg-success hover:bg-success/90 text-success-foreground font-medium text-sm gap-1.5 transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
-                  onClick={() => setQuoteWizardOpen(true)}
-                >
-                  <FileText className="h-3.5 w-3.5" />
-                  Orçamento
-                </Button>
+                <TooltipProvider delayDuration={0}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="sm"
+                        className="h-9 rounded-full px-5 bg-success hover:bg-success/90 text-success-foreground font-medium text-sm gap-1.5 transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
+                        onClick={() => setQuoteWizardOpen(true)}
+                      >
+                        <FileText className="h-3.5 w-3.5" />
+                        Orçamento
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Iniciar processo de orçamento para este produto</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </div>
             </div>
           </motion.div>

@@ -23,7 +23,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { VisuallyHidden } from "@/components/a11y/VisuallyHidden";
 import { cn } from "@/lib/utils";
 import type { Product } from "@/hooks/useProducts";
@@ -367,57 +367,63 @@ export const ProductQuickView = forwardRef<HTMLDivElement, ProductQuickViewProps
             {/* Actions */}
             <div className="space-y-3 mt-4">
               <div className="flex gap-2">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className={cn(
-                        "h-11 w-11",
-                        isFavorited && "bg-destructive/10 border-destructive/30 text-destructive"
-                      )}
-                      onClick={handleFavorite}
-                      data-testid="product-favorite"
-                      aria-pressed={isFavorited}
-                     aria-label="Favoritar"><Heart className={cn("h-5 w-5", isFavorited && "fill-current")} />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent className="bg-primary text-primary-foreground border-primary text-[11px]">
-                    {isFavorited ? "Remover dos favoritos" : "Adicionar aos favoritos"}
-                  </TooltipContent>
-                </Tooltip>
+                <TooltipProvider delayDuration={0}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className={cn(
+                          "h-11 w-11",
+                          isFavorited && "bg-destructive/10 border-destructive/30 text-destructive"
+                        )}
+                        onClick={handleFavorite}
+                        data-testid="product-favorite"
+                        aria-pressed={isFavorited}
+                       aria-label="Favoritar"><Heart className={cn("h-5 w-5", isFavorited && "fill-current")} />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
+                      {isFavorited ? "Remover dos favoritos" : "Adicionar aos favoritos"}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
 
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className={cn(
-                        "h-11 w-11",
-                        isInCompare && "bg-primary/10 border-primary/30 text-primary"
-                      )}
-                      onClick={handleCompare}
-                     aria-label="Comparar"><GitCompare className="h-5 w-5" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent className="bg-primary text-primary-foreground border-primary text-[11px]">
-                    {isInCompare ? "Remover da comparação" : "Adicionar à comparação"}
-                  </TooltipContent>
-                </Tooltip>
+                <TooltipProvider delayDuration={0}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className={cn(
+                          "h-11 w-11",
+                          isInCompare && "bg-primary/10 border-primary/30 text-primary"
+                        )}
+                        onClick={handleCompare}
+                       aria-label="Comparar"><GitCompare className="h-5 w-5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
+                      {isInCompare ? "Remover da comparação" : "Adicionar à comparação"}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
 
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="icon" aria-label="Compartilhar"
-                      className="h-11 w-11"
-                      onClick={() => onShare?.(product)}
-                    >
-                      <Share2 className="h-5 w-5" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent className="bg-primary text-primary-foreground border-primary text-[11px]">Compartilhar</TooltipContent>
-                </Tooltip>
+                <TooltipProvider delayDuration={0}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="icon" aria-label="Compartilhar"
+                        className="h-11 w-11"
+                        onClick={() => onShare?.(product)}
+                      >
+                        <Share2 className="h-5 w-5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Gerar link ou compartilhar no WhatsApp</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
 
                 <Button
                   data-testid="product-quickview-add-to-quote"
