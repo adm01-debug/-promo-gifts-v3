@@ -61,6 +61,12 @@ export function useThrottle<T>(value: T, limit = 300): T {
   const lastRan = useRef(Date.now());
 
   useEffect(() => {
+    // Immediate update for very short strings or empty
+    if (typeof value === 'string' && value.length < 2) {
+      setDebouncedValue(value);
+      return;
+    }
+    
     const handler = setTimeout(() => {
       if (Date.now() - lastRan.current >= limit) {
         setThrottledValue(value);
