@@ -6,66 +6,48 @@ import { Gift, Package, Factory, SlidersHorizontal, Brain, Rocket } from "lucide
 
 interface RocketData { id: number; left: number; size: number; duration: number; rotation: number; scale: number; }
 
-export function ContinuousRockets() {
+export const ContinuousRockets = React.memo(() => {
   const [rockets, setRockets] = useState<RocketData[]>([]);
   const nextIdRef = useRef(0);
 
+  const spawnRocket = useCallback((isInitial = false) => {
+    const id = nextIdRef.current++;
+    
+    const left = 5 + Math.random() * 85;
+    const size = 20 + Math.random() * 30;
+    const duration = isInitial 
+      ? (1.8 + Math.random() * 1.5) 
+      : (2.5 + Math.random() * 3.0);
+    
+    const rotationOffset = -4 + Math.random() * 8;
+    const scale = 0.85 + Math.random() * 0.35;
+
+    const rocket: RocketData = { 
+      id, left, size, duration, rotation: rotationOffset, scale 
+    };
+    
+    setRockets((prev) => [...prev, rocket]);
+    
+    setTimeout(() => {
+      setRockets((prev) => prev.filter((r) => r.id !== id));
+    }, (duration + 0.5) * 1000);
+  }, []);
+
   useEffect(() => {
-    let mounted = true;
-    const cleanupTimers: ReturnType<typeof setTimeout>[] = [];
+    // Initial burst
+    const delays = [0, 300, 800, 1400, 2000];
+    const timers = delays.map(d => setTimeout(() => spawnRocket(true), d));
 
-    function spawnRocket(isInitial = false) {
-      if (!mounted) return;
-      const id = nextIdRef.current++;
-      
-      // Variedade premium: posição, tamanho, velocidade e rotação
-      const left = 5 + Math.random() * 85;
-      const size = 20 + Math.random() * 30; // 20px a 50px
-      const duration = isInitial 
-        ? (2.0 + Math.random() * 2.0) 
-        : (3.0 + Math.random() * 3.5);
-      
-      // Rotação sutil para parecer menos "perfeito" e mais dinâmico
-      const rotationOffset = -5 + Math.random() * 10; // -5deg a +5deg
-      const scale = 0.8 + Math.random() * 0.4; // 0.8x a 1.2x
-
-      const rocket: RocketData & { rotation: number; scale: number } = { 
-        id, left, size, duration, rotation: rotationOffset, scale 
-      };
-      
-      setRockets((prev) => [...prev, rocket]);
-      
-      const removeTimer = setTimeout(() => {
-        if (!mounted) return;
-        setRockets((prev) => prev.filter((r) => r.id !== id));
-      }, duration * 1000 + 600);
-      
-      cleanupTimers.push(removeTimer);
-    }
-
-    // Burst inicial agressivo para impacto imediato
-    const initialDelays = [0, 200, 600, 1100, 1800];
-    initialDelays.forEach(delay => {
-      const t = setTimeout(() => spawnRocket(true), delay);
-      cleanupTimers.push(t);
-    });
-
-    // Ciclo contínuo sustentável
-    function scheduleNext() {
-      const interval = 2000 + Math.random() * 3500;
-      const t = setTimeout(() => {
-        spawnRocket();
-        scheduleNext();
-      }, interval);
-      cleanupTimers.push(t);
-    }
-    scheduleNext();
+    // Sustained cycle
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'visible') spawnRocket();
+    }, 3500);
 
     return () => {
-      mounted = false;
-      cleanupTimers.forEach(clearTimeout);
+      timers.forEach(clearTimeout);
+      clearInterval(interval);
     };
-  }, []);
+  }, [spawnRocket]);
 
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden z-[1]" aria-hidden="true">
