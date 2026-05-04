@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useFavoritesStore } from "@/stores/useFavoritesStore";
 import { useComparisonStore } from "@/stores/useComparisonStore";
 import { useAuth } from "@/contexts/AuthContext";
@@ -141,20 +141,24 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
       <div className="flex items-center justify-between h-full px-2 sm:px-4 lg:px-6">
         {/* ══════ Left section — Menu + Âncora contextual (#1) ══════ */}
         <div className="flex items-center gap-2 sm:gap-3 min-w-0 shrink-0">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="lg:hidden hover:bg-primary/10 hover:text-primary h-8 w-8 sm:h-9 sm:w-9"
-                onClick={onMenuToggle}
-                aria-label="Abrir menu"
-              >
-                <Menu className="h-5 w-5" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Navegação lateral</TooltipContent>
-          </Tooltip>
+          <TooltipProvider delayDuration={0}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="lg:hidden hover:bg-primary/10 hover:text-primary h-8 w-8 sm:h-9 sm:w-9"
+                  onClick={onMenuToggle}
+                  aria-label="Abrir menu"
+                >
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <Menu className="h-5 w-5 text-primary" />
+                  </div>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Navegação lateral</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
 
           {/* #1 — Seção atual como âncora */}
           <div className="hidden lg:flex items-center gap-2">
@@ -172,36 +176,40 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
         {/* ══════ Right section — Agrupamento em clusters (#2) ══════ */}
         <div className="flex items-center gap-0.5 sm:gap-0.5">
           {isFallback && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="px-2 py-1 rounded bg-amber-100 text-amber-800 text-[10px] font-medium mr-2 flex items-center gap-1 animate-pulse border border-amber-200">
-                  <Shield className="h-3 w-3" />
-                  <span className="hidden sm:inline">Theme Safe-Mode</span>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent className="max-w-[200px] bg-primary text-primary-foreground border-primary text-[11px]">
-                O ThemeProvider não foi detectado. O sistema está rodando em modo de segurança com o tema padrão.
-              </TooltipContent>
-            </Tooltip>
+            <TooltipProvider delayDuration={0}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="px-2 py-1 rounded bg-amber-100 text-amber-800 text-[10px] font-medium mr-2 flex items-center gap-1 animate-pulse border border-amber-200">
+                    <Shield className="h-3 w-3" />
+                    <span className="hidden sm:inline">Theme Safe-Mode</span>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-[200px] bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
+                  O ThemeProvider não foi detectado. O sistema está rodando em modo de segurança com o tema padrão.
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           )}
           {/* Mobile search trigger */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                aria-label="Ativar busca global"
-                className="md:hidden h-8 w-8 hover:bg-primary/10 hover:text-primary"
-                onClick={() => {
-                  const event = new KeyboardEvent('keydown', { key: 'k', ctrlKey: true });
-                  document.dispatchEvent(event);
-                }}
-              >
-                <Search className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Busca rápida <kbd className="ml-1 px-1 py-0.5 rounded bg-primary-foreground/20 text-primary-foreground text-[10px] font-mono">Ctrl+K</kbd></TooltipContent>
-          </Tooltip>
+          <TooltipProvider delayDuration={0}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Ativar busca global"
+                  className="md:hidden h-8 w-8 hover:bg-primary/10 hover:text-primary"
+                  onClick={() => {
+                    const event = new KeyboardEvent('keydown', { key: 'k', ctrlKey: true });
+                    document.dispatchEvent(event);
+                  }}
+                >
+                  <Search className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Busca rápida <kbd className="ml-1 px-1 py-0.5 rounded bg-primary-foreground/20 text-primary-foreground text-[10px] font-mono">Ctrl+K</kbd></TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
 
           {/* ── Cluster 1: Transacional (carrinho, notificações, alertas) ── */}
           <div className="flex items-center gap-0.5">
@@ -219,70 +227,76 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
           {/* ── Cluster 2: Utilitário (favoritos, comparar, tema) — desktop only ── */}
           <div className="hidden md:flex items-center gap-0.5">
             {/* #5 — Tooltip com atalho */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon" aria-label="Favoritar"
-                  className="relative h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-all duration-200"
-                  onClick={() => navigate("/favoritos")}
-                  onMouseEnter={() => {
-                    import("../../pages/FavoritesPage");
-                  }}
-                >
-                  <Heart className="h-[17px] w-[17px]" strokeWidth={1.75} />
-                  {favoriteCount > 0 && (
-                    <Badge className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-1 flex items-center justify-center text-[9px] bg-orange text-orange-foreground border-0">
-                      {favoriteCount > 99 ? "99+" : favoriteCount}
-                    </Badge>
-                  )}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent className="bg-primary text-primary-foreground border-primary text-[11px]">
-                Favoritos <kbd className="ml-1.5 px-1 py-0.5 rounded bg-primary-foreground/20 text-primary-foreground text-[10px] font-mono">Alt+F</kbd>
-              </TooltipContent>
-            </Tooltip>
+            <TooltipProvider delayDuration={0}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon" aria-label="Favoritar"
+                    className="relative h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-all duration-200"
+                    onClick={() => navigate("/favoritos")}
+                    onMouseEnter={() => {
+                      import("../../pages/FavoritesPage");
+                    }}
+                  >
+                    <Heart className="h-[17px] w-[17px]" strokeWidth={1.75} />
+                    {favoriteCount > 0 && (
+                      <Badge className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-1 flex items-center justify-center text-[9px] bg-orange text-orange-foreground border-0">
+                        {favoriteCount > 99 ? "99+" : favoriteCount}
+                      </Badge>
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
+                  Favoritos <kbd className="ml-1.5 px-1 py-0.5 rounded bg-primary-foreground/20 text-primary-foreground text-[10px] font-mono">Alt+F</kbd>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
 
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon" aria-label="GitCompare"
-                  className="relative h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-all duration-200"
-                  onClick={() => navigate("/comparar")}
-                  onMouseEnter={() => {
-                    import("../../pages/ComparePage");
-                  }}
-                >
-                  <GitCompare className="h-[17px] w-[17px]" strokeWidth={1.75} />
-                  {compareCount > 0 && (
-                    <Badge className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-1 flex items-center justify-center text-[9px] bg-orange text-orange-foreground border-0">
-                      {compareCount > 4 ? "4" : compareCount}
-                    </Badge>
-                  )}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent className="bg-primary text-primary-foreground border-primary text-[11px]">
-                Comparar <kbd className="ml-1.5 px-1 py-0.5 rounded bg-primary-foreground/20 text-primary-foreground text-[10px] font-mono">Alt+C</kbd>
-              </TooltipContent>
-            </Tooltip>
+            <TooltipProvider delayDuration={0}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon" aria-label="GitCompare"
+                    className="relative h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-all duration-200"
+                    onClick={() => navigate("/comparar")}
+                    onMouseEnter={() => {
+                      import("../../pages/ComparePage");
+                    }}
+                  >
+                    <GitCompare className="h-[17px] w-[17px]" strokeWidth={1.75} />
+                    {compareCount > 0 && (
+                      <Badge className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-1 flex items-center justify-center text-[9px] bg-orange text-orange-foreground border-0">
+                        {compareCount > 4 ? "4" : compareCount}
+                      </Badge>
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
+                  Comparar <kbd className="ml-1.5 px-1 py-0.5 rounded bg-primary-foreground/20 text-primary-foreground text-[10px] font-mono">Alt+C</kbd>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
 
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleToggleTheme}
-                  className="relative h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-all duration-200"
-                 aria-label="Tema claro"><Sun className="h-[17px] w-[17px] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" strokeWidth={1.75} />
-                  <Moon className="absolute h-[17px] w-[17px] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" strokeWidth={1.75} />
-                  <span className="sr-only">Alternar tema</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent className="bg-primary text-primary-foreground border-primary text-[11px]">
-                {actualTheme === "dark" ? "Modo Claro" : "Modo Escuro"} <kbd className="ml-1.5 px-1 py-0.5 rounded bg-primary-foreground/20 text-primary-foreground text-[10px] font-mono">Alt+T</kbd>
-              </TooltipContent>
-            </Tooltip>
+            <TooltipProvider delayDuration={0}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleToggleTheme}
+                    className="relative h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-all duration-200"
+                   aria-label="Tema claro"><Sun className="h-[17px] w-[17px] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" strokeWidth={1.75} />
+                    <Moon className="absolute h-[17px] w-[17px] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" strokeWidth={1.75} />
+                    <span className="sr-only">Alternar tema</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
+                  {actualTheme === "dark" ? "Modo Claro" : "Modo Escuro"} <kbd className="ml-1.5 px-1 py-0.5 rounded bg-primary-foreground/20 text-primary-foreground text-[10px] font-mono">Alt+T</kbd>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
 
           {/* ── Mobile overflow menu (#8) ── */}
@@ -325,46 +339,48 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
 
           {/* ── User menu — com status online (#6) e truncate (#10) ── */}
           <DropdownMenu>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="flex items-center gap-2 h-9 px-1.5 sm:px-2 hover:bg-primary/10 rounded-lg"
-                    aria-label="Menu do usuário"
-                  >
-                <div className="relative">
-                  <div className="w-8 h-8 rounded-full bg-gradient-primary flex items-center justify-center ring-2 ring-background shadow-md">
-                    {profile?.avatar_url ? (
-                      <img
-                        src={profile.avatar_url}
-                        alt={displayName}
-                        className="w-8 h-8 rounded-full object-cover" loading="lazy" />
-                    ) : (
-                      <User className="h-4 w-4 text-primary-foreground" />
-                    )}
-                  </div>
-                  {/* #6 — Status online dot */}
-                  <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-success rounded-full ring-2 ring-background" />
-                </div>
-                <div className="hidden lg:flex flex-col items-start">
-                  <span className="text-sm font-medium text-foreground leading-tight truncate max-w-[120px]">
-                    {truncatedName}
-                  </span>
-                  {rolesLoaded ? (
-                    <RoleBadge role={role} className="h-4 px-1.5 text-[9px] leading-none" />
-                  ) : (
-                    <span
-                      aria-hidden="true"
-                      className="h-4 w-12 rounded bg-muted/40 animate-pulse"
-                    />
-                  )}
-                </div>
-                  </Button>
-                </DropdownMenuTrigger>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Configurações, perfil e logout</TooltipContent>
-            </Tooltip>
+            <TooltipProvider delayDuration={0}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="flex items-center gap-2 h-9 px-1.5 sm:px-2 hover:bg-primary/10 rounded-lg"
+                      aria-label="Menu do usuário"
+                    >
+                      <div className="relative">
+                        <div className="w-8 h-8 rounded-full bg-gradient-primary flex items-center justify-center ring-2 ring-background shadow-md">
+                          {profile?.avatar_url ? (
+                            <img
+                              src={profile.avatar_url}
+                              alt={displayName}
+                              className="w-8 h-8 rounded-full object-cover" loading="lazy" />
+                          ) : (
+                            <User className="h-4 w-4 text-primary-foreground" />
+                          )}
+                        </div>
+                        {/* #6 — Status online dot */}
+                        <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-success rounded-full ring-2 ring-background" />
+                      </div>
+                      <div className="hidden lg:flex flex-col items-start">
+                        <span className="text-sm font-medium text-foreground leading-tight truncate max-w-[120px]">
+                          {truncatedName}
+                        </span>
+                        {rolesLoaded ? (
+                          <RoleBadge role={role} className="h-4 px-1.5 text-[9px] leading-none" />
+                        ) : (
+                          <span
+                            aria-hidden="true"
+                            className="h-4 w-12 rounded bg-muted/40 animate-pulse"
+                          />
+                        )}
+                      </div>
+                    </Button>
+                  </DropdownMenuTrigger>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Configurações, perfil e logout</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             <DropdownMenuContent align="end" className="w-56 bg-card border-border">
               <DropdownMenuLabel>
                 <div className="flex flex-col gap-1">
