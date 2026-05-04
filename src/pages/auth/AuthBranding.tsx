@@ -125,6 +125,7 @@ export function ContinuousRockets() {
             }}
           />
         </div>
+      </div>
       ))}
     </div>
   );
