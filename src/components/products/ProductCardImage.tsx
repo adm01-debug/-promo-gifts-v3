@@ -145,7 +145,7 @@ export const ProductCardImage = memo(function ProductCardImage({
                       isDotHighlighted ? "border-success ring-2 ring-success/30 scale-110" : "border-border/50"
                     )} style={{ backgroundColor: color.hex, borderColor: color.hex === '#FFFFFF' ? 'hsl(var(--border))' : undefined }} />
                   </TooltipTrigger>
-                  <TooltipContent>{color.name}</TooltipContent>
+                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">{color.name}</TooltipContent>
                 </Tooltip>
               );
             })}
