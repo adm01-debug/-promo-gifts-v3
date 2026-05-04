@@ -104,7 +104,7 @@ export function QuoteProductCustomization({
             Gravações adicionadas
           </p>
           {confirmed.map((p, i) => (
-            <div key={i} className="flex items-center justify-between gap-2 p-2 rounded-2xl bg-primary/5 border border-primary/20">
+            <div key={i} className="flex items-center justify-between gap-2 p-2 rounded-xl bg-primary/5 border border-primary/20">
               <div className="flex items-center gap-2 min-w-0">
                 <CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" />
                 <div className="min-w-0">

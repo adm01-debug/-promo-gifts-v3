@@ -92,7 +92,7 @@ export function ClientSeasonalityHeatmap({ clientId, ramoAtividade }: Props) {
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-2xl bg-violet-100 dark:bg-violet-900/40 flex items-center justify-center">
+            <div className="w-9 h-9 rounded-xl bg-violet-100 dark:bg-violet-900/40 flex items-center justify-center">
               <Calendar className="h-4 w-4 text-violet-600 dark:text-violet-300" />
             </div>
             <div>
@@ -136,7 +136,7 @@ export function ClientSeasonalityHeatmap({ clientId, ramoAtividade }: Props) {
                     <TooltipTrigger asChild>
                       <div
                         className={cn(
-                          "h-12 rounded-2xl flex items-center justify-center text-xs font-bold transition-all hover:scale-110 cursor-help",
+                          "h-12 rounded-xl flex items-center justify-center text-xs font-bold transition-all hover:scale-110 cursor-help",
                           intensityToBg(c.intensity),
                           intensityToText(c.intensity),
                           c.month === currentMonth && "ring-2 ring-violet-600 dark:ring-violet-400 ring-offset-1 ring-offset-background",
@@ -167,7 +167,7 @@ export function ClientSeasonalityHeatmap({ clientId, ramoAtividade }: Props) {
                     <TooltipTrigger asChild>
                       <div
                         className={cn(
-                          "h-12 rounded-2xl flex items-center justify-center text-xs font-bold transition-all hover:scale-110 cursor-help opacity-90",
+                          "h-12 rounded-xl flex items-center justify-center text-xs font-bold transition-all hover:scale-110 cursor-help opacity-90",
                           intensityToBg(c.intensity),
                           intensityToText(c.intensity),
                           c.month === currentMonth && "ring-2 ring-violet-400 dark:ring-violet-500 ring-offset-1 ring-offset-background",
@@ -210,7 +210,7 @@ export function ClientSeasonalityHeatmap({ clientId, ramoAtividade }: Props) {
 
         {/* Forecast preditivo */}
         {forecastSeries.length > 0 && (
-          <div className="rounded-2xl border bg-card p-3">
+          <div className="rounded-xl border bg-card p-3">
             <div className="flex items-center gap-2 mb-2">
               <TrendingUp className="h-4 w-4 text-violet-600 dark:text-violet-300" />
               <span className="text-xs font-semibold uppercase tracking-wide text-foreground">
@@ -260,7 +260,7 @@ export function ClientSeasonalityHeatmap({ clientId, ramoAtividade }: Props) {
 
         {/* Cards inferiores: Próximo pico + Próxima janela ideal */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
-          <div className="rounded-2xl border border-violet-200 dark:border-violet-800/50 bg-violet-50/50 dark:bg-violet-950/30 p-3">
+          <div className="rounded-xl border border-violet-200 dark:border-violet-800/50 bg-violet-50/50 dark:bg-violet-950/30 p-3">
             <div className="flex items-center gap-2 mb-1.5">
               <TrendingUp className="h-4 w-4 text-violet-600 dark:text-violet-300" />
               <span className="text-[11px] font-semibold uppercase tracking-wide text-violet-700 dark:text-violet-300">
@@ -284,7 +284,7 @@ export function ClientSeasonalityHeatmap({ clientId, ramoAtividade }: Props) {
           </div>
 
           {/* Próxima janela ideal de campanha — CTA */}
-          <div className="rounded-2xl border border-success/40 bg-success/5 p-3 flex flex-col">
+          <div className="rounded-xl border border-success/40 bg-success/5 p-3 flex flex-col">
             <div className="flex items-center gap-2 mb-1.5">
               <Target className="h-4 w-4 text-success" />
               <span className="text-[11px] font-semibold uppercase tracking-wide text-success">
@@ -338,7 +338,7 @@ export function ClientSeasonalityHeatmap({ clientId, ramoAtividade }: Props) {
 
         {/* Insight textual */}
         {seasonality.insight && (
-          <div className="rounded-2xl border bg-card p-3 flex items-start gap-2">
+          <div className="rounded-xl border bg-card p-3 flex items-start gap-2">
             <Sparkles className="h-4 w-4 text-violet-600 dark:text-violet-300 shrink-0 mt-0.5" />
             <p className="text-xs leading-relaxed text-foreground">{seasonality.insight}</p>
           </div>

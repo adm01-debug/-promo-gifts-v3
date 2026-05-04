@@ -26,13 +26,13 @@ export function SectionRow({ icon: Icon, label, isOpen, onToggle, count, totalOp
   return (
     <button onClick={onToggle} className="w-full flex items-center justify-between px-1 py-2 group/sec">
       <div className="flex items-center gap-2.5">
-        <div className={cn("h-6 w-6 rounded-2xl flex items-center justify-center transition-all duration-200",
+        <div className={cn("h-6 w-6 rounded-xl flex items-center justify-center transition-all duration-200",
           isOpen ? "bg-primary/15 text-primary shadow-sm shadow-primary/10"
             : count && count > 0 ? "bg-primary/10 text-primary"
             : "bg-muted/20 text-muted-foreground/40 group-hover/sec:bg-muted/40"
         )}><Icon className="h-3 w-3" /></div>
         <span className={cn("text-xs font-medium transition-colors", count && count > 0 ? "text-foreground" : "text-foreground/70 group-hover/sec:text-foreground")}>{label}</span>
-        {count !== undefined && count > 0 && <Badge variant="secondary" className="text-[9px] px-1.5 py-0 h-4 rounded-2xl bg-primary/10 text-primary border-primary/20 font-bold">{count}</Badge>}
+        {count !== undefined && count > 0 && <Badge variant="secondary" className="text-[9px] px-1.5 py-0 h-4 rounded-xl bg-primary/10 text-primary border-primary/20 font-bold">{count}</Badge>}
         {totalOptions !== undefined && totalOptions > 0 && count === 0 && <span className="text-[9px] text-muted-foreground/30 font-medium">{totalOptions}</span>}
       </div>
       <motion.div animate={{ rotate: isOpen ? 0 : -90 }} transition={{ duration: 0.15 }}>
@@ -78,7 +78,7 @@ export function MultiChipGrid({ items, selected, onToggle, maxVisible = 24, sear
         <div className="relative">
           <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground/30" />
           <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={placeholder}
-            className="w-full h-6 pl-7 pr-2 rounded-2xl text-[10px] bg-background/30 border border-border/15 placeholder:text-muted-foreground/25 focus:outline-none focus:ring-1 focus:ring-primary/20 transition-all" />
+            className="w-full h-6 pl-7 pr-2 rounded-xl text-[10px] bg-background/30 border border-border/15 placeholder:text-muted-foreground/25 focus:outline-none focus:ring-1 focus:ring-primary/20 transition-all" />
         </div>
       )}
       <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto scrollbar-thin scrollbar-thumb-border/20 pr-0.5">
@@ -86,7 +86,7 @@ export function MultiChipGrid({ items, selected, onToggle, maxVisible = 24, sear
           const isSelected = selected.includes(item);
           return (
             <button key={item} onClick={() => onToggle(item)}
-              className={cn("px-2 py-0.5 rounded-2xl text-[10px] font-medium border transition-all duration-150 flex items-center gap-1",
+              className={cn("px-2 py-0.5 rounded-xl text-[10px] font-medium border transition-all duration-150 flex items-center gap-1",
                 isSelected ? "bg-primary/15 text-primary border-primary/30 shadow-sm shadow-primary/5" : "bg-muted/5 border-border/15 text-muted-foreground/55 hover:border-primary/20 hover:text-foreground hover:bg-accent/20")}>
               {isSelected && <CheckCircle2 className="h-2.5 w-2.5 shrink-0" />}
               <span className="truncate max-w-[120px]">{item}</span>

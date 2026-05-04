@@ -76,7 +76,7 @@ export function ConfirmedSummary({ wizard, onAddAnother, onGenerateQuote, onCopy
         {wizard.personalizations.map((pers, idx) => (
           <motion.div key={pers.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.05 * idx }} className="flex items-center gap-4 px-4 py-3 bg-card hover:bg-muted/30 transition-colors">
-            <div className="w-7 h-7 rounded-2xl bg-primary/10 flex items-center justify-center font-bold text-sm text-primary shrink-0">{idx + 1}</div>
+            <div className="w-7 h-7 rounded-xl bg-primary/10 flex items-center justify-center font-bold text-sm text-primary shrink-0">{idx + 1}</div>
             {wizard.selectedProduct && <WizardMockupPreview personalization={pers} product={wizard.selectedProduct} />}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
@@ -102,7 +102,7 @@ export function ConfirmedSummary({ wizard, onAddAnother, onGenerateQuote, onCopy
       </div>
 
       {/* Totals */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="rounded-2xl overflow-hidden shadow-xl">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="rounded-xl overflow-hidden shadow-xl">
         <div className="bg-gradient-to-br from-primary via-primary to-primary/90 p-5 text-primary-foreground">
           <div className="grid grid-cols-[2fr_1.5fr_1fr] gap-3 items-stretch">
             <div className="p-4 rounded-xl bg-black/25 backdrop-blur-sm border border-white/10 shadow-lg shadow-black/20">
@@ -122,7 +122,7 @@ export function ConfirmedSummary({ wizard, onAddAnother, onGenerateQuote, onCopy
                 <div className="group relative flex items-center gap-2 cursor-help">
                   <AlertCircle className="h-4 w-4 text-primary-foreground/70 shrink-0" />
                   <p className="text-xl font-bold text-primary-foreground">A consultar</p>
-                  <div className="absolute bottom-full left-0 mb-2 px-3 py-2 rounded-2xl bg-black/90 text-primary-foreground text-xs w-48 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-xl z-10">
+                  <div className="absolute bottom-full left-0 mb-2 px-3 py-2 rounded-xl bg-black/90 text-primary-foreground text-xs w-48 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-xl z-10">
                     Prazo depende da confirmação do fornecedor para esta técnica e quantidade.
                   </div>
                 </div>
@@ -138,7 +138,7 @@ export function ConfirmedSummary({ wizard, onAddAnother, onGenerateQuote, onCopy
           onClick={onGenerateQuote}><FileText className="h-5 w-5" />Gerar Orçamento</Button>
         <div className="flex gap-2 justify-center">
           {wizard.hasAvailableLocations && (
-            <Button size="sm" variant="outline" className="gap-1.5 text-xs h-9 rounded-2xl" onClick={onAddAnother}><Plus className="h-3.5 w-3.5" /> Outro Local</Button>
+            <Button size="sm" variant="outline" className="gap-1.5 text-xs h-9 rounded-xl" onClick={onAddAnother}><Plus className="h-3.5 w-3.5" /> Outro Local</Button>
           )}
           <Button size="sm" variant="ghost" className="gap-1.5 text-xs text-muted-foreground h-9" onClick={onCopy}><Copy className="h-3.5 w-3.5" /> Copiar</Button>
           <Button size="sm" variant="ghost" className="gap-1.5 text-xs text-muted-foreground h-9" onClick={handleShareWhatsApp}><MessageCircle className="h-3.5 w-3.5" /> WhatsApp</Button>
@@ -152,7 +152,7 @@ export function ConfirmedSummary({ wizard, onAddAnother, onGenerateQuote, onCopy
           className="flex items-center justify-center gap-3 p-4 rounded-xl bg-muted/50 border">
           <span className="text-sm text-muted-foreground">Nova quantidade:</span>
           <Input type="number" value={duplicateQty} onChange={(e) => setDuplicateQty(parseInt(e.target.value) || 1)}
-            min={1} className="w-28 h-9 text-center font-bold rounded-2xl" />
+            min={1} className="w-28 h-9 text-center font-bold rounded-xl" />
           <Button size="sm" onClick={handleDuplicate} disabled={duplicateQty === wizard.quantity || duplicateQty <= 0}>Recalcular</Button>
         </motion.div>
       )}

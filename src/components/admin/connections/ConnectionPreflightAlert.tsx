@@ -20,7 +20,7 @@ export function ConnectionPreflightAlert({ issues, className }: Props) {
       role="alert"
       aria-live="polite"
       className={cn(
-        "rounded-2xl border border-destructive/30 bg-destructive/5 px-3 py-2.5 text-xs text-destructive space-y-1.5",
+        "rounded-xl border border-destructive/30 bg-destructive/5 px-3 py-2.5 text-xs text-destructive space-y-1.5",
         className,
       )}
     >

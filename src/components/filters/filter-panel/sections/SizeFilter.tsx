@@ -84,7 +84,7 @@ export function SizeFilter({ selectedSizes, onToggleSize, products = [] }: SizeF
               key={size}
               onClick={() => onToggleSize(size)}
               className={cn(
-                "px-2.5 py-1 rounded-2xl text-xs font-medium border transition-all",
+                "px-2.5 py-1 rounded-xl text-xs font-medium border transition-all",
                 isSelected
                   ? "bg-primary text-primary-foreground border-primary shadow-sm"
                   : "bg-card border-border text-foreground hover:border-primary/40 hover:bg-accent"

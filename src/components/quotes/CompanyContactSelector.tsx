@@ -97,11 +97,11 @@ export function CompanyContactSelector({
       <div className="space-y-2">
         <Label className="flex items-center gap-2"><User className="h-4 w-4" />Contato</Label>
         {!companyId ? (
-          <div className={cn("flex h-10 w-full items-center rounded-2xl border border-input bg-background px-3 py-2 text-sm text-muted-foreground")}>Selecione uma empresa primeiro</div>
+          <div className={cn("flex h-10 w-full items-center rounded-xl border border-input bg-background px-3 py-2 text-sm text-muted-foreground")}>Selecione uma empresa primeiro</div>
         ) : loadingContacts ? (
-          <div className={cn("flex h-10 w-full items-center gap-2 rounded-2xl border border-input bg-background px-3 py-2 text-sm text-muted-foreground")}><Loader2 className="h-4 w-4 animate-spin" />Carregando...</div>
+          <div className={cn("flex h-10 w-full items-center gap-2 rounded-xl border border-input bg-background px-3 py-2 text-sm text-muted-foreground")}><Loader2 className="h-4 w-4 animate-spin" />Carregando...</div>
         ) : !contacts || contacts.length === 0 ? (
-          <div className={cn("flex h-10 w-full items-center rounded-2xl border border-input bg-background px-3 py-2 text-sm text-muted-foreground")}>Nenhum contato cadastrado</div>
+          <div className={cn("flex h-10 w-full items-center rounded-xl border border-input bg-background px-3 py-2 text-sm text-muted-foreground")}>Nenhum contato cadastrado</div>
         ) : contacts.length === 1 ? (
           <SingleContactDisplay contact={contacts[0]} contactId={contactId} onContactChange={onContactChange} onContactInfoChange={onContactInfoChange} />
         ) : (

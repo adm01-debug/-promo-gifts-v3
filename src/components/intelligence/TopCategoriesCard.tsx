@@ -122,7 +122,7 @@ export function TopCategoriesCard({ days }: TopCategoriesCardProps) {
             {data.map((row, i) => (
               <div
                 key={row.category}
-                className="flex items-center gap-3 p-2.5 rounded-2xl bg-muted/40 hover:bg-muted/60 transition-colors"
+                className="flex items-center gap-3 p-2.5 rounded-xl bg-muted/40 hover:bg-muted/60 transition-colors"
               >
                 <div className="flex items-center justify-center w-7 h-7 rounded-full bg-chart-4/15 text-chart-4 font-bold text-xs shrink-0">
                   {i + 1}

@@ -87,7 +87,7 @@ function NextTierHint({ currentQty }: { currentQty: number }) {
   const nextTierLabel = nextTier.max ? `${nextTier.min}-${nextTier.max}` : `${nextTier.min}+`;
 
   return (
-    <div className="bg-accent/50 border border-accent rounded-2xl p-3 space-y-2">
+    <div className="bg-accent/50 border border-accent rounded-xl p-3 space-y-2">
       <div className="flex items-center gap-2 text-xs font-semibold text-foreground">
         <TrendingDown className="h-3.5 w-3.5 text-primary" />
         Próxima faixa de desconto
@@ -126,7 +126,7 @@ export function QuoteItemDetailSheet({ item }: { item: QuoteItem }) {
               <img
                 src={item.product_image_url}
                 alt={item.product_name}
-                className="w-16 h-16 object-cover rounded-2xl border border-border" loading="lazy" />
+                className="w-16 h-16 object-cover rounded-xl border border-border" loading="lazy" />
             )}
             <div className="flex-1 min-w-0">
               {item.product_sku && (
@@ -219,7 +219,7 @@ export function QuoteItemDetailSheet({ item }: { item: QuoteItem }) {
 
                     return (
                       <div key={idx} className="space-y-3">
-                        <div className="bg-muted/50 rounded-2xl p-3 space-y-2.5 border border-border/50">
+                        <div className="bg-muted/50 rounded-xl p-3 space-y-2.5 border border-border/50">
                           {/* Technique */}
                           <div className="flex items-center gap-2">
                             <Badge className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/10">

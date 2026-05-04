@@ -78,7 +78,7 @@ export function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) {
           </p>
         </div>
 
-        <div className="p-4 rounded-2xl bg-muted/50 border border-border">
+        <div className="p-4 rounded-xl bg-muted/50 border border-border">
           <p className="text-sm text-muted-foreground">
             <strong className="text-foreground">Próximo passo:</strong> Um gestor irá analisar sua solicitação. 
             Após a aprovação, você receberá um email com o link para redefinir sua senha.

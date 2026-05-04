@@ -73,7 +73,7 @@ export function ProductStickyHeader({
           >
             <div className="max-w-7xl mx-auto px-4 lg:px-6 h-14 flex items-center gap-4">
               {/* Thumbnail */}
-              <div className="w-10 h-10 rounded-2xl overflow-hidden bg-secondary shrink-0 border border-border">
+              <div className="w-10 h-10 rounded-xl overflow-hidden bg-secondary shrink-0 border border-border">
                 <img
                   src={productImage}
                   alt={productName}

@@ -42,7 +42,7 @@ export function TechniqueCard({ technique, isSelected, onSelect }: TechniqueCard
   return (
     <button
       className={cn(
-        "w-full p-3 rounded-2xl flex items-start gap-3 transition-all duration-200 border text-left",
+        "w-full p-3 rounded-xl flex items-start gap-3 transition-all duration-200 border text-left",
         isSelected
           ? "bg-primary/10 border-primary/40 ring-1 ring-primary/20"
           : "bg-secondary/50 border-border/50 hover:bg-secondary/80 hover:border-border"

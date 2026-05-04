@@ -131,7 +131,7 @@ export function QuickAddToQuote({
       <PopoverContent className="w-80 p-4 relative" align="end" onClick={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()}>
         <button
           aria-label="Fechar"
-          className="absolute top-2 right-2 h-6 w-6 flex items-center justify-center rounded-2xl text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors z-10"
+          className="absolute top-2 right-2 h-6 w-6 flex items-center justify-center rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors z-10"
           onClick={() => setIsOpen(false)}
         >
           <X className="h-3.5 w-3.5" />
@@ -166,15 +166,15 @@ export function QuickAddToQuote({
 
             {/* Selected variant summary */}
             {selectedVariant && (
-              <div className="flex items-center gap-2 p-2 rounded-2xl bg-muted/40 border border-border/50">
+              <div className="flex items-center gap-2 p-2 rounded-xl bg-muted/40 border border-border/50">
                 {selectedVariant.selected_thumbnail ? (
                   <img
                     src={`${selectedVariant.selected_thumbnail}/thumbnail`}
                     alt={selectedVariant.color_name ?? ''}
-                    className="w-7 h-7 rounded-2xl object-cover border border-border/50"
+                    className="w-7 h-7 rounded-xl object-cover border border-border/50"
                   />
                 ) : selectedVariant.color_hex ? (
-                  <div className="w-7 h-7 rounded-2xl border border-border/50" style={{ backgroundColor: selectedVariant.color_hex }} />
+                  <div className="w-7 h-7 rounded-xl border border-border/50" style={{ backgroundColor: selectedVariant.color_hex }} />
                 ) : null}
                 <span className="text-xs font-medium flex-1 truncate">
                   {selectedVariant.color_name}

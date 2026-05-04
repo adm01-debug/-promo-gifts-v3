@@ -86,7 +86,7 @@ export function QuoteItemsTable({ items }: QuoteItemsTableProps) {
             <div>
               {item.product_sku && (
                 <span 
-                  className="inline-flex items-center gap-1 font-mono text-xs font-semibold px-2 py-0.5 rounded-2xl border mb-1"
+                  className="inline-flex items-center gap-1 font-mono text-xs font-semibold px-2 py-0.5 rounded-xl border mb-1"
                   style={{ 
                     backgroundColor: item.color_hex ? `${item.color_hex}22` : undefined,
                     borderColor: item.color_hex || 'hsl(var(--border))',
@@ -121,7 +121,7 @@ export function QuoteItemsTable({ items }: QuoteItemsTableProps) {
                   }
                   return (
                     <div key={pIdx} className={`${pIdx > 0 ? 'pt-1.5 border-t border-border/30' : ''}`}>
-                      <div className="inline-flex flex-col gap-0.5 bg-primary/8 border border-primary/20 rounded-2xl px-2 py-1.5">
+                      <div className="inline-flex flex-col gap-0.5 bg-primary/8 border border-primary/20 rounded-xl px-2 py-1.5">
                         <span className="text-xs font-semibold text-primary flex items-center gap-1">
                           ✦ {p.technique_name}
                         </span>
@@ -165,7 +165,7 @@ export function QuoteItemsTable({ items }: QuoteItemsTableProps) {
   return (
     <div>
       <h3 className="font-display font-semibold mb-4">Itens do Orçamento</h3>
-      <div className="overflow-x-auto rounded-2xl border border-border">
+      <div className="overflow-x-auto rounded-xl border border-border">
         <table className="w-full border-collapse">
           <thead>
             <tr className="bg-primary/15">

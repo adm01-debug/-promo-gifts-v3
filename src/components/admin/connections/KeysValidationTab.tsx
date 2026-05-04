@@ -260,7 +260,7 @@ export function KeysValidationTab() {
       {/* Header */}
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="flex items-start gap-3">
-          <div className="h-10 w-10 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
+          <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
             <ShieldCheck className="h-5 w-5 text-primary" aria-hidden="true" />
           </div>
           <div>
@@ -408,7 +408,7 @@ export function KeysValidationTab() {
                         )}
                       </div>
                       <div className={cn(
-                        "h-9 w-9 rounded-2xl flex items-center justify-center shrink-0",
+                        "h-9 w-9 rounded-xl flex items-center justify-center shrink-0",
                         groupOk ? "bg-green-500/10" : groupBlockers > 0 ? "bg-destructive/10" : "bg-amber-500/10",
                       )}>
                         <Icon className={cn(

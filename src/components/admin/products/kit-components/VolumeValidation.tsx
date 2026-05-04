@@ -29,7 +29,7 @@ export function VolumeValidation({ components, boxDimensions }: { components: Ki
 
   if (!hasBoxDimensions) {
     return (
-      <div className="flex items-center gap-2 rounded-2xl border border-border bg-muted/30 p-3 text-xs text-muted-foreground">
+      <div className="flex items-center gap-2 rounded-xl border border-border bg-muted/30 p-3 text-xs text-muted-foreground">
         <Box className="h-4 w-4 shrink-0" />
         <span>Preencha as <strong>dimensões internas</strong> na aba Detalhes para validar volume dos componentes.</span>
       </div>
@@ -47,7 +47,7 @@ export function VolumeValidation({ components, boxDimensions }: { components: Ki
   };
 
   return (
-    <div className={cn("rounded-2xl border p-3 space-y-2.5 text-xs", fits ? "border-success/40 bg-success/5" : "border-destructive/40 bg-destructive/5")}>
+    <div className={cn("rounded-xl border p-3 space-y-2.5 text-xs", fits ? "border-success/40 bg-success/5" : "border-destructive/40 bg-destructive/5")}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Box className="h-4 w-4 text-muted-foreground" />

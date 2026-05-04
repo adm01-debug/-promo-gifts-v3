@@ -45,7 +45,7 @@ export const FloatingCompareBar = React.forwardRef<HTMLDivElement>(
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
         className={cn(
           "fixed bottom-20 sm:bottom-24 lg:bottom-6 left-1/2 -translate-x-1/2 z-40",
-          "bg-card/95 backdrop-blur-xl border border-border/50 rounded-2xl shadow-2xl",
+          "bg-card/95 backdrop-blur-xl border border-border/50 rounded-xl shadow-2xl",
           "px-4 py-3 flex items-center gap-3",
           "max-w-[95vw] sm:max-w-xl"
         )}
@@ -68,7 +68,7 @@ export const FloatingCompareBar = React.forwardRef<HTMLDivElement>(
             >
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <div className="w-12 h-12 rounded-2xl overflow-hidden border-2 border-border/50 bg-muted cursor-pointer hover:border-primary/50 transition-colors">
+                  <div className="w-12 h-12 rounded-xl overflow-hidden border-2 border-border/50 bg-muted cursor-pointer hover:border-primary/50 transition-colors">
                     <img
                       src={entry.product.images[0]}
                       alt={entry.product.name}
@@ -111,7 +111,7 @@ export const FloatingCompareBar = React.forwardRef<HTMLDivElement>(
           {Array.from({ length: 4 - compareCount }).map((_, idx) => (
             <div
               key={`empty-${idx}`}
-              className="w-12 h-12 rounded-2xl border-2 border-dashed border-border/50 flex items-center justify-center flex-shrink-0"
+              className="w-12 h-12 rounded-xl border-2 border-dashed border-border/50 flex items-center justify-center flex-shrink-0"
             >
               <span className="text-[11px] text-muted-foreground">+</span>
             </div>
@@ -144,7 +144,7 @@ export const FloatingCompareBar = React.forwardRef<HTMLDivElement>(
             disabled={compareCount < 2}
           >
             Comparar
-            <span className="text-xs bg-orange-foreground/20 px-1.5 py-0.5 rounded-2xl">
+            <span className="text-xs bg-orange-foreground/20 px-1.5 py-0.5 rounded-xl">
               {compareCount}
             </span>
             <ChevronRight className="h-4 w-4" />

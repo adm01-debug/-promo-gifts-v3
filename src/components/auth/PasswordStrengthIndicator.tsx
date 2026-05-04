@@ -145,7 +145,7 @@ export function PasswordStrengthIndicator({
       {/* Breach check */}
       {password.length >= 8 && (
         <div className={cn(
-          'flex items-start gap-2 p-2.5 rounded-2xl border text-xs',
+          'flex items-start gap-2 p-2.5 rounded-xl border text-xs',
           isChecking && 'bg-muted/50 border-muted',
           isBreached && 'bg-destructive/10 border-destructive/30',
           !isChecking && !isBreached && hasCheckedBreach && 'bg-success/10 border-success/30'

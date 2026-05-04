@@ -89,7 +89,7 @@ function MetricTile({
     destructive: { icon: "text-destructive", value: "text-destructive" },
   }[tone];
   return (
-    <div className="rounded-2xl border bg-muted/30 p-3 flex flex-col gap-1">
+    <div className="rounded-xl border bg-muted/30 p-3 flex flex-col gap-1">
       <div className="flex items-center gap-1.5">
         <Icon className={cn("h-3.5 w-3.5", cls.icon)} aria-hidden="true" />
         <span className="text-[11px] text-muted-foreground leading-none">{label}</span>
@@ -208,7 +208,7 @@ export function IncidentDetailsDrawer({ incident, open, onOpenChange }: Props) {
             {isLoading || !data ? (
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {Array.from({ length: 8 }).map((_, i) => (
-                  <Skeleton key={i} className="h-16 rounded-2xl" />
+                  <Skeleton key={i} className="h-16 rounded-xl" />
                 ))}
               </div>
             ) : (
@@ -293,11 +293,11 @@ export function IncidentDetailsDrawer({ incident, open, onOpenChange }: Props) {
                 {isLoading ? (
                   <Skeleton className="h-40" />
                 ) : data?.tests.length === 0 ? (
-                  <p className="text-xs text-muted-foreground p-4 text-center border border-dashed rounded-2xl">
+                  <p className="text-xs text-muted-foreground p-4 text-center border border-dashed rounded-xl">
                     Nenhum teste registrado nesta janela.
                   </p>
                 ) : (
-                  <div className="border rounded-2xl overflow-hidden">
+                  <div className="border rounded-xl overflow-hidden">
                     <Table>
                       <TableHeader>
                         <TableRow className="text-[10px]">
@@ -362,11 +362,11 @@ export function IncidentDetailsDrawer({ incident, open, onOpenChange }: Props) {
                 {isLoading ? (
                   <Skeleton className="h-40" />
                 ) : data?.deliveries.length === 0 ? (
-                  <p className="text-xs text-muted-foreground p-4 text-center border border-dashed rounded-2xl">
+                  <p className="text-xs text-muted-foreground p-4 text-center border border-dashed rounded-xl">
                     Nenhuma entrega de webhook nesta janela.
                   </p>
                 ) : (
-                  <div className="border rounded-2xl overflow-hidden">
+                  <div className="border rounded-xl overflow-hidden">
                     <Table>
                       <TableHeader>
                         <TableRow className="text-[10px]">

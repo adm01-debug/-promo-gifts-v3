@@ -82,7 +82,7 @@ export function PasskeyManager({ targetUserId }: PasskeyManagerProps) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center gap-3 p-4 rounded-2xl bg-muted/50 border border-border">
+          <div className="flex items-center gap-3 p-4 rounded-xl bg-muted/50 border border-border">
             <div className="p-2 rounded-full bg-muted">
               <Fingerprint className="h-5 w-5 text-muted-foreground" />
             </div>
@@ -121,7 +121,7 @@ export function PasskeyManager({ targetUserId }: PasskeyManagerProps) {
       <CardContent className="space-y-4">
         {/* Platform authenticator status - only show for own account */}
         {!isManagingOther && !hasPlatformAuth && (
-          <div className="flex items-center gap-3 p-4 rounded-2xl bg-warning/10 border border-warning/30">
+          <div className="flex items-center gap-3 p-4 rounded-xl bg-warning/10 border border-warning/30">
             <div className="p-2 rounded-full bg-warning/20">
               <Fingerprint className="h-5 w-5 text-warning" />
             </div>
@@ -140,7 +140,7 @@ export function PasskeyManager({ targetUserId }: PasskeyManagerProps) {
             {passkeys.map((passkey) => (
               <div
                 key={passkey.id}
-                className="flex items-center justify-between p-4 rounded-2xl bg-muted/50 border border-border hover:border-orange/30 transition-colors"
+                className="flex items-center justify-between p-4 rounded-xl bg-muted/50 border border-border hover:border-orange/30 transition-colors"
               >
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-full bg-orange/10">

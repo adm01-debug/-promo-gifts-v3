@@ -35,7 +35,7 @@ export function FavoritesHeatmap() {
   const peakMonth = peakDate.toLocaleDateString("pt-BR", { month: "long" });
 
   return (
-    <div className="flex items-center gap-3 px-3 py-2 rounded-2xl border border-border bg-card/50">
+    <div className="flex items-center gap-3 px-3 py-2 rounded-xl border border-border bg-card/50">
       <div className="flex items-end gap-0.5 h-8" aria-label="Histórico semanal de favoritos">
         {data.map((d, i) => {
           const h = Math.max(2, (d.item_count / max) * 28);

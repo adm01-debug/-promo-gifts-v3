@@ -562,7 +562,7 @@ export function VariantStockTable({ products, className }: VariantStockTableProp
         </div>
       </div>
       
-      <div className="rounded-2xl border overflow-x-auto">
+      <div className="rounded-xl border overflow-x-auto">
         <Table className="min-w-[700px]">
           <TableHeader className="sticky top-0 z-10 bg-background">
             <TableRow className="bg-muted/50">

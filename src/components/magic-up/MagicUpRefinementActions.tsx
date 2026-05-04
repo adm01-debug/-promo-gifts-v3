@@ -24,7 +24,7 @@ export function MagicUpRefinementActions({ activeRefinement, onApply }: MagicUpR
           {REFINEMENT_ACTIONS.map((item) => {
             const active = activeRefinement?.id === item.id;
             return (
-              <button key={item.id} type="button" onClick={() => onApply(item)} className={cn("rounded-2xl border px-2.5 py-2 text-left text-xs font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", active ? "border-primary bg-primary/10 text-primary ring-1 ring-primary/30" : "border-border bg-muted/30 text-foreground hover:border-primary/50 hover:bg-accent/50")} aria-pressed={active} title={item.instruction}>
+              <button key={item.id} type="button" onClick={() => onApply(item)} className={cn("rounded-xl border px-2.5 py-2 text-left text-xs font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", active ? "border-primary bg-primary/10 text-primary ring-1 ring-primary/30" : "border-border bg-muted/30 text-foreground hover:border-primary/50 hover:bg-accent/50")} aria-pressed={active} title={item.instruction}>
                 {item.label}
               </button>
             );

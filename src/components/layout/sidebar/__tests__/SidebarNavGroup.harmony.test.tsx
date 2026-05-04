@@ -63,7 +63,7 @@ const BASE_CLASSES = [
   "gap-3",
   "px-3",
   "py-2",
-  "rounded-2xl",
+  "rounded-xl",
   "transition-all",
   "duration-200",
   "group",

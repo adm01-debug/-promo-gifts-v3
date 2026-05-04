@@ -39,7 +39,7 @@ export function QuoteTotalsSummary({ items, discountPercent, discountAmount, shi
 
   return (
     <div className="flex justify-end">
-      <div className="w-full max-w-sm rounded-2xl border border-border overflow-hidden">
+      <div className="w-full max-w-sm rounded-xl border border-border overflow-hidden">
         <div className="p-4 space-y-2">
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Subtotal produtos:</span>

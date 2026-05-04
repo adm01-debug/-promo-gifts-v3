@@ -251,7 +251,7 @@ function MarketTooltip({ active, payload, showCost }: { active?: boolean; payloa
   const hasActivity = (depleted != null && depleted > 0) || (restocked != null && restocked > 0);
 
   return (
-    <div className="bg-popover border border-border rounded-2xl p-3 shadow-lg min-w-[180px]">
+    <div className="bg-popover border border-border rounded-xl p-3 shadow-lg min-w-[180px]">
       <p className="text-xs font-medium text-foreground">{data.fullDate}</p>
       <div className="mt-2 space-y-1.5">
         <div className="flex justify-between text-xs">

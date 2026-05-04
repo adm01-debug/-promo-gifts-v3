@@ -150,7 +150,7 @@ export function StockDashboard() {
     return (
       <div className="space-y-5" aria-live="polite" aria-busy="true">
         <div className="flex items-center gap-3 rounded-xl border border-border/40 bg-card px-4 py-3">
-          <div className="h-8 w-8 rounded-2xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+          <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
             <Package className="h-4 w-4 text-primary animate-pulse" />
           </div>
           <div className="flex-1 min-w-0">

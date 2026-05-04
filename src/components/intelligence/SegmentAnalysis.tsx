@@ -15,7 +15,7 @@ export function SegmentAnalysis({ days = 30, categoryId, supplierId }: { days?: 
       <Card>
         <CardHeader className="pb-3"><Skeleton className="h-5 w-48" /></CardHeader>
         <CardContent className="space-y-3">
-          {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-10 rounded-2xl" />)}
+          {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-10 rounded-xl" />)}
         </CardContent>
       </Card>
     );
@@ -41,7 +41,7 @@ export function SegmentAnalysis({ days = 30, categoryId, supplierId }: { days?: 
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center gap-2">
-          <div className="w-7 h-7 rounded-2xl skin-icon flex items-center justify-center">
+          <div className="w-7 h-7 rounded-xl skin-icon flex items-center justify-center">
             <PieChart className="h-3.5 w-3.5" />
           </div>
           🎯 Top Clientes por Faturamento

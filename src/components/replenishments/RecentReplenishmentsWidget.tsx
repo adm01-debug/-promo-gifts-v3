@@ -107,7 +107,7 @@ export function RecentReplenishmentsWidget() {
                         <button
                           type="button"
                           className={cn(
-                            "group w-full flex items-center gap-2 p-1.5 rounded-2xl cursor-pointer text-left",
+                            "group w-full flex items-center gap-2 p-1.5 rounded-xl cursor-pointer text-left",
                             "hover:bg-info/10 transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-info",
                             isVeryNew ? "border border-info/20 hover:border-info/40 bg-info/5" : "border border-transparent",
                           )}

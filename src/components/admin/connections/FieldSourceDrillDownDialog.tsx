@@ -110,7 +110,7 @@ export function FieldSourceDrillDownDialog({ open, onOpenChange, data }: FieldSo
 
             <div className="space-y-4">
               {/* Origem técnica */}
-              <div className="rounded-2xl border bg-muted/30 p-3 space-y-2">
+              <div className="rounded-xl border bg-muted/30 p-3 space-y-2">
                 <div className="flex items-center justify-between gap-2 flex-wrap">
                   <div className="flex items-center gap-2 text-xs font-semibold">
                     {kindIcon(data.technicalSource.kind)}
@@ -156,7 +156,7 @@ export function FieldSourceDrillDownDialog({ open, onOpenChange, data }: FieldSo
                     {data.emptyMessage ?? "Nenhuma amostra disponível no momento."}
                   </p>
                 ) : (
-                  <ScrollArea className="max-h-64 rounded-2xl border">
+                  <ScrollArea className="max-h-64 rounded-xl border">
                     <ul className="divide-y">
                       {data.samples.map((s, i) => (
                         <li key={`${s.label}-${i}`} className="flex items-center justify-between gap-3 px-3 py-2">

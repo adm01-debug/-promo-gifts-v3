@@ -80,7 +80,7 @@ export function MockupClientSelector({ selectedClient, onClientSelect }: MockupC
   if (selectedClient) {
     return (
       <div
-        className="flex items-center gap-3 w-full rounded-2xl border border-border bg-background px-3 py-2 min-h-[44px] cursor-pointer group hover:border-primary/50 transition-colors"
+        className="flex items-center gap-3 w-full rounded-xl border border-border bg-background px-3 py-2 min-h-[44px] cursor-pointer group hover:border-primary/50 transition-colors"
         data-testid="mockup-client-chip"
         onClick={() => {
           onClientSelect(null);
@@ -163,7 +163,7 @@ export function MockupClientSelector({ selectedClient, onClientSelect }: MockupC
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -4, scale: 0.98 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className="absolute z-50 w-full mt-1 rounded-2xl border border-primary/30 bg-popover shadow-xl shadow-black/25 overflow-hidden ring-1 ring-primary/10"
+            className="absolute z-50 w-full mt-1 rounded-xl border border-primary/30 bg-popover shadow-xl shadow-black/25 overflow-hidden ring-1 ring-primary/10"
           >
             {/* Header com contagem */}
             <div className="flex items-center justify-between px-3 py-2 border-b border-border/50 bg-muted/30">

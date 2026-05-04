@@ -200,7 +200,7 @@ export function VariantSelector({
                         <button
                           key={variant.id}
                           className={cn(
-                            'px-2 py-1 rounded-2xl text-xs border transition-colors',
+                            'px-2 py-1 rounded-xl text-xs border transition-colors',
                             'hover:bg-accent hover:border-primary/40',
                             isActive
                               ? 'bg-primary/10 border-primary/40 text-primary font-medium'
@@ -230,7 +230,7 @@ export function VariantSelector({
                 <button
                   key={variant.id}
                   className={cn(
-                    'w-full flex items-center gap-2 px-2 py-1.5 rounded-2xl text-left text-sm transition-colors',
+                    'w-full flex items-center gap-2 px-2 py-1.5 rounded-xl text-left text-sm transition-colors',
                     'hover:bg-accent',
                     isActive && 'bg-primary/10 text-primary'
                   )}

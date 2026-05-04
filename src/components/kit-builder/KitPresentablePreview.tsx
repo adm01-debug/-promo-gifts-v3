@@ -111,8 +111,8 @@ export function KitPresentablePreview({
           </h4>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
             {kitState.box && (
-              <div className="rounded-2xl border bg-card p-2 space-y-2">
-                <div className="aspect-square rounded-2xl bg-muted/40 flex items-center justify-center overflow-hidden">
+              <div className="rounded-xl border bg-card p-2 space-y-2">
+                <div className="aspect-square rounded-xl bg-muted/40 flex items-center justify-center overflow-hidden">
                   {kitState.box.imageUrl ? (
                     <img
                       src={kitState.box.imageUrl}
@@ -131,8 +131,8 @@ export function KitPresentablePreview({
               </div>
             )}
             {kitState.items.map((item) => (
-              <div key={item.id} className="rounded-2xl border bg-card p-2 space-y-2">
-                <div className="aspect-square rounded-2xl bg-muted/40 flex items-center justify-center overflow-hidden">
+              <div key={item.id} className="rounded-xl border bg-card p-2 space-y-2">
+                <div className="aspect-square rounded-xl bg-muted/40 flex items-center justify-center overflow-hidden">
                   {item.imageUrl ? (
                     <img
                       src={item.imageUrl}
@@ -159,15 +159,15 @@ export function KitPresentablePreview({
 
         {/* Pricing block */}
         <div className="grid grid-cols-3 gap-3 text-center">
-          <div className="rounded-2xl bg-muted/30 p-3">
+          <div className="rounded-xl bg-muted/30 p-3">
             <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Quantidade</p>
             <p className="text-xl font-bold font-display">{kitQuantity}<span className="text-xs font-normal text-muted-foreground"> kits</span></p>
           </div>
-          <div className="rounded-2xl bg-muted/30 p-3">
+          <div className="rounded-xl bg-muted/30 p-3">
             <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Por kit</p>
             <p className="text-xl font-bold font-display">{formatCurrency(kitState.totalPrice)}</p>
           </div>
-          <div className="rounded-2xl bg-primary/10 p-3 border border-primary/20">
+          <div className="rounded-xl bg-primary/10 p-3 border border-primary/20">
             <p className="text-[10px] uppercase tracking-wider text-primary">Investimento</p>
             <p className="text-xl font-bold font-display text-primary">{formatCurrency(grandTotal)}</p>
           </div>
@@ -192,7 +192,7 @@ export function KitPresentablePreview({
               Gerar link de apresentação para o cliente
             </Button>
           ) : (
-            <div className="rounded-2xl border bg-muted/30 p-3 space-y-2">
+            <div className="rounded-xl border bg-muted/30 p-3 space-y-2">
               <p className="text-[11px] text-muted-foreground">Link válido por 30 dias</p>
               <div className="flex gap-2">
                 <input

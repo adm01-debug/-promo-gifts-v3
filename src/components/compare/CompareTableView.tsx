@@ -117,7 +117,7 @@ export function CompareTableView({
               {entries.map((entry) => (
                 <div
                   key={`sticky-${entry.index}`}
-                  className="flex items-center gap-2 px-2 py-1 rounded-2xl bg-card border border-border shrink-0 min-w-[180px]"
+                  className="flex items-center gap-2 px-2 py-1 rounded-xl bg-card border border-border shrink-0 min-w-[180px]"
                 >
                   <img
                     src={hoveredVariant[entry.index] ?? entry.product.images[0]}
@@ -160,7 +160,7 @@ export function CompareTableView({
                           <img
                             src={hoveredVariant[entry.index] ?? entry.product.images[0]}
                             alt={entry.product.name}
-                            className="w-24 h-24 rounded-2xl object-cover cursor-pointer hover:ring-2 hover:ring-primary transition-all"
+                            className="w-24 h-24 rounded-xl object-cover cursor-pointer hover:ring-2 hover:ring-primary transition-all"
                             onClick={() => navigate(`/produto/${entry.product.id}`)}
                             loading="lazy"
                           />

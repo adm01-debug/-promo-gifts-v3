@@ -20,7 +20,7 @@ export function EmpiricalRecommendations({ ramoAtividade, clientId }: Props) {
     <Card className="border-[1.5px] border-amber-500/30 bg-gradient-to-br from-amber-50/30 to-transparent dark:from-amber-950/10">
       <CardContent className="p-5 space-y-4">
         <div className="flex items-start gap-3">
-          <div className="h-8 w-8 rounded-2xl bg-amber-500/15 flex items-center justify-center shrink-0">
+          <div className="h-8 w-8 rounded-xl bg-amber-500/15 flex items-center justify-center shrink-0">
             <Lightbulb className="h-4 w-4 text-amber-600 dark:text-amber-400" />
           </div>
           <div className="flex-1">

@@ -111,7 +111,7 @@ export function CreateListDialog({ open, onOpenChange, existing, onCreate }: Pro
                   type="button"
                   onClick={() => setColor(c)}
                   className={cn(
-                    "w-8 h-8 rounded-2xl border-2 transition-all",
+                    "w-8 h-8 rounded-xl border-2 transition-all",
                     color === c ? "border-foreground scale-110 shadow-md" : "border-transparent hover:scale-105"
                   )}
                   style={{ backgroundColor: c }}

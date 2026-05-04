@@ -28,7 +28,7 @@ function DeltaPill({ pct }: { pct: number }) {
   const Icon = positive ? ArrowUpRight : ArrowDownRight;
   const cls = positive ? "text-success bg-success/10" : "text-destructive bg-destructive/10";
   return (
-    <span className={cn("inline-flex items-center gap-0.5 rounded-2xl px-1.5 py-0.5 text-[10px] font-bold", cls)}>
+    <span className={cn("inline-flex items-center gap-0.5 rounded-xl px-1.5 py-0.5 text-[10px] font-bold", cls)}>
       <Icon className="h-3 w-3" />
       {Math.abs(Math.round(pct))}%
     </span>

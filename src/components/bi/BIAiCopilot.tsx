@@ -134,7 +134,7 @@ export function BIAiCopilot({ open, onOpenChange, clientId, clientName, ramoAtiv
       <SheetContent side="right" className="w-full sm:max-w-md p-0 flex flex-col">
         <SheetHeader className="p-5 pb-3 border-b bg-gradient-to-r from-violet-500/10 to-fuchsia-500/10">
           <SheetTitle className="flex items-center gap-2 font-display">
-            <div className="h-8 w-8 rounded-2xl bg-gradient-to-br from-violet-600 to-fuchsia-600 flex items-center justify-center">
+            <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-violet-600 to-fuchsia-600 flex items-center justify-center">
               <Sparkles className="h-4 w-4 text-white" />
             </div>
             Pergunte ao BI
@@ -148,7 +148,7 @@ export function BIAiCopilot({ open, onOpenChange, clientId, clientName, ramoAtiv
           <div className="p-4 space-y-3">
             {messages.length === 0 && (
               <div className="space-y-3">
-                <div className="rounded-2xl border border-dashed p-4 text-center space-y-2">
+                <div className="rounded-xl border border-dashed p-4 text-center space-y-2">
                   <Bot className="h-8 w-8 text-muted-foreground mx-auto" />
                   <p className="text-[11px] text-muted-foreground">
                     Faça uma pergunta sobre este cliente. Eu uso todos os dados do BI para responder.
@@ -162,7 +162,7 @@ export function BIAiCopilot({ open, onOpenChange, clientId, clientName, ramoAtiv
                     <button
                       key={q}
                       onClick={() => handleSend(q)}
-                      className="w-full text-left text-xs p-2.5 rounded-2xl border bg-card hover:bg-muted/60 hover:border-primary/30 transition-colors"
+                      className="w-full text-left text-xs p-2.5 rounded-xl border bg-card hover:bg-muted/60 hover:border-primary/30 transition-colors"
                     >
                       {q}
                     </button>
@@ -183,7 +183,7 @@ export function BIAiCopilot({ open, onOpenChange, clientId, clientName, ramoAtiv
                 )}
                 <div
                   className={cn(
-                    "max-w-[80%] rounded-2xl px-3 py-2 text-sm whitespace-pre-wrap leading-relaxed",
+                    "max-w-[80%] rounded-xl px-3 py-2 text-sm whitespace-pre-wrap leading-relaxed",
                     m.role === "user"
                       ? "bg-primary text-primary-foreground rounded-br-sm"
                       : "bg-muted rounded-bl-sm",
@@ -204,7 +204,7 @@ export function BIAiCopilot({ open, onOpenChange, clientId, clientName, ramoAtiv
                 <div className="h-7 w-7 rounded-full bg-gradient-to-br from-violet-600 to-fuchsia-600 flex items-center justify-center shrink-0 mt-0.5">
                   <Bot className="h-3.5 w-3.5 text-white" />
                 </div>
-                <div className="bg-muted rounded-2xl rounded-bl-sm px-3 py-2 space-y-1.5 max-w-[80%]">
+                <div className="bg-muted rounded-xl rounded-bl-sm px-3 py-2 space-y-1.5 max-w-[80%]">
                   <Skeleton className="h-3 w-32" />
                   <Skeleton className="h-3 w-48" />
                   <Skeleton className="h-3 w-24" />

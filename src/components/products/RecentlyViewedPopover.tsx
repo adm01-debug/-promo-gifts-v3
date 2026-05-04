@@ -88,7 +88,7 @@ export function RecentlyViewedPopover({ maxVisible = 10 }: RecentlyViewedPopover
                   <button
                     onClick={() => navigate(`/produto/${product.id}`)}
                     className={cn(
-                      "w-full aspect-square rounded-2xl overflow-hidden border-2 border-border/50",
+                      "w-full aspect-square rounded-xl overflow-hidden border-2 border-border/50",
                       "bg-muted cursor-pointer hover:border-primary/50 transition-all duration-200",
                       "hover:scale-105 hover:shadow-md"
                     )}

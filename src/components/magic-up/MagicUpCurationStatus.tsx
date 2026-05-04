@@ -13,7 +13,7 @@ export function MagicUpCurationStatus({ value, disabled, onChange }: MagicUpCura
   const current = CURATION_STATUSES.find((status) => status.value === value);
 
   return (
-    <section className="rounded-2xl border bg-card p-3" aria-label="Status de curadoria">
+    <section className="rounded-xl border bg-card p-3" aria-label="Status de curadoria">
       <div className="flex items-center justify-between gap-2">
         <p className="text-sm font-semibold" id="curation-status-label">Curadoria</p>
         <Badge variant="outline" aria-live="polite">{current?.label || "Rascunho"}</Badge>
@@ -22,7 +22,7 @@ export function MagicUpCurationStatus({ value, disabled, onChange }: MagicUpCura
         role="radiogroup"
         aria-labelledby="curation-status-label"
         tabIndex={0}
-        className="mt-2 flex gap-1.5 overflow-x-auto pb-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-2xl"
+        className="mt-2 flex gap-1.5 overflow-x-auto pb-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-xl"
       >
         {CURATION_STATUSES.map((status) => {
           const active = status.value === value;

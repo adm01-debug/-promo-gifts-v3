@@ -11,7 +11,7 @@ export function ProductListItemSkeleton() {
       <div className="absolute inset-0 bg-shimmer animate-shimmer pointer-events-none" />
 
       {/* Thumbnail */}
-      <Skeleton className="w-14 h-14 sm:w-[72px] sm:h-[72px] rounded-2xl shrink-0 bg-muted/40" />
+      <Skeleton className="w-14 h-14 sm:w-[72px] sm:h-[72px] rounded-xl shrink-0 bg-muted/40" />
 
       {/* Info block */}
       <div className="flex-1 min-w-0 py-0.5 space-y-1.5">

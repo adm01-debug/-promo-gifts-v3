@@ -32,7 +32,7 @@ export function ClientDetailHeader({ client }: ClientDetailHeaderProps) {
         </Tooltip>
       </TooltipProvider>
       <div className="flex items-start gap-4">
-        <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
+        <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
           {client.logo_url ? (
             <img src={client.logo_url} alt={name} className="h-full w-full object-cover" />
           ) : (

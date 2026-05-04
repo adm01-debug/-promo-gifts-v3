@@ -191,7 +191,7 @@ export function McpTab() {
                 const expiresLabel = formatExpiresIn(k.expires_at);
                 const expired = expiresLabel === "expirada";
                 return (
-                  <div key={k.id} className="flex items-center justify-between p-3 border border-border rounded-2xl">
+                  <div key={k.id} className="flex items-center justify-between p-3 border border-border rounded-xl">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-medium">{k.name}</span>

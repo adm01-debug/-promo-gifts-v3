@@ -12,7 +12,7 @@ interface OrderStatusTimelineProps {
 export function OrderStatusTimeline({ status }: OrderStatusTimelineProps) {
   if (status === "cancelled") {
     return (
-      <div className="flex items-center gap-2 rounded-2xl border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">
+      <div className="flex items-center gap-2 rounded-xl border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">
         <XCircle className="h-4 w-4" /> Pedido cancelado
       </div>
     );

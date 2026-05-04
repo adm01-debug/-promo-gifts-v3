@@ -29,7 +29,7 @@ export function RamosFilter({
   return (
     <div className="space-y-3">
       {(filters.ramosAtividade.length > 0 || filters.segmentosAtividade.length > 0) && (
-        <div className="p-2.5 bg-orange/5 rounded-2xl border border-orange/20">
+        <div className="p-2.5 bg-orange/5 rounded-xl border border-orange/20">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-medium text-orange flex items-center gap-1.5">
               <Building2 className="h-3 w-3" />
@@ -81,9 +81,9 @@ export function RamosFilter({
       </div>
       {ramosLoading ? (
         <div className="space-y-2">
-          <Skeleton className="h-10 w-full rounded-2xl" />
-          <Skeleton className="h-10 w-full rounded-2xl" />
-          <Skeleton className="h-10 w-full rounded-2xl" />
+          <Skeleton className="h-10 w-full rounded-xl" />
+          <Skeleton className="h-10 w-full rounded-xl" />
+          <Skeleton className="h-10 w-full rounded-xl" />
         </div>
       ) : (
         <ScrollArea className="h-48">

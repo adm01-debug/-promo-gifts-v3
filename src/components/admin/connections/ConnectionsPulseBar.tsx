@@ -78,7 +78,7 @@ function MiniKpi({
   const content = (
     <div
       className={cn(
-        "flex items-center gap-1.5 px-2.5 py-1 rounded-2xl bg-background/60 border min-w-0 transition-colors",
+        "flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-background/60 border min-w-0 transition-colors",
         explainOn && explain ? "border-primary/40 bg-primary/5" : "border-border/40",
       )}
     >
@@ -248,7 +248,7 @@ export function ConnectionsPulseBar() {
             <button
               type="button"
               onClick={() => refetch()}
-              className="ml-1 inline-flex items-center gap-1 rounded-2xl border border-border/50 bg-background/60 px-2 py-1 text-[11px] text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+              className="ml-1 inline-flex items-center gap-1 rounded-xl border border-border/50 bg-background/60 px-2 py-1 text-[11px] text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
               aria-label="Atualizar status global"
             >
               <RefreshCw className={cn("h-3 w-3", isFetching && "animate-spin")} />

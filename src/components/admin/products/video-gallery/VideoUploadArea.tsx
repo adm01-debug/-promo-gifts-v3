@@ -45,7 +45,7 @@ export function VideoUploadArea({
       {/* Type & variant selector */}
       <div className="flex flex-wrap items-center gap-2 px-3 py-2.5 bg-muted/30 border-b border-border/30">
         <Select value={uploadVideoType} onValueChange={setUploadVideoType}>
-          <SelectTrigger className="h-8 w-auto min-w-[140px] gap-1.5 text-xs rounded-2xl bg-gradient-to-r from-primary/15 via-primary/10 to-primary/5 border border-primary/30 hover:border-primary/50 hover:from-primary/20 hover:via-primary/15 hover:to-primary/10 shadow-[0_0_8px_hsl(var(--primary)/0.15)] hover:shadow-[0_0_12px_hsl(var(--primary)/0.25)] transition-all duration-300 text-foreground/90">
+          <SelectTrigger className="h-8 w-auto min-w-[140px] gap-1.5 text-xs rounded-xl bg-gradient-to-r from-primary/15 via-primary/10 to-primary/5 border border-primary/30 hover:border-primary/50 hover:from-primary/20 hover:via-primary/15 hover:to-primary/10 shadow-[0_0_8px_hsl(var(--primary)/0.15)] hover:shadow-[0_0_12px_hsl(var(--primary)/0.25)] transition-all duration-300 text-foreground/90">
             
             <span className="text-muted-foreground/70 font-normal">Tipo:</span>
             <SelectValue />
@@ -61,7 +61,7 @@ export function VideoUploadArea({
 
         {variants.length > 0 && (
           <Select value={uploadVariant} onValueChange={setUploadVariant}>
-            <SelectTrigger className="h-8 w-auto min-w-[160px] gap-1.5 text-xs rounded-2xl bg-background/60 border-border/40 hover:bg-background/80 transition-colors">
+            <SelectTrigger className="h-8 w-auto min-w-[160px] gap-1.5 text-xs rounded-xl bg-background/60 border-border/40 hover:bg-background/80 transition-colors">
               <Palette className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
               <SelectValue placeholder="Sem variação" />
             </SelectTrigger>
@@ -105,7 +105,7 @@ export function VideoUploadArea({
         ) : (
           <>
             <div className={cn(
-              "w-10 h-10 rounded-2xl flex items-center justify-center transition-colors",
+              "w-10 h-10 rounded-xl flex items-center justify-center transition-colors",
               isDragOver ? "bg-primary/15" : "bg-muted/30"
             )}>
               {isDragOver ? <FileVideo className="h-5 w-5 text-primary" /> : <Upload className="h-5 w-5 text-muted-foreground/50" />}

@@ -161,7 +161,7 @@ export function CartHeaderButton() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-8 text-[11px] gap-1.5 px-3 rounded-2xl text-primary hover:bg-primary/10 font-bold transition-all hover:scale-105 active:scale-95"
+                        className="h-8 text-[11px] gap-1.5 px-3 rounded-xl text-primary hover:bg-primary/10 font-bold transition-all hover:scale-105 active:scale-95"
                         onClick={() => setShowPicker(true)}
                       >
                         <Plus className="h-3.5 w-3.5" />
@@ -181,7 +181,7 @@ export function CartHeaderButton() {
                   {[...Array(2)].map((_, i) => (
                     <div key={i} className="rounded-xl border border-border/40 p-3 space-y-4 animate-pulse">
                       <div className="flex items-center gap-2.5">
-                        <Skeleton className="h-9 w-9 rounded-2xl" />
+                        <Skeleton className="h-9 w-9 rounded-xl" />
                         <div className="flex-1 space-y-2">
                           <Skeleton className="h-3.5 w-1/2" />
                           <Skeleton className="h-2.5 w-1/3" />
@@ -191,7 +191,7 @@ export function CartHeaderButton() {
                         <div className="space-y-2.5 pt-2 border-t border-border/20">
                           {[...Array(2)].map((_, j) => (
                             <div key={j} className="flex items-center gap-2">
-                              <Skeleton className="h-8 w-8 rounded-2xl" />
+                              <Skeleton className="h-8 w-8 rounded-xl" />
                               <div className="flex-1 space-y-1.5">
                                 <Skeleton className="h-2.5 w-3/4" />
                                 <Skeleton className="h-2 w-1/4" />
@@ -205,7 +205,7 @@ export function CartHeaderButton() {
                 </div>
               ) : carts.length === 0 ? (
                 <div className="px-4 pb-5 pt-6 text-center">
-                  <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-muted/30 flex items-center justify-center">
+                  <div className="w-14 h-14 mx-auto mb-3 rounded-xl bg-muted/30 flex items-center justify-center">
                     <Package className="h-7 w-7 text-muted-foreground/50" />
                   </div>
                   <p className="text-sm font-medium mb-1">Nenhum carrinho</p>
@@ -214,7 +214,7 @@ export function CartHeaderButton() {
                   </p>
                   <Button
                     size="sm"
-                    className="gap-1.5 text-xs rounded-2xl"
+                    className="gap-1.5 text-xs rounded-xl"
                     onClick={() => setShowPicker(true)}
                   >
                     <Plus className="h-3.5 w-3.5" />
@@ -248,10 +248,10 @@ export function CartHeaderButton() {
                                 <img
                                   src={cart.company_logo_url}
                                   alt="Logo da empresa"
-                                  className="w-9 h-9 rounded-2xl object-contain bg-background border border-border/50 flex-shrink-0 p-0.5" loading="lazy" />
+                                  className="w-9 h-9 rounded-xl object-contain bg-background border border-border/50 flex-shrink-0 p-0.5" loading="lazy" />
                               ) : (
                                 <div className={cn(
-                                  "w-9 h-9 rounded-2xl flex items-center justify-center flex-shrink-0",
+                                  "w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0",
                                   isActive ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"
                                 )}>
                                   <Building2 className="h-4 w-4" />
@@ -289,7 +289,7 @@ export function CartHeaderButton() {
                                     <Tooltip>
                                     <TooltipTrigger asChild>
                                       <button
-                                        className="h-7 w-7 flex items-center justify-center rounded-2xl text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                                        className="h-7 w-7 flex items-center justify-center rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           clearCart(cart.id);
@@ -307,7 +307,7 @@ export function CartHeaderButton() {
                                   <Tooltip>
                                   <TooltipTrigger asChild>
                                     <button
-                                      className="h-7 w-7 flex items-center justify-center rounded-2xl text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
+                                      className="h-7 w-7 flex items-center justify-center rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
                                       style={{ opacity: isActive ? 1 : undefined }}
                                       onClick={(e) => {
                                         e.stopPropagation();
@@ -329,24 +329,24 @@ export function CartHeaderButton() {
                                 {cart.items.slice(0, 5).map((item) => (
                                    <div
                                      key={item.id}
-                                     className="flex items-start gap-2.5 py-1.5 px-1.5 rounded-2xl hover:bg-background/60 group/item transition-colors relative"
+                                     className="flex items-start gap-2.5 py-1.5 px-1.5 rounded-xl hover:bg-background/60 group/item transition-colors relative"
                                    >
                                      <div className="relative flex-shrink-0 group/img">
                                        {item.product_image_url ? (
                                          <img
                                            src={item.product_image_url}
                                            alt={item.product_name}
-                                           className="w-9 h-9 rounded-2xl object-contain bg-background border border-border/30 p-0.5 mt-0.5 transition-transform group-hover/img:scale-110" 
+                                           className="w-9 h-9 rounded-xl object-contain bg-background border border-border/30 p-0.5 mt-0.5 transition-transform group-hover/img:scale-110" 
                                            loading="lazy" 
                                          />
                                        ) : (
-                                         <div className="w-9 h-9 rounded-2xl bg-muted/40 flex items-center justify-center mt-0.5">
+                                         <div className="w-9 h-9 rounded-xl bg-muted/40 flex items-center justify-center mt-0.5">
                                            <Package className="h-3.5 w-3.5 text-muted-foreground/50" />
                                          </div>
                                        )}
                                        <button 
                                          onClick={(e) => { e.stopPropagation(); navigate(`/produto/${item.product_id}`); setOpen(false); }}
-                                         className="absolute inset-0 bg-primary/10 flex items-center justify-center rounded-2xl opacity-0 group-hover/img:opacity-100 transition-opacity"
+                                         className="absolute inset-0 bg-primary/10 flex items-center justify-center rounded-xl opacity-0 group-hover/img:opacity-100 transition-opacity"
                                        >
                                          <Eye className="h-3 w-3 text-primary" />
                                        </button>
@@ -366,7 +366,7 @@ export function CartHeaderButton() {
                                            className="flex-row items-center gap-1.5 space-y-0 text-[10px]"
                                          />
                                         {/* Qty stepper */}
-                                        <div className="flex items-center gap-0 border border-border/50 rounded-2xl overflow-hidden">
+                                        <div className="flex items-center gap-0 border border-border/50 rounded-xl overflow-hidden">
                                           <button
                                             className="h-6 w-6 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
                                             onClick={(e) => {
@@ -453,7 +453,7 @@ export function CartHeaderButton() {
                           </span>
                         </div>
                         <Button
-                          className="w-full gap-2 text-xs h-10 rounded-2xl font-semibold bg-primary hover:bg-primary/90 text-primary-foreground"
+                          className="w-full gap-2 text-xs h-10 rounded-xl font-semibold bg-primary hover:bg-primary/90 text-primary-foreground"
                           onClick={() => {
                             const cartIdToDelete = activeCart.id;
                             setOpen(false);

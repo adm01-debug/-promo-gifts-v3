@@ -67,7 +67,7 @@ export function RegressionGuardrailBanner() {
         <div className="flex items-start gap-3">
           <div
             className={cn(
-              'p-2.5 rounded-2xl shrink-0',
+              'p-2.5 rounded-xl shrink-0',
               meta.tone === 'destructive' && 'bg-destructive/15 text-destructive',
               meta.tone === 'warning' && 'bg-warning/15 text-warning',
               meta.tone === 'success' && 'bg-success/15 text-success',
@@ -172,7 +172,7 @@ function MetricDelta({ label, current, baseline, deltaPct, unit = '%', inverted 
   const isGood = hasDelta && (inverted ? deltaPct! < 0 : deltaPct! > 0);
 
   return (
-    <div className="rounded-2xl border border-border/40 bg-background/50 p-2">
+    <div className="rounded-xl border border-border/40 bg-background/50 p-2">
       <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</p>
       <p className="font-mono text-sm font-semibold tabular-nums">{current}</p>
       <p className="text-[10px] text-muted-foreground">

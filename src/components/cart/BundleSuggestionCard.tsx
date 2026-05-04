@@ -48,7 +48,7 @@ export function BundleSuggestionCard({ productId, onAdd, className }: BundleSugg
     <Card className={`border-primary/20 shadow-sm hover:shadow-md transition-shadow animate-in zoom-in-95 duration-300 ${className ?? ""}`}>
       <CardHeader className="pb-2">
         <CardTitle className="text-sm flex items-center gap-2">
-          <div className="p-1 rounded-2xl bg-primary/10">
+          <div className="p-1 rounded-xl bg-primary/10">
             <Sparkles className="h-4 w-4 text-primary" />
           </div>
           Frequentemente orçado em conjunto
@@ -61,13 +61,13 @@ export function BundleSuggestionCard({ productId, onAdd, className }: BundleSugg
         {isLoading ? (
           <div className="space-y-3 animate-pulse">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="flex items-center gap-2.5 p-2.5 rounded-2xl">
-                <Skeleton className="w-10 h-10 rounded-2xl shrink-0 opacity-20" />
+              <div key={i} className="flex items-center gap-2.5 p-2.5 rounded-xl">
+                <Skeleton className="w-10 h-10 rounded-xl shrink-0 opacity-20" />
                 <div className="flex-1 space-y-2">
                   <Skeleton className="h-3 w-3/4 opacity-15" />
                   <Skeleton className="h-2 w-1/2 opacity-10" />
                 </div>
-                <Skeleton className="h-7 w-12 rounded-2xl opacity-20" />
+                <Skeleton className="h-7 w-12 rounded-xl opacity-20" />
               </div>
             ))}
           </div>
@@ -78,7 +78,7 @@ export function BundleSuggestionCard({ productId, onAdd, className }: BundleSugg
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               key={item.product_id}
-              className="flex items-center gap-2 p-2 rounded-2xl hover:bg-muted/50 transition-colors"
+              className="flex items-center gap-2 p-2 rounded-xl hover:bg-muted/50 transition-colors"
             >
               {item.product_image_url ? (
                 <img

@@ -98,7 +98,7 @@ export function VolumeIndicator({
       </div>
 
       {usagePercent > 100 && (
-        <div className="bg-destructive/10 border border-destructive/30 rounded-2xl p-2 text-sm text-destructive flex items-center gap-2">
+        <div className="bg-destructive/10 border border-destructive/30 rounded-xl p-2 text-sm text-destructive flex items-center gap-2">
           <AlertTriangle className="h-4 w-4 flex-shrink-0" />
           <span>Volume excede a capacidade da caixa. Remova alguns itens.</span>
         </div>

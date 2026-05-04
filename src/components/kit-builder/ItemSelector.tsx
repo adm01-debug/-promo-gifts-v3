@@ -75,14 +75,14 @@ export function ItemSelector({
   return (
     <div className="space-y-4">
       {!boxSelected && (
-        <div className="bg-warning/10 border border-warning/30 rounded-2xl p-4 flex items-center gap-3">
+        <div className="bg-warning/10 border border-warning/30 rounded-xl p-4 flex items-center gap-3">
           <AlertTriangle className="h-5 w-5 text-warning flex-shrink-0" />
           <p className="text-sm">Selecione uma caixa primeiro para verificar a compatibilidade dos itens.</p>
         </div>
       )}
 
       {lastError && (
-        <div className="bg-destructive/10 border border-destructive/30 rounded-2xl p-4 flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+        <div className="bg-destructive/10 border border-destructive/30 rounded-xl p-4 flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
           <X className="h-5 w-5 text-destructive flex-shrink-0" />
           <p className="text-sm text-destructive">{lastError}</p>
         </div>

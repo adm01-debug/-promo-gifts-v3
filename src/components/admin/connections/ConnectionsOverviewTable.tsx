@@ -66,7 +66,7 @@ function BulkTestProgressPanel({
 }) {
   const pct = progress.total > 0 ? Math.round((progress.done / progress.total) * 100) : 0;
   return (
-    <div className="flex items-center gap-3 rounded-2xl border bg-muted/30 px-3 py-2">
+    <div className="flex items-center gap-3 rounded-xl border bg-muted/30 px-3 py-2">
       <div className="flex-1 space-y-1.5">
         <div
           role="status"
@@ -356,7 +356,7 @@ export function ConnectionsOverviewTable({ refreshSignal }: ConnectionsOverviewT
             ))}
           </div>
         ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed py-10 text-center">
+          <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed py-10 text-center">
             <Clock className="h-6 w-6 text-muted-foreground" />
             <p className="text-sm text-muted-foreground">
               {activeCount > 0

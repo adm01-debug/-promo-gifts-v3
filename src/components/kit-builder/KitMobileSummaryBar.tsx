@@ -31,7 +31,7 @@ export function KitMobileSummaryBar({ kitState, kitQuantity, children }: KitMobi
             aria-label="Abrir resumo do kit"
           >
             <div className="flex items-center gap-2 min-w-0">
-              <div className="h-9 w-9 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
+              <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                 <Package className="h-4 w-4 text-primary" />
               </div>
               <div className="min-w-0">

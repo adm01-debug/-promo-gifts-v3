@@ -35,7 +35,7 @@ export function ExternalCollectionCard({
         onClick={onNavigate}
       >
         <div
-          className="w-12 h-12 rounded-2xl flex items-center justify-center text-lg shrink-0 overflow-hidden"
+          className="w-12 h-12 rounded-xl flex items-center justify-center text-lg shrink-0 overflow-hidden"
           style={{ backgroundColor: collection.color ? `${collection.color}20` : "hsl(var(--muted))" }}
         >
           {collection.image_url ? (
@@ -75,7 +75,7 @@ export function ExternalCollectionCard({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05, type: "spring", stiffness: 400, damping: 25 }}
-      className="group relative rounded-2xl bg-card overflow-hidden cursor-pointer border-[1.5px] border-border/40 hover:border-primary/40 shadow-sm transition-all duration-500"
+      className="group relative rounded-xl bg-card overflow-hidden cursor-pointer border-[1.5px] border-border/40 hover:border-primary/40 shadow-sm transition-all duration-500"
       onClick={onNavigate}
     >
       <div
@@ -129,7 +129,7 @@ export function ExternalCollectionCard({
         </div>
 
         <div className="flex items-center justify-between">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-2xl bg-muted/50 text-xs text-muted-foreground font-medium">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-muted/50 text-xs text-muted-foreground font-medium">
             <Package className="h-3 w-3 text-primary" />
             {productCount ?? "…"} produtos
           </span>

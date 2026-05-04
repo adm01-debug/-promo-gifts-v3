@@ -188,7 +188,7 @@ export function MultiEngravingResult({
 
       {/* Warning if errors */}
       {hasErrors && !isCalculating && (
-        <div className="p-4 rounded-2xl bg-destructive/10 border border-destructive/20 text-destructive">
+        <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive">
           <AlertCircle className="w-5 h-5 mb-2" />
           <p className="font-medium">Algumas técnicas não puderam ser calculadas</p>
           <p className="text-sm mt-1">
@@ -334,7 +334,7 @@ export function MultiEngravingResult({
 
           {/* Info sobre faturamento mínimo */}
           {hasMinimumApplied && (
-            <div className="p-3 rounded-2xl bg-warning/10 dark:bg-warning/10 text-warning dark:text-warning text-sm">
+            <div className="p-3 rounded-xl bg-warning/10 dark:bg-warning/10 text-warning dark:text-warning text-sm">
               <div className="flex items-center gap-2">
                 <Info className="w-4 h-4" />
                 <span className="font-medium">Faturamento mínimo aplicado</span>

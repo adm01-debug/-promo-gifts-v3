@@ -7,7 +7,7 @@ const Skeleton = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivEl
       <div
         ref={ref}
         className={cn(
-          "relative overflow-hidden rounded-2xl bg-muted",
+          "relative overflow-hidden rounded-xl bg-muted",
           "after:absolute after:inset-0",
           "after:bg-gradient-to-r after:from-transparent after:via-white/[0.06] after:to-transparent",
           "after:animate-[shimmer_1.8s_ease-in-out_infinite]",

@@ -44,7 +44,7 @@ export function QuoteBuilderProductSearch({
       <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col gap-4">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2.5">
-            <div className="h-8 w-8 rounded-2xl bg-primary/10 flex items-center justify-center">
+            <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center">
               <Package className="h-4 w-4 text-primary" />
             </div>
             <div>
@@ -92,16 +92,16 @@ export function QuoteBuilderProductSearch({
                       const formatStock = (qty: number) => qty >= 1000 ? `${(qty / 1000).toFixed(1)}k` : qty.toString();
                       return (
                         <button key={product.id} onClick={() => onProductClick(product)} className={cn(
-                          "group w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl border transition-all text-left",
+                          "group w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-all text-left",
                           isOutOfStock ? "border-destructive/20 bg-destructive/5 opacity-75" : isLowStock ? "border-warning/20 hover:bg-accent/60" : "border-transparent hover:bg-accent/60"
                         )}>
                           <div className="relative shrink-0">
                             {product.images && product.images.length > 0 ? (
                               
-<img loading="lazy" src={`${product.images[0]}/thumbnail`} alt={product.name} className="h-11 w-11 object-cover rounded-2xl bg-muted"
+<img loading="lazy" src={`${product.images[0]}/thumbnail`} alt={product.name} className="h-11 w-11 object-cover rounded-xl bg-muted"
                                 onError={(e) => { const t = e.currentTarget; if (t.src.includes('/thumbnail')) t.src = product.images![0]; else t.style.display = 'none'; }} />
                             ) : (
-                              <div className="h-11 w-11 bg-muted rounded-2xl flex items-center justify-center"><Package className="h-5 w-5 text-muted-foreground" /></div>
+                              <div className="h-11 w-11 bg-muted rounded-xl flex items-center justify-center"><Package className="h-5 w-5 text-muted-foreground" /></div>
                             )}
                             {isOutOfStock && <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-destructive flex items-center justify-center"><X className="h-2.5 w-2.5 text-destructive-foreground" /></div>}
                             {isLowStock && <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-warning flex items-center justify-center"><AlertTriangle className="h-2.5 w-2.5 text-primary-foreground" /></div>}

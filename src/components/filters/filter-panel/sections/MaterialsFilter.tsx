@@ -33,7 +33,7 @@ export function MaterialsFilter({
   return (
     <div className="space-y-3">
       {(materialFilterState.selectedGroups.length > 0 || materialFilterState.selectedTypes.length > 0) && (
-        <div className="p-2.5 bg-orange/5 rounded-2xl border border-orange/20">
+        <div className="p-2.5 bg-orange/5 rounded-xl border border-orange/20">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-medium text-orange flex items-center gap-1.5">
               <Gem className="h-3 w-3" />
@@ -88,9 +88,9 @@ export function MaterialsFilter({
       </div>
       {materialsLoading ? (
         <div className="space-y-2">
-          <Skeleton className="h-10 w-full rounded-2xl" />
-          <Skeleton className="h-10 w-full rounded-2xl" />
-          <Skeleton className="h-10 w-full rounded-2xl" />
+          <Skeleton className="h-10 w-full rounded-xl" />
+          <Skeleton className="h-10 w-full rounded-xl" />
+          <Skeleton className="h-10 w-full rounded-xl" />
         </div>
       ) : (
         <ScrollArea className="h-48">
@@ -105,7 +105,7 @@ export function MaterialsFilter({
                 const selectedTypesCount = types.filter(t => materialFilterState.selectedTypes.includes(t.type_slug)).length;
                 const hasSelection = isSelected || selectedTypesCount > 0;
                 return (
-                  <div key={group.group_slug} className={cn("rounded-2xl border transition-all", hasSelection ? "border-orange/30 bg-orange/5" : "border-border/50 hover:border-border")}>
+                  <div key={group.group_slug} className={cn("rounded-xl border transition-all", hasSelection ? "border-orange/30 bg-orange/5" : "border-border/50 hover:border-border")}>
                     <div className="flex items-center gap-2 p-2">
                       <Checkbox checked={isSelected} onCheckedChange={() => toggleMaterialGroup(group.group_slug)} className="h-4 w-4" />
                       <button type="button" onClick={() => toggleSection(`mat-${group.group_slug}`)} className="flex-1 flex items-center justify-between text-left" aria-label={`${isOpen ? 'Recolher' : 'Expandir'} tipos de ${group.group_name}`}>
@@ -123,7 +123,7 @@ export function MaterialsFilter({
                           {[...types].sort((a, b) => a.type_name.localeCompare(b.type_name, 'pt-BR')).filter(t => !materialSearch || t.type_name.toLowerCase().includes(materialSearch.toLowerCase())).map(type => {
                             const isTypeSelected = materialFilterState.selectedTypes.includes(type.type_slug);
                             return (
-                              <div key={type.type_slug} className={cn("flex items-center gap-2 py-1 px-2 rounded-2xl transition-colors", isTypeSelected ? "bg-orange/10" : "hover:bg-muted/50")}>
+                              <div key={type.type_slug} className={cn("flex items-center gap-2 py-1 px-2 rounded-xl transition-colors", isTypeSelected ? "bg-orange/10" : "hover:bg-muted/50")}>
                                 <Checkbox checked={isTypeSelected} onCheckedChange={() => toggleMaterialType(type.type_slug)} className="h-3.5 w-3.5" />
                                 <Label className="text-xs cursor-pointer flex-1">{type.type_name}</Label>
                               </div>

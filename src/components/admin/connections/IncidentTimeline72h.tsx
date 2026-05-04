@@ -92,7 +92,7 @@ export function IncidentTimeline72h() {
 
   if (isLoading) {
     return (
-      <div className="rounded-2xl border bg-card px-4 py-3 animate-pulse" aria-busy="true">
+      <div className="rounded-xl border bg-card px-4 py-3 animate-pulse" aria-busy="true">
         <div className="h-3 w-40 bg-muted rounded mb-3" />
         <div className="h-2 w-full bg-muted rounded-full" />
       </div>
@@ -106,7 +106,7 @@ export function IncidentTimeline72h() {
     <TooltipProvider delayDuration={150}>
       <section
         aria-label="Timeline de incidentes nas últimas 72 horas"
-        className="rounded-2xl border bg-card px-4 py-3 space-y-2"
+        className="rounded-xl border bg-card px-4 py-3 space-y-2"
       >
         <header className="flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">

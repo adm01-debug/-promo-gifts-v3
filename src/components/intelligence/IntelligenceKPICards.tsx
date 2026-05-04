@@ -27,7 +27,7 @@ export function IntelligenceKPICards({ days, categoryId, supplierId, productId, 
       <Card>
         <CardContent className="py-4">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-            {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-20 rounded-2xl" />)}
+            {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)}
           </div>
         </CardContent>
       </Card>

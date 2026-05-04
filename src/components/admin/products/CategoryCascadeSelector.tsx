@@ -103,7 +103,7 @@ function CascadeSelects({
             onValueChange={(v) => handleChange(i, v)}
           >
             <SelectTrigger className={cn(
-              "h-9 text-xs min-w-[160px] max-w-[220px] rounded-2xl border-border/60",
+              "h-9 text-xs min-w-[160px] max-w-[220px] rounded-xl border-border/60",
               "bg-background/50 hover:bg-accent/30 transition-all duration-200",
               level.selectedId && "border-primary/30 bg-primary/5"
             )}>
@@ -170,7 +170,7 @@ function TreeNode({
       <button
         type="button"
         className={cn(
-          'flex items-center gap-2 w-full text-left py-1.5 px-2.5 rounded-2xl text-sm transition-all duration-150',
+          'flex items-center gap-2 w-full text-left py-1.5 px-2.5 rounded-xl text-sm transition-all duration-150',
           'hover:bg-accent/50',
           isSelected && 'bg-primary/10 text-primary font-medium ring-1 ring-primary/20'
         )}
@@ -251,7 +251,7 @@ function CategoryTreeDialog({
   return (
     <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setSearch(''); }}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="h-9 gap-1.5 text-xs shrink-0 rounded-2xl border-border/60 hover:border-primary/30 hover:bg-primary/5 transition-all duration-200">
+        <Button variant="outline" size="sm" className="h-9 gap-1.5 text-xs shrink-0 rounded-xl border-border/60 hover:border-primary/30 hover:bg-primary/5 transition-all duration-200">
           <TreePine className="h-3.5 w-3.5" />
           Árvore
         </Button>
@@ -269,7 +269,7 @@ function CategoryTreeDialog({
             placeholder="Buscar categoria..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="pl-9 h-9 text-sm rounded-2xl"
+            className="pl-9 h-9 text-sm rounded-xl"
           />
         </div>
         <ScrollArea className="h-[360px] -mx-2">
@@ -303,7 +303,7 @@ export function CategoryCascadeSelector({ value, onChange, error }: CategoryCasc
   if (isLoading) {
     return (
       <div className="space-y-3">
-        <div className="h-9 bg-muted/20 rounded-2xl animate-pulse" />
+        <div className="h-9 bg-muted/20 rounded-xl animate-pulse" />
         <div className="h-5 w-48 bg-muted/15 rounded animate-pulse" />
       </div>
     );
@@ -324,7 +324,7 @@ export function CategoryCascadeSelector({ value, onChange, error }: CategoryCasc
 
       {/* Breadcrumb - Elegant path display */}
       {selectedNode ? (
-        <div className="flex items-center gap-0.5 flex-wrap bg-muted/20 rounded-2xl px-3 py-2 border border-border/30">
+        <div className="flex items-center gap-0.5 flex-wrap bg-muted/20 rounded-xl px-3 py-2 border border-border/30">
           <Layers className="h-3.5 w-3.5 text-muted-foreground mr-1.5 shrink-0" />
           {selectedNode.fullPath.map((segment, i) => {
             const isLast = i === selectedNode.fullPath.length - 1;
@@ -332,7 +332,7 @@ export function CategoryCascadeSelector({ value, onChange, error }: CategoryCasc
               <span key={i} className="flex items-center gap-0.5">
                 {i > 0 && <ChevronRight className="h-3 w-3 text-muted-foreground/40 mx-0.5" />}
                 <span className={cn(
-                  'text-xs px-2 py-0.5 rounded-2xl transition-colors',
+                  'text-xs px-2 py-0.5 rounded-xl transition-colors',
                   isLast
                     ? 'bg-primary/15 text-primary font-medium border border-primary/20'
                     : 'text-muted-foreground hover:text-foreground'
@@ -344,7 +344,7 @@ export function CategoryCascadeSelector({ value, onChange, error }: CategoryCasc
           })}
           <button
             type="button"
-            className="ml-2 p-1 rounded-2xl hover:bg-destructive/10 hover:text-destructive transition-all duration-200 group"
+            className="ml-2 p-1 rounded-xl hover:bg-destructive/10 hover:text-destructive transition-all duration-200 group"
             onClick={() => onChange('')}
             title="Limpar seleção"
           >
@@ -353,8 +353,8 @@ export function CategoryCascadeSelector({ value, onChange, error }: CategoryCasc
         </div>
       ) : (
         /* Empty state */
-        <div className="flex items-center gap-3 bg-muted/10 rounded-2xl px-4 py-3 border border-dashed border-border/40">
-          <div className="flex items-center justify-center w-8 h-8 rounded-2xl bg-muted/30">
+        <div className="flex items-center gap-3 bg-muted/10 rounded-xl px-4 py-3 border border-dashed border-border/40">
+          <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-muted/30">
             <FolderTree className="h-4 w-4 text-muted-foreground/60" />
           </div>
           <div>

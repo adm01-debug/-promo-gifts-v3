@@ -71,7 +71,7 @@ export function ComparisonRadarChart({ products, className }: ComparisonRadarCha
 
   return (
     <div className={className}>
-      <div className="rounded-2xl border bg-card p-4">
+      <div className="rounded-xl border bg-card p-4">
         <h3 className="text-sm font-semibold mb-2 flex items-center gap-2">
           <span className="inline-block w-1 h-4 bg-primary rounded-full" />
           Radar comparativo (0–100, maior é melhor)

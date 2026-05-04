@@ -154,7 +154,7 @@ export function CredentialsSourceIndicator({ secrets, isLoading, onRefresh, clas
   return (
     <div
       className={[
-        "rounded-2xl border bg-card px-4 py-3",
+        "rounded-xl border bg-card px-4 py-3",
         "flex items-start gap-3 flex-wrap",
         className ?? "",
       ].join(" ")}
@@ -162,7 +162,7 @@ export function CredentialsSourceIndicator({ secrets, isLoading, onRefresh, clas
       aria-live="polite"
       data-testid="credentials-source-indicator"
     >
-      <div className="h-9 w-9 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
+      <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
         <Database className="h-4 w-4 text-primary" aria-hidden="true" />
       </div>
 

@@ -180,7 +180,7 @@ export function AIRecommendationsPanel({
     <div className={cn("space-y-4 font-display", className)}>
       {/* Formulário do cliente */}
       {!hideClientForm && (
-        <Card className="border-[1.5px] border-border rounded-2xl">
+        <Card className="border-[1.5px] border-border rounded-xl">
           <CardContent className="p-5 space-y-4">
             <FormSection title="Perfil do cliente" description="Quanto mais detalhes, melhores as recomendações.">
               <div className="grid gap-3 sm:grid-cols-2">
@@ -285,7 +285,7 @@ export function AIRecommendationsPanel({
           </div>
 
           {insights && (
-            <Card className="border-[1.5px] border-primary/30 bg-primary/5 rounded-2xl">
+            <Card className="border-[1.5px] border-primary/30 bg-primary/5 rounded-xl">
               <CardHeader className="p-5 pb-2">
                 <CardTitle className="text-base font-display flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-primary" aria-hidden="true" />

@@ -54,7 +54,7 @@ export function MagicUpCreativeControls({ value, onChange }: MagicUpCreativeCont
             {NEGATIVE_PROMPTS.map((item) => {
               const active = value.negativePrompt.includes(item);
               return (
-                <button key={item} type="button" onClick={() => toggleNegativePrompt(item)} className={cn("px-2.5 py-1 rounded-2xl text-xs border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", active ? "border-primary bg-primary/10 text-primary" : "border-border bg-muted/30 text-muted-foreground hover:border-primary/50")} aria-pressed={active}>
+                <button key={item} type="button" onClick={() => toggleNegativePrompt(item)} className={cn("px-2.5 py-1 rounded-xl text-xs border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", active ? "border-primary bg-primary/10 text-primary" : "border-border bg-muted/30 text-muted-foreground hover:border-primary/50")} aria-pressed={active}>
                   {item}
                 </button>
               );

@@ -43,7 +43,7 @@ export function TechniqueMultiSelector({ productId, selectedTechniques, onToggle
   });
 
   if (isLoading) return <div className="space-y-2">{[1, 2, 3].map(i => <Skeleton key={i} className="h-16" />)}</div>;
-  if (error) return <div className="p-4 rounded-2xl bg-destructive/10 border border-destructive/20 text-destructive"><AlertCircle className="w-5 h-5 mb-2" /><p>Erro ao carregar técnicas</p></div>;
+  if (error) return <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive"><AlertCircle className="w-5 h-5 mb-2" /><p>Erro ao carregar técnicas</p></div>;
   if (!techniques?.length) return <div className="text-center py-8 text-muted-foreground"><Paintbrush className="w-8 h-8 mx-auto mb-2 opacity-50" /><p>Este produto não possui técnicas de personalização cadastradas</p></div>;
 
   const grouped = techniques.reduce((acc, tech) => { (acc[tech.componentName] ??= []).push(tech); return acc; }, {} as Record<string, ProductTechnique[]>);
@@ -60,7 +60,7 @@ export function TechniqueMultiSelector({ productId, selectedTechniques, onToggle
               const selected = isSelected(tech.id);
               return (
                 <button key={tech.id} onClick={() => onToggleTechnique(tech, !selected)}
-                  className={cn("p-3 rounded-2xl border text-left transition-all", selected ? "bg-primary/10 border-primary ring-1 ring-primary" : "bg-card hover:bg-accent border-border")}>
+                  className={cn("p-3 rounded-xl border text-left transition-all", selected ? "bg-primary/10 border-primary ring-1 ring-primary" : "bg-card hover:bg-accent border-border")}>
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex items-center gap-2"><Checkbox checked={selected} className="pointer-events-none" /><span className="font-medium">{tech.techniqueName}</span></div>
                     {tech.isDefault && <Badge variant="secondary" className="text-xs"><Sparkles className="w-3 h-3 mr-1" />Padrão</Badge>}

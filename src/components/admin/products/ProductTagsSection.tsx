@@ -113,8 +113,8 @@ export function ProductTagsSection({ productId }: ProductTagsSectionProps) {
   if (isLoading) {
     return (
       <div className="space-y-2">
-        <Skeleton className="h-12 w-full rounded-2xl" />
-        <Skeleton className="h-12 w-full rounded-2xl" />
+        <Skeleton className="h-12 w-full rounded-xl" />
+        <Skeleton className="h-12 w-full rounded-xl" />
       </div>
     );
   }
@@ -139,7 +139,7 @@ export function ProductTagsSection({ productId }: ProductTagsSectionProps) {
     <div className="space-y-3">
       {/* Badges dos selecionados */}
       {linkedCount > 0 && (
-        <div className="p-2.5 bg-primary/5 rounded-2xl border border-primary/20">
+        <div className="p-2.5 bg-primary/5 rounded-xl border border-primary/20">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-medium text-primary flex items-center gap-1.5">
               <Tag className="h-3 w-3" />
@@ -229,7 +229,7 @@ export function ProductTagsSection({ productId }: ProductTagsSectionProps) {
                 <label
                   key={tag.id}
                   className={cn(
-                    "flex items-center gap-2.5 py-1.5 px-2.5 rounded-2xl cursor-pointer text-sm transition-all duration-150",
+                    "flex items-center gap-2.5 py-1.5 px-2.5 rounded-xl cursor-pointer text-sm transition-all duration-150",
                     isLinked
                       ? "bg-primary/15 text-foreground font-medium shadow-sm"
                       : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"

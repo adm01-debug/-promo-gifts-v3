@@ -127,7 +127,7 @@ export function HorizontalStepper({
                 </div>
 
                 {hoveredStep === i && hasMissing && (
-                  <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 z-50 w-max max-w-[220px] rounded-2xl border border-border bg-popover p-2.5 shadow-lg animate-fade-in">
+                  <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 z-50 w-max max-w-[220px] rounded-xl border border-border bg-popover p-2.5 shadow-lg animate-fade-in">
                     <p className="text-[10px] font-semibold text-warning mb-1.5">Campos obrigatórios:</p>
                     <ul className="space-y-0.5">
                       {missingFields[i].map((label) => (

@@ -79,7 +79,7 @@ export function MaterialGroupTree({
           <div
             key={group.group_id}
             className={cn(
-              "rounded-2xl overflow-hidden transition-all duration-200",
+              "rounded-xl overflow-hidden transition-all duration-200",
               hasAnySelection
                 ? "bg-gradient-to-r from-primary/10 to-primary/5 ring-1 ring-primary/30"
                 : "bg-muted/30 hover:bg-muted/50"
@@ -90,7 +90,7 @@ export function MaterialGroupTree({
                 type="button"
                 onClick={() => onToggleGroup(group.group_id)}
                 className={cn(
-                  "p-1 rounded-2xl transition-all duration-200",
+                  "p-1 rounded-xl transition-all duration-200",
                   isOpen ? "bg-primary/10" : "bg-muted hover:bg-muted/80"
                 )}
               >
@@ -143,7 +143,7 @@ export function MaterialGroupTree({
                       <div key={type.id}>
                         <label
                           className={cn(
-                            "flex items-center gap-2.5 py-1.5 px-2.5 rounded-2xl cursor-pointer text-sm transition-all duration-150",
+                            "flex items-center gap-2.5 py-1.5 px-2.5 rounded-xl cursor-pointer text-sm transition-all duration-150",
                             isLinked
                               ? "bg-primary/15 text-foreground font-medium shadow-sm"
                               : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"

@@ -229,7 +229,7 @@ export const SmartSearchInput = forwardRef<HTMLDivElement, SmartSearchInputProps
                           initial={{ opacity: 0, x: -8 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: index * 0.03 }}
-                          className="flex items-center gap-3 px-3 py-2 rounded-2xl hover:bg-muted group cursor-pointer transition-colors"
+                          className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-muted group cursor-pointer transition-colors"
                           onClick={() => { addToHistory(item); submitSearch(item.label); }}
                         >
                           <Clock className="h-4 w-4 text-muted-foreground" />

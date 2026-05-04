@@ -49,9 +49,9 @@ export function UpcomingDatesWidget({
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            <Skeleton className="h-14 w-full rounded-2xl" />
-            <Skeleton className="h-14 w-full rounded-2xl" />
-            <Skeleton className="h-14 w-3/4 rounded-2xl" />
+            <Skeleton className="h-14 w-full rounded-xl" />
+            <Skeleton className="h-14 w-full rounded-xl" />
+            <Skeleton className="h-14 w-3/4 rounded-xl" />
           </div>
         </CardContent>
       </Card>
@@ -171,7 +171,7 @@ function CompactDateCard({ date, onClick }: DateCardProps) {
       type="button"
       onClick={onClick}
       className={cn(
-        "flex-shrink-0 flex flex-col items-center gap-1.5 p-3 rounded-2xl border transition-all",
+        "flex-shrink-0 flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all",
         "hover:border-primary hover:bg-primary/5",
         isToday && "border-success bg-success/10",
         isThisWeek && !isToday && "border-warning/50 bg-warning/5/50 dark:bg-warning/10"
@@ -216,7 +216,7 @@ function FullDateCard({ date, onClick, isFirst }: DateCardProps) {
       type="button"
       onClick={onClick}
       className={cn(
-        "w-full flex items-center gap-3 p-3 rounded-2xl border transition-all text-left",
+        "w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left",
         "hover:border-primary hover:bg-primary/5",
         isFirst && "border-primary/50 bg-primary/5",
         isToday && "border-success bg-success/10",
@@ -225,7 +225,7 @@ function FullDateCard({ date, onClick, isFirst }: DateCardProps) {
     >
       {/* Cor indicadora */}
       <div
-        className="w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0"
+        className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
         style={{ backgroundColor: date.color_hex || "hsl(var(--muted))" }}
       >
         {date.is_featured ? (

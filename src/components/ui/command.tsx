@@ -13,7 +13,7 @@ const Command = React.forwardRef<
   <CommandPrimitive
     ref={ref}
       className={cn(
-        "flex h-full w-full flex-col overflow-hidden rounded-2xl [background-color:hsl(var(--command-surface))] text-popover-foreground",
+        "flex h-full w-full flex-col overflow-hidden rounded-xl [background-color:hsl(var(--command-surface))] text-popover-foreground",
         className,
       )}
     {...props}
@@ -27,7 +27,7 @@ const CommandDialog = ({ children, ...props }: CommandDialogProps) => {
   return (
     <Dialog {...props}>
       <DialogContent
-        className="overflow-hidden p-0 !rounded-2xl [border-color:hsl(var(--command-border))] bg-[hsl(var(--command-surface))] shadow-[0_24px_80px_hsl(var(--command-shadow))] max-w-[560px] [&>div]:overflow-hidden"
+        className="overflow-hidden p-0 !rounded-xl [border-color:hsl(var(--command-border))] bg-[hsl(var(--command-surface))] shadow-[0_24px_80px_hsl(var(--command-shadow))] max-w-[560px] [&>div]:overflow-hidden"
         showCloseButton={false}
       >
         <Command className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-group]]:px-2 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5">
@@ -47,7 +47,7 @@ const CommandInput = React.forwardRef<
     <CommandPrimitive.Input
       ref={ref}
       className={cn(
-        "flex h-11 w-full rounded-2xl bg-transparent py-3 text-sm outline-none ring-0 focus:outline-none focus:ring-0 placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50",
+        "flex h-11 w-full rounded-xl bg-transparent py-3 text-sm outline-none ring-0 focus:outline-none focus:ring-0 placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50",
         className,
       )}
       {...props}

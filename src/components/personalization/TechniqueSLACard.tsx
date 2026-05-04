@@ -138,7 +138,7 @@ export function TechniqueSLACard({
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
-            <div className="flex bg-muted rounded-2xl p-1">
+            <div className="flex bg-muted rounded-xl p-1">
               <Button
                 variant={sortBy === "sla" ? "secondary" : "ghost"}
                 size="sm"
@@ -181,7 +181,7 @@ export function TechniqueSLACard({
               <TooltipProvider key={technique.id}>
                 <div
                   className={cn(
-                    "relative border rounded-2xl p-4 transition-all cursor-pointer hover:shadow-md",
+                    "relative border rounded-xl p-4 transition-all cursor-pointer hover:shadow-md",
                     isSelected
                       ? "border-primary bg-primary/5 shadow-sm"
                       : "border-border hover:border-primary/50",

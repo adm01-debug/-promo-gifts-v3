@@ -56,7 +56,7 @@ export function LoadingOverlay({
               transition={{ duration: 0.2, delay: 0.1 }}
               className={cn(
                 "flex flex-col items-center gap-3",
-                variant !== "inline" && "bg-card/80 backdrop-blur-md rounded-2xl p-6 shadow-xl border"
+                variant !== "inline" && "bg-card/80 backdrop-blur-md rounded-xl p-6 shadow-xl border"
               )}
             >
               <div className="relative">

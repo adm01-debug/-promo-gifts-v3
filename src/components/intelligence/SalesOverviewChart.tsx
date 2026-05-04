@@ -59,7 +59,7 @@ export function SalesOverviewChart({ days = 30, productId }: Props) {
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
-            <div className="w-7 h-7 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+            <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
               <ShoppingCart className="h-3.5 w-3.5 text-primary-foreground" />
             </div>
             📊 Vendas Internas (Macro)
@@ -82,7 +82,7 @@ export function SalesOverviewChart({ days = 30, productId }: Props) {
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div>
             <CardTitle className="text-base flex items-center gap-2">
-              <div className="w-7 h-7 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+              <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
                 <ShoppingCart className="h-3.5 w-3.5 text-primary-foreground" />
               </div>
               📊 Vendas Internas (Macro)
@@ -186,7 +186,7 @@ function SalesMacroTooltip({ active, payload }: any) {
   const hasAny = (data.quotedQty > 0) || (data.orderedQty > 0);
 
   return (
-    <div className="bg-popover border border-border rounded-2xl p-3 shadow-lg min-w-[180px]">
+    <div className="bg-popover border border-border rounded-xl p-3 shadow-lg min-w-[180px]">
       <p className="text-xs font-medium text-foreground">{data.fullDate}</p>
       <div className="mt-2 space-y-1.5">
         {!hasAny && <p className="text-xs text-muted-foreground italic">Sem movimentação</p>}

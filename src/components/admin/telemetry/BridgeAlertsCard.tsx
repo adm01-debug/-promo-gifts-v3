@@ -145,7 +145,7 @@ function AlertRow({ alert }: { alert: BridgeAlert }) {
   const limitStr = alert.metric === 'p95' ? formatMs(alert.threshold) : formatBytes(alert.threshold);
   return (
     <li
-      className={`flex items-center gap-3 p-2.5 rounded-2xl border ${
+      className={`flex items-center gap-3 p-2.5 rounded-xl border ${
         isCrit
           ? 'border-destructive/40 bg-destructive/10'
           : 'border-warning/40 bg-warning/10'
@@ -191,7 +191,7 @@ function ThresholdEditor({
   const respCritKb = Math.round(t.avgRespCritBytes / 1024);
 
   return (
-    <div className="rounded-2xl border border-border/60 p-3 bg-muted/20 space-y-3">
+    <div className="rounded-xl border border-border/60 p-3 bg-muted/20 space-y-3">
       <div className="flex items-center justify-between">
         <h4 className="text-sm font-semibold">{label}</h4>
         <Button variant="ghost" size="sm" onClick={() => resetThresholds(bridge)}>

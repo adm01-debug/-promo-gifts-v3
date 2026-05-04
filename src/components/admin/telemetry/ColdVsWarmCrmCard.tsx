@@ -133,14 +133,14 @@ export function ColdVsWarmCrmCard() {
         ) : (
           <>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              <div className="p-3 rounded-2xl border border-border/50 bg-muted/30">
+              <div className="p-3 rounded-xl border border-border/50 bg-muted/30">
                 <p className="text-[10px] uppercase tracking-wide text-muted-foreground">client_build_ms</p>
                 <p className={`font-display text-2xl font-bold tabular-nums ${tone(snap.boot.client_build_ms, 50, 200)}`}>
                   {fmtMs(snap.boot.client_build_ms)}
                 </p>
                 <p className="text-[10px] text-muted-foreground mt-0.5">instanciação do client</p>
               </div>
-              <div className="p-3 rounded-2xl border border-border/50 bg-muted/30">
+              <div className="p-3 rounded-xl border border-border/50 bg-muted/30">
                 <p className="text-[10px] uppercase tracking-wide text-muted-foreground">warmup_ms</p>
                 <p className={`font-display text-2xl font-bold tabular-nums ${tone(snap.boot.warmup_ms, 1000, 3000)}`}>
                   {fmtMs(snap.boot.warmup_ms)}
@@ -153,28 +153,28 @@ export function ColdVsWarmCrmCard() {
                       : 'aguardando…'}
                 </p>
               </div>
-              <div className="p-3 rounded-2xl border border-border/50 bg-muted/30">
+              <div className="p-3 rounded-xl border border-border/50 bg-muted/30">
                 <p className="text-[10px] uppercase tracking-wide text-muted-foreground">first_request_ms</p>
                 <p className={`font-display text-2xl font-bold tabular-nums ${tone(snap.runtime.first_request_ms, 800, 2500)}`}>
                   {fmtMs(snap.runtime.first_request_ms)}
                 </p>
                 <p className="text-[10px] text-muted-foreground mt-0.5">1ª request real (was_cold)</p>
               </div>
-              <div className="p-3 rounded-2xl border border-border/50 bg-muted/30">
+              <div className="p-3 rounded-xl border border-border/50 bg-muted/30">
                 <p className="text-[10px] uppercase tracking-wide text-muted-foreground">isolate idade</p>
                 <p className="font-display text-2xl font-bold tabular-nums">{fmtAge(snap.isolate.age_ms)}</p>
                 <p className="text-[10px] text-muted-foreground mt-0.5">
                   desde {new Date(snap.isolate.booted_at).toLocaleTimeString()}
                 </p>
               </div>
-              <div className="p-3 rounded-2xl border border-border/50 bg-muted/30">
+              <div className="p-3 rounded-xl border border-border/50 bg-muted/30">
                 <p className="text-[10px] uppercase tracking-wide text-muted-foreground">requests no isolate</p>
                 <p className="font-display text-2xl font-bold tabular-nums">{snap.isolate.request_count}</p>
                 <p className="text-[10px] text-muted-foreground mt-0.5">
                   {snap.isolate.cold_request_count} marcadas was_cold
                 </p>
               </div>
-              <div className="p-3 rounded-2xl border border-border/50 bg-muted/30">
+              <div className="p-3 rounded-xl border border-border/50 bg-muted/30">
                 <p className="text-[10px] uppercase tracking-wide text-muted-foreground">warmup começou em</p>
                 <p className="font-display text-2xl font-bold tabular-nums">
                   {fmtMs(snap.boot.warmup_started_at_ms)}

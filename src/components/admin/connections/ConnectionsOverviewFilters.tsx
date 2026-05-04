@@ -96,7 +96,7 @@ export function ConnectionsOverviewFilters({
                 return (
                   <label
                     key={value}
-                    className="flex cursor-pointer items-center gap-2 rounded-2xl px-2 py-1.5 text-sm hover:bg-muted"
+                    className="flex cursor-pointer items-center gap-2 rounded-xl px-2 py-1.5 text-sm hover:bg-muted"
                   >
                     <Checkbox
                       checked={checked}
@@ -114,7 +114,7 @@ export function ConnectionsOverviewFilters({
 
         {/* Status segmented */}
         <div
-          className="inline-flex items-center rounded-2xl border bg-background p-0.5"
+          className="inline-flex items-center rounded-xl border bg-background p-0.5"
           role="radiogroup"
           aria-label="Filtrar por status do último teste"
         >
@@ -159,7 +159,7 @@ export function ConnectionsOverviewFilters({
           onClick={() => setOnlyConsecutiveFailures(!filters.onlyConsecutiveFailures)}
           aria-pressed={filters.onlyConsecutiveFailures}
           className={cn(
-            "inline-flex h-9 items-center gap-1.5 rounded-2xl border px-3 text-xs font-medium transition-colors",
+            "inline-flex h-9 items-center gap-1.5 rounded-xl border px-3 text-xs font-medium transition-colors",
             filters.onlyConsecutiveFailures
               ? "border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/15"
               : "bg-background text-muted-foreground hover:text-foreground",

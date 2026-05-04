@@ -143,7 +143,7 @@ export function SimilarProducts({
     return (
       <section className="space-y-4">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-2xl bg-accent/50 flex items-center justify-center shrink-0">
+          <div className="w-9 h-9 rounded-xl bg-accent/50 flex items-center justify-center shrink-0">
             <Layers className="h-4.5 w-4.5 text-foreground" />
           </div>
           <h2 className="font-display text-lg font-bold text-foreground">Produtos Semelhantes</h2>
@@ -160,7 +160,7 @@ export function SimilarProducts({
     <section className="space-y-4 overflow-hidden">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0 flex-1">
-          <div className="w-9 h-9 rounded-2xl bg-accent/50 flex items-center justify-center shrink-0">
+          <div className="w-9 h-9 rounded-xl bg-accent/50 flex items-center justify-center shrink-0">
             <Layers className="h-4.5 w-4.5 text-foreground" />
           </div>
           <div className="min-w-0">

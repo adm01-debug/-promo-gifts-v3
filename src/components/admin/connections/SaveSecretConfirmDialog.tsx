@@ -106,7 +106,7 @@ export function SaveSecretConfirmDialog({
         )}
 
         {/* Impact */}
-        <div className="rounded-2xl border border-border bg-muted/30 p-4">
+        <div className="rounded-xl border border-border bg-muted/30 p-4">
           <h4 className="text-sm font-medium mb-2">Isto irá:</h4>
           <ul className="space-y-1.5 text-sm text-muted-foreground">
             <li className="flex items-center gap-2">
@@ -131,7 +131,7 @@ export function SaveSecretConfirmDialog({
         {errorMessage && (
           <div
             role="alert"
-            className="rounded-2xl border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive animate-in fade-in duration-200"
+            className="rounded-xl border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive animate-in fade-in duration-200"
           >
             {errorMessage}
           </div>

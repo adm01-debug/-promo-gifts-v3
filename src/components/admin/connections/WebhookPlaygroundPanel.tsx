@@ -193,7 +193,7 @@ export function WebhookPlaygroundPanel({ webhooks }: Props) {
 
         {result && (
           <div className={cn(
-            "p-3 rounded-2xl border",
+            "p-3 rounded-xl border",
             result.success
               ? "bg-success/5 border-success/20"
               : "bg-destructive/5 border-destructive/20",

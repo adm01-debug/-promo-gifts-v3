@@ -52,7 +52,7 @@ function AttemptRow({ row }: { row: StepUpAttemptRow }) {
   const meta = ACTION_META[row.action] ?? { label: row.action, Icon: AlertTriangle };
   const Icon = meta.Icon;
   return (
-    <li className="border border-border rounded-2xl p-3 hover:bg-muted/30 transition-colors">
+    <li className="border border-border rounded-xl p-3 hover:bg-muted/30 transition-colors">
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-2">
           <Icon className="h-4 w-4 text-destructive" />

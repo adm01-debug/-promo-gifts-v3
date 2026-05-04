@@ -14,7 +14,7 @@ export function MagicUpCampaignSummary({ campaign, channel, objective, tone, onS
   const status = CAMPAIGN_STATUSES.find((item) => item.value === campaign?.status)?.label || "Rascunho";
 
   return (
-    <div className="rounded-2xl border bg-muted/30 p-3 space-y-2">
+    <div className="rounded-xl border bg-muted/30 p-3 space-y-2">
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold">{campaign?.title || "Campanha sem nome"}</p>

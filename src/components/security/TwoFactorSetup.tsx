@@ -157,7 +157,7 @@ export function TwoFactorSetup({ targetUserId, targetUserEmail }: TwoFactorSetup
       <CardContent className="space-y-4">
         {is2FAEnabled ? (
           <div className="space-y-4">
-            <div className="flex items-center gap-2 text-success bg-success/10 p-3 rounded-2xl">
+            <div className="flex items-center gap-2 text-success bg-success/10 p-3 rounded-xl">
               <ShieldCheck className="h-5 w-5" />
               <span className="font-medium">2FA está ativo</span>
             </div>
@@ -264,7 +264,7 @@ export function TwoFactorSetup({ targetUserId, targetUserEmail }: TwoFactorSetup
               {qrData && (
                 <div className="space-y-6 py-4">
                   <div className="flex justify-center">
-                    <div className="bg-white p-4 rounded-2xl">
+                    <div className="bg-white p-4 rounded-xl">
                       <QRCodeSVG value={qrData.uri} size={200} />
                     </div>
                   </div>

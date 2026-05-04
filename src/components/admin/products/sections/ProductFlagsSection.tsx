@@ -90,7 +90,7 @@ export function ProductFlagsSection({ setValue, flags, expirations }: Props) {
             <div
               key={key}
               className={cn(
-                'flex flex-col rounded-2xl border transition-all duration-200',
+                'flex flex-col rounded-xl border transition-all duration-200',
                 value ? (activeClass || 'bg-primary/5 border-primary/20') : 'border-border/50',
               )}
             >

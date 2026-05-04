@@ -11,7 +11,7 @@ export function LatencyBadge({ ms, className }: { ms: number | null; className?:
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-2xl border px-1.5 py-0.5 text-xs font-medium tabular-nums",
+        "inline-flex items-center rounded-xl border px-1.5 py-0.5 text-xs font-medium tabular-nums",
         cls,
         className,
       )}

@@ -128,7 +128,7 @@ export function MockupPreview({
               </div>
             ) : (
               <div
-                className="absolute border-2 border-dashed border-primary/50 rounded-2xl bg-primary/10 flex items-center justify-center"
+                className="absolute border-2 border-dashed border-primary/50 rounded-xl bg-primary/10 flex items-center justify-center"
                 style={{
                   left: `${logoPosition.x}%`,
                   top: `${logoPosition.y}%`,
@@ -165,19 +165,19 @@ export function MockupPreview({
                 </div>
                 
                 <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div className="p-2 rounded-2xl bg-muted/50">
+                  <div className="p-2 rounded-xl bg-muted/50">
                     <p className="text-muted-foreground text-xs">Área</p>
                     <p className="font-semibold">{option.width}×{option.height}cm</p>
                   </div>
-                  <div className="p-2 rounded-2xl bg-muted/50">
+                  <div className="p-2 rounded-xl bg-muted/50">
                     <p className="text-muted-foreground text-xs">Cores</p>
                     <p className="font-semibold">{option.colors} cor(es)</p>
                   </div>
-                  <div className="p-2 rounded-2xl bg-muted/50">
+                  <div className="p-2 rounded-xl bg-muted/50">
                     <p className="text-muted-foreground text-xs">Posições</p>
                     <p className="font-semibold">{option.positions}</p>
                   </div>
-                  <div className="p-2 rounded-2xl bg-muted/50">
+                  <div className="p-2 rounded-xl bg-muted/50">
                     <p className="text-muted-foreground text-xs">Prazo</p>
                     <p className="font-semibold">~{option.estimatedDays} dias</p>
                   </div>

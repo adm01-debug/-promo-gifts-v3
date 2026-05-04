@@ -41,7 +41,7 @@ export function LoadingOverlay({
   variant = "default",
 }: LoadingOverlayProps) {
   const overlayVariants = {
-    card: "absolute inset-0 rounded-2xl z-10",
+    card: "absolute inset-0 rounded-xl z-10",
     inline: "inline-flex items-center gap-2",
     default: fullScreen ? "fixed inset-0 z-50" : "absolute inset-0 z-10",
   };
@@ -146,7 +146,7 @@ export function SkeletonPulse({ className }: { className?: string }) {
   return (
     <div 
       className={cn(
-        "animate-pulse rounded-2xl bg-muted",
+        "animate-pulse rounded-xl bg-muted",
         className
       )} 
     />

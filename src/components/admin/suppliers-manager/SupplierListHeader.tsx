@@ -38,12 +38,12 @@ export function SupplierListHeader({
         </div>
       </div>
       <div className="flex flex-wrap items-center gap-3">
-        <div className="flex items-center gap-1.5 rounded-2xl border border-border p-1">
+        <div className="flex items-center gap-1.5 rounded-xl border border-border p-1">
           <Button variant={filterType === 'all' ? 'default' : 'ghost'} size="sm" className="h-7 text-xs" onClick={() => setFilterType('all')}>Todos</Button>
           <Button variant={filterType === 'product' ? 'default' : 'ghost'} size="sm" className="h-7 text-xs" onClick={() => setFilterType('product')}>Produtos</Button>
           <Button variant={filterType === 'engraving' ? 'default' : 'ghost'} size="sm" className="h-7 text-xs" onClick={() => setFilterType('engraving')}>Gravação</Button>
         </div>
-        <div className="flex items-center gap-1.5 rounded-2xl border border-border p-1">
+        <div className="flex items-center gap-1.5 rounded-xl border border-border p-1">
           <Button variant={filterStatus === 'all' ? 'default' : 'ghost'} size="sm" className="h-7 text-xs" onClick={() => setFilterStatus('all')}>Todos</Button>
           <Button variant={filterStatus === 'active' ? 'default' : 'ghost'} size="sm" className="h-7 text-xs gap-1" onClick={() => setFilterStatus('active')}><CheckCircle2 className="h-3 w-3" />Ativos</Button>
           <Button variant={filterStatus === 'inactive' ? 'default' : 'ghost'} size="sm" className="h-7 text-xs gap-1" onClick={() => setFilterStatus('inactive')}><XCircle className="h-3 w-3" />Inativos</Button>

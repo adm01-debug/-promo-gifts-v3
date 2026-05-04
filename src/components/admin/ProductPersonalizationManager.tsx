@@ -156,7 +156,7 @@ export function ProductPersonalizationManager() {
                   <Accordion type="multiple" className="space-y-2">
                     {components.map(component => (
                       <SortableItem key={component.id} id={component.id}>
-                        <AccordionItem value={component.id} className="border rounded-2xl px-4">
+                        <AccordionItem value={component.id} className="border rounded-xl px-4">
                           <AccordionTrigger className="hover:no-underline">
                             <div className="flex items-center gap-3 flex-1">
                               <Badge variant="outline" className="font-mono">{component.component_code}</Badge>
@@ -168,7 +168,7 @@ export function ProductPersonalizationManager() {
                             </div>
                           </AccordionTrigger>
                           <AccordionContent className="pt-4 pb-2">
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-muted/30 rounded-2xl mb-4">
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-muted/30 rounded-xl mb-4">
                               <div><Label className="text-[11px] text-muted-foreground">Código</Label><InlineEditField value={component.component_code} onSave={v => updateComponentMutation.mutate({ id: component.id, component_code: v.toUpperCase() })} className="font-mono" /></div>
                               <div><Label className="text-[11px] text-muted-foreground">Nome</Label><InlineEditField value={component.component_name} onSave={v => updateComponentMutation.mutate({ id: component.id, component_name: v })} /></div>
                               <div className="flex items-center gap-2"><Switch checked={component.is_personalizable} onCheckedChange={c => updateComponentMutation.mutate({ id: component.id, is_personalizable: c })} /><Label className="text-sm">Personalizável</Label></div>
@@ -207,7 +207,7 @@ export function ProductPersonalizationManager() {
                               ) : (
                                 <div className="space-y-3 pl-6">
                                   {getLocationsForComponent(component.id).map(location => (
-                                    <div key={location.id} className="border rounded-2xl p-3 bg-muted/30">
+                                    <div key={location.id} className="border rounded-xl p-3 bg-muted/30">
                                       <div className="grid grid-cols-2 md:grid-cols-6 gap-3 mb-3">
                                         <div><Label className="text-[11px] text-muted-foreground">Código</Label><InlineEditField value={location.location_code} onSave={v => updateLocationMutation.mutate({ id: location.id, location_code: v.toUpperCase() })} className="font-mono text-xs" /></div>
                                         <div><Label className="text-[11px] text-muted-foreground">Nome</Label><InlineEditField value={location.location_name} onSave={v => updateLocationMutation.mutate({ id: location.id, location_name: v })} /></div>

@@ -103,7 +103,7 @@ export function ExpiringNoveltiesWidget() {
                      <div
                        key={item.novelty_id}
                        className={cn(
-                         "group flex items-center gap-2 p-1.5 rounded-2xl cursor-pointer",
+                         "group flex items-center gap-2 p-1.5 rounded-xl cursor-pointer",
                          "hover:bg-success/10 transition-all duration-150",
                          isVeryNew 
                            ? "border border-success/20 hover:border-success/40 bg-success/5" 

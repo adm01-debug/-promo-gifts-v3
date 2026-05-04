@@ -23,7 +23,7 @@ export function EngravingList({
 }: EngravingListProps) {
   if (engravings.length === 0) {
     return (
-      <div className="text-center py-6 border-2 border-dashed rounded-2xl">
+      <div className="text-center py-6 border-2 border-dashed rounded-xl">
         <Paintbrush className="w-8 h-8 mx-auto mb-2 text-muted-foreground/50" />
         <p className="text-sm text-muted-foreground mb-4">
           Nenhuma gravação adicionada

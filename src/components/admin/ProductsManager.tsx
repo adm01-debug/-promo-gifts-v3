@@ -26,7 +26,7 @@ export function ProductsManager() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h2 className="font-display text-2xl font-bold tracking-tight flex items-center gap-2.5">
-            <div className="p-2 rounded-2xl bg-primary/10"><Package className="h-5 w-5 text-primary" /></div>
+            <div className="p-2 rounded-xl bg-primary/10"><Package className="h-5 w-5 text-primary" /></div>
             Gerenciador de Produtos
           </h2>
           <p className="text-sm text-muted-foreground mt-1">Cadastre, edite e gerencie os produtos do catálogo</p>
@@ -143,11 +143,11 @@ export function ProductsManager() {
                         <TableCell>
                           {product.images && product.images.length > 0 ? (
                             <div className="relative">
-                              <img src={product.images[0]} alt={product.name} className="w-12 h-12 object-cover rounded-2xl border border-border/50 group-hover:border-primary/30 transition-colors" loading="lazy" />
+                              <img src={product.images[0]} alt={product.name} className="w-12 h-12 object-cover rounded-xl border border-border/50 group-hover:border-primary/30 transition-colors" loading="lazy" />
                               {product.images.length > 1 && <span className="absolute -bottom-1 -right-1 text-[9px] bg-muted border border-border rounded-full h-4 w-4 flex items-center justify-center font-medium">+{product.images.length - 1}</span>}
                             </div>
                           ) : (
-                            <div className="w-12 h-12 bg-muted/50 rounded-2xl border border-dashed border-border/60 flex items-center justify-center"><ImageIcon className="h-4 w-4 text-muted-foreground/50" /></div>
+                            <div className="w-12 h-12 bg-muted/50 rounded-xl border border-dashed border-border/60 flex items-center justify-center"><ImageIcon className="h-4 w-4 text-muted-foreground/50" /></div>
                           )}
                         </TableCell>
                         <TableCell><span className="font-mono text-xs text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded">{product.sku}</span></TableCell>

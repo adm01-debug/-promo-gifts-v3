@@ -82,7 +82,7 @@ export function GroupInheritance({ productMembership, selectedProduct, technique
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-2xl bg-primary/10">
+              <div className="p-2 rounded-xl bg-primary/10">
                 {isUsingGroupRules ? <Link className="h-5 w-5 text-primary" /> : <Unlink className="h-5 w-5 text-muted-foreground" />}
               </div>
               <div>

@@ -45,7 +45,7 @@ export function BulkActionsBar({
           transition={{ duration: 0.2 }}
           className="flex flex-col gap-1"
         >
-          <div className="flex items-center gap-3 px-4 py-2 bg-primary/10 border border-primary/30 rounded-2xl flex-wrap">
+          <div className="flex items-center gap-3 px-4 py-2 bg-primary/10 border border-primary/30 rounded-xl flex-wrap">
             <span className="text-sm font-medium text-foreground">
               {selectedCount} {pluralLabel} selecionado{selectedCount !== 1 ? "s" : ""}
             </span>
@@ -70,7 +70,7 @@ export function BulkActionsBar({
           </div>
 
           {showSelectAllBanner && totalCount && onSelectAll && (
-            <div className="flex items-center justify-center gap-2 px-4 py-1.5 bg-muted/50 border border-border rounded-2xl text-sm text-muted-foreground">
+            <div className="flex items-center justify-center gap-2 px-4 py-1.5 bg-muted/50 border border-border rounded-xl text-sm text-muted-foreground">
               <span>
                 Todos desta página estão selecionados.
               </span>

@@ -63,7 +63,7 @@ export function ProductsListingLatencyAlert() {
     <Card className={cn('border-[1.5px] transition-colors', tone.border)}>
       <CardContent className="p-4 space-y-3">
         <div className="flex items-start gap-3">
-          <div className={cn('p-2.5 rounded-2xl shrink-0', tone.icon)}>
+          <div className={cn('p-2.5 rounded-xl shrink-0', tone.icon)}>
             <tone.Icon className="h-5 w-5" />
           </div>
           <div className="flex-1 min-w-0">
@@ -137,7 +137,7 @@ function Metric({
   tone?: 'ok' | 'warning' | 'critical';
 }) {
   return (
-    <div className="p-2.5 rounded-2xl bg-muted/30 border border-border/40">
+    <div className="p-2.5 rounded-xl bg-muted/30 border border-border/40">
       <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</p>
       <p
         className={cn(
