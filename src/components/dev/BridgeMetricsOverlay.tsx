@@ -16,6 +16,8 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Info } from "lucide-react";
+import type { BridgeCallSample } from '@/lib/telemetry/bridgeCallMetrics';
+import type { LongTaskEvent } from '@/lib/telemetry/longTaskWatchdog';
 
 export default function BridgeMetricsOverlay() {
   // ⚠️ Rules of Hooks: TODOS os hooks devem ser chamados antes de qualquer
@@ -108,7 +110,13 @@ export default function BridgeMetricsOverlay() {
   );
 }
 
-const Header = memo(({ paused, onTogglePause, onClear, onClose, onShowInfo }: any) => (
+const Header = memo(({ paused, onTogglePause, onClear, onClose, onShowInfo }: {
+  paused: boolean;
+  onTogglePause: () => void;
+  onClear: () => void;
+  onClose: () => void;
+  onShowInfo: () => void;
+}) => (
   <div className="flex items-center justify-between gap-2 border-b border-white/10 bg-zinc-900/80 px-3 py-2">
     <div className="flex items-center gap-2">
       <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
@@ -174,44 +182,15 @@ const InfoModal = memo(({ open, onOpenChange }: { open: boolean, onOpenChange: (
   </Dialog>
 ));
 
-const Tabs = memo(({ tab, setTab, longTasksCount, filter, setFilter }: any) => (
-  <div className="flex items-center gap-1 border-b border-white/5 px-3 py-1.5 text-[10px] uppercase tracking-wider overflow-x-auto no-scrollbar">
-    <button
-      type="button"
-      onClick={() => setTab('calls')}
-      className={`rounded px-2 py-0.5 ${tab === 'calls' ? 'bg-white/10 text-white' : 'text-zinc-500 hover:text-zinc-200'}`}
-    >
-      calls
-    </button>
-    <button
-      type="button"
-      onClick={() => setTab('longtasks')}
-      className={`rounded px-2 py-0.5 ${tab === 'longtasks' ? 'bg-white/10 text-white' : 'text-zinc-500 hover:text-zinc-200'}`}
-    >
-      longtasks
-      {longTasksCount > 0 && (
-        <span className="ml-1 rounded bg-red-500/30 px-1 text-[9px] text-red-200">{longTasksCount}</span>
-      )}
-    </button>
-
-    {tab === 'calls' && (
-      <div className="ml-auto flex gap-1">
-        {(['all', 'slow', 'errors'] as const).map(f => (
-          <button
-            key={f}
-            type="button"
-            onClick={() => setFilter(f)}
-            className={`rounded px-2 py-0.5 ${filter === f ? 'bg-white/10 text-white' : 'text-zinc-500 hover:text-zinc-200'}`}
-          >
-            {f === 'slow' ? '≥600ms' : f}
-          </button>
-        ))}
-      </div>
-    )}
-  </div>
-));
-
-const CallsList = memo(({ samples }: any) => {
+const Tabs = memo(({ tab, setTab, longTasksCount, filter, setFilter }: {
+  tab: BridgeMetricsTab;
+  setTab: (t: BridgeMetricsTab) => void;
+  longTasksCount: number;
+  filter: BridgeMetricsFilter;
+  setFilter: (f: BridgeMetricsFilter) => void;
+}) => (
+...
+const CallsList = memo(({ samples }: { samples: BridgeCallSample[] }) => {
   if (samples.length === 0) {
     return <div className="px-3 py-6 text-center text-zinc-500">Sem chamadas ainda.</div>;
   }
@@ -224,13 +203,13 @@ const CallsList = memo(({ samples }: any) => {
   );
 });
 
-const LongTasksList = memo(({ tasks }: any) => {
+const LongTasksList = memo(({ tasks }: { tasks: LongTaskEvent[] }) => {
   if (tasks.length === 0) {
     return <div className="px-3 py-6 text-center text-zinc-500">Nenhuma long task detectada.</div>;
   }
   return (
     <ul className="divide-y divide-white/5">
-      {[...tasks].slice(-50).reverse().map((lt: any) => (
+      {[...tasks].slice(-50).reverse().map((lt) => (
         <li key={lt.id} className="px-3 py-1.5 hover:bg-white/5">
           <div className="flex items-center justify-between gap-2">
             <span className="truncate text-zinc-200">{new Date(lt.startedAtWallMs).toISOString().slice(11, 23)}</span>

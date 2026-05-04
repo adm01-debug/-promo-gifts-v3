@@ -1,7 +1,7 @@
+import React from "react";
 import { render } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { PriceFreshnessBadge } from "./PriceFreshnessBadge";
-import { TooltipProvider } from "@/components/ui/tooltip";
 
 // Mock Tooltip components to avoid Radix dependencies and make tests deterministic
 vi.mock("@/components/ui/tooltip", () => ({

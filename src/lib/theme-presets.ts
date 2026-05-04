@@ -541,27 +541,27 @@ const diversityPreset: ThemePreset = {
 // identidade "GX" em todas as superfícies do dark mode.
 function applyGxDarkSurfaces(preset: ThemePreset): ThemePreset {
   const d = preset.dark;
-  // Fundo roxo escuro #1A1625 (hue 260) - ajuste de contraste para legibilidade
-  d.background = '260 25% 6%';
-  d.card = '260 25% 10%';
-  d['card-elevated'] = '260 20% 14%';
-  d.popover = '260 25% 12%';
-  d.muted = '260 20% 14%';
-  d.input = '260 20% 14%';
-  d.border = '260 20% 18%';
-  d.secondary = '260 20% 14%';
-  d.accent = '260 20% 14%';
+  // Fundo roxo escuro #251F33 (hue 265) - paridade canônica Zapp Web
+  d.background = '265 22% 8%';
+  d.card = '265 22% 12%';
+  d['card-elevated'] = '265 18% 17%';
+  d.popover = '265 22% 14%';
+  d.muted = '265 18% 17%';
+  d.input = '265 18% 17%';
+  d.border = '265 18% 22%';
+  d.secondary = '265 18% 17%';
+  d.accent = '265 18% 17%';
   
   // Tokens específicos mantendo a coesão visual e legibilidade
-  d.surface = '260 25% 8%';
-  d['surface-hover'] = '260 20% 14%';
-  d.divider = '260 20% 18%';
-  d['sidebar-background'] = '260 30% 8%';
-  d['sidebar-accent'] = '260 20% 15%';
-  d['sidebar-border'] = '260 20% 16%';
-  d.elevated = '260 20% 14%';
-  d['elevated-hover'] = '260 20% 18%';
-  d['gradient-surface'] = 'linear-gradient(180deg, hsl(260 25% 10%), hsl(260 30% 6%))';
+  d.surface = '265 22% 10%';
+  d['surface-hover'] = '265 18% 17%';
+  d.divider = '265 18% 22%';
+  d['sidebar-background'] = '265 24% 10%';
+  d['sidebar-accent'] = '265 18% 17%';
+  d['sidebar-border'] = '265 18% 20%';
+  d.elevated = '265 18% 17%';
+  d['elevated-hover'] = '265 18% 22%';
+  d['gradient-surface'] = 'linear-gradient(180deg, hsl(265 22% 12%), hsl(265 24% 8%))';
   
   // Garantir contraste do foreground em superfícies GX
   d.foreground = '210 40% 98%';
@@ -582,18 +582,18 @@ function boostGlowAlpha(shadow: string, alpha: number): string {
   return shadow.slice(0, idx) + `/ ${alpha})` + shadow.slice(idx + last.length);
 }
 
-// NEUTRALIZED: orange/neon glow eliminado em todo o sistema.
-// Mantido como no-op para preservar a assinatura usada pelos presets.
+// Aplica o "neon glow" característico do Opera GX, aumentando a opacidade
+// das sombras coloridas para um visual mais vibrante.
 function applyGxNeonGlow(preset: ThemePreset): ThemePreset {
   const { light, dark } = preset;
 
-  light['shadow-glow-primary'] = 'none';
-  light['shadow-glow-secondary'] = 'none';
-  light['shadow-glow'] = 'none';
+  light['shadow-glow-primary'] = boostGlowAlpha(light['shadow-glow-primary'], 0.45);
+  light['shadow-glow-secondary'] = boostGlowAlpha(light['shadow-glow-secondary'], 0.4);
+  light['shadow-glow'] = boostGlowAlpha(light['shadow-glow'], 0.45);
 
-  dark['shadow-glow-primary'] = 'none';
-  dark['shadow-glow-secondary'] = 'none';
-  dark['shadow-glow'] = 'none';
+  dark['shadow-glow-primary'] = boostGlowAlpha(dark['shadow-glow-primary'], 0.7);
+  dark['shadow-glow-secondary'] = boostGlowAlpha(dark['shadow-glow-secondary'], 0.65);
+  dark['shadow-glow'] = boostGlowAlpha(dark['shadow-glow'], 0.7);
 
   return preset;
 }
@@ -615,9 +615,7 @@ function applyGxGlass(preset: ThemePreset, h: number, s: number, l: number): The
   return preset;
 }
 
-// Skins GX agora seguem a tipografia padrão (Outfit e Plus Jakarta Sans) 
-// conforme solicitado para padronização em todas as skins.
-
+// Implementação do factory para skins GX com tipografia Inter e cantos 10px.
 function buildGxPreset(p: PresetParams): ThemePreset {
   const preset = applyGxGlass(applyGxNeonGlow(applyGxDarkSurfaces(buildPreset(p))), p.h, p.s, p.l);
   preset.category = 'gx';
@@ -625,7 +623,8 @@ function buildGxPreset(p: PresetParams): ThemePreset {
   // manter identidade visual, mas suficientemente arredondados para o
   // visual friendly do Promo Gifts (em vez do 4px canon Opera GX).
   preset.borderRadius = 10;
-  // Font override removido para usar o padrão (Outfit/Plus Jakarta Sans).
+  // Font override: Inter (família do Cloudflare Sans).
+  preset.font = "'Inter', 'Plus Jakarta Sans', system-ui, sans-serif";
   return preset;
 }
 
@@ -827,7 +826,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     description: 'Rosa quartzo cristalino',
     h: 345,
     s: 75,
-    l: 66, // Ajuste final para 66 para garantir 3:1 (limite técnico do Rose Quartz)
+    l: 68,
     gh: 355,
     sh: 320,
     ss: 60,
@@ -853,7 +852,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     description: 'Verde Matrix de hacker',
     h: 127,
     s: 65,
-    l: 38, // Ajuste para 38 (era 46) para contraste no Hackerman
+    l: 46,
     gh: 135,
     sh: 115,
     ss: 60,
@@ -866,7 +865,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     description: 'Azul-petróleo do fundo do mar',
     h: 182,
     s: 90,
-    l: 35, // Ajuste para 35 (era 42) para contraste no Frutti di Mare
+    l: 42,
     gh: 190,
     sh: 200,
     ss: 75,
@@ -879,7 +878,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     description: 'Amarelo neon de Night City',
     h: 55,
     s: 100,
-    l: 25, // Ajuste drástico para 25 (era 45) para contraste 3:1 com branco no Cyberpunk
+    l: 51,
     gh: 180,
     sh: 320,
     ss: 95,
@@ -892,7 +891,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     description: 'Verde RGB Razer Chroma',
     h: 113,
     s: 70,
-    l: 32, // Ajuste para 32 (era 51) para contraste no Razer Chroma
+    l: 51,
     gh: 120,
     sh: 100,
     ss: 60,

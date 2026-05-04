@@ -21,7 +21,9 @@ function loadViewMode(): ViewMode {
   try {
     const v = localStorage.getItem(VIEW_MODE_KEY);
     if (v === "grid" || v === "list" || v === "table") return v as ViewMode;
-  } catch {}
+  } catch (e) {
+    // Ignore localStorage errors
+  }
   return "grid";
 }
 
@@ -32,7 +34,9 @@ function loadGridColumns(): ColumnCount {
       const n = Number(v) as ColumnCount;
       if ([3, 4, 5, 6, 8].includes(n)) return n as ColumnCount;
     }
-  } catch {}
+  } catch (e) {
+    // Ignore localStorage errors
+  }
   return getDefaultColumns();
 }
 
@@ -41,7 +45,9 @@ function loadSort(): FavoritesSort {
     const v = localStorage.getItem(SORT_KEY) as FavoritesSort | null;
     const allowed: FavoritesSort[] = ["recent", "oldest", "price-asc", "price-desc", "name-asc", "name-desc", "category"];
     if (v && allowed.includes(v)) return v;
-  } catch {}
+  } catch (e) {
+    // Ignore localStorage errors
+  }
   return "recent";
 }
 
@@ -82,13 +88,13 @@ export function useFavoritesPageState() {
     try {
       if (selectedListId) localStorage.setItem(SELECTED_LIST_KEY, selectedListId);
       else localStorage.removeItem(SELECTED_LIST_KEY);
-    } catch {}
+    } catch (e) { /* ignore */ }
   }, [selectedListId]);
 
-  useEffect(() => { try { localStorage.setItem(VIEW_MODE_KEY, viewMode); } catch {} }, [viewMode]);
-  useEffect(() => { try { localStorage.setItem(GRID_COLS_KEY, String(gridColumns)); } catch {} }, [gridColumns]);
-  useEffect(() => { try { localStorage.setItem(SORT_KEY, sort); } catch {} }, [sort]);
-  useEffect(() => { try { localStorage.setItem(PRICE_DROP_FILTER_KEY, onlyPriceDrops ? "1" : "0"); } catch {} }, [onlyPriceDrops]);
+  useEffect(() => { try { localStorage.setItem(VIEW_MODE_KEY, viewMode); } catch (e) { /* ignore */ } }, [viewMode]);
+  useEffect(() => { try { localStorage.setItem(GRID_COLS_KEY, String(gridColumns)); } catch (e) { /* ignore */ } }, [gridColumns]);
+  useEffect(() => { try { localStorage.setItem(SORT_KEY, sort); } catch (e) { /* ignore */ } }, [sort]);
+  useEffect(() => { try { localStorage.setItem(PRICE_DROP_FILTER_KEY, onlyPriceDrops ? "1" : "0"); } catch (e) { /* ignore */ } }, [onlyPriceDrops]);
 
   // Maps and Products
   const variantMap = useMemo(() => {

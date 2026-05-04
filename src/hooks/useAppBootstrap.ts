@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode, Suspense, useRef, useMemo, useCallback } from "react";
+import { useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";

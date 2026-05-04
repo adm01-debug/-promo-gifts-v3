@@ -5,9 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { 
-  ShieldCheck, 
   Upload, 
-  AlertTriangle, 
   CheckCircle2, 
   XCircle, 
   History, 
@@ -39,7 +37,7 @@ export function SecureUploadManager() {
 
       if (error) throw error;
       setLogs(data || []);
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error fetching logs:", error);
       toast.error("Erro ao carregar logs de auditoria");
     } finally {
@@ -61,7 +59,7 @@ export function SecureUploadManager() {
     formData.append("folder", "dev-test");
 
     try {
-      const { data, error } = await supabase.functions.invoke("secure-upload", {
+      const { error } = await supabase.functions.invoke("secure-upload", {
         body: formData,
       });
 
@@ -76,7 +74,7 @@ export function SecureUploadManager() {
 
       toast.success("Upload realizado com sucesso e verificado!");
       fetchLogs();
-    } catch (error: any) {
+    } catch (error) {
       console.error("Test upload error:", error);
       toast.error("Erro ao realizar upload de teste");
     } finally {

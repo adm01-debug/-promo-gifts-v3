@@ -1,4 +1,4 @@
-import { AlertCircle, Check, CheckCircle2, Eye, EyeOff, Loader2, RefreshCw, RotateCw, Save, ShieldAlert, Sparkles, ArrowDownToLine } from "lucide-react";
+import { AlertCircle, Check, Eye, EyeOff, Loader2, RotateCw, Save, ShieldAlert, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";

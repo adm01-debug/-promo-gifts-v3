@@ -2,7 +2,7 @@
  * CartCompanyPickerDialog - Modal de seleção de empresa com Recentes/Favoritas/Buscar.
  * Substitui o picker inline que empurrava conteúdo. Usa localStorage para persistência leve.
  */
-import { useState, useMemo, useCallback, useRef, useEffect } from "react";
+import React, { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Fuse from "fuse.js";
 import { Building2, Search, Loader2, Star, Clock, Globe } from "lucide-react";
@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { selectCrm, searchCrm } from "@/lib/crm-db";
 import { getCompanyDisplayName, type CrmCompany } from "@/types/crm";

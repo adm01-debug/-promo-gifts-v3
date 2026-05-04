@@ -1,6 +1,6 @@
 import { Zap, MousePointerClick, Wifi } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { ratioTone, ttlWithinPct, ttlAfterPct } from "./utils"; // Wait, I need to pass these as props or calculate them
+// EfficiencyGrid displays the trigger/fetch ratio and TTL window stats
 
 interface EfficiencyGridProps {
   triggers: number;
