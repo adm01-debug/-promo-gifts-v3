@@ -163,7 +163,7 @@ export function CatalogToolbar({
               </AnimatePresence>
             </Button>
           </TooltipTrigger>
-          <TooltipContent>
+          <TooltipContent className="bg-primary text-primary-foreground border-primary text-[11px]">
             {selectionMode
               ? `Sair do modo seleção${selectedCount > 0 ? ` (${selectedCount} selecionado${selectedCount > 1 ? "s" : ""})` : ""}`
               : "Selecionar vários produtos para orçamento, coleção ou comparação"}
