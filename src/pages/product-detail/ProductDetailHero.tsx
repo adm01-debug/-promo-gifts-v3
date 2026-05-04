@@ -6,7 +6,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Heart, Package, Clock, Tag, Layers, Sparkles, FileText, Eye,
+  Heart, Package, Clock, Tag, Layers, Sparkles, FileText, Eye, Info,
 } from "lucide-react";
 import { ProductGallery } from "@/components/products/ProductGallery";
 import { KitComposition } from "@/components/products/KitComposition";
@@ -21,6 +21,7 @@ import { BulkVariantWizard } from "@/components/catalog/BulkVariantWizard";
 import { DynamicTrustBadges } from "@/components/common/SocialProof";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { PriceFreshnessBadge } from "@/components/products/PriceFreshnessBadge";
 import { PriceFreshnessThresholdEditor } from "@/components/products/PriceFreshnessThresholdEditor";
 import { useProductFreshnessOverride } from "@/hooks/useProductFreshnessOverride";
@@ -181,31 +182,39 @@ export function ProductDetailHero({
                 <div className="space-y-1.5">
                   <p className="text-[10px] text-muted-foreground/50 uppercase tracking-wider font-semibold">Estoque por cor</p>
                   <div className="flex flex-wrap items-center gap-1.5">
-                    {sortVariationsByColor(product.variations).map((variation: any) => {
-                      const isSelected = selectedVariation?.id === variation.id;
-                      const stock = Math.max(0, variation.stock);
-                      return (
-                        <button key={variation.id} onClick={() => setSelectedVariation(variation)}
-                          title={`${variation.color.name}: ${stock.toLocaleString("pt-BR")} un.`}
-                          aria-label={`Cor ${variation.color.name}, ${stock} unidades`}
-                          className={cn(
-                            "flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[11.5px] font-medium transition-all duration-200",
-                            !isSelected && "bg-secondary/30 border border-border/30 hover:bg-secondary/50",
-                            stock === 0 && "opacity-40"
-                          )}
-                          style={isSelected ? {
-                            backgroundColor: `${variation.color.hex}15`,
-                            border: `1.5px solid ${variation.color.hex}`,
-                            boxShadow: `0 0 0 2px ${variation.color.hex}20`
-                          } : undefined}
-                        >
-                          <div className="w-3 h-3 rounded-full border border-border/40 shrink-0" style={{ backgroundColor: variation.color.hex }} />
-                          <span className={cn(stock === 0 ? "text-destructive" : stock < 100 ? "text-warning" : "text-muted-foreground")}>
-                            {stock >= 1000 ? `${(stock / 1000).toFixed(1)}k` : stock.toLocaleString("pt-BR")}
-                          </span>
-                        </button>
-                      );
-                    })}
+                    <TooltipProvider delayDuration={0}>
+                      {sortVariationsByColor(product.variations).map((variation: any) => {
+                        const isSelected = selectedVariation?.id === variation.id;
+                        const stock = Math.max(0, variation.stock);
+                        return (
+                          <Tooltip key={variation.id}>
+                            <TooltipTrigger asChild>
+                              <button onClick={() => setSelectedVariation(variation)}
+                                aria-label={`Cor ${variation.color.name}, ${stock} unidades`}
+                                className={cn(
+                                  "flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[11.5px] font-medium transition-all duration-200",
+                                  !isSelected && "bg-secondary/30 border border-border/30 hover:bg-secondary/50",
+                                  stock === 0 && "opacity-40"
+                                )}
+                                style={isSelected ? {
+                                  backgroundColor: `${variation.color.hex}15`,
+                                  border: `1.5px solid ${variation.color.hex}`,
+                                  boxShadow: `0 0 0 2px ${variation.color.hex}20`
+                                } : undefined}
+                              >
+                                <div className="w-3 h-3 rounded-full border border-border/40 shrink-0" style={{ backgroundColor: variation.color.hex }} />
+                                <span className={cn(stock === 0 ? "text-destructive" : stock < 100 ? "text-warning" : "text-muted-foreground")}>
+                                  {stock >= 1000 ? `${(stock / 1000).toFixed(1)}k` : stock.toLocaleString("pt-BR")}
+                                </span>
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
+                              <p>{variation.color.name}: {stock.toLocaleString("pt-BR")} un.</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        );
+                      })}
+                    </TooltipProvider>
                   </div>
                 </div>
               ) : (
@@ -272,12 +281,21 @@ export function ProductDetailHero({
                     <Eye className="h-3.5 w-3.5" /><span className="font-semibold text-foreground">{viewCount}</span><span>visualizações</span>
                   </div>
                   <div className="h-4 w-px bg-border/30" />
-                  <Button variant="ghost" size="sm" onClick={onToggleFavorite}
-                    className={cn("rounded-full px-3 text-xs gap-1.5 h-7 transition-all duration-300 hover:bg-destructive/15 hover:text-destructive hover:scale-105 hover:shadow-md hover:shadow-destructive/20", isFavorite && "text-destructive bg-destructive/10")}
-                  >
-                    <Heart className={cn("h-3.5 w-3.5 transition-all duration-300", isFavorite && "fill-destructive text-destructive scale-110")} />
-                    {isFavorite ? "Favoritado" : "Favoritar"}
-                  </Button>
+                  <TooltipProvider delayDuration={400}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button variant="ghost" size="sm" onClick={onToggleFavorite}
+                          className={cn("rounded-full px-3 text-xs gap-1.5 h-7 transition-all duration-300 hover:bg-destructive/15 hover:text-destructive hover:scale-105 hover:shadow-md hover:shadow-destructive/20", isFavorite && "text-destructive bg-destructive/10")}
+                        >
+                          <Heart className={cn("h-3.5 w-3.5 transition-all duration-300", isFavorite && "fill-destructive text-destructive scale-110")} />
+                          {isFavorite ? "Favoritado" : "Favoritar"}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none">
+                        <p>{isFavorite ? "Remover dos favoritos" : "Salvar em meus favoritos"}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
               </div>
             </div>
