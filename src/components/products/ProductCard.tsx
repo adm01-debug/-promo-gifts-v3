@@ -186,7 +186,7 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
-          onClick?.();
+          navigate(`/produto/${product.id}`);
         }
       }}
       onClick={(e) => {
@@ -199,7 +199,7 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
           navigate(`/produto/${product.id}?${params.toString()}`);
           return;
         }
-        onClick?.();
+        navigate(`/produto/${product.id}`);
       }}
     >
       {/* Image Section */}

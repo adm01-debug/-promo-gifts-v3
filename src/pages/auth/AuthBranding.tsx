@@ -1,7 +1,7 @@
 /**
  * Left-side branding panel for Auth page — extracted for modularity
  */
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Gift, Package, Factory, SlidersHorizontal, Brain, Rocket } from "lucide-react";
 
 interface RocketData { id: number; left: number; size: number; duration: number; rotation: number; scale: number; }
@@ -117,7 +117,7 @@ export const ContinuousRockets = React.memo(() => {
       ))}
     </div>
   );
-}
+});
 
 const Starfield = React.memo(() => {
   return (
@@ -240,3 +240,4 @@ export function AuthBrandingPanel() {
     </div>
   );
 }
+
