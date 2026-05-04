@@ -384,6 +384,7 @@ export function CartHeaderButton() {
                                               e.stopPropagation();
                                               updateItemQuantity(item.id, item.quantity + 1);
                                             }}
+                                            title="Aumentar"
                                           >
                                             <Plus className="h-3 w-3" />
                                           </button>
