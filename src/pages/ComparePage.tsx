@@ -128,7 +128,12 @@ export default function ComparePage() {
       <div id="compare-export-area" className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" aria-label="Voltar" onClick={() => navigate(-1)}><ArrowLeft className="h-5 w-5" /></Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon" aria-label="Voltar" onClick={() => navigate(-1)}><ArrowLeft className="h-5 w-5" /></Button>
+              </TooltipTrigger>
+              <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Voltar para página anterior</TooltipContent>
+            </Tooltip>
             <div>
               <h1 data-testid="page-title-comparador" className="text-2xl lg:text-3xl font-display font-bold text-foreground">Comparador de Produtos</h1>
               <p className="text-muted-foreground">
@@ -138,13 +143,17 @@ export default function ComparePage() {
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant={client ? "default" : "outline"} size="sm">
-                  <Building2 className="h-4 w-4 mr-2" />
-                  {client ? client.name.slice(0, 22) : "Cliente CRM"}
-                </Button>
-              </PopoverTrigger>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <PopoverTrigger asChild>
+                  <Button variant={client ? "default" : "outline"} size="sm">
+                    <Building2 className="h-4 w-4 mr-2" />
+                    {client ? client.name.slice(0, 22) : "Cliente CRM"}
+                  </Button>
+                </PopoverTrigger>
+              </TooltipTrigger>
+              <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Vincular comparação a um cliente</TooltipContent>
+            </Tooltip>
               <PopoverContent align="end" className="w-80 p-3">
                 <FavoritesClientPicker
                   selectedClientId={client?.id ?? null}
@@ -154,26 +163,45 @@ export default function ComparePage() {
               </PopoverContent>
             </Popover>
             <RecentComparisonsSidebar />
-            <Button
-              variant={differencesOnly ? "default" : "outline"}
-              size="sm"
-              onClick={() => setDifferencesOnly(v => !v)}
-              aria-pressed={differencesOnly}
-              title="Atalho: D"
-            >
-              <Filter className="h-4 w-4 mr-2" />
-              {differencesOnly ? "Mostrando diferenças" : "Só diferenças"}
-            </Button>
-            <Button variant="default" size="sm" onClick={handleCreateQuote}>
-              <FileText className="h-4 w-4 mr-2" />
-              Criar orçamento
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant={differencesOnly ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setDifferencesOnly(v => !v)}
+                  aria-pressed={differencesOnly}
+                >
+                  <Filter className="h-4 w-4 mr-2" />
+                  {differencesOnly ? "Mostrando diferenças" : "Só diferenças"}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Destacar apenas atributos diferentes entre os produtos <kbd className="ml-1 px-1 py-0.5 rounded bg-primary-foreground/20 text-primary-foreground text-[10px] font-mono">D</kbd></TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="default" size="sm" onClick={handleCreateQuote}>
+                  <FileText className="h-4 w-4 mr-2" />
+                  Criar orçamento
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Enviar produtos comparados para novo orçamento</TooltipContent>
+            </Tooltip>
             <ComparisonPresentationLauncher products={products} formatCurrency={formatCurrency} />
             <ExportComparisonButton products={products} formatCurrency={formatCurrency} />
-            <Button variant="outline" size="sm" onClick={() => setShareOpen(true)}>
-              <Share2 className="h-4 w-4 mr-2" />Compartilhar
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => { clearCompare(); navigate("/"); }}>Limpar</Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="outline" size="sm" onClick={() => setShareOpen(true)}>
+                  <Share2 className="h-4 w-4 mr-2" />Compartilhar
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Gerar link público de comparação</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="outline" size="sm" onClick={() => { clearCompare(); navigate("/"); }}>Limpar</Button>
+              </TooltipTrigger>
+              <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Remover todos os produtos da comparação</TooltipContent>
+            </Tooltip>
           </div>
         </div>
 
@@ -244,9 +272,14 @@ export default function ComparePage() {
                               </Badge>
                             )}
                           </div>
-                          <button aria-label="Remover" onClick={() => removeByIndex(entry.index)} className="p-1 rounded-full hover:bg-destructive/20 transition-colors">
-                            <X className="h-4 w-4 text-muted-foreground hover:text-destructive" />
-                          </button>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button aria-label="Remover" onClick={() => removeByIndex(entry.index)} className="p-1 rounded-full hover:bg-destructive/20 transition-colors">
+                                <X className="h-4 w-4 text-muted-foreground hover:text-destructive" />
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent side="top" className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Remover este produto</TooltipContent>
+                          </Tooltip>
                         </div>
                         <div className="space-y-2 text-sm">
                           <div className="flex justify-between"><span className="text-muted-foreground">Mín:</span><span>{entry.product.minQuantity} un.</span></div>
