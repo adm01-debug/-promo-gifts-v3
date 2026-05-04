@@ -37,7 +37,7 @@ export function SecureUploadManager() {
 
       if (error) throw error;
       setLogs(data || []);
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error fetching logs:", error);
       toast.error("Erro ao carregar logs de auditoria");
     } finally {
