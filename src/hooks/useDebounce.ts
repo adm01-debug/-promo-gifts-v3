@@ -63,7 +63,7 @@ export function useThrottle<T>(value: T, limit = 300): T {
   useEffect(() => {
     // Immediate update for very short strings or empty
     if (typeof value === 'string' && value.length < 2) {
-      setDebouncedValue(value);
+      setThrottledValue(value);
       return;
     }
     
