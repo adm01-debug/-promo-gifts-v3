@@ -12,6 +12,7 @@ import { BICategoryFocusProvider, useBICategoryFocus } from "@/contexts/BICatego
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ClientSelector } from "@/components/bi/ClientSelector";
 import { DEMO_CLIENT_ID, isDemoClient } from "@/lib/bi/demoClient";
 import { ClientOverview360 } from "@/components/bi/ClientOverview360";
@@ -100,32 +101,65 @@ export default function BusinessIntelligencePage() {
           </div>
           {clientId && (
             <div className="flex items-center gap-2 flex-wrap">
-              <Button size="sm" variant="ghost" className="gap-1.5" onClick={() => setTourForce(true)} title="Tour guiado">
-                <HelpCircle className="h-4 w-4" />
-              </Button>
-              <Button size="sm" variant="outline" className="gap-1.5" onClick={() => navigate(`/ferramentas/bi/comparar?ids=${clientId}`)}>
-                <GitCompare className="h-4 w-4" />
-                Comparar
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                className="gap-1.5"
-                onClick={() => setBriefingOpen(true)}
-              >
-                <MessageSquare className="h-4 w-4" />
-                Briefing
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                className="gap-1.5 border-violet-500/30 hover:bg-violet-500/10"
-                onClick={() => setCopilotOpen(true)}
-                data-tour="copilot"
-              >
-                <Bot className="h-4 w-4 text-violet-500" />
-                Pergunte ao BI
-              </Button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button size="sm" variant="ghost" className="gap-1.5" onClick={() => setTourForce(true)}>
+                      <HelpCircle className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-0.5 min-h-0">
+                    Tour guiado pelo BI
+                  </TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button size="sm" variant="outline" className="gap-1.5" onClick={() => navigate(`/ferramentas/bi/comparar?ids=${clientId}`)}>
+                      <GitCompare className="h-4 w-4" />
+                      Comparar
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-0.5 min-h-0">
+                    Comparar com média do setor
+                  </TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="gap-1.5"
+                      onClick={() => setBriefingOpen(true)}
+                    >
+                      <MessageSquare className="h-4 w-4" />
+                      Briefing
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-0.5 min-h-0">
+                    Abrir modo briefing
+                  </TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="gap-1.5 border-violet-500/30 hover:bg-violet-500/10"
+                      onClick={() => setCopilotOpen(true)}
+                      data-tour="copilot"
+                    >
+                      <Bot className="h-4 w-4 text-violet-500" />
+                      Pergunte ao BI
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-0.5 min-h-0">
+                    Inicie o Copilot AI
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
               <ExecutiveSummaryButton clientId={clientId} clientName={clientName} ramoAtividade={ramoAtividade} />
             </div>
           )}
