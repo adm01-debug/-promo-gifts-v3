@@ -108,7 +108,7 @@ export function CatalogToolbar({
                   <span className="hidden sm:inline"><SelectValue placeholder="Ordenar" /></span>
                 </SelectTrigger>
               </TooltipTrigger>
-              <TooltipContent>Ordenar produtos (relevância, preço, novidades…)</TooltipContent>
+              <TooltipContent className="bg-primary text-primary-foreground border-primary text-[11px]">Ordenar produtos (relevância, preço, novidades…)</TooltipContent>
             </Tooltip>
             <SelectContent>
               {SORT_OPTIONS.map(option => (
