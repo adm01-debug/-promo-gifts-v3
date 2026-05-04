@@ -2,7 +2,7 @@ import { readFileSync, readdirSync, statSync } from 'fs';
 import { join } from 'path';
 
 // Whitelist of valid custom shadows from tailwind.config.ts
-const VALID_SHADOWS = ['xs', 'sm', 'md', 'lg', 'xl', 'soft', 'medium', 'premium', 'elegant', 'primary', 'success', 'warning', 'destructive', 'orange', 'black', 'glow', 'glow-hover', 'glow-active', 'glow-focus', 'premium-hover', 'glow-primary', 'glow-secondary', 'glow-success', 'glow-warning', 'glow-orange', 'glow-cart', 'header', 'elevated'];
+const VALID_SHADOWS = ['xs', 'sm', 'md', 'lg', 'xl', 'soft', 'medium', 'premium', 'elegant', 'primary', 'success', 'warning', 'destructive', 'orange', 'black', 'glow', 'glow-hover', 'glow-active', 'glow-focus', 'premium-hover', 'glow-primary', 'glow-secondary', 'glow-success', 'glow-warning', 'glow-orange', 'glow-cart', 'header', 'elevated', 'subtle', 'strong'];
 
 const IGNORE_DIRS = ['node_modules', '.git', 'dist', 'build'];
 
