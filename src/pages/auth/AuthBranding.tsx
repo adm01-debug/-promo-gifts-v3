@@ -18,12 +18,20 @@ export function ContinuousRockets() {
       if (!mounted) return;
       const id = nextIdRef.current++;
       
-      // Ajuste de posição para garantir visibilidade em qualquer viewport
+      // Variedade premium: posição, tamanho, velocidade e rotação
       const left = 5 + Math.random() * 85;
-      const size = 24 + Math.random() * 26;
-      const duration = isInitial ? (2.5 + Math.random() * 1.5) : (3 + Math.random() * 2.5);
+      const size = 20 + Math.random() * 30; // 20px a 50px
+      const duration = isInitial 
+        ? (2.0 + Math.random() * 2.0) 
+        : (3.0 + Math.random() * 3.5);
+      
+      // Rotação sutil para parecer menos "perfeito" e mais dinâmico
+      const rotationOffset = -5 + Math.random() * 10; // -5deg a +5deg
+      const scale = 0.8 + Math.random() * 0.4; // 0.8x a 1.2x
 
-      const rocket: RocketData = { id, left, size, duration };
+      const rocket: RocketData & { rotation: number; scale: number } = { 
+        id, left, size, duration, rotation: rotationOffset, scale 
+      };
       
       setRockets((prev) => [...prev, rocket]);
       
