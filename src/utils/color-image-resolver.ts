@@ -7,7 +7,7 @@
  * 3. Retorna color.image (thumbnail da variante daquela cor)
  */
 
-import type { Product, ProductColor } from "@/hooks/useProducts";
+import type { Product, ProductColor, ProductVariation } from "@/hooks/useProducts";
 
 export interface ActiveColorFilter {
   groups: string[];     // slugs dos grupos selecionados (ex: ['rosa', 'azul'])
@@ -104,14 +104,14 @@ export function resolveColorStock(
     // Try matching via product.colors first to find the color code
     const colorMatch = product.colors.find(c => c.variationSlug === variationSlug);
     if (colorMatch?.code) {
-      const variant = product.variations!.find((v: any) =>
+      const variant = product.variations!.find((v: ProductVariation) =>
         v.sku === colorMatch.code || v.color?.name === colorMatch.name
       );
       if (variant) return variant;
     }
     // Direct match via variation color name
     const slugNorm = variationSlug.replace(/-/g, ' ').toLowerCase();
-    return product.variations!.find((v: any) =>
+    return product.variations!.find((v: ProductVariation) =>
       v.color?.name?.toLowerCase() === slugNorm ||
       v.color?.name?.toLowerCase().includes(slugNorm)
     );
@@ -120,7 +120,7 @@ export function resolveColorStock(
   const matchGroup = (groupSlug: string) => {
     const colorMatch = product.colors.find(c => c.groupSlug === groupSlug);
     if (colorMatch?.code) {
-      const variant = product.variations!.find((v: any) =>
+      const variant = product.variations!.find((v: ProductVariation) =>
         v.sku === colorMatch.code || v.color?.name === colorMatch.name
       );
       if (variant) return variant;
@@ -130,7 +130,7 @@ export function resolveColorStock(
     if (groupColors.length > 0) {
       let totalStock = 0;
       for (const gc of groupColors) {
-        const v = product.variations!.find((v: any) => v.color?.name === gc.name);
+        const v = product.variations!.find((v: ProductVariation) => v.color?.name === gc.name);
         if (v) totalStock += (v.stock ?? 0);
       }
       return { stock: totalStock };
