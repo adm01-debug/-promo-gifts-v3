@@ -161,7 +161,9 @@ export function useProductsByColor({
       lastFetchedKey.current = filterKey;
       logger.log(`[useProductsByColor] Found ${matchingProductIds.size} products for ${colorIdArray.length} color IDs`);
     } catch (err) {
-      logger.warn('[useProductsByColor] Error:', err);
+      logger.error('[useProductsByColor] Critical Error:', err);
+      // Fallback: em caso de erro crítico na bridge de cores, permitimos 
+      // visualização parcial ou vazia mas logamos o erro estruturado.
       setProductIds(new Set());
     } finally {
       setIsLoading(false);
