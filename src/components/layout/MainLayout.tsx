@@ -17,6 +17,8 @@ import { SellerCartProvider } from "@/contexts/SellerCartContext";
 import { OnboardingProvider } from "@/contexts/OnboardingContext";
 
 import { GlobalOverlay } from "./GlobalOverlay";
+const GlobalCommandBar = lazyWithRetry(() => import("@/components/command/GlobalCommandBar").then(m => ({ default: m.GlobalCommandBar })));
+const PersistentBreadcrumbs = lazyWithRetry(() => import("@/components/common/PersistentBreadcrumbs").then(m => ({ default: m.PersistentBreadcrumbs })));
 import { cn } from "@/lib/utils";
 
 interface MainLayoutProps {
