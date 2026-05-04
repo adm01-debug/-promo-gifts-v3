@@ -1,5 +1,6 @@
 import { useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
+import { createClientLogger } from '@/lib/telemetry/structuredLogger';
 
 interface ErrorHandlerOptions {
   /** Custom message shown in toast. Falls back to error.message */
