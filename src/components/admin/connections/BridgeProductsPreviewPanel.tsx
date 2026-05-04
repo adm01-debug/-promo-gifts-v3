@@ -73,9 +73,10 @@ export function BridgeProductsPreviewPanel() {
     if (appliedSearch.trim().length > 0) f._search = appliedSearch.trim();
     if (appliedActive === "active") f.is_active = true;
     if (appliedActive === "inactive") f.is_active = false;
-    if (appliedMinPrice != null) f.price_gte = appliedMinPrice;
-    if (appliedMaxPrice != null) f.price_lte = appliedMaxPrice;
-    if (appliedMinStock != null) f.stock_gte = appliedMinStock;
+    if (appliedMinPrice !== null) f.price_gte = appliedMinPrice;
+    if (appliedMaxPrice !== null) f.price_lte = appliedMaxPrice;
+    if (appliedMinStock !== null) f.stock_gte = appliedMinStock;
+
     return f;
   }, [appliedSearch, appliedActive, appliedMinPrice, appliedMaxPrice, appliedMinStock]);
 
