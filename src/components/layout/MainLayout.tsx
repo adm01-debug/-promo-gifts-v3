@@ -16,18 +16,7 @@ const PageTransition = lazyWithRetry(() => import("@/components/effects/PageTran
 import { SellerCartProvider } from "@/contexts/SellerCartContext";
 import { OnboardingProvider } from "@/contexts/OnboardingContext";
 
-// Lazy-loaded non-critical UI components
-const OnboardingTour = lazyWithRetry(() => import("@/components/onboarding/OnboardingTour").then(m => ({ default: m.OnboardingTour })));
-const ExpertChatButton = lazyWithRetry(() => import("@/components/expert/ExpertChatButton").then(m => ({ default: m.ExpertChatButton })));
-const EnhancedSpotlight = lazyWithRetry(() => import("@/components/common/EnhancedSpotlight").then(m => ({ default: m.EnhancedSpotlight })));
-const SmartMobileNav = lazyWithRetry(() => import("@/components/mobile/SmartMobileNav").then(m => ({ default: m.SmartMobileNav })));
-const QuickQuoteFAB = lazyWithRetry(() => import("@/components/quote/QuickQuoteFAB").then(m => ({ default: m.QuickQuoteFAB })));
-const FloatingCompareBar = lazyWithRetry(() => import("@/components/compare/FloatingCompareBar").then(m => ({ default: m.FloatingCompareBar })));
-const GlobalCommandBar = lazyWithRetry(() => import("@/components/command/GlobalCommandBar").then(m => ({ default: m.GlobalCommandBar })));
-const ScrollToTopButton = lazyWithRetry(() => import("@/components/common/ScrollProgress").then(m => ({ default: m.ScrollToTopButton })));
-const ScrollProgressIndicator = lazyWithRetry(() => import("@/components/common/ScrollProgress").then(m => ({ default: m.ScrollProgressIndicator })));
-const PersistentBreadcrumbs = lazyWithRetry(() => import("@/components/common/PersistentBreadcrumbs").then(m => ({ default: m.PersistentBreadcrumbs })));
-
+import { GlobalOverlay } from "./GlobalOverlay";
 import { cn } from "@/lib/utils";
 
 interface MainLayoutProps {
