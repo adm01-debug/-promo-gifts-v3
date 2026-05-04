@@ -5,12 +5,12 @@
  */
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
-import { Heart, GitCompare, FolderPlus, MessageCircle, FileText } from 'lucide-react';
+import { Heart, GitCompare, FolderPlus, MessageCircle, FileText, Eye } from 'lucide-react';
 import { SingleVariantPicker } from '@/components/products/SingleVariantPicker';
 import type { ExternalVariantStock } from '@/hooks/useExternalVariantStock';
 import { VisuallyHidden } from '@/components/a11y/VisuallyHidden';
 
-export type VariantActionMode = 'favorite' | 'compare' | 'collection' | 'share' | 'quote';
+export type VariantActionMode = 'favorite' | 'compare' | 'collection' | 'share' | 'quote' | 'view';
 
 const MODE_CONFIG: Record<VariantActionMode, { icon: typeof Heart; title: string; colorClass: string; bgClass: string }> = {
   favorite: {
@@ -40,6 +40,12 @@ const MODE_CONFIG: Record<VariantActionMode, { icon: typeof Heart; title: string
   quote: {
     icon: FileText,
     title: 'Orçamento com Cor',
+    colorClass: 'text-primary',
+    bgClass: 'bg-primary/15',
+  },
+  view: {
+    icon: Eye,
+    title: 'Detalhes da Variação',
     colorClass: 'text-primary',
     bgClass: 'bg-primary/15',
   },
