@@ -189,7 +189,41 @@ const Tabs = memo(({ tab, setTab, longTasksCount, filter, setFilter }: {
   filter: BridgeMetricsFilter;
   setFilter: (f: BridgeMetricsFilter) => void;
 }) => (
-...
+  <div className="flex items-center gap-1 border-b border-white/5 px-3 py-1.5 text-[10px] uppercase tracking-wider overflow-x-auto no-scrollbar">
+    <button
+      type="button"
+      onClick={() => setTab('calls')}
+      className={`rounded px-2 py-0.5 ${tab === 'calls' ? 'bg-white/10 text-white' : 'text-zinc-500 hover:text-zinc-200'}`}
+    >
+      calls
+    </button>
+    <button
+      type="button"
+      onClick={() => setTab('longtasks')}
+      className={`rounded px-2 py-0.5 ${tab === 'longtasks' ? 'bg-white/10 text-white' : 'text-zinc-500 hover:text-zinc-200'}`}
+    >
+      longtasks
+      {longTasksCount > 0 && (
+        <span className="ml-1 rounded bg-red-500/30 px-1 text-[9px] text-red-200">{longTasksCount}</span>
+      )}
+    </button>
+
+    {tab === 'calls' && (
+      <div className="ml-auto flex gap-1">
+        {(['all', 'slow', 'errors'] as const).map(f => (
+          <button
+            key={f}
+            type="button"
+            onClick={() => setFilter(f)}
+            className={`rounded px-2 py-0.5 ${filter === f ? 'bg-white/10 text-white' : 'text-zinc-500 hover:text-zinc-200'}`}
+          >
+            {f === 'slow' ? '≥600ms' : f}
+          </button>
+        ))}
+      </div>
+    )}
+  </div>
+));
 const CallsList = memo(({ samples }: { samples: BridgeCallSample[] }) => {
   if (samples.length === 0) {
     return <div className="px-3 py-6 text-center text-zinc-500">Sem chamadas ainda.</div>;
