@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { recordDevRouteTelemetry } from "@/lib/access/dev-route-telemetry";
 import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
@@ -8,14 +8,12 @@ import {
   Send,
   Copy,
   Check,
-  Mail,
   ArrowLeft,
-  RotateCw,
-  ExternalLink,
   LifeBuoy,
   Users,
   ShoppingCart,
 } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
