@@ -80,8 +80,9 @@ export const ProductCardImage = memo(function ProductCardImage({
           hasMultipleVariants ? "transition-all duration-300" : "transition-all duration-700",
           imageLoaded ? "opacity-100 blur-0 scale-100" : "opacity-0 blur-sm scale-[1.05]"
         )}
-        style={imageLoaded ? { transform: `scale(${computedImageScale})` } : undefined}
-        loading="lazy"
+        style={imageLoaded ? { transform: `scale(${computedImageScale})`, willChange: "transform" } : undefined}
+        loading="eager"
+        fetchPriority="high"
         onLoad={onImageLoad}
         onError={(e) => {
           const img = e.currentTarget;
