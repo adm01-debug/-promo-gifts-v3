@@ -826,7 +826,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     description: 'Rosa quartzo cristalino',
     h: 345,
     s: 75,
-    l: 66, // Ajuste final para 66 para garantir 3:1 (limite técnico do Rose Quartz)
+    l: 68,
     gh: 355,
     sh: 320,
     ss: 60,
