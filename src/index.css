@@ -93,7 +93,7 @@ html[data-scroll-locked] body {
     --secondary: 24 40% 96%;
     --secondary-foreground: 24 100% 10%;
     --muted: 24 20% 92%;
-    --muted-foreground: 24 40% 25%;
+    --muted-foreground: 24 25% 40%;
 
     /* 7. Borders & Inputs */
     --border: 24 100% 50% / 0.25;
