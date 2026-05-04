@@ -5,6 +5,7 @@
 import { useState } from "react";
 import { TableProperties, Palette, Target, Layers } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { InlinePriceCalculator } from "@/components/products/InlinePriceCalculator";
 import { ProductCustomizationOptions } from "@/components/products/ProductCustomizationOptions";
@@ -78,28 +79,36 @@ export function ProductQuickActions({
         <div className="flex items-center gap-2 flex-1">
           {actions.map(({ key, label, icon: Icon, iconColor }) => {
             const disabled = isActionDisabled(key);
+            const tooltipText = disabled 
+              ? `Sem dados de ${label.toLowerCase()} para este produto`
+              : `Abrir ${label.toLowerCase()}`;
 
             return (
-              <button
-                key={key}
-                type="button"
-                disabled={disabled}
-                onClick={() => handleClick(key)}
-                title={disabled ? `Sem dados de ${label.toLowerCase()} para este produto` : undefined}
-                className={cn(
-                  "group relative inline-flex items-center justify-center gap-2 flex-1 px-4 py-3 rounded-lg text-xs font-bold border overflow-hidden",
-                  "transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                  disabled
-                    ? "bg-muted/30 text-muted-foreground/50 border-border/20 cursor-not-allowed"
-                    : "bg-card text-foreground border-border/40 shadow-sm hover:border-primary/50 hover:shadow-lg hover:shadow-primary/15 hover:-translate-y-1 hover:scale-[1.02] active:translate-y-0 active:scale-100 active:shadow-sm"
-                )}
-              >
-                <Icon className={cn(
-                  "h-4 w-4 shrink-0 transition-all duration-300",
-                  disabled ? "opacity-40" : cn(iconColor, "group-hover:scale-125 group-hover:rotate-6 group-hover:drop-shadow-sm")
-                )} />
-                {label}
-              </button>
+              <Tooltip key={key}>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    disabled={disabled}
+                    onClick={() => handleClick(key)}
+                    className={cn(
+                      "group relative inline-flex items-center justify-center gap-2 flex-1 px-4 py-3 rounded-lg text-xs font-bold border overflow-hidden",
+                      "transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                      disabled
+                        ? "bg-muted/30 text-muted-foreground/50 border-border/20 cursor-not-allowed"
+                        : "bg-card text-foreground border-border/40 shadow-sm hover:border-primary/50 hover:shadow-lg hover:shadow-primary/15 hover:-translate-y-1 hover:scale-[1.02] active:translate-y-0 active:scale-100 active:shadow-sm"
+                    )}
+                  >
+                    <Icon className={cn(
+                      "h-4 w-4 shrink-0 transition-all duration-300",
+                      disabled ? "opacity-40" : cn(iconColor, "group-hover:scale-125 group-hover:rotate-6 group-hover:drop-shadow-sm")
+                    )} />
+                    {label}
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">
+                  {tooltipText}
+                </TooltipContent>
+              </Tooltip>
             );
           })}
         </div>
