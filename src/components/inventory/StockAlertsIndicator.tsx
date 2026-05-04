@@ -267,7 +267,7 @@ export function StockAlertsIndicator({
                 </PopoverTrigger>
               </span>
             </TooltipTrigger>
-            <TooltipContent side="bottom">
+            <TooltipContent side="bottom" className="bg-primary text-primary-foreground border-primary text-[11px]">
               Alerta de Estoque
             </TooltipContent>
           </Tooltip>
