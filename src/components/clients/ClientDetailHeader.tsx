@@ -4,6 +4,7 @@
 import { Building2, Globe, MapPin, ArrowLeft } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useNavigate } from "react-router-dom";
 import { getCompanyDisplayName, type CrmCompany } from "@/types/crm";
 
@@ -18,9 +19,18 @@ export function ClientDetailHeader({ client }: ClientDetailHeaderProps) {
 
   return (
     <div className="space-y-3">
-      <Button variant="ghost" size="sm" onClick={() => navigate("/clientes")} className="-ml-2">
-        <ArrowLeft className="h-4 w-4 mr-1" /> Voltar
-      </Button>
+      <TooltipProvider delayDuration={0}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="sm" onClick={() => navigate("/clientes")} className="-ml-2">
+              <ArrowLeft className="h-4 w-4 mr-1" /> Voltar
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
+            Voltar para a lista geral de clientes
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
       <div className="flex items-start gap-4">
         <div className="h-14 w-14 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
           {client.logo_url ? (
