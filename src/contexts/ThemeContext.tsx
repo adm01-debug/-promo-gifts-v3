@@ -54,11 +54,6 @@ export function ThemeProvider({
 
     root.classList.add(resolved);
     setActualTheme(resolved);
-
-    // Re-apply theme preset CSS variables for the new mode
-    const cfg = loadThemeConfig();
-    applyThemePreset(cfg.presetId, resolved);
-    applyRadius(cfg.radius);
   }, [theme]);
 
   // Listener para mudanças no tema do sistema
@@ -73,11 +68,6 @@ export function ThemeProvider({
       const root = window.document.documentElement;
       root.classList.remove('light', 'dark');
       root.classList.add(resolved);
-
-      // Re-apply preset for new system mode
-      const cfg = loadThemeConfig();
-      applyThemePreset(cfg.presetId, resolved);
-      applyRadius(cfg.radius);
     };
 
     mediaQuery.addEventListener('change', handleChange);

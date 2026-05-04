@@ -30,14 +30,14 @@ export function RestrictedRouteNotice({
   isCollapsed,
 }: RestrictedRouteNoticeProps) {
   const location = useLocation();
-  const { isAdmin, isDev } = useAuth();
+  const { isAdmin, isDev, rolesLoaded } = useAuth();
   const path = location.pathname;
 
   const isDevRoute = isDevOnlyPath(path);
   const isAdminRoute = !isDevRoute && isAdminOnlyPath(path);
 
   // Dev sempre tem acesso; nada a avisar.
-  if (isDev) return null;
+  if (!rolesLoaded || isDev) return null;
 
   // Rota técnica: precisa de dev. Bloqueia tanto vendedor quanto admin.
   // Rota admin: bloqueia só vendedor.

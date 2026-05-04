@@ -40,7 +40,7 @@ function getPersistedViewMode(): ViewMode {
   return "grid";
 }
 
-const ITEMS_PER_PAGE = 12;
+const ITEMS_PER_PAGE = 36;
 
 export function useCatalogState() {
   const navigate = useNavigate();
