@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Calculator, Package, Paintbrush, Palette, Plus, X, FileText, Trophy } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -107,12 +108,30 @@ export function QuantityPriceCalculator({ productBasePrice = 0, productName, onS
                 {customQuantities.map(qty => (
                   <Badge key={qty} variant="secondary" className="pl-3 pr-1 py-1 flex items-center gap-1">
                     {formatNumber(qty)}
-                    <Button variant="ghost" size="icon" aria-label="Fechar" className="h-5 w-5 hover:bg-destructive/20" onClick={() => handleRemoveQuantity(qty)} disabled={customQuantities.length <= 1}><X className="w-3 h-3" /></Button>
+                    <TooltipProvider delayDuration={0}>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button variant="ghost" size="icon" aria-label="Remover tiragem" className="h-5 w-5 hover:bg-destructive/20" onClick={() => handleRemoveQuantity(qty)} disabled={customQuantities.length <= 1}>
+                            <X className="w-3 h-3" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Remover esta quantidade da comparação</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </Badge>
                 ))}
                 <div className="flex items-center gap-1">
                   <Input type="number" placeholder="Nova qtd" value={newQuantity} onChange={(e) => setNewQuantity(e.target.value)} className="w-24 h-7 text-xs" onKeyDown={(e) => e.key === 'Enter' && handleAddQuantity()} />
-                  <Button variant="outline" size="sm" className="h-7" onClick={handleAddQuantity}><Plus className="w-3 h-3" /></Button>
+                  <TooltipProvider delayDuration={0}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button variant="outline" size="sm" className="h-7" onClick={handleAddQuantity}>
+                          <Plus className="w-3 h-3" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Adicionar nova tiragem para comparação</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
               </div>
             </div>

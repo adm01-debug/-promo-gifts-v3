@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calculator, Package, Paintbrush, Palette, Check, Plus, X, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -275,9 +276,16 @@ export function ProductPriceSimulator({ className }: ProductPriceSimulatorProps)
               1. Selecione o Produto
             </h3>
             {selectedProduct && (
-              <Button variant="ghost" size="sm" onClick={() => handleProductSelect(null)}>
-                Alterar
-              </Button>
+              <TooltipProvider delayDuration={0}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="sm" onClick={() => handleProductSelect(null)}>
+                      Alterar
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Escolher outro produto base</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             )}
           </div>
           {!selectedProduct && (
@@ -337,10 +345,17 @@ export function ProductPriceSimulator({ className }: ProductPriceSimulatorProps)
               <div className="space-y-4 p-4 rounded-lg border-2 border-dashed border-primary/30 bg-primary/5 animate-scale-in">
                 <div className="flex items-center justify-between">
                   <h4 className="text-sm font-medium">Nova Gravação</h4>
-                  <Button variant="ghost" size="sm" onClick={handleCancelAddEngraving}>
-                    <X className="w-4 h-4 mr-1" />
-                    Cancelar
-                  </Button>
+                  <TooltipProvider delayDuration={0}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button variant="ghost" size="sm" onClick={handleCancelAddEngraving}>
+                          <X className="w-4 h-4 mr-1" />
+                          Cancelar
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Voltar para lista de gravações</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
 
                 {!currentTechnique && (
@@ -361,9 +376,16 @@ export function ProductPriceSimulator({ className }: ProductPriceSimulatorProps)
                           {currentTechnique.componentName} → {currentTechnique.locationName}
                         </p>
                       </div>
-                      <Button variant="ghost" size="sm" onClick={() => setCurrentTechnique(null)}>
-                        Alterar
-                      </Button>
+                      <TooltipProvider delayDuration={0}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button variant="ghost" size="sm" onClick={() => setCurrentTechnique(null)}>
+                              Alterar
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Escolher outra técnica de gravação</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </div>
 
                     <div className="space-y-3">
