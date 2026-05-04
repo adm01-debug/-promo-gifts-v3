@@ -190,9 +190,18 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
         }
       }}
       onClick={(e) => {
-        if (actionsOpen || actionBusyRef.current || variantPickerOpen || collectionModalOpen || quickViewOpen) { e.stopPropagation(); return; }
+        if (actionsOpen || actionBusyRef.current || variantPickerOpen || collectionModalOpen || quickViewOpen) { 
+          e.stopPropagation(); 
+          return; 
+        }
         
-        // Navigation priority
+        // Use provided onClick if available, otherwise default to navigation
+        if (onClick) {
+          onClick();
+          return;
+        }
+
+        // Default navigation
         if (currentVariant?.name) {
           const params = new URLSearchParams();
           params.set('cor', currentVariant.name);
