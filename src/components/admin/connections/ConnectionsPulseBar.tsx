@@ -176,7 +176,7 @@ export function ConnectionsPulseBar() {
                   ))}
                 </ul>
               ) : (
-                <p className="text-xs text-muted-foreground">Sem alertas ativos no momento.</p>
+                <p className="text-[11px] text-muted-foreground">Sem alertas ativos no momento.</p>
               )}
             </TooltipContent>
           </Tooltip>

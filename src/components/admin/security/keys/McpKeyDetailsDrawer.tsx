@@ -112,7 +112,7 @@ export function McpKeyDetailsDrawer({ source, open, onOpenChange }: Props) {
                 <h3 className="text-xs uppercase tracking-wide text-muted-foreground">Criador</h3>
                 <p>{source.creator_name ?? source.creator_email ?? source.created_by}</p>
                 {source.creator_email && source.creator_name && (
-                  <p className="text-xs text-muted-foreground">{source.creator_email}</p>
+                  <p className="text-[11px] text-muted-foreground">{source.creator_email}</p>
                 )}
               </section>
 
@@ -140,7 +140,7 @@ export function McpKeyDetailsDrawer({ source, open, onOpenChange }: Props) {
                     <Skeleton className="h-12 w-full" />
                   </div>
                 ) : entries.length === 0 ? (
-                  <p className="text-xs text-muted-foreground">Nenhum evento registrado.</p>
+                  <p className="text-[11px] text-muted-foreground">Nenhum evento registrado.</p>
                 ) : (
                   <ul className="space-y-2">
                     {entries.map((e) => (

@@ -215,7 +215,7 @@ export function RoleAuditLogPanel() {
                       <TableCell>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <span className="text-xs text-muted-foreground">
+                            <span className="text-[11px] text-muted-foreground">
                               {formatDistanceToNow(new Date(entry.created_at), { addSuffix: true, locale: ptBR })}
                             </span>
                           </TooltipTrigger>
@@ -231,9 +231,9 @@ export function RoleAuditLogPanel() {
                       <TableCell>{renderUser(target)}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1.5 flex-wrap">
-                          {oldRole ? <RoleBadge role={oldRole} /> : <span className="text-xs text-muted-foreground">—</span>}
+                          {oldRole ? <RoleBadge role={oldRole} /> : <span className="text-[11px] text-muted-foreground">—</span>}
                           <ArrowRight className="h-3 w-3 text-muted-foreground" />
-                          {newRole ? <RoleBadge role={newRole} /> : <span className="text-xs text-muted-foreground">—</span>}
+                          {newRole ? <RoleBadge role={newRole} /> : <span className="text-[11px] text-muted-foreground">—</span>}
                           {reason && (
                             <Tooltip>
                               <TooltipTrigger asChild>

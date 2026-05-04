@@ -132,7 +132,7 @@ export function FullOpDiagnosticsPanel() {
                 {showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-[11px] text-muted-foreground">
               Permite testar <code>validate_mcp_key</code> (block_reason, scopes, created_by).
             </p>
           </div>
@@ -148,7 +148,7 @@ export function FullOpDiagnosticsPanel() {
               autoComplete="off"
               className="font-mono text-xs"
             />
-            <p className="text-xs text-muted-foreground">
+            <p className="text-[11px] text-muted-foreground">
               Inspeção via hash — <strong>não consome o token</strong>.
             </p>
           </div>
@@ -177,7 +177,7 @@ export function FullOpDiagnosticsPanel() {
         </div>
 
         <div className="flex items-center justify-between gap-3">
-          <p className="text-xs text-muted-foreground">
+          <p className="text-[11px] text-muted-foreground">
             <code>is_dev</code> e <code>can_grant_mcp_full</code> sempre rodam para o usuário
             autenticado atual.
           </p>

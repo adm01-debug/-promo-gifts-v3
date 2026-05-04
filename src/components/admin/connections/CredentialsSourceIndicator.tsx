@@ -195,7 +195,7 @@ export function CredentialsSourceIndicator({ secrets, isLoading, onRefresh, clas
           </TooltipProvider>
         </div>
 
-        <p className="text-xs text-muted-foreground">
+        <p className="text-[11px] text-muted-foreground">
           Lista, badges e máscaras desta página vêm de{" "}
           <code className="text-[11px] font-mono text-foreground">
             integration_credentials

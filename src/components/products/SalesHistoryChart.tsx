@@ -90,7 +90,7 @@ export function SalesHistoryChart({ productId, productSku, productName }: SalesH
           <div className="flex flex-col items-center justify-center py-6 gap-2 text-center">
             <ShoppingCart className="h-6 w-6 text-destructive" />
             <p className="text-sm font-medium text-destructive">Erro ao carregar dados de vendas</p>
-            <p className="text-xs text-muted-foreground">Tente novamente em alguns instantes</p>
+            <p className="text-[11px] text-muted-foreground">Tente novamente em alguns instantes</p>
             <Button variant="outline" size="sm" onClick={() => refetch()} className="gap-1.5 mt-1">
               <RefreshCw className="h-3.5 w-3.5" />
               Tentar novamente

@@ -178,7 +178,7 @@ export function SupplierFormDialog({
           {/* CONTACTS */}
           <TabsContent value="contact" className="space-y-3 pt-3">
             <div className="flex items-center justify-between mb-1">
-              <p className="text-xs text-muted-foreground">Adicione os contatos do fornecedor</p>
+              <p className="text-[11px] text-muted-foreground">Adicione os contatos do fornecedor</p>
               <Button type="button" variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={addContact}><UserPlus className="h-3.5 w-3.5" />Adicionar Contato</Button>
             </div>
             <div className="space-y-3 max-h-[320px] overflow-y-auto pr-1">
@@ -376,11 +376,11 @@ export function SupplierFormDialog({
           {/* CLASSIFICATION */}
           <TabsContent value="classification" className="space-y-6 pt-3">
             <div className="flex items-center justify-between rounded-lg border border-border p-4">
-              <div><p className="text-sm font-medium">Fornecedor de Produtos</p><p className="text-xs text-muted-foreground">Fornece produtos físicos para revenda</p></div>
+              <div><p className="text-sm font-medium">Fornecedor de Produtos</p><p className="text-[11px] text-muted-foreground">Fornece produtos físicos para revenda</p></div>
               <Switch checked={editingSupplier.is_product_supplier ?? true} onCheckedChange={v => updateField('is_product_supplier', v)} />
             </div>
             <div className="flex items-center justify-between rounded-lg border border-border p-4">
-              <div><p className="text-sm font-medium">Fornecedor de Gravação</p><p className="text-xs text-muted-foreground">Fornece serviços de personalização/gravação</p></div>
+              <div><p className="text-sm font-medium">Fornecedor de Gravação</p><p className="text-[11px] text-muted-foreground">Fornece serviços de personalização/gravação</p></div>
               <Switch checked={editingSupplier.is_engraving_supplier ?? false} onCheckedChange={v => updateField('is_engraving_supplier', v)} />
             </div>
           </TabsContent>

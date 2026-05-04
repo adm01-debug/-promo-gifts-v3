@@ -73,7 +73,7 @@ export function StepPreview({ validationResults, rawData, mapping, importMode, s
           <TableBody>
             {validationResults.map((r) => (
               <TableRow key={r.row} className={cn(!r.valid && 'bg-destructive/5')}>
-                <TableCell className="text-xs text-muted-foreground">{r.row}</TableCell>
+                <TableCell className="text-[11px] text-muted-foreground">{r.row}</TableCell>
                 <TableCell>
                   {r.valid ? <CheckCircle2 className="h-4 w-4 text-success" /> : <XCircle className="h-4 w-4 text-destructive" />}
                 </TableCell>

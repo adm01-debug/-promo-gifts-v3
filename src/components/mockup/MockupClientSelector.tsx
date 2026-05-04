@@ -96,7 +96,7 @@ export function MockupClientSelector({ selectedClient, onClientSelect }: MockupC
             )}
             {selectedClient.cnpj && (
               <>
-                {selectedClient.ramo && <span className="text-xs text-muted-foreground">·</span>}
+                {selectedClient.ramo && <span className="text-[11px] text-muted-foreground">·</span>}
                 <span className="text-xs text-muted-foreground font-mono">{selectedClient.cnpj}</span>
               </>
             )}

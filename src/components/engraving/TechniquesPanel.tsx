@@ -259,7 +259,7 @@ export function TechniquesPanel() {
                           </TooltipContent>
                         </Tooltip>
                       ) : (
-                        <span className="text-xs text-muted-foreground">N/A</span>
+                        <span className="text-[11px] text-muted-foreground">N/A</span>
                       )}
                     </TableCell>
                     <TableCell className="text-center">

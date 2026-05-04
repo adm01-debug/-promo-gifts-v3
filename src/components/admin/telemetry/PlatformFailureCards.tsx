@@ -106,7 +106,7 @@ export function PlatformFailureCards({ windowMinutes = 60 }: { windowMinutes?: n
               {data.rateColdStartPct.toFixed(2)}%
             </Badge>
           </div>
-          <p className="text-xs text-muted-foreground">Último: {lastColdStart}</p>
+          <p className="text-[11px] text-muted-foreground">Último: {lastColdStart}</p>
         </CardContent>
       </Card>
 
@@ -119,7 +119,7 @@ export function PlatformFailureCards({ windowMinutes = 60 }: { windowMinutes?: n
         </CardHeader>
         <CardContent className="space-y-1">
           <div className="text-2xl font-bold tabular-nums">{data.totalCalls.toLocaleString('pt-BR')}</div>
-          <p className="text-xs text-muted-foreground">chamadas registradas na janela</p>
+          <p className="text-[11px] text-muted-foreground">chamadas registradas na janela</p>
         </CardContent>
       </Card>
     </div>

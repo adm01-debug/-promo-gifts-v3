@@ -113,7 +113,7 @@ export const FloatingCompareBar = React.forwardRef<HTMLDivElement>(
               key={`empty-${idx}`}
               className="w-12 h-12 rounded-lg border-2 border-dashed border-border/50 flex items-center justify-center flex-shrink-0"
             >
-              <span className="text-xs text-muted-foreground">+</span>
+              <span className="text-[11px] text-muted-foreground">+</span>
             </div>
           ))}
         </div>

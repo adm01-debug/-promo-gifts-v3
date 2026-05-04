@@ -408,7 +408,7 @@ export function DataSourceDebugTab() {
                   >
                     <td className="py-2 pr-3">
                       <div className="font-medium">{row.field}</div>
-                      <div className="text-xs text-muted-foreground">{row.description}</div>
+                      <div className="text-[11px] text-muted-foreground">{row.description}</div>
                     </td>
                     <td className="py-2 pr-3">
                       <Badge
@@ -487,9 +487,9 @@ export function DataSourceDebugTab() {
             {secretsLoading ? (
               <Skeleton className="h-32 w-full" />
             ) : secrets.length === 0 ? (
-              <p className="text-xs text-muted-foreground">Nenhuma credencial encontrada.</p>
+              <p className="text-[11px] text-muted-foreground">Nenhuma credencial encontrada.</p>
             ) : filteredSecrets.length === 0 ? (
-              <p className="text-xs text-muted-foreground">Nenhum resultado para “{credFilter}”.</p>
+              <p className="text-[11px] text-muted-foreground">Nenhum resultado para “{credFilter}”.</p>
             ) : (
               <ul className="space-y-1.5 text-xs font-mono">
                 {filteredSecrets.map((s) => (
@@ -548,9 +548,9 @@ export function DataSourceDebugTab() {
             ) : extError ? (
               <p className="text-xs text-destructive">Erro: {extError}</p>
             ) : !extConns || extConns.length === 0 ? (
-              <p className="text-xs text-muted-foreground">Nenhuma linha encontrada.</p>
+              <p className="text-[11px] text-muted-foreground">Nenhuma linha encontrada.</p>
             ) : filteredExtConns.length === 0 ? (
-              <p className="text-xs text-muted-foreground">Nenhum resultado para “{extFilter}”.</p>
+              <p className="text-[11px] text-muted-foreground">Nenhum resultado para “{extFilter}”.</p>
             ) : (
               <ul className="space-y-1.5 text-xs font-mono">
                 {filteredExtConns.map((c) => (

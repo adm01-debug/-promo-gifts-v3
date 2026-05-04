@@ -111,7 +111,7 @@ export function AIComparisonAdvisor({ products }: AIComparisonAdvisorProps) {
                 <Sparkles className="h-2.5 w-2.5" /> Lovable AI
               </Badge>
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-[11px] text-muted-foreground">
               Análise contextual da sua comparação
             </p>
           </div>

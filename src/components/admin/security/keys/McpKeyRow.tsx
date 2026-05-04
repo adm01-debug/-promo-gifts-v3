@@ -48,7 +48,7 @@ export function McpKeyRow({ row, onRotate, onRevoke, onDetails, onEdit }: Props)
       <div className="flex-1 min-w-0 space-y-1.5">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="font-medium truncate">{row.name}</span>
-          <code className="text-xs text-muted-foreground">{row.key_prefix}…</code>
+          <code className="text-[11px] text-muted-foreground">{row.key_prefix}…</code>
           {row.is_full && (
             <Badge variant="destructive" className="text-xs gap-1">
               <ShieldAlert className="h-3 w-3" /> FULL

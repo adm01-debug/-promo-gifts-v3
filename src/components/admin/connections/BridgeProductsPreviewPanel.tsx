@@ -366,7 +366,7 @@ export function BridgeProductsPreviewPanel() {
                         ) : p.is_active === false ? (
                           <Badge variant="secondary" className="text-[10px]">Não</Badge>
                         ) : (
-                          <span className="text-xs text-muted-foreground">—</span>
+                          <span className="text-[11px] text-muted-foreground">—</span>
                         )}
                       </td>
                       <td className="px-3 py-2 text-xs text-muted-foreground">

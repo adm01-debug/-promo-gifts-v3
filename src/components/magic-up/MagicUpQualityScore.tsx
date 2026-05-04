@@ -33,7 +33,7 @@ export function MagicUpQualityScore({ diagnosis, aspectRatio }: MagicUpQualitySc
       />
       <div className="mt-2 space-y-1">
         <p className="text-xs font-medium text-foreground">{diagnosis.label}</p>
-        <p className="text-xs text-muted-foreground">{diagnosis.summary}</p>
+        <p className="text-[11px] text-muted-foreground">{diagnosis.summary}</p>
       </div>
     </section>
   );

@@ -142,7 +142,7 @@ export function AnomalyCards() {
         <div className="flex items-center justify-between gap-3 rounded-lg border border-warning/40 bg-warning/5 p-3">
           <div className="text-sm">
             <p className="font-medium">Atividade suspeita detectada nas últimas 24h</p>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-[11px] text-muted-foreground">
               Identifique o IP nas tabelas abaixo e bloqueie temporariamente.
             </p>
           </div>

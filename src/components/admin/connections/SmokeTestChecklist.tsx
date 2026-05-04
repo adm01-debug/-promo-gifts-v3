@@ -338,7 +338,7 @@ export function SmokeTestChecklist({ availableSecrets = [] }: Props) {
                 ))}
               </SelectContent>
             </Select>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-[11px] text-muted-foreground">
               ⚠️ A rotação substitui o valor atual. Use uma credencial de teste ou esteja pronto para rotacionar de volta para o valor real.
             </p>
           </div>

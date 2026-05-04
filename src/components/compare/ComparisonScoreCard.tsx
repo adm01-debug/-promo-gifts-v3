@@ -75,7 +75,7 @@ export function ComparisonScoreCard({ products, className }: ComparisonScoreCard
             <div className="space-y-4">
               <div>
                 <h4 className="font-semibold text-sm">Pesos do score</h4>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-[11px] text-muted-foreground">
                   Ajuste para refletir suas prioridades.
                 </p>
               </div>

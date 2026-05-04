@@ -159,7 +159,7 @@ export function MarketIntelligenceChart({ days: defaultDays = 30, supplierId, pr
         <CardContent className="flex flex-col items-center justify-center py-8 gap-2 text-center">
           <AlertCircle className="h-6 w-6 text-destructive" />
           <p className="text-sm text-destructive">Erro ao carregar dados de mercado</p>
-          <p className="text-xs text-muted-foreground">Verifique a conexão e tente novamente</p>
+          <p className="text-[11px] text-muted-foreground">Verifique a conexão e tente novamente</p>
         </CardContent>
       </Card>
     );
@@ -288,7 +288,7 @@ export function MarketIntelligenceChart({ days: defaultDays = 30, supplierId, pr
 
         {/* Insight */}
         {kpis?.topDepletionDay && (
-          <p className="text-xs text-muted-foreground">
+          <p className="text-[11px] text-muted-foreground">
             📊 Pico de saídas: <span className="font-medium text-foreground">{kpis.topDepletionDay.value.toLocaleString('pt-BR')} un</span> em{' '}
             {new Date(kpis.topDepletionDay.date + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
             {isDemo && ' (demo)'}

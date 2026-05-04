@@ -161,7 +161,7 @@ export function QuoteVersionCompare({ open, onOpenChange, versions, currentQuote
                         {statusLabels[detail.status] || detail.status}
                       </Badge>
                     </CardTitle>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-[11px] text-muted-foreground">
                       {format(new Date(detail.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
                     </p>
                   </CardHeader>

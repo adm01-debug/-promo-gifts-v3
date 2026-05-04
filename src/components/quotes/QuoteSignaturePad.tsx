@@ -116,7 +116,7 @@ export function QuoteSignaturePad({ onSign, isSubmitting }: QuoteSignaturePadPro
             {isSubmitting ? "Enviando..." : "Confirmar assinatura"}
           </Button>
         </div>
-        <p className="text-xs text-muted-foreground">
+        <p className="text-[11px] text-muted-foreground">
           Esta assinatura tem validade jurídica conforme MP 2.200-2/2001.
         </p>
       </CardContent>

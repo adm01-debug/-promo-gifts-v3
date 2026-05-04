@@ -317,7 +317,7 @@ export function GlobalSearch({ isOpen, onClose, placeholder = "Buscar produtos, 
                               {result.metadata && (
                                 <div className="flex items-center gap-3 mt-1">
                                   {Object.entries(result.metadata).map(([key, value]) => (
-                                    <span key={key} className="text-xs text-muted-foreground">
+                                    <span key={key} className="text-[11px] text-muted-foreground">
                                       {value}
                                     </span>
                                   ))}

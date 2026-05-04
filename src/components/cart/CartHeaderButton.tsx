@@ -445,7 +445,7 @@ export function CartHeaderButton() {
                       <div className="p-3 border-t border-border/40 space-y-2">
                         {/* Subtotal */}
                         <div className="flex items-center justify-between px-1">
-                          <span className="text-xs text-muted-foreground">
+                          <span className="text-[11px] text-muted-foreground">
                             Subtotal ({activeCart.items.length} {activeCart.items.length === 1 ? "item" : "itens"})
                           </span>
                           <span className="text-sm font-bold text-foreground tabular-nums">

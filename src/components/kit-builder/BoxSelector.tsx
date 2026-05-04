@@ -174,7 +174,7 @@ export function BoxSelector({
               {/* Dimension sliders */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground">
+                  <Label className="text-[11px] text-muted-foreground">
                     Largura mín: <span className="font-semibold text-foreground">{filters.minWidth || 0}cm</span>
                   </Label>
                   <Slider
@@ -186,7 +186,7 @@ export function BoxSelector({
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground">
+                  <Label className="text-[11px] text-muted-foreground">
                     Altura mín: <span className="font-semibold text-foreground">{filters.minHeight || 0}cm</span>
                   </Label>
                   <Slider
@@ -198,7 +198,7 @@ export function BoxSelector({
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground">
+                  <Label className="text-[11px] text-muted-foreground">
                     Profundidade mín: <span className="font-semibold text-foreground">{filters.minDepth || 0}cm</span>
                   </Label>
                   <Slider
@@ -214,7 +214,7 @@ export function BoxSelector({
               {/* Material filter */}
               {materials.length > 0 && (
                 <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground">Material</Label>
+                  <Label className="text-[11px] text-muted-foreground">Material</Label>
                   <Select
                     value={filters.material || '_all'}
                     onValueChange={(v) => onFiltersChange({ ...filters, material: v === '_all' ? undefined : v })}

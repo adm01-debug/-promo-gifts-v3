@@ -172,7 +172,7 @@ export function ProductColorSelector({
                 <div className="text-center">
                   <p>{formatColorName(color)}</p>
                   {color.groupName && color.groupName !== color.variationName && (
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-[11px] text-muted-foreground">
                       Grupo: {color.groupName}
                     </p>
                   )}

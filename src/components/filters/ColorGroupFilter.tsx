@@ -416,7 +416,7 @@ export function ColorGroupFilter({
         {/* Footer com resumo */}
         {totalSelected > 0 && (
           <div className="p-3 border-t bg-muted/30">
-            <p className="text-xs text-muted-foreground">
+            <p className="text-[11px] text-muted-foreground">
               {selectedNames.slice(0, 4).join(', ')}
               {selectedNames.length > 4 && ` +${selectedNames.length - 4} mais`}
             </p>

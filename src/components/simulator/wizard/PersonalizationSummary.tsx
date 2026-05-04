@@ -198,7 +198,7 @@ export function PersonalizationSummary({
                     className="p-4 rounded-lg border border-dashed border-muted-foreground/30 text-center"
                   >
                     <Sparkles className="h-5 w-5 mx-auto mb-2 text-muted-foreground/40" />
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-[11px] text-muted-foreground">
                       Nenhuma gravação adicionada
                     </p>
                   </motion.div>

@@ -172,7 +172,7 @@ export function GitHubCredentialsTester() {
       )}
 
       {!report && (
-        <p className="text-xs text-muted-foreground">
+        <p className="text-[11px] text-muted-foreground">
           Clique para validar token, repo e branch contra a API do GitHub. O resultado aparece em
           badges por chave (verde = OK, vermelho = falha).
         </p>

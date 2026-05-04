@@ -61,7 +61,7 @@ export default function ProductEngravingSection({ productId, isEdit }: Props) {
   const renderComponentStep = () => (
     <div className="space-y-3">
       <div className="flex items-center gap-2 mb-1"><Layers className="h-4 w-4 text-primary" /><h4 className="text-sm font-semibold">Qual componente do produto?</h4></div>
-      <p className="text-xs text-muted-foreground">Selecione a parte do produto onde será aplicada a personalização.</p>
+      <p className="text-[11px] text-muted-foreground">Selecione a parte do produto onde será aplicada a personalização.</p>
       <div className="grid grid-cols-3 gap-2">
         {COMMON_COMPONENTS.map(comp => (
           <button key={comp.code} type="button" onClick={() => w.handleSelectComponent(comp)}
@@ -85,7 +85,7 @@ export default function ProductEngravingSection({ productId, isEdit }: Props) {
   const renderLocationStep = () => (
     <div className="space-y-3">
       <div className="flex items-center gap-2 mb-1"><MapPin className="h-4 w-4 text-primary" /><h4 className="text-sm font-semibold">Qual local no {w.selectedComponent?.name}?</h4></div>
-      <p className="text-xs text-muted-foreground">Defina a posição/região onde a técnica será aplicada.</p>
+      <p className="text-[11px] text-muted-foreground">Defina a posição/região onde a técnica será aplicada.</p>
       <div className="grid grid-cols-2 gap-2">
         {COMMON_LOCATIONS.map(loc => (
           <button key={loc.code} type="button" onClick={() => w.handleSelectLocation(loc)}
@@ -109,7 +109,7 @@ export default function ProductEngravingSection({ productId, isEdit }: Props) {
   const renderTechniqueStep = () => (
     <div className="space-y-3">
       <div className="flex items-center gap-2 mb-1"><Paintbrush className="h-4 w-4 text-primary" /><h4 className="text-sm font-semibold">Qual técnica de gravação?</h4></div>
-      <p className="text-xs text-muted-foreground">Aplicação em: <span className="font-medium text-foreground">{w.selectedComponent?.name}</span> → <span className="font-medium text-foreground">{w.selectedLocation?.name}</span></p>
+      <p className="text-[11px] text-muted-foreground">Aplicação em: <span className="font-medium text-foreground">{w.selectedComponent?.name}</span> → <span className="font-medium text-foreground">{w.selectedLocation?.name}</span></p>
       <div className="relative">
         <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
         <Input placeholder="Buscar técnica..." value={w.techSearch} onChange={e => w.setTechSearch(e.target.value)} className="h-8 text-sm pl-8" />
@@ -179,11 +179,11 @@ export default function ProductEngravingSection({ productId, isEdit }: Props) {
         <div className="grid grid-cols-2 gap-3">
           <div><label className="text-[11px] font-medium text-muted-foreground mb-1 block">Custo unit. sobrescrito (R$)</label>
             <Input type="number" step="0.01" placeholder="Só se diferir da tabela" value={w.detailForm.unit_cost ?? ''} onChange={e => w.setDetailForm(f => ({ ...f, unit_cost: e.target.value ? Number(e.target.value) : null }))} className="h-8 text-sm" /></div>
-          <div className="flex items-end gap-3"><div className="flex items-center gap-2 pb-1"><Switch checked={w.detailForm.is_curved} onCheckedChange={v => w.setDetailForm(f => ({ ...f, is_curved: v }))} /><span className="text-xs text-muted-foreground">Superfície curva</span></div></div>
+          <div className="flex items-end gap-3"><div className="flex items-center gap-2 pb-1"><Switch checked={w.detailForm.is_curved} onCheckedChange={v => w.setDetailForm(f => ({ ...f, is_curved: v }))} /><span className="text-[11px] text-muted-foreground">Superfície curva</span></div></div>
         </div>
         <div><label className="text-[11px] font-medium text-muted-foreground mb-1 block">Observações</label>
           <Input placeholder="Notas sobre essa personalização..." value={w.detailForm.notes} onChange={e => w.setDetailForm(f => ({ ...f, notes: e.target.value }))} className="h-8 text-sm" /></div>
-        <div className="flex items-center gap-2"><Switch checked={w.detailForm.is_active} onCheckedChange={v => w.setDetailForm(f => ({ ...f, is_active: v }))} /><span className="text-xs text-muted-foreground">Área ativa</span></div>
+        <div className="flex items-center gap-2"><Switch checked={w.detailForm.is_active} onCheckedChange={v => w.setDetailForm(f => ({ ...f, is_active: v }))} /><span className="text-[11px] text-muted-foreground">Área ativa</span></div>
         <div className="flex items-center justify-between pt-2">
           <Button type="button" variant="ghost" size="sm" onClick={() => w.setWizardStep('technique')} className="gap-1 text-xs"><ChevronLeft className="h-3 w-3" /> Voltar</Button>
           <Button type="button" size="sm" onClick={w.handleSaveArea} disabled={w.isBusy} className="gap-1.5"><Save className="h-3.5 w-3.5" />Adicionar Área</Button>
@@ -202,7 +202,7 @@ export default function ProductEngravingSection({ productId, isEdit }: Props) {
             <motion.div key="list" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }} className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">{w.displayAreas.length} {w.displayAreas.length === 1 ? 'área' : 'áreas'} configurada{w.displayAreas.length !== 1 ? 's' : ''}</span>
+                  <span className="text-[11px] text-muted-foreground">{w.displayAreas.length} {w.displayAreas.length === 1 ? 'área' : 'áreas'} configurada{w.displayAreas.length !== 1 ? 's' : ''}</span>
                   {w.displayAreas.filter(a => a.is_active).length < w.displayAreas.length && <Badge variant="outline" className="text-[10px] h-4">{w.displayAreas.filter(a => a.is_active).length} ativas</Badge>}
                   {!isEdit && w.localAreas.length > 0 && <Badge variant="secondary" className="text-[10px] h-4 gap-0.5"><Info className="h-2.5 w-2.5" /> Serão salvas ao criar o produto</Badge>}
                 </div>

@@ -59,7 +59,7 @@ export function ItemCard({ item, isSelected, boxSelected, onAdd, onRemove }: Ite
             <h4 className="font-medium text-sm truncate">{item.name}</h4>
             <p className="text-xs text-muted-foreground font-mono">{item.sku}</p>
             <div className="flex items-center justify-between mt-1">
-              <span className="text-xs text-muted-foreground">
+              <span className="text-[11px] text-muted-foreground">
                 {formatVolume(item.volume)}
               </span>
               <span className="text-sm font-semibold text-primary">

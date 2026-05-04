@@ -97,7 +97,7 @@ export function SellerDiscountLimitsPanel() {
                     onChange={(e) => setEdits({ ...edits, [row.user_id]: +e.target.value })}
                     className="w-24"
                   />
-                  <span className="text-xs text-muted-foreground">%</span>
+                  <span className="text-[11px] text-muted-foreground">%</span>
                   <Button
                     size="sm"
                     disabled={!dirty || save.isPending}

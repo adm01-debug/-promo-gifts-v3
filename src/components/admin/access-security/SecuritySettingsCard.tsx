@@ -36,7 +36,7 @@ export function SecuritySettingsCard({ settings, onUpdate }: SecuritySettingsCar
                 <Wifi className="h-4 w-4" />
                 Whitelist de IPs
               </Label>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-[11px] text-muted-foreground">
                 Apenas IPs cadastrados podem acessar
               </p>
             </div>
@@ -51,7 +51,7 @@ export function SecuritySettingsCard({ settings, onUpdate }: SecuritySettingsCar
                 <MapPin className="h-4 w-4" />
                 Whitelist de Cidades
               </Label>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-[11px] text-muted-foreground">
                 Apenas cidades cadastradas podem acessar
               </p>
             </div>

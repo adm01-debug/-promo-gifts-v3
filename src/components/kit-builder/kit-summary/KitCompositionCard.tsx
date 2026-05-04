@@ -35,9 +35,9 @@ export function KitCompositionCard({ kitState, kitQuantity, stockByProduct }: Ki
             </div>
             <div className="flex-1">
               <p className="font-medium">{box.name}</p>
-              <p className="text-xs text-muted-foreground">{formatDimensions(box.internalWidth, box.internalHeight, box.internalDepth)} • {formatVolume(box.internalVolume)}</p>
+              <p className="text-[11px] text-muted-foreground">{formatDimensions(box.internalWidth, box.internalHeight, box.internalDepth)} • {formatVolume(box.internalVolume)}</p>
             </div>
-            <div className="text-right"><p className="font-semibold">{formatCurrency(box.price)}</p><p className="text-xs text-muted-foreground">por kit</p></div>
+            <div className="text-right"><p className="font-semibold">{formatCurrency(box.price)}</p><p className="text-[11px] text-muted-foreground">por kit</p></div>
           </div>
         )}
         <div className="space-y-2">
@@ -55,7 +55,7 @@ export function KitCompositionCard({ kitState, kitQuantity, stockByProduct }: Ki
                     {itemP?.enabled && <Badge variant="outline" className="text-xs flex-shrink-0"><Palette className="h-3 w-3 mr-1" />{itemP.techniqueName}</Badge>}
                   </div>
                   <div className="flex items-center gap-1 flex-wrap">
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-[11px] text-muted-foreground">
                       <span className="font-mono">{item.sku}</span>
                       {item.weight ? ` • ${item.weight >= 1000 ? `${(item.weight / 1000).toFixed(1)}kg` : `${item.weight}g`}` : ''}
                       {item.material ? ` • ${item.material}` : ''}

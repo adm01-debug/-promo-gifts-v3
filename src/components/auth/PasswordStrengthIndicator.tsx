@@ -98,7 +98,7 @@ export function PasswordStrengthIndicator({
       {/* Progress bar */}
       <div className="space-y-1.5">
         <div className="flex justify-between items-center">
-          <span className="text-xs text-muted-foreground">Força da senha</span>
+          <span className="text-[11px] text-muted-foreground">Força da senha</span>
           <span className={cn(
             'text-xs font-medium',
             analysis.strength === 'weak' && 'text-destructive',

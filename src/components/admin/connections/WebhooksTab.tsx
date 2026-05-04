@@ -227,14 +227,14 @@ export function WebhooksTab() {
                   <div key={ep.id} className="p-3 border border-border rounded-md">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0 space-y-1">
-                        <div className="font-medium">{ep.name} <span className="text-xs text-muted-foreground">({ep.source_system})</span></div>
+                        <div className="font-medium">{ep.name} <span className="text-[11px] text-muted-foreground">({ep.source_system})</span></div>
                         <div className="flex items-center gap-2">
                           <code className="text-xs bg-muted px-2 py-0.5 rounded truncate">{baseUrl}?slug={ep.slug}</code>
                           <Button size="sm" variant="ghost" onClick={() => copy(`${baseUrl}?slug=${ep.slug}`)}>
                             <Copy className="h-3 w-3" />
                           </Button>
                         </div>
-                        <div className="text-xs text-muted-foreground">
+                        <div className="text-[11px] text-muted-foreground">
                           Secret HMAC: <code>{ep.hmac_secret_ref}</code> · Recebidos: {ep.total_received} · Inválidos: {ep.total_invalid}
                         </div>
                       </div>

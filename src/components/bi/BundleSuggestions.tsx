@@ -108,7 +108,7 @@ export function BundleSuggestions({ clientId }: Props) {
                   {activeCategory?.label ?? "favorita"}
                 </span>
               </h2>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-[11px] text-muted-foreground">
                 {anchorName
                   ? `Cruzando com ${anchorName} — produto âncora dessa categoria.`
                   : "Sugestões baseadas em pedidos reais de outros clientes."}

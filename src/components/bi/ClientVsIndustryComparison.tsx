@@ -151,7 +151,7 @@ export function ClientVsIndustryComparison({ clientId, ramoAtividade }: Props) {
           </div>
           <div className="space-y-1">
             <h3 className="font-display font-semibold text-sm">Comparativo Cliente × Setor</h3>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-[11px] text-muted-foreground">
               Amostra do ramo <span className="font-medium">{ramoAtividade}</span> ainda
               insuficiente para gerar benchmarking. Mínimo de 3 empresas com orçamentos
               nos últimos {daysWindow} dias.

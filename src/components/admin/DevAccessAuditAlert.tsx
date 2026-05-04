@@ -45,7 +45,7 @@ export function DevAccessAuditAlert() {
             </Button>
           </div>
         </AlertTitle>
-        <AlertDescription className="text-xs text-muted-foreground">
+        <AlertDescription className="text-[11px] text-muted-foreground">
           Acesso a telemetria, logs e conexões confirmado
           {ranAt ? ` em ${ranAt.toLocaleTimeString()}` : ""}.
         </AlertDescription>
@@ -117,7 +117,7 @@ export function DevAccessAuditAlert() {
           </ul>
         )}
         {ranAt && (
-          <p className="text-xs text-muted-foreground">
+          <p className="text-[11px] text-muted-foreground">
             Última verificação: {ranAt.toLocaleString()}
           </p>
         )}

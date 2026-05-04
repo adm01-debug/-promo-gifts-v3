@@ -27,11 +27,11 @@ export function MagicUpCampaignPanel({ brief, campaign, campaigns, onBriefChange
       <MagicUpCampaignPresets onSelect={onBriefChange} />
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="space-y-1.5">
-          <Label className="text-xs text-muted-foreground">Título</Label>
+          <Label className="text-[11px] text-muted-foreground">Título</Label>
           <Input value={campaign?.title || ""} placeholder="Ex: WhatsApp premium · caneca" onChange={(e) => updateCampaign({ title: e.target.value })} className="h-9" />
         </div>
         <div className="space-y-1.5">
-          <Label className="text-xs text-muted-foreground">Status</Label>
+          <Label className="text-[11px] text-muted-foreground">Status</Label>
           <Select value={campaign?.status || "draft"} onValueChange={(value) => updateCampaign({ status: value as MagicUpCampaignStatus })}>
             <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
             <SelectContent>{CAMPAIGN_STATUSES.map((status) => <SelectItem key={status.value} value={status.value}>{status.label}</SelectItem>)}</SelectContent>
@@ -41,7 +41,7 @@ export function MagicUpCampaignPanel({ brief, campaign, campaigns, onBriefChange
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {fields.map(({ field, options }) => (
           <div key={field} className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">{toHuman(field)}</Label>
+            <Label className="text-[11px] text-muted-foreground">{toHuman(field)}</Label>
             <Select value={brief[field]} onValueChange={(value) => onBriefChange({ ...brief, [field]: value })}>
               <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
               <SelectContent>{options.map((option) => <SelectItem key={option} value={option}>{toHuman(option)}</SelectItem>)}</SelectContent>
@@ -50,8 +50,8 @@ export function MagicUpCampaignPanel({ brief, campaign, campaigns, onBriefChange
         ))}
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div className="space-y-1.5"><Label className="text-xs text-muted-foreground">CTA</Label><Input value={brief.cta} onChange={(e) => onBriefChange({ ...brief, cta: e.target.value })} className="h-9" /></div>
-        <div className="space-y-1.5"><Label className="text-xs text-muted-foreground">Ocasião</Label><Input value={brief.occasion} onChange={(e) => onBriefChange({ ...brief, occasion: e.target.value })} className="h-9" /></div>
+        <div className="space-y-1.5"><Label className="text-[11px] text-muted-foreground">CTA</Label><Input value={brief.cta} onChange={(e) => onBriefChange({ ...brief, cta: e.target.value })} className="h-9" /></div>
+        <div className="space-y-1.5"><Label className="text-[11px] text-muted-foreground">Ocasião</Label><Input value={brief.occasion} onChange={(e) => onBriefChange({ ...brief, occasion: e.target.value })} className="h-9" /></div>
       </div>
       <MagicUpCampaignSummary campaign={campaign} channel={brief.channel} objective={brief.objective} tone={brief.tone} onSave={onSave} />
       {campaigns.length > 0 && (

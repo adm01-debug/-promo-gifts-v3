@@ -113,7 +113,7 @@ export function CustomizationOptions({
             ))}
           </div>
           {technique.maxColors && (
-            <p className="text-xs text-muted-foreground">
+            <p className="text-[11px] text-muted-foreground">
               Máximo suportado nesta área: {technique.maxColors} cores
             </p>
           )}

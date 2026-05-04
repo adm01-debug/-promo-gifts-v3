@@ -205,7 +205,7 @@ function SortableItem({
               {/* Inputs Row */}
               <div className="flex items-center gap-3 flex-wrap">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">Qtd:</span>
+                  <span className="text-[11px] text-muted-foreground">Qtd:</span>
                   <Input
                     type="number"
                     min={1}
@@ -215,7 +215,7 @@ function SortableItem({
                   />
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">Preço:</span>
+                  <span className="text-[11px] text-muted-foreground">Preço:</span>
                   <Input
                     type="number"
                     step="0.01"
@@ -226,7 +226,7 @@ function SortableItem({
                   />
                 </div>
                 <div className="ml-auto text-right">
-                  <p className="text-xs text-muted-foreground">Subtotal</p>
+                  <p className="text-[11px] text-muted-foreground">Subtotal</p>
                   <p className="font-semibold text-sm">{formatCurrency(itemTotal)}</p>
                 </div>
               </div>
@@ -388,7 +388,7 @@ export function DraggableQuoteItems({
                 </div>
                 <div>
                   <p className="font-medium text-sm">{activeItem.product_name}</p>
-                  <p className="text-xs text-muted-foreground">{activeItem.product_sku}</p>
+                  <p className="text-[11px] text-muted-foreground">{activeItem.product_sku}</p>
                 </div>
               </div>
             </CardContent>

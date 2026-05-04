@@ -81,7 +81,7 @@ export function TechniquePreview({
         </div>
         <div>
           <h4 className="font-semibold text-sm">{technique.name}</h4>
-          <p className="text-xs text-muted-foreground">{technique.code}</p>
+          <p className="text-[11px] text-muted-foreground">{technique.code}</p>
         </div>
       </div>
 

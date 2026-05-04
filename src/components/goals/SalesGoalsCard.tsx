@@ -256,7 +256,7 @@ export function SalesGoalsCard() {
             <div className="p-3 rounded-lg bg-background/50">
               <div className="flex items-center gap-2 mb-1">
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                <span className="text-xs text-muted-foreground">Orçamentos</span>
+                <span className="text-[11px] text-muted-foreground">Orçamentos</span>
               </div>
               <p className="font-semibold">
                 {activeGoal.current_quotes}/{activeGoal.target_quotes}
@@ -268,7 +268,7 @@ export function SalesGoalsCard() {
             <div className="p-3 rounded-lg bg-background/50">
               <div className="flex items-center gap-2 mb-1">
                 <Sparkles className="h-4 w-4 text-muted-foreground" />
-                <span className="text-xs text-muted-foreground">Conversões</span>
+                <span className="text-[11px] text-muted-foreground">Conversões</span>
               </div>
               <p className="font-semibold">
                 {activeGoal.current_conversions}/{activeGoal.target_conversions}

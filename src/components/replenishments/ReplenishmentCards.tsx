@@ -141,7 +141,7 @@ export const ReplenishmentGridCard = memo(function ReplenishmentGridCard({
                   </span>
                 </>
               ) : (
-                <span className="text-xs text-muted-foreground">Preço sob consulta</span>
+                <span className="text-[11px] text-muted-foreground">Preço sob consulta</span>
               )}
             </div>
             <div className="flex flex-col items-end gap-0.5 sm:gap-1">

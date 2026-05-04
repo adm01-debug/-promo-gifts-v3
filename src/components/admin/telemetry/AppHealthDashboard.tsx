@@ -170,7 +170,7 @@ export function AppHealthDashboard() {
           </div>
           {lookupResult && (
             <div className="space-y-2">
-              <div className="text-xs text-muted-foreground">
+              <div className="text-[11px] text-muted-foreground">
                 <strong>{lookupResult.event_count}</strong> evento(s) correlacionado(s) — request_id:{' '}
                 <code className="font-mono">{lookupResult.request_id}</code>
               </div>

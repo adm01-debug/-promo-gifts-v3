@@ -76,12 +76,12 @@ export function ConfigurationPanelV6({ technique, quantity, onPriceCalculated }:
             <Ruler className="h-3.5 w-3.5" />
             <span className="font-medium">Tamanho da gravação</span>
           </div>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-[11px] text-muted-foreground">
             Máx. {technique.efetiva_largura_max} × {technique.efetiva_altura_max} cm
           </p>
           <div className="flex items-center gap-3">
             <div className="flex-1">
-              <Label className="text-xs text-muted-foreground">Largura (cm)</Label>
+              <Label className="text-[11px] text-muted-foreground">Largura (cm)</Label>
               <Input
                 type="number"
                 step="0.1"
@@ -95,7 +95,7 @@ export function ConfigurationPanelV6({ technique, quantity, onPriceCalculated }:
             </div>
             <span className="text-muted-foreground mt-5">×</span>
             <div className="flex-1">
-              <Label className="text-xs text-muted-foreground">Altura (cm)</Label>
+              <Label className="text-[11px] text-muted-foreground">Altura (cm)</Label>
               <Input
                 type="number"
                 step="0.1"

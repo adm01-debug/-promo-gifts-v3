@@ -171,7 +171,7 @@ export function ConfirmQuoteSuggestionsModal({
                     <p className="text-xs text-muted-foreground truncate mt-0.5">{s.reason}</p>
                   </div>
                   <div className="text-right shrink-0">
-                    <div className="text-xs text-muted-foreground">unitário</div>
+                    <div className="text-[11px] text-muted-foreground">unitário</div>
                     <div className="font-semibold text-sm tabular-nums">
                       {fmtBRL(s.priceFrom)}–{fmtBRL(s.priceTo)}
                     </div>

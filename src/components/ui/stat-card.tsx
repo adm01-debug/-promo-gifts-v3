@@ -79,7 +79,7 @@ export function StatCard({
             {value}
           </p>
           {subtitle && (
-            <p className="text-xs text-muted-foreground">{subtitle}</p>
+            <p className="text-[11px] text-muted-foreground">{subtitle}</p>
           )}
           {trend && (
             <div className="flex items-center gap-1 pt-1">
@@ -93,7 +93,7 @@ export function StatCard({
                 {trend.value}%
               </span>
               {trend.label && (
-                <span className="text-xs text-muted-foreground">
+                <span className="text-[11px] text-muted-foreground">
                   {trend.label}
                 </span>
               )}

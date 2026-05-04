@@ -348,7 +348,7 @@ export function StepProduct({ wizard }: StepProductProps) {
               </div>
               <div>
                 <p className="font-bold text-sm line-clamp-1">{wizard.selectedProduct.name}</p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-[11px] text-muted-foreground">
                   {wizard.quantity} un. × {formatCurrency(wizard.effectivePrice)} = <span className="font-bold text-primary">{formatCurrency(wizard.effectivePrice * wizard.quantity)}</span>
                 </p>
               </div>

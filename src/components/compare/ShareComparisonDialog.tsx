@@ -115,7 +115,7 @@ export function ShareComparisonDialog({ open, onOpenChange, compareItems, client
                 </Button>
               </div>
               {clientName && (
-                <p className="text-xs text-muted-foreground">
+                <p className="text-[11px] text-muted-foreground">
                   Curadoria vinculada a <strong>{clientName}</strong>
                 </p>
               )}

@@ -127,9 +127,9 @@ export function PromotionDialog({
 
         {user && (
           <div className="rounded-lg border bg-muted/30 p-3">
-            <div className="text-xs text-muted-foreground">Usuário</div>
+            <div className="text-[11px] text-muted-foreground">Usuário</div>
             <div className="font-medium">{user.full_name || "Sem nome"}</div>
-            <div className="text-xs text-muted-foreground">{user.email}</div>
+            <div className="text-[11px] text-muted-foreground">{user.email}</div>
             <div className="mt-2 flex items-center gap-2 text-xs">
               <span className="rounded bg-secondary px-2 py-0.5">
                 {user.role === "vendedor" ? "Agente" : "Supervisor"}
@@ -154,7 +154,7 @@ export function PromotionDialog({
               rows={3}
               disabled={submitting}
             />
-            <p className="text-xs text-muted-foreground">
+            <p className="text-[11px] text-muted-foreground">
               {reason.trim().length}/500 — registrado na auditoria.
             </p>
           </div>
@@ -170,7 +170,7 @@ export function PromotionDialog({
               onChange={(e) => setPassword(e.target.value)}
               disabled={submitting}
             />
-            <p className="text-xs text-muted-foreground">
+            <p className="text-[11px] text-muted-foreground">
               Step-up de segurança — exigido para alterações de papel.
             </p>
           </div>

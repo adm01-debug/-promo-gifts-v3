@@ -85,7 +85,7 @@ export function PushNotificationSettings() {
             <AlertTriangle className="h-5 w-5 text-orange" />
             <div>
               <p className="text-sm font-medium">Navegador não compatível</p>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-[11px] text-muted-foreground">
                 Tente usar Chrome, Firefox, Edge ou Safari para receber notificações.
               </p>
             </div>
@@ -178,7 +178,7 @@ export function PushNotificationSettings() {
                     </div>
                     <div>
                       <p className="text-sm font-medium">Tentativas de login falhas</p>
-                      <p className="text-xs text-muted-foreground">Alerta quando houver tentativas inválidas</p>
+                      <p className="text-[11px] text-muted-foreground">Alerta quando houver tentativas inválidas</p>
                     </div>
                   </div>
                   <Switch defaultChecked disabled />
@@ -191,7 +191,7 @@ export function PushNotificationSettings() {
                     </div>
                     <div>
                       <p className="text-sm font-medium">Novos dispositivos</p>
-                      <p className="text-xs text-muted-foreground">Alerta quando um novo dispositivo acessar</p>
+                      <p className="text-[11px] text-muted-foreground">Alerta quando um novo dispositivo acessar</p>
                     </div>
                   </div>
                   <Switch defaultChecked disabled />
@@ -204,7 +204,7 @@ export function PushNotificationSettings() {
                     </div>
                     <div>
                       <p className="text-sm font-medium">Alertas gerais de segurança</p>
-                      <p className="text-xs text-muted-foreground">Outras notificações importantes</p>
+                      <p className="text-[11px] text-muted-foreground">Outras notificações importantes</p>
                     </div>
                   </div>
                   <Switch defaultChecked disabled />

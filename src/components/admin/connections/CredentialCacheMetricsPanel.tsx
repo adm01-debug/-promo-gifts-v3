@@ -183,7 +183,7 @@ export function CredentialCacheMetricsPanel() {
                 Por credencial ({snapshot.per_name.length})
               </h4>
               {snapshot.per_name.length === 0 ? (
-                <p className="text-xs text-muted-foreground">
+                <p className="text-[11px] text-muted-foreground">
                   Nenhuma resolução registrada ainda. Atue na app para popular as métricas.
                 </p>
               ) : (
@@ -250,7 +250,7 @@ export function CredentialCacheMetricsPanel() {
                 {Math.round(snapshot.cache.ttl_ms / 1000)}s
               </h4>
               {snapshot.cache.entries.length === 0 ? (
-                <p className="text-xs text-muted-foreground">Cache vazio.</p>
+                <p className="text-[11px] text-muted-foreground">Cache vazio.</p>
               ) : (
                 <ul className="space-y-1 text-xs font-mono">
                   {snapshot.cache.entries.map((e) => (

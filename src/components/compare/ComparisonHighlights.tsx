@@ -157,7 +157,7 @@ function HighlightCell({
               <TrendingUp className="h-3 w-3 text-success" />
             )}
             {type !== "best" && diff > 0 && (
-              <span className="text-xs text-muted-foreground">
+              <span className="text-[11px] text-muted-foreground">
                 (+{mode === "lower-is-better" ? formatValue(diff) : formatValue(-diff)})
               </span>
             )}

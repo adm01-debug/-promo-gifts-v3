@@ -76,7 +76,7 @@ export function AutoTestJobStatusCard() {
           </div>
           <div>
             <h3 className="text-sm font-semibold leading-tight">Job: connections-auto-test</h3>
-            <p className="text-xs text-muted-foreground">Cron de auto-teste de conexões — últimos 7 dias</p>
+            <p className="text-[11px] text-muted-foreground">Cron de auto-teste de conexões — últimos 7 dias</p>
           </div>
         </div>
         <Button variant="ghost" size="sm" onClick={fetchRuns} disabled={loading} className="h-8 gap-1.5">
@@ -111,7 +111,7 @@ export function AutoTestJobStatusCard() {
               </div>
             </div>
             <div className="rounded-md border bg-background/50 p-3">
-              <div className="text-xs text-muted-foreground">Duração</div>
+              <div className="text-[11px] text-muted-foreground">Duração</div>
               <div className="mt-1 text-sm font-semibold tabular-nums">
                 {lastRun ? formatDuration(lastRun.duration_ms) : "—"}
               </div>
@@ -120,7 +120,7 @@ export function AutoTestJobStatusCard() {
               </div>
             </div>
             <div className="rounded-md border bg-background/50 p-3">
-              <div className="text-xs text-muted-foreground">Resultado</div>
+              <div className="text-[11px] text-muted-foreground">Resultado</div>
               <div className="mt-1 flex items-center gap-2 text-sm font-semibold tabular-nums">
                 <span className="text-success inline-flex items-center gap-1">
                   <CheckCircle2 className="h-3.5 w-3.5" />
@@ -138,7 +138,7 @@ export function AutoTestJobStatusCard() {
               <div className="text-[11px] text-muted-foreground">OK / falha</div>
             </div>
             <div className="rounded-md border bg-background/50 p-3">
-              <div className="text-xs text-muted-foreground">Sucesso 24h</div>
+              <div className="text-[11px] text-muted-foreground">Sucesso 24h</div>
               <div className="mt-1 text-sm font-semibold tabular-nums">
                 {successRate24 !== null ? `${successRate24}%` : "—"}
               </div>

@@ -166,7 +166,7 @@ export function RotationHistoryDialog({ secretName, open, onOpenChange }: Props)
                       <TableCell className="text-xs">
                         {e.rotated_by_email ?? <span className="text-muted-foreground font-mono">{e.rotated_by?.slice(0, 8) ?? "—"}…</span>}
                       </TableCell>
-                      <TableCell className="text-xs text-muted-foreground">
+                      <TableCell className="text-[11px] text-muted-foreground">
                         {e.notes || "—"}
                       </TableCell>
                     </TableRow>

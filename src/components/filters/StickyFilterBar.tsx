@@ -228,7 +228,7 @@ export function InlineFilterBar({
           )}
 
           {/* Contador de produtos */}
-          <span className="text-xs text-muted-foreground">
+          <span className="text-[11px] text-muted-foreground">
             <strong className="text-foreground">{totalProducts}</strong> produtos
           </span>
         </div>

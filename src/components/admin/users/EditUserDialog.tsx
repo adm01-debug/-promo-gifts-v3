@@ -91,7 +91,7 @@ export function EditUserDialog({ user, onClose, onSave, onUploadAvatar, onRemove
               <input id="avatar-upload" type="file" accept="image/*" className="hidden" onChange={handleUpload} disabled={isUploading} />
             </div>
             <div className="flex items-center gap-2">
-              <Label className="text-xs text-muted-foreground">Foto do Usuário</Label>
+              <Label className="text-[11px] text-muted-foreground">Foto do Usuário</Label>
               {form.avatar_url && (
                 <Button variant="ghost" size="sm" className="h-6 px-2 text-xs text-destructive hover:text-destructive" onClick={handleRemove} disabled={isUploading}>
                   <X className="h-3 w-3 mr-1" />

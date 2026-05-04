@@ -199,7 +199,7 @@ function VariantRow({ variant, isNested = false }: { variant: VariantStock; isNe
           )}>
             {variant.currentStock}
           </span>
-          <span className="text-xs text-muted-foreground">
+          <span className="text-[11px] text-muted-foreground">
             / {variant.minStock} mín
           </span>
         </div>
@@ -292,7 +292,7 @@ function ProductRow({ product, isExpanded, onToggle }: {
             </Button>
             <div className="flex flex-col">
               <span className="font-medium truncate max-w-[200px]">{product.productName}</span>
-              <span className="text-xs text-muted-foreground">
+              <span className="text-[11px] text-muted-foreground">
                 {product.productSku} • {product.totalVariants} {product.totalVariants === 1 ? 'variação' : 'variações'}
               </span>
             </div>
@@ -323,7 +323,7 @@ function ProductRow({ product, isExpanded, onToggle }: {
         <TableCell>
           <div className="flex items-center gap-2">
             <span className="font-semibold">{product.totalCurrentStock}</span>
-            <span className="text-xs text-muted-foreground">/ {product.totalMinStock} mín</span>
+            <span className="text-[11px] text-muted-foreground">/ {product.totalMinStock} mín</span>
           </div>
         </TableCell>
         <TableCell className="hidden sm:table-cell"><StockProgressBar current={product.totalCurrentStock} min={product.totalMinStock} /></TableCell>

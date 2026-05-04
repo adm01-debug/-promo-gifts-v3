@@ -177,10 +177,10 @@ export function TemplatePreviewExpanded({
             <TooltipContent side="top">
               <div className="space-y-1">
                 <p className="font-medium">{area.name}</p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-[11px] text-muted-foreground">
                   Tamanho: {area.logoWidth}×{area.logoHeight} cm
                 </p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-[11px] text-muted-foreground">
                   Posição: {area.positionX}%, {area.positionY}%
                 </p>
               </div>

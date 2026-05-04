@@ -160,10 +160,10 @@ export function HorizontalStepper({
             </div>
             <div>
               <p className="text-sm font-medium text-foreground">{steps[activeIndex]?.label}</p>
-              <p className="text-xs text-muted-foreground">{steps[activeIndex]?.description}</p>
+              <p className="text-[11px] text-muted-foreground">{steps[activeIndex]?.description}</p>
             </div>
           </div>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-[11px] text-muted-foreground">
             Passo {activeIndex + 1} de {steps.length}
           </p>
         </div>

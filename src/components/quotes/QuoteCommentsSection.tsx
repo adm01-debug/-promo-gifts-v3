@@ -59,7 +59,7 @@ export function QuoteCommentsSection({ quoteId }: QuoteCommentsSectionProps) {
           />
         </div>
         <div className="flex justify-between items-center">
-          <p className="text-xs text-muted-foreground">Ctrl+Enter para enviar</p>
+          <p className="text-[11px] text-muted-foreground">Ctrl+Enter para enviar</p>
           <Button
             onClick={handleSubmit}
             disabled={!newComment.trim() || isSubmitting}
@@ -197,7 +197,7 @@ function CommentItem({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-sm font-medium">{comment.author_name}</span>
-            <span className="text-xs text-muted-foreground">
+            <span className="text-[11px] text-muted-foreground">
               {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true, locale: ptBR })}
             </span>
             {comment.is_edited && (

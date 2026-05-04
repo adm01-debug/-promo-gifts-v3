@@ -189,15 +189,15 @@ export function ConnectionErrorDetailsDialog({
           {/* Resumo */}
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div>
-              <div className="text-xs text-muted-foreground">Quando</div>
+              <div className="text-[11px] text-muted-foreground">Quando</div>
               <div title={testedAt ?? ""}>{formatRelative(testedAt)}</div>
             </div>
             <div>
-              <div className="text-xs text-muted-foreground">Latência</div>
+              <div className="text-[11px] text-muted-foreground">Latência</div>
               <div className="font-mono">{latency != null ? `${latency}ms` : "— (timeout)"}</div>
             </div>
             <div>
-              <div className="text-xs text-muted-foreground">HTTP Status</div>
+              <div className="text-[11px] text-muted-foreground">HTTP Status</div>
               <div>
                 {status != null ? (
                   <Badge variant={statusVariant} className="font-mono">{status}</Badge>
@@ -207,7 +207,7 @@ export function ConnectionErrorDetailsDialog({
               </div>
             </div>
             <div>
-              <div className="text-xs text-muted-foreground">Tipo</div>
+              <div className="text-[11px] text-muted-foreground">Tipo</div>
               <Badge variant="outline" className="font-mono">{connectionType}</Badge>
             </div>
           </div>

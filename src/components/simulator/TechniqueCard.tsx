@@ -202,7 +202,7 @@ export function TechniqueCard({
             </div>
 
             <div className="flex flex-col items-end gap-1 flex-shrink-0">
-              <p className="text-xs text-muted-foreground">Estimativa</p>
+              <p className="text-[11px] text-muted-foreground">Estimativa</p>
               <p className="font-bold text-lg">{formatCurrency(estimatedCost)}</p>
               {recommendation.isRecommended && (
                 <div className="flex items-center gap-1 text-warning">
@@ -267,11 +267,11 @@ function InlineConfigForm({
       {showSize && sizeOptions.length === 0 && (
         <>
           <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">Largura (cm)</Label>
+            <Label className="text-[11px] text-muted-foreground">Largura (cm)</Label>
             <Input type="number" min={1} value={settings.width} onChange={(e) => onUpdateSetting('width', parseInt(e.target.value) || 1)} className="h-9" onClick={(e) => e.stopPropagation()} />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">Altura (cm)</Label>
+            <Label className="text-[11px] text-muted-foreground">Altura (cm)</Label>
             <Input type="number" min={1} value={settings.height} onChange={(e) => onUpdateSetting('height', parseInt(e.target.value) || 1)} className="h-9" onClick={(e) => e.stopPropagation()} />
           </div>
         </>
@@ -285,7 +285,7 @@ function InlineConfigForm({
       </div>
       {showSize && sizeOptions.length === 0 && (
         <div className="col-span-full">
-          <p className="text-xs text-muted-foreground">Área: <span className="font-mono font-medium">{settings.width * settings.height} cm²</span></p>
+          <p className="text-[11px] text-muted-foreground">Área: <span className="font-mono font-medium">{settings.width * settings.height} cm²</span></p>
         </div>
       )}
     </div>

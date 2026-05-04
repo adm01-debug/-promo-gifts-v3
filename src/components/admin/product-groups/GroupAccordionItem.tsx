@@ -38,8 +38,8 @@ export function GroupAccordionItem({
       </AccordionTrigger>
       <AccordionContent className="pt-4 pb-2">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-muted/30 rounded-lg mb-4">
-          <div><Label className="text-xs text-muted-foreground">Código</Label><InlineEditField value={group.group_code} onSave={(v) => onUpdate({ id: group.id, group_code: v.toUpperCase() })} className="font-mono" /></div>
-          <div><Label className="text-xs text-muted-foreground">Nome</Label><InlineEditField value={group.group_name} onSave={(v) => onUpdate({ id: group.id, group_name: v })} /></div>
+          <div><Label className="text-[11px] text-muted-foreground">Código</Label><InlineEditField value={group.group_code} onSave={(v) => onUpdate({ id: group.id, group_code: v.toUpperCase() })} className="font-mono" /></div>
+          <div><Label className="text-[11px] text-muted-foreground">Nome</Label><InlineEditField value={group.group_name} onSave={(v) => onUpdate({ id: group.id, group_name: v })} /></div>
           <div className="flex items-center gap-2">
             <Switch id={`group-active-${group.id}`} checked={group.is_active} onCheckedChange={(checked) => onUpdate({ id: group.id, is_active: checked })} />
             <Label htmlFor={`group-active-${group.id}`} className="text-sm">Ativo</Label>

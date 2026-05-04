@@ -297,7 +297,7 @@ export function StockDashboard() {
               <X className="h-3.5 w-3.5" />
             </button>
           </span>
-          <span className="text-xs text-muted-foreground">
+          <span className="text-[11px] text-muted-foreground">
             ({productStocks.length} de {allProductStocks.length} produtos)
           </span>
         </div>

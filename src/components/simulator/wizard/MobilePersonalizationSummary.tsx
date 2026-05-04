@@ -59,7 +59,7 @@ export function MobilePersonalizationSummary({
                   </Badge>
                 </div>
                 <div className="text-left min-w-0">
-                  <p className="text-xs text-muted-foreground">Total</p>
+                  <p className="text-[11px] text-muted-foreground">Total</p>
                   <p className="font-bold text-primary text-base">
                     {formatCurrency(totals.grandTotal)}
                   </p>

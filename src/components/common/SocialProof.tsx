@@ -449,15 +449,15 @@ export function ConversionStats({
     )}>
       <div className="text-center">
         <div className="text-2xl font-bold text-foreground">{ordersToday}</div>
-        <div className="text-xs text-muted-foreground">Pedidos hoje</div>
+        <div className="text-[11px] text-muted-foreground">Pedidos hoje</div>
       </div>
       <div className="text-center">
         <div className="text-2xl font-bold text-foreground">{activeUsers}</div>
-        <div className="text-xs text-muted-foreground">Usuários ativos</div>
+        <div className="text-[11px] text-muted-foreground">Usuários ativos</div>
       </div>
       <div className="text-center">
         <div className="text-2xl font-bold text-success">{satisfactionRate}%</div>
-        <div className="text-xs text-muted-foreground">Satisfação</div>
+        <div className="text-[11px] text-muted-foreground">Satisfação</div>
       </div>
     </div>
   );

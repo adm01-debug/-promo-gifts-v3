@@ -77,7 +77,7 @@ export function GroupComponentCard({
         <AccordionContent className="pt-4 pb-2">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-muted/30 rounded-lg mb-4">
             <div>
-              <Label className="text-xs text-muted-foreground">Código</Label>
+              <Label className="text-[11px] text-muted-foreground">Código</Label>
               <InlineEditField
                 value={component.component_code}
                 onSave={(value) => onUpdateComponent({ id: component.id, component_code: value.toUpperCase() })}
@@ -85,7 +85,7 @@ export function GroupComponentCard({
               />
             </div>
             <div>
-              <Label className="text-xs text-muted-foreground">Nome</Label>
+              <Label className="text-[11px] text-muted-foreground">Nome</Label>
               <InlineEditField
                 value={component.component_name}
                 onSave={(value) => onUpdateComponent({ id: component.id, component_name: value })}

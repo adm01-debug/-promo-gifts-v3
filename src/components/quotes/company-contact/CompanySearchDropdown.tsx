@@ -117,7 +117,7 @@ export function CompanySearchDropdown({
             )}
             {selectedCompany.cnpj && (
               <>
-                {selectedCompany.razao_social && selectedCompany.razao_social !== selectedCompany.name && <span className="text-xs text-muted-foreground">·</span>}
+                {selectedCompany.razao_social && selectedCompany.razao_social !== selectedCompany.name && <span className="text-[11px] text-muted-foreground">·</span>}
                 <span className="text-xs text-muted-foreground font-mono">{selectedCompany.cnpj}</span>
               </>
             )}

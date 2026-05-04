@@ -219,7 +219,7 @@ export function SecurityAnalytics({ botLogs, onBlockIp }: Props) {
         <CardContent>
           <div className="flex flex-wrap gap-2">
             {topReasons.length === 0 ? (
-              <span className="text-xs text-muted-foreground">Sem dados na janela atual.</span>
+              <span className="text-[11px] text-muted-foreground">Sem dados na janela atual.</span>
             ) : topReasons.map(({ reason, count }) => (
               <Badge key={reason} variant="outline" className="text-xs">
                 {reason} <span className="ml-1.5 font-semibold text-foreground">{count}</span>

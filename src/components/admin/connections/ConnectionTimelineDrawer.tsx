@@ -368,7 +368,7 @@ export function ConnectionTimelineDrawer({
                       >
                         Anterior
                       </Button>
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-[11px] text-muted-foreground">
                         {page + 1} / {pages}
                       </span>
                       <Button

@@ -228,7 +228,7 @@ export function CategoryTreeNavigation({
     return (
       <div className={cn("p-4 text-center text-destructive", className)}>
         <p className="text-sm">Erro ao carregar categorias</p>
-        <p className="text-xs text-muted-foreground">{error}</p>
+        <p className="text-[11px] text-muted-foreground">{error}</p>
       </div>
     );
   }

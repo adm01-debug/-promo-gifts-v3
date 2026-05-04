@@ -18,7 +18,7 @@ export function MagicUpCampaignSummary({ campaign, channel, objective, tone, onS
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold">{campaign?.title || "Campanha sem nome"}</p>
-          <p className="text-xs text-muted-foreground">{toHuman(channel)} · {toHuman(objective)} · {toHuman(tone)}</p>
+          <p className="text-[11px] text-muted-foreground">{toHuman(channel)} · {toHuman(objective)} · {toHuman(tone)}</p>
         </div>
         <Badge variant={campaign?.id ? "secondary" : "outline"}>{status}</Badge>
       </div>
