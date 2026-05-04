@@ -1,32 +1,50 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('RLS Deep Dive: Authorization & Data Isolation', () => {
+test.describe('RLS Enterprise: Multi-tenant & Role Isolation', () => {
   
-  test('Audit Log must be restricted to DEV role only', async ({ page }) => {
-    // Unauthenticated access
-    await page.goto('/admin/audit-log');
-    await expect(page).toHaveURL(/.*login/);
+  const ANON_HEADERS = {
+    'apikey': process.env.VITE_SUPABASE_ANON_KEY || '',
+    'Content-Type': 'application/json'
+  };
+
+  test('Public Users must NOT leak cross-organization quotes', async ({ request }) => {
+    // Attempt to fetch all quotes as an unauthenticated user
+    const response = await request.get('/rest/v1/quotes', { headers: ANON_HEADERS });
+    
+    // Status 200 is fine as long as the array is empty due to RLS
+    if (response.status() === 200) {
+      const data = await response.json();
+      expect(data.length).toBe(0);
+    } else {
+      expect([401, 403]).toContain(response.status());
+    }
   });
 
-  test('REST API Data Isolation Check', async ({ request }) => {
-    const sensitiveTables = [
+  test('Organization isolation simulation via RPC', async ({ request }) => {
+    // Attempt to invoke a restricted RPC without authentication
+    const response = await request.post('/rest/v1/rpc/get_industry_top_products', {
+      headers: ANON_HEADERS,
+      data: { p_industry: 'Technology' }
+    });
+    
+    // Must be rejected or return no sensitive data
+    expect([401, 403, 404]).toContain(response.status());
+  });
+
+  test('Direct table access security for high-risk data', async ({ request }) => {
+    const highRiskTables = [
       'integration_credentials',
-      'discount_approval_requests',
-      'admin_audit_log',
+      'secret_rotation_log',
+      'ip_access_control',
       'admin_settings'
     ];
 
-    for (const table of sensitiveTables) {
-      const response = await request.get(`/rest/v1/${table}`, {
-        headers: {
-          'apikey': process.env.VITE_SUPABASE_ANON_KEY || '',
-        }
-      });
+    for (const table of highRiskTables) {
+      const response = await request.get(`/rest/v1/${table}`, { headers: ANON_HEADERS });
       
-      // If 200, must be empty array. If not 200, must be 401/403.
+      // RLS should return 401 (if no auth) or empty list
       if (response.status() === 200) {
         const data = await response.json();
-        expect(Array.isArray(data)).toBeTruthy();
         expect(data.length).toBe(0);
       } else {
         expect([401, 403]).toContain(response.status());
@@ -34,12 +52,12 @@ test.describe('RLS Deep Dive: Authorization & Data Isolation', () => {
     }
   });
 
-  test('Public Quote Approval Token security', async ({ request }) => {
-    // Attempting to access an approval token without valid UUID format
-    const response = await request.get('/rest/v1/quote_approval_tokens?token=eq.invalid-token');
+  test('Rate limiting log must NOT be visible to public', async ({ request }) => {
+    const response = await request.get('/rest/v1/request_rate_limits', { headers: ANON_HEADERS });
     
-    // Even if it "works" as a query, RLS will return empty result for anon
-    const data = await response.json();
-    expect(data.length).toBe(0);
+    if (response.status() === 200) {
+      const data = await response.json();
+      expect(data.length).toBe(0);
+    }
   });
 });
