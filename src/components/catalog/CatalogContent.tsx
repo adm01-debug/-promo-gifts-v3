@@ -170,7 +170,13 @@ function VirtualGrid({ products, columns, navigate, handleViewProduct, handleSha
                       <div className={cn("transition-all duration-200 rounded-xl", isSelected && "ring-2 ring-primary/50 shadow-[0_0_12px_-4px_hsl(var(--primary)/0.3)]", isActive && "ring-2 ring-primary shadow-lg scale-[1.01] z-10")}>
                         <ProductCard
                           product={product}
-                          onClick={() => selectionMode ? onToggleSelect?.(product.id) : navigate(`/produto/${product.id}`)}
+                          onClick={() => {
+                            if (selectionMode) {
+                              onToggleSelect?.(product.id);
+                            } else {
+                              handleViewProduct(product);
+                            }
+                          }}
                           onView={handleViewProduct}
                           onShare={handleShareProduct}
                           isFavorited={isFavorite(product.id)}
@@ -239,7 +245,7 @@ function VirtualList({ products, navigate, handleViewProduct, handleShareProduct
                 <div className={cn("flex items-center gap-2 rounded-xl transition-all duration-200", isSelected && "ring-2 ring-primary/40 bg-primary/5", isActive && "ring-2 ring-primary bg-primary/10 shadow-md")}>
                   {selectionMode && <div className="flex-shrink-0 ml-1"><SelectionCheckbox checked={!!isSelected} onChange={() => onToggleSelect?.(product.id)} size="md" /></div>}
                   <div className="flex-1 min-w-0">
-                    <ProductListItem product={product} onClick={() => selectionMode ? onToggleSelect?.(product.id) : navigate(`/produto/${product.id}`)} onView={handleViewProduct} onShare={handleShareProduct} isFavorited={isFavorite(product.id)} onToggleFavorite={toggleFavorite} isInCompare={isInCompare(product.id)} onToggleCompare={onToggleCompare} canAddToCompare={canAddToCompare} activeColorFilter={activeColorFilter} />
+                    <ProductListItem product={product} onClick={() => selectionMode ? onToggleSelect?.(product.id) : handleViewProduct(product)} onView={handleViewProduct} onShare={handleShareProduct} isFavorited={isFavorite(product.id)} onToggleFavorite={toggleFavorite} isInCompare={isInCompare(product.id)} onToggleCompare={onToggleCompare} canAddToCompare={canAddToCompare} activeColorFilter={activeColorFilter} />
                   </div>
                 </div>
               </div>

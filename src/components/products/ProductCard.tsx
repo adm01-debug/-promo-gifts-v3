@@ -191,15 +191,17 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
       }}
       onClick={(e) => {
         if (actionsOpen || actionBusyRef.current || variantPickerOpen || collectionModalOpen || quickViewOpen) { e.stopPropagation(); return; }
+        
+        // Navigation priority
         if (currentVariant?.name) {
           const params = new URLSearchParams();
           params.set('cor', currentVariant.name);
           if (currentVariant.groupSlug) params.set('grupo', currentVariant.groupSlug);
           if (currentVariant.hex) params.set('hex', currentVariant.hex);
           navigate(`/produto/${product.id}?${params.toString()}`);
-          return;
+        } else {
+          navigate(`/produto/${product.id}`);
         }
-        navigate(`/produto/${product.id}`);
       }}
     >
       {/* Image Section */}
