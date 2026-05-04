@@ -360,10 +360,11 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
                     />
                   )}
                 </div>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Configurações, perfil e logout</TooltipContent>
-          </Tooltip>
+                  </Button>
+                </DropdownMenuTrigger>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Configurações, perfil e logout</TooltipContent>
+            </Tooltip>
             <DropdownMenuContent align="end" className="w-56 bg-card border-border">
               <DropdownMenuLabel>
                 <div className="flex flex-col gap-1">
