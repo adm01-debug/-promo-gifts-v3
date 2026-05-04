@@ -66,13 +66,6 @@ O sistema **Promo Gifts** consolidou-se como uma plataforma Tier 1 para o mercad
 | **Performance Catálogo** | 2025-12-15 | v25.12 | `499135659` | gpt-engineer-app[bot] |
 
 
---- | :--- | :--- | :--- | :--- |
-| **Isolamento RLS** | 2025-12-14 | v25.12 | `3e80ba486` | gpt-engineer-app[bot] |
-| **MFA Integration** | 2025-12-14 | v25.12 | `3e80ba486` | gpt-engineer-app[bot] |
-| **Pricing Engine** | 2026-01-13 | v26.01 | `3ec111c0a` | gpt-engineer-app[bot] |
-| **Performance Catálogo** | 2025-12-15 | v25.12 | `499135659` | gpt-engineer-app[bot] |
-
-
 --- | :--- | :--- | :--- |
 | **Isolamento RLS** | 15/04/2026 | v2.1.0 | Flow Alpha |
 | **MFA Integration** | 22/04/2026 | v3.0.4 | Security Agent |
