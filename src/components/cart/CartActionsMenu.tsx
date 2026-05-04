@@ -7,7 +7,7 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   MoreHorizontal, Share2, Copy, Download, FileDown, Eraser,
   Save, Upload, Plus,
@@ -31,19 +31,21 @@ export function CartActionsMenu({
 }: CartActionsMenuProps) {
   return (
     <DropdownMenu>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="w-full gap-2.5 text-xs h-10 border-border/40 hover:border-primary/30 hover:bg-primary/[0.02] transition-all rounded-xl relative group shadow-sm hover:shadow-md">
-              <MoreHorizontal className="h-3.5 w-3.5 group-hover:rotate-90 transition-transform duration-500 text-muted-foreground group-hover:text-primary" />
-              <span className="font-semibold text-muted-foreground group-hover:text-primary transition-colors">Gerenciar Carrinho</span>
-            </Button>
-          </DropdownMenuTrigger>
-        </TooltipTrigger>
-        <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">
-          Exportar, duplicar, templates e limpar carrinho
-        </TooltipContent>
-      </Tooltip>
+      <TooltipProvider delayDuration={0}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="w-full gap-2.5 text-xs h-10 border-border/40 hover:border-primary/30 hover:bg-primary/[0.02] transition-all rounded-xl relative group shadow-sm hover:shadow-md">
+                <MoreHorizontal className="h-3.5 w-3.5 group-hover:rotate-90 transition-transform duration-500 text-muted-foreground group-hover:text-primary" />
+                <span className="font-semibold text-muted-foreground group-hover:text-primary transition-colors">Gerenciar Carrinho</span>
+              </Button>
+            </DropdownMenuTrigger>
+          </TooltipTrigger>
+          <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
+            Exportar, duplicar, templates e limpar carrinho
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuItem onClick={onAddProducts}>
           <Plus className="mr-2 h-3.5 w-3.5" />Adicionar produtos

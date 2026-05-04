@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useSellerCartContext } from "@/contexts/SellerCartContext";
 import { CartCompanyPicker } from "./CartCompanyPicker";
@@ -58,7 +58,8 @@ export function CartHeaderButton() {
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <Tooltip>
+      <TooltipProvider delayDuration={0}>
+        <Tooltip>
         <TooltipTrigger asChild>
           <span className="inline-flex">
             <PopoverTrigger asChild>
@@ -77,10 +78,11 @@ export function CartHeaderButton() {
             </PopoverTrigger>
           </span>
         </TooltipTrigger>
-        <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">
-          Carrinho de Orçamentos <kbd className="ml-1.5 px-1 py-0.5 bg-primary-foreground/20 text-primary-foreground rounded text-[9px] font-mono">Alt+O</kbd>
-        </TooltipContent>
-      </Tooltip>
+          <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
+            Carrinho de Orçamentos <kbd className="ml-1.5 px-1 py-0.5 bg-primary-foreground/20 text-primary-foreground rounded text-[9px] font-mono">Alt+O</kbd>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
 
       <PopoverContent
         data-testid="cart-drawer"
@@ -101,7 +103,8 @@ export function CartHeaderButton() {
             >
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-display text-sm font-semibold">Novo Carrinho</h3>
-                <Tooltip>
+                <TooltipProvider delayDuration={0}>
+                  <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
                       variant="ghost"
@@ -112,8 +115,9 @@ export function CartHeaderButton() {
                       <X className="h-3.5 w-3.5" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Fechar</TooltipContent>
+                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Fechar</TooltipContent>
                 </Tooltip>
+              </TooltipProvider>
               </div>
               <CartCompanyPicker
                 onCreated={() => setShowPicker(false)}
@@ -151,7 +155,8 @@ export function CartHeaderButton() {
                   </div>
                 </div>
                 {canCreateCart && (
-                  <Tooltip>
+                  <TooltipProvider delayDuration={0}>
+                    <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
                         variant="ghost"
@@ -163,10 +168,11 @@ export function CartHeaderButton() {
                         Novo
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">
+                    <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
                       Criar um novo carrinho para outra empresa
                     </TooltipContent>
                   </Tooltip>
+                </TooltipProvider>
                 )}
               </div>
 
@@ -279,7 +285,8 @@ export function CartHeaderButton() {
                                 )}
                                 {/* Limpar carrinho */}
                                 {isActive && cart.items.length > 0 && (
-                                  <Tooltip>
+                                  <TooltipProvider delayDuration={0}>
+                                    <Tooltip>
                                     <TooltipTrigger asChild>
                                       <button
                                         className="h-7 w-7 flex items-center justify-center rounded-md text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
@@ -291,11 +298,13 @@ export function CartHeaderButton() {
                                         <Eraser className="h-3.5 w-3.5" />
                                       </button>
                                     </TooltipTrigger>
-                                    <TooltipContent side="top" className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Limpar itens</TooltipContent>
+                                    <TooltipContent side="top" className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Limpar itens</TooltipContent>
                                   </Tooltip>
+                                </TooltipProvider>
                                 )}
                                 {/* Excluir carrinho */}
-                                <Tooltip>
+                                <TooltipProvider delayDuration={0}>
+                                  <Tooltip>
                                   <TooltipTrigger asChild>
                                     <button
                                       className="h-7 w-7 flex items-center justify-center rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
@@ -308,8 +317,9 @@ export function CartHeaderButton() {
                                       <Trash2 className="h-3.5 w-3.5" />
                                     </button>
                                   </TooltipTrigger>
-                                  <TooltipContent side="top" className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Excluir carrinho</TooltipContent>
+                                  <TooltipContent side="top" className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Excluir carrinho</TooltipContent>
                                 </Tooltip>
+                              </TooltipProvider>
                               </div>
                             </div>
 
