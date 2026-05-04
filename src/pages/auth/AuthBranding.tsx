@@ -14,32 +14,37 @@ export function ContinuousRockets() {
     let mounted = true;
     const cleanupTimers: ReturnType<typeof setTimeout>[] = [];
 
-    function spawnRocket() {
+    function spawnRocket(isInitial = false) {
       if (!mounted) return;
       const id = nextIdRef.current++;
-      const rocket: RocketData = {
-        id,
-        left: 5 + Math.random() * 85,
-        size: 22 + Math.random() * 26,
-        duration: 3 + Math.random() * 2.5,
-      };
+      
+      // Ajuste de posição para garantir visibilidade em qualquer viewport
+      const left = 5 + Math.random() * 85;
+      const size = 24 + Math.random() * 26;
+      const duration = isInitial ? (2.5 + Math.random() * 1.5) : (3 + Math.random() * 2.5);
+
+      const rocket: RocketData = { id, left, size, duration };
+      
       setRockets((prev) => [...prev, rocket]);
+      
       const removeTimer = setTimeout(() => {
         if (!mounted) return;
         setRockets((prev) => prev.filter((r) => r.id !== id));
-      }, rocket.duration * 1000 + 600);
+      }, duration * 1000 + 600);
+      
       cleanupTimers.push(removeTimer);
     }
 
-    // Burst inicial — garante foguetes visíveis logo no carregamento
-    spawnRocket();
-    cleanupTimers.push(setTimeout(spawnRocket, 600));
-    cleanupTimers.push(setTimeout(spawnRocket, 1500));
-    cleanupTimers.push(setTimeout(spawnRocket, 2400));
+    // Burst inicial agressivo para impacto imediato
+    const initialDelays = [0, 200, 600, 1100, 1800];
+    initialDelays.forEach(delay => {
+      const t = setTimeout(() => spawnRocket(true), delay);
+      cleanupTimers.push(t);
+    });
 
-    // Loop contínuo
+    // Ciclo contínuo sustentável
     function scheduleNext() {
-      const interval = 2500 + Math.random() * 4000;
+      const interval = 2000 + Math.random() * 3500;
       const t = setTimeout(() => {
         spawnRocket();
         scheduleNext();
@@ -69,9 +74,15 @@ export function ContinuousRockets() {
           <div style={{ animation: "rocketShake 0.15s ease-in-out infinite" }}>
             <Rocket
               className="-rotate-45"
-              style={{ width: r.size, height: r.size, color: "hsl(var(--orange))" }}
+              style={{ 
+                width: r.size, 
+                height: r.size, 
+                // Padronização: uso de variável HSL direta para evitar problemas de JIT
+                color: "hsl(var(--orange))" 
+              }}
             />
           </div>
+          {/* Rastro de chamas - também padronizado com HSL */}
           <div
             className="absolute left-1/2 -translate-x-1/2 rounded-full opacity-70"
             style={{
@@ -79,7 +90,7 @@ export function ContinuousRockets() {
               width: `${r.size * 0.3}px`,
               height: `${r.size}px`,
               animation: "flameTrail 0.3s ease-in-out infinite alternate",
-              background: "linear-gradient(to bottom, #f97316, #eab308, transparent)",
+              background: "linear-gradient(to bottom, hsl(var(--orange)), hsl(var(--warning)), transparent)",
             }}
           />
           <div
@@ -89,7 +100,7 @@ export function ContinuousRockets() {
               width: `${r.size * 0.15}px`,
               height: `${r.size * 1.5}px`,
               animation: "flameTrail 0.2s ease-in-out infinite alternate-reverse",
-              background: "linear-gradient(to bottom, #f97316, transparent)",
+              background: "linear-gradient(to bottom, hsl(var(--orange)), transparent)",
             }}
           />
           <div
