@@ -186,7 +186,7 @@ export default function FiltersPage() {
                         </Button>
                       </SheetTrigger>
                     </TooltipTrigger>
-                    <TooltipContent>Abrir painel de filtros detalhados</TooltipContent>
+                    <TooltipContent className="bg-primary text-primary-foreground border-primary text-[11px]">Abrir painel de filtros detalhados</TooltipContent>
                   </Tooltip>
                   <SheetContent side="left" className="w-80 flex flex-col p-0">
                     <SheetHeader className="px-6 pt-6 pb-2"><SheetTitle>Filtros</SheetTitle></SheetHeader>
