@@ -179,7 +179,18 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
         borderColor: `${matchedHighlightColor}70`,
         boxShadow: `inset 0 0 30px -6px ${matchedHighlightColor}40, 0 0 8px -2px ${matchedHighlightColor}20`,
       } as React.CSSProperties : undefined}
-      onMouseEnter={() => setIsHovered(true)}
+      onMouseEnter={() => {
+        setIsHovered(true);
+        // Prefetch product details when hovering to make "click to open" instant
+        const prefetchKey = ['promobrind-product', product.id];
+        // Global prefetch helper if available
+        if ((window as any).queryClient) {
+          (window as any).queryClient.prefetchQuery({
+             queryKey: ['promobrind-product', product.id],
+             staleTime: 15 * 60 * 1000
+          });
+        }
+      }}
       onMouseLeave={() => { setIsHovered(false); setActionsOpen(false); }}
       aria-label={`Ver detalhes de ${product.name}`}
       tabIndex={0}

@@ -46,7 +46,7 @@ export function ProductListItemSkeleton() {
 
 export function ProductListSkeleton({ count = 8 }: { count?: number }) {
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-2 will-change-transform">
       {[...Array(count)].map((_, i) => (
         <div
           key={i}

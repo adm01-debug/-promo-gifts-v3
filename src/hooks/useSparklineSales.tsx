@@ -48,7 +48,8 @@ export function SparklineSalesProvider({ productIds, children }: Props) {
     queryKey: ["sparkline-supplier-batch", stableIds],
     queryFn: () => fetchSupplierSparklineBatch(stableIds),
     enabled: stableIds.length > 0,
-    staleTime: 10 * 60 * 1000,
+    staleTime: 60 * 60 * 1000,
+    gcTime: 120 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
 

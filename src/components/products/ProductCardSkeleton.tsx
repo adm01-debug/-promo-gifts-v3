@@ -108,7 +108,7 @@ export function ProductGridSkeleton({
   columns = 5,
 }: ProductGridSkeletonProps) {
   return (
-    <div className={cn("grid", getGridColsClass(columns), getGridGapClass(columns))}>
+    <div className={cn("grid", getGridColsClass(columns), getGridGapClass(columns), "will-change-transform")}>
       {[...Array(count)].map((_, i) => (
         <div
           key={i}
