@@ -305,6 +305,7 @@ export const SortableCartItem = memo(function SortableCartItem({
                 aria-label="Aumentar quantidade"
                 className="h-9 w-9 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 active:bg-muted/80 transition-all active:scale-90"
                 onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
+                title="Aumentar quantidade"
               >
                 <Plus className="h-4 w-4" />
               </button>
