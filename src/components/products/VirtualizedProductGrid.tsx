@@ -153,14 +153,14 @@ export function VirtualizedProductGrid({
     <div className="relative h-full">
       <div
         ref={parentRef}
-        className="h-[calc(100vh-200px)] min-h-[600px] overflow-y-auto rounded-xl border border-border/40 
-          bg-gradient-to-b from-background/80 to-background/40 backdrop-blur-sm
-          scrollbar-products shadow-inner overscroll-contain"
+        className="h-[calc(100vh-200px)] min-h-[600px] overflow-y-auto rounded-xl border border-primary/10 
+          bg-gradient-to-b from-background via-background/95 to-background/90 backdrop-blur-sm
+          scrollbar-products shadow-sm overscroll-contain"
         style={{ contain: "strict", WebkitOverflowScrolling: "touch" }}
       >
         {/* Barra de filtros sticky DENTRO do container de scroll */}
         {showFilterBar && onSortChange && onOpenFilters && onClearFilters && onViewModeChange && (
-          <div className="sticky top-[calc(var(--header-h,56px)+var(--breadcrumb-h,0px))] z-20 bg-background/95 backdrop-blur-md border-b border-border px-4 py-2.5 mb-2">
+          <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-md border-b border-primary/10 px-4 py-2.5 mb-2 shadow-sm">
              <InlineFilterBar
               activeFiltersCount={activeFiltersCount}
               totalProducts={products.length}
