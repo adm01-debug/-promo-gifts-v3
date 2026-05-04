@@ -724,15 +724,16 @@ html[data-scroll-locked] body {
 
 @keyframes rocketLaunch {
   0% {
-    transform: translateY(0);
-    opacity: 1;
+    transform: translateY(100px);
+    opacity: 0;
   }
-  70% {
+  10% {
     opacity: 1;
+    transform: translateY(0);
   }
   100% {
     transform: translateY(-120vh);
-    opacity: 0;
+    opacity: 1;
   }
 }
 
