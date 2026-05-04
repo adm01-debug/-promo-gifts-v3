@@ -77,22 +77,22 @@ export function ContinuousRockets() {
             left: `${r.left}%`,
             animation: `rocketLaunch ${r.duration}s ease-out forwards`,
             willChange: "transform, opacity",
-            transform: `scale(${r.scale})`,
           }}
         >
-          <div style={{ 
-            animation: "rocketShake 0.15s ease-in-out infinite",
-            transform: `rotate(${r.rotation}deg)` 
-          }}>
-            <Rocket
-              className="-rotate-45"
-              style={{
-                width: r.size,
-                height: r.size,
-                color: "#FB923C",
-              }}
-            />
-          </div>
+          <div style={{ transform: `scale(${r.scale})` }}>
+            <div style={{ 
+              animation: "rocketShake 0.15s ease-in-out infinite",
+              transform: `rotate(${r.rotation}deg)` 
+            }}>
+              <Rocket
+                className="-rotate-45"
+                style={{
+                  width: r.size,
+                  height: r.size,
+                  color: "#FB923C",
+                }}
+              />
+            </div>
           {/* Rastro de chamas — gradiente fixo laranja→amarelo para efeito de propulsão consistente */}
           <div
             className="absolute left-1/2 -translate-x-1/2 rounded-full opacity-70"
