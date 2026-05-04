@@ -175,9 +175,9 @@ export default function FiltersPage() {
                 {(state.filters.search || state.searchParams.get('search')) && (
                   <Badge variant="secondary" className="shrink-0 whitespace-nowrap">{state.isLoadingProducts && state.realProducts.length === 0 ? 'Carregando...' : `${state.filteredProducts.length.toLocaleString("pt-BR")} encontrado${state.filteredProducts.length !== 1 ? "s" : ""}`}</Badge>
                 )}
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Sheet open={state.mobileFiltersOpen} onOpenChange={state.setMobileFiltersOpen}>
+                <Sheet open={state.mobileFiltersOpen} onOpenChange={state.setMobileFiltersOpen}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
                       <SheetTrigger asChild>
                         <Button variant="outline" size="sm" className="lg:hidden shrink-0">
                           <Filter className="h-4 w-4 mr-2" />
@@ -185,13 +185,10 @@ export default function FiltersPage() {
                           {state.activeFiltersCount > 0 && <Badge variant="secondary" className="ml-2">{state.activeFiltersCount}</Badge>}
                         </Button>
                       </SheetTrigger>
-                      <SheetContent side="left" className="w-80 flex flex-col p-0">
-                        {/* ... keep existing code */}
-                      </SheetContent>
-                    </Sheet>
-                  </TooltipTrigger>
-                  <TooltipContent>Abrir painel de filtros detalhados</TooltipContent>
-                </Tooltip>
+                    </TooltipTrigger>
+                    <TooltipContent>Abrir painel de filtros detalhados</TooltipContent>
+                  </Tooltip>
+                  <SheetContent side="left" className="w-80 flex flex-col p-0">
                     <SheetHeader className="px-6 pt-6 pb-2"><SheetTitle>Filtros</SheetTitle></SheetHeader>
                     <div className="flex-1 overflow-y-auto px-6 pb-4 relative">
                       <FilterPanel filters={state.filters} onFilterChange={state.handleFilterChange} onReset={state.handleReset} activeFiltersCount={state.activeFiltersCount} products={state.realProducts} filteredResultsCount={state.filteredProducts.length} />
