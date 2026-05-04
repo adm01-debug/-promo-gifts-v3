@@ -400,7 +400,7 @@ export const ProductQuickView = forwardRef<HTMLDivElement, ProductQuickViewProps
                      aria-label="Comparar"><GitCompare className="h-5 w-5" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>
+                  <TooltipContent className="bg-primary text-primary-foreground border-primary text-[11px]">
                     {isInCompare ? "Remover da comparação" : "Adicionar à comparação"}
                   </TooltipContent>
                 </Tooltip>
