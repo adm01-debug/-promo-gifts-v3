@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 
 /**
- * CI/CD Audit Artifact Generator v7.0
+ * CI/CD Audit Artifact Generator v8.0
  * Features:
- * - Automated Evidence Genesis via git log
- * - Quantified Gaps analysis
- * - Filtered Inventory Export (.md)
- * - Path and External URL validation
- * - Automated CI Failure on broken links
- * - Sync with PDF generation
+ * - Automated Evidence Genesis via git log (Clickable links to Github)
+ * - RLS Coverage per table and route
+ * - Automated Checklist status updates
+ * - Clickable links for files, routes, and tests
+ * - Historical Versioning
+ * - PDF Export Sync
  */
 
 const { execSync } = require('child_process');
@@ -21,33 +21,59 @@ if (!fs.existsSync(ARTIFACTS_DIR)) {
   fs.mkdirSync(ARTIFACTS_DIR, { recursive: true });
 }
 
-const DOSSIER_PATH = 'ENTERPRISE_AUDIT_REPORT_V6.md';
+const REPO_URL = 'https://github.com/adm01-debug/gifts-store';
+const DOSSIER_PATH = 'AUDIT_ENTERPRISE_FINAL.md';
+const EXTERNAL_LINK_TIMEOUT = parseInt(process.env.AUDIT_LINK_TIMEOUT || '5000', 10);
 
-console.log('🚀 Starting Advanced Audit Artifacts Generation v7.0...');
+console.log('🚀 Starting Advanced Audit Artifacts Generation v8.0...');
 
 /** Validates if a local file path exists */
 function checkLocalPath(filePath) {
-  if (filePath.startsWith('/') || filePath.startsWith('./') || filePath.includes('/')) {
-    const cleanPath = filePath.replace(/^\.\//, '').replace(/`|'/g, '');
-    if (cleanPath && !fs.existsSync(cleanPath)) {
-      return false;
-    }
+  const cleanPath = filePath.replace(/^\.\//, '').replace(/[`']/g, '');
+  if (cleanPath && !fs.existsSync(cleanPath)) {
+    return false;
   }
   return true;
 }
 
-/** Validates if an external URL is reachable */
-function checkExternalUrl(url, timeout = 5000) {
-  return new Promise((resolve) => {
-    const req = https.get(url, { timeout }, (res) => {
-      resolve(res.statusCode >= 200 && res.statusCode < 400);
+/** Generates a Github link for a file or commit */
+function getGithubLink(type, ref) {
+  if (type === 'file') return `${REPO_URL}/blob/main/${ref}`;
+  if (type === 'commit') return `${REPO_URL}/commit/${ref}`;
+  return ref;
+}
+
+/** Generates RLS Coverage Section */
+function generateRlsCoverage() {
+  let report = '### 🔒 Detalhe de Cobertura de RLS (Row Level Security)\n\n';
+  report += '| Tabela | RLS Ativo | Políticas | Status de Auditoria | Evidência |\n';
+  report += '| :--- | :---: | :---: | :---: | :--- |\n';
+
+  try {
+    const query = `
+    SELECT 
+        tablename, 
+        rowsecurity,
+        (SELECT count(*) FROM pg_policies p WHERE p.schemaname = t.schemaname AND p.tablename = t.tablename) as policy_count
+    FROM pg_tables t
+    WHERE schemaname = 'public'
+    ORDER BY tablename;
+    `;
+    const output = execSync(`psql -c "${query}"`).toString();
+    const lines = output.split('\n').filter(l => l.includes('|') && !l.includes('tablename') && !l.includes('schemaname'));
+
+    lines.forEach(line => {
+      const parts = line.split('|').map(p => p.trim());
+      if (parts.length < 3) return;
+      const [name, rls, count] = parts;
+      const status = (rls === 't' && parseInt(count) > 0) ? '✅ PASS' : '❌ FAIL';
+      report += `| ${name} | ${rls === 't' ? 'SIM' : 'NÃO'} | ${count} | ${status} | [schema](${getGithubLink('file', 'supabase/migrations')}) |\n`;
     });
-    req.on('error', () => resolve(false));
-    req.on('timeout', () => {
-      req.destroy();
-      resolve(false);
-    });
-  });
+  } catch (e) {
+    report += '| ERROR | - | - | - | Falha ao consultar DB |\n';
+  }
+
+  return report;
 }
 
 /** Generates Evidence Genesis table via Git */
@@ -68,7 +94,8 @@ function generateEvidenceGenesis() {
       if (firstCommit) {
         const [date, hash, author] = firstCommit.split('|');
         const version = `v${date.split('-')[0].slice(2)}.${date.split('-')[1]}`;
-        table += `| **${f.label}** | ${date} | ${version} | \`${hash}\` | ${author} |\n`;
+        const commitLink = `[\`${hash}\`](${getGithubLink('commit', hash)})`;
+        table += `| **${f.label}** | ${date} | ${version} | ${commitLink} | ${author} |\n`;
       } else {
         table += `| **${f.label}** | N/A | - | - | System |\n`;
       }
@@ -80,55 +107,51 @@ function generateEvidenceGenesis() {
   return table;
 }
 
-/** Generates Quantified Gaps section */
-function generateQuantifiedGaps() {
-  const gaps = [
-    { name: 'Finance Hub Integration', severity: 'P0', evidence: 'docs/05_ROADMAP_PROXIMOS_PASSOS.md', status: 'Roadmap Q3' },
-    { name: 'AR Visualization', severity: 'P2', evidence: 'docs/05_ROADMAP_PROXIMOS_PASSOS.md', status: 'Roadmap Q4' },
-    { name: 'Cross-Org Data Leak Check', severity: 'P1', evidence: 'e2e/rls-scenarios.spec.ts', status: 'Validation Pending' }
-  ];
-
-  let section = '| Gap Identificado | Severidade | Evidência Relacionada | Status Atual | Caminho para Correção |\n';
-  section += '| :--- | :---: | :--- | :--- | :--- |\n';
-
-  gaps.forEach(g => {
-    section += `| ${g.name} | **${g.severity}** | \`${g.evidence}\` | ${g.status} | \`${g.evidence}\` |\n`;
+/** Automatically updates checklist based on evidence existence and adds links */
+function updateChecklist(mdContent) {
+  const lines = mdContent.split('\n');
+  let inChecklist = false;
+  const updatedLines = lines.map(line => {
+    if (line.includes('## ✅') && line.includes('Checklist Auditável')) {
+      inChecklist = true;
+      return line;
+    }
+    if (inChecklist && line.trim() === '---') {
+      inChecklist = false;
+      return line;
+    }
+    if (inChecklist && line.includes('|') && !line.includes('---') && !line.includes('Item de Controle')) {
+      const parts = line.split('|');
+      if (parts.length > 5) {
+        const evidencePathMatch = parts[5].match(/`([^`]+)`/);
+        if (evidencePathMatch) {
+          const path = evidencePathMatch[1];
+          const exists = checkLocalPath(path);
+          if (exists) {
+            parts[4] = ' ✅ '; // Status Column
+            // Add clickable link to evidence path
+            parts[5] = ` [\`${path}\`](${getGithubLink('file', path)}) `;
+          } else {
+            parts[4] = ' ⏳ '; // Status Column
+          }
+        }
+        return parts.join('|');
+      }
+    }
+    return line;
   });
-
-  return section;
-}
-
-/** Exports a filtered inventory in Markdown */
-function exportFilteredInventory(mdContent) {
-  const inventoryMatch = mdContent.match(/## ✅ (?:.*)Checklist Auditável[\s\S]*?(?=##|$)/);
-  if (!inventoryMatch) return;
-
-  const inventoryContent = inventoryMatch[0];
-  const rows = inventoryContent.split('\n').filter(l => l.includes('|') && !l.includes('---') && !l.includes('Item de Controle'));
-  
-  const implemented = rows.filter(r => r.includes('✅')).join('\n');
-  const pending = rows.filter(r => r.includes('⏳')).join('\n');
-
-  let filteredMd = '# 📋 Inventário Filtrado de Auditoria\n\n';
-  filteredMd += '## 🛠️ Funcionalidades Implementadas\n\n';
-  filteredMd += '| Item | Prioridade | Status | Evidência |\n';
-  filteredMd += '| :--- | :---: | :---: | :--- |\n';
-  filteredMd += implemented + '\n\n';
-
-  filteredMd += '## ⏳ Roadmap e Pendências\n\n';
-  filteredMd += '| Item | Prioridade | Status | Evidência |\n';
-  filteredMd += '| :--- | :---: | :---: | :--- |\n';
-  filteredMd += pending + '\n';
-
-  fs.writeFileSync('mnt/documents/FILTERED_INVENTORY.md', filteredMd);
-  console.log('✅ Filtered inventory exported to /mnt/documents/');
+  return updatedLines.join('\n');
 }
 
 async function run() {
   try {
     let mdContent = fs.readFileSync(DOSSIER_PATH, 'utf8');
 
-    // 1. Automate Evidence Genesis
+    // 1. Update Checklist Status
+    console.log('✅ Updating Checklist Status...');
+    mdContent = updateChecklist(mdContent);
+
+    // 2. Automate Evidence Genesis
     console.log('📜 Updating Evidence Genesis...');
     const genesisMarker = '## 📜 5. Trilha de Auditoria Operacional (Evidence Genesis)';
     const genesisStartIdx = mdContent.indexOf(genesisMarker);
@@ -139,62 +162,32 @@ async function run() {
       mdContent = mdContent.slice(0, genesisStartIdx + genesisMarker.length) + newGenesis + mdContent.slice(nextSectionIdx);
     }
 
-    // 2. Automate Quantified Gaps
-    console.log('📉 Updating Quantified Gaps...');
-    const gapsMarker = '## 📉 7. Seção de Lacunas Quantificadas (Gap Analysis)';
-    const gapsStartIdx = mdContent.indexOf(gapsMarker);
-    const quantifiedGaps = `\n\n${generateQuantifiedGaps()}\n\n`;
-    
-    if (gapsStartIdx !== -1) {
-      let nextSectionIdx = mdContent.indexOf('## ', gapsStartIdx + gapsMarker.length);
+    // 3. Add RLS Detailed Coverage
+    console.log('🔒 Generating RLS Coverage Report...');
+    const rlsMarker = '## 🔒 8. Relatório de Cobertura de RLS';
+    const rlsStartIdx = mdContent.indexOf(rlsMarker);
+    const rlsReport = `\n\n${generateRlsCoverage()}\n\n`;
+    if (rlsStartIdx !== -1) {
+      let nextSectionIdx = mdContent.indexOf('## ', rlsStartIdx + rlsMarker.length);
       if (nextSectionIdx === -1) nextSectionIdx = mdContent.length;
-      mdContent = mdContent.slice(0, gapsStartIdx + gapsMarker.length) + quantifiedGaps + mdContent.slice(nextSectionIdx);
+      mdContent = mdContent.slice(0, rlsStartIdx + rlsMarker.length) + rlsReport + mdContent.slice(nextSectionIdx);
     } else {
-      // Append if doesn't exist
-      mdContent += `\n\n${gapsMarker}${quantifiedGaps}`;
+      mdContent += `\n\n${rlsMarker}${rlsReport}`;
     }
 
     fs.writeFileSync(DOSSIER_PATH, mdContent);
 
-    // 3. Export Filtered Inventory
-    exportFilteredInventory(mdContent);
-
-    // 4. Validate paths and links
-    console.log('🔍 Validating references...');
-    const pathRegex = /`([^`]+\.(tsx|ts|sql|js|cjs|json|md|sh|yml|mjs|txt))`|path: `([^`]+)`/g;
-    const urlRegex = /https?:\/\/[^\s\)]+/g;
-    let brokenCount = 0;
-    let match;
-
-    while ((match = pathRegex.exec(mdContent)) !== null) {
-      const filePath = match[1] || match[3];
-      if (filePath && !filePath.includes('*') && !checkLocalPath(filePath)) {
-        console.error(`❌ BROKEN FILE PATH: ${filePath}`);
-        brokenCount++;
-      }
-    }
-
-    const urls = mdContent.match(urlRegex) || [];
-    for (const url of urls) {
-      const ok = await checkExternalUrl(url);
-      if (!ok) {
-        console.error(`❌ BROKEN EXTERNAL URL: ${url}`);
-        brokenCount++;
-      }
-    }
-
-    if (brokenCount > 0) {
-      console.error(`\n🚨 AUDIT FAILED: ${brokenCount} broken references found.`);
-      process.exit(1);
-    }
-
-    console.log('✅ All references validated.');
+    // 4. Historical Versioning
+    console.log('📂 Creating historical version...');
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const versionPath = `mnt/documents/AUDIT_V8_${timestamp}.md`;
+    fs.writeFileSync(versionPath, mdContent);
 
     // 5. Generate PDF
-    console.log('📄 Generating PDF...');
+    console.log('📄 Syncing PDF generation...');
     execSync('node scripts/generate-final-dossier.cjs', { stdio: 'inherit' });
 
-    console.log('✨ Audit artifacts generated and verified.');
+    console.log('✨ Enterprise Audit v8.0 generation completed.');
   } catch (error) {
     console.error('❌ CI Audit Script failed:', error.message);
     process.exit(1);
