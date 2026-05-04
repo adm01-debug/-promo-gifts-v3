@@ -237,7 +237,7 @@ export function DevAccessDeniedPage({
 
           <div className="space-y-4 w-full">
             <div className="space-y-1">
-              <span className="inline-block text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-destructive/10 text-destructive border border-destructive/20">
+              <span className="inline-block text-[11px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-xl bg-destructive/10 text-destructive border border-destructive/20">
                 {copy.badge} · 403
               </span>
               <h1
@@ -265,10 +265,10 @@ export function DevAccessDeniedPage({
             </div>
 
             <div className="pt-2 border-t border-border/10">
-              <p className="text-[10px] font-medium text-muted-foreground/50 uppercase tracking-widest">
+              <p className="text-[11px] font-medium text-muted-foreground/50 uppercase tracking-widest">
                 Identificador de Segurança
               </p>
-              <p className="text-xs font-mono text-muted-foreground mt-1 bg-muted/30 py-1 px-2 rounded inline-block">
+              <p className="text-[11px] font-mono text-muted-foreground mt-1 bg-muted/30 py-1 px-2 rounded-xl inline-block border border-border/20">
                 {securityId}
               </p>
             </div>
@@ -277,7 +277,7 @@ export function DevAccessDeniedPage({
           {/* Para supervisor: atalhos visuais para áreas administrativas. */}
           {isSupervisor && (
             <div className="w-full pt-2 border-t border-border/40">
-              <p className="text-[10px] font-medium text-muted-foreground/50 uppercase tracking-widest mb-3">
+              <p className="text-[11px] font-medium text-muted-foreground/50 uppercase tracking-widest mb-3">
                 Atalhos Administrativos
               </p>
               <div className="grid grid-cols-2 gap-2">
@@ -302,7 +302,7 @@ export function DevAccessDeniedPage({
           )}
 
           <div className="w-full text-left rounded-xl border border-border/60 bg-muted/20 p-3">
-            <p className="text-[10px] leading-relaxed text-muted-foreground">{copy.hint}</p>
+            <p className="text-[11px] leading-relaxed text-muted-foreground">{copy.hint}</p>
           </div>
 
           {/* Bloco de motivo + CTA de solicitação (todos os papéis podem
@@ -310,7 +310,7 @@ export function DevAccessDeniedPage({
           <div className="w-full text-left space-y-2">
             <label
               htmlFor="dev-access-reason"
-              className="text-xs font-medium text-foreground"
+              className="text-[11px] font-medium text-foreground"
             >
               Motivo (opcional)
             </label>
@@ -327,7 +327,7 @@ export function DevAccessDeniedPage({
               className="resize-none"
               disabled={submitting}
             />
-            <div className="text-[10px] text-muted-foreground text-right">
+            <div className="text-[11px] text-muted-foreground text-right">
               {reason.length}/500
             </div>
           </div>
@@ -365,7 +365,7 @@ export function DevAccessDeniedPage({
               variant="link-secondary"
               size="sm"
               asChild
-              className="text-[10px] h-auto py-1"
+              className="text-[11px] h-auto py-1"
               onClick={() => emit("mail")}
             >
               <a
