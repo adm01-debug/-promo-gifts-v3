@@ -26,11 +26,19 @@ interface ErrorHandlerOptions {
 export function useErrorHandler() {
   const handleError = useCallback(
     (error: unknown, options?: ErrorHandlerOptions) => {
+      const scope = options?.message ? 'useErrorHandler.custom' : 'useErrorHandler.generic';
+      const log = createClientLogger(scope);
+      
       const msg =
         options?.message ||
         (error instanceof Error ? error.message : 'Ocorreu um erro inesperado');
 
-      console.error('[useErrorHandler]', error);
+      // Log estruturado com suporte a Sentry e Correlação
+      log.error('error_captured', { 
+        err: error, 
+        custom_message: options?.message,
+        silent: options?.silent 
+      });
 
       if (!options?.silent) {
         toast.error(msg);
