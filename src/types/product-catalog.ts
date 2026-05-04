@@ -77,7 +77,7 @@ export interface Product {
 
   subcategory?: string;
   groups?: Array<{ id: number; name: string }>;
-  variations?: any[];
+  variations?: ProductVariation[];
   kitItems?: KitComponent[];
 
   /** ISO timestamp of the last price update at the supplier (SSOT: external DB). */
@@ -120,7 +120,21 @@ export interface KitComponent {
     display_order: number;
     is_primary: boolean;
     title: string | null;
-  }>;
+    }>;
+}
+
+export interface ProductVariation {
+  id: string;
+  sku: string;
+  color: {
+    name: string;
+    hex: string;
+  };
+  stock: number;
+  image?: string | null;
+  images?: string[];
+  videos?: any[];
+  size_code?: string | null;
 }
 
 export interface ProductFilters {

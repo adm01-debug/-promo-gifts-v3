@@ -1,20 +1,19 @@
 import { useEffect, useRef } from "react";
-import { toast } from "sonner";
 
 // Versão atual do schema do payload de AutoSave
 // Incrementar sempre que houver mudança que quebre rascunhos antigos
 const AUTOSAVE_SCHEMA_VERSION = 2;
 
-interface AutoSavePayload {
+interface AutoSavePayload<T> {
   version: number;
-  data: any;
+  data: T;
   savedAt: string;
 }
 
-interface AutoSaveOptions {
+interface AutoSaveOptions<T> {
   enabled: boolean;
-  data: any;
-  onRestore?: (data: any) => void;
+  data: T;
+  onRestore?: (data: T) => void;
   debounceMs?: number;
   key?: string;
 }
@@ -22,7 +21,7 @@ interface AutoSaveOptions {
 /**
  * Migra dados de versões antigas para a versão atual.
  */
-export function migratePayload(payload: any, currentVersion: number = AUTOSAVE_SCHEMA_VERSION): any {
+export function migratePayload<T>(payload: any, currentVersion: number = AUTOSAVE_SCHEMA_VERSION): AutoSavePayload<T> | null {
   if (!payload) return null;
 
   // Se for um payload antigo sem versão (v1)
@@ -30,7 +29,7 @@ export function migratePayload(payload: any, currentVersion: number = AUTOSAVE_S
     console.log("[AutoSave] Migrating from v1 to v2");
     return {
       version: currentVersion,
-      data: payload, // Antigamente o payload era o próprio data
+      data: payload as T, // Antigamente o payload era o próprio data
       savedAt: new Date().toISOString()
     };
   }
@@ -45,19 +44,19 @@ export function migratePayload(payload: any, currentVersion: number = AUTOSAVE_S
   // Adicione futuras migrações aqui:
   // if (payload.version === 2) { ... migrate to 3 ... }
 
-  return payload;
+  return payload as AutoSavePayload<T>;
 }
 
 /**
  * Hook para persistência automática de rascunhos no LocalStorage com versionamento.
  */
-export function useAutoSaveQuote({
+export function useAutoSaveQuote<T>({
   enabled,
   data,
   onRestore,
   debounceMs = 2000,
   key = "quote_builder_autosave"
-}: AutoSaveOptions) {
+}: AutoSaveOptions<T>) {
   const lastSavedRef = useRef<string>("");
 
   // Efeito de carregamento inicial (Restaurar)
@@ -70,18 +69,18 @@ export function useAutoSaveQuote({
         let payload = JSON.parse(saved);
         
         // Aplica migrações se necessário
-        payload = migratePayload(payload);
+        const migrated = migratePayload<T>(payload);
         
-        if (payload && payload.data && onRestore) {
-          onRestore(payload.data);
+        if (migrated && migrated.data && onRestore) {
+          onRestore(migrated.data);
           // Atualiza o lastSavedRef para evitar salvar logo em seguida se nada mudou
-          lastSavedRef.current = JSON.stringify(payload.data);
+          lastSavedRef.current = JSON.stringify(migrated.data);
         }
       } catch (e) {
         console.error("Failed to parse/migrate autosave data", e);
       }
     }
-  }, []); // Só roda uma vez no mount
+  }, [enabled, key, onRestore]); // Adicionado dependências seguras
 
   // Efeito de salvamento (Debounced)
   useEffect(() => {
@@ -93,7 +92,7 @@ export function useAutoSaveQuote({
       // Evita salvar se nada mudou
       if (stringData === lastSavedRef.current) return;
 
-      const payload: AutoSavePayload = {
+      const payload: AutoSavePayload<T> = {
         version: AUTOSAVE_SCHEMA_VERSION,
         data: data,
         savedAt: new Date().toISOString()
@@ -115,4 +114,3 @@ export function useAutoSaveQuote({
 
   return { clearAutoSave };
 }
-
