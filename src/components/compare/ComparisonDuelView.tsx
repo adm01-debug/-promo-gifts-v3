@@ -98,7 +98,7 @@ export function ComparisonDuelView({ products, formatCurrency, onRemove, onProdu
       >
         {p.name}
       </h3>
-      <p className="text-2xl font-bold text-primary tabular-nums">{formatCurrency(p.price)}</p>
+      <p className="text-xl font-bold text-primary tabular-nums">{formatCurrency(p.price)}</p>
       {p.supplier?.name && (
         <p className="text-[11px] text-muted-foreground">por {p.supplier.name}</p>
       )}
@@ -116,7 +116,7 @@ export function ComparisonDuelView({ products, formatCurrency, onRemove, onProdu
         {renderHeader(a, 0, "left")}
         <div className="hidden lg:flex flex-col items-center justify-center pt-32">
           <div className="w-px h-32 bg-border" />
-          <span className="text-2xl font-display font-bold text-muted-foreground my-4">VS</span>
+          <span className="text-xl font-display font-bold text-muted-foreground my-4">VS</span>
           <div className="w-px h-32 bg-border" />
         </div>
         <div className="lg:hidden flex items-center justify-center py-2">

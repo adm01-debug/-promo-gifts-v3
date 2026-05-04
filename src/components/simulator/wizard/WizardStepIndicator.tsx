@@ -34,7 +34,7 @@ export function WizardStepIndicator({ wizard }: WizardStepIndicatorProps) {
       <div className="sm:hidden">
         <div className="flex items-center justify-between mb-2 px-1">
           <div className="flex items-center gap-2">
-            <span className="text-2xl font-bold text-primary">{currentIndex + 1}</span>
+            <span className="text-xl font-bold text-primary">{currentIndex + 1}</span>
             <span className="text-muted-foreground">/</span>
             <span className="text-muted-foreground">{WIZARD_STEPS.length}</span>
           </div>

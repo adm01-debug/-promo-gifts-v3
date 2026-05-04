@@ -35,7 +35,7 @@ export default function OrdersPage() {
       <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-4 pb-24 md:pb-6 animate-fade-in">
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div>
-            <h1 data-testid="page-title-pedidos" className="text-2xl font-bold font-display text-foreground flex items-center gap-2">
+            <h1 data-testid="page-title-pedidos" className="text-xl font-bold font-display text-foreground flex items-center gap-2">
               <Package className="h-6 w-6 text-primary" /> Gestão de Pedidos
             </h1>
             <p className="text-muted-foreground text-sm mt-1">Acompanhe e gerencie seus pedidos</p>

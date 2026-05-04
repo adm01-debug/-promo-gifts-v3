@@ -99,7 +99,7 @@ export default function AdminPromoverUsuarioPage() {
         />
         <div className="max-w-2xl mx-auto py-12 text-center">
           <Shield className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-          <h1 className="text-2xl font-bold">Acesso restrito</h1>
+          <h1 className="text-xl font-bold">Acesso restrito</h1>
           <p className="text-muted-foreground">
             Apenas supervisores podem promover agentes.
           </p>

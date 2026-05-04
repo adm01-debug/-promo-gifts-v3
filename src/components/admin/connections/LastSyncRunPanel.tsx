@@ -157,26 +157,26 @@ export function LastSyncRunPanel() {
             <div className="grid gap-2 md:grid-cols-4">
               <div className="rounded-xl border p-3">
                 <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Processadas</div>
-                <div className="text-2xl font-bold tabular-nums">{last.processed}</div>
+                <div className="text-xl font-bold tabular-nums">{last.processed}</div>
                 <div className="text-[10px] text-muted-foreground">env_keys avaliadas</div>
               </div>
               <div className="rounded-xl border p-3 bg-green-500/5 border-green-500/20">
                 <div className="text-[11px] uppercase tracking-wide text-green-700 flex items-center gap-1">
                   <Plus className="h-3 w-3" /> Criadas
                 </div>
-                <div className="text-2xl font-bold tabular-nums text-green-700">{last.created_count}</div>
+                <div className="text-xl font-bold tabular-nums text-green-700">{last.created_count}</div>
                 <div className="text-[10px] text-muted-foreground">novas linhas em external_connections</div>
               </div>
               <div className="rounded-xl border p-3 bg-blue-500/5 border-blue-500/20">
                 <div className="text-[11px] uppercase tracking-wide text-blue-700 flex items-center gap-1">
                   <Pencil className="h-3 w-3" /> Atualizadas
                 </div>
-                <div className="text-2xl font-bold tabular-nums text-blue-700">{last.updated_count}</div>
+                <div className="text-xl font-bold tabular-nums text-blue-700">{last.updated_count}</div>
                 <div className="text-[10px] text-muted-foreground">linhas existentes alteradas</div>
               </div>
               <div className="rounded-xl border p-3">
                 <div className="text-[11px] uppercase tracking-wide text-muted-foreground">Duração</div>
-                <div className="text-2xl font-bold tabular-nums">
+                <div className="text-xl font-bold tabular-nums">
                   {typeof last.duration_ms === "number" ? `${last.duration_ms}` : "—"}
                   <span className="text-sm font-normal text-muted-foreground ml-1">ms</span>
                 </div>

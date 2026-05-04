@@ -62,7 +62,7 @@ export function CollectionDetailHeader({
           {collection.icon}
         </motion.div>
         <div className="flex-1">
-          <h1 className="text-2xl lg:text-3xl font-display font-bold text-foreground">
+          <h1 className="text-xl lg:text-3xl font-display font-bold text-foreground">
             {collection.name}
           </h1>
           {collection.description && (

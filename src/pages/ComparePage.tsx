@@ -138,7 +138,7 @@ export default function ComparePage() {
               </Tooltip>
             </TooltipProvider>
             <div>
-              <h1 data-testid="page-title-comparador" className="text-2xl lg:text-3xl font-display font-bold text-foreground">Comparador de Produtos</h1>
+              <h1 data-testid="page-title-comparador" className="text-xl lg:text-3xl font-display font-bold text-foreground">Comparador de Produtos</h1>
               <p className="text-muted-foreground">
                 Comparando {compareCount} produtos
                 {client && <> · <span className="text-primary font-medium">{client.name}</span></>}

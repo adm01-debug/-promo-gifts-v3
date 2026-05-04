@@ -83,7 +83,7 @@ export function PlatformFailureCards({ windowMinutes = 60 }: { windowMinutes?: n
         </CardHeader>
         <CardContent className="space-y-1">
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-bold tabular-nums">{data.total503}</span>
+            <span className="text-xl font-bold tabular-nums">{data.total503}</span>
             <Badge variant={status503 === 'crit' ? 'destructive' : 'secondary'} className="text-xs">
               {data.rate503Pct.toFixed(2)}%
             </Badge>
@@ -101,7 +101,7 @@ export function PlatformFailureCards({ windowMinutes = 60 }: { windowMinutes?: n
         </CardHeader>
         <CardContent className="space-y-1">
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-bold tabular-nums">{data.totalColdStarts}</span>
+            <span className="text-xl font-bold tabular-nums">{data.totalColdStarts}</span>
             <Badge variant={statusCold === 'crit' ? 'destructive' : 'secondary'} className="text-xs">
               {data.rateColdStartPct.toFixed(2)}%
             </Badge>
@@ -118,7 +118,7 @@ export function PlatformFailureCards({ windowMinutes = 60 }: { windowMinutes?: n
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-1">
-          <div className="text-2xl font-bold tabular-nums">{data.totalCalls.toLocaleString('pt-BR')}</div>
+          <div className="text-xl font-bold tabular-nums">{data.totalCalls.toLocaleString('pt-BR')}</div>
           <p className="text-[11px] text-muted-foreground">chamadas registradas na janela</p>
         </CardContent>
       </Card>

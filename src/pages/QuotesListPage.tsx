@@ -179,7 +179,7 @@ export default function QuotesListPage() {
           {/* Breadcrumb global vem do MainLayout (sticky) — não duplicar aqui. */}
           <div className="flex items-center justify-between gap-3">
             <div>
-              <h1 className="text-2xl lg:text-3xl font-display font-bold text-foreground flex items-center gap-2">
+              <h1 className="text-xl lg:text-3xl font-display font-bold text-foreground flex items-center gap-2">
                 <FileText className="h-7 w-7" />
                 Orçamentos
               </h1>
@@ -216,7 +216,7 @@ export default function QuotesListPage() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <FadeInView>
               <div>
-                <h1 data-testid="page-title-orcamentos" className="text-2xl lg:text-3xl font-display font-bold text-foreground flex items-center gap-2">
+                <h1 data-testid="page-title-orcamentos" className="text-xl lg:text-3xl font-display font-bold text-foreground flex items-center gap-2">
                   <FileText className="h-7 w-7" />
                   Orçamentos
                 </h1>

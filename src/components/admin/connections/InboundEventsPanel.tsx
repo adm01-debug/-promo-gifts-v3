@@ -191,7 +191,7 @@ export function InboundEventsPanel() {
                 <Inbox className="h-4 w-4 text-muted-foreground" />
                 <Badge variant="outline" className="text-[10px]">total</Badge>
               </div>
-              <p className="text-2xl font-bold mt-1">{kpis.total}</p>
+              <p className="text-xl font-bold mt-1">{kpis.total}</p>
               <p className="text-[11px] text-muted-foreground">eventos no período</p>
             </div>
             <div className="p-3 rounded-xl bg-muted/30 border">
@@ -201,7 +201,7 @@ export function InboundEventsPanel() {
                   {invalidTone === "success" ? "OK" : invalidTone === "warning" ? "Atenção" : "Crítico"}
                 </Badge>
               </div>
-              <p className="text-2xl font-bold mt-1">{kpis.invalidRate.toFixed(1)}%</p>
+              <p className="text-xl font-bold mt-1">{kpis.invalidRate.toFixed(1)}%</p>
               <p className="text-[11px] text-muted-foreground">{kpis.invalid} HMAC inválidos</p>
             </div>
             <div className="p-3 rounded-xl bg-muted/30 border">
@@ -209,7 +209,7 @@ export function InboundEventsPanel() {
                 <AlertTriangle className={cn("h-4 w-4", kpis.unprocessed > 0 ? "text-warning" : "text-muted-foreground")} />
                 <Badge variant="outline" className="text-[10px]">{kpis.unprocessedRate.toFixed(0)}%</Badge>
               </div>
-              <p className="text-2xl font-bold mt-1">{kpis.unprocessed}</p>
+              <p className="text-xl font-bold mt-1">{kpis.unprocessed}</p>
               <p className="text-[11px] text-muted-foreground">não processados</p>
             </div>
           </div>

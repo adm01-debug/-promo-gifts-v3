@@ -96,7 +96,7 @@ export function KitPresentablePreview({
             <Calendar className="h-3 w-3" /> Válido até {validityDate}
           </Badge>
         </div>
-        <h3 className="text-2xl font-display font-bold leading-tight">
+        <h3 className="text-xl font-display font-bold leading-tight">
           {kitName?.trim() || "Kit Personalizado"}
         </h3>
         <p className="text-sm text-muted-foreground mt-2 leading-relaxed">{narrative}</p>

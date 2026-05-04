@@ -142,7 +142,7 @@ export default function AdminRbacRoutesPage() {
         <header className="flex flex-col gap-2">
           <div className="flex items-center gap-2">
             <ShieldCheck className="h-6 w-6 text-primary" aria-hidden="true" />
-            <h1 className="text-2xl font-semibold">Auditoria RBAC de Rotas</h1>
+            <h1 className="text-xl font-semibold">Auditoria RBAC de Rotas</h1>
           </div>
           <p className="text-sm text-muted-foreground max-w-3xl">
             Fonte única auditável de quais rotas exigem qual papel, qual guard
@@ -164,7 +164,7 @@ export default function AdminRbacRoutesPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-semibold">{summary.total}</div>
+              <div className="text-xl font-semibold">{summary.total}</div>
             </CardContent>
           </Card>
           {(["public", "authenticated", "admin", "dev"] as RouteRole[]).map(
@@ -178,7 +178,7 @@ export default function AdminRbacRoutesPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-semibold">
+                  <div className="text-xl font-semibold">
                     {summary.byRole[role]}
                   </div>
                 </CardContent>

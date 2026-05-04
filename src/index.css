@@ -93,7 +93,7 @@ html[data-scroll-locked] body {
     --secondary: 24 40% 96%;
     --secondary-foreground: 24 100% 10%;
     --muted: 24 20% 92%;
-    --muted-foreground: 24 40% 25%;
+    --muted-foreground: 24 25% 40%;
 
     /* 7. Borders & Inputs */
     --border: 24 100% 50% / 0.25;
@@ -112,7 +112,7 @@ html[data-scroll-locked] body {
     --radius: 0.75rem;
 
     /* 8b. Border Width Tokens */
-    --border-width: 1.5px;
+    --border-width: 1px;
     --border-width-strong: 2px;
     --border-width-hairline: 1px;
 
@@ -206,7 +206,7 @@ html[data-scroll-locked] body {
     --secondary: 24 28% 12%;
     --secondary-foreground: 24 10% 95%;
     --muted: 24 22% 10%;
-    --muted-foreground: 24 15% 78%;
+    --muted-foreground: 24 10% 70%;
     --accent: 24 28% 14%;
     --accent-foreground: 24 100% 70%;
 
@@ -344,7 +344,7 @@ html[data-scroll-locked] body {
   }
 
   :root .font-bold {
-    font-weight: 850;
+    font-weight: 700;
     letter-spacing: -0.02em;
   }
 
@@ -417,7 +417,7 @@ html[data-scroll-locked] body {
   h5,
   h6 {
     font-family: var(--font-display);
-    @apply font-bold tracking-tight text-foreground;
+    @apply font-bold tracking-tight text-foreground/95;
     line-height: 1.1;
   }
 

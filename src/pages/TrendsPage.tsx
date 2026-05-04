@@ -328,7 +328,7 @@ export default function TrendsPage() {
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div>
             <div className="flex items-center gap-3 flex-wrap">
-              <h1 data-testid="page-title-tendencias" className="text-2xl lg:text-3xl font-display font-bold text-foreground flex items-center gap-2">
+              <h1 data-testid="page-title-tendencias" className="text-xl lg:text-3xl font-display font-bold text-foreground flex items-center gap-2">
                 <TrendingUp className="h-7 w-7 text-primary" />
                 Análise de Tendências
               </h1>

@@ -87,7 +87,7 @@ export default function CollectionsPage() {
                 <stat.icon className={cn("h-5 w-5", stat.color)} />
               </div>
               <div>
-                <p className="text-2xl font-display font-bold text-foreground">{stat.value}</p>
+                <p className="text-xl font-display font-bold text-foreground">{stat.value}</p>
                 <p className="text-xs text-muted-foreground">{stat.label}</p>
               </div>
             </motion.div>

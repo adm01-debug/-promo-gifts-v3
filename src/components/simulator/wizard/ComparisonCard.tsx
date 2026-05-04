@@ -142,7 +142,7 @@ export function ComparisonCard({
           <div className="text-right shrink-0">
             <div className="p-4 rounded-xl bg-muted/50 group-hover:bg-primary/5 transition-colors min-w-[140px]">
               <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-1">Total</p>
-              <p className="text-2xl font-bold text-primary">{formatCurrency(result.totalPrice)}</p>
+              <p className="text-xl font-bold text-primary">{formatCurrency(result.totalPrice)}</p>
               <p className="text-xs text-muted-foreground mt-1">{formatCurrency(result.costPerUnit)}/un</p>
             </div>
           </div>

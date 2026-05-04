@@ -87,7 +87,7 @@ export default function RateLimitDashboardPage() {
               <Activity className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.totalRequests}</div>
+              <div className="text-xl font-bold">{stats.totalRequests}</div>
               <p className="text-xs text-muted-foreground">Últimas 100 requisições</p>
             </CardContent>
           </Card>
@@ -97,7 +97,7 @@ export default function RateLimitDashboardPage() {
               <Ban className="h-4 w-4 text-destructive" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-destructive">{stats.blockedRequests}</div>
+              <div className="text-xl font-bold text-destructive">{stats.blockedRequests}</div>
               <p className="text-xs text-muted-foreground">
                 {stats.totalRequests > 0
                   ? ((stats.blockedRequests / stats.totalRequests) * 100).toFixed(1)
@@ -111,7 +111,7 @@ export default function RateLimitDashboardPage() {
               <Shield className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.uniqueIPs}</div>
+              <div className="text-xl font-bold">{stats.uniqueIPs}</div>
               <p className="text-xs text-muted-foreground">Endereços distintos</p>
             </CardContent>
           </Card>
