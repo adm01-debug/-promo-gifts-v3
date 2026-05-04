@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode, Suspense } from "react";
+import { type ReactNode, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -15,20 +15,16 @@ import { DevRoute } from "@/components/layout/DevRoute";
 import { DeprecatedRoute } from "@/components/layout/DeprecatedRoute";
 import { AppProviders } from "@/components/providers/AppProviders";
 import { AccessibilityProvider, AriaLiveProvider } from "@/components/a11y";
-import { useGlobalErrorCatcher } from "@/hooks/useErrorHandler";
-import { markBootSuccessful } from "@/lib/chunk-recovery";
 import { getFallback } from "@/components/layout/SkeletonLoaders";
 import { BridgeStatusBanner } from "@/components/BridgeStatusBanner";
 import { CloudStatusBanner } from "@/components/system/CloudStatusBanner";
 import { DevOnlyBridgeOverlay } from "@/components/dev/DevOnlyBridgeOverlay";
 import { RouteScrollReset } from "@/components/common/RouteScrollReset";
-import { startBridgeTelemetry } from "@/lib/external-db/bridge-telemetry-client";
-import { startColdStartRecorder } from "@/lib/external-db/cold-start-recorder";
+import { useAppBootstrap } from "@/hooks/useAppBootstrap";
+import { ThemeInitializer } from "@/components/ThemeInitializer";
 import "./App.css";
 
-// Inicia o bridge telemetry e o recorder de cold-start (idempotentes).
-startBridgeTelemetry();
-startColdStartRecorder();
+const queryClient = createQueryClient();
 
 // Auth Pages
 const Auth = lazyWithRetry(() => import("./pages/Auth"));
@@ -140,15 +136,9 @@ const QAPage = lazyWithRetry(() => import("./pages/QAPage"));
 const SidebarQAPage = lazyWithRetry(() => import("./pages/SidebarQAPage"));
 const SSOCallbackPage = lazyWithRetry(() => import("./pages/SSOCallbackPage"));
 
-const queryClient = createQueryClient();
-
-import { useCatalogPrefetch } from '@/hooks/useCatalogPrefetch';
-import { loadThemeConfig, applyThemePreset, applyRadius } from '@/lib/theme-presets';
-import { ThemeInitializer } from '@/components/ThemeInitializer';
-
 /** Componente interno que roda hooks que dependem de AuthProvider */
-function AppWithAuth({ children }: { children: ReactNode }) {
-  useCatalogPrefetch();
+function AppBootstrapContainer({ children }: { children: ReactNode }) {
+  useAppBootstrap();
   return <>{children}</>;
 }
 
@@ -159,32 +149,6 @@ function RouteSuspense({ children }: { children: ReactNode }) {
 }
 
 const App = () => {
-  useGlobalErrorCatcher();
-
-  // Apply saved theme on boot (ThemeInitializer handles re-apply on mode change)
-  useEffect(() => {
-    const cfg = loadThemeConfig();
-    const mode = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
-    applyThemePreset(cfg.presetId, mode);
-    applyRadius(cfg.radius);
-    // Limpa o marcador de chunk-recovery após boot bem-sucedido,
-    // para que reloads anteriores não contem como "tentativas restantes".
-    markBootSuccessful();
-  }, []);
-
-  useEffect(() => {
-    const handleOnline = () => {};
-    const handleOffline = () => {};
-
-    window.addEventListener("online", handleOnline);
-    window.addEventListener("offline", handleOffline);
-
-    return () => {
-      window.removeEventListener("online", handleOnline);
-      window.removeEventListener("offline", handleOffline);
-    };
-  }, []);
-
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
@@ -194,7 +158,7 @@ const App = () => {
             <TooltipProvider>
               <BrowserRouter future={{ v7_relativeSplatPath: true }}>
                 <AuthProvider>
-                  <AppWithAuth>
+                  <AppBootstrapContainer>
                     <AppProviders>
                       <Toaster />
                       <Sonner />
@@ -343,7 +307,7 @@ const App = () => {
                         </Routes>
                       </RouteSuspense>
                     </AppProviders>
-                  </AppWithAuth>
+                  </AppBootstrapContainer>
                 </AuthProvider>
               </BrowserRouter>
             </TooltipProvider>
