@@ -75,9 +75,9 @@ export function RecentlyViewedBar({ className, maxVisible = 6 }: RecentlyViewedB
                         className="w-full h-full object-cover" loading="lazy" />
                     </button>
                   </TooltipTrigger>
-                  <TooltipContent side="bottom" className="max-w-[200px]">
+                  <TooltipContent side="bottom" className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none max-w-[200px]">
                     <p className="font-medium truncate">{product.name}</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-primary-foreground/80">
                       {new Intl.NumberFormat("pt-BR", {
                         style: "currency",
                         currency: "BRL",
