@@ -18,6 +18,7 @@ import { AccessibilityProvider, AriaLiveProvider } from "@/components/a11y";
 import { getFallback } from "@/components/layout/SkeletonLoaders";
 import { BridgeStatusBanner } from "@/components/BridgeStatusBanner";
 import { CloudStatusBanner } from "@/components/system/CloudStatusBanner";
+import { GlobalOfflineAlert } from "@/components/common/GlobalOfflineAlert";
 import { DevOnlyBridgeOverlay } from "@/components/dev/DevOnlyBridgeOverlay";
 import { RouteScrollReset } from "@/components/common/RouteScrollReset";
 import { useAppBootstrap } from "@/hooks/useAppBootstrap";
