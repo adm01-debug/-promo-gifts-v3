@@ -129,7 +129,7 @@ export function RecentlyViewedBar({ className, maxVisible = 6 }: RecentlyViewedB
                  aria-label="Excluir"><Trash2 className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Limpar histórico</TooltipContent>
+              <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Limpar histórico</TooltipContent>
             </Tooltip>
           </div>
         </div>
