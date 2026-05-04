@@ -615,9 +615,7 @@ function applyGxGlass(preset: ThemePreset, h: number, s: number, l: number): The
   return preset;
 }
 
-// Skins GX agora seguem a tipografia padrão (Outfit e Plus Jakarta Sans) 
-// conforme solicitado para padronização em todas as skins.
-
+// Implementação do factory para skins GX com tipografia Inter e cantos 10px.
 function buildGxPreset(p: PresetParams): ThemePreset {
   const preset = applyGxGlass(applyGxNeonGlow(applyGxDarkSurfaces(buildPreset(p))), p.h, p.s, p.l);
   preset.category = 'gx';
@@ -625,7 +623,8 @@ function buildGxPreset(p: PresetParams): ThemePreset {
   // manter identidade visual, mas suficientemente arredondados para o
   // visual friendly do Promo Gifts (em vez do 4px canon Opera GX).
   preset.borderRadius = 10;
-  // Font override removido para usar o padrão (Outfit/Plus Jakarta Sans).
+  // Font override: Inter (família do Cloudflare Sans).
+  preset.font = "'Inter', 'Plus Jakarta Sans', system-ui, sans-serif";
   return preset;
 }
 
