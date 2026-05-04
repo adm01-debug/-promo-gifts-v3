@@ -187,6 +187,7 @@ const App = () => {
                       <BridgeStatusBanner />
                       <GlobalOfflineAlert />
                       <DevOnlyBridgeOverlay />
+                      <HttpErrorOverlay />
                       <RouteScrollReset />
                       <RoutePrefetcher />
                       <RouteSuspense>
