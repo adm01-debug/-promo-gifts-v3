@@ -16,6 +16,14 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Custom Tooltip Utilities (Ensures build retention) */
+@layer utilities {
+  .text-tooltip {
+    font-size: 11px;
+    line-height: 1.15;
+  }
+}
+
 /* ═══ NUCLEAR SCROLL LOCK PREVENTION ═══
    Radix UI / react-remove-scroll sets data-scroll-locked on html/body
    and applies overflow:hidden, position:fixed, etc. 
