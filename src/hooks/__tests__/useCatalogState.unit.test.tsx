@@ -9,19 +9,33 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import React from "react";
 
 // Mock dependencies
-vi.mock("@/integrations/supabase/client", () => ({
-  supabase: {
-    from: vi.fn(() => ({
-      select: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      gte: vi.fn().mockReturnThis(),
-      single: vi.fn(),
+vi.mock("@/integrations/supabase/client", () => {
+  const mockAuth = {
+    onAuthStateChange: vi.fn(() => ({
+      data: { subscription: { unsubscribe: vi.fn() } },
     })),
-    functions: {
-      invoke: vi.fn(),
+    getSession: vi.fn().mockResolvedValue({ data: { session: null } }),
+    signInWithPassword: vi.fn(),
+    signOut: vi.fn(),
+  };
+  
+  return {
+    supabase: {
+      auth: mockAuth,
+      from: vi.fn(() => ({
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        gte: vi.fn().mockReturnThis(),
+        single: vi.fn(),
+        update: vi.fn().mockReturnThis(),
+      })),
+      functions: {
+        invoke: vi.fn(),
+      },
+      rpc: vi.fn(),
     },
-  },
-}));
+  };
+});
 
 vi.mock("@/lib/external-db/bridge", () => ({
   invokeBatchBridge: vi.fn().mockResolvedValue([
