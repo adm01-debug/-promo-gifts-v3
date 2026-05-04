@@ -340,10 +340,19 @@ function CategoryFocusBar() {
         <span className="text-muted-foreground">Painel focado em:</span>
         <span className="font-semibold text-violet-700 dark:text-violet-300">{focusedLabel ?? focusedSlug}</span>
       </div>
-      <Button size="sm" variant="ghost" className="gap-1.5 h-7" onClick={clear}>
-        <X className="h-3.5 w-3.5" />
-        Limpar foco
-      </Button>
+      <TooltipProvider delayDuration={0}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button size="sm" variant="ghost" className="gap-1.5 h-7" onClick={clear}>
+              <X className="h-3.5 w-3.5" />
+              Limpar foco
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
+            Remover filtro de categoria e ver visão geral
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     </div>
   );
 }
