@@ -34,9 +34,16 @@ const mockAuthValue = {
   session: {},
   isAdmin: false,
   isDev: false,
+  isSupervisor: false,
+  isAgente: true,
+  isSupervisorOrAbove: false,
   isLoading: false,
   signOut: vi.fn(),
   refreshSession: vi.fn(),
+  isAuthenticated: true,
+  roles: ['agente'],
+  role: 'agente',
+  profile: null,
 };
 
 const renderSidebar = (props = { isOpen: true, onToggle: vi.fn() }, authValue = mockAuthValue) => {
