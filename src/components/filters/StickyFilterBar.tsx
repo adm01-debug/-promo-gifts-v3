@@ -239,22 +239,32 @@ export function InlineFilterBar({
           {viewMode === "grid" && columnSelector}
           {/* View mode toggle */}
           <div className="hidden sm:flex border border-border rounded-md p-0.5">
-            <Button
-              variant={viewMode === "grid" ? "secondary" : "ghost"}
-              size="icon" aria-label="LayoutGrid"
-              className="h-6 w-6"
-              onClick={() => onViewModeChange("grid")}
-            >
-              <LayoutGrid className="h-3 w-3" />
-            </Button>
-            <Button
-              variant={viewMode === "list" ? "secondary" : "ghost"}
-              size="icon" aria-label="Lista"
-              className="h-6 w-6"
-              onClick={() => onViewModeChange("list")}
-            >
-              <List className="h-3 w-3" />
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant={viewMode === "grid" ? "secondary" : "ghost"}
+                  size="icon" aria-label="LayoutGrid"
+                  className="h-6 w-6"
+                  onClick={() => onViewModeChange("grid")}
+                >
+                  <LayoutGrid className="h-3 w-3" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Grade</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant={viewMode === "list" ? "secondary" : "ghost"}
+                  size="icon" aria-label="Lista"
+                  className="h-6 w-6"
+                  onClick={() => onViewModeChange("list")}
+                >
+                  <List className="h-3 w-3" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Lista</TooltipContent>
+            </Tooltip>
           </div>
 
           {/* Sort */}
