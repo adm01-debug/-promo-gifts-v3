@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Calendar } from "@/components/ui/calendar";
 import {
   FileText, Plus, Save, Send, Package, Loader2, BookTemplate, ArrowLeft,
@@ -77,9 +78,16 @@ export default function QuoteBuilderPage() {
         {/* Header */}
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" aria-label="Voltar" onClick={() => guardNavigation(() => s.navigate(-1))}>
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
+            <TooltipProvider delayDuration={0}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" aria-label="Voltar" onClick={() => guardNavigation(() => s.navigate(-1))}>
+                    <ArrowLeft className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Voltar para a página anterior</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             <div>
               <h1 data-testid="page-title-orcamento-novo" className="font-display text-2xl font-bold text-foreground flex items-center gap-3">
                 <div className="p-2 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10">
@@ -97,11 +105,18 @@ export default function QuoteBuilderPage() {
               <QuoteTemplateSelector
                 onSelectTemplate={s.applyTemplate}
                 trigger={
-                  <Button variant="outline">
-                    <BookTemplate className="h-4 w-4 mr-2" />
-                    Usar Template
-                    {s.templates.length > 0 && <Badge variant="secondary" className="ml-2">{s.templates.length}</Badge>}
-                  </Button>
+                  <TooltipProvider delayDuration={0}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button variant="outline">
+                          <BookTemplate className="h-4 w-4 mr-2" />
+                          Usar Template
+                          {s.templates.length > 0 && <Badge variant="secondary" className="ml-2">{s.templates.length}</Badge>}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Carregar configurações de um orçamento salvo anteriormente</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 }
               />
             )}
@@ -128,7 +143,14 @@ export default function QuoteBuilderPage() {
                 <BookTemplate className="h-4 w-4 text-primary" />
                 <span className="text-sm">Template <strong>"{s.templateApplied}"</strong> aplicado</span>
               </div>
-              <Button variant="ghost" size="sm" onClick={() => s.setTemplateApplied(null)}>Fechar</Button>
+              <TooltipProvider delayDuration={0}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="sm" onClick={() => s.setTemplateApplied(null)}>Fechar</Button>
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Ocultar aviso de template</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </CardContent>
           </Card>
         )}
@@ -143,7 +165,14 @@ export default function QuoteBuilderPage() {
                   <p className="text-sm text-muted-foreground">Use "{s.defaultTemplate.name}" para começar rapidamente</p>
                 </div>
               </div>
-              <Button variant="outline" onClick={() => s.applyTemplate(s.defaultTemplate!)}>Aplicar Template</Button>
+              <TooltipProvider delayDuration={0}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="outline" onClick={() => s.applyTemplate(s.defaultTemplate!)}>Aplicar Template</Button>
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Carregar os produtos do template padrão para este orçamento</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </CardContent>
           </Card>
         )}

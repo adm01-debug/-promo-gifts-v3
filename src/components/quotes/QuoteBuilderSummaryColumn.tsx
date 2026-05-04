@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
@@ -132,15 +132,22 @@ export function QuoteBuilderSummaryColumn({
                 {showOnlyStale && <X className="h-3 w-3 ml-0.5" aria-hidden="true" />}
               </button>
               {confirmAllStalePrices && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="h-7 px-2.5 text-xs gap-1.5 border-warning/40 text-warning hover:bg-warning/10 hover:text-warning"
-                  onClick={() => setConfirmAllOpen(true)}
-                >
-                  <CheckCircle2 className="h-3.5 w-3.5" />
-                  Confirmar todos
-                </Button>
+                <TooltipProvider delayDuration={0}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-7 px-2.5 text-xs gap-1.5 border-warning/40 text-warning hover:bg-warning/10 hover:text-warning"
+                        onClick={() => setConfirmAllOpen(true)}
+                      >
+                        <CheckCircle2 className="h-3.5 w-3.5" />
+                        Confirmar todos
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Confirmar que todos os preços stale foram validados com o fornecedor</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               )}
             </div>
           )}
@@ -208,16 +215,31 @@ export function QuoteBuilderSummaryColumn({
                           </div>
                         </div>
                         <div className="flex items-center gap-1 shrink-0">
-                          <Button variant="ghost" size="icon" aria-label="Editar" className={cn("h-6 w-6", isActive ? "text-primary" : "text-muted-foreground")} onClick={(e) => { e.stopPropagation(); setActiveItemIndex(idx); }}>
-                            <Edit className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button variant="ghost" size="icon" aria-label="Excluir" className="h-6 w-6 text-destructive hover:bg-destructive/10" onClick={(e) => {
-                            e.stopPropagation(); removeItem(idx);
-                            if (activeItemIndex === idx) setActiveItemIndex(null);
-                            else if (activeItemIndex !== null && activeItemIndex > idx) setActiveItemIndex(activeItemIndex - 1);
-                          }}>
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
+                          <TooltipProvider delayDuration={0}>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" aria-label="Editar" className={cn("h-6 w-6", isActive ? "text-primary" : "text-muted-foreground")} onClick={(e) => { e.stopPropagation(); setActiveItemIndex(idx); }}>
+                                  <Edit className="h-3.5 w-3.5" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Ajustar quantidades e personalização deste item</TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+
+                          <TooltipProvider delayDuration={0}>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" aria-label="Excluir" className="h-6 w-6 text-destructive hover:bg-destructive/10" onClick={(e) => {
+                                  e.stopPropagation(); removeItem(idx);
+                                  if (activeItemIndex === idx) setActiveItemIndex(null);
+                                  else if (activeItemIndex !== null && activeItemIndex > idx) setActiveItemIndex(activeItemIndex - 1);
+                                }}>
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Remover este produto do orçamento</TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         </div>
                       </div>
                       <div className="flex items-center gap-2 text-xs">

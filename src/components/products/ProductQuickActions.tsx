@@ -5,7 +5,7 @@
 import { useState } from "react";
 import { TableProperties, Palette, Target, Layers } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { InlinePriceCalculator } from "@/components/products/InlinePriceCalculator";
 import { ProductCustomizationOptions } from "@/components/products/ProductCustomizationOptions";
@@ -77,6 +77,7 @@ export function ProductQuickActions({
     <>
       <div className="flex items-center gap-2 pt-2 w-full">
         <div className="flex items-center gap-2 flex-1">
+          <TooltipProvider delayDuration={0}>
           {actions.map(({ key, label, icon: Icon, iconColor }) => {
             const disabled = isActionDisabled(key);
             const tooltipText = disabled 
@@ -105,12 +106,13 @@ export function ProductQuickActions({
                     {label}
                   </button>
                 </TooltipTrigger>
-                <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">
+                <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
                   {tooltipText}
                 </TooltipContent>
               </Tooltip>
             );
           })}
+          </TooltipProvider>
         </div>
 
         {product && <ShareActions product={product} selectedVariant={selectedVariant} />}

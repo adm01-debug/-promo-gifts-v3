@@ -3,7 +3,7 @@ import { SmartSearchInput } from "@/components/search";
 import { RecentlyViewedPopover } from "@/components/products/RecentlyViewedPopover";
 import { Home, Search, Clock, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { AnimatePresence } from "framer-motion";
@@ -58,20 +58,22 @@ export function CatalogHeader({
       <div className="flex items-center gap-3 flex-1 min-w-0">
         {/* Reset / Home button — visible when search or filters are active */}
         {hasActiveConstraints && onReset && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={onReset}
-                className="shrink-0 h-9 w-9 border-primary/40 text-primary hover:bg-primary/10"
-                aria-label="Voltar ao início"
-              >
-                <Home className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Voltar ao catálogo completo</TooltipContent>
-          </Tooltip>
+          <TooltipProvider delayDuration={0}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={onReset}
+                  className="shrink-0 h-9 w-9 border-primary/40 text-primary hover:bg-primary/10"
+                  aria-label="Voltar ao início"
+                >
+                  <Home className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Voltar ao catálogo completo</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         )}
 
         <h1 className="font-display text-xl sm:text-2xl lg:text-3xl font-bold whitespace-nowrap">
@@ -102,19 +104,21 @@ export function CatalogHeader({
           <AnimatePresence>
             {searchHistory.length > 0 && (
               <Popover open={historyOpen} onOpenChange={setHistoryOpen}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" size="icon" className="h-11 w-11 shrink-0 rounded-lg border-muted-foreground/20 hover:border-primary/50 relative group overflow-hidden" aria-label="Histórico de buscas recentes">
-                        <Clock className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                        <Badge className="absolute -top-1 -right-1 h-4 min-w-4 px-1 bg-primary text-[8px] flex items-center justify-center border-2 border-background">
-                          {searchHistory.length}
-                        </Badge>
-                      </Button>
-                    </PopoverTrigger>
-                  </TooltipTrigger>
-                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Histórico de buscas recentes ({searchHistory.length})</TooltipContent>
-                </Tooltip>
+                <TooltipProvider delayDuration={0}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" size="icon" className="h-11 w-11 shrink-0 rounded-lg border-muted-foreground/20 hover:border-primary/50 relative group overflow-hidden" aria-label="Histórico de buscas recentes">
+                          <Clock className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                          <Badge className="absolute -top-1 -right-1 h-4 min-w-4 px-1 bg-primary text-[8px] flex items-center justify-center border-2 border-background">
+                            {searchHistory.length}
+                          </Badge>
+                        </Button>
+                      </PopoverTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Histórico de buscas recentes ({searchHistory.length})</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
                 <PopoverContent className="w-64 p-2" align="end">
                   <div className="flex items-center justify-between px-2 pb-2 border-b border-border/50 mb-2">
                     <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Histórico</span>
@@ -156,22 +160,24 @@ export function CatalogHeader({
           className="flex-1"
         />
         {searchHistory.length > 0 && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button 
-                variant="outline" 
-                size="icon" 
-                className="h-11 w-11 shrink-0" 
-                onClick={() => setHistoryOpen(!historyOpen)}
-                aria-label="Ver histórico de buscas"
-              >
-                <Clock className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">
-              Histórico de buscas
-            </TooltipContent>
-          </Tooltip>
+          <TooltipProvider delayDuration={0}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  className="h-11 w-11 shrink-0" 
+                  onClick={() => setHistoryOpen(!historyOpen)}
+                  aria-label="Ver histórico de buscas"
+                >
+                  <Clock className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
+                Histórico de buscas
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         )}
       </div>
     </div>
