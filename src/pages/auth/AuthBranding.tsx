@@ -13,14 +13,14 @@ export const ContinuousRockets = React.memo(() => {
   const spawnRocket = useCallback((isInitial = false) => {
     const id = nextIdRef.current++;
     
-    const left = 5 + Math.random() * 85;
-    const size = 20 + Math.random() * 30;
+    const left = 5 + Math.random() * 90;
+    const size = 20 + Math.random() * 35;
     const duration = isInitial 
-      ? (1.8 + Math.random() * 1.5) 
-      : (2.5 + Math.random() * 3.0);
+      ? (1.5 + Math.random() * 1.5) 
+      : (2.2 + Math.random() * 2.8);
     
-    const rotationOffset = -4 + Math.random() * 8;
-    const scale = 0.85 + Math.random() * 0.35;
+    const rotationOffset = -6 + Math.random() * 12;
+    const scale = 0.8 + Math.random() * 0.4;
 
     const rocket: RocketData = { 
       id, left, size, duration, rotation: rotationOffset, scale 
@@ -35,13 +35,13 @@ export const ContinuousRockets = React.memo(() => {
 
   useEffect(() => {
     // Initial burst
-    const delays = [0, 300, 800, 1400, 2000];
+    const delays = [0, 200, 500, 900, 1400, 2000, 2800];
     const timers = delays.map(d => setTimeout(() => spawnRocket(true), d));
 
     // Sustained cycle
     const interval = setInterval(() => {
       if (document.visibilityState === 'visible') spawnRocket();
-    }, 3500);
+    }, 2800);
 
     return () => {
       timers.forEach(clearTimeout);
@@ -69,12 +69,11 @@ export const ContinuousRockets = React.memo(() => {
               }}
             >
               <Rocket
-                className="-rotate-45"
+                className="-rotate-45 text-orange"
                 style={{
                   width: r.size,
                   height: r.size,
-                  color: "#FB923C",
-                  filter: "drop-shadow(0 0 8px rgba(251, 146, 60, 0.4))",
+                  filter: "drop-shadow(0 0 12px rgba(251, 146, 60, 0.6))",
                 }}
               />
             </div>

@@ -240,7 +240,7 @@ export const ProductTableView = memo(function ProductTableView({
               <div key={vr.key} data-index={vr.index} ref={virtualizer.measureElement}
                 style={{ position: "absolute", top: 0, left: 0, width: "100%", transform: `translateY(${vr.start}px)` }}
                 className={cn("flex items-center px-4 border-b border-border/30 hover:bg-accent/30 cursor-pointer transition-colors group h-14", isSelected && "bg-primary/5")}
-                onClick={() => selectionMode ? onToggleSelect?.(product.id) : onProductClick?.(product.id)}
+                onClick={() => selectionMode ? onToggleSelect?.(product.id) : onProductClick ? onProductClick(product.id) : navigate(`/produto/${product.id}`)}
               >
                 {selectionMode && <div className="w-10 px-2 flex justify-center"><SelectionCheckbox checked={!!isSelected} onChange={() => onToggleSelect?.(product.id)} size="sm" /></div>}
                 
