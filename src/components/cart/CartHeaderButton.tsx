@@ -367,6 +367,7 @@ export function CartHeaderButton() {
                                                 updateItemQuantity(item.id, item.quantity - 1);
                                               }
                                             }}
+                                            title={item.quantity <= 1 ? "Remover" : "Diminuir"}
                                           >
                                             {item.quantity <= 1 ? (
                                               <Trash2 className="h-3 w-3 text-destructive" />
