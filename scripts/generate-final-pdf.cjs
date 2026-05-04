@@ -64,7 +64,7 @@ doc.addPage();
 doc.setFont('helvetica', 'bold');
 doc.setFontSize(18);
 doc.text('3. Inventário Técnico e Evidências', 20, 25);
-doc.autoTable({
+autoTable(doc, {
   startY: 30,
   head: [['Módulo', 'Funcionalidade', 'Arquivo', 'Evidência Técnica']],
   body: [
