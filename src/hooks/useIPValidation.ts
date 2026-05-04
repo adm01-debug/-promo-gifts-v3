@@ -13,11 +13,20 @@ interface IPValidationResult {
 export function useIPValidation() {
   const [isValidating, setIsValidating] = useState(false);
 
-  // Buscar IP atual do usuário
+  // Buscar IP atual do usuário (Opcional - Edge Function já identifica via headers)
   const fetchCurrentIP = useCallback(async (): Promise<string | null> => {
     try {
-      const response = await fetch('https://api.ipify.org?format=json');
-      const data = await response.json();
+      // Usar a nossa própria edge function que é mais confiável e contorna AdBlockers
+      const { data, error } = await supabase.functions.invoke('get-visitor-info');
+      if (error || !data?.ip) {
+        console.warn('Fallback to secondary IP identification');
+        const response = await fetch('https://api.ipify.org?format=json').catch(() => null);
+        if (response) {
+          const data = await response.json();
+          return data.ip;
+        }
+        return null;
+      }
       return data.ip;
     } catch (error) {
       console.error('Error fetching current IP:', error);
