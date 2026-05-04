@@ -38,29 +38,30 @@ function extractData(args: unknown[]): Record<string, unknown> | undefined {
 
 export const logger = {
   debug(message: string, ...args: unknown[]): void {
+    const entry = formatEntry('debug', message, extractData(args));
     if (isDev) {
-      const entry = formatEntry('debug', message, extractData(args));
       console.debug(`[DEBUG] ${entry.timestamp}`, message, ...args);
     }
   },
 
   log(message: string, ...args: unknown[]): void {
+    const entry = formatEntry('info', message, extractData(args));
     if (isDev) {
-      const entry = formatEntry('info', message, extractData(args));
       console.log(`[LOG] ${entry.timestamp}`, message, ...args);
     }
   },
 
   info(message: string, ...args: unknown[]): void {
+    const entry = formatEntry('info', message, extractData(args));
     if (isDev) {
-      const entry = formatEntry('info', message, extractData(args));
       console.info(`[INFO] ${entry.timestamp}`, message, ...args);
     }
   },
 
   warn(message: string, ...args: unknown[]): void {
+    const entry = formatEntry('warn', message, extractData(args));
     if (isDev) {
-      console.warn(`[WARN] ${new Date().toISOString()}`, message, ...args);
+      console.warn(`[WARN] ${entry.timestamp}`, message, ...args);
     }
   },
 
