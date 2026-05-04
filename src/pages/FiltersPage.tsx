@@ -229,7 +229,7 @@ export default function FiltersPage() {
                       <PresetsBar currentFilters={state.filters} onApplyPreset={(f, id) => state.handleApplyPreset(f, id)} activePresetId={state.activePresetId} />
                     </div>
                   </TooltipTrigger>
-                  <TooltipContent>Presets de filtros salvos para acesso rápido</TooltipContent>
+                  <TooltipContent className="bg-primary text-primary-foreground border-primary text-[11px]">Presets de filtros salvos para acesso rápido</TooltipContent>
                 </Tooltip>
 
                 {/* Selection toggle */}
