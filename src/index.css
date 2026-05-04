@@ -304,9 +304,20 @@ html[data-scroll-locked] body {
     color: hsl(var(--primary));
   }
   
-  .icon-premium svg {
-    @apply w-full h-full stroke-[1.5];
+  /* Universal SVG standardization */
+  svg:not([class*="size-"]):not([width]) {
+    @apply w-5 h-5;
   }
+  
+  svg {
+    stroke-width: 1.5;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .icon-premium svg {
+    @apply w-full h-full;
+  }
+
 
   .icon-premium-muted {
     @apply icon-premium;
