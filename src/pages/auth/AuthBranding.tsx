@@ -77,15 +77,18 @@ export function ContinuousRockets() {
             left: `${r.left}%`,
             animation: `rocketLaunch ${r.duration}s ease-out forwards`,
             willChange: "transform, opacity",
+            transform: `scale(${r.scale})`,
           }}
         >
-          <div style={{ animation: "rocketShake 0.15s ease-in-out infinite" }}>
+          <div style={{ 
+            animation: "rocketShake 0.15s ease-in-out infinite",
+            transform: `rotate(${r.rotation}deg)` 
+          }}>
             <Rocket
               className="-rotate-45"
               style={{
                 width: r.size,
                 height: r.size,
-                // Cor fixa "fogo" — independente do skin ativo (que pode mapear --orange para outra cor de marca)
                 color: "#FB923C",
               }}
             />
