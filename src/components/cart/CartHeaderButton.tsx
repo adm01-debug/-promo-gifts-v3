@@ -296,7 +296,7 @@ export function CartHeaderButton() {
                                       <Trash2 className="h-3.5 w-3.5" />
                                     </button>
                                   </TooltipTrigger>
-                                  <TooltipContent side="top" className="text-[11px]">Excluir carrinho</TooltipContent>
+                                  <TooltipContent side="top" className="bg-primary text-primary-foreground border-primary text-[11px]">Excluir carrinho</TooltipContent>
                                 </Tooltip>
                               </div>
                             </div>
