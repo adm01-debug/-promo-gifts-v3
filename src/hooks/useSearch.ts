@@ -21,8 +21,10 @@ export function useSearch(products: Product[] = []) {
   const { 
     history: searchHistory, 
     addToHistory: addHistoryItem, 
-    removeFromHistory, 
-    clearHistory 
+    removeFromHistory: removeHistoryById, 
+    clearHistory,
+    togglePin,
+    isLoading: isHistoryLoading
   } = useSearchHistory("general");
 
   const history = useMemo(() => searchHistory.map(h => h.label), [searchHistory]);
@@ -170,9 +172,15 @@ export function useSearch(products: Product[] = []) {
     suggestions,
     quickSuggestions,
     history,
+    searchHistory, // Full objects
     addToHistory,
-    removeFromHistory: (term: string) => removeFromHistory(`history-${term}`),
+    removeFromHistory: (term: string) => {
+      const item = searchHistory.find(h => h.label === term);
+      if (item) removeHistoryById(item.id);
+    },
+    removeHistoryById,
+    togglePin,
     clearHistory,
-    isLoaded: true,
+    isLoaded: !isHistoryLoading,
   };
 }
