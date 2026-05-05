@@ -102,8 +102,34 @@ describe("CatalogHeader Preset Flow", () => {
       </TooltipProvider>
     );
 
-    // The text "15" is rendered inside a span, try finding by text or searching in container
     expect(screen.getByText("15", { exact: false })).toBeInTheDocument();
     expect(screen.getByText(/de 100/i)).toBeInTheDocument();
+  });
+
+  it("should call onApplyPreset with defaultFilters when clearing a preset", () => {
+    // Mock PresetsBar to include a clear button
+    vi.mock("@/components/filters/PresetsBar", () => ({
+      PresetsBar: ({ onApplyPreset, activePresetId }: any) => (
+        <div data-testid="presets-bar">
+          <button 
+            data-testid="clear-preset-btn" 
+            onClick={() => onApplyPreset(defaultFilters, undefined)}
+          >
+            Clear Preset
+          </button>
+        </div>
+      ),
+    }));
+
+    render(
+      <TooltipProvider>
+        <CatalogHeader {...mockProps} activePresetId="preset-123" />
+      </TooltipProvider>
+    );
+
+    const clearBtn = screen.getByTestId("clear-preset-btn");
+    fireEvent.click(clearBtn);
+
+    expect(mockProps.onApplyPreset).toHaveBeenCalledWith(defaultFilters, undefined);
   });
 });

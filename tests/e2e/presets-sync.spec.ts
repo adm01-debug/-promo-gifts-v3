@@ -45,42 +45,74 @@ test.describe('Catalog Presets Realtime Sync & Persistence', () => {
     }
   });
 
-  test('should restore exact state from URL on reload', async ({ page }) => {
+  test('should restore exact state from URL on reload including non-default filters', async ({ page }) => {
     await page.goto('/');
     
-    // 1. Create a state with filters and preset
-    // For simplicity, we navigate directly to a URL with preset param
-    // In a real scenario we'd click, but this tests the restoration logic
-    const testPresetId = 'test-preset-recovery';
-    await page.goto(`/?preset=${testPresetId}&search=relogio`);
+    const testPresetId = 'test-preset-complex';
+    // Adicionamos parâmetros que representam filtros específicos
+    await page.goto(`/?preset=${testPresetId}&search=caneta&colors=azul,preto&stock=true`);
 
-    // 2. Verify UI components reflect the URL state
-    // The search input should have "relogio"
+    // Aguarda o carregamento
+    await expect(page.locator('h1')).toContainText('Catálogo');
+
     const searchInput = page.locator('input[placeholder*="Buscar"]');
-    await expect(searchInput).toHaveValue('relogio');
+    await expect(searchInput).toHaveValue('caneta');
 
-    // 3. Reload
+    // Verifica se os chips de filtros ativos aparecem
+    const activeFilters = page.locator('.flex.flex-wrap.gap-2');
+    await expect(activeFilters).toBeVisible();
+    await expect(activeFilters).toContainText('Azul');
+    await expect(activeFilters).toContainText('Preto');
+    await expect(activeFilters).toContainText('estoque');
+
+    // Reload
     await page.reload();
 
-    // 4. Verify state is maintained
-    await expect(searchInput).toHaveValue('relogio');
+    // Verifica se tudo foi restaurado
+    await expect(searchInput).toHaveValue('caneta');
+    await expect(activeFilters).toContainText('Azul');
+    await expect(activeFilters).toContainText('Preto');
     await expect(page).toHaveURL(new RegExp(`preset=${testPresetId}`));
   });
 
   test('should handle network errors gracefully during preset application', async ({ page }) => {
     await page.goto('/');
     
-    // Mock a failure in any potential network request during apply
-    // Though application is mostly local state after fetch, if it triggers a fetch:
     await page.route('**/rest/v1/saved_filters*', route => route.abort('failed'));
     
-    await page.getByLabel('Presets de filtros salvos').click();
-    const presetItem = page.locator('div[role="button"]').first();
+    const presetsTrigger = page.getByLabel('Presets de filtros salvos');
+    await expect(presetsTrigger).toBeVisible();
+    await presetsTrigger.click();
     
+    // Se não houver presets, o teste passa (pois o componente não deve crashar ao abrir)
+    const presetItem = page.locator('div[role="button"]').first();
     if (await presetItem.isVisible()) {
       await presetItem.click();
-      // Should not crash the UI
       await expect(page.getByText('Catálogo de Produtos')).toBeVisible();
     }
+  });
+
+  test('should synchronize real-time updates between two tabs via BroadcastChannel', async ({ context }) => {
+    const page1 = await context.newPage();
+    const page2 = await context.newPage();
+    
+    await page1.goto('/');
+    await page2.goto('/');
+
+    // Simula a aplicação de um preset na página 1 via script (já que criar um preset via UI exige DB)
+    // Isso testa o canal de comunicação BroadcastChannel
+    await page1.evaluate(() => {
+      const channel = new BroadcastChannel('catalog_preset_sync');
+      channel.postMessage({ 
+        type: 'PRESET_APPLIED', 
+        presetId: 'realtime-test', 
+        filters: { colors: [], categories: [], suppliers: [], search: 'sync-test', priceRange: [0, 500] } 
+      });
+      channel.close();
+    });
+
+    // Página 2 deve reagir ao BroadcastChannel
+    const searchInput2 = page2.locator('input[placeholder*="Buscar"]');
+    await expect(searchInput2).toHaveValue('sync-test', { timeout: 10000 });
   });
 });
