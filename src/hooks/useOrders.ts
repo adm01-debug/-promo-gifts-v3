@@ -5,6 +5,12 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { logRlsDenial } from "@/lib/security/rls-denial-logger";
+import { applySellerScope } from "@/lib/auth/apply-seller-scope";
+import type { Database } from "@/integrations/supabase/types";
+
+type OrderInsert = Database["public"]["Tables"]["orders"]["Insert"];
+type OrderUpdate = Database["public"]["Tables"]["orders"]["Update"];
+
 
 export interface OrderRow {
   id: string;
@@ -44,7 +50,8 @@ export function useOrdersList(sellerId?: string, scope: "self" | "team" | "all" 
     queryFn: async (): Promise<OrderRow[]> => {
       // rls-allow: applySellerScope chamado dinamicamente conforme escopo
       let q = supabase.from("orders").select("*").order("created_at", { ascending: false });
-      if (scope === "self" && sellerId) q = q.eq("seller_id", sellerId);
+      q = applySellerScope(q, { scope, userId: sellerId });
+      
       const { data, error } = await q;
       if (error) {
         await logRlsDenial(error, {
@@ -82,17 +89,26 @@ export function useOrderDetail(orderId?: string) {
 export function useUpdateOrder(orderId?: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (patch: Partial<OrderRow>) => {
+    mutationFn: async (patch: OrderUpdate) => {
       // Sanitização básica de inputs de texto
-      const sanitizedPatch = { ...patch };
-      if (sanitizedPatch.notes) sanitizedPatch.notes = sanitizedPatch.notes.trim().slice(0, 2000);
-      if (sanitizedPatch.internal_notes) sanitizedPatch.internal_notes = sanitizedPatch.internal_notes.trim().slice(0, 2000);
+      const sanitizedPatch: OrderUpdate = { 
+        ...patch,
+        updated_at: new Date().toISOString()
+      };
+      
+      if (typeof sanitizedPatch.notes === 'string') {
+        sanitizedPatch.notes = sanitizedPatch.notes.trim().slice(0, 2000);
+      }
+      if (typeof sanitizedPatch.internal_notes === 'string') {
+        sanitizedPatch.internal_notes = sanitizedPatch.internal_notes.trim().slice(0, 2000);
+      }
 
       const { error } = await supabase
         // rls-allow: applySellerScope chamado dinamicamente conforme escopo
         .from("orders")
-        .update({ ...patch, updated_at: new Date().toISOString() })
+        .update(sanitizedPatch)
         .eq("id", orderId!);
+        
       if (error) {
         await logRlsDenial(error, {
           table: "orders", op: "UPDATE",
@@ -107,7 +123,10 @@ export function useUpdateOrder(orderId?: string) {
       toast.success("Pedido atualizado");
       qc.invalidateQueries({ queryKey: ["orders"] });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => {
+      console.error("Error updating order:", e);
+      toast.error(e.message || "Erro ao atualizar pedido");
+    },
   });
 }
 
