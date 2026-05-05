@@ -124,7 +124,8 @@ export function ComparisonRadarChart({ products, className }: ComparisonRadarCha
                 dataKey={String(p.id)}
                 stroke={COLORS[i % COLORS.length]}
                 fill={COLORS[i % COLORS.length]}
-                fillOpacity={0.18}
+                fillOpacity={opacity[String(p.id)] ?? 0.18}
+                strokeOpacity={opacity[String(p.id)] ? 1 : 0.8}
                 strokeWidth={2}
                 animationBegin={i * 100}
                 animationDuration={800}
