@@ -74,7 +74,7 @@ const navGroups: NavGroup[] = [
     icon: Package,
     defaultOpen: true,
     items: [
-      { icon: Package, label: "Produtos", href: "/", tourId: "products", shortcut: "Alt+P" },
+      { icon: Package, label: "Produtos", href: "/produtos", tourId: "products", shortcut: "Alt+P" },
       { icon: SlidersHorizontal, label: "Super Filtro", href: "/filtros", shortcut: "Alt+F" },
       { icon: Zap, label: "Novidades", href: "/novidades" },
       { icon: RefreshCw, label: "Reposição", href: "/reposicao" },
@@ -94,8 +94,8 @@ const navGroups: NavGroup[] = [
       { icon: Sparkles, label: "Magic Up", href: "/magic-up" },
       { icon: Crosshair, label: "Match", href: "/match" },
       { icon: Boxes, label: "Kit Maker", href: "/montar-kit", shortcut: "Alt+K" },
-      { icon: Calculator, label: "Simulador", href: "/simulador", shortcut: "Alt+S" },
-      { icon: BarChart3, label: "Preços por Tiragem", href: "/simulador-precos" },
+      { icon: Calculator, label: "Mestre da Personalização", href: "/simulador", shortcut: "Alt+S" },
+      { icon: BarChart3, label: "Radar de Preços", href: "/simulador-precos" },
       { icon: DollarSign, label: "Busca por Preço", href: "/busca-preco" },
     ],
   },
@@ -226,6 +226,8 @@ export const SidebarReorganized = React.forwardRef<HTMLElement, SidebarProps>(
   // Global keyboard shortcuts for navigation
   useEffect(() => {
     const shortcutMap: Record<string, string> = {};
+    
+    // Auto-map shortcuts from navGroups
     navGroups.forEach(g => g.items.forEach(item => {
       if (item.shortcut) {
         const key = item.shortcut.replace("Alt+", "").toLowerCase();
@@ -233,20 +235,34 @@ export const SidebarReorganized = React.forwardRef<HTMLElement, SidebarProps>(
       }
     }));
 
+    // Manual overrides or extra shortcuts
+    shortcutMap['m'] = 'toggle-sidebar'; // Alt+M toggles menu
+    shortcutMap['u'] = 'user-menu';      // Alt+U opens user menu
+
     const handler = (e: KeyboardEvent) => {
       if (e.altKey && !e.ctrlKey && !e.metaKey) {
         const target = e.target as HTMLElement;
         if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable) return;
-        const href = shortcutMap[e.key.toLowerCase()];
-        if (href) {
-          e.preventDefault();
-          navigate(href);
+        
+        const action = shortcutMap[e.key.toLowerCase()];
+        if (!action) return;
+
+        e.preventDefault();
+        
+        if (action === 'toggle-sidebar') {
+          onToggle();
+        } else if (action === 'user-menu') {
+          // Trigger user menu dropdown via click simulation on the button
+          const btn = document.querySelector('[aria-label="Menu do usuário"]') as HTMLButtonElement;
+          btn?.click();
+        } else {
+          navigate(action);
         }
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [navigate]);
+  }, [navigate, onToggle]);
 
   const hasAnyGroupOpen = Object.values(openGroups).some(Boolean);
 

@@ -12,12 +12,12 @@ import {
 export default function PriceSimulatorPage() {
   return (
     <MainLayout>
-      <PageSEO title="Simulador de Preços" description="Simule preços de brindes com personalização, quantidades e custos." path="/simulador-precos" />
+      <PageSEO title="Radar de Preços" description="Simule preços de brindes com personalização, quantidades e custos." path="/simulador-precos" />
       <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
         {/* Hero Header — #1 */}
         <div className="flex flex-col gap-1">
           <h1 data-testid="page-title-simulador-precos" className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-            Simulador de Preços
+            Radar de Preços
           </h1>
           <p className="text-sm text-muted-foreground max-w-lg">
             Calcule o preço exato de qualquer produto com personalização, compare técnicas e gere orçamentos em segundos.
