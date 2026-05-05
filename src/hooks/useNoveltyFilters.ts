@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { NoveltyWithDetails } from "./useNovelties";
 import { getDefaultColumns } from "@/components/products/ColumnSelector";
+import { useDebounce } from "./useDebounce";
 
 export type ViewMode = "grid" | "list" | "table";
 export type SortMode = "name" | "price-asc" | "price-desc" | "newest" | "stock" | "best-seller-supplier" | "best-seller-promo";
