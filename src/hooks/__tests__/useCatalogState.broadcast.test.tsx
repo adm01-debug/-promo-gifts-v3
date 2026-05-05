@@ -6,7 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import React from "react";
 
-// Mocks exaustivos
+// Mocks
 vi.mock("@/hooks/use-toast", () => ({
   useToast: () => ({ toast: vi.fn() }),
 }));
@@ -108,27 +108,17 @@ vi.mock("@/stores/useComparisonStore", () => ({
 }));
 
 // Mock do BroadcastChannel
-let registeredCallback: ((ev: any) => void) | null = null;
+let channelInstance: any = null;
 const postMessageMock = vi.fn();
 const closeMock = vi.fn();
 
 class MockBroadcastChannel {
   name: string;
-  private _handler: any = null;
-
+  onmessage: any = null;
   constructor(name: string) {
     this.name = name;
+    channelInstance = this;
   }
-  
-  get onmessage() {
-    return this._handler;
-  }
-  
-  set onmessage(val: any) {
-    this._handler = val;
-    registeredCallback = val;
-  }
-  
   postMessage = postMessageMock;
   close = closeMock;
 }
@@ -147,13 +137,16 @@ const wrapper = ({ children }: { children: React.ReactNode }) => (
 describe("useCatalogState - BroadcastChannel Sync", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    registeredCallback = null;
+    channelInstance = null;
   });
 
   it("deve atualizar o estado quando receber PRESET_APPLIED via BroadcastChannel", async () => {
     const { result } = renderHook(() => useCatalogState(), { wrapper });
 
-    expect(registeredCallback).toBeDefined();
+    // Forçar o useEffect a rodar e a instância ser capturada
+    await act(async () => {});
+
+    expect(channelInstance).toBeDefined();
 
     const mockPresetId = "test-preset-123";
     const mockFilters = {
@@ -179,8 +172,8 @@ describe("useCatalogState - BroadcastChannel Sync", () => {
     };
 
     await act(async () => {
-      if (registeredCallback) {
-        registeredCallback({
+      if (channelInstance && channelInstance.onmessage) {
+        channelInstance.onmessage({
           data: {
             type: 'PRESET_APPLIED',
             presetId: mockPresetId,
