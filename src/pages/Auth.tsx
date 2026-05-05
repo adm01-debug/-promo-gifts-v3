@@ -310,7 +310,7 @@ export default function Auth() {
                           data-testid="login-email-input"
                           type="email"
                           placeholder="seu@email.com"
-                          className="pl-10 bg-input border-border focus:border-orange focus:ring-orange"
+                          className="pl-10 bg-input border-border focus:border-orange focus:ring-orange lowercase"
                           {...loginForm.register("email")}
                           ref={(el) => {
                             loginForm.register("email").ref(el);
