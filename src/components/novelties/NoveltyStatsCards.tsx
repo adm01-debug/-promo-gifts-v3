@@ -118,23 +118,11 @@ export function NoveltyStatsCards({
   const { data: stats, isLoading, error } = useNoveltyStats(filteredProducts);
   const isActuallyLoading = isLoading || isRefreshing;
 
-  if (isLoading || (isRefreshing && !stats)) {
+  if (isLoading && !stats) {
     return (
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 relative">
         {Array.from({ length: 5 }).map((_, i) => (
-          <Card key={i} className="border-border/50">
-            <CardContent className="p-3 sm:p-4">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 sm:h-11 sm:w-11 rounded-xl bg-muted/50 flex items-center justify-center">
-                  <div className="w-4 h-4 border-2 border-primary/40 border-t-transparent rounded-full animate-spin" />
-                </div>
-                <div className="space-y-1.5">
-                  <div className="text-xl font-bold tabular-nums text-muted-foreground/40">--</div>
-                  <div className="text-[10px] text-muted-foreground/30">carregando...</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <StatCardSkeleton key={i} />
         ))}
       </div>
     );
