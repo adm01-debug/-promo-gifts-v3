@@ -15,7 +15,7 @@ interface RecentlyViewedPopoverProps {
   maxVisible?: number;
 }
 
-export function RecentlyViewedPopover({ maxVisible = 20 }: RecentlyViewedPopoverProps) {
+export function RecentlyViewedPopover({ maxVisible = 50 }: RecentlyViewedPopoverProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [search, setSearch] = useState("");
