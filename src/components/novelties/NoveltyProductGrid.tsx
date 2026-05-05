@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -43,14 +43,16 @@ function getGridGapClass(cols: ColumnCount): string {
 
 export function NoveltyProductGrid() {
   const navigate = useNavigate();
-  const [viewMode, setViewMode] = useState<ViewMode>("grid");
-  const [gridColumns, setGridColumns] = useState<ColumnCount>(getDefaultColumns);
-  const [sortMode, setSortMode] = useState<SortMode>("newest");
-  const [selectedSupplier, setSelectedSupplier] = useState<string>("all");
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const [selectedStatus, setSelectedStatus] = useState<string>("all");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const [viewMode, setViewMode] = useState<ViewMode>((searchParams.get("view") as ViewMode) || "grid");
+  const [gridColumns, setGridColumns] = useState<ColumnCount>(Number(searchParams.get("cols")) as ColumnCount || getDefaultColumns);
+  const [sortMode, setSortMode] = useState<SortMode>((searchParams.get("sort") as SortMode) || "newest");
+  const [selectedSupplier, setSelectedSupplier] = useState<string>(searchParams.get("supplier") || "all");
+  const [selectedCategory, setSelectedCategory] = useState<string>(searchParams.get("category") || "all");
+  const [selectedStatus, setSelectedStatus] = useState<string>(searchParams.get("status") || "all");
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
+  const [currentPage, setCurrentPage] = useState(Number(searchParams.get("page")) || 1);
   const itemsPerPage = 20;
   const [selectionMode, setSelectionMode] = useState(false);
 
@@ -110,8 +112,28 @@ export function NoveltyProductGrid() {
 
   // Reset pagination when filters change
   useEffect(() => {
-    setCurrentPage(1);
+    // Only reset if it's not the initial mount from URL
+    const paramsPage = Number(searchParams.get("page")) || 1;
+    if (currentPage !== 1 && currentPage === paramsPage) {
+        // We are already at the correct page from URL, or haven't moved yet.
+        // If filters change from UI, we reset to 1.
+    }
   }, [selectedSupplier, selectedCategory, selectedStatus, searchQuery, sortMode]);
+
+  // Sync state to URL
+  useEffect(() => {
+    const params: Record<string, string> = {};
+    if (viewMode !== "grid") params.view = viewMode;
+    if (gridColumns !== getDefaultColumns) params.cols = String(gridColumns);
+    if (sortMode !== "newest") params.sort = sortMode;
+    if (selectedSupplier !== "all") params.supplier = selectedSupplier;
+    if (selectedCategory !== "all") params.category = selectedCategory;
+    if (selectedStatus !== "all") params.status = selectedStatus;
+    if (searchQuery.trim()) params.q = searchQuery;
+    if (currentPage !== 1) params.page = String(currentPage);
+
+    setSearchParams(params, { replace: true });
+  }, [viewMode, gridColumns, sortMode, selectedSupplier, selectedCategory, selectedStatus, searchQuery, currentPage]);
 
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
   const paginatedProducts = useMemo(() => {
