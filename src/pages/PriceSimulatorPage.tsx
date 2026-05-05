@@ -17,7 +17,7 @@ export default function PriceSimulatorPage() {
         {/* Hero Header — #1 */}
         <div className="flex flex-col gap-1">
           <h1 data-testid="page-title-simulador-precos" className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-            Simulador de Preços
+            Radar de Preços
           </h1>
           <p className="text-sm text-muted-foreground max-w-lg">
             Calcule o preço exato de qualquer produto com personalização, compare técnicas e gere orçamentos em segundos.
