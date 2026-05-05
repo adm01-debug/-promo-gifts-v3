@@ -4,7 +4,6 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { ArrowLeft, Building2, Mail, Package, Phone, Truck, User, CreditCard, Clock, MapPin, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -115,19 +114,19 @@ export default function OrderDetailPage() {
 
   if (loading) {
     return (
-      <MainLayout>
+      <>
         <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
           <Skeleton className="h-10 w-48" />
           <Skeleton className="h-64 w-full" />
           <Skeleton className="h-48 w-full" />
         </div>
-      </MainLayout>
+      </>
     );
   }
 
   if (!order) {
     return (
-      <MainLayout>
+      <>
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <Package className="h-16 w-16 text-muted-foreground/40 mb-4" />
           <h2 className="font-display text-xl font-semibold mb-2">Pedido não encontrado</h2>
@@ -136,7 +135,7 @@ export default function OrderDetailPage() {
             <ArrowLeft className="h-4 w-4 mr-2" /> Voltar aos Pedidos
           </Button>
         </div>
-      </MainLayout>
+      </>
     );
   }
 
@@ -144,7 +143,7 @@ export default function OrderDetailPage() {
   const fc = fulfillmentConfig[order.fulfillment_status] || { label: order.fulfillment_status, color: "" };
 
   return (
-    <MainLayout>
+    <>
       <PageSEO title={`Pedido #${order.order_number}`} description={`Detalhes do pedido ${order.order_number}`} path={`/pedidos/${id}`} noIndex />
       <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
         {/* Header */}
@@ -397,6 +396,6 @@ export default function OrderDetailPage() {
           </div>
         </div>
       </div>
-    </MainLayout>
+    </>
   );
 }

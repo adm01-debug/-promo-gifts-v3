@@ -1,10 +1,13 @@
-import { type ReactNode } from "react";
+import { type ReactNode, lazy, Suspense } from "react";
 import { Navigate, useLocation, Outlet } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { EnhancedErrorBoundary } from "@/components/errors/EnhancedErrorBoundary";
 import { EmptyState } from "@/components/common/EmptyState";
 import { checkAccess, AccessPolicy } from "@/lib/access/access-policy";
+import { lazyWithRetry } from "@/lib/lazyWithRetry";
+
+const MainLayout = lazyWithRetry(() => import("./MainLayout").then(m => ({ default: m.MainLayout })));
 
 interface ProtectedRouteProps extends AccessPolicy {
   children?: ReactNode;
@@ -58,20 +61,24 @@ export function ProtectedRoute({
   }
 
   return (
-    <EnhancedErrorBoundary
-      fallback={
-        <div className="p-8">
-          <EmptyState 
-            variant="error" 
-            title="Falha no Módulo" 
-            description="Ocorreu um erro ao carregar esta seção. Tente recarregar a página."
-            action={{ label: "Recarregar", onClick: () => window.location.reload() }}
-          />
-        </div>
-      }
-    >
-      {children ? <>{children}</> : <Outlet />}
-    </EnhancedErrorBoundary>
+    <Suspense fallback={<div className="min-h-screen bg-background" />}>
+      <MainLayout>
+        <EnhancedErrorBoundary
+          fallback={
+            <div className="p-8">
+              <EmptyState 
+                variant="error" 
+                title="Falha no Módulo" 
+                description="Ocorreu um erro ao carregar esta seção. Tente recarregar a página."
+                action={{ label: "Recarregar", onClick: () => window.location.reload() }}
+              />
+            </div>
+          }
+        >
+          {children ? <>{children}</> : <Outlet />}
+        </EnhancedErrorBoundary>
+      </MainLayout>
+    </Suspense>
   );
 }
 

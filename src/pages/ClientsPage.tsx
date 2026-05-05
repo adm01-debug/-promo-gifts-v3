@@ -1,5 +1,4 @@
 import { useState, useCallback, useMemo } from "react";
-import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { Users, Search, AlertTriangle, RefreshCw, X, History } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -63,7 +62,7 @@ export default function ClientsPage() {
   }, [addToHistory, navigate]);
 
   return (
-    <MainLayout>
+    <>
       <PageSEO
         title="Clientes"
         description="Gestão de clientes com visão 360° de pedidos, ticket médio e LTV."
@@ -231,6 +230,6 @@ export default function ClientsPage() {
           </div>
         )}
       </div>
-    </MainLayout>
+    </>
   );
 }
