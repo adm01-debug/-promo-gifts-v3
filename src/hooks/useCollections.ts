@@ -310,6 +310,7 @@ export function useCollections() {
         })
       );
 
+      const addedAt = new Date().toISOString();
       const { error } = await supabase
         .from("collection_items")
         .upsert({
@@ -320,8 +321,9 @@ export function useCollections() {
           thumbnail_url: variant?.thumbnail || null,
           price_at_save: priceAtSave ?? null,
           sort_order: 0,
+          added_at: addedAt,
         }, {
-          onConflict: "collection_id,product_id,color_name"
+          onConflict: "collection_id,product_id"
         });
 
       if (error) {
