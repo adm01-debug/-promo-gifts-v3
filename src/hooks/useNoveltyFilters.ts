@@ -15,12 +15,14 @@ export interface NoveltyFiltersState {
   maxDays: string;
   searchQuery: string;
   currentPage: number;
+  gridColumns: number;
 }
 
 export function useNoveltyFilters(allProducts: NoveltyWithDetails[]) {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [viewMode, setViewMode] = useState<ViewMode>((searchParams.get("view") as ViewMode) || "grid");
+  const [gridColumns, setGridColumns] = useState<number>(Number(searchParams.get("cols")) || getDefaultColumns());
   const [sortMode, setSortMode] = useState<SortMode>((searchParams.get("sort") as SortMode) || "newest");
   const [selectedSupplier, setSelectedSupplier] = useState<string>(searchParams.get("supplier") || "all");
   const [selectedCategory, setSelectedCategory] = useState<string>(searchParams.get("category") || "all");
