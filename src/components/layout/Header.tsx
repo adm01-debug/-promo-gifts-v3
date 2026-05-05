@@ -1,5 +1,5 @@
 import { useEffect, type CSSProperties } from "react";
-import { User, Menu, Sun, Moon, Heart, GitCompare, Search, LogOut, Settings, HelpCircle, Shield, MoreHorizontal, Palette, RotateCcw, SlidersHorizontal } from "lucide-react";
+import { User, Menu, Sun, Moon, Heart, GitCompare, Search, LogOut, Settings, HelpCircle, Shield, MoreHorizontal, Palette, RotateCcw, SlidersHorizontal, Loader2 } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -35,9 +35,10 @@ interface HeaderProps {
   onMenuToggle: () => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
+  isFiltering?: boolean;
 }
 
-export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProps) {
+export function Header({ onMenuToggle, searchQuery, onSearchChange, isFiltering = false }: HeaderProps) {
   const { theme, actualTheme, setTheme, toggleTheme, isFallback } = useTheme();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -234,10 +235,17 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
                     variant="ghost"
                     size="icon"
                     aria-label="Super Filtro"
-                    className="relative h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-all duration-200"
+                    className={cn(
+                      "relative h-8 w-8 rounded-full text-muted-foreground hover:text-foreground transition-all duration-200",
+                      isFiltering ? "bg-primary/20 text-primary animate-pulse" : "hover:bg-primary/10"
+                    )}
                     onClick={() => navigate("/filtros")}
                   >
-                    <SlidersHorizontal className="h-[17px] w-[17px]" strokeWidth={1.75} />
+                    {isFiltering ? (
+                      <Loader2 className="h-[17px] w-[17px] animate-spin" />
+                    ) : (
+                      <SlidersHorizontal className="h-[17px] w-[17px]" strokeWidth={1.75} />
+                    )}
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
