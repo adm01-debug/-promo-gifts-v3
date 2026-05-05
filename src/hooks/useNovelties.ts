@@ -181,12 +181,15 @@ export function useNoveltiesWithDetails(options: UseNoveltiesOptions = {}) {
   const { limit = 100, onlyHighlighted = false } = options;
 
   return useQuery<NoveltyWithDetails[]>({
-    queryKey: ['novelties-details', limit, onlyHighlighted, options.status],
+    queryKey: ['novelties-details', limit, onlyHighlighted, options.status, options.maxDays],
     queryFn: async () => {
       if (USE_MOCKS) {
         let mocked = [...MOCK_NOVELTIES];
         if (options.status) {
           mocked = mocked.filter(n => n.status === options.status);
+        }
+        if (options.maxDays) {
+          mocked = mocked.filter(n => n.days_remaining <= options.maxDays!);
         }
         if (onlyHighlighted) {
           mocked = mocked.filter(n => n.is_highlighted);
