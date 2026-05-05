@@ -88,12 +88,13 @@ export const PersistentBreadcrumbs = forwardRef<HTMLElement, PersistentBreadcrum
     const pathParts = location.pathname.split("/").filter(Boolean);
     
     if (location.pathname === "/" && showHome) {
-      return [{ label: "Catálogo de Produtos", icon: Home }];
+      return [{ label: "Catálogo de Produtos", icon: Home, isActive: true }];
     }
     
     if (showHome && location.pathname !== "/") {
-      items.push({ label: "Início", href: "/", icon: Home });
+      items.push({ label: "Início", href: "/", icon: Home, isActive: false });
     }
+
     
     let currentPath = "";
     pathParts.forEach((part, index) => {
