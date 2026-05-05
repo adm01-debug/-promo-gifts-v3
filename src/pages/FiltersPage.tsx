@@ -32,6 +32,8 @@ import { useOracleVoiceBridge } from "@/stores/oracleVoiceBridge";
 import { toast } from "sonner";
 import { useFiltersPageState } from "./filters/useFiltersPageState";
 import { useFiltersSelectionMode } from "./filters/useFiltersSelectionMode";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 

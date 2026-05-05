@@ -169,6 +169,10 @@ function RoutePrefetcher() {
        import("./pages/ProductDetail");
        import("./pages/QuoteBuilderPage");
        import("./pages/FavoritesPage");
+       import("./pages/ComparePage");
+    } else if (pathname.startsWith("/orcamentos")) {
+       import("./pages/QuoteViewPage");
+       import("./pages/QuoteBuilderPage");
     }
   }, [pathname]);
   
