@@ -387,7 +387,7 @@ export function BulkVariantWizard({ open, onOpenChange, products, mode, onComple
           <ProgressBar current={currentIndex} total={products.length} />
 
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Escolha a cor/variação de cada produto. Clique em "Sem cor específica" para pular.
+            Selecione uma ou mais cores/variações para cada produto e clique em "Confirmar".
           </p>
         </div>
 
