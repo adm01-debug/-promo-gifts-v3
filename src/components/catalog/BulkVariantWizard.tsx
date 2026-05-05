@@ -317,18 +317,26 @@ export function BulkVariantWizard({ open, onOpenChange, products, mode, onComple
     }
   }, [open, initialSelections, initialIndex, products.length]);
 
-  const handleSelect = useCallback(
-    (variant: ExternalVariantStock | null) => {
+  const handleSelectMulti = useCallback(
+    (selectedVariants: (ExternalVariantStock | null)[]) => {
       const product = products[currentIndex];
-      // Substitui seleção do índice atual (ou adiciona) — suporta re-edição via "Voltar"
-      const newSelections = [...selections];
-      newSelections[currentIndex] = { product, variant };
+      
+      // Criamos seleções individuais para cada variante escolhida
+      // Isso mantém a compatibilidade com o BulkAddToCartModal que espera 1 item por linha
+      const newItems: BulkVariantSelection[] = selectedVariants.map(v => ({
+        product,
+        variant: v
+      }));
+
+      // Removemos seleções anteriores deste produto (para evitar duplicatas em re-edição)
+      const otherProductSelections = selections.filter(s => s.product.id !== product.id);
+      const updatedSelections = [...otherProductSelections, ...newItems];
 
       if (currentIndex + 1 >= products.length) {
-        onComplete(newSelections);
+        onComplete(updatedSelections);
         onOpenChange(false);
       } else {
-        setSelections(newSelections);
+        setSelections(updatedSelections);
         setCurrentIndex((i) => i + 1);
       }
     },
@@ -336,8 +344,8 @@ export function BulkVariantWizard({ open, onOpenChange, products, mode, onComple
   );
 
   const handleSkip = useCallback(() => {
-    handleSelect(null);
-  }, [handleSelect]);
+    handleSelectMulti([null]);
+  }, [handleSelectMulti]);
 
   const handleBack = useCallback(() => {
     setCurrentIndex((i) => Math.max(0, i - 1));
