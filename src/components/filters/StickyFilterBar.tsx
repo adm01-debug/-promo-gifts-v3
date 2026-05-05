@@ -1,3 +1,4 @@
+import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SlidersHorizontal, ArrowUpDown, X, ChevronUp, LayoutGrid, List } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { SORT_OPTIONS } from "@/constants/filters";
 
 interface StickyFilterBarProps {

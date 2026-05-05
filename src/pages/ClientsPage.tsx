@@ -11,6 +11,12 @@ import { ClientCard } from "@/components/clients/ClientCard";
 import { getCompanyDisplayName } from "@/types/crm";
 import { useSearchHistory } from "@/hooks/useSearchHistory";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 export default function ClientsPage() {
