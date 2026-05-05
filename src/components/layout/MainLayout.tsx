@@ -126,11 +126,9 @@ export function MainLayout({ children }: MainLayoutProps) {
             role="main"
             aria-label="Conteúdo principal"
           >
-            <Suspense fallback={<div>{children}</div>}>
-              <PageTransition variant="fade-slide" duration={0.2}>
-                {children}
-              </PageTransition>
-            </Suspense>
+            <PageTransition variant="fade-slide" duration={0.2}>
+              {children}
+            </PageTransition>
           </main>
         </div>
       </div>
