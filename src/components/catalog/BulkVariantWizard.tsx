@@ -147,10 +147,17 @@ function ProductVariantStep({
 
       {/* Skip / add without color */}
       <button
-        onClick={onSkip}
-        className="w-full flex items-center gap-3 p-3 rounded-xl border border-dashed border-border/60 hover:border-primary/40 hover:bg-primary/5 transition-all text-left text-sm text-muted-foreground group"
+        onClick={() => toggleVariant(null)}
+        className={cn(
+          "w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left text-sm group",
+          selectedVariants.some(v => v === null)
+            ? "border-primary bg-primary/5 text-primary"
+            : "border-dashed border-border/60 text-muted-foreground hover:border-primary/40 hover:bg-primary/5"
+        )}
       >
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-destructive/70 via-success/70 to-info/70 border border-border/50 shrink-0 group-hover:scale-110 transition-transform" />
+        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-destructive/70 via-success/70 to-info/70 border border-border/50 shrink-0 group-hover:scale-110 transition-transform flex items-center justify-center">
+          {selectedVariants.some(v => v === null) && <Check className="h-4 w-4 text-white drop-shadow-sm" />}
+        </div>
         <span className="flex-1">Sem cor específica</span>
         <SkipForward className="h-3.5 w-3.5 opacity-50 group-hover:opacity-100 transition-opacity" />
       </button>
@@ -160,20 +167,25 @@ function ProductVariantStep({
         {sortedVariants.map((variant) => {
           const stock = variant.stock_quantity ?? 0;
           const isOutOfStock = stock === 0;
-          const isLowStock = stock > 0 && stock < 100;
+          const isSelected = selectedVariants.some(v => v?.id === variant.id);
 
           return (
             <button
               key={variant.id}
-              onClick={() => onSelect(variant)}
+              onClick={() => toggleVariant(variant)}
               className={cn(
                 'relative flex items-center gap-2.5 p-2.5 rounded-xl border transition-all text-left group',
-                'hover:border-primary/50 hover:bg-accent/60 hover:shadow-sm',
-                isOutOfStock
+                isSelected
+                  ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
+                  : 'hover:border-primary/50 hover:bg-accent/60',
+                isOutOfStock && !isSelected
                   ? 'opacity-50 border-border/40 bg-muted/20'
-                  : 'border-border/60 bg-card',
+                  : isSelected ? 'border-primary' : 'border-border/60 bg-card',
               )}
             >
+              <div className="absolute top-2 right-2">
+                {isSelected && <Check className="h-3 w-3 text-primary" />}
+              </div>
               {variant.selected_thumbnail ? (
                 <img
                   src={`${variant.selected_thumbnail}/thumbnail`}
