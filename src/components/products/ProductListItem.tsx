@@ -368,13 +368,14 @@ export const ProductListItem = memo(function ProductListItem({
             {/* Inline color dots */}
             {product.colors.length > 0 && (
               <div className="hidden md:flex items-center gap-1 ml-1">
-                {product.colors.slice(0, 5).map((color, idx) => {
+                {product.colors.slice(0, 5).map((color) => {
                   const isHighlighted = highlightColors.includes(color.group) ||
                     (activeColorFilter?.groups?.includes(color.groupSlug || '') ?? false) ||
                     (activeColorFilter?.variations?.includes(color.variationSlug || '') ?? false);
+                  const colorKey = `${color.groupSlug}-${color.variationSlug}-${color.hex}`;
                   return (
                     <div
-                      key={idx}
+                      key={colorKey}
                       className={cn(
                         "w-3 h-3 rounded-full border",
                         isHighlighted
