@@ -167,6 +167,7 @@ export const SidebarNavGroup = forwardRef<HTMLDivElement, SidebarNavGroupProps>(
       <NavLink
         to={item.href}
         data-tour={item.tourId}
+        aria-label={`${item.label}${item.shortcut ? ` (atalho ${item.shortcut.replace('Alt+', 'Alt mais ')})` : ''}`}
         className={cn(
           "flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-150 group relative focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-orange/20 active:scale-[0.995]",
           "hover:bg-sidebar-accent/50",
@@ -190,7 +191,7 @@ export const SidebarNavGroup = forwardRef<HTMLDivElement, SidebarNavGroupProps>(
           </span>
         )}
         {!isCollapsed && item.shortcut && (
-          <kbd className="ml-auto text-[9px] text-muted-foreground/40 font-mono bg-muted/30 px-1 py-0.5 rounded hidden lg:inline-block">
+          <kbd className="ml-auto text-[9px] text-muted-foreground/40 font-mono bg-muted/30 px-1 py-0.5 rounded hidden lg:inline-block" aria-hidden="true">
             {item.shortcut}
           </kbd>
         )}
@@ -213,7 +214,7 @@ export const SidebarNavGroup = forwardRef<HTMLDivElement, SidebarNavGroupProps>(
               <div className="flex items-center gap-2">
                 <span>{item.label}</span>
                 {item.shortcut && (
-                  <kbd className="text-[9px] bg-primary-foreground/20 text-primary-foreground px-1 py-0.5 rounded font-mono">
+                  <kbd className="text-[9px] bg-primary-foreground/20 text-primary-foreground px-1 py-0.5 rounded font-mono" aria-hidden="true">
                     {item.shortcut}
                   </kbd>
                 )}

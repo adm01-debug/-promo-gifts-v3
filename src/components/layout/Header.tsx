@@ -128,6 +128,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange, isFiltering 
 
   return (
     <header
+      role="banner"
       data-testid="app-header"
       style={{
         "--header-h": `${headerHeightPx}px`,
@@ -158,7 +159,11 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange, isFiltering 
                   </div>
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="bottom" className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Navegação lateral <kbd className="ml-1.5 px-1 py-0.5 rounded bg-primary-foreground/20 text-primary-foreground text-[10px] font-mono">Alt+B</kbd></TooltipContent>
+              <TooltipContent side="bottom" className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
+                <span aria-label="Navegação lateral (atalho Alt mais B)">
+                  Navegação lateral <kbd className="ml-1.5 px-1 py-0.5 rounded bg-primary-foreground/20 text-primary-foreground text-[10px] font-mono" aria-hidden="true">Alt+B</kbd>
+                </span>
+              </TooltipContent>
             </Tooltip>
           </TooltipProvider>
 
@@ -209,7 +214,11 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange, isFiltering 
                   <Search className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="bottom" className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Busca rápida <kbd className="ml-1 px-1 py-0.5 rounded bg-primary-foreground/20 text-primary-foreground text-[10px] font-mono">Ctrl+K</kbd></TooltipContent>
+              <TooltipContent side="bottom" className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
+                <span aria-label="Busca rápida (atalho Control mais K)">
+                  Busca rápida <kbd className="ml-1 px-1 py-0.5 rounded bg-primary-foreground/20 text-primary-foreground text-[10px] font-mono" aria-hidden="true">Ctrl+K</kbd>
+                </span>
+              </TooltipContent>
             </Tooltip>
           </TooltipProvider>
 
@@ -251,7 +260,9 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange, isFiltering 
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
-                  Super Filtro <kbd className="ml-1.5 px-1 py-0.5 rounded bg-primary-foreground/20 text-primary-foreground text-[10px] font-mono">Alt+F</kbd>
+                  <span aria-label="Super Filtro (atalho Alt mais F)">
+                    Super Filtro <kbd className="ml-1.5 px-1 py-0.5 rounded bg-primary-foreground/20 text-primary-foreground text-[10px] font-mono" aria-hidden="true">Alt+F</kbd>
+                  </span>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -276,7 +287,9 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange, isFiltering 
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
-                  Favoritos <kbd className="ml-1.5 px-1 py-0.5 rounded bg-primary-foreground/20 text-primary-foreground text-[10px] font-mono">Alt+V</kbd>
+                  <span aria-label="Favoritos (atalho Alt mais V)">
+                    Favoritos <kbd className="ml-1.5 px-1 py-0.5 rounded bg-primary-foreground/20 text-primary-foreground text-[10px] font-mono" aria-hidden="true">Alt+V</kbd>
+                  </span>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -287,7 +300,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange, isFiltering 
                 <TooltipTrigger asChild>
                   <Button
                     variant="ghost"
-                    size="icon" aria-label="GitCompare"
+                    size="icon" aria-label="Comparar produtos"
                     className="relative h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-all duration-200"
                     onClick={() => navigate("/comparar")}
                     onMouseEnter={() => prefetchRoute("/comparar")}
@@ -301,7 +314,9 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange, isFiltering 
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
-                  Comparar <kbd className="ml-1.5 px-1 py-0.5 rounded bg-primary-foreground/20 text-primary-foreground text-[10px] font-mono">Alt+C</kbd>
+                  <span aria-label="Comparar produtos (atalho Alt mais C)">
+                    Comparar <kbd className="ml-1.5 px-1 py-0.5 rounded bg-primary-foreground/20 text-primary-foreground text-[10px] font-mono" aria-hidden="true">Alt+C</kbd>
+                  </span>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -320,7 +335,9 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange, isFiltering 
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
-                  {actualTheme === "dark" ? "Modo Claro" : "Modo Escuro"} <kbd className="ml-1.5 px-1 py-0.5 rounded bg-primary-foreground/20 text-primary-foreground text-[10px] font-mono">Alt+T</kbd>
+                  <span aria-label={`${actualTheme === "dark" ? "Modo Claro" : "Modo Escuro"} (atalho Alt mais T)`}>
+                    {actualTheme === "dark" ? "Modo Claro" : "Modo Escuro"} <kbd className="ml-1.5 px-1 py-0.5 rounded bg-primary-foreground/20 text-primary-foreground text-[10px] font-mono" aria-hidden="true">Alt+T</kbd>
+                  </span>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -373,26 +390,27 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange, isFiltering 
                     <Button
                       variant="ghost"
                       className="flex items-center gap-2 h-9 px-1.5 sm:px-2 hover:bg-primary/10 rounded-xl"
-                      aria-label="Menu do usuário"
+                      aria-label={`Menu do usuário: ${displayName}`}
                     >
                       <div className="relative">
-                        <div className="w-8 h-8 rounded-full bg-gradient-primary flex items-center justify-center ring-2 ring-background shadow-md">
+                        <div className="w-8 h-8 rounded-full bg-gradient-primary flex items-center justify-center ring-2 ring-background shadow-md overflow-hidden">
                           {profile?.avatar_url ? (
                             <img
                               src={profile.avatar_url}
-                              alt={displayName}
+                              alt=""
                               className="w-8 h-8 rounded-full object-cover" loading="lazy" />
                           ) : (
                             <User className="h-4 w-4 text-primary-foreground" />
                           )}
                         </div>
                         {/* #6 — Status online dot */}
-                        <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-success rounded-full ring-2 ring-background" />
+                        <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-success rounded-full ring-2 ring-background" aria-label="Online" />
                       </div>
                       <div className="hidden lg:flex flex-col items-start">
-                        <span className="text-sm font-medium text-foreground leading-tight truncate max-w-[120px]">
+                        <span className="text-sm font-medium text-foreground leading-tight truncate max-w-[120px]" aria-hidden="true">
                           {truncatedName}
                         </span>
+                        <span className="sr-only">{displayName}</span>
                         {rolesLoaded ? (
                           <RoleBadge role={role} className="h-4 px-1.5 text-[9px] leading-none" />
                         ) : (
