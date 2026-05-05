@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { type Product } from "@/hooks/useProducts";
+import { useToast } from "@/hooks/use-toast";
 
 const LEGACY_STORAGE_KEY = "product-collections";
 
@@ -86,6 +87,7 @@ function dbToCollection(
 }
 
 export function useCollections() {
+  const { toast } = useToast();
   const [collections, setCollections] = useState<Collection[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const { user } = useAuth();
@@ -293,7 +295,8 @@ export function useCollections() {
   }, []);
 
   const addProductToCollection = useCallback(
-    (collectionId: string, productId: string, variant?: CollectionVariantInfo, priceAtSave?: number | null) => {
+    async (collectionId: string, productId: string, variant?: CollectionVariantInfo, priceAtSave?: number | null) => {
+      // Optimistic update
       setCollections((prev) =>
         prev.map((col) => {
           if (col.id !== collectionId) return col;
@@ -307,7 +310,7 @@ export function useCollections() {
         })
       );
 
-      supabase
+      const { error } = await supabase
         .from("collection_items")
         .upsert({
           collection_id: collectionId,
@@ -319,10 +322,19 @@ export function useCollections() {
           sort_order: 0,
         }, {
           onConflict: "collection_id,product_id,color_name"
-        })
-        .then();
+        });
+
+      if (error) {
+        toast({
+          title: "Erro ao adicionar produto",
+          description: "Não foi possível salvar o produto na coleção. Tente novamente.",
+          variant: "destructive",
+        });
+        // Rollback optimistic update
+        await loadCollections();
+      }
     },
-    []
+    [loadCollections, toast]
   );
 
   const restoreFromTrash = useCallback(async (collectionId: string, productId: string) => {
@@ -352,7 +364,8 @@ export function useCollections() {
   }, [loadCollections]);
 
   const removeProductFromCollection = useCallback(
-    (collectionId: string, productId: string) => {
+    async (collectionId: string, productId: string) => {
+      // Optimistic
       setCollections((prev) =>
         prev.map((col) =>
           col.id === collectionId
@@ -366,14 +379,22 @@ export function useCollections() {
         )
       );
 
-      supabase
+      const { error } = await supabase
         .from("collection_items")
         .delete()
         .eq("collection_id", collectionId)
-        .eq("product_id", productId)
-        .then();
+        .eq("product_id", productId);
+
+      if (error) {
+        toast({
+          title: "Erro ao remover produto",
+          description: "Não foi possível remover o produto da coleção.",
+          variant: "destructive",
+        });
+        await loadCollections();
+      }
     },
-    []
+    [loadCollections, toast]
   );
 
   const addProductToMultipleCollections = useCallback(
