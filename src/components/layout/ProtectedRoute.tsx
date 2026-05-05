@@ -1,10 +1,13 @@
-import { type ReactNode } from "react";
+import { type ReactNode, lazy, Suspense } from "react";
 import { Navigate, useLocation, Outlet } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { EnhancedErrorBoundary } from "@/components/errors/EnhancedErrorBoundary";
 import { EmptyState } from "@/components/common/EmptyState";
 import { checkAccess, AccessPolicy } from "@/lib/access/access-policy";
+import { lazyWithRetry } from "@/lib/lazyWithRetry";
+
+const MainLayout = lazyWithRetry(() => import("./MainLayout").then(m => ({ default: m.MainLayout })));
 
 interface ProtectedRouteProps extends AccessPolicy {
   children?: ReactNode;
