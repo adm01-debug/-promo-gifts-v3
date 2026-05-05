@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { NoveltyWithDetails } from "./useNovelties";
 import { getDefaultColumns } from "@/components/products/ColumnSelector";
+import { useDebounce } from "./useDebounce";
 
 export type ViewMode = "grid" | "list" | "table";
 export type SortMode = "name" | "price-asc" | "price-desc" | "newest" | "stock" | "best-seller-supplier" | "best-seller-promo";
@@ -31,6 +32,7 @@ export function useNoveltyFilters(allProducts: NoveltyWithDetails[]) {
   const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
   const [currentPage, setCurrentPage] = useState(Number(searchParams.get("page")) || 1);
   const itemsPerPage = 20;
+  const debouncedSearchQuery = useDebounce(searchQuery, 400);
 
   // Sync state to URL
   useEffect(() => {
@@ -51,8 +53,8 @@ export function useNoveltyFilters(allProducts: NoveltyWithDetails[]) {
   const filteredProducts = useMemo(() => {
     let filtered = [...allProducts];
     
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim();
+    if (debouncedSearchQuery.trim()) {
+      const q = debouncedSearchQuery.toLowerCase().trim();
       filtered = filtered.filter(p => 
         p.product_name.toLowerCase().includes(q) || 
         (p.product_sku && p.product_sku.toLowerCase().includes(q)) || 
@@ -62,6 +64,17 @@ export function useNoveltyFilters(allProducts: NoveltyWithDetails[]) {
 
     if (selectedSupplier !== "all") filtered = filtered.filter(p => p.supplier_id === selectedSupplier);
     if (selectedCategory !== "all") filtered = filtered.filter(p => p.category_id === selectedCategory);
+    
+    // Filtro de Status
+    if (selectedStatus !== "all") {
+      filtered = filtered.filter(p => p.status === selectedStatus);
+    }
+
+    // Filtro de Expiração (Data)
+    if (maxDays !== "all") {
+      const days = parseInt(maxDays);
+      filtered = filtered.filter(p => p.days_remaining <= days);
+    }
 
     filtered.sort((a, b) => {
       switch (sortMode) {
@@ -70,14 +83,18 @@ export function useNoveltyFilters(allProducts: NoveltyWithDetails[]) {
         case "price-desc": return (b.base_price || 0) - (a.base_price || 0);
         case "newest": return new Date(b.detected_at).getTime() - new Date(a.detected_at).getTime();
         case "stock": return (b.stock_quantity || 0) - (a.stock_quantity || 0);
-        case "best-seller-supplier": return (b.stock_quantity || 0) - (a.stock_quantity || 0);
-        case "best-seller-promo": return (a.stock_quantity || 0) - (b.stock_quantity || 0);
+        case "best-seller-supplier": 
+          if (a.is_highlighted !== b.is_highlighted) return a.is_highlighted ? -1 : 1;
+          return (b.stock_quantity || 0) - (a.stock_quantity || 0);
+        case "best-seller-promo": 
+          if (a.days_remaining !== b.days_remaining) return a.days_remaining - b.days_remaining;
+          return (b.stock_quantity || 0) - (a.stock_quantity || 0);
         default: return new Date(b.detected_at).getTime() - new Date(a.detected_at).getTime();
       }
     });
 
     return filtered;
-  }, [allProducts, selectedSupplier, selectedCategory, sortMode, searchQuery]);
+  }, [allProducts, selectedSupplier, selectedCategory, selectedStatus, maxDays, sortMode, debouncedSearchQuery]);
 
   const totalPages = Math.max(1, Math.ceil(filteredProducts.length / itemsPerPage));
 
@@ -89,7 +106,7 @@ export function useNoveltyFilters(allProducts: NoveltyWithDetails[]) {
       return;
     }
     setCurrentPage(1);
-  }, [selectedSupplier, selectedCategory, selectedStatus, searchQuery, sortMode, maxDays]);
+  }, [selectedSupplier, selectedCategory, selectedStatus, debouncedSearchQuery, sortMode, maxDays]);
 
   // Normalizar página se ela for maior que o total
   useEffect(() => {
@@ -148,5 +165,6 @@ export function useNoveltyFilters(allProducts: NoveltyWithDetails[]) {
     totalPages,
     hasActiveFilters,
     itemsPerPage,
+    isSearching: searchQuery !== debouncedSearchQuery,
   };
 }

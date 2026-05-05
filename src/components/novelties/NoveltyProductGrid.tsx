@@ -74,7 +74,8 @@ export const NoveltyProductGrid = memo(function NoveltyProductGrid({
     paginatedProducts, 
     totalPages, 
     hasActiveFilters,
-    itemsPerPage
+    itemsPerPage,
+    isSearching
   } = useNoveltyFilters(products);
 
   const {
@@ -152,13 +153,35 @@ export const NoveltyProductGrid = memo(function NoveltyProductGrid({
     }
     if (filteredProducts.length === 0) {
       return (
-        <div className="text-center py-10">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-muted/80 mb-3"><Package className="h-7 w-7 text-muted-foreground/40" /></div>
-          <p className="text-muted-foreground font-medium text-sm">{hasActiveFilters ? "Nenhuma novidade com esses filtros" : "Nenhuma novidade encontrada"}</p>
-          {hasActiveFilters ? <Button variant="link-primary" className="mt-1 text-xs" onClick={clearFilters}>Limpar filtros</Button> : <p className="text-xs text-muted-foreground/70 mt-1">Produtos novos aparecerão aqui automaticamente</p>}
+        <div className="flex flex-col items-center justify-center py-20 text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="relative mb-6">
+            <div className="absolute -inset-4 bg-muted/20 rounded-full blur-2xl animate-pulse" />
+            <div className="relative inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-muted/50 border border-border/50">
+              <Package className="h-10 w-10 text-muted-foreground/30" />
+            </div>
+          </div>
+          <h3 className="text-lg font-semibold text-foreground mb-2">
+            {hasActiveFilters ? "Nenhuma novidade encontrada" : "Sem novidades no momento"}
+          </h3>
+          <p className="text-sm text-muted-foreground max-w-[300px] mb-8 leading-relaxed">
+            {hasActiveFilters 
+              ? "Tente ajustar seus filtros ou termos de busca para encontrar o que procura." 
+              : "Novos produtos aparecerão aqui assim que forem detectados pelo sistema."}
+          </p>
+          {hasActiveFilters && (
+            <Button 
+              variant="outline" 
+              className="gap-2 px-6 h-10 border-primary/20 hover:border-primary/50 hover:bg-primary/5 transition-all duration-300"
+              onClick={clearFilters}
+            >
+              <X className="h-4 w-4" />
+              Limpar todos os filtros
+            </Button>
+          )}
         </div>
       );
     }
+
     if (viewMode === "table") return <NoveltyTableView products={paginatedProducts} onProductClick={handleProductClick} selectionMode={selectionMode} selectedIds={sel.selectedIds} onToggleSelect={sel.toggleSelect} />;
     const effectiveCols = Math.min(gridColumns, paginatedProducts.length) as ColumnCount;
 
@@ -217,9 +240,31 @@ export const NoveltyProductGrid = memo(function NoveltyProductGrid({
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <Sparkles className="h-4 w-4 text-success shrink-0" />
             <h1 className="text-base sm:text-lg font-semibold whitespace-nowrap" data-testid="page-title-novidades">Novidades</h1>
-            <Badge variant="secondary" className="text-[10px] tabular-nums px-1.5 shrink-0">
-              {isLoading && products.length === 0 ? <span className="flex items-center gap-1"><Loader2 className="h-2.5 w-2.5 animate-spin" />carregando...</span> : <>{filteredProducts.length}{hasActiveFilters && <span className="text-muted-foreground">/{products.length}</span>}</>}
-            </Badge>
+            <div className="flex items-center gap-1.5">
+              <Badge variant="secondary" className="text-[10px] tabular-nums px-1.5 shrink-0 h-5">
+                {isLoading && products.length === 0 ? (
+                  <span className="flex items-center gap-1">
+                    <Loader2 className="h-2.5 w-2.5 animate-spin" />
+                    carregando...
+                  </span>
+                ) : (
+                  <>
+                    {filteredProducts.length}
+                    {hasActiveFilters && <span className="text-muted-foreground ml-0.5">/{products.length}</span>}
+                  </>
+                )}
+              </Badge>
+              {hasActiveFilters && (
+                <button 
+                  onClick={clearFilters}
+                  className="text-[10px] font-medium text-primary hover:text-primary/80 flex items-center gap-0.5 transition-colors"
+                >
+                  <X className="h-3 w-3" />
+                  Limpar
+                </button>
+              )}
+            </div>
+
             <AnimatePresence>
               {isLoading && loadingProgress > 0 && loadingProgress < 100 && (
                 <motion.span initial={{ opacity: 0, width: 0 }} animate={{ opacity: 1, width: 48 }} exit={{ opacity: 0, width: 0 }} className="inline-flex items-center gap-1 ml-1">
