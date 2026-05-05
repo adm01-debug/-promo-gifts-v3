@@ -30,8 +30,9 @@ interface FlagConfig {
 
 const FLAG_REGISTRY: Record<FeatureFlag, FlagConfig> = {
   mfa: {
-    enabled: false,
+    enabled: true,
     description: 'Autenticação multifator (TOTP)',
+    allowedRoles: ['admin', 'manager', 'seller'],
   },
   ai_recommendations: {
     enabled: true,
