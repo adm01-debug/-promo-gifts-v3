@@ -170,10 +170,10 @@ export default function PublicQuoteApprovalPage() {
         )}
 
         {/* Response Section with Electronic Signature */}
-        <Card className="border-2 border-primary/30 bg-primary/5">
+        <Card className="border-2 border-[#3B82F6]/30 bg-[#3B82F6]/[0.03] shadow-lg shadow-blue-500/5">
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <ShieldCheck className="h-5 w-5 text-primary" />
+            <CardTitle className="text-lg flex items-center gap-2 text-foreground">
+              <ShieldCheck className="h-5 w-5 text-[#3B82F6]" />
               Responder e assinar proposta
             </CardTitle>
           </CardHeader>
