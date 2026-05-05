@@ -33,7 +33,7 @@ export const PasskeyLogin = forwardRef<HTMLButtonElement, PasskeyLoginProps>(fun
       ref={ref}
       type="button"
       variant="outline"
-      className="w-full gap-2 border-orange/30 hover:border-orange hover:bg-orange/10"
+      className="w-full h-12 gap-3 font-bold uppercase tracking-widest border-border/60 bg-background hover:bg-muted/50 transition-all shadow-sm text-primary hover:text-primary-glow"
       onClick={handleClick}
       disabled={disabled || isLoading}
     >
