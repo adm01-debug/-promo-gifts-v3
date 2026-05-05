@@ -49,7 +49,7 @@ export function useOrdersList(sellerId?: string, scope: "self" | "team" | "all" 
     enabled: !!sellerId,
     queryFn: async (): Promise<OrderRow[]> => {
       // rls-allow: applySellerScope chamado dinamicamente conforme escopo
-      let q = supabase.from("orders").select("*").order("created_at", { ascending: false });
+      let q = supabase.from("orders").select("*").order("status", { ascending: true }).order("created_at", { ascending: false });
       q = applySellerScope(q, { scope, userId: sellerId });
       
       const { data, error } = await q;
@@ -129,6 +129,15 @@ export function useUpdateOrder(orderId?: string) {
     },
   });
 }
+
+export const ORDER_STATUS_ORDER = {
+  pending: 0,
+  confirmed: 1,
+  in_production: 2,
+  shipped: 3,
+  delivered: 4,
+  cancelled: 5,
+} as const;
 
 export const ORDER_STATUS_FLOW = [
   "pending",
