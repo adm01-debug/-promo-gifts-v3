@@ -29,10 +29,22 @@ vi.mock("@/contexts/AuthContext", () => ({
 
 describe("useCollections Persistence & Resilience", () => {
   it("should handle upsert errors with toast notification", async () => {
-    const mockError = { message: "DB Error" };
-    (supabase.from as any).mockImplementationOnce(() => ({
-      upsert: vi.fn().mockResolvedValue({ error: mockError }),
+    const mockUpsert = vi.fn().mockResolvedValue({ error: { message: "DB Error" } });
+    const mockFrom = vi.fn((table: string) => ({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      order: vi.fn().mockReturnThis(),
+      in: vi.fn().mockReturnThis(),
+      upsert: mockUpsert,
+      delete: vi.fn().mockReturnThis(),
+      update: vi.fn().mockReturnThis(),
+      insert: vi.fn().mockReturnThis(),
+      single: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockReturnThis(),
+      then: vi.fn((cb) => cb({ data: [], error: null })),
     }));
+    
+    (supabase.from as any).mockImplementation(mockFrom);
 
     const { result } = renderHook(() => useCollections());
     
@@ -40,8 +52,6 @@ describe("useCollections Persistence & Resilience", () => {
       await result.current.addProductToCollection("col1", "prod1");
     });
 
-    // Check if error handling was triggered (we can check console.error or assume based on rollback)
-    // In a real scenario, we'd mock useToast but here we verify the function completed
-    expect(result.current.addProductToCollection).toBeDefined();
+    expect(mockUpsert).toHaveBeenCalled();
   });
 });
