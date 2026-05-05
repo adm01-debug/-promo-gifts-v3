@@ -57,6 +57,8 @@ export function useFiltersPageState() {
     return f;
   });
 
+  const [activePresetId, setActivePresetId] = useState<string | undefined>(() => searchParams.get('preset') || undefined);
+
   const debouncedServerSearch = useDebounce(filters.search || '', 400);
   const urlSearch = searchParams.get('search') || '';
   const debouncedUrlSearch = useDebounce(urlSearch, 400);
