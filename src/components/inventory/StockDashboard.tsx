@@ -149,27 +149,32 @@ export function StockDashboard() {
     const pct = loadingProgress ? Math.round((loadingProgress.current / loadingProgress.total) * 100) : 0;
     return (
       <div className="space-y-5" aria-live="polite" aria-busy="true">
-        <div className="flex items-center gap-3 rounded-xl border border-border/40 bg-card px-4 py-3">
-          <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-            <Package className="h-4 w-4 text-primary animate-pulse" />
+        <div className="flex items-center gap-4 rounded-2xl border border-primary/20 bg-primary/[0.03] p-5 shadow-sm shadow-primary/5 animate-in fade-in zoom-in-95 duration-500">
+          <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center flex-shrink-0 shadow-inner">
+            <RefreshCw className="h-6 w-6 text-primary animate-spin" />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between gap-3">
-              <p className="text-sm font-medium truncate">Sincronizando estoque</p>
+              <div className="space-y-0.5">
+                <p className="text-sm font-bold font-display uppercase tracking-tight text-foreground">Sincronizando Estoque Realtime</p>
+                <p className="text-[11px] font-bold uppercase tracking-widest text-primary/60">
+                  {loadingProgress?.step || 'Conectando ao banco de dados externo...'}
+                </p>
+              </div>
               {loadingProgress && (
-                <p className="text-xs font-medium tabular-nums text-primary flex-shrink-0">{pct}%</p>
+                <div className="text-right">
+                  <p className="text-lg font-extrabold tabular-nums text-primary leading-none">{pct}%</p>
+                  <p className="text-[9px] font-bold uppercase tracking-tighter text-muted-foreground/60 mt-0.5">Processando</p>
+                </div>
               )}
             </div>
-            <div className="flex items-center gap-2 mt-1.5">
-              <div className="flex-1 h-1 bg-muted rounded-full overflow-hidden">
+            <div className="mt-3">
+              <div className="h-1.5 bg-primary/10 rounded-full overflow-hidden shadow-inner">
                 <div
-                  className="h-full bg-gradient-to-r from-primary to-primary/60 rounded-full transition-all duration-500 ease-out"
+                  className="h-full bg-gradient-to-r from-primary via-primary-glow to-primary rounded-full transition-all duration-700 ease-out shadow-lg"
                   style={{ width: `${pct || 8}%` }}
                 />
               </div>
-              <p className="text-xs text-muted-foreground truncate max-w-[40%]">
-                {loadingProgress?.step || 'Conectando ao fornecedor...'}
-              </p>
             </div>
           </div>
         </div>
