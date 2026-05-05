@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { useOrdersList } from "@/hooks/useOrders";
+import { useOrdersList, ORDER_STATUS_ORDER } from "@/hooks/useOrders";
 import { OrderCard } from "@/components/orders/OrderCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSalesScope } from "@/lib/auth/visibility-scope";
@@ -27,6 +27,15 @@ export default function OrdersPage() {
       (o.notes ?? "").toLowerCase().includes(q) ||
       (o.client_name ?? "").toLowerCase().includes(q)
     );
+  });
+
+  // O Supabase ordena por string no status, vamos garantir a ordem lógica via JS
+  // se houver muitos dados, mas como já temos o .order no hook, o JS aqui é apenas um seguro
+  const sorted = [...filtered].sort((a, b) => {
+    const orderA = (ORDER_STATUS_ORDER as any)[a.status] ?? 99;
+    const orderB = (ORDER_STATUS_ORDER as any)[b.status] ?? 99;
+    if (orderA !== orderB) return orderA - orderB;
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
   });
 
   return (
@@ -85,7 +94,7 @@ export default function OrdersPage() {
           </Card>
         ) : (
           <div className="grid gap-3">
-            {filtered.map((order) => (
+            {sorted.map((order) => (
               <OrderCard key={order.id} order={order} onClick={() => navigate(`/pedidos/${order.id}`)} />
             ))}
           </div>

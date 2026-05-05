@@ -1,4 +1,4 @@
-import { useState, Suspense, useEffect, useRef } from "react";
+import { useState, Suspense, useEffect, useRef, useMemo } from "react";
 import { useLocation } from "react-router-dom";
 import { useScrollLockFix } from "@/hooks/useScrollLockFix";
 import { useGlobalShortcuts } from "@/hooks/useGlobalShortcuts";
@@ -60,7 +60,7 @@ export function MainLayout({ children }: MainLayoutProps) {
     }
   }, [location.pathname]);
 
-  const layoutContent = (
+  const layoutContent = useMemo(() => (
     <div className="min-h-screen bg-background print:min-h-0" role="document">
       <GlobalOverlay />
       <div className="print:hidden">
@@ -86,8 +86,6 @@ export function MainLayout({ children }: MainLayoutProps) {
                 setSearchQuery(q);
                 if (location.pathname === "/filtros") {
                   setIsDebouncingSearch(true);
-                  // O debounce real acontece dentro da página de filtros, 
-                  // aqui apenas sinalizamos o início da interação para o Header.
                   setTimeout(() => setIsDebouncingSearch(false), 300);
                 }
               }}
@@ -133,7 +131,7 @@ export function MainLayout({ children }: MainLayoutProps) {
         </div>
       </div>
     </div>
-  );
+  ), [sidebarOpen, searchQuery, isDebouncingSearch, location.pathname, isHome, children]);
 
   return (
     <OnboardingProvider>

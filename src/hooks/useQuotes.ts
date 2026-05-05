@@ -179,19 +179,29 @@ export function useQuotes() {
   const updateQuoteStatus = async (quoteId: string, status: Quote["status"]): Promise<boolean> => {
     try {
       const oldStatus = quotes.find(q => q.id === quoteId)?.status || "draft";
+      if (oldStatus === status) return true;
+
       // rls-allow: applySellerScope chamado dinamicamente; mutações por id com RLS
-      const { error: updErr } = await supabase.from("quotes").update({ status }).eq("id", quoteId);
+      const { error: updErr } = await supabase
+        .from("quotes")
+        .update({ status, updated_at: new Date().toISOString() })
+        .eq("id", quoteId);
+
       if (updErr) throw new Error(updErr.message);
+
       await logQuoteHistory(quoteId, "status_changed",
-        `Status alterado de "${STATUS_LABELS[oldStatus]}" para "${STATUS_LABELS[status]}"`,
+        `Status alterado de "${STATUS_LABELS[oldStatus] || oldStatus}" para "${STATUS_LABELS[status] || status}"`,
         { fieldChanged: "status", oldValue: oldStatus, newValue: status }
       );
+      
       toast.success("Status atualizado");
       await fetchQuotes();
       return true;
     } catch (err) {
       console.error("Error updating quote status:", err);
-      toast.error("Erro ao atualizar status");
+      toast.error("Erro ao atualizar status", { 
+        description: err instanceof Error ? err.message : "Erro desconhecido" 
+      });
       return false;
     }
   };
@@ -211,20 +221,30 @@ export function useQuotes() {
     }
   };
   const bulkUpdateStatus = async (quoteIds: string[], status: Quote["status"]): Promise<boolean> => {
+    if (quoteIds.length === 0) return true;
     try {
-      const { error: updErr } = await supabase.from("quotes").update({ status }).in("id", quoteIds);
+      const { error: updErr } = await supabase
+        .from("quotes")
+        .update({ status, updated_at: new Date().toISOString() })
+        .in("id", quoteIds);
+        
       if (updErr) throw updErr;
       
-      for (const quoteId of quoteIds) {
-        await logQuoteHistory(quoteId, "status_changed", `Status alterado em massa para ${STATUS_LABELS[status]}`);
-      }
+      // Log history for each quote (in parallel to save time, but carefully)
+      await Promise.allSettled(
+        quoteIds.map(quoteId => 
+          logQuoteHistory(quoteId, "status_changed", `Status alterado em massa para ${STATUS_LABELS[status] || status}`)
+        )
+      );
 
       toast.success(`${quoteIds.length} orçamento(s) atualizado(s)`);
       await fetchQuotes();
       return true;
     } catch (err) {
       console.error("Error in bulk update status:", err);
-      toast.error("Erro ao atualizar orçamentos em massa");
+      toast.error("Erro ao atualizar orçamentos em massa", {
+        description: err instanceof Error ? err.message : "Erro desconhecido"
+      });
       return false;
     }
   };
