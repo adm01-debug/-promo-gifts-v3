@@ -139,6 +139,7 @@ export default function QuotesListPage() {
     }
   };
 
+  if (isLoading) {
     return (
       <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-4 pb-24 md:pb-6 animate-fade-in">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -152,13 +153,6 @@ export default function QuotesListPage() {
               <p className="text-sm text-muted-foreground">Sincronizando orçamentos...</p>
             </div>
           </div>
-        </div>
-        
-        {/* Skeleton para KPIs */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-          {[1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} className="h-24 w-full rounded-xl" />
-          ))}
         </div>
 
         <div className="grid gap-3 mt-6">
