@@ -34,7 +34,7 @@ const typeConfig = {
  * (~50ms) and focus-ring bouncing during keyboard navigation. Override per
  * mount via `<NotificationBell prefetchDebounceMs={...} />`.
  */
-export const DEFAULT_PREFETCH_DEBOUNCE_MS = 200;
+export const DEFAULT_PREFETCH_DEBOUNCE_MS = 400; // Aumentado de 200ms para 400ms para absorver micro-bursts de hover
 
 export interface NotificationBellProps {
   /**
