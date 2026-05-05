@@ -131,8 +131,12 @@ export function NoveltyProductGrid({
       }
     });
     log.debug("filters_applied", { count: filtered.length, q: searchQuery, supplier: selectedSupplier, category: selectedCategory, status: selectedStatus, expires: maxDays });
-    return filtered;
   }, [products, selectedSupplier, selectedCategory, sortMode, searchQuery, selectedStatus, maxDays]);
+
+  // Notifica o pai sobre mudanças nos filtros/produtos
+  useEffect(() => {
+    onFilteredChange?.(filteredProducts, isGlobalLoading);
+  }, [filteredProducts, isGlobalLoading, onFilteredChange]);
 
   // Reset pagination when filters change
   const isFirstMount = useRef(true);
