@@ -236,7 +236,7 @@ export const SidebarReorganized = React.forwardRef<HTMLElement, SidebarProps>(
     }));
 
     // Manual overrides or extra shortcuts
-    shortcutMap['m'] = 'toggle-sidebar'; // Alt+M toggles menu
+    shortcutMap['b'] = 'toggle-sidebar'; // Alt+B toggles menu
     shortcutMap['u'] = 'user-menu';      // Alt+U opens user menu
 
     const handler = (e: KeyboardEvent) => {
