@@ -97,7 +97,8 @@ export function QuickAddToQuote({
               "transition-all duration-200 hover:scale-105 hover:border-primary",
               className,
             )}
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => { e.stopPropagation(); e.preventDefault(); }}
+
           >
             <ShoppingCart className="h-3.5 w-3.5 mr-1.5" />
             <span className="text-xs">Orçar</span>
