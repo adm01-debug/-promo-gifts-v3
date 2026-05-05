@@ -282,6 +282,7 @@ export function useNoveltyStats() {
   return useQuery<NoveltyStatsDisplay>({
     queryKey: ['novelty-stats'],
     queryFn: async () => {
+      log.info('fetch_stats_start');
       if (USE_MOCKS) return MOCK_STATS;
       
       // Real-DB path desabilitado enquanto USE_MOCKS = true.
