@@ -314,12 +314,13 @@ export const SidebarReorganized = React.forwardRef<HTMLElement, SidebarProps>(
 
   return (
     <>
-      {/* Mobile overlay */}
+      {/* Mobile overlay — backdrop that closes menu on click */}
       {isOpen && (
-        <div
-          className="fixed inset-0 bg-foreground/20 backdrop-blur-sm z-40 lg:hidden"
+        <button
+          className="fixed inset-0 bg-foreground/20 backdrop-blur-sm z-40 lg:hidden w-full h-full border-none cursor-default"
           onClick={onToggle}
-          aria-hidden="true"
+          aria-label="Fechar menu lateral"
+          type="button"
         />
       )}
 

@@ -128,6 +128,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange, isFiltering 
 
   return (
     <header
+      role="banner"
       data-testid="app-header"
       style={{
         "--header-h": `${headerHeightPx}px`,
