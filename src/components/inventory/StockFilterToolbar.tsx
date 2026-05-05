@@ -113,15 +113,15 @@ export function StockFilterToolbar({
   return (
     <div className="space-y-3">
       {/* Row 1: Search + Quick Filters */}
-      <div className="flex flex-col sm:flex-row gap-2">
+      <div className="flex flex-col lg:flex-row gap-3">
         {/* 1. Advanced Filters Popover */}
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="outline" size="default" className={cn("gap-2 relative", activeFiltersCount > 0 && "border-primary/50 bg-primary/5")}>
+            <Button variant="outline" size="default" className={cn("gap-2.5 relative h-11 px-5 border-border/60 font-bold uppercase text-[11px] tracking-widest transition-all hover:border-primary/50 hover:bg-primary/5", activeFiltersCount > 0 && "border-primary bg-primary/10 text-primary shadow-sm")}>
               <SlidersHorizontal className="h-4 w-4" />
-              <span className="hidden sm:inline">Filtros</span>
+              <span>Filtros Avançados</span>
               {activeFiltersCount > 0 && (
-                <Badge className="bg-primary text-primary-foreground h-5 min-w-5 text-[10px] px-1.5 animate-in zoom-in-50">
+                <Badge className="bg-primary text-primary-foreground h-5 min-w-5 text-[10px] px-1.5 animate-in zoom-in-50 border-none shadow-md">
                   {activeFiltersCount}
                 </Badge>
               )}
