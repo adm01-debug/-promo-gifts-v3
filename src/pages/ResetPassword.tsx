@@ -239,7 +239,7 @@ export default function ResetPassword() {
                     id="confirmPassword"
                     type={showPassword ? 'text' : 'password'}
                     placeholder="••••••••"
-                    className="pl-10 bg-input border-border focus:border-orange focus:ring-orange"
+                    className="pl-10 bg-[#EDF2F7] border-transparent focus:bg-white text-gray-900 placeholder:text-gray-500 h-12 rounded-xl transition-all duration-300"
                     {...form.register('confirmPassword')}
                   />
                 </div>
