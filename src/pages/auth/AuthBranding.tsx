@@ -157,8 +157,8 @@ function FeatureCard({ item, index }: { item: typeof FEATURE_ITEMS[0]; index: nu
           <p className="text-xl font-bold text-primary truncate">{item.label}</p>
           <p className="text-sm font-medium text-white/50 truncate">{item.desc}</p>
         </div>
-        <div className="w-11 h-11 rounded-xl bg-orange/15 flex items-center justify-center group-hover:bg-orange/25 transition-colors shrink-0">
-          <IconComponent className="h-5 w-5 text-orange" />
+        <div className="w-11 h-11 rounded-xl bg-primary/15 flex items-center justify-center group-hover:bg-primary/25 transition-colors shrink-0">
+          <IconComponent className="h-5 w-5 text-primary" />
         </div>
       </div>
     </div>
