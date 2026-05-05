@@ -101,8 +101,14 @@ export function GlobalSearchPalette() {
       <CommandDialog open={s.open} onOpenChange={s.setOpen}>
         <div className="relative">
           <CommandInput placeholder="Buscar produtos, orçamentos, clientes..." value={s.query} onValueChange={s.setQuery} />
+          {s.isSearching && (
+            <div className="absolute right-4 top-1/2 -translate-y-1/2">
+              <Loader2 className="h-4 w-4 animate-spin text-primary/60" />
+            </div>
+          )}
           <div className="absolute bottom-0 left-6 right-6 h-[2px] rounded-full bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
         </div>
+
 
         <CommandList className="max-h-[520px] scrollbar-thin px-1 [background-color:hsl(var(--command-surface))]">
           {/* AI Processing Banner */}

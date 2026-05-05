@@ -18,7 +18,9 @@ interface BreadcrumbItem {
   label: string;
   href?: string;
   icon?: typeof Home;
+  isActive?: boolean;
 }
+
 
 const routeLabels: Record<string, string> = {
   "/": "Início",
@@ -86,12 +88,13 @@ export const PersistentBreadcrumbs = forwardRef<HTMLElement, PersistentBreadcrum
     const pathParts = location.pathname.split("/").filter(Boolean);
     
     if (location.pathname === "/" && showHome) {
-      return [{ label: "Catálogo de Produtos", icon: Home }];
+      return [{ label: "Catálogo de Produtos", icon: Home, isActive: true }];
     }
     
     if (showHome && location.pathname !== "/") {
-      items.push({ label: "Início", href: "/", icon: Home });
+      items.push({ label: "Início", href: "/", icon: Home, isActive: false });
     }
+
     
     let currentPath = "";
     pathParts.forEach((part, index) => {
@@ -119,9 +122,14 @@ export const PersistentBreadcrumbs = forwardRef<HTMLElement, PersistentBreadcrum
 
         const navigable = canNavigateTo(currentPath, { isDev, isAdmin });
         const isLastVisible = index >= pathParts.length - 1 || nextIsSkippedId;
-        items.push(isLastVisible || !navigable ? { label } : { label, href: currentPath });
+        items.push({ 
+          label, 
+          href: navigable ? currentPath : undefined,
+          isActive: isLastVisible
+        });
       }
     });
+
     
     return items;
   };
@@ -187,18 +195,31 @@ export const PersistentBreadcrumbs = forwardRef<HTMLElement, PersistentBreadcrum
                 <BreadcrumbItem>
                   {item.href ? (
                     <BreadcrumbLink asChild>
-                      <Link to={item.href} className="flex items-center gap-1.5">
+                      <Link 
+                        to={item.href} 
+                        className={cn(
+                          "flex items-center gap-1.5 transition-colors hover:text-primary",
+                          item.isActive ? "text-primary font-bold" : "text-muted-foreground"
+                        )}
+                        aria-current={item.isActive ? "page" : undefined}
+                      >
                         {Icon && <Icon className="h-3.5 w-3.5" />}
                         <span>{item.label}</span>
                       </Link>
                     </BreadcrumbLink>
                   ) : (
-                    <BreadcrumbPage className="flex items-center gap-1.5">
+                    <BreadcrumbPage 
+                      className={cn(
+                        "flex items-center gap-1.5",
+                        item.isActive ? "text-primary font-bold" : "text-muted-foreground"
+                      )}
+                    >
                       {Icon && <Icon className="h-3.5 w-3.5" />}
                       <span>{item.label}</span>
                     </BreadcrumbPage>
                   )}
                 </BreadcrumbItem>
+
                 {!isLast && <BreadcrumbSeparator />}
               </Fragment>
             );

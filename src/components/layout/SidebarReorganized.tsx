@@ -80,7 +80,7 @@ const navGroups: NavGroup[] = [
       { icon: RefreshCw, label: "Reposição", href: "/reposicao" },
       { icon: FolderOpen, label: "Coleções", href: "/colecoes" },
       { icon: Layers, label: "Estoque", href: "/estoque", shortcut: "Alt+E" },
-      { icon: Heart, label: "Favoritos", href: "/favoritos", shortcut: "Alt+A" },
+      { icon: Heart, label: "Favoritos", href: "/favoritos", shortcut: "Alt+V" },
       { icon: GitCompare, label: "Comparar", href: "/comparar", shortcut: "Alt+C" },
     ],
   },
@@ -236,7 +236,7 @@ export const SidebarReorganized = React.forwardRef<HTMLElement, SidebarProps>(
     }));
 
     // Manual overrides or extra shortcuts
-    shortcutMap['m'] = 'toggle-sidebar'; // Alt+M toggles menu
+    shortcutMap['b'] = 'toggle-sidebar'; // Alt+B toggles menu
     shortcutMap['u'] = 'user-menu';      // Alt+U opens user menu
 
     const handler = (e: KeyboardEvent) => {

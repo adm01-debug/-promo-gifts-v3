@@ -156,7 +156,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
                   </div>
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="bottom" className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Navegação lateral <kbd className="ml-1.5 px-1 py-0.5 rounded bg-primary-foreground/20 text-primary-foreground text-[10px] font-mono">Alt+M</kbd></TooltipContent>
+              <TooltipContent side="bottom" className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Navegação lateral <kbd className="ml-1.5 px-1 py-0.5 rounded bg-primary-foreground/20 text-primary-foreground text-[10px] font-mono">Alt+B</kbd></TooltipContent>
             </Tooltip>
           </TooltipProvider>
 
@@ -224,9 +224,29 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
           {/* Divider entre clusters (#2) */}
           <div className="h-5 w-px bg-border/60 mx-1.5 hidden md:block" />
 
-          {/* ── Cluster 2: Utilitário (favoritos, comparar, tema) — desktop only ── */}
+          {/* ── Cluster 2: Utilitário (filtros, favoritos, comparar, tema) — desktop only ── */}
           <div className="hidden md:flex items-center gap-0.5">
-            {/* #5 — Tooltip com atalho */}
+            {/* #12 — Super Filtro Button */}
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label="Super Filtro"
+                    className="relative h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-all duration-200"
+                    onClick={() => navigate("/filtros")}
+                  >
+                    <SlidersHorizontal className="h-[17px] w-[17px]" strokeWidth={1.75} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
+                  Super Filtro <kbd className="ml-1.5 px-1 py-0.5 rounded bg-primary-foreground/20 text-primary-foreground text-[10px] font-mono">Alt+F</kbd>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+            {/* #5 — Tooltip com atalho atualizado para Alt+V */}
             <TooltipProvider >
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -248,10 +268,11 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
-                  Favoritos <kbd className="ml-1.5 px-1 py-0.5 rounded bg-primary-foreground/20 text-primary-foreground text-[10px] font-mono">Alt+F</kbd>
+                  Favoritos <kbd className="ml-1.5 px-1 py-0.5 rounded bg-primary-foreground/20 text-primary-foreground text-[10px] font-mono">Alt+V</kbd>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
+
 
             <TooltipProvider >
               <Tooltip>

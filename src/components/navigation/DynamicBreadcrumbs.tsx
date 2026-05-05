@@ -1,6 +1,6 @@
 import { useMemo, Fragment } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
-import { Home } from "lucide-react";
+import { Home, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
@@ -14,14 +14,15 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 
-interface BreadcrumbItem {
+interface BreadcrumbItemData {
   label: string;
   href?: string;
   icon?: React.ReactNode;
+  isActive?: boolean;
 }
 
 interface DynamicBreadcrumbsProps {
-  customItems?: BreadcrumbItem[];
+  customItems?: BreadcrumbItemData[];
   className?: string;
 }
 
@@ -51,7 +52,6 @@ const routeLabels: Record<string, string> = {
   "seguranca": "Segurança",
   "relatorios": "Relatórios",
   "analytics": "Analytics",
-  
   "admin": "Administração",
   "usuarios": "Usuários",
   "permissoes": "Permissões",
@@ -61,11 +61,11 @@ const routeLabels: Record<string, string> = {
   "aprovar": "Aprovar",
   "login": "Login",
   "registro": "Registro",
+  "filtros": "Super Filtro",
 };
 
 export function DynamicBreadcrumbs({ customItems, className }: DynamicBreadcrumbsProps) {
   const location = useLocation();
-  const params = useParams();
   const { isDev, isAdmin } = useAuth();
 
   const breadcrumbs = useMemo(() => {
@@ -74,8 +74,8 @@ export function DynamicBreadcrumbs({ customItems, className }: DynamicBreadcrumb
     const pathSegments = location.pathname.split("/").filter(Boolean);
     
     // Always start with Home
-    const items: BreadcrumbItem[] = [
-      { label: "Início", href: "/", icon: <Home className="h-4 w-4" /> }
+    const items: BreadcrumbItemData[] = [
+      { label: "Início", href: "/", icon: <Home className="h-4 w-4" />, isActive: location.pathname === "/" }
     ];
     
     let currentPath = "";
@@ -99,7 +99,11 @@ export function DynamicBreadcrumbs({ customItems, className }: DynamicBreadcrumb
         else if (prevSegment === "pedidos") label = `Pedido`;
         else if (prevSegment === "clientes" || prevSegment === "empresas") label = `Cliente`;
         
-        items.push({ label, href: currentPath });
+        items.push({ 
+          label, 
+          href: currentPath,
+          isActive: index === pathSegments.length - 1
+        });
       } else {
         const label = routeLabels[segment] || 
           segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, " ");
@@ -120,7 +124,8 @@ export function DynamicBreadcrumbs({ customItems, className }: DynamicBreadcrumb
 
         items.push({
           label,
-          href: isLastVisible || !navigable ? undefined : currentPath,
+          href: navigable ? currentPath : undefined,
+          isActive: isLastVisible
         });
       }
     });
@@ -149,19 +154,31 @@ export function DynamicBreadcrumbs({ customItems, className }: DynamicBreadcrumb
                 <BreadcrumbItem>
                   {item.href ? (
                     <BreadcrumbLink asChild>
-                      <Link to={item.href} className="flex items-center gap-1.5">
+                      <Link 
+                        to={item.href} 
+                        className={cn(
+                          "flex items-center gap-1.5 transition-colors hover:text-primary",
+                          item.isActive ? "text-primary font-bold" : "text-muted-foreground"
+                        )}
+                        aria-current={item.isActive ? "page" : undefined}
+                      >
                         {item.icon}
                         <span className="max-w-[150px] truncate">{item.label}</span>
                       </Link>
                     </BreadcrumbLink>
                   ) : (
-                    <BreadcrumbPage className="flex items-center gap-1.5">
+                    <BreadcrumbPage 
+                      className={cn(
+                        "flex items-center gap-1.5",
+                        item.isActive ? "text-primary font-bold" : "text-muted-foreground"
+                      )}
+                    >
                       {item.icon}
                       <span className="max-w-[200px] truncate">{item.label}</span>
                     </BreadcrumbPage>
                   )}
                 </BreadcrumbItem>
-                {!isLast && <BreadcrumbSeparator />}
+                {!isLast && <BreadcrumbSeparator className="text-muted-foreground/40" />}
               </motion.div>
             </Fragment>
           );
