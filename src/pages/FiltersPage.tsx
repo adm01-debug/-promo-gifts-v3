@@ -452,54 +452,28 @@ export default function FiltersPage() {
               />
             )}
 
-                  {sel.firstSelectedProduct && (
-                    <AddToCollectionModal
-                      open={sel.collectionModalOpen}
-                      onOpenChange={(open) => { sel.setCollectionModalOpen(open); if (!open) sel.clearSelection(); }}
-                      productId={sel.firstSelectedId}
-                      productName={`${sel.selectedIds.size} produtos selecionados`}
-                    />
-                  )}
-                  <BulkAddToCartModal
-                    open={sel.cartModalOpen}
-                    onOpenChange={sel.setCartModalOpen}
-                    products={sel.bulkCartProducts}
-                    variantSelections={sel.wizardSelections}
-                    onDone={sel.clearSelection}
-                  />
-                  <BulkVariantWizard
-                    open={sel.variantWizardOpen}
-                    onOpenChange={sel.setVariantWizardOpen}
-                    products={sel.bulkCartProducts}
-                    mode={sel.wizardMode}
-                    onComplete={sel.handleWizardComplete}
-                  />
-                </>
-              ) : (
-                <div className="text-center py-16 rounded-xl border border-dashed border-border/60 bg-gradient-to-b from-muted/20 to-muted/5">
-                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-muted/40 mb-5">
-                    <SearchX className="h-8 w-8 text-muted-foreground/60" />
-                  </div>
-                  <h3 className="text-lg font-semibold font-display text-foreground">Nenhum produto encontrado</h3>
-                  <p className="text-muted-foreground mt-1.5 mb-6 max-w-sm mx-auto text-sm">
-                    {state.activeFiltersCount > 1
-                      ? 'A combinação de filtros não retornou resultados. Tente remover algum filtro.'
-                      : 'Tente ajustar os filtros ou buscar por outro termo.'}
-                  </p>
-                  <div className="flex items-center justify-center gap-2">
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button variant="outline" onClick={state.handleReset} className="gap-1.5">
-                          <Sparkles className="h-3.5 w-3.5" />
-                          Limpar filtros
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Resetar busca e ver todo o catálogo</TooltipContent>
-                    </Tooltip>
-                  </div>
-                </div>
-              )}
-            </div>
+            {sel.firstSelectedProduct && (
+              <AddToCollectionModal
+                open={sel.collectionModalOpen}
+                onOpenChange={(open) => { sel.setCollectionModalOpen(open); if (!open) sel.clearSelection(); }}
+                productId={sel.firstSelectedId}
+                productName={`${sel.selectedIds.size} produtos selecionados`}
+              />
+            )}
+            <BulkAddToCartModal
+              open={sel.cartModalOpen}
+              onOpenChange={sel.setCartModalOpen}
+              products={sel.bulkCartProducts}
+              variantSelections={sel.wizardSelections}
+              onDone={sel.clearSelection}
+            />
+            <BulkVariantWizard
+              open={sel.variantWizardOpen}
+              onOpenChange={sel.setVariantWizardOpen}
+              products={sel.bulkCartProducts}
+              mode={sel.wizardMode}
+              onComplete={sel.handleWizardComplete}
+            />
           </div>
         </div>
       </div>
