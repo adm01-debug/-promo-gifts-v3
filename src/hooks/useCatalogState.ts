@@ -136,6 +136,46 @@ export function useCatalogState() {
   const [selectedCount, setSelectedCount] = useState(0);
   const [activeProductId, setActiveProductId] = useState<string | null>(null);
 
+  // Efeito para sincronizar filtros selecionados com a URL (além do preset)
+  useEffect(() => {
+    if (isInternalUpdateRef.current) {
+      // Se foi uma atualização interna, apenas resetamos o ref depois que o ciclo de render terminou
+      const timer = setTimeout(() => {
+        isInternalUpdateRef.current = false;
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+
+    const currentPreset = searchParams.get("preset") || undefined;
+    if (currentPreset !== activePresetId) {
+      setActivePresetId(currentPreset);
+    }
+
+    // Sincronização básica de filtros selecionados para a URL
+    const timeout = setTimeout(() => {
+      setSearchParams(prev => {
+        const next = new URLSearchParams(prev);
+        
+        // Sincroniza query de busca
+        if (searchQuery) next.set("search", searchQuery);
+        else next.delete("search");
+        
+        // Sincroniza cores
+        if (filters.colorGroups.length) next.set("colors", filters.colorGroups.join(","));
+        else next.delete("colors");
+        
+        // Sincroniza categorias
+        if (filters.categories.length) next.set("cats", filters.categories.join(","));
+        else next.delete("cats");
+
+        if (next.toString() === prev.toString()) return prev;
+        return next;
+      }, { replace: true });
+    }, 500);
+    
+    return () => clearTimeout(timeout);
+  }, [filters, searchQuery, activePresetId, setSearchParams]);
+
   const toggleSelectionMode = useCallback(() => {
     setSelectionMode(prev => {
       if (prev) setSelectedCount(0);
