@@ -135,7 +135,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange, isFiltering 
         left: "var(--header-left, 0px)",
       } as CSSProperties}
       className={cn(
-        "fixed top-0 right-0 z-40 border-b transition-all duration-300 print:hidden",
+        "fixed top-0 right-0 z-[10] border-b transition-all duration-300 print:hidden",
         "bg-card/95 backdrop-blur-md border-border",
         "h-[var(--header-h)]",
         isScrolled && "bg-card/98 backdrop-blur-lg shadow-md border-border/80",
