@@ -250,7 +250,7 @@ export const NoveltyProductGrid = memo(function NoveltyProductGrid({
           <Button variant={selectionMode ? "default" : "outline"} size="sm" className={cn("h-8 text-xs gap-1.5 shrink-0 transition-all", selectionMode && "bg-primary text-primary-foreground shadow-[0_0_12px_hsl(var(--primary)/0.3)]")} onClick={() => { setSelectionMode(!selectionMode); if (selectionMode) sel.clearSelection(); }}>
             <CheckSquare className="h-3.5 w-3.5" /><span className="hidden sm:inline">{selectionMode ? "Cancelar" : "Selecionar"}</span>
           </Button>
-          <LayoutPopover viewMode={viewMode} setViewMode={setViewMode} gridColumns={gridColumns} setGridColumns={setGridColumns} />
+          <LayoutPopover viewMode={viewMode} setViewMode={setViewMode} gridColumns={gridColumns as any} setGridColumns={setGridColumns as any} />
         </div>
 
         {/* Search full-width on mobile */}
