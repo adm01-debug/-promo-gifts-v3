@@ -80,18 +80,9 @@ export function PromptGenerator({
   const [audience, setAudience] = useState("");
   const [season, setSeason] = useState("none");
 
-  // Customization from real DB — sync from parent when props change
-  const [selectedAreaId, setSelectedAreaId] = useState<string | null>(initialLocationId || null);
-  const [selectedTechId, setSelectedTechId] = useState<string | null>(initialTechniqueId || null);
-
-  // Keep in sync when parent changes (e.g. user selects in Step 1 bank mode, then switches to AI tab)
-  useEffect(() => {
-    setSelectedAreaId(initialLocationId || null);
-  }, [initialLocationId]);
-
-  useEffect(() => {
-    setSelectedTechId(initialTechniqueId || null);
-  }, [initialTechniqueId]);
+  // Selection derived from parent (controlled-ish)
+  const selectedAreaId = initialLocationId || null;
+  const selectedTechId = initialTechniqueId || null;
 
   // Generation
   const [generating, setGenerating] = useState(false);
