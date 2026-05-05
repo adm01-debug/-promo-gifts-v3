@@ -173,14 +173,14 @@ export function SupplierRiskPanel({ products }: SupplierRiskPanelProps) {
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div>
-            <CardTitle className="text-xl flex items-center gap-2">
-              <div className="h-8 w-8 rounded-full bg-warning/10 flex items-center justify-center">
-                <ShieldAlert className="h-4 w-4 text-warning" aria-hidden="true" />
+            <CardTitle className="text-xl font-bold font-display tracking-tight flex items-center gap-2">
+              <div className="h-9 w-9 rounded-xl bg-amber-500/10 flex items-center justify-center shadow-inner">
+                <ShieldAlert className="h-5 w-5 text-amber-500" aria-hidden="true" />
               </div>
-              Risco de Ruptura no Fornecedor
+              Análise de Risco no Fornecedor
               {globalCounts.critical > 0 && (
-                <Badge variant="destructive" className="text-[10px] animate-pulse">
-                  {globalCounts.critical} crítico{globalCounts.critical > 1 ? 's' : ''}
+                <Badge variant="destructive" className="text-[10px] font-bold uppercase h-5 px-1.5 animate-pulse border-none shadow-md shadow-destructive/20">
+                  {globalCounts.critical} Crítico{globalCounts.critical > 1 ? 's' : ''}
                 </Badge>
               )}
             </CardTitle>

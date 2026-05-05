@@ -149,27 +149,32 @@ export function StockDashboard() {
     const pct = loadingProgress ? Math.round((loadingProgress.current / loadingProgress.total) * 100) : 0;
     return (
       <div className="space-y-5" aria-live="polite" aria-busy="true">
-        <div className="flex items-center gap-3 rounded-xl border border-border/40 bg-card px-4 py-3">
-          <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-            <Package className="h-4 w-4 text-primary animate-pulse" />
+        <div className="flex items-center gap-4 rounded-2xl border border-primary/20 bg-primary/[0.03] p-5 shadow-sm shadow-primary/5 animate-in fade-in zoom-in-95 duration-500">
+          <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center flex-shrink-0 shadow-inner">
+            <RefreshCw className="h-6 w-6 text-primary animate-spin" />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between gap-3">
-              <p className="text-sm font-medium truncate">Sincronizando estoque</p>
+              <div className="space-y-0.5">
+                <p className="text-sm font-bold font-display uppercase tracking-tight text-foreground">Sincronizando Estoque Realtime</p>
+                <p className="text-[11px] font-bold uppercase tracking-widest text-primary/60">
+                  {loadingProgress?.step || 'Conectando ao banco de dados externo...'}
+                </p>
+              </div>
               {loadingProgress && (
-                <p className="text-xs font-medium tabular-nums text-primary flex-shrink-0">{pct}%</p>
+                <div className="text-right">
+                  <p className="text-lg font-extrabold tabular-nums text-primary leading-none">{pct}%</p>
+                  <p className="text-[9px] font-bold uppercase tracking-tighter text-muted-foreground/60 mt-0.5">Processando</p>
+                </div>
               )}
             </div>
-            <div className="flex items-center gap-2 mt-1.5">
-              <div className="flex-1 h-1 bg-muted rounded-full overflow-hidden">
+            <div className="mt-3">
+              <div className="h-1.5 bg-primary/10 rounded-full overflow-hidden shadow-inner">
                 <div
-                  className="h-full bg-gradient-to-r from-primary to-primary/60 rounded-full transition-all duration-500 ease-out"
+                  className="h-full bg-gradient-to-r from-primary via-primary-glow to-primary rounded-full transition-all duration-700 ease-out shadow-lg"
                   style={{ width: `${pct || 8}%` }}
                 />
               </div>
-              <p className="text-xs text-muted-foreground truncate max-w-[40%]">
-                {loadingProgress?.step || 'Conectando ao fornecedor...'}
-              </p>
             </div>
           </div>
         </div>
@@ -196,45 +201,65 @@ export function StockDashboard() {
         entries={futureStock} />
 
       {/* Header with Health Score */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-        <div className="flex items-center gap-3">
-          <h2 className="text-xl font-semibold">Visão Geral</h2>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger>
-                <Badge
-                  variant="outline"
-                  className={cn(
-                    "gap-1 text-xs font-semibold",
-                    healthScore >= 80 && "bg-success/10 border-success/20 text-success",
-                    healthScore >= 50 && healthScore < 80 && "bg-warning/10 border-warning/20 text-warning",
-                    healthScore < 50 && "bg-destructive/10 border-destructive/20 text-destructive",
-                  )}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-card/60 border border-border/40 p-4 rounded-2xl shadow-sm">
+        <div className="flex items-center gap-4">
+          <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary shadow-inner">
+            <Package className="h-6 w-6" />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold font-display tracking-tight text-foreground">Visão Geral do Estoque</h2>
+            <div className="flex items-center gap-2 mt-0.5">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "gap-1 text-[11px] font-bold uppercase tracking-wider h-6 px-2 shadow-sm",
+                        healthScore >= 80 && "bg-success/10 border-success/30 text-success shadow-success/10",
+                        healthScore >= 50 && healthScore < 80 && "bg-warning/10 border-warning/30 text-warning shadow-warning/10",
+                        healthScore < 50 && "bg-destructive/10 border-destructive/30 text-destructive shadow-destructive/10 animate-pulse",
+                      )}
+                    >
+                      <Shield className="h-3 w-3" />
+                      Saúde: {healthScore}%
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
+                    <p className="max-w-[220px]">
+                      Disponibilidade Total: {summary.productsInStock} de {summary.totalProducts} itens em conformidade.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
+              {criticalAlerts.length > 0 && (
+                <Badge 
+                  variant="destructive" 
+                  className="gap-1.5 text-[10px] font-bold uppercase h-6 px-2 cursor-pointer hover:scale-105 transition-transform"
+                  onClick={() => setOutOfStockDialogOpen(true)}
                 >
-                  <Shield className="h-3 w-3" />
-                  Saúde: {healthScore}%
+                  <AlertCircle className="h-3 w-3" />
+                  {criticalAlerts.length} Críticos
                 </Badge>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p className="text-xs max-w-[200px]">
-                  Saúde do Estoque: {summary.productsInStock} de {summary.totalProducts} produtos com estoque adequado.
-                  {healthScore < 50 && ' ⚠️ Atenção: muitos produtos precisam de reposição.'}
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          {criticalAlerts.length > 0 && (
-            <Badge variant="destructive" className="gap-1 text-xs animate-pulse cursor-pointer"
-              onClick={() => setOutOfStockDialogOpen(true)}>
-              <AlertCircle className="h-3 w-3" />
-              {criticalAlerts.length} alertas
-            </Badge>
-          )}
+              )}
+            </div>
+          </div>
         </div>
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <Clock className="h-3.5 w-3.5" />
-          {lastRefreshRef.current.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
-          {isFetching && <Loader2 className="h-3 w-3 animate-spin text-primary" />}
+
+        <div className="flex flex-col sm:items-end gap-1">
+          <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-muted-foreground/60">
+            <Clock className="h-3.5 w-3.5 text-primary/60" />
+            Sincronizado em {lastRefreshRef.current.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+          </div>
+          <div className="flex items-center gap-2">
+            {isFetching && (
+              <Badge variant="outline" className="h-5 px-1.5 gap-1 text-[10px] animate-in fade-in slide-in-from-right-1 border-primary/30 text-primary bg-primary/5">
+                <RefreshCw className="h-2.5 w-2.5 animate-spin" />
+                Sincronizando...
+              </Badge>
+            )}
+          </div>
         </div>
       </div>
 
