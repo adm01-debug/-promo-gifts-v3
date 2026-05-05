@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect, useRef, useCallback, memo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { createClientLogger } from "@/lib/telemetry/structuredLogger";
+import { useNoveltyFilters, type SortMode, type ViewMode } from "@/hooks/useNoveltyFilters";
 
 const log = createClientLogger("novelties.grid");
 import { Button } from "@/components/ui/button";
@@ -53,30 +54,36 @@ export const NoveltyProductGrid = memo(function NoveltyProductGrid({
   onFilteredChange?: (products: any[], isLoading: boolean) => void 
 }) {
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
 
-  const [viewMode, setViewMode] = useState<ViewMode>((searchParams.get("view") as ViewMode) || "grid");
-  const [gridColumns, setGridColumns] = useState<ColumnCount>(Number(searchParams.get("cols")) as ColumnCount || getDefaultColumns);
-  const [sortMode, setSortMode] = useState<SortMode>((searchParams.get("sort") as SortMode) || "newest");
-  const [selectedSupplier, setSelectedSupplier] = useState<string>(searchParams.get("supplier") || "all");
-  const [selectedCategory, setSelectedCategory] = useState<string>(searchParams.get("category") || "all");
-  const [selectedStatus, setSelectedStatus] = useState<string>(searchParams.get("status") || "all");
-  const [maxDays, setMaxDays] = useState<string>(searchParams.get("expires") || "all");
-  const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
-  const [currentPage, setCurrentPage] = useState(Number(searchParams.get("page")) || 1);
-  const itemsPerPage = 20;
   const [selectionMode, setSelectionMode] = useState(false);
 
   const { data: novelties, isLoading, isFetching, error } = useNoveltiesWithDetails({ 
     limit: 200,
-    status: selectedStatus !== "all" ? (selectedStatus as any) : undefined,
-    maxDays: maxDays !== "all" ? Number(maxDays) : undefined
+    status: searchParams.get("status") !== "all" ? (searchParams.get("status") as any) : undefined,
+    maxDays: searchParams.get("expires") !== "all" ? Number(searchParams.get("expires")) : undefined
   });
   
-  // Sincroniza o estado de carregamento com as estatísticas
   const isGlobalLoading = isLoading || isFetching;
-  
   const products = novelties || [];
+
+  const { 
+    state, 
+    actions, 
+    filteredProducts, 
+    paginatedProducts, 
+    totalPages, 
+    hasActiveFilters,
+    itemsPerPage
+  } = useNoveltyFilters(products);
+
+  const {
+    viewMode, sortMode, selectedSupplier, selectedCategory, selectedStatus, maxDays, searchQuery, currentPage, gridColumns
+  } = state;
+
+  const {
+    setViewMode, setSortMode, setSelectedSupplier, setSelectedCategory, setSelectedStatus, setMaxDays, setSearchQuery, setCurrentPage, clearFilters, setGridColumns
+  } = actions;
 
   const [loadingProgress, setLoadingProgress] = useState(0);
   const progressRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -106,74 +113,10 @@ export const NoveltyProductGrid = memo(function NoveltyProductGrid({
     return { suppliers: [...supMap.values()].sort((a, b) => b.count - a.count), categories: [...catMap.values()].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR')) };
   }, [products]);
 
-  const filteredProducts = useMemo(() => {
-    let filtered = [...products];
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim();
-      filtered = filtered.filter(p => p.product_name.toLowerCase().includes(q) || (p.product_sku && p.product_sku.toLowerCase().includes(q)) || (p.supplier_name && p.supplier_name.toLowerCase().includes(q)));
-    }
-    if (selectedSupplier !== "all") filtered = filtered.filter(p => p.supplier_id === selectedSupplier);
-    if (selectedCategory !== "all") filtered = filtered.filter(p => p.category_id === selectedCategory);
-    filtered.sort((a, b) => {
-      switch (sortMode) {
-        case "name": return (a.product_name || "").localeCompare(b.product_name || "", 'pt-BR');
-        case "price-asc": return (a.base_price || 0) - (b.base_price || 0);
-        case "price-desc": return (b.base_price || 0) - (a.base_price || 0);
-        case "newest": return new Date(b.detected_at).getTime() - new Date(a.detected_at).getTime();
-        case "stock": return (b.stock_quantity || 0) - (a.stock_quantity || 0);
-        case "best-seller-supplier": 
-          return (b.stock_quantity || 0) - (a.stock_quantity || 0);
-        case "best-seller-promo":
-          return (a.stock_quantity || 0) - (b.stock_quantity || 0);
-        default: return new Date(b.detected_at).getTime() - new Date(a.detected_at).getTime();
-      }
-    });
-    return filtered;
-  }, [products, selectedSupplier, selectedCategory, sortMode, searchQuery, selectedStatus, maxDays]);
-
   // Notifica o pai sobre mudanças nos filtros/produtos
   useEffect(() => {
     onFilteredChange?.(filteredProducts, isGlobalLoading);
   }, [filteredProducts, isGlobalLoading, onFilteredChange]);
-
-  // Reset pagination when filters change
-  const isFirstMount = useRef(true);
-  useEffect(() => {
-    if (isFirstMount.current) {
-      isFirstMount.current = false;
-      return;
-    }
-    setCurrentPage(1);
-  }, [selectedSupplier, selectedCategory, selectedStatus, searchQuery, sortMode, maxDays]);
-
-  // Sync state to URL
-  useEffect(() => {
-    const params: Record<string, string> = {};
-    if (viewMode !== "grid") params.view = viewMode;
-    if (gridColumns !== getDefaultColumns) params.cols = String(gridColumns);
-    if (sortMode !== "newest") params.sort = sortMode;
-    if (selectedSupplier !== "all") params.supplier = selectedSupplier;
-    if (selectedCategory !== "all") params.category = selectedCategory;
-    if (selectedStatus !== "all") params.status = selectedStatus;
-    if (maxDays !== "all") params.expires = maxDays;
-    if (searchQuery.trim()) params.q = searchQuery;
-    if (currentPage !== 1) params.page = String(currentPage);
-
-    setSearchParams(params, { replace: true });
-  }, [viewMode, gridColumns, sortMode, selectedSupplier, selectedCategory, selectedStatus, searchQuery, currentPage]);
-
-  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / itemsPerPage));
-
-  // Normalizar página se ela for maior que o total (página inexistente)
-  useEffect(() => {
-    if (currentPage > totalPages && totalPages > 0 && !isLoading) {
-      setCurrentPage(totalPages);
-    }
-  }, [currentPage, totalPages, isLoading]);
-  const paginatedProducts = useMemo(() => {
-    const start = (currentPage - 1) * itemsPerPage;
-    return filteredProducts.slice(start, start + itemsPerPage);
-  }, [filteredProducts, currentPage]);
 
   const sel = useNoveltiesSelectionMode({ selectionMode, filteredProducts: paginatedProducts });
   const hasActiveFilters = selectedSupplier !== "all" || selectedCategory !== "all" || selectedStatus !== "all" || maxDays !== "all" || searchQuery.trim() !== "";
@@ -307,7 +250,7 @@ export const NoveltyProductGrid = memo(function NoveltyProductGrid({
           <Button variant={selectionMode ? "default" : "outline"} size="sm" className={cn("h-8 text-xs gap-1.5 shrink-0 transition-all", selectionMode && "bg-primary text-primary-foreground shadow-[0_0_12px_hsl(var(--primary)/0.3)]")} onClick={() => { setSelectionMode(!selectionMode); if (selectionMode) sel.clearSelection(); }}>
             <CheckSquare className="h-3.5 w-3.5" /><span className="hidden sm:inline">{selectionMode ? "Cancelar" : "Selecionar"}</span>
           </Button>
-          <LayoutPopover viewMode={viewMode} setViewMode={setViewMode} gridColumns={gridColumns} setGridColumns={setGridColumns} />
+          <LayoutPopover viewMode={viewMode} setViewMode={setViewMode} gridColumns={gridColumns as any} setGridColumns={setGridColumns as any} />
         </div>
 
         {/* Search full-width on mobile */}
