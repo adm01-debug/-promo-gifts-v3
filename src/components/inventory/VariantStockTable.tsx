@@ -346,18 +346,18 @@ function ProductRow({ product, isExpanded, onToggle }: {
         </TableCell>
         <TableCell><StockStatusBadge status={product.overallStatus} /></TableCell>
         <TableCell className="hidden sm:table-cell">
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1.5">
             {product.variantsCritical > 0 && (
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger>
-                    <Badge variant="outline" className="text-xs bg-destructive/10 text-destructive border-destructive/20 gap-0.5">
+                    <Badge variant="outline" className="text-[10px] font-bold uppercase bg-destructive/10 text-destructive border-destructive/20 gap-1 h-5 px-1.5 shadow-sm shadow-destructive/10 animate-in zoom-in-50">
                       <AlertTriangle className="h-2.5 w-2.5" />
-                      {product.variantsCritical} crítico
+                      {product.variantsCritical} Crítico
                     </Badge>
                   </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="text-xs">{product.variantsCritical} variante(s) em nível crítico — considere solicitar reposição urgente</p>
+                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
+                    <p className="max-w-[200px]">{product.variantsCritical} variante(s) em nível crítico — reposição imediata recomendada.</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -366,28 +366,28 @@ function ProductRow({ product, isExpanded, onToggle }: {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger>
-                    <Badge variant="outline" className="text-xs bg-destructive/10 text-destructive border-destructive/20 gap-0.5">
+                    <Badge variant="outline" className="text-[10px] font-bold uppercase bg-destructive/5 text-destructive/80 border-destructive/10 gap-1 h-5 px-1.5 opacity-80">
                       <XCircle className="h-2.5 w-2.5" />
-                      {product.variantsOutOfStock} esgotado
+                      {product.variantsOutOfStock} Esgotado
                     </Badge>
                   </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="text-xs">{product.variantsOutOfStock} variante(s) sem estoque — produto indisponível nestas cores</p>
+                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
+                    <p className="max-w-[200px]">{product.variantsOutOfStock} variante(s) sem estoque disponível.</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
             )}
-            {product.totalInTransitStock > 0 && product.variantsOutOfStock > 0 && (
+            {product.totalInTransitStock > 0 && (
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger>
-                    <Badge variant="outline" className="text-[10px] bg-primary/10 text-primary border-primary/20 gap-0.5">
+                    <Badge variant="outline" className="text-[10px] font-bold uppercase bg-primary/10 text-primary border-primary/20 gap-1 h-5 px-1.5 shadow-sm shadow-primary/10">
                       <Truck className="h-2.5 w-2.5" />
-                      reposição
+                      +{product.totalInTransitStock} un
                     </Badge>
                   </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="text-xs">+{product.totalInTransitStock} un. em trânsito — reposição a caminho</p>
+                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
+                    <p className="max-w-[200px]">+{product.totalInTransitStock} unidades em trânsito — reposição a caminho do CD.</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
