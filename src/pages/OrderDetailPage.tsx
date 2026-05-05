@@ -113,20 +113,28 @@ export default function OrderDetailPage() {
   };
 
   const updateTracking = async () => {
-    setIsSaving(true);
-    const { error } = await supabase
-      // rls-allow: lookup por id; RLS valida ownership
-      .from("orders")
-      .update({ tracking_number: trackingNumber, updated_at: new Date().toISOString() })
-      .eq("id", id!);
-
-    if (error) {
-      toast.error("Erro ao salvar rastreio");
-    } else {
-      toast.success("Código de rastreio atualizado");
-      setOrder((prev: any) => ({ ...prev, tracking_number: trackingNumber }));
+    if (!trackingNumber.trim()) {
+      toast.error("Por favor, insira um código de rastreio válido");
+      return;
     }
-    setIsSaving(false);
+
+    setIsSaving(true);
+    try {
+      const { error } = await supabase
+        .from("orders")
+        .update({ tracking_number: trackingNumber.trim(), updated_at: new Date().toISOString() })
+        .eq("id", id!);
+
+      if (error) throw error;
+      
+      toast.success("Código de rastreio atualizado");
+      setOrder((prev: any) => ({ ...prev, tracking_number: trackingNumber.trim() }));
+    } catch (error) {
+      console.error("Error updating tracking:", error);
+      toast.error("Erro ao salvar rastreio");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   if (loading) {
