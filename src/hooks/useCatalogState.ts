@@ -203,12 +203,6 @@ export function useCatalogState() {
     return () => window.removeEventListener("resize", handleResize);
   }, [gridColumns]);
 
-  const [filterSheetOpen, setFilterSheetOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState(searchQueryFromUrl);
-  const [isSearching, setIsSearching] = useState(false);
-  const [displayCount, setDisplayCount] = useState(ITEMS_PER_PAGE);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-
   const debouncedServerSearch = useDebounce(searchQuery, 400);
 
   const {
