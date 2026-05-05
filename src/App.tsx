@@ -24,6 +24,7 @@ import { RouteScrollReset } from "@/components/common/RouteScrollReset";
 import { useAppBootstrap } from "@/hooks/useAppBootstrap";
 import "./App.css";
 import { ThemeInitializer } from "@/components/ThemeInitializer";
+import { prefetchRoute } from "@/lib/routePrefetch";
 const queryClient = createQueryClient();
 
 // Auth Pages
@@ -158,21 +159,19 @@ function RoutePrefetcher() {
     // Only prefetch if we're not on a mobile connection or low power mode if detectable
     if (pathname === "/login") {
        // Prefetch index/produtos right after login screen loads
-       import("./pages/Index");
-       import("./pages/FiltersPage");
+       prefetchRoute("/");
+       prefetchRoute("/produtos");
     } else if (pathname === "/") {
        // On dashboard, prefetch products and orders
-       import("./pages/FiltersPage");
-       import("./pages/QuotesListPage");
+       prefetchRoute("/produtos");
+       prefetchRoute("/orcamentos");
     } else if (pathname === "/produtos" || pathname === "/filtros") {
        // On product list, prefetch detail and quote builder
-       import("./pages/ProductDetail");
-       import("./pages/QuoteBuilderPage");
-       import("./pages/FavoritesPage");
-       import("./pages/ComparePage");
+       prefetchRoute("/orcamentos/novo");
+       prefetchRoute("/favoritos");
+       prefetchRoute("/comparar");
     } else if (pathname.startsWith("/orcamentos")) {
-       import("./pages/QuoteViewPage");
-       import("./pages/QuoteBuilderPage");
+       prefetchRoute("/orcamentos/novo");
     }
   }, [pathname]);
   
