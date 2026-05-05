@@ -47,11 +47,13 @@ describe("PresetsBar", () => {
 
   it("renders correctly with presets", () => {
     render(
-      <PresetsBar
-        currentFilters={defaultFilters}
-        onApplyPreset={onApplyPreset}
-        activePresetId={undefined}
-      />
+      <TooltipProvider>
+        <PresetsBar
+          currentFilters={defaultFilters}
+          onApplyPreset={onApplyPreset}
+          activePresetId={undefined}
+        />
+      </TooltipProvider>
     );
 
     const trigger = screen.getByLabelText(/Presets de filtros salvos/i);
