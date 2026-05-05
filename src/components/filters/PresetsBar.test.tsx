@@ -117,11 +117,13 @@ describe("PresetsBar", () => {
     });
 
     render(
-      <PresetsBar
-        currentFilters={defaultFilters}
-        onApplyPreset={onApplyPreset}
-        activePresetId={undefined}
-      />
+      <TooltipProvider>
+        <PresetsBar
+          currentFilters={defaultFilters}
+          onApplyPreset={onApplyPreset}
+          activePresetId={undefined}
+        />
+      </TooltipProvider>
     );
 
     fireEvent.click(screen.getByLabelText(/Presets de filtros salvos/i));
