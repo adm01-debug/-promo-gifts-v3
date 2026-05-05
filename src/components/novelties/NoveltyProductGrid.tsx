@@ -120,7 +120,7 @@ export function NoveltyProductGrid() {
       return;
     }
     setCurrentPage(1);
-  }, [selectedSupplier, selectedCategory, selectedStatus, searchQuery, sortMode]);
+  }, [selectedSupplier, selectedCategory, selectedStatus, searchQuery, sortMode, maxDays]);
 
   // Sync state to URL
   useEffect(() => {
@@ -138,7 +138,14 @@ export function NoveltyProductGrid() {
     setSearchParams(params, { replace: true });
   }, [viewMode, gridColumns, sortMode, selectedSupplier, selectedCategory, selectedStatus, searchQuery, currentPage]);
 
-  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / itemsPerPage));
+
+  // Normalizar página se ela for maior que o total (página inexistente)
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0 && !isLoading) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages, isLoading]);
   const paginatedProducts = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage;
     return filteredProducts.slice(start, start + itemsPerPage);
