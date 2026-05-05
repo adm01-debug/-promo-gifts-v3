@@ -185,7 +185,8 @@ export function useQuotes() {
       toast.success("Status atualizado");
       await fetchQuotes();
       return true;
-    } catch {
+    } catch (err) {
+      console.error("Error updating quote status:", err);
       toast.error("Erro ao atualizar status");
       return false;
     }
@@ -195,11 +196,12 @@ export function useQuotes() {
     try {
       // rls-allow: applySellerScope chamado dinamicamente; mutações por id com RLS
       const { error: delErr } = await supabase.from("quotes").delete().eq("id", quoteId);
-      if (delErr) throw new Error(delErr.message);
+      if (delErr) throw delErr;
       toast.success("Orçamento excluído");
       await fetchQuotes();
       return true;
-    } catch {
+    } catch (err) {
+      console.error("Error deleting quote:", err);
       toast.error("Erro ao excluir orçamento");
       return false;
     }
