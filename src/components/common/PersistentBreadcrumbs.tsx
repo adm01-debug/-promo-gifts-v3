@@ -119,9 +119,14 @@ export const PersistentBreadcrumbs = forwardRef<HTMLElement, PersistentBreadcrum
 
         const navigable = canNavigateTo(currentPath, { isDev, isAdmin });
         const isLastVisible = index >= pathParts.length - 1 || nextIsSkippedId;
-        items.push(isLastVisible || !navigable ? { label } : { label, href: currentPath });
+        items.push({ 
+          label, 
+          href: navigable ? currentPath : undefined,
+          isActive: isLastVisible
+        });
       }
     });
+
     
     return items;
   };
