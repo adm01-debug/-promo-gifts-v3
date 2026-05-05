@@ -133,6 +133,22 @@ export default function Auth() {
     setIpBlocked(false);
     
     try {
+      // 10/10 Hardening: Verificação de rate-limit via server-side edge function
+      const { data: limitData, error: limitError } = await supabase.functions.invoke('rate-limit-check', {
+        body: { endpoint: 'login' }
+      });
+
+      if (limitError || (limitData && !limitData.allowed)) {
+        const retryAfter = limitData?.retryAfter || 60;
+        toast({
+          variant: "destructive",
+          title: "Muitas tentativas",
+          description: `Por segurança, seu acesso foi temporariamente suspenso. Tente novamente em ${retryAfter} segundos.`,
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
       const { error } = await signIn(data.email, data.password);
       
       if (error) {
