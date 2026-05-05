@@ -17,7 +17,13 @@ vi.mock("@/integrations/supabase/client", () => ({
       eq: vi.fn().mockReturnThis(),
       order: vi.fn().mockReturnThis(),
       single: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockReturnThis(),
     })),
+    channel: vi.fn(() => ({
+      on: vi.fn().mockReturnThis(),
+      subscribe: vi.fn().mockReturnThis(),
+    })),
+    removeChannel: vi.fn(),
   },
 }));
 
@@ -93,7 +99,6 @@ describe("useFilterPresets Hook", () => {
       expect(result.current.isLoading).toBe(false);
       expect(result.current.presets).toHaveLength(0);
     });
-    // Error logged to console but hook shouldn't crash
   });
 
   it("handles save errors with toast", async () => {

@@ -61,7 +61,30 @@ export function useFilterPresets(context: string = "catalog") {
 
   useEffect(() => {
     fetchPresets();
-  }, [fetchPresets]);
+
+    if (!user) return;
+
+    // Sincronização em tempo real para presets (Realtime)
+    const channel = supabase
+      .channel("saved_filters_changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "saved_filters",
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => {
+          fetchPresets();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [fetchPresets, user]);
 
   // Legacy compat — returns presets synchronously from state
   const getStoredPresets = useCallback((): FilterPreset[] => {

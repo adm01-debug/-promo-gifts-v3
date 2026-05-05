@@ -67,15 +67,19 @@ export function useFiltersPageState() {
   const { presets } = useFilterPresets("catalog");
   useEffect(() => {
     if (activePresetId && presets.length > 0 && !presetAppliedFromUrl.current) {
-      const preset = presets.find(p => p.id === activePresetId);
-      if (preset) {
-        // If current filters are default (or mostly empty), apply preset filters
-        const isDefault = activeFiltersCount === 0;
-        if (isDefault) {
-          setFilters(preset.filters);
-          presetAppliedFromUrl.current = true;
-          toast.info(`Preset "${preset.name}" carregado.`);
+      try {
+        const preset = presets.find(p => p.id === activePresetId);
+        if (preset) {
+          // If current filters are default (or mostly empty), apply preset filters
+          const isDefault = activeFiltersCount === 0;
+          if (isDefault) {
+            setFilters(preset.filters);
+            presetAppliedFromUrl.current = true;
+            toast.info(`Preset "${preset.name}" carregado.`);
+          }
         }
+      } catch (err) {
+        console.error("[useFiltersPageState] Erro ao carregar preset da URL:", err);
       }
     }
   }, [activePresetId, presets, activeFiltersCount]);
@@ -193,8 +197,27 @@ export function useFiltersPageState() {
   const { data: promoSalesMap } = usePromoSalesRanking();
   const { data: supplierSalesMap } = useSupplierSalesRanking();
 
-  const handleApplyPreset = (presetFilters: FilterState, presetId?: string) => { setFilters(presetFilters); setActivePresetId(presetId); };
-  const handleFilterChange = (newFilters: FilterState) => { setFilters(newFilters); setActivePresetId(undefined); };
+  const handleApplyPreset = useCallback((presetFilters: FilterState, presetId?: string) => {
+    try {
+      if (!presetFilters) {
+        throw new Error("Filtros do preset não encontrados");
+      }
+      setFilters(presetFilters);
+      setActivePresetId(presetId);
+    } catch (err) {
+      console.error("[useFiltersPageState] Erro ao aplicar preset:", err);
+      toast.error("Erro ao aplicar filtros do preset");
+    }
+  }, []);
+
+  const handleFilterChange = useCallback((newFilters: FilterState) => {
+    try {
+      setFilters(newFilters);
+      setActivePresetId(undefined);
+    } catch (err) {
+      console.error("[useFiltersPageState] Erro ao alterar filtros:", err);
+    }
+  }, []);
 
   const activeFiltersCount = useMemo(() => {
     let count = 0;
