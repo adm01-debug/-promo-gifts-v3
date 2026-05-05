@@ -46,11 +46,7 @@ function loadFromStorage(): FavoriteItem[] {
 }
 
 function saveToStorage(items: FavoriteItem[]) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-  } catch {
-    // silently fail
-  }
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
 }
 
 export const useFavoritesStore = create<FavoritesStore>((set, get) => {
