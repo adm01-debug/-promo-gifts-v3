@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { type Product } from "@/hooks/useProducts";
 import { useProductAnalytics } from "@/hooks/useProductAnalytics";
+import { useToast } from "@/hooks/use-toast";
 
 const STORAGE_KEY = "product-favorites";
 
@@ -11,45 +12,71 @@ export interface FavoriteItem {
 
 import { useFavoritesStore } from "@/stores/useFavoritesStore";
 
-export function useFavorites(options?: UseFavoritesOptions) {
+export function useFavorites() {
+  const { toast } = useToast();
   const {
     favorites,
     isLoaded,
+    error,
     addFavorite: storeAdd,
     removeFavorite: storeRemove,
     toggleFavorite: storeToggle,
     clearFavorites: storeClear,
-    favoriteCount
+    favoriteCount,
+    setError
   } = useFavoritesStore();
 
-  const addFavorite = useCallback((productId: string) => {
-    storeAdd(productId);
-    onFavoriteAddedRef.current?.();
-    trackProductViewRef.current({
-      productId,
-      productSku: productId,
-      productName: productId,
-      viewType: "favorite",
-    });
-  }, [storeAdd]);
+  const trackProductView = useProductAnalytics().trackProductView;
 
-  const removeFavorite = useCallback((productId: string) => {
-    storeRemove(productId);
-  }, [storeRemove]);
+  useEffect(() => {
+    if (error) {
+      toast({
+        title: "Erro nos Favoritos",
+        description: error,
+        variant: "destructive",
+      });
+      setError(null);
+    }
+  }, [error, toast, setError]);
 
-  const toggleFavorite = useCallback((productId: string) => {
-    const exists = favorites.some((f) => f.productId === productId);
-    storeToggle(productId);
-    if (!exists) {
-      onFavoriteAddedRef.current?.();
-      trackProductViewRef.current({
+  const addFavorite = useCallback(async (productId: string) => {
+    try {
+      await storeAdd(productId);
+      trackProductView({
         productId,
         productSku: productId,
         productName: productId,
         viewType: "favorite",
       });
+    } catch (err) {
+      console.error("Failed to add favorite:", err);
     }
-  }, [favorites, storeToggle]);
+  }, [storeAdd, trackProductView]);
+
+  const removeFavorite = useCallback(async (productId: string) => {
+    try {
+      await storeRemove(productId);
+    } catch (err) {
+      console.error("Failed to remove favorite:", err);
+    }
+  }, [storeRemove]);
+
+  const toggleFavorite = useCallback(async (productId: string) => {
+    const exists = favorites.some((f) => f.productId === productId);
+    try {
+      await storeToggle(productId);
+      if (!exists) {
+        trackProductView({
+          productId,
+          productSku: productId,
+          productName: productId,
+          viewType: "favorite",
+        });
+      }
+    } catch (err) {
+      console.error("Failed to toggle favorite:", err);
+    }
+  }, [favorites, storeToggle, trackProductView]);
 
   const isFavorite = useCallback(
     (productId: string) => favorites.some((f) => f.productId === productId),

@@ -19,15 +19,17 @@ export interface FavoriteItem {
 interface FavoritesState {
   favorites: FavoriteItem[];
   isLoaded: boolean;
+  error: string | null;
 }
 
 interface FavoritesActions {
-  addFavorite: (productId: string, variant?: FavoriteVariantInfo) => void;
-  removeFavorite: (productId: string) => void;
-  toggleFavorite: (productId: string, variant?: FavoriteVariantInfo) => void;
+  addFavorite: (productId: string, variant?: FavoriteVariantInfo) => Promise<void>;
+  removeFavorite: (productId: string) => Promise<void>;
+  toggleFavorite: (productId: string, variant?: FavoriteVariantInfo) => Promise<void>;
   isFavorite: (productId: string) => boolean;
-  clearFavorites: () => void;
+  clearFavorites: () => Promise<void>;
   getFavoriteVariant: (productId: string) => FavoriteVariantInfo | undefined;
+  setError: (error: string | null) => void;
 }
 
 interface FavoritesStore extends FavoritesState, FavoritesActions {
@@ -53,33 +55,64 @@ function saveToStorage(items: FavoriteItem[]) {
 
 export const useFavoritesStore = create<FavoritesStore>((set, get) => {
   const initial = loadFromStorage();
+
+  // Listen for storage changes to sync across tabs
+  if (typeof window !== "undefined") {
+    window.addEventListener("storage", (event) => {
+      if (event.key === STORAGE_KEY) {
+        const next = loadFromStorage();
+        set({ favorites: next, favoriteCount: next.length });
+      }
+    });
+  }
+
   return {
     favorites: initial,
     favoriteCount: initial.length,
     isLoaded: true,
+    error: null,
 
-    addFavorite: (productId: string, variant?: FavoriteVariantInfo) => {
+    setError: (error: string | null) => set({ error }),
+
+    addFavorite: async (productId: string, variant?: FavoriteVariantInfo) => {
       const { favorites } = get();
       if (favorites.some((f) => f.productId === productId)) return;
       const next = [...favorites, { productId, addedAt: new Date().toISOString(), variant }];
-      saveToStorage(next);
-      set({ favorites: next, favoriteCount: next.length });
+      
+      try {
+        saveToStorage(next);
+        set({ favorites: next, favoriteCount: next.length, error: null });
+      } catch (err) {
+        set({ error: "Erro ao salvar favorito localmente" });
+        throw err;
+      }
     },
 
-    removeFavorite: (productId: string) => {
+    removeFavorite: async (productId: string) => {
       const next = get().favorites.filter((f) => f.productId !== productId);
-      saveToStorage(next);
-      set({ favorites: next, favoriteCount: next.length });
+      try {
+        saveToStorage(next);
+        set({ favorites: next, favoriteCount: next.length, error: null });
+      } catch (err) {
+        set({ error: "Erro ao remover favorito" });
+        throw err;
+      }
     },
 
-    toggleFavorite: (productId: string, variant?: FavoriteVariantInfo) => {
+    toggleFavorite: async (productId: string, variant?: FavoriteVariantInfo) => {
       const { favorites } = get();
       const exists = favorites.some((f) => f.productId === productId);
       const next = exists
         ? favorites.filter((f) => f.productId !== productId)
         : [...favorites, { productId, addedAt: new Date().toISOString(), variant }];
-      saveToStorage(next);
-      set({ favorites: next, favoriteCount: next.length });
+      
+      try {
+        saveToStorage(next);
+        set({ favorites: next, favoriteCount: next.length, error: null });
+      } catch (err) {
+        set({ error: "Erro ao atualizar favoritos" });
+        throw err;
+      }
     },
 
     isFavorite: (productId: string) =>
@@ -88,9 +121,14 @@ export const useFavoritesStore = create<FavoritesStore>((set, get) => {
     getFavoriteVariant: (productId: string) =>
       get().favorites.find((f) => f.productId === productId)?.variant,
 
-    clearFavorites: () => {
-      saveToStorage([]);
-      set({ favorites: [], favoriteCount: 0 });
+    clearFavorites: async () => {
+      try {
+        saveToStorage([]);
+        set({ favorites: [], favoriteCount: 0, error: null });
+      } catch (err) {
+        set({ error: "Erro ao limpar favoritos" });
+        throw err;
+      }
     },
   };
 });
