@@ -240,22 +240,29 @@ function ProgressBar({ current, total }: { current: number; total: number }) {
 }
 
 /* ── Main Wizard ── */
-export function BulkVariantWizard({ open, onOpenChange, products, mode, onComplete }: BulkVariantWizardProps) {
+export function BulkVariantWizard({ open, onOpenChange, products, mode, onComplete, initialSelections, initialIndex }: BulkVariantWizardProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selections, setSelections] = useState<BulkVariantSelection[]>([]);
 
-  // Reset when modal opens
+  // Reset (ou restaura) quando modal abre
   useEffect(() => {
     if (open) {
-      setCurrentIndex(0);
-      setSelections([]);
+      const seed = initialSelections ?? [];
+      setSelections(seed);
+      // Se vier initialIndex válido, usa; senão começa do início (ou do fim do seed)
+      const startIdx = typeof initialIndex === 'number'
+        ? Math.max(0, Math.min(initialIndex, products.length - 1))
+        : 0;
+      setCurrentIndex(startIdx);
     }
-  }, [open]);
+  }, [open, initialSelections, initialIndex, products.length]);
 
   const handleSelect = useCallback(
     (variant: ExternalVariantStock | null) => {
       const product = products[currentIndex];
-      const newSelections = [...selections, { product, variant }];
+      // Substitui seleção do índice atual (ou adiciona) — suporta re-edição via "Voltar"
+      const newSelections = [...selections];
+      newSelections[currentIndex] = { product, variant };
 
       if (currentIndex + 1 >= products.length) {
         onComplete(newSelections);
@@ -271,6 +278,10 @@ export function BulkVariantWizard({ open, onOpenChange, products, mode, onComple
   const handleSkip = useCallback(() => {
     handleSelect(null);
   }, [handleSelect]);
+
+  const handleBack = useCallback(() => {
+    setCurrentIndex((i) => Math.max(0, i - 1));
+  }, []);
 
   const currentProduct = products[currentIndex];
   if (!currentProduct) return null;
