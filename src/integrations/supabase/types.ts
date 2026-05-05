@@ -4973,6 +4973,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_search_history: {
+        Row: {
+          created_at: string | null
+          history_type: string
+          id: string
+          is_pinned: boolean | null
+          metadata: Json | null
+          query_text: string
+          result_count: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          history_type?: string
+          id?: string
+          is_pinned?: boolean | null
+          metadata?: Json | null
+          query_text: string
+          result_count?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          history_type?: string
+          id?: string
+          is_pinned?: boolean | null
+          metadata?: Json | null
+          query_text?: string
+          result_count?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_token_revocations: {
         Row: {
           revoked_at: string
