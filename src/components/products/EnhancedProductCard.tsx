@@ -310,7 +310,7 @@ export function EnhancedProductCard({
                   data-testid="product-card-quick-add"
                   size="sm"
                   className="flex-1 rounded-full gap-2"
-                  onClick={() => onQuickAdd(product, quickAddQuantity)}
+                  onClick={(e) => { e.stopPropagation(); onQuickAdd(product, quickAddQuantity); }}
                 >
                   <ShoppingCart className="h-4 w-4" />
                   Adicionar
