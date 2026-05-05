@@ -390,14 +390,14 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange, isFiltering 
                     <Button
                       variant="ghost"
                       className="flex items-center gap-2 h-9 px-1.5 sm:px-2 hover:bg-primary/10 rounded-xl"
-                      aria-label="Menu do usuário"
+                      aria-label={`Menu do usuário: ${displayName}`}
                     >
                       <div className="relative">
-                        <div className="w-8 h-8 rounded-full bg-gradient-primary flex items-center justify-center ring-2 ring-background shadow-md">
+                        <div className="w-8 h-8 rounded-full bg-gradient-primary flex items-center justify-center ring-2 ring-background shadow-md overflow-hidden">
                           {profile?.avatar_url ? (
                             <img
                               src={profile.avatar_url}
-                              alt={displayName}
+                              alt=""
                               className="w-8 h-8 rounded-full object-cover" loading="lazy" />
                           ) : (
                             <User className="h-4 w-4 text-primary-foreground" />
