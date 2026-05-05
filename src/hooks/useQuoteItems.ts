@@ -87,6 +87,17 @@ export function useQuoteItems(initialItems: QuoteItem[] = [], isLoadingItems = f
     setItems(prev => prev.map((item, idx) => idx === index ? { ...item, price_confirmed_at: ts } : item));
   }, []);
 
+  const confirmAllStalePrices = useCallback(() => {
+    const ts = new Date().toISOString();
+    setItems(prev => prev.map(item => {
+      const f = getPriceFreshness(item.price_updated_at, item.price_freshness_threshold_days);
+      if (f.shouldWarn && !item.price_confirmed_at) {
+        return { ...item, price_confirmed_at: ts };
+      }
+      return item;
+    }));
+  }, []);
+
   return {
     items,
     setItems,
@@ -101,6 +112,7 @@ export function useQuoteItems(initialItems: QuoteItem[] = [], isLoadingItems = f
     updateItemPrice,
     removeItem,
     handlePersonalizationsChange,
-    confirmItemPrice
+    confirmItemPrice,
+    confirmAllStalePrices
   };
 }
