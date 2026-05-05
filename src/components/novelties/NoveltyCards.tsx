@@ -211,6 +211,62 @@ export const NoveltyGridCard = memo(function NoveltyGridCard({ product, onClick,
             <ProductSparkline productId={product.product_id} />
           </div>
         </div>
+
+        {/* FAB Actions */}
+        {!selectionMode && (
+          <ProductCardActions
+            productId={product.product_id}
+            productName={product.product_name}
+            productSku={product.product_sku}
+            productImageUrl={product.product_image}
+            productPrice={product.base_price || 0}
+            productMinQuantity={product.min_quantity || 1}
+            isFavorited={isFavorited}
+            isInCompare={isCompared}
+            canAddToCompare={canAddToCompare}
+            actionsOpen={actionsOpen}
+            onToggleActions={() => setActionsOpen(!actionsOpen)}
+            onFavorite={handleFavorite}
+            onCompare={handleCompare}
+            onOpenVariantPicker={(mode) => { setActionsOpen(false); setVariantPickerMode(mode); setVariantPickerOpen(true); }}
+            onQuickView={() => { setActionsOpen(false); setQuickViewOpen(true); }}
+            markBusy={markBusy}
+          />
+        )}
+
+        {/* Modals */}
+        <VariantPickerDialog
+          isOpen={variantPickerOpen}
+          onClose={() => setVariantPickerOpen(false)}
+          productId={product.product_id}
+          productName={product.product_name}
+          onComplete={handleVariantComplete}
+          mode={variantPickerMode}
+        />
+
+        <AddToCollectionModal
+          isOpen={collectionModalOpen}
+          onClose={() => setCollectionModalOpen(false)}
+          productId={product.product_id}
+          variantId={collectionVariant?.variant_id}
+          colorName={collectionVariant?.color_name}
+          colorHex={collectionVariant?.color_hex}
+        />
+
+        <SharePreviewDialog
+          isOpen={shareDialogOpen}
+          onClose={() => setShareDialogOpen(false)}
+          product={{ id: product.product_id, name: product.product_name, sku: product.product_sku || '', images: [product.product_image || ''] } as any}
+          variant={shareVariant}
+        />
+
+        {quickViewOpen && (
+          <ProductQuickView
+            productId={product.product_id}
+            isOpen={quickViewOpen}
+            onClose={() => setQuickViewOpen(false)}
+          />
+        )}
       </CardContent>
     </Card>
   );
