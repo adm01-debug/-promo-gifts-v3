@@ -1,10 +1,10 @@
 /**
  * DraggableQuoteItems - Lista de itens do orçamento com drag-and-drop
- * Permite reordenar itens arrastando e soltando
- */
-
-import { useState } from "react";
-import {
+  * Permite reordenar itens arrastando e soltando
+  */
+ 
+ import { useState, useMemo } from "react";
+ import {
   DndContext,
   type DragEndEvent,
   DragOverlay,
@@ -298,11 +298,11 @@ export function DraggableQuoteItems({
     })
   );
 
-  // Gerar IDs únicos para items sem ID
-  const itemsWithIds = items.map((item, index) => ({
+  // Gerar IDs únicos para items sem ID, garantindo estabilidade na renderização e DND
+  const itemsWithIds = useMemo(() => items.map((item, index) => ({
     ...item,
-    id: item.id || `item-${index}`,
-  }));
+    id: item.id || `temp-${item.product_id}-${index}`,
+  })), [items]);
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id as string);
