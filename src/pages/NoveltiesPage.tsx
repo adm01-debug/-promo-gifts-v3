@@ -7,12 +7,6 @@ import { ExpiringNoveltiesWidget } from "@/components/novelties/ExpiringNoveltie
 import { EnhancedErrorBoundary } from "@/components/errors/EnhancedErrorBoundary";
 
 export default function NoveltiesPage() {
-  const [filteredState, setFilteredState] = import.meta.env.DEV ? (function useDevState() {
-    const [state, setState] = (window as any).__novelties_state || [undefined, false];
-    return [state, (s: any) => { (window as any).__novelties_state = s; setState(s); }];
-  })() : [undefined, false] as any;
-
-  // Usando state normal para produção
   const [products, setProducts] = useState<any[] | undefined>(undefined);
   const [isGridLoading, setIsGridLoading] = useState(false);
 
