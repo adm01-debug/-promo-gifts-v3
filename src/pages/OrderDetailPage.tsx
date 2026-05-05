@@ -150,7 +150,7 @@ export default function OrderDetailPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <TooltipProvider delayDuration={1500}>
+            <TooltipProvider >
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button variant="ghost" size="icon" aria-label="Voltar" onClick={() => navigate("/pedidos")}>
@@ -279,7 +279,7 @@ export default function OrderDetailPage() {
                 </div>
 
                 {order.quote_id && (
-                  <TooltipProvider delayDuration={1500}>
+                  <TooltipProvider >
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button

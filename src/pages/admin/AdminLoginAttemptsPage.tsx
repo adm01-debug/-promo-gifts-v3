@@ -175,7 +175,7 @@ export default function AdminLoginAttemptsPage() {
                 Página {page} de {data.totalPages} ({data.totalCount} registros)
               </p>
               <div className="flex gap-2">
-                <TooltipProvider delayDuration={1500}>
+                <TooltipProvider >
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>
@@ -187,7 +187,7 @@ export default function AdminLoginAttemptsPage() {
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
-                <TooltipProvider delayDuration={1500}>
+                <TooltipProvider >
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button variant="outline" size="sm" disabled={page >= data.totalPages} onClick={() => setPage(p => p + 1)}>

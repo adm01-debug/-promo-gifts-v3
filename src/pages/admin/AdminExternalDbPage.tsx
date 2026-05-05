@@ -150,7 +150,7 @@ export default function AdminExternalDbPage() {
           </h1>
           <p className="text-muted-foreground">Visualize a estrutura das tabelas do banco de dados externo (somente leitura)</p>
         </div>
-        <TooltipProvider delayDuration={1500}>
+        <TooltipProvider >
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="outline" size="sm" onClick={() => selectedTable ? handleSelectTable(selectedTable) : listTables()}>
@@ -179,7 +179,7 @@ export default function AdminExternalDbPage() {
           </div>
           <div className="flex gap-2">
             {diffs && (
-              <TooltipProvider delayDuration={1500}>
+              <TooltipProvider >
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button variant="outline" size="sm" onClick={copyReport}>
@@ -192,7 +192,7 @@ export default function AdminExternalDbPage() {
                 </Tooltip>
               </TooltipProvider>
             )}
-            <TooltipProvider delayDuration={1500}>
+            <TooltipProvider >
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button size="sm" onClick={runEngravingDiff} disabled={diffLoading}>
@@ -319,7 +319,7 @@ export default function AdminExternalDbPage() {
                       {c.requiredFields.length} required
                     </Badge>
                   </div>
-                  <TooltipProvider delayDuration={1500}>
+                  <TooltipProvider >
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button

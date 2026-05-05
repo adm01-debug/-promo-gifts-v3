@@ -226,7 +226,7 @@ export default function QuotesListPage() {
               </div>
             </FadeInView>
             <div className="flex gap-2">
-              <TooltipProvider delayDuration={1500}>
+              <TooltipProvider >
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button variant="outline" onClick={() => navigate("/orcamentos/templates")}>
@@ -240,7 +240,7 @@ export default function QuotesListPage() {
                 </Tooltip>
               </TooltipProvider>
 
-              <TooltipProvider delayDuration={1500}>
+              <TooltipProvider >
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button data-testid="quote-new-button" onClick={() => navigate("/orcamentos/novo")}>

@@ -291,7 +291,7 @@ export function ConnectionsOverviewTable({ refreshSignal }: ConnectionsOverviewT
             <RefreshCw className={cn("h-3.5 w-3.5", refreshing && "animate-spin")} />
             Atualizar
           </Button>
-          <TooltipProvider delayDuration={1500}>
+          <TooltipProvider >
             <Tooltip>
               <TooltipTrigger asChild>
                 <div className="flex items-center gap-1.5">
@@ -370,7 +370,7 @@ export function ConnectionsOverviewTable({ refreshSignal }: ConnectionsOverviewT
             )}
           </div>
         ) : (
-          <TooltipProvider delayDuration={1500}>
+          <TooltipProvider >
             <Table>
               <TableHeader>
                 <TableRow>

@@ -72,7 +72,7 @@ export function SeverityFilterControl({ counts, className }: Props) {
   const { filter, setFilter } = useSeverityFilter();
 
   return (
-    <TooltipProvider delayDuration={1500}>
+    <TooltipProvider >
       <div
         className={cn(
           "flex items-center gap-2 flex-wrap rounded-xl border bg-card px-3 py-2",

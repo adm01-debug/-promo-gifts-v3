@@ -353,7 +353,7 @@ export default function FavoritesPage() {
           <div className="flex gap-2 items-center flex-wrap">
             <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
               <SheetTrigger asChild>
-                <TooltipProvider delayDuration={1500}>
+                <TooltipProvider >
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button variant="outline" size="sm" className="lg:hidden">
@@ -377,7 +377,7 @@ export default function FavoritesPage() {
                 {!isRemoteListView && (
                   <DeleteConfirmDialog
                     trigger={
-                      <TooltipProvider delayDuration={1500}>
+                      <TooltipProvider >
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
@@ -397,7 +397,7 @@ export default function FavoritesPage() {
                     itemName="favoritos"
                   />
                 )}
-                <TooltipProvider delayDuration={1500}>
+                <TooltipProvider >
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button

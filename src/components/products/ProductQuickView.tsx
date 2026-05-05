@@ -367,7 +367,7 @@ export const ProductQuickView = forwardRef<HTMLDivElement, ProductQuickViewProps
             {/* Actions */}
             <div className="space-y-3 mt-4">
               <div className="flex gap-2">
-                <TooltipProvider delayDuration={1500}>
+                <TooltipProvider >
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
@@ -389,7 +389,7 @@ export const ProductQuickView = forwardRef<HTMLDivElement, ProductQuickViewProps
                   </Tooltip>
                 </TooltipProvider>
 
-                <TooltipProvider delayDuration={1500}>
+                <TooltipProvider >
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
@@ -409,7 +409,7 @@ export const ProductQuickView = forwardRef<HTMLDivElement, ProductQuickViewProps
                   </Tooltip>
                 </TooltipProvider>
 
-                <TooltipProvider delayDuration={1500}>
+                <TooltipProvider >
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button

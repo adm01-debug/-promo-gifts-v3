@@ -129,7 +129,7 @@ export default function ComparePage() {
       <div id="compare-export-area" className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-3">
-            <TooltipProvider delayDuration={1500}>
+            <TooltipProvider >
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button variant="ghost" size="icon" aria-label="Voltar" onClick={() => navigate(-1)}><ArrowLeft className="h-5 w-5" /></Button>
@@ -147,7 +147,7 @@ export default function ComparePage() {
           </div>
           <div className="flex flex-wrap gap-2">
             <Popover>
-            <TooltipProvider delayDuration={1500}>
+            <TooltipProvider >
               <Tooltip>
                 <TooltipTrigger asChild>
                   <PopoverTrigger asChild>
@@ -169,7 +169,7 @@ export default function ComparePage() {
               </PopoverContent>
             </Popover>
             <RecentComparisonsSidebar />
-            <TooltipProvider delayDuration={1500}>
+            <TooltipProvider >
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
@@ -185,7 +185,7 @@ export default function ComparePage() {
                 <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Destacar apenas atributos diferentes entre os produtos <kbd className="ml-1 px-1 py-0.5 rounded bg-primary-foreground/20 text-primary-foreground text-[10px] font-mono">D</kbd></TooltipContent>
               </Tooltip>
             </TooltipProvider>
-            <TooltipProvider delayDuration={1500}>
+            <TooltipProvider >
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button variant="default" size="sm" onClick={handleCreateQuote}>
@@ -198,7 +198,7 @@ export default function ComparePage() {
             </TooltipProvider>
             <ComparisonPresentationLauncher products={products} formatCurrency={formatCurrency} />
             <ExportComparisonButton products={products} formatCurrency={formatCurrency} />
-            <TooltipProvider delayDuration={1500}>
+            <TooltipProvider >
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button variant="outline" size="sm" onClick={() => setShareOpen(true)}>
@@ -208,7 +208,7 @@ export default function ComparePage() {
                 <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Gerar link público de comparação</TooltipContent>
               </Tooltip>
             </TooltipProvider>
-            <TooltipProvider delayDuration={1500}>
+            <TooltipProvider >
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button variant="outline" size="sm" onClick={() => { clearCompare(); navigate("/"); }}>Limpar</Button>
@@ -286,7 +286,7 @@ export default function ComparePage() {
                               </Badge>
                             )}
                           </div>
-                          <TooltipProvider delayDuration={1500}>
+                          <TooltipProvider >
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <button aria-label="Remover" onClick={() => removeByIndex(entry.index)} className="p-1 rounded-full hover:bg-destructive/20 transition-colors">

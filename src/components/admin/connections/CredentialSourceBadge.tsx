@@ -42,7 +42,7 @@ export function CredentialSourceBadge({ status, className }: Props) {
   const Icon = config.icon;
 
   return (
-    <TooltipProvider delayDuration={1500}>
+    <TooltipProvider >
       <Tooltip>
         <TooltipTrigger asChild>
           <span
