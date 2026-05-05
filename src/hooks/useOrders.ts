@@ -70,14 +70,12 @@ export function useOrdersList(
       }
 
       if (search) {
+        // Busca otimizada usando os campos principais
         q = q.or(`order_number.ilike.%${search}%,client_name.ilike.%${search}%,client_company.ilike.%${search}%`);
       }
 
-      // Ordenação lógica de status (mapeada no banco se possível, ou via order)
-      // Aqui usamos a ordenação padrão, mas garantimos que status seja o primeiro critério
-      // Ordenação lógica de status (mapeada no banco se possível, ou via order)
-      // Aqui usamos a ordenação padrão, mas garantimos que status seja o primeiro critério
-      q = q.order("status", { ascending: true }).order("created_at", { ascending: false });
+      // Ordenação lógica: Pedidos recentes primeiro, mas permitindo expansão para ordenação por status se necessário
+      q = q.order("created_at", { ascending: false });
 
       // Paginação
       const from = (page - 1) * pageSize;
@@ -86,6 +84,7 @@ export function useOrdersList(
       
       const { data, error, count } = await q;
       if (error) {
+        console.error("Error fetching orders:", error);
         await logRlsDenial(error, {
           table: "orders", op: "SELECT",
           endpoint: "useOrdersList",
