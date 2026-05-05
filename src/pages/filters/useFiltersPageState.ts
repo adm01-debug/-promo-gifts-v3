@@ -62,6 +62,9 @@ export function useFiltersPageState() {
   const debouncedUrlSearch = useDebounce(urlSearch, 400);
   const serverSearchTerm = debouncedServerSearch || debouncedUrlSearch;
 
+  // Fetch catalog data (must be declared BEFORE any effect/memo that depends on it — TDZ).
+  const { data: catalogData, isLoading: isLoadingProducts, hasNextPage, fetchNextPage, isFetchingNextPage, error: catalogError } = useProductsCatalog(serverSearchTerm ? { search: serverSearchTerm } : undefined);
+
   useEffect(() => { if (hasNextPage && !isFetchingNextPage) fetchNextPage(); }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const realProducts = useMemo(() => catalogData?.pages ? catalogData.pages.flatMap(page => page.products) : [], [catalogData]);
@@ -147,8 +150,7 @@ export function useFiltersPageState() {
   const sortBy = filters.sortBy || 'name';
   const setSortBy = useCallback((value: string) => { setFilters(prev => ({ ...prev, sortBy: value })); }, []);
 
-  // Sync error state from catalog data
-  const { data: catalogData, isLoading: isLoadingProducts, hasNextPage, fetchNextPage, isFetchingNextPage, error: catalogError } = useProductsCatalog(serverSearchTerm ? { search: serverSearchTerm } : undefined);
+  // Sync error state from catalog data (catalogData/catalogError already destructured above)
 
   useEffect(() => {
     if (catalogError) {
