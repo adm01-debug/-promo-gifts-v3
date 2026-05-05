@@ -294,6 +294,7 @@ export function DraggableQuoteItems({
   onReorder,
   onUpdateQuantity,
   onUpdatePrice,
+  onConfirmPrice,
   onRemove,
   onTogglePersonalization,
   expandedItems = new Set(),
