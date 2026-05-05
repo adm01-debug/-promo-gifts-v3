@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { useFavoritesStore, type FavoriteVariantInfo } from "@/stores/useFavoritesStore";
@@ -19,6 +19,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   Heart, Trash2, Search, Package, Layers, TrendingDown, TrendingUp,
   CheckSquare, X, FolderOpen,
