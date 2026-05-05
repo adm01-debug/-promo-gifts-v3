@@ -105,8 +105,15 @@ export function NoveltyProductGrid() {
         case "name": return (a.product_name || "").localeCompare(b.product_name || "", 'pt-BR');
         case "price-asc": return (a.base_price || 0) - (b.base_price || 0);
         case "price-desc": return (b.base_price || 0) - (a.base_price || 0);
-        case "newest": default: return new Date(b.detected_at).getTime() - new Date(a.detected_at).getTime();
-        case "stock": case "best-seller-supplier": case "best-seller-promo": return 0;
+        case "newest": return new Date(b.detected_at).getTime() - new Date(a.detected_at).getTime();
+        case "stock": return (b.stock_quantity || 0) - (a.stock_quantity || 0);
+        case "best-seller-supplier": 
+          // Simulado: usamos stock_quantity como proxy para best seller se não houver campo específico
+          return (b.stock_quantity || 0) - (a.stock_quantity || 0);
+        case "best-seller-promo":
+          // Simulado: ordem inversa de stock (mais vendidos costumam ter menos stock se não reposto)
+          return (a.stock_quantity || 0) - (b.stock_quantity || 0);
+        default: return new Date(b.detected_at).getTime() - new Date(a.detected_at).getTime();
       }
     });
     return filtered;
