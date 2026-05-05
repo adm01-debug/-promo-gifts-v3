@@ -202,7 +202,7 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
         }
       }}
       onClick={(e) => {
-        if (actionsOpen || actionBusyRef.current || variantPickerOpen || collectionModalOpen || quickViewOpen) { 
+        if (actionsOpen || actionBusyRef.current || variantPickerOpen || collectionModalOpen || quickViewOpen || shareDialogOpen) { 
           e.stopPropagation(); 
           return; 
         }

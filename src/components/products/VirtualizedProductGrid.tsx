@@ -266,6 +266,13 @@ export function VirtualizedProductGrid({
                         selectionMode && selectedIds?.has(product.id) && "ring-2 ring-primary/50 rounded-xl shadow-md"
                       )}
                       style={{ zIndex: 1 }}
+                      onClick={(e) => {
+                        if (selectionMode) {
+                          e.stopPropagation();
+                          onToggleSelect?.(product.id);
+                        }
+                      }}
+
                     >
                       {selectionMode && (
                         <Tooltip>
@@ -278,7 +285,7 @@ export function VirtualizedProductGrid({
                                   : "border-muted-foreground/40 bg-card/80 backdrop-blur-sm hover:border-primary/60"
                               )}
                               onClick={(e) => {
-                                e.stopPropagation();
+                                e.stopPropagation(); e.preventDefault();
                                 onToggleSelect?.(product.id);
                               }}
                             >

@@ -143,7 +143,9 @@ export const ProductCardImage = memo(function ProductCardImage({
                   <TooltipTrigger asChild>
                     <div className={cn("w-5 h-5 rounded-full border-2 shadow-sm cursor-pointer transition-all duration-200 hover:scale-125 hover:shadow-md",
                       isDotHighlighted ? "border-success ring-2 ring-success/30 scale-110" : "border-border/50"
-                    )} style={{ backgroundColor: color.hex, borderColor: color.hex === '#FFFFFF' ? 'hsl(var(--border))' : undefined }} />
+                    )} style={{ backgroundColor: color.hex, borderColor: color.hex === '#FFFFFF' ? 'hsl(var(--border))' : undefined }}
+                    onClick={(e) => { e.stopPropagation(); }} />
+
                   </TooltipTrigger>
                   <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">{color.name}</TooltipContent>
                 </Tooltip>

@@ -85,7 +85,7 @@ export const ProductCardActions = memo(function ProductCardActions({
           ariaPressed={isFavorited}
           className={cn(btnClass, isFavorited && "bg-destructive/10 border-destructive/30")}
           iconClassName={cn(isFavorited && "fill-destructive text-destructive scale-110 animate-heart-fill")}
-          onClick={onFavorite} />
+          onClick={(e) => { e.stopPropagation(); onFavorite(e); }} />
 
         {/* Compare */}
         <ActionButton icon={GitCompare} label={isInCompare ? "Remover da comparação" : "Adicionar à comparação"}

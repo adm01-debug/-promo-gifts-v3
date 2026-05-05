@@ -4,6 +4,8 @@
  */
 
 import { useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Heart,
@@ -56,7 +58,9 @@ export function EnhancedProductCard({
   urgencyType = "limited-stock",
   urgencyText,
 }: EnhancedProductCardProps) {
+  const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
+
   const [showPreview, setShowPreview] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [quickAddQuantity, setQuickAddQuantity] = useState(1);
@@ -310,7 +314,7 @@ export function EnhancedProductCard({
                   data-testid="product-card-quick-add"
                   size="sm"
                   className="flex-1 rounded-full gap-2"
-                  onClick={() => onQuickAdd(product, quickAddQuantity)}
+                  onClick={(e) => { e.stopPropagation(); onQuickAdd(product, quickAddQuantity); }}
                 >
                   <ShoppingCart className="h-4 w-4" />
                   Adicionar
@@ -438,9 +442,10 @@ export function EnhancedProductCard({
                 </div>
               </div>
 
-              <Button className="w-full" size="sm">
+              <Button className="w-full" size="sm" onClick={(e) => { e.stopPropagation(); navigate(`/produto/${product.id}`); }}>
                 Ver produto completo
               </Button>
+
             </div>
           </motion.div>
         )}

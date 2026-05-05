@@ -97,7 +97,8 @@ export function QuickAddToQuote({
               "transition-all duration-200 hover:scale-105 hover:border-primary",
               className,
             )}
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => { e.stopPropagation(); e.preventDefault(); }}
+
           >
             <ShoppingCart className="h-3.5 w-3.5 mr-1.5" />
             <span className="text-xs">Orçar</span>
@@ -112,7 +113,8 @@ export function QuickAddToQuote({
               "hover:bg-primary hover:text-primary-foreground hover:scale-110 transition-all duration-200",
               className,
             )}
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => { e.stopPropagation(); e.preventDefault(); }}
+
           >
             <ShoppingCart className="h-4 w-4" />
           </Button>
@@ -120,7 +122,8 @@ export function QuickAddToQuote({
           <Button
             size={buttonSize}
             className={cn(className)}
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => { e.stopPropagation(); e.preventDefault(); }}
+
           >
             {iconOverride === "cart" ? <ShoppingBag className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
             {labelOverride || "Orçar"}
