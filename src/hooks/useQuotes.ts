@@ -72,13 +72,15 @@ export function useQuotes(filters: QuotesListFilters = {}) {
       q = q.range(from, to);
 
       const { data, error: qErr, count } = await q;
-      if (qErr) throw new Error(qErr.message);
+      if (qErr) {
+        throw qErr;
+      }
       
       setQuotes((data || []) as Quote[]);
       setTotalCount(count ?? 0);
     } catch (err) {
       console.error("Error fetching quotes:", err);
-      const message = err instanceof Error ? err.message : "Erro ao buscar orçamentos";
+      const message = err instanceof Error ? err.message : (err as any)?.message || "Erro ao buscar orçamentos";
       setError(message);
       toast.error("Erro ao carregar orçamentos", { description: message });
     } finally {
