@@ -47,7 +47,7 @@ function getGridGapClass(cols: ColumnCount): string {
   return "gap-x-8 gap-y-8";
 }
 
-export function NoveltyProductGrid({ 
+export const NoveltyProductGrid = memo(function NoveltyProductGrid({ 
   onFilteredChange 
 }: { 
   onFilteredChange?: (products: any[], isLoading: boolean) => void 
