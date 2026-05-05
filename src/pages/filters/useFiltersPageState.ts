@@ -80,6 +80,7 @@ export function useFiltersPageState() {
     if (isInitialMount.current) { isInitialMount.current = false; return; }
     const params = new URLSearchParams();
     const setArr = (k: string, arr: string[]) => { if (arr.length) params.set(k, arr.join(',')); };
+    
     if (filters.search) params.set('search', filters.search);
     setArr('colorGroups', filters.colorGroups); setArr('colorVariations', filters.colorVariations);
     setArr('colorNuances', filters.colorNuances); setArr('colors', filters.colors);
@@ -102,8 +103,12 @@ export function useFiltersPageState() {
     if (filters.hasPersonalization) params.set('hasPersonalization', '1');
     if (filters.hasCommercialPackaging) params.set('hasCommercialPackaging', '1');
     if (filters.sortBy && filters.sortBy !== 'name') params.set('sortBy', filters.sortBy);
+    
+    // Sync active preset ID
+    if (activePresetId) params.set('preset', activePresetId);
+    
     setSearchParams(params, { replace: true });
-  }, [filters, setSearchParams]);
+  }, [filters, activePresetId, setSearchParams]);
 
   const { productIds: materialFilteredProductIds, hasFilter: hasMaterialFilter, isLoading: isLoadingMaterialFilter } = useProductsByMaterial({ materialGroupSlugs: filters.materialGroups || [], materialTypeSlugs: filters.materialTypes || [] });
   const { productIds: categoryFilteredProductIds, hasFilter: hasCategoryFilter, isLoading: isLoadingCategoryFilter } = useProductsByCategory({ categoryIds: filters.categories, includeDescendants: true });
