@@ -165,5 +165,6 @@ export function useNoveltyFilters(allProducts: NoveltyWithDetails[]) {
     totalPages,
     hasActiveFilters,
     itemsPerPage,
+    isSearching: searchQuery !== debouncedSearchQuery,
   };
 }
