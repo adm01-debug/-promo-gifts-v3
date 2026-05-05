@@ -291,13 +291,13 @@ export function StockFilterToolbar({
         </Popover>
 
         {/* 2. Search */}
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <div className="relative flex-1 min-w-[280px]">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-primary opacity-60" />
           <Input
-            placeholder="Buscar no Estoque (Nome, SKU ou Cor)... "
+            placeholder="Buscar no estoque (nome, SKU ou cor)... "
             value={localSearch}
             onChange={(e) => setLocalSearch(e.target.value)}
-            className="pl-9 pr-8"
+            className="pl-10 pr-10 h-11 bg-card/40 border-border/50 focus:bg-card focus:border-primary/60 transition-all rounded-xl shadow-inner"
           />
           {localSearch && (
             <button onClick={() => setLocalSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
