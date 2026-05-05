@@ -421,10 +421,10 @@ export default function Auth() {
               </div>
               {geoLocation && (
                 <>
-                  <div className="w-px h-4 bg-border" />
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <div className="w-px h-4 bg-white/10" />
+                  <div className="flex items-center gap-1.5 text-xs text-white/70">
                     <Wifi className="h-3.5 w-3.5 text-success" />
-                    <span>{geoLocation}</span>
+                    <span className="font-bold">{geoLocation}</span>
                   </div>
                 </>
               )}
