@@ -169,7 +169,10 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange, isFiltering 
 
           {/* #1 — Seção atual como âncora */}
           <div className="hidden lg:flex items-center gap-2">
-            <span className="font-display text-sm font-semibold text-foreground tracking-tight truncate max-w-[160px]">
+            <span 
+              className="font-display text-sm font-semibold text-foreground tracking-tight truncate max-w-[160px]"
+              key={currentSection}
+            >
               {currentSection}
             </span>
           </div>
