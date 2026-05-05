@@ -81,7 +81,7 @@ const navGroups: NavGroup[] = [
       { icon: FolderOpen, label: "Coleções", href: "/colecoes" },
       { icon: Layers, label: "Estoque", href: "/estoque", shortcut: "Alt+E" },
       { icon: Heart, label: "Favoritos", href: "/favoritos", shortcut: "Alt+A" },
-      { icon: GitCompare, label: "Comparar", href: "/comparar" },
+      { icon: GitCompare, label: "Comparar", href: "/comparar", shortcut: "Alt+C" },
     ],
   },
   {
