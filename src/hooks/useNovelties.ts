@@ -171,6 +171,7 @@ export interface UseNoveltiesOptions {
   offset?: number;
   onlyHighlighted?: boolean;
   status?: 'active' | 'expiring_soon' | 'expired';
+  maxDays?: number;
 }
 
 /**
@@ -208,6 +209,10 @@ export function useNoveltiesWithDetails(options: UseNoveltiesOptions = {}) {
 
       if (options.status) {
         novelties = novelties.filter(n => n.status === options.status);
+      }
+
+      if (options.maxDays) {
+        novelties = novelties.filter(n => n.days_remaining <= options.maxDays!);
       }
 
       if (onlyHighlighted) {
