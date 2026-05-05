@@ -34,6 +34,8 @@ interface QuoteItem {
   price_updated_at?: string | null;
   /** Optional: per-product threshold (days) for the stale-price warning. */
   price_freshness_threshold_days?: number | null;
+  /** Optional: ISO timestamp when seller confirmed price with supplier. */
+  price_confirmed_at?: string | null;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   personalizations?: any[];
   [key: string]: unknown;
