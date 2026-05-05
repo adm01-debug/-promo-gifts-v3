@@ -44,7 +44,7 @@ const ITEMS_PER_PAGE = 36;
 
 export function useCatalogState() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
   const { isFavorite, toggleFavorite, favoriteCount } = useFavoritesStore();
   const favQuickAdd = useFavoriteQuickAdd();
@@ -52,14 +52,54 @@ export function useCatalogState() {
   const { registerProducts } = useProductsContext();
   const { data: promoSalesMap } = usePromoSalesRanking();
   const { data: supplierSalesMap } = useSupplierSalesRanking();
-  const [activePresetId, setActivePresetId] = useState<string | undefined>(undefined);
+  
+  const [activePresetId, setActivePresetId] = useState<string | undefined>(
+    searchParams.get("preset") || undefined
+  );
 
   const setFiltersWithPreset = useCallback((newFilters: FilterState, presetId?: string) => {
     setFilters(newFilters);
     setActivePresetId(presetId);
-  }, []);
+    
+    // Sincroniza o preset ID com a URL
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      if (presetId) {
+        next.set("preset", presetId);
+      } else {
+        next.delete("preset");
+      }
+      return next;
+    }, { replace: true });
+    
+    // Broadcast para outras abas (mecanismo fallback ao Realtime para UI state local)
+    try {
+      const channel = new BroadcastChannel('catalog_preset_sync');
+      channel.postMessage({ type: 'PRESET_APPLIED', presetId, filters: newFilters });
+      channel.close();
+    } catch (e) {
+      console.warn("BroadcastChannel not supported", e);
+    }
+  }, [setSearchParams]);
 
   const searchQueryFromUrl = searchParams.get("search") || "";
+  
+  // Efeito para escutar sincronização entre abas via BroadcastChannel
+  useEffect(() => {
+    try {
+      const channel = new BroadcastChannel('catalog_preset_sync');
+      channel.onmessage = (event) => {
+        if (event.data?.type === 'PRESET_APPLIED') {
+          const { presetId, filters: newFilters } = event.data;
+          setFilters(newFilters);
+          setActivePresetId(presetId);
+        }
+      };
+      return () => channel.close();
+    } catch (e) {
+      console.warn("BroadcastChannel not supported", e);
+    }
+  }, []);
 
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
   const [viewMode, setViewModeState] = useState<ViewMode>(getPersistedViewMode);
