@@ -6,7 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import React from "react";
 
-// Mock global dependencies before anything else
+// Mock global dependencies exaustivamente
 vi.mock("@/hooks/use-toast", () => ({
   useToast: () => ({ toast: vi.fn() }),
 }));
@@ -18,7 +18,8 @@ vi.mock("@/contexts/AuthContext", () => ({
 
 vi.mock("@/contexts/ProductsContext", () => ({
   useProductsContext: () => ({ registerProducts: vi.fn() }),
-  ProductsProvider: ({ children }: any) => <>{children}</>
+  ProductsProvider: ({ children }: any) => <>{children}</>,
+  ProductsContext: React.createContext({ registerProducts: vi.fn() } as any)
 }));
 
 vi.mock("@/hooks/useFavoriteQuickAdd", () => ({
@@ -33,14 +34,13 @@ vi.mock("@/hooks/useSupplierSalesRanking", () => ({
   useSupplierSalesRanking: () => ({ data: new Map() }),
 }));
 
-// Outros mocks necessários para useCatalogState
 vi.mock("@/hooks/useProductsLightweight", () => ({
   useProductsCatalog: () => ({
     data: { pages: [] },
     isLoading: false,
     isFetching: false,
     hasNextPage: false,
-    fetchNextPage: vi.fn(),
+    fetchNextPage: vi.fn().mockResolvedValue({}),
     refetch: vi.fn(),
   }),
 }));
@@ -53,6 +53,38 @@ vi.mock("@/hooks/useSearch", () => ({
 
 vi.mock("@/hooks/useCatalogRealStats", () => ({
   useCatalogRealStats: () => ({ data: null }),
+}));
+
+vi.mock("@/hooks/useCatalogFiltering", () => ({
+  useCatalogFiltering: () => [],
+}));
+
+vi.mock("@/hooks/useColorEnrichment", () => ({
+  useColorEnrichment: () => ({ data: new Map() }),
+}));
+
+vi.mock("@/hooks/useProductsByMaterial", () => ({
+  useProductsByMaterial: () => ({ productIds: [], hasFilter: false, isLoading: false }),
+}));
+
+vi.mock("@/hooks/useProductsByCategory", () => ({
+  useProductsByCategory: () => ({ productIds: [], hasFilter: false, isLoading: false }),
+}));
+
+vi.mock("@/hooks/useExternalCategoriesQuery", () => ({
+  useExternalCategoriesQuery: () => ({ data: [] }),
+}));
+
+vi.mock("@/hooks/useProductFuzzySearch", () => ({
+  useProductFuzzySearch: () => ({ results: [], hasSearch: false }),
+}));
+
+vi.mock("@/stores/useFavoritesStore", () => ({
+  useFavoritesStore: () => ({ isFavorite: vi.fn(), toggleFavorite: vi.fn(), favoriteCount: 0 }),
+}));
+
+vi.mock("@/stores/useComparisonStore", () => ({
+  useComparisonStore: () => ({ isInCompare: vi.fn(), toggleCompare: vi.fn(), canAddMore: true }),
 }));
 
 // Mock do BroadcastChannel
