@@ -36,6 +36,7 @@ export function useNoveltyFilters(allProducts: NoveltyWithDetails[]) {
   useEffect(() => {
     const params: Record<string, string> = {};
     if (viewMode !== "grid") params.view = viewMode;
+    if (gridColumns !== getDefaultColumns()) params.cols = String(gridColumns);
     if (sortMode !== "newest") params.sort = sortMode;
     if (selectedSupplier !== "all") params.supplier = selectedSupplier;
     if (selectedCategory !== "all") params.category = selectedCategory;
@@ -45,7 +46,7 @@ export function useNoveltyFilters(allProducts: NoveltyWithDetails[]) {
     if (currentPage !== 1) params.page = String(currentPage);
 
     setSearchParams(params, { replace: true });
-  }, [viewMode, sortMode, selectedSupplier, selectedCategory, selectedStatus, searchQuery, currentPage, setSearchParams]);
+  }, [viewMode, gridColumns, sortMode, selectedSupplier, selectedCategory, selectedStatus, searchQuery, currentPage, setSearchParams]);
 
   const filteredProducts = useMemo(() => {
     let filtered = [...allProducts];
@@ -128,6 +129,7 @@ export function useNoveltyFilters(allProducts: NoveltyWithDetails[]) {
       maxDays,
       searchQuery,
       currentPage,
+      gridColumns,
     },
     actions: {
       setViewMode,
@@ -138,6 +140,7 @@ export function useNoveltyFilters(allProducts: NoveltyWithDetails[]) {
       setMaxDays,
       setSearchQuery,
       setCurrentPage,
+      setGridColumns,
       clearFilters,
     },
     filteredProducts,
