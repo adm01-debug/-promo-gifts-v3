@@ -2,12 +2,12 @@ import { useState } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Mail, Loader2, ArrowLeft, CheckCircle, Clock } from 'lucide-react';
+import { Mail, Loader2, ArrowLeft, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { usePasswordResetRequests } from '@/hooks/usePasswordResetRequests';
+import { supabase } from '@/integrations/supabase/client';
 
 const forgotPasswordSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -21,7 +21,6 @@ interface ForgotPasswordFormProps {
 
 export function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) {
   const { toast } = useToast();
-  const { createRequest } = usePasswordResetRequests();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [requestSent, setRequestSent] = useState(false);
 
@@ -33,27 +32,23 @@ export function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) {
   const handleSubmit = async (data: ForgotPasswordFormData) => {
     setIsSubmitting(true);
     try {
-      const result = await createRequest(data.email);
+      const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
 
-      if (!result.success) {
-        toast({
-          variant: 'destructive',
-          title: 'Erro ao enviar solicitação',
-          description: result.message,
-        });
-        return;
-      }
+      if (error) throw error;
 
+      // Por segurança, sempre mostramos sucesso (não revela se o email existe)
       setRequestSent(true);
       toast({
-        title: 'Solicitação enviada!',
-        description: result.message,
+        title: 'Email enviado!',
+        description: 'Se o email existir em nossa base, você receberá um link para redefinir a senha.',
       });
     } catch (error) {
       toast({
         variant: 'destructive',
-        title: 'Erro inesperado',
-        description: 'Tente novamente mais tarde',
+        title: 'Erro ao enviar',
+        description: error instanceof Error ? error.message : 'Tente novamente mais tarde',
       });
     } finally {
       setIsSubmitting(false);
@@ -64,34 +59,28 @@ export function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) {
     return (
       <div className="space-y-6 text-center">
         <div className="flex justify-center">
-          <div className="w-16 h-16 rounded-full bg-warning/10 flex items-center justify-center">
-            <Clock className="h-8 w-8 text-warning" />
+          <div className="w-16 h-16 rounded-full bg-success/10 flex items-center justify-center">
+            <CheckCircle className="h-8 w-8 text-success" />
           </div>
         </div>
         
         <div className="space-y-2">
-          <h2 className="font-display text-xl font-semibold text-foreground">Solicitação enviada!</h2>
+          <h2 className="font-display text-xl font-semibold text-foreground">Verifique seu email</h2>
           <p className="text-sm text-muted-foreground">
-            Sua solicitação de recuperação de senha para{' '}
-            <span className="font-medium text-foreground">{form.getValues('email')}</span>{' '}
-            foi enviada para aprovação.
+            Se <span className="font-medium text-foreground">{form.getValues('email')}</span> estiver
+            cadastrado, você receberá um link para redefinir sua senha em alguns minutos.
           </p>
         </div>
 
         <div className="p-4 rounded-xl bg-muted/50 border border-border">
           <p className="text-sm text-muted-foreground">
-            <strong className="text-foreground">Próximo passo:</strong> Um gestor irá analisar sua solicitação. 
-            Após a aprovação, você receberá um email com o link para redefinir sua senha.
+            <strong className="text-foreground">Não recebeu?</strong> Verifique a caixa de spam ou
+            tente novamente em alguns minutos.
           </p>
         </div>
 
         <div className="space-y-3">
-          <Button
-            type="button"
-            variant="ghost"
-            className="w-full"
-            onClick={onBack}
-          >
+          <Button type="button" variant="ghost" className="w-full" onClick={onBack}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Voltar ao login
           </Button>
