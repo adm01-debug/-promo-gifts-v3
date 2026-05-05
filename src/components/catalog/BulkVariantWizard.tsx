@@ -17,6 +17,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 export interface BulkVariantSelection {
   product: Product;
   variant: ExternalVariantStock | null;
+  /** Permite múltiplos variantes para o mesmo produto (opcional para manter compatibilidade) */
+  variants?: (ExternalVariantStock | null)[];
 }
 
 export type BulkWizardMode = 'cart' | 'quote' | 'favorite' | 'compare' | 'collection';
