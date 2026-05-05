@@ -276,7 +276,7 @@ export function ProductPriceSimulator({ className }: ProductPriceSimulatorProps)
               1. Selecione o Produto
             </h3>
             {selectedProduct && (
-              <TooltipProvider delayDuration={0}>
+              <TooltipProvider delayDuration={1500}>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button variant="ghost" size="sm" onClick={() => handleProductSelect(null)}>
@@ -345,7 +345,7 @@ export function ProductPriceSimulator({ className }: ProductPriceSimulatorProps)
               <div className="space-y-4 p-4 rounded-xl border-2 border-dashed border-primary/30 bg-primary/5 animate-scale-in">
                 <div className="flex items-center justify-between">
                   <h4 className="text-sm font-medium">Nova Gravação</h4>
-                  <TooltipProvider delayDuration={0}>
+                  <TooltipProvider delayDuration={1500}>
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button variant="ghost" size="sm" onClick={handleCancelAddEngraving}>
@@ -376,7 +376,7 @@ export function ProductPriceSimulator({ className }: ProductPriceSimulatorProps)
                           {currentTechnique.componentName} → {currentTechnique.locationName}
                         </p>
                       </div>
-                      <TooltipProvider delayDuration={0}>
+                      <TooltipProvider delayDuration={1500}>
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <Button variant="ghost" size="sm" onClick={() => setCurrentTechnique(null)}>

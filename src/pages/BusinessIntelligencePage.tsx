@@ -101,7 +101,7 @@ export default function BusinessIntelligencePage() {
           </div>
           {clientId && (
             <div className="flex items-center gap-2 flex-wrap">
-              <TooltipProvider delayDuration={0}>
+              <TooltipProvider delayDuration={1500}>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button size="sm" variant="ghost" className="gap-1.5" onClick={() => setTourForce(true)}>
@@ -340,7 +340,7 @@ function CategoryFocusBar() {
         <span className="text-muted-foreground">Painel focado em:</span>
         <span className="font-semibold text-violet-700 dark:text-violet-300">{focusedLabel ?? focusedSlug}</span>
       </div>
-      <TooltipProvider delayDuration={0}>
+      <TooltipProvider delayDuration={1500}>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button size="sm" variant="ghost" className="gap-1.5 h-7" onClick={clear}>

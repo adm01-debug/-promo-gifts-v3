@@ -132,7 +132,7 @@ export function QuoteBuilderSummaryColumn({
                 {showOnlyStale && <X className="h-3 w-3 ml-0.5" aria-hidden="true" />}
               </button>
               {confirmAllStalePrices && (
-                <TooltipProvider delayDuration={0}>
+                <TooltipProvider delayDuration={1500}>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
@@ -215,7 +215,7 @@ export function QuoteBuilderSummaryColumn({
                           </div>
                         </div>
                         <div className="flex items-center gap-1 shrink-0">
-                          <TooltipProvider delayDuration={0}>
+                          <TooltipProvider delayDuration={1500}>
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Button variant="ghost" size="icon" aria-label="Editar" className={cn("h-6 w-6", isActive ? "text-primary" : "text-muted-foreground")} onClick={(e) => { e.stopPropagation(); setActiveItemIndex(idx); }}>
@@ -226,7 +226,7 @@ export function QuoteBuilderSummaryColumn({
                             </Tooltip>
                           </TooltipProvider>
 
-                          <TooltipProvider delayDuration={0}>
+                          <TooltipProvider delayDuration={1500}>
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <Button variant="ghost" size="icon" aria-label="Excluir" className="h-6 w-6 text-destructive hover:bg-destructive/10" onClick={(e) => {

@@ -24,7 +24,7 @@ export function MockupToolbar({
 }: MockupToolbarProps) {
   return (
     <div className="flex items-center gap-1">
-      <TooltipProvider delayDuration={0}>
+      <TooltipProvider delayDuration={1500}>
         <Tooltip>
           <TooltipTrigger asChild>
             <span className="inline-flex">
@@ -37,7 +37,7 @@ export function MockupToolbar({
         </Tooltip>
       </TooltipProvider>
 
-      <TooltipProvider delayDuration={0}>
+      <TooltipProvider delayDuration={1500}>
         <Tooltip>
           <TooltipTrigger asChild>
             <span className="inline-flex">
@@ -57,7 +57,7 @@ export function MockupToolbar({
             Salvando...
           </Badge>
         ) : lastSaved ? (
-          <TooltipProvider delayDuration={0}>
+          <TooltipProvider delayDuration={1500}>
             <Tooltip>
               <TooltipTrigger asChild>
                 <span className="inline-flex">
@@ -73,7 +73,7 @@ export function MockupToolbar({
             </Tooltip>
           </TooltipProvider>
         ) : draftError ? (
-          <TooltipProvider delayDuration={0}>
+          <TooltipProvider delayDuration={1500}>
             <Tooltip>
               <TooltipTrigger asChild>
                 <span className="inline-flex">

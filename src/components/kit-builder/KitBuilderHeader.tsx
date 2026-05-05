@@ -128,7 +128,7 @@ export function KitBuilderHeader({
 
           {/* TIER 2 — Primary actions */}
           <div className="flex items-center gap-2 shrink-0">
-            <TooltipProvider delayDuration={0}>
+            <TooltipProvider delayDuration={1500}>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button variant="ghost" size="icon" aria-label="Desfazer" disabled={!canUndo} onClick={onUndo}>
@@ -139,7 +139,7 @@ export function KitBuilderHeader({
               </Tooltip>
             </TooltipProvider>
 
-            <TooltipProvider delayDuration={0}>
+            <TooltipProvider delayDuration={1500}>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button variant="ghost" size="icon" aria-label="Refazer" disabled={!canRedo} onClick={onRedo}>
@@ -154,7 +154,7 @@ export function KitBuilderHeader({
 
             <KitShareLinkDialog kitId={currentKitId} kitName={kitName} />
 
-            <TooltipProvider delayDuration={0}>
+            <TooltipProvider delayDuration={1500}>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
@@ -173,7 +173,7 @@ export function KitBuilderHeader({
             </TooltipProvider>
 
             {isAdmin && kitState && hasContent && (
-                <TooltipProvider delayDuration={0}>
+                <TooltipProvider delayDuration={1500}>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
@@ -193,7 +193,7 @@ export function KitBuilderHeader({
                 </TooltipProvider>
             )}
 
-            <TooltipProvider delayDuration={0}>
+            <TooltipProvider delayDuration={1500}>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
@@ -210,7 +210,7 @@ export function KitBuilderHeader({
               </Tooltip>
             </TooltipProvider>
 
-            <TooltipProvider delayDuration={0}>
+            <TooltipProvider delayDuration={1500}>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button

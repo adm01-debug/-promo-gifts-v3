@@ -78,7 +78,7 @@ export default function QuoteBuilderPage() {
         {/* Header */}
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-4">
-            <TooltipProvider delayDuration={0}>
+            <TooltipProvider delayDuration={1500}>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button variant="ghost" size="icon" aria-label="Voltar" onClick={() => guardNavigation(() => s.navigate(-1))}>
@@ -105,7 +105,7 @@ export default function QuoteBuilderPage() {
               <QuoteTemplateSelector
                 onSelectTemplate={s.applyTemplate}
                 trigger={
-                  <TooltipProvider delayDuration={0}>
+                  <TooltipProvider delayDuration={1500}>
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button variant="outline">
@@ -143,7 +143,7 @@ export default function QuoteBuilderPage() {
                 <BookTemplate className="h-4 w-4 text-primary" />
                 <span className="text-sm">Template <strong>"{s.templateApplied}"</strong> aplicado</span>
               </div>
-              <TooltipProvider delayDuration={0}>
+              <TooltipProvider delayDuration={1500}>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button variant="ghost" size="sm" onClick={() => s.setTemplateApplied(null)}>Fechar</Button>
@@ -165,7 +165,7 @@ export default function QuoteBuilderPage() {
                   <p className="text-sm text-muted-foreground">Use "{s.defaultTemplate.name}" para começar rapidamente</p>
                 </div>
               </div>
-              <TooltipProvider delayDuration={0}>
+              <TooltipProvider delayDuration={1500}>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button variant="outline" onClick={() => s.applyTemplate(s.defaultTemplate!)}>Aplicar Template</Button>

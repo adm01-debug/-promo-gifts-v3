@@ -182,7 +182,7 @@ export function ProductDetailHero({
                 <div className="space-y-1.5">
                   <p className="text-[10px] text-muted-foreground/50 uppercase tracking-wider font-semibold">Estoque por cor</p>
                   <div className="flex flex-wrap items-center gap-1.5">
-                    <TooltipProvider delayDuration={0}>
+                    <TooltipProvider delayDuration={1500}>
                       {sortVariationsByColor(product.variations).map((variation: any) => {
                         const isSelected = selectedVariation?.id === variation.id;
                         const stock = Math.max(0, variation.stock);

@@ -330,7 +330,7 @@ export const SidebarReorganized = React.forwardRef<HTMLElement, SidebarProps>(
           {/* Collapse controls (desktop) */}
           <div className="hidden lg:flex items-center justify-between px-2 mb-1">
             {!isCollapsed && hasAnyGroupOpen && (
-              <TooltipProvider delayDuration={0}>
+              <TooltipProvider delayDuration={1500}>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
@@ -348,7 +348,7 @@ export const SidebarReorganized = React.forwardRef<HTMLElement, SidebarProps>(
               </TooltipProvider>
             )}
             {!isCollapsed && !hasAnyGroupOpen && <div />}
-            <TooltipProvider delayDuration={0}>
+            <TooltipProvider delayDuration={1500}>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button

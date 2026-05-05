@@ -68,7 +68,7 @@ export const BackButton = forwardRef<HTMLButtonElement, BackButtonProps>(
     const ariaLabel = `Voltar para ${parentLabel}`;
 
     return (
-      <TooltipProvider delayDuration={0}>
+      <TooltipProvider delayDuration={1500}>
         <Tooltip>
           <TooltipTrigger asChild>
             <motion.div

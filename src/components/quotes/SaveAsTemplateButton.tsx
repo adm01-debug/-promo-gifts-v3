@@ -55,7 +55,7 @@ export function SaveAsTemplateButton({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {trigger || (
-          <TooltipProvider delayDuration={0}>
+          <TooltipProvider delayDuration={1500}>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button variant="outline" size="sm">

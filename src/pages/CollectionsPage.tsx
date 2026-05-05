@@ -96,7 +96,7 @@ export default function CollectionsPage() {
 
         {/* Toolbar */}
         <div className="flex items-center gap-3">
-          <TooltipProvider delayDuration={0}>
+          <TooltipProvider delayDuration={1500}>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button size="sm" className="h-8 px-3 text-xs" onClick={() => setIsCreateOpen(true)}>
@@ -116,7 +116,7 @@ export default function CollectionsPage() {
           <div className="hidden sm:flex items-center gap-2 ml-auto">
             <CollectionsHeatmap />
             {localCollections.length > 0 && (
-              <TooltipProvider delayDuration={0}>
+              <TooltipProvider delayDuration={1500}>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
@@ -184,7 +184,7 @@ export default function CollectionsPage() {
                   <div className="flex items-center gap-2">
                     {selectedCollectionIds.size < localCollections.length && (
                       <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}>
-                        <TooltipProvider delayDuration={0}>
+                        <TooltipProvider delayDuration={1500}>
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <Button size="sm" variant="ghost" onClick={selectAllLocal} className="gap-1.5 text-xs">
@@ -200,7 +200,7 @@ export default function CollectionsPage() {
                       </motion.div>
                     )}
                     <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 }}>
-                      <TooltipProvider delayDuration={0}>
+                      <TooltipProvider delayDuration={1500}>
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <Button size="default" className="gap-2 font-semibold shadow-lg hover:shadow-xl transition-shadow" onClick={handleSendSelectedToQuote} disabled={selectedSummary.uniqueProductCount === 0}>
@@ -216,7 +216,7 @@ export default function CollectionsPage() {
                       </TooltipProvider>
                     </motion.div>
                     <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
-                      <TooltipProvider delayDuration={0}>
+                      <TooltipProvider delayDuration={1500}>
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <Button size="sm" variant="outline" onClick={clearSelection} className="gap-1.5 text-xs hover:text-destructive hover:border-destructive/50 transition-colors">

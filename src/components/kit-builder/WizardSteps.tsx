@@ -61,7 +61,7 @@ export function WizardSteps({ currentStep, completedSteps, onStepClick, kitState
 
           return (
             <div key={step.id} className="flex items-center flex-1 min-w-0">
-              <TooltipProvider delayDuration={0}>
+              <TooltipProvider delayDuration={1500}>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <button

@@ -98,7 +98,7 @@ export default function AdvancedPriceSearchPage() {
                   </div>
                 </ScrollArea>
                 {filters.colors.length > 0 && (
-                  <TooltipProvider delayDuration={0}>
+                  <TooltipProvider delayDuration={1500}>
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button variant="ghost" size="sm" className="w-full mt-2" onClick={() => updateFilter('colors', [])}>Limpar cores</Button>
@@ -151,7 +151,7 @@ export default function AdvancedPriceSearchPage() {
 
               <div className="flex gap-2 pt-4 border-t">
                 <Button onClick={handleSearch} className="flex-1" disabled={isLoading}><Search className="h-4 w-4 mr-2" />Buscar</Button>
-                <TooltipProvider delayDuration={0}>
+                <TooltipProvider delayDuration={1500}>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button variant="outline" onClick={handleReset}><RotateCcw className="h-4 w-4" /></Button>
@@ -174,7 +174,7 @@ export default function AdvancedPriceSearchPage() {
                   : 'Configure os filtros e clique em "Buscar"'}
               </p>
               <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1">
-                <TooltipProvider delayDuration={0}>
+                <TooltipProvider delayDuration={1500}>
                   {([['cards', Grid3X3, 'Ver em Cards'], ['table', Table2, 'Ver em Tabela'], ['list', List, 'Ver em Lista']] as const).map(([mode, Icon, label]) => (
                     <Tooltip key={mode}>
                       <TooltipTrigger asChild>

@@ -93,7 +93,7 @@ export function ProductCategoryBadges({
 
   return (
     <div className={cn("flex flex-wrap items-center gap-1.5", className)}>
-      <TooltipProvider delayDuration={0}>
+      <TooltipProvider delayDuration={1500}>
         {allCategories.map((cat) => (
         <Tooltip key={cat.id}>
           <TooltipTrigger asChild>
