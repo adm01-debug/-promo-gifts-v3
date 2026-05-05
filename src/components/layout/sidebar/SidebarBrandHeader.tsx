@@ -20,8 +20,8 @@ export const SidebarBrandHeader = forwardRef<HTMLDivElement, SidebarBrandHeaderP
     return (
       <div ref={ref} className="px-4 py-3 mb-2">
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-9 h-9 rounded-xl bg-gradient-primary flex items-center justify-center shrink-0 shadow-elegant">
-            <Gift className="h-4.5 w-4.5 text-primary-foreground" />
+          <div className="w-9 h-9 rounded-xl bg-[#3B82F6] flex items-center justify-center shrink-0 shadow-lg shadow-blue-500/20">
+            <Gift className="h-4.5 w-4.5 text-white" />
           </div>
           <div className="flex flex-col min-w-0">
             <span className="text-sm font-bold text-sidebar-foreground tracking-tight">
