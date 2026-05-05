@@ -30,20 +30,17 @@ describe("useFavoritesStore Sync & Persistence", () => {
   });
 
   it("should handle persistence errors", async () => {
-    const store = useFavoritesStore.getState();
-    const setItemSpy = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
       throw new Error("Quota exceeded");
     });
 
-    await act(async () => {
-      try {
-        await store.addFavorite("p2");
-      } catch (e) {
-        // Expected
-      }
-    });
+    try {
+      await useFavoritesStore.getState().addFavorite("p2");
+    } catch (e) {
+      // Expected
+    }
 
     expect(useFavoritesStore.getState().error).toBe("Erro ao salvar favorito localmente");
-    setItemSpy.mockRestore();
+    vi.restoreAllMocks();
   });
 });
