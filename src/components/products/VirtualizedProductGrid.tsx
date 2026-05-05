@@ -278,7 +278,7 @@ export function VirtualizedProductGrid({
                                   : "border-muted-foreground/40 bg-card/80 backdrop-blur-sm hover:border-primary/60"
                               )}
                               onClick={(e) => {
-                                e.stopPropagation();
+                                e.stopPropagation(); e.preventDefault();
                                 onToggleSelect?.(product.id);
                               }}
                             >
