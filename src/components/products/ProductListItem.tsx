@@ -304,7 +304,7 @@ export const ProductListItem = memo(function ProductListItem({
                   type="button"
                   tabIndex={i === safeVariantIdx ? 0 : -1}
                   aria-selected={i === safeVariantIdx}
-                  onClick={(e) => { e.stopPropagation(); setActiveVariantIdx(i); }}
+                  onClick={(e) => { e.stopPropagation(); e.preventDefault(); setActiveVariantIdx(i); }}
                   className={cn(
                     "w-3 h-3 rounded-full border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                     i === safeVariantIdx ? "ring-1 ring-offset-1 ring-offset-card scale-110" : "opacity-60 border-border/50"
