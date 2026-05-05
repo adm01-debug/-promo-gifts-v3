@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Clock, Eye, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useRecentlyViewedStore } from "@/stores/useRecentlyViewedStore";
 import { useProductsContext } from "@/contexts/ProductsContext";
 import { cn } from "@/lib/utils";
