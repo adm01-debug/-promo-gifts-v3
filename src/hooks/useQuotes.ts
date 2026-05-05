@@ -64,6 +64,7 @@ export function useQuotes(filters: QuotesListFilters = {}) {
         q = q.or(`quote_number.ilike.%${search}%,client_name.ilike.%${search}%,client_company.ilike.%${search}%`);
       }
 
+      // Ordenação consistente: orçamentos recentes no topo
       q = q.order("created_at", { ascending: false });
 
       const from = (page - 1) * pageSize;
@@ -71,11 +72,15 @@ export function useQuotes(filters: QuotesListFilters = {}) {
       q = q.range(from, to);
 
       const { data, error: qErr, count } = await q;
-      if (qErr) throw new Error(qErr.message);
+      if (qErr) {
+        throw qErr;
+      }
+      
       setQuotes((data || []) as Quote[]);
       setTotalCount(count ?? 0);
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Erro ao buscar orçamentos";
+      console.error("Error fetching quotes:", err);
+      const message = err instanceof Error ? err.message : (err as any)?.message || "Erro ao buscar orçamentos";
       setError(message);
       toast.error("Erro ao carregar orçamentos", { description: message });
     } finally {
