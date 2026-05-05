@@ -82,6 +82,7 @@ export function MainLayout({ children }: MainLayoutProps) {
               onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}
+              isFiltering={location.pathname === "/filtros" && (window as any).__IS_FILTERING_GLOBAL__}
             />
           </Suspense>
 
