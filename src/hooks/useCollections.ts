@@ -327,7 +327,7 @@ export function useCollections() {
           sort_order: 0,
           added_at: addedAt,
         }, {
-          onConflict: "collection_id,product_id"
+          onConflict: "collection_id,product_id,color_name"
         });
 
       if (error) {
