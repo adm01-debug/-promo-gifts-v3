@@ -188,8 +188,8 @@ export function AuthBrandingPanel() {
       <div className="relative z-10 flex flex-col justify-center items-center px-12 xl:px-20 w-full">
         <div className="space-y-6 w-full max-w-xl">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-xl bg-orange flex items-center justify-center shadow-lg shadow-orange/30">
-              <Gift className="h-7 w-7 text-orange-foreground" />
+            <div className="w-14 h-14 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/30">
+              <Gift className="h-7 w-7 text-primary-foreground" />
             </div>
             <div>
               <h1 className="font-display text-4xl font-bold text-white tracking-tight">Promo Gifts</h1>
