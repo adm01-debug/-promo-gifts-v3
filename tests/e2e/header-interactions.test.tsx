@@ -1,17 +1,24 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { MemoryRouter, useNavigate } from "react-router-dom";
 import { Header } from "@/components/layout/Header";
-import { useAuth } from "@/contexts/AuthContext";
-import { useFavoritesStore } from "@/stores/useFavoritesStore";
-import { useComparisonStore } from "@/stores/useComparisonStore";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { OnboardingProvider } from "@/contexts/OnboardingContext";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { SellerCartProvider } from "@/contexts/SellerCartContext";
 import React from "react";
 
 // Mock des dependências
 vi.mock("@/contexts/AuthContext", () => ({
-  useAuth: vi.fn(),
+  useAuth: vi.fn(() => ({
+    user: { email: "test@example.com" },
+    profile: { full_name: "Test User" },
+    role: "admin",
+    isAdmin: true,
+    signOut: vi.fn(),
+    rolesLoaded: true,
+  })),
 }));
 
 vi.mock("react-router-dom", async () => {
@@ -26,46 +33,67 @@ vi.mock("@/hooks/useCurrentSection", () => ({
   useCurrentSection: () => "Dashboard",
 }));
 
-describe("Header Shortcuts and Interactions", () => {
+// Mock do CartHeaderButton para evitar contexto de Carrinho complexo
+vi.mock("@/components/cart/CartHeaderButton", () => ({
+  CartHeaderButton: () => <div data-testid="mock-cart" />
+}));
+
+// Mock do NotificationBell
+vi.mock("@/components/notifications/NotificationDrawer", () => ({
+  NotificationBell: () => <div data-testid="mock-notifications" />
+}));
+
+// Mock do StockAlertsIndicator
+vi.mock("@/components/inventory/StockAlertsIndicator", () => ({
+  StockAlertsIndicator: () => <div data-testid="mock-stock-alerts" />
+}));
+
+// Mock do DiscountApprovalHeaderBadge
+vi.mock("@/components/admin/DiscountApprovalHeaderBadge", () => ({
+  DiscountApprovalHeaderBadge: () => <div data-testid="mock-discount-badge" />
+}));
+
+describe("Header Interactions", () => {
   const mockNavigate = vi.fn();
   const mockOnSearchChange = vi.fn();
   const mockOnMenuToggle = vi.fn();
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } }
+  });
 
   beforeEach(() => {
     vi.clearAllMocks();
     (useNavigate as any).mockReturnValue(mockNavigate);
-    (useAuth as any).mockReturnValue({
-      user: { email: "test@example.com" },
-      profile: { full_name: "Test User" },
-      role: "admin",
-      isAdmin: true,
-      signOut: vi.fn(),
-      rolesLoaded: true,
-    });
   });
 
   const renderHeader = (isFiltering = false) => {
     return render(
-      <MemoryRouter>
-        <ThemeProvider>
-          <OnboardingProvider>
-            <Header
-              onMenuToggle={mockOnMenuToggle}
-              searchQuery=""
-              onSearchChange={mockOnSearchChange}
-              isFiltering={isFiltering}
-            />
-          </OnboardingProvider>
-        </ThemeProvider>
-      </MemoryRouter>
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter>
+          <ThemeProvider>
+            <TooltipProvider>
+              <OnboardingProvider>
+                <SellerCartProvider>
+                  <Header
+                    onMenuToggle={mockOnMenuToggle}
+                    searchQuery=""
+                    onSearchChange={mockOnSearchChange}
+                    isFiltering={isFiltering}
+                  />
+                </SellerCartProvider>
+              </OnboardingProvider>
+            </TooltipProvider>
+          </ThemeProvider>
+        </MemoryRouter>
+      </QueryClientProvider>
     );
   };
 
   it("exibe feedback de carregamento quando isFiltering é true", () => {
     renderHeader(true);
-    // O botão do Super Filtro deve mostrar o Loader2 (ícone de carregamento)
     const filterButton = screen.getByLabelText("Super Filtro");
-    expect(filterButton.querySelector(".animate-spin")).toBeDefined();
+    const loader = filterButton.querySelector(".animate-spin");
+    expect(loader).not.toBeNull();
   });
 
   it("navega para /filtros ao clicar no botão de filtro", () => {
@@ -74,21 +102,5 @@ describe("Header Shortcuts and Interactions", () => {
     fireEvent.click(filterButton);
     expect(mockNavigate).toHaveBeenCalledWith("/filtros");
   });
-
-  it("não deve disparar atalhos globais quando o foco está em um input", async () => {
-    // Este teste valida a lógica no useGlobalShortcuts, mas vamos simular aqui
-    // o comportamento esperado de não interferência.
-    renderHeader();
-    
-    // Simula a presença de um input
-    const input = document.createElement("input");
-    document.body.appendChild(input);
-    input.focus();
-
-    // Dispara Alt+F (Super Filtro)
-    fireEvent.keyDown(input, { key: "f", altKey: true });
-    
-    // Não deve navegar se o foco estiver no input (lógica do SidebarReorganized/useGlobalShortcuts)
-    // Nota: Como o hook de atalhos está no MainLayout/Sidebar, testamos a integração.
-  });
 });
+
