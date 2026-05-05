@@ -108,7 +108,7 @@ export function SearchHistoryPopover({ type = "general", onSelect }: SearchHisto
 
             <CommandGroup>
               <AnimatePresence initial={false}>
-                {history.map((item) => (
+                {history.map((item, idx) => (
                   <CommandItem
                     key={item.id}
                     value={item.label}
