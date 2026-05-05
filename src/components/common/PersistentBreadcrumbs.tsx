@@ -194,18 +194,31 @@ export const PersistentBreadcrumbs = forwardRef<HTMLElement, PersistentBreadcrum
                 <BreadcrumbItem>
                   {item.href ? (
                     <BreadcrumbLink asChild>
-                      <Link to={item.href} className="flex items-center gap-1.5">
+                      <Link 
+                        to={item.href} 
+                        className={cn(
+                          "flex items-center gap-1.5 transition-colors hover:text-primary",
+                          item.isActive ? "text-primary font-bold" : "text-muted-foreground"
+                        )}
+                        aria-current={item.isActive ? "page" : undefined}
+                      >
                         {Icon && <Icon className="h-3.5 w-3.5" />}
                         <span>{item.label}</span>
                       </Link>
                     </BreadcrumbLink>
                   ) : (
-                    <BreadcrumbPage className="flex items-center gap-1.5">
+                    <BreadcrumbPage 
+                      className={cn(
+                        "flex items-center gap-1.5",
+                        item.isActive ? "text-primary font-bold" : "text-muted-foreground"
+                      )}
+                    >
                       {Icon && <Icon className="h-3.5 w-3.5" />}
                       <span>{item.label}</span>
                     </BreadcrumbPage>
                   )}
                 </BreadcrumbItem>
+
                 {!isLast && <BreadcrumbSeparator />}
               </Fragment>
             );
