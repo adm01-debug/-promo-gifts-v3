@@ -86,9 +86,14 @@ export function useSearchHistory(type?: HistoryType) {
     window.addEventListener("storage", handleStorage);
     window.addEventListener("search-history-update", handleCustomUpdate);
     
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+      loadHistory();
+    });
+    
     return () => {
       window.removeEventListener("storage", handleStorage);
       window.removeEventListener("search-history-update", handleCustomUpdate);
+      subscription.unsubscribe();
     };
   }, [loadHistory, type]);
 
