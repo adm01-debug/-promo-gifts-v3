@@ -150,8 +150,7 @@ export function useFiltersPageState() {
   const sortBy = filters.sortBy || 'name';
   const setSortBy = useCallback((value: string) => { setFilters(prev => ({ ...prev, sortBy: value })); }, []);
 
-  // Sync error state from catalog data
-  const { data: catalogData, isLoading: isLoadingProducts, hasNextPage, fetchNextPage, isFetchingNextPage, error: catalogError } = useProductsCatalog(serverSearchTerm ? { search: serverSearchTerm } : undefined);
+  // Sync error state from catalog data (catalogData/catalogError already destructured above)
 
   useEffect(() => {
     if (catalogError) {
