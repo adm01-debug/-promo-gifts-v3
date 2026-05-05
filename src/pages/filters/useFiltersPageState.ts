@@ -13,6 +13,7 @@ import { usePromoSalesRanking } from "@/hooks/usePromoSalesRanking";
 import { useSupplierSalesRanking } from "@/hooks/useSupplierSalesRanking";
 import { sortProducts } from "@/utils/product-sorting";
 import { toast } from "sonner";
+import { useFilterPresets } from "@/components/filters/FilterPresets";
 
 export function useFiltersPageState() {
   const [searchParams, setSearchParams] = useSearchParams();
