@@ -18,7 +18,7 @@ export interface WorkspaceNotification {
 
 const CACHE_PREFIX = "workspace_notifications_cache:";
 const CACHE_TTL_MS = 60_000; // 60s
-const PREFETCH_MIN_INTERVAL_MS = 5_000; // 5s
+const PREFETCH_MIN_INTERVAL_MS = 10_000; // Aumentado de 5s para 10s para melhor coalescing
 
 interface CacheEntry {
   cachedAt: number;
