@@ -108,7 +108,7 @@ export function QuoteBuilderSummaryColumn({
             <div className="p-2 rounded-xl bg-primary/10">
               <ShoppingCart className="h-4 w-4 text-primary" />
             </div>
-            <h3 className="font-display font-semibold text-base">Resumo</h3>
+            <h3 className="font-display font-semibold text-base">Resumo (Apresentado)</h3>
           </div>
 
           {/* Stale price filter — só aparece quando há itens com preço pendente de confirmação */}

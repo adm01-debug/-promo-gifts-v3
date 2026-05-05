@@ -230,7 +230,8 @@ export default function QuoteViewPage() {
               discountPercent={quote.discount_percent}
               discountAmount={quote.discount_amount}
               shippingType={quote.shipping_type}
-              shippingCost={quote.shipping_cost}
+               shippingCost={quote.shipping_cost}
+              negotiationMarkupPercent={quote.negotiation_markup_percent}
             />
 
             {(quote.payment_terms || quote.delivery_time) && (

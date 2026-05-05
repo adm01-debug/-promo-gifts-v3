@@ -19,16 +19,22 @@ interface QuoteTotalsSummaryProps {
   discountAmount?: number;
   shippingType?: string | null;
   shippingCost?: number | null;
+  negotiationMarkupPercent?: number;
 }
 
-export function QuoteTotalsSummary({ items, discountPercent, discountAmount, shippingType, shippingCost }: QuoteTotalsSummaryProps) {
+export function QuoteTotalsSummary({ 
+  items, discountPercent, discountAmount, shippingType, shippingCost, negotiationMarkupPercent = 0 
+}: QuoteTotalsSummaryProps) {
   const productSubtotal = items.reduce((acc, item) => acc + item.quantity * item.unit_price, 0);
   const personalizationTotal = items.reduce((acc, item) => {
     return acc + (item.personalizations || []).reduce(
       (pAcc: number, p: { total_cost?: number }) => pAcc + calcPersTotal(p.total_cost || 0, item.quantity), 0
     );
   }, 0);
-  const fullSubtotal = productSubtotal + personalizationTotal;
+  const rawSubtotal = productSubtotal + personalizationTotal;
+  const markupMultiplier = 1 + (negotiationMarkupPercent / 100);
+  const fullSubtotal = Math.round(rawSubtotal * markupMultiplier * 100) / 100;
+  
   const discountValue = discountPercent
     ? Math.round(fullSubtotal * (discountPercent / 100) * 100) / 100
     : (discountAmount || 0);
@@ -43,7 +49,7 @@ export function QuoteTotalsSummary({ items, discountPercent, discountAmount, shi
         <div className="p-4 space-y-2">
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Subtotal produtos:</span>
-            <span data-testid="summary-subtotal-products">{formatCurrency(productSubtotal)}</span>
+            <span data-testid="summary-subtotal-products">{formatCurrency(productSubtotal * markupMultiplier)}</span>
           </div>
           {hasPersonalizations && (
             <div className="flex justify-between text-sm">
