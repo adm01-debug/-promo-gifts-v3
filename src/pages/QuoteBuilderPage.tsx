@@ -351,6 +351,7 @@ export default function QuoteBuilderPage() {
                           onReorder={() => {}}
                           onUpdateQuantity={(_, qty) => s.updateItemQuantity(idx, qty)}
                           onUpdatePrice={(_, price) => s.updateItemPrice(idx, price)}
+                          onConfirmPrice={() => s.confirmItemPrice(idx)}
                           onRemove={() => { s.removeItem(idx); s.setActiveItemIndex(null); }}
                           onTogglePersonalization={() => s.toggleExpanded(idx)}
                           expandedItems={new Set(s.expandedItems.has(idx) ? [0] : [])}
