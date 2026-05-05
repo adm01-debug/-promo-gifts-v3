@@ -27,7 +27,9 @@ export interface ProductGridProps {
   onToggleSelect?: (id: string) => void;
 }
 
-function ProductCardWrapper({ 
+import { memo } from "react";
+
+const ProductCardWrapper = memo(function ProductCardWrapper({ 
   product, 
   index, 
   isVisible,
@@ -93,7 +95,7 @@ function ProductCardWrapper({
       />
     </div>
   );
-}
+});
 
 const columnClasses: Record<number, string> = {
   3: "grid-cols-2 sm:grid-cols-3",
