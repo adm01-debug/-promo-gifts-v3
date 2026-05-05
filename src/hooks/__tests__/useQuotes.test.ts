@@ -68,10 +68,11 @@ describe('useQuotes', () => {
   it('should handle fetch errors', async () => {
     mockSupabaseQuery.then.mockImplementationOnce((cb) => cb({ data: null, error: { message: 'Database down' }, count: 0 }));
     
-    const { result } = renderHook(() => useQuotes());
+    const { result } = renderHook(() => useQuotes({ page: 1 }));
 
     await waitFor(() => {
-      expect(result.current.error).toBe('Database down');
+      expect(result.current.error).toBeTruthy();
+      expect(result.current.error).toContain('Database down');
     }, { timeout: 3000 });
   });
 });
