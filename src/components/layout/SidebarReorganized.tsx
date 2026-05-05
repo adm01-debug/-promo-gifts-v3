@@ -442,5 +442,6 @@ export const SidebarReorganized = React.forwardRef<HTMLElement, SidebarProps>(
       </AnimatePresence>
     </>
   );
-  }
-);
+});
+
+SidebarReorganized.displayName = "SidebarReorganized";
