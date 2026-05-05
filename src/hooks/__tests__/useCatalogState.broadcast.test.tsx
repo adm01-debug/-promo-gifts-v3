@@ -11,10 +11,14 @@ vi.mock("@/hooks/use-toast", () => ({
   useToast: () => ({ toast: vi.fn() }),
 }));
 
-// Mock do useAuth
-vi.mock("@/contexts/AuthContext", () => ({
-  useAuth: () => ({ user: { id: 'test-user' } }),
-}));
+// Mock do useAuth - IMPORTANTE: mockar antes de importar useCatalogState se possível
+// Mas como Vitest hoist mocks, deve funcionar
+vi.mock("@/contexts/AuthContext", () => {
+  return {
+    useAuth: () => ({ user: { id: 'test-user' } }),
+    AuthProvider: ({ children }: any) => <div>{children}</div>
+  };
+});
 
 // Mock do useFavoriteQuickAdd
 vi.mock("@/hooks/useFavoriteQuickAdd", () => ({
