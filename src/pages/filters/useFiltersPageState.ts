@@ -114,7 +114,7 @@ export function useFiltersPageState() {
   const { productIds: categoryFilteredProductIds, hasFilter: hasCategoryFilter, isLoading: isLoadingCategoryFilter } = useProductsByCategory({ categoryIds: filters.categories, includeDescendants: true });
   const { productIds: colorFilteredProductIds, hasFilter: hasColorFilter, isLoading: isLoadingColorFilter } = useProductsByColor({ colorGroups: filters.colorGroups || [], colorVariations: filters.colorVariations || [], colorNuances: filters.colorNuances || [], colors: filters.colors });
 
-  const [activePresetId, setActivePresetId] = useState<string | undefined>();
+  
   const [viewMode, setViewMode] = useState<"grid" | "list" | "table">("grid");
   const [selectionMode, setSelectionMode] = useState(false);
   const [gridColumns, setGridColumns] = useState<ColumnCount>(getDefaultColumns);
