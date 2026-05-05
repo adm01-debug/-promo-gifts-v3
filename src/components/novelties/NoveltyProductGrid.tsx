@@ -51,6 +51,7 @@ export function NoveltyProductGrid() {
   const [selectedSupplier, setSelectedSupplier] = useState<string>(searchParams.get("supplier") || "all");
   const [selectedCategory, setSelectedCategory] = useState<string>(searchParams.get("category") || "all");
   const [selectedStatus, setSelectedStatus] = useState<string>(searchParams.get("status") || "all");
+  const [maxDays, setMaxDays] = useState<string>(searchParams.get("expires") || "all");
   const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
   const [currentPage, setCurrentPage] = useState(Number(searchParams.get("page")) || 1);
   const itemsPerPage = 20;
@@ -58,7 +59,8 @@ export function NoveltyProductGrid() {
 
   const { data: novelties, isLoading, isFetching, error } = useNoveltiesWithDetails({ 
     limit: 200,
-    status: selectedStatus !== "all" ? (selectedStatus as any) : undefined
+    status: selectedStatus !== "all" ? (selectedStatus as any) : undefined,
+    maxDays: maxDays !== "all" ? Number(maxDays) : undefined
   });
   const products = novelties || [];
 
@@ -118,7 +120,7 @@ export function NoveltyProductGrid() {
       return;
     }
     setCurrentPage(1);
-  }, [selectedSupplier, selectedCategory, selectedStatus, searchQuery, sortMode]);
+  }, [selectedSupplier, selectedCategory, selectedStatus, searchQuery, sortMode, maxDays]);
 
   // Sync state to URL
   useEffect(() => {
@@ -129,25 +131,34 @@ export function NoveltyProductGrid() {
     if (selectedSupplier !== "all") params.supplier = selectedSupplier;
     if (selectedCategory !== "all") params.category = selectedCategory;
     if (selectedStatus !== "all") params.status = selectedStatus;
+    if (maxDays !== "all") params.expires = maxDays;
     if (searchQuery.trim()) params.q = searchQuery;
     if (currentPage !== 1) params.page = String(currentPage);
 
     setSearchParams(params, { replace: true });
   }, [viewMode, gridColumns, sortMode, selectedSupplier, selectedCategory, selectedStatus, searchQuery, currentPage]);
 
-  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / itemsPerPage));
+
+  // Normalizar página se ela for maior que o total (página inexistente)
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0 && !isLoading) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages, isLoading]);
   const paginatedProducts = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage;
     return filteredProducts.slice(start, start + itemsPerPage);
   }, [filteredProducts, currentPage]);
 
   const sel = useNoveltiesSelectionMode({ selectionMode, filteredProducts: paginatedProducts });
-  const hasActiveFilters = selectedSupplier !== "all" || selectedCategory !== "all" || selectedStatus !== "all" || searchQuery.trim() !== "";
+  const hasActiveFilters = selectedSupplier !== "all" || selectedCategory !== "all" || selectedStatus !== "all" || maxDays !== "all" || searchQuery.trim() !== "";
   const handleProductClick = (id: string) => navigate(`/produto/${id}`);
   const clearFilters = () => { 
     setSelectedSupplier("all"); 
     setSelectedCategory("all"); 
     setSelectedStatus("all");
+    setMaxDays("all");
     setSearchQuery(""); 
   };
   if (error) console.error('Erro ao carregar novidades:', error);
@@ -289,6 +300,15 @@ export function NoveltyProductGrid() {
               <SelectItem value="expiring_soon">Expirando</SelectItem>
             </SelectContent>
           </Select>
+          <Select value={maxDays} onValueChange={setMaxDays}>
+            <SelectTrigger className="w-[150px] h-7 text-[11px] gap-1"><Package className="h-3 w-3 shrink-0" /><SelectValue placeholder="Expira em" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Qualquer prazo</SelectItem>
+              <SelectItem value="3">Próximos 3 dias</SelectItem>
+              <SelectItem value="7">Próxima semana</SelectItem>
+              <SelectItem value="15">Próximos 15 dias</SelectItem>
+            </SelectContent>
+          </Select>
           <Select value={selectedSupplier} onValueChange={setSelectedSupplier}>
             <SelectTrigger className="w-[160px] h-7 text-[11px] gap-1"><Building2 className="h-3 w-3 shrink-0" /><SelectValue placeholder="Fornecedor" /></SelectTrigger>
             <SelectContent><SelectItem value="all">Todos fornecedores</SelectItem>{suppliers.map(s => <SelectItem key={s.id} value={s.id}>{s.name} ({s.count})</SelectItem>)}</SelectContent>
@@ -315,6 +335,7 @@ export function NoveltyProductGrid() {
             {selectedSupplier !== "all" && <Badge role="listitem" variant="secondary" className="text-[10px] gap-0.5 cursor-pointer hover:bg-destructive/10 h-5" onClick={() => setSelectedSupplier("all")}><Building2 className="h-2.5 w-2.5" />{suppliers.find(s => s.id === selectedSupplier)?.name}<X className="h-2.5 w-2.5" /></Badge>}
             {selectedCategory !== "all" && <Badge role="listitem" variant="secondary" className="text-[10px] gap-0.5 cursor-pointer hover:bg-destructive/10 h-5" onClick={() => setSelectedCategory("all")}><FolderTree className="h-2.5 w-2.5" />{categories.find(c => c.id === selectedCategory)?.name}<X className="h-2.5 w-2.5" /></Badge>}
             {selectedStatus !== "all" && <Badge role="listitem" variant="secondary" className="text-[10px] gap-0.5 cursor-pointer hover:bg-destructive/10 h-5" onClick={() => setSelectedStatus("all")}><Sparkles className="h-2.5 w-2.5" />{selectedStatus === "active" ? "Ativo" : "Expirando"}<X className="h-2.5 w-2.5" /></Badge>}
+            {maxDays !== "all" && <Badge role="listitem" variant="secondary" className="text-[10px] gap-0.5 cursor-pointer hover:bg-destructive/10 h-5" onClick={() => setMaxDays("all")}><Package className="h-2.5 w-2.5" />Expira em {maxDays}d<X className="h-2.5 w-2.5" /></Badge>}
           </div>
         )}
       </div>

@@ -171,6 +171,7 @@ export interface UseNoveltiesOptions {
   offset?: number;
   onlyHighlighted?: boolean;
   status?: 'active' | 'expiring_soon' | 'expired';
+  maxDays?: number;
 }
 
 /**
@@ -180,12 +181,15 @@ export function useNoveltiesWithDetails(options: UseNoveltiesOptions = {}) {
   const { limit = 100, onlyHighlighted = false } = options;
 
   return useQuery<NoveltyWithDetails[]>({
-    queryKey: ['novelties-details', limit, onlyHighlighted, options.status],
+    queryKey: ['novelties-details', limit, onlyHighlighted, options.status, options.maxDays],
     queryFn: async () => {
       if (USE_MOCKS) {
         let mocked = [...MOCK_NOVELTIES];
         if (options.status) {
           mocked = mocked.filter(n => n.status === options.status);
+        }
+        if (options.maxDays) {
+          mocked = mocked.filter(n => n.days_remaining <= options.maxDays!);
         }
         if (onlyHighlighted) {
           mocked = mocked.filter(n => n.is_highlighted);
@@ -208,6 +212,10 @@ export function useNoveltiesWithDetails(options: UseNoveltiesOptions = {}) {
 
       if (options.status) {
         novelties = novelties.filter(n => n.status === options.status);
+      }
+
+      if (options.maxDays) {
+        novelties = novelties.filter(n => n.days_remaining <= options.maxDays!);
       }
 
       if (onlyHighlighted) {
