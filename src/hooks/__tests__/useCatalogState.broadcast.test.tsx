@@ -16,11 +16,35 @@ vi.mock("@/contexts/AuthContext", () => ({
   AuthProvider: ({ children }: any) => <>{children}</>
 }));
 
-// Corrigindo o mock do ProductsContext para evitar circular dependency e hoisting issues
+// Mock do FilterPanel para fornecer defaultFilters sem problemas de inicialização
+vi.mock("@/components/filters/FilterPanel", () => ({
+  defaultFilters: {
+    colors: [],
+    colorGroups: [],
+    colorVariations: [],
+    colorNuances: [],
+    categories: [],
+    suppliers: [],
+    publicoAlvo: [],
+    datasComemorativas: [],
+    endomarketing: [],
+    ramosAtividade: [],
+    segmentosAtividade: [],
+    materialGroups: [],
+    materialTypes: [],
+    materiais: [],
+    priceRange: [0, 500],
+    inStock: false,
+    isKit: false,
+    featured: false,
+    gender: [],
+  }
+}));
+
 vi.mock("@/contexts/ProductsContext", () => ({
   useProductsContext: () => ({ registerProducts: vi.fn() }),
   ProductsProvider: ({ children }: any) => <>{children}</>,
-  // Não tentar usar React.createContext aqui se estiver causando problemas
+  ProductsContext: { Consumer: ({ children }: any) => children(null) }
 }));
 
 vi.mock("@/hooks/useFavoriteQuickAdd", () => ({
@@ -147,16 +171,24 @@ describe("useCatalogState - BroadcastChannel Sync", () => {
     const mockPresetId = "test-preset-123";
     const mockFilters = {
       colors: ["#FF0000"],
+      colorGroups: [],
+      colorVariations: [],
+      colorNuances: [],
       categories: [1],
-      priceRange: [0, 500] as [number, number],
-      inStock: true,
-      isKit: false,
-      featured: false,
       suppliers: [],
       publicoAlvo: [],
       datasComemorativas: [],
       endomarketing: [],
+      ramosAtividade: [],
+      segmentosAtividade: [],
+      materialGroups: [],
+      materialTypes: [],
       materiais: [],
+      priceRange: [0, 500] as [number, number],
+      inStock: true,
+      isKit: false,
+      featured: false,
+      gender: [],
     };
 
     await act(async () => {
