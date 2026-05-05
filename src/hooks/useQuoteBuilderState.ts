@@ -165,6 +165,7 @@ export function useQuoteBuilderState() {
       paymentTerms, deliveryTime, shippingType, shippingCost,
       notes, internalNotes, validUntil
     },
+    onSaveServer: saveDraft,
     onRestore: (saved) => {
       // Exemplo: Restaurar campos se o usuário desejar ou automaticamente
       // Para evitar sobrescrever um carregamento de rascunho real (via URL),
