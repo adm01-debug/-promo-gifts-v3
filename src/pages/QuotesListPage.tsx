@@ -71,7 +71,10 @@ const sortOptions: { value: SortOption; label: string }[] = [
 
 export default function QuotesListPage() {
   const navigate = useNavigate();
-  const { quotes, isLoading, error, deleteQuote, duplicateQuote, updateQuoteStatus } = useQuotes();
+  const { 
+    quotes, isLoading, error, deleteQuote, duplicateQuote, updateQuoteStatus, 
+    bulkUpdateStatus, bulkDeleteQuotes 
+  } = useQuotes();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
