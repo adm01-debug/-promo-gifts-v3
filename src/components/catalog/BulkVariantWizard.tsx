@@ -231,6 +231,26 @@ function ProductVariantStep({
           );
         })}
       </div>
+
+      <div className="pt-2">
+        <Button
+          onClick={handleConfirm}
+          className="w-full gap-2 shadow-sm"
+          size="lg"
+        >
+          {selectedVariants.length > 0 ? (
+            <>
+              Confirmar {selectedVariants.length} {selectedVariants.length === 1 ? 'Variação' : 'Variações'}
+              <ArrowRight className="h-4 w-4" />
+            </>
+          ) : (
+            <>
+              Sem cor específica
+              <SkipForward className="h-4 w-4" />
+            </>
+          )}
+        </Button>
+      </div>
     </motion.div>
   );
 }
