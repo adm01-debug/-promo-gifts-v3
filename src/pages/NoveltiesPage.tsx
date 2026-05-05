@@ -10,10 +10,10 @@ export default function NoveltiesPage() {
   const [products, setProducts] = useState<any[] | undefined>(undefined);
   const [isGridLoading, setIsGridLoading] = useState(false);
 
-  const handleFilteredChange = (newProducts: any[], isLoading: boolean) => {
+  const handleFilteredChange = useCallback((newProducts: any[], isLoading: boolean) => {
     setProducts(newProducts);
     setIsGridLoading(isLoading);
-  };
+  }, []);
 
   return (
     <EnhancedErrorBoundary scope="pages.novelties">
