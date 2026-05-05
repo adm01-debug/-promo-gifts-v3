@@ -280,14 +280,31 @@ export function useExpiringNovelties(maxDays: number = 7) {
 /**
  * Hook para estatísticas de novidades
  */
-export function useNoveltyStats() {
+export function useNoveltyStats(filteredProducts?: NoveltyWithDetails[]) {
   return useQuery<NoveltyStatsDisplay>({
-    queryKey: ['novelty-stats'],
+    queryKey: ['novelty-stats', filteredProducts?.length],
     queryFn: async () => {
-      log.info('fetch_stats_start');
-      if (USE_MOCKS) return MOCK_STATS;
+      log.info('fetch_stats_start', { isFiltered: !!filteredProducts });
       
-      // Real-DB path desabilitado enquanto USE_MOCKS = true.
+      if (filteredProducts) {
+        // Recalcula KPIs baseados no subset filtrado
+        const now = new Date().toISOString().split('T')[0];
+        const last7 = getCutoffDate(7);
+        const last15 = getCutoffDate(15);
+
+        return {
+          ...MOCK_STATS,
+          totalNovelties: filteredProducts.length,
+          activeNovelties: filteredProducts.filter(p => p.status === 'active').length,
+          expiringSoon: filteredProducts.filter(p => p.status === 'expiring_soon').length,
+          arrivedToday: filteredProducts.filter(p => p.detected_at.startsWith(now)).length,
+          arrivedThisWeek: filteredProducts.filter(p => p.detected_at >= last7).length,
+          arrivedLast15Days: filteredProducts.filter(p => p.detected_at >= last15).length,
+          filteredCount: filteredProducts.length,
+        };
+      }
+
+      if (USE_MOCKS) return MOCK_STATS;
       return MOCK_STATS;
     },
     staleTime: 5 * 60 * 1000,
