@@ -414,10 +414,10 @@ export default function Auth() {
 
           {/* IP/Location Widget */}
           {currentIP && (
-            <div className="flex items-center justify-center gap-3 mx-auto px-5 py-2.5 rounded-full bg-card/80 backdrop-blur-md border border-border/60 shadow-md max-w-fit opacity-0" style={{ animation: 'scale-fade-in 0.5s ease-out 600ms forwards' }}>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <Globe className="h-3.5 w-3.5 text-orange" />
-                <span className="font-mono">{currentIP}</span>
+            <div className="flex items-center justify-center gap-3 mx-auto px-5 py-2.5 rounded-full bg-black/40 backdrop-blur-xl border border-white/10 shadow-2xl max-w-fit opacity-0" style={{ animation: 'scale-fade-in 0.5s ease-out 600ms forwards' }}>
+              <div className="flex items-center gap-2 text-xs text-white/70">
+                <Globe className="h-3.5 w-3.5 text-primary" />
+                <span className="font-mono font-bold tracking-tighter">{currentIP}</span>
               </div>
               {geoLocation && (
                 <>
