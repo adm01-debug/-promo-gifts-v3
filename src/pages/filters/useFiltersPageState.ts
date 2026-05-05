@@ -193,8 +193,27 @@ export function useFiltersPageState() {
   const { data: promoSalesMap } = usePromoSalesRanking();
   const { data: supplierSalesMap } = useSupplierSalesRanking();
 
-  const handleApplyPreset = (presetFilters: FilterState, presetId?: string) => { setFilters(presetFilters); setActivePresetId(presetId); };
-  const handleFilterChange = (newFilters: FilterState) => { setFilters(newFilters); setActivePresetId(undefined); };
+  const handleApplyPreset = useCallback((presetFilters: FilterState, presetId?: string) => {
+    try {
+      if (!presetFilters) {
+        throw new Error("Filtros do preset não encontrados");
+      }
+      setFilters(presetFilters);
+      setActivePresetId(presetId);
+    } catch (err) {
+      console.error("[useFiltersPageState] Erro ao aplicar preset:", err);
+      toast.error("Erro ao aplicar filtros do preset");
+    }
+  }, []);
+
+  const handleFilterChange = useCallback((newFilters: FilterState) => {
+    try {
+      setFilters(newFilters);
+      setActivePresetId(undefined);
+    } catch (err) {
+      console.error("[useFiltersPageState] Erro ao alterar filtros:", err);
+    }
+  }, []);
 
   const activeFiltersCount = useMemo(() => {
     let count = 0;
