@@ -32,6 +32,7 @@ export function useNoveltyFilters(allProducts: NoveltyWithDetails[]) {
   const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
   const [currentPage, setCurrentPage] = useState(Number(searchParams.get("page")) || 1);
   const itemsPerPage = 20;
+  const debouncedSearchQuery = useDebounce(searchQuery, 400);
 
   // Sync state to URL
   useEffect(() => {
