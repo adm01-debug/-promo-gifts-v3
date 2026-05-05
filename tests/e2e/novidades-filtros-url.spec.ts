@@ -117,4 +117,34 @@ test.describe('Módulo de Novidades - Ações, Persistência e Acessibilidade', 
     // Verifica se a URL mantém o parâmetro
     await expect(page).toHaveURL(/sort=price-asc/);
   });
+
+  test('deve atualizar KPIs corretamente ao mudar filtros e busca', async ({ page }) => {
+    // Captura o valor inicial de um KPI (ex: Novidades Ativas)
+    const activeKpi = page.locator('p', { hasText: /Novidades Ativas/i }).locator('..').locator('p').first();
+    const initialValue = await activeKpi.innerText();
+
+    // Aplica filtro de fornecedor
+    const supplierSelect = page.locator('button').filter({ hasText: /Fornecedor/i });
+    await supplierSelect.click();
+    await page.getByRole('option').nth(1).click(); // Seleciona o primeiro fornecedor da lista
+
+    // Espera o loading terminar e o valor mudar
+    await expect(activeKpi).not.toHaveText(initialValue, { timeout: 10000 });
+    
+    // Faz uma busca que deve zerar ou reduzir drasticamente os KPIs
+    const searchInput = page.getByPlaceholder(/Buscar novidades/i);
+    await searchInput.fill('PRODUTO_INEXISTENTE_XYZ');
+    
+    await expect(activeKpi).toHaveText('0');
+  });
+
+  test('deve normalizar URL em casos de borda (página inexistente)', async ({ page }) => {
+    // Navega para uma página absurda
+    await page.goto('/novidades?page=999');
+    
+    // Verifica se a URL foi corrigida para a última página disponível ou se o grid mostra vazio de forma elegante
+    // O componente NoveltyProductGrid tem um useEffect que normaliza o currentPage
+    await expect(page).not.toHaveURL(/page=999/);
+  });
 });
+
