@@ -1,10 +1,10 @@
 import { useRef, useEffect, useState } from "react";
 import { SmartSearchInput } from "@/components/search";
 import { RecentlyViewedPopover } from "@/components/products/RecentlyViewedPopover";
-import { Home, Search, Clock, Trash2 } from "lucide-react";
+import { SearchHistoryPopover } from "@/components/search/SearchHistoryPopover";
+import { Home, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { AnimatePresence } from "framer-motion";
 
