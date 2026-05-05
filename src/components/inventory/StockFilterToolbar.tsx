@@ -310,14 +310,14 @@ export function StockFilterToolbar({
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className="relative w-full sm:w-48">
-                <ShoppingCart className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <div className="relative w-full lg:w-56 group">
+                <ShoppingCart className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-primary opacity-60 group-focus-within:opacity-100 transition-opacity" />
                 <Input
                   type="number"
-                  placeholder="Preciso de X un..."
+                  placeholder="Preciso de X unidades..."
                   value={quantityInput}
                   onChange={(e) => setQuantityInput(e.target.value)}
-                  className="pl-9"
+                  className="pl-10 h-11 bg-card/40 border-border/50 focus:bg-card transition-all rounded-xl shadow-inner text-sm font-semibold"
                   min={0}
                 />
               </div>
