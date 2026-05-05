@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Sparkles } from "lucide-react";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { NoveltyStatsCards } from "@/components/novelties/NoveltyStatsCards";
@@ -6,6 +7,14 @@ import { ExpiringNoveltiesWidget } from "@/components/novelties/ExpiringNoveltie
 import { EnhancedErrorBoundary } from "@/components/errors/EnhancedErrorBoundary";
 
 export default function NoveltiesPage() {
+  const [products, setProducts] = useState<any[] | undefined>(undefined);
+  const [isGridLoading, setIsGridLoading] = useState(false);
+
+  const handleFilteredChange = useCallback((newProducts: any[], isLoading: boolean) => {
+    setProducts(newProducts);
+    setIsGridLoading(isLoading);
+  }, []);
+
   return (
     <EnhancedErrorBoundary scope="pages.novelties">
       <PageSEO title="Novidades" description="Confira os produtos mais recentes adicionados ao catálogo de brindes promocionais." path="/novidades" />
@@ -30,14 +39,14 @@ export default function NoveltiesPage() {
         </div>
 
         {/* KPIs focados em chegadas */}
-        <NoveltyStatsCards />
+        <NoveltyStatsCards filteredProducts={products} isRefreshing={isGridLoading} />
 
 
         {/* Layout principal — grid ocupa mais espaço */}
         <div className="grid grid-cols-1 xl:grid-cols-[1fr_280px] gap-3 sm:gap-4">
           {/* Grid de produtos */}
           <div className="order-2 xl:order-1 min-w-0">
-            <NoveltyProductGrid />
+            <NoveltyProductGrid onFilteredChange={handleFilteredChange} />
           </div>
 
           {/* Widget sidebar — compacto */}

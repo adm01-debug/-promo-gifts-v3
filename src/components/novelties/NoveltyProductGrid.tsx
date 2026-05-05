@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef, useCallback } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback, memo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { createClientLogger } from "@/lib/telemetry/structuredLogger";
 
@@ -47,7 +47,11 @@ function getGridGapClass(cols: ColumnCount): string {
   return "gap-x-8 gap-y-8";
 }
 
-export function NoveltyProductGrid() {
+export const NoveltyProductGrid = memo(function NoveltyProductGrid({ 
+  onFilteredChange 
+}: { 
+  onFilteredChange?: (products: any[], isLoading: boolean) => void 
+}) {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -68,6 +72,10 @@ export function NoveltyProductGrid() {
     status: selectedStatus !== "all" ? (selectedStatus as any) : undefined,
     maxDays: maxDays !== "all" ? Number(maxDays) : undefined
   });
+  
+  // Sincroniza o estado de carregamento com as estatísticas
+  const isGlobalLoading = isLoading || isFetching;
+  
   const products = novelties || [];
 
   const [loadingProgress, setLoadingProgress] = useState(0);
@@ -114,17 +122,19 @@ export function NoveltyProductGrid() {
         case "newest": return new Date(b.detected_at).getTime() - new Date(a.detected_at).getTime();
         case "stock": return (b.stock_quantity || 0) - (a.stock_quantity || 0);
         case "best-seller-supplier": 
-          // Simulado: usamos stock_quantity como proxy para best seller se não houver campo específico
           return (b.stock_quantity || 0) - (a.stock_quantity || 0);
         case "best-seller-promo":
-          // Simulado: ordem inversa de stock (mais vendidos costumam ter menos stock se não reposto)
           return (a.stock_quantity || 0) - (b.stock_quantity || 0);
         default: return new Date(b.detected_at).getTime() - new Date(a.detected_at).getTime();
       }
     });
-    log.debug("filters_applied", { count: filtered.length, q: searchQuery, supplier: selectedSupplier, category: selectedCategory, status: selectedStatus, expires: maxDays });
     return filtered;
   }, [products, selectedSupplier, selectedCategory, sortMode, searchQuery, selectedStatus, maxDays]);
+
+  // Notifica o pai sobre mudanças nos filtros/produtos
+  useEffect(() => {
+    onFilteredChange?.(filteredProducts, isGlobalLoading);
+  }, [filteredProducts, isGlobalLoading, onFilteredChange]);
 
   // Reset pagination when filters change
   const isFirstMount = useRef(true);
