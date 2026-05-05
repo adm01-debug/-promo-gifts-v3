@@ -200,6 +200,7 @@ const AppContent = () => {
         <Route path="/novidades" element={<NoveltiesPage />} />
         <Route path="/reposicao" element={<ReplenishmentsPage />} />
         <Route path="/favoritos" element={<FavoritesPage />} />
+        <Route path="/estoque" element={<StockDashboardPage />} />
         <Route path="/carrinhos" element={<SellerCartsPage />} />
         
         <Route path="/carrinhos/:cartId" element={<SellerCartsPage />} />
