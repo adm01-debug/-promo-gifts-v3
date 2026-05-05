@@ -43,7 +43,7 @@ export function FilterPanelHeader({
       </div>
 
       <div className="flex items-center gap-1.5">
-        <Tooltip delayDuration={200}>
+        <Tooltip delayDuration={1500}>
           <TooltipTrigger asChild>
             <Button
               variant="outline"
@@ -65,7 +65,7 @@ export function FilterPanelHeader({
           <TooltipContent side="bottom" className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Limpar todos os filtros ativos</TooltipContent>
         </Tooltip>
 
-        <Tooltip delayDuration={200}>
+        <Tooltip delayDuration={1500}>
           <TooltipTrigger asChild>
             <Button
               variant="outline"

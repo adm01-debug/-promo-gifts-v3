@@ -253,7 +253,7 @@ export function CategoryRanking({ days = 30, categoryId, supplierId, productId, 
                 transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
                 className="space-y-2.5"
               >
-                <TooltipProvider delayDuration={200}>
+                <TooltipProvider delayDuration={1500}>
                   {sortedCategories.map((cat, i) => {
                     const val = getBarValue(cat);
                     const pct = maxVal > 0 ? (val / maxVal) * 100 : 0;

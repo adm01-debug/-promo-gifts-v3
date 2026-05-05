@@ -281,7 +281,7 @@ export function ProductDetailHero({
                     <Eye className="h-3.5 w-3.5" /><span className="font-semibold text-foreground">{viewCount}</span><span>visualizações</span>
                   </div>
                   <div className="h-4 w-px bg-border/30" />
-                  <TooltipProvider delayDuration={400}>
+                  <TooltipProvider delayDuration={1500}>
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button variant="ghost" size="sm" onClick={onToggleFavorite}
