@@ -122,6 +122,7 @@ export const NoveltyGridCard = memo(function NoveltyGridCard({ product, onClick,
   const stockStatus = product.stock_status ?? 'in-stock';
   return (
     <Card
+      data-testid={`novelty-card-${product.product_id}`}
       className={cn(
         "group cursor-pointer overflow-hidden transition-all duration-300 rounded-xl sm:rounded-xl",
         "border-border/50 hover:shadow-lg hover:-translate-y-1 hover:border-primary/30",
