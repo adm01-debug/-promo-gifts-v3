@@ -84,15 +84,17 @@ export function BulkSelectionBar({
                 {actions}
 
                 <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button size="sm" variant="ghost" onClick={onClear} className="gap-1.5 text-xs">
-                        <X className="h-3.5 w-3.5" />
-                        Limpar
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Desmarcar tudo</TooltipContent>
-                  </Tooltip>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button size="sm" variant="ghost" onClick={onClear} className="gap-1.5 text-xs">
+                          <X className="h-3.5 w-3.5" />
+                          Limpar
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Desmarcar tudo</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </motion.div>
               </div>
             </div>
