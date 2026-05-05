@@ -219,15 +219,25 @@ function SortableItem({
                     className="w-20 h-8 text-sm"
                   />
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[11px] text-muted-foreground">Preço:</span>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    min={0}
-                    value={item.unit_price}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => onUpdatePrice(parseFloat(e.target.value) || 0)}
-                    className="w-28 h-8 text-sm"
+                <div className="flex flex-col gap-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] text-muted-foreground">Preço:</span>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min={0}
+                      value={item.unit_price}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => onUpdatePrice(parseFloat(e.target.value) || 0)}
+                      className="w-28 h-8 text-sm"
+                    />
+                  </div>
+                  <PriceFreshnessBadge
+                    priceUpdatedAt={item.price_updated_at}
+                    thresholdDays={item.price_freshness_threshold_days}
+                    confirmedAt={item.price_confirmed_at}
+                    onConfirm={onConfirmPrice}
+                    variant="compact"
+                    alwaysShow={true}
                   />
                 </div>
                 <div className="ml-auto text-right">
