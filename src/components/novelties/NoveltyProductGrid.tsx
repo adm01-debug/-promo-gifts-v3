@@ -68,6 +68,10 @@ export function NoveltyProductGrid() {
     status: selectedStatus !== "all" ? (selectedStatus as any) : undefined,
     maxDays: maxDays !== "all" ? Number(maxDays) : undefined
   });
+  
+  // Sincroniza o estado de carregamento com as estatísticas
+  const isGlobalLoading = isLoading || isFetching;
+  
   const products = novelties || [];
 
   const [loadingProgress, setLoadingProgress] = useState(0);
