@@ -477,6 +477,7 @@ export function useQuotes(filters: QuotesListFilters = {}) {
     syncQuoteToBitrix,
     testWebhookConnection, 
     logQuoteHistory, 
+    saveDraft,
     bulkUpdateStatus, 
     bulkDeleteQuotes,
   };
