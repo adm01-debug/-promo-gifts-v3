@@ -135,6 +135,11 @@ export function useCatalogState() {
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedCount, setSelectedCount] = useState(0);
   const [activeProductId, setActiveProductId] = useState<string | null>(null);
+  const [filterSheetOpen, setFilterSheetOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState(searchQueryFromUrl);
+  const [isSearching, setIsSearching] = useState(false);
+  const [displayCount, setDisplayCount] = useState(ITEMS_PER_PAGE);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   // Efeito para sincronizar filtros selecionados com a URL (além do preset)
   useEffect(() => {
