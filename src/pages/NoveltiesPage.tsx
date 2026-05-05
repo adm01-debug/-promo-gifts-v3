@@ -52,7 +52,7 @@ export default function NoveltiesPage() {
         <div className="grid grid-cols-1 xl:grid-cols-[1fr_280px] gap-3 sm:gap-4">
           {/* Grid de produtos */}
           <div className="order-2 xl:order-1 min-w-0">
-            <NoveltyProductGrid />
+            <NoveltyProductGrid onFilteredChange={handleFilteredChange} />
           </div>
 
           {/* Widget sidebar — compacto */}
