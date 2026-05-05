@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Clock, Trash2, X } from "lucide-react";
+import { Clock, Eye, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -33,13 +33,13 @@ export function RecentlyViewedPopover({ maxVisible = 10 }: RecentlyViewedPopover
       <PopoverTrigger asChild>
         <Button
           variant="outline"
-          size="icon" aria-label="Horário"
+          size="icon" aria-label="Produtos vistos recentemente"
           className={cn(
             "relative h-10 w-10 rounded-full border-border/50 transition-colors",
             itemCount > 0 ? "hover:border-primary/50" : "opacity-60 hover:opacity-100"
           )}
         >
-          <Clock className="h-4 w-4" />
+          <Eye className="h-4 w-4" />
           {itemCount > 0 && (
             <Badge
               variant="secondary"
@@ -55,7 +55,7 @@ export function RecentlyViewedPopover({ maxVisible = 10 }: RecentlyViewedPopover
           {/* Header */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-sm font-medium">
-              <Clock className="h-4 w-4 text-muted-foreground" />
+              <Eye className="h-4 w-4 text-muted-foreground" />
               <span>Vistos recentemente</span>
               {itemCount > 0 && (
                 <span className="text-muted-foreground text-xs">({itemCount})</span>
