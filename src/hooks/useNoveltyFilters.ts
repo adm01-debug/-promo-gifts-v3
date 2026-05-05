@@ -94,7 +94,7 @@ export function useNoveltyFilters(allProducts: NoveltyWithDetails[]) {
     });
 
     return filtered;
-  }, [allProducts, selectedSupplier, selectedCategory, selectedStatus, maxDays, sortMode, searchQuery]);
+  }, [allProducts, selectedSupplier, selectedCategory, selectedStatus, maxDays, sortMode, debouncedSearchQuery]);
 
   const totalPages = Math.max(1, Math.ceil(filteredProducts.length / itemsPerPage));
 
@@ -106,7 +106,7 @@ export function useNoveltyFilters(allProducts: NoveltyWithDetails[]) {
       return;
     }
     setCurrentPage(1);
-  }, [selectedSupplier, selectedCategory, selectedStatus, searchQuery, sortMode, maxDays]);
+  }, [selectedSupplier, selectedCategory, selectedStatus, debouncedSearchQuery, sortMode, maxDays]);
 
   // Normalizar página se ela for maior que o total
   useEffect(() => {
