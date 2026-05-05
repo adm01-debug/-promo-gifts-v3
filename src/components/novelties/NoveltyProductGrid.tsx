@@ -114,74 +114,10 @@ export const NoveltyProductGrid = memo(function NoveltyProductGrid({
     return { suppliers: [...supMap.values()].sort((a, b) => b.count - a.count), categories: [...catMap.values()].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR')) };
   }, [products]);
 
-  const filteredProducts = useMemo(() => {
-    let filtered = [...products];
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim();
-      filtered = filtered.filter(p => p.product_name.toLowerCase().includes(q) || (p.product_sku && p.product_sku.toLowerCase().includes(q)) || (p.supplier_name && p.supplier_name.toLowerCase().includes(q)));
-    }
-    if (selectedSupplier !== "all") filtered = filtered.filter(p => p.supplier_id === selectedSupplier);
-    if (selectedCategory !== "all") filtered = filtered.filter(p => p.category_id === selectedCategory);
-    filtered.sort((a, b) => {
-      switch (sortMode) {
-        case "name": return (a.product_name || "").localeCompare(b.product_name || "", 'pt-BR');
-        case "price-asc": return (a.base_price || 0) - (b.base_price || 0);
-        case "price-desc": return (b.base_price || 0) - (a.base_price || 0);
-        case "newest": return new Date(b.detected_at).getTime() - new Date(a.detected_at).getTime();
-        case "stock": return (b.stock_quantity || 0) - (a.stock_quantity || 0);
-        case "best-seller-supplier": 
-          return (b.stock_quantity || 0) - (a.stock_quantity || 0);
-        case "best-seller-promo":
-          return (a.stock_quantity || 0) - (b.stock_quantity || 0);
-        default: return new Date(b.detected_at).getTime() - new Date(a.detected_at).getTime();
-      }
-    });
-    return filtered;
-  }, [products, selectedSupplier, selectedCategory, sortMode, searchQuery, selectedStatus, maxDays]);
-
   // Notifica o pai sobre mudanças nos filtros/produtos
   useEffect(() => {
     onFilteredChange?.(filteredProducts, isGlobalLoading);
   }, [filteredProducts, isGlobalLoading, onFilteredChange]);
-
-  // Reset pagination when filters change
-  const isFirstMount = useRef(true);
-  useEffect(() => {
-    if (isFirstMount.current) {
-      isFirstMount.current = false;
-      return;
-    }
-    setCurrentPage(1);
-  }, [selectedSupplier, selectedCategory, selectedStatus, searchQuery, sortMode, maxDays]);
-
-  // Sync state to URL
-  useEffect(() => {
-    const params: Record<string, string> = {};
-    if (viewMode !== "grid") params.view = viewMode;
-    if (gridColumns !== getDefaultColumns) params.cols = String(gridColumns);
-    if (sortMode !== "newest") params.sort = sortMode;
-    if (selectedSupplier !== "all") params.supplier = selectedSupplier;
-    if (selectedCategory !== "all") params.category = selectedCategory;
-    if (selectedStatus !== "all") params.status = selectedStatus;
-    if (maxDays !== "all") params.expires = maxDays;
-    if (searchQuery.trim()) params.q = searchQuery;
-    if (currentPage !== 1) params.page = String(currentPage);
-
-    setSearchParams(params, { replace: true });
-  }, [viewMode, gridColumns, sortMode, selectedSupplier, selectedCategory, selectedStatus, searchQuery, currentPage]);
-
-  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / itemsPerPage));
-
-  // Normalizar página se ela for maior que o total (página inexistente)
-  useEffect(() => {
-    if (currentPage > totalPages && totalPages > 0 && !isLoading) {
-      setCurrentPage(totalPages);
-    }
-  }, [currentPage, totalPages, isLoading]);
-  const paginatedProducts = useMemo(() => {
-    const start = (currentPage - 1) * itemsPerPage;
-    return filteredProducts.slice(start, start + itemsPerPage);
-  }, [filteredProducts, currentPage]);
 
   const sel = useNoveltiesSelectionMode({ selectionMode, filteredProducts: paginatedProducts });
   const hasActiveFilters = selectedSupplier !== "all" || selectedCategory !== "all" || selectedStatus !== "all" || maxDays !== "all" || searchQuery.trim() !== "";
