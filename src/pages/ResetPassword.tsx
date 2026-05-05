@@ -181,12 +181,12 @@ export default function ResetPassword() {
       <div className="w-full max-w-md space-y-8 animate-fade-in">
         {/* Logo */}
         <div className="text-center space-y-3">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-orange shadow-lg shadow-orange/30">
-            <Sparkles className="h-8 w-8 text-orange-foreground" />
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-primary shadow-lg shadow-primary/30">
+            <Sparkles className="h-8 w-8 text-primary-foreground" />
           </div>
           <div>
             <h1 className="font-display text-2xl font-bold text-foreground">
-              Promo Brindes
+              Promo Gifts
             </h1>
           </div>
         </div>
