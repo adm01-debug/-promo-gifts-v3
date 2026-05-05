@@ -282,19 +282,25 @@ function ProductRow({ product, isExpanded, onToggle }: {
   return (
     <>
       <TableRow 
-        className={cn("cursor-pointer hover:bg-muted/50 transition-colors group", isExpanded && "bg-muted/30")}
+        className={cn("cursor-pointer hover:bg-muted/50 transition-colors group border-b border-border/40", isExpanded && "bg-muted/30 shadow-inner")}
         onClick={onToggle}
       >
-        <TableCell>
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" aria-label={isExpanded ? `Recolher ${product.productName}` : `Expandir ${product.productName}`} className="h-6 w-6">
-              {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-            </Button>
-            <div className="flex flex-col">
-              <span className="font-medium truncate max-w-[200px]">{product.productName}</span>
-              <span className="text-[11px] text-muted-foreground">
-                {product.productSku} • {product.totalVariants} {product.totalVariants === 1 ? 'variação' : 'variações'}
-              </span>
+        <TableCell className="py-3">
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 rounded-lg bg-card border border-border/50 flex items-center justify-center shadow-sm group-hover:border-primary/30 transition-colors">
+              {isExpanded ? <ChevronDown className="h-4 w-4 text-primary" /> : <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary" />}
+            </div>
+            <div className="flex flex-col min-w-0">
+              <span className="font-bold font-display text-sm tracking-tight truncate max-w-[240px] text-foreground">{product.productName}</span>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-muted-foreground/60 bg-muted/40 px-1 rounded">
+                  {product.productSku}
+                </span>
+                <span className="text-[10px] font-medium text-muted-foreground/60">•</span>
+                <span className="text-[10px] font-medium text-muted-foreground/60">
+                  {product.totalVariants} {product.totalVariants === 1 ? 'variação' : 'variações'}
+                </span>
+              </div>
             </div>
           </div>
         </TableCell>
