@@ -111,13 +111,13 @@ export function NoveltyProductGrid() {
   }, [products, selectedSupplier, selectedCategory, sortMode, searchQuery]);
 
   // Reset pagination when filters change
+  const isFirstMount = useRef(true);
   useEffect(() => {
-    // Only reset if it's not the initial mount from URL
-    const paramsPage = Number(searchParams.get("page")) || 1;
-    if (currentPage !== 1 && currentPage === paramsPage) {
-        // We are already at the correct page from URL, or haven't moved yet.
-        // If filters change from UI, we reset to 1.
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      return;
     }
+    setCurrentPage(1);
   }, [selectedSupplier, selectedCategory, selectedStatus, searchQuery, sortMode]);
 
   // Sync state to URL
