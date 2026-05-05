@@ -121,8 +121,9 @@ export function NoveltyProductGrid() {
         default: return new Date(b.detected_at).getTime() - new Date(a.detected_at).getTime();
       }
     });
+    log.debug("filters_applied", { count: filtered.length, q: searchQuery, supplier: selectedSupplier, category: selectedCategory, status: selectedStatus, expires: maxDays });
     return filtered;
-  }, [products, selectedSupplier, selectedCategory, sortMode, searchQuery]);
+  }, [products, selectedSupplier, selectedCategory, sortMode, searchQuery, selectedStatus, maxDays]);
 
   // Reset pagination when filters change
   const isFirstMount = useRef(true);
