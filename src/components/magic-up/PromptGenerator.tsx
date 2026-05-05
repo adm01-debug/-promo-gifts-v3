@@ -115,8 +115,6 @@ export function PromptGenerator({
 
   const handleAreaChange = (areaId: string) => {
     const isNone = areaId === "none";
-    setSelectedAreaId(isNone ? null : areaId);
-    setSelectedTechId(null);
     const area = isNone ? null : printAreas?.find(a => a.area_id === areaId);
     onCustomizationChange?.({
       locationId: isNone ? null : areaId,
@@ -131,7 +129,6 @@ export function PromptGenerator({
 
   const handleTechChange = (techId: string) => {
     const isNone = techId === "none";
-    setSelectedTechId(isNone ? null : techId);
     const tech = isNone ? null : availableTechniques.find(t => t.id === techId);
     onCustomizationChange?.({
       locationId: selectedAreaId,
