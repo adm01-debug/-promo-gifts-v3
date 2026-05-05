@@ -378,7 +378,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
                     </Button>
                   </DropdownMenuTrigger>
                 </TooltipTrigger>
-                <TooltipContent side="bottom" className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Configurações, perfil e logout</TooltipContent>
+                <TooltipContent side="bottom" className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Menu do usuário <kbd className="ml-1.5 px-1 py-0.5 rounded bg-primary-foreground/20 text-primary-foreground text-[10px] font-mono">Alt+U</kbd></TooltipContent>
               </Tooltip>
             </TooltipProvider>
             <DropdownMenuContent align="end" className="w-56 bg-card border-border">
