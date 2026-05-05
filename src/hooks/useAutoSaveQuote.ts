@@ -16,6 +16,7 @@ interface AutoSaveOptions<T> {
   onRestore?: (data: T) => void;
   debounceMs?: number;
   key?: string;
+  onSaveServer?: (data: T) => Promise<boolean>;
 }
 
 /**
