@@ -54,30 +54,37 @@ export const NoveltyProductGrid = memo(function NoveltyProductGrid({
   onFilteredChange?: (products: any[], isLoading: boolean) => void 
 }) {
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
 
-  const [viewMode, setViewMode] = useState<ViewMode>((searchParams.get("view") as ViewMode) || "grid");
   const [gridColumns, setGridColumns] = useState<ColumnCount>(Number(searchParams.get("cols")) as ColumnCount || getDefaultColumns);
-  const [sortMode, setSortMode] = useState<SortMode>((searchParams.get("sort") as SortMode) || "newest");
-  const [selectedSupplier, setSelectedSupplier] = useState<string>(searchParams.get("supplier") || "all");
-  const [selectedCategory, setSelectedCategory] = useState<string>(searchParams.get("category") || "all");
-  const [selectedStatus, setSelectedStatus] = useState<string>(searchParams.get("status") || "all");
-  const [maxDays, setMaxDays] = useState<string>(searchParams.get("expires") || "all");
-  const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
-  const [currentPage, setCurrentPage] = useState(Number(searchParams.get("page")) || 1);
-  const itemsPerPage = 20;
   const [selectionMode, setSelectionMode] = useState(false);
 
   const { data: novelties, isLoading, isFetching, error } = useNoveltiesWithDetails({ 
     limit: 200,
-    status: selectedStatus !== "all" ? (selectedStatus as any) : undefined,
-    maxDays: maxDays !== "all" ? Number(maxDays) : undefined
+    status: searchParams.get("status") !== "all" ? (searchParams.get("status") as any) : undefined,
+    maxDays: searchParams.get("expires") !== "all" ? Number(searchParams.get("expires")) : undefined
   });
   
-  // Sincroniza o estado de carregamento com as estatísticas
   const isGlobalLoading = isLoading || isFetching;
-  
   const products = novelties || [];
+
+  const { 
+    state, 
+    actions, 
+    filteredProducts, 
+    paginatedProducts, 
+    totalPages, 
+    hasActiveFilters,
+    itemsPerPage
+  } = useNoveltyFilters(products);
+
+  const {
+    viewMode, sortMode, selectedSupplier, selectedCategory, selectedStatus, maxDays, searchQuery, currentPage
+  } = state;
+
+  const {
+    setViewMode, setSortMode, setSelectedSupplier, setSelectedCategory, setSelectedStatus, setMaxDays, setSearchQuery, setCurrentPage, clearFilters
+  } = actions;
 
   const [loadingProgress, setLoadingProgress] = useState(0);
   const progressRef = useRef<ReturnType<typeof setInterval> | null>(null);
