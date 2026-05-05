@@ -41,10 +41,10 @@ describe("CatalogHeader", () => {
     activePresetId: undefined,
   };
 
-  it("renders the header with product count", () => {
+  it("renders the header with product count and active filters", () => {
     render(
       <TooltipProvider>
-        <CatalogHeader {...mockProps} />
+        <CatalogHeader {...mockProps} activeFiltersCount={1} />
       </TooltipProvider>
     );
 
