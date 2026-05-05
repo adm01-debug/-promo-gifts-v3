@@ -319,5 +319,6 @@ export function useFiltersPageState() {
     appliedFilters, setAppliedFilters, mobileFiltersOpen, setMobileFiltersOpen,
     isFiltering, sortBy, setSortBy, filteredProducts: enrichedFilteredProducts, activeFiltersCount,
     activeFiltersSummary, clearSingleFilter, handleReset, handleFilterChange, handleApplyPreset,
+    error
   };
 }
