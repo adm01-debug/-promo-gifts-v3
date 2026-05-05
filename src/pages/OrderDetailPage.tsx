@@ -63,19 +63,36 @@ export default function OrderDetailPage() {
   }, [id, user]);
 
   const fetchOrder = async () => {
-    setLoading(true);
-    const [orderRes, itemsRes] = await Promise.all([
-      // rls-allow: lookup por id; RLS valida ownership
-      supabase.from("orders").select("*").eq("id", id!).maybeSingle(),
-      supabase.from("order_items").select("*").eq("order_id", id!),
-    ]);
+    try {
+      setLoading(true);
+      const [orderRes, itemsRes] = await Promise.all([
+        supabase
+          .from("orders")
+          .select("id, order_number, created_at, status, fulfillment_status, subtotal, discount_amount, shipping_cost, total, client_name, client_company, client_email, client_phone, payment_terms, delivery_time, notes, internal_notes, tracking_number, quote_id")
+          .eq("id", id!)
+          .maybeSingle(),
+        supabase
+          .from("order_items")
+          .select("id, product_name, product_sku, product_image_url, quantity, unit_price")
+          .eq("order_id", id!),
+      ]);
 
-    if (orderRes.data) {
-      setOrder(orderRes.data);
-      setTrackingNumber(orderRes.data.tracking_number || "");
+      if (orderRes.error) throw orderRes.error;
+      if (itemsRes.error) throw itemsRes.error;
+
+      if (orderRes.data) {
+        setOrder(orderRes.data);
+        setTrackingNumber(orderRes.data.tracking_number || "");
+      }
+      if (itemsRes.data) {
+        setItems(itemsRes.data);
+      }
+    } catch (error) {
+      console.error("Error fetching order details:", error);
+      toast.error("Erro ao carregar detalhes do pedido");
+    } finally {
+      setLoading(false);
     }
-    if (itemsRes.data) setItems(itemsRes.data);
-    setLoading(false);
   };
 
   const updateStatus = async (newStatus: string) => {
