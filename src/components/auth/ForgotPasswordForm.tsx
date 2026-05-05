@@ -107,7 +107,7 @@ export function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) {
               id="forgot-email"
               type="email"
               placeholder="seu@email.com"
-              className="pl-10 bg-input border-border focus:border-orange focus:ring-orange"
+              className="pl-10 bg-input border-border focus:border-orange focus:ring-orange lowercase"
               {...form.register('email')}
             />
           </div>
