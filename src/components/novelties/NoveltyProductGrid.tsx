@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Package, ArrowUpDown, Building2, FolderTree, X, Sparkles, Search, CheckSquare, Loader2, SlidersHorizontal } from "lucide-react";
+import { Package, ArrowUpDown, Building2, FolderTree, X, Sparkles, Search, CheckSquare, Loader2, SlidersHorizontal, Download, Share2 } from "lucide-react";
 import { useNoveltiesWithDetails } from "@/hooks/useNovelties";
 import { useNoveltiesSelectionMode } from "@/hooks/useNoveltiesSelectionMode";
 import { LayoutPopover } from "@/components/products/LayoutPopover";
