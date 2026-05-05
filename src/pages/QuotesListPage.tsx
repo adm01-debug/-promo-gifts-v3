@@ -139,22 +139,29 @@ export default function QuotesListPage() {
     }
   };
 
-  if (isLoading && page === 1) {
     return (
       <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-4 pb-24 md:pb-6 animate-fade-in">
-        <div className="flex items-center justify-between gap-3">
-          <div>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex flex-col gap-2">
             <h1 className="text-xl lg:text-3xl font-display font-bold text-foreground flex items-center gap-2">
-              <FileText className="h-7 w-7" />
+              <FileText className="h-7 w-7 text-primary" />
               Orçamentos
             </h1>
-            <p className="text-xs text-muted-foreground mt-1 inline-flex items-center gap-1.5">
-              <Loader2 className="h-3 w-3 animate-spin" />
-              Carregando orçamentos…
-            </p>
+            <div className="flex items-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin text-primary" />
+              <p className="text-sm text-muted-foreground">Sincronizando orçamentos...</p>
+            </div>
           </div>
         </div>
-        <div className="grid gap-3">
+        
+        {/* Skeleton para KPIs */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+          {[1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} className="h-24 w-full rounded-xl" />
+          ))}
+        </div>
+
+        <div className="grid gap-3 mt-6">
           {[1, 2, 3, 4, 5].map((i) => (
             <QuoteCardSkeleton key={i} />
           ))}

@@ -78,14 +78,15 @@ export default function OrdersPage() {
         {isLoading ? (
           <div className="grid gap-3">
             {[0, 1, 2, 3, 4].map((i) => (
-              <Card key={i} className="animate-pulse">
+              <Card key={i} className="animate-pulse border-border/50">
                 <CardContent className="p-4">
                   <div className="flex justify-between items-center">
-                    <div className="space-y-2">
-                      <div className="h-4 w-24 bg-muted rounded" />
-                      <div className="h-3 w-40 bg-muted rounded" />
+                    <div className="space-y-3 flex-1">
+                      <div className="h-4 w-32 bg-muted/60 rounded" />
+                      <div className="h-3 w-56 bg-muted/40 rounded" />
+                      <div className="h-3 w-40 bg-muted/30 rounded" />
                     </div>
-                    <div className="h-8 w-20 bg-muted rounded-full" />
+                    <div className="h-9 w-24 bg-muted/50 rounded-full" />
                   </div>
                 </CardContent>
               </Card>
