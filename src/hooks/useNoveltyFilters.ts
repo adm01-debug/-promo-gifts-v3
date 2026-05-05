@@ -62,6 +62,17 @@ export function useNoveltyFilters(allProducts: NoveltyWithDetails[]) {
 
     if (selectedSupplier !== "all") filtered = filtered.filter(p => p.supplier_id === selectedSupplier);
     if (selectedCategory !== "all") filtered = filtered.filter(p => p.category_id === selectedCategory);
+    
+    // Filtro de Status
+    if (selectedStatus !== "all") {
+      filtered = filtered.filter(p => p.status === selectedStatus);
+    }
+
+    // Filtro de Expiração (Data)
+    if (maxDays !== "all") {
+      const days = parseInt(maxDays);
+      filtered = filtered.filter(p => p.days_remaining <= days);
+    }
 
     filtered.sort((a, b) => {
       switch (sortMode) {
