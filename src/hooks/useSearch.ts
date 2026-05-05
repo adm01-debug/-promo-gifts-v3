@@ -21,8 +21,10 @@ export function useSearch(products: Product[] = []) {
   const { 
     history: searchHistory, 
     addToHistory: addHistoryItem, 
-    removeFromHistory, 
-    clearHistory 
+    removeFromHistory: removeHistoryById, 
+    clearHistory,
+    togglePin,
+    isLoading: isHistoryLoading
   } = useSearchHistory("general");
 
   const history = useMemo(() => searchHistory.map(h => h.label), [searchHistory]);
