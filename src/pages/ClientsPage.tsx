@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo } from "react";
 import { PageSEO } from "@/components/seo/PageSEO";
-import { Users, Search, AlertTriangle, RefreshCw, X, History } from "lucide-react";
+import { Users, Search, AlertTriangle, RefreshCw, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -9,8 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { useCrmCompanies } from "@/hooks/useCrmCompanies";
 import { ClientCard } from "@/components/clients/ClientCard";
 import { getCompanyDisplayName } from "@/types/crm";
-import { useSearchHistory } from "@/hooks/useSearchHistory";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { SearchHistoryPopover } from "@/components/search/SearchHistoryPopover";
 import {
   Tooltip,
   TooltipContent,
@@ -18,19 +17,13 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { useSearchHistory } from "@/hooks/useSearchHistory";
 
 export default function ClientsPage() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
-  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const { data: clients = [], isLoading, isError, error, refetch } = useCrmCompanies({ is_customer: true });
-  
-  const { 
-    history: searchHistory, 
-    addToHistory, 
-    removeFromHistory, 
-    clearHistory 
-  } = useSearchHistory("company");
+  const { addToHistory } = useSearchHistory("company");
 
   const filtered = useMemo(() => {
     return clients.filter((c) => {
@@ -54,7 +47,6 @@ export default function ClientsPage() {
       });
     }
     setSearch(trimmed);
-    setIsHistoryOpen(false);
   }, [addToHistory]);
 
   const handleClientClick = useCallback((client: any) => {
@@ -88,99 +80,34 @@ export default function ClientsPage() {
           </div>
         </div>
 
-        <div className="relative max-w-md w-full">
-          <Popover open={isHistoryOpen && searchHistory.length > 0} onOpenChange={setIsHistoryOpen}>
-            <PopoverTrigger asChild>
-              <div className="relative group">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                <Input
-                  placeholder="Buscar por nome, CNPJ ou cidade..."
-                  value={search}
-                  onChange={(e) => {
-                    setSearch(e.target.value);
-                    if (!isHistoryOpen) setIsHistoryOpen(true);
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      handleSearchSubmit(search);
-                    }
-                  }}
-                  className="pl-10 pr-10"
-                />
-                {search && (
-                  <button 
-                    onClick={() => setSearch("")}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 hover:bg-muted rounded-full text-muted-foreground transition-colors"
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </button>
-                )}
-              </div>
-            </PopoverTrigger>
-            <PopoverContent 
-              className="p-0 w-[var(--radix-popover-trigger-width)] max-h-[300px] overflow-y-auto" 
-              align="start"
-              onOpenAutoFocus={(e) => e.preventDefault()}
-            >
-              <div className="p-2 border-b bg-muted/30 flex items-center justify-between">
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                  <History className="h-3 w-3" /> Buscas Recentes
-                </span>
-                <TooltipProvider >
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="h-6 text-[10px] px-2 hover:text-destructive transition-colors"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          clearHistory();
-                        }}
-                      >
-                        Limpar
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
-                      Excluir todo o histórico de buscas de clientes
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-              <div className="p-1">
-                {searchHistory.map((item) => (
-                  <div 
-                    key={item.id}
-                    className="flex items-center group/item"
-                  >
-                    <button
-                      className="flex-1 flex items-center gap-3 px-3 py-2 text-sm text-left hover:bg-accent rounded-md transition-colors truncate"
-                      onClick={() => {
-                        if (item.metadata?.id) {
-                          navigate(`/clientes/${item.metadata.id}`);
-                        } else {
-                          setSearch(item.label);
-                          setIsHistoryOpen(false);
-                        }
-                      }}
-                    >
-                      <History className="h-3.5 w-3.5 text-muted-foreground" />
-                      <span className="truncate">{item.label}</span>
-                    </button>
-                    <button
-                      className="p-2 text-muted-foreground opacity-0 group-hover/item:opacity-100 hover:text-destructive transition-all"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        removeFromHistory(item.id);
-                      }}
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </PopoverContent>
-          </Popover>
+        <div className="flex items-center gap-2 max-w-xl w-full">
+          <div className="relative flex-1 group">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+            <Input
+              placeholder="Buscar por nome, CNPJ ou cidade..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handleSearchSubmit(search);
+                }
+              }}
+              className="pl-10 pr-10"
+            />
+            {search && (
+              <button 
+                onClick={() => setSearch("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 hover:bg-muted rounded-full text-muted-foreground transition-colors"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
+          
+          <SearchHistoryPopover 
+            type="company" 
+            onSelect={(term) => setSearch(term)} 
+          />
         </div>
 
         {isError ? (
