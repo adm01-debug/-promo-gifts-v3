@@ -113,7 +113,8 @@ export function QuickAddToQuote({
               "hover:bg-primary hover:text-primary-foreground hover:scale-110 transition-all duration-200",
               className,
             )}
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => { e.stopPropagation(); e.preventDefault(); }}
+
           >
             <ShoppingCart className="h-4 w-4" />
           </Button>
