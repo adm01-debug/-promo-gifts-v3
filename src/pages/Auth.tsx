@@ -133,6 +133,22 @@ export default function Auth() {
     setIpBlocked(false);
     
     try {
+      // 10/10 Hardening: Verificação de rate-limit via server-side edge function
+      const { data: limitData, error: limitError } = await supabase.functions.invoke('rate-limit-check', {
+        body: { endpoint: 'login' }
+      });
+
+      if (limitError || (limitData && !limitData.allowed)) {
+        const retryAfter = limitData?.retryAfter || 60;
+        toast({
+          variant: "destructive",
+          title: "Muitas tentativas",
+          description: `Por segurança, seu acesso foi temporariamente suspenso. Tente novamente em ${retryAfter} segundos.`,
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
       const { error } = await signIn(data.email, data.password);
       
       if (error) {
@@ -310,7 +326,7 @@ export default function Auth() {
                           data-testid="login-email-input"
                           type="email"
                           placeholder="seu@email.com"
-                          className="pl-10 bg-input border-border focus:border-orange focus:ring-orange lowercase"
+                          className="pl-10 bg-[#EDF2F7] border-transparent focus:bg-white text-gray-900 placeholder:text-gray-500 lowercase h-12 rounded-xl transition-all duration-300"
                           {...loginForm.register("email")}
                           ref={(el) => {
                             loginForm.register("email").ref(el);
@@ -334,7 +350,7 @@ export default function Auth() {
                           data-testid="login-password-input"
                           type={showPassword ? "text" : "password"}
                           placeholder="••••••••"
-                          className="pl-10 pr-10 bg-input border-border focus:border-orange focus:ring-orange"
+                          className="pl-10 pr-10 bg-[#EDF2F7] border-transparent focus:bg-white text-gray-900 placeholder:text-gray-500 h-12 rounded-xl transition-all duration-300"
                           {...loginForm.register("password")}
                         />
                         <button
@@ -358,19 +374,18 @@ export default function Auth() {
                       <Button
                         type="button"
                         data-testid="login-forgot-link"
-                        variant="link-primary"
-                        className="p-0 h-auto text-sm"
+                        variant="link-secondary"
+                        className="p-0 h-auto text-xs font-bold uppercase tracking-wider text-foreground hover:text-primary transition-colors"
                         onClick={() => setShowForgotPassword(true)}
                       >
-                        Esqueci minha senha
+                        ESQUECI MINHA SENHA
                       </Button>
                     </div>
 
                     <Button 
                       type="submit" 
                       data-testid="login-submit"
-                      variant="orange"
-                      className="w-full h-12 text-base font-semibold shadow-lg shadow-orange/25 hover:shadow-xl hover:shadow-orange/30 transition-all duration-300" 
+                      className="w-full h-12 text-base font-bold uppercase tracking-widest bg-[#3B82F6] hover:bg-[#2563EB] text-white shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-300 rounded-xl"
                       disabled={isSubmitting}
                     >
                       {isSubmitting ? (
@@ -388,7 +403,7 @@ export default function Auth() {
                         <span className="w-full border-t border-border" />
                       </div>
                       <div className="relative flex justify-center text-xs uppercase">
-                        <span className="bg-card px-2 text-muted-foreground">ou</span>
+                        <span className="bg-card px-2 text-muted-foreground font-bold">OU</span>
                       </div>
                     </div>
 
@@ -414,17 +429,17 @@ export default function Auth() {
 
           {/* IP/Location Widget */}
           {currentIP && (
-            <div className="flex items-center justify-center gap-3 mx-auto px-5 py-2.5 rounded-full bg-card/80 backdrop-blur-md border border-border/60 shadow-md max-w-fit opacity-0" style={{ animation: 'scale-fade-in 0.5s ease-out 600ms forwards' }}>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <Globe className="h-3.5 w-3.5 text-orange" />
-                <span className="font-mono">{currentIP}</span>
+            <div className="flex items-center justify-center gap-3 mx-auto px-5 py-2.5 rounded-full bg-black/40 backdrop-blur-xl border border-white/10 shadow-2xl max-w-fit opacity-0" style={{ animation: 'scale-fade-in 0.5s ease-out 600ms forwards' }}>
+              <div className="flex items-center gap-2 text-xs text-white/70">
+                <Globe className="h-3.5 w-3.5 text-primary" />
+                <span className="font-mono font-bold tracking-tighter">{currentIP}</span>
               </div>
               {geoLocation && (
                 <>
-                  <div className="w-px h-4 bg-border" />
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <div className="w-px h-4 bg-white/10" />
+                  <div className="flex items-center gap-1.5 text-xs text-white/70">
                     <Wifi className="h-3.5 w-3.5 text-success" />
-                    <span>{geoLocation}</span>
+                    <span className="font-bold">{geoLocation}</span>
                   </div>
                 </>
               )}

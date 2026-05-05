@@ -154,11 +154,11 @@ function FeatureCard({ item, index }: { item: typeof FEATURE_ITEMS[0]; index: nu
     >
       <div className="flex items-start justify-between">
         <div className="min-w-0">
-          <p className="text-xl font-bold text-orange truncate">{item.label}</p>
+          <p className="text-xl font-bold text-primary truncate">{item.label}</p>
           <p className="text-sm font-medium text-white/50 truncate">{item.desc}</p>
         </div>
-        <div className="w-11 h-11 rounded-xl bg-orange/15 flex items-center justify-center group-hover:bg-orange/25 transition-colors shrink-0">
-          <IconComponent className="h-5 w-5 text-orange" />
+        <div className="w-11 h-11 rounded-xl bg-primary/15 flex items-center justify-center group-hover:bg-primary/25 transition-colors shrink-0">
+          <IconComponent className="h-5 w-5 text-primary" />
         </div>
       </div>
     </div>
@@ -188,20 +188,20 @@ export function AuthBrandingPanel() {
       <div className="relative z-10 flex flex-col justify-center items-center px-12 xl:px-20 w-full">
         <div className="space-y-6 w-full max-w-xl">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-xl bg-orange flex items-center justify-center shadow-lg shadow-orange/30">
-              <Gift className="h-7 w-7 text-orange-foreground" />
+            <div className="w-14 h-14 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/30">
+              <Gift className="h-7 w-7 text-primary-foreground" />
             </div>
             <div>
               <h1 className="font-display text-4xl font-bold text-white tracking-tight">Promo Gifts</h1>
-              <p className="text-orange font-semibold uppercase tracking-widest text-sm -mt-1">Plataforma de Vendas</p>
+              <p className="text-primary font-semibold uppercase tracking-widest text-sm -mt-1">Plataforma de Vendas</p>
             </div>
           </div>
 
           <div className="space-y-4 max-w-md">
             <h2 className="text-5xl xl:text-6xl font-display font-bold text-white leading-[1.1] tracking-tight relative group">
-              Um Universo de Produtos, para o{" "}
-              <span className="text-orange relative">
-                Melhor Time das Galáxias!
+              Um Universo de Produtos, para{" "}
+              <span className="text-primary relative">
+                ● Melhor Time das Galáxias!
                 <div className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r from-orange/0 via-orange/60 to-orange/0 scale-x-0 group-hover:scale-x-100 transition-transform duration-700" />
               </span>
             </h2>
