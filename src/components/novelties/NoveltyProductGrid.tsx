@@ -312,7 +312,7 @@ export function NoveltyProductGrid() {
           {/* Desktop Filters — Hidden on small mobile */}
           <div className="hidden md:flex flex-wrap items-center gap-1.5">
             <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-              <SelectTrigger className="w-[120px] h-7 text-[11px] gap-1"><Sparkles className="h-3 w-3 shrink-0" /><SelectValue placeholder="Status" /></SelectTrigger>
+              <SelectTrigger className="w-[120px] h-7 text-[11px] gap-1" aria-label="Filtrar por status"><Sparkles className="h-3 w-3 shrink-0" /><SelectValue placeholder="Status" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos status</SelectItem>
                 <SelectItem value="active">Ativo</SelectItem>
@@ -320,7 +320,7 @@ export function NoveltyProductGrid() {
               </SelectContent>
             </Select>
             <Select value={maxDays} onValueChange={setMaxDays}>
-              <SelectTrigger className="w-[130px] h-7 text-[11px] gap-1"><Package className="h-3 w-3 shrink-0" /><SelectValue placeholder="Expira em" /></SelectTrigger>
+              <SelectTrigger className="w-[130px] h-7 text-[11px] gap-1" aria-label="Filtrar por prazo de expiração"><Package className="h-3 w-3 shrink-0" /><SelectValue placeholder="Expira em" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Qualquer prazo</SelectItem>
                 <SelectItem value="3">Próximos 3 dias</SelectItem>
@@ -329,11 +329,11 @@ export function NoveltyProductGrid() {
               </SelectContent>
             </Select>
             <Select value={selectedSupplier} onValueChange={setSelectedSupplier}>
-              <SelectTrigger className="w-[150px] h-7 text-[11px] gap-1"><Building2 className="h-3 w-3 shrink-0" /><SelectValue placeholder="Fornecedor" /></SelectTrigger>
+              <SelectTrigger className="w-[150px] h-7 text-[11px] gap-1" aria-label="Filtrar por fornecedor"><Building2 className="h-3 w-3 shrink-0" /><SelectValue placeholder="Fornecedor" /></SelectTrigger>
               <SelectContent><SelectItem value="all">Todos fornecedores</SelectItem>{suppliers.map(s => <SelectItem key={s.id} value={s.id}>{s.name} ({s.count})</SelectItem>)}</SelectContent>
             </Select>
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="w-[150px] h-7 text-[11px] gap-1"><FolderTree className="h-3 w-3 shrink-0" /><SelectValue placeholder="Categoria" /></SelectTrigger>
+              <SelectTrigger className="w-[150px] h-7 text-[11px] gap-1" aria-label="Filtrar por categoria"><FolderTree className="h-3 w-3 shrink-0" /><SelectValue placeholder="Categoria" /></SelectTrigger>
               <SelectContent><SelectItem value="all">Todas categorias</SelectItem>{categories.map(c => <SelectItem key={c.id} value={c.id}>{c.name} ({c.count})</SelectItem>)}</SelectContent>
             </Select>
           </div>
