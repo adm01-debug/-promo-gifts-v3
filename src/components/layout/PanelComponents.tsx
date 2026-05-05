@@ -68,7 +68,7 @@ export function SidePanel({
             {...slideAnimation[side]}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
             className={cn(
-              'fixed top-0 z-50 h-full bg-background shadow-2xl',
+              'fixed top-0 z-[25] h-full bg-background shadow-2xl',
               sizeClasses[size],
               side === 'left' ? 'left-0' : 'right-0'
             )}
