@@ -228,6 +228,9 @@ Deno.serve(async (req) => {
       }
     }
   } catch (error) {
+    if ((error as any)?.status) {
+      return authErrorResponse(error, corsHeaders);
+    }
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     console.error("Quote sync error:", error);
     return new Response(JSON.stringify({ error: errorMessage }), {
