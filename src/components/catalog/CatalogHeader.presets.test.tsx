@@ -59,14 +59,17 @@ describe("CatalogHeader Preset Flow", () => {
       </TooltipProvider>
     );
 
-    expect(screen.getByTestId("active-preset-id")).toHaveTextContent("preset-abc");
+    // Get all matching elements (one for desktop, one for mobile)
+    const elements = screen.getAllByTestId("active-preset-id");
+    expect(elements[0]).toHaveTextContent("preset-abc");
 
     rerender(
       <TooltipProvider>
         <CatalogHeader {...mockProps} activePresetId={undefined} />
       </TooltipProvider>
     );
-    expect(screen.getByTestId("active-preset-id")).toHaveTextContent("none");
+    const updatedElements = screen.getAllByTestId("active-preset-id");
+    expect(updatedElements[0]).toHaveTextContent("none");
   });
 
   it("should trigger onApplyPreset with correct values when preset button is clicked", async () => {
@@ -86,18 +89,21 @@ describe("CatalogHeader Preset Flow", () => {
   });
 
   it("should maintain consistency between filteredCount and totalEstimate when a preset is active", () => {
+    // When a preset is active, it usually implies filters are active (activeFiltersCount > 0)
     render(
       <TooltipProvider>
         <CatalogHeader 
           {...mockProps} 
           activePresetId="preset-123" 
+          activeFiltersCount={1}
           filteredCount={15} 
           totalEstimate={100} 
         />
       </TooltipProvider>
     );
 
-    // Filtered count should be visible
+    // The component renders filteredCount with font-semibold class
+    // We can find it by text but since it might be split, we'll be careful
     expect(screen.getByText("15")).toBeInTheDocument();
     expect(screen.getByText(/de 100/i)).toBeInTheDocument();
   });
