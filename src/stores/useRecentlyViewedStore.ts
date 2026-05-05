@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { supabase } from "@/integrations/supabase/client";
 
 const STORAGE_KEY = "recently-viewed-products";
-const MAX_LOCAL_ITEMS = 50; // Aumentado para melhor UX com sincronização cloud
+const MAX_LOCAL_ITEMS = 100; // Aumentado para 100 para ser ferramenta de navegação completa
 
 export interface RecentlyViewedItem {
   productId: string;
