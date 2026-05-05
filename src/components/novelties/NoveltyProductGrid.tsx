@@ -266,13 +266,13 @@ export function NoveltyProductGrid() {
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3" data-testid="novelty-module">
       {/* Toolbar */}
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-2 flex-wrap">
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <Sparkles className="h-4 w-4 text-success shrink-0" />
-            <h2 className="text-base sm:text-lg font-semibold whitespace-nowrap">Novidades</h2>
+            <h1 className="text-base sm:text-lg font-semibold whitespace-nowrap" data-testid="page-title-novidades">Novidades</h1>
             <Badge variant="secondary" className="text-[10px] tabular-nums px-1.5 shrink-0">
               {isLoading && products.length === 0 ? <span className="flex items-center gap-1"><Loader2 className="h-2.5 w-2.5 animate-spin" />carregando...</span> : <>{filteredProducts.length}{hasActiveFilters && <span className="text-muted-foreground">/{products.length}</span>}</>}
             </Badge>
