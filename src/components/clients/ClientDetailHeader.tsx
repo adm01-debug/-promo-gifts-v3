@@ -19,7 +19,7 @@ export function ClientDetailHeader({ client }: ClientDetailHeaderProps) {
 
   return (
     <div className="space-y-3">
-      <TooltipProvider delayDuration={1500}>
+      <TooltipProvider >
         <Tooltip>
           <TooltipTrigger asChild>
             <Button variant="ghost" size="sm" onClick={() => navigate("/clientes")} className="-ml-2">

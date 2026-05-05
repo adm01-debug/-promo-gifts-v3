@@ -180,7 +180,7 @@ export function InlineColorGroupFilter({
   );
 
   return (
-    <TooltipProvider delayDuration={1500}>
+    <TooltipProvider >
       <div className="space-y-3">
         {/* Swatches grid */}
         <div 

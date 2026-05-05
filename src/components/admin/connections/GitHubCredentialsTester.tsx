@@ -99,7 +99,7 @@ export function GitHubCredentialsTester() {
 
       {report && (
         <div className="space-y-2">
-          <TooltipProvider delayDuration={1500}>
+          <TooltipProvider >
             <div className="flex flex-wrap gap-2">
               {(Object.entries(report.checks) as Array<[keyof Report["checks"], CheckResult]>).map(
                 ([key, check]) => (

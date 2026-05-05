@@ -225,7 +225,7 @@ export function IssueMcpKeyForm({ onIssued }: Props) {
 
       <div>
         <Label className="block mb-2">Escopos</Label>
-        <TooltipProvider delayDuration={1500}>
+        <TooltipProvider >
           <div className="flex flex-wrap gap-2">
             {KNOWN_SCOPES.map((s) => {
               const active = scopes.includes(s);

@@ -145,7 +145,7 @@ export function StockBadge({
 
   return (
     <TooltipProvider>
-      <Tooltip delayDuration={1500}>
+      <Tooltip >
         <TooltipTrigger asChild>
           <Badge
             variant="outline"

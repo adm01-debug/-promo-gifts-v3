@@ -58,7 +58,7 @@ export function CartHeaderButton() {
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <TooltipProvider delayDuration={1500}>
+      <TooltipProvider >
         <Tooltip>
         <TooltipTrigger asChild>
           <span className="inline-flex">
@@ -103,7 +103,7 @@ export function CartHeaderButton() {
             >
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-display text-sm font-semibold">Novo Carrinho</h3>
-                <TooltipProvider delayDuration={1500}>
+                <TooltipProvider >
                   <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
@@ -155,7 +155,7 @@ export function CartHeaderButton() {
                   </div>
                 </div>
                 {canCreateCart && (
-                  <TooltipProvider delayDuration={1500}>
+                  <TooltipProvider >
                     <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
@@ -285,7 +285,7 @@ export function CartHeaderButton() {
                                 )}
                                 {/* Limpar carrinho */}
                                 {isActive && cart.items.length > 0 && (
-                                  <TooltipProvider delayDuration={1500}>
+                                  <TooltipProvider >
                                     <Tooltip>
                                     <TooltipTrigger asChild>
                                       <button
@@ -303,7 +303,7 @@ export function CartHeaderButton() {
                                 </TooltipProvider>
                                 )}
                                 {/* Excluir carrinho */}
-                                <TooltipProvider delayDuration={1500}>
+                                <TooltipProvider >
                                   <Tooltip>
                                   <TooltipTrigger asChild>
                                     <button

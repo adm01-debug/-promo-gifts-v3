@@ -58,7 +58,7 @@ export function CatalogHeader({
       <div className="flex items-center gap-3 flex-1 min-w-0">
         {/* Reset / Home button — visible when search or filters are active */}
         {hasActiveConstraints && onReset && (
-          <TooltipProvider delayDuration={1500}>
+          <TooltipProvider >
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -104,7 +104,7 @@ export function CatalogHeader({
           <AnimatePresence>
             {searchHistory.length > 0 && (
               <Popover open={historyOpen} onOpenChange={setHistoryOpen}>
-                <TooltipProvider delayDuration={1500}>
+                <TooltipProvider >
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <PopoverTrigger asChild>
@@ -160,7 +160,7 @@ export function CatalogHeader({
           className="flex-1"
         />
         {searchHistory.length > 0 && (
-          <TooltipProvider delayDuration={1500}>
+          <TooltipProvider >
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button 

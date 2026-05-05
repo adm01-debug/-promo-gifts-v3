@@ -53,7 +53,7 @@ export default function OrdersPage() {
               className="pl-10"
             />
           </div>
-          <TooltipProvider delayDuration={1500}>
+          <TooltipProvider >
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button variant="outline" size="icon" className="shrink-0">

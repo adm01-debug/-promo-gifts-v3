@@ -53,7 +53,7 @@ export function RestrictedRouteNotice({
 
   if (isCollapsed) {
     return (
-      <TooltipProvider delayDuration={1500}>
+      <TooltipProvider >
         <Tooltip>
           <TooltipTrigger asChild>
             <div

@@ -31,7 +31,7 @@ export function CartActionsMenu({
 }: CartActionsMenuProps) {
   return (
     <DropdownMenu>
-      <TooltipProvider delayDuration={1500}>
+      <TooltipProvider >
         <Tooltip>
           <TooltipTrigger asChild>
             <DropdownMenuTrigger asChild>

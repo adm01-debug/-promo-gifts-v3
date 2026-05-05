@@ -199,7 +199,7 @@ export function ClientCategoryRadar({ clientId, ramoAtividade, clientName }: Pro
                 <h2 className="font-display font-bold text-base sm:text-lg leading-tight">
                   Mapa de Categorias — {clientName || "este cliente"}
                 </h2>
-                <TooltipProvider delayDuration={1500}>
+                <TooltipProvider >
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <button

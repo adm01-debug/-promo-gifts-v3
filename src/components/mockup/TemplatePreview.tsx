@@ -60,7 +60,7 @@ export function TemplatePreview({
     if (!showTooltips) return <div key={index}>{marker}</div>;
 
     return (
-      <TooltipProvider key={index} delayDuration={1500}>
+      <TooltipProvider key={index} >
         <Tooltip>
           <TooltipTrigger asChild>
             {marker}
@@ -149,7 +149,7 @@ export function TemplatePreviewExpanded({
 
       {/* Area markers */}
       {areas.map((area, index) => (
-        <TooltipProvider key={index} delayDuration={1500}>
+        <TooltipProvider key={index} >
           <Tooltip>
             <TooltipTrigger asChild>
               <button

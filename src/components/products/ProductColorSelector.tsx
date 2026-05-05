@@ -114,7 +114,7 @@ export function ProductColorSelector({
           const isWhite = colorHex.toUpperCase() === "#FFFFFF" || colorHex.toUpperCase() === "#FFF";
 
           return (
-            <Tooltip key={color.id || idx} delayDuration={1500}>
+            <Tooltip key={color.id || idx} >
               <TooltipTrigger asChild>
                 <motion.button
                   onClick={() => onColorSelect?.(color)}
@@ -261,7 +261,7 @@ export function CompactColorDots({
   return (
     <div className="flex items-center gap-1">
       {visibleColors.map((color, idx) => (
-        <Tooltip key={color.id || idx} delayDuration={1500}>
+        <Tooltip key={color.id || idx} >
           <TooltipTrigger asChild>
             <span
               className={cn(

@@ -13,7 +13,7 @@ export function ExplainModeToggle({ className }: { className?: string }) {
   const { enabled, toggle } = useExplainMode();
 
   return (
-    <TooltipProvider delayDuration={1500}>
+    <TooltipProvider >
       <Tooltip>
         <TooltipTrigger asChild>
           <button

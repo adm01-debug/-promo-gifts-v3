@@ -77,7 +77,7 @@ export function ProductQuickActions({
     <>
       <div className="flex items-center gap-2 pt-2 w-full">
         <div className="flex items-center gap-2 flex-1">
-          <TooltipProvider delayDuration={1500}>
+          <TooltipProvider >
           {actions.map(({ key, label, icon: Icon, iconColor }) => {
             const disabled = isActionDisabled(key);
             const tooltipText = disabled 

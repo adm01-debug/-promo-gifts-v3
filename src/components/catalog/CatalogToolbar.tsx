@@ -65,7 +65,7 @@ export function CatalogToolbar({
     <div className="flex items-center justify-between gap-2 flex-wrap">
       <div className="flex items-center gap-2 flex-shrink-0">
         <Sheet open={filterSheetOpen} onOpenChange={setFilterSheetOpen}>
-          <TooltipProvider delayDuration={1500}>
+          <TooltipProvider >
             <Tooltip>
               <TooltipTrigger asChild>
                 <SheetTrigger asChild>
@@ -103,7 +103,7 @@ export function CatalogToolbar({
 
         <div className="flex items-center gap-1.5">
           <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
-            <TooltipProvider delayDuration={1500}>
+            <TooltipProvider >
               <Tooltip>
                 <TooltipTrigger asChild>
                   <SelectTrigger className="w-10 sm:w-44 h-9 sm:h-10 text-xs sm:text-sm font-medium" aria-label="Ordenar por">
@@ -130,7 +130,7 @@ export function CatalogToolbar({
 
       <div className="flex items-center gap-2">
         {/* Selecionar / Cancelar toggle */}
-        <TooltipProvider delayDuration={1500}>
+        <TooltipProvider >
           <Tooltip>
             <TooltipTrigger asChild>
               <Button

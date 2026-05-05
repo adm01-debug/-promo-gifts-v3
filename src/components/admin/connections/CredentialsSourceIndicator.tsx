@@ -171,7 +171,7 @@ export function CredentialsSourceIndicator({ secrets, isLoading, onRefresh, clas
           <p className="text-sm font-medium leading-none">
             Fonte das credenciais
           </p>
-          <TooltipProvider delayDuration={1500}>
+          <TooltipProvider >
             <Tooltip>
               <TooltipTrigger asChild>
                 <Badge
@@ -208,7 +208,7 @@ export function CredentialsSourceIndicator({ secrets, isLoading, onRefresh, clas
         </p>
 
         <div className="flex items-center gap-1.5 flex-wrap pt-1">
-          <TooltipProvider delayDuration={1500}>
+          <TooltipProvider >
             <Tooltip>
               <TooltipTrigger asChild>
                 <Badge
@@ -331,7 +331,7 @@ export function CredentialsSourceIndicator({ secrets, isLoading, onRefresh, clas
       </div>
 
       {onRefresh && (
-        <TooltipProvider delayDuration={1500}>
+        <TooltipProvider >
           <Tooltip>
             <TooltipTrigger asChild>
               <Button

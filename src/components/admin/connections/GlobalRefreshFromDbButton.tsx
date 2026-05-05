@@ -146,7 +146,7 @@ export function GlobalRefreshFromDbButton({
 
   return (
     <>
-      <TooltipProvider delayDuration={1500}>
+      <TooltipProvider >
         <Tooltip>
           <TooltipTrigger asChild>
             <Button

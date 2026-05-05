@@ -97,7 +97,7 @@ export function ProductStickyHeader({
 
               {/* Actions */}
               <div className="flex items-center gap-2 shrink-0">
-                <TooltipProvider delayDuration={1500}>
+                <TooltipProvider >
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
@@ -131,7 +131,7 @@ export function ProductStickyHeader({
                   className="h-9 rounded-full px-5 bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-sm transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
                 />
 
-                <TooltipProvider delayDuration={1500}>
+                <TooltipProvider >
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
