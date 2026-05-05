@@ -152,6 +152,7 @@ export function QuoteItemsTable({ items }: QuoteItemsTableProps) {
             <PriceFreshnessBadge
               priceUpdatedAt={item.price_updated_at}
               thresholdDays={item.price_freshness_threshold_days}
+              confirmedAt={item.price_confirmed_at}
               variant="compact"
             />
           </div>
