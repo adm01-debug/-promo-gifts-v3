@@ -62,8 +62,6 @@ export function useFiltersPageState() {
   const debouncedUrlSearch = useDebounce(urlSearch, 400);
   const serverSearchTerm = debouncedServerSearch || debouncedUrlSearch;
 
-  // const { data: catalogData, isLoading: isLoadingProducts, hasNextPage, fetchNextPage, isFetchingNextPage } = useProductsCatalog(serverSearchTerm ? { search: serverSearchTerm } : undefined);
-
   useEffect(() => { if (hasNextPage && !isFetchingNextPage) fetchNextPage(); }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const realProducts = useMemo(() => catalogData?.pages ? catalogData.pages.flatMap(page => page.products) : [], [catalogData]);
