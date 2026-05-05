@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
@@ -325,20 +326,33 @@ export const SidebarReorganized = React.forwardRef<HTMLElement, SidebarProps>(
       )}
 
       {/* Sidebar */}
-      <aside
-        ref={ref}
-        data-tour="sidebar"
-        role="navigation"
-        aria-label="Menu principal"
-        style={{ ['--sidebar-w' as string]: isCollapsed ? '4rem' : '16rem' }}
-        className={cn(
-          "fixed left-0 top-0 z-50 h-full bg-sidebar border-r border-sidebar-border transition-all duration-300 ease-out",
-          isCollapsed ? "overflow-visible" : "overflow-hidden",
-          "lg:sticky lg:top-0 lg:z-auto lg:h-screen",
-          isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
-          isCollapsed ? "w-16" : "w-64"
-        )}
-      >
+      <AnimatePresence>
+        {(isOpen || window.innerWidth >= 1024) && (
+          <motion.aside
+            ref={ref}
+            data-tour="sidebar"
+            role="navigation"
+            aria-label="Menu principal"
+            initial={window.innerWidth < 1024 ? { x: "-100%" } : false}
+            animate={{ x: 0 }}
+            exit={{ x: "-100%" }}
+            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            drag={window.innerWidth < 1024 ? "x" : false}
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={{ left: 0.1, right: 0.5 }}
+            onDragEnd={(_, info) => {
+              if (window.innerWidth < 1024 && info.offset.x < -100) {
+                onToggle();
+              }
+            }}
+            style={{ ['--sidebar-w' as string]: isCollapsed ? '4rem' : '16rem' }}
+            className={cn(
+              "fixed left-0 top-0 z-50 h-full bg-sidebar border-r border-sidebar-border",
+              isCollapsed ? "overflow-visible" : "overflow-hidden",
+              "lg:sticky lg:top-0 lg:z-auto lg:h-screen",
+              isCollapsed ? "w-16" : "w-64"
+            )}
+          >
         <div className={cn("flex flex-col h-full pt-16 lg:pt-0 min-h-0", isCollapsed && "overflow-visible")}>
           {/* Brand Header */}
           <SidebarBrandHeader isCollapsed={isCollapsed} />
@@ -423,7 +437,9 @@ export const SidebarReorganized = React.forwardRef<HTMLElement, SidebarProps>(
 
 
         </div>
-      </aside>
+      </motion.aside>
+        )}
+      </AnimatePresence>
     </>
   );
   }
