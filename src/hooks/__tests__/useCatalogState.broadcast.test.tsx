@@ -16,10 +16,11 @@ vi.mock("@/contexts/AuthContext", () => ({
   AuthProvider: ({ children }: any) => <>{children}</>
 }));
 
+// Corrigindo o mock do ProductsContext para evitar circular dependency e hoisting issues
 vi.mock("@/contexts/ProductsContext", () => ({
   useProductsContext: () => ({ registerProducts: vi.fn() }),
   ProductsProvider: ({ children }: any) => <>{children}</>,
-  ProductsContext: React.createContext({ registerProducts: vi.fn() } as any)
+  // Não tentar usar React.createContext aqui se estiver causando problemas
 }));
 
 vi.mock("@/hooks/useFavoriteQuickAdd", () => ({
