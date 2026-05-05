@@ -118,6 +118,13 @@ export function useFiltersSelectionMode({ selectionMode, filteredProducts }: Use
   const firstSelectedId = selectedIds.size > 0 ? Array.from(selectedIds)[0] : "";
   const firstSelectedProduct = filteredProducts.find(p => p.id === firstSelectedId);
 
+  /** Volta do BulkAddToCartModal para o wizard preservando seleções. */
+  const handleBackToWizard = useCallback(() => {
+    setCartModalOpen(false);
+    setWizardMode('cart');
+    setVariantWizardOpen(true);
+  }, []);
+
   return {
     selectedIds, selectedCount, toggleSelect, selectAll, clearSelection,
     collectionModalOpen, setCollectionModalOpen,
@@ -125,7 +132,7 @@ export function useFiltersSelectionMode({ selectionMode, filteredProducts }: Use
     variantWizardOpen, setVariantWizardOpen,
     wizardMode, wizardSelections,
     handleBulkFavorite, handleBulkCompare, handleBulkCollection, handleBulkCart, handleBulkQuote,
-    handleWizardComplete, bulkCartProducts,
+    handleWizardComplete, handleBackToWizard, bulkCartProducts,
     firstSelectedId, firstSelectedProduct,
   };
 }
