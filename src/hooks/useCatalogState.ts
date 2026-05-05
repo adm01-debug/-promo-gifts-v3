@@ -166,12 +166,19 @@ export function useCatalogState() {
         else next.delete("search");
         
         // Sincroniza cores
-        if (filters.colorGroups.length) next.set("colors", filters.colorGroups.join(","));
-        else next.delete("colors");
+        if (filters.colorGroups?.length) next.set("colors", filters.colorGroups.join(","));
+        else if (!next.get("preset")) next.delete("colors"); // Apenas deleta se não for preset (pois preset pode ter filtros implícitos)
         
         // Sincroniza categorias
-        if (filters.categories.length) next.set("cats", filters.categories.join(","));
-        else next.delete("cats");
+        if (filters.categories?.length) next.set("cats", filters.categories.join(","));
+        else if (!next.get("preset")) next.delete("cats");
+
+        // Outros filtros relevantes para consistência total
+        if (filters.inStock) next.set("stock", "true");
+        else next.delete("stock");
+
+        if (filters.isKit) next.set("kit", "true");
+        else next.delete("kit");
 
         if (next.toString() === prev.toString()) return prev;
         return next;
@@ -179,7 +186,7 @@ export function useCatalogState() {
     }, 500);
     
     return () => clearTimeout(timeout);
-  }, [filters, searchQuery, activePresetId, setSearchParams]);
+  }, [filters, searchQuery, activePresetId, setSearchParams, searchParams]);
 
   const toggleSelectionMode = useCallback(() => {
     setSelectionMode(prev => {
