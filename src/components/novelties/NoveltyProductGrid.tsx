@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect, useRef, useCallback, memo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { createClientLogger } from "@/lib/telemetry/structuredLogger";
+import { useNoveltyFilters, type SortMode, type ViewMode } from "@/hooks/useNoveltyFilters";
 
 const log = createClientLogger("novelties.grid");
 import { Button } from "@/components/ui/button";
