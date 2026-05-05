@@ -206,8 +206,40 @@ export function useQuotes() {
       return false;
     }
   };
+  const bulkUpdateStatus = async (quoteIds: string[], status: Quote["status"]): Promise<boolean> => {
+    try {
+      const { error: updErr } = await supabase.from("quotes").update({ status }).in("id", quoteIds);
+      if (updErr) throw updErr;
+      
+      for (const quoteId of quoteIds) {
+        await logQuoteHistory(quoteId, "status_changed", `Status alterado em massa para ${STATUS_LABELS[status]}`);
+      }
 
-  const updateQuote = async (quoteId: string, quote: Partial<Quote>, items: QuoteItem[]): Promise<Quote | null> => {
+      toast.success(`${quoteIds.length} orçamento(s) atualizado(s)`);
+      await fetchQuotes();
+      return true;
+    } catch (err) {
+      console.error("Error in bulk update status:", err);
+      toast.error("Erro ao atualizar orçamentos em massa");
+      return false;
+    }
+  };
+
+  const bulkDeleteQuotes = async (quoteIds: string[]): Promise<boolean> => {
+    try {
+      const { error: delErr } = await supabase.from("quotes").delete().in("id", quoteIds);
+      if (delErr) throw delErr;
+      toast.success(`${quoteIds.length} orçamento(s) excluído(s)`);
+      await fetchQuotes();
+      return true;
+    } catch (err) {
+      console.error("Error in bulk delete:", err);
+      toast.error("Erro ao excluir orçamentos em massa");
+      return false;
+    }
+  };
+
+
     if (!user) { toast.error("Usuário não autenticado"); return null; }
     setIsLoading(true);
     try {
