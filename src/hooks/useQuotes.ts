@@ -152,6 +152,10 @@ export function useQuotes() {
     setIsLoading(true);
     try {
       const totals = calculateQuoteTotals(quote, items);
+      // Validar integridade dos cálculos se houver markup
+      if (totals.markup > 0 && totals.subtotal < totals.realSubtotal) {
+        throw new Error("Falha na integridade dos cálculos: subtotal apresentado menor que subtotal real.");
+      }
       const insertPayload = buildInsertPayload(quote, user.id, orgId, totals);
       // rls-allow: applySellerScope chamado dinamicamente; mutações por id com RLS
       const { data: inserted, error: insErr } = await supabase.from("quotes").insert(insertPayload).select("*");
@@ -244,6 +248,10 @@ export function useQuotes() {
     setIsLoading(true);
     try {
       const totals = calculateQuoteTotals(quote, items);
+      // Validar integridade dos cálculos se houver markup
+      if (totals.markup > 0 && totals.subtotal < totals.realSubtotal) {
+        throw new Error("Falha na integridade dos cálculos: subtotal apresentado menor que subtotal real.");
+      }
       const updatePayload = buildUpdatePayload(quote, totals);
       const { data: updated, error: updErr } = await supabase
         // rls-allow: applySellerScope chamado dinamicamente; mutações por id com RLS
