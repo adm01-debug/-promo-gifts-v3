@@ -1,5 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { invokeExternalDb } from '@/lib/external-db/bridge';
+import { MOCK_NOVELTIES, MOCK_STATS } from './useNoveltiesMocks';
+
+const USE_MOCKS = true; // Flag para facilitar alternar entre dados reais e mocks
 
 const NOVELTY_WINDOW_DAYS = 30;
 const NOVELTY_SELECT = 'id, name, sku, primary_image_url, sale_price, category_id, supplier_id, created_at, stock_quantity, min_quantity';
@@ -174,6 +177,8 @@ export function useNoveltiesWithDetails(options: UseNoveltiesOptions = {}) {
   return useQuery<NoveltyWithDetails[]>({
     queryKey: ['novelties-details', limit, onlyHighlighted],
     queryFn: async () => {
+      if (USE_MOCKS) return MOCK_NOVELTIES;
+      
       const cutoff = getCutoffDate();
       
       const result = await invokeExternalDb<RawProduct>({
@@ -206,6 +211,12 @@ export function useExpiringNovelties(maxDays: number = 7) {
   return useQuery<NoveltyWithDetails[]>({
     queryKey: ['expiring-novelties', maxDays],
     queryFn: async () => {
+      if (USE_MOCKS) {
+        return MOCK_NOVELTIES
+          .filter(n => n.days_remaining <= maxDays)
+          .sort((a, b) => a.days_remaining - b.days_remaining);
+      }
+
       // Buscar todas as novidades dos últimos 30 dias
       const cutoff = getCutoffDate();
       
@@ -235,77 +246,10 @@ export function useNoveltyStats() {
   return useQuery<NoveltyStatsDisplay>({
     queryKey: ['novelty-stats'],
     queryFn: async () => {
-      const cutoff = getCutoffDate();
+      if (USE_MOCKS) return MOCK_STATS;
       
-      const [noveltiesResult, totalResult] = await Promise.all([
-        invokeExternalDb<RawProduct & { supplier_id: string | null }>({
-          table: 'products',
-          operation: 'select',
-          select: 'id, created_at, supplier_id',
-          filters: { is_active: true, created_at: `gte.${cutoff}` },
-          limit: 500,
-          countMode: 'exact',
-        }),
-        invokeExternalDb<{ id: string }>({
-          table: 'products',
-          operation: 'select',
-          select: 'id',
-          filters: { is_active: true },
-          limit: 1,
-          countMode: 'exact',
-        }),
-      ]);
-
-      const now = new Date();
-      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-      const weekStart = todayStart - 6 * 86400000;
-      const fifteenDaysStart = todayStart - 14 * 86400000;
-
-      const novelties = noveltiesResult.records.map(p => ({
-        daysRemaining: calcDaysRemaining(p.created_at),
-        createdTime: new Date(p.created_at).getTime(),
-        supplierId: p.supplier_id,
-      }));
-
-      const active = novelties.filter(n => n.daysRemaining > 0);
-      const expiring = active.filter(n => n.daysRemaining <= 7);
-      const arrivedToday = active.filter(n => n.createdTime >= todayStart).length;
-      const arrivedThisWeek = active.filter(n => n.createdTime >= weekStart).length;
-      const arrivedLast15Days = active.filter(n => n.createdTime >= fifteenDaysStart).length;
-      const totalProducts = totalResult.count || 0;
-      const activeCount = active.length;
-
-      // Find top supplier
-      const supplierCounts = new Map<string, number>();
-      active.forEach(n => {
-        if (n.supplierId) {
-          supplierCounts.set(n.supplierId, (supplierCounts.get(n.supplierId) || 0) + 1);
-        }
-      });
-      let topSupplierId: string | null = null;
-      let topSupplierCount = 0;
-      supplierCounts.forEach((count, id) => {
-        if (count > topSupplierCount) {
-          topSupplierCount = count;
-          topSupplierId = id;
-        }
-      });
-
-      // Resolve top supplier name
-      let topSupplierName: string | null = null;
-      if (topSupplierId) {
-        try {
-          const supResult = await invokeExternalDb<{ name: string }>({
-            table: 'suppliers',
-            operation: 'select',
-            select: 'name',
-            filters: { id: topSupplierId },
-            limit: 1,
-          });
-          topSupplierName = supResult.records[0]?.name || null;
-        } catch { /* fallback */ }
-      }
-
+      const cutoff = getCutoffDate();
+...
       return {
         totalNovelties: novelties.length,
         activeNovelties: activeCount,
