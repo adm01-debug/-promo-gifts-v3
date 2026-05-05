@@ -106,12 +106,15 @@ export function ComparisonRadarChart({ products, className }: ComparisonRadarCha
             {products.map((p, i) => (
               <Radar
                 key={String(p.id)}
+                id={`${chartId}-${String(p.id)}`}
                 name={String(p.id)}
                 dataKey={String(p.id)}
                 stroke={COLORS[i % COLORS.length]}
                 fill={COLORS[i % COLORS.length]}
                 fillOpacity={0.18}
                 strokeWidth={2}
+                animationBegin={i * 100}
+                animationDuration={800}
               />
             ))}
           </RadarChart>
