@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef, useCallback } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback, memo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { createClientLogger } from "@/lib/telemetry/structuredLogger";
 
