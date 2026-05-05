@@ -266,6 +266,13 @@ export function VirtualizedProductGrid({
                         selectionMode && selectedIds?.has(product.id) && "ring-2 ring-primary/50 rounded-xl shadow-md"
                       )}
                       style={{ zIndex: 1 }}
+                      onClick={(e) => {
+                        if (selectionMode) {
+                          e.stopPropagation();
+                          onToggleSelect?.(product.id);
+                        }
+                      }}
+
                     >
                       {selectionMode && (
                         <Tooltip>
