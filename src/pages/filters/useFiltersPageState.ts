@@ -62,7 +62,7 @@ export function useFiltersPageState() {
   const debouncedUrlSearch = useDebounce(urlSearch, 400);
   const serverSearchTerm = debouncedServerSearch || debouncedUrlSearch;
 
-  const { data: catalogData, isLoading: isLoadingProducts, hasNextPage, fetchNextPage, isFetchingNextPage } = useProductsCatalog(serverSearchTerm ? { search: serverSearchTerm } : undefined);
+  // const { data: catalogData, isLoading: isLoadingProducts, hasNextPage, fetchNextPage, isFetchingNextPage } = useProductsCatalog(serverSearchTerm ? { search: serverSearchTerm } : undefined);
 
   useEffect(() => { if (hasNextPage && !isFetchingNextPage) fetchNextPage(); }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
@@ -130,6 +130,23 @@ export function useFiltersPageState() {
   const [appliedFilters, setAppliedFilters] = useState<Array<{ type: "category" | "color" | "price" | "material" | "stock" | "featured" | "kit"; label: string }>>([]);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [isFiltering, setIsFiltering] = useState(false);
+
+  const filtersJson = JSON.stringify(filters);
+  useEffect(() => { 
+    setIsFiltering(true); 
+    (window as any).__IS_FILTERING_GLOBAL__ = true;
+    const timer = setTimeout(() => {
+      setIsFiltering(false);
+      (window as any).__IS_FILTERING_GLOBAL__ = false;
+    }, 350); 
+    return () => {
+      clearTimeout(timer);
+      (window as any).__IS_FILTERING_GLOBAL__ = false;
+    };
+  }, [filtersJson]);
+
+  const sortBy = filters.sortBy || 'name';
+  const setSortBy = useCallback((value: string) => { setFilters(prev => ({ ...prev, sortBy: value })); }, []);
 
   const filtersJson = JSON.stringify(filters);
   useEffect(() => { 
