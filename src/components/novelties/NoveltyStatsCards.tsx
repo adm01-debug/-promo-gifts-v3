@@ -117,8 +117,40 @@ export function NoveltyStatsCards({
   filteredProducts?: any[]; 
   isRefreshing?: boolean;
 }) {
-  const { data: stats, isLoading, error } = useNoveltyStats(filteredProducts);
+  const queryClient = useQueryClient();
+  const { data: stats, isLoading, error, refetch } = useNoveltyStats(filteredProducts);
   const isActuallyLoading = isLoading || isRefreshing;
+
+  const handleRetry = () => {
+    refetch();
+  };
+
+  if (error && !stats) {
+    return (
+      <Card className="border-destructive/30 bg-destructive/5 overflow-hidden">
+        <CardContent className="p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-full bg-destructive/10 text-destructive">
+              <AlertCircle className="h-5 w-5" />
+            </div>
+            <div>
+              <h4 className="text-sm font-semibold text-destructive">Falha ao carregar indicadores</h4>
+              <p className="text-xs text-muted-foreground">Não foi possível processar as estatísticas de novidades neste momento.</p>
+            </div>
+          </div>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="h-8 gap-1.5 border-destructive/20 hover:bg-destructive/10 hover:text-destructive shrink-0"
+            onClick={handleRetry}
+          >
+            <RefreshCw className="h-3.5 w-3.5" />
+            Tentar novamente
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (isLoading && !stats) {
     return (
