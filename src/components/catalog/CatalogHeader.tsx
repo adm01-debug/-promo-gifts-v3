@@ -101,50 +101,10 @@ export function CatalogHeader({
             className="flex-1"
           />
           
-          <AnimatePresence>
-            {searchHistory.length > 0 && (
-              <Popover open={historyOpen} onOpenChange={setHistoryOpen}>
-                <TooltipProvider >
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" size="icon" className="h-11 w-11 shrink-0 rounded-xl border-muted-foreground/20 hover:border-primary/50 relative group overflow-hidden" aria-label="Histórico de buscas recentes">
-                          <Clock className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                          <Badge className="absolute -top-1 -right-1 h-4 min-w-4 px-1 bg-primary text-[8px] flex items-center justify-center border-2 border-background">
-                            {searchHistory.length}
-                          </Badge>
-                        </Button>
-                      </PopoverTrigger>
-                    </TooltipTrigger>
-                    <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Histórico de buscas ({searchHistory.length})</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-                <PopoverContent className="w-64 p-2" align="end">
-                  <div className="flex items-center justify-between px-2 pb-2 border-b border-border/50 mb-2">
-                    <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Histórico</span>
-                    <Button variant="ghost" size="xs" onClick={onClearHistory} className="h-6 text-[10px] text-muted-foreground hover:text-destructive gap-1 px-1.5">
-                      <Trash2 className="h-3 w-3" /> Limpar
-                    </Button>
-                  </div>
-                  <div className="space-y-1 max-h-60 overflow-y-auto pr-1">
-                    {searchHistory.map((term, i) => (
-                      <button
-                        key={i}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-xl hover:bg-accent text-left group transition-colors"
-                        onClick={() => {
-                          onSelect({ type: 'history', id: `hist-${i}`, label: term });
-                          setHistoryOpen(false);
-                        }}
-                      >
-                        <Search className="h-3 w-3 text-muted-foreground group-hover:text-primary" />
-                        <span className="truncate flex-1">{term}</span>
-                      </button>
-                    ))}
-                  </div>
-                </PopoverContent>
-              </Popover>
-            )}
-          </AnimatePresence>
+          <SearchHistoryPopover 
+            type="general" 
+            onSelect={(term) => onSelect({ type: 'history', id: `hist-${term}`, label: term })} 
+          />
         </div>
 
         <div className="hidden sm:block">
