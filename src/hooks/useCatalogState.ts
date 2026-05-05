@@ -108,6 +108,8 @@ export function useCatalogState() {
       channel.onmessage = (event) => {
         if (event.data?.type === 'PRESET_APPLIED') {
           const { presetId, filters: newFilters } = event.data;
+          // Quando vem via BroadcastChannel, marcamos como interno para não re-sincronizar URL
+          isInternalUpdateRef.current = true;
           setFilters(newFilters);
           setActivePresetId(presetId);
         }
@@ -117,6 +119,43 @@ export function useCatalogState() {
       console.warn("BroadcastChannel not supported", e);
     }
   }, []);
+
+  // Efeito para sincronizar filtros selecionados com a URL (além do preset)
+  useEffect(() => {
+    if (isInternalUpdateRef.current) return;
+
+    const currentPreset = searchParams.get("preset") || undefined;
+    if (currentPreset !== activePresetId) {
+      setActivePresetId(currentPreset);
+    }
+
+    // Sincronização básica de filtros selecionados para a URL
+    // Isso permite que o usuário compartilhe a URL com filtros manuais também
+    const timeout = setTimeout(() => {
+      setSearchParams(prev => {
+        const next = new URLSearchParams(prev);
+        
+        // Sincroniza query de busca
+        if (searchQuery) next.set("search", searchQuery);
+        else next.delete("search");
+        
+        // Sincroniza cores
+        if (filters.colorGroups.length) next.set("colors", filters.colorGroups.join(","));
+        else next.delete("colors");
+        
+        // Sincroniza categorias
+        if (filters.categories.length) next.set("cats", filters.categories.join(","));
+        else next.delete("cats");
+
+        // Evita atualizações desnecessárias se os params forem idênticos
+        if (next.toString() === prev.toString()) return prev;
+        
+        return next;
+      }, { replace: true });
+    }, 500); // Debounce para não inundar o histórico
+    
+    return () => clearTimeout(timeout);
+  }, [filters, searchQuery, activePresetId, setSearchParams]);
 
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
   const [viewMode, setViewModeState] = useState<ViewMode>(getPersistedViewMode);
