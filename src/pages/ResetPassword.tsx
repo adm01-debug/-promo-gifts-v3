@@ -252,8 +252,7 @@ export default function ResetPassword() {
 
               <Button
                 type="submit"
-                variant="orange"
-                className="w-full h-11 text-base font-semibold"
+                className="w-full h-12 text-base font-bold uppercase tracking-widest bg-[#3B82F6] hover:bg-[#2563EB] text-white shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-300 rounded-xl"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? (
