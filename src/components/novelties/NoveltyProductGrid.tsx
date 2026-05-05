@@ -1,5 +1,8 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { createClientLogger } from "@/lib/telemetry/structuredLogger";
+
+const log = createClientLogger("novelties.grid");
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
