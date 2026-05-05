@@ -90,11 +90,13 @@ describe("PresetsBar", () => {
 
   it("clears a preset when clicking the clear button on an active preset", async () => {
     render(
-      <PresetsBar
-        currentFilters={mockPresets[0].filters}
-        onApplyPreset={onApplyPreset}
-        activePresetId="preset-1"
-      />
+      <TooltipProvider>
+        <PresetsBar
+          currentFilters={mockPresets[0].filters}
+          onApplyPreset={onApplyPreset}
+          activePresetId="preset-1"
+        />
+      </TooltipProvider>
     );
 
     // Open popover
