@@ -63,19 +63,36 @@ export default function OrderDetailPage() {
   }, [id, user]);
 
   const fetchOrder = async () => {
-    setLoading(true);
-    const [orderRes, itemsRes] = await Promise.all([
-      // rls-allow: lookup por id; RLS valida ownership
-      supabase.from("orders").select("*").eq("id", id!).maybeSingle(),
-      supabase.from("order_items").select("*").eq("order_id", id!),
-    ]);
+    try {
+      setLoading(true);
+      const [orderRes, itemsRes] = await Promise.all([
+        supabase
+          .from("orders")
+          .select("id, order_number, created_at, status, fulfillment_status, subtotal, discount_amount, shipping_cost, total, client_name, client_company, client_email, client_phone, payment_terms, delivery_time, notes, internal_notes, tracking_number, quote_id")
+          .eq("id", id!)
+          .maybeSingle(),
+        supabase
+          .from("order_items")
+          .select("id, product_name, product_sku, product_image_url, quantity, unit_price")
+          .eq("order_id", id!),
+      ]);
 
-    if (orderRes.data) {
-      setOrder(orderRes.data);
-      setTrackingNumber(orderRes.data.tracking_number || "");
+      if (orderRes.error) throw orderRes.error;
+      if (itemsRes.error) throw itemsRes.error;
+
+      if (orderRes.data) {
+        setOrder(orderRes.data);
+        setTrackingNumber(orderRes.data.tracking_number || "");
+      }
+      if (itemsRes.data) {
+        setItems(itemsRes.data);
+      }
+    } catch (error) {
+      console.error("Error fetching order details:", error);
+      toast.error("Erro ao carregar detalhes do pedido");
+    } finally {
+      setLoading(false);
     }
-    if (itemsRes.data) setItems(itemsRes.data);
-    setLoading(false);
   };
 
   const updateStatus = async (newStatus: string) => {
@@ -96,20 +113,28 @@ export default function OrderDetailPage() {
   };
 
   const updateTracking = async () => {
-    setIsSaving(true);
-    const { error } = await supabase
-      // rls-allow: lookup por id; RLS valida ownership
-      .from("orders")
-      .update({ tracking_number: trackingNumber, updated_at: new Date().toISOString() })
-      .eq("id", id!);
-
-    if (error) {
-      toast.error("Erro ao salvar rastreio");
-    } else {
-      toast.success("Código de rastreio atualizado");
-      setOrder((prev: any) => ({ ...prev, tracking_number: trackingNumber }));
+    if (!trackingNumber.trim()) {
+      toast.error("Por favor, insira um código de rastreio válido");
+      return;
     }
-    setIsSaving(false);
+
+    setIsSaving(true);
+    try {
+      const { error } = await supabase
+        .from("orders")
+        .update({ tracking_number: trackingNumber.trim(), updated_at: new Date().toISOString() })
+        .eq("id", id!);
+
+      if (error) throw error;
+      
+      toast.success("Código de rastreio atualizado");
+      setOrder((prev: any) => ({ ...prev, tracking_number: trackingNumber.trim() }));
+    } catch (error) {
+      console.error("Error updating tracking:", error);
+      toast.error("Erro ao salvar rastreio");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   if (loading) {

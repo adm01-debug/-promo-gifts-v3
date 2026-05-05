@@ -156,17 +156,20 @@ function RoutePrefetcher() {
   const { pathname } = useLocation();
   
   useEffect(() => {
-    // Only prefetch if we're not on a mobile connection or low power mode if detectable
+    // Check for save-data mode to avoid unnecessary data usage
+    const conn = (navigator as any).connection;
+    if (conn?.saveData) {
+      return;
+    }
+    
+    // Only prefetch core routes to keep bundle small
     if (pathname === "/login") {
-       // Prefetch index/produtos right after login screen loads
        prefetchRoute("/");
        prefetchRoute("/produtos");
     } else if (pathname === "/") {
-       // On dashboard, prefetch products and orders
        prefetchRoute("/produtos");
        prefetchRoute("/orcamentos");
     } else if (pathname === "/produtos" || pathname === "/filtros") {
-       // On product list, prefetch detail and quote builder
        prefetchRoute("/orcamentos/novo");
        prefetchRoute("/favoritos");
        prefetchRoute("/comparar");

@@ -93,7 +93,7 @@ export function QuantityPriceCalculator({ productBasePrice = 0, productName, onS
       {selectedConfigs.length > 0 && (
         <Card className="animate-fade-in">
           <CardHeader><div className="flex items-center gap-2"><Palette className="w-5 h-5 text-primary" /><CardTitle className="text-xl font-display">3. Configure as Opções</CardTitle></div><CardDescription>Defina cores e tamanho para cada técnica selecionada</CardDescription></CardHeader>
-          <CardContent><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{selectedConfigs.map((config, index) => <TechniqueConfigCard key={config.technique.id} config={config} onUpdate={(u) => handleUpdateConfig(index, u)} onRemove={() => handleRemoveConfig(index)} />)}</div></CardContent>
+          <CardContent><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{selectedConfigs.map((config, index) => <TechniqueConfigCard key={`${config.technique.id}-${index}`} config={config} onUpdate={(u) => handleUpdateConfig(index, u)} onRemove={() => handleRemoveConfig(index)} />)}</div></CardContent>
         </Card>
       )}
 
