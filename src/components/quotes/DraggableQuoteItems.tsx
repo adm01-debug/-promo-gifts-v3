@@ -56,6 +56,7 @@ interface DraggableQuoteItemsProps {
   onReorder: (items: QuoteItem[]) => void;
   onUpdateQuantity: (index: number, quantity: number) => void;
   onUpdatePrice: (index: number, price: number) => void;
+  onConfirmPrice: (index: number) => void;
   onRemove: (index: number) => void;
   onTogglePersonalization?: (index: number) => void;
   expandedItems?: Set<number>;
