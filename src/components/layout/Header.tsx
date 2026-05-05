@@ -54,7 +54,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange, isFiltering 
   // Altura dinâmica do Header (px). Usada como --header-h para que stickys
   // filhos (breadcrumb, toolbars de catálogo) ancorem corretamente abaixo
   // do header em qualquer estado (compactado ou expandido).
-  const headerHeightPx = isScrolled ? 48 : 56;
+  const headerHeightPx = isScrolled ? 56 : 56; // Mantendo fixo para evitar saltos de layout no main-content
 
   // Propaga --header-h ao :root para que stickys fora da árvore do Header
   // (ex.: dentro de <main>) também leiam o valor atual.
@@ -135,7 +135,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange, isFiltering 
         left: "var(--header-left, 0px)",
       } as CSSProperties}
       className={cn(
-        "fixed top-0 right-0 z-[10] border-b transition-all duration-300 print:hidden",
+        "fixed top-0 right-0 z-[20] border-b transition-all duration-300 print:hidden",
         "bg-card/95 backdrop-blur-md border-border",
         "h-[var(--header-h)]",
         isScrolled && "bg-card/98 backdrop-blur-lg shadow-md border-border/80",
