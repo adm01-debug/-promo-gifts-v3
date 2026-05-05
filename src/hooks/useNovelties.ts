@@ -129,6 +129,10 @@ async function enrichNovelties(novelties: NoveltyWithDetails[]): Promise<Novelty
 /**
  * Converte produto cru do banco externo em NoveltyWithDetails
  */
+/**
+ * Converte produto cru do banco externo em NoveltyWithDetails.
+ * Esta função é o SSOT para o mapeamento de campos do DB para a UI.
+ */
 function toNovelty(p: RawProduct): NoveltyWithDetails {
   const daysRemaining = calcDaysRemaining(p.created_at);
   const expiresAt = new Date(new Date(p.created_at).getTime() + NOVELTY_WINDOW_DAYS * 86400000).toISOString();
@@ -166,6 +170,7 @@ export interface UseNoveltiesOptions {
   limit?: number;
   offset?: number;
   onlyHighlighted?: boolean;
+  status?: 'active' | 'expiring_soon' | 'expired';
 }
 
 /**
@@ -175,9 +180,18 @@ export function useNoveltiesWithDetails(options: UseNoveltiesOptions = {}) {
   const { limit = 100, onlyHighlighted = false } = options;
 
   return useQuery<NoveltyWithDetails[]>({
-    queryKey: ['novelties-details', limit, onlyHighlighted],
+    queryKey: ['novelties-details', limit, onlyHighlighted, options.status],
     queryFn: async () => {
-      if (USE_MOCKS) return MOCK_NOVELTIES;
+      if (USE_MOCKS) {
+        let mocked = [...MOCK_NOVELTIES];
+        if (options.status) {
+          mocked = mocked.filter(n => n.status === options.status);
+        }
+        if (onlyHighlighted) {
+          mocked = mocked.filter(n => n.is_highlighted);
+        }
+        return mocked.slice(0, limit);
+      }
       
       const cutoff = getCutoffDate();
       
@@ -191,6 +205,10 @@ export function useNoveltiesWithDetails(options: UseNoveltiesOptions = {}) {
       });
 
       let novelties = result.records.map(toNovelty).filter(n => n.is_active);
+
+      if (options.status) {
+        novelties = novelties.filter(n => n.status === options.status);
+      }
 
       if (onlyHighlighted) {
         novelties = novelties.filter(n => n.is_highlighted);
@@ -262,9 +280,15 @@ export function useNoveltyStats() {
 export function useNovelties(options: UseNoveltiesOptions & { supplierCode?: string; maxDays?: number } = {}) {
   const { supplierCode, limit = 50, maxDays } = options;
 
-  return useQuery({
+  return useQuery<NoveltyWithDetails[]>({
     queryKey: ['novelties-rpc', supplierCode, limit, maxDays],
     queryFn: async () => {
+      if (USE_MOCKS) {
+        let mocked = [...MOCK_NOVELTIES];
+        if (supplierCode) mocked = mocked.filter(n => n.supplier_code === supplierCode);
+        if (maxDays) mocked = mocked.filter(n => n.days_remaining >= (NOVELTY_WINDOW_DAYS - maxDays));
+        return mocked.slice(0, limit);
+      }
       const cutoff = getCutoffDate();
       const filters: Record<string, unknown> = { is_active: true, created_at: `gte.${cutoff}` };
       
@@ -311,6 +335,7 @@ export function useNoveltyCount() {
   return useQuery<number>({
     queryKey: ['novelty-count'],
     queryFn: async () => {
+      if (USE_MOCKS) return MOCK_NOVELTIES.length;
       const cutoff = getCutoffDate();
       
       const result = await invokeExternalDb<{ id: string }>({
@@ -336,6 +361,13 @@ export function useIsProductNovelty(productId: string) {
   return useQuery<{ isNovelty: boolean; daysRemaining: number | null }>({
     queryKey: ['is-novelty', productId],
     queryFn: async () => {
+      if (USE_MOCKS) {
+        const found = MOCK_NOVELTIES.find(n => n.product_id === productId);
+        return { 
+          isNovelty: !!found && found.days_remaining > 0, 
+          daysRemaining: found ? found.days_remaining : null 
+        };
+      }
       const result = await invokeExternalDb<RawProduct>({
         table: 'products',
         operation: 'select',
@@ -366,6 +398,7 @@ export function useNoveltyProductIds() {
   return useQuery<Set<string>>({
     queryKey: ['novelty-product-ids'],
     queryFn: async () => {
+      if (USE_MOCKS) return new Set(MOCK_NOVELTIES.map(n => n.product_id));
       const cutoff = getCutoffDate();
       
       const result = await invokeExternalDb<{ id: string }>({
@@ -381,3 +414,11 @@ export function useNoveltyProductIds() {
     staleTime: 2 * 60 * 1000,
   });
 }
+
+// SSOT: Mapeamento de status para labels e cores em um único lugar
+export const NOVELTY_STATUS_CONFIG = {
+  active: { label: 'Ativo', color: 'success' },
+  expiring_soon: { label: 'Expirando', color: 'warning' },
+  expired: { label: 'Expirado', color: 'destructive' },
+} as const;
+

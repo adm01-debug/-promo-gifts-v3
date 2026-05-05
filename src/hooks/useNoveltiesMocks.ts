@@ -1,3 +1,7 @@
+/**
+ * Tipagem e dados Mock para o módulo de Novidades.
+ * Centraliza o schema para evitar quebra de componentes.
+ */
 import { NoveltyWithDetails, NoveltyStatsDisplay } from './useNovelties';
 
 const NOVELTY_WINDOW_DAYS = 30;
@@ -20,6 +24,7 @@ const MOCK_CATEGORIES = [
   { id: 'cat-3', name: 'Vestuário' },
 ];
 
+// Garante que MOCK_NOVELTIES segue estritamente o NoveltyWithDetails
 export const MOCK_NOVELTIES: NoveltyWithDetails[] = [
   {
     novelty_id: 'n-1',
@@ -167,6 +172,7 @@ export const MOCK_NOVELTIES: NoveltyWithDetails[] = [
   }
 ];
 
+// Garante que MOCK_STATS segue estritamente o NoveltyStatsDisplay
 export const MOCK_STATS: NoveltyStatsDisplay = {
   totalNovelties: 120,
   activeNovelties: 42,
