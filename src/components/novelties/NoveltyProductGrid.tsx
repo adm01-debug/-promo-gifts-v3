@@ -362,9 +362,11 @@ export const NoveltyProductGrid = memo(function NoveltyProductGrid({
               <SelectTrigger className="w-[130px] h-7 text-[11px] gap-1" aria-label="Filtrar por prazo de expiração"><Package className="h-3 w-3 shrink-0" /><SelectValue placeholder="Expira em" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Qualquer prazo</SelectItem>
-                <SelectItem value="3">Próximos 3 dias</SelectItem>
-                <SelectItem value="7">Próxima semana</SelectItem>
+                <SelectItem value="1">Expira hoje</SelectItem>
+                <SelectItem value="3">Até 3 dias</SelectItem>
+                <SelectItem value="7">Esta semana</SelectItem>
                 <SelectItem value="15">Próximos 15 dias</SelectItem>
+                <SelectItem value="30">Este mês</SelectItem>
               </SelectContent>
             </Select>
             <Select value={selectedSupplier} onValueChange={setSelectedSupplier}>
@@ -416,9 +418,11 @@ export const NoveltyProductGrid = memo(function NoveltyProductGrid({
                       <SelectTrigger className="w-full h-10 text-sm"><SelectValue placeholder="Prazo" /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">Qualquer prazo</SelectItem>
+                        <SelectItem value="1">Expira hoje</SelectItem>
                         <SelectItem value="3">Até 3 dias</SelectItem>
-                        <SelectItem value="7">Até 7 dias</SelectItem>
-                        <SelectItem value="15">Até 15 dias</SelectItem>
+                        <SelectItem value="7">Esta semana</SelectItem>
+                        <SelectItem value="15">Próximos 15 dias</SelectItem>
+                        <SelectItem value="30">Este mês</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
