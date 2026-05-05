@@ -58,7 +58,9 @@ export function EnhancedProductCard({
   urgencyType = "limited-stock",
   urgencyText,
 }: EnhancedProductCardProps) {
+  const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
+
   const [showPreview, setShowPreview] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [quickAddQuantity, setQuickAddQuantity] = useState(1);
