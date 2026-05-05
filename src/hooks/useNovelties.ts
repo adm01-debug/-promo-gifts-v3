@@ -72,6 +72,8 @@ export interface NoveltyStatsDisplay {
   arrivedLast15Days: number;
   topSupplierName: string | null;
   topSupplierCount: number;
+  /** Filter context */
+  filteredCount?: number;
 }
 
 interface RawProduct {
