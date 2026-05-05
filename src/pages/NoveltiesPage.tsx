@@ -3,10 +3,11 @@ import { PageSEO } from "@/components/seo/PageSEO";
 import { NoveltyStatsCards } from "@/components/novelties/NoveltyStatsCards";
 import { NoveltyProductGrid } from "@/components/novelties/NoveltyProductGrid";
 import { ExpiringNoveltiesWidget } from "@/components/novelties/ExpiringNoveltiesWidget";
+import { EnhancedErrorBoundary } from "@/components/errors/EnhancedErrorBoundary";
 
 export default function NoveltiesPage() {
   return (
-    <>
+    <EnhancedErrorBoundary scope="pages.novelties">
       <PageSEO title="Novidades" description="Confira os produtos mais recentes adicionados ao catálogo de brindes promocionais." path="/novidades" />
       <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
 
