@@ -106,15 +106,18 @@ Deno.serve(async (req) => {
 
   const corsHeaders = getCorsHeaders(req);
 
-  const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
   try {
-    // Validate body with Zod
-    const parsed = await parseBodyWithSchema(req, RequestSchema, getCorsHeaders(req));
+    // 1. Authenticate Request
+    const auth = await authenticateRequest(req);
+    
+    // 2. Validate body with Zod
+    const parsed = await parseBodyWithSchema(req, RequestSchema, corsHeaders);
     if ('error' in parsed) return parsed.error;
 
     const { action, data } = parsed.data;
-    console.log(`Quote sync action: ${action}`, data);
+    console.log(`[quote-sync] User ${auth.userId} acting: ${action}`, data);
+
+    const supabase = auth.localServiceClient;
 
     switch (action) {
       case "sync_quote": {
