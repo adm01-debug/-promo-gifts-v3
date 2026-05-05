@@ -168,10 +168,10 @@ export default function QuotesListPage() {
   };
 
   const handleBulkDelete = async () => {
-    for (const id of bulkDeleteIds) {
-      await deleteQuote(id);
+    if (bulkDeleteIds.length > 0) {
+      await bulkDeleteQuotes(bulkDeleteIds);
+      setBulkDeleteIds([]);
     }
-    setBulkDeleteIds([]);
   };
 
   if (isLoading) {
