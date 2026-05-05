@@ -5554,6 +5554,10 @@ export type Database = {
         }
         Returns: string
       }
+      fn_check_geo_access: {
+        Args: { p_country_code: string }
+        Returns: boolean
+      }
       fn_create_quote_v3: {
         Args: { p_items_data: Json; p_quote_data: Json }
         Returns: Json
