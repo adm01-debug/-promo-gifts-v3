@@ -116,6 +116,7 @@ export function NoveltyStatsCards({
   isRefreshing?: boolean;
 }) {
   const { data: stats, isLoading, error } = useNoveltyStats(filteredProducts);
+  const isActuallyLoading = isLoading || isRefreshing;
 
   if (isLoading || (isRefreshing && !stats)) {
     return (
