@@ -79,7 +79,7 @@ const navGroups: NavGroup[] = [
       { icon: Zap, label: "Novidades", href: "/novidades" },
       { icon: RefreshCw, label: "Reposição", href: "/reposicao" },
       { icon: FolderOpen, label: "Coleções", href: "/colecoes" },
-      { icon: Layers, label: "Estoque", href: "/estoque" },
+      { icon: Layers, label: "Estoque", href: "/estoque", shortcut: "Alt+E" },
       { icon: Heart, label: "Favoritos", href: "/favoritos" },
       { icon: GitCompare, label: "Comparar", href: "/comparar" },
     ],
