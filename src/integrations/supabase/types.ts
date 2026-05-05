@@ -2717,6 +2717,7 @@ export type Database = {
           product_name: string | null
           product_sku: string | null
           quantity: number | null
+          total_price: number | null
           unit_price: number | null
         }
         Insert: {
@@ -2729,6 +2730,7 @@ export type Database = {
           product_name?: string | null
           product_sku?: string | null
           quantity?: number | null
+          total_price?: number | null
           unit_price?: number | null
         }
         Update: {
@@ -2741,6 +2743,7 @@ export type Database = {
           product_name?: string | null
           product_sku?: string | null
           quantity?: number | null
+          total_price?: number | null
           unit_price?: number | null
         }
         Relationships: [
