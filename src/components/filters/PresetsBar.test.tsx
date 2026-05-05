@@ -1,5 +1,6 @@
 
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { PresetsBar } from "./PresetsBar";
 import { defaultFilters } from "./FilterPanel";
