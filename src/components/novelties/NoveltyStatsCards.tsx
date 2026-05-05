@@ -150,6 +150,7 @@ export function NoveltyStatsCards({
         icon={<CalendarPlus className="h-4 w-4 sm:h-5 sm:w-5" />}
         variant="orange"
         delay={0}
+        isLoading={isActuallyLoading}
       />
       <StatCard
         label="Últimos 7 Dias"
@@ -157,6 +158,7 @@ export function NoveltyStatsCards({
         icon={<CalendarRange className="h-4 w-4 sm:h-5 sm:w-5" />}
         variant="success"
         delay={100}
+        isLoading={isActuallyLoading}
       />
       <StatCard
         label="Últimos 15 Dias"
@@ -164,6 +166,7 @@ export function NoveltyStatsCards({
         icon={<CalendarDays className="h-4 w-4 sm:h-5 sm:w-5" />}
         variant="warning"
         delay={150}
+        isLoading={isActuallyLoading}
       />
       <StatCard
         label="Top Fornecedor"
@@ -172,6 +175,7 @@ export function NoveltyStatsCards({
         icon={<Building2 className="h-4 w-4 sm:h-5 sm:w-5" />}
         variant="info"
         delay={200}
+        isLoading={isActuallyLoading}
       />
       <StatCard
         label="Novidades Ativas"
@@ -180,6 +184,7 @@ export function NoveltyStatsCards({
         icon={<Sparkles className="h-4 w-4 sm:h-5 sm:w-5" />}
         variant="default"
         delay={300}
+        isLoading={isActuallyLoading}
       />
     </div>
   );
