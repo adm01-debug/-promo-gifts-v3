@@ -40,9 +40,9 @@ export const PasskeyLogin = forwardRef<HTMLButtonElement, PasskeyLoginProps>(fun
       {isLoading ? (
         <Loader2 className="h-4 w-4 animate-spin" />
       ) : (
-        <Fingerprint className="h-4 w-4 text-orange" />
+        <Fingerprint className="h-5 w-5 text-primary" />
       )}
-      Entrar com Biometria
+      ENTRAR COM BIOMETRIA
     </Button>
   );
 });
