@@ -174,7 +174,7 @@ export const useFavoritesStore = create<FavoritesStore>((set, get) => {
               variant_info: variant,
               added_at: newItem.addedAt,
               is_deleted: false
-            }, { onConflict: "user_id, product_id" });
+            }, { onConflict: "user_id,product_id" });
 
           if (error) throw error;
         } catch (err) {
