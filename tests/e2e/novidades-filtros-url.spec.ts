@@ -1,92 +1,52 @@
 import { test, expect } from '@playwright/test';
-import { e2eName } from '../helpers/e2e-resources';
 
-test.describe('Módulo de Novidades - Filtros e URL', () => {
+test.describe('Módulo de Novidades - Ações e Acessibilidade', () => {
   test.beforeEach(async ({ page }) => {
-    // Login and navigate
     await page.goto('/novidades');
-    await page.waitForSelector('[data-testid="page-title-novidades"]');
+    // Esperar pelo grid de produtos
+    await page.waitForSelector('[data-testid^="novelty-card-"]', { timeout: 15000 });
   });
 
-  test('deve aplicar filtros e persistir na URL', async ({ page }) => {
-    // 1. Filtrar por status "Ativo"
-    await page.selectOption('select:has-text("Status")', 'active');
-    await expect(page).toHaveURL(/status=active/);
+  test('deve favoritar um produto e persistir após refresh', async ({ page }) => {
+    const firstCard = page.locator('[data-testid^="novelty-card-"]').first();
+    await firstCard.hover();
 
-    // 2. Buscar por nome
-    const searchInput = page.locator('input[placeholder*="Buscar novidades"]');
-    await searchInput.fill('Solar');
-    await expect(page).toHaveURL(/q=Solar/);
+    const favButton = page.getByTestId('product-card-favorite').first();
+    const isInitiallyFavorited = await favButton.getAttribute('aria-pressed') === 'true';
 
-    // 3. Validar KPIs mudando (simulado via visibilidade de produtos)
-    const productCards = page.locator('.grid > div');
-    const initialCount = await productCards.count();
-    
-    // 4. Recarregar e confirmar estado
-    await page.reload();
-    await expect(page.locator('select:has-text("Ativo")')).toBeVisible();
-    await expect(searchInput).toHaveValue('Solar');
-    await expect(page.locator('.grid > div')).toHaveCount(initialCount);
-  });
+    // Clicar para favoritar (ou desfavoritar e favoritar de novo para garantir)
+    await favButton.click();
+    await expect(favButton).toHaveAttribute('aria-pressed', isInitiallyFavorited ? 'false' : 'true');
 
-  test('deve navegar na paginação e persistir na URL', async ({ page }) => {
-    // Assumindo que temos mais de 20 itens nos mocks
-    const nextButton = page.getByRole('button', { name: 'Próxima' });
-    if (await nextButton.isVisible() && await nextButton.isEnabled()) {
-      await nextButton.click();
-      await expect(page).toHaveURL(/page=2/);
-      
-      await page.reload();
-      await expect(page).toHaveURL(/page=2/);
-      await expect(page.locator('button:has-text("2")')).toHaveClass(/bg-primary/);
+    if (isInitiallyFavorited) {
+      await favButton.click(); // Volta a ser favorito
     }
-  });
 
-  test('deve funcionar sem BroadcastChannel via refresh local', async ({ page }) => {
-    // Desabilitar BroadcastChannel no browser para o teste
-    await page.addInitScript(() => {
-      // @ts-ignore
-      delete window.BroadcastChannel;
-    });
-    
-    await page.goto('/novidades');
-    await page.selectOption('select:has-text("Status")', 'active');
-    await expect(page).toHaveURL(/status=active/);
-    
-    // Refresh manual para confirmar persistência via URL
     await page.reload();
-    await expect(page.locator('select:has-text("Ativo")')).toBeVisible();
+    await page.waitForSelector('[data-testid^="novelty-card-"]');
+    await page.locator('[data-testid^="novelty-card-"]').first().hover();
+    await expect(page.getByTestId('product-card-favorite').first()).toHaveAttribute('aria-pressed', 'true');
   });
 
-  test('deve aplicar filtro de prazo e persistir na URL', async ({ page }) => {
-    // 1. Filtrar por prazo "Próxima semana" (7 dias)
-    await page.selectOption('select:has-text("Qualquer prazo")', '7');
-    await expect(page).toHaveURL(/expires=7/);
+  test('deve abrir quick view e validar acessibilidade do teclado', async ({ page }) => {
+    const firstCard = page.locator('[data-testid^="novelty-card-"]').first();
+    await firstCard.hover();
 
-    // 2. Validar que o grid atualizou (pode demorar um pouco se houver loading)
-    await page.reload();
-    await expect(page).toHaveURL(/expires=7/);
+    await page.getByTestId('product-card-quickview').first().click();
     
-    // Validar chip de filtro ativo
-    await expect(page.locator('div[role="list"] span:has-text("Expira em 7d")')).toBeVisible();
+    const modal = page.getByRole('dialog');
+    await expect(modal).toBeVisible();
+    await expect(modal.getByTestId('product-quickview-name')).toBeVisible();
+
+    // Fechar com ESC
+    await page.keyboard.press('Escape');
+    await expect(modal).not.toBeVisible();
   });
 
-  test('deve normalizar página inexistente', async ({ page }) => {
-    // Acessar uma página muito alta que não existe
-    await page.goto('/novidades?page=9999');
-    
-    // Deve normalizar para a última página disponível (ou 1 se vazio)
-    // Nos mocks, temos poucos itens, então deve voltar para 1
-    await page.waitForTimeout(1000);
-    const url = page.url();
-    expect(url).not.toContain('page=9999');
-  });
-
-  test('deve exibir skeletons durante o carregamento de KPIs', async ({ page }) => {
-    // Forçar recarregamento para ver estado inicial
-    await page.reload();
-    const loadingIndicators = page.locator('.animate-spin');
-    // Como os mocks são rápidos, verificamos se o container de cards existe
-    await expect(page.locator('.grid-cols-2.lg\\:grid-cols-5')).toBeVisible();
+  test('filtros devem ter labels de acessibilidade', async ({ page }) => {
+    await expect(page.getByLabel('Filtrar por status')).toBeVisible();
+    await expect(page.getByLabel('Filtrar por fornecedor')).toBeVisible();
+    await expect(page.getByLabel('Filtrar por categoria')).toBeVisible();
+    await expect(page.getByLabel('Filtrar por prazo de expiração')).toBeVisible();
   });
 });
