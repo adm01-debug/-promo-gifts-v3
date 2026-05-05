@@ -6,34 +6,53 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import React from "react";
 
-// Mock do Toast
+// Mock global dependencies before anything else
 vi.mock("@/hooks/use-toast", () => ({
   useToast: () => ({ toast: vi.fn() }),
 }));
 
-// Mock do useAuth
 vi.mock("@/contexts/AuthContext", () => ({
   useAuth: () => ({ user: { id: 'test-user' } }),
+  AuthProvider: ({ children }: any) => <>{children}</>
 }));
 
-// Mock do useProductsContext
 vi.mock("@/contexts/ProductsContext", () => ({
   useProductsContext: () => ({ registerProducts: vi.fn() }),
+  ProductsProvider: ({ children }: any) => <>{children}</>
 }));
 
-// Mock do useFavoriteQuickAdd
 vi.mock("@/hooks/useFavoriteQuickAdd", () => ({
   useFavoriteQuickAdd: () => ({ isAdding: false, quickAdd: vi.fn() }),
 }));
 
-// Mock do usePromoSalesRanking
 vi.mock("@/hooks/usePromoSalesRanking", () => ({
   usePromoSalesRanking: () => ({ data: new Map() }),
 }));
 
-// Mock do useSupplierSalesRanking
 vi.mock("@/hooks/useSupplierSalesRanking", () => ({
   useSupplierSalesRanking: () => ({ data: new Map() }),
+}));
+
+// Outros mocks necessários para useCatalogState
+vi.mock("@/hooks/useProductsLightweight", () => ({
+  useProductsCatalog: () => ({
+    data: { pages: [] },
+    isLoading: false,
+    isFetching: false,
+    hasNextPage: false,
+    fetchNextPage: vi.fn(),
+    refetch: vi.fn(),
+  }),
+}));
+
+vi.mock("@/hooks/useSearch", () => ({
+  useSearch: () => ({ 
+    suggestions: [], quickSuggestions: [], history: [], addToHistory: vi.fn(), clearHistory: vi.fn() 
+  }),
+}));
+
+vi.mock("@/hooks/useCatalogRealStats", () => ({
+  useCatalogRealStats: () => ({ data: null }),
 }));
 
 // Mock do BroadcastChannel
@@ -43,7 +62,7 @@ const onmessageSetter = vi.fn();
 
 class MockBroadcastChannel {
   name: string;
-  private _onmessage: ((ev: MessageEvent) => void) | null = null;
+  private _onmessage: ((ev: any) => void) | null = null;
   
   constructor(name: string) {
     this.name = name;
