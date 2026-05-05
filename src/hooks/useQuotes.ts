@@ -382,6 +382,6 @@ export function useQuotes() {
     quotes, techniques, isLoading, error,
     fetchQuotes, fetchQuote, createQuote, updateQuote, updateQuoteStatus,
     deleteQuote, duplicateQuote, fetchTechniques, syncQuoteToBitrix,
-    testWebhookConnection, logQuoteHistory,
+    testWebhookConnection, logQuoteHistory, bulkUpdateStatus, bulkDeleteQuotes,
   };
 }
