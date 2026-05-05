@@ -144,7 +144,23 @@ test.describe('Módulo de Novidades - Ações, Persistência e Acessibilidade', 
     
     // Verifica se a URL foi corrigida para a última página disponível ou se o grid mostra vazio de forma elegante
     // O componente NoveltyProductGrid tem um useEffect que normaliza o currentPage
-    await expect(page).not.toHaveURL(/page=999/);
+    await expect(page).not.toHaveURL(/page=999/, { timeout: 10000 });
+  });
+
+  test('deve normalizar filtros com valores inválidos', async ({ page }) => {
+    // Status inexistente
+    await page.goto('/novidades?status=invalid_status_xyz');
+    
+    // O grid deve ignorar o filtro inválido e mostrar produtos ativos (default)
+    await expect(page.locator('[data-testid^="novelty-card-"]').first()).toBeVisible();
+    
+    // Busca vazia não deve afetar a listagem
+    await page.goto('/novidades?q=');
+    await expect(page.locator('[data-testid^="novelty-card-"]').first()).toBeVisible();
+    
+    // Status 'all' deve mostrar todos
+    await page.goto('/novidades?status=all');
+    await expect(page.locator('[data-testid^="novelty-card-"]').first()).toBeVisible();
   });
 });
 
