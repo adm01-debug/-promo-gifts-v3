@@ -239,7 +239,7 @@ export function useQuotes() {
     }
   };
 
-
+  const updateQuote = async (quoteId: string, quote: Partial<Quote>, items: QuoteItem[]): Promise<Quote | null> => {
     if (!user) { toast.error("Usuário não autenticado"); return null; }
     setIsLoading(true);
     try {
