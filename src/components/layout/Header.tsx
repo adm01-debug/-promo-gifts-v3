@@ -156,7 +156,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
                   </div>
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="bottom" className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Navegação lateral <kbd className="ml-1.5 px-1 py-0.5 rounded bg-primary-foreground/20 text-primary-foreground text-[10px] font-mono">Alt+M</kbd></TooltipContent>
+              <TooltipContent side="bottom" className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Navegação lateral <kbd className="ml-1.5 px-1 py-0.5 rounded bg-primary-foreground/20 text-primary-foreground text-[10px] font-mono">Alt+B</kbd></TooltipContent>
             </Tooltip>
           </TooltipProvider>
 
