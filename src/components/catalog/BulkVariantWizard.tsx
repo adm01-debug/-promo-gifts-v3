@@ -397,10 +397,14 @@ export function BulkVariantWizard({ open, onOpenChange, products, mode, onComple
             <ProductVariantStep
               key={currentProduct.id}
               product={currentProduct}
-              onSelect={handleSelect}
+              onSelect={handleSelectMulti}
               onSkip={handleSkip}
               stepIndex={currentIndex}
               totalSteps={products.length}
+              initialVariants={selections
+                .filter(s => s.product.id === currentProduct.id)
+                .map(s => s.variant)
+              }
             />
           </AnimatePresence>
         </div>
