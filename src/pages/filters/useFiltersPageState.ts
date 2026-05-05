@@ -208,7 +208,7 @@ export function useFiltersPageState() {
   // Apply filters
   const filteredProducts = useMemo(() => {
     let result = hasFuzzySearch ? [...fuzzySearchResults] : [...realProducts];
-    if (filters.search) { const s = filters.search.toLowerCase(); result = result.filter(p => p.name.toLowerCase().includes(s) || (p.sku && p.sku.toLowerCase().includes(s)) || (p.description && p.description.toLowerCase().includes(s))); }
+    if (filters.search) { const s = filters.search.toLowerCase(); result = result.filter(p => p.name.toLowerCase().includes(s) || (p.sku && p.sku.toLowerCase().includes(s)) || (p.supplier_reference && p.supplier_reference.toLowerCase().includes(s)) || (p.description && p.description.toLowerCase().includes(s))); }
     if (hasColorFilter && colorFilteredProductIds.size > 0) result = result.filter(p => colorFilteredProductIds.has(p.id));
     else if (hasColorFilter && colorFilteredProductIds.size === 0 && !isLoadingColorFilter) result = [];
     if (hasCategoryFilter && categoryFilteredProductIds.size > 0) result = result.filter(p => categoryFilteredProductIds.has(p.id));
