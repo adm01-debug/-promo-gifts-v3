@@ -480,6 +480,8 @@ export function useCatalogState() {
 
   return {
     filters, setFilters,
+    setFiltersWithPreset,
+    activePresetId,
     viewMode, setViewMode,
     gridColumns, setGridColumns,
     sortBy, setSortBy,
@@ -522,6 +524,8 @@ export function useCatalogState() {
     suggestions,
     quickSuggestions,
     searchHistory: history,
-    clearHistory
+    clearHistory,
+    navigate,
+    ITEMS_PER_PAGE
   };
 }
