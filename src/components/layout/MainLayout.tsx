@@ -28,6 +28,7 @@ interface MainLayoutProps {
 export function MainLayout({ children }: MainLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isDebouncingSearch, setIsDebouncingSearch] = useState(false);
   const location = useLocation();
   const isMockupGenerator = location.pathname === "/mockup-generator";
   const isHome = location.pathname === "/";
@@ -81,8 +82,16 @@ export function MainLayout({ children }: MainLayoutProps) {
             <Header 
               onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
               searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
-              isFiltering={location.pathname === "/filtros" && (window as any).__IS_FILTERING_GLOBAL__}
+              onSearchChange={(q) => {
+                setSearchQuery(q);
+                if (location.pathname === "/filtros") {
+                  setIsDebouncingSearch(true);
+                  // O debounce real acontece dentro da página de filtros, 
+                  // aqui apenas sinalizamos o início da interação para o Header.
+                  setTimeout(() => setIsDebouncingSearch(false), 300);
+                }
+              }}
+              isFiltering={(location.pathname === "/filtros" || isDebouncingSearch) && (window as any).__IS_FILTERING_GLOBAL__}
             />
           </Suspense>
 
