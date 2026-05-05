@@ -158,7 +158,11 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange, isFiltering 
                   </div>
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="bottom" className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Navegação lateral <kbd className="ml-1.5 px-1 py-0.5 rounded bg-primary-foreground/20 text-primary-foreground text-[10px] font-mono">Alt+B</kbd></TooltipContent>
+              <TooltipContent side="bottom" className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
+                <span aria-label="Navegação lateral (atalho Alt mais B)">
+                  Navegação lateral <kbd className="ml-1.5 px-1 py-0.5 rounded bg-primary-foreground/20 text-primary-foreground text-[10px] font-mono" aria-hidden="true">Alt+B</kbd>
+                </span>
+              </TooltipContent>
             </Tooltip>
           </TooltipProvider>
 
@@ -209,7 +213,11 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange, isFiltering 
                   <Search className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="bottom" className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Busca rápida <kbd className="ml-1 px-1 py-0.5 rounded bg-primary-foreground/20 text-primary-foreground text-[10px] font-mono">Ctrl+K</kbd></TooltipContent>
+              <TooltipContent side="bottom" className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
+                <span aria-label="Busca rápida (atalho Control mais K)">
+                  Busca rápida <kbd className="ml-1 px-1 py-0.5 rounded bg-primary-foreground/20 text-primary-foreground text-[10px] font-mono" aria-hidden="true">Ctrl+K</kbd>
+                </span>
+              </TooltipContent>
             </Tooltip>
           </TooltipProvider>
 
@@ -251,7 +259,9 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange, isFiltering 
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
-                  Super Filtro <kbd className="ml-1.5 px-1 py-0.5 rounded bg-primary-foreground/20 text-primary-foreground text-[10px] font-mono">Alt+F</kbd>
+                  <span aria-label="Super Filtro (atalho Alt mais F)">
+                    Super Filtro <kbd className="ml-1.5 px-1 py-0.5 rounded bg-primary-foreground/20 text-primary-foreground text-[10px] font-mono" aria-hidden="true">Alt+F</kbd>
+                  </span>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -276,7 +286,9 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange, isFiltering 
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
-                  Favoritos <kbd className="ml-1.5 px-1 py-0.5 rounded bg-primary-foreground/20 text-primary-foreground text-[10px] font-mono">Alt+V</kbd>
+                  <span aria-label="Favoritos (atalho Alt mais V)">
+                    Favoritos <kbd className="ml-1.5 px-1 py-0.5 rounded bg-primary-foreground/20 text-primary-foreground text-[10px] font-mono" aria-hidden="true">Alt+V</kbd>
+                  </span>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -287,7 +299,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange, isFiltering 
                 <TooltipTrigger asChild>
                   <Button
                     variant="ghost"
-                    size="icon" aria-label="GitCompare"
+                    size="icon" aria-label="Comparar produtos"
                     className="relative h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-all duration-200"
                     onClick={() => navigate("/comparar")}
                     onMouseEnter={() => prefetchRoute("/comparar")}
@@ -301,7 +313,9 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange, isFiltering 
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
-                  Comparar <kbd className="ml-1.5 px-1 py-0.5 rounded bg-primary-foreground/20 text-primary-foreground text-[10px] font-mono">Alt+C</kbd>
+                  <span aria-label="Comparar produtos (atalho Alt mais C)">
+                    Comparar <kbd className="ml-1.5 px-1 py-0.5 rounded bg-primary-foreground/20 text-primary-foreground text-[10px] font-mono" aria-hidden="true">Alt+C</kbd>
+                  </span>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -320,7 +334,9 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange, isFiltering 
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
-                  {actualTheme === "dark" ? "Modo Claro" : "Modo Escuro"} <kbd className="ml-1.5 px-1 py-0.5 rounded bg-primary-foreground/20 text-primary-foreground text-[10px] font-mono">Alt+T</kbd>
+                  <span aria-label={`${actualTheme === "dark" ? "Modo Claro" : "Modo Escuro"} (atalho Alt mais T)`}>
+                    {actualTheme === "dark" ? "Modo Claro" : "Modo Escuro"} <kbd className="ml-1.5 px-1 py-0.5 rounded bg-primary-foreground/20 text-primary-foreground text-[10px] font-mono" aria-hidden="true">Alt+T</kbd>
+                  </span>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
