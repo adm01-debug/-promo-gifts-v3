@@ -46,6 +46,6 @@ export default function NoveltiesPage() {
           </div>
         </div>
       </div>
-    </>
+    </EnhancedErrorBoundary>
   );
 }
