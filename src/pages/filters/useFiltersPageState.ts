@@ -62,8 +62,6 @@ export function useFiltersPageState() {
   const debouncedUrlSearch = useDebounce(urlSearch, 400);
   const serverSearchTerm = debouncedServerSearch || debouncedUrlSearch;
 
-  const { data: catalogData, isLoading: isLoadingProducts, hasNextPage, fetchNextPage, isFetchingNextPage } = useProductsCatalog(serverSearchTerm ? { search: serverSearchTerm } : undefined);
-
   useEffect(() => { if (hasNextPage && !isFetchingNextPage) fetchNextPage(); }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const realProducts = useMemo(() => catalogData?.pages ? catalogData.pages.flatMap(page => page.products) : [], [catalogData]);
@@ -130,6 +128,7 @@ export function useFiltersPageState() {
   const [appliedFilters, setAppliedFilters] = useState<Array<{ type: "category" | "color" | "price" | "material" | "stock" | "featured" | "kit"; label: string }>>([]);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [isFiltering, setIsFiltering] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
 
   const filtersJson = JSON.stringify(filters);
   useEffect(() => { 
@@ -147,6 +146,18 @@ export function useFiltersPageState() {
 
   const sortBy = filters.sortBy || 'name';
   const setSortBy = useCallback((value: string) => { setFilters(prev => ({ ...prev, sortBy: value })); }, []);
+
+  // Sync error state from catalog data
+  const { data: catalogData, isLoading: isLoadingProducts, hasNextPage, fetchNextPage, isFetchingNextPage, error: catalogError } = useProductsCatalog(serverSearchTerm ? { search: serverSearchTerm } : undefined);
+
+  useEffect(() => {
+    if (catalogError) {
+      console.error("[useFiltersPageState] catalog error:", catalogError);
+      setError(catalogError instanceof Error ? catalogError : new Error(String(catalogError)));
+    } else {
+      setError(null);
+    }
+  }, [catalogError]);
 
   // Promo Brindes sales ranking (lazy — only fetched when needed)
   const { data: promoSalesMap } = usePromoSalesRanking();
@@ -306,5 +317,6 @@ export function useFiltersPageState() {
     appliedFilters, setAppliedFilters, mobileFiltersOpen, setMobileFiltersOpen,
     isFiltering, sortBy, setSortBy, filteredProducts: enrichedFilteredProducts, activeFiltersCount,
     activeFiltersSummary, clearSingleFilter, handleReset, handleFilterChange, handleApplyPreset,
+    error
   };
 }

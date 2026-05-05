@@ -30,6 +30,7 @@ import { useCurrentSection } from "@/hooks/useCurrentSection";
 import { cn } from "@/lib/utils";
 import { getRoleLabel } from "@/lib/roles";
 import { RoleBadge } from "@/components/RoleBadge";
+import { prefetchRoute } from "@/lib/routePrefetch";
 
 interface HeaderProps {
   onMenuToggle: () => void;
@@ -240,6 +241,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange, isFiltering 
                       isFiltering ? "bg-primary/20 text-primary animate-pulse" : "hover:bg-primary/10"
                     )}
                     onClick={() => navigate("/filtros")}
+                    onMouseEnter={() => prefetchRoute("/filtros")}
                   >
                     {isFiltering ? (
                       <Loader2 className="h-[17px] w-[17px] animate-spin" />
@@ -263,9 +265,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange, isFiltering 
                     size="icon" aria-label="Favoritar"
                     className="relative h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-all duration-200"
                     onClick={() => navigate("/favoritos")}
-                    onMouseEnter={() => {
-                      import("../../pages/FavoritesPage");
-                    }}
+                    onMouseEnter={() => prefetchRoute("/favoritos")}
                   >
                     <Heart className="h-[17px] w-[17px]" strokeWidth={1.75} />
                     {favoriteCount > 0 && (
@@ -290,9 +290,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange, isFiltering 
                     size="icon" aria-label="GitCompare"
                     className="relative h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-all duration-200"
                     onClick={() => navigate("/comparar")}
-                    onMouseEnter={() => {
-                      import("../../pages/ComparePage");
-                    }}
+                    onMouseEnter={() => prefetchRoute("/comparar")}
                   >
                     <GitCompare className="h-[17px] w-[17px]" strokeWidth={1.75} />
                     {compareCount > 0 && (

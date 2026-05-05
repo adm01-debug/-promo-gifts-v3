@@ -32,6 +32,8 @@ import { useOracleVoiceBridge } from "@/stores/oracleVoiceBridge";
 import { toast } from "sonner";
 import { useFiltersPageState } from "./filters/useFiltersPageState";
 import { useFiltersSelectionMode } from "./filters/useFiltersSelectionMode";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -305,8 +307,33 @@ export default function FiltersPage() {
               )}
             </div>
 
-            {/* Products */}
-            <div className="min-h-[calc(100vh-10rem)] relative">
+            {/* Content Area with refined feedback states */}
+            <div className="relative min-h-[400px]">
+              {/* Error State */}
+              <AnimatePresence>
+                {state.error && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="py-12"
+                  >
+                    <Alert variant="destructive" className="max-w-md mx-auto">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertTitle>Erro ao carregar catálogo</AlertTitle>
+                      <AlertDescription className="flex flex-col gap-3">
+                        <p>Ocorreu um problema ao sincronizar os produtos. Verifique sua conexão.</p>
+                        <Button variant="outline" size="sm" onClick={() => window.location.reload()} className="w-fit gap-2">
+                          <RefreshCw className="h-3.5 w-3.5" />
+                          Tentar novamente
+                        </Button>
+                      </AlertDescription>
+                    </Alert>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Filtering indicator */}
               {state.isFiltering && (
                 <div className="absolute inset-0 z-10 bg-background/50 backdrop-blur-[1px] flex items-start justify-center pt-32 transition-opacity duration-200 pointer-events-none rounded-xl">
                   <div className="flex items-center gap-2 px-4 py-2 bg-background/90 border rounded-full shadow-sm">
@@ -315,96 +342,115 @@ export default function FiltersPage() {
                   </div>
                 </div>
               )}
-              {(state.isLoadingProducts || state.isLoadingMaterialFilter || state.isLoadingCategoryFilter) && state.realProducts.length === 0 ? (
-                <div className="rounded-xl border border-border/40 bg-gradient-to-b from-background/80 to-background/40 p-4 sm:p-6 shadow-inner">
-                  {/* Premium shimmer loading header */}
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 animate-pulse" />
-                    <div className="space-y-1.5 flex-1">
-                      <div className="h-4 w-48 rounded-md bg-gradient-to-r from-muted/80 via-muted/40 to-muted/80 animate-[shimmer_2s_infinite] bg-[length:200%_100%]" />
-                      <div className="h-3 w-32 rounded-md bg-gradient-to-r from-muted/60 via-muted/30 to-muted/60 animate-[shimmer_2s_infinite_0.3s] bg-[length:200%_100%]" />
-                    </div>
+
+              {/* Initial Loading State */}
+              {(state.isLoadingProducts || state.isLoadingMaterialFilter || state.isLoadingCategoryFilter) && state.realProducts.length === 0 && !state.error && (
+                <div className="py-20 flex flex-col items-center justify-center space-y-4">
+                  <div className="relative">
+                    <div className="h-16 w-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+                    <Sparkles className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-6 w-6 text-primary/40 animate-pulse" />
                   </div>
-                  <div className={`${state.viewMode === "grid" ? "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6" : state.viewMode === "table" ? "space-y-0" : "space-y-3"}`}>
-                    {state.viewMode === "table" ? (
-                      <div className="rounded-xl border border-border/50 overflow-hidden">
-                        <div className="h-10 bg-muted/40 border-b border-border/30 flex items-center gap-4 px-4">
-                          {[80, 200, 100, 80, 80, 100].map((w, i) => (
-                            <div key={i} className="h-3 rounded bg-muted/60 animate-[shimmer_2s_infinite] bg-[length:200%_100%]" style={{ width: w, animationDelay: `${i * 100}ms` }} />
-                          ))}
-                        </div>
-                        {Array.from({ length: 8 }).map((_, index) => (
-                          <div key={index} className="h-14 border-b border-border/20 flex items-center gap-4 px-4" style={{ animationDelay: `${index * 60}ms` }}>
-                            <div className="h-9 w-9 rounded-lg bg-muted/40 animate-[shimmer_2s_infinite] bg-[length:200%_100%] shrink-0" />
-                            <div className="h-3.5 flex-1 max-w-[200px] rounded bg-muted/50 animate-[shimmer_2s_infinite] bg-[length:200%_100%]" />
-                            <div className="h-3 w-20 rounded bg-muted/40 animate-[shimmer_2s_infinite] bg-[length:200%_100%]" />
-                            <div className="h-3 w-16 rounded bg-muted/40 animate-[shimmer_2s_infinite] bg-[length:200%_100%]" />
-                          </div>
-                        ))}
-                      </div>
-                    ) : Array.from({ length: state.viewMode === "grid" ? 6 : 8 }).map((_, index) => (
-                      state.viewMode === "grid" ? (
-                        <div key={index} className="overflow-hidden rounded-2xl border border-border/50 bg-card" style={{ animationDelay: `${index * 100}ms` }}>
-                          <div className="aspect-[4/5] bg-gradient-to-br from-muted/60 via-muted/30 to-muted/60 animate-[shimmer_2s_infinite] bg-[length:200%_100%]" style={{ animationDelay: `${index * 150}ms` }} />
-                          <div className="space-y-3 p-4">
-                            <div className="h-3 w-24 rounded-md bg-gradient-to-r from-muted/70 via-muted/30 to-muted/70 animate-[shimmer_2s_infinite] bg-[length:200%_100%]" />
-                            <div className="h-5 w-full rounded-md bg-gradient-to-r from-muted/60 via-muted/25 to-muted/60 animate-[shimmer_2s_infinite] bg-[length:200%_100%]" />
-                            <div className="h-5 w-2/3 rounded-md bg-gradient-to-r from-muted/50 via-muted/20 to-muted/50 animate-[shimmer_2s_infinite] bg-[length:200%_100%]" />
-                          </div>
-                        </div>
-                      ) : (
-                        <div key={index} className="flex items-center gap-4 rounded-xl border border-border/50 bg-card p-4" style={{ animationDelay: `${index * 80}ms` }}>
-                          <div className="h-20 w-20 rounded-lg bg-gradient-to-br from-muted/60 via-muted/30 to-muted/60 animate-[shimmer_2s_infinite] bg-[length:200%_100%] shrink-0" />
-                          <div className="flex-1 space-y-3">
-                            <div className="h-4 w-1/3 rounded-md bg-gradient-to-r from-muted/70 via-muted/30 to-muted/70 animate-[shimmer_2s_infinite] bg-[length:200%_100%]" />
-                            <div className="h-5 w-2/3 rounded-md bg-gradient-to-r from-muted/60 via-muted/25 to-muted/60 animate-[shimmer_2s_infinite] bg-[length:200%_100%]" />
-                          </div>
-                        </div>
-                      )
-                    ))}
+                  <div className="text-center space-y-1">
+                    <p className="font-medium text-foreground">Sincronizando catálogo mestre</p>
+                    <p className="text-sm text-muted-foreground">Isso pode levar alguns segundos na primeira carga</p>
                   </div>
                 </div>
-              ) : state.filteredProducts.length > 0 ? (
-                <>
-                  {state.viewMode === "grid" ? (
-                    <VirtualizedProductGrid products={state.filteredProducts} onProductClick={(product) => state.selectionMode ? sel.toggleSelect(product.id) : navigate(`/produto/${product.id}`)} isFavorited={isFavorite} onToggleFavorite={toggleFavorite} isInCompare={isInCompare} onToggleCompare={toggleCompare} canAddToCompare={canAddMore} onShare={(product) => setShareProduct(product)} columns={state.gridColumns} columnSelector={<ColumnSelector value={state.gridColumns} onChange={state.setGridColumns} />} activeFiltersCount={state.activeFiltersCount} sortBy={state.sortBy} onSortChange={state.setSortBy} onOpenFilters={() => state.setMobileFiltersOpen(true)} onClearFilters={state.handleReset} viewMode={state.viewMode} onViewModeChange={state.setViewMode} showFilterBar={false} activeColorFilter={(state.filters.colorGroups.length > 0 || state.filters.colorVariations.length > 0) ? { groups: state.filters.colorGroups, variations: state.filters.colorVariations } : null} selectionMode={state.selectionMode} selectedIds={sel.selectedIds} onToggleSelect={sel.toggleSelect} />
-                  ) : state.viewMode === "list" ? (
-                    <div className="h-[calc(100vh-280px)] min-h-[500px] overflow-y-auto rounded-xl border border-border/40 bg-gradient-to-b from-background/80 to-background/40 backdrop-blur-sm scrollbar-products shadow-inner p-4">
-                      <ProductList products={state.filteredProducts} onProductClick={(productId) => state.selectionMode ? sel.toggleSelect(productId) : navigate(`/produto/${productId}`)} onShareProduct={(product) => setShareProduct(product)} isFavorite={isFavorite} onToggleFavorite={toggleFavorite} isInCompare={isInCompare} onToggleCompare={toggleCompare} canAddToCompare={canAddMore} activeColorFilter={(state.filters.colorGroups.length > 0 || state.filters.colorVariations.length > 0) ? { groups: state.filters.colorGroups, variations: state.filters.colorVariations } : null} selectionMode={state.selectionMode} externalSelectedIds={sel.selectedIds} onToggleSelect={sel.toggleSelect} />
-                    </div>
-                  ) : (
-                    <div className="h-[calc(100vh-280px)] min-h-[500px] overflow-y-auto rounded-xl border border-border/40 bg-gradient-to-b from-background/80 to-background/40 backdrop-blur-sm shadow-inner">
-                      <ProductTableView
-                        products={state.filteredProducts}
-                        onProductClick={(productId) => state.selectionMode ? sel.toggleSelect(productId) : navigate(`/produto/${productId}`)}
-                        isFavorite={isFavorite}
-                        onToggleFavorite={toggleFavorite}
-                        isInCompare={isInCompare}
-                        onToggleCompare={toggleCompare}
-                        canAddToCompare={canAddMore}
-                        onShareProduct={(product) => setShareProduct(product)}
-                        activeColorFilter={(state.filters.colorGroups.length > 0 || state.filters.colorVariations.length > 0) ? { groups: state.filters.colorGroups, variations: state.filters.colorVariations } : null}
-                        selectionMode={state.selectionMode}
-                        selectedIds={sel.selectedIds}
-                        onToggleSelect={sel.toggleSelect}
-                      />
-                    </div>
-                  )}
+              )}
 
-                  {/* Bulk Action Bar */}
-                  {state.selectionMode && (
-                    <BulkActionBar
-                      selectedCount={sel.selectedIds.size}
-                      totalCount={state.filteredProducts.length}
-                      onSelectAll={sel.selectAll}
-                      onClearSelection={sel.clearSelection}
-                      onBulkFavorite={sel.handleBulkFavorite}
-                      onBulkCompare={sel.handleBulkCompare}
-                      onBulkCollection={sel.handleBulkCollection}
-                      onBulkQuote={sel.handleBulkQuote}
-                      onBulkCart={sel.handleBulkCart}
-                    />
-                  )}
+              {/* Empty State */}
+              {!state.isLoadingProducts && state.filteredProducts.length === 0 && !state.error && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="py-20 flex flex-col items-center justify-center text-center space-y-6 max-w-md mx-auto"
+                >
+                  <div className="h-24 w-24 rounded-full bg-muted/30 flex items-center justify-center">
+                    <SearchX className="h-12 w-12 text-muted-foreground/40" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-xl font-semibold">Nenhum produto encontrado</h3>
+                    <p className="text-muted-foreground text-sm">
+                      Não encontramos itens que correspondam aos seus filtros atuais. 
+                      Tente ajustar sua busca ou remover alguns filtros aplicados.
+                    </p>
+                  </div>
+                  <Button variant="outline" onClick={state.handleReset} className="gap-2">
+                    <X className="h-4 w-4" />
+                    Limpar todos os filtros
+                  </Button>
+                </motion.div>
+              )}
+
+              {/* Grid Content */}
+              {!state.error && (state.realProducts.length > 0 || !state.isLoadingProducts) && state.filteredProducts.length > 0 && (
+                <div className={cn("transition-opacity duration-300", state.isLoadingProducts && "opacity-60 pointer-events-none")}>
+                  <AnimatePresence mode="wait">
+                    {state.viewMode === "grid" ? (
+                      <VirtualizedProductGrid 
+                        products={state.filteredProducts} 
+                        onProductClick={(product) => state.selectionMode ? sel.toggleSelect(product.id) : navigate(`/produto/${product.id}`)} 
+                        isFavorited={isFavorite} 
+                        onToggleFavorite={toggleFavorite} 
+                        isInCompare={isInCompare} 
+                        onToggleCompare={toggleCompare} 
+                        canAddToCompare={canAddMore} 
+                        onShare={(product) => setShareProduct(product)} 
+                        columns={state.gridColumns} 
+                        columnSelector={<ColumnSelector value={state.gridColumns} onChange={state.setGridColumns} />} 
+                        activeFiltersCount={state.activeFiltersCount} 
+                        sortBy={state.sortBy} 
+                        onSortChange={state.setSortBy} 
+                        onOpenFilters={() => state.setMobileFiltersOpen(true)} 
+                        onClearFilters={state.handleReset} 
+                        viewMode={state.viewMode} 
+                        onViewModeChange={state.setViewMode} 
+                        showFilterBar={false} 
+                        activeColorFilter={(state.filters.colorGroups.length > 0 || state.filters.colorVariations.length > 0) ? { groups: state.filters.colorGroups, variations: state.filters.colorVariations } : null} 
+                        selectionMode={state.selectionMode} 
+                        selectedIds={sel.selectedIds} 
+                        onToggleSelect={sel.toggleSelect} 
+                      />
+                    ) : state.viewMode === "list" ? (
+                      <div className="h-[calc(100vh-280px)] min-h-[500px] overflow-y-auto rounded-xl border border-border/40 bg-gradient-to-b from-background/80 to-background/40 backdrop-blur-sm scrollbar-products shadow-inner p-4">
+                        <ProductList products={state.filteredProducts} onProductClick={(productId) => state.selectionMode ? sel.toggleSelect(productId) : navigate(`/produto/${productId}`)} onShareProduct={(product) => setShareProduct(product)} isFavorite={isFavorite} onToggleFavorite={toggleFavorite} isInCompare={isInCompare} onToggleCompare={toggleCompare} canAddToCompare={canAddMore} activeColorFilter={(state.filters.colorGroups.length > 0 || state.filters.colorVariations.length > 0) ? { groups: state.filters.colorGroups, variations: state.filters.colorVariations } : null} selectionMode={state.selectionMode} externalSelectedIds={sel.selectedIds} onToggleSelect={sel.toggleSelect} />
+                      </div>
+                    ) : (
+                      <div className="h-[calc(100vh-280px)] min-h-[500px] overflow-y-auto rounded-xl border border-border/40 bg-gradient-to-b from-background/80 to-background/40 backdrop-blur-sm shadow-inner">
+                        <ProductTableView
+                          products={state.filteredProducts}
+                          onProductClick={(productId) => state.selectionMode ? sel.toggleSelect(productId) : navigate(`/produto/${productId}`)}
+                          isFavorite={isFavorite}
+                          onToggleFavorite={toggleFavorite}
+                          isInCompare={isInCompare}
+                          onToggleCompare={toggleCompare}
+                          canAddToCompare={canAddMore}
+                          onShareProduct={(product) => setShareProduct(product)}
+                          activeColorFilter={(state.filters.colorGroups.length > 0 || state.filters.colorVariations.length > 0) ? { groups: state.filters.colorGroups, variations: state.filters.colorVariations } : null}
+                          selectionMode={state.selectionMode}
+                          selectedIds={sel.selectedIds}
+                          onToggleSelect={sel.toggleSelect}
+                        />
+                      </div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              )}
+            </div>
+
+            {/* Bulk Action Bar */}
+            {state.selectionMode && (
+              <BulkActionBar
+                selectedCount={sel.selectedIds.size}
+                totalCount={state.filteredProducts.length}
+                onSelectAll={sel.selectAll}
+                onClearSelection={sel.clearSelection}
+                onBulkFavorite={sel.handleBulkFavorite}
+                onBulkCompare={sel.handleBulkCompare}
+                onBulkCollection={sel.handleBulkCollection}
+                onBulkQuote={sel.handleBulkQuote}
+                onBulkCart={sel.handleBulkCart}
+              />
+            )}
 
                   {sel.firstSelectedProduct && (
                     <AddToCollectionModal
