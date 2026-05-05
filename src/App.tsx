@@ -204,7 +204,7 @@ const AppContent = () => {
         <Route path="/dashboard" element={<CustomizableDashboard />} />
 
         {/* Products */}
-        <Route path="/produtos" element={<FiltersPage />} />
+        <Route path="/produtos" element={<Index />} />
         <Route path="/produto" element={<Navigate to="/produtos" replace />} />
         <Route path="/produto/:id" element={<ProductDetail />} />
         <Route path="/filtros" element={<FiltersPage />} />
