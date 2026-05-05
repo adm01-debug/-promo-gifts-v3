@@ -5,6 +5,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckSquare, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import type { ReactNode } from "react";
 
 interface BulkSelectionBarProps {
