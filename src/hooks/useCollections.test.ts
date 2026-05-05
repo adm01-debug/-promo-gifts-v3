@@ -1,5 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { supabase } from "@/integrations/supabase/client";
+import { describe, it, expect } from "vitest";
 import { readFileSync } from "fs";
 
 describe("useCollections - Static Validation", () => {
