@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { useNovelties, useNoveltyStats, useNoveltiesWithDetails } from '../src/hooks/useNovelties';
-import { MOCK_NOVELTIES, MOCK_STATS } from '../src/hooks/useNoveltiesMocks';
+import { useNovelties, useNoveltyStats, useNoveltiesWithDetails } from '@/hooks/useNovelties';
+import { MOCK_NOVELTIES, MOCK_STATS } from '@/hooks/useNoveltiesMocks';
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
