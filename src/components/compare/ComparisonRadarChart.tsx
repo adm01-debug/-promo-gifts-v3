@@ -109,6 +109,8 @@ export function ComparisonRadarChart({ products, className }: ComparisonRadarCha
             />
             <Legend
               wrapperStyle={{ fontSize: 12 }}
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
               formatter={(value) => {
                 const p = products.find(x => String(x.id) === value);
                 return p?.name?.slice(0, 28) ?? value;
