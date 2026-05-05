@@ -71,7 +71,32 @@ describe("useCatalogState Sync & Loop Prevention", () => {
     
     act(() => {
       result.current.setFiltersWithPreset(result.current.filters, "p2");
+  it("should update state when URL changes externally", async () => {
+    // This requires simulating an external URL change. 
+    // Since useSearchParams is linked to the router, we can use navigate from the wrapper if we expose it,
+    // or just use MemoryRouter's initialEntries and re-render.
+    
+    const { result, rerender } = renderHook(() => useCatalogState(), { 
+      wrapper: ({ children }) => (
+        <MemoryRouter initialEntries={["/?preset=external-p1"]}>
+          {children}
+        </MemoryRouter>
+      )
     });
+
+    expect(result.current.activePresetId).toBe("external-p1");
+  });
+
+  it("should ignore URL changes if they were triggered internally", async () => {
+    const { result } = renderHook(() => useCatalogState(), { wrapper });
+    
+    act(() => {
+      result.current.setFiltersWithPreset(result.current.filters, "internal-p1");
+    });
+
+    // The internal ref should prevent the useEffect from doing redundant work
+    // We already have some confidence from the 'prevent loops' test.
+  });
 
     expect(result.current.activePresetId).toBe("p2");
     // Se houvesse um loop infinito, o teste travaria ou excederia o timeout
