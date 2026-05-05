@@ -390,6 +390,8 @@ export function useQuoteBuilderState() {
 
   const shippingCostValue = useMemo(() => (shippingType === "fob" || shippingType === "fob_pre") ? (shippingCost || 0) : 0, [shippingType, shippingCost]);
 
+  const total = useMemo(() => Math.max(0, subtotal - discountAmount + shippingCostValue), [subtotal, discountAmount, shippingCostValue]);
+
   // ── Desconto REAL (sobre subtotal real) — usado para alçada ──
   const realDiscountPercent = useMemo(
     () => QuoteCalc.calculateRealDiscountPercent(realSubtotal, subtotal, discountAmount),
