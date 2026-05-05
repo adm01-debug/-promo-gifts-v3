@@ -13,6 +13,7 @@ import { ProductList } from "@/components/products/ProductList";
 import { ProductTableView } from "@/components/products/ProductTableView";
 import { ColumnSelector } from "@/components/products/ColumnSelector";
 import { BulkActionBar } from "@/components/products/BulkActionBar";
+import { SearchHistoryPopover } from "@/components/search/SearchHistoryPopover";
 import { BulkAddToCartModal } from "@/components/catalog/BulkAddToCartModal";
 import { BulkVariantWizard } from "@/components/catalog/BulkVariantWizard";
 import { AddToCollectionModal } from "@/components/collections/AddToCollectionModal";

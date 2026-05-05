@@ -208,12 +208,12 @@ export function useFiltersPageState() {
   // Apply filters
   const filteredProducts = useMemo(() => {
     let result = hasFuzzySearch ? [...fuzzySearchResults] : [...realProducts];
-    if (filters.search) { const s = filters.search.toLowerCase(); result = result.filter(p => p.name.toLowerCase().includes(s) || (p.sku && p.sku.toLowerCase().includes(s)) || (p.description && p.description.toLowerCase().includes(s))); }
+    if (filters.search) { const s = filters.search.toLowerCase(); result = result.filter(p => p.name.toLowerCase().includes(s) || (p.sku && p.sku.toLowerCase().includes(s)) || (p.supplier_reference && p.supplier_reference.toLowerCase().includes(s)) || (p.description && p.description.toLowerCase().includes(s))); }
     if (hasColorFilter && colorFilteredProductIds.size > 0) result = result.filter(p => colorFilteredProductIds.has(p.id));
     else if (hasColorFilter && colorFilteredProductIds.size === 0 && !isLoadingColorFilter) result = [];
     if (hasCategoryFilter && categoryFilteredProductIds.size > 0) result = result.filter(p => categoryFilteredProductIds.has(p.id));
     else if (hasCategoryFilter && categoryFilteredProductIds.size === 0 && !isLoadingCategoryFilter) result = [];
-    if (filters.suppliers.length > 0) result = result.filter(product => { const sId = product.supplier?.id || ''; const sName = (product.supplier?.name || product.brand || '').toLowerCase(); return filters.suppliers.includes(sId) || filters.suppliers.some(s => sName.includes(s.toLowerCase())) || filters.suppliers.includes(product.supplier_reference || ''); });
+    if (filters.suppliers.length > 0) result = result.filter(product => { const sId = product.supplier?.id || ''; const sName = (product.supplier?.name || product.brand || '').toLowerCase(); const sRef = (product.supplier_reference || '').toLowerCase(); return filters.suppliers.includes(sId) || filters.suppliers.some(s => sName.includes(s.toLowerCase())) || filters.suppliers.some(s => sRef.includes(s.toLowerCase())); });
     if (filters.publicoAlvo.length > 0) result = result.filter(product => { const tags = product.tags?.publicoAlvo || []; return filters.publicoAlvo.some(p => tags.some((t: string) => t.toLowerCase() === p.toLowerCase())); });
     if (filters.datasComemorativas.length > 0) result = result.filter(product => { const tags = product.tags?.datasComemorativas || []; return filters.datasComemorativas.some(d => tags.some((t: string) => t.toLowerCase().includes(d.toLowerCase()))); });
     if (filters.endomarketing.length > 0) result = result.filter(product => { const tags = product.tags?.endomarketing || []; return filters.endomarketing.some(e => tags.some((t: string) => t.toLowerCase() === e.toLowerCase())); });
