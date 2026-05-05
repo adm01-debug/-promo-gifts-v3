@@ -5,7 +5,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Check, ShoppingBag, Loader2 } from "lucide-react";
+import { Check, ShoppingBag, Loader2, ArrowLeft, Building2 } from "lucide-react";
 import { useSellerCartContext } from "@/contexts/SellerCartContext";
 import { CartCompanyPicker } from "@/components/cart/CartCompanyPicker";
 import { toast } from "sonner";
@@ -18,6 +18,8 @@ interface BulkAddToCartModalProps {
   products: Product[];
   variantSelections?: BulkVariantSelection[];
   onDone?: () => void;
+  /** Volta ao wizard de variantes preservando seleções (botão "Voltar"). */
+  onBack?: () => void;
 }
 
 export function BulkAddToCartModal({ open, onOpenChange, products, variantSelections, onDone }: BulkAddToCartModalProps) {
