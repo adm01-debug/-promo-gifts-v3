@@ -129,6 +129,10 @@ async function enrichNovelties(novelties: NoveltyWithDetails[]): Promise<Novelty
 /**
  * Converte produto cru do banco externo em NoveltyWithDetails
  */
+/**
+ * Converte produto cru do banco externo em NoveltyWithDetails.
+ * Esta função é o SSOT para o mapeamento de campos do DB para a UI.
+ */
 function toNovelty(p: RawProduct): NoveltyWithDetails {
   const daysRemaining = calcDaysRemaining(p.created_at);
   const expiresAt = new Date(new Date(p.created_at).getTime() + NOVELTY_WINDOW_DAYS * 86400000).toISOString();
