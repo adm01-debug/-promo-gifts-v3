@@ -5,7 +5,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Check, ShoppingBag, Loader2 } from "lucide-react";
+import { Check, ShoppingBag, Loader2, ArrowLeft, Building2 } from "lucide-react";
 import { useSellerCartContext } from "@/contexts/SellerCartContext";
 import { CartCompanyPicker } from "@/components/cart/CartCompanyPicker";
 import { toast } from "sonner";
@@ -18,10 +18,12 @@ interface BulkAddToCartModalProps {
   products: Product[];
   variantSelections?: BulkVariantSelection[];
   onDone?: () => void;
+  /** Volta ao wizard de variantes preservando seleções (botão "Voltar"). */
+  onBack?: () => void;
 }
 
-export function BulkAddToCartModal({ open, onOpenChange, products, variantSelections, onDone }: BulkAddToCartModalProps) {
-  const { activeCart, addToActiveCart } = useSellerCartContext();
+export function BulkAddToCartModal({ open, onOpenChange, products, variantSelections, onDone, onBack }: BulkAddToCartModalProps) {
+  const { activeCart, addToActiveCart, setActiveCartId } = useSellerCartContext();
   const [adding, setAdding] = useState(false);
   const [done, setDone] = useState(false);
 
@@ -82,15 +84,41 @@ export function BulkAddToCartModal({ open, onOpenChange, products, variantSelect
         </DialogHeader>
 
         {!hasCart ? (
-          <CartCompanyPicker
-            onCreated={() => {}}
-            onCancel={() => onOpenChange(false)}
-          />
+          <div className="space-y-3">
+            <CartCompanyPicker
+              onCreated={() => {}}
+              onCancel={() => onOpenChange(false)}
+            />
+            {onBack && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full gap-2 text-muted-foreground hover:text-foreground"
+                onClick={() => { onOpenChange(false); onBack(); }}
+              >
+                <ArrowLeft className="h-3.5 w-3.5" />
+                Voltar e revisar produtos/cores
+              </Button>
+            )}
+          </div>
         ) : (
           <div className="space-y-4 py-2">
-            <div className="rounded-xl bg-muted/40 border border-border/50 p-3">
-              <p className="text-xs text-muted-foreground mb-1">Carrinho ativo</p>
-              <p className="text-sm font-medium">{activeCart.company_name}</p>
+            <div className="rounded-xl bg-muted/40 border border-border/50 p-3 flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <p className="text-xs text-muted-foreground mb-1">Carrinho ativo</p>
+                <p className="text-sm font-medium truncate">{activeCart.company_name}</p>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2 text-[11px] gap-1 shrink-0 text-muted-foreground hover:text-foreground"
+                onClick={() => setActiveCartId(null)}
+                disabled={adding || done}
+                aria-label="Trocar empresa"
+              >
+                <Building2 className="h-3 w-3" />
+                Trocar
+              </Button>
             </div>
 
             {/* Show variant selections summary */}
@@ -116,28 +144,42 @@ export function BulkAddToCartModal({ open, onOpenChange, products, variantSelect
               {count} produto{count > 1 ? 's' : ''} será{count > 1 ? 'ão' : ''} adicionado{count > 1 ? 's' : ''} com quantidade 1.
             </div>
 
-            <Button
-              className="w-full gap-2"
-              onClick={handleAdd}
-              disabled={adding || done}
-            >
-              {done ? (
-                <>
-                  <Check className="h-4 w-4" />
-                  Adicionado!
-                </>
-              ) : adding ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Adicionando...
-                </>
-              ) : (
-                <>
-                  <ShoppingBag className="h-4 w-4" />
-                  Adicionar ao Carrinho
-                </>
+            <div className="flex gap-2">
+              {onBack && (
+                <Button
+                  variant="outline"
+                  className="gap-2"
+                  onClick={() => { onOpenChange(false); onBack(); }}
+                  disabled={adding || done}
+                  aria-label="Voltar para revisar produtos e cores"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Voltar
+                </Button>
               )}
-            </Button>
+              <Button
+                className="flex-1 gap-2"
+                onClick={handleAdd}
+                disabled={adding || done}
+              >
+                {done ? (
+                  <>
+                    <Check className="h-4 w-4" />
+                    Adicionado!
+                  </>
+                ) : adding ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Adicionando...
+                  </>
+                ) : (
+                  <>
+                    <ShoppingBag className="h-4 w-4" />
+                    Adicionar ao Carrinho
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         )}
       </DialogContent>

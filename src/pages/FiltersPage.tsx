@@ -475,6 +475,7 @@ export default function FiltersPage() {
               products={sel.bulkCartProducts}
               variantSelections={sel.wizardSelections}
               onDone={sel.clearSelection}
+              onBack={sel.handleBackToWizard}
             />
             <BulkVariantWizard
               open={sel.variantWizardOpen}
@@ -482,6 +483,8 @@ export default function FiltersPage() {
               products={sel.bulkCartProducts}
               mode={sel.wizardMode}
               onComplete={sel.handleWizardComplete}
+              initialSelections={sel.wizardSelections}
+              initialIndex={sel.wizardSelections.length > 0 ? Math.max(0, sel.wizardSelections.length - 1) : 0}
             />
           </div>
         </div>

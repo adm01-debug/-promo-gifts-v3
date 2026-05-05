@@ -282,8 +282,8 @@ export function NoveltyProductGrid() {
       </div>
 
       {selectionMode && <BulkActionBar selectedCount={sel.selectedCount} totalCount={filteredProducts.length} onSelectAll={sel.selectAll} onClearSelection={sel.clearSelection} onBulkFavorite={sel.handleBulkFavorite} onBulkCompare={sel.handleBulkCompare} onBulkCollection={sel.handleBulkCollection} onBulkCart={sel.handleBulkCart} onBulkQuote={sel.handleBulkQuote} />}
-      <BulkVariantWizard open={sel.variantWizardOpen} onOpenChange={sel.setVariantWizardOpen} products={sel.selectedProducts} mode={sel.wizardMode} onComplete={sel.handleWizardComplete} />
-      <BulkAddToCartModal open={sel.cartModalOpen} onOpenChange={sel.setCartModalOpen} products={sel.bulkCartProducts} variantSelections={sel.wizardSelections} onDone={sel.clearSelection} />
+      <BulkVariantWizard open={sel.variantWizardOpen} onOpenChange={sel.setVariantWizardOpen} products={sel.selectedProducts} mode={sel.wizardMode} onComplete={sel.handleWizardComplete} initialSelections={sel.wizardSelections} initialIndex={sel.wizardSelections.length > 0 ? Math.max(0, sel.wizardSelections.length - 1) : 0} />
+      <BulkAddToCartModal open={sel.cartModalOpen} onOpenChange={sel.setCartModalOpen} products={sel.bulkCartProducts} variantSelections={sel.wizardSelections} onDone={sel.clearSelection} onBack={sel.handleBackToWizard} />
       <AddToCollectionModal open={sel.collectionModalOpen} onOpenChange={sel.setCollectionModalOpen} productId={sel.firstSelectedId} productName={sel.firstSelectedProduct?.product_name || ""} />
     </div>
   );

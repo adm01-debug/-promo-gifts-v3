@@ -48,6 +48,7 @@ export function CatalogBulkModals({ sel, selectionMode, totalCount }: CatalogBul
         products={sel.bulkCartProducts}
         variantSelections={sel.wizardSelections}
         onDone={sel.clearSelection}
+        onBack={sel.handleBackToWizard}
       />
 
       <BulkVariantWizard
@@ -56,6 +57,13 @@ export function CatalogBulkModals({ sel, selectionMode, totalCount }: CatalogBul
         products={sel.bulkCartProducts}
         mode={sel.wizardMode}
         onComplete={sel.handleWizardComplete}
+        initialSelections={sel.wizardSelections}
+        initialIndex={
+          // Reabre no último produto para revisão rápida quando há seleções prévias
+          sel.wizardSelections.length > 0
+            ? Math.max(0, sel.wizardSelections.length - 1)
+            : 0
+        }
       />
     </>
   );
