@@ -107,8 +107,8 @@ vi.mock("@/stores/useComparisonStore", () => ({
   useComparisonStore: () => ({ isInCompare: vi.fn(), toggleCompare: vi.fn(), canAddMore: true }),
 }));
 
-// Mock do BroadcastChannel
-let channelInstance: any = null;
+// Mock do BroadcastChannel global
+const instances: any[] = [];
 const postMessageMock = vi.fn();
 const closeMock = vi.fn();
 
@@ -117,7 +117,7 @@ class MockBroadcastChannel {
   onmessage: any = null;
   constructor(name: string) {
     this.name = name;
-    channelInstance = this;
+    instances.push(this);
   }
   postMessage = postMessageMock;
   close = closeMock;
@@ -137,16 +137,17 @@ const wrapper = ({ children }: { children: React.ReactNode }) => (
 describe("useCatalogState - BroadcastChannel Sync", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    channelInstance = null;
+    instances.length = 0;
   });
 
   it("deve atualizar o estado quando receber PRESET_APPLIED via BroadcastChannel", async () => {
     const { result } = renderHook(() => useCatalogState(), { wrapper });
 
-    // Forçar o useEffect a rodar e a instância ser capturada
-    await act(async () => {});
-
-    expect(channelInstance).toBeDefined();
+    // Encontrar a instância que tem o onmessage definido (provavelmente a segunda, pois useCatalogState abre 2)
+    // Uma no setFiltersWithPreset (local/fémeral) e outra no useEffect (permanente)
+    const activeInstance = instances.find(inst => inst.onmessage !== null);
+    
+    expect(activeInstance).toBeDefined();
 
     const mockPresetId = "test-preset-123";
     const mockFilters = {
@@ -172,15 +173,13 @@ describe("useCatalogState - BroadcastChannel Sync", () => {
     };
 
     await act(async () => {
-      if (channelInstance && channelInstance.onmessage) {
-        channelInstance.onmessage({
-          data: {
-            type: 'PRESET_APPLIED',
-            presetId: mockPresetId,
-            filters: mockFilters
-          }
-        });
-      }
+      activeInstance.onmessage({
+        data: {
+          type: 'PRESET_APPLIED',
+          presetId: mockPresetId,
+          filters: mockFilters
+        }
+      });
     });
 
     expect(result.current.activePresetId).toBe(mockPresetId);
