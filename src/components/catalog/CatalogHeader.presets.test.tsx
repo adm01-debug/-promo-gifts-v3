@@ -1,5 +1,5 @@
 
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { CatalogHeader } from "./CatalogHeader";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -18,7 +18,7 @@ vi.mock("@/components/search/SearchHistoryPopover", () => ({
   SearchHistoryPopover: () => <div data-testid="search-history" />,
 }));
 
-// Mock PresetsBar to test interaction
+// Use a shared mock for PresetsBar that we can customize if needed
 vi.mock("@/components/filters/PresetsBar", () => ({
   PresetsBar: ({ onApplyPreset, activePresetId }: any) => (
     <div data-testid="presets-bar">
@@ -27,6 +27,12 @@ vi.mock("@/components/filters/PresetsBar", () => ({
         onClick={() => onApplyPreset({ ...defaultFilters, search: 'test-query' }, 'preset-123')}
       >
         Apply Preset
+      </button>
+      <button 
+        data-testid="clear-preset-btn" 
+        onClick={() => onApplyPreset(defaultFilters, undefined)}
+      >
+        Clear Preset
       </button>
       <span data-testid="active-preset-id">{activePresetId || 'none'}</span>
     </div>
@@ -50,6 +56,7 @@ describe("CatalogHeader Preset Flow", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    cleanup();
   });
 
   it("should pass activePresetId correctly to PresetsBar", () => {
@@ -59,7 +66,6 @@ describe("CatalogHeader Preset Flow", () => {
       </TooltipProvider>
     );
 
-    // Use getAllByTestId because it exists for both desktop and mobile
     const elements = screen.getAllByTestId("active-preset-id");
     expect(elements.length).toBeGreaterThan(0);
     expect(elements[0]).toHaveTextContent("preset-abc");
@@ -107,28 +113,14 @@ describe("CatalogHeader Preset Flow", () => {
   });
 
   it("should call onApplyPreset with defaultFilters when clearing a preset", () => {
-    // Mock PresetsBar to include a clear button
-    vi.mock("@/components/filters/PresetsBar", () => ({
-      PresetsBar: ({ onApplyPreset, activePresetId }: any) => (
-        <div data-testid="presets-bar">
-          <button 
-            data-testid="clear-preset-btn" 
-            onClick={() => onApplyPreset(defaultFilters, undefined)}
-          >
-            Clear Preset
-          </button>
-        </div>
-      ),
-    }));
-
     render(
       <TooltipProvider>
         <CatalogHeader {...mockProps} activePresetId="preset-123" />
       </TooltipProvider>
     );
 
-    const clearBtn = screen.getByTestId("clear-preset-btn");
-    fireEvent.click(clearBtn);
+    const clearBtns = screen.getAllByTestId("clear-preset-btn");
+    fireEvent.click(clearBtns[0]);
 
     expect(mockProps.onApplyPreset).toHaveBeenCalledWith(defaultFilters, undefined);
   });
