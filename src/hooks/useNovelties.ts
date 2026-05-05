@@ -186,6 +186,7 @@ export function useNoveltiesWithDetails(options: UseNoveltiesOptions = {}) {
   return useQuery<NoveltyWithDetails[]>({
     queryKey: ['novelties-details', limit, onlyHighlighted, options.status, options.maxDays],
     queryFn: async () => {
+      log.info('fetch_details_start', { limit, onlyHighlighted, status: options.status, maxDays: options.maxDays });
       if (USE_MOCKS) {
         let mocked = [...MOCK_NOVELTIES];
         if (options.status) {
