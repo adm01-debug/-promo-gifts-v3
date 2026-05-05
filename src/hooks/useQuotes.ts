@@ -72,11 +72,14 @@ export function useQuotes() {
         .from("quote_items").select("*").eq("quote_id", quoteId).order("sort_order", { ascending: true });
 
       const itemIds = (itemsData || []).map((i) => i.id);
-      let allPersonalizations: any[] = [];
+      let allPersonalizations: QuoteItemPersonalization[] = [];
       if (itemIds.length > 0) {
-        const { data: persData } = await supabase
+        const { data: persData, error: persErr } = await supabase
           .from("quote_item_personalizations").select("*").in("quote_item_id", itemIds);
-        allPersonalizations = persData || [];
+        if (persErr) {
+          console.error("Erro ao carregar personalizações:", persErr);
+        }
+        allPersonalizations = (persData || []) as QuoteItemPersonalization[];
       }
 
       const items: QuoteItem[] = (itemsData || []).map((item) => ({
@@ -86,7 +89,9 @@ export function useQuotes() {
 
       return { ...quoteData, items } as Quote;
     } catch (err) {
-      toast.error("Erro ao carregar orçamento", { description: err instanceof Error ? err.message : "Erro" });
+      const message = err instanceof Error ? err.message : "Erro desconhecido";
+      console.error("Error in fetchQuote:", err);
+      toast.error("Erro ao carregar orçamento", { description: message });
       return null;
     } finally {
       setIsLoading(false);
@@ -94,18 +99,22 @@ export function useQuotes() {
   };
 
   const logQuoteHistory = async (
-    quoteId: string, action: string, description: string,
+    quote_id: string, action: string, description: string,
     options?: { fieldChanged?: string; oldValue?: string; newValue?: string; metadata?: Record<string, unknown> }
   ) => {
     if (!user) return;
     try {
-      await supabase.from("quote_history").insert({
-        quote_id: quoteId, user_id: user.id, action, description,
+      const { error: histErr } = await supabase.from("quote_history").insert({
+        quote_id, 
+        user_id: user.id, 
+        action, 
+        description,
         field_changed: options?.fieldChanged || null,
         old_value: options?.oldValue || null,
         new_value: options?.newValue || null,
         metadata: options?.metadata || {},
       });
+      if (histErr) throw histErr;
     } catch (err) {
       console.error("Error logging history:", err);
     }
