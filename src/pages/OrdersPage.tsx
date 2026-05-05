@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { useAuth } from "@/contexts/AuthContext";
 import { Package, Search, Filter } from "lucide-react";
@@ -30,7 +29,7 @@ export default function OrdersPage() {
   });
 
   return (
-    <MainLayout>
+    <>
       <PageSEO title="Gestão de Pedidos" description="Acompanhe e gerencie todos os seus pedidos em um só lugar." path="/pedidos" />
       <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-4 pb-24 md:pb-6 animate-fade-in">
         <div className="flex items-start justify-between gap-3 flex-wrap">
@@ -91,6 +90,6 @@ export default function OrdersPage() {
           </div>
         )}
       </div>
-    </MainLayout>
+    </>
   );
 }

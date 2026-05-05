@@ -4,7 +4,6 @@
  */
 import { useState, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { Brain, Building2, MapPin, Tag, FileText, Info, Sparkles, MessageSquare, Bot, GitCompare, HelpCircle, X } from "lucide-react";
 import { toast } from "sonner";
@@ -78,7 +77,7 @@ export default function BusinessIntelligencePage() {
 
 
   return (
-    <MainLayout>
+    <>
       <PageSEO
         title="Business Analytic"
         description="Inteligência comercial 360° por cliente: histórico, afinidade, tendências do setor e recomendações."
@@ -322,7 +321,7 @@ export default function BusinessIntelligencePage() {
           />
         </>
       )}
-    </MainLayout>
+    </>
   );
 }
 

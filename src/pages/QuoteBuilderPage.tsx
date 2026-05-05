@@ -4,7 +4,6 @@
  */
 
 import { useMemo } from "react";
-import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { cn } from "@/lib/utils";
 
@@ -46,16 +45,16 @@ export default function QuoteBuilderPage() {
 
   if (s.loadingQuote) {
     return (
-      <MainLayout>
+      <>
         <div className="flex items-center justify-center min-h-[60vh]">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
-      </MainLayout>
+      </>
     );
   }
 
   return (
-    <MainLayout>
+    <>
       <PageSEO title={s.quoteId ? "Editar Orçamento" : "Novo Orçamento"} description="Crie e edite orçamentos com seleção de produtos e personalização." path="/orcamentos/novo" noIndex />
 
       <QuoteAutoSave
@@ -432,6 +431,6 @@ export default function QuoteBuilderPage() {
         onCancel={cancelLeave}
         message={message}
       />
-    </MainLayout>
+    </>
   );
 }
