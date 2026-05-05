@@ -164,6 +164,11 @@ function RoutePrefetcher() {
        // On dashboard, prefetch products and orders
        import("./pages/FiltersPage");
        import("./pages/QuotesListPage");
+    } else if (pathname === "/produtos" || pathname === "/filtros") {
+       // On product list, prefetch detail and quote builder
+       import("./pages/ProductDetail");
+       import("./pages/QuoteBuilderPage");
+       import("./pages/FavoritesPage");
     }
   }, [pathname]);
   

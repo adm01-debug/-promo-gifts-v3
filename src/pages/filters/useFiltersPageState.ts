@@ -132,7 +132,18 @@ export function useFiltersPageState() {
   const [isFiltering, setIsFiltering] = useState(false);
 
   const filtersJson = JSON.stringify(filters);
-  useEffect(() => { setIsFiltering(true); const timer = setTimeout(() => setIsFiltering(false), 350); return () => clearTimeout(timer); }, [filtersJson]);
+  useEffect(() => { 
+    setIsFiltering(true); 
+    (window as any).__IS_FILTERING_GLOBAL__ = true;
+    const timer = setTimeout(() => {
+      setIsFiltering(false);
+      (window as any).__IS_FILTERING_GLOBAL__ = false;
+    }, 350); 
+    return () => {
+      clearTimeout(timer);
+      (window as any).__IS_FILTERING_GLOBAL__ = false;
+    };
+  }, [filtersJson]);
 
   const sortBy = filters.sortBy || 'name';
   const setSortBy = useCallback((value: string) => { setFilters(prev => ({ ...prev, sortBy: value })); }, []);
