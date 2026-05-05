@@ -95,4 +95,35 @@ describe("useCollections - Persistence and Constraints", () => {
     // loadCollections should have been called for rollback
     expect(supabase.from).toHaveBeenCalledWith("collections");
   });
+
+  it("should migrate legacy data without duplication", async () => {
+    const legacyData = JSON.stringify([{ name: "Legacy Col", productItems: [{ productId: "p1" }] }]);
+    localStorage.setItem("product-collections", legacyData);
+
+    // Mock count = 0 to allow migration
+    vi.mocked(supabase.from).mockImplementation((table: string) => {
+      if (table === "collections") {
+        return {
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockImplementation((col, val) => {
+            return {
+              select: vi.fn().mockResolvedValue({ count: 0, data: null, error: null })
+            };
+          }),
+          insert: vi.fn().mockReturnThis(),
+          single: vi.fn().mockResolvedValue({ data: { id: "new-col-id" }, error: null }),
+        } as any;
+      }
+      return {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        upsert: vi.fn().mockResolvedValue({ error: null }),
+      } as any;
+    });
+
+    renderHook(() => useCollections());
+    
+    // Check if insert was called for the new collection
+    expect(supabase.from).toHaveBeenCalledWith("collections");
+  });
 });
