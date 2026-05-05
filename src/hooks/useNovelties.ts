@@ -1,6 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { invokeExternalDb } from '@/lib/external-db/bridge';
+import { createClientLogger } from '@/lib/telemetry/structuredLogger';
 import { MOCK_NOVELTIES, MOCK_STATS } from './useNoveltiesMocks';
+
+const log = createClientLogger('hooks.useNovelties');
 
 const USE_MOCKS = true; // Flag para facilitar alternar entre dados reais e mocks
 
