@@ -142,8 +142,10 @@ describe("useCatalogState - BroadcastChannel Sync", () => {
   });
 
   it("deve atualizar o estado quando receber PRESET_APPLIED via BroadcastChannel", async () => {
+    // Renderizamos o hook para que o useEffect do BroadcastChannel rode
     const { result } = renderHook(() => useCatalogState(), { wrapper });
 
+    // Verificamos se o callback foi registrado
     expect(registeredCallback).toBeDefined();
 
     const mockPresetId = "test-preset-123";
@@ -169,6 +171,7 @@ describe("useCatalogState - BroadcastChannel Sync", () => {
       gender: [],
     };
 
+    // Chamamos o callback simulando o recebimento da mensagem
     await act(async () => {
       if (registeredCallback) {
         registeredCallback({
@@ -181,7 +184,10 @@ describe("useCatalogState - BroadcastChannel Sync", () => {
       }
     });
 
+    // Validamos se o ID do preset foi atualizado
     expect(result.current.activePresetId).toBe(mockPresetId);
+    
+    // Validamos se os filtros foram atualizados
     expect(result.current.filters.inStock).toBe(true);
   });
 
