@@ -2,7 +2,7 @@
  * NoveltyCards — Grid, List, Table, and Skeleton card components for novelties.
  * Follows the same info pattern as ProductCard (catalog).
  */
-import { memo } from "react";
+import { memo, useState, useCallback, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -10,8 +10,19 @@ import { Package, Building2, FolderTree, Sparkles } from "lucide-react";
 import { NoveltyBadge } from "@/components/products/NoveltyBadge";
 import { ProductSparkline } from "@/components/products/ProductSparkline";
 import { SelectionCheckbox } from "@/components/common/SelectionCheckbox";
+import { ProductCardActions } from "@/components/products/ProductCardActions";
+import { VariantPickerDialog, type VariantActionMode } from "@/components/products/VariantPickerDialog";
+import { AddToCollectionModal } from "@/components/collections/AddToCollectionModal";
+import { SharePreviewDialog } from "@/components/products/share/SharePreviewDialog";
+import { ProductQuickView } from "@/components/products/ProductQuickView";
+import { useFavoritesStore } from "@/stores/useFavoritesStore";
+import { useComparisonStore } from "@/stores/useComparisonStore";
+import { toast } from "sonner";
+import { showUndoToast, showErrorToast } from "@/utils/undoToast";
+import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import type { NoveltyWithDetails } from "@/hooks/useNovelties";
+import type { ExternalVariantStock } from "@/hooks/useExternalVariantStock";
 
 function isFresh(detectedAt: string): boolean {
   return Math.floor((Date.now() - new Date(detectedAt).getTime()) / 86400000) <= 2;
