@@ -28,6 +28,7 @@ interface MainLayoutProps {
 export function MainLayout({ children }: MainLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isDebouncingSearch, setIsDebouncingSearch] = useState(false);
   const location = useLocation();
   const isMockupGenerator = location.pathname === "/mockup-generator";
   const isHome = location.pathname === "/";
@@ -82,7 +83,7 @@ export function MainLayout({ children }: MainLayoutProps) {
               onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}
-              isFiltering={location.pathname === "/filtros" && (window as any).__IS_FILTERING_GLOBAL__}
+              isFiltering={(location.pathname === "/filtros" || isDebouncingSearch) && (window as any).__IS_FILTERING_GLOBAL__}
             />
           </Suspense>
 
