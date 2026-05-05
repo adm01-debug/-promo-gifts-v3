@@ -2,7 +2,7 @@
  * ComparisonRadarChart — Radar visual de até 5 dimensões para múltiplos produtos.
  * Eixos: Preço (invertido), Estoque, Variedade de cores, Qtd mínima (invertido), Lead time (invertido).
  */
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   Radar,
   RadarChart,
