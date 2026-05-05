@@ -241,6 +241,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange, isFiltering 
                       isFiltering ? "bg-primary/20 text-primary animate-pulse" : "hover:bg-primary/10"
                     )}
                     onClick={() => navigate("/filtros")}
+                    onMouseEnter={() => prefetchRoute("/filtros")}
                   >
                     {isFiltering ? (
                       <Loader2 className="h-[17px] w-[17px] animate-spin" />
