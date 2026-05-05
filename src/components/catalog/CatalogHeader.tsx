@@ -93,21 +93,19 @@ export function CatalogHeader({
           </span>
         </h1>
 
-        {/* Search inline next to product count on desktop */}
+        {/* Search inline next to product count on desktop — ordem fixa: Busca → Histórico → Preset (Recentes) */}
         <div className="hidden sm:flex items-center gap-2 w-80 lg:w-[28rem]" ref={searchRef}>
           <SmartSearchInput
             placeholder="Buscar produtos…  /"
             onSelect={onSelect}
             className="flex-1"
           />
-          
-          <SearchHistoryPopover 
-            type="general" 
-            onSelect={(term) => onSelect({ type: 'history', id: `hist-${term}`, label: term })} 
-          />
-        </div>
 
-        <div className="hidden sm:block">
+          <SearchHistoryPopover
+            type="general"
+            onSelect={(term) => onSelect({ type: 'history', id: `hist-${term}`, label: term })}
+          />
+
           <RecentlyViewedPopover maxVisible={10} />
         </div>
       </div>
