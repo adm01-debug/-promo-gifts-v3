@@ -129,14 +129,20 @@ export function useQuotes() {
     }));
     const { data: insertedItems, error: itemsErr } = await supabase
       .from("quote_items").insert(itemsPayload).select("*");
-    if (itemsErr) throw new Error(itemsErr.message);
+    if (itemsErr) throw itemsErr;
+
+    if (!insertedItems) return;
 
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
-      const insertedItem = insertedItems?.[i];
+      const insertedItem = insertedItems[i];
       if (item.personalizations?.length && insertedItem) {
         const persPayload = buildPersonalizationsInsertPayload(item.personalizations, insertedItem.id);
-        await supabase.from("quote_item_personalizations").insert(persPayload);
+        const { error: persErr } = await supabase.from("quote_item_personalizations").insert(persPayload);
+        if (persErr) {
+          console.error("Erro ao inserir personalizações para item:", insertedItem.id, persErr);
+          throw persErr;
+        }
       }
     }
   }
