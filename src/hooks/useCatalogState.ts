@@ -53,11 +53,13 @@ export function useCatalogState() {
   const { data: promoSalesMap } = usePromoSalesRanking();
   const { data: supplierSalesMap } = useSupplierSalesRanking();
   
+  const isInternalUpdateRef = useRef(false);
   const [activePresetId, setActivePresetId] = useState<string | undefined>(
     searchParams.get("preset") || undefined
   );
 
   const setFiltersWithPreset = useCallback((newFilters: FilterState, presetId?: string) => {
+    isInternalUpdateRef.current = true;
     setFilters(newFilters);
     setActivePresetId(presetId);
     
@@ -81,6 +83,21 @@ export function useCatalogState() {
       console.warn("BroadcastChannel not supported", e);
     }
   }, [setSearchParams]);
+
+  // Efeito para sincronizar URL -> Estado (Navegação/Deep-link)
+  useEffect(() => {
+    if (isInternalUpdateRef.current) {
+      isInternalUpdateRef.current = false;
+      return;
+    }
+
+    const presetFromUrl = searchParams.get("preset") || undefined;
+    if (presetFromUrl !== activePresetId) {
+      setActivePresetId(presetFromUrl);
+      // Aqui poderíamos carregar os filtros do preset se tivéssemos acesso aos presets cadastrados
+      // Por enquanto, apenas sincronizamos o ID visual
+    }
+  }, [searchParams, activePresetId]);
 
   const searchQueryFromUrl = searchParams.get("search") || "";
   
