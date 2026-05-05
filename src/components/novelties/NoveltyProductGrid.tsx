@@ -119,18 +119,9 @@ export const NoveltyProductGrid = memo(function NoveltyProductGrid({
   }, [filteredProducts, isGlobalLoading, onFilteredChange]);
 
   const sel = useNoveltiesSelectionMode({ selectionMode, filteredProducts: paginatedProducts });
-  const hasActiveFilters = selectedSupplier !== "all" || selectedCategory !== "all" || selectedStatus !== "all" || maxDays !== "all" || searchQuery.trim() !== "";
   const handleProductClick = (id: string) => {
     log.info("product_click", { id });
     navigate(`/produto/${id}`);
-  };
-  const clearFilters = () => { 
-    log.info("filters_clear");
-    setSelectedSupplier("all"); 
-    setSelectedCategory("all"); 
-    setSelectedStatus("all");
-    setMaxDays("all");
-    setSearchQuery(""); 
   };
   if (error) console.error('Erro ao carregar novidades:', error);
 
