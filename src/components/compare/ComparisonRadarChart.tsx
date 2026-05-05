@@ -61,11 +61,14 @@ export function ComparisonRadarChart({ products, className }: ComparisonRadarCha
     return axes.map(axis => {
       const row: any = { axis: axis.key };
       products.forEach((p, i) => {
+        // Normalizamos para 0-100; se todos forem iguais, fica no topo (100)
         row[String(p.id)] = Math.max(0, Math.min(100, axis.values[i]));
       });
       return row;
     });
   }, [products]);
+
+  const chartId = useMemo(() => `radar-${Math.random().toString(36).substr(2, 9)}`, []);
 
   if (products.length < 2) return null;
 
