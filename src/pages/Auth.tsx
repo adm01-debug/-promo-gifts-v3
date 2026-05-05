@@ -369,8 +369,8 @@ export default function Auth() {
                     <Button 
                       type="submit" 
                       data-testid="login-submit"
-                      variant="primary"
-                      className="w-full h-12 text-base font-bold uppercase tracking-widest shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300"
+                      variant="info"
+                      className="w-full h-12 text-base font-bold uppercase tracking-widest shadow-lg shadow-info/25 hover:shadow-xl hover:shadow-info/30 transition-all duration-300"
                       disabled={isSubmitting}
                     >
                       {isSubmitting ? (
