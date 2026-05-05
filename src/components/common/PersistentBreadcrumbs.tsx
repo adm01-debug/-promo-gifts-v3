@@ -18,7 +18,9 @@ interface BreadcrumbItem {
   label: string;
   href?: string;
   icon?: typeof Home;
+  isActive?: boolean;
 }
+
 
 const routeLabels: Record<string, string> = {
   "/": "Início",
