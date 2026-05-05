@@ -414,3 +414,11 @@ export function useNoveltyProductIds() {
     staleTime: 2 * 60 * 1000,
   });
 }
+
+// SSOT: Mapeamento de status para labels e cores em um único lugar
+export const NOVELTY_STATUS_CONFIG = {
+  active: { label: 'Ativo', color: 'success' },
+  expiring_soon: { label: 'Expirando', color: 'warning' },
+  expired: { label: 'Expirado', color: 'destructive' },
+} as const;
+
