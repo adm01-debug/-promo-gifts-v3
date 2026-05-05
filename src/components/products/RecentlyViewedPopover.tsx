@@ -163,7 +163,7 @@ export function RecentlyViewedPopover({ maxVisible = 50 }: RecentlyViewedPopover
                 <p className="text-xs text-muted-foreground">Nenhum resultado para "{search}"</p>
               </div>
             ) : (
-              <div className="grid grid-cols-4 gap-2 pb-2">
+              <div className="grid grid-cols-4 gap-2 pb-2" data-testid="recently-viewed-grid">
                 {filteredProducts.map((product) => (
                   <div key={product.id} className="relative group flex flex-col items-center">
                     <TooltipProvider>
