@@ -111,7 +111,7 @@ export function CompareTableView({
             initial={{ y: -40, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: -40, opacity: 0 }}
-            className="sticky top-0 z-30 bg-background/95 backdrop-blur-md border-b border-border py-2 px-2 shadow-sm"
+            className="sticky top-[calc(var(--header-h,56px)+var(--breadcrumb-h,0px))] z-30 bg-background/95 backdrop-blur-md border-b border-border py-2 px-2 shadow-sm"
           >
             <div className="flex items-center gap-2 overflow-x-auto">
               {entries.map((entry) => (

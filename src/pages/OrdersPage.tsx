@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Package, Search, Filter } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { useOrdersList } from "@/hooks/useOrders";

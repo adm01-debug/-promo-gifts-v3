@@ -72,11 +72,14 @@ export function useQuotes() {
         .from("quote_items").select("*").eq("quote_id", quoteId).order("sort_order", { ascending: true });
 
       const itemIds = (itemsData || []).map((i) => i.id);
-      let allPersonalizations: any[] = [];
+      let allPersonalizations: QuoteItemPersonalization[] = [];
       if (itemIds.length > 0) {
-        const { data: persData } = await supabase
+        const { data: persData, error: persErr } = await supabase
           .from("quote_item_personalizations").select("*").in("quote_item_id", itemIds);
-        allPersonalizations = persData || [];
+        if (persErr) {
+          console.error("Erro ao carregar personalizações:", persErr);
+        }
+        allPersonalizations = (persData || []) as QuoteItemPersonalization[];
       }
 
       const items: QuoteItem[] = (itemsData || []).map((item) => ({
@@ -86,7 +89,9 @@ export function useQuotes() {
 
       return { ...quoteData, items } as Quote;
     } catch (err) {
-      toast.error("Erro ao carregar orçamento", { description: err instanceof Error ? err.message : "Erro" });
+      const message = err instanceof Error ? err.message : "Erro desconhecido";
+      console.error("Error in fetchQuote:", err);
+      toast.error("Erro ao carregar orçamento", { description: message });
       return null;
     } finally {
       setIsLoading(false);
@@ -94,18 +99,22 @@ export function useQuotes() {
   };
 
   const logQuoteHistory = async (
-    quoteId: string, action: string, description: string,
+    quote_id: string, action: string, description: string,
     options?: { fieldChanged?: string; oldValue?: string; newValue?: string; metadata?: Record<string, unknown> }
   ) => {
     if (!user) return;
     try {
-      await supabase.from("quote_history").insert({
-        quote_id: quoteId, user_id: user.id, action, description,
+      const { error: histErr } = await supabase.from("quote_history").insert({
+        quote_id, 
+        user_id: user.id, 
+        action, 
+        description,
         field_changed: options?.fieldChanged || null,
         old_value: options?.oldValue || null,
         new_value: options?.newValue || null,
         metadata: options?.metadata || {},
       });
+      if (histErr) throw histErr;
     } catch (err) {
       console.error("Error logging history:", err);
     }
@@ -120,14 +129,20 @@ export function useQuotes() {
     }));
     const { data: insertedItems, error: itemsErr } = await supabase
       .from("quote_items").insert(itemsPayload).select("*");
-    if (itemsErr) throw new Error(itemsErr.message);
+    if (itemsErr) throw itemsErr;
+
+    if (!insertedItems) return;
 
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
-      const insertedItem = insertedItems?.[i];
+      const insertedItem = insertedItems[i];
       if (item.personalizations?.length && insertedItem) {
         const persPayload = buildPersonalizationsInsertPayload(item.personalizations, insertedItem.id);
-        await supabase.from("quote_item_personalizations").insert(persPayload);
+        const { error: persErr } = await supabase.from("quote_item_personalizations").insert(persPayload);
+        if (persErr) {
+          console.error("Erro ao inserir personalizações para item:", insertedItem.id, persErr);
+          throw persErr;
+        }
       }
     }
   }
@@ -170,7 +185,8 @@ export function useQuotes() {
       toast.success("Status atualizado");
       await fetchQuotes();
       return true;
-    } catch {
+    } catch (err) {
+      console.error("Error updating quote status:", err);
       toast.error("Erro ao atualizar status");
       return false;
     }
@@ -180,17 +196,50 @@ export function useQuotes() {
     try {
       // rls-allow: applySellerScope chamado dinamicamente; mutações por id com RLS
       const { error: delErr } = await supabase.from("quotes").delete().eq("id", quoteId);
-      if (delErr) throw new Error(delErr.message);
+      if (delErr) throw delErr;
       toast.success("Orçamento excluído");
       await fetchQuotes();
       return true;
-    } catch {
+    } catch (err) {
+      console.error("Error deleting quote:", err);
       toast.error("Erro ao excluir orçamento");
       return false;
     }
   };
+  const bulkUpdateStatus = async (quoteIds: string[], status: Quote["status"]): Promise<boolean> => {
+    try {
+      const { error: updErr } = await supabase.from("quotes").update({ status }).in("id", quoteIds);
+      if (updErr) throw updErr;
+      
+      for (const quoteId of quoteIds) {
+        await logQuoteHistory(quoteId, "status_changed", `Status alterado em massa para ${STATUS_LABELS[status]}`);
+      }
 
-  const updateQuote = async (quoteId: string, quote: Partial<Quote>, items: QuoteItem[]): Promise<Quote | null> => {
+      toast.success(`${quoteIds.length} orçamento(s) atualizado(s)`);
+      await fetchQuotes();
+      return true;
+    } catch (err) {
+      console.error("Error in bulk update status:", err);
+      toast.error("Erro ao atualizar orçamentos em massa");
+      return false;
+    }
+  };
+
+  const bulkDeleteQuotes = async (quoteIds: string[]): Promise<boolean> => {
+    try {
+      const { error: delErr } = await supabase.from("quotes").delete().in("id", quoteIds);
+      if (delErr) throw delErr;
+      toast.success(`${quoteIds.length} orçamento(s) excluído(s)`);
+      await fetchQuotes();
+      return true;
+    } catch (err) {
+      console.error("Error in bulk delete:", err);
+      toast.error("Erro ao excluir orçamentos em massa");
+      return false;
+    }
+  };
+
+
     if (!user) { toast.error("Usuário não autenticado"); return null; }
     setIsLoading(true);
     try {
@@ -309,12 +358,19 @@ export function useQuotes() {
   const fetchTechniques = async () => {
     try {
       const result = await invokeExternalDb<PersonalizationTechnique>({
-        table: "personalization_techniques", operation: "select",
-        filters: { is_active: true }, orderBy: { column: "name", ascending: true }, limit: 100,
+        table: "personalization_techniques", 
+        operation: "select",
+        filters: { is_active: true }, 
+        orderBy: { column: "name", ascending: true }, 
+        limit: 100,
       });
+      if (result.error) {
+        throw new Error(result.error);
+      }
       setTechniques(result.records || []);
     } catch (err) {
       console.error("Error fetching techniques:", err);
+      toast.error("Erro ao carregar técnicas de personalização");
     }
   };
 
@@ -326,6 +382,6 @@ export function useQuotes() {
     quotes, techniques, isLoading, error,
     fetchQuotes, fetchQuote, createQuote, updateQuote, updateQuoteStatus,
     deleteQuote, duplicateQuote, fetchTechniques, syncQuoteToBitrix,
-    testWebhookConnection, logQuoteHistory,
+    testWebhookConnection, logQuoteHistory, bulkUpdateStatus, bulkDeleteQuotes,
   };
 }

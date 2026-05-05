@@ -71,7 +71,10 @@ const sortOptions: { value: SortOption; label: string }[] = [
 
 export default function QuotesListPage() {
   const navigate = useNavigate();
-  const { quotes, isLoading, error, deleteQuote, duplicateQuote, updateQuoteStatus } = useQuotes();
+  const { 
+    quotes, isLoading, error, deleteQuote, duplicateQuote, updateQuoteStatus, 
+    bulkUpdateStatus, bulkDeleteQuotes 
+  } = useQuotes();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -165,10 +168,10 @@ export default function QuotesListPage() {
   };
 
   const handleBulkDelete = async () => {
-    for (const id of bulkDeleteIds) {
-      await deleteQuote(id);
+    if (bulkDeleteIds.length > 0) {
+      await bulkDeleteQuotes(bulkDeleteIds);
+      setBulkDeleteIds([]);
     }
-    setBulkDeleteIds([]);
   };
 
   if (isLoading) {
@@ -380,13 +383,8 @@ export default function QuotesListPage() {
                 onDelete={(id) => setDeleteConfirmId(id)}
                 onBulkDelete={(ids) => setBulkDeleteIds(ids)}
                 onBulkStatusChange={async (ids, status) => {
-                  let successCount = 0;
-                  for (const id of ids) {
-                    const ok = await updateQuoteStatus(id, status as string);
-                    if (ok) successCount++;
-                  }
-                  toast.success(`${successCount} orçamento(s) atualizado(s)`);
-                  if (status === "approved" && successCount > 0) {
+                  const ok = await bulkUpdateStatus(ids, status as any);
+                  if (ok && status === "approved") {
                     confetti({ particleCount: 80, spread: 60, origin: { y: 0.7 }, colors: ["hsl(25,100%,50%)", "hsl(142,71%,45%)", "hsl(217,91%,60%)"] });
                   }
                 }}

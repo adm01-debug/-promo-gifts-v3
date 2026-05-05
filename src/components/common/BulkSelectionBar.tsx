@@ -5,6 +5,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckSquare, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import type { ReactNode } from "react";
 
 interface BulkSelectionBarProps {
@@ -66,30 +67,34 @@ export function BulkSelectionBar({
               <div className="flex items-center gap-2">
                 {onSelectAll && totalCount !== undefined && selectedCount < totalCount && (
                   <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.05 }}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button size="sm" variant="ghost" onClick={onSelectAll} className="gap-1.5 text-xs">
-                          <CheckSquare className="h-3.5 w-3.5" />
-                          <span className="hidden sm:inline">Selecionar Todos</span>
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Marcar todos os itens carregados</TooltipContent>
-                    </Tooltip>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button size="sm" variant="ghost" onClick={onSelectAll} className="gap-1.5 text-xs">
+                            <CheckSquare className="h-3.5 w-3.5" />
+                            <span className="hidden sm:inline">Selecionar Todos</span>
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Marcar todos os itens carregados</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </motion.div>
                 )}
 
                 {actions}
 
                 <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button size="sm" variant="ghost" onClick={onClear} className="gap-1.5 text-xs">
-                        <X className="h-3.5 w-3.5" />
-                        Limpar
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Desmarcar tudo</TooltipContent>
-                  </Tooltip>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button size="sm" variant="ghost" onClick={onClear} className="gap-1.5 text-xs">
+                          <X className="h-3.5 w-3.5" />
+                          Limpar
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Desmarcar tudo</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </motion.div>
               </div>
             </div>
