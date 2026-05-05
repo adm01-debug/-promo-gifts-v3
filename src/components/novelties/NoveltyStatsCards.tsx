@@ -40,9 +40,25 @@ const variantStyles = {
   orange: { iconBg: "bg-orange/15", iconColor: "text-orange", glow: "hover:shadow-[0_0_20px_hsl(var(--orange)/0.15)]" },
 };
 
-function StatCard({ label, value, suffix = "", subtitle, icon, variant, delay = 0 }: StatCardProps) {
+function StatCard({ label, value, suffix = "", subtitle, icon, variant, delay = 0, isLoading = false }: StatCardProps & { isLoading?: boolean }) {
   const animatedValue = useCountUp(value, 800);
   const styles = variantStyles[variant];
+
+  if (isLoading) {
+    return (
+      <Card className={cn("border-border/50 transition-all duration-300", styles.glow)}>
+        <CardContent className="p-2.5 sm:p-3">
+          <div className="flex items-center gap-2.5">
+            <Skeleton className={cn("shrink-0 h-9 w-9 sm:h-10 sm:w-10 rounded-xl", styles.iconBg)} />
+            <div className="min-w-0 flex-1 space-y-1.5">
+              <Skeleton className="h-5 w-16" />
+              <Skeleton className="h-3 w-24" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card
