@@ -202,32 +202,38 @@ export function useNoveltiesWithDetails(options: UseNoveltiesOptions = {}) {
       }
       
       const cutoff = getCutoffDate();
+      const filters: any = { is_active: true, created_at: `gte.${cutoff}` };
       
-      const result = await invokeExternalDb<RawProduct>({
-        table: 'products',
-        operation: 'select',
-        select: NOVELTY_SELECT,
-        filters: { is_active: true, created_at: `gte.${cutoff}` },
-        orderBy: { column: 'created_at', ascending: false },
-        limit,
-      });
+      try {
+        const result = await invokeExternalDb<RawProduct>({
+          table: 'products',
+          operation: 'select',
+          select: NOVELTY_SELECT,
+          filters,
+          orderBy: { column: 'created_at', ascending: false },
+          limit,
+        });
 
-      let novelties = result.records.map(toNovelty).filter(n => n.is_active);
+        let novelties = result.records.map(toNovelty).filter(n => n.is_active);
 
-      if (options.status) {
-        novelties = novelties.filter(n => n.status === options.status);
+        if (options.status) {
+          novelties = novelties.filter(n => n.status === options.status);
+        }
+
+        if (options.maxDays) {
+          novelties = novelties.filter(n => n.days_remaining <= options.maxDays!);
+        }
+
+        if (onlyHighlighted) {
+          novelties = novelties.filter(n => n.is_highlighted);
+        }
+
+        log.info('fetch_details_ok', { count: novelties.length });
+        return enrichNovelties(novelties);
+      } catch (err) {
+        log.error('fetch_details_failed', { err });
+        throw err;
       }
-
-      if (options.maxDays) {
-        novelties = novelties.filter(n => n.days_remaining <= options.maxDays!);
-      }
-
-      if (onlyHighlighted) {
-        novelties = novelties.filter(n => n.is_highlighted);
-      }
-
-      // Enriquecer com nomes de categoria e fornecedor
-      return enrichNovelties(novelties);
     },
     staleTime: 2 * 60 * 1000,
     retry: 2,
