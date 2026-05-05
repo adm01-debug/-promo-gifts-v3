@@ -28,6 +28,8 @@ const routeLabels: Record<string, string> = {
   "/novidades": "Novidades",
   "/colecoes": "Coleções",
   "/orcamentos": "Orçamentos",
+  "/orcamentos/novo": "Novo Orçamento",
+  "/orcamentos/templates": "Templates",
   "/pedidos": "Pedidos",
   "/simulador": "Simulador",
   "/simulador-precos": "Preços por Tiragem",
@@ -35,12 +37,21 @@ const routeLabels: Record<string, string> = {
   "/magic-up": "Magic Up",
   "/favoritos": "Favoritos",
   "/comparar": "Comparar",
+  "/estoque": "Estoque",
+  "/carrinhos": "Carrinhos",
+  "/meus-kits": "Meus Kits",
+  "/montar-kit": "Montar Kit",
   
   "/configuracoes": "Configurações",
   "/admin": "Administração",
   "/seguranca": "Segurança",
-  "/estoque": "Estoque",
   "/admin/temas": "Skins",
+  "/admin/usuarios": "Usuários",
+  "/admin/telemetria": "Telemetria",
+  "/admin/cadastros": "Cadastros",
+  "/admin/conexoes": "Conexoes",
+  "/admin/seguranca-acesso": "Acesso & Bots",
+  "/admin/compliance": "Compliance",
 };
 
 interface PersistentBreadcrumbsProps {
