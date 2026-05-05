@@ -6,6 +6,20 @@ import { ExpiringNoveltiesWidget } from "@/components/novelties/ExpiringNoveltie
 import { EnhancedErrorBoundary } from "@/components/errors/EnhancedErrorBoundary";
 
 export default function NoveltiesPage() {
+  const [filteredState, setFilteredState] = import.meta.env.DEV ? (function useDevState() {
+    const [state, setState] = (window as any).__novelties_state || [undefined, false];
+    return [state, (s: any) => { (window as any).__novelties_state = s; setState(s); }];
+  })() : [undefined, false] as any;
+
+  // Usando state normal para produção
+  const [products, setProducts] = useState<any[] | undefined>(undefined);
+  const [isGridLoading, setIsGridLoading] = useState(false);
+
+  const handleFilteredChange = (newProducts: any[], isLoading: boolean) => {
+    setProducts(newProducts);
+    setIsGridLoading(isLoading);
+  };
+
   return (
     <EnhancedErrorBoundary scope="pages.novelties">
       <PageSEO title="Novidades" description="Confira os produtos mais recentes adicionados ao catálogo de brindes promocionais." path="/novidades" />
@@ -30,7 +44,7 @@ export default function NoveltiesPage() {
         </div>
 
         {/* KPIs focados em chegadas */}
-        <NoveltyStatsCards />
+        <NoveltyStatsCards filteredProducts={products} isRefreshing={isGridLoading} />
 
 
         {/* Layout principal — grid ocupa mais espaço */}
