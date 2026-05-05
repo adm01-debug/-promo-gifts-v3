@@ -75,6 +75,8 @@ export function useOrdersList(
 
       // Ordenação lógica de status (mapeada no banco se possível, ou via order)
       // Aqui usamos a ordenação padrão, mas garantimos que status seja o primeiro critério
+      // Ordenação lógica de status (mapeada no banco se possível, ou via order)
+      // Aqui usamos a ordenação padrão, mas garantimos que status seja o primeiro critério
       q = q.order("status", { ascending: true }).order("created_at", { ascending: false });
 
       // Paginação
