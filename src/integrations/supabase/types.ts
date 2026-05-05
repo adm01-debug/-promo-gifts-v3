@@ -448,6 +448,7 @@ export type Database = {
       }
       collection_items: {
         Row: {
+          added_at: string
           collection_id: string
           color_hex: string | null
           color_name: string | null
@@ -460,6 +461,7 @@ export type Database = {
           thumbnail_url: string | null
         }
         Insert: {
+          added_at?: string
           collection_id: string
           color_hex?: string | null
           color_name?: string | null
@@ -472,6 +474,7 @@ export type Database = {
           thumbnail_url?: string | null
         }
         Update: {
+          added_at?: string
           collection_id?: string
           color_hex?: string | null
           color_name?: string | null
@@ -550,6 +553,7 @@ export type Database = {
           icon: string | null
           icon_color: string | null
           id: string
+          is_deleted: boolean
           is_featured: boolean
           is_public: boolean
           name: string
@@ -566,6 +570,7 @@ export type Database = {
           icon?: string | null
           icon_color?: string | null
           id?: string
+          is_deleted?: boolean
           is_featured?: boolean
           is_public?: boolean
           name: string
@@ -582,6 +587,7 @@ export type Database = {
           icon?: string | null
           icon_color?: string | null
           id?: string
+          is_deleted?: boolean
           is_featured?: boolean
           is_public?: boolean
           name?: string
@@ -1313,6 +1319,36 @@ export type Database = {
           shared_token?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      favorites: {
+        Row: {
+          added_at: string
+          id: string
+          is_deleted: boolean
+          product_id: string
+          updated_at: string
+          user_id: string
+          variant_info: Json | null
+        }
+        Insert: {
+          added_at?: string
+          id?: string
+          is_deleted?: boolean
+          product_id: string
+          updated_at?: string
+          user_id: string
+          variant_info?: Json | null
+        }
+        Update: {
+          added_at?: string
+          id?: string
+          is_deleted?: boolean
+          product_id?: string
+          updated_at?: string
+          user_id?: string
+          variant_info?: Json | null
         }
         Relationships: []
       }
