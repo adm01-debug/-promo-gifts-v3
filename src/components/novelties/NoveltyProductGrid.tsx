@@ -74,7 +74,8 @@ export const NoveltyProductGrid = memo(function NoveltyProductGrid({
     paginatedProducts, 
     totalPages, 
     hasActiveFilters,
-    itemsPerPage
+    itemsPerPage,
+    isSearching
   } = useNoveltyFilters(products);
 
   const {
