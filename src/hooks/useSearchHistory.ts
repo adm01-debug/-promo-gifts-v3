@@ -7,6 +7,8 @@ export interface HistoryItem {
   label: string;
   type: HistoryType;
   timestamp: number;
+  isPinned?: boolean;
+  resultCount?: number;
   metadata?: Record<string, any>;
 }
 
