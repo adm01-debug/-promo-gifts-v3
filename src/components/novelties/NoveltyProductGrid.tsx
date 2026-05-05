@@ -56,7 +56,6 @@ export const NoveltyProductGrid = memo(function NoveltyProductGrid({
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  const [gridColumns, setGridColumns] = useState<ColumnCount>(Number(searchParams.get("cols")) as ColumnCount || getDefaultColumns);
   const [selectionMode, setSelectionMode] = useState(false);
 
   const { data: novelties, isLoading, isFetching, error } = useNoveltiesWithDetails({ 
@@ -79,11 +78,11 @@ export const NoveltyProductGrid = memo(function NoveltyProductGrid({
   } = useNoveltyFilters(products);
 
   const {
-    viewMode, sortMode, selectedSupplier, selectedCategory, selectedStatus, maxDays, searchQuery, currentPage
+    viewMode, sortMode, selectedSupplier, selectedCategory, selectedStatus, maxDays, searchQuery, currentPage, gridColumns
   } = state;
 
   const {
-    setViewMode, setSortMode, setSelectedSupplier, setSelectedCategory, setSelectedStatus, setMaxDays, setSearchQuery, setCurrentPage, clearFilters
+    setViewMode, setSortMode, setSelectedSupplier, setSelectedCategory, setSelectedStatus, setMaxDays, setSearchQuery, setCurrentPage, clearFilters, setGridColumns
   } = actions;
 
   const [loadingProgress, setLoadingProgress] = useState(0);
