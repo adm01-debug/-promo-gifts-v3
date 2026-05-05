@@ -347,7 +347,7 @@ export const SidebarReorganized = React.forwardRef<HTMLElement, SidebarProps>(
             }}
             style={{ ['--sidebar-w' as string]: isCollapsed ? '4rem' : '16rem' }}
             className={cn(
-              "fixed left-0 top-0 z-50 h-full bg-sidebar border-r border-sidebar-border",
+              "fixed left-0 top-0 z-[20] h-full bg-sidebar border-r border-sidebar-border",
               isCollapsed ? "overflow-visible" : "overflow-hidden",
               "lg:sticky lg:top-0 lg:z-auto lg:h-screen",
               isCollapsed ? "w-16" : "w-64"
