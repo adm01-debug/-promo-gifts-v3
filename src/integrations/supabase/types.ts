@@ -5453,7 +5453,12 @@ export type Database = {
         }[]
       }
       get_unread_count: { Args: never; Returns: number }
-      get_user_org_ids: { Args: { _user_id: string }; Returns: string[] }
+      get_user_org_ids: {
+        Args: { _user_id: string }
+        Returns: {
+          organization_id: string
+        }[]
+      }
       get_user_recent_comparisons: {
         Args: { p_limit?: number }
         Returns: {
