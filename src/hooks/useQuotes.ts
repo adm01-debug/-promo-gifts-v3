@@ -181,27 +181,49 @@ export function useQuotes(filters: QuotesListFilters = {}) {
     setIsLoading(true);
     try {
       const totals = calculateQuoteTotals(quote, items);
-      // Validar integridade dos cálculos se houver markup
+      
+      // Validação de integridade de markup
       if (totals.markup > 0 && totals.subtotal < totals.realSubtotal) {
-        throw new Error("Falha na integridade dos cálculos: subtotal apresentado menor que subtotal real.");
+        throw new Error("Falha na integridade dos cálculos: subtotal inconsistente.");
       }
-      const insertPayload = buildInsertPayload(quote, user.id, orgId, totals);
-      // rls-allow: applySellerScope chamado dinamicamente; mutações por id com RLS
-      const { data: inserted, error: insErr } = await supabase.from("quotes").insert(insertPayload).select("*");
-      if (insErr) throw new Error(insErr.message);
-      const newQuote = inserted?.[0];
-      if (!newQuote) throw new Error("Falha ao inserir orçamento");
 
-      await insertItemsWithPersonalizations(items, newQuote.id);
-      await logQuoteHistory(newQuote.id, "created", `Orçamento ${newQuote.quote_number} criado`);
+      const quoteData = buildInsertPayload(quote, user.id, orgId, totals);
+      const itemsPayload = buildItemsInsertPayload(items, "00000000-0000-0000-0000-000000000000"); // Dummy ID for RPC mapping
+
+      // Use the atomic RPC V3
+      const { data, error: rpcErr } = await supabase.rpc('fn_create_quote_v3', {
+        p_quote_data: { ...quoteData, organization_id: orgId },
+        p_items_data: items.map(item => ({
+          ...item,
+          personalizations: item.personalizations || []
+        }))
+      });
+
+      if (rpcErr) throw rpcErr;
+      
+      const newQuote = data as { id: string; quote_number: string };
       toast.success("Orçamento criado!", { description: `Número: ${newQuote.quote_number}` });
+      
       await fetchQuotes();
-      return newQuote as unknown as Quote;
+      return { id: newQuote.id, quote_number: newQuote.quote_number } as unknown as Quote;
     } catch (err) {
-      toast.error("Erro ao criar orçamento", { description: err instanceof Error ? err.message : "Erro" });
+      console.error("Error creating quote:", err);
+      toast.error("Erro ao criar orçamento", { description: err instanceof Error ? err.message : "Erro desconhecido" });
       return null;
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const saveDraft = async (data: any): Promise<boolean> => {
+    if (!user) return false;
+    try {
+      const { error } = await supabase.rpc('fn_save_quote_draft', { p_data: data });
+      if (error) throw error;
+      return true;
+    } catch (err) {
+      console.error("Error saving draft:", err);
+      return false;
     }
   };
 
@@ -455,6 +477,7 @@ export function useQuotes(filters: QuotesListFilters = {}) {
     syncQuoteToBitrix,
     testWebhookConnection, 
     logQuoteHistory, 
+    saveDraft,
     bulkUpdateStatus, 
     bulkDeleteQuotes,
   };
