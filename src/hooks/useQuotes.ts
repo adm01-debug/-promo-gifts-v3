@@ -326,12 +326,19 @@ export function useQuotes() {
   const fetchTechniques = async () => {
     try {
       const result = await invokeExternalDb<PersonalizationTechnique>({
-        table: "personalization_techniques", operation: "select",
-        filters: { is_active: true }, orderBy: { column: "name", ascending: true }, limit: 100,
+        table: "personalization_techniques", 
+        operation: "select",
+        filters: { is_active: true }, 
+        orderBy: { column: "name", ascending: true }, 
+        limit: 100,
       });
+      if (result.error) {
+        throw new Error(result.error);
+      }
       setTechniques(result.records || []);
     } catch (err) {
       console.error("Error fetching techniques:", err);
+      toast.error("Erro ao carregar técnicas de personalização");
     }
   };
 
