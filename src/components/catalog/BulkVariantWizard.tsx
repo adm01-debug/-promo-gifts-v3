@@ -27,6 +27,10 @@ interface BulkVariantWizardProps {
   products: Product[];
   mode: BulkWizardMode;
   onComplete: (selections: BulkVariantSelection[]) => void;
+  /** Pré-popula o wizard (usado quando o usuário clica em "Voltar" no modal seguinte). */
+  initialSelections?: BulkVariantSelection[];
+  /** Índice inicial do produto a editar. */
+  initialIndex?: number;
 }
 
 /* ── Step: variant picker for a single product ── */
