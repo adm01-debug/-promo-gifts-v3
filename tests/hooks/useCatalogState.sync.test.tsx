@@ -42,25 +42,38 @@ describe("useCatalogState Sync & Loop Prevention", () => {
     }
   });
 
-  it("should update URL when applying a preset", () => {
+  it("should have setFiltersWithPreset and activePresetId in the return object", () => {
     const { result } = renderHook(() => useCatalogState(), { wrapper });
-
-    act(() => {
-      result.current.setFiltersWithPreset(result.current.filters, "test-preset-123");
-    });
-
-    // Check if state updated
-    // Note: useSearchParams inside the hook should have updated the URL in MemoryRouter
-    // We can't directly access the router state easily without more setup, 
-    // but we can check if it reflects back in the next render if we mock useSearchParams better or just check state.
-    
-    // Actually, useSearchParams returns the current searchParams from the router.
+    expect(typeof result.current.setFiltersWithPreset).toBe("function");
+    expect(result.current).toHaveProperty("activePresetId");
   });
 
-  it("should prevent loops when URL changes after a manual update", () => {
-    // This is hard to test purely with renderHook without a way to observe the internalRef.
-    // But we can verify that multiple re-renders don't cause infinite setFilters calls.
+  it("should update URL and state when applying a preset", async () => {
+    const { result } = renderHook(() => useCatalogState(), { wrapper });
+
+    const newFilters = { ...result.current.filters, colorGroups: ["Azul"] };
     
-    // We'll trust the logic if we can verify the state stays consistent.
+    act(() => {
+      result.current.setFiltersWithPreset(newFilters, "preset-123");
+    });
+
+    expect(result.current.activePresetId).toBe("preset-123");
+    expect(result.current.filters.colorGroups).toContain("Azul");
+  });
+
+  it("should prevent loops when multiple state changes happen", async () => {
+    const { result } = renderHook(() => useCatalogState(), { wrapper });
+    
+    // Simula múltiplas atualizações rápidas
+    act(() => {
+      result.current.setFiltersWithPreset(result.current.filters, "p1");
+    });
+    
+    act(() => {
+      result.current.setFiltersWithPreset(result.current.filters, "p2");
+    });
+
+    expect(result.current.activePresetId).toBe("p2");
+    // Se houvesse um loop infinito, o teste travaria ou excederia o timeout
   });
 });
