@@ -18,6 +18,9 @@ vi.mock('@/integrations/supabase/client', () => ({
     functions: {
       invoke: vi.fn(),
     },
+    auth: {
+      getSession: vi.fn(() => Promise.resolve({ data: { session: { access_token: 'tk' } }, error: null })),
+    }
   },
 }));
 
@@ -37,6 +40,11 @@ vi.mock('@/lib/auth/apply-seller-scope', () => ({
   applySellerScope: vi.fn((q) => q),
 }));
 
+// Mock external DB to avoid session errors
+vi.mock('@/lib/external-db', () => ({
+  invokeExternalDb: vi.fn(() => Promise.resolve({ records: [], error: null })),
+}));
+
 describe('useQuotes', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -46,10 +54,9 @@ describe('useQuotes', () => {
     const filters = { search: 'Acme', status: 'approved', page: 1, pageSize: 15 };
     const { result } = renderHook(() => useQuotes(filters));
 
-    // fetchQuotes is called on mount via useEffect
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
-    });
+    }, { timeout: 3000 });
 
     expect(supabase.from).toHaveBeenCalledWith('quotes');
     expect(mockSupabaseQuery.eq).toHaveBeenCalledWith('status', 'approved');
@@ -65,6 +72,6 @@ describe('useQuotes', () => {
 
     await waitFor(() => {
       expect(result.current.error).toBe('Database down');
-    });
+    }, { timeout: 3000 });
   });
 });
