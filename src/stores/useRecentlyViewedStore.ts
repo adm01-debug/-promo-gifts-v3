@@ -151,7 +151,7 @@ export const useRecentlyViewedStore = create<RecentlyViewedStore>((set, get) => 
 
           const final = merged
             .sort((a, b) => new Date(b.viewedAt).getTime() - new Date(a.viewedAt).getTime())
-            .slice(0, 50);
+            .slice(0, 100);
 
           saveToStorage(final);
           set({ items: final, itemCount: final.length });
