@@ -1,10 +1,10 @@
 import { renderHook, act } from "@testing-library/react";
 import { useCatalogState } from "@/hooks/useCatalogState";
 import { vi, describe, it, expect, beforeEach } from "vitest";
-import { MemoryRouter, useSearchParams } from "react-router-dom";
+import { MemoryRouter } from "react-router-dom";
 import React from "react";
 
-// Mock dependencies that aren't needed for these specific tests
+// Mock dependencies
 vi.mock("@/hooks/useColorEnrichment", () => ({ useColorEnrichment: () => ({ data: new Map() }) }));
 vi.mock("@/hooks/useProductsLightweight", () => ({ useProductsCatalog: () => ({ data: { pages: [] }, isLoading: false }) }));
 vi.mock("@/contexts/ProductsContext", () => ({ useProductsContext: () => ({ registerProducts: vi.fn() }) }));
@@ -31,8 +31,6 @@ const wrapper = ({ children }: { children: React.ReactNode }) => (
 describe("useCatalogState Sync & Loop Prevention", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    // Limpa o BroadcastChannel mockado se necessário
-    // (BroadcastChannel é global no browser, no Node pode precisar de polyfill ou mock)
     if (typeof global.BroadcastChannel === 'undefined') {
       (global as any).BroadcastChannel = class {
         postMessage = vi.fn();
@@ -48,7 +46,7 @@ describe("useCatalogState Sync & Loop Prevention", () => {
     expect(result.current).toHaveProperty("activePresetId");
   });
 
-  it("should update URL and state when applying a preset", async () => {
+  it("should update state when applying a preset", async () => {
     const { result } = renderHook(() => useCatalogState(), { wrapper });
 
     const newFilters = { ...result.current.filters, colorGroups: ["Azul"] };
@@ -61,22 +59,8 @@ describe("useCatalogState Sync & Loop Prevention", () => {
     expect(result.current.filters.colorGroups).toContain("Azul");
   });
 
-  it("should prevent loops when multiple state changes happen", async () => {
-    const { result } = renderHook(() => useCatalogState(), { wrapper });
-    
-    // Simula múltiplas atualizações rápidas
-    act(() => {
-      result.current.setFiltersWithPreset(result.current.filters, "p1");
-    });
-    
-    act(() => {
-      result.current.setFiltersWithPreset(result.current.filters, "p2");
   it("should update state when URL changes externally", async () => {
-    // This requires simulating an external URL change. 
-    // Since useSearchParams is linked to the router, we can use navigate from the wrapper if we expose it,
-    // or just use MemoryRouter's initialEntries and re-render.
-    
-    const { result, rerender } = renderHook(() => useCatalogState(), { 
+    const { result } = renderHook(() => useCatalogState(), { 
       wrapper: ({ children }) => (
         <MemoryRouter initialEntries={["/?preset=external-p1"]}>
           {children}
@@ -87,18 +71,17 @@ describe("useCatalogState Sync & Loop Prevention", () => {
     expect(result.current.activePresetId).toBe("external-p1");
   });
 
-  it("should ignore URL changes if they were triggered internally", async () => {
+  it("should prevent loops by correctly handling internal update ref", async () => {
     const { result } = renderHook(() => useCatalogState(), { wrapper });
     
     act(() => {
-      result.current.setFiltersWithPreset(result.current.filters, "internal-p1");
+      result.current.setFiltersWithPreset(result.current.filters, "p1");
+    });
+    
+    act(() => {
+      result.current.setFiltersWithPreset(result.current.filters, "p2");
     });
 
-    // The internal ref should prevent the useEffect from doing redundant work
-    // We already have some confidence from the 'prevent loops' test.
-  });
-
     expect(result.current.activePresetId).toBe("p2");
-    // Se houvesse um loop infinito, o teste travaria ou excederia o timeout
   });
 });
