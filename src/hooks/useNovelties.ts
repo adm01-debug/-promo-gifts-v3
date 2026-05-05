@@ -1,6 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { invokeExternalDb } from '@/lib/external-db/bridge';
+import { createClientLogger } from '@/lib/telemetry/structuredLogger';
 import { MOCK_NOVELTIES, MOCK_STATS } from './useNoveltiesMocks';
+
+const log = createClientLogger('hooks.useNovelties');
 
 const USE_MOCKS = true; // Flag para facilitar alternar entre dados reais e mocks
 
@@ -69,6 +72,8 @@ export interface NoveltyStatsDisplay {
   arrivedLast15Days: number;
   topSupplierName: string | null;
   topSupplierCount: number;
+  /** Filter context */
+  filteredCount?: number;
 }
 
 interface RawProduct {
@@ -183,6 +188,7 @@ export function useNoveltiesWithDetails(options: UseNoveltiesOptions = {}) {
   return useQuery<NoveltyWithDetails[]>({
     queryKey: ['novelties-details', limit, onlyHighlighted, options.status, options.maxDays],
     queryFn: async () => {
+      log.info('fetch_details_start', { limit, onlyHighlighted, status: options.status, maxDays: options.maxDays });
       if (USE_MOCKS) {
         let mocked = [...MOCK_NOVELTIES];
         if (options.status) {
@@ -198,32 +204,38 @@ export function useNoveltiesWithDetails(options: UseNoveltiesOptions = {}) {
       }
       
       const cutoff = getCutoffDate();
+      const filters: any = { is_active: true, created_at: `gte.${cutoff}` };
       
-      const result = await invokeExternalDb<RawProduct>({
-        table: 'products',
-        operation: 'select',
-        select: NOVELTY_SELECT,
-        filters: { is_active: true, created_at: `gte.${cutoff}` },
-        orderBy: { column: 'created_at', ascending: false },
-        limit,
-      });
+      try {
+        const result = await invokeExternalDb<RawProduct>({
+          table: 'products',
+          operation: 'select',
+          select: NOVELTY_SELECT,
+          filters,
+          orderBy: { column: 'created_at', ascending: false },
+          limit,
+        });
 
-      let novelties = result.records.map(toNovelty).filter(n => n.is_active);
+        let novelties = result.records.map(toNovelty).filter(n => n.is_active);
 
-      if (options.status) {
-        novelties = novelties.filter(n => n.status === options.status);
+        if (options.status) {
+          novelties = novelties.filter(n => n.status === options.status);
+        }
+
+        if (options.maxDays) {
+          novelties = novelties.filter(n => n.days_remaining <= options.maxDays!);
+        }
+
+        if (onlyHighlighted) {
+          novelties = novelties.filter(n => n.is_highlighted);
+        }
+
+        log.info('fetch_details_ok', { count: novelties.length });
+        return enrichNovelties(novelties);
+      } catch (err) {
+        log.error('fetch_details_failed', { err });
+        throw err;
       }
-
-      if (options.maxDays) {
-        novelties = novelties.filter(n => n.days_remaining <= options.maxDays!);
-      }
-
-      if (onlyHighlighted) {
-        novelties = novelties.filter(n => n.is_highlighted);
-      }
-
-      // Enriquecer com nomes de categoria e fornecedor
-      return enrichNovelties(novelties);
     },
     staleTime: 2 * 60 * 1000,
     retry: 2,
@@ -268,13 +280,31 @@ export function useExpiringNovelties(maxDays: number = 7) {
 /**
  * Hook para estatísticas de novidades
  */
-export function useNoveltyStats() {
+export function useNoveltyStats(filteredProducts?: NoveltyWithDetails[]) {
   return useQuery<NoveltyStatsDisplay>({
-    queryKey: ['novelty-stats'],
+    queryKey: ['novelty-stats', filteredProducts?.length],
     queryFn: async () => {
-      if (USE_MOCKS) return MOCK_STATS;
+      log.info('fetch_stats_start', { isFiltered: !!filteredProducts });
       
-      // Real-DB path desabilitado enquanto USE_MOCKS = true.
+      if (filteredProducts) {
+        // Recalcula KPIs baseados no subset filtrado
+        const now = new Date().toISOString().split('T')[0];
+        const last7 = getCutoffDate(7);
+        const last15 = getCutoffDate(15);
+
+        return {
+          ...MOCK_STATS,
+          totalNovelties: filteredProducts.length,
+          activeNovelties: filteredProducts.filter(p => p.status === 'active').length,
+          expiringSoon: filteredProducts.filter(p => p.status === 'expiring_soon').length,
+          arrivedToday: filteredProducts.filter(p => p.detected_at.startsWith(now)).length,
+          arrivedThisWeek: filteredProducts.filter(p => p.detected_at >= last7).length,
+          arrivedLast15Days: filteredProducts.filter(p => p.detected_at >= last15).length,
+          filteredCount: filteredProducts.length,
+        };
+      }
+
+      if (USE_MOCKS) return MOCK_STATS;
       return MOCK_STATS;
     },
     staleTime: 5 * 60 * 1000,

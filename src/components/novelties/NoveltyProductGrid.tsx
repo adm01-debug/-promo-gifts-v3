@@ -1,10 +1,13 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { createClientLogger } from "@/lib/telemetry/structuredLogger";
+
+const log = createClientLogger("novelties.grid");
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Package, ArrowUpDown, Building2, FolderTree, X, Sparkles, Search, CheckSquare, Loader2 } from "lucide-react";
+import { Package, ArrowUpDown, Building2, FolderTree, X, Sparkles, Search, CheckSquare, Loader2, SlidersHorizontal, Download, Share2 } from "lucide-react";
 import { useNoveltiesWithDetails } from "@/hooks/useNovelties";
 import { useNoveltiesSelectionMode } from "@/hooks/useNoveltiesSelectionMode";
 import { LayoutPopover } from "@/components/products/LayoutPopover";
@@ -20,6 +23,9 @@ import { useComparisonStore } from "@/stores/useComparisonStore";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { NoveltyGridCard, NoveltyTableView } from "./NoveltyCards";
+import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
+import { NOVELTY_STATUS_CONFIG } from "@/hooks/useNovelties";
+import { exportNoveltiesToCsv, shareNoveltiesOnWhatsApp } from "@/utils/noveltiesExport";
 
 type ViewMode = "grid" | "list" | "table";
 type SortMode = "name" | "price-asc" | "price-desc" | "newest" | "stock" | "best-seller-supplier" | "best-seller-promo";
@@ -105,12 +111,20 @@ export function NoveltyProductGrid() {
         case "name": return (a.product_name || "").localeCompare(b.product_name || "", 'pt-BR');
         case "price-asc": return (a.base_price || 0) - (b.base_price || 0);
         case "price-desc": return (b.base_price || 0) - (a.base_price || 0);
-        case "newest": default: return new Date(b.detected_at).getTime() - new Date(a.detected_at).getTime();
-        case "stock": case "best-seller-supplier": case "best-seller-promo": return 0;
+        case "newest": return new Date(b.detected_at).getTime() - new Date(a.detected_at).getTime();
+        case "stock": return (b.stock_quantity || 0) - (a.stock_quantity || 0);
+        case "best-seller-supplier": 
+          // Simulado: usamos stock_quantity como proxy para best seller se não houver campo específico
+          return (b.stock_quantity || 0) - (a.stock_quantity || 0);
+        case "best-seller-promo":
+          // Simulado: ordem inversa de stock (mais vendidos costumam ter menos stock se não reposto)
+          return (a.stock_quantity || 0) - (b.stock_quantity || 0);
+        default: return new Date(b.detected_at).getTime() - new Date(a.detected_at).getTime();
       }
     });
+    log.debug("filters_applied", { count: filtered.length, q: searchQuery, supplier: selectedSupplier, category: selectedCategory, status: selectedStatus, expires: maxDays });
     return filtered;
-  }, [products, selectedSupplier, selectedCategory, sortMode, searchQuery]);
+  }, [products, selectedSupplier, selectedCategory, sortMode, searchQuery, selectedStatus, maxDays]);
 
   // Reset pagination when filters change
   const isFirstMount = useRef(true);
@@ -153,8 +167,12 @@ export function NoveltyProductGrid() {
 
   const sel = useNoveltiesSelectionMode({ selectionMode, filteredProducts: paginatedProducts });
   const hasActiveFilters = selectedSupplier !== "all" || selectedCategory !== "all" || selectedStatus !== "all" || maxDays !== "all" || searchQuery.trim() !== "";
-  const handleProductClick = (id: string) => navigate(`/produto/${id}`);
+  const handleProductClick = (id: string) => {
+    log.info("product_click", { id });
+    navigate(`/produto/${id}`);
+  };
   const clearFilters = () => { 
+    log.info("filters_clear");
     setSelectedSupplier("all"); 
     setSelectedCategory("all"); 
     setSelectedStatus("all");
@@ -291,34 +309,140 @@ export function NoveltyProductGrid() {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-1.5">
-          <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-            <SelectTrigger className="w-[140px] h-7 text-[11px] gap-1"><Sparkles className="h-3 w-3 shrink-0" /><SelectValue placeholder="Status" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos status</SelectItem>
-              <SelectItem value="active">Ativo</SelectItem>
-              <SelectItem value="expiring_soon">Expirando</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={maxDays} onValueChange={setMaxDays}>
-            <SelectTrigger className="w-[150px] h-7 text-[11px] gap-1"><Package className="h-3 w-3 shrink-0" /><SelectValue placeholder="Expira em" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Qualquer prazo</SelectItem>
-              <SelectItem value="3">Próximos 3 dias</SelectItem>
-              <SelectItem value="7">Próxima semana</SelectItem>
-              <SelectItem value="15">Próximos 15 dias</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={selectedSupplier} onValueChange={setSelectedSupplier}>
-            <SelectTrigger className="w-[160px] h-7 text-[11px] gap-1"><Building2 className="h-3 w-3 shrink-0" /><SelectValue placeholder="Fornecedor" /></SelectTrigger>
-            <SelectContent><SelectItem value="all">Todos fornecedores</SelectItem>{suppliers.map(s => <SelectItem key={s.id} value={s.id}>{s.name} ({s.count})</SelectItem>)}</SelectContent>
-          </Select>
-          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-            <SelectTrigger className="w-[160px] h-7 text-[11px] gap-1"><FolderTree className="h-3 w-3 shrink-0" /><SelectValue placeholder="Categoria" /></SelectTrigger>
-            <SelectContent><SelectItem value="all">Todas categorias</SelectItem>{categories.map(c => <SelectItem key={c.id} value={c.id}>{c.name} ({c.count})</SelectItem>)}</SelectContent>
-          </Select>
+        <div className="flex flex-wrap items-center gap-1.5 sm:flex-nowrap">
+          <div className="flex items-center gap-1.5">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="h-8 text-[11px] gap-1.5 border-border/60"
+              onClick={() => exportNoveltiesToCsv(filteredProducts)}
+            >
+              <Download className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Exportar</span>
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="h-8 text-[11px] gap-1.5 border-border/60"
+              onClick={() => shareNoveltiesOnWhatsApp({
+                q: searchQuery,
+                status: selectedStatus,
+                expires: maxDays,
+                count: filteredProducts.length
+              })}
+            >
+              <Share2 className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Compartilhar</span>
+            </Button>
+          </div>
+          
+          <div className="h-4 w-px bg-border/40 mx-0.5 hidden sm:block" />
+
+          {/* Desktop Filters — Hidden on small mobile */}
+          <div className="hidden md:flex flex-wrap items-center gap-1.5">
+            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+              <SelectTrigger className="w-[120px] h-7 text-[11px] gap-1" aria-label="Filtrar por status"><Sparkles className="h-3 w-3 shrink-0" /><SelectValue placeholder="Status" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos status</SelectItem>
+                <SelectItem value="active">Ativo</SelectItem>
+                <SelectItem value="expiring_soon">Expirando</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={maxDays} onValueChange={setMaxDays}>
+              <SelectTrigger className="w-[130px] h-7 text-[11px] gap-1" aria-label="Filtrar por prazo de expiração"><Package className="h-3 w-3 shrink-0" /><SelectValue placeholder="Expira em" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Qualquer prazo</SelectItem>
+                <SelectItem value="3">Próximos 3 dias</SelectItem>
+                <SelectItem value="7">Próxima semana</SelectItem>
+                <SelectItem value="15">Próximos 15 dias</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={selectedSupplier} onValueChange={setSelectedSupplier}>
+              <SelectTrigger className="w-[150px] h-7 text-[11px] gap-1" aria-label="Filtrar por fornecedor"><Building2 className="h-3 w-3 shrink-0" /><SelectValue placeholder="Fornecedor" /></SelectTrigger>
+              <SelectContent><SelectItem value="all">Todos fornecedores</SelectItem>{suppliers.map(s => <SelectItem key={s.id} value={s.id}>{s.name} ({s.count})</SelectItem>)}</SelectContent>
+            </Select>
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <SelectTrigger className="w-[150px] h-7 text-[11px] gap-1" aria-label="Filtrar por categoria"><FolderTree className="h-3 w-3 shrink-0" /><SelectValue placeholder="Categoria" /></SelectTrigger>
+              <SelectContent><SelectItem value="all">Todas categorias</SelectItem>{categories.map(c => <SelectItem key={c.id} value={c.id}>{c.name} ({c.count})</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+
+          {/* Mobile Filter Trigger */}
+          <div className="md:hidden w-full sm:w-auto">
+            <Drawer>
+              <DrawerTrigger asChild>
+                <Button variant="outline" size="sm" className="h-8 w-full sm:w-auto text-[11px] gap-1.5 border-border/60">
+                  <SlidersHorizontal className="h-3.5 w-3.5" />
+                  Filtros
+                  {hasActiveFilters && <Badge className="ml-0.5 h-4 w-4 p-0 flex items-center justify-center text-[9px] bg-primary text-primary-foreground">!</Badge>}
+                </Button>
+              </DrawerTrigger>
+              <DrawerContent>
+                <DrawerHeader className="text-left px-6">
+                  <DrawerTitle className="text-lg font-display">Filtros de Novidades</DrawerTitle>
+                  <DrawerDescription className="text-xs">Refine a busca por produtos recém-chegados.</DrawerDescription>
+                </DrawerHeader>
+                <div className="px-6 py-4 space-y-5">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground ml-1">Status</label>
+                    <div className="flex flex-wrap gap-2">
+                      {["all", "active", "expiring_soon"].map((s) => (
+                        <Button 
+                          key={s} 
+                          variant={selectedStatus === s ? "default" : "outline"} 
+                          size="sm" 
+                          className="h-8 text-xs rounded-lg"
+                          onClick={() => setSelectedStatus(s)}
+                        >
+                          {s === "all" ? "Todos" : s === "active" ? "Ativos" : "Expirando"}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground ml-1">Expira em</label>
+                    <Select value={maxDays} onValueChange={setMaxDays}>
+                      <SelectTrigger className="w-full h-10 text-sm"><SelectValue placeholder="Prazo" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Qualquer prazo</SelectItem>
+                        <SelectItem value="3">Até 3 dias</SelectItem>
+                        <SelectItem value="7">Até 7 dias</SelectItem>
+                        <SelectItem value="15">Até 15 dias</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground ml-1">Fornecedor</label>
+                    <Select value={selectedSupplier} onValueChange={setSelectedSupplier}>
+                      <SelectTrigger className="w-full h-10 text-sm"><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                      <SelectContent><SelectItem value="all">Todos fornecedores</SelectItem>{suppliers.map(s => <SelectItem key={s.id} value={s.id}>{s.name} ({s.count})</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground ml-1">Categoria</label>
+                    <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                      <SelectTrigger className="w-full h-10 text-sm"><SelectValue placeholder="Selecionar" /></SelectTrigger>
+                      <SelectContent><SelectItem value="all">Todas categorias</SelectItem>{categories.map(c => <SelectItem key={c.id} value={c.id}>{c.name} ({c.count})</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <DrawerFooter className="px-6 pb-8 pt-2">
+                  <div className="flex items-center gap-2">
+                    <DrawerClose asChild>
+                      <Button className="flex-1 rounded-xl h-11 text-sm font-semibold">Ver {filteredProducts.length} Resultados</Button>
+                    </DrawerClose>
+                    <Button variant="ghost" className="rounded-xl h-11 text-muted-foreground" onClick={clearFilters}>Limpar</Button>
+                  </div>
+                </DrawerFooter>
+              </DrawerContent>
+            </Drawer>
+          </div>
+
           <Select value={sortMode} onValueChange={(v) => setSortMode(v as SortMode)}>
-            <SelectTrigger className="w-[180px] h-7 text-[11px] gap-1"><ArrowUpDown className="h-3 w-3" /><SelectValue /></SelectTrigger>
+            <SelectTrigger className="w-full sm:w-[180px] h-7 text-[11px] gap-1"><ArrowUpDown className="h-3 w-3" /><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="name">Nome (A-Z)</SelectItem><SelectItem value="price-asc">Preço (Menor → Maior)</SelectItem>
               <SelectItem value="price-desc">Preço (Maior → Menor)</SelectItem><SelectItem value="newest">Mais Recentes</SelectItem>
@@ -326,7 +450,7 @@ export function NoveltyProductGrid() {
               <SelectItem value="best-seller-promo">+ Vendidos Promo Brindes</SelectItem>
             </SelectContent>
           </Select>
-          {hasActiveFilters && <Button variant="ghost" size="sm" className="h-7 text-[11px] px-2 text-muted-foreground hover:text-foreground" onClick={clearFilters}><X className="h-3 w-3 mr-0.5" />Limpar</Button>}
+          {hasActiveFilters && <Button variant="ghost" size="sm" className="hidden sm:flex h-7 text-[11px] px-2 text-muted-foreground hover:text-foreground" onClick={clearFilters}><X className="h-3 w-3 mr-0.5" />Limpar</Button>}
         </div>
 
         {hasActiveFilters && (
