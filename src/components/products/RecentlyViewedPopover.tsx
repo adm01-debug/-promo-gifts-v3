@@ -30,26 +30,35 @@ export function RecentlyViewedPopover({ maxVisible = 10 }: RecentlyViewedPopover
 
   return (
     <Popover>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          size="icon" aria-label="Produtos vistos recentemente"
-          className={cn(
-            "relative h-10 w-10 rounded-full border-border/50 transition-colors",
-            itemCount > 0 ? "hover:border-primary/50" : "opacity-60 hover:opacity-100"
-          )}
-        >
-          <Eye className="h-4 w-4" />
-          {itemCount > 0 && (
-            <Badge
-              variant="secondary"
-              className="absolute -top-1.5 -right-1.5 h-5 min-w-5 p-0 flex items-center justify-center text-[10px] font-bold bg-primary text-primary-foreground rounded-full"
-            >
-              {itemCount}
-            </Badge>
-          )}
-        </Button>
-      </PopoverTrigger>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon" aria-label="Produtos vistos recentemente"
+                className={cn(
+                  "relative h-10 w-10 rounded-full border-border/50 transition-colors",
+                  itemCount > 0 ? "hover:border-primary/50" : "opacity-60 hover:opacity-100"
+                )}
+              >
+                <Eye className="h-4 w-4" />
+                {itemCount > 0 && (
+                  <Badge
+                    variant="secondary"
+                    className="absolute -top-1.5 -right-1.5 h-5 min-w-5 p-0 flex items-center justify-center text-[10px] font-bold bg-primary text-primary-foreground rounded-full"
+                  >
+                    {itemCount}
+                  </Badge>
+                )}
+              </Button>
+            </PopoverTrigger>
+          </TooltipTrigger>
+          <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
+            Produtos vistos recentemente{itemCount > 0 ? ` (${itemCount})` : ""}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
       <PopoverContent align="end" className="w-80 p-3" sideOffset={8}>
         <div className="space-y-3">
           {/* Header */}
