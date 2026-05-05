@@ -25,6 +25,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { NoveltyGridCard, NoveltyTableView } from "./NoveltyCards";
 import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
 import { NOVELTY_STATUS_CONFIG } from "@/hooks/useNovelties";
+import { exportNoveltiesToCsv, shareNoveltiesOnWhatsApp } from "@/utils/noveltiesExport";
 
 type ViewMode = "grid" | "list" | "table";
 type SortMode = "name" | "price-asc" | "price-desc" | "newest" | "stock" | "best-seller-supplier" | "best-seller-promo";
