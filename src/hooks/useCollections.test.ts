@@ -9,16 +9,26 @@ const mockOrder = vi.fn().mockResolvedValue({ data: [], error: null });
 const mockEq = vi.fn().mockReturnThis();
 const mockSelect = vi.fn().mockReturnThis();
 const mockSingle = vi.fn().mockResolvedValue({ data: { id: "col-1" }, error: null });
+const mockInsert = vi.fn().mockReturnThis();
 
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
     from: vi.fn((table) => ({
-      select: mockSelect,
+      select: (...args: any[]) => {
+        if (args[1]?.count === "exact") {
+          return { eq: vi.fn().mockResolvedValue({ count: 0, error: null }) };
+        }
+        return { eq: mockEq, in: vi.fn().mockReturnThis(), order: mockOrder };
+      },
       eq: mockEq,
       in: vi.fn().mockReturnThis(),
       order: mockOrder,
       upsert: mockUpsert,
-      insert: vi.fn().mockReturnThis(),
+      insert: () => ({
+        select: () => ({
+          single: mockSingle
+        })
+      }),
       delete: vi.fn().mockReturnThis(),
       single: mockSingle,
       maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
@@ -51,9 +61,12 @@ describe("useCollections - Persistence and Constraints", () => {
   it("should use correct onConflict for collection_items upsert", async () => {
     const { result } = renderHook(() => useCollections());
     
+    // Pequena espera para o useEffect inicial assíncrono não bloquear
     await act(async () => {
-      // Mock para evitar loop infinito se loadCollections for chamado
-      mockOrder.mockResolvedValue({ data: [], error: null });
+      await new Promise(r => setTimeout(r, 0));
+    });
+
+    await act(async () => {
       await result.current.addProductToCollection("col-1", "prod-1", { color_name: "Red" });
     });
 
@@ -65,7 +78,6 @@ describe("useCollections - Persistence and Constraints", () => {
 
   it("should rollback optimistic update on error", async () => {
     mockUpsert.mockResolvedValue({ error: { message: "Constraint violation" } });
-    mockOrder.mockResolvedValue({ data: [], error: null });
 
     const { result } = renderHook(() => useCollections());
     
@@ -73,7 +85,6 @@ describe("useCollections - Persistence and Constraints", () => {
       await result.current.addProductToCollection("col-1", "prod-1");
     });
 
-    // loadCollections should have been called
     expect(mockOrder).toHaveBeenCalled();
   });
 
@@ -81,17 +92,11 @@ describe("useCollections - Persistence and Constraints", () => {
     const legacyData = JSON.stringify([{ name: "Legacy Col", productItems: [{ productId: "p1" }] }]);
     localStorage.setItem("product-collections", legacyData);
 
-    mockSelect.mockImplementation((...args) => {
-      if (args[1]?.count === "exact") {
-        return {
-          eq: vi.fn().mockResolvedValue({ count: 0, error: null })
-        };
-      }
-      return { eq: vi.fn().mockReturnThis(), order: mockOrder };
+    await act(async () => {
+      renderHook(() => useCollections());
+      await new Promise(r => setTimeout(r, 50));
     });
-
-    renderHook(() => useCollections());
-    await new Promise(r => setTimeout(r, 20));
+    
     expect(supabase.from).toHaveBeenCalledWith("collections");
   });
 });
