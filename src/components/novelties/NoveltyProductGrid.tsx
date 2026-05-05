@@ -310,6 +310,34 @@ export function NoveltyProductGrid() {
         </div>
 
         <div className="flex flex-wrap items-center gap-1.5 sm:flex-nowrap">
+          <div className="flex items-center gap-1.5">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="h-8 text-[11px] gap-1.5 border-border/60"
+              onClick={() => exportNoveltiesToCsv(filteredProducts)}
+            >
+              <Download className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Exportar</span>
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="h-8 text-[11px] gap-1.5 border-border/60"
+              onClick={() => shareNoveltiesOnWhatsApp({
+                q: searchQuery,
+                status: selectedStatus,
+                expires: maxDays,
+                count: filteredProducts.length
+              })}
+            >
+              <Share2 className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Compartilhar</span>
+            </Button>
+          </div>
+          
+          <div className="h-4 w-px bg-border/40 mx-0.5 hidden sm:block" />
+
           {/* Desktop Filters — Hidden on small mobile */}
           <div className="hidden md:flex flex-wrap items-center gap-1.5">
             <Select value={selectedStatus} onValueChange={setSelectedStatus}>
