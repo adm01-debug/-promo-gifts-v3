@@ -61,20 +61,24 @@ export function ProtectedRoute({
   }
 
   return (
-    <EnhancedErrorBoundary
-      fallback={
-        <div className="p-8">
-          <EmptyState 
-            variant="error" 
-            title="Falha no Módulo" 
-            description="Ocorreu um erro ao carregar esta seção. Tente recarregar a página."
-            action={{ label: "Recarregar", onClick: () => window.location.reload() }}
-          />
-        </div>
-      }
-    >
-      {children ? <>{children}</> : <Outlet />}
-    </EnhancedErrorBoundary>
+    <Suspense fallback={<div className="min-h-screen bg-background" />}>
+      <MainLayout>
+        <EnhancedErrorBoundary
+          fallback={
+            <div className="p-8">
+              <EmptyState 
+                variant="error" 
+                title="Falha no Módulo" 
+                description="Ocorreu um erro ao carregar esta seção. Tente recarregar a página."
+                action={{ label: "Recarregar", onClick: () => window.location.reload() }}
+              />
+            </div>
+          }
+        >
+          {children ? <>{children}</> : <Outlet />}
+        </EnhancedErrorBoundary>
+      </MainLayout>
+    </Suspense>
   );
 }
 
