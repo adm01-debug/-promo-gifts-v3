@@ -70,6 +70,17 @@ export function ComparisonRadarChart({ products, className }: ComparisonRadarCha
 
   const chartId = useMemo(() => `radar-${Math.random().toString(36).substr(2, 9)}`, []);
 
+  const [opacity, setOpacity] = useState<Record<string, number>>({});
+
+  const handleMouseEnter = (o: any) => {
+    const { dataKey } = o;
+    setOpacity({ [dataKey]: 0.8 });
+  };
+
+  const handleMouseLeave = () => {
+    setOpacity({});
+  };
+
   if (products.length < 2) return null;
 
   return (
