@@ -91,12 +91,18 @@ function StatCardSkeleton() {
   );
 }
 
-export function NoveltyStatsCards() {
-  const { data: stats, isLoading, error } = useNoveltyStats();
+export function NoveltyStatsCards({ 
+  filteredProducts, 
+  isRefreshing = false 
+}: { 
+  filteredProducts?: any[]; 
+  isRefreshing?: boolean;
+}) {
+  const { data: stats, isLoading, error } = useNoveltyStats(filteredProducts);
 
-  if (isLoading) {
+  if (isLoading || (isRefreshing && !stats)) {
     return (
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 relative">
         {Array.from({ length: 5 }).map((_, i) => (
           <Card key={i} className="border-border/50">
             <CardContent className="p-3 sm:p-4">
@@ -121,7 +127,17 @@ export function NoveltyStatsCards() {
   }
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+    <div className={cn(
+      "grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 transition-opacity duration-300",
+      isRefreshing && "opacity-60 pointer-events-none"
+    )}>
+      {isRefreshing && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center">
+          <div className="bg-background/80 backdrop-blur-sm p-3 rounded-full shadow-lg border border-border">
+            <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          </div>
+        </div>
+      )}
       <StatCard
         label="Chegaram Hoje"
         value={stats?.arrivedToday || 0}
