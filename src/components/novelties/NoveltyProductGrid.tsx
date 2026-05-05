@@ -525,4 +525,4 @@ export const NoveltyProductGrid = memo(function NoveltyProductGrid({
       <AddToCollectionModal open={sel.collectionModalOpen} onOpenChange={sel.setCollectionModalOpen} productId={sel.firstSelectedId} productName={sel.firstSelectedProduct?.product_name || ""} />
     </div>
   );
-}
+});
