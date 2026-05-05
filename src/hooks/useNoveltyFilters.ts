@@ -88,7 +88,7 @@ export function useNoveltyFilters(allProducts: NoveltyWithDetails[]) {
     });
 
     return filtered;
-  }, [allProducts, selectedSupplier, selectedCategory, sortMode, searchQuery]);
+  }, [allProducts, selectedSupplier, selectedCategory, selectedStatus, maxDays, sortMode, searchQuery]);
 
   const totalPages = Math.max(1, Math.ceil(filteredProducts.length / itemsPerPage));
 
