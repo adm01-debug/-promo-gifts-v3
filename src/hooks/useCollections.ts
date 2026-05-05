@@ -147,49 +147,53 @@ export function useCollections() {
         if (stored) {
           const legacyCollections = JSON.parse(stored);
           if (Array.isArray(legacyCollections) && legacyCollections.length > 0) {
-            // Check if user already has DB collections
-            const { count } = await supabase
-              .from("collections")
-              .select("*", { count: "exact", head: true })
-              .eq("user_id", user.id);
+            // Log migration start
+            console.log(`Migrating ${legacyCollections.length} legacy collections for user ${user.id}`);
+            
+            // Migrate each collection
+            for (const col of legacyCollections) {
+              const { data: newCol, error: colError } = await supabase
+                .from("collections")
+                .insert({
+                  user_id: user.id,
+                  name: col.name,
+                  description: col.description || null,
+                  is_featured: false,
+                  icon_color: col.color || DEFAULT_COLORS[0],
+                  icon: col.icon || "📁",
+                  is_deleted: false,
+                  updated_at: col.updatedAt || new Date().toISOString()
+                })
+                .select()
+                .single();
 
-            if (count === 0) {
-              // Migrate each collection
-              for (const col of legacyCollections) {
-                const { data: newCol } = await supabase
-                  .from("collections")
-                  .insert({
-                    user_id: user.id,
-                    name: col.name,
-                    description: col.description || null,
-                    is_featured: false,
-                    icon_color: col.color || DEFAULT_COLORS[0],
-                  })
-                  .select()
-                  .single();
-
-                if (newCol) {
-                  const items = (col.productItems || col.productIds?.map((id: string) => ({ productId: id })) || []);
-                  if (items.length > 0) {
-                    await supabase.from("collection_items").insert(
-                      items.map((item: any, idx: number) => ({
-                        collection_id: newCol.id,
-                        product_id: item.productId || item,
-                        color_name: item.variant?.color_name || null,
-                        color_hex: item.variant?.color_hex || null,
-                        thumbnail_url: item.variant?.thumbnail || null,
-                        sort_order: idx,
-                      }))
-                    );
-                  }
+              if (newCol) {
+                const items = (col.productItems || col.productIds?.map((id: string) => ({ productId: id })) || []);
+                if (items.length > 0) {
+                  const { error: itemError } = await supabase.from("collection_items").upsert(
+                    items.map((item: any, idx: number) => ({
+                      collection_id: newCol.id,
+                      product_id: item.productId || item,
+                      color_name: item.variant?.color_name || null,
+                      color_hex: item.variant?.color_hex || null,
+                      thumbnail_url: item.variant?.thumbnail || null,
+                      sort_order: idx,
+                      added_at: item.addedAt || new Date().toISOString()
+                    })),
+                    { onConflict: "collection_id,product_id" }
+                  );
+                  if (itemError) console.error("Error migrating collection items:", itemError);
                 }
+              } else if (colError) {
+                console.error("Error migrating collection:", colError);
               }
-              // Clear localStorage after successful migration
-              localStorage.removeItem(LEGACY_STORAGE_KEY);
-            } else {
-              // User already has DB collections, just clear legacy
-              localStorage.removeItem(LEGACY_STORAGE_KEY);
             }
+            // Clear localStorage after migration attempt
+            localStorage.removeItem(LEGACY_STORAGE_KEY);
+            toast({
+              title: "Migração Concluída",
+              description: "Suas coleções locais foram sincronizadas com sua conta.",
+            });
           }
         }
       } catch (e) {
@@ -200,7 +204,7 @@ export function useCollections() {
     };
 
     migrateAndLoad();
-  }, [user?.id, loadCollections]);
+  }, [user?.id, loadCollections, toast]);
 
   const createCollection = useCallback(
     (name: string, description?: string, color?: string, icon?: string, clientId?: string | null, clientName?: string | null): Collection => {
