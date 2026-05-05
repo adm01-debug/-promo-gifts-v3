@@ -438,9 +438,10 @@ export function EnhancedProductCard({
                 </div>
               </div>
 
-              <Button className="w-full" size="sm">
+              <Button className="w-full" size="sm" onClick={(e) => { e.stopPropagation(); navigate(`/produto/${product.id}`); }}>
                 Ver produto completo
               </Button>
+
             </div>
           </motion.div>
         )}
