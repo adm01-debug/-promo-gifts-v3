@@ -180,7 +180,7 @@ export function useCollections() {
                       sort_order: idx,
                       added_at: item.addedAt || new Date().toISOString()
                     })),
-                    { onConflict: "collection_id,product_id" }
+                    { onConflict: "collection_id,product_id,color_name" }
                   );
                   if (itemError) console.error("Error migrating collection items:", itemError);
                 }
