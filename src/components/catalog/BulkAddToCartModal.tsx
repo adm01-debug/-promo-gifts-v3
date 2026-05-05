@@ -22,8 +22,8 @@ interface BulkAddToCartModalProps {
   onBack?: () => void;
 }
 
-export function BulkAddToCartModal({ open, onOpenChange, products, variantSelections, onDone }: BulkAddToCartModalProps) {
-  const { activeCart, addToActiveCart } = useSellerCartContext();
+export function BulkAddToCartModal({ open, onOpenChange, products, variantSelections, onDone, onBack }: BulkAddToCartModalProps) {
+  const { activeCart, addToActiveCart, setActiveCart } = useSellerCartContext();
   const [adding, setAdding] = useState(false);
   const [done, setDone] = useState(false);
 
