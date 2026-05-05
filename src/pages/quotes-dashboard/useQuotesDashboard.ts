@@ -51,12 +51,23 @@ export function useQuotesDashboard() {
   }, []);
 
   useEffect(() => {
+    let isMounted = true;
     (async () => {
-      const { data } = await supabase.from("quote_approval_tokens").select("id, viewed_at, responded_at");
-      if (data) setTokenStats({
-        total: data.length, viewed: data.filter(t => t.viewed_at).length, responded: data.filter(t => t.responded_at).length,
-      });
+      try {
+        const { data, error } = await supabase.from("quote_approval_tokens").select("id, viewed_at, responded_at");
+        if (error) throw error;
+        if (isMounted && data) {
+          setTokenStats({
+            total: data.length,
+            viewed: data.filter(t => t.viewed_at).length,
+            responded: data.filter(t => t.responded_at).length,
+          });
+        }
+      } catch (err) {
+        console.error("Error fetching token stats:", err);
+      }
     })();
+    return () => { isMounted = false; };
   }, []);
 
   const quotesClients = useMemo(() => {
