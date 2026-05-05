@@ -25,31 +25,55 @@ import {
 // Re-export types for backward compatibility
 export type { Quote, QuoteItem, QuoteItemPersonalization, PersonalizationTechnique } from "./quotes/quoteTypes";
 
-export function useQuotes() {
+export interface QuotesListFilters {
+  search?: string;
+  status?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export function useQuotes(filters: QuotesListFilters = {}) {
   const { user } = useAuth();
   const { currentOrg } = useOrganization();
   const orgId = currentOrg?.id || null;
   const scope = useSalesScope();
   const [quotes, setQuotes] = useState<Quote[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
   const [techniques, setTechniques] = useState<PersonalizationTechnique[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const { search, status, page = 1, pageSize = 20 } = filters;
 
   const fetchQuotes = async () => {
     if (!user) return;
     setIsLoading(true);
     setError(null);
     try {
-      // Defesa em profundidade: vendedor (scope === "self") só pede os
-      // próprios orçamentos. RLS garante o resto, mas evitamos rodar uma
-      // query potencialmente ampla que será cortada pelo banco.
       let q = supabase
-        // rls-allow: applySellerScope chamado dinamicamente; mutações por id com RLS
-        .from("quotes").select("*").order("created_at", { ascending: false }).limit(500);
+        .from("quotes")
+        .select("*", { count: "exact" });
+      
       q = applySellerScope(q, { scope, userId: user.id });
-      const { data, error: qErr } = await q;
+
+      if (status && status !== "all") {
+        q = q.eq("status", status);
+      }
+
+      if (search) {
+        q = q.or(`quote_number.ilike.%${search}%,client_name.ilike.%${search}%,client_company.ilike.%${search}%`);
+      }
+
+      q = q.order("created_at", { ascending: false });
+
+      const from = (page - 1) * pageSize;
+      const to = from + pageSize - 1;
+      q = q.range(from, to);
+
+      const { data, error: qErr, count } = await q;
       if (qErr) throw new Error(qErr.message);
       setQuotes((data || []) as Quote[]);
+      setTotalCount(count ?? 0);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Erro ao buscar orçamentos";
       setError(message);
@@ -403,13 +427,30 @@ export function useQuotes() {
   };
 
   useEffect(() => {
-    if (user) { fetchQuotes(); fetchTechniques(); }
-  }, [user]);
+    if (user) { 
+      fetchQuotes(); 
+      fetchTechniques(); 
+    }
+  }, [user, search, status, page, pageSize]);
 
   return {
-    quotes, techniques, isLoading, error,
-    fetchQuotes, fetchQuote, createQuote, updateQuote, updateQuoteStatus,
-    deleteQuote, duplicateQuote, fetchTechniques, syncQuoteToBitrix,
-    testWebhookConnection, logQuoteHistory, bulkUpdateStatus, bulkDeleteQuotes,
+    quotes, 
+    totalCount,
+    techniques, 
+    isLoading, 
+    error,
+    fetchQuotes, 
+    fetchQuote, 
+    createQuote, 
+    updateQuote, 
+    updateQuoteStatus,
+    deleteQuote, 
+    duplicateQuote, 
+    fetchTechniques, 
+    syncQuoteToBitrix,
+    testWebhookConnection, 
+    logQuoteHistory, 
+    bulkUpdateStatus, 
+    bulkDeleteQuotes,
   };
 }

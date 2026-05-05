@@ -8,11 +8,18 @@ import { selectCrm, selectCrmById, searchCrm, invokeCrmDb } from "@/lib/crm-db";
 import { type CrmCompany, type CrmCompanyFilters, type CrmCustomer, toLegacyClient, getCompanyDisplayName } from "@/types/crm";
 import { toast } from "sonner";
 import { DEMO_CLIENT_ID, DEMO_COMPANY, isDemoClient } from "@/lib/bi/demoClient";
+import { useAuth } from "@/contexts/AuthContext";
+import { useSalesScope } from "@/lib/auth/visibility-scope";
+import { applySellerScope } from "@/lib/auth/apply-seller-scope";
+import { supabase } from "@/integrations/supabase/client";
 
 /**
  * Lista empresas do CRM com filtros opcionais
  */
 export function useCrmCompanies(filters?: CrmCompanyFilters) {
+  const { user } = useAuth();
+  const scope = useSalesScope();
+
   return useQuery<CrmCompany[]>({
     queryKey: ["crm-companies", filters],
     queryFn: async () => {
@@ -37,6 +44,12 @@ export function useCrmCompanies(filters?: CrmCompanyFilters) {
         });
         console.log("[CRM-DB] useCrmCompanies: Busca concluída (search). Total:", results.length);
         return results;
+      }
+
+      // Nota: RLS no CRM é aplicado via Edge Function crm-db-bridge.
+      // Se necessário aplicar filtro de seller no CRM, deve ser passado nos queryFilters.
+      if (scope === "self" && user?.id) {
+        queryFilters.seller_id = user.id;
       }
 
       const results = await selectCrm<CrmCompany>("companies", {

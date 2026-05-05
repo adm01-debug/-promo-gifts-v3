@@ -38,31 +38,64 @@ export interface OrderRow {
   updated_at: string;
 }
 
+export interface OrdersListFilters {
+  search?: string;
+  status?: string;
+  page?: number;
+  pageSize?: number;
+}
+
 /**
- * Lista pedidos respeitando RLS. Quando `scope === "self"`, aplica filtro
- * adicional por seller_id (defesa em profundidade); para "team"/"all" deixa
- * o RLS decidir o que aparece.
+ * Lista pedidos respeitando RLS, com suporte a paginação e busca.
  */
-export function useOrdersList(sellerId?: string, scope: "self" | "team" | "all" = "self") {
+export function useOrdersList(
+  sellerId?: string, 
+  scope: "self" | "team" | "all" = "self",
+  filters: OrdersListFilters = {}
+) {
+  const { search, status, page = 1, pageSize = 20 } = filters;
+
   return useQuery({
-    queryKey: ["orders", "list", sellerId, scope],
+    queryKey: ["orders", "list", sellerId, scope, search, status, page, pageSize],
     enabled: !!sellerId,
-    queryFn: async (): Promise<OrderRow[]> => {
-      // rls-allow: applySellerScope chamado dinamicamente conforme escopo
-      let q = supabase.from("orders").select("*").order("status", { ascending: true }).order("created_at", { ascending: false });
+    queryFn: async (): Promise<{ data: OrderRow[]; count: number }> => {
+      let q = supabase
+        .from("orders")
+        .select("*", { count: "exact" });
+
       q = applySellerScope(q, { scope, userId: sellerId });
+
+      if (status && status !== "all") {
+        q = q.eq("status", status);
+      }
+
+      if (search) {
+        q = q.or(`order_number.ilike.%${search}%,client_name.ilike.%${search}%,client_company.ilike.%${search}%`);
+      }
+
+      // Ordenação lógica de status (mapeada no banco se possível, ou via order)
+      // Aqui usamos a ordenação padrão, mas garantimos que status seja o primeiro critério
+      q = q.order("status", { ascending: true }).order("created_at", { ascending: false });
+
+      // Paginação
+      const from = (page - 1) * pageSize;
+      const to = from + pageSize - 1;
+      q = q.range(from, to);
       
-      const { data, error } = await q;
+      const { data, error, count } = await q;
       if (error) {
         await logRlsDenial(error, {
           table: "orders", op: "SELECT",
           endpoint: "useOrdersList",
-          querySummary: `scope=${scope} sellerId=${sellerId ?? "?"}`,
+          querySummary: `scope=${scope} sellerId=${sellerId ?? "?"} search=${search}`,
           policyHint: "orders_select_scope",
         });
         throw error;
       }
-      return (data ?? []) as OrderRow[];
+      return {
+        data: (data ?? []) as OrderRow[],
+        count: count ?? 0
+      };
     },
   });
 }

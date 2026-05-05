@@ -12,7 +12,7 @@ interface Product {
   priceFreshnessThresholdDays?: number;
 }
 
-export function useQuoteItems(initialItems: QuoteItem[] = []) {
+export function useQuoteItems(initialItems: QuoteItem[] = [], isLoadingItems = false) {
   const [items, setItems] = useState<QuoteItem[]>(initialItems);
   const [activeItemIndex, setActiveItemIndex] = useState<number | null>(null);
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
@@ -89,6 +89,7 @@ export function useQuoteItems(initialItems: QuoteItem[] = []) {
   return {
     items,
     setItems,
+    isLoadingItems,
     activeItemIndex,
     setActiveItemIndex,
     expandedItems,
