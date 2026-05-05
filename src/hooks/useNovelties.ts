@@ -276,9 +276,15 @@ export function useNoveltyStats() {
 export function useNovelties(options: UseNoveltiesOptions & { supplierCode?: string; maxDays?: number } = {}) {
   const { supplierCode, limit = 50, maxDays } = options;
 
-  return useQuery({
+  return useQuery<NoveltyWithDetails[]>({
     queryKey: ['novelties-rpc', supplierCode, limit, maxDays],
     queryFn: async () => {
+      if (USE_MOCKS) {
+        let mocked = [...MOCK_NOVELTIES];
+        if (supplierCode) mocked = mocked.filter(n => n.supplier_code === supplierCode);
+        if (maxDays) mocked = mocked.filter(n => n.days_remaining >= (NOVELTY_WINDOW_DAYS - maxDays));
+        return mocked.slice(0, limit);
+      }
       const cutoff = getCutoffDate();
       const filters: Record<string, unknown> = { is_active: true, created_at: `gte.${cutoff}` };
       
@@ -325,6 +331,7 @@ export function useNoveltyCount() {
   return useQuery<number>({
     queryKey: ['novelty-count'],
     queryFn: async () => {
+      if (USE_MOCKS) return MOCK_NOVELTIES.length;
       const cutoff = getCutoffDate();
       
       const result = await invokeExternalDb<{ id: string }>({
@@ -350,6 +357,13 @@ export function useIsProductNovelty(productId: string) {
   return useQuery<{ isNovelty: boolean; daysRemaining: number | null }>({
     queryKey: ['is-novelty', productId],
     queryFn: async () => {
+      if (USE_MOCKS) {
+        const found = MOCK_NOVELTIES.find(n => n.product_id === productId);
+        return { 
+          isNovelty: !!found && found.days_remaining > 0, 
+          daysRemaining: found ? found.days_remaining : null 
+        };
+      }
       const result = await invokeExternalDb<RawProduct>({
         table: 'products',
         operation: 'select',
@@ -380,6 +394,7 @@ export function useNoveltyProductIds() {
   return useQuery<Set<string>>({
     queryKey: ['novelty-product-ids'],
     queryFn: async () => {
+      if (USE_MOCKS) return new Set(MOCK_NOVELTIES.map(n => n.product_id));
       const cutoff = getCutoffDate();
       
       const result = await invokeExternalDb<{ id: string }>({
