@@ -314,7 +314,7 @@ const App = () => {
         <ThemeInitializer />
         <AccessibilityProvider>
           <AriaLiveProvider>
-            <TooltipProvider>
+            <TooltipProvider delayDuration={1500}>
               <BrowserRouter future={{ v7_relativeSplatPath: true }}>
                 <AuthProvider>
                   <AppBootstrapContainer>
