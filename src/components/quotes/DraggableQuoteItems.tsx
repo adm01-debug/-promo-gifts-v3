@@ -70,6 +70,7 @@ interface SortableItemProps {
   isExpanded: boolean;
   onUpdateQuantity: (quantity: number) => void;
   onUpdatePrice: (price: number) => void;
+  onConfirmPrice: () => void;
   onRemove: () => void;
   onTogglePersonalization?: () => void;
   renderPersonalization?: () => React.ReactNode;
