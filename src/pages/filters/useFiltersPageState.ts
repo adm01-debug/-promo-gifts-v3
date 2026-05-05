@@ -13,6 +13,7 @@ import { usePromoSalesRanking } from "@/hooks/usePromoSalesRanking";
 import { useSupplierSalesRanking } from "@/hooks/useSupplierSalesRanking";
 import { sortProducts } from "@/utils/product-sorting";
 import { toast } from "sonner";
+import { useFilterPresets } from "@/components/filters/FilterPresets";
 
 export function useFiltersPageState() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -57,6 +58,28 @@ export function useFiltersPageState() {
     return f;
   });
 
+  const [activePresetId, setActivePresetId] = useState<string | undefined>(() => searchParams.get('preset') || undefined);
+  
+  // Ref to track if we've already tried to apply a preset from URL to avoid loops
+  const presetAppliedFromUrl = useRef(false);
+
+  // Auto-apply preset filters if only preset ID is in URL but filters are default
+  const { presets } = useFilterPresets("catalog");
+  useEffect(() => {
+    if (activePresetId && presets.length > 0 && !presetAppliedFromUrl.current) {
+      const preset = presets.find(p => p.id === activePresetId);
+      if (preset) {
+        // If current filters are default (or mostly empty), apply preset filters
+        const isDefault = activeFiltersCount === 0;
+        if (isDefault) {
+          setFilters(preset.filters);
+          presetAppliedFromUrl.current = true;
+          toast.info(`Preset "${preset.name}" carregado.`);
+        }
+      }
+    }
+  }, [activePresetId, presets, activeFiltersCount]);
+
   const debouncedServerSearch = useDebounce(filters.search || '', 400);
   const urlSearch = searchParams.get('search') || '';
   const debouncedUrlSearch = useDebounce(urlSearch, 400);
@@ -78,6 +101,7 @@ export function useFiltersPageState() {
     if (isInitialMount.current) { isInitialMount.current = false; return; }
     const params = new URLSearchParams();
     const setArr = (k: string, arr: string[]) => { if (arr.length) params.set(k, arr.join(',')); };
+    
     if (filters.search) params.set('search', filters.search);
     setArr('colorGroups', filters.colorGroups); setArr('colorVariations', filters.colorVariations);
     setArr('colorNuances', filters.colorNuances); setArr('colors', filters.colors);
@@ -100,14 +124,18 @@ export function useFiltersPageState() {
     if (filters.hasPersonalization) params.set('hasPersonalization', '1');
     if (filters.hasCommercialPackaging) params.set('hasCommercialPackaging', '1');
     if (filters.sortBy && filters.sortBy !== 'name') params.set('sortBy', filters.sortBy);
+    
+    // Sync active preset ID
+    if (activePresetId) params.set('preset', activePresetId);
+    
     setSearchParams(params, { replace: true });
-  }, [filters, setSearchParams]);
+  }, [filters, activePresetId, setSearchParams]);
 
   const { productIds: materialFilteredProductIds, hasFilter: hasMaterialFilter, isLoading: isLoadingMaterialFilter } = useProductsByMaterial({ materialGroupSlugs: filters.materialGroups || [], materialTypeSlugs: filters.materialTypes || [] });
   const { productIds: categoryFilteredProductIds, hasFilter: hasCategoryFilter, isLoading: isLoadingCategoryFilter } = useProductsByCategory({ categoryIds: filters.categories, includeDescendants: true });
   const { productIds: colorFilteredProductIds, hasFilter: hasColorFilter, isLoading: isLoadingColorFilter } = useProductsByColor({ colorGroups: filters.colorGroups || [], colorVariations: filters.colorVariations || [], colorNuances: filters.colorNuances || [], colors: filters.colors });
 
-  const [activePresetId, setActivePresetId] = useState<string | undefined>();
+  
   const [viewMode, setViewMode] = useState<"grid" | "list" | "table">("grid");
   const [selectionMode, setSelectionMode] = useState(false);
   const [gridColumns, setGridColumns] = useState<ColumnCount>(getDefaultColumns);

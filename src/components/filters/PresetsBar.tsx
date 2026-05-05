@@ -96,13 +96,23 @@ export const PresetsBar = React.forwardRef<HTMLDivElement, PresetsBarProps>(
     }, [selectedPreset, deletePreset]);
 
     const handleApplyPreset = useCallback((preset: FilterPreset) => {
-      onApplyPreset(preset.filters, preset.id);
-      toast.success(`Preset "${preset.name}" aplicado`);
+      try {
+        onApplyPreset(preset.filters, preset.id);
+        toast.success(`Preset "${preset.name}" aplicado`);
+      } catch (err) {
+        console.error("[PresetsBar] Erro ao aplicar preset:", err);
+        toast.error("Falha ao aplicar preset", { description: "Tente novamente ou recarregue a página." });
+      }
     }, [onApplyPreset]);
 
     const handleClearPreset = useCallback(() => {
-      onApplyPreset(defaultFilters, undefined);
-      toast.info("Preset desativado");
+      try {
+        onApplyPreset(defaultFilters, undefined);
+        toast.info("Preset desativado");
+      } catch (err) {
+        console.error("[PresetsBar] Erro ao desativar preset:", err);
+        toast.error("Falha ao desativar preset");
+      }
     }, [onApplyPreset]);
 
     const handleDuplicatePreset = useCallback(async (preset: FilterPreset) => {
