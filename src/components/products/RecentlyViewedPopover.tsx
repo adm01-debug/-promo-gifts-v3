@@ -15,7 +15,7 @@ interface RecentlyViewedPopoverProps {
   maxVisible?: number;
 }
 
-export function RecentlyViewedPopover({ maxVisible = 20 }: RecentlyViewedPopoverProps) {
+export function RecentlyViewedPopover({ maxVisible = 50 }: RecentlyViewedPopoverProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [search, setSearch] = useState("");
@@ -163,7 +163,7 @@ export function RecentlyViewedPopover({ maxVisible = 20 }: RecentlyViewedPopover
                 <p className="text-xs text-muted-foreground">Nenhum resultado para "{search}"</p>
               </div>
             ) : (
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-4 gap-2 pb-2">
                 {filteredProducts.map((product) => (
                   <div key={product.id} className="relative group flex flex-col items-center">
                     <TooltipProvider>
