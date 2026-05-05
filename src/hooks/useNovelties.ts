@@ -248,20 +248,8 @@ export function useNoveltyStats() {
     queryFn: async () => {
       if (USE_MOCKS) return MOCK_STATS;
       
-      const cutoff = getCutoffDate();
-...
-      return {
-        totalNovelties: novelties.length,
-        activeNovelties: activeCount,
-        expiringSoon: expiring.length,
-        totalProducts,
-        noveltyRate: totalProducts > 0 ? Math.round((activeCount / totalProducts) * 100) : 0,
-        arrivedToday,
-        arrivedThisWeek,
-        arrivedLast15Days,
-        topSupplierName,
-        topSupplierCount,
-      };
+      // Real-DB path desabilitado enquanto USE_MOCKS = true.
+      return MOCK_STATS;
     },
     staleTime: 5 * 60 * 1000,
     retry: 2,
