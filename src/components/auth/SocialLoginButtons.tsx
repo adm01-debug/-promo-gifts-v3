@@ -79,7 +79,7 @@ export const SocialLoginButtons = forwardRef<HTMLDivElement, SocialLoginButtonsP
       <Button
         type="button"
         variant="outline"
-        className="w-full h-11 gap-3 font-medium border-border/60 hover:border-border hover:bg-muted/50 transition-all"
+        className="w-full h-12 gap-3 font-bold uppercase tracking-widest border-border/60 bg-background hover:bg-muted/50 transition-all shadow-sm"
         onClick={handleGoogleLogin}
         disabled={!!isLoading}
       >
