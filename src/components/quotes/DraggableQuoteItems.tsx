@@ -83,6 +83,7 @@ function SortableItem({
   isExpanded,
   onUpdateQuantity,
   onUpdatePrice,
+  onConfirmPrice,
   onRemove,
   onTogglePersonalization,
   renderPersonalization,
