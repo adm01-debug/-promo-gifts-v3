@@ -52,6 +52,12 @@ export function useCatalogState() {
   const { registerProducts } = useProductsContext();
   const { data: promoSalesMap } = usePromoSalesRanking();
   const { data: supplierSalesMap } = useSupplierSalesRanking();
+  const [activePresetId, setActivePresetId] = useState<string | undefined>(undefined);
+
+  const setFiltersWithPreset = useCallback((newFilters: FilterState, presetId?: string) => {
+    setFilters(newFilters);
+    setActivePresetId(presetId);
+  }, []);
 
   const searchQueryFromUrl = searchParams.get("search") || "";
 
