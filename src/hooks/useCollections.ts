@@ -156,37 +156,41 @@ export function useCollections() {
             if (count === 0) {
               console.log(`Migrating ${legacyCollections.length} legacy collections for user ${user.id}`);
               for (const col of legacyCollections) {
-                const { data: newCol, error: colError } = await supabase
-                  .from("collections")
-                  .insert({
-                    user_id: user.id,
-                    name: col.name,
-                    description: col.description || null,
-                    is_featured: false,
-                    icon_color: col.color || DEFAULT_COLORS[0],
-                    icon: col.icon || "📁",
-                  })
-                  .select()
-                  .single();
+                try {
+                  const { data: newCol, error: colError } = await supabase
+                    .from("collections")
+                    .insert({
+                      user_id: user.id,
+                      name: col.name,
+                      description: col.description || null,
+                      is_featured: false,
+                      icon_color: col.color || DEFAULT_COLORS[0],
+                      icon: col.icon || "📁",
+                    })
+                    .select()
+                    .single();
 
-                if (newCol) {
-                  const items = (col.productItems || col.productIds?.map((id: string) => ({ productId: id })) || []);
-                  if (items.length > 0) {
-                    const { error: itemError } = await supabase.from("collection_items").upsert(
-                      items.map((item: any, idx: number) => ({
-                        collection_id: newCol.id,
-                        product_id: item.productId || item,
-                        color_name: item.variant?.color_name || null,
-                        color_hex: item.variant?.color_hex || null,
-                        thumbnail_url: item.variant?.thumbnail || null,
-                        sort_order: idx,
-                      })),
-                      { onConflict: "collection_id,product_id,color_name" }
-                    );
-                    if (itemError) console.error("Error migrating collection items:", itemError);
+                  if (newCol) {
+                    const items = (col.productItems || col.productIds?.map((id: string) => ({ productId: id })) || []);
+                    if (items.length > 0) {
+                      const { error: itemError } = await supabase.from("collection_items").upsert(
+                        items.map((item: any, idx: number) => ({
+                          collection_id: newCol.id,
+                          product_id: item.productId || item,
+                          color_name: item.variant?.color_name || null,
+                          color_hex: item.variant?.color_hex || null,
+                          thumbnail_url: item.variant?.thumbnail || null,
+                          sort_order: idx,
+                        })),
+                        { onConflict: "collection_id,product_id,color_name" }
+                      );
+                      if (itemError) console.error("Error migrating collection items:", itemError);
+                    }
+                  } else if (colError) {
+                    console.error("Error migrating collection:", colError);
                   }
-                } else if (colError) {
-                  console.error("Error migrating collection:", colError);
+                } catch (colErr) {
+                  console.error("Failed to migrate individual collection:", colErr);
                 }
               }
               toast({
@@ -333,13 +337,18 @@ export function useCollections() {
         });
 
       if (error) {
+        console.error("Error adding product to collection:", error);
         toast({
           title: "Erro ao adicionar produto",
           description: "Não foi possível salvar o produto na coleção. Tente novamente.",
           variant: "destructive",
         });
         // Rollback optimistic update
-        await loadCollections();
+        try {
+          await loadCollections();
+        } catch (rollbackErr) {
+          console.error("Rollback failed:", rollbackErr);
+        }
       }
     },
     [loadCollections, toast]
@@ -394,12 +403,17 @@ export function useCollections() {
         .eq("product_id", productId);
 
       if (error) {
+        console.error("Error removing product from collection:", error);
         toast({
           title: "Erro ao remover produto",
           description: "Não foi possível remover o produto da coleção.",
           variant: "destructive",
         });
-        await loadCollections();
+        try {
+          await loadCollections();
+        } catch (rollbackErr) {
+          console.error("Rollback failed:", rollbackErr);
+        }
       }
     },
     [loadCollections, toast]
