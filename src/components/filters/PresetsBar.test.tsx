@@ -64,11 +64,13 @@ describe("PresetsBar", () => {
 
   it("applies a preset when clicked", async () => {
     render(
-      <PresetsBar
-        currentFilters={defaultFilters}
-        onApplyPreset={onApplyPreset}
-        activePresetId={undefined}
-      />
+      <TooltipProvider>
+        <PresetsBar
+          currentFilters={defaultFilters}
+          onApplyPreset={onApplyPreset}
+          activePresetId={undefined}
+        />
+      </TooltipProvider>
     );
 
     // Open popover
