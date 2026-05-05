@@ -119,26 +119,10 @@ export function CatalogHeader({
           onSelect={onSelect}
           className="flex-1"
         />
-        {searchHistory.length > 0 && (
-          <TooltipProvider >
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  size="icon" 
-                  className="h-11 w-11 shrink-0" 
-                  onClick={() => setHistoryOpen(!historyOpen)}
-                  aria-label="Ver histórico de buscas"
-                >
-                  <Clock className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
-                Histórico de buscas
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        )}
+        <SearchHistoryPopover 
+          type="general" 
+          onSelect={(term) => onSelect({ type: 'history', id: `hist-mobile-${term}`, label: term })} 
+        />
         <RecentlyViewedPopover maxVisible={10} />
       </div>
     </div>
