@@ -81,8 +81,12 @@ export function useNoveltyFilters(allProducts: NoveltyWithDetails[]) {
         case "price-desc": return (b.base_price || 0) - (a.base_price || 0);
         case "newest": return new Date(b.detected_at).getTime() - new Date(a.detected_at).getTime();
         case "stock": return (b.stock_quantity || 0) - (a.stock_quantity || 0);
-        case "best-seller-supplier": return (b.stock_quantity || 0) - (a.stock_quantity || 0);
-        case "best-seller-promo": return (a.stock_quantity || 0) - (b.stock_quantity || 0);
+        case "best-seller-supplier": 
+          if (a.is_highlighted !== b.is_highlighted) return a.is_highlighted ? -1 : 1;
+          return (b.stock_quantity || 0) - (a.stock_quantity || 0);
+        case "best-seller-promo": 
+          if (a.days_remaining !== b.days_remaining) return a.days_remaining - b.days_remaining;
+          return (b.stock_quantity || 0) - (a.stock_quantity || 0);
         default: return new Date(b.detected_at).getTime() - new Date(a.detected_at).getTime();
       }
     });
