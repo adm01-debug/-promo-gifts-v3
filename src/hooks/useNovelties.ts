@@ -166,6 +166,7 @@ export interface UseNoveltiesOptions {
   limit?: number;
   offset?: number;
   onlyHighlighted?: boolean;
+  status?: 'active' | 'expiring_soon' | 'expired';
 }
 
 /**
@@ -175,9 +176,18 @@ export function useNoveltiesWithDetails(options: UseNoveltiesOptions = {}) {
   const { limit = 100, onlyHighlighted = false } = options;
 
   return useQuery<NoveltyWithDetails[]>({
-    queryKey: ['novelties-details', limit, onlyHighlighted],
+    queryKey: ['novelties-details', limit, onlyHighlighted, options.status],
     queryFn: async () => {
-      if (USE_MOCKS) return MOCK_NOVELTIES;
+      if (USE_MOCKS) {
+        let mocked = [...MOCK_NOVELTIES];
+        if (options.status) {
+          mocked = mocked.filter(n => n.status === options.status);
+        }
+        if (onlyHighlighted) {
+          mocked = mocked.filter(n => n.is_highlighted);
+        }
+        return mocked.slice(0, limit);
+      }
       
       const cutoff = getCutoffDate();
       
@@ -191,6 +201,10 @@ export function useNoveltiesWithDetails(options: UseNoveltiesOptions = {}) {
       });
 
       let novelties = result.records.map(toNovelty).filter(n => n.is_active);
+
+      if (options.status) {
+        novelties = novelties.filter(n => n.status === options.status);
+      }
 
       if (onlyHighlighted) {
         novelties = novelties.filter(n => n.is_highlighted);

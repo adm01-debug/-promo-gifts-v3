@@ -48,10 +48,16 @@ export function NoveltyProductGrid() {
   const [sortMode, setSortMode] = useState<SortMode>("newest");
   const [selectedSupplier, setSelectedSupplier] = useState<string>("all");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
   const [selectionMode, setSelectionMode] = useState(false);
 
-  const { data: novelties, isLoading, isFetching, error } = useNoveltiesWithDetails({ limit: 200 });
+  const { data: novelties, isLoading, isFetching, error } = useNoveltiesWithDetails({ 
+    limit: 200,
+    status: selectedStatus !== "all" ? (selectedStatus as any) : undefined
+  });
   const products = novelties || [];
 
   const [loadingProgress, setLoadingProgress] = useState(0);
@@ -102,10 +108,26 @@ export function NoveltyProductGrid() {
     return filtered;
   }, [products, selectedSupplier, selectedCategory, sortMode, searchQuery]);
 
-  const sel = useNoveltiesSelectionMode({ selectionMode, filteredProducts });
-  const hasActiveFilters = selectedSupplier !== "all" || selectedCategory !== "all" || searchQuery.trim() !== "";
+  // Reset pagination when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedSupplier, selectedCategory, selectedStatus, searchQuery, sortMode]);
+
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const paginatedProducts = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filteredProducts.slice(start, start + itemsPerPage);
+  }, [filteredProducts, currentPage]);
+
+  const sel = useNoveltiesSelectionMode({ selectionMode, filteredProducts: paginatedProducts });
+  const hasActiveFilters = selectedSupplier !== "all" || selectedCategory !== "all" || selectedStatus !== "all" || searchQuery.trim() !== "";
   const handleProductClick = (id: string) => navigate(`/produto/${id}`);
-  const clearFilters = () => { setSelectedSupplier("all"); setSelectedCategory("all"); setSearchQuery(""); };
+  const clearFilters = () => { 
+    setSelectedSupplier("all"); 
+    setSelectedCategory("all"); 
+    setSelectedStatus("all");
+    setSearchQuery(""); 
+  };
   if (error) console.error('Erro ao carregar novidades:', error);
 
   // Favorites & Compare stores for ProductListItem integration
@@ -142,13 +164,13 @@ export function NoveltyProductGrid() {
         </div>
       );
     }
-    if (viewMode === "table") return <NoveltyTableView products={filteredProducts} onProductClick={handleProductClick} selectionMode={selectionMode} selectedIds={sel.selectedIds} onToggleSelect={sel.toggleSelect} />;
-    const effectiveCols = Math.min(gridColumns, filteredProducts.length) as ColumnCount;
+    if (viewMode === "table") return <NoveltyTableView products={paginatedProducts} onProductClick={handleProductClick} selectionMode={selectionMode} selectedIds={sel.selectedIds} onToggleSelect={sel.toggleSelect} />;
+    const effectiveCols = Math.min(gridColumns, paginatedProducts.length) as ColumnCount;
 
     if (viewMode === "list") {
       return (
         <div className="space-y-2">
-          {filteredProducts.map((novelty, index) => {
+          {paginatedProducts.map((novelty, index) => {
             const prod = productMap.get(novelty.product_id);
             if (!prod) return null;
             const isSelected = sel.selectedIds.has(novelty.product_id);
@@ -183,7 +205,7 @@ export function NoveltyProductGrid() {
 
     return (
       <div className={`grid ${getGridColsClass(effectiveCols)} ${getGridGapClass(effectiveCols)}`}>
-        {filteredProducts.map((product, index) => (
+        {paginatedProducts.map((product, index) => (
           <div key={product.novelty_id} className="stagger-item" style={{ animationDelay: `${Math.min(index * 25, 250)}ms` }}>
             <NoveltyGridCard product={product} onClick={() => handleProductClick(product.product_id)} selectionMode={selectionMode} isSelected={sel.selectedIds.has(product.product_id)} onToggleSelect={() => sel.toggleSelect(product.product_id)} />
           </div>
@@ -237,6 +259,14 @@ export function NoveltyProductGrid() {
         </div>
 
         <div className="flex flex-wrap items-center gap-1.5">
+          <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+            <SelectTrigger className="w-[140px] h-7 text-[11px] gap-1"><Sparkles className="h-3 w-3 shrink-0" /><SelectValue placeholder="Status" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos status</SelectItem>
+              <SelectItem value="active">Ativo</SelectItem>
+              <SelectItem value="expiring_soon">Expirando</SelectItem>
+            </SelectContent>
+          </Select>
           <Select value={selectedSupplier} onValueChange={setSelectedSupplier}>
             <SelectTrigger className="w-[160px] h-7 text-[11px] gap-1"><Building2 className="h-3 w-3 shrink-0" /><SelectValue placeholder="Fornecedor" /></SelectTrigger>
             <SelectContent><SelectItem value="all">Todos fornecedores</SelectItem>{suppliers.map(s => <SelectItem key={s.id} value={s.id}>{s.name} ({s.count})</SelectItem>)}</SelectContent>
@@ -262,11 +292,42 @@ export function NoveltyProductGrid() {
             {searchQuery.trim() && <Badge role="listitem" variant="secondary" className="text-[10px] gap-0.5 cursor-pointer hover:bg-destructive/10 h-5" onClick={() => setSearchQuery("")}><Search className="h-2.5 w-2.5" />"{searchQuery}"<X className="h-2.5 w-2.5" /></Badge>}
             {selectedSupplier !== "all" && <Badge role="listitem" variant="secondary" className="text-[10px] gap-0.5 cursor-pointer hover:bg-destructive/10 h-5" onClick={() => setSelectedSupplier("all")}><Building2 className="h-2.5 w-2.5" />{suppliers.find(s => s.id === selectedSupplier)?.name}<X className="h-2.5 w-2.5" /></Badge>}
             {selectedCategory !== "all" && <Badge role="listitem" variant="secondary" className="text-[10px] gap-0.5 cursor-pointer hover:bg-destructive/10 h-5" onClick={() => setSelectedCategory("all")}><FolderTree className="h-2.5 w-2.5" />{categories.find(c => c.id === selectedCategory)?.name}<X className="h-2.5 w-2.5" /></Badge>}
+            {selectedStatus !== "all" && <Badge role="listitem" variant="secondary" className="text-[10px] gap-0.5 cursor-pointer hover:bg-destructive/10 h-5" onClick={() => setSelectedStatus("all")}><Sparkles className="h-2.5 w-2.5" />{selectedStatus === "active" ? "Ativo" : "Expirando"}<X className="h-2.5 w-2.5" /></Badge>}
           </div>
         )}
       </div>
 
-      {!isLoading && filteredProducts.length > 0 && hasActiveFilters && (
+      {!isLoading && filteredProducts.length > itemsPerPage && (
+        <div className="flex items-center justify-between py-2 border-t border-border/10">
+          <p className="text-[10px] text-muted-foreground">Mostrando <span className="font-medium text-foreground">{(currentPage - 1) * itemsPerPage + 1}-{Math.min(currentPage * itemsPerPage, filteredProducts.length)}</span> de {filteredProducts.length}</p>
+          <div className="flex items-center gap-1">
+            <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>
+              <span className="sr-only">Anterior</span>
+              <X className="h-3 w-3 rotate-90" />
+            </Button>
+            <div className="flex items-center gap-1 mx-1">
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                let pageNum = i + 1;
+                if (totalPages > 5 && currentPage > 3) {
+                  pageNum = currentPage - 2 + i;
+                  if (pageNum > totalPages) pageNum = totalPages - (4 - i);
+                }
+                return (
+                  <Button key={pageNum} variant={currentPage === pageNum ? "default" : "ghost"} size="sm" className="h-7 w-7 text-[10px] p-0" onClick={() => setCurrentPage(pageNum)}>
+                    {pageNum}
+                  </Button>
+                );
+              })}
+            </div>
+            <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>
+              <span className="sr-only">Próxima</span>
+              <X className="h-3 w-3 -rotate-90" />
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {!isLoading && filteredProducts.length > 0 && hasActiveFilters && filteredProducts.length <= itemsPerPage && (
         <p className="text-[11px] text-muted-foreground">Mostrando <span className="font-medium text-foreground">{filteredProducts.length}</span> de {products.length} novidades</p>
       )}
 
