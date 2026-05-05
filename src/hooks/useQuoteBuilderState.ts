@@ -97,7 +97,7 @@ export function useQuoteBuilderState() {
   const isEditMode = Boolean(quoteId);
 
   const { user } = useAuth();
-  const { createQuote, updateQuote, fetchQuote, techniques, isLoading: quotesLoading } = useQuotes();
+  const { createQuote, updateQuote, fetchQuote, techniques, isLoading: quotesLoading, saveDraft } = useQuotes();
   const { templates } = useQuoteTemplates();
   const { myLimit: maxDiscountPercent } = useSellerDiscountLimits();
   const { requestApproval } = useDiscountApproval();
