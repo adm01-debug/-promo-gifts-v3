@@ -119,7 +119,7 @@ export function MaterialBadge({
   // Com tooltip
   if (showTooltip && (groupName || productCount)) {
     return (
-      <TooltipProvider delayDuration={300}>
+      <TooltipProvider delayDuration={1500}>
         <Tooltip>
           <TooltipTrigger asChild>
             {badgeContent}

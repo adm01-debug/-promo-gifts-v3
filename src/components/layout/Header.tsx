@@ -141,7 +141,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
       <div className="flex items-center justify-between h-full px-2 sm:px-4 lg:px-6">
         {/* ══════ Left section — Menu + Âncora contextual (#1) ══════ */}
         <div className="flex items-center gap-2 sm:gap-3 min-w-0 shrink-0">
-          <TooltipProvider delayDuration={0}>
+          <TooltipProvider delayDuration={1500}>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -176,7 +176,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
         {/* ══════ Right section — Agrupamento em clusters (#2) ══════ */}
         <div className="flex items-center gap-0.5 sm:gap-0.5">
           {isFallback && (
-            <TooltipProvider delayDuration={0}>
+            <TooltipProvider delayDuration={1500}>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <div className="px-2 py-1 rounded bg-amber-100 text-amber-800 text-[10px] font-medium mr-2 flex items-center gap-1 animate-pulse border border-amber-200">
@@ -191,7 +191,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
             </TooltipProvider>
           )}
           {/* Mobile search trigger */}
-          <TooltipProvider delayDuration={0}>
+          <TooltipProvider delayDuration={1500}>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -227,7 +227,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
           {/* ── Cluster 2: Utilitário (favoritos, comparar, tema) — desktop only ── */}
           <div className="hidden md:flex items-center gap-0.5">
             {/* #5 — Tooltip com atalho */}
-            <TooltipProvider delayDuration={0}>
+            <TooltipProvider delayDuration={1500}>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
@@ -253,7 +253,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
               </Tooltip>
             </TooltipProvider>
 
-            <TooltipProvider delayDuration={0}>
+            <TooltipProvider delayDuration={1500}>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
@@ -279,7 +279,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
               </Tooltip>
             </TooltipProvider>
 
-            <TooltipProvider delayDuration={0}>
+            <TooltipProvider delayDuration={1500}>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
@@ -339,7 +339,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
 
           {/* ── User menu — com status online (#6) e truncate (#10) ── */}
           <DropdownMenu>
-            <TooltipProvider delayDuration={0}>
+            <TooltipProvider delayDuration={1500}>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <DropdownMenuTrigger asChild>

@@ -121,7 +121,7 @@ export default function ClientsPage() {
                 <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                   <History className="h-3 w-3" /> Buscas Recentes
                 </span>
-                <TooltipProvider delayDuration={0}>
+                <TooltipProvider delayDuration={1500}>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button 
@@ -188,7 +188,7 @@ export default function ClientsPage() {
               <p className="text-muted-foreground text-sm mb-4 max-w-md">
                 {error instanceof Error ? error.message : "Não foi possível conectar ao banco de clientes. Verifique sua conexão e tente novamente."}
               </p>
-              <TooltipProvider delayDuration={0}>
+              <TooltipProvider delayDuration={1500}>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button variant="outline" onClick={() => refetch()} className="gap-2">

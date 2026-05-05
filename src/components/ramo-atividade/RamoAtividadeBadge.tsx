@@ -121,7 +121,7 @@ export function RamoAtividadeBadge({
   // Com tooltip
   if (showTooltip && (ramoName || productCount)) {
     return (
-      <TooltipProvider delayDuration={300}>
+      <TooltipProvider delayDuration={1500}>
         <Tooltip>
           <TooltipTrigger asChild>
             {badgeContent}

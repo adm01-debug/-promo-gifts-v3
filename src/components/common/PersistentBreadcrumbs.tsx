@@ -131,7 +131,7 @@ export const PersistentBreadcrumbs = forwardRef<HTMLElement, PersistentBreadcrum
       )}
     >
       {showBackButton && isNotHome && (
-        <TooltipProvider delayDuration={0}>
+        <TooltipProvider delayDuration={1500}>
           <Tooltip>
             <TooltipTrigger asChild>
               <button

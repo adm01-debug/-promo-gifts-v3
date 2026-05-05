@@ -52,7 +52,7 @@ export function ProductVariantsSection({ productId, productName, productSku }: P
 
       {/* Swatches */}
       {m.variants.length > 0 && (
-        <TooltipProvider delayDuration={200}>
+        <TooltipProvider delayDuration={1500}>
           <div className="flex flex-wrap gap-2.5">
             {m.variants.map(v => {
               const hex = v.color_hex;

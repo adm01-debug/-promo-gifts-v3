@@ -135,7 +135,7 @@ export const SmartSearchInput = forwardRef<HTMLDivElement, SmartSearchInputProps
 
   return (
     <div ref={containerRef} className={cn("relative w-full", className)}>
-      <Tooltip delayDuration={400} open={!isFocused ? undefined : false}>
+      <Tooltip delayDuration={1500} open={!isFocused ? undefined : false}>
         <TooltipTrigger asChild>
           <div className="relative group">
             <button

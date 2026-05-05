@@ -47,7 +47,7 @@ export const ProductCardActions = memo(function ProductCardActions({
       )}
     >
       {/* Main FAB */}
-      <TooltipProvider delayDuration={0}>
+      <TooltipProvider delayDuration={1500}>
         <Tooltip>
           <TooltipTrigger asChild>
             <button
@@ -110,7 +110,7 @@ export const ProductCardActions = memo(function ProductCardActions({
           onClick={(e) => { e.stopPropagation(); markBusy(); onOpenVariantPicker('quote'); }} />
 
         {/* Add to Cart */}
-        <TooltipProvider delayDuration={0}>
+        <TooltipProvider delayDuration={1500}>
           <Tooltip>
             <TooltipTrigger asChild>
               <QuickAddToQuote
@@ -144,7 +144,7 @@ function ActionButton({
   ariaPressed?: boolean;
 }) {
   return (
-    <TooltipProvider delayDuration={0}>
+    <TooltipProvider delayDuration={1500}>
       <Tooltip>
         <TooltipTrigger asChild>
           <Button variant="secondary" size="icon" className={className} disabled={disabled}

@@ -63,7 +63,7 @@ export function IntelligenceBadges({ badges, turnoverScore, isDemo, className }:
 
   return (
     <div className={cn("flex flex-wrap items-center gap-2", className)}>
-      <TooltipProvider delayDuration={0}>
+      <TooltipProvider delayDuration={1500}>
       {badges.map((badge, i) => {
         const config = badgeConfig[badge.type];
         const Icon = config.icon;
