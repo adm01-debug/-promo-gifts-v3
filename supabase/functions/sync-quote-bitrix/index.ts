@@ -1,6 +1,7 @@
 import { getCorsHeaders } from '../_shared/cors.ts';
 import { z } from '../_shared/zod-validate.ts';
 import { fetchWithBreaker, CircuitOpenError, circuitOpenResponse } from '../_shared/external-fetch.ts';
+import { authenticateRequest, authErrorResponse } from "../_shared/auth.ts";
 
 // Mapping: seller email → Bitrix24 numeric seller_id
 const SELLER_EMAIL_MAP: Record<string, number> = {
