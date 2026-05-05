@@ -58,6 +58,26 @@ export function useFiltersPageState() {
   });
 
   const [activePresetId, setActivePresetId] = useState<string | undefined>(() => searchParams.get('preset') || undefined);
+  
+  // Ref to track if we've already tried to apply a preset from URL to avoid loops
+  const presetAppliedFromUrl = useRef(false);
+
+  // Auto-apply preset filters if only preset ID is in URL but filters are default
+  const { presets } = useFilterPresets("catalog");
+  useEffect(() => {
+    if (activePresetId && presets.length > 0 && !presetAppliedFromUrl.current) {
+      const preset = presets.find(p => p.id === activePresetId);
+      if (preset) {
+        // If current filters are default (or mostly empty), apply preset filters
+        const isDefault = activeFiltersCount === 0;
+        if (isDefault) {
+          setFilters(preset.filters);
+          presetAppliedFromUrl.current = true;
+          toast.info(`Preset "${preset.name}" carregado.`);
+        }
+      }
+    }
+  }, [activePresetId, presets, activeFiltersCount]);
 
   const debouncedServerSearch = useDebounce(filters.search || '', 400);
   const urlSearch = searchParams.get('search') || '';
