@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo } from "react";
 import { QuoteItem, QuoteItemPersonalization } from "@/hooks/useQuotes";
 import { ExternalVariantStock } from "@/hooks/useExternalVariantStock";
+import { getPriceFreshness } from "@/utils/price-freshness";
 
 interface Product {
   id: string;
