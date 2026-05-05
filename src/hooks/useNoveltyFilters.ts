@@ -53,8 +53,8 @@ export function useNoveltyFilters(allProducts: NoveltyWithDetails[]) {
   const filteredProducts = useMemo(() => {
     let filtered = [...allProducts];
     
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim();
+    if (debouncedSearchQuery.trim()) {
+      const q = debouncedSearchQuery.toLowerCase().trim();
       filtered = filtered.filter(p => 
         p.product_name.toLowerCase().includes(q) || 
         (p.product_sku && p.product_sku.toLowerCase().includes(q)) || 
