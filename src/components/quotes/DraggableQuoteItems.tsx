@@ -46,6 +46,8 @@ interface QuoteItem {
   price_updated_at?: string | null;
   /** Janela em dias para alertar preço defasado (default 60). */
   price_freshness_threshold_days?: number | null;
+  /** ISO timestamp de quando o vendedor confirmou o preço com o fornecedor. */
+  price_confirmed_at?: string | null;
   personalizations?: any[];
 }
 
