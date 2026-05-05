@@ -162,5 +162,30 @@ test.describe('Módulo de Novidades - Ações, Persistência e Acessibilidade', 
     await page.goto('/novidades?status=all');
     await expect(page.locator('[data-testid^="novelty-card-"]').first()).toBeVisible();
   });
+
+  test('deve permitir seleção em massa e aplicar ações coletivas', async ({ page }) => {
+    // Ativa modo de seleção
+    await page.getByRole('button', { name: /selecionar/i }).click();
+    
+    // Verifica se os checkboxes de seleção aparecem nos cards
+    const firstCheckbox = page.locator('[data-testid^="novelty-card-"]').first().locator('button[role="checkbox"]');
+    await expect(firstCheckbox).toBeVisible();
+
+    // Seleciona os dois primeiros produtos
+    await page.locator('[data-testid^="novelty-card-"]').nth(0).locator('button[role="checkbox"]').click();
+    await page.locator('[data-testid^="novelty-card-"]').nth(1).locator('button[role="checkbox"]').click();
+
+    // Verifica se a barra de ações em massa apareceu (BulkActionBar costuma ter [data-testid="bulk-action-bar"])
+    const bulkBar = page.locator('[data-testid="bulk-action-bar"]').or(page.locator('.bulk-action-bar'));
+    await expect(bulkBar).toBeVisible();
+
+    // Clica em "Comparar" na barra de massa
+    await bulkBar.getByRole('button', { name: /comparar/i }).click();
+
+    // Verifica se o estado visual mudou para os produtos selecionados
+    // Reabre o menu de um deles para checar se está marcado como "no comparativo"
+    await page.locator('[data-testid^="novelty-card-"]').first().getByTestId('product-card-actions-toggle').click();
+    await expect(page.locator('[data-testid^="novelty-card-"]').first().getByRole('button', { name: /comparar/i })).toHaveAttribute('aria-pressed', 'true');
+  });
 });
 
