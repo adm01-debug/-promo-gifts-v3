@@ -130,6 +130,7 @@ export function useFiltersPageState() {
   const [appliedFilters, setAppliedFilters] = useState<Array<{ type: "category" | "color" | "price" | "material" | "stock" | "featured" | "kit"; label: string }>>([]);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [isFiltering, setIsFiltering] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
 
   const filtersJson = JSON.stringify(filters);
   useEffect(() => { 
@@ -148,22 +149,17 @@ export function useFiltersPageState() {
   const sortBy = filters.sortBy || 'name';
   const setSortBy = useCallback((value: string) => { setFilters(prev => ({ ...prev, sortBy: value })); }, []);
 
-  const filtersJson = JSON.stringify(filters);
-  useEffect(() => { 
-    setIsFiltering(true); 
-    (window as any).__IS_FILTERING_GLOBAL__ = true;
-    const timer = setTimeout(() => {
-      setIsFiltering(false);
-      (window as any).__IS_FILTERING_GLOBAL__ = false;
-    }, 350); 
-    return () => {
-      clearTimeout(timer);
-      (window as any).__IS_FILTERING_GLOBAL__ = false;
-    };
-  }, [filtersJson]);
+  // Sync error state from catalog data
+  const { data: catalogData, isLoading: isLoadingProducts, hasNextPage, fetchNextPage, isFetchingNextPage, error: catalogError } = useProductsCatalog(serverSearchTerm ? { search: serverSearchTerm } : undefined);
 
-  const sortBy = filters.sortBy || 'name';
-  const setSortBy = useCallback((value: string) => { setFilters(prev => ({ ...prev, sortBy: value })); }, []);
+  useEffect(() => {
+    if (catalogError) {
+      console.error("[useFiltersPageState] catalog error:", catalogError);
+      setError(catalogError instanceof Error ? catalogError : new Error(String(catalogError)));
+    } else {
+      setError(null);
+    }
+  }, [catalogError]);
 
   // Promo Brindes sales ranking (lazy — only fetched when needed)
   const { data: promoSalesMap } = usePromoSalesRanking();
