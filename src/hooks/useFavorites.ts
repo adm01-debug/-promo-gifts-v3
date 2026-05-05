@@ -9,66 +9,38 @@ export interface FavoriteItem {
   addedAt: string;
 }
 
-interface UseFavoritesOptions {
-  onFavoriteAdded?: () => void;
-}
+import { useFavoritesStore } from "@/stores/useFavoritesStore";
 
 export function useFavorites(options?: UseFavoritesOptions) {
-  const [favorites, setFavorites] = useState<FavoriteItem[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const onFavoriteAddedRef = useRef(options?.onFavoriteAdded);
-  const { trackProductView } = useProductAnalytics();
-  const trackProductViewRef = useRef(trackProductView);
-
-  useEffect(() => {
-    onFavoriteAddedRef.current = options?.onFavoriteAdded;
-    trackProductViewRef.current = trackProductView;
-  }, [options?.onFavoriteAdded, trackProductView]);
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        setFavorites(JSON.parse(stored));
-      }
-    } catch (e) {
-      console.error("Error loading favorites:", e);
-    }
-    setIsLoaded(true);
-  }, []);
-
-  useEffect(() => {
-    if (isLoaded) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(favorites));
-    }
-  }, [favorites, isLoaded]);
+  const {
+    favorites,
+    isLoaded,
+    addFavorite: storeAdd,
+    removeFavorite: storeRemove,
+    toggleFavorite: storeToggle,
+    clearFavorites: storeClear,
+    favoriteCount
+  } = useFavoritesStore();
 
   const addFavorite = useCallback((productId: string) => {
-    setFavorites((prev) => {
-      if (prev.some((f) => f.productId === productId)) {
-        return prev;
-      }
-      onFavoriteAddedRef.current?.();
-      trackProductViewRef.current({
-        productId,
-        productSku: productId,
-        productName: productId,
-        viewType: "favorite",
-      });
-      return [...prev, { productId, addedAt: new Date().toISOString() }];
+    storeAdd(productId);
+    onFavoriteAddedRef.current?.();
+    trackProductViewRef.current({
+      productId,
+      productSku: productId,
+      productName: productId,
+      viewType: "favorite",
     });
-  }, []);
+  }, [storeAdd]);
 
   const removeFavorite = useCallback((productId: string) => {
-    setFavorites((prev) => prev.filter((f) => f.productId !== productId));
-  }, []);
+    storeRemove(productId);
+  }, [storeRemove]);
 
   const toggleFavorite = useCallback((productId: string) => {
-    setFavorites((prev) => {
-      const exists = prev.some((f) => f.productId === productId);
-      if (exists) {
-        return prev.filter((f) => f.productId !== productId);
-      }
+    const exists = favorites.some((f) => f.productId === productId);
+    storeToggle(productId);
+    if (!exists) {
       onFavoriteAddedRef.current?.();
       trackProductViewRef.current({
         productId,
@@ -76,9 +48,8 @@ export function useFavorites(options?: UseFavoritesOptions) {
         productName: productId,
         viewType: "favorite",
       });
-      return [...prev, { productId, addedAt: new Date().toISOString() }];
-    });
-  }, []);
+    }
+  }, [favorites, storeToggle]);
 
   const isFavorite = useCallback(
     (productId: string) => favorites.some((f) => f.productId === productId),
@@ -91,19 +62,15 @@ export function useFavorites(options?: UseFavoritesOptions) {
     [favorites]
   );
 
-  const clearFavorites = useCallback(() => {
-    setFavorites([]);
-  }, []);
-
   return {
     favorites,
-    favoriteCount: favorites.length,
+    favoriteCount,
     addFavorite,
     removeFavorite,
     toggleFavorite,
     isFavorite,
     getFavoriteProductsFromMap,
-    clearFavorites,
+    clearFavorites: storeClear,
     isLoaded,
   };
 }

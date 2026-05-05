@@ -309,7 +309,7 @@ export function useCollections() {
 
       supabase
         .from("collection_items")
-        .insert({
+        .upsert({
           collection_id: collectionId,
           product_id: productId,
           color_name: variant?.color_name || null,
@@ -317,7 +317,9 @@ export function useCollections() {
           thumbnail_url: variant?.thumbnail || null,
           price_at_save: priceAtSave ?? null,
           sort_order: 0,
-        } as never)
+        }, {
+          onConflict: "collection_id,product_id,color_name"
+        })
         .then();
     },
     []
