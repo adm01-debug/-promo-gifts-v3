@@ -1,6 +1,6 @@
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Clock, Eye, Trash2, X } from "lucide-react";
+import { Eye, Trash2, X, Search, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -8,25 +8,49 @@ import { useRecentlyViewedStore } from "@/stores/useRecentlyViewedStore";
 import { useProductsContext } from "@/contexts/ProductsContext";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface RecentlyViewedPopoverProps {
   maxVisible?: number;
 }
 
-export function RecentlyViewedPopover({ maxVisible = 10 }: RecentlyViewedPopoverProps) {
+export function RecentlyViewedPopover({ maxVisible = 20 }: RecentlyViewedPopoverProps) {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [search, setSearch] = useState("");
   const {
     items,
     itemCount,
+    isLoading,
     removeFromRecentlyViewed,
     clearRecentlyViewed,
+    syncWithCloud
   } = useRecentlyViewedStore();
   const { getProductsByIds } = useProductsContext();
 
-  const products = useMemo(
-    () => getProductsByIds(items.map((i) => i.productId)).slice(0, maxVisible),
-    [getProductsByIds, items, maxVisible]
+  useEffect(() => {
+    if (user?.id) {
+      syncWithCloud(user.id);
+    }
+  }, [user?.id, syncWithCloud]);
+
+  const allProducts = useMemo(
+    () => getProductsByIds(items.map((i) => i.productId)),
+    [getProductsByIds, items]
   );
+
+  const filteredProducts = useMemo(() => {
+    let result = allProducts;
+    if (search.trim()) {
+      const query = search.toLowerCase();
+      result = result.filter(p => 
+        p.name.toLowerCase().includes(query) || 
+        p.id.toLowerCase().includes(query)
+      );
+    }
+    return result.slice(0, maxVisible);
+  }, [allProducts, search, maxVisible]);
 
   return (
     <Popover>
