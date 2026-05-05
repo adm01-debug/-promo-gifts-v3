@@ -67,15 +67,17 @@ export function BulkSelectionBar({
               <div className="flex items-center gap-2">
                 {onSelectAll && totalCount !== undefined && selectedCount < totalCount && (
                   <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.05 }}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button size="sm" variant="ghost" onClick={onSelectAll} className="gap-1.5 text-xs">
-                          <CheckSquare className="h-3.5 w-3.5" />
-                          <span className="hidden sm:inline">Selecionar Todos</span>
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Marcar todos os itens carregados</TooltipContent>
-                    </Tooltip>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button size="sm" variant="ghost" onClick={onSelectAll} className="gap-1.5 text-xs">
+                            <CheckSquare className="h-3.5 w-3.5" />
+                            <span className="hidden sm:inline">Selecionar Todos</span>
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Marcar todos os itens carregados</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </motion.div>
                 )}
 
