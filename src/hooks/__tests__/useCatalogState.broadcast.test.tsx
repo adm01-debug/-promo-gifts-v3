@@ -6,7 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import React from "react";
 
-// Mock global dependencies exaustivamente
+// Mocks exaustivos
 vi.mock("@/hooks/use-toast", () => ({
   useToast: () => ({ toast: vi.fn() }),
 }));
@@ -16,7 +16,6 @@ vi.mock("@/contexts/AuthContext", () => ({
   AuthProvider: ({ children }: any) => <>{children}</>
 }));
 
-// Mock do FilterPanel para fornecer defaultFilters sem problemas de inicialização
 vi.mock("@/components/filters/FilterPanel", () => ({
   defaultFilters: {
     colors: [],
@@ -43,8 +42,6 @@ vi.mock("@/components/filters/FilterPanel", () => ({
 
 vi.mock("@/contexts/ProductsContext", () => ({
   useProductsContext: () => ({ registerProducts: vi.fn() }),
-  ProductsProvider: ({ children }: any) => <>{children}</>,
-  ProductsContext: { Consumer: ({ children }: any) => children(null) }
 }));
 
 vi.mock("@/hooks/useFavoriteQuickAdd", () => ({
@@ -71,9 +68,7 @@ vi.mock("@/hooks/useProductsLightweight", () => ({
 }));
 
 vi.mock("@/hooks/useSearch", () => ({
-  useSearch: () => ({ 
-    suggestions: [], quickSuggestions: [], history: [], addToHistory: vi.fn(), clearHistory: vi.fn() 
-  }),
+  useSearch: () => ({ suggestions: [], quickSuggestions: [], history: [], addToHistory: vi.fn(), clearHistory: vi.fn() }),
 }));
 
 vi.mock("@/hooks/useCatalogRealStats", () => ({
@@ -113,41 +108,25 @@ vi.mock("@/stores/useComparisonStore", () => ({
 }));
 
 // Mock do BroadcastChannel
+let registeredCallback: ((ev: any) => void) | null = null;
 const postMessageMock = vi.fn();
 const closeMock = vi.fn();
-const onmessageSetter = vi.fn();
 
 class MockBroadcastChannel {
   name: string;
-  private _onmessage: ((ev: any) => void) | null = null;
-  
   constructor(name: string) {
     this.name = name;
   }
-  
-  get onmessage() {
-    return this._onmessage;
+  set onmessage(val: any) {
+    registeredCallback = val;
   }
-  
-  set onmessage(val) {
-    this._onmessage = val;
-    onmessageSetter(val);
-  }
-  
   postMessage = postMessageMock;
   close = closeMock;
 }
 
 global.BroadcastChannel = MockBroadcastChannel as any;
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: false,
-    },
-  },
-});
-
+const queryClient = new QueryClient();
 const wrapper = ({ children }: { children: React.ReactNode }) => (
   <QueryClientProvider client={queryClient}>
     <BrowserRouter>
@@ -159,14 +138,13 @@ const wrapper = ({ children }: { children: React.ReactNode }) => (
 describe("useCatalogState - BroadcastChannel Sync", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    registeredCallback = null;
   });
 
   it("deve atualizar o estado quando receber PRESET_APPLIED via BroadcastChannel", async () => {
     const { result } = renderHook(() => useCatalogState(), { wrapper });
 
-    const onMessageCallback = onmessageSetter.mock.calls.find(call => typeof call[0] === 'function')?.[0];
-    
-    expect(onMessageCallback).toBeDefined();
+    expect(registeredCallback).toBeDefined();
 
     const mockPresetId = "test-preset-123";
     const mockFilters = {
@@ -192,13 +170,15 @@ describe("useCatalogState - BroadcastChannel Sync", () => {
     };
 
     await act(async () => {
-      onMessageCallback({
-        data: {
-          type: 'PRESET_APPLIED',
-          presetId: mockPresetId,
-          filters: mockFilters
-        }
-      });
+      if (registeredCallback) {
+        registeredCallback({
+          data: {
+            type: 'PRESET_APPLIED',
+            presetId: mockPresetId,
+            filters: mockFilters
+          }
+        });
+      }
     });
 
     expect(result.current.activePresetId).toBe(mockPresetId);
