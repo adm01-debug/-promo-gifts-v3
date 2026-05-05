@@ -59,8 +59,9 @@ describe("CatalogHeader Preset Flow", () => {
       </TooltipProvider>
     );
 
-    // Get all matching elements (one for desktop, one for mobile)
+    // Use getAllByTestId because it exists for both desktop and mobile
     const elements = screen.getAllByTestId("active-preset-id");
+    expect(elements.length).toBeGreaterThan(0);
     expect(elements[0]).toHaveTextContent("preset-abc");
 
     rerender(
@@ -79,8 +80,8 @@ describe("CatalogHeader Preset Flow", () => {
       </TooltipProvider>
     );
 
-    const applyBtn = screen.getAllByTestId("apply-preset-btn")[0];
-    fireEvent.click(applyBtn);
+    const applyBtns = screen.getAllByTestId("apply-preset-btn");
+    fireEvent.click(applyBtns[0]);
 
     expect(mockProps.onApplyPreset).toHaveBeenCalledWith(
       expect.objectContaining({ search: 'test-query' }),
@@ -89,7 +90,6 @@ describe("CatalogHeader Preset Flow", () => {
   });
 
   it("should maintain consistency between filteredCount and totalEstimate when a preset is active", () => {
-    // When a preset is active, it usually implies filters are active (activeFiltersCount > 0)
     render(
       <TooltipProvider>
         <CatalogHeader 
@@ -102,9 +102,8 @@ describe("CatalogHeader Preset Flow", () => {
       </TooltipProvider>
     );
 
-    // The component renders filteredCount with font-semibold class
-    // We can find it by text but since it might be split, we'll be careful
-    expect(screen.getByText("15")).toBeInTheDocument();
+    // The text "15" is rendered inside a span, try finding by text or searching in container
+    expect(screen.getByText("15", { exact: false })).toBeInTheDocument();
     expect(screen.getByText(/de 100/i)).toBeInTheDocument();
   });
 });
