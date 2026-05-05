@@ -15,9 +15,9 @@ export interface HistoryItem {
 }
 
 const STORAGE_KEY = "global-search-history-v2";
-const MAX_HISTORY = 10;
+const DEFAULT_MAX_HISTORY = 20;
 
-export function useSearchHistory(type?: HistoryType) {
+export function useSearchHistory(type?: HistoryType, maxItems = DEFAULT_MAX_HISTORY) {
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -52,7 +52,7 @@ export function useSearchHistory(type?: HistoryType) {
       }
 
       const filtered = type ? items.filter(item => item.type === type) : items;
-      setHistory(filtered.slice(0, MAX_HISTORY));
+      setHistory(filtered.slice(0, maxItems));
     } catch (e) {
       console.error("Failed to load search history", e);
     } finally {
@@ -69,7 +69,7 @@ export function useSearchHistory(type?: HistoryType) {
         if (stored) {
           const parsed = JSON.parse(stored);
           const filtered = type ? parsed.filter((item: any) => item.type === type) : parsed;
-          setHistory(filtered.slice(0, MAX_HISTORY));
+          setHistory(filtered.slice(0, maxItems));
         }
       }
     };
@@ -79,7 +79,7 @@ export function useSearchHistory(type?: HistoryType) {
       if (stored) {
         const parsed = JSON.parse(stored);
         const filtered = type ? parsed.filter((item: any) => item.type === type) : parsed;
-        setHistory(filtered.slice(0, MAX_HISTORY));
+        setHistory(filtered.slice(0, maxItems));
       }
     };
     
@@ -99,6 +99,8 @@ export function useSearchHistory(type?: HistoryType) {
 
   const addToHistory = useCallback(async (item: Omit<HistoryItem, "timestamp">) => {
     try {
+      if (!item.label || item.label.trim().length < 2) return;
+      
       const newItem: HistoryItem = { ...item, timestamp: Date.now() };
       
       const stored = localStorage.getItem(STORAGE_KEY);
