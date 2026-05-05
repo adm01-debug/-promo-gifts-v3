@@ -179,6 +179,7 @@ export function CatalogHeader({
             </Tooltip>
           </TooltipProvider>
         )}
+        <RecentlyViewedPopover maxVisible={10} />
       </div>
     </div>
   );
