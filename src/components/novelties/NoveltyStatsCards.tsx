@@ -1,9 +1,11 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Sparkles, CalendarPlus, CalendarRange, CalendarDays, Building2 } from "lucide-react";
+import { Sparkles, CalendarPlus, CalendarRange, CalendarDays, Building2, AlertCircle, RefreshCw } from "lucide-react";
 import { useNoveltyStats } from "@/hooks/useNovelties";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { useQueryClient } from "@tanstack/react-query";
 
 function useCountUp(end: number, duration: number = 800) {
   const [count, setCount] = useState(0);
