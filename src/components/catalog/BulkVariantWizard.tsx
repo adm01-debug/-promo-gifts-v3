@@ -42,13 +42,39 @@ function ProductVariantStep({
   onSkip,
   stepIndex,
   totalSteps,
+  initialVariants = [],
 }: {
   product: Product;
-  onSelect: (variant: ExternalVariantStock | null) => void;
+  onSelect: (variants: (ExternalVariantStock | null)[]) => void;
   onSkip: () => void;
   stepIndex: number;
   totalSteps: number;
+  initialVariants?: (ExternalVariantStock | null)[];
 }) {
+  const [selectedVariants, setSelectedVariants] = useState<(ExternalVariantStock | null)[]>(initialVariants);
+
+  // Sincroniza se o produto mudar (via Voltar/Próximo)
+  useEffect(() => {
+    setSelectedVariants(initialVariants);
+  }, [product.id, initialVariants]);
+
+  const toggleVariant = (variant: ExternalVariantStock | null) => {
+    setSelectedVariants(prev => {
+      const isSelected = prev.some(v => v?.id === variant?.id);
+      if (isSelected) {
+        return prev.filter(v => v?.id !== variant?.id);
+      }
+      return [...prev, variant];
+    });
+  };
+
+  const handleConfirm = () => {
+    if (selectedVariants.length === 0) {
+      onSkip();
+    } else {
+      onSelect(selectedVariants);
+    }
+  };
   const { data: variants, isLoading } = useExternalVariantStock(product.id);
 
   const sortedVariants = useMemo(() => {
