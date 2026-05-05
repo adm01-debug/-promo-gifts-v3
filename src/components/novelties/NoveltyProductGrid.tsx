@@ -165,8 +165,12 @@ export function NoveltyProductGrid() {
 
   const sel = useNoveltiesSelectionMode({ selectionMode, filteredProducts: paginatedProducts });
   const hasActiveFilters = selectedSupplier !== "all" || selectedCategory !== "all" || selectedStatus !== "all" || maxDays !== "all" || searchQuery.trim() !== "";
-  const handleProductClick = (id: string) => navigate(`/produto/${id}`);
+  const handleProductClick = (id: string) => {
+    log.info("product_click", { id });
+    navigate(`/produto/${id}`);
+  };
   const clearFilters = () => { 
+    log.info("filters_clear");
     setSelectedSupplier("all"); 
     setSelectedCategory("all"); 
     setSelectedStatus("all");
