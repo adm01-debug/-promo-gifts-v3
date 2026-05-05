@@ -372,6 +372,7 @@ export function DraggableQuoteItems({
                 isExpanded={expandedItems.has(index)}
                 onUpdateQuantity={(qty) => onUpdateQuantity(index, qty)}
                 onUpdatePrice={(price) => onUpdatePrice(index, price)}
+                onConfirmPrice={() => onConfirmPrice(index)}
                 onRemove={() => onRemove(index)}
                 onTogglePersonalization={
                   onTogglePersonalization ? () => onTogglePersonalization(index) : undefined
