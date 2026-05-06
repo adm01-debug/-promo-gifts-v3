@@ -80,12 +80,13 @@ vi.mock('react-router-dom', async () => {
   };
 });
 
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
 // Wrapper for required providers
 const AllProviders = ({ children }: { children: React.ReactNode }) => {
-  const queryClient = new (require('@tanstack/react-query').QueryClient)({
+  const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false, staleTime: 0 } }
   });
-  const { QueryClientProvider } = require('@tanstack/react-query');
 
   return (
     <QueryClientProvider client={queryClient}>
