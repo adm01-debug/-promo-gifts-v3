@@ -91,7 +91,7 @@ export function SizeFilter({ selectedSizes, onToggleSize, products = [] }: SizeF
               )}
             >
               {size}
-            </button>
+            </Button>
           );
         })}
       </div>
