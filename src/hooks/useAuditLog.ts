@@ -27,8 +27,8 @@ interface AuditLogParams {
   action: AuditAction;
   entityType: AuditEntityType;
   entityId: string;
-  oldValues?: Record<string, any> | null;
-  newValues?: Record<string, any> | null;
+  oldValues?: Record<string, unknown> | null;
+  newValues?: Record<string, unknown> | null;
 }
 
 interface AuditLogEntry {
@@ -37,8 +37,8 @@ interface AuditLogEntry {
   action: string;
   entity_type: string;
   entity_id: string;
-  old_values: Record<string, any> | null;
-  new_values: Record<string, any> | null;
+  old_values: Record<string, unknown> | null;
+  new_values: Record<string, unknown> | null;
   ip_address: string | null;
   user_agent: string | null;
   created_at: string;
@@ -95,11 +95,11 @@ export function useAuditLog() {
    * Helper para calcular apenas os campos alterados em um UPDATE
    */
   const getChangedFields = (
-    oldRecord: Record<string, any>,
-    newRecord: Record<string, any>,
-  ): { oldFields: Record<string, any>; newFields: Record<string, any> } => {
-    const oldFields: Record<string, any> = {};
-    const newFields: Record<string, any> = {};
+    oldRecord: Record<string, unknown>,
+    newRecord: Record<string, unknown>,
+  ): { oldFields: Record<string, unknown>; newFields: Record<string, unknown> } => {
+    const oldFields: Record<string, unknown> = {};
+    const newFields: Record<string, unknown> = {};
 
     Object.keys(newRecord).forEach((key) => {
       // Ignorar campos de timestamp que mudam automaticamente

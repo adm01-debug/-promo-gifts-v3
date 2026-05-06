@@ -145,20 +145,43 @@ export default function Auth() {
     setIpBlocked(false);
 
     try {
-      // 10/10 Hardening: Verificação de rate-limit via server-side edge function
-      const { data: limitData, error: limitError } = await supabase.functions.invoke(
+      // 10/10 Hardening: Verificação de brute-force persistente via Edge Function
+      const { data: throttleData, error: throttleError } = await supabase.functions.invoke(
+        'check-auth-throttling',
+        {
+          body: { 
+            email: data.email,
+            ip: currentIP || 'unknown'
+          },
+        },
+      );
+
+      if (throttleError || (throttleData && throttleData.blocked)) {
+        const retryAfter = throttleData?.retry_after_minutes || 15;
+        const reason = throttleData?.reason || 'Muitas tentativas falhas detectadas.';
+        
+        toast({
+          variant: 'destructive',
+          title: 'Acesso Temporariamente Bloqueado',
+          description: `${reason} Tente novamente em ${retryAfter} minutos.`,
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
+      // 10/10 Hardening: Rate-limit secundário por endpoint
+      const { data: limitData } = await supabase.functions.invoke(
         'rate-limit-check',
         {
           body: { endpoint: 'login' },
         },
       );
 
-      if (limitError || (limitData && !limitData.allowed)) {
-        const retryAfter = limitData?.retryAfter || 60;
+      if (limitData && !limitData.allowed) {
         toast({
           variant: 'destructive',
-          title: 'Muitas tentativas',
-          description: `Por segurança, seu acesso foi temporariamente suspenso. Tente novamente em ${retryAfter} segundos.`,
+          title: 'Taxa de requisições excedida',
+          description: `Muitas requisições do seu IP. Aguarde ${limitData.retryAfter || 60} segundos.`,
         });
         setIsSubmitting(false);
         return;
@@ -167,6 +190,7 @@ export default function Auth() {
       const { error } = await signIn(data.email, data.password);
 
       if (error) {
+        // Registrar falha para o throttling persistente
         await logLoginAttempt(data.email, null, false, error.message);
 
         const description = error.message.includes('Invalid login credentials')
