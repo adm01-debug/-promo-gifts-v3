@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/lib/logger';
 import { captureException } from '@/lib/sentry';
 import { onBridgeStatus, isColdStartSignal } from '@/lib/external-db/bridge-status-events';
+import { attemptChunkRecovery, isChunkLoadError } from '@/lib/chunk-recovery';
 
 interface ErrorReport {
   message: string;
