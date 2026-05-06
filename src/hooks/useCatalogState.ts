@@ -27,6 +27,7 @@ import { usePromoSalesRanking } from '@/hooks/usePromoSalesRanking';
 import { useSupplierSalesRanking } from '@/hooks/useSupplierSalesRanking';
 import { useCatalogFiltering } from './useCatalogFiltering';
 import { useCatalogFilters } from './useCatalogFilters';
+import { useProductFuzzySearch } from './useProductFuzzySearch';
 
 export type ViewMode = 'grid' | 'list' | 'table';
 export type SortOption =
