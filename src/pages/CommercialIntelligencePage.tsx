@@ -38,7 +38,7 @@ export default function CommercialIntelligencePage() {
   return (
     <>
       <PageSEO
-        title="Inteligência de Mercado"
+        title="Inteligência Comercial"
         description="Painel estratégico com insights de mercado para decisões comerciais."
         path="/ferramentas/bi-comercial"
         noIndex
