@@ -304,7 +304,7 @@ export function SupplierRiskPanel({ products }: SupplierRiskPanelProps) {
                               </Badge>
                             </div>
                           </div>
-                        </button>
+                        </Button>
                       </div>
                     );
                   })}
