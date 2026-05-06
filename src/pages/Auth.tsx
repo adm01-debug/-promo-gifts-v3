@@ -353,7 +353,7 @@ export default function Auth() {
                           data-testid="login-password-input"
                           type={showPassword ? "text" : "password"}
                           placeholder="••••••••"
-                          className="pl-10 pr-10 bg-[#EDF2F7] border-transparent focus:bg-white text-gray-900 placeholder:text-gray-500 h-12 rounded-xl transition-all duration-300"
+                          className="pl-10 pr-10 bg-white/10 border-white/10 focus:bg-white/20 text-white placeholder:text-white/40 h-12 rounded-xl transition-all duration-300 backdrop-blur-md"
                           {...loginForm.register("password")}
                         />
                         <button
