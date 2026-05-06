@@ -188,7 +188,7 @@ export function MockupPromptManager() {
           ai_model: 'google/gemini-2.5-flash-image-preview',
           technique_id: tech.id,
           created_by: user?.id,
-        });
+        } as any);
       if (error) throw error;
       toast.success(`Prompt para "${tech.name}" criado`);
       setAddTechniqueDialog(false);
