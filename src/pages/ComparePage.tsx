@@ -116,16 +116,16 @@ export default function ComparePage() {
         <CompareEmptyStateSmart />
         <div className="flex justify-center pb-12">
           <Button 
-            variant="outline" 
+            variant="ghost" 
             size="sm" 
-            className="text-[10px] text-muted-foreground opacity-50 hover:opacity-100"
+            className="text-[10px] text-muted-foreground opacity-30 hover:opacity-100 transition-opacity"
             onClick={() => {
+              // Ids conhecidos que costumam ter dados ricos no banco Promobrind
               const mockIds = ["26462", "26463", "26464"];
               mockIds.forEach(id => addToCompare(id));
-              // toast.info calls need import or just rely on the effect of products appearing
             }}
           >
-            Carregar Mock (Dev)
+            MODO DEMO: Preencher com dados mockados
           </Button>
         </div>
       </>
