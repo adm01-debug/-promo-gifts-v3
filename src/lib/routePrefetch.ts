@@ -23,6 +23,8 @@ const routeImportMap: Record<string, () => Promise<unknown>> = {
   '/simulador-precos': () => import('@/pages/PriceSimulatorPage'),
   '/estoque': () => import('@/pages/StockDashboardPage'),
   '/mockup': () => import('@/pages/MockupGenerator'),
+  '/mockup-generator': () => import('@/pages/MockupGenerator'),
+  '/ferramentas/mockup': () => import('@/pages/MockupGenerator'),
   '/magic-up': () => import('@/pages/MagicUp'),
   '/kits': () => import('@/pages/KitBuilderPage'),
   '/meus-kits': () => import('@/pages/KitLibraryPage'),
