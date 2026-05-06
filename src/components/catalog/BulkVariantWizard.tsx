@@ -241,7 +241,7 @@ function ProductVariantStep({
                     <span
                       className={cn(
                         'flex items-center gap-0.5 text-[10px] font-medium',
-                        isLowStock ? 'text-warning' : 'text-success',
+                        stock < 50 ? 'text-warning' : 'text-success',
                       )}
                     >
                       <Package className="h-2.5 w-2.5" />

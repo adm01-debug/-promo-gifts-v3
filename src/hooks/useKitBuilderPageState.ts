@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { useKitBuilder } from '@/hooks/useKitBuilder';
 import { useCustomKitPersistence } from '@/hooks/useCustomKitPersistence';
 import { useKitAutoSave } from '@/hooks/useKitAutoSave';
@@ -10,16 +10,14 @@ import { useTemplateSnapshot } from '@/hooks/useTemplateSnapshot';
 import { useDuplicateKitDetector } from '@/hooks/useDuplicateKitDetector';
 import { transformToKitItem } from '@/hooks/useKitBuilderTransformers';
 import { invokeExternalDb } from '@/lib/external-db';
-import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/lib/logger';
 import { calculateTotalKitPrice } from '@/lib/kit-builder';
 
 export function useKitBuilderPageState() {
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
   const kitIdParam = searchParams.get('kit');
   const productIdParam = searchParams.get('product');
-  const templateIdParam = searchParams.get('template');
+...
 
   const [currentKitId, setCurrentKitId] = useState<string | undefined>(kitIdParam || undefined);
   const [occasion, setOccasion] = useState<any>(null);
