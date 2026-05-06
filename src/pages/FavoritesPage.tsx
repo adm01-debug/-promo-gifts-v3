@@ -81,7 +81,9 @@ function loadSort(): FavoritesSort {
     const v = localStorage.getItem(SORT_KEY) as FavoritesSort | null;
     const allowed: FavoritesSort[] = ["recent", "oldest", "price-asc", "price-desc", "name-asc", "name-desc", "category"];
     if (v && allowed.includes(v)) return v;
-  } catch {}
+  } catch (err) {
+    console.warn("Failed to load sort:", err);
+  }
   return "recent";
 }
 
