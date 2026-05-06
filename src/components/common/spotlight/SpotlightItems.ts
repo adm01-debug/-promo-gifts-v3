@@ -11,7 +11,7 @@ import {
   Package, FileText, Users, Settings, BarChart3, Wand2,
   Sparkles, Plus, Heart, Calculator, TrendingUp,
   FolderOpen, GitCompare, ShoppingCart,
-  Activity, Plug, ShieldCheck, Workflow,
+  Activity, Plug, ShieldCheck, Workflow, Layers,
 } from "lucide-react";
 
 export interface SpotlightItem {
