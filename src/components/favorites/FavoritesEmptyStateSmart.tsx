@@ -20,6 +20,8 @@ interface Props {
 export function FavoritesEmptyStateSmart({ onAddProduct }: Props) {
   const navigate = useNavigate();
   const { getProductsByIds } = useProductsContext();
+  const { toggleFavorite } = useFavoritesStore();
+  const [isMockLoading, setIsMockLoading] = useState(false);
 
   const { data: topIds = [] } = useQuery({
     queryKey: ["top-favorited-products"],
