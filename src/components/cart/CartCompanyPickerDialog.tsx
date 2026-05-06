@@ -260,16 +260,18 @@ export function CartCompanyPickerDialog({ open, onOpenChange, onCreated }: CartC
           </TabsContent>
 
           <TabsContent value="search" className="m-0 px-3 pt-3 pb-4 space-y-3">
-            <div className="relative px-2">
-              <Search className="absolute left-4.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-              <Input
-                ref={inputRef}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Nome, CNPJ ou segmento..."
-                className="h-9 pl-8 text-sm bg-muted/20 border-border/40 focus:bg-background transition-colors"
-              />
-              {isLoading && <Loader2 className="absolute right-4.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-muted-foreground opacity-50" />}
+            <div className="px-2">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+                <Input
+                  ref={inputRef}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Nome, CNPJ ou segmento..."
+                  className="h-9 pl-8 pr-8 text-sm bg-muted/20 border-border/40 focus:bg-background transition-colors"
+                />
+                {isLoading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-muted-foreground opacity-50 pointer-events-none" />}
+              </div>
             </div>
             <ScrollArea className="h-[290px] pr-2">
               {isLoading && filteredCompanies.length === 0 ? (
