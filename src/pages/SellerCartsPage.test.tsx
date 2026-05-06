@@ -23,7 +23,7 @@ vi.mock('@/components/seo/PageSEO', () => ({
   PageSEO: () => null,
 }));
 
-// Mock dos componentes pesados/complexos
+// Mock dos componentes pesados/complexos com mocks vazios para evitar dependências circulares ou de UI complexas
 vi.mock('@/components/cart/SortableCartItem', () => ({
   SortableCartItem: ({ item }: any) => <div data-testid="mock-cart-item">{item.product_name}</div>,
 }));
@@ -32,7 +32,7 @@ vi.mock('@/components/cart/CartTabsRich', () => ({
   CartTabsRich: () => <div data-testid="mock-tabs" />,
 }));
 
-vi.mock('@/components/cart/CartSidebar', () => ({
+vi.mock('./seller-carts/CartSidebar', () => ({
   CartSidebar: () => <div data-testid="mock-sidebar" />,
 }));
 
