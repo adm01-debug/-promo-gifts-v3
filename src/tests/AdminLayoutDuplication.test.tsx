@@ -10,6 +10,7 @@ import { ThemeProvider } from '../contexts/ThemeContext';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { TooltipProvider } from '../components/ui/tooltip';
 import { HelmetProvider } from 'react-helmet-async';
+import { AriaLiveProvider } from '../components/a11y/AriaLive';
 import React from 'react';
 
 // Mock everything that uses Supabase/Network
@@ -31,6 +32,7 @@ vi.mock('../integrations/supabase/client', () => ({
       single: vi.fn(),
       maybeSingle: vi.fn(),
     }),
+    rpc: vi.fn().mockResolvedValue({ data: null, error: null }),
     functions: {
       invoke: vi.fn().mockResolvedValue({ data: null, error: null }),
     },
@@ -47,13 +49,7 @@ vi.mock('../hooks/useSecretsManager', () => ({
   useSecretsManager: () => ({ secrets: [], isLoading: false, list: vi.fn(), refreshCache: vi.fn() }),
 }));
 
-// Mock components that cause AriaLive issues or are too heavy
-vi.mock('../components/ui/aria-live', () => ({
-  AriaLiveProvider: ({ children }: { children: React.ReactNode }) => <div data-testid="aria-live-provider">{children}</div>,
-  useAriaLive: () => ({ announce: vi.fn() }),
-}));
-
-// Mock PageTransition to avoid Framer Motion issues
+// IMPORTANT: Mock PageTransition to avoid Framer Motion issues
 vi.mock('../components/effects/PageTransition', () => ({
   PageTransition: ({ children }: { children: React.ReactNode }) => <div data-testid="page-transition">{children}</div>,
 }));
@@ -67,7 +63,7 @@ vi.mock('../components/layout/SidebarReorganized', () => ({
   SidebarReorganized: () => <aside data-testid="sidebar"><div data-testid="sidebar-brand-header">Brand</div></aside>
 }));
 
-// Mock all potential problematic sub-components in AdminConexoesPage
+// Mock sub-components
 vi.mock('../components/admin/connections/ConnectionsPulseBar', () => ({
   ConnectionsPulseBar: () => <div data-testid="pulse-bar" />
 }));
@@ -84,7 +80,6 @@ vi.mock('../components/admin/connections/ConnectionsOverviewTable', () => ({
   ConnectionsOverviewTable: () => <div data-testid="overview-table" />
 }));
 
-// Mock RotationHistoryRow specifically because it was throwing getRotationHistory error
 vi.mock('../components/admin/connections/RotationHistoryRow', () => ({
   RotationHistoryRow: () => <div data-testid="rotation-history-row" />
 }));
@@ -103,11 +98,13 @@ const renderAdminRoute = async (path: string, Element: React.ComponentType) => {
             <MemoryRouter initialEntries={[path]}>
               <ThemeProvider>
                 <AuthProvider>
-                  <Routes>
-                    <Route element={<MainLayout><React.Suspense fallback={<div data-testid="loading">Loading...</div>}><Element /></React.Suspense></MainLayout>}>
-                      <Route path={path} element={<Element />} />
-                    </Route>
-                  </Routes>
+                  <AriaLiveProvider>
+                    <Routes>
+                      <Route element={<MainLayout><React.Suspense fallback={<div data-testid="loading">Loading...</div>}><Element /></React.Suspense></MainLayout>}>
+                        <Route path={path} element={<Element />} />
+                      </Route>
+                    </Routes>
+                  </AriaLiveProvider>
                 </AuthProvider>
               </ThemeProvider>
             </MemoryRouter>
