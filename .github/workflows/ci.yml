@@ -95,17 +95,24 @@ jobs:
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
-          # Use local server if not specified
           E2E_BASE_URL: http://localhost:5173
         run: npm run test:e2e:regression
 
-      - name: Upload Playwright Reports (HTML/JSON)
+      - name: Generate E2E Feature Summary Report
+        if: always()
+        run: node scripts/e2e-feature-summary.mjs
+
+      - name: Upload Playwright Reports (HTML/JSON/Markdown)
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
-          path: playwright-report/
+          path: |
+            playwright-report/
+            playwright-report/feature-summary.md
+            playwright-report/feature-summary.json
           retention-days: 14
+
 
   edge-functions:
     name: Edge Functions Validation
