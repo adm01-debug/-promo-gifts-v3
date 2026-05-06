@@ -108,7 +108,7 @@ export function SyncedZoomGallery({ products, onProductClick }: SyncedZoomGaller
 
   const GalleryContent = ({ inDialog = false }: { inDialog?: boolean }) => (
     <div className={cn("space-y-4", inDialog && "p-4")}>
-      <div className="flex items-center justify-center gap-4 p-3 rounded-xl bg-muted/50 backdrop-blur-sm">
+      <div className="flex items-center justify-center gap-4 p-3 rounded-xl bg-muted/50 backdrop-blur-md border border-border/30">
         <Button variant="ghost" size="icon" onClick={handleZoomOut} disabled={zoom <= 1} className="h-8 w-8" aria-label="Reduzir">
           <ZoomOut className="h-4 w-4" />
         </Button>
