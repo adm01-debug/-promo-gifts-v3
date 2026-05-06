@@ -8,11 +8,8 @@ import React, {
   useEffect,
   useRef,
 } from 'react';
-import { type Product } from '@/hooks/useProducts';
+import { type Product, mapPromobrindToProduct } from '@/hooks/useProducts';
 import { fetchPromobrindProducts } from '@/lib/external-db';
-
-// Re-use the same mapping logic from useProducts
-import { mapPromobrindToProduct } from '@/hooks/useProducts';
 import { logger } from '@/lib/logger';
 
 interface ProductsContextType {
