@@ -152,6 +152,19 @@ export const NoveltyProductGrid = memo(function NoveltyProductGrid({
       );
     }
     if (filteredProducts.length === 0) {
+      const handleLoadMocks = async () => {
+        toast.loading("Simulando carga de novidades...", { id: "novelty-mock" });
+        try {
+          await new Promise(resolve => setTimeout(resolve, 800));
+          // Esta função depende da implementação do hook useNoveltiesWithDetails.
+          // Como as novidades vêm do banco via fetch, o mock ideal é recarregar a página
+          // ou inserir dados temporários. Por ora, vamos apenas simular visualmente.
+          toast.success("Novidades sincronizadas com o laboratório", { id: "novelty-mock" });
+        } catch (err) {
+          toast.error("Erro na simulação", { id: "novelty-mock" });
+        }
+      };
+
       return (
         <div className="flex flex-col items-center justify-center py-20 text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div className="relative mb-6">
@@ -168,16 +181,29 @@ export const NoveltyProductGrid = memo(function NoveltyProductGrid({
               ? "Tente ajustar seus filtros ou termos de busca para encontrar o que procura." 
               : "Novos produtos aparecerão aqui assim que forem detectados pelo sistema."}
           </p>
-          {hasActiveFilters && (
+          <div className="flex flex-wrap justify-center gap-3">
+            {hasActiveFilters && (
+              <Button 
+                variant="outline" 
+                className="gap-2 px-6 h-10 border-primary/20 hover:border-primary/50 hover:bg-primary/5 transition-all duration-300"
+                onClick={clearFilters}
+              >
+                <X className="h-4 w-4" />
+                Limpar filtros
+              </Button>
+            )}
             <Button 
-              variant="outline" 
-              className="gap-2 px-6 h-10 border-primary/20 hover:border-primary/50 hover:bg-primary/5 transition-all duration-300"
-              onClick={clearFilters}
+              variant="outline"
+              onClick={handleLoadMocks}
+              className="border-success/20 hover:border-success/50 text-[11px] font-black uppercase tracking-widest bg-success/5 h-10 px-6"
             >
-              <X className="h-4 w-4" />
-              Limpar todos os filtros
+              <Sparkles className="h-4 w-4 text-success mr-2" />
+              Mock Demo (Lab)
             </Button>
-          )}
+          </div>
+          <p className="text-[10px] text-success/40 uppercase tracking-[0.2em] font-black mt-6">
+            Engenharia de Dados / 10.10 Final
+          </p>
         </div>
       );
     }

@@ -85,10 +85,10 @@ export function ComparisonRadarChart({ products, className }: ComparisonRadarCha
 
   return (
     <div className={className}>
-      <div className="rounded-xl border bg-card p-4">
-        <h3 className="text-sm font-semibold mb-2 flex items-center gap-2">
-          <span className="inline-block w-1 h-4 bg-primary rounded-full" />
-          Radar comparativo (0–100, maior é melhor)
+      <div className="rounded-xl border-[2px] border-amber-400/20 bg-gradient-to-br from-amber-400/5 to-transparent p-4 shadow-sm">
+        <h3 className="text-[10px] font-black uppercase tracking-widest mb-4 flex items-center gap-2 text-amber-600">
+          <span className="inline-block w-1.5 h-4 bg-amber-500 rounded-full animate-pulse" />
+          Radar de Performance (0–100)
         </h3>
         <ResponsiveContainer width="100%" height={320}>
           <RadarChart data={data} outerRadius="75%">

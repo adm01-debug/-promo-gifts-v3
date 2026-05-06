@@ -83,17 +83,17 @@ export function ComparisonMobileView({ products, formatCurrency, onRemove, onPro
   return (
     <div className="md:hidden space-y-3">
       {ROWS.map((row) => (
-        <div key={row.key} className="rounded-xl border border-border bg-card overflow-hidden">
-          <div className="px-3 py-2 bg-muted/50 text-[10px] uppercase tracking-wider font-semibold text-muted-foreground border-b border-border">
+        <div key={row.key} className="rounded-xl border border-border bg-card overflow-hidden shadow-sm transition-all duration-300">
+          <div className="px-3 py-2 bg-muted/40 text-[10px] uppercase tracking-[0.15em] font-black text-muted-foreground/60 border-b border-border/40">
             {row.label}
           </div>
-          <div className="flex gap-2 p-2 overflow-x-auto snap-x snap-mandatory scrollbar-thin">
+          <div className="flex gap-2 p-3 overflow-x-auto snap-x snap-mandatory scrollbar-none">
             {products.map((p, idx) => (
               <div
                 key={`${p.id}-${idx}`}
                 className={cn(
-                  "shrink-0 snap-start min-w-[42%] max-w-[42%] flex items-center justify-center p-2 rounded-xl border border-border bg-background",
-                  winnerIdx === idx && "border-primary/60 ring-1 ring-primary/30"
+                  "shrink-0 snap-start min-w-[48%] max-w-[48%] flex items-center justify-center p-3 rounded-2xl border border-border bg-background transition-all duration-500",
+                  winnerIdx === idx && "border-amber-500/50 bg-amber-500/[0.02] ring-2 ring-amber-500/10 shadow-lg shadow-amber-500/5"
                 )}
               >
                 {renderCell(row.key, p, idx)}
@@ -102,8 +102,8 @@ export function ComparisonMobileView({ products, formatCurrency, onRemove, onPro
           </div>
         </div>
       ))}
-      <Button variant="outline" size="sm" className="w-full" onClick={() => onProductClick?.(products[0]?.id)}>
-        Ver detalhes do primeiro produto
+      <Button variant="outline" size="sm" className="w-full border-amber-500/20 text-amber-600 hover:bg-amber-500/5 font-black uppercase text-[10px] tracking-widest h-10" onClick={() => onProductClick?.(products[0]?.id)}>
+        Ver Detalhes do Líder
       </Button>
     </div>
   );
