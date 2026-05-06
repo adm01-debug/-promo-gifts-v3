@@ -6,8 +6,20 @@
 }
 
 @keyframes twinkle {
-  0%, 100% { opacity: inherit; transform: scale(1); filter: brightness(1); }
-  50% { opacity: 1; transform: scale(1.15); filter: brightness(1.5) drop-shadow(0 0 5px white); }
+  0%, 100% { 
+    opacity: var(--star-base-opacity, 0.4); 
+    transform: scale(1); 
+    filter: brightness(1) blur(0px); 
+  }
+  30%, 70% {
+    opacity: calc(var(--star-base-opacity, 0.4) * 1.2);
+    filter: brightness(1.1);
+  }
+  50% { 
+    opacity: 1; 
+    transform: scale(1.25); 
+    filter: brightness(2) drop-shadow(0 0 10px white) blur(0.5px); 
+  }
 }
 
 @keyframes rocketLaunch {
