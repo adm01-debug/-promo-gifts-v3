@@ -419,6 +419,38 @@ function SellerCartsContent() {
                         ))}
                       </SelectContent>
                     </Select>
+
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          className="h-9 px-4 rounded-xl text-xs font-bold gap-2 hover:bg-background/10"
+                        >
+                          <MessageSquare className="h-4 w-4" /> Notas em Massa
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-80 p-4 rounded-2xl shadow-2xl bg-card border-border/50">
+                        <div className="space-y-3">
+                          <h4 className="text-xs font-bold uppercase tracking-tight text-muted-foreground">Adicionar notas aos itens selecionados</h4>
+                          <Textarea 
+                            placeholder="Ex: Todos com gravação laser..."
+                            className="text-xs min-h-[100px] rounded-xl"
+                            value={bulkNote}
+                            onChange={(e) => setBulkNote(e.target.value)}
+                          />
+                          <Button 
+                            className="w-full text-xs font-bold rounded-xl h-10" 
+                            disabled={!bulkNote.trim()}
+                            onClick={() => {
+                              s.handleBulkUpdateNotes(bulkNote.trim());
+                              setBulkNote("");
+                            }}
+                          >
+                            Aplicar Notas
+                          </Button>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
                     
                     <Button 
                       variant="ghost" 
