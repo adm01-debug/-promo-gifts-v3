@@ -310,7 +310,7 @@ export function OwnershipRepairDialog({ reportId, hasIssues }: Props) {
 function Stat({
   label,
   value,
-  icon: HeroIcon,
+  icon: heroIcon,
   tone,
 }: {
   label: string;
