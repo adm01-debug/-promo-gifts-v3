@@ -58,7 +58,9 @@
     "check:security-definer-acl": "node scripts/check-security-definer-acl.mjs",
     "check:edge-cors": "node scripts/check-edge-cors-headers.mjs",
     "check:no-inline-cors": "node scripts/check-no-inline-cors.mjs",
-    "build:cors-snapshot": "node scripts/build-cors-snapshot.mjs"
+    "build:cors-snapshot": "node scripts/build-cors-snapshot.mjs",
+    "test:fuzz": "supabase functions test --path supabase/functions/tests/fuzz-exhaustive_test.ts",
+    "quality:full": "npm run lint && npm run typecheck && npm run test:coverage && npm run test:e2e:smoke && npm run test:e2e:regression && node scripts/generate-quality-report.mjs"
   },
   "lint-staged": {
     "src/**/*.{ts,tsx}": [
