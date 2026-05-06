@@ -58,8 +58,9 @@ function loadViewMode(): ViewMode {
   try {
     const v = localStorage.getItem(VIEW_MODE_KEY);
     if (v === "grid" || v === "list" || v === "table") return v as ViewMode;
-  } catch {}
-  return "grid";
+  } catch (err) {
+    console.warn("Failed to load view mode:", err);
+  }
 }
 
 function loadGridColumns(): ColumnCount {
