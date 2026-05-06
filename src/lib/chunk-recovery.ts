@@ -23,6 +23,7 @@
 
 import { logger } from "@/lib/logger";
 
+const APP_VERSION = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : 'dev';
 const STORAGE_KEY = "__chunk_recovery__";
 const WINDOW_MS = 30_000;
 const MAX_HARD_RELOADS = 2;
@@ -31,6 +32,8 @@ interface RecoveryState {
   attempts: number;
   firstAt: number;
   lastUrl?: string;
+  version?: string;
+}
 }
 
 function readState(): RecoveryState {
@@ -224,6 +227,7 @@ export function attemptChunkRecovery(error: unknown): Promise<boolean> {
       attempts,
       firstAt,
       lastUrl: extractChunkUrl(error),
+      version: APP_VERSION,
     });
 
     if (attempts > MAX_HARD_RELOADS) {
@@ -271,9 +275,11 @@ export function markBootSuccessful(): void {
   if (typeof window === "undefined") return;
   window.setTimeout(() => {
     const state = readState();
-    if (state.attempts > 0) {
-      logger.info("[chunk-recovery] boot bem-sucedido após reload — limpando estado", {
+    if (state.attempts > 0 || state.version !== APP_VERSION) {
+      logger.info("[chunk-recovery] boot bem-sucedido após reload ou nova versão — limpando estado", {
         previousAttempts: state.attempts,
+        previousVersion: state.version,
+        currentVersion: APP_VERSION,
       });
     }
     clearChunkRecoveryState();
