@@ -102,7 +102,8 @@ describe('CartCompanyPickerDialog - UI, Accessibility & Regression', () => {
     render(<CartCompanyPickerDialog {...defaultProps} />);
     
     const input = screen.getByRole('textbox', { name: /Buscar empresa/i });
-    const closeButton = screen.getByRole('button', { name: /Fechar/i });
+    // Use getAllByRole or be more specific for the footer button
+    const footerCloseButton = screen.getByRole('button', { name: /^Fechar$/i }); 
     
     // 1. Initial focus (managed by useEffect)
     await waitFor(() => {
