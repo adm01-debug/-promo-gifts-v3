@@ -53,7 +53,7 @@ export function buildSpotlightItems(navigate: (path: string) => void): Spotlight
     { id: "magic-up", title: "Magic Up", description: "IA para edição de imagens", icon: React.createElement(Sparkles, { className: "h-4 w-4" }), action: nav("/ferramentas/magic-up"), path: "/ferramentas/magic-up", category: "Ferramentas" },
     { id: "commercial-intelligence", title: "Inteligência Comercial", description: "Insights estratégicos de vendas", icon: React.createElement(BarChart3, { className: "h-4 w-4" }), action: nav("/inteligencia-comercial"), path: "/inteligencia-comercial", category: "Ferramentas" },
     // Analytics
-    { id: "estoque-360", title: "Estoque 360º", description: "Visão completa de níveis e reposição", icon: React.createElement(BarChart3, { className: "h-4 w-4" }), action: nav("/estoque"), path: "/estoque", category: "Ferramentas" },
+    { id: "estoque-360", title: "Estoque 360º", description: "Visão completa de níveis e reposição", icon: React.createElement(BarChart3, { className: "h-4 w-4" }), action: nav("/estoque"), path: "/estoque", category: "Insights" },
     { id: "trends", title: "Tendências", description: "Análise de tendências", icon: React.createElement(TrendingUp, { className: "h-4 w-4" }), action: nav("/tendencias"), path: "/tendencias", category: "Analytics" },
     // Admin (visível apenas a admin/dev — filtrado em runtime)
     { id: "users-admin", title: "Gestão de Usuários", description: "Gerenciar usuários e perfis", icon: React.createElement(Users, { className: "h-4 w-4" }), action: nav("/admin/usuarios"), path: "/admin/usuarios", category: "Admin" },
