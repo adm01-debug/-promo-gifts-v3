@@ -266,14 +266,24 @@ export function CartCompanyPickerDialog({ open, onOpenChange, onCreated }: CartC
                   aria-hidden="true"
                   className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" 
                 />
+                <label htmlFor="company-search-input" className="sr-only">
+                  Buscar empresa por nome, CNPJ ou segmento
+                </label>
                 <Input
+                  id="company-search-input"
                   ref={inputRef}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="Nome, CNPJ ou segmento..."
-                  className="h-9 pl-8 pr-8 text-sm bg-muted/20 border-border/40 focus:bg-background transition-colors"
+                  className="h-9 pl-8 pr-8 text-sm bg-muted/20 border-border/40 focus:bg-background transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1"
+                  aria-busy={isLoading}
                 />
-                {isLoading && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-muted-foreground opacity-50 pointer-events-none" />}
+                {isLoading && (
+                  <Loader2 
+                    aria-hidden="true"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-muted-foreground opacity-50 pointer-events-none" 
+                  />
+                )}
               </div>
             </div>
             <ScrollArea className="h-[290px] pr-2">
