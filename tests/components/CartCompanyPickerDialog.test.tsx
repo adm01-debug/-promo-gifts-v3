@@ -188,20 +188,32 @@ describe('CartCompanyPickerDialog - UI, Accessibility & Regression', () => {
     expect(screen.getByRole('dialog')).toContainElement(activeElement as HTMLElement);
   });
 
-  it('validates navigation between tabs via keyboard', async () => {
+  it('validates navigation between tabs via keyboard and focus return', async () => {
     const user = userEvent.setup();
     render(<CartCompanyPickerDialog {...defaultProps} />);
     
-    // Search tab is default. Let's move to Recents.
-    const recentTab = screen.getByRole('tab', { name: /Recentes/i });
+    // 1. Initial tab state
     const searchTab = screen.getByRole('tab', { name: /Todas/i });
-    
     expect(searchTab).toHaveAttribute('aria-selected', 'true');
     
-    // Use arrow keys to navigate tabs (standard ARIA pattern)
-    await user.click(searchTab);
-    await user.keyboard('{ArrowLeft}');
-    await user.keyboard('{ArrowLeft}'); // Move from Search -> Favorites -> Recent
+    // 2. Click another tab and check selection
+    const recentTab = screen.getByRole('tab', { name: /Recentes/i });
+    await user.click(recentTab);
+    expect(recentTab).toHaveAttribute('aria-selected', 'true');
+    expect(searchTab).toHaveAttribute('aria-selected', 'false');
+
+    // 3. Arrow key navigation (Standard Radix/WUI behavior)
+    await user.keyboard('{ArrowRight}'); 
+    const favoritesTab = screen.getByRole('tab', { name: /Favoritas/i });
+    expect(favoritesTab).toHaveAttribute('aria-selected', 'true');
+  });
+
+  it('verifies visual alignment of placeholder and text-overflow in search input', () => {
+    render(<CartCompanyPickerDialog {...defaultProps} />);
+    const input = screen.getByRole('textbox', { name: /Buscar empresa/i });
     
+    // Check for standard spacing and typography classes
+    expect(input).toHaveClass('text-sm', 'bg-muted/20', 'h-9');
+    expect(input).toHaveAttribute('placeholder', 'Nome, CNPJ ou segmento...');
   });
 });

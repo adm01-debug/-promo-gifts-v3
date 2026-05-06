@@ -315,7 +315,14 @@ export function CartCompanyPickerDialog({ open, onOpenChange, onCreated }: CartC
         </Tabs>
 
         <div className="flex justify-end gap-2 px-5 py-3 border-t border-border/40">
-          <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)}>Fechar</Button>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => onOpenChange(false)}
+            data-testid="dialog-close-button"
+          >
+            Fechar
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
