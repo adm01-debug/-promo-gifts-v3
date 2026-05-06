@@ -80,7 +80,7 @@ export function TrendsForecastChart({
     <Card>
       <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle data-tour="trends-forecast" className="flex items-center gap-2">
             <BarChart3 className="h-5 w-5 text-primary" />
             Atividade ao Longo do Tempo
             {anomalyCount > 0 && (

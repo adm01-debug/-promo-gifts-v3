@@ -47,7 +47,7 @@ export function TrendsHeatmap({ days }: TrendsHeatmapProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle data-tour="trends-heatmap" className="flex items-center gap-2">
           <Activity className="h-5 w-5 text-chart-3" />
           Mapa de Calor — Quando seus clientes estão ativos
         </CardTitle>
