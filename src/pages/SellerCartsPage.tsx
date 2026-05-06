@@ -513,8 +513,6 @@ function SellerCartsContent() {
               </div>
             )}
           </div>
-          </div>
-
           {/* Sidebar */}
           {s.activeCart.items.length > 0 && (
             <CartSidebar
