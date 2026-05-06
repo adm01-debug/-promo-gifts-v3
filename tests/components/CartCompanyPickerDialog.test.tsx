@@ -60,10 +60,14 @@ describe('CartCompanyPickerDialog - UI, Accessibility & Regression', () => {
     expect(input).toBeInTheDocument();
     expect(input).toHaveAttribute('id', 'company-search-input');
     expect(input).toHaveAttribute('type', 'text');
+    expect(input).toHaveAttribute('aria-controls', 'company-search-results');
     
     // Icons should be hidden from screen readers
     const searchIcon = screen.getByTestId('search-icon');
     expect(searchIcon).toHaveAttribute('aria-hidden', 'true');
+    
+    // Check results container existence
+    expect(document.getElementById('company-search-results')).toBeInTheDocument();
   });
 
   it('validates alignment and classes of Search and Loader2 icons in different states', () => {
@@ -215,5 +219,41 @@ describe('CartCompanyPickerDialog - UI, Accessibility & Regression', () => {
     // Check for standard spacing and typography classes
     expect(input).toHaveClass('text-sm', 'bg-muted/20', 'h-9');
     expect(input).toHaveAttribute('placeholder', 'Nome, CNPJ ou segmento...');
+  });
+
+  it('announces the number of results to screen readers when search is complete', async () => {
+    (reactQuery.useQuery as any).mockReturnValue({
+      data: [
+        { id: '1', name: 'Company A', razao_social: 'A', nome_fantasia: 'A', ramo: 'Tech', logo_url: null },
+        { id: '2', name: 'Company B', razao_social: 'B', nome_fantasia: 'B', ramo: 'Sales', logo_url: null },
+      ],
+      isLoading: false,
+    });
+
+    render(<CartCompanyPickerDialog {...defaultProps} />);
+    const user = userEvent.setup();
+    const input = screen.getByRole('textbox', { name: /Buscar empresa/i });
+    
+    await user.type(input, 'Comp');
+    
+    const announcement = document.getElementById('search-announcement');
+    expect(announcement).toHaveTextContent(/2 empresas encontradas/i);
+    expect(announcement).toHaveAttribute('aria-live', 'polite');
+  });
+
+  it('verifies critical layout classes that prevent visual regressions', () => {
+    render(<CartCompanyPickerDialog {...defaultProps} />);
+    
+    const searchIcon = screen.getByTestId('search-icon');
+    // translate-y-1/2 combined with top-1/2 is the standard centering trick
+    expect(searchIcon).toHaveClass('-translate-y-1/2', 'top-1/2', 'pointer-events-none');
+    
+    const dialogContent = screen.getByRole('dialog');
+    // Ensure the dialog has the expected max-width on larger screens (simulated by checking the class)
+    expect(dialogContent).toHaveClass('sm:max-w-[520px]');
+    
+    // Check padding on the tabs container
+    const tabsList = screen.getByRole('tablist').parentElement;
+    expect(tabsList).toHaveClass('px-5');
   });
 });
