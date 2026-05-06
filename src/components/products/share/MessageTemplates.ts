@@ -10,7 +10,15 @@ export interface MessageTemplate {
 }
 
 const formatPrice = (price: number) =>
-  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(price);
+  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(price ?? 0);
+
+const getColorsLabel = (product: Product): string => {
+  const list = Array.isArray(product?.colors) ? product.colors : [];
+  const names = list
+    .map((c) => (typeof c === "string" ? c : c?.name))
+    .filter((n): n is string => !!n && n.trim().length > 0);
+  return names.length > 0 ? names.join(", ") : "Diversas opções";
+};
 
 export const MESSAGE_TEMPLATES: MessageTemplate[] = [
   {
