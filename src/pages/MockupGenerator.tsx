@@ -466,15 +466,19 @@ export default function MockupGenerator() {
           }} 
         />
 
-        <TechniqueColorConfigDialog
-          open={technique.colorConfigDialogOpen}
-          onOpenChange={technique.setColorConfigDialogOpen}
-          currentConfig={mg.techniqueColorConfig}
-          onConfirm={mg.setTechniqueColorConfig}
-          techniqueName={mg.selectedTechnique?.name || ""}
-          techniqueCode={mg.selectedTechnique?.code}
-          detectedColors={mg.logoColorAnalysis.colors || []}
-        />
+        {technique.colorConfigDialogOpen && (
+          <Suspense fallback={null}>
+            <TechniqueColorConfigDialog
+              open={technique.colorConfigDialogOpen}
+              onOpenChange={technique.setColorConfigDialogOpen}
+              currentConfig={mg.techniqueColorConfig}
+              onConfirm={mg.setTechniqueColorConfig}
+              techniqueName={mg.selectedTechnique?.name || ""}
+              techniqueCode={mg.selectedTechnique?.code}
+              detectedColors={mg.logoColorAnalysis.colors || []}
+            />
+          </Suspense>
+        )}
       </div>
       </DiagnosticProfiler>
     </>
