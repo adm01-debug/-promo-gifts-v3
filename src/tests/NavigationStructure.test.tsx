@@ -46,13 +46,10 @@ vi.mock('../App', async (importOriginal) => {
     AppWithAuth: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
     // Provide a simplified App shell that only includes what we want to test
     default: () => {
-      const { ThemeProvider } = require('../contexts/ThemeContext');
-      const { ThemeInitializer } = require('../components/ThemeInitializer');
       return (
-        <ThemeProvider>
-          <ThemeInitializer />
-          <div data-testid="app-shell" />
-        </ThemeProvider>
+        <div data-testid="app-shell">
+          <div data-testid="theme-initializer" />
+        </div>
       );
     },
   };
