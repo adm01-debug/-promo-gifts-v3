@@ -21,10 +21,12 @@ vi.mock('@/integrations/supabase/client', () => {
         eq: vi.fn(() => ({
           single: vi.fn(() => Promise.resolve({ data: { id: '123', role: 'admin' }, error: null })),
           maybeSingle: vi.fn(() => Promise.resolve({ data: { id: '123', role: 'admin' }, error: null })),
+          order: vi.fn(() => Promise.resolve({ data: [], error: null })),
         })),
         match: vi.fn(() => ({
           single: vi.fn(() => Promise.resolve({ data: { id: '123', role: 'admin' }, error: null })),
         })),
+        order: vi.fn(() => Promise.resolve({ data: [], error: null })),
       })),
       update: vi.fn(() => ({
         eq: vi.fn(() => Promise.resolve({ data: {}, error: null })),
