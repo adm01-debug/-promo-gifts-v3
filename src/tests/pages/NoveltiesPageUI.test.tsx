@@ -7,6 +7,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { SellerCartProvider } from '@/contexts/SellerCartContext';
 import { CollectionsProvider } from '@/contexts/CollectionsContext';
 import { ProductsProvider } from '@/contexts/ProductsContext';
+import { HelmetProvider } from 'react-helmet-async';
 
 // Mock useAuth since we don't want to deal with AuthProvider complexity
 vi.mock('@/contexts/AuthContext', () => ({
