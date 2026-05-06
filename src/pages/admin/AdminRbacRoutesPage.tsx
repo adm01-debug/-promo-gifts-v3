@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { MainLayout } from '@/components/layout/MainLayout';
+
 import { PageSEO } from '@/components/seo/PageSEO';
 import {
   ShieldCheck,
