@@ -133,30 +133,27 @@ describe('NoveltiesPage UI', () => {
     render(<NoveltiesPage />, { wrapper: AllProviders });
     
     await waitFor(() => {
-      expect(screen.getByText('Power Bank Solar 20000mAh')).toBeInTheDocument();
+      expect(screen.getAllByText('Power Bank Solar 20000mAh').length).toBeGreaterThan(0);
     }, { timeout: 2000 });
   });
 
   it('filters products by search query', async () => {
     render(<NoveltiesPage />, { wrapper: AllProviders });
     
-    // Wait for initial load
-    await screen.findByText('Power Bank Solar 20000mAh');
+    await waitFor(() => screen.getAllByText('Power Bank Solar 20000mAh'));
 
     const searchInputs = screen.getAllByPlaceholderText(/Buscar novidades…/i);
-    const searchInput = searchInputs[0];
-    
-    fireEvent.change(searchInput, { target: { value: 'Solar' } });
+    fireEvent.change(searchInputs[0], { target: { value: 'Solar' } });
     
     await waitFor(() => {
-      expect(screen.getByText('Power Bank Solar 20000mAh')).toBeInTheDocument();
+      expect(screen.getAllByText('Power Bank Solar 20000mAh').length).toBeGreaterThan(0);
     }, { timeout: 2000 });
   });
 
   it('navigates to product detail on card click', async () => {
     render(<NoveltiesPage />, { wrapper: AllProviders });
     
-    const productName = await screen.findByText('Power Bank Solar 20000mAh');
+    const productName = (await screen.findAllByText('Power Bank Solar 20000mAh'))[0];
     const card = productName.closest('.cursor-pointer');
     if (!card) throw new Error('Card not found');
     
@@ -167,7 +164,7 @@ describe('NoveltiesPage UI', () => {
   it('clears filters when clicking the clear button', async () => {
     render(<NoveltiesPage />, { wrapper: AllProviders });
     
-    await screen.findByText('Power Bank Solar 20000mAh');
+    await waitFor(() => screen.getAllByText('Power Bank Solar 20000mAh'));
 
     const searchInputs = screen.getAllByPlaceholderText(/Buscar novidades…/i);
     fireEvent.change(searchInputs[0], { target: { value: 'XYZ_NON_EXISTENT' } });
@@ -180,7 +177,7 @@ describe('NoveltiesPage UI', () => {
     fireEvent.click(clearButton);
     
     await waitFor(() => {
-      expect(screen.getByText('Power Bank Solar 20000mAh')).toBeInTheDocument();
+      expect(screen.getAllByText('Power Bank Solar 20000mAh').length).toBeGreaterThan(0);
     });
   });
 });
