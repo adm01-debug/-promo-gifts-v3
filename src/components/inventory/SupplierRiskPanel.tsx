@@ -16,7 +16,9 @@ import {
   Clock,
   Search,
   ShieldAlert,
+  X,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { type ProductStockSummary } from "@/types/stock";
 import { ProductRiskDetail } from "./risk/ProductRiskDetail";
