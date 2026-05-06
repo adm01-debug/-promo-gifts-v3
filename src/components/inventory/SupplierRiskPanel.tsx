@@ -16,7 +16,9 @@ import {
   Clock,
   Search,
   ShieldAlert,
+  X,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { type ProductStockSummary } from "@/types/stock";
 import { ProductRiskDetail } from "./risk/ProductRiskDetail";
@@ -219,11 +221,13 @@ export function SupplierRiskPanel({ products }: SupplierRiskPanelProps) {
                 { value: 'warning' as const, label: 'Atenção', count: globalCounts.warning },
                 { value: 'ok' as const, label: 'OK', count: globalCounts.ok },
               ]).map(opt => (
-                <button
+                <Button
                   key={opt.value}
+                  variant="ghost"
+                  size="sm"
                   onClick={() => setSeverityFilter(opt.value)}
                   className={cn(
-                    "text-[9px] px-2 py-0.5 rounded-full transition-colors",
+                    "text-[9px] px-2 py-0.5 rounded-full transition-colors h-auto",
                     severityFilter === opt.value
                       ? opt.value === 'critical' ? 'bg-destructive/15 text-destructive'
                         : opt.value === 'warning' ? 'bg-warning/15 text-warning'
@@ -235,7 +239,7 @@ export function SupplierRiskPanel({ products }: SupplierRiskPanelProps) {
                   role="radio"
                 >
                   {opt.label} ({opt.count})
-                </button>
+                </Button>
               ))}
             </div>
 
@@ -266,12 +270,13 @@ export function SupplierRiskPanel({ products }: SupplierRiskPanelProps) {
                           transform: `translateY(${virtualRow.start}px)`,
                         }}
                       >
-                        <button
+                        <Button
+                          variant="ghost"
                           onClick={() => setSelectedProductId(product.id)}
                           role="option"
                           aria-selected={selectedProductId === product.id}
                           className={cn(
-                            "w-full text-left p-2 rounded-xl text-xs transition-colors",
+                            "w-full text-left p-2 rounded-xl text-xs transition-colors h-auto justify-start",
                             selectedProductId === product.id
                               ? "bg-primary/10 border border-primary/20"
                               : "hover:bg-muted/50"
