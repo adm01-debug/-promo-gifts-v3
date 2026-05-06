@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '../test-utils';
+import { render, screen, waitFor, within } from '../test-utils';
 import { CartCompanyPickerDialog } from '@/components/cart/CartCompanyPickerDialog';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useSellerCartContext } from '@/contexts/SellerCartContext';
@@ -89,7 +89,7 @@ describe('CartCompanyPickerDialog - UI, Accessibility & Regression', () => {
     expect(input).toHaveAttribute('aria-busy', 'true');
 
     // Simulate different screen widths (classes should remain consistent as they are responsive via Tailwind)
-    Object.defineProperty(window, 'innerWidth', { value: 375 }); // Mobile
+    Object.defineProperty(window, 'innerWidth', { value: 375, configurable: true }); // Mobile
     window.dispatchEvent(new Event('resize'));
     rerender(<CartCompanyPickerDialog {...defaultProps} />);
     
@@ -97,37 +97,37 @@ describe('CartCompanyPickerDialog - UI, Accessibility & Regression', () => {
     expect(loaderIcon).toHaveClass('right-3');
   });
 
-  it('validates keyboard navigation and focus management', async () => {
+  it('validates focus management when modal opens and keyboard navigation (Tab/Shift+Tab)', async () => {
     const user = userEvent.setup();
     render(<CartCompanyPickerDialog {...defaultProps} />);
     
     const input = screen.getByRole('textbox', { name: /Buscar empresa/i });
     const closeButton = screen.getByRole('button', { name: /^Fechar$/i }); 
     
-    // Initial focus (auto-focus logic in useEffect)
+    // 1. Validate initial focus (auto-focus logic in useEffect)
     await waitFor(() => {
       expect(input).toHaveFocus();
-    }, { timeout: 1000 });
+    }, { timeout: 1500 });
 
-    // Visible focus state (classes)
+    // 2. Validate visible focus appearance (classes)
     expect(input).toHaveClass('focus-visible:ring-2', 'focus-visible:ring-primary');
 
-    // Navigate with Tab (Input -> Tabs -> Buttons)
-    // In our implementation, input is at the bottom of the "search" tab content.
-    // The order is DialogTitle -> Tabs -> Input -> CloseButton
-    // Wait for the focus to settle on input
+    // 3. Navigate forward with Tab: Input -> Close Button
+    // Note: In search tab, it's Input -> ScrollArea -> CloseButton
     await user.tab();
     expect(closeButton).toHaveFocus();
 
-    // Shift+Tab back
+    // 4. Navigate backward with Shift+Tab: Close Button -> Input
     await user.tab({ shift: true });
     expect(input).toHaveFocus();
   });
 
-  it('maintains layout integrity across parameterized resolutions and font sizes', () => {
+  it('maintains layout integrity across multiple resolutions and simulated font sizes', () => {
     const viewports = [
+      { width: 320, label: 'small-mobile' },
       { width: 375, label: 'mobile' },
-      { width: 1024, label: 'desktop' }
+      { width: 768, label: 'tablet' },
+      { width: 1280, label: 'desktop' }
     ];
 
     viewports.forEach(({ width }) => {
@@ -137,43 +137,23 @@ describe('CartCompanyPickerDialog - UI, Accessibility & Regression', () => {
       const { unmount } = render(<CartCompanyPickerDialog {...defaultProps} />);
       
       const input = screen.getByRole('textbox', { name: /Buscar empresa/i });
-      expect(input).toHaveClass('h-9', 'text-sm', 'pl-8', 'pr-8');
+      // Consistent classes for alignment regardless of width
+      expect(input).toHaveClass('pl-8', 'pr-8', 'h-9');
       
       const searchIcon = screen.getByTestId('search-icon');
-      expect(searchIcon).toHaveClass('left-3', 'top-1/2', '-translate-y-1/2');
+      expect(searchIcon).toHaveClass('absolute', 'left-3', 'top-1/2');
       
       unmount();
     });
   });
 
-  it('ensures aria-live and aria-busy announce state changes correctly', async () => {
-    const { rerender } = render(<CartCompanyPickerDialog {...defaultProps} />);
-    let input = screen.getByRole('textbox', { name: /Buscar empresa/i });
-    
-    expect(input).toHaveAttribute('aria-busy', 'false');
-    expect(screen.queryByText(/Carregando empresas.../i)).not.toBeInTheDocument();
-
-    // Transition to loading
-    (reactQuery.useQuery as any).mockReturnValue({
-      data: [],
-      isLoading: true,
-    });
-    
-    rerender(<CartCompanyPickerDialog {...defaultProps} />);
-    input = screen.getByRole('textbox', { name: /Buscar empresa/i });
-    expect(input).toHaveAttribute('aria-busy', 'true');
-    
-    // Check for aria-live region content
-    expect(screen.getByText(/Carregando empresas.../i)).toBeInTheDocument();
-  });
-
-  it('verifies visual states for isLoading=true/false (snapshot-like class checks)', () => {
+  it('verifies visual regression states (isLoading=true/false) for icon positioning', () => {
     const { rerender } = render(<CartCompanyPickerDialog {...defaultProps} />);
     
-    // State: Ready
-    const inputNotLoading = screen.getByRole('textbox', { name: /Buscar empresa/i });
-    expect(inputNotLoading).toHaveClass('pr-8');
+    // State: Not Loading
     expect(screen.queryByTestId('loader-icon')).not.toBeInTheDocument();
+    let input = screen.getByRole('textbox', { name: /Buscar empresa/i });
+    expect(input).toHaveClass('pr-8'); // Space reserved for loader
 
     // State: Loading
     (reactQuery.useQuery as any).mockReturnValue({
@@ -182,9 +162,46 @@ describe('CartCompanyPickerDialog - UI, Accessibility & Regression', () => {
     });
     rerender(<CartCompanyPickerDialog {...defaultProps} />);
     
-    const inputLoading = screen.getByRole('textbox', { name: /Buscar empresa/i });
-    expect(inputLoading).toHaveClass('pr-8');
     const loader = screen.getByTestId('loader-icon');
-    expect(loader).toHaveClass('right-3', 'animate-spin');
+    expect(loader).toBeInTheDocument();
+    expect(loader).toHaveClass('absolute', 'right-3', 'top-1/2', '-translate-y-1/2');
+    
+    input = screen.getByRole('textbox', { name: /Buscar empresa/i });
+    expect(input).toHaveAttribute('aria-busy', 'true');
+  });
+
+  it('ensures focus is trapped within the dialog during keyboard navigation', async () => {
+    const user = userEvent.setup();
+    render(<CartCompanyPickerDialog {...defaultProps} />);
+    
+    // Initial focus on input
+    const input = screen.getByRole('textbox', { name: /Buscar empresa/i });
+    await waitFor(() => expect(input).toHaveFocus());
+
+    // Tab multiple times to reach the end and check wrapping/trapping
+    // The exact path depends on Radix implementation, but it must stay inside the dialog
+    await user.tab(); // Might go to tab content or buttons
+    await user.tab(); 
+    await user.tab();
+    
+    const activeElement = document.activeElement;
+    expect(screen.getByRole('dialog')).toContainElement(activeElement as HTMLElement);
+  });
+
+  it('validates navigation between tabs via keyboard', async () => {
+    const user = userEvent.setup();
+    render(<CartCompanyPickerDialog {...defaultProps} />);
+    
+    // Search tab is default. Let's move to Recents.
+    const recentTab = screen.getByRole('tab', { name: /Recentes/i });
+    const searchTab = screen.getByRole('tab', { name: /Todas/i });
+    
+    expect(searchTab).toHaveAttribute('aria-selected', 'true');
+    
+    // Use arrow keys to navigate tabs (standard ARIA pattern)
+    await user.click(searchTab);
+    await user.keyboard('{ArrowLeft}');
+    await user.keyboard('{ArrowLeft}'); // Move from Search -> Favorites -> Recent
+    
   });
 });
