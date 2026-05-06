@@ -26,14 +26,17 @@ describe('Badge Component', () => {
     expect(screen.getByText(/custom/i)).toHaveClass('custom-badge');
   });
 
-  it('maintains a consistent look (rounded-full by default, but design system wants rounded-lg based on instructions)', () => {
-    // Note: The component code says rounded-full, but user message asked for rounded-lg consistency.
-    // If I changed it to rounded-lg in previous turns, I should test for that.
-    // Let me check the file content I just read.
-    // badge.tsx: "inline-flex items-center rounded-full ..."
-    // Wait, the user message said: "Badge variants sempre usam o raio padronizado (rounded-lg)"
-    // I should probably update badge.tsx if it's still rounded-full.
+  it('maintains a consistent rounded-lg look', () => {
     render(<Badge>Test</Badge>);
-    // expect(screen.getByText(/test/i)).toHaveClass('rounded-lg'); 
+    expect(screen.getByText(/test/i)).toHaveClass('rounded-lg');
+  });
+
+  it('maintains rounded-lg across all variants', () => {
+    const variants = ['default', 'secondary', 'destructive', 'outline', 'gradient'] as const;
+    variants.forEach(variant => {
+      const { unmount } = render(<Badge variant={variant}>Variant</Badge>);
+      expect(screen.getByText(/variant/i)).toHaveClass('rounded-lg');
+      unmount();
+    });
   });
 });
