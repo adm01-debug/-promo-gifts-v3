@@ -281,6 +281,7 @@ export function getFallback(pathname: string): React.ReactNode {
     pathname === "/mockup-generator" ||
     pathname === "/montar-kit" ||
     pathname === "/simulador" ||
+    pathname === "/ferramentas/magic-up" ||
     pathname === "/magic-up" ||
     pathname === "/simulador-precos" ||
     pathname === "/busca-preco"

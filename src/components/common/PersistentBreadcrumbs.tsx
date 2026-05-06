@@ -36,6 +36,7 @@ const routeLabels: Record<string, string> = {
   "/simulador": "Mestre da Personalização",
   "/simulador-precos": "Radar de Preços",
   "/mockup-generator": "Gerador de Mockups",
+  "/ferramentas/magic-up": "Magic Up",
   "/magic-up": "Magic Up",
   "/favoritos": "Favoritos",
   "/comparar": "Comparar",

@@ -288,6 +288,7 @@ const AppContent = () => {
         <Route path="/mockup-generator" element={<Navigate to="/ferramentas/mockup" replace />} />
         <Route path="/mockup" element={<Navigate to="/ferramentas/mockup" replace />} />
         <Route path="/ferramentas/magic-up" element={<MagicUp />} />
+        <Route path="/magic-up" element={<Navigate to="/ferramentas/magic-up" replace />} />
         <Route path="/ferramentas/simulador" element={<SimuladorWizard />} />
         <Route path="/ferramentas/simulador-precos" element={<PriceSimulatorPage />} />
         <Route path="/ferramentas/estoque" element={<StockDashboardPage />} />

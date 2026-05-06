@@ -50,7 +50,7 @@ export function buildSpotlightItems(navigate: (path: string) => void): Spotlight
     // Tools
     { id: "simulator", title: "Simulador de Custos", description: "Calcular personalização", icon: React.createElement(Calculator, { className: "h-4 w-4" }), action: nav("/simulador"), path: "/simulador", category: "Ferramentas" },
     { id: "mockup", title: "Gerador de Mockup", description: "Mockups profissionais", icon: React.createElement(Wand2, { className: "h-4 w-4" }), action: nav("/mockup-generator"), path: "/mockup-generator", category: "Ferramentas" },
-    { id: "magic-up", title: "Magic Up", description: "IA para edição de imagens", icon: React.createElement(Sparkles, { className: "h-4 w-4" }), action: nav("/magic-up"), path: "/magic-up", category: "Ferramentas" },
+    { id: "magic-up", title: "Magic Up", description: "IA para edição de imagens", icon: React.createElement(Sparkles, { className: "h-4 w-4" }), action: nav("/ferramentas/magic-up"), path: "/ferramentas/magic-up", category: "Ferramentas" },
     { id: "commercial-intelligence", title: "Inteligência Comercial", description: "Insights estratégicos de vendas", icon: React.createElement(BarChart3, { className: "h-4 w-4" }), action: nav("/inteligencia-comercial"), path: "/inteligencia-comercial", category: "Ferramentas" },
     // Analytics
     { id: "trends", title: "Tendências", description: "Análise de tendências", icon: React.createElement(TrendingUp, { className: "h-4 w-4" }), action: nav("/tendencias"), path: "/tendencias", category: "Analytics" },

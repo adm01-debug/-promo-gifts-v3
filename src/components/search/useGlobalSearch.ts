@@ -441,7 +441,7 @@ export function useGlobalSearch() {
           (data || []).forEach(m => allResults.push({
             id: m.id, title: m.scene_title || m.product_name || "Magic Up",
             subtitle: `${m.client_name || "Sem cliente"} • ${m.product_name || ""}${m.scene_category ? " • " + m.scene_category : ""}`,
-            type: "magic_up", href: `/magic-up`,
+            type: "magic_up", href: `/ferramentas/magic-up`,
             metadata: { image_url: m.generated_image_url },
           }));
         } catch { /* silent */ }
