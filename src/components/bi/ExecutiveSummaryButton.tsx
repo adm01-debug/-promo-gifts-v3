@@ -12,6 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Copy, Loader2, FileText, Sparkles, Presentation } from 'lucide-react';
 import { toast } from 'sonner';
 import { useClientHealthScore } from '@/hooks/bi/useClientHealthScore';
