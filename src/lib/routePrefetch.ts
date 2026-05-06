@@ -32,7 +32,7 @@ const routeImportMap: Record<string, () => Promise<unknown>> = {
   
   '/tendencias': () => import('@/pages/TrendsPage'),
   '/busca-precos': () => import('@/pages/AdvancedPriceSearchPage'),
-  '/inteligencia-comercial': () => import('@/pages/CommercialIntelligencePage'),
+  '/ferramentas/bi-comercial': () => import('@/pages/CommercialIntelligencePage'),
 };
 
 const prefetched = new Set<string>();
