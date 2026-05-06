@@ -70,7 +70,7 @@ export function extractAndParseAIJSON(raw: string): unknown {
     // Heuristic for multi-bracket repair:
     // We try adding up to 5 levels of brackets
     let patched = base;
-    for (let i = 1; i <= 5; i++) {
+    for (let i = 1; i <= 8; i++) {
       // Very simple: try closing objects, then try closing arrays
       // This is hit-or-miss but better than nothing
       const opensObj = (patched.match(/{/g) || []).length;
@@ -79,8 +79,8 @@ export function extractAndParseAIJSON(raw: string): unknown {
       const closesArr = (patched.match(/\]/g) || []).length;
 
       if (opensObj > closesObj) patched += "}";
-      if (opensArr > closesArr) patched += "]";
-      
+      else if (opensArr > closesArr) patched += "]";
+
       try {
         const result = JSON.parse(patched);
         log.info("AI JSON repaired successfully (truncated)", { 
