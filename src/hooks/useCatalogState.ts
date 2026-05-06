@@ -146,14 +146,18 @@ export function useCatalogState() {
     setViewModeState(mode);
     try {
       localStorage.setItem(VIEW_MODE_KEY, mode);
-    } catch {}
+    } catch (e) {
+      // LocalStorage access can fail
+    }
   }, []);
   const [gridColumns, setGridColumnsState] = useState<ColumnCount>(getDefaultColumns);
   const setGridColumns = useCallback((cols: ColumnCount) => {
     setGridColumnsState(cols);
     try {
       localStorage.setItem(GRID_COLUMNS_KEY, String(cols));
-    } catch {}
+    } catch (e) {
+      // LocalStorage access can fail
+    }
   }, []);
   const [sortBy, setSortBy] = useState<SortOption>('relevance');
   const [selectionMode, setSelectionMode] = useState(false);
