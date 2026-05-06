@@ -38,23 +38,33 @@ interface RecoveryState {
 function readState(): RecoveryState {
   try {
     const raw = sessionStorage.getItem(STORAGE_KEY);
-    if (!raw) return { attempts: 0, firstAt: 0 };
-    const parsed = JSON.parse(raw) as RecoveryState;
-    // Reset janela se passou tempo suficiente
-    if (Date.now() - parsed.firstAt > WINDOW_MS) {
+    if (!raw) {
+      console.log("[chunk-recovery] Nenhum estado anterior encontrado.");
       return { attempts: 0, firstAt: 0 };
     }
+    const parsed = JSON.parse(raw) as RecoveryState;
+    
+    // Reset janela se passou tempo suficiente
+    if (Date.now() - parsed.firstAt > WINDOW_MS) {
+      console.log("[chunk-recovery] Janela de recuperação expirada. Resetando tentativas.");
+      return { attempts: 0, firstAt: 0 };
+    }
+    
+    console.log(`[chunk-recovery] Estado recuperado: ${parsed.attempts} tentativas, versão: ${parsed.version || 'desconhecida'}`);
     return parsed;
-  } catch {
+  } catch (err) {
+    console.error("[chunk-recovery] Erro ao ler estado do sessionStorage:", err);
     return { attempts: 0, firstAt: 0 };
   }
 }
 
 function writeState(state: RecoveryState): void {
   try {
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  } catch {
-    // sessionStorage indisponível (Safari privado / iframe sandbox) — ignora.
+    console.log(`[chunk-recovery] Salvando estado: ${state.attempts} tentativas, versão: ${APP_VERSION}`);
+    const stateToSave = { ...state, version: APP_VERSION };
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
+  } catch (err) {
+    console.error("[chunk-recovery] Erro ao salvar estado:", err);
   }
 }
 
