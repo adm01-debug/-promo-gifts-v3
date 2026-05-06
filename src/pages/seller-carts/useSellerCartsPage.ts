@@ -120,13 +120,21 @@ export function useSellerCartsPage() {
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id || !activeCart) return;
+    
+    // Solo permitir reordenar manualmente si el modo de ordenación es "manual"
+    if (itemsSortBy !== "manual") {
+      toast.error("Mude para ordenação 'Manual' para arrastar os itens");
+      return;
+    }
+
     const items = activeCart.items;
     const oldIndex = items.findIndex(i => i.id === active.id);
     const newIndex = items.findIndex(i => i.id === over.id);
     if (oldIndex === -1 || newIndex === -1) return;
+    
     const reordered = arrayMove(items, oldIndex, newIndex);
     updateItemSortOrder(reordered.map((item, idx) => ({ id: item.id, sort_order: idx })));
-  }, [activeCart, updateItemSortOrder]);
+  }, [activeCart, updateItemSortOrder, itemsSortBy]);
 
   const handleRemoveItem = useCallback((itemId: string, itemName: string) => {
     const item = activeCart?.items.find(i => i.id === itemId);
