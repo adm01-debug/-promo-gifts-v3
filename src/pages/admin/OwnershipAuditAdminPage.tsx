@@ -28,7 +28,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { MainLayout } from '@/components/layout/MainLayout';
 import { PageSEO } from '@/components/seo/PageSEO';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -147,7 +146,7 @@ export default function OwnershipAuditAdminPage() {
   }
 
   return (
-    <MainLayout>
+    <>
       <PageSEO
         title="Auditoria de Propriedade"
         description="Auditoria periódica de registros órfãos e sem dono."
@@ -434,6 +433,6 @@ export default function OwnershipAuditAdminPage() {
           </CardContent>
         </Card>
       </div>
-    </MainLayout>
+    </>
   );
 }

@@ -3,7 +3,6 @@
  * Sub-components extracted to ./ai-usage/
  */
 import { useState } from 'react';
-import { MainLayout } from '@/components/layout/MainLayout';
 import { PageSEO } from '@/components/seo/PageSEO';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Brain, Zap, Activity, DollarSign, Users } from 'lucide-react';
@@ -23,7 +22,7 @@ export default function AdminAiUsagePage() {
   const { data: logs, isLoading: logsLoading } = useAiUsageLogs({ period, limit: 200 });
 
   return (
-    <MainLayout>
+    <>
       <PageSEO
         title="Consumo de IA"
         description="Dashboard de consumo de IA por usuário"
@@ -101,6 +100,6 @@ export default function AdminAiUsagePage() {
         <MarketIntelInsightsUsagePanel />
         <AiQuotaManager />
       </div>
-    </MainLayout>
+    </>
   );
 }
