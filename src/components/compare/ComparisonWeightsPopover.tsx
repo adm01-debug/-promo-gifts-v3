@@ -19,7 +19,7 @@ const FIELDS: Array<{ key: keyof ComparisonWeights; label: string }> = [
 ];
 
 export function ComparisonWeightsPopover() {
-  const { weights, setWeights, reset } = useComparisonWeights();
+  const { weights, setWeights, reset, loading } = useComparisonWeights();
   const total = Object.values(weights).reduce((a, b) => a + b, 0);
 
   const update = (key: keyof ComparisonWeights, value: number) => {
