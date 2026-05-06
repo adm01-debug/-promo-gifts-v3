@@ -273,6 +273,7 @@ export function CartCompanyPickerDialog({ open, onOpenChange, onCreated }: CartC
                 <Input
                   id="company-search-input"
                   ref={inputRef}
+                  type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="Nome, CNPJ ou segmento..."
