@@ -64,7 +64,7 @@ function KV({ k, v }: { k: string; v: React.ReactNode }) {
 }
 
 function fmtMs(n: number | null | undefined): string {
-  if (n == null) return '—';
+  if (n === null || n === undefined) return '—';
   return `${n} ms`;
 }
 
