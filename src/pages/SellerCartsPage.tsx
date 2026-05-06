@@ -62,6 +62,7 @@ const NOTES_PLACEHOLDERS = [
 function SellerCartsContent() {
   const s = useSellerCartsPage();
   const notesRef = useRef<HTMLTextAreaElement>(null);
+  const [bulkNote, setBulkNote] = useState("");
 
   const focusNotes = useCallback(() => {
     notesRef.current?.focus();
