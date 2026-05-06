@@ -114,6 +114,20 @@ export default function ComparePage() {
         <PageSEO title="Comparar Produtos" description="Compare brindes lado a lado." path="/comparar"
           jsonLd={{ "@context": "https://schema.org", "@type": "WebPage", "name": "Comparar Produtos", "url": "https://criar-together-now.lovable.app/comparar" }} />
         <CompareEmptyStateSmart />
+        <div className="flex justify-center pb-12">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="text-[10px] text-muted-foreground opacity-50 hover:opacity-100"
+            onClick={() => {
+              const mockIds = ["26462", "26463", "26464"];
+              mockIds.forEach(id => addToCompare(id));
+              // toast.info calls need import or just rely on the effect of products appearing
+            }}
+          >
+            Carregar Mock (Dev)
+          </Button>
+        </div>
       </>
     );
   }
