@@ -176,72 +176,78 @@ const BackgroundRockets = React.memo(() => {
 const Starfield = React.memo(() => {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {/* Camada Distante — 60 estrelas (Sincronizadas com BackgroundRockets longos) */}
+      {/* Camada Distante — 60 estrelas (Ritmo lento, brilho sutil) */}
       {[...Array(60)].map((_, i) => {
         const size = 1 + (i % 2);
         const top = (i * 47 + 13) % 100;
         const left = (i * 61 + 9) % 100;
-        // Durations matching slower background rockets (14-18s)
-        const dur = 12 + (i % 6); 
-        const delay = (i * 0.7) % 10;
+        // Slowest rhythm: 14-22s
+        const dur = 14 + (i % 8); 
+        const delay = (i * 0.7) % 12;
         return (
           <div
             key={`star-far-${i}`}
-            className="absolute rounded-full bg-white blur-[1px] shadow-[0_0_10px_rgba(255,255,255,0.4)]"
+            className="absolute rounded-full bg-white blur-[1px] shadow-[0_0_8px_rgba(255,255,255,0.3)]"
             style={{
               width: `${size}px`,
               height: `${size}px`,
               top: `${top}%`,
               left: `${left}%`,
-              "--star-base-opacity": "0.3",
+              "--star-base-opacity": "0.25",
+              "--star-peak-opacity": "0.6",
+              "--star-peak-scale": "1.1",
               animation: `twinkle ${dur}s ease-in-out ${delay}s infinite`,
             } as any}
           />
         );
       })}
 
-      {/* Camada Média — 80 estrelas (Sincronizadas com BackgroundRockets médios) */}
+      {/* Camada Média — 80 estrelas (Ritmo médio, brilho balanceado) */}
       {[...Array(80)].map((_, i) => {
         const size = 1.5 + (i % 2);
         const top = (i * 37 + 11) % 100;
         const left = (i * 53 + 7) % 100;
-        // Durations matching mid background rockets (8-11s)
+        // Medium rhythm: 7-11s
         const dur = 7 + (i % 5);
         const delay = (i * 0.4) % 6;
         return (
           <div
             key={`star-mid-${i}`}
-            className="absolute rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.5)]"
+            className="absolute rounded-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.4)]"
             style={{
               width: `${size}px`,
               height: `${size}px`,
               top: `${top}%`,
               left: `${left}%`,
-              "--star-base-opacity": "0.5",
+              "--star-base-opacity": "0.45",
+              "--star-peak-opacity": "0.85",
+              "--star-peak-scale": "1.3",
               animation: `twinkle ${dur}s ease-in-out ${delay}s infinite`,
             } as any}
           />
         );
       })}
 
-      {/* Camada Próxima Brilhante — 40 estrelas (Sincronizadas com ContinuousRockets rápidos) */}
+      {/* Camada Próxima — 40 estrelas (Ritmo rápido, brilho intenso e expansivo) */}
       {[...Array(40)].map((_, i) => {
         const size = 2 + (i % 2);
         const top = (i * 29 + 17) % 100;
         const left = (i * 41 + 5) % 100;
-        // Durations matching fast launch rockets (2.5-5s)
-        const dur = 2.5 + (i % 3);
-        const delay = (i * 0.2) % 3;
+        // Fast rhythm: 3-6s
+        const dur = 3 + (i % 4);
+        const delay = (i * 0.2) % 4;
         return (
           <div
             key={`star-near-${i}`}
-            className="absolute rounded-full bg-white shadow-[0_0_14px_rgba(255,255,255,0.8)]"
+            className="absolute rounded-full bg-white shadow-[0_0_15px_rgba(255,255,255,0.7)]"
             style={{
               width: `${size}px`,
               height: `${size}px`,
               top: `${top}%`,
               left: `${left}%`,
-              "--star-base-opacity": "0.8",
+              "--star-base-opacity": "0.7",
+              "--star-peak-opacity": "1",
+              "--star-peak-scale": "1.5",
               animation: `twinkle ${dur}s ease-in-out ${delay}s infinite`,
             } as any}
           />
