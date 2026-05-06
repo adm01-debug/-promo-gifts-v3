@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { ChevronDown, Copy } from 'lucide-react';
 import { toast } from 'sonner';
 import {
