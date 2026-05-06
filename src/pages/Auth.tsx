@@ -271,9 +271,9 @@ export default function Auth() {
               </CardContent>
             ) : (
             <>
-              <CardHeader className="pt-12 pb-6 px-8 text-center space-y-3">
-                <h2 className="text-3xl font-bold font-display tracking-tight text-foreground bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent">Bem-vindo</h2>
-                <p className="text-[13px] text-muted-foreground/80 font-medium leading-relaxed">Insira suas credenciais exclusivas para acessar o ecossistema Promo Gifts</p>
+              <CardHeader className="pt-10 pb-4 px-8 text-center space-y-2">
+                <h2 className="text-3xl font-bold font-display tracking-tight text-foreground">Bem-vindo</h2>
+                <p className="text-[13px] text-muted-foreground font-medium leading-relaxed">Insira suas credenciais exclusivas para acessar o ecossistema Promo Gifts</p>
               </CardHeader>
 
               <CardContent className="pt-2 px-8 pb-10 space-y-6">
