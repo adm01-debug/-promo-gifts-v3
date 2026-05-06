@@ -11,6 +11,9 @@ export const ContinuousRockets = React.memo(() => {
   const nextIdRef = useRef(0);
 
   const spawnRocket = useCallback((isInitial = false) => {
+    // Check for reduced motion
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
     const id = nextIdRef.current++;
     
     const left = 5 + Math.random() * 90;
@@ -34,6 +37,9 @@ export const ContinuousRockets = React.memo(() => {
   }, []);
 
   useEffect(() => {
+    const isReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (isReduced) return;
+
     // Initial burst
     const delays = [0, 200, 500, 900, 1400, 2000, 2800];
     const timers = delays.map(d => setTimeout(() => spawnRocket(true), d));
@@ -50,7 +56,7 @@ export const ContinuousRockets = React.memo(() => {
   }, [spawnRocket]);
 
   return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden z-[1]" aria-hidden="true">
+    <div className="pointer-events-none absolute inset-0 overflow-hidden z-[1] motion-reduce:hidden" aria-hidden="true">
       {rockets.map((r) => (
         <div
           key={r.id}
@@ -77,7 +83,6 @@ export const ContinuousRockets = React.memo(() => {
                 }}
               />
             </div>
-          {/* Rastro de chamas — gradiente fixo laranja→amarelo para efeito de propulsão consistente */}
           <div
             className="absolute left-1/2 -translate-x-1/2 rounded-full opacity-70"
             style={{
