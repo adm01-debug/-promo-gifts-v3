@@ -78,7 +78,7 @@ const AdminWorkflowsPage = lazyWithRetry(() => import('./pages/admin/AdminWorkfl
 const AdminLoginAttemptsPage = lazyWithRetry(() => import('./pages/admin/AdminLoginAttemptsPage'));
 const AdminExternalDbPage = lazyWithRetry(() => import('./pages/admin/AdminExternalDbPage'));
 const AdminVideoVariantsPage = lazyWithRetry(() => import('./pages/admin/AdminVideoVariantsPage'));
-// const AdminAiUsagePage = lazyWithRetry(() => import('./pages/admin/AdminAiUsagePage'));
+const AdminAiUsagePage = lazyWithRetry(() => import('./pages/admin/AdminAiUsagePage'));
 const KitTemplatesAdminPage = lazyWithRetry(() => import('./pages/admin/KitTemplatesAdminPage'));
 const KitTemplatesMetricsPage = lazyWithRetry(
   () => import('./pages/admin/KitTemplatesMetricsPage'),
