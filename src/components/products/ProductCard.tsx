@@ -268,7 +268,7 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
 
       {/* Info section */}
       <div className={cn(
-        "relative p-2.5 sm:p-4 space-y-2 sm:space-y-3 transition-colors duration-500",
+        "relative p-2.5 sm:p-4 space-y-2 sm:space-y-3 transition-colors duration-500 rounded-b-xl overflow-hidden",
         isHovered ? "bg-card/95 backdrop-blur-md" : "bg-card"
       )} style={{ zIndex: 10 }}>
         {!hideCategoryBadges && (
