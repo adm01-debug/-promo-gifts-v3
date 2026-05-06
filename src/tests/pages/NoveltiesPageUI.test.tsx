@@ -8,6 +8,16 @@ import { SellerCartProvider } from '@/contexts/SellerCartContext';
 import { CollectionsProvider } from '@/contexts/CollectionsContext';
 import { ProductsProvider } from '@/contexts/ProductsContext';
 
+// Mock useAuth since we don't want to deal with AuthProvider complexity
+vi.mock('@/contexts/AuthContext', () => ({
+  useAuth: () => ({
+    user: { id: 'test-user' },
+    isAgente: true,
+    isSupervisorOrAbove: false,
+    isAdmin: false,
+  }),
+}));
+
 // Mock structured logger to avoid noise
 vi.mock('@/lib/telemetry/structuredLogger', () => ({
   createClientLogger: () => ({
