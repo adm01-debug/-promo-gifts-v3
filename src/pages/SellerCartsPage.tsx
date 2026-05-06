@@ -328,13 +328,41 @@ function SellerCartsContent() {
                 <Package className="h-4 w-4" /> Produtos no carrinho
               </h3>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold text-muted-foreground uppercase">Ordenar itens:</span>
-                <Select value={s.itemsSortBy} onValueChange={s.setItemsSortBy}>
-                  <SelectTrigger className="h-8 text-[11px] w-[130px] rounded-lg border-border/40 bg-card/60">
-                    <SelectValue />
+                <div className="flex items-center gap-1.5 mr-2 bg-muted/20 p-1 rounded-lg border border-border/20">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase px-1">Modo:</span>
+                  <div className="flex items-center gap-1">
+                    <Button 
+                      variant={s.itemsSortBy === "manual" ? "primary" : "ghost"} 
+                      size="icon" 
+                      className="h-6 w-12 text-[10px] rounded-md font-bold uppercase"
+                      onClick={() => s.setItemsSortBy("manual")}
+                    >
+                      Manual
+                    </Button>
+                    <Button 
+                      variant={s.itemsSortBy !== "manual" ? "secondary" : "ghost"} 
+                      size="icon" 
+                      className="h-6 w-12 text-[10px] rounded-md font-bold uppercase"
+                      onClick={() => s.itemsSortBy === "manual" && s.setItemsSortBy("price-desc")}
+                    >
+                      Auto
+                    </Button>
+                  </div>
+                </div>
+
+                <Select 
+                  value={s.itemsSortBy} 
+                  onValueChange={s.setItemsSortBy}
+                  disabled={s.itemsSortBy === "manual" && false} // Just a visual divider if we wanted
+                >
+                  <SelectTrigger className={cn(
+                    "h-8 text-[11px] w-[140px] rounded-lg border-border/40 bg-card/60 transition-all",
+                    s.itemsSortBy === "manual" ? "opacity-50 grayscale" : "opacity-100 ring-2 ring-primary/20 border-primary/30"
+                  )}>
+                    <SelectValue placeholder="Tipo de ordenação" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl">
-                    <SelectItem value="manual">Manual (Arrastar)</SelectItem>
+                    <SelectItem value="manual" className="font-bold text-primary italic">Arrastar Manualmente</SelectItem>
                     <SelectItem value="price-desc">Maior Preço</SelectItem>
                     <SelectItem value="price-asc">Menor Preço</SelectItem>
                     <SelectItem value="qty-desc">Maior Qtd</SelectItem>
