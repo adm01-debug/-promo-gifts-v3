@@ -151,23 +151,25 @@ export function CartSidebar({
       />
 
       {/* Insights compactos */}
-      <Card className="p-4 space-y-3 border-border/30 shadow-sm">
-        <h4 className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-          <Sparkles className="h-3.5 w-3.5 text-warning fill-warning/20" /> Inteligência de Vendas
-        </h4>
-        <SmartSuggestions cart={cart} allProducts={allProducts} isLoading={isLoadingProducts} />
-        <ActionHistoryPanel cartId={cart.id} />
-        {cartAge >= 3 && (
-          <motion.p 
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="text-[10px] text-destructive font-bold bg-destructive/5 rounded-xl px-3 py-2.5 border border-destructive/10 flex items-center gap-2"
-          >
-            <span className="w-1.5 h-1.5 rounded-full bg-destructive animate-pulse" />
-            Carrinho há {cartAge} dias — Follow-up Urgente!
-          </motion.p>
-        )}
-      </Card>
+      {cart.items.length > 0 && (
+        <Card className="p-4 space-y-3 border-border/30 shadow-sm">
+          <h4 className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+            <Sparkles className="h-3.5 w-3.5 text-warning fill-warning/20" /> Inteligência de Vendas
+          </h4>
+          <SmartSuggestions cart={cart} allProducts={allProducts} isLoading={isLoadingProducts} />
+          <ActionHistoryPanel cartId={cart.id} />
+          {cartAge >= 3 && (
+            <motion.p 
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="text-[10px] text-destructive font-bold bg-destructive/5 rounded-xl px-3 py-2.5 border border-destructive/10 flex items-center gap-2"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-destructive animate-pulse" />
+              Carrinho há {cartAge} dias — Follow-up Urgente!
+            </motion.p>
+          )}
+        </Card>
+      )}
 
       {/* Outros carrinhos */}
       {otherCarts.length > 0 && (
