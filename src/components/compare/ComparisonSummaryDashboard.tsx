@@ -33,13 +33,13 @@ export function ComparisonSummaryDashboard({ products }: ComparisonSummaryDashbo
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 animate-in fade-in slide-in-from-top-4 duration-500">
       {/* Coluna 1: Resultado Geral */}
-      <div className="rounded-xl border bg-card p-4 flex flex-col justify-between">
+      <div className="rounded-xl border-[2px] border-amber-400/20 bg-gradient-to-br from-amber-400/5 to-transparent p-4 flex flex-col justify-between shadow-sm">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-semibold flex items-center gap-2">
-            <TrendingUp className="h-4 w-4 text-primary" />
-            Veredito Geral
+          <h3 className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2 text-amber-600">
+            <TrendingUp className="h-4 w-4" />
+            Veredito Global
           </h3>
-          <Badge variant="secondary" className="text-[10px]">Ponderado</Badge>
+          <Badge variant="secondary" className="text-[9px] bg-amber-500/10 text-amber-700 border-amber-500/20 uppercase font-black">Ponderado</Badge>
         </div>
         
         {winnerProduct && (
