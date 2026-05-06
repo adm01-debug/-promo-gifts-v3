@@ -289,7 +289,10 @@ export function AuthSpaceBackground() {
   return (
     <div className="absolute inset-0 overflow-hidden bg-[#0A0D14] pointer-events-none" aria-hidden="true">
       <div className="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_30%_50%,rgba(13,17,26,1)_0%,rgba(5,7,12,1)_100%)]" />
-      <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_30%_center,rgba(251,146,60,0.12)_0%,transparent_75%)]" />
+      <div 
+        className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_30%_center,rgba(251,146,60,0.12)_0%,transparent_75%)]" 
+        style={{ animation: 'space-shimmer 8s ease-in-out infinite' }}
+      />
       <div className="absolute top-1/4 -left-20 w-80 h-80 bg-orange/10 rounded-full blur-[120px] animate-pulse" />
       <div className="absolute bottom-1/4 right-0 w-96 h-96 bg-orange/5 rounded-full blur-[150px]" />
       <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-orange/5 rounded-full blur-[100px]" />
