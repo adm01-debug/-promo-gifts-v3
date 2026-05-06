@@ -73,7 +73,7 @@ export function useAutoSaveQuote<T>({
     const saved = localStorage.getItem(key);
     if (saved) {
       try {
-        let payload = JSON.parse(saved);
+        const payload = JSON.parse(saved);
 
         // Aplica migrações se necessário
         const migrated = migratePayload<T>(payload);
