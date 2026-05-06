@@ -415,7 +415,9 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange, isFiltering 
                         </span>
                         <span className="sr-only">{displayName}</span>
                         {rolesLoaded ? (
-                          <RoleBadge role={role} className="h-4 px-1.5 text-[9px] leading-none" />
+                          <div aria-hidden="true">
+                            <RoleBadge role={role} className="h-4 px-1.5 text-[9px] leading-none" />
+                          </div>
                         ) : (
                           <span
                             aria-hidden="true"
