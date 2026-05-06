@@ -415,6 +415,74 @@ export function AppHealthDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Core Web Vitals */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2 text-sm">
+            <Zap className="h-4 w-4 text-primary" />
+            Core Web Vitals (Client-side)
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead className="bg-muted/40">
+                <tr className="text-left">
+                  <th className="px-2 py-1.5">Métrica</th>
+                  <th className="px-2 py-1.5 text-right">P75</th>
+                  <th className="px-2 py-1.5 text-right">Saúde (Bom %)</th>
+                  <th className="px-2 py-1.5 text-right">Total</th>
+                  <th className="px-2 py-1.5">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {isLoading ? (
+                  <tr>
+                    <td colSpan={5} className="p-3">
+                      <Skeleton className="h-20 w-full" />
+                    </td>
+                  </tr>
+                ) : (data?.web_vitals ?? []).length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="p-3 text-center text-muted-foreground">
+                      Sem dados de vitals na janela
+                    </td>
+                  </tr>
+                ) : (
+                  data!.web_vitals.map((v, i) => (
+                    <tr key={i} className="border-t border-border/40">
+                      <td className="px-2 py-1.5 font-semibold">{v.name}</td>
+                      <td className="px-2 py-1.5 text-right tabular-nums">
+                        {v.name === 'CLS' ? v.p75.toFixed(3) : `${Math.round(v.p75)}ms`}
+                      </td>
+                      <td className="px-2 py-1.5 text-right tabular-nums">
+                        <span className={cn(v.good_pct >= 90 ? 'text-green-500' : 'text-warning')}>
+                          {v.good_pct}%
+                        </span>
+                      </td>
+                      <td className="px-2 py-1.5 text-right tabular-nums">{v.total}</td>
+                      <td className="px-2 py-1.5">
+                        <div className="flex gap-1">
+                          <Badge variant="secondary" className="bg-green-500/10 text-green-500 hover:bg-green-500/20 px-1 py-0 h-4 text-[9px]">
+                            {v.count_good} G
+                          </Badge>
+                          <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20 px-1 py-0 h-4 text-[9px]">
+                            {v.count_needs_improvement} N
+                          </Badge>
+                          <Badge variant="secondary" className="bg-red-500/10 text-red-500 hover:bg-red-500/20 px-1 py-0 h-4 text-[9px]">
+                            {v.count_poor} P
+                          </Badge>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
     </section>
   );
 }
