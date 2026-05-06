@@ -1,5 +1,5 @@
 import { Plug, Activity, Settings2, Network } from 'lucide-react';
-import { MainLayout } from '@/components/layout/MainLayout';
+
 import { DataSourceDebugTab } from '@/components/admin/connections/DataSourceDebugTab';
 import { KeysValidationTab } from '@/components/admin/connections/KeysValidationTab';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -146,8 +146,7 @@ export default function AdminConexoesPage() {
   }, []);
 
   return (
-    <MainLayout>
-      <SeverityFilterProvider>
+    <SeverityFilterProvider>
         <ExplainModeProvider>
           <CredentialsSourceFilterProvider>
             <div className="mx-auto w-full max-w-[1920px] animate-fade-in space-y-3 px-3 py-3 pb-24 sm:space-y-4 sm:px-4 sm:py-4 md:pb-6 lg:px-6 xl:px-8">
@@ -341,7 +340,6 @@ export default function AdminConexoesPage() {
             </div>
           </CredentialsSourceFilterProvider>
         </ExplainModeProvider>
-      </SeverityFilterProvider>
-    </MainLayout>
+    </SeverityFilterProvider>
   );
 }
