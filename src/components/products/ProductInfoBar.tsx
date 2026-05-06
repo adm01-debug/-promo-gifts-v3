@@ -128,6 +128,28 @@ export function ProductInfoBar({
           Ver mesmo produto em outros fornecedores
         </TooltipContent>
       </Tooltip>
+      {/* Botão Comparar Produto (Zustand Store) */}
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant={productId && isInCompare(productId) ? "default" : "outline"}
+            size="sm"
+            onClick={handleToggleCompare}
+            className={cn(
+              "rounded-full h-8 px-3 text-xs gap-1.5 transition-all duration-300",
+              productId && isInCompare(productId) && "bg-amber-500 hover:bg-amber-600 border-none shadow-md shadow-amber-500/20"
+            )}
+          >
+            <LayoutGrid className={cn("h-3.5 w-3.5", productId && isInCompare(productId) ? "text-white" : "text-primary")} />
+            {productId && isInCompare(productId) ? "No Comparador" : "Adicionar à Arena"}
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          {productId && isInCompare(productId) 
+            ? "Produto já está na Arena de Comparação" 
+            : "Enviar para comparação técnica (Score, Radar e Duelo)"}
+        </TooltipContent>
+      </Tooltip>
     </div>
   );
 }
