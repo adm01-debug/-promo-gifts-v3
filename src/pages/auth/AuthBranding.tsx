@@ -318,14 +318,14 @@ export function AuthSpaceBackground() {
               <span className="text-[10px] font-bold text-white/60 uppercase tracking-widest">Intensidade do Brilho</span>
               <span className="text-xs font-mono text-primary font-bold">{(intensity * 100).toFixed(0)}%</span>
             </div>
-            <input 
+            <Input 
               type="range" 
               min="0.2" 
               max="2" 
               step="0.1" 
               value={intensity} 
               onChange={(e) => setIntensity(parseFloat(e.target.value))}
-              className="w-48 h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-primary"
+              className="w-48 h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-primary p-0 border-none"
             />
             <div className="flex justify-between text-[8px] text-white/30 font-medium px-1">
               <span>SUTIL</span>
@@ -334,13 +334,18 @@ export function AuthSpaceBackground() {
             </div>
           </div>
         )}
-        <button 
+        <Button 
+          variant="ghost"
+          size="icon"
           onClick={() => setShowControls(!showControls)}
-          className="w-12 h-12 rounded-full bg-black/60 backdrop-blur-md border border-white/10 flex items-center justify-center text-white/60 hover:text-primary hover:border-primary transition-all shadow-xl"
+          className={cn(
+            "w-12 h-12 rounded-full bg-black/60 backdrop-blur-md border border-white/10 flex items-center justify-center text-white/60 hover:text-primary hover:border-primary transition-all shadow-xl",
+            showControls && "text-primary border-primary"
+          )}
           title="Ajustar Estrelas"
         >
-          <Sparkles className={`h-5 w-5 ${showControls ? 'text-primary' : ''}`} />
-        </button>
+          <Sparkles className="h-5 w-5" />
+        </Button>
       </div>
     </div>
   );
