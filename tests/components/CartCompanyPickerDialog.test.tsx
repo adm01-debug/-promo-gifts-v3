@@ -307,4 +307,59 @@ describe('CartCompanyPickerDialog - UI, Accessibility & Regression', () => {
     await user.click(favoriteTab);
     expect(screen.getByText(/Marque empresas como favoritas usando a estrela/i)).toBeInTheDocument();
   });
+
+  it('closes the dialog when the Escape key is pressed', async () => {
+    const user = userEvent.setup();
+    render(<CartCompanyPickerDialog {...defaultProps} />);
+    
+    // The dialog should be open initially
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    
+    // Press Escape
+    await user.keyboard('{Escape}');
+    
+    // Verify onOpenChange was called with false
+    expect(mockOnOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  it('verifies that the search container has the correct ARIA role', () => {
+    render(<CartCompanyPickerDialog {...defaultProps} />);
+    const searchContainer = screen.getByRole('search');
+    expect(searchContainer).toBeInTheDocument();
+  });
+
+  it('validates alignment classes for long search terms (text-overflow)', async () => {
+    const user = userEvent.setup();
+    render(<CartCompanyPickerDialog {...defaultProps} />);
+    const input = screen.getByRole('textbox', { name: /Buscar empresa/i });
+    
+    // Type a very long term
+    await user.type(input, 'This is a very long search term that might cause overflow if not handled correctly by padding');
+    
+    // Input should still have padding-right to avoid overlapping the loader (if it were there)
+    expect(input).toHaveClass('pr-8', 'pl-8');
+  });
+
+  it('verifies that the search announcement is cleared when the search term is empty', async () => {
+    const user = userEvent.setup();
+    const { rerender } = render(<CartCompanyPickerDialog {...defaultProps} />);
+    const input = screen.getByRole('textbox', { name: /Buscar empresa/i });
+    
+    // Type something
+    await user.type(input, 'abc');
+    const announcement = document.getElementById('search-announcement');
+    
+    // Mock results found
+    (reactQuery.useQuery as any).mockReturnValue({
+      data: [{ id: '1', name: 'Company A' }],
+      isLoading: false,
+    });
+    rerender(<CartCompanyPickerDialog {...defaultProps} />);
+    
+    expect(announcement).not.toBeEmptyDOMElement();
+    
+    // Clear input
+    await user.clear(input);
+    expect(announcement).toBeEmptyDOMElement();
+  });
 });
