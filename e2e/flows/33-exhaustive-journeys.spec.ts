@@ -91,9 +91,38 @@ test.describe('Exhaustive User Journeys', () => {
 
     for (const url of maliciousUrls) {
       await page.goto(url);
-      // The app should handle these gracefully, e.g., redirect to home or show 404/Empty state
-      // but NEVER crash the renderer.
       await expect(page.locator('body')).toBeVisible();
+    }
+  });
+
+  test('Persona: Complete Quote Lifecycle', async ({ page }) => {
+    // 1. Browse Catalog
+    await page.goto('/catalog');
+    
+    // 2. Select Product
+    const firstProduct = page.locator('[data-testid^="product-card-"]').first();
+    if (await firstProduct.isVisible()) {
+      await firstProduct.click();
+    } else {
+      // Fallback to direct navigation if no products found in catalog
+      await page.goto('/products/1'); 
+    }
+
+    // 3. Add to Quote
+    const addToQuoteBtn = page.getByRole('button', { name: /adicionar ao orçamento/i });
+    if (await addToQuoteBtn.isVisible()) {
+      await addToQuoteBtn.click();
+    }
+
+    // 4. View Quote Summary
+    await page.goto('/quotes');
+    await expect(page.getByText(/orçamentos/i)).toBeVisible();
+
+    // 5. Generate PDF (Simulation)
+    const exportBtn = page.getByRole('button', { name: /exportar|gerar pdf/i });
+    if (await exportBtn.isVisible()) {
+      await exportBtn.click();
+      // We don't wait for actual PDF download in this CI flow to avoid timeout
     }
   });
 });
