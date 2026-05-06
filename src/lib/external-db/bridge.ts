@@ -3,8 +3,10 @@
  * Handles retry, error parsing, batch queries.
  */
 import { supabase } from '@/integrations/supabase/client';
-import { logger } from '@/lib/logger';
+import { createClientLogger } from '@/lib/telemetry/structuredLogger';
 import { emitBridgeStatus, isColdStartSignal } from './bridge-status-events';
+
+const log = createClientLogger('external-db.bridge');
 
 export type Operation = 'select' | 'insert' | 'update' | 'delete' | 'upsert' | 'batch_insert';
 
@@ -100,17 +102,16 @@ export async function invokeBridge<T>(body: Record<string, unknown>): Promise<Br
   const op = body.operation as string | undefined;
   if (op !== 'batch' && (!body.table || typeof body.table !== 'string')) {
     const caller = new Error().stack?.split('\n')[2]?.trim() || 'unknown';
-    logger.error(
-      `[external-db] invokeBridge called without table! operation=${op}, caller=${caller}`,
-      body,
-    );
+    log.error('missing_table', { operation: op, body });
     throw new Error(`invokeBridge: tabela não informada (operation=${op})`);
   }
 
   let sawColdStart = false;
   const { data: sessionData } = await supabase.auth.getSession();
   const accessToken = sessionData?.session?.access_token;
-  const headers: Record<string, string> = {};
+  const headers: Record<string, string> = {
+    ...log.headers(),
+  };
   if (accessToken) {
     headers['Authorization'] = `Bearer ${accessToken}`;
   }
@@ -123,13 +124,14 @@ export async function invokeBridge<T>(body: Record<string, unknown>): Promise<Br
     if (error) {
       const parsed = await buildBridgeError(error);
       if (parsed.retryable && attempt < BOOT_RETRY_ATTEMPTS) {
-        // Backoff exponencial com jitter: 400ms, 800ms, 1600ms
         const base = BOOT_INITIAL_BACKOFF_MS * Math.pow(2, attempt - 1);
         const jitter = Math.floor(Math.random() * 150);
         const delay = Math.min(base + jitter, 4000);
-        logger.warn(
-          `[external-db] bridge retry ${attempt}/${BOOT_RETRY_ATTEMPTS - 1} in ${delay}ms (base=${base}+jitter=${jitter}): ${parsed.message}`,
-        );
+        log.warn('retry_attempt', {
+          attempt,
+          delay,
+          reason: parsed.message,
+        });
         if (isColdStartSignal(parsed.message)) {
           sawColdStart = true;
           emitBridgeStatus({

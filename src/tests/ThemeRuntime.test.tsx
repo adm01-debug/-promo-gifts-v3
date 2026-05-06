@@ -25,8 +25,8 @@ describe('Theme Runtime Safety', () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
     // Test development environment
-    const originalEnv = process.env.NODE_ENV;
-    process.env.NODE_ENV = 'development';
+    const originalEnv = import.meta.env.DEV;
+    (import.meta.env as any).DEV = true;
 
     render(<ThemeConsumer />);
     expect(warnSpy).toHaveBeenCalledWith(
@@ -36,12 +36,12 @@ describe('Theme Runtime Safety', () => {
     warnSpy.mockClear();
 
     // Test production environment
-    process.env.NODE_ENV = 'production';
+    (import.meta.env as any).DEV = false;
     render(<ThemeConsumer />);
     expect(warnSpy).not.toHaveBeenCalled();
 
     // Restore
-    process.env.NODE_ENV = originalEnv;
+    (import.meta.env as any).DEV = originalEnv;
     warnSpy.mockRestore();
   });
 

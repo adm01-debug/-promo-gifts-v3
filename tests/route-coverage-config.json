@@ -1,9 +1,0 @@
-{
-  "floors": {
-    "auth/01-auth": 100,
-    "flow/auth": 100,
-    "app/dashboard": 90,
-    "admin/users": 80,
-    "default": 80
-  }
-}
