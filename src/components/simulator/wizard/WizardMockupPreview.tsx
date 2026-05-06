@@ -89,7 +89,7 @@ export function WizardMockupPreview({
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Mockup */}
-          <div className="relative aspect-square rounded-xl bg-muted/30 border overflow-hidden">
+          <div className="relative aspect-square rounded-lg bg-muted/30 border overflow-hidden">
             <img
               src={product.imageUrl}
               alt={product.name}
@@ -113,7 +113,7 @@ export function WizardMockupPreview({
               </div>
             ) : (
               <div
-                className="absolute border-2 border-dashed border-primary/50 rounded-xl bg-primary/10 flex items-center justify-center"
+                className="absolute border-2 border-dashed border-primary/50 rounded-lg bg-primary/10 flex items-center justify-center"
                 style={{
                   left: `${logoPosition.x}%`,
                   top: `${logoPosition.y}%`,
@@ -141,24 +141,24 @@ export function WizardMockupPreview({
 
           {/* Controls */}
           <div className="space-y-4">
-            <div className="p-4 rounded-xl border space-y-3">
+            <div className="p-4 rounded-lg border space-y-3">
               <div className="flex items-center gap-2 text-sm font-medium">
                 <Package className="h-4 w-4 text-primary" />
                 {product.name}
               </div>
               <div className="grid grid-cols-2 gap-2 text-sm">
-                <div className="p-2 rounded-xl bg-muted/50">
+                <div className="p-2 rounded-lg bg-muted/50">
                   <p className="text-muted-foreground text-xs">Área</p>
                   <p className="font-semibold">{personalization.specs.width}×{personalization.specs.height}cm</p>
                 </div>
-                <div className="p-2 rounded-xl bg-muted/50">
+                <div className="p-2 rounded-lg bg-muted/50">
                   <p className="text-muted-foreground text-xs">Cores</p>
                   <p className="font-semibold">{personalization.specs.colors}</p>
                 </div>
               </div>
             </div>
 
-            <div className="p-4 rounded-xl border space-y-4">
+            <div className="p-4 rounded-lg border space-y-4">
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <label className="text-sm font-medium flex items-center gap-1.5">

@@ -34,7 +34,7 @@ export function SortableStep({ step, index, totalSteps, onEdit, onDelete, onDupl
         </div>
       )}
       <div className={cn(
-        "group flex items-stretch rounded-xl border transition-all duration-200",
+        "group flex items-stretch rounded-lg border transition-all duration-200",
         typeConfig.border,
         isDragging ? "shadow-lg opacity-80 scale-[1.02]" : "hover:shadow-md",
         "bg-card"
@@ -43,7 +43,7 @@ export function SortableStep({ step, index, totalSteps, onEdit, onDelete, onDupl
           <GripVertical className="h-4 w-4 text-muted-foreground" />
         </div>
         <div className="flex-1 p-3 flex items-center gap-3">
-          <div className={cn("p-2 rounded-xl shrink-0", typeConfig.bg)}>
+          <div className={cn("p-2 rounded-lg shrink-0", typeConfig.bg)}>
             <Icon className={cn("h-5 w-5", typeConfig.color)} />
           </div>
           <div className="flex-1 min-w-0">

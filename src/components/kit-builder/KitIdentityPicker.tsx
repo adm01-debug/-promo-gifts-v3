@@ -92,7 +92,7 @@ export function KitIdentityPicker({ identity, onChange }: Props) {
                   aria-label={name}
                   onClick={() => onChange({ ...current, icon: name })}
                   className={cn(
-                    'h-9 rounded-xl border flex items-center justify-center transition-colors',
+                    'h-9 rounded-lg border flex items-center justify-center transition-colors',
                     active ? 'border-primary bg-primary/10 text-primary' : 'border-border hover:bg-muted',
                   )}
                 >

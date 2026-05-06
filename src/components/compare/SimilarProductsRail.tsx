@@ -51,8 +51,8 @@ export function SimilarProductsRail({ products, formatCurrency }: Props) {
       </header>
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {suggestions.map(p => (
-          <div key={p.id} className="rounded-xl border border-border bg-card p-3 space-y-2 hover:shadow-md hover:border-primary/40 transition-all">
-            <div className="aspect-square rounded-xl overflow-hidden bg-muted">
+          <div key={p.id} className="rounded-lg border border-border bg-card p-3 space-y-2 hover:shadow-md hover:border-primary/40 transition-all">
+            <div className="aspect-square rounded-lg overflow-hidden bg-muted">
               <img src={p.images?.[0]} alt={p.name} className="w-full h-full object-contain" loading="lazy" />
             </div>
             <p className="text-xs font-medium line-clamp-2">{p.name}</p>
