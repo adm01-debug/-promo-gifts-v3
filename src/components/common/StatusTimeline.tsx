@@ -170,7 +170,7 @@ export function StatusTimeline({ events, className, showConnector = true }: Stat
 
               {/* Metadata */}
               {event.metadata && Object.keys(event.metadata).length > 0 && (
-                <div className="mt-2 p-2 rounded-xl bg-muted/50 text-xs">
+                <div className="mt-2 p-2 rounded-lg bg-muted/50 text-xs">
                   {Object.entries(event.metadata).map(([key, value]) => (
                     <div key={key} className="flex justify-between">
                       <span className="text-muted-foreground">{key}:</span>
@@ -265,7 +265,7 @@ export function CurrentStatus({ status, label, since, className }: CurrentStatus
 
   return (
     <div className={cn(
-      "flex items-center gap-3 p-3 rounded-xl",
+      "flex items-center gap-3 p-3 rounded-lg",
       config.bgColor,
       className
     )}>

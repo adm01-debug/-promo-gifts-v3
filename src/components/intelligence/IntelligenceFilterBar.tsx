@@ -95,14 +95,14 @@ export function IntelligenceFilterBar({ filters, onFiltersChange }: Intelligence
       {/* Period + Filters Row */}
       <div className="flex flex-wrap items-center gap-2">
         {/* Period pills */}
-        <div className="flex items-center gap-1 bg-muted/50 rounded-xl p-1 border border-border/50 overflow-x-auto">
+        <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1 border border-border/50 overflow-x-auto">
           {PERIOD_OPTIONS.map((p) => (
             <Button
               key={p.days}
               variant={filters.days === p.days ? "default" : "ghost"}
               size="sm"
               className={cn(
-                "h-7 text-xs px-2.5 rounded-xl shrink-0 transition-all",
+                "h-7 text-xs px-2.5 rounded-lg shrink-0 transition-all",
                 filters.days === p.days && "bg-primary shadow-sm"
               )}
               onClick={() => onFiltersChange({ ...filters, days: p.days })}
@@ -273,7 +273,7 @@ export function IntelligenceFilterBar({ filters, onFiltersChange }: Intelligence
                       className="flex items-center gap-2.5 py-2"
                     >
                       {/* Thumbnail */}
-                      <div className="w-8 h-8 rounded-xl overflow-hidden bg-muted border border-border/50 shrink-0">
+                      <div className="w-8 h-8 rounded-lg overflow-hidden bg-muted border border-border/50 shrink-0">
                         {prod.image_url && prod.image_url !== '/placeholder.svg' ? (
                           <img
                             src={prod.image_url}

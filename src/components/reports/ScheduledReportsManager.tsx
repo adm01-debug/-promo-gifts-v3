@@ -128,7 +128,7 @@ export function ScheduledReportsManager() {
         ) : (
           <div className="space-y-3">
             {reports.map(report => (
-              <div key={report.id} className="flex items-center gap-3 p-3 rounded-xl border bg-card">
+              <div key={report.id} className="flex items-center gap-3 p-3 rounded-lg border bg-card">
                 <Switch
                   checked={report.is_active}
                   onCheckedChange={(v) => toggleActive(report.id, v)}

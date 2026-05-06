@@ -79,7 +79,7 @@ const RADIUS_TOKENS = [
   { name: "sm (8px)", twClass: "rounded-sm" },
   { name: "md (12px)", twClass: "rounded-md" },
   { name: "lg (16px)", twClass: "rounded-lg", hint: "Padrão de inputs/buttons" },
-  { name: "xl (20px)", twClass: "rounded-xl" },
+  { name: "xl (20px)", twClass: "rounded-lg" },
   { name: "2xl (24px)", twClass: "rounded-2xl", hint: "Padrão de cards/dialogs" },
   { name: "full", twClass: "rounded-full" },
 ];

@@ -118,7 +118,7 @@ export function ComponentMediaManager({ componentId, productId, componentName }:
                 <div
                   key={item.id}
                   className={cn(
-                    'relative group rounded-xl border overflow-hidden aspect-square bg-muted/30',
+                    'relative group rounded-lg border overflow-hidden aspect-square bg-muted/30',
                     item.is_cover && 'ring-2 ring-primary ring-offset-1 ring-offset-background',
                   )}
                 >
@@ -155,7 +155,7 @@ export function ComponentMediaManager({ componentId, productId, componentName }:
                       <button
                         type="button"
                         onClick={() => handleSetCover(item)}
-                        className="p-1.5 rounded-xl bg-white/20 hover:bg-white/30 text-primary-foreground transition-colors"
+                        className="p-1.5 rounded-lg bg-white/20 hover:bg-white/30 text-primary-foreground transition-colors"
                         title="Definir como capa"
                       >
                         <Star className="h-3 w-3" />
@@ -164,7 +164,7 @@ export function ComponentMediaManager({ componentId, productId, componentName }:
                     <button
                       type="button"
                       onClick={() => handleDelete(item)}
-                      className="p-1.5 rounded-xl bg-destructive/60 hover:bg-destructive/80 text-primary-foreground transition-colors"
+                      className="p-1.5 rounded-lg bg-destructive/60 hover:bg-destructive/80 text-primary-foreground transition-colors"
                       title="Excluir"
                     >
                       <Trash2 className="h-3 w-3" />

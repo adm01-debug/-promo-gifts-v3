@@ -115,7 +115,7 @@ export const SmartMobileNav = forwardRef<HTMLDivElement>(function SmartMobileNav
               className="fixed bottom-20 left-0 right-0 z-50 px-4 pb-4 lg:hidden"
               style={{ paddingBottom: 'max(calc(env(safe-area-inset-bottom) + 5rem), 6rem)' }}
             >
-              <div className="bg-card rounded-xl border border-border p-4 max-w-sm mx-auto">
+              <div className="bg-card rounded-lg border border-border p-4 max-w-sm mx-auto">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-display font-semibold text-foreground">Ações Rápidas</h3>
                   <button
@@ -140,7 +140,7 @@ export const SmartMobileNav = forwardRef<HTMLDivElement>(function SmartMobileNav
                         transition={{ delay: index * 0.05 }}
                         onClick={() => handleQuickAction(item.href)}
                         className={cn(
-                          "flex flex-col items-center justify-center p-3 rounded-xl",
+                          "flex flex-col items-center justify-center p-3 rounded-lg",
                           "min-h-[72px] touch-manipulation transition-all",
                           "active:scale-95",
                           isItemActive
@@ -210,7 +210,7 @@ export const SmartMobileNav = forwardRef<HTMLDivElement>(function SmartMobileNav
                 key={item.href}
                 to={item.href}
                 className={cn(
-                  "relative flex flex-col items-center justify-center min-w-[56px] sm:min-w-[64px] min-h-[44px] sm:min-h-[48px] px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl transition-all",
+                  "relative flex flex-col items-center justify-center min-w-[56px] sm:min-w-[64px] min-h-[44px] sm:min-h-[48px] px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg transition-all",
                   "touch-manipulation tap-highlight-transparent",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
                   "active:scale-95",

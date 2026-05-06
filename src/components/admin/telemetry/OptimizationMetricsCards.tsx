@@ -36,7 +36,7 @@ export function OptimizationMetricsCards() {
       )}>
         <CardContent className="p-4 flex items-center gap-3">
           <div className={cn(
-            'p-2.5 rounded-xl',
+            'p-2.5 rounded-lg',
             hitRateTone === 'success' && 'bg-success/15 text-success',
             hitRateTone === 'warning' && 'bg-warning/15 text-warning',
             hitRateTone === 'muted' && 'bg-muted text-muted-foreground',
@@ -61,7 +61,7 @@ export function OptimizationMetricsCards() {
       )}>
         <CardContent className="p-4 flex items-center gap-3">
           <div className={cn(
-            'p-2.5 rounded-xl',
+            'p-2.5 rounded-lg',
             metrics.retriesSaved24h > 0 ? 'bg-success/15 text-success' : 'bg-muted text-muted-foreground',
           )}>
             <ShieldCheck className="h-5 w-5" />

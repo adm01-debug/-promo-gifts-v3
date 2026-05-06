@@ -99,7 +99,7 @@ export function StepComparison({ wizard }: StepComparisonProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <div className="p-3 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5">
+          <div className="p-3 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5">
             <BarChart3 className="h-6 w-6 text-primary" />
           </div>
           <div>
@@ -151,7 +151,7 @@ export function StepComparison({ wizard }: StepComparisonProps) {
             </div>
             {unavailableResults.map((result) => (
               <motion.div key={result.techniqueId} initial={{ opacity: 0 }} animate={{ opacity: 0.6 }}
-                className="p-5 rounded-xl bg-muted/30 border border-dashed">
+                className="p-5 rounded-lg bg-muted/30 border border-dashed">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-semibold text-muted-foreground">{result.techniqueName}</p>
@@ -172,7 +172,7 @@ export function StepComparison({ wizard }: StepComparisonProps) {
         {selectedIds.size > 0 && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }} className="sticky bottom-4 z-10">
-            <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-2xl shadow-primary/40 border border-primary/30">
+            <div className="flex items-center justify-between p-4 rounded-lg bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-2xl shadow-primary/40 border border-primary/30">
               <div>
                 <p className="font-bold text-base">{selectedIds.size} técnica{selectedIds.size > 1 ? 's' : ''} selecionada{selectedIds.size > 1 ? 's' : ''}</p>
                 <p className="text-sm text-primary-foreground/80">

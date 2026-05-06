@@ -222,7 +222,7 @@ export function ConnectionTestDetailsDialog({
             <Skeleton className="h-20 w-full" />
           </div>
         ) : !details ? (
-          <div className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">
+          <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
             Nenhum teste registrado para esta conexão ainda.
           </div>
         ) : (
@@ -292,7 +292,7 @@ export function ConnectionTestDetailsDialog({
                 return (
                   <div
                     role="alert"
-                    className="rounded-xl border border-destructive/30 bg-destructive/5 p-3 space-y-2"
+                    className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 space-y-2"
                   >
                     <div className="flex items-start gap-2">
                       <ErrIcon className="h-4 w-4 text-destructive mt-0.5 shrink-0" aria-hidden />
@@ -359,7 +359,7 @@ export function ConnectionTestDetailsDialog({
                 <div className="text-[11px] text-muted-foreground">Status</div>
                 <span
                   className={cn(
-                    "inline-flex items-center rounded-xl border px-1.5 py-0.5 text-xs font-mono w-fit",
+                    "inline-flex items-center rounded-lg border px-1.5 py-0.5 text-xs font-mono w-fit",
                     statusClass(details.response.status),
                   )}
                 >
@@ -375,7 +375,7 @@ export function ConnectionTestDetailsDialog({
               {details.response.headers && Object.keys(details.response.headers).length > 0 && (
                 <div>
                   <div className="text-xs text-muted-foreground mb-1">Headers</div>
-                  <pre className="rounded-xl border bg-muted/50 p-2 text-[11px] font-mono max-h-[180px] overflow-auto">
+                  <pre className="rounded-lg border bg-muted/50 p-2 text-[11px] font-mono max-h-[180px] overflow-auto">
 {Object.entries(details.response.headers).map(([k, v]) => `${k}: ${v}`).join("\n")}
                   </pre>
                 </div>
@@ -392,7 +392,7 @@ export function ConnectionTestDetailsDialog({
                       {totalLatency != null ? `${totalLatency}ms` : "—"}
                     </span>
                   </div>
-                  <p className="text-xs text-muted-foreground rounded-xl border border-dashed p-3">
+                  <p className="text-xs text-muted-foreground rounded-lg border border-dashed p-3">
                     Breakdown indisponível para este tipo de conexão. Apenas a latência total é coletada.
                   </p>
                 </div>
@@ -430,7 +430,7 @@ export function ConnectionTestDetailsDialog({
             {/* RESPOSTA */}
             <TabsContent value="resposta" className="space-y-2">
               {!maskedBody ? (
-                <div className="rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">
+                <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
                   Resposta não capturada para este teste.
                 </div>
               ) : (
@@ -453,7 +453,7 @@ export function ConnectionTestDetailsDialog({
                       </Button>
                     </div>
                   </div>
-                  <pre className="rounded-xl border bg-muted/50 p-3 text-[11px] font-mono whitespace-pre-wrap break-words max-h-[360px] overflow-auto">
+                  <pre className="rounded-lg border bg-muted/50 p-3 text-[11px] font-mono whitespace-pre-wrap break-words max-h-[360px] overflow-auto">
 {bodyExpanded || maskedBody.length <= PREVIEW_LIMIT
   ? maskedBody
   : maskedBody.slice(0, PREVIEW_LIMIT)}

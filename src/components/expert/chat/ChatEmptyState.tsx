@@ -31,10 +31,10 @@ export function ChatEmptyState({ sellerFirstName, clientId, clientName, conversa
       className="flex flex-col items-center justify-center py-10 px-2">
       <motion.div variants={{ hidden: { opacity: 0, scale: 0.8 }, visible: { opacity: 1, scale: 1 } }}
         transition={{ type: "spring", stiffness: 300, damping: 20 }} className="relative mb-5">
-        <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center border border-primary/15 shadow-lg shadow-primary/5">
+        <div className="h-16 w-16 rounded-lg bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center border border-primary/15 shadow-lg shadow-primary/5">
           <Bot className="h-8 w-8 text-primary" />
         </div>
-        <motion.div className="absolute -bottom-1.5 -right-1.5 h-6 w-6 rounded-xl bg-background border border-border/50 flex items-center justify-center shadow-sm"
+        <motion.div className="absolute -bottom-1.5 -right-1.5 h-6 w-6 rounded-lg bg-background border border-border/50 flex items-center justify-center shadow-sm"
           animate={{ rotate: [0, 15, -15, 0], scale: [1, 1.1, 1] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}>
           <Sparkles className="h-3 w-3 text-primary/70" />
         </motion.div>
@@ -53,7 +53,7 @@ export function ChatEmptyState({ sellerFirstName, clientId, clientName, conversa
         className="mt-5 flex flex-wrap gap-2 justify-center">
         {suggestions.map(item => (
           <button key={item.label} onClick={() => onAutoSend(item.prompt)}
-            className="group/chip flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium border border-border/50 bg-background hover:border-primary/30 hover:bg-primary/5 transition-all duration-200">
+            className="group/chip flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-medium border border-border/50 bg-background hover:border-primary/30 hover:bg-primary/5 transition-all duration-200">
             <span>{item.emoji}</span>
             <span className="text-foreground/80 group-hover/chip:text-foreground">{item.label}</span>
           </button>

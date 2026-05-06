@@ -162,7 +162,7 @@ export function CartCompanyPickerDialog({ open, onOpenChange, onCreated }: CartC
     <div
       key={company.id}
       className={cn(
-        "w-full flex items-center gap-2 px-1 rounded-xl transition-colors group",
+        "w-full flex items-center gap-2 px-1 rounded-lg transition-colors group",
         "hover:bg-accent/60"
       )}
     >
@@ -175,9 +175,9 @@ export function CartCompanyPickerDialog({ open, onOpenChange, onCreated }: CartC
         disabled={!canCreateCart}
       >
         {company.logo_url ? (
-          <img src={company.logo_url} alt="" className="w-9 h-9 rounded-xl object-contain bg-background border border-border/40 flex-shrink-0" loading="lazy" />
+          <img src={company.logo_url} alt="" className="w-9 h-9 rounded-lg object-contain bg-background border border-border/40 flex-shrink-0" loading="lazy" />
         ) : (
-          <div className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center flex-shrink-0">
+          <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
             <Building2 className="h-4 w-4 text-muted-foreground" />
           </div>
         )}
@@ -190,7 +190,7 @@ export function CartCompanyPickerDialog({ open, onOpenChange, onCreated }: CartC
         type="button"
         onClick={(e) => toggleFavorite(company, e)}
         className={cn(
-          "h-8 w-8 mr-1 rounded-xl flex items-center justify-center transition-colors flex-shrink-0 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 outline-none",
+          "h-8 w-8 mr-1 rounded-lg flex items-center justify-center transition-colors flex-shrink-0 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 outline-none",
           isFavorite(company.id)
             ? "text-warning"
             : "text-muted-foreground/40 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 hover:text-warning"
@@ -224,8 +224,8 @@ export function CartCompanyPickerDialog({ open, onOpenChange, onCreated }: CartC
               {isLoading ? (
                 <div className="space-y-1 py-1">
                   {[...Array(4)].map((_, i) => (
-                    <div key={i} className="flex items-center gap-3 px-3 py-2.5 rounded-xl">
-                      <Skeleton className="w-9 h-9 rounded-xl opacity-20" />
+                    <div key={i} className="flex items-center gap-3 px-3 py-2.5 rounded-lg">
+                      <Skeleton className="w-9 h-9 rounded-lg opacity-20" />
                       <div className="flex-1 space-y-2">
                         <Skeleton className="h-3 w-3/4 opacity-15" />
                         <Skeleton className="h-2 w-1/2 opacity-10" />
@@ -246,8 +246,8 @@ export function CartCompanyPickerDialog({ open, onOpenChange, onCreated }: CartC
               {isLoading ? (
                 <div className="space-y-1 py-1">
                   {[...Array(3)].map((_, i) => (
-                    <div key={i} className="flex items-center gap-3 px-3 py-2.5 rounded-xl">
-                      <Skeleton className="w-9 h-9 rounded-xl opacity-20" />
+                    <div key={i} className="flex items-center gap-3 px-3 py-2.5 rounded-lg">
+                      <Skeleton className="w-9 h-9 rounded-lg opacity-20" />
                       <div className="flex-1 space-y-2">
                         <Skeleton className="h-3 w-3/4 opacity-15" />
                         <Skeleton className="h-2 w-1/2 opacity-10" />
@@ -312,8 +312,8 @@ export function CartCompanyPickerDialog({ open, onOpenChange, onCreated }: CartC
               {isLoading && filteredCompanies.length === 0 ? (
                 <div className="space-y-1 px-1">
                   {[...Array(6)].map((_, i) => (
-                    <div key={i} className="flex items-center gap-3 px-3 py-2.5 rounded-xl">
-                      <Skeleton className="w-9 h-9 rounded-xl opacity-20" />
+                    <div key={i} className="flex items-center gap-3 px-3 py-2.5 rounded-lg">
+                      <Skeleton className="w-9 h-9 rounded-lg opacity-20" />
                       <div className="flex-1 space-y-2">
                         <Skeleton className="h-3 w-3/4 opacity-15" />
                         <Skeleton className="h-2 w-1/2 opacity-10" />

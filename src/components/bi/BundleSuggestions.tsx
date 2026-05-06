@@ -98,7 +98,7 @@ export function BundleSuggestions({ clientId }: Props) {
       <CardContent className="p-5 space-y-4">
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-2 min-w-0">
-            <div className="h-8 w-8 rounded-xl bg-emerald-500/10 flex items-center justify-center shrink-0">
+            <div className="h-8 w-8 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0">
               <ShoppingBasket className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
             </div>
             <div className="min-w-0">
@@ -125,7 +125,7 @@ export function BundleSuggestions({ clientId }: Props) {
 
         {isLoading ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-            {[1, 2, 3, 4, 5].map((i) => <Skeleton key={i} className="h-32 rounded-xl" />)}
+            {[1, 2, 3, 4, 5].map((i) => <Skeleton key={i} className="h-32 rounded-lg" />)}
           </div>
         ) : !data || data.length === 0 ? (
           <p className="text-xs text-muted-foreground italic py-6 text-center">
@@ -136,10 +136,10 @@ export function BundleSuggestions({ clientId }: Props) {
             {data.map((b) => (
               <div
                 key={b.product_id}
-                className="p-3 rounded-xl border bg-card hover:border-primary/30 hover:shadow-sm transition-all"
+                className="p-3 rounded-lg border bg-card hover:border-primary/30 hover:shadow-sm transition-all"
               >
                 {b.product_image_url ? (
-                  <div className="aspect-square rounded-xl overflow-hidden bg-muted/40 mb-2 border">
+                  <div className="aspect-square rounded-lg overflow-hidden bg-muted/40 mb-2 border">
                     <img
                       src={b.product_image_url}
                       alt={b.product_name}
@@ -151,7 +151,7 @@ export function BundleSuggestions({ clientId }: Props) {
                     />
                   </div>
                 ) : (
-                  <div className="aspect-square rounded-xl bg-muted/40 flex items-center justify-center mb-2">
+                  <div className="aspect-square rounded-lg bg-muted/40 flex items-center justify-center mb-2">
                     <Package2 className="h-6 w-6 text-muted-foreground" />
                   </div>
                 )}

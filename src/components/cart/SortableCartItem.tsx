@@ -103,7 +103,7 @@ export const SortableCartItem = memo(function SortableCartItem({
                 <button
                   {...attributes}
                   {...listeners}
-                  className="h-8 w-8 flex items-center justify-center rounded-xl bg-card/90 backdrop-blur-md text-muted-foreground hover:text-primary cursor-grab active:cursor-grabbing shadow-sm border border-border/50"
+                  className="h-8 w-8 flex items-center justify-center rounded-lg bg-card/90 backdrop-blur-md text-muted-foreground hover:text-primary cursor-grab active:cursor-grabbing shadow-sm border border-border/50"
                   aria-label="Arrastar"
                 >
                   <GripVertical className="h-4 w-4" />
@@ -118,7 +118,7 @@ export const SortableCartItem = memo(function SortableCartItem({
               <button
                 onClick={(e) => { e.stopPropagation(); onToggleSelection(item.id); }}
                 className={cn(
-                  "h-8 w-8 flex items-center justify-center rounded-xl backdrop-blur-md transition-all shadow-sm border",
+                  "h-8 w-8 flex items-center justify-center rounded-lg backdrop-blur-md transition-all shadow-sm border",
                   isSelected 
                     ? "bg-primary text-primary-foreground border-primary/20 scale-110" 
                     : "bg-card/90 text-muted-foreground hover:text-primary border-border/50"
@@ -182,7 +182,7 @@ export const SortableCartItem = memo(function SortableCartItem({
                   <DropdownMenuTrigger asChild>
                     <button 
                       data-testid="cart-item-menu-trigger" 
-                      className="h-8 w-8 flex items-center justify-center rounded-xl bg-card/90 backdrop-blur-md text-muted-foreground hover:text-primary transition-all shadow-sm border border-border/50" 
+                      className="h-8 w-8 flex items-center justify-center rounded-lg bg-card/90 backdrop-blur-md text-muted-foreground hover:text-primary transition-all shadow-sm border border-border/50" 
                       aria-label="Mais opções"
                     >
                       <MoreHorizontal className="h-4 w-4" />
@@ -193,35 +193,35 @@ export const SortableCartItem = memo(function SortableCartItem({
                   Ações do item
                 </TooltipContent>
               </Tooltip>
-              <DropdownMenuContent align="end" className="w-56 p-1.5 rounded-xl">
-                <DropdownMenuItem data-testid="cart-item-action-view" className="rounded-xl py-2" onClick={() => onNavigate(`/produto/${item.product_id}`)}>
+              <DropdownMenuContent align="end" className="w-56 p-1.5 rounded-lg">
+                <DropdownMenuItem data-testid="cart-item-action-view" className="rounded-lg py-2" onClick={() => onNavigate(`/produto/${item.product_id}`)}>
                   <Eye className="h-4 w-4 mr-2.5 opacity-70" /> Ver Produto
                 </DropdownMenuItem>
-                <DropdownMenuItem data-testid="cart-item-action-simulate" className="rounded-xl py-2" onClick={() => onNavigate(`/simulador?product=${item.product_id}`)}>
+                <DropdownMenuItem data-testid="cart-item-action-simulate" className="rounded-lg py-2" onClick={() => onNavigate(`/simulador?product=${item.product_id}`)}>
                   <Calculator className="h-4 w-4 mr-2.5 opacity-70" /> Simular Personalização
                 </DropdownMenuItem>
                 {otherCarts.length > 0 && (
                   <>
                     <DropdownMenuSeparator className="my-1.5" />
                     <DropdownMenuSub>
-                      <DropdownMenuSubTrigger data-testid="cart-item-action-move" className="rounded-xl py-2">
+                      <DropdownMenuSubTrigger data-testid="cart-item-action-move" className="rounded-lg py-2">
                         <MoveRight className="h-4 w-4 mr-2.5 opacity-70" /> Mover para...
                       </DropdownMenuSubTrigger>
-                      <DropdownMenuSubContent className="p-1.5 rounded-xl min-w-[180px]">
+                      <DropdownMenuSubContent className="p-1.5 rounded-lg min-w-[180px]">
                         {otherCarts.map(c => (
-                          <DropdownMenuItem key={c.id} data-testid="cart-item-move-target" data-target-cart-id={c.id} className="rounded-xl py-2" onClick={() => onMoveToCart(item.id, c.id)}>
+                          <DropdownMenuItem key={c.id} data-testid="cart-item-move-target" data-target-cart-id={c.id} className="rounded-lg py-2" onClick={() => onMoveToCart(item.id, c.id)}>
                             {c.company_name}
                           </DropdownMenuItem>
                         ))}
                       </DropdownMenuSubContent>
                     </DropdownMenuSub>
                     <DropdownMenuSub>
-                      <DropdownMenuSubTrigger data-testid="cart-item-action-duplicate" className="rounded-xl py-2">
+                      <DropdownMenuSubTrigger data-testid="cart-item-action-duplicate" className="rounded-lg py-2">
                         <CopyPlus className="h-4 w-4 mr-2.5 opacity-70" /> Duplicar para...
                       </DropdownMenuSubTrigger>
-                      <DropdownMenuSubContent className="p-1.5 rounded-xl min-w-[180px]">
+                      <DropdownMenuSubContent className="p-1.5 rounded-lg min-w-[180px]">
                         {otherCarts.map(c => (
-                          <DropdownMenuItem key={c.id} data-testid="cart-item-duplicate-target" data-target-cart-id={c.id} className="rounded-xl py-2" onClick={() => onDuplicateToCart(item.id, c.id)}>
+                          <DropdownMenuItem key={c.id} data-testid="cart-item-duplicate-target" data-target-cart-id={c.id} className="rounded-lg py-2" onClick={() => onDuplicateToCart(item.id, c.id)}>
                             {c.company_name}
                           </DropdownMenuItem>
                         ))}
@@ -232,7 +232,7 @@ export const SortableCartItem = memo(function SortableCartItem({
                 <DropdownMenuSeparator className="my-1.5" />
                 <DropdownMenuItem
                   data-testid="cart-item-action-remove"
-                  className="text-destructive focus:text-destructive focus:bg-destructive/5 rounded-xl py-2"
+                  className="text-destructive focus:text-destructive focus:bg-destructive/5 rounded-lg py-2"
                   onClick={() => onRemove(item.id, item.product_name)}
                 >
                   <Trash2 className="h-4 w-4 mr-2.5 opacity-70" /> Remover Item
@@ -284,7 +284,7 @@ export const SortableCartItem = memo(function SortableCartItem({
             </h4>
           </div>
 
-          <div className="flex items-center justify-between bg-muted/20 p-2 rounded-xl border border-border/10">
+          <div className="flex items-center justify-between bg-muted/20 p-2 rounded-lg border border-border/10">
             <PriceLabel
               label="Unitário"
               value={item.product_price}
@@ -299,7 +299,7 @@ export const SortableCartItem = memo(function SortableCartItem({
 
           {/* Quantity stepper & Subtotal */}
           <div className="flex items-center justify-between pt-2 border-t border-border/30 gap-3">
-            <div data-testid="cart-item-qty-stepper" className="flex items-center gap-0 border border-border/50 rounded-xl overflow-hidden bg-background shadow-sm hover:border-primary/30 transition-colors">
+            <div data-testid="cart-item-qty-stepper" className="flex items-center gap-0 border border-border/50 rounded-lg overflow-hidden bg-background shadow-sm hover:border-primary/30 transition-colors">
               <Button
                 variant="ghost"
                 size="icon"
@@ -360,7 +360,7 @@ export const SortableCartItem = memo(function SortableCartItem({
               <button 
                 data-testid="cart-item-notes-toggle" 
                 className={cn(
-                  "flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider transition-all w-full p-2 rounded-xl border border-transparent",
+                  "flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider transition-all w-full p-2 rounded-lg border border-transparent",
                   item.notes 
                     ? "text-primary bg-primary/5 border-primary/10" 
                     : "text-muted-foreground hover:text-foreground hover:bg-muted/50"

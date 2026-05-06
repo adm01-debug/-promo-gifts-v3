@@ -138,7 +138,7 @@ export function RoleAuditLogPanel() {
     <Card className="border-border/50">
       <CardHeader className="flex flex-row items-start justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-primary/10">
+          <div className="p-2 rounded-lg bg-primary/10">
             <History className="h-5 w-5 text-primary" />
           </div>
           <div>
@@ -190,7 +190,7 @@ export function RoleAuditLogPanel() {
             Nenhuma alteração de role registrada {search ? "para esta busca" : "ainda"}.
           </div>
         ) : (
-          <div className="rounded-xl border border-border overflow-x-auto">
+          <div className="rounded-lg border border-border overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>

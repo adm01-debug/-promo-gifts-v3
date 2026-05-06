@@ -132,7 +132,7 @@ export function GlobalCommandBar({ children, showTrigger = false }: GlobalComman
       {showTrigger && (
         <button
           onClick={() => setOpen(true)}
-          className="hidden md:flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground bg-muted/50 hover:bg-muted rounded-xl border border-border transition-all duration-200 hover:text-foreground"
+          className="hidden md:flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground bg-muted/50 hover:bg-muted rounded-lg border border-border transition-all duration-200 hover:text-foreground"
         >
           <Search className="h-4 w-4" />
           <span>Buscar...</span>
@@ -143,7 +143,7 @@ export function GlobalCommandBar({ children, showTrigger = false }: GlobalComman
       )}
 
       <CommandDialog open={open} onOpenChange={setOpen}>
-        <Command className="rounded-xl border-0 shadow-2xl">
+        <Command className="rounded-lg border-0 shadow-2xl">
           <div className="flex items-center border-b px-3 bg-gradient-to-r from-primary/5 to-transparent">
             <Sparkles className="mr-2 h-4 w-4 text-primary animate-pulse" />
             <CommandInput

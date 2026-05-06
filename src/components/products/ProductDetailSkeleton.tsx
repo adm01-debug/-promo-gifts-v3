@@ -18,10 +18,10 @@ export function ProductDetailSkeleton() {
       <div className="grid lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] gap-4 lg:gap-6 xl:gap-8">
         {/* LEFT — Gallery skeleton (sticky area) */}
         <div className="space-y-3">
-          <Skeleton className="w-full aspect-square rounded-xl" />
+          <Skeleton className="w-full aspect-square rounded-lg" />
           <div className="flex gap-2">
             {Array.from({ length: 5 }).map((_, i) => (
-              <Skeleton key={i} className="w-14 h-14 rounded-xl shrink-0" />
+              <Skeleton key={i} className="w-14 h-14 rounded-lg shrink-0" />
             ))}
           </div>
         </div>
@@ -37,9 +37,9 @@ export function ProductDetailSkeleton() {
 
             {/* Status badges */}
             <div className="flex flex-wrap gap-1.5">
-              <Skeleton className="h-5 w-20 rounded-xl" />
-              <Skeleton className="h-5 w-16 rounded-xl" />
-              <Skeleton className="h-5 w-14 rounded-xl" />
+              <Skeleton className="h-5 w-20 rounded-lg" />
+              <Skeleton className="h-5 w-16 rounded-lg" />
+              <Skeleton className="h-5 w-14 rounded-lg" />
             </div>
 
             {/* Title */}
@@ -58,7 +58,7 @@ export function ProductDetailSkeleton() {
           {/* PRICE + SPECS — two columns */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 xl:gap-4">
             {/* Price card */}
-            <div className="rounded-xl border border-border p-3 xl:p-5 space-y-3">
+            <div className="rounded-lg border border-border p-3 xl:p-5 space-y-3">
               <div>
                 <Skeleton className="h-3 w-16 mb-2" />
                 <Skeleton className="h-9 w-32" />
@@ -77,13 +77,13 @@ export function ProductDetailSkeleton() {
               </div>
               {/* CTA buttons */}
               <div className="flex gap-2">
-                <Skeleton className="h-8 flex-1 rounded-xl" />
-                <Skeleton className="h-8 flex-1 rounded-xl" />
+                <Skeleton className="h-8 flex-1 rounded-lg" />
+                <Skeleton className="h-8 flex-1 rounded-lg" />
               </div>
             </div>
 
             {/* Specs card */}
-            <div className="rounded-xl border border-border p-3 xl:p-5 space-y-3">
+            <div className="rounded-lg border border-border p-3 xl:p-5 space-y-3">
               <Skeleton className="h-4 w-20 mb-1" />
               <Skeleton className="h-3 w-full" />
               <Skeleton className="h-3 w-[90%]" />
@@ -94,16 +94,16 @@ export function ProductDetailSkeleton() {
                   <Skeleton className="h-5 w-16 rounded-full" />
                   <Skeleton className="h-5 w-20 rounded-full" />
                 </div>
-                <Skeleton className="h-12 w-full rounded-xl" />
+                <Skeleton className="h-12 w-full rounded-lg" />
               </div>
             </div>
           </div>
 
           {/* Quick actions */}
           <div className="flex gap-2 pt-2">
-            <Skeleton className="h-9 w-28 rounded-xl" />
-            <Skeleton className="h-9 w-28 rounded-xl" />
-            <Skeleton className="h-9 w-28 rounded-xl" />
+            <Skeleton className="h-9 w-28 rounded-lg" />
+            <Skeleton className="h-9 w-28 rounded-lg" />
+            <Skeleton className="h-9 w-28 rounded-lg" />
           </div>
         </div>
       </div>
@@ -114,7 +114,7 @@ export function ProductDetailSkeleton() {
         <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-3">
           {Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="space-y-2">
-              <Skeleton className="w-full aspect-square rounded-xl" />
+              <Skeleton className="w-full aspect-square rounded-lg" />
               <Skeleton className="h-4 w-[80%]" />
               <Skeleton className="h-3 w-[50%]" />
             </div>

@@ -69,13 +69,13 @@ export function WizardSteps({ currentStep, completedSteps, onStepClick, kitState
                       disabled={!isClickable}
                       aria-current={isActive ? 'step' : undefined}
                       className={cn(
-                        'group flex items-center gap-2.5 flex-1 min-w-0 px-1 py-1 transition-all rounded-xl',
+                        'group flex items-center gap-2.5 flex-1 min-w-0 px-1 py-1 transition-all rounded-lg',
                         isClickable ? 'cursor-pointer' : 'cursor-not-allowed opacity-60',
                       )}
                     >
                 <div
                   className={cn(
-                    'relative flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border-2 transition-all duration-300',
+                    'relative flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg border-2 transition-all duration-300',
                     isActive && 'border-primary bg-primary text-primary-foreground shadow-[0_0_18px_hsl(var(--primary)/0.4)]',
                     isCompleted && !isActive && 'border-success/50 bg-success/10 text-success',
                     !isActive && !isCompleted && 'border-border bg-muted/40 text-muted-foreground group-hover:border-border/80',

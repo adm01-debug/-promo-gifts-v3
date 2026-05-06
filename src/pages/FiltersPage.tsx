@@ -344,7 +344,7 @@ export default function FiltersPage() {
 
               {/* Filtering indicator */}
               {state.isFiltering && (
-                <div className="absolute inset-0 z-10 bg-background/50 backdrop-blur-[1px] flex items-start justify-center pt-32 transition-opacity duration-200 pointer-events-none rounded-xl">
+                <div className="absolute inset-0 z-10 bg-background/50 backdrop-blur-[1px] flex items-start justify-center pt-32 transition-opacity duration-200 pointer-events-none rounded-lg">
                   <div className="flex items-center gap-2 px-4 py-2 bg-background/90 border rounded-full shadow-sm">
                     <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                     <span className="text-sm text-muted-foreground">Filtrando...</span>
@@ -420,11 +420,11 @@ export default function FiltersPage() {
                         onToggleSelect={sel.toggleSelect} 
                       />
                     ) : state.viewMode === "list" ? (
-                      <div className="h-[calc(100vh-280px)] min-h-[500px] overflow-y-auto rounded-xl border border-border/40 bg-gradient-to-b from-background/80 to-background/40 backdrop-blur-sm scrollbar-products shadow-inner p-4">
+                      <div className="h-[calc(100vh-280px)] min-h-[500px] overflow-y-auto rounded-lg border border-border/40 bg-gradient-to-b from-background/80 to-background/40 backdrop-blur-sm scrollbar-products shadow-inner p-4">
                         <ProductList products={state.filteredProducts} onProductClick={(productId) => state.selectionMode ? sel.toggleSelect(productId) : navigate(`/produto/${productId}`)} onShareProduct={(product) => setShareProduct(product)} isFavorite={isFavorite} onToggleFavorite={toggleFavorite} isInCompare={isInCompare} onToggleCompare={toggleCompare} canAddToCompare={canAddMore} activeColorFilter={(state.filters.colorGroups.length > 0 || state.filters.colorVariations.length > 0) ? { groups: state.filters.colorGroups, variations: state.filters.colorVariations } : null} selectionMode={state.selectionMode} externalSelectedIds={sel.selectedIds} onToggleSelect={sel.toggleSelect} />
                       </div>
                     ) : (
-                      <div className="h-[calc(100vh-280px)] min-h-[500px] overflow-y-auto rounded-xl border border-border/40 bg-gradient-to-b from-background/80 to-background/40 backdrop-blur-sm shadow-inner">
+                      <div className="h-[calc(100vh-280px)] min-h-[500px] overflow-y-auto rounded-lg border border-border/40 bg-gradient-to-b from-background/80 to-background/40 backdrop-blur-sm shadow-inner">
                         <ProductTableView
                           products={state.filteredProducts}
                           onProductClick={(productId) => state.selectionMode ? sel.toggleSelect(productId) : navigate(`/produto/${productId}`)}

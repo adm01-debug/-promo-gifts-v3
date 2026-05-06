@@ -356,7 +356,7 @@ export default function ComparePage() {
                         key={`card-${entry.index}`}
                         data-compare-product={entry.index}
                         tabIndex={-1}
-                        className="p-4 rounded-xl bg-card border-[1.5px] border-primary/20 hover:border-primary/50 hover:shadow-xl card-lift transition-all duration-300 space-y-3 focus:outline-none focus:ring-2 focus:ring-primary"
+                        className="p-4 rounded-lg bg-card border-[1.5px] border-primary/20 hover:border-primary/50 hover:shadow-xl card-lift transition-all duration-300 space-y-3 focus:outline-none focus:ring-2 focus:ring-primary"
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">

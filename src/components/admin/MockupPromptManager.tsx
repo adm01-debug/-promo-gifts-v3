@@ -146,7 +146,7 @@ export function MockupPromptManager() {
           <CardContent>
             <Accordion type="multiple" className="space-y-2">
               {techniquePrompts.map(config => (
-                <AccordionItem key={config.id} value={config.id} className="border rounded-xl px-4">
+                <AccordionItem key={config.id} value={config.id} className="border rounded-lg px-4">
                   <AccordionTrigger className="hover:no-underline">
                     <div className="flex items-center gap-3"><span className="font-medium">{config.label}</span><Badge variant="outline" className="text-xs">v{config.version}</Badge>
                       {hasChanges(config) && <Badge variant="secondary" className="text-xs bg-warning/10 text-warning">Alterado</Badge>}</div>

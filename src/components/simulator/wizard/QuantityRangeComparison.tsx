@@ -136,7 +136,7 @@ export function QuantityRangeComparison({
       <Button
         variant="outline"
         size="lg"
-        className="gap-2 h-14 px-6 rounded-xl"
+        className="gap-2 h-14 px-6 rounded-lg"
         onClick={() => setIsOpen(true)}
       >
         <BarChart3 className="h-5 w-5" />
@@ -153,11 +153,11 @@ export function QuantityRangeComparison({
     <motion.div
       initial={{ opacity: 0, height: 0 }}
       animate={{ opacity: 1, height: 'auto' }}
-      className="rounded-xl border bg-card p-6 space-y-5"
+      className="rounded-lg border bg-card p-6 space-y-5"
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-primary/10">
+          <div className="p-2 rounded-lg bg-primary/10">
             <BarChart3 className="h-5 w-5 text-primary" />
           </div>
           <div>

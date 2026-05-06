@@ -28,7 +28,7 @@ function SectionHeader({ icon, label, count, gradient }: {
 }) {
   return (
     <div className="flex items-center gap-3 px-4 pt-5 pb-2.5">
-      <div className={cn("h-6 w-6 rounded-xl flex items-center justify-center shrink-0", gradient || "bg-primary/10")}>
+      <div className={cn("h-6 w-6 rounded-lg flex items-center justify-center shrink-0", gradient || "bg-primary/10")}>
         <span className="text-primary [&>svg]:h-3.5 [&>svg]:w-3.5">{icon}</span>
       </div>
       <span className="text-[11px] font-bold uppercase tracking-[0.1em] [color:hsl(var(--command-text-subtle))] font-display">{label}</span>
@@ -45,22 +45,22 @@ function SectionHeader({ icon, label, count, gradient }: {
 /* ── Rank Badge ── */
 function RankBadge({ index }: { index: number }) {
   if (index === 0) return (
-    <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-orange via-orange/80 to-orange/60 flex items-center justify-center shadow-lg shadow-orange/25 animate-[brain-glow_3s_ease-in-out_infinite] ring-2 ring-orange/20">
+    <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-orange via-orange/80 to-orange/60 flex items-center justify-center shadow-lg shadow-orange/25 animate-[brain-glow_3s_ease-in-out_infinite] ring-2 ring-orange/20">
       <Trophy className="h-4.5 w-4.5 text-primary-foreground drop-shadow-sm" />
     </div>
   );
   if (index === 1) return (
-    <div className="h-10 w-10 rounded-xl [background-color:hsl(var(--command-surface-soft))] flex items-center justify-center border [border-color:hsl(var(--command-border-strong))] shadow-[inset_0_1px_0_hsl(var(--command-border)/0.4)]">
+    <div className="h-10 w-10 rounded-lg [background-color:hsl(var(--command-surface-soft))] flex items-center justify-center border [border-color:hsl(var(--command-border-strong))] shadow-[inset_0_1px_0_hsl(var(--command-border)/0.4)]">
       <Medal className="h-4 w-4 [color:hsl(var(--command-text-muted))]" />
     </div>
   );
   if (index === 2) return (
-    <div className="h-10 w-10 rounded-xl [background-color:hsl(var(--command-surface-raised))] flex items-center justify-center border [border-color:hsl(var(--command-border))]">
+    <div className="h-10 w-10 rounded-lg [background-color:hsl(var(--command-surface-raised))] flex items-center justify-center border [border-color:hsl(var(--command-border))]">
       <span className="text-xs font-bold [color:hsl(var(--command-text-muted))]">3º</span>
     </div>
   );
   return (
-    <div className="h-10 w-10 rounded-xl [background-color:hsl(var(--command-surface-raised))] flex items-center justify-center border [border-color:hsl(var(--command-border))]">
+    <div className="h-10 w-10 rounded-lg [background-color:hsl(var(--command-surface-raised))] flex items-center justify-center border [border-color:hsl(var(--command-border))]">
       <span className="text-xs font-bold [color:hsl(var(--command-text-subtle))]">{index + 1}º</span>
     </div>
   );
@@ -82,7 +82,7 @@ function NavCard({ action, index, onSelect }: {
       value={action.title}
       onSelect={() => onSelect(action.href)}
       className={cn(
-        "flex items-center gap-3 py-3 px-3 rounded-xl animate-in fade-in-0 slide-in-from-bottom-1 duration-200 cursor-pointer",
+        "flex items-center gap-3 py-3 px-3 rounded-lg animate-in fade-in-0 slide-in-from-bottom-1 duration-200 cursor-pointer",
         paletteItemStateClass,
         isHighlight
           ? "bg-gradient-to-r from-primary/12 via-primary/6 to-transparent border border-primary/20"
@@ -91,7 +91,7 @@ function NavCard({ action, index, onSelect }: {
       style={staggerStyle(index, 200)}
     >
       <div className={cn(
-        "h-9 w-9 rounded-xl flex items-center justify-center shrink-0 transition-colors",
+        "h-9 w-9 rounded-lg flex items-center justify-center shrink-0 transition-colors",
         isHighlight
           ? "bg-gradient-to-br from-primary/20 to-primary/5 text-primary shadow-sm shadow-primary/10"
           : "[background-color:hsl(var(--command-accent))] [color:hsl(var(--command-text-muted))]"
@@ -103,7 +103,7 @@ function NavCard({ action, index, onSelect }: {
         <p className="text-[10px] [color:hsl(var(--command-text-subtle))] truncate leading-tight mt-0.5">{action.description}</p>
       </div>
       {action.shortcut && (
-        <kbd className="hidden md:inline-flex h-5 min-w-[22px] items-center justify-center rounded-xl bg-primary/10 border border-primary/20 px-1.5 font-mono text-[10px] font-semibold text-primary/60">
+        <kbd className="hidden md:inline-flex h-5 min-w-[22px] items-center justify-center rounded-lg bg-primary/10 border border-primary/20 px-1.5 font-mono text-[10px] font-semibold text-primary/60">
           {action.shortcut}
         </kbd>
       )}
@@ -141,17 +141,17 @@ export function GlobalSearchIdleState({
                 key={`h-${i}`}
                 value={`history-${term}`}
                 onSelect={() => onSuggestionClick(term)}
-                className={cn("flex items-center gap-3.5 py-2.5 rounded-xl px-3 group animate-in fade-in-0 slide-in-from-left-2 duration-200", paletteItemStateClass)}
+                className={cn("flex items-center gap-3.5 py-2.5 rounded-lg px-3 group animate-in fade-in-0 slide-in-from-left-2 duration-200", paletteItemStateClass)}
                 style={staggerStyle(i)}
               >
-                <div className="h-9 w-9 rounded-xl [background-color:hsl(var(--command-accent))] flex items-center justify-center shrink-0 group-data-[selected=true]:[background-color:hsl(var(--command-accent-strong))]">
+                <div className="h-9 w-9 rounded-lg [background-color:hsl(var(--command-accent))] flex items-center justify-center shrink-0 group-data-[selected=true]:[background-color:hsl(var(--command-accent-strong))]">
                   <Clock className="h-4 w-4 [color:hsl(var(--command-text-subtle))]" />
                 </div>
                 <span className="flex-1 text-[13px] truncate">{term}</span>
                 <button
                   onClick={e => onRemoveFromHistory(e, term)}
                   aria-label={`Remover "${term}" do histórico`}
-                  className="opacity-0 group-hover:opacity-100 group-data-[selected=true]:opacity-100 h-7 w-7 flex items-center justify-center hover:bg-destructive/10 rounded-xl transition-all"
+                  className="opacity-0 group-hover:opacity-100 group-data-[selected=true]:opacity-100 h-7 w-7 flex items-center justify-center hover:bg-destructive/10 rounded-lg transition-all"
                 >
                   <X className="h-3 w-3 [color:hsl(var(--command-text-subtle))] hover:text-destructive" aria-hidden="true" />
                 </button>
@@ -172,7 +172,7 @@ export function GlobalSearchIdleState({
                 value={`popular-${product.name}`}
                 onSelect={() => onSelect(`/produto/${product.id}`, false)}
                 className={cn(
-                  "flex items-center gap-3.5 py-3 rounded-xl px-3 animate-in fade-in-0 slide-in-from-bottom-1 duration-200",
+                  "flex items-center gap-3.5 py-3 rounded-lg px-3 animate-in fade-in-0 slide-in-from-bottom-1 duration-200",
                   paletteItemStateClass,
                   idx === 0 && "bg-gradient-to-r from-orange/[0.06] to-transparent border border-orange/10"
                 )}
@@ -190,7 +190,7 @@ export function GlobalSearchIdleState({
                   </div>
                 </div>
                 {idx === 0 ? (
-                  <Badge className="shrink-0 text-[10px] h-6 rounded-xl bg-gradient-to-r from-orange/20 to-orange/10 text-orange border-orange/20 hover:bg-orange/25 font-semibold shadow-sm shadow-orange/10">
+                  <Badge className="shrink-0 text-[10px] h-6 rounded-lg bg-gradient-to-r from-orange/20 to-orange/10 text-orange border-orange/20 hover:bg-orange/25 font-semibold shadow-sm shadow-orange/10">
                     🔥 Top 1
                   </Badge>
                 ) : (
@@ -222,7 +222,7 @@ export function GlobalSearchIdleState({
                 whileHover={{ scale: 1.04 }}
                 whileTap={{ scale: 0.96 }}
                 className={cn(
-                  "inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-150 shadow-sm",
+                  "inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold transition-all duration-150 shadow-sm",
                   sug.type === "filter" && "bg-gradient-to-r from-primary/8 to-primary/4 hover:from-primary/15 hover:to-primary/8 text-primary/80 hover:text-primary border border-primary/15 hover:border-primary/30",
                   sug.type === "navigation" && "[background-color:hsl(var(--command-surface-raised))] hover:[background-color:hsl(var(--command-surface-soft))] text-foreground border [border-color:hsl(var(--command-border))] hover:[border-color:hsl(var(--command-border-strong))]",
                   sug.type === "action" && "bg-gradient-to-r from-orange/8 to-orange/4 hover:from-orange/15 hover:to-orange/8 text-orange/80 hover:text-orange border border-orange/15 hover:border-orange/30",
@@ -251,7 +251,7 @@ export function GlobalSearchIdleState({
               aria-label={`Buscar ${qs.label}`}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="inline-flex items-center gap-2 px-3 py-1.5 [background-color:hsl(var(--command-surface-raised))] hover:[background-color:hsl(var(--command-surface-soft))] rounded-xl text-xs font-medium [color:hsl(var(--command-text-muted))] hover:text-foreground transition-all duration-150 border [border-color:hsl(var(--command-border))] hover:[border-color:hsl(var(--command-border-strong))] hover:shadow-sm"
+              className="inline-flex items-center gap-2 px-3 py-1.5 [background-color:hsl(var(--command-surface-raised))] hover:[background-color:hsl(var(--command-surface-soft))] rounded-lg text-xs font-medium [color:hsl(var(--command-text-muted))] hover:text-foreground transition-all duration-150 border [border-color:hsl(var(--command-border))] hover:[border-color:hsl(var(--command-border-strong))] hover:shadow-sm"
             >
               <span className="text-sm leading-none opacity-70">{qs.icon}</span>
               <span>{qs.label}</span>

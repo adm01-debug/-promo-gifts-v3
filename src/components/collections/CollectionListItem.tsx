@@ -50,7 +50,7 @@ export function CollectionListItem({
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: index * 0.03 }}
       className={cn(
-        "group flex items-center gap-4 p-3 rounded-xl bg-card border cursor-pointer transition-all duration-200",
+        "group flex items-center gap-4 p-3 rounded-lg bg-card border cursor-pointer transition-all duration-200",
         isSelected
           ? "border-primary bg-primary/5 shadow-md shadow-primary/10"
           : "border-border/50 hover:border-primary/40 hover:shadow-md"
@@ -65,7 +65,7 @@ export function CollectionListItem({
         />
       </div>
       <div
-        className="w-12 h-12 rounded-xl flex items-center justify-center text-lg shrink-0 overflow-hidden"
+        className="w-12 h-12 rounded-lg flex items-center justify-center text-lg shrink-0 overflow-hidden"
         style={{ backgroundColor: `${collection.color}20` }}
       >
         {previewImage ? (

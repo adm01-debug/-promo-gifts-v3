@@ -159,7 +159,7 @@ export function VirtualizedProductGrid({
     <div className="relative h-full">
       <div
         ref={parentRef}
-        className="h-[calc(100vh-200px)] min-h-[600px] overflow-y-auto rounded-xl border border-primary/10 
+        className="h-[calc(100vh-200px)] min-h-[600px] overflow-y-auto rounded-lg border border-primary/10 
           bg-gradient-to-b from-background via-background/95 to-background/90 backdrop-blur-sm
           scrollbar-products shadow-sm overscroll-contain"
         style={{ contain: "strict", WebkitOverflowScrolling: "touch" }}
@@ -269,7 +269,7 @@ export function VirtualizedProductGrid({
                       transition={{ delay: colIndex * 0.05 }}
                       className={cn(
                         "relative transition-all duration-200",
-                        selectionMode && selectedIds?.has(product.id) && "ring-2 ring-primary/50 rounded-xl shadow-md"
+                        selectionMode && selectedIds?.has(product.id) && "ring-2 ring-primary/50 rounded-lg shadow-md"
                       )}
                       style={{ zIndex: 1 }}
                       onClick={(e) => {

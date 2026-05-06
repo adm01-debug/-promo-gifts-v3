@@ -31,7 +31,7 @@ export function GalleryThumbnails({ images, currentIndex, onSelect, className }:
           key={image || index}
           onClick={() => onSelect(index)}
           className={cn(
-            "shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 transition-all",
+            "shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all",
             index === currentIndex
               ? "border-primary ring-2 ring-primary/30"
               : "border-transparent hover:border-primary/50"
@@ -52,7 +52,7 @@ export function FullscreenThumbnails({ images, currentIndex, onSelect }: Gallery
           key={image || index}
           onClick={() => onSelect(index)}
           className={cn(
-            "shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 transition-all",
+            "shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all",
             index === currentIndex
               ? "border-primary ring-2 ring-primary/30"
               : "border-transparent hover:border-primary/50 opacity-60 hover:opacity-100"

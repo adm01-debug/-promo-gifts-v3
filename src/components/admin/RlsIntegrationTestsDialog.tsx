@@ -93,7 +93,7 @@ export function RlsIntegrationTestsDialog() {
         </div>
 
         {data && (
-          <div className="rounded-xl border">
+          <div className="rounded-lg border">
             <Table>
               <TableHeader>
                 <TableRow>

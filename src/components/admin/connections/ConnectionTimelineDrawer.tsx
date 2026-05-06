@@ -200,7 +200,7 @@ export function ConnectionTimelineDrawer({
               <Loader2 className="h-4 w-4 animate-spin" /> Carregando…
             </div>
           ) : rows.length === 0 ? (
-            <div className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">
+            <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
               Nenhum teste registrado ainda. Execute "Testar conexão" para começar a gravar histórico.
             </div>
           ) : (

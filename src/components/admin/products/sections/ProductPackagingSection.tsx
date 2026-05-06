@@ -40,7 +40,7 @@ export function ProductPackagingSection({ register, numericProps, watch, setValu
             <div
               key={key}
               className={cn(
-                'flex items-center justify-between rounded-xl border p-3 transition-all duration-200 cursor-pointer hover:bg-accent/30',
+                'flex items-center justify-between rounded-lg border p-3 transition-all duration-200 cursor-pointer hover:bg-accent/30',
                 value ? 'bg-primary/5 border-primary/20' : 'border-border/50',
               )}
               onClick={toggle}

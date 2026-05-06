@@ -56,7 +56,7 @@ export function CollectionDetailHeader({
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: "spring", stiffness: 400, damping: 20 }}
-          className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl flex items-center justify-center text-2xl shrink-0 border-[1.5px] border-primary/20"
+          className="w-14 h-14 sm:w-16 sm:h-16 rounded-lg flex items-center justify-center text-2xl shrink-0 border-[1.5px] border-primary/20"
           style={{ backgroundColor: `${collection.color}20` }}
         >
           {collection.icon}

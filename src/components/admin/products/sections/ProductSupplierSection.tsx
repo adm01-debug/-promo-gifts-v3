@@ -124,7 +124,7 @@ export function ProductSupplierSection({
         {/* ── Fornecedor Principal ── */}
         <div>
           <div className="flex items-center gap-2.5 mb-3">
-            <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
               <Truck className="h-4 w-4 text-primary" />
             </div>
             <div>
@@ -154,7 +154,7 @@ export function ProductSupplierSection({
         {/* ── Fornecedores Secundários ── */}
         <div>
           <div className="flex items-center gap-2.5 mb-3">
-            <div className="w-8 h-8 rounded-xl bg-muted/50 flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-muted/50 flex items-center justify-center shrink-0">
               <Users className="h-4 w-4 text-muted-foreground" />
             </div>
             <div className="flex-1">

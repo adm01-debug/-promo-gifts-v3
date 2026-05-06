@@ -127,9 +127,9 @@ function KpiCard({ label, value, sub, icon: Icon, variant = 'default' }: {
   };
 
   return (
-    <div className={cn("rounded-xl border p-3 transition-all hover:shadow-sm", styles[variant])}>
+    <div className={cn("rounded-lg border p-3 transition-all hover:shadow-sm", styles[variant])}>
       <div className="flex items-center gap-2 mb-2">
-        <div className={cn("h-7 w-7 rounded-xl flex items-center justify-center", iconStyles[variant])}>
+        <div className={cn("h-7 w-7 rounded-lg flex items-center justify-center", iconStyles[variant])}>
           <Icon className="h-3.5 w-3.5" />
         </div>
         <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">{label}</p>
@@ -152,7 +152,7 @@ function EntryRow({ entry }: { entry: FutureStockEntry }) {
   return (
     <div
       className={cn(
-        "grid grid-cols-[1fr_90px_110px_100px_70px] gap-2 px-3 py-2.5 rounded-xl border transition-all duration-200",
+        "grid grid-cols-[1fr_90px_110px_100px_70px] gap-2 px-3 py-2.5 rounded-lg border transition-all duration-200",
         "hover:bg-muted/40 hover:shadow-sm",
         daysInfo.urgency === 'overdue' && "border-destructive/30 bg-destructive/5",
         daysInfo.urgency === 'imminent' && "border-primary/30 bg-primary/5",
@@ -427,7 +427,7 @@ export function FutureStockDialog({ open, onOpenChange, entries }: FutureStockDi
 
         {/* Overdue alert */}
         {stats.overdueCount > 0 && (
-          <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-sm">
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
             <AlertCircle className="h-4 w-4 shrink-0" />
             <span>
               <strong>{stats.overdueCount}</strong> {stats.overdueCount === 1 ? 'reposição atrasada' : 'reposições atrasadas'} — verifique com o fornecedor.
@@ -478,7 +478,7 @@ export function FutureStockDialog({ open, onOpenChange, entries }: FutureStockDi
           </Select>
 
           {/* View Mode Toggle */}
-          <div className="flex items-center rounded-xl border bg-muted/30 p-0.5">
+          <div className="flex items-center rounded-lg border bg-muted/30 p-0.5">
             <Button
               variant={viewMode === 'timeline' ? 'default' : 'ghost'}
               size="sm"
@@ -532,7 +532,7 @@ export function FutureStockDialog({ open, onOpenChange, entries }: FutureStockDi
           ) : (
             <div className="space-y-1">
               {/* List Header */}
-              <div className="grid grid-cols-[1fr_90px_110px_100px_70px] gap-2 px-3 py-2 bg-muted/30 rounded-xl text-xs font-medium text-muted-foreground sticky top-0 z-[1]">
+              <div className="grid grid-cols-[1fr_90px_110px_100px_70px] gap-2 px-3 py-2 bg-muted/30 rounded-lg text-xs font-medium text-muted-foreground sticky top-0 z-[1]">
                 <button type="button" onClick={() => toggleSort('product')} className="flex items-center gap-1 hover:text-foreground transition-colors text-left">
                   Produto {sortField === 'product' && <ArrowUpDown className="h-3 w-3" />}
                 </button>

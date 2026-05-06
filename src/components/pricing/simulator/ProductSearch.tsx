@@ -41,10 +41,10 @@ export function ProductSearch({ onSelect, selectedProduct }: ProductSearchProps)
 
   if (selectedProduct && !isSearching) {
     return (
-      <div className="p-4 rounded-xl border bg-card">
+      <div className="p-4 rounded-lg border bg-card">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center overflow-hidden">
+            <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center overflow-hidden">
               {selectedProduct.images?.[0] ? (
                 <img
                   src={selectedProduct.images[0]}
@@ -112,7 +112,7 @@ export function ProductSearch({ onSelect, selectedProduct }: ProductSearchProps)
                   setIsSearching(false);
                   setSearchQuery('');
                 }}
-                className="w-full p-3 rounded-xl border bg-card hover:bg-accent transition-colors text-left flex items-center gap-3"
+                className="w-full p-3 rounded-lg border bg-card hover:bg-accent transition-colors text-left flex items-center gap-3"
               >
                 <div className="w-10 h-10 rounded bg-muted flex items-center justify-center overflow-hidden shrink-0">
                   {product.images?.[0] ? (

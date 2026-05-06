@@ -109,14 +109,14 @@ export function VoiceSuggestionsPanel({
                 value={textCommand}
                 onChange={(e) => setTextCommand(e.target.value)}
                 placeholder="Digite um comando..."
-                className="flex-1 bg-white/[0.06] border border-white/[0.1] rounded-xl px-3 py-2 text-sm text-white/90 placeholder:text-white/30 focus:outline-none focus:border-white/25 focus:ring-1 focus:ring-white/10"
+                className="flex-1 bg-white/[0.06] border border-white/[0.1] rounded-lg px-3 py-2 text-sm text-white/90 placeholder:text-white/30 focus:outline-none focus:border-white/25 focus:ring-1 focus:ring-white/10"
                 autoFocus
                 disabled={phase === "processing" || phase === "speaking"}
               />
               <button
                 type="submit"
                 disabled={!textCommand.trim() || phase === "processing" || phase === "speaking"}
-                className="h-9 w-9 rounded-xl bg-primary/20 hover:bg-primary/30 border border-primary/30 flex items-center justify-center text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                className="h-9 w-9 rounded-lg bg-primary/20 hover:bg-primary/30 border border-primary/30 flex items-center justify-center text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
               >
                 <Send className="h-3.5 w-3.5" />
               </button>

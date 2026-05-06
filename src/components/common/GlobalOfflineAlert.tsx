@@ -37,7 +37,7 @@ export function GlobalOfflineAlert() {
         exit={{ y: 50, opacity: 0 }}
         className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] w-[calc(100%-2rem)] max-w-md"
       >
-        <div className="bg-destructive text-destructive-foreground p-4 rounded-xl shadow-2xl border border-white/10 flex items-center gap-4">
+        <div className="bg-destructive text-destructive-foreground p-4 rounded-lg shadow-2xl border border-white/10 flex items-center gap-4">
           <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center shrink-0">
             <WifiOff className="h-5 w-5" />
           </div>

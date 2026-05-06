@@ -254,7 +254,7 @@ export const ProductListItem = memo(function ProductListItem({
         
         className={cn(
           "group relative flex items-center gap-3 sm:gap-4 px-3 sm:px-4 py-2 sm:py-2.5",
-          "rounded-xl bg-card cursor-pointer",
+          "rounded-lg bg-card cursor-pointer",
           "transition-all duration-200 ease-out",
           "active:scale-[0.997] touch-manipulation",
           hasColorMatch && matchedHighlightColor ? "border-2" : "border border-border/50 hover:border-primary/30 hover:bg-accent/30 hover:shadow-md",
@@ -266,7 +266,7 @@ export const ProductListItem = memo(function ProductListItem({
         onClick={handleClick}
       >
         {/* Thumbnail — compact square */}
-        <div className="relative shrink-0 w-14 h-14 sm:w-[72px] sm:h-[72px] rounded-xl overflow-hidden bg-muted/30 border border-border/30">
+        <div className="relative shrink-0 w-14 h-14 sm:w-[72px] sm:h-[72px] rounded-lg overflow-hidden bg-muted/30 border border-border/30">
           <img
             src={thumbUrl}
             alt={product.name}

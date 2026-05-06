@@ -228,7 +228,7 @@ export function InlineColorGroupFilter({
           colorData.groups
             .filter(g => expandedGroups.has(g.id) && g.variations.length > 1)
             .map(group => (
-              <div key={group.id} className="rounded-xl border border-border/50 bg-muted/20 p-2.5 space-y-2">
+              <div key={group.id} className="rounded-lg border border-border/50 bg-muted/20 p-2.5 space-y-2">
                 <div className="flex items-center gap-2 text-sm">
                   <div
                     className="w-4 h-4 rounded-full border"

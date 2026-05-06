@@ -65,7 +65,7 @@ export function TechniqueCard({
         <div
           onClick={onToggle}
           className={cn(
-            'flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all',
+            'flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all',
             isSelected ? 'border-primary bg-primary/5 shadow-md ring-2 ring-primary/20' : 'border-border hover:border-primary/50 bg-card hover:shadow-sm'
           )}
         >
@@ -73,11 +73,11 @@ export function TechniqueCard({
             <HoverCardTrigger asChild>
               <div className="relative flex-shrink-0">
                 {thumbnail ? (
-                  <div className="w-10 h-10 rounded-xl overflow-hidden ring-2 ring-border">
+                  <div className="w-10 h-10 rounded-lg overflow-hidden ring-2 ring-border">
                     <img src={thumbnail} alt={technique.name} className="w-full h-full object-cover" loading="lazy" />
                   </div>
                 ) : (
-                  <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center text-lg', style.color, 'text-primary-foreground')}>{style.icon}</div>
+                  <div className={cn('w-10 h-10 rounded-lg flex items-center justify-center text-lg', style.color, 'text-primary-foreground')}>{style.icon}</div>
                 )}
                 {isSelected && (
                   <motion.div className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full flex items-center justify-center" initial={{ scale: 0 }} animate={{ scale: 1 }}>
@@ -131,7 +131,7 @@ export function TechniqueCard({
   return (
     <motion.div layout initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.2 }} whileHover={{ scale: 1.005 }}>
       <div className={cn(
-        'relative rounded-xl border-2 transition-all duration-200 overflow-hidden',
+        'relative rounded-lg border-2 transition-all duration-200 overflow-hidden',
         isSelected ? 'border-primary bg-primary/5 shadow-lg ring-2 ring-primary/20' : 'border-border hover:border-primary/50 hover:shadow-md bg-card'
       )}>
         {recommendation.isRecommended && !isSelected && (
@@ -150,12 +150,12 @@ export function TechniqueCard({
                   animate={isSelected ? { boxShadow: ['0 0 0 0 rgba(99,102,241,0)', '0 0 0 6px rgba(99,102,241,0.1)', '0 0 0 0 rgba(99,102,241,0)'] } : {}}
                   transition={{ duration: 2, repeat: Infinity }}>
                   {thumbnail ? (
-                    <div className="w-14 h-14 rounded-xl overflow-hidden ring-2 ring-border">
+                    <div className="w-14 h-14 rounded-lg overflow-hidden ring-2 ring-border">
                       <img src={thumbnail} alt={technique.name} className="w-full h-full object-cover" loading="lazy" />
                       <div className={cn('absolute bottom-0 right-0 w-6 h-6 rounded-tl-lg rounded-br-lg flex items-center justify-center text-sm', style.color, 'text-primary-foreground')}>{style.icon}</div>
                     </div>
                   ) : (
-                    <div className={cn('w-14 h-14 rounded-xl flex items-center justify-center text-2xl', style.color, 'text-primary-foreground')}>{style.icon}</div>
+                    <div className={cn('w-14 h-14 rounded-lg flex items-center justify-center text-2xl', style.color, 'text-primary-foreground')}>{style.icon}</div>
                   )}
                   {isSelected && (
                     <motion.div className="absolute -top-1.5 -right-1.5 w-6 h-6 bg-primary rounded-full flex items-center justify-center shadow-md" initial={{ scale: 0 }} animate={{ scale: 1 }}>

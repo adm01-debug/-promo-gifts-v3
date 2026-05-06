@@ -137,7 +137,7 @@ export default function ClientsPage() {
           </Card>
         ) : isLoading ? (
           <div className="grid gap-3">
-            {[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-20 rounded-xl" />)}
+            {[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-20 rounded-lg" />)}
           </div>
         ) : filtered.length === 0 ? (
           <Card className="border-dashed">

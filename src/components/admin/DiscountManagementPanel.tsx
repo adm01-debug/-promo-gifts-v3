@@ -144,7 +144,7 @@ export function DiscountManagementPanel() {
           <motion.div key={stat.label} custom={i} initial="hidden" animate="visible" variants={cardVariants}>
             <Card className={cn("border", stat.border)}>
               <CardContent className="p-4 flex items-center gap-3">
-                <div className={cn("p-2 rounded-xl shrink-0", stat.bg)}>
+                <div className={cn("p-2 rounded-lg shrink-0", stat.bg)}>
                   <stat.icon className={cn("h-4 w-4", stat.color)} />
                 </div>
                 <div>
@@ -205,7 +205,7 @@ export function DiscountManagementPanel() {
               {limitsLoading ? (
                 <div className="space-y-3">
                   {[...Array(4)].map((_, i) => (
-                    <Skeleton key={i} className="h-14 w-full rounded-xl" />
+                    <Skeleton key={i} className="h-14 w-full rounded-lg" />
                   ))}
                 </div>
               ) : (
@@ -222,7 +222,7 @@ export function DiscountManagementPanel() {
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: 10 }}
                             transition={{ delay: idx * 0.02 }}
-                            className="flex items-center justify-between p-3 rounded-xl border border-border/50 hover:border-primary/30 hover:bg-primary/[0.02] transition-all group"
+                            className="flex items-center justify-between p-3 rounded-lg border border-border/50 hover:border-primary/30 hover:bg-primary/[0.02] transition-all group"
                           >
                             <div className="flex items-center gap-3">
                               <div
@@ -339,7 +339,7 @@ export function DiscountManagementPanel() {
           {requestsLoading ? (
             <div className="space-y-3">
               {[...Array(3)].map((_, i) => (
-                <Skeleton key={i} className="h-36 w-full rounded-xl" />
+                <Skeleton key={i} className="h-36 w-full rounded-lg" />
               ))}
             </div>
           ) : filteredApprovals.length === 0 ? (
@@ -444,13 +444,13 @@ export function DiscountManagementPanel() {
                               </div>
                             )}
                             {req.seller_notes && (
-                              <div className="rounded-xl bg-muted/50 border border-border/40 px-3 py-2 text-sm">
+                              <div className="rounded-lg bg-muted/50 border border-border/40 px-3 py-2 text-sm">
                                 <span className="font-semibold text-xs text-muted-foreground uppercase tracking-wide">Nota do vendedor</span>
                                 <p className="mt-0.5 text-foreground/80">{req.seller_notes}</p>
                               </div>
                             )}
                             {req.admin_notes && (
-                              <div className="rounded-xl bg-primary/5 border border-primary/20 px-3 py-2 text-sm">
+                              <div className="rounded-lg bg-primary/5 border border-primary/20 px-3 py-2 text-sm">
                                 <span className="font-semibold text-xs text-primary uppercase tracking-wide">Nota do admin</span>
                                 <p className="mt-0.5 text-foreground/80">{req.admin_notes}</p>
                               </div>
@@ -566,7 +566,7 @@ export function DiscountManagementPanel() {
           </DialogHeader>
           {respondDialog.request && (
             <div className="space-y-4 py-2">
-              <div className="rounded-xl bg-muted/50 border border-border/40 p-4 space-y-2">
+              <div className="rounded-lg bg-muted/50 border border-border/40 p-4 space-y-2">
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <InfoCell label="Orçamento" value={respondDialog.request.quote?.quote_number || "—"} />
                   <InfoCell label="Vendedor" value={respondDialog.request.seller?.full_name || "—"} />

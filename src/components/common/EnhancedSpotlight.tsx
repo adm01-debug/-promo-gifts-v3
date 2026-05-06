@@ -202,7 +202,7 @@ export function EnhancedSpotlight() {
             transition={{ duration: 0.15, ease: "easeOut" }}
             className="fixed left-1/2 top-[12%] z-[101] w-full max-w-xl -translate-x-1/2 px-4"
           >
-            <div className="overflow-hidden rounded-xl border border-border bg-card shadow-2xl">
+            <div className="overflow-hidden rounded-lg border border-border bg-card shadow-2xl">
               {/* Search Input */}
               <div className="flex items-center border-b border-border px-4">
                 <Search className="h-5 w-5 text-muted-foreground shrink-0" />
@@ -274,7 +274,7 @@ export function EnhancedSpotlight() {
                           onClick={() => handleSelect(item)}
                           onMouseEnter={() => setSelectedIndex(globalIndex)}
                           className={cn(
-                            "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left",
+                            "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left",
                             "transition-colors duration-100",
                             "focus:outline-none",
                             isSelected
@@ -284,7 +284,7 @@ export function EnhancedSpotlight() {
                         >
                           <div
                             className={cn(
-                              "flex h-9 w-9 items-center justify-center rounded-xl shrink-0",
+                              "flex h-9 w-9 items-center justify-center rounded-lg shrink-0",
                               isSelected ? "bg-primary text-primary-foreground" : "bg-muted"
                             )}
                           >
@@ -363,7 +363,7 @@ export function EnhancedSpotlightTrigger({ className }: { className?: string }) 
     <button
       onClick={handleClick}
       className={cn(
-        "flex items-center gap-2 rounded-xl border border-border bg-muted/50 px-3 py-2 text-sm text-muted-foreground",
+        "flex items-center gap-2 rounded-lg border border-border bg-muted/50 px-3 py-2 text-sm text-muted-foreground",
         "hover:bg-muted hover:text-foreground hover:border-border/80 transition-all duration-150",
         "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
         "active:scale-[0.98]",

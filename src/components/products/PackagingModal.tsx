@@ -67,7 +67,7 @@ export function PackagingModal({
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-lg">
-            <div className="w-8 h-8 rounded-xl bg-warning/10 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-warning/10 flex items-center justify-center">
               <Gift className="h-4 w-4 text-warning" />
             </div>
             <span>Embalagem Especial</span>
@@ -76,7 +76,7 @@ export function PackagingModal({
 
         <div className="space-y-5 pt-2">
           {/* Imagem da Embalagem */}
-          <div className="relative overflow-hidden rounded-xl border border-border bg-secondary/30">
+          <div className="relative overflow-hidden rounded-lg border border-border bg-secondary/30">
             <AspectRatio ratio={4 / 3}>
               {boxImage && !imageError ? (
                 <>
@@ -188,7 +188,7 @@ export function PackagingModal({
 
           {/* Observação */}
           <Separator className="bg-border/50" />
-          <div className="flex items-start gap-2 p-3 rounded-xl bg-info/5 border border-info/20">
+          <div className="flex items-start gap-2 p-3 rounded-lg bg-info/5 border border-info/20">
             <Info className="h-4 w-4 text-info shrink-0 mt-0.5" />
             <p className="text-xs text-muted-foreground leading-relaxed">
               A embalagem especial está inclusa no preço do produto.
@@ -213,7 +213,7 @@ function DimensionItem({
   if (!value) return null;
   
   return (
-    <div className="p-2.5 rounded-xl bg-secondary/50 border border-border/50">
+    <div className="p-2.5 rounded-lg bg-secondary/50 border border-border/50">
       <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground uppercase tracking-wide mb-1">
         {icon}
         {label}

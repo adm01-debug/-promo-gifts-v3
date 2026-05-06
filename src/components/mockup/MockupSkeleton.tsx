@@ -28,7 +28,7 @@ export function MockupSkeleton({
         className={cn("animate-fade-in opacity-0 [animation-fill-mode:forwards]", className)}
         style={staggerStyle}
       >
-        <div className="flex items-center gap-3 p-4 bg-muted/30 rounded-xl border">
+        <div className="flex items-center gap-3 p-4 bg-muted/30 rounded-lg border">
           {/* Step indicators */}
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="flex items-center gap-2 flex-1">
@@ -57,16 +57,16 @@ export function MockupSkeleton({
               <div className={cn("h-4 w-4 rounded", shimmerClass)} />
               <div className={cn("h-4 w-28 rounded", shimmerClass)} />
             </div>
-            <div className={cn("h-8 w-20 rounded-xl", shimmerClass)} />
+            <div className={cn("h-8 w-20 rounded-lg", shimmerClass)} />
           </div>
 
           {/* Canvas area */}
-          <div className={cn("aspect-square rounded-xl", shimmerClass)} />
+          <div className={cn("aspect-square rounded-lg", shimmerClass)} />
 
           {/* Quick actions */}
           <div className="flex gap-2">
-            <div className={cn("h-9 flex-1 rounded-xl", shimmerClass)} />
-            <div className={cn("h-9 flex-1 rounded-xl", shimmerClass)} />
+            <div className={cn("h-9 flex-1 rounded-lg", shimmerClass)} />
+            <div className={cn("h-9 flex-1 rounded-lg", shimmerClass)} />
           </div>
 
           {/* Sliders */}
@@ -103,14 +103,14 @@ export function MockupSkeleton({
           {[1, 2, 3].map((i) => (
             <div key={i} className="space-y-2" style={{ animationDelay: `${i * 100}ms` }}>
               <div className={cn("h-4 w-24 rounded", shimmerClass)} />
-              <div className={cn("h-10 w-full rounded-xl", shimmerClass)} />
+              <div className={cn("h-10 w-full rounded-lg", shimmerClass)} />
             </div>
           ))}
 
           {/* Button skeleton */}
           <div className="flex gap-2 pt-4">
-            <div className={cn("h-10 flex-1 rounded-xl", shimmerClass)} />
-            <div className={cn("h-10 w-10 rounded-xl", shimmerClass)} />
+            <div className={cn("h-10 flex-1 rounded-lg", shimmerClass)} />
+            <div className={cn("h-10 w-10 rounded-lg", shimmerClass)} />
           </div>
         </CardContent>
       </Card>
@@ -138,8 +138,8 @@ export function MockupSkeleton({
 
           {/* Image area with pulse ring */}
           <div className="relative">
-            <div className={cn("aspect-square rounded-xl", shimmerClass)} />
-            <div className="absolute inset-0 rounded-xl border-2 border-primary/20 animate-pulse" />
+            <div className={cn("aspect-square rounded-lg", shimmerClass)} />
+            <div className="absolute inset-0 rounded-lg border-2 border-primary/20 animate-pulse" />
           </div>
 
           {/* Controls */}
@@ -171,7 +171,7 @@ export function MockupSkeleton({
 
           {/* Image with loading indicator */}
           <div className="relative">
-            <div className={cn("aspect-square rounded-xl", shimmerClass)} />
+            <div className={cn("aspect-square rounded-lg", shimmerClass)} />
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="w-12 h-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
             </div>
@@ -191,7 +191,7 @@ export function MockupSkeleton({
   return (
     <div 
       className={cn(
-        "border rounded-xl overflow-hidden bg-card animate-fade-in opacity-0 [animation-fill-mode:forwards]",
+        "border rounded-lg overflow-hidden bg-card animate-fade-in opacity-0 [animation-fill-mode:forwards]",
         className
       )}
       style={staggerStyle}

@@ -160,7 +160,7 @@ export default function PublicFavoriteListPage() {
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div className="flex items-center gap-3 min-w-0">
               <div
-                className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
+                className="w-12 h-12 rounded-lg flex items-center justify-center shrink-0"
                 style={{ backgroundColor: `${list.color}20`, color: list.color }}
               >
                 <Heart className="h-6 w-6" fill="currentColor" />
@@ -196,7 +196,7 @@ export default function PublicFavoriteListPage() {
               const meta = reactionMap.get(item.id);
               const img = item.variant_info?.thumbnail || product?.images?.[0];
               return (
-                <article key={item.id} className="rounded-xl border border-border bg-card overflow-hidden hover:shadow-lg transition-shadow">
+                <article key={item.id} className="rounded-lg border border-border bg-card overflow-hidden hover:shadow-lg transition-shadow">
                   <div className="aspect-square bg-muted overflow-hidden">
                     {img ? (
                       <img src={img} alt={product?.name ?? "Produto"} loading="lazy" className="w-full h-full object-cover" />

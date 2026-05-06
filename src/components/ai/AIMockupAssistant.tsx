@@ -169,7 +169,7 @@ export function AIMockupAssistant({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: 20, scale: 0.95 }}
       className={cn(
-        "fixed z-50 shadow-2xl rounded-xl border bg-background overflow-hidden",
+        "fixed z-50 shadow-2xl rounded-lg border bg-background overflow-hidden",
         "bottom-24 right-4 md:bottom-6",
         isMinimized ? "w-72 h-14" : "w-80 sm:w-96 h-[500px] max-h-[70vh]",
         className
@@ -180,7 +180,7 @@ export function AIMockupAssistant({
         className="flex items-center gap-3 p-3 border-b bg-primary/15 cursor-pointer"
         onClick={() => setIsMinimized(!isMinimized)}
       >
-        <div className="p-2 rounded-xl bg-primary/25">
+        <div className="p-2 rounded-lg bg-primary/25">
           <Bot className="h-4 w-4 text-primary" />
         </div>
         <div className="flex-1 min-w-0">
@@ -226,7 +226,7 @@ export function AIMockupAssistant({
                   >
                     <div
                       className={cn(
-                        "p-2 rounded-xl shrink-0",
+                        "p-2 rounded-lg shrink-0",
                         message.role === "user"
                           ? "bg-primary text-white"
                           : "bg-muted"
@@ -240,7 +240,7 @@ export function AIMockupAssistant({
                     </div>
                     <div
                       className={cn(
-                        "rounded-xl p-3 max-w-[80%]",
+                        "rounded-lg p-3 max-w-[80%]",
                         message.role === "user"
                           ? "bg-primary text-white"
                           : "bg-muted"
@@ -276,10 +276,10 @@ export function AIMockupAssistant({
                   animate={{ opacity: 1 }}
                   className="flex gap-2"
                 >
-                  <div className="p-2 rounded-xl bg-muted">
+                  <div className="p-2 rounded-lg bg-muted">
                     <Sparkles className="h-4 w-4" />
                   </div>
-                  <div className="bg-muted rounded-xl p-3">
+                  <div className="bg-muted rounded-lg p-3">
                     <Loader2 className="h-4 w-4 animate-spin" />
                   </div>
                 </motion.div>

@@ -180,7 +180,7 @@ export const ProductPreviewPanel = memo(function ProductPreviewPanel({
           {images.slice(0, 4).map((img, i) => (
             <div
               key={i}
-              className="w-10 h-10 rounded-xl overflow-hidden border border-border/50 bg-muted/30"
+              className="w-10 h-10 rounded-lg overflow-hidden border border-border/50 bg-muted/30"
             >
               <img
                 src={getCdnUrl(img, 'card')}
@@ -191,7 +191,7 @@ export const ProductPreviewPanel = memo(function ProductPreviewPanel({
             </div>
           ))}
           {images.length > 4 && (
-            <div className="w-10 h-10 rounded-xl border border-border/50 bg-muted/30 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-lg border border-border/50 bg-muted/30 flex items-center justify-center">
               <span className="text-[10px] font-medium text-muted-foreground">
                 +{images.length - 4}
               </span>

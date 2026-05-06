@@ -140,7 +140,7 @@ export function BridgeProductsPreviewPanel() {
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div className="flex items-start gap-3">
-            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
               <Boxes className="h-5 w-5 text-primary" aria-hidden="true" />
             </div>
             <div>
@@ -178,7 +178,7 @@ export function BridgeProductsPreviewPanel() {
 
       <CardContent className="space-y-4">
         {/* ---- Filtros ---- */}
-        <div className="rounded-xl border bg-muted/30 p-3 space-y-3">
+        <div className="rounded-lg border bg-muted/30 p-3 space-y-3">
           <div className="grid gap-3 md:grid-cols-12">
             <div className="md:col-span-5 space-y-1.5">
               <Label htmlFor="bridge-products-search" className="text-xs">
@@ -309,12 +309,12 @@ export function BridgeProductsPreviewPanel() {
 
         {/* ---- Resultados ---- */}
         {error ? (
-          <div className="rounded-xl border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">
+          <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">
             Falha ao consultar a edge function: {error}
           </div>
         ) : null}
 
-        <div className="rounded-xl border overflow-hidden">
+        <div className="rounded-lg border overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-muted/50 text-xs">

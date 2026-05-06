@@ -157,7 +157,7 @@ export default function PublicComparisonPage() {
         <div className="max-w-6xl mx-auto space-y-4">
           <Skeleton className="h-12 w-64" />
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-72 rounded-xl" />)}
+            {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-72 rounded-lg" />)}
           </div>
         </div>
       </div>
@@ -186,7 +186,7 @@ export default function PublicComparisonPage() {
 
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-primary/10 shrink-0">
+          <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-primary/10 shrink-0">
             <GitCompare className="h-6 w-6 text-primary" />
           </div>
           <div className="flex-1 min-w-0">
@@ -215,7 +215,7 @@ export default function PublicComparisonPage() {
               const img = item.variant?.thumbnail || product?.images?.[0];
               const reactionMap = reactions.get(idx);
               return (
-                <article key={`${item.productId}-${idx}`} className="rounded-xl border border-border bg-card overflow-hidden flex flex-col hover:shadow-md transition-shadow">
+                <article key={`${item.productId}-${idx}`} className="rounded-lg border border-border bg-card overflow-hidden flex flex-col hover:shadow-md transition-shadow">
                   <div className="aspect-square bg-muted overflow-hidden">
                     {img ? (
                       <img src={img} alt={product?.name ?? "Produto"} loading="lazy" className="w-full h-full object-cover" />

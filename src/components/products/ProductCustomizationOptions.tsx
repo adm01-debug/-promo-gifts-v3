@@ -78,8 +78,8 @@ export function ProductCustomizationOptions({
           <Skeleton className="h-5 w-5 rounded" />
           <Skeleton className="h-6 w-48" />
         </div>
-        <Skeleton className="h-12 w-full rounded-xl" />
-        <Skeleton className="h-32 w-full rounded-xl" />
+        <Skeleton className="h-12 w-full rounded-lg" />
+        <Skeleton className="h-32 w-full rounded-lg" />
       </div>
     );
   }
@@ -103,7 +103,7 @@ export function ProductCustomizationOptions({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
             <Paintbrush className="h-4 w-4 text-primary" />
           </div>
           <h3 className="font-display text-lg font-semibold text-foreground">
@@ -125,7 +125,7 @@ export function ProductCustomizationOptions({
               key={loc.location_code}
               onClick={() => setActiveLocation(loc.location_code)}
               className={cn(
-                "px-4 py-2 rounded-xl text-sm font-medium transition-all border",
+                "px-4 py-2 rounded-lg text-sm font-medium transition-all border",
                 isActive
                   ? "bg-primary text-primary-foreground border-primary"
                   : hasPrice
@@ -154,7 +154,7 @@ export function ProductCustomizationOptions({
 
       {/* Summary */}
       {totalSelected > 0 ? (
-        <div className="flex items-center justify-between p-3 rounded-xl bg-primary/5 border border-primary/20 text-sm">
+        <div className="flex items-center justify-between p-3 rounded-lg bg-primary/5 border border-primary/20 text-sm">
           <span className="text-foreground font-medium">
             {totalSelected} loca{totalSelected !== 1 ? "is" : "l"} personalizado{totalSelected !== 1 ? "s" : ""}
           </span>
@@ -163,7 +163,7 @@ export function ProductCustomizationOptions({
           </span>
         </div>
       ) : (
-        <div className="flex items-center justify-center p-3 rounded-xl bg-muted/50 text-sm text-muted-foreground">
+        <div className="flex items-center justify-center p-3 rounded-lg bg-muted/50 text-sm text-muted-foreground">
           Selecione uma técnica para ver o preço de gravação
         </div>
       )}

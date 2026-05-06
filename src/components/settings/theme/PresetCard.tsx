@@ -23,7 +23,7 @@ export function PresetCard({ preset, isActive, onSelect }: PresetCardProps) {
           onHoverStart={() => setIsHovered(true)}
           onHoverEnd={() => setIsHovered(false)}
           className={cn(
-            'relative cursor-pointer rounded-xl border bg-card p-4 transition-all duration-300 overflow-hidden group',
+            'relative cursor-pointer rounded-lg border bg-card p-4 transition-all duration-300 overflow-hidden group',
             isActive
               ? 'border-primary ring-2 ring-primary/60 shadow-md'
               : 'border-border hover:border-primary/40 hover:shadow-lg'
@@ -47,7 +47,7 @@ export function PresetCard({ preset, isActive, onSelect }: PresetCardProps) {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="absolute inset-0 rounded-xl"
+                className="absolute inset-0 rounded-lg"
                 style={{
                   background: `radial-gradient(ellipse at 50% 0%, ${preset.swatches[0]}15 0%, transparent 70%)`,
                 }}
@@ -56,7 +56,7 @@ export function PresetCard({ preset, isActive, onSelect }: PresetCardProps) {
           </AnimatePresence>
 
           {/* Swatches bar with rounded edges */}
-          <div className="relative flex h-8 rounded-xl overflow-hidden mb-3 shadow-sm">
+          <div className="relative flex h-8 rounded-lg overflow-hidden mb-3 shadow-sm">
             {preset.swatches.map((color, i) => (
               <motion.div
                 key={i}

@@ -49,7 +49,7 @@ export function MockupBeforeAfter({
     <div
       ref={containerRef}
       className={cn(
-        "relative rounded-xl overflow-hidden border-2 border-primary/20 select-none touch-none cursor-col-resize",
+        "relative rounded-lg overflow-hidden border-2 border-primary/20 select-none touch-none cursor-col-resize",
         "aspect-square bg-muted/30",
         className
       )}

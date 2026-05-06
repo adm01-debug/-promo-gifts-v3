@@ -102,7 +102,7 @@ export function StatCard({ title, value, icon, trend, variant = 'default', onCli
         onClick?.();
       }}
       className={cn(
-        "group relative w-full overflow-hidden rounded-xl border text-left",
+        "group relative w-full overflow-hidden rounded-lg border text-left",
         "transition-all duration-300 ease-out",
         styles.base,
         onClick && "cursor-pointer",
@@ -141,7 +141,7 @@ export function StatCard({ title, value, icon, trend, variant = 'default', onCli
             )}
           </div>
           <div className={cn(
-            "h-12 w-12 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300",
+            "h-12 w-12 rounded-lg flex items-center justify-center shrink-0 transition-all duration-300",
             isActive ? `${styles.iconBg} shadow-sm` : "bg-muted/50 group-hover:scale-110",
             styles.iconColor,
           )} aria-hidden="true">

@@ -92,7 +92,7 @@ function SidebarPreview({ width, dark }: { width: number; dark: boolean }) {
   return (
     <div
       className={cn(
-        "rounded-xl border border-border overflow-hidden",
+        "rounded-lg border border-border overflow-hidden",
         dark ? "dark" : "",
       )}
       style={{ width: collapsed ? 72 : Math.min(width, 280) }}
@@ -199,7 +199,7 @@ export default function SidebarQAPage() {
           ))}
         </section>
 
-        <section className="rounded-xl border border-border p-4 space-y-2 text-sm text-muted-foreground">
+        <section className="rounded-lg border border-border p-4 space-y-2 text-sm text-muted-foreground">
           <h3 className="font-semibold text-foreground">Checklist de validação</h3>
           <ul className="list-disc pl-5 space-y-1">
             <li>Item <strong>active</strong>: fundo laranja sólido translúcido + indicador lateral 3px (totalmente plano, sem brilho).</li>

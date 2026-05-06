@@ -77,7 +77,7 @@ export function AppHealthDashboard() {
     <section
       id="saude-aplicacao"
       data-testid="app-health-dashboard"
-      className="space-y-3 sm:space-y-4 border border-border/60 rounded-xl p-3 sm:p-4 bg-card/40"
+      className="space-y-3 sm:space-y-4 border border-border/60 rounded-lg p-3 sm:p-4 bg-card/40"
     >
       {/* Header da seção */}
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -175,7 +175,7 @@ export function AppHealthDashboard() {
                 <code className="font-mono">{lookupResult.request_id}</code>
               </div>
               {lookupResult.event_count > 0 && (
-                <div className="overflow-x-auto rounded-xl border border-border/60">
+                <div className="overflow-x-auto rounded-lg border border-border/60">
                   <table className="w-full text-xs">
                     <thead className="bg-muted/40">
                       <tr className="text-left">
@@ -381,7 +381,7 @@ function KpiCard({
     )}>
       <CardContent className="p-3 flex items-center gap-3">
         <div className={cn(
-          'p-2 rounded-xl',
+          'p-2 rounded-lg',
           tone === 'destructive' && 'bg-destructive/15 text-destructive',
           tone === 'warning' && 'bg-warning/15 text-warning',
           tone === 'muted' && 'bg-muted text-muted-foreground',

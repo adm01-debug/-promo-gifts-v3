@@ -301,7 +301,7 @@ function SellerRow({ seller, rank }: { seller: SellerRanking; rank: number }) {
     .toUpperCase() || '??';
 
   return (
-    <div className="flex items-center gap-2 text-xs p-1.5 rounded-xl hover:bg-muted/50 transition-colors">
+    <div className="flex items-center gap-2 text-xs p-1.5 rounded-lg hover:bg-muted/50 transition-colors">
       <span className={cn(
         "w-4 text-center font-bold",
         rank === 1 ? "text-warning" : "text-muted-foreground"
@@ -335,7 +335,7 @@ function SalesTooltip({ active, payload }: any) {
   const hasAnyActivity = (data.quotedQty > 0) || (data.orderedQty > 0) || (data.quoteCount > 0) || (data.orderCount > 0);
 
   return (
-    <div className="bg-popover border border-border rounded-xl p-3 shadow-lg min-w-[180px]">
+    <div className="bg-popover border border-border rounded-lg p-3 shadow-lg min-w-[180px]">
       <p className="text-xs font-medium text-foreground">{data.fullDate}</p>
       <div className="mt-2 space-y-1.5">
         {!hasAnyActivity && (

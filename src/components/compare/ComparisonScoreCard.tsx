@@ -53,7 +53,7 @@ export function ComparisonScoreCard({ products, className }: ComparisonScoreCard
   return (
     <div
       className={cn(
-        "relative rounded-xl border-[2px] border-amber-400/30 bg-gradient-to-br from-amber-400/10 via-background to-background p-4 shadow-lg",
+        "relative rounded-lg border-[2px] border-amber-400/30 bg-gradient-to-br from-amber-400/10 via-background to-background p-4 shadow-lg",
         className
       )}
     >
@@ -145,7 +145,7 @@ export function ComparisonScoreCard({ products, className }: ComparisonScoreCard
               <div
                 key={s.productId}
                 className={cn(
-                  "flex items-center gap-2 rounded-xl border px-2.5 py-1.5 text-xs transition-all hover:scale-105",
+                  "flex items-center gap-2 rounded-lg border px-2.5 py-1.5 text-xs transition-all hover:scale-105",
                   s.isWinner
                     ? "border-amber-400/40 bg-amber-400/10 font-bold shadow-sm"
                     : "border-border bg-muted/30"

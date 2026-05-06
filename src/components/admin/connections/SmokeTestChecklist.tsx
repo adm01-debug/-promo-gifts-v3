@@ -372,7 +372,7 @@ export function SmokeTestChecklist({ availableSecrets = [] }: Props) {
               <li
                 key={step.id}
                 className={cn(
-                  "rounded-xl border p-3 transition-colors",
+                  "rounded-lg border p-3 transition-colors",
                   step.status === "passed" && "border-green-500/40 bg-green-500/5",
                   step.status === "failed" && "border-destructive/50 bg-destructive/5",
                   step.status === "running" && "border-primary/50 bg-primary/5",
@@ -415,7 +415,7 @@ export function SmokeTestChecklist({ availableSecrets = [] }: Props) {
           {(summary.passed || summary.failed) && !running && (
             <div
               className={cn(
-                "rounded-xl border p-3 text-sm",
+                "rounded-lg border p-3 text-sm",
                 allPassed && "border-green-500/40 bg-green-500/10 text-green-700 dark:text-green-400",
                 anyFailed && "border-destructive/50 bg-destructive/10 text-destructive",
               )}

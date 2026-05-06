@@ -62,7 +62,7 @@ export function MockupEmptyState({
               <div 
                 key={i} 
                 className={cn(
-                  "flex items-center gap-3 p-2.5 rounded-xl border transition-all duration-300",
+                  "flex items-center gap-3 p-2.5 rounded-lg border transition-all duration-300",
                   step.isCompleted 
                     ? "bg-success/10 border-success/30 text-success" 
                     : i + 1 === currentStep

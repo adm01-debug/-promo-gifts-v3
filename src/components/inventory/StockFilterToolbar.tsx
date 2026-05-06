@@ -297,7 +297,7 @@ export function StockFilterToolbar({
             placeholder="Buscar no estoque (nome, SKU ou cor)... "
             value={localSearch}
             onChange={(e) => setLocalSearch(e.target.value)}
-            className="pl-10 pr-10 h-11 bg-card/40 border-border/50 focus:bg-card focus:border-primary/60 transition-all rounded-xl shadow-inner"
+            className="pl-10 pr-10 h-11 bg-card/40 border-border/50 focus:bg-card focus:border-primary/60 transition-all rounded-lg shadow-inner"
           />
           {localSearch && (
             <Button
@@ -322,7 +322,7 @@ export function StockFilterToolbar({
                   placeholder="Preciso de X unidades..."
                   value={quantityInput}
                   onChange={(e) => setQuantityInput(e.target.value)}
-                  className="pl-10 h-11 bg-card/40 border-border/50 focus:bg-card transition-all rounded-xl shadow-inner text-sm font-semibold"
+                  className="pl-10 h-11 bg-card/40 border-border/50 focus:bg-card transition-all rounded-lg shadow-inner text-sm font-semibold"
                   min={0}
                 />
               </div>

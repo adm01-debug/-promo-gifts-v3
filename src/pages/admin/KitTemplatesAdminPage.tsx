@@ -126,7 +126,7 @@ export default function KitTemplatesAdminPage() {
                 <CardContent className="p-4 space-y-3">
                   <div className="flex items-start gap-3">
                     <div
-                      className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border"
+                      className="w-12 h-12 rounded-lg flex items-center justify-center shrink-0 border"
                       style={{ background: `${t.color}1A`, borderColor: `${t.color}40`, color: t.color }}
                     >
                       <Icon className="h-6 w-6" />

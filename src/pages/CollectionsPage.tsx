@@ -309,7 +309,7 @@ export default function CollectionsPage() {
               </div>
             )
           ) : localCollections.length > 0 && searchQuery ? (
-            <div className="text-center py-12 bg-muted/20 rounded-xl border-[1.5px] border-dashed border-primary/10">
+            <div className="text-center py-12 bg-muted/20 rounded-lg border-[1.5px] border-dashed border-primary/10">
               <Search className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
               <h3 className="font-display text-lg font-semibold text-foreground mb-1">Nenhuma coleção encontrada</h3>
               <p className="text-muted-foreground text-sm">Nenhuma coleção corresponde a "{searchQuery}"</p>
@@ -334,7 +334,7 @@ export default function CollectionsPage() {
             </div>
             {isLoadingExternal ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-64 rounded-xl" />)}
+                {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-64 rounded-lg" />)}
               </div>
             ) : (
               viewMode === "table" ? (

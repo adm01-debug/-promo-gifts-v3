@@ -194,7 +194,7 @@ export default function QuoteViewPage() {
 
         {/* Discount Approval Banner */}
         {quote.status === "pending_approval" && (
-          <div className="rounded-xl border border-amber-500/40 bg-amber-500/[0.06] px-4 py-3 flex items-center gap-3 print:hidden">
+          <div className="rounded-lg border border-amber-500/40 bg-amber-500/[0.06] px-4 py-3 flex items-center gap-3 print:hidden">
             <div className="p-2 rounded-lg bg-amber-500/15 shrink-0">
               <Shield className="h-5 w-5 text-amber-500" />
             </div>

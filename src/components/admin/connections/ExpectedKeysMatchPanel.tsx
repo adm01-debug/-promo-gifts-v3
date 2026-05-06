@@ -124,7 +124,7 @@ export function ExpectedKeysMatchPanel({ secrets, extConns, loading }: ExpectedK
       <CardHeader>
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div className="flex items-start gap-3">
-            <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+            <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
               <GitCompare className="h-4 w-4 text-primary" aria-hidden="true" />
             </div>
             <div>
@@ -153,7 +153,7 @@ export function ExpectedKeysMatchPanel({ secrets, extConns, loading }: ExpectedK
           {diagnoses.map((d) => (
             <div
               key={d.envKey}
-              className={`rounded-xl border p-3 space-y-2 ${
+              className={`rounded-lg border p-3 space-y-2 ${
                 d.ok ? "border-green-500/30 bg-green-500/5" : "border-amber-500/30 bg-amber-500/5"
               }`}
             >
@@ -228,7 +228,7 @@ export function ExpectedKeysMatchPanel({ secrets, extConns, loading }: ExpectedK
 
         {/* Órfãos */}
         <div className="grid gap-3 md:grid-cols-2">
-          <div className="rounded-xl border p-3">
+          <div className="rounded-lg border p-3">
             <div className="flex items-center justify-between mb-2">
               <div className="text-xs font-semibold flex items-center gap-1.5">
                 <KeyRound className="h-3.5 w-3.5 text-primary" />
@@ -255,7 +255,7 @@ export function ExpectedKeysMatchPanel({ secrets, extConns, loading }: ExpectedK
             )}
           </div>
 
-          <div className="rounded-xl border p-3">
+          <div className="rounded-lg border p-3">
             <div className="flex items-center justify-between mb-2">
               <div className="text-xs font-semibold flex items-center gap-1.5">
                 <Database className="h-3.5 w-3.5 text-primary" />
