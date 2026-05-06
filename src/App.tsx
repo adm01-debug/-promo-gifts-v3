@@ -128,7 +128,7 @@ const CommercialIntelligencePage = lazyWithRetry(
   () => import('./pages/CommercialIntelligencePage'),
 );
 const ProductMatchPage = lazyWithRetry(() => import('./pages/ProductMatchPage'));
-const BusinessIntelligencePage = lazyWithRetry(() => import('./pages/BusinessIntelligencePage'));
+// const BusinessIntelligencePage = lazyWithRetry(() => import('./pages/BusinessIntelligencePage'));
 const ClientComparatorPage = lazyWithRetry(() => import('./pages/ClientComparatorPage'));
 const PublicDossierPage = lazyWithRetry(() => import('./pages/PublicDossierPage'));
 
