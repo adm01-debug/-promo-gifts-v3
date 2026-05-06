@@ -1,19 +1,19 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { vi, describe, it, expect } from 'vitest';
-import AdminConexoesPage from '@/pages/admin/AdminConexoesPage';
-import AdminConexoesStatusPage from '@/pages/admin/AdminConexoesStatusPage';
-import AdminRbacRoutesPage from '@/pages/admin/AdminRbacRoutesPage';
-import { MainLayout } from '@/components/layout/MainLayout';
-import { AuthProvider } from '@/contexts/AuthContext';
-import { ThemeProvider } from '@/contexts/ThemeContext';
+import AdminConexoesPage from '../pages/admin/AdminConexoesPage';
+import AdminConexoesStatusPage from '../pages/admin/AdminConexoesStatusPage';
+import AdminRbacRoutesPage from '../pages/admin/AdminRbacRoutesPage';
+import { MainLayout } from '../components/layout/MainLayout';
+import { AuthProvider } from '../contexts/AuthContext';
+import { ThemeProvider } from '../contexts/ThemeContext';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { TooltipProvider } from '@/components/ui/tooltip';
+import { TooltipProvider } from '../components/ui/tooltip';
 import { HelmetProvider } from 'react-helmet-async';
 import React from 'react';
 
 // Mock everything that uses Supabase/Network
-vi.mock('@/integrations/supabase/client', () => ({
+vi.mock('../integrations/supabase/client', () => ({
   supabase: {
     auth: {
       getSession: vi.fn().mockResolvedValue({ data: { session: null }, error: null }),
@@ -37,12 +37,12 @@ vi.mock('@/integrations/supabase/client', () => ({
   },
 }));
 
-vi.mock('@/hooks/useSecretsManager', () => ({
+vi.mock('../hooks/useSecretsManager', () => ({
   useSecretsManager: () => ({ secrets: [], isLoading: false, list: vi.fn(), refreshCache: vi.fn() }),
 }));
 
 // We use the REAL SidebarBrandHeader which now has the data-testid
-vi.mock('@/components/layout/SidebarReorganized', async (importOriginal) => {
+vi.mock('../components/layout/SidebarReorganized', async (importOriginal) => {
   const actual = await importOriginal<any>();
   return {
     ...actual,
