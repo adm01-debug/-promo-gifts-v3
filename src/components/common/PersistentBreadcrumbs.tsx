@@ -40,7 +40,9 @@ const routeLabels: Record<string, string> = {
   "/magic-up": "Magic Up",
   "/favoritos": "Favoritos",
   "/comparar": "Comparar",
-  "/estoque": "Estoque",
+  "/estoque": "Estoque 360º",
+  "/tendencias": "Tendências",
+  "/ferramentas/bi-comercial": "Inteligência Comercial",
   "/carrinhos": "Carrinhos",
   "/meus-kits": "Meus Kits",
   "/montar-kit": "Montar Kit",
@@ -100,6 +102,7 @@ export const PersistentBreadcrumbs = forwardRef<HTMLElement, PersistentBreadcrum
     let currentPath = "";
     pathParts.forEach((part, index) => {
       currentPath += `/${part}`;
+      
       const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(part);
       const isNumericId = /^\d+$/.test(part);
       
@@ -111,6 +114,18 @@ export const PersistentBreadcrumbs = forwardRef<HTMLElement, PersistentBreadcrum
         items.push({ label: `#${part.slice(0, 8)}...` });
       } else {
         if (!isDev && isDevOnlyPath(currentPath)) {
+          return;
+        }
+
+        // Especial para rotas que agora pertencem a "Insights"
+        const isInsightRoute = ["/estoque", "/tendencias", "/ferramentas/bi-comercial"].includes(currentPath);
+        if (isInsightRoute && items.every(i => i.label !== "Insights")) {
+          // Só adiciona "Insights" se ainda não estiver lá (previne duplicidade em rotas aninhadas se existissem)
+          items.push({ label: "Insights", isActive: false });
+        }
+
+        // Se estivermos em bi-comercial, não queremos mostrar "Ferramentas" antes se o objetivo é mostrar "Insights"
+        if (currentPath === "/ferramentas" && location.pathname.includes("/bi-comercial")) {
           return;
         }
 
