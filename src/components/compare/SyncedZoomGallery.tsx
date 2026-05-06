@@ -191,7 +191,7 @@ export function SyncedZoomGallery({ products, onProductClick }: SyncedZoomGaller
                       className={cn(
                         "w-6 h-6 rounded-full border-2 transition-all",
                         colorIdx === idx
-                          ? "border-primary ring-2 ring-primary/30 scale-110"
+                          ? "border-amber-500 ring-2 ring-amber-500/30 scale-110 shadow-md"
                           : "border-border hover:scale-105"
                       )}
                       style={{ backgroundColor: c.hex ?? "#ccc" }}
