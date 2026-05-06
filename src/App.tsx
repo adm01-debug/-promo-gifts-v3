@@ -290,12 +290,17 @@ const AppContent = () => {
         <Route path="/ferramentas/magic-up" element={<MagicUp />} />
         <Route path="/magic-up" element={<Navigate to="/ferramentas/magic-up" replace />} />
         <Route path="/ferramentas/simulador" element={<SimuladorWizard />} />
+        <Route path="/simulador" element={<Navigate to="/ferramentas/simulador" replace />} />
         <Route path="/ferramentas/simulador-precos" element={<PriceSimulatorPage />} />
+        <Route path="/simulador-precos" element={<Navigate to="/ferramentas/simulador-precos" replace />} />
         <Route path="/ferramentas/estoque" element={<StockDashboardPage />} />
         <Route path="/ferramentas/busca-preco" element={<AdvancedPriceSearchPage />} />
+        <Route path="/busca-preco" element={<Navigate to="/ferramentas/busca-preco" replace />} />
         <Route path="/ferramentas/match" element={<ProductMatchPage />} />
+        <Route path="/match" element={<Navigate to="/ferramentas/match" replace />} />
         <Route path="/ferramentas/bi" element={<BusinessIntelligencePage />} />
         <Route path="/ferramentas/bi-comercial" element={<CommercialIntelligencePage />} />
+        <Route path="/inteligencia-comercial" element={<Navigate to="/ferramentas/bi-comercial" replace />} />
         <Route path="/ferramentas/dropbox" element={<DropboxBrowserPage />} />
         
         <Route path="/ferramentas/personalizacao-sim" element={<PersonalizationSimulator />} />
