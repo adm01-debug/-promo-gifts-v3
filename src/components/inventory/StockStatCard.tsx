@@ -95,15 +95,16 @@ export function StatCard({ title, value, icon, trend, variant = 'default', onCli
     : value;
 
   return (
-    <button
+    <Button
       type="button"
+      variant="ghost"
       onClick={(e) => {
         e.preventDefault();
         e.stopPropagation();
         onClick?.();
       }}
       className={cn(
-        "group relative w-full overflow-hidden rounded-lg border text-left",
+        "group relative w-full overflow-hidden rounded-lg border text-left p-0 block h-auto",
         "transition-all duration-300 ease-out",
         styles.base,
         onClick && "cursor-pointer",
