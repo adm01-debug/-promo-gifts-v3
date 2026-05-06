@@ -1,13 +1,13 @@
-import { type ReactNode } from "react";
-import { Button } from "@/components/ui/button";
-import { Trash2, X, Download, RefreshCw } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { type ReactNode } from 'react';
+import { Button } from '@/components/ui/button';
+import { Trash2, X, Download, RefreshCw } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export interface BulkAction {
   id: string;
   label: string;
   icon: ReactNode;
-  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost";
+  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost';
   onClick: (ids: string[]) => void;
 }
 
@@ -26,7 +26,7 @@ interface BulkActionsBarProps {
 export function BulkActionsBar({
   selectedCount,
   selectedIds,
-  entityLabel = "item",
+  entityLabel = 'item',
   actions,
   onClear,
   showSelectAllBanner,
@@ -45,17 +45,17 @@ export function BulkActionsBar({
           transition={{ duration: 0.2 }}
           className="flex flex-col gap-1"
         >
-          <div className="flex items-center gap-3 px-4 py-2 bg-primary/10 border border-primary/30 rounded-xl flex-wrap">
+          <div className="flex flex-wrap items-center gap-3 rounded-xl border border-primary/30 bg-primary/10 px-4 py-2">
             <span className="text-sm font-medium text-foreground">
-              {selectedCount} {pluralLabel} selecionado{selectedCount !== 1 ? "s" : ""}
+              {selectedCount} {pluralLabel} selecionado{selectedCount !== 1 ? 's' : ''}
             </span>
 
             {actions.map((action) => (
               <Button
                 key={action.id}
-                variant={action.variant || "secondary"}
+                variant={action.variant || 'secondary'}
                 size="sm"
-                className="text-xs gap-1.5"
+                className="gap-1.5 text-xs"
                 onClick={() => action.onClick([...selectedIds])}
               >
                 {action.icon}
@@ -63,21 +63,19 @@ export function BulkActionsBar({
               </Button>
             ))}
 
-            <Button variant="ghost" size="sm" className="text-xs gap-1.5" onClick={onClear}>
+            <Button variant="ghost" size="sm" className="gap-1.5 text-xs" onClick={onClear}>
               <X className="h-3.5 w-3.5" />
               Limpar
             </Button>
           </div>
 
           {showSelectAllBanner && totalCount && onSelectAll && (
-            <div className="flex items-center justify-center gap-2 px-4 py-1.5 bg-muted/50 border border-border rounded-xl text-sm text-muted-foreground">
-              <span>
-                Todos desta página estão selecionados.
-              </span>
+            <div className="flex items-center justify-center gap-2 rounded-xl border border-border bg-muted/50 px-4 py-1.5 text-sm text-muted-foreground">
+              <span>Todos desta página estão selecionados.</span>
               <Button
                 variant="link-primary"
                 size="sm"
-                className="text-xs p-0 h-auto"
+                className="h-auto p-0 text-xs"
                 onClick={onSelectAll}
               >
                 Selecionar todos os {totalCount}

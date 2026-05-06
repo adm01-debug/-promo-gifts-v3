@@ -6,21 +6,21 @@
  * filtragem no DevTools. Não envia nada para o backend.
  */
 
-import type { Session, User } from "@supabase/supabase-js";
+import type { Session, User } from '@supabase/supabase-js';
 
-const PREFIX = "[AUTH-DEBUG]";
+const PREFIX = '[AUTH-DEBUG]';
 
 /** Mascara token JWT mostrando apenas 8 primeiros e 6 últimos caracteres. */
 function maskToken(token: string | null | undefined): string {
-  if (!token) return "<null>";
+  if (!token) return '<null>';
   if (token.length <= 16) return `${token.slice(0, 4)}…(${token.length})`;
   return `${token.slice(0, 8)}…${token.slice(-6)} (len=${token.length})`;
 }
 
 /** Mascara email: `joao.silva@empresa.com` → `j***a@empresa.com`. */
 function maskEmail(email: string | null | undefined): string {
-  if (!email) return "<null>";
-  const at = email.indexOf("@");
+  if (!email) return '<null>';
+  const at = email.indexOf('@');
   if (at <= 0) return email;
   const local = email.slice(0, at);
   const domain = email.slice(at);
@@ -31,11 +31,11 @@ function maskEmail(email: string | null | undefined): string {
 /** Decodifica payload de JWT (sem validar assinatura) para inspecionar claims. */
 function decodeJwtPayload(token: string | null | undefined): Record<string, unknown> | null {
   if (!token) return null;
-  const parts = token.split(".");
+  const parts = token.split('.');
   if (parts.length !== 3) return null;
   try {
-    const payload = parts[1].replace(/-/g, "+").replace(/_/g, "/");
-    const padded = payload + "=".repeat((4 - (payload.length % 4)) % 4);
+    const payload = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const padded = payload + '='.repeat((4 - (payload.length % 4)) % 4);
     return JSON.parse(atob(padded));
   } catch {
     return null;
@@ -89,7 +89,7 @@ export function summarizeSession(session: Session | null | undefined) {
 export function authDebug(scope: string, message: string, data?: unknown): void {
   const ts = new Date().toISOString();
   // eslint-disable-next-line no-console
-  console.log(`${PREFIX} [${ts}] [${scope}] ${message}`, data ?? "");
+  console.log(`${PREFIX} [${ts}] [${scope}] ${message}`, data ?? '');
 }
 
 export function authDebugError(scope: string, message: string, error: unknown): void {
@@ -104,19 +104,19 @@ export function authDebugError(scope: string, message: string, error: unknown): 
 
 /** Loga o estado bruto da URL no callback (query, hash, error params). */
 export function authDebugUrl(scope: string): void {
-  if (typeof window === "undefined") return;
+  if (typeof window === 'undefined') return;
   const url = new URL(window.location.href);
-  const hash = window.location.hash.startsWith("#") ? window.location.hash.slice(1) : "";
+  const hash = window.location.hash.startsWith('#') ? window.location.hash.slice(1) : '';
   const hashParams = new URLSearchParams(hash);
   const safeQuery: Record<string, string> = {};
   url.searchParams.forEach((v, k) => {
-    safeQuery[k] = k === "code" || k.includes("token") ? maskToken(v) : v;
+    safeQuery[k] = k === 'code' || k.includes('token') ? maskToken(v) : v;
   });
   const safeHash: Record<string, string> = {};
   hashParams.forEach((v, k) => {
-    safeHash[k] = k.includes("token") ? maskToken(v) : v;
+    safeHash[k] = k.includes('token') ? maskToken(v) : v;
   });
-  authDebug(scope, "url snapshot", {
+  authDebug(scope, 'url snapshot', {
     pathname: url.pathname,
     has_query: url.search.length > 0,
     has_hash: hash.length > 0,

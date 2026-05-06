@@ -1,12 +1,12 @@
-import { useState, useMemo, useEffect } from "react";
-import confetti from "canvas-confetti";
-import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
-import { PageSEO } from "@/components/seo/PageSEO";
-import { Card, CardContent } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useState, useMemo, useEffect } from 'react';
+import confetti from 'canvas-confetti';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+import { PageSEO } from '@/components/seo/PageSEO';
+import { Card, CardContent } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,20 +16,15 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+} from '@/components/ui/alert-dialog';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from '@/components/ui/select';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   FileText,
   Plus,
@@ -45,45 +40,52 @@ import {
   Loader2,
   ChevronLeft,
   ChevronRight,
-} from "lucide-react";
-import { useQuotes } from "@/hooks/useQuotes";
-import { format } from "date-fns";
-import { EmptyState } from "@/components/common/EmptyState";
-import { QuoteCardSkeleton } from "@/components/common/ContextualSkeleton";
-import { FadeInView, AnimatedCounter } from "@/components/common/MicroInteractions";
-import { QuotesConfigurableList } from "@/components/quotes/QuotesConfigurableList";
-import { QuotesStatusChips } from "@/components/quotes/QuotesStatusChips";
-import { QuotesFunnelChart } from "@/components/quotes/QuotesFunnelChart";
-import { useQuoteFunnel } from "@/hooks/useQuoteFunnel";
-import { useQuoteViewedMap } from "@/hooks/useQuoteViewedMap";
-import { cn } from "@/lib/utils";
+} from 'lucide-react';
+import { useQuotes } from '@/hooks/useQuotes';
+import { format } from 'date-fns';
+import { EmptyState } from '@/components/common/EmptyState';
+import { QuoteCardSkeleton } from '@/components/common/ContextualSkeleton';
+import { FadeInView, AnimatedCounter } from '@/components/common/MicroInteractions';
+import { QuotesConfigurableList } from '@/components/quotes/QuotesConfigurableList';
+import { QuotesStatusChips } from '@/components/quotes/QuotesStatusChips';
+import { QuotesFunnelChart } from '@/components/quotes/QuotesFunnelChart';
+import { useQuoteFunnel } from '@/hooks/useQuoteFunnel';
+import { useQuoteViewedMap } from '@/hooks/useQuoteViewedMap';
+import { cn } from '@/lib/utils';
 
-type SortOption = "newest" | "oldest" | "highest" | "lowest" | "expiring";
+type SortOption = 'newest' | 'oldest' | 'highest' | 'lowest' | 'expiring';
 
 const sortOptions: { value: SortOption; label: string }[] = [
-  { value: "newest", label: "Mais recentes" },
-  { value: "oldest", label: "Mais antigos" },
-  { value: "highest", label: "Maior valor" },
-  { value: "lowest", label: "Menor valor" },
-  { value: "expiring", label: "Vencimento próximo" },
+  { value: 'newest', label: 'Mais recentes' },
+  { value: 'oldest', label: 'Mais antigos' },
+  { value: 'highest', label: 'Maior valor' },
+  { value: 'lowest', label: 'Menor valor' },
+  { value: 'expiring', label: 'Vencimento próximo' },
 ];
 
 export default function QuotesListPage() {
   const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [sortBy, setSortBy] = useState<SortOption>("newest");
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [page, setPage] = useState(1);
   const pageSize = 15;
 
-  const { 
-    quotes, totalCount, isLoading, error, deleteQuote, duplicateQuote, updateQuoteStatus, 
-    bulkUpdateStatus, bulkDeleteQuotes 
+  const {
+    quotes,
+    totalCount,
+    isLoading,
+    error,
+    deleteQuote,
+    duplicateQuote,
+    updateQuoteStatus,
+    bulkUpdateStatus,
+    bulkDeleteQuotes,
   } = useQuotes({
     search: searchTerm,
     status: statusFilter,
     page,
-    pageSize
+    pageSize,
   });
 
   const totalPages = Math.ceil(totalCount / pageSize);
@@ -94,10 +96,12 @@ export default function QuotesListPage() {
   // ── KPIs ──
   const kpis = useMemo(() => {
     const total = totalCount;
-    const approved = quotes.filter(q => q.status === "approved").length;
-    const pending = quotes.filter(q => ["pending", "sent"].includes(q.status)).length;
+    const approved = quotes.filter((q) => q.status === 'approved').length;
+    const pending = quotes.filter((q) => ['pending', 'sent'].includes(q.status)).length;
     const totalValue = quotes.reduce((sum, q) => sum + (q.total || 0), 0);
-    const approvedValue = quotes.filter(q => q.status === "approved").reduce((sum, q) => sum + (q.total || 0), 0);
+    const approvedValue = quotes
+      .filter((q) => q.status === 'approved')
+      .reduce((sum, q) => sum + (q.total || 0), 0);
     const conversionRate = total > 0 ? Math.round((approved / total) * 100) : 0;
 
     return { total, approved, pending, totalValue, approvedValue, conversionRate };
@@ -119,9 +123,9 @@ export default function QuotesListPage() {
   };
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
     }).format(value);
   };
 
@@ -141,10 +145,10 @@ export default function QuotesListPage() {
 
   if (isLoading) {
     return (
-      <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-4 pb-24 md:pb-6 animate-fade-in">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="mx-auto w-full max-w-[1920px] animate-fade-in space-y-4 px-3 py-3 pb-24 sm:px-4 sm:py-4 md:pb-6 lg:px-6 xl:px-8">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-col gap-2">
-            <h1 className="text-xl lg:text-3xl font-display font-bold text-foreground flex items-center gap-2">
+            <h1 className="flex items-center gap-2 font-display text-xl font-bold text-foreground lg:text-3xl">
               <FileText className="h-7 w-7 text-primary" />
               Orçamentos
             </h1>
@@ -155,7 +159,7 @@ export default function QuotesListPage() {
           </div>
         </div>
 
-        <div className="grid gap-3 mt-6">
+        <div className="mt-6 grid gap-3">
           {[1, 2, 3, 4, 5].map((i) => (
             <QuoteCardSkeleton key={i} />
           ))}
@@ -164,69 +168,83 @@ export default function QuotesListPage() {
     );
   }
 
-  const hasActiveFilters = !!searchTerm || statusFilter !== "all";
+  const hasActiveFilters = !!searchTerm || statusFilter !== 'all';
   const handleClearFilters = () => {
-    setSearchTerm("");
-    setStatusFilter("all");
-    setSortBy("newest");
+    setSearchTerm('');
+    setStatusFilter('all');
+    setSortBy('newest');
     setPage(1);
   };
 
   return (
     <>
-      <PageSEO title="Orçamentos" description="Gerencie seus orçamentos. Crie, edite e acompanhe propostas comerciais." path="/orcamentos" />
+      <PageSEO
+        title="Orçamentos"
+        description="Gerencie seus orçamentos. Crie, edite e acompanhe propostas comerciais."
+        path="/orcamentos"
+      />
       <TooltipProvider>
         <div className="space-y-5">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <FadeInView>
               <div>
-                <h1 data-testid="page-title-orcamentos" className="text-xl lg:text-3xl font-display font-bold text-foreground flex items-center gap-2">
+                <h1
+                  data-testid="page-title-orcamentos"
+                  className="flex items-center gap-2 font-display text-xl font-bold text-foreground lg:text-3xl"
+                >
                   <FileText className="h-7 w-7" />
                   Orçamentos
                 </h1>
-                <p className="text-muted-foreground mt-1">
+                <p className="mt-1 text-muted-foreground">
                   <AnimatedCounter value={totalCount} /> orçamento(s) encontrado(s)
                 </p>
               </div>
             </FadeInView>
             <div className="flex gap-2">
-              <Button variant="outline" onClick={() => navigate("/orcamentos/templates")}>
-                <BookTemplate className="h-4 w-4 mr-2" />
+              <Button variant="outline" onClick={() => navigate('/orcamentos/templates')}>
+                <BookTemplate className="mr-2 h-4 w-4" />
                 Templates
               </Button>
-              <Button data-testid="quote-new-button" onClick={() => navigate("/orcamentos/novo")}>
-                <Plus className="h-4 w-4 mr-2" />
+              <Button data-testid="quote-new-button" onClick={() => navigate('/orcamentos/novo')}>
+                <Plus className="mr-2 h-4 w-4" />
                 Novo Orçamento
               </Button>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-            <Card className="sm:col-span-2 md:col-span-1 border-primary/30 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent shadow-md">
-              <CardContent className="p-4 flex items-center gap-3">
-                <div className="h-11 w-11 rounded-xl bg-primary/20 flex items-center justify-center shrink-0 ring-1 ring-primary/30">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4">
+            <Card className="border-primary/30 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent shadow-md sm:col-span-2 md:col-span-1">
+              <CardContent className="flex items-center gap-3 p-4">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/20 ring-1 ring-primary/30">
                   <DollarSign className="h-5 w-5 text-primary" />
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs text-muted-foreground">Total Página</p>
-                  <p className="text-lg font-display font-extrabold text-foreground truncate">{formatCurrency(kpis.totalValue)}</p>
+                  <p className="truncate font-display text-lg font-extrabold text-foreground">
+                    {formatCurrency(kpis.totalValue)}
+                  </p>
                 </div>
               </CardContent>
             </Card>
             <Card className="border-border/50">
-              <CardContent className="p-3 flex items-center gap-3">
-                <div className="h-9 w-9 rounded-lg bg-success/15 flex items-center justify-center shrink-0">
+              <CardContent className="flex items-center gap-3 p-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-success/15">
                   <CheckCircle2 className="h-4 w-4 text-success" />
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs text-muted-foreground">Aprovados (Pg)</p>
-                  <p className="text-sm font-bold text-foreground">{kpis.approved} <span className="text-xs font-normal text-muted-foreground">({formatCurrency(kpis.approvedValue)})</span></p>
+                  <p className="text-sm font-bold text-foreground">
+                    {kpis.approved}{' '}
+                    <span className="text-xs font-normal text-muted-foreground">
+                      ({formatCurrency(kpis.approvedValue)})
+                    </span>
+                  </p>
                 </div>
               </CardContent>
             </Card>
             <Card className="border-border/50">
-              <CardContent className="p-3 flex items-center gap-3">
-                <div className="h-9 w-9 rounded-lg bg-warning/15 flex items-center justify-center shrink-0">
+              <CardContent className="flex items-center gap-3 p-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-warning/15">
                   <Clock className="h-4 w-4 text-warning" />
                 </div>
                 <div className="min-w-0">
@@ -236,8 +254,8 @@ export default function QuotesListPage() {
               </CardContent>
             </Card>
             <Card className="border-border/50">
-              <CardContent className="p-3 flex items-center gap-3">
-                <div className="h-9 w-9 rounded-lg bg-info/15 flex items-center justify-center shrink-0">
+              <CardContent className="flex items-center gap-3 p-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-info/15">
                   <TrendingUp className="h-4 w-4 text-info" />
                 </div>
                 <div className="min-w-0">
@@ -254,17 +272,19 @@ export default function QuotesListPage() {
 
           {error && (
             <div className="flex items-center gap-3 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3">
-              <AlertTriangle className="h-5 w-5 text-destructive shrink-0" />
+              <AlertTriangle className="h-5 w-5 shrink-0 text-destructive" />
               <div className="min-w-0">
-                <p className="text-sm font-medium text-destructive">Módulo de orçamentos indisponível</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{error}</p>
+                <p className="text-sm font-medium text-destructive">
+                  Módulo de orçamentos indisponível
+                </p>
+                <p className="mt-0.5 text-xs text-muted-foreground">{error}</p>
               </div>
             </div>
           )}
 
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <div className="relative max-w-md flex-1">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Buscar por número, cliente ou empresa..."
                 value={searchTerm}
@@ -274,7 +294,7 @@ export default function QuotesListPage() {
             </div>
             <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
               <SelectTrigger className="w-[180px]">
-                <ArrowUpDown className="h-4 w-4 mr-2" />
+                <ArrowUpDown className="mr-2 h-4 w-4" />
                 <SelectValue placeholder="Ordenar" />
               </SelectTrigger>
               <SelectContent>
@@ -294,56 +314,65 @@ export default function QuotesListPage() {
               {quotes.length === 0 && !isLoading ? (
                 <EmptyState
                   variant="quotes"
-                  title={hasActiveFilters ? "Nenhum resultado para esses filtros" : "Nenhum orçamento encontrado"}
+                  title={
+                    hasActiveFilters
+                      ? 'Nenhum resultado para esses filtros'
+                      : 'Nenhum orçamento encontrado'
+                  }
                   description={
                     hasActiveFilters
-                      ? "Ajuste a busca ou os chips de status, ou limpe todos os filtros."
-                      : "Crie seu primeiro orçamento e comece a vender."
+                      ? 'Ajuste a busca ou os chips de status, ou limpe todos os filtros.'
+                      : 'Crie seu primeiro orçamento e comece a vender.'
                   }
                   action={
                     hasActiveFilters
-                      ? { label: "Limpar filtros", onClick: handleClearFilters }
-                      : { label: "Criar Orçamento", onClick: () => navigate("/orcamentos/novo") }
+                      ? { label: 'Limpar filtros', onClick: handleClearFilters }
+                      : { label: 'Criar Orçamento', onClick: () => navigate('/orcamentos/novo') }
                   }
                 />
               ) : (
-                <div className={cn("transition-opacity duration-200", isLoading && "opacity-50")}>
+                <div className={cn('transition-opacity duration-200', isLoading && 'opacity-50')}>
                   <QuotesConfigurableList
                     quotes={quotes}
                     onDelete={(id) => setDeleteConfirmId(id)}
                     onBulkDelete={(ids) => setBulkDeleteIds(ids)}
                     onBulkStatusChange={async (ids, status) => {
                       const ok = await bulkUpdateStatus(ids, status as any);
-                      if (ok && status === "approved") {
-                        confetti({ particleCount: 80, spread: 60, origin: { y: 0.7 }, colors: ["hsl(25,100%,50%)", "hsl(142,71%,45%)", "hsl(217,91%,60%)"] });
+                      if (ok && status === 'approved') {
+                        confetti({
+                          particleCount: 80,
+                          spread: 60,
+                          origin: { y: 0.7 },
+                          colors: ['hsl(25,100%,50%)', 'hsl(142,71%,45%)', 'hsl(217,91%,60%)'],
+                        });
                       }
                     }}
                     onBulkExport={(ids) => {
                       const selected = quotes.filter((q) => ids.includes(q.id!));
-                      import("@/utils/excelExport").then(({ exportToExcel }) => {
+                      import('@/utils/excelExport').then(({ exportToExcel }) => {
                         exportToExcel(
                           selected.map((q) => ({
                             Número: q.quote_number,
-                            Empresa: q.client_company || "",
-                            Contato: q.client_name || "",
+                            Empresa: q.client_company || '',
+                            Contato: q.client_name || '',
                             Status: q.status,
                             Valor: q.total || 0,
-                            Data: q.created_at ? format(new Date(q.created_at), "dd/MM/yyyy") : "",
+                            Data: q.created_at ? format(new Date(q.created_at), 'dd/MM/yyyy') : '',
                           })),
-                          "orcamentos_selecionados"
+                          'orcamentos_selecionados',
                         );
                         toast.success(`${ids.length} orçamento(s) exportado(s)`);
                       });
                     }}
                     onDuplicate={(id) => duplicateQuote(id)}
                     onMarkApproved={async (id) => {
-                      const ok = await updateQuoteStatus(id, "approved");
+                      const ok = await updateQuoteStatus(id, 'approved');
                       if (ok) {
                         confetti({
                           particleCount: 80,
                           spread: 60,
                           origin: { y: 0.7 },
-                          colors: ["hsl(25,100%,50%)", "hsl(142,71%,45%)", "hsl(217,91%,60%)"],
+                          colors: ['hsl(25,100%,50%)', 'hsl(142,71%,45%)', 'hsl(217,91%,60%)'],
                         });
                       }
                     }}
@@ -355,24 +384,26 @@ export default function QuotesListPage() {
             {totalPages > 1 && (
               <div className="flex items-center justify-between border-t border-border pt-4">
                 <p className="text-xs text-muted-foreground">
-                  Mostrando <span className="font-medium">{(page - 1) * pageSize + 1}</span> a <span className="font-medium">{Math.min(page * pageSize, totalCount)}</span> de <span className="font-medium">{totalCount}</span> orçamentos
+                  Mostrando <span className="font-medium">{(page - 1) * pageSize + 1}</span> a{' '}
+                  <span className="font-medium">{Math.min(page * pageSize, totalCount)}</span> de{' '}
+                  <span className="font-medium">{totalCount}</span> orçamentos
                 </p>
                 <div className="flex gap-2">
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
                     disabled={page === 1 || isLoading}
                   >
-                    <ChevronLeft className="h-4 w-4 mr-1" /> Anterior
+                    <ChevronLeft className="mr-1 h-4 w-4" /> Anterior
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                     disabled={page === totalPages || isLoading}
                   >
-                    Próximo <ChevronRight className="h-4 w-4 ml-1" />
+                    Próximo <ChevronRight className="ml-1 h-4 w-4" />
                   </Button>
                 </div>
               </div>
@@ -390,7 +421,10 @@ export default function QuotesListPage() {
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              <AlertDialogAction
+                onClick={handleDelete}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
                 Excluir
               </AlertDialogAction>
             </AlertDialogFooter>
@@ -407,7 +441,10 @@ export default function QuotesListPage() {
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction onClick={handleBulkDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              <AlertDialogAction
+                onClick={handleBulkDelete}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
                 Excluir todos
               </AlertDialogAction>
             </AlertDialogFooter>

@@ -1,6 +1,6 @@
-import type { Product } from "@/hooks/useProducts";
+import type { Product } from '@/hooks/useProducts';
 
-export type TemplateKey = "formal" | "informal" | "promotional";
+export type TemplateKey = 'formal' | 'informal' | 'promotional';
 
 export interface MessageTemplate {
   key: TemplateKey;
@@ -10,21 +10,21 @@ export interface MessageTemplate {
 }
 
 const formatPrice = (price: number) =>
-  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(price ?? 0);
+  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(price ?? 0);
 
 const getColorsLabel = (product: Product): string => {
   const list = Array.isArray(product?.colors) ? product.colors : [];
   const names = list
-    .map((c) => (typeof c === "string" ? c : c?.name))
+    .map((c) => (typeof c === 'string' ? c : c?.name))
     .filter((n): n is string => !!n && n.trim().length > 0);
-  return names.length > 0 ? names.join(", ") : "Diversas opções";
+  return names.length > 0 ? names.join(', ') : 'Diversas opções';
 };
 
 export const MESSAGE_TEMPLATES: MessageTemplate[] = [
   {
-    key: "formal",
-    label: "Formal",
-    description: "Linguagem profissional para clientes corporativos",
+    key: 'formal',
+    label: 'Formal',
+    description: 'Linguagem profissional para clientes corporativos',
     generate: (product) => {
       const colors = getColorsLabel(product);
       return `Prezado(a),
@@ -34,12 +34,12 @@ Segue informações sobre o produto solicitado:
 *${product.name}*
 SKU: ${product.sku}
 
-${product.description || ""}
+${product.description || ''}
 
 Cores disponíveis: ${colors}
 Valor unitário: a partir de ${formatPrice(product.price)}
 Quantidade mínima: ${product.minQuantity} unidades
-${product.stockStatus === "in-stock" ? "Disponibilidade: Em estoque" : "Disponibilidade: Sob consulta"}
+${product.stockStatus === 'in-stock' ? 'Disponibilidade: Em estoque' : 'Disponibilidade: Sob consulta'}
 
 Ficamos à disposição para maiores informações.
 
@@ -48,9 +48,9 @@ Promo Brindes`;
     },
   },
   {
-    key: "informal",
-    label: "Informal",
-    description: "Tom descontraído e direto",
+    key: 'informal',
+    label: 'Informal',
+    description: 'Tom descontraído e direto',
     generate: (product) => {
       const colors = getColorsLabel(product);
       return `Oi! 😊
@@ -59,32 +59,32 @@ Olha esse produto que separei pra você:
 
 *${product.name}*
 
-${product.description || ""}
+${product.description || ''}
 
 🎨 Cores: ${colors}
 💰 A partir de ${formatPrice(product.price)}/un
 📦 Qtd mínima: ${product.minQuantity} un
-${product.stockStatus === "in-stock" ? "✅ Em estoque" : "⚠️ Consultar disponibilidade"}
+${product.stockStatus === 'in-stock' ? '✅ Em estoque' : '⚠️ Consultar disponibilidade'}
 
 Promo Brindes - Brindes com Excelência!`;
     },
   },
   {
-    key: "promotional",
-    label: "Promoção",
-    description: "Destaque urgência e benefícios",
+    key: 'promotional',
+    label: 'Promoção',
+    description: 'Destaque urgência e benefícios',
     generate: (product) => {
       const colors = getColorsLabel(product);
       return `🔥 *OPORTUNIDADE ESPECIAL* 🔥
 
 *${product.name}*
 
-${product.description || ""}
+${product.description || ''}
 
-✨ ${colors.split(", ").length} cores disponíveis: ${colors}
+✨ ${colors.split(', ').length} cores disponíveis: ${colors}
 💰 A partir de apenas ${formatPrice(product.price)}/un
 📦 Pedido mínimo: ${product.minQuantity} un
-${product.stockStatus === "in-stock" ? "🚀 PRONTA ENTREGA!" : "⏰ Consulte prazos"}
+${product.stockStatus === 'in-stock' ? '🚀 PRONTA ENTREGA!' : '⏰ Consulte prazos'}
 
 ⚡ Condições especiais para pedidos esta semana!
 📞 Fale conosco agora mesmo!

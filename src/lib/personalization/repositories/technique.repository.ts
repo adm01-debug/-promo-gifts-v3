@@ -1,6 +1,6 @@
 /**
  * Repository: Técnicas de Personalização
- * 
+ *
  * ============================================
  * IMPORTANTE: USA SOMENTE O BD EXTERNO PROMOBRIND!
  * Tabelas: tecnica_gravacao, tecnica_gravacao_variante
@@ -113,8 +113,16 @@ export async function findAll(options: TechniqueQueryOptions = {}): Promise<Tecn
       table: 'tecnica_gravacao',
       operation: 'select',
       filters: filters?.isActive !== undefined ? { ativo: filters.isActive } : undefined,
-      orderBy: orderBy 
-        ? { column: orderBy.column === 'name' ? 'nome' : orderBy.column === 'code' ? 'codigo' : 'ordem_exibicao', ascending: orderBy.ascending }
+      orderBy: orderBy
+        ? {
+            column:
+              orderBy.column === 'name'
+                ? 'nome'
+                : orderBy.column === 'code'
+                  ? 'codigo'
+                  : 'ordem_exibicao',
+            ascending: orderBy.ascending,
+          }
         : { column: 'ordem_exibicao', ascending: true },
       limit,
     },
@@ -134,10 +142,11 @@ export async function findAll(options: TechniqueQueryOptions = {}): Promise<Tecn
   // Filtros pós-query
   if (filters?.search) {
     const search = filters.search.toLowerCase();
-    tecnicas = tecnicas.filter(t =>
-      t.nome.toLowerCase().includes(search) ||
-      t.codigo.toLowerCase().includes(search) ||
-      t.descricao?.toLowerCase().includes(search)
+    tecnicas = tecnicas.filter(
+      (t) =>
+        t.nome.toLowerCase().includes(search) ||
+        t.codigo.toLowerCase().includes(search) ||
+        t.descricao?.toLowerCase().includes(search),
     );
   }
 
@@ -191,7 +200,9 @@ export async function findByCode(code: string): Promise<TecnicaUnificada | null>
 /**
  * Busca técnicas ativas do BD EXTERNO (resumo para dropdowns)
  */
-export async function findActiveForDropdown(): Promise<Pick<TecnicaUnificada, 'id' | 'codigo' | 'nome' | 'categoria'>[]> {
+export async function findActiveForDropdown(): Promise<
+  Pick<TecnicaUnificada, 'id' | 'codigo' | 'nome' | 'categoria'>[]
+> {
   const { data, error } = await supabase.functions.invoke('external-db-bridge', {
     body: {
       table: 'tecnica_gravacao',
@@ -225,9 +236,9 @@ export async function findCategories(): Promise<string[]> {
 /**
  * Cria nova técnica no BD EXTERNO
  */
-export async function create(data: { 
-  nome: string; 
-  codigo?: string; 
+export async function create(data: {
+  nome: string;
+  codigo?: string;
   descricao?: string;
   permite_cores?: boolean;
   max_cores?: string;
@@ -257,18 +268,21 @@ export async function create(data: {
 /**
  * Atualiza técnica existente no BD EXTERNO
  */
-export async function update(id: string, data: Partial<{
-  nome: string;
-  codigo: string;
-  descricao: string;
-  permite_cores: boolean;
-  max_cores: string;
-  cobra_por_cor: boolean;
-  cobra_por_area: boolean;
-  cobra_por_pontos: boolean;
-  tempo_producao_dias: number;
-  ativo: boolean;
-}>): Promise<void> {
+export async function update(
+  id: string,
+  data: Partial<{
+    nome: string;
+    codigo: string;
+    descricao: string;
+    permite_cores: boolean;
+    max_cores: string;
+    cobra_por_cor: boolean;
+    cobra_por_area: boolean;
+    cobra_por_pontos: boolean;
+    tempo_producao_dias: number;
+    ativo: boolean;
+  }>,
+): Promise<void> {
   const { error } = await supabase.functions.invoke('external-db-bridge', {
     body: {
       table: 'tecnica_gravacao',

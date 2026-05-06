@@ -22,24 +22,24 @@ describe('DevInfraGate Performance Validation', () => {
 
   it('deve usar lookup O(1) para múltiplas roles sem degradar performance', () => {
     const roles: AppRole[] = ['dev', 'supervisor', 'admin'];
-    
+
     const start = performance.now();
     for (let i = 0; i < 10000; i++) {
       gate.hasAccess(roles);
     }
     const end = performance.now();
-    
+
     // Verificação funcional
     expect(gate.hasAccess(roles)).toBe(true);
     expect(gate.hasAccess(['agente' as AppRole])).toBe(false);
-    
+
     // O tempo deve ser extremamente baixo para 10k iterações (normalmente < 2ms)
-    expect(end - start).toBeLessThan(10); 
+    expect(end - start).toBeLessThan(10);
   });
 
   it('deve evitar ordenação de array em casos de role única (atalho de cache key)', () => {
     const singleRole: AppRole[] = ['dev'];
-    
+
     // Primeira chamada enche o cache
     gate.shouldShow(singleRole);
     expect(provider.callCount).toBe(1);
@@ -57,7 +57,7 @@ describe('DevInfraGate Performance Validation', () => {
 
   it('deve manter integridade referencial do cache com múltiplas roles', () => {
     const roles: AppRole[] = ['admin', 'dev']; // Ordem específica
-    
+
     gate.shouldShow(roles);
     expect(provider.callCount).toBe(1);
 
@@ -70,10 +70,10 @@ describe('DevInfraGate Performance Validation', () => {
     // Testamos se o mecanismo de cache interno da classe DevInfraGate para o provider de ambiente funciona
     gate.shouldShow(['dev']);
     expect(provider.callCount).toBe(1);
-    
+
     gate.shouldShow(['dev']);
     expect(provider.callCount).toBe(1); // Cache do DevInfraGate segurou
-    
+
     gate.invalidateCache();
     gate.shouldShow(['dev']);
     expect(provider.callCount).toBe(2); // Invalidação funcionou

@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef } from 'react';
 
 /**
  * useDebounce - Hook para debounce de valores
@@ -24,7 +24,7 @@ export function useDebounce<T>(value: T, delay = 300): T {
  */
 export function useDebouncedCallback<T extends (...args: unknown[]) => unknown>(
   callback: T,
-  delay = 300
+  delay = 300,
 ): (...args: Parameters<T>) => void {
   const timeoutRef = useRef<NodeJS.Timeout>();
 
@@ -38,7 +38,7 @@ export function useDebouncedCallback<T extends (...args: unknown[]) => unknown>(
         callback(...args);
       }, delay);
     },
-    [callback, delay]
+    [callback, delay],
   );
 
   // Cleanup on unmount
@@ -66,13 +66,16 @@ export function useThrottle<T>(value: T, limit = 300): T {
       setThrottledValue(value);
       return;
     }
-    
-    const handler = setTimeout(() => {
-      if (Date.now() - lastRan.current >= limit) {
-        setThrottledValue(value);
-        lastRan.current = Date.now();
-      }
-    }, limit - (Date.now() - lastRan.current));
+
+    const handler = setTimeout(
+      () => {
+        if (Date.now() - lastRan.current >= limit) {
+          setThrottledValue(value);
+          lastRan.current = Date.now();
+        }
+      },
+      limit - (Date.now() - lastRan.current),
+    );
 
     return () => {
       clearTimeout(handler);
@@ -90,10 +93,10 @@ export function useSearchAsYouType(
   options: {
     debounceMs?: number;
     minLength?: number;
-  } = {}
+  } = {},
 ) {
   const { debounceMs = 300, minLength = 2 } = options;
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const debouncedQuery = useDebounce(query, debounceMs);
 
@@ -103,20 +106,23 @@ export function useSearchAsYouType(
       onSearch(debouncedQuery);
       setIsSearching(false);
     } else if (debouncedQuery.length === 0) {
-      onSearch("");
+      onSearch('');
     }
   }, [debouncedQuery, minLength, onSearch]);
 
-  const handleChange = useCallback((value: string) => {
-    setQuery(value);
-    if (value.length >= minLength) {
-      setIsSearching(true);
-    }
-  }, [minLength]);
+  const handleChange = useCallback(
+    (value: string) => {
+      setQuery(value);
+      if (value.length >= minLength) {
+        setIsSearching(true);
+      }
+    },
+    [minLength],
+  );
 
   const clear = useCallback(() => {
-    setQuery("");
-    onSearch("");
+    setQuery('');
+    onSearch('');
   }, [onSearch]);
 
   return {

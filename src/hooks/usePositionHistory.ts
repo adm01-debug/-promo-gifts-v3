@@ -1,11 +1,11 @@
 /**
  * usePositionHistory — Undo/Redo for logo positioning
- * 
+ *
  * Tracks position & size changes with a configurable history depth.
  * Supports Ctrl+Z (undo) and Ctrl+Shift+Z / Ctrl+Y (redo).
  */
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef } from 'react';
 
 interface PositionState {
   positionX: number;
@@ -31,28 +31,31 @@ export function usePositionHistory(options: UsePositionHistoryOptions = {}) {
   const canUndo = historyIndex > 0;
   const canRedo = historyIndex < history.length - 1;
 
-  const pushState = useCallback((state: PositionState) => {
-    if (isUndoRedoRef.current) {
-      isUndoRedoRef.current = false;
-      return;
-    }
-
-    setHistory(prev => {
-      // Truncate future states if we're in the middle of history
-      const truncated = prev.slice(0, historyIndex + 1);
-      const newHistory = [...truncated, state];
-      // Keep within max limit
-      if (newHistory.length > maxHistory) {
-        newHistory.shift();
-        return newHistory;
+  const pushState = useCallback(
+    (state: PositionState) => {
+      if (isUndoRedoRef.current) {
+        isUndoRedoRef.current = false;
+        return;
       }
-      return newHistory;
-    });
-    setHistoryIndex(prev => {
-      const newIndex = Math.min(prev + 1, maxHistory - 1);
-      return newIndex;
-    });
-  }, [historyIndex, maxHistory]);
+
+      setHistory((prev) => {
+        // Truncate future states if we're in the middle of history
+        const truncated = prev.slice(0, historyIndex + 1);
+        const newHistory = [...truncated, state];
+        // Keep within max limit
+        if (newHistory.length > maxHistory) {
+          newHistory.shift();
+          return newHistory;
+        }
+        return newHistory;
+      });
+      setHistoryIndex((prev) => {
+        const newIndex = Math.min(prev + 1, maxHistory - 1);
+        return newIndex;
+      });
+    },
+    [historyIndex, maxHistory],
+  );
 
   const undo = useCallback((): PositionState | null => {
     if (!canUndo) return null;
@@ -87,12 +90,13 @@ export function usePositionHistory(options: UsePositionHistoryOptions = {}) {
 
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
-      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable) return;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
+        return;
 
       const isCtrl = e.ctrlKey || e.metaKey;
 
       // Ctrl+Z → Undo
-      if (isCtrl && e.key === "z" && !e.shiftKey) {
+      if (isCtrl && e.key === 'z' && !e.shiftKey) {
         e.preventDefault();
         const state = undo();
         if (state && onUndoRedoRef.current) {
@@ -102,7 +106,7 @@ export function usePositionHistory(options: UsePositionHistoryOptions = {}) {
       }
 
       // Ctrl+Shift+Z or Ctrl+Y → Redo
-      if (isCtrl && ((e.key === "z" && e.shiftKey) || e.key === "y")) {
+      if (isCtrl && ((e.key === 'z' && e.shiftKey) || e.key === 'y')) {
         e.preventDefault();
         const state = redo();
         if (state && onUndoRedoRef.current) {
@@ -112,8 +116,8 @@ export function usePositionHistory(options: UsePositionHistoryOptions = {}) {
       }
     };
 
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
   }, [enabled, undo, redo]);
 
   return {

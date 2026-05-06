@@ -59,7 +59,7 @@ vi.mock('@/components/cart/CartEmptyStateSmart', () => ({
 vi.mock('framer-motion', async () => {
   const actual = await vi.importActual('framer-motion');
   return {
-    ...actual as any,
+    ...(actual as any),
     motion: {
       ...actual.motion,
       div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
@@ -69,18 +69,16 @@ vi.mock('framer-motion', async () => {
 });
 
 const queryClient = new QueryClient({
-  defaultOptions: { queries: { retry: false } }
+  defaultOptions: { queries: { retry: false } },
 });
 
 const renderWithContext = (ui: React.ReactElement) => {
   return render(
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <BrowserRouter>
-          {ui}
-        </BrowserRouter>
+        <BrowserRouter>{ui}</BrowserRouter>
       </TooltipProvider>
-    </QueryClientProvider>
+    </QueryClientProvider>,
   );
 };
 
@@ -92,8 +90,8 @@ describe('SellerCartsPage Component', () => {
       status: 'novo',
       updated_at: new Date().toISOString(),
       created_at: new Date().toISOString(),
-      items: [{ id: 'item-1', product_name: 'Caneta Metal' }]
-    }
+      items: [{ id: 'item-1', product_name: 'Caneta Metal' }],
+    },
   ];
 
   const mockBaseState = {
@@ -195,7 +193,7 @@ describe('SellerCartsPage Component', () => {
 
   it('deve manter a busca global ao alternar entre carrinhos', () => {
     const { rerender } = renderWithContext(<SellerCartsPage />);
-    
+
     const input = screen.getByPlaceholderText('Busca global...');
     fireEvent.change(input, { target: { value: 'Nike' } });
     expect(mockBaseState.setSearchTerm).toHaveBeenCalledWith('Nike');
@@ -205,13 +203,13 @@ describe('SellerCartsPage Component', () => {
       ...mockBaseState,
       searchTerm: 'Nike',
       activeCartId: 'cart-2',
-      activeCart: { ...mockCarts[0], id: 'cart-2', company_name: 'Nike' }
+      activeCart: { ...mockCarts[0], id: 'cart-2', company_name: 'Nike' },
     });
 
     rerender(
       <BrowserRouter>
         <SellerCartsPage />
-      </BrowserRouter>
+      </BrowserRouter>,
     );
 
     expect(screen.getByPlaceholderText('Busca global...')).toHaveValue('Nike');

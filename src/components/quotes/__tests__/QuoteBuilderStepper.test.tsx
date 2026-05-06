@@ -18,13 +18,8 @@ vi.mock('lucide-react', async () => {
 
 describe('QuoteBuilderStepper UI', () => {
   it('highlights active step with correct classes', () => {
-    render(
-      <QuoteBuilderStepper 
-        completedSteps={[]} 
-        activeStep="client" 
-      />
-    );
-    
+    render(<QuoteBuilderStepper completedSteps={[]} activeStep="client" />);
+
     const clientStep = screen.getByText('Cliente').parentElement?.querySelector('.rounded-full');
     expect(clientStep?.className).toContain('bg-primary');
     expect(clientStep?.className).toContain('text-primary-foreground');
@@ -32,16 +27,11 @@ describe('QuoteBuilderStepper UI', () => {
   });
 
   it('shows check icon for completed non-active steps', () => {
-    render(
-      <QuoteBuilderStepper 
-        completedSteps={['client']} 
-        activeStep="items" 
-      />
-    );
-    
+    render(<QuoteBuilderStepper completedSteps={['client']} activeStep="items" />);
+
     // Client step should have a check icon now
     expect(screen.getByTestId('icon-check')).toBeDefined();
-    
+
     const clientText = screen.getByText('Cliente');
     const clientIconContainer = clientText.parentElement?.querySelector('.rounded-full');
     expect(clientIconContainer?.className).toContain('bg-primary/20');
@@ -49,38 +39,28 @@ describe('QuoteBuilderStepper UI', () => {
 
   it('colors connector lines correctly based on activeStep', () => {
     const { container } = render(
-      <QuoteBuilderStepper 
-        completedSteps={['client']} 
-        activeStep="items" 
-      />
+      <QuoteBuilderStepper completedSteps={['client']} activeStep="items" />,
     );
-    
+
     // First connector (between 0 and 1) should be bg-primary because activeStep index (1) > current index (0)
     // We can check by selecting the inner div of the connector
     const connectors = container.querySelectorAll('.flex-1.h-0\\.5 > div');
     expect(connectors[0].className).toContain('bg-primary');
-    
+
     // Second connector (between 1 and 2) should be bg-border because activeStep index (1) is NOT > current index (1)
     expect(connectors[1].className).toContain('bg-border');
   });
 
   it('marks all as muted/border when nothing is active or completed', () => {
-    render(
-      <QuoteBuilderStepper 
-        completedSteps={[]} 
-      />
-    );
-    
+    render(<QuoteBuilderStepper completedSteps={[]} />);
+
     const mutedSteps = document.querySelectorAll('.bg-muted\\/50');
     expect(mutedSteps.length).toBe(4);
   });
 
   it('correctly updates visual state when progressing and regressing', () => {
     const { rerender, container } = render(
-      <QuoteBuilderStepper 
-        completedSteps={['client']} 
-        activeStep="items" 
-      />
+      <QuoteBuilderStepper completedSteps={['client']} activeStep="items" />,
     );
 
     // Forward state
@@ -89,13 +69,8 @@ describe('QuoteBuilderStepper UI', () => {
     expect(screen.getByTestId('icon-check')).toBeDefined();
 
     // Regression state
-    rerender(
-      <QuoteBuilderStepper 
-        completedSteps={['client']} 
-        activeStep="client" 
-      />
-    );
-    
+    rerender(<QuoteBuilderStepper completedSteps={['client']} activeStep="client" />);
+
     connectors = container.querySelectorAll('.flex-1.h-0\\.5 > div');
     expect(connectors[0].className).toContain('bg-border');
     // Active step "client" should NOT have check icon even if completed

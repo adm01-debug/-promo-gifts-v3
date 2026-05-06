@@ -21,7 +21,9 @@ function resolveProductMaterial(product: ExternalProductForKit): string | undefi
   const firstMaterial = product.materials[0];
   if (typeof firstMaterial === 'string') return firstMaterial;
   if (firstMaterial && typeof firstMaterial === 'object') {
-    const candidate = (firstMaterial as { name?: string; material?: string }).name ?? (firstMaterial as { name?: string; material?: string }).material;
+    const candidate =
+      (firstMaterial as { name?: string; material?: string }).name ??
+      (firstMaterial as { name?: string; material?: string }).material;
     return typeof candidate === 'string' && candidate.trim() ? candidate : undefined;
   }
 

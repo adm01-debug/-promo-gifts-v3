@@ -1,24 +1,34 @@
-import { AlertCircle, Check, Eye, EyeOff, Loader2, RotateCw, Save, ShieldAlert, Sparkles } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { type SecretStatus } from "@/hooks/useSecretsManager";
+import {
+  AlertCircle,
+  Check,
+  Eye,
+  EyeOff,
+  Loader2,
+  RotateCw,
+  Save,
+  ShieldAlert,
+  Sparkles,
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { type SecretStatus } from '@/hooks/useSecretsManager';
 
-import { useSecretField } from "./useSecretField";
-import { buildUpdatedTooltip } from "./SecretField.utils";
-import { formatMaskedSuffix } from "@/lib/masked-suffix";
-import { MaskedSuffixBadge } from "./MaskedSuffixBadge";
-import { JustSavedFlash } from "./JustSavedFlash";
-import { RotationHistoryRow } from "./RotationHistoryRow";
-import { CredentialSourceBadge } from "./CredentialSourceBadge";
-import { SecretImpactTooltip } from "./SecretImpactTooltip";
-import { useCredentialsSourceFilter } from "./CredentialsSourceFilterContext";
-import { RotateSecretConfirmDialog } from "./RotateSecretConfirmDialog";
-import { SaveSecretConfirmDialog } from "./SaveSecretConfirmDialog";
-import { SecretErrorAlert } from "./SecretErrorAlert";
-import { ErrorDetailsDialog } from "./ErrorDetailsDialog";
-import { ConnectionTestDetailsDialog } from "./ConnectionTestDetailsDialog";
+import { useSecretField } from './useSecretField';
+import { buildUpdatedTooltip } from './SecretField.utils';
+import { formatMaskedSuffix } from '@/lib/masked-suffix';
+import { MaskedSuffixBadge } from './MaskedSuffixBadge';
+import { JustSavedFlash } from './JustSavedFlash';
+import { RotationHistoryRow } from './RotationHistoryRow';
+import { CredentialSourceBadge } from './CredentialSourceBadge';
+import { SecretImpactTooltip } from './SecretImpactTooltip';
+import { useCredentialsSourceFilter } from './CredentialsSourceFilterContext';
+import { RotateSecretConfirmDialog } from './RotateSecretConfirmDialog';
+import { SaveSecretConfirmDialog } from './SaveSecretConfirmDialog';
+import { SecretErrorAlert } from './SecretErrorAlert';
+import { ErrorDetailsDialog } from './ErrorDetailsDialog';
+import { ConnectionTestDetailsDialog } from './ConnectionTestDetailsDialog';
 
 interface Props {
   label: string;
@@ -29,29 +39,36 @@ interface Props {
   connectionId?: string;
 }
 
-export function SecretField({ label, secretName, status, helperText, onSaved, connectionId }: Props) {
+export function SecretField({
+  label,
+  secretName,
+  status,
+  helperText,
+  onSaved,
+  connectionId,
+}: Props) {
   const { matchesFilter, filter } = useCredentialsSourceFilter();
   const logic = useSecretField({ secretName, status, connectionId, onSaved });
-  
+
   const fadeOut = !matchesFilter(status);
 
   return (
     <div
       className={cn(
-        "space-y-1.5 transition-opacity duration-200",
-        fadeOut && "opacity-40 pointer-events-none",
+        'space-y-1.5 transition-opacity duration-200',
+        fadeOut && 'pointer-events-none opacity-40',
       )}
       aria-hidden={fadeOut || undefined}
       data-source-filter={filter}
     >
       <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2 min-w-0">
+        <div className="flex min-w-0 items-center gap-2">
           <SecretImpactTooltip secretName={secretName} isMissing={!status?.has_value}>
-            <Label className="text-sm font-medium cursor-help">{label}</Label>
+            <Label className="cursor-help text-sm font-medium">{label}</Label>
           </SecretImpactTooltip>
           <CredentialSourceBadge status={status} />
           {logic.storedLooksSuspicious && (
-            <div className="flex items-center gap-1 text-[10px] text-destructive font-semibold animate-pulse">
+            <div className="flex animate-pulse items-center gap-1 text-[10px] font-semibold text-destructive">
               <ShieldAlert className="h-3 w-3" />
               VALOR SUSPEITO
             </div>
@@ -60,7 +77,7 @@ export function SecretField({ label, secretName, status, helperText, onSaved, co
 
         <div className="flex items-center gap-2">
           {logic.lastError && (
-            <div className="flex items-center gap-1.5 text-xs text-destructive font-medium animate-in fade-in slide-in-from-right-1">
+            <div className="flex items-center gap-1.5 text-xs font-medium text-destructive animate-in fade-in slide-in-from-right-1">
               <AlertCircle className="h-3.5 w-3.5" />
               {logic.lastError.title}
             </div>
@@ -70,8 +87,8 @@ export function SecretField({ label, secretName, status, helperText, onSaved, co
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 px-2.5 text-xs gap-1.5 hover:bg-primary/10"
-                onClick={() => logic.startEdit("set")}
+                className="h-8 gap-1.5 px-2.5 text-xs hover:bg-primary/10"
+                onClick={() => logic.startEdit('set')}
               >
                 <Save className="h-3.5 w-3.5" />
                 Alterar
@@ -80,8 +97,8 @@ export function SecretField({ label, secretName, status, helperText, onSaved, co
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 px-2.5 text-xs gap-1.5 hover:bg-primary/10 text-primary"
-                  onClick={() => logic.startEdit("rotate")}
+                  className="h-8 gap-1.5 px-2.5 text-xs text-primary hover:bg-primary/10"
+                  onClick={() => logic.startEdit('rotate')}
                 >
                   <RotateCw className="h-3.5 w-3.5" />
                   Rotacionar
@@ -92,47 +109,57 @@ export function SecretField({ label, secretName, status, helperText, onSaved, co
         </div>
       </div>
 
-      <div className="relative group/field">
+      <div className="group/field relative">
         <div className="flex items-center gap-2">
-          <div className="relative flex-1 group">
+          <div className="group relative flex-1">
             <Input
-              type={logic.show ? "text" : "password"}
-              placeholder={logic.editing ? `Cole o novo valor para ${secretName}...` : "••••••••••••••••"}
-              value={logic.editing ? logic.value : ""}
+              type={logic.show ? 'text' : 'password'}
+              placeholder={
+                logic.editing ? `Cole o novo valor para ${secretName}...` : '••••••••••••••••'
+              }
+              value={logic.editing ? logic.value : ''}
               onChange={(e) => logic.setValue(e.target.value)}
               onPaste={logic.handlePaste}
               onBlur={logic.handleBlur}
               disabled={!logic.editing || logic.saving}
               className={cn(
-                "h-9 pr-24 font-mono text-sm transition-all duration-200 border-border/40 bg-muted/20",
-                logic.editing && "border-primary/40 bg-background ring-1 ring-primary/10",
-                !logic.editing && status?.has_value && "text-muted-foreground/60 cursor-default",
-                logic.lastError && "border-destructive/50 ring-destructive/10"
+                'h-9 border-border/40 bg-muted/20 pr-24 font-mono text-sm transition-all duration-200',
+                logic.editing && 'border-primary/40 bg-background ring-1 ring-primary/10',
+                !logic.editing && status?.has_value && 'cursor-default text-muted-foreground/60',
+                logic.lastError && 'border-destructive/50 ring-destructive/10',
               )}
             />
-            
-            <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
+
+            <div className="absolute right-1 top-1/2 flex -translate-y-1/2 items-center gap-0.5">
               {!logic.editing && status?.has_value && (
                 <MaskedSuffixBadge
                   suffix={status.masked_suffix}
                   length={status.length}
-                  tooltip={buildUpdatedTooltip(status.updated_at, status.updated_by_email, status.updated_by_id)}
+                  tooltip={buildUpdatedTooltip(
+                    status.updated_at,
+                    status.updated_by_email,
+                    status.updated_by_id,
+                  )}
                 />
               )}
-              
+
               {logic.editing && (
                 <button
                   type="button"
                   onClick={() => logic.setShow(!logic.show)}
-                  className="p-1.5 text-muted-foreground hover:text-primary transition-colors"
+                  className="p-1.5 text-muted-foreground transition-colors hover:text-primary"
                 >
-                  {logic.show ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                  {logic.show ? (
+                    <EyeOff className="h-3.5 w-3.5" />
+                  ) : (
+                    <Eye className="h-3.5 w-3.5" />
+                  )}
                 </button>
               )}
             </div>
 
             {logic.flash && (
-              <div className="absolute inset-0 pointer-events-none">
+              <div className="pointer-events-none absolute inset-0">
                 <JustSavedFlash
                   key={logic.flash.key}
                   masked_suffix={logic.flash.masked_suffix}
@@ -146,22 +173,22 @@ export function SecretField({ label, secretName, status, helperText, onSaved, co
           </div>
 
           {logic.editing && (
-            <div className="flex items-center gap-1 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center gap-1 duration-200 animate-in fade-in zoom-in-95">
               <Button
                 size="sm"
-                className="h-9 px-3 gap-1.5 shadow-sm"
+                className="h-9 gap-1.5 px-3 shadow-sm"
                 onClick={logic.handleSave}
                 disabled={!logic.canSave}
                 title={logic.saveDisabledReason ?? undefined}
               >
                 {logic.saving ? (
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                ) : logic.mode === "rotate" ? (
+                ) : logic.mode === 'rotate' ? (
                   <RotateCw className="h-3.5 w-3.5" />
                 ) : (
                   <Check className="h-3.5 w-3.5" />
                 )}
-                {logic.mode === "rotate" ? "Rotacionar" : "Salvar"}
+                {logic.mode === 'rotate' ? 'Rotacionar' : 'Salvar'}
               </Button>
               <Button
                 variant="ghost"
@@ -177,16 +204,16 @@ export function SecretField({ label, secretName, status, helperText, onSaved, co
         </div>
 
         {logic.lastNormalization && (
-          <div className="absolute -bottom-5 left-0 flex items-center gap-1.5 text-[10px] text-primary font-medium animate-in fade-in slide-in-from-top-1">
+          <div className="absolute -bottom-5 left-0 flex items-center gap-1.5 text-[10px] font-medium text-primary animate-in fade-in slide-in-from-top-1">
             <Sparkles className="h-3 w-3" />
-            Normalizado: {logic.lastNormalization.join(", ")}
+            Normalizado: {logic.lastNormalization.join(', ')}
           </div>
         )}
       </div>
 
       <div className="flex flex-col gap-1.5">
         {helperText && !logic.lastError && (
-          <p className="text-xs text-muted-foreground/80 flex items-center gap-1.5">
+          <p className="flex items-center gap-1.5 text-xs text-muted-foreground/80">
             <AlertCircle className="h-3 w-3 shrink-0" />
             {helperText}
           </p>

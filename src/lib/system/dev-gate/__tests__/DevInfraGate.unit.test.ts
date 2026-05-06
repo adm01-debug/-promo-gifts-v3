@@ -5,7 +5,9 @@ import { AppRole } from '@/contexts/AuthContext';
 
 class MockProvider implements GateFlagProvider {
   constructor(public value: GateValue = 'auto') {}
-  getFlag() { return this.value; }
+  getFlag() {
+    return this.value;
+  }
 }
 
 describe('DevInfraGate Unit Tests', () => {
@@ -56,24 +58,24 @@ describe('DevInfraGate Unit Tests', () => {
   describe('Caching & Performance', () => {
     it('faz cache do resultado da avaliação', () => {
       const spy = vi.spyOn(providers[0], 'getFlag');
-      
+
       gate.shouldShow(devRoles);
       gate.shouldShow(devRoles);
-      
+
       expect(spy).toHaveBeenCalledTimes(1);
     });
 
     it('invalida o cache quando solicitado', () => {
       const spy = vi.spyOn(providers[0], 'getFlag');
-      
+
       gate.shouldShow(devRoles);
       gate.invalidateCache();
-      
+
       // Como invalidateCache usa debounce de 50ms, precisamos esperar
       vi.useFakeTimers();
       gate.invalidateCache();
       vi.runAllTimers();
-      
+
       gate.shouldShow(devRoles);
       expect(spy).toHaveBeenCalledTimes(2);
       vi.useRealTimers();
@@ -84,11 +86,11 @@ describe('DevInfraGate Unit Tests', () => {
     it('notifica inscritos após invalidação do cache (com debounce)', () => {
       const listener = vi.fn();
       gate.subscribe(listener);
-      
+
       vi.useFakeTimers();
       gate.invalidateCache();
       vi.runAllTimers();
-      
+
       expect(listener).toHaveBeenCalled();
       vi.useRealTimers();
     });

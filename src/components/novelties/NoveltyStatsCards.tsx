@@ -1,16 +1,27 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { Sparkles, CalendarPlus, CalendarRange, CalendarDays, Building2, AlertCircle, RefreshCw } from "lucide-react";
-import { useNoveltyStats } from "@/hooks/useNovelties";
-import { cn } from "@/lib/utils";
-import { useState, useEffect } from "react";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
-import { useQueryClient } from "@tanstack/react-query";
+import { Card, CardContent } from '@/components/ui/card';
+import {
+  Sparkles,
+  CalendarPlus,
+  CalendarRange,
+  CalendarDays,
+  Building2,
+  AlertCircle,
+  RefreshCw,
+} from 'lucide-react';
+import { useNoveltyStats } from '@/hooks/useNovelties';
+import { cn } from '@/lib/utils';
+import { useState, useEffect } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
+import { useQueryClient } from '@tanstack/react-query';
 
 function useCountUp(end: number, duration: number = 800) {
   const [count, setCount] = useState(0);
   useEffect(() => {
-    if (end === 0) { setCount(0); return; }
+    if (end === 0) {
+      setCount(0);
+      return;
+    }
     let startTime: number | null = null;
     const animate = (timestamp: number) => {
       if (!startTime) startTime = timestamp;
@@ -30,28 +41,59 @@ interface StatCardProps {
   suffix?: string;
   subtitle?: string;
   icon: React.ReactNode;
-  variant: "success" | "warning" | "info" | "default" | "orange";
+  variant: 'success' | 'warning' | 'info' | 'default' | 'orange';
   delay?: number;
 }
 
 const variantStyles = {
-  success: { iconBg: "bg-success/15", iconColor: "text-success", glow: "hover:shadow-[0_0_20px_hsl(var(--success)/0.15)]" },
-  warning: { iconBg: "bg-warning/15", iconColor: "text-warning", glow: "hover:shadow-[0_0_20px_hsl(var(--warning)/0.15)]" },
-  info: { iconBg: "bg-info/15", iconColor: "text-info", glow: "hover:shadow-[0_0_20px_hsl(var(--info)/0.15)]" },
-  default: { iconBg: "bg-primary/15", iconColor: "text-primary", glow: "hover:shadow-[0_0_20px_hsl(var(--primary)/0.15)]" },
-  orange: { iconBg: "bg-orange/15", iconColor: "text-orange", glow: "hover:shadow-[0_0_20px_hsl(var(--orange)/0.15)]" },
+  success: {
+    iconBg: 'bg-success/15',
+    iconColor: 'text-success',
+    glow: 'hover:shadow-[0_0_20px_hsl(var(--success)/0.15)]',
+  },
+  warning: {
+    iconBg: 'bg-warning/15',
+    iconColor: 'text-warning',
+    glow: 'hover:shadow-[0_0_20px_hsl(var(--warning)/0.15)]',
+  },
+  info: {
+    iconBg: 'bg-info/15',
+    iconColor: 'text-info',
+    glow: 'hover:shadow-[0_0_20px_hsl(var(--info)/0.15)]',
+  },
+  default: {
+    iconBg: 'bg-primary/15',
+    iconColor: 'text-primary',
+    glow: 'hover:shadow-[0_0_20px_hsl(var(--primary)/0.15)]',
+  },
+  orange: {
+    iconBg: 'bg-orange/15',
+    iconColor: 'text-orange',
+    glow: 'hover:shadow-[0_0_20px_hsl(var(--orange)/0.15)]',
+  },
 };
 
-function StatCard({ label, value, suffix = "", subtitle, icon, variant, delay = 0, isLoading = false }: StatCardProps & { isLoading?: boolean }) {
+function StatCard({
+  label,
+  value,
+  suffix = '',
+  subtitle,
+  icon,
+  variant,
+  delay = 0,
+  isLoading = false,
+}: StatCardProps & { isLoading?: boolean }) {
   const animatedValue = useCountUp(value, 800);
   const styles = variantStyles[variant];
 
   if (isLoading) {
     return (
-      <Card className={cn("border-border/50 transition-all duration-300", styles.glow)}>
+      <Card className={cn('border-border/50 transition-all duration-300', styles.glow)}>
         <CardContent className="p-2.5 sm:p-3">
           <div className="flex items-center gap-2.5">
-            <Skeleton className={cn("shrink-0 h-9 w-9 sm:h-10 sm:w-10 rounded-xl", styles.iconBg)} />
+            <Skeleton
+              className={cn('h-9 w-9 shrink-0 rounded-xl sm:h-10 sm:w-10', styles.iconBg)}
+            />
             <div className="min-w-0 flex-1 space-y-1.5">
               <Skeleton className="h-5 w-16" />
               <Skeleton className="h-3 w-24" />
@@ -65,25 +107,24 @@ function StatCard({ label, value, suffix = "", subtitle, icon, variant, delay = 
   return (
     <Card
       className={cn(
-        "border-border/50 hover:border-primary/30 transition-all duration-300",
-        styles.glow
+        'border-border/50 transition-all duration-300 hover:border-primary/30',
+        styles.glow,
       )}
       style={{ animation: `scale-fade-in 0.4s ease-out ${delay}ms backwards` }}
     >
       <CardContent className="p-2.5 sm:p-3">
         <div className="flex items-center gap-2.5">
-          <div className={cn("shrink-0 p-2 rounded-xl", styles.iconBg)}>
-            {icon}
-          </div>
+          <div className={cn('shrink-0 rounded-xl p-2', styles.iconBg)}>{icon}</div>
           <div className="min-w-0 flex-1">
-            <p className="text-xl sm:text-xl font-bold tabular-nums truncate leading-tight">
-              {animatedValue.toLocaleString('pt-BR')}{suffix}
+            <p className="truncate text-xl font-bold tabular-nums leading-tight sm:text-xl">
+              {animatedValue.toLocaleString('pt-BR')}
+              {suffix}
             </p>
-            <p className="text-[10px] sm:text-xs text-muted-foreground truncate leading-tight">
+            <p className="truncate text-[10px] leading-tight text-muted-foreground sm:text-xs">
               {label}
             </p>
             {subtitle && (
-              <p className="text-[9px] text-muted-foreground/70 truncate mt-0.5 leading-tight">
+              <p className="mt-0.5 truncate text-[9px] leading-tight text-muted-foreground/70">
                 {subtitle}
               </p>
             )}
@@ -99,10 +140,10 @@ function StatCardSkeleton() {
     <Card className="border-border/50">
       <CardContent className="p-3 sm:p-4">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 sm:h-11 sm:w-11 rounded-xl shimmer" />
+          <div className="shimmer h-10 w-10 rounded-xl sm:h-11 sm:w-11" />
           <div className="space-y-2">
-            <div className="h-6 w-16 rounded shimmer" style={{ animationDelay: '100ms' }} />
-            <div className="h-4 w-24 rounded shimmer" style={{ animationDelay: '200ms' }} />
+            <div className="shimmer h-6 w-16 rounded" style={{ animationDelay: '100ms' }} />
+            <div className="shimmer h-4 w-24 rounded" style={{ animationDelay: '200ms' }} />
           </div>
         </div>
       </CardContent>
@@ -110,11 +151,11 @@ function StatCardSkeleton() {
   );
 }
 
-export function NoveltyStatsCards({ 
-  filteredProducts, 
-  isRefreshing = false 
-}: { 
-  filteredProducts?: any[]; 
+export function NoveltyStatsCards({
+  filteredProducts,
+  isRefreshing = false,
+}: {
+  filteredProducts?: any[];
   isRefreshing?: boolean;
 }) {
   const queryClient = useQueryClient();
@@ -127,21 +168,25 @@ export function NoveltyStatsCards({
 
   if (error && !stats) {
     return (
-      <Card className="border-destructive/30 bg-destructive/5 overflow-hidden">
-        <CardContent className="p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <Card className="overflow-hidden border-destructive/30 bg-destructive/5">
+        <CardContent className="flex flex-col items-center justify-between gap-4 p-4 sm:flex-row">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-full bg-destructive/10 text-destructive">
+            <div className="rounded-full bg-destructive/10 p-2 text-destructive">
               <AlertCircle className="h-5 w-5" />
             </div>
             <div>
-              <h4 className="text-sm font-semibold text-destructive">Falha ao carregar indicadores</h4>
-              <p className="text-xs text-muted-foreground">Não foi possível processar as estatísticas de novidades neste momento.</p>
+              <h4 className="text-sm font-semibold text-destructive">
+                Falha ao carregar indicadores
+              </h4>
+              <p className="text-xs text-muted-foreground">
+                Não foi possível processar as estatísticas de novidades neste momento.
+              </p>
             </div>
           </div>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="h-8 gap-1.5 border-destructive/20 hover:bg-destructive/10 hover:text-destructive shrink-0"
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 shrink-0 gap-1.5 border-destructive/20 hover:bg-destructive/10 hover:text-destructive"
             onClick={handleRetry}
           >
             <RefreshCw className="h-3.5 w-3.5" />
@@ -154,7 +199,7 @@ export function NoveltyStatsCards({
 
   if (isLoading && !stats) {
     return (
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 relative">
+      <div className="relative grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-5">
         {Array.from({ length: 5 }).map((_, i) => (
           <StatCardSkeleton key={i} />
         ))}
@@ -167,14 +212,16 @@ export function NoveltyStatsCards({
   }
 
   return (
-    <div className={cn(
-      "grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 transition-opacity duration-300",
-      isRefreshing && "opacity-60 pointer-events-none"
-    )}>
+    <div
+      className={cn(
+        'grid grid-cols-2 gap-3 transition-opacity duration-300 sm:gap-4 lg:grid-cols-5',
+        isRefreshing && 'pointer-events-none opacity-60',
+      )}
+    >
       {isRefreshing && (
         <div className="absolute inset-0 z-10 flex items-center justify-center">
-          <div className="bg-background/80 backdrop-blur-sm p-3 rounded-full shadow-lg border border-border">
-            <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          <div className="rounded-full border border-border bg-background/80 p-3 shadow-lg backdrop-blur-sm">
+            <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
           </div>
         </div>
       )}
@@ -205,7 +252,7 @@ export function NoveltyStatsCards({
       <StatCard
         label="Top Fornecedor"
         value={stats?.topSupplierCount || 0}
-        subtitle={stats?.topSupplierName || "—"}
+        subtitle={stats?.topSupplierName || '—'}
         icon={<Building2 className="h-4 w-4 sm:h-5 sm:w-5" />}
         variant="info"
         delay={200}
@@ -214,7 +261,7 @@ export function NoveltyStatsCards({
       <StatCard
         label="Novidades Ativas"
         value={stats?.activeNovelties || 0}
-        suffix={stats?.noveltyRate ? ` (${stats.noveltyRate}%)` : ""}
+        suffix={stats?.noveltyRate ? ` (${stats.noveltyRate}%)` : ''}
         icon={<Sparkles className="h-4 w-4 sm:h-5 sm:w-5" />}
         variant="default"
         delay={300}

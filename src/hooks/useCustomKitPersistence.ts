@@ -69,7 +69,11 @@ export function useCustomKitPersistence() {
 
   // Salvar kit (insert ou update)
   const saveMutation = useMutation({
-    mutationFn: async ({ kitId, kitState, kitQuantity }: {
+    mutationFn: async ({
+      kitId,
+      kitState,
+      kitQuantity,
+    }: {
       kitId?: string;
       kitState: KitState;
       kitQuantity: number;
@@ -109,15 +113,10 @@ export function useCustomKitPersistence() {
           .single();
         if (error) throw error;
         return data;
-      } 
-        const { data, error } = await supabase
-          .from('custom_kits')
-          .insert(payload)
-          .select()
-          .single();
-        if (error) throw error;
-        return data;
-      
+      }
+      const { data, error } = await supabase.from('custom_kits').insert(payload).select().single();
+      if (error) throw error;
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEY });
@@ -151,52 +150,58 @@ export function useCustomKitPersistence() {
   const saveKit = useCallback(
     (kitState: KitState, kitQuantity: number, kitId?: string) =>
       saveMutation.mutateAsync({ kitId, kitState, kitQuantity }),
-    [saveMutation]
+    [saveMutation],
   );
 
   const deleteKit = useCallback(
     (kitId: string) => deleteMutation.mutateAsync(kitId),
-    [deleteMutation]
+    [deleteMutation],
   );
 
   /** Marca o kit como recém-usado (best-effort). */
-  const bumpLastUsed = useCallback(async (kitId: string) => {
-    if (!user?.id) return;
-    try {
-      await supabase
-        .from('custom_kits')
-        .update({ last_used_at: new Date().toISOString() } as never)
-        .eq('id', kitId)
-        .eq('user_id', user.id);
-      queryClient.invalidateQueries({ queryKey: QUERY_KEY });
-    } catch {
-      /* best-effort */
-    }
-  }, [user?.id, queryClient]);
-
-  /** Fixa/desfixa kit em destaque (apenas 1 por usuário). */
-  const togglePinned = useCallback(async (kitId: string, value: boolean) => {
-    if (!user?.id) return;
-    try {
-      if (value) {
-        // Desfixa qualquer outro kit fixado primeiro
+  const bumpLastUsed = useCallback(
+    async (kitId: string) => {
+      if (!user?.id) return;
+      try {
         await supabase
           .from('custom_kits')
-          .update({ is_pinned: false } as never)
-          .eq('user_id', user.id)
-          .eq('is_pinned', true);
+          .update({ last_used_at: new Date().toISOString() } as never)
+          .eq('id', kitId)
+          .eq('user_id', user.id);
+        queryClient.invalidateQueries({ queryKey: QUERY_KEY });
+      } catch {
+        /* best-effort */
       }
-      await supabase
-        .from('custom_kits')
-        .update({ is_pinned: value } as never)
-        .eq('id', kitId)
-        .eq('user_id', user.id);
-      queryClient.invalidateQueries({ queryKey: QUERY_KEY });
-      toast.success(value ? 'Kit fixado em destaque' : 'Kit desafixado');
-    } catch (err) {
-      toast.error('Erro ao alterar destaque');
-    }
-  }, [user?.id, queryClient]);
+    },
+    [user?.id, queryClient],
+  );
+
+  /** Fixa/desfixa kit em destaque (apenas 1 por usuário). */
+  const togglePinned = useCallback(
+    async (kitId: string, value: boolean) => {
+      if (!user?.id) return;
+      try {
+        if (value) {
+          // Desfixa qualquer outro kit fixado primeiro
+          await supabase
+            .from('custom_kits')
+            .update({ is_pinned: false } as never)
+            .eq('user_id', user.id)
+            .eq('is_pinned', true);
+        }
+        await supabase
+          .from('custom_kits')
+          .update({ is_pinned: value } as never)
+          .eq('id', kitId)
+          .eq('user_id', user.id);
+        queryClient.invalidateQueries({ queryKey: QUERY_KEY });
+        toast.success(value ? 'Kit fixado em destaque' : 'Kit desafixado');
+      } catch (err) {
+        toast.error('Erro ao alterar destaque');
+      }
+    },
+    [user?.id, queryClient],
+  );
 
   return {
     savedKits,

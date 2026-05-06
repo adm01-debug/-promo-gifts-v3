@@ -1,27 +1,27 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
-import { vi, describe, it, expect, beforeEach } from "vitest";
-import MockupGenerator from "@/pages/MockupGenerator";
-import { AuthProvider } from "@/contexts/AuthContext";
-import { ThemeProvider } from "@/contexts/ThemeContext";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { HelmetProvider } from "react-helmet-async";
-import * as mockupService from "@/hooks/mockup/mockupGenerationService";
-import { toast } from "sonner";
-import { ProductsProvider } from "@/contexts/ProductsContext";
-import { AriaLiveProvider } from "@/components/a11y/AriaLive";
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
+import MockupGenerator from '@/pages/MockupGenerator';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { ThemeProvider } from '@/contexts/ThemeContext';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { HelmetProvider } from 'react-helmet-async';
+import * as mockupService from '@/hooks/mockup/mockupGenerationService';
+import { toast } from 'sonner';
+import { ProductsProvider } from '@/contexts/ProductsContext';
+import { AriaLiveProvider } from '@/components/a11y/AriaLive';
 
 // Mock global environment
 window.scrollTo = vi.fn();
 
 // Mock services
-vi.mock("@/hooks/mockup/mockupGenerationService", () => ({
+vi.mock('@/hooks/mockup/mockupGenerationService', () => ({
   deleteMockupFromDb: vi.fn(),
   fetchMockupHistory: vi.fn(),
 }));
 
-vi.mock("sonner", () => ({
+vi.mock('sonner', () => ({
   toast: {
     success: vi.fn(),
     error: vi.fn(),
@@ -30,21 +30,21 @@ vi.mock("sonner", () => ({
 }));
 
 const mockMg = {
-  user: { id: "user-123" },
+  user: { id: 'user-123' },
   mockupHistory: [
     {
-      id: "mockup-1",
-      product_name: "Caneca 325ml",
-      technique_name: "Sublimação",
-      mockup_url: "https://example.com/mockup1.png",
+      id: 'mockup-1',
+      product_name: 'Caneca 325ml',
+      technique_name: 'Sublimação',
+      mockup_url: 'https://example.com/mockup1.png',
       created_at: new Date().toISOString(),
-      client_name: "Cliente Teste",
+      client_name: 'Cliente Teste',
     },
   ],
   isLoadingHistory: false,
   fetchHistory: vi.fn(),
   historyClients: [],
-  activeTab: "generator",
+  activeTab: 'generator',
   setActiveTab: vi.fn(),
   isLoading: false,
   selectedProduct: null,
@@ -88,11 +88,11 @@ const mockMg = {
   saveMockupToHistory: vi.fn(),
 };
 
-vi.mock("@/hooks/useMockupGenerator", () => ({
+vi.mock('@/hooks/useMockupGenerator', () => ({
   useMockupGenerator: () => mockMg,
 }));
 
-vi.mock("@/pages/mockup-generator/MockupTechniqueHandlers", () => ({
+vi.mock('@/pages/mockup-generator/MockupTechniqueHandlers', () => ({
   useTechniqueHandlers: () => ({
     handleTechniqueChange: vi.fn(),
     techniqueChangeDialogOpen: false,
@@ -104,22 +104,26 @@ vi.mock("@/pages/mockup-generator/MockupTechniqueHandlers", () => ({
   }),
 }));
 
-vi.mock("@/components/mockup/KeyboardShortcuts", () => ({
+vi.mock('@/components/mockup/KeyboardShortcuts', () => ({
   useKeyboardShortcuts: vi.fn(),
 }));
 
-vi.mock("@/lib/telemetry/bridgeCallMetrics", () => ({
+vi.mock('@/lib/telemetry/bridgeCallMetrics', () => ({
   estimatePayloadBytes: vi.fn().mockReturnValue(0),
   trackBridgeCall: vi.fn(),
   recordBridgeCall: vi.fn(),
 }));
 
-vi.mock("@/integrations/supabase/client", () => ({
+vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
     auth: {
-      getSession: vi.fn().mockResolvedValue({ data: { session: { user: { id: "user-123" } } }, error: null }),
-      onAuthStateChange: vi.fn().mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } }),
-      getUser: vi.fn().mockResolvedValue({ data: { user: { id: "user-123" } }, error: null }),
+      getSession: vi
+        .fn()
+        .mockResolvedValue({ data: { session: { user: { id: 'user-123' } } }, error: null }),
+      onAuthStateChange: vi
+        .fn()
+        .mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } }),
+      getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'user-123' } }, error: null }),
     },
     from: vi.fn().mockReturnValue({
       select: vi.fn().mockReturnThis(),
@@ -142,11 +146,13 @@ vi.mock("@/integrations/supabase/client", () => ({
   },
 }));
 
-vi.mock("@/components/layout/MainLayout", () => ({
-  MainLayout: ({ children }: { children: React.ReactNode }) => <div data-testid="main-layout">{children}</div>,
+vi.mock('@/components/layout/MainLayout', () => ({
+  MainLayout: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="main-layout">{children}</div>
+  ),
 }));
 
-vi.mock("@/components/seo/PageSEO", () => ({
+vi.mock('@/components/seo/PageSEO', () => ({
   PageSEO: () => null,
 }));
 
@@ -167,30 +173,28 @@ const renderWithProviders = (ui: React.ReactElement) => {
             <ProductsProvider>
               <MemoryRouter>
                 <ThemeProvider>
-                  <AuthProvider>
-                    {ui}
-                  </AuthProvider>
+                  <AuthProvider>{ui}</AuthProvider>
                 </ThemeProvider>
               </MemoryRouter>
             </ProductsProvider>
           </QueryClientProvider>
         </AriaLiveProvider>
       </TooltipProvider>
-    </HelmetProvider>
+    </HelmetProvider>,
   );
 };
 
-describe("Mockup Deletion Flow", () => {
+describe('Mockup Deletion Flow', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockMg.activeTab = "generator";
+    mockMg.activeTab = 'generator';
     (mockupService.deleteMockupFromDb as any).mockResolvedValue(undefined);
   });
 
-  it("deve abrir o diálogo de confirmação ao clicar em excluir", async () => {
-    mockMg.activeTab = "history";
+  it('deve abrir o diálogo de confirmação ao clicar em excluir', async () => {
+    mockMg.activeTab = 'history';
     renderWithProviders(<MockupGenerator />);
-    
+
     // Encontrar e clicar no botão de excluir
     const deleteButton = await screen.findByLabelText(/excluir/i);
     fireEvent.click(deleteButton);
@@ -199,38 +203,46 @@ describe("Mockup Deletion Flow", () => {
     expect(screen.getByText(/Excluir mockup\?/i)).toBeInTheDocument();
   });
 
-  it("deve chamar deleteMockupFromDb e atualizar a lista ao confirmar", async () => {
-    mockMg.activeTab = "history";
+  it('deve chamar deleteMockupFromDb e atualizar a lista ao confirmar', async () => {
+    mockMg.activeTab = 'history';
     renderWithProviders(<MockupGenerator />);
-    
+
     const deleteButton = await screen.findByLabelText(/excluir/i);
     fireEvent.click(deleteButton);
 
-    const confirmButton = screen.getByRole("button", { name: /excluir/i, className: /bg-destructive/i });
+    const confirmButton = screen.getByRole('button', {
+      name: /excluir/i,
+      className: /bg-destructive/i,
+    });
     fireEvent.click(confirmButton);
 
     await waitFor(() => {
-      expect(mockupService.deleteMockupFromDb).toHaveBeenCalledWith("mockup-1", "user-123");
+      expect(mockupService.deleteMockupFromDb).toHaveBeenCalledWith('mockup-1', 'user-123');
     });
 
-    expect(toast.success).toHaveBeenCalledWith("Mockup excluído com sucesso");
+    expect(toast.success).toHaveBeenCalledWith('Mockup excluído com sucesso');
     expect(mockMg.fetchHistory).toHaveBeenCalled();
   });
 
-  it("deve exibir toast de erro quando a deleção falhar", async () => {
-    (mockupService.deleteMockupFromDb as any).mockRejectedValue(new Error("Database error"));
-    mockMg.activeTab = "history";
-    
+  it('deve exibir toast de erro quando a deleção falhar', async () => {
+    (mockupService.deleteMockupFromDb as any).mockRejectedValue(new Error('Database error'));
+    mockMg.activeTab = 'history';
+
     renderWithProviders(<MockupGenerator />);
-    
+
     const deleteButton = await screen.findByLabelText(/excluir/i);
     fireEvent.click(deleteButton);
 
-    const confirmButton = screen.getByRole("button", { name: /excluir/i, className: /bg-destructive/i });
+    const confirmButton = screen.getByRole('button', {
+      name: /excluir/i,
+      className: /bg-destructive/i,
+    });
     fireEvent.click(confirmButton);
 
     await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith("Não foi possível excluir o mockup. Tente novamente.");
+      expect(toast.error).toHaveBeenCalledWith(
+        'Não foi possível excluir o mockup. Tente novamente.',
+      );
     });
   });
 });

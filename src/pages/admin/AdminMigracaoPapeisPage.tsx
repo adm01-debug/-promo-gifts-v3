@@ -1,9 +1,9 @@
-import { MainLayout } from "@/components/layout/MainLayout";
-import { PageSEO } from "@/components/seo/PageSEO";
-import { Users, ArrowLeft } from "lucide-react";
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { RoleMigrationPanel } from "@/components/admin/security/role-migration/RoleMigrationPanel";
+import { MainLayout } from '@/components/layout/MainLayout';
+import { PageSEO } from '@/components/seo/PageSEO';
+import { Users, ArrowLeft } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { RoleMigrationPanel } from '@/components/admin/security/role-migration/RoleMigrationPanel';
 
 export default function AdminMigracaoPapeisPage() {
   return (
@@ -14,10 +14,10 @@ export default function AdminMigracaoPapeisPage() {
         path="/admin/seguranca/migracao-papeis"
         noIndex
       />
-      <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-4 pb-24 md:pb-6 animate-fade-in">
+      <div className="mx-auto w-full max-w-[1920px] animate-fade-in space-y-4 px-3 py-3 pb-24 sm:px-4 sm:py-4 md:pb-6 lg:px-6 xl:px-8">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="p-3 rounded-xl bg-primary/10">
+            <div className="rounded-xl bg-primary/10 p-3">
               <Users className="h-8 w-8 text-primary" />
             </div>
             <div>
@@ -29,7 +29,7 @@ export default function AdminMigracaoPapeisPage() {
           </div>
           <Button asChild variant="outline" size="sm">
             <Link to="/admin/seguranca">
-              <ArrowLeft className="h-4 w-4 mr-1" /> Voltar a Segurança
+              <ArrowLeft className="mr-1 h-4 w-4" /> Voltar a Segurança
             </Link>
           </Button>
         </div>

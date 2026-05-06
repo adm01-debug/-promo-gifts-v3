@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { logger } from "@/lib/logger";
+import { logger } from '@/lib/logger';
 
 interface NotificationPermissionState {
   permission: NotificationPermission;
@@ -19,7 +19,7 @@ export function usePushNotifications() {
 
   useEffect(() => {
     const isSupported = 'Notification' in window;
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       isSupported,
       permission: isSupported ? Notification.permission : 'denied',
@@ -35,67 +35,70 @@ export function usePushNotifications() {
 
     try {
       const permission = await Notification.requestPermission();
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         permission,
         isEnabled: permission === 'granted',
       }));
-      
+
       if (permission === 'granted') {
         return true;
-      } 
-        return false;
-      
+      }
+      return false;
     } catch (error) {
       return false;
     }
   }, [state.isSupported]);
 
-  const showNotification = useCallback((title: string, options?: NotificationOptions) => {
-    if (!state.isEnabled) {
-      return null;
-    }
+  const showNotification = useCallback(
+    (title: string, options?: NotificationOptions) => {
+      if (!state.isEnabled) {
+        return null;
+      }
 
-    try {
-      const notification = new Notification(title, {
-        icon: '/favicon.ico',
-        badge: '/favicon.ico',
-        vibrate: [200, 100, 200],
-        ...options,
-      });
+      try {
+        const notification = new Notification(title, {
+          icon: '/favicon.ico',
+          badge: '/favicon.ico',
+          vibrate: [200, 100, 200],
+          ...options,
+        });
 
-      notification.onclick = () => {
-        window.focus();
-        notification.close();
+        notification.onclick = () => {
+          window.focus();
+          notification.close();
+        };
+
+        return notification;
+      } catch (error) {
+        console.error('Error showing notification:', error);
+        return null;
+      }
+    },
+    [state.isEnabled],
+  );
+
+  const showSecurityAlert = useCallback(
+    (title: string, message: string, type: 'info' | 'warning' | 'critical' = 'warning') => {
+      const icons: Record<string, string> = {
+        info: '🔵',
+        warning: '🟡',
+        critical: '🔴',
       };
 
-      return notification;
-    } catch (error) {
-      console.error('Error showing notification:', error);
-      return null;
-    }
-  }, [state.isEnabled]);
-
-  const showSecurityAlert = useCallback((title: string, message: string, type: 'info' | 'warning' | 'critical' = 'warning') => {
-    const icons: Record<string, string> = {
-      info: '🔵',
-      warning: '🟡',
-      critical: '🔴',
-    };
-
-    return showNotification(`${icons[type]} ${title}`, {
-      body: message,
-      tag: 'security-alert',
-      requireInteraction: type === 'critical',
-      silent: type === 'info',
-    });
-  }, [showNotification]);
+      return showNotification(`${icons[type]} ${title}`, {
+        body: message,
+        tag: 'security-alert',
+        requireInteraction: type === 'critical',
+        silent: type === 'info',
+      });
+    },
+    [showNotification],
+  );
 
   // Subscribe to real-time security notifications
   useEffect(() => {
     if (!user || !state.isEnabled) return;
-
-    
 
     const channel = supabase
       .channel('security-notifications')
@@ -115,13 +118,9 @@ export function usePushNotifications() {
           };
 
           if (notification.type === 'security') {
-            showSecurityAlert(
-              notification.title,
-              notification.message,
-              'warning'
-            );
+            showSecurityAlert(notification.title, notification.message, 'warning');
           }
-        }
+        },
       )
       .on(
         'postgres_changes',
@@ -140,9 +139,9 @@ export function usePushNotifications() {
           showSecurityAlert(
             'Novo login detectado',
             `Login de ${deviceNotif.ip_address}${deviceNotif.location ? ` (${deviceNotif.location})` : ''}`,
-            'warning'
+            'warning',
           );
-        }
+        },
       )
       .on(
         'postgres_changes',
@@ -163,10 +162,10 @@ export function usePushNotifications() {
             showSecurityAlert(
               'Tentativa de login falha',
               `Tentativa de ${attempt.ip_address}: ${attempt.failure_reason || 'Credenciais inválidas'}`,
-              'critical'
+              'critical',
             );
           }
-        }
+        },
       )
       .subscribe();
 

@@ -3,15 +3,21 @@
  * Substitui useClients (que usava bitrix_clients)
  */
 
-import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
-import { selectCrm, selectCrmById, searchCrm, invokeCrmDb } from "@/lib/crm-db";
-import { type CrmCompany, type CrmCompanyFilters, type CrmCustomer, toLegacyClient, getCompanyDisplayName } from "@/types/crm";
-import { toast } from "sonner";
-import { DEMO_CLIENT_ID, DEMO_COMPANY, isDemoClient } from "@/lib/bi/demoClient";
-import { useAuth } from "@/contexts/AuthContext";
-import { useSalesScope } from "@/lib/auth/visibility-scope";
-import { applySellerScope } from "@/lib/auth/apply-seller-scope";
-import { supabase } from "@/integrations/supabase/client";
+import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
+import { selectCrm, selectCrmById, searchCrm, invokeCrmDb } from '@/lib/crm-db';
+import {
+  type CrmCompany,
+  type CrmCompanyFilters,
+  type CrmCustomer,
+  toLegacyClient,
+  getCompanyDisplayName,
+} from '@/types/crm';
+import { toast } from 'sonner';
+import { DEMO_CLIENT_ID, DEMO_COMPANY, isDemoClient } from '@/lib/bi/demoClient';
+import { useAuth } from '@/contexts/AuthContext';
+import { useSalesScope } from '@/lib/auth/visibility-scope';
+import { applySellerScope } from '@/lib/auth/apply-seller-scope';
+import { supabase } from '@/integrations/supabase/client';
 
 /**
  * Lista empresas do CRM com filtros opcionais
@@ -21,9 +27,9 @@ export function useCrmCompanies(filters?: CrmCompanyFilters) {
   const scope = useSalesScope();
 
   return useQuery<CrmCompany[]>({
-    queryKey: ["crm-companies", filters],
+    queryKey: ['crm-companies', filters],
     queryFn: async () => {
-      console.log("[CRM-DB] useCrmCompanies: Buscando empresas...", { filters });
+      console.log('[CRM-DB] useCrmCompanies: Buscando empresas...', { filters });
       const queryFilters: Record<string, unknown> = {};
 
       if (filters?.status) queryFilters.status = filters.status;
@@ -38,26 +44,26 @@ export function useCrmCompanies(filters?: CrmCompanyFilters) {
       queryFilters.deleted_at = null;
 
       if (filters?.search) {
-        const results = await searchCrm<CrmCompany>("companies", "razao_social", filters.search, {
-          orderBy: { column: "razao_social", ascending: true },
+        const results = await searchCrm<CrmCompany>('companies', 'razao_social', filters.search, {
+          orderBy: { column: 'razao_social', ascending: true },
           limit: 200,
         });
-        console.log("[CRM-DB] useCrmCompanies: Busca concluída (search). Total:", results.length);
+        console.log('[CRM-DB] useCrmCompanies: Busca concluída (search). Total:', results.length);
         return results;
       }
 
       // Nota: RLS no CRM é aplicado via Edge Function crm-db-bridge.
       // Se necessário aplicar filtro de seller no CRM, deve ser passado nos queryFilters.
-      if (scope === "self" && user?.id) {
+      if (scope === 'self' && user?.id) {
         queryFilters.seller_id = user.id;
       }
 
-      const results = await selectCrm<CrmCompany>("companies", {
+      const results = await selectCrm<CrmCompany>('companies', {
         filters: Object.keys(queryFilters).length > 0 ? queryFilters : undefined,
-        orderBy: { column: "razao_social", ascending: true },
+        orderBy: { column: 'razao_social', ascending: true },
         limit: 200,
       });
-      console.log("[CRM-DB] useCrmCompanies: Busca concluída (select). Total:", results.length);
+      console.log('[CRM-DB] useCrmCompanies: Busca concluída (select). Total:', results.length);
       return results;
     },
     staleTime: 10 * 60 * 1000,
@@ -69,11 +75,11 @@ export function useCrmCompanies(filters?: CrmCompanyFilters) {
  */
 export function useCrmCompany(id: string | null | undefined) {
   return useQuery<CrmCompany | null>({
-    queryKey: ["crm-company", id],
+    queryKey: ['crm-company', id],
     queryFn: async () => {
       if (!id) return null;
       if (isDemoClient(id)) return DEMO_COMPANY as unknown as CrmCompany;
-      return selectCrmById<CrmCompany>("companies", id);
+      return selectCrmById<CrmCompany>('companies', id);
     },
     enabled: !!id,
     staleTime: 10 * 60 * 1000,
@@ -88,7 +94,7 @@ export function useCrmCompaniesLegacy(filters?: CrmCompanyFilters) {
 
   return {
     ...query,
-    data: query.data?.map(c => toLegacyClient(c)) || [],
+    data: query.data?.map((c) => toLegacyClient(c)) || [],
   };
 }
 
@@ -110,28 +116,30 @@ export function useCrmCompanyLegacy(id: string | null | undefined) {
  */
 export function useCrmInfiniteCompanySelector() {
   return useInfiniteQuery({
-    queryKey: ["crm-companies-infinite"],
+    queryKey: ['crm-companies-infinite'],
     queryFn: async ({ pageParam = 0 }) => {
       const startedAt = performance.now();
       console.log(`[CRM-DB] useCrmInfiniteCompanySelector: Carregando offset=${pageParam}...`);
-      
+
       try {
         const result = await invokeCrmDb<CrmCompany[]>({
-          table: "companies",
-          operation: "select",
-          select: "id, razao_social, nome_fantasia, ramo_atividade, logo_url, cnpj, seller_id",
-          filters: { 
+          table: 'companies',
+          operation: 'select',
+          select: 'id, razao_social, nome_fantasia, ramo_atividade, logo_url, cnpj, seller_id',
+          filters: {
             deleted_at: null,
-            ...(scope === "self" && user?.id ? { seller_id: user.id } : {})
+            ...(scope === 'self' && user?.id ? { seller_id: user.id } : {}),
           },
-          orderBy: { column: "razao_social", ascending: true },
+          orderBy: { column: 'razao_social', ascending: true },
           limit: 100,
           offset: pageParam,
         });
 
         const records = result.data || [];
         const duration = Math.round(performance.now() - startedAt);
-        console.log(`[CRM-DB] useCrmInfiniteCompanySelector: OK. Recebidos ${records.length} registros em ${duration}ms.`);
+        console.log(
+          `[CRM-DB] useCrmInfiniteCompanySelector: OK. Recebidos ${records.length} registros em ${duration}ms.`,
+        );
 
         return {
           records: records.map((c) => ({
@@ -148,10 +156,10 @@ export function useCrmInfiniteCompanySelector() {
       } catch (err) {
         const duration = Math.round(performance.now() - startedAt);
         const msg = err instanceof Error ? err.message : String(err);
-        console.error("[CRM-DB] useCrmInfiniteCompanySelector: FALHA:", { 
-          message: msg, 
+        console.error('[CRM-DB] useCrmInfiniteCompanySelector: FALHA:', {
+          message: msg,
           durationMs: duration,
-          error: err 
+          error: err,
         });
         throw err;
       }
@@ -161,14 +169,15 @@ export function useCrmInfiniteCompanySelector() {
     staleTime: 5 * 60 * 1000,
     retry: (failureCount, error) => {
       // Retry automático com backoff apenas para erros que parecem temporários
-      const msg = error instanceof Error ? error.message.toLowerCase() : "";
-      const isRetryable = msg.includes("timeout") || 
-                        msg.includes("fetch") || 
-                        msg.includes("502") || 
-                        msg.includes("503") || 
-                        msg.includes("504") ||
-                        msg.includes("network");
-      
+      const msg = error instanceof Error ? error.message.toLowerCase() : '';
+      const isRetryable =
+        msg.includes('timeout') ||
+        msg.includes('fetch') ||
+        msg.includes('502') ||
+        msg.includes('503') ||
+        msg.includes('504') ||
+        msg.includes('network');
+
       return isRetryable && failureCount < 3;
     },
     retryDelay: (attemptIndex) => Math.min(1000 * Math.pow(2, attemptIndex), 10000),
@@ -181,18 +190,18 @@ export function useCrmInfiniteCompanySelector() {
  */
 export function useCrmCompanySelector() {
   return useQuery({
-    queryKey: ["crm-companies-selector"],
+    queryKey: ['crm-companies-selector'],
     queryFn: async () => {
-      console.log("[CRM-DB] useCrmCompanySelector: Iniciando carregamento...");
+      console.log('[CRM-DB] useCrmCompanySelector: Iniciando carregamento...');
       try {
-        const companies = await selectCrm<CrmCompany>("companies", {
-          select: "id, razao_social, nome_fantasia, ramo_atividade, logo_url, cnpj",
+        const companies = await selectCrm<CrmCompany>('companies', {
+          select: 'id, razao_social, nome_fantasia, ramo_atividade, logo_url, cnpj',
           filters: { deleted_at: null },
-          orderBy: { column: "razao_social", ascending: true },
+          orderBy: { column: 'razao_social', ascending: true },
           limit: 500,
         });
 
-        console.log("[CRM-DB] useCrmCompanySelector: OK. Total:", companies.length);
+        console.log('[CRM-DB] useCrmCompanySelector: OK. Total:', companies.length);
         return companies.map((c) => ({
           id: c.id,
           name: getCompanyDisplayName(c),
@@ -206,8 +215,8 @@ export function useCrmCompanySelector() {
           cnpj: c.cnpj,
         }));
       } catch (err) {
-        console.error("[CRM-DB] useCrmCompanySelector: FALHA:", err);
-        toast.error("Não foi possível carregar a lista de empresas.");
+        console.error('[CRM-DB] useCrmCompanySelector: FALHA:', err);
+        toast.error('Não foi possível carregar a lista de empresas.');
         throw err;
       }
     },
@@ -220,10 +229,10 @@ export function useCrmCompanySelector() {
  */
 export function useCrmCustomer(companyId: string | null | undefined) {
   return useQuery<CrmCustomer | null>({
-    queryKey: ["crm-customer", companyId],
+    queryKey: ['crm-customer', companyId],
     queryFn: async () => {
       if (!companyId) return null;
-      const results = await selectCrm<CrmCustomer>("customers", {
+      const results = await selectCrm<CrmCustomer>('customers', {
         filters: { company_id: companyId },
         limit: 1,
       });

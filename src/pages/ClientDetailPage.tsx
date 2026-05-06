@@ -1,15 +1,15 @@
-import { useParams, useNavigate } from "react-router-dom";
-import { PageSEO } from "@/components/seo/PageSEO";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useCrmCompany } from "@/hooks/useCrmCompanies";
-import { useClientOrdersHistory } from "@/hooks/useClientOrdersHistory";
-import { useClientTopProducts } from "@/hooks/useClientTopProducts";
-import { ClientDetailHeader } from "@/components/clients/ClientDetailHeader";
-import { ClientStatsCards } from "@/components/clients/ClientStatsCards";
-import { OrderCard } from "@/components/orders/OrderCard";
-import { Package, TrendingUp } from "lucide-react";
-import { getCompanyDisplayName } from "@/types/crm";
+import { useParams, useNavigate } from 'react-router-dom';
+import { PageSEO } from '@/components/seo/PageSEO';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useCrmCompany } from '@/hooks/useCrmCompanies';
+import { useClientOrdersHistory } from '@/hooks/useClientOrdersHistory';
+import { useClientTopProducts } from '@/hooks/useClientTopProducts';
+import { ClientDetailHeader } from '@/components/clients/ClientDetailHeader';
+import { ClientStatsCards } from '@/components/clients/ClientStatsCards';
+import { OrderCard } from '@/components/orders/OrderCard';
+import { Package, TrendingUp } from 'lucide-react';
+import { getCompanyDisplayName } from '@/types/crm';
 
 export default function ClientDetailPage() {
   const { id } = useParams();
@@ -21,7 +21,7 @@ export default function ClientDetailPage() {
   if (loadingClient) {
     return (
       <>
-        <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-4">
+        <div className="mx-auto w-full max-w-[1920px] space-y-4 px-3 py-3 sm:px-4 sm:py-4 lg:px-6 xl:px-8">
           <Skeleton className="h-20" />
           <Skeleton className="h-24" />
         </div>
@@ -32,7 +32,7 @@ export default function ClientDetailPage() {
   if (!client) {
     return (
       <>
-        <div className="w-full max-w-[1920px] mx-auto px-4 py-8">
+        <div className="mx-auto w-full max-w-[1920px] px-4 py-8">
           <Card>
             <CardContent className="py-16 text-center text-muted-foreground">
               Cliente não encontrado.
@@ -45,7 +45,7 @@ export default function ClientDetailPage() {
 
   const name = getCompanyDisplayName(client);
   const formatBRL = (n: number) =>
-    new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(n);
+    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(n);
 
   return (
     <>
@@ -54,7 +54,7 @@ export default function ClientDetailPage() {
         description={`Visão 360° de ${name}: histórico de pedidos, LTV e produtos mais comprados.`}
         path={`/clientes/${id}`}
       />
-      <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-5 pb-24 md:pb-6 animate-fade-in">
+      <div className="mx-auto w-full max-w-[1920px] animate-fade-in space-y-5 px-3 py-3 pb-24 sm:px-4 sm:py-4 md:pb-6 lg:px-6 xl:px-8">
         <ClientDetailHeader client={client} />
 
         {loadingHistory ? (
@@ -68,7 +68,7 @@ export default function ClientDetailPage() {
           />
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
           {/* Pedidos */}
           <Card className="lg:col-span-2">
             <CardHeader>
@@ -80,13 +80,15 @@ export default function ClientDetailPage() {
               {loadingHistory ? (
                 <Skeleton className="h-16" />
               ) : !history?.orders.length ? (
-                <p className="text-sm text-muted-foreground py-6 text-center">
+                <p className="py-6 text-center text-sm text-muted-foreground">
                   Nenhum pedido registrado para este cliente.
                 </p>
               ) : (
-                history.orders.slice(0, 10).map((o) => (
-                  <OrderCard key={o.id} order={o} onClick={() => navigate(`/pedidos/${o.id}`)} />
-                ))
+                history.orders
+                  .slice(0, 10)
+                  .map((o) => (
+                    <OrderCard key={o.id} order={o} onClick={() => navigate(`/pedidos/${o.id}`)} />
+                  ))
               )}
             </CardContent>
           </Card>
@@ -102,22 +104,35 @@ export default function ClientDetailPage() {
               {loadingProducts ? (
                 <Skeleton className="h-16" />
               ) : topProducts.length === 0 ? (
-                <p className="text-sm text-muted-foreground py-6 text-center">
+                <p className="py-6 text-center text-sm text-muted-foreground">
                   Sem dados de produtos ainda.
                 </p>
               ) : (
                 topProducts.map((p) => (
-                  <div key={(p.sku ?? "") + p.name} className="flex items-center gap-3 p-2 rounded-md hover:bg-muted/50 transition-colors">
-                    <div className="h-10 w-10 rounded bg-muted overflow-hidden flex-shrink-0">
-                      {p.image && <img src={p.image} alt={p.name} className="h-full w-full object-cover" loading="lazy" />}
+                  <div
+                    key={(p.sku ?? '') + p.name}
+                    className="flex items-center gap-3 rounded-md p-2 transition-colors hover:bg-muted/50"
+                  >
+                    <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded bg-muted">
+                      {p.image && (
+                        <img
+                          src={p.image}
+                          alt={p.name}
+                          className="h-full w-full object-cover"
+                          loading="lazy"
+                        />
+                      )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-foreground truncate">{p.name}</p>
+                      <p className="truncate text-sm font-medium text-foreground">{p.name}</p>
                       <p className="text-xs text-muted-foreground">
-                        {p.totalQuantity} un · {p.orderCount} {p.orderCount === 1 ? "pedido" : "pedidos"}
+                        {p.totalQuantity} un · {p.orderCount}{' '}
+                        {p.orderCount === 1 ? 'pedido' : 'pedidos'}
                       </p>
                     </div>
-                    <p className="text-xs font-medium text-foreground flex-shrink-0">{formatBRL(p.totalValue)}</p>
+                    <p className="flex-shrink-0 text-xs font-medium text-foreground">
+                      {formatBRL(p.totalValue)}
+                    </p>
                   </div>
                 ))
               )}

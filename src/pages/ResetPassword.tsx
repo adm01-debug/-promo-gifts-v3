@@ -11,20 +11,23 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { PageSEO } from "@/components/seo/PageSEO";
+import { PageSEO } from '@/components/seo/PageSEO';
 
-const resetPasswordSchema = z.object({
-  password: z.string()
-    .min(8, "Senha deve ter pelo menos 8 caracteres")
-    .regex(/[A-Z]/, "Senha deve conter letra maiúscula")
-    .regex(/[a-z]/, "Senha deve conter letra minúscula")
-    .regex(/[0-9]/, "Senha deve conter número")
-    .regex(/[!@#$%^&*(),.?":{}|<>]/, "Senha deve conter caractere especial"),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: 'Senhas não conferem',
-  path: ['confirmPassword'],
-});
+const resetPasswordSchema = z
+  .object({
+    password: z
+      .string()
+      .min(8, 'Senha deve ter pelo menos 8 caracteres')
+      .regex(/[A-Z]/, 'Senha deve conter letra maiúscula')
+      .regex(/[a-z]/, 'Senha deve conter letra minúscula')
+      .regex(/[0-9]/, 'Senha deve conter número')
+      .regex(/[!@#$%^&*(),.?":{}|<>]/, 'Senha deve conter caractere especial'),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Senhas não conferem',
+    path: ['confirmPassword'],
+  });
 
 type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
 
@@ -45,8 +48,10 @@ export default function ResetPassword() {
   useEffect(() => {
     // Check if there's a valid recovery session
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
       // If user came from password reset email, they'll have a session
       if (session) {
         setIsValidToken(true);
@@ -55,7 +60,7 @@ export default function ResetPassword() {
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
         const accessToken = hashParams.get('access_token');
         const type = hashParams.get('type');
-        
+
         if (accessToken && type === 'recovery') {
           setIsValidToken(true);
         }
@@ -66,7 +71,9 @@ export default function ResetPassword() {
     checkSession();
 
     // Listen for auth state changes (when token is validated)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'PASSWORD_RECOVERY') {
         setIsValidToken(true);
         setIsCheckingToken(false);
@@ -115,8 +122,12 @@ export default function ResetPassword() {
 
   if (isCheckingToken) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-      <PageSEO title="Redefinir Senha" description="Redefina sua senha de acesso à plataforma Promo Gifts." path="/reset-password" />
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <PageSEO
+          title="Redefinir Senha"
+          description="Redefina sua senha de acesso à plataforma Promo Gifts."
+          path="/reset-password"
+        />
         <Loader2 className="h-8 w-8 animate-spin text-orange" />
       </div>
     );
@@ -124,23 +135,22 @@ export default function ResetPassword() {
 
   if (!isValidToken) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-6">
+      <div className="flex min-h-screen items-center justify-center bg-background p-6">
         <Card className="w-full max-w-md border-border bg-card shadow-xl">
-          <CardContent className="pt-8 pb-8 text-center space-y-4">
-            <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mx-auto">
+          <CardContent className="space-y-4 pb-8 pt-8 text-center">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
               <Lock className="h-8 w-8 text-destructive" />
             </div>
             <div className="space-y-2">
-              <h2 className="text-xl font-semibold font-display text-foreground">Link inválido ou expirado</h2>
+              <h2 className="font-display text-xl font-semibold text-foreground">
+                Link inválido ou expirado
+              </h2>
               <p className="text-sm text-muted-foreground">
-                Este link de recuperação de senha não é mais válido. Por favor, solicite um novo link.
+                Este link de recuperação de senha não é mais válido. Por favor, solicite um novo
+                link.
               </p>
             </div>
-            <Button
-              variant="orange"
-              className="w-full"
-              onClick={() => navigate('/auth')}
-            >
+            <Button variant="orange" className="w-full" onClick={() => navigate('/auth')}>
               Voltar ao login
             </Button>
           </CardContent>
@@ -151,23 +161,21 @@ export default function ResetPassword() {
 
   if (isSuccess) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-6">
+      <div className="flex min-h-screen items-center justify-center bg-background p-6">
         <Card className="w-full max-w-md border-border bg-card shadow-xl">
-          <CardContent className="pt-8 pb-8 text-center space-y-4">
-            <div className="w-16 h-16 rounded-full bg-success/10 flex items-center justify-center mx-auto">
+          <CardContent className="space-y-4 pb-8 pt-8 text-center">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-success/10">
               <CheckCircle className="h-8 w-8 text-success" />
             </div>
             <div className="space-y-2">
-              <h2 className="text-xl font-semibold font-display text-foreground">Senha redefinida!</h2>
+              <h2 className="font-display text-xl font-semibold text-foreground">
+                Senha redefinida!
+              </h2>
               <p className="text-sm text-muted-foreground">
                 Sua senha foi alterada com sucesso. Você será redirecionado automaticamente...
               </p>
             </div>
-            <Button
-              variant="orange"
-              className="w-full"
-              onClick={() => navigate('/')}
-            >
+            <Button variant="orange" className="w-full" onClick={() => navigate('/')}>
               Ir para o início
             </Button>
           </CardContent>
@@ -177,48 +185,48 @@ export default function ResetPassword() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-6">
-      <div className="w-full max-w-md space-y-8 animate-fade-in">
+    <div className="flex min-h-screen items-center justify-center bg-background p-6">
+      <div className="w-full max-w-md animate-fade-in space-y-8">
         {/* Logo */}
-        <div className="text-center space-y-3">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-primary shadow-lg shadow-primary/30">
+        <div className="space-y-3 text-center">
+          <div className="inline-flex h-16 w-16 items-center justify-center rounded-xl bg-primary shadow-lg shadow-primary/30">
             <Sparkles className="h-8 w-8 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="font-display text-2xl font-bold text-foreground">
-              Promo Gifts
-            </h1>
+            <h1 className="font-display text-2xl font-bold text-foreground">Promo Gifts</h1>
           </div>
         </div>
 
         <Card className="border-border bg-card shadow-xl">
           <CardHeader className="pb-4">
-            <div className="text-center space-y-1">
-              <h2 className="text-xl font-semibold font-display text-foreground">Redefinir senha</h2>
-              <p className="text-sm text-muted-foreground">
-                Digite sua nova senha abaixo
-              </p>
+            <div className="space-y-1 text-center">
+              <h2 className="font-display text-xl font-semibold text-foreground">
+                Redefinir senha
+              </h2>
+              <p className="text-sm text-muted-foreground">Digite sua nova senha abaixo</p>
             </div>
           </CardHeader>
 
           <CardContent className="pt-2">
             <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-foreground">Nova senha</Label>
+                <Label htmlFor="password" className="text-foreground">
+                  Nova senha
+                </Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
                     id="password"
                     type={showPassword ? 'text' : 'password'}
                     placeholder="••••••••"
-                    className="pl-10 pr-10 bg-[#EDF2F7] border-transparent focus:bg-white text-gray-900 placeholder:text-gray-500 h-12 rounded-xl transition-all duration-300"
+                    className="h-12 rounded-xl border-transparent bg-[#EDF2F7] pl-10 pr-10 text-gray-900 transition-all duration-300 placeholder:text-gray-500 focus:bg-white"
                     {...form.register('password')}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-orange transition-colors"
+                    aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-orange"
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
@@ -232,14 +240,16 @@ export default function ResetPassword() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword" className="text-foreground">Confirmar nova senha</Label>
+                <Label htmlFor="confirmPassword" className="text-foreground">
+                  Confirmar nova senha
+                </Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
                     id="confirmPassword"
                     type={showPassword ? 'text' : 'password'}
                     placeholder="••••••••"
-                    className="pl-10 bg-[#EDF2F7] border-transparent focus:bg-white text-gray-900 placeholder:text-gray-500 h-12 rounded-xl transition-all duration-300"
+                    className="h-12 rounded-xl border-transparent bg-[#EDF2F7] pl-10 text-gray-900 transition-all duration-300 placeholder:text-gray-500 focus:bg-white"
                     {...form.register('confirmPassword')}
                   />
                 </div>
@@ -252,7 +262,7 @@ export default function ResetPassword() {
 
               <Button
                 type="submit"
-                className="w-full h-12 text-base font-bold uppercase tracking-widest bg-[#3B82F6] hover:bg-[#2563EB] text-white shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-all duration-300 rounded-xl"
+                className="h-12 w-full rounded-xl bg-[#3B82F6] text-base font-bold uppercase tracking-widest text-white shadow-lg shadow-primary/30 transition-all duration-300 hover:bg-[#2563EB] hover:shadow-xl hover:shadow-primary/40"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? (

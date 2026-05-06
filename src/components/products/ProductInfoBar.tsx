@@ -1,12 +1,12 @@
-import { useNavigate } from "react-router-dom";
-import { Building2, CalendarClock, GitCompare, LayoutGrid } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
-import { getSupplierColors } from "@/lib/supplier-colors";
-import { useComparisonStore } from "@/stores/useComparisonStore";
-import { toast } from "sonner";
+import { useNavigate } from 'react-router-dom';
+import { Building2, CalendarClock, GitCompare, LayoutGrid } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
+import { getSupplierColors } from '@/lib/supplier-colors';
+import { useComparisonStore } from '@/stores/useComparisonStore';
+import { toast } from 'sonner';
 
 interface ProductInfoBarProps {
   sku: string;
@@ -42,26 +42,26 @@ export function ProductInfoBar({
     if (!productId) return;
     const added = addToCompare(productId);
     if (added) {
-      toast.success(`${productName || "Produto"} adicionado ao comparador`, {
+      toast.success(`${productName || 'Produto'} adicionado ao comparador`, {
         action: {
-          label: "Ver agora",
-          onClick: () => navigate("/comparar"),
+          label: 'Ver agora',
+          onClick: () => navigate('/comparar'),
         },
       });
     } else {
       if (isInCompare(productId)) {
-        toast.info("Produto já está na lista de comparação");
+        toast.info('Produto já está na lista de comparação');
       } else {
-        toast.error("Limite de produtos atingido (máx 12)");
+        toast.error('Limite de produtos atingido (máx 12)');
       }
     }
   };
   return (
-    <div className="flex items-center gap-3 flex-wrap">
+    <div className="flex flex-wrap items-center gap-3">
       {/* SKU */}
-      <Badge 
-        variant="secondary" 
-        className="font-mono text-xs px-3 py-1.5 rounded-full bg-muted hover:bg-muted"
+      <Badge
+        variant="secondary"
+        className="rounded-full bg-muted px-3 py-1.5 font-mono text-xs hover:bg-muted"
       >
         SKU: {sku}
       </Badge>
@@ -69,28 +69,29 @@ export function ProductInfoBar({
       {/* Fornecedor - Clicável, abre Super Filtro com esse fornecedor */}
       <Tooltip>
         <TooltipTrigger asChild>
-          <Badge 
-            variant="outline" 
+          <Badge
+            variant="outline"
             className={cn(
-              "text-xs px-3 py-1.5 rounded-full font-medium border-border bg-card transition-all duration-200 hover:scale-[1.02] group/supplier",
-              supplierId && "cursor-pointer"
+              'group/supplier rounded-full border-border bg-card px-3 py-1.5 text-xs font-medium transition-all duration-200 hover:scale-[1.02]',
+              supplierId && 'cursor-pointer',
             )}
             style={{
               ['--supplier-color' as string]: getSupplierColors(supplierName).hex,
             }}
             onClick={handleSupplierClick}
           >
-            <Building2 
-              className={cn("h-3.5 w-3.5 mr-1.5 transition-colors", getSupplierColors(supplierName).text)} 
+            <Building2
+              className={cn(
+                'mr-1.5 h-3.5 w-3.5 transition-colors',
+                getSupplierColors(supplierName).text,
+              )}
             />
-            <span className="group-hover/supplier:text-[var(--supplier-color)] transition-colors">
+            <span className="transition-colors group-hover/supplier:text-[var(--supplier-color)]">
               {supplierName}
             </span>
           </Badge>
         </TooltipTrigger>
-        <TooltipContent>
-          Ver todos os produtos de {supplierName}
-        </TooltipContent>
+        <TooltipContent>Ver todos os produtos de {supplierName}</TooltipContent>
       </Tooltip>
 
       {/* Estoque Futuro */}
@@ -100,15 +101,13 @@ export function ProductInfoBar({
             variant="outline"
             size="sm"
             onClick={onOpenFutureStock}
-            className="rounded-full h-8 px-3 text-xs gap-1.5 hover:border-orange/50 hover:bg-orange/5"
+            className="h-8 gap-1.5 rounded-full px-3 text-xs hover:border-orange/50 hover:bg-orange/5"
           >
             <CalendarClock className="h-3.5 w-3.5 text-orange" />
             Estoque Futuro
           </Button>
         </TooltipTrigger>
-        <TooltipContent>
-          Ver previsão de reposição de estoque
-        </TooltipContent>
+        <TooltipContent>Ver previsão de reposição de estoque</TooltipContent>
       </Tooltip>
 
       {/* Comparar Fornecedores */}
@@ -118,36 +117,41 @@ export function ProductInfoBar({
             variant="outline"
             size="sm"
             onClick={onOpenSupplierComparison}
-            className="rounded-full h-8 px-3 text-xs gap-1.5"
+            className="h-8 gap-1.5 rounded-full px-3 text-xs"
           >
             <GitCompare className="h-3.5 w-3.5 text-muted-foreground" />
             Comparar Fornecedores
           </Button>
         </TooltipTrigger>
-        <TooltipContent>
-          Ver mesmo produto em outros fornecedores
-        </TooltipContent>
+        <TooltipContent>Ver mesmo produto em outros fornecedores</TooltipContent>
       </Tooltip>
       {/* Botão Comparar Produto (Zustand Store) */}
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
-            variant={productId && isInCompare(productId) ? "default" : "outline"}
+            variant={productId && isInCompare(productId) ? 'default' : 'outline'}
             size="sm"
             onClick={handleToggleCompare}
             className={cn(
-              "rounded-full h-8 px-3 text-xs gap-1.5 transition-all duration-300",
-              productId && isInCompare(productId) && "bg-amber-500 hover:bg-amber-600 border-none shadow-md shadow-orange/20"
+              'h-8 gap-1.5 rounded-full px-3 text-xs transition-all duration-300',
+              productId &&
+                isInCompare(productId) &&
+                'border-none bg-amber-500 shadow-md shadow-orange/20 hover:bg-amber-600',
             )}
           >
-            <LayoutGrid className={cn("h-3.5 w-3.5", productId && isInCompare(productId) ? "text-white" : "text-primary")} />
-            {productId && isInCompare(productId) ? "No Comparador" : "Adicionar à Arena"}
+            <LayoutGrid
+              className={cn(
+                'h-3.5 w-3.5',
+                productId && isInCompare(productId) ? 'text-white' : 'text-primary',
+              )}
+            />
+            {productId && isInCompare(productId) ? 'No Comparador' : 'Adicionar à Arena'}
           </Button>
         </TooltipTrigger>
         <TooltipContent>
-          {productId && isInCompare(productId) 
-            ? "Produto já está na Arena de Comparação" 
-            : "Enviar para comparação técnica (Score, Radar e Duelo)"}
+          {productId && isInCompare(productId)
+            ? 'Produto já está na Arena de Comparação'
+            : 'Enviar para comparação técnica (Score, Radar e Duelo)'}
         </TooltipContent>
       </Tooltip>
     </div>

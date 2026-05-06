@@ -49,7 +49,7 @@ export function useProductRecommendations(productId?: string, productSku?: strin
 
       if (ordersError || !ordersWithProduct?.length) return [];
 
-      const orderIds = ordersWithProduct.map(o => o.order_id);
+      const orderIds = ordersWithProduct.map((o) => o.order_id);
 
       const { data: relatedItems, error: relatedError } = await supabase
         .from('order_items')
@@ -59,23 +59,26 @@ export function useProductRecommendations(productId?: string, productSku?: strin
 
       if (relatedError || !relatedItems?.length) return [];
 
-      const productCounts = relatedItems.reduce((acc, item) => {
-        const key = item.product_sku || item.product_id;
-        if (!key) return acc;
-        
-        if (!acc[key]) {
-          acc[key] = {
-            productId: item.product_id || '',
-            productName: item.product_name || '',
-            productSku: item.product_sku || '',
-            productImage: item.product_image_url,
-            timesOrderedTogether: 0,
-            price: item.unit_price || 0
-          };
-        }
-        acc[key].timesOrderedTogether++;
-        return acc;
-      }, {} as Record<string, FrequentlyBoughtTogether>);
+      const productCounts = relatedItems.reduce(
+        (acc, item) => {
+          const key = item.product_sku || item.product_id;
+          if (!key) return acc;
+
+          if (!acc[key]) {
+            acc[key] = {
+              productId: item.product_id || '',
+              productName: item.product_name || '',
+              productSku: item.product_sku || '',
+              productImage: item.product_image_url,
+              timesOrderedTogether: 0,
+              price: item.unit_price || 0,
+            };
+          }
+          acc[key].timesOrderedTogether++;
+          return acc;
+        },
+        {} as Record<string, FrequentlyBoughtTogether>,
+      );
 
       return Object.values(productCounts)
         .sort((a, b) => b.timesOrderedTogether - a.timesOrderedTogether)
@@ -99,12 +102,13 @@ export function useProductRecommendations(productId?: string, productSku?: strin
 
       if (viewsError) return [];
 
-      const viewedSkus = recentViews?.map(v => v.product_sku).filter(Boolean) || [];
-      
+      const viewedSkus = recentViews?.map((v) => v.product_sku).filter(Boolean) || [];
+
       try {
-        const { fetchPromobrindProducts, getProductPrice, getProductImageUrl } = await import('@/lib/external-db');
+        const { fetchPromobrindProducts, getProductPrice, getProductImageUrl } =
+          await import('@/lib/external-db');
         const productsData = await fetchPromobrindProducts({ limit: 100 });
-        
+
         const mapProduct = (p: any, score: number, reason: string) => {
           const imageUrl = getProductImageUrl(p);
           return {
@@ -120,27 +124,33 @@ export function useProductRecommendations(productId?: string, productSku?: strin
         };
 
         if (viewedSkus.length === 0) {
-          return productsData.slice(0, 6).map(p => mapProduct(p, 50, 'Produto em destaque'));
+          return productsData.slice(0, 6).map((p) => mapProduct(p, 50, 'Produto em destaque'));
         }
-        
-        const viewedCategories = [...new Set(viewedSkus.map(sku => {
-          const product = productsData.find(p => p.sku === sku);
-          return product?.category_id || product?.main_category_id;
-        }).filter(Boolean))];
+
+        const viewedCategories = [
+          ...new Set(
+            viewedSkus
+              .map((sku) => {
+                const product = productsData.find((p) => p.sku === sku);
+                return product?.category_id || product?.main_category_id;
+              })
+              .filter(Boolean),
+          ),
+        ];
 
         if (viewedCategories.length === 0) {
-          return productsData.slice(0, 6).map(p => mapProduct(p, 60, 'Sugestão'));
+          return productsData.slice(0, 6).map((p) => mapProduct(p, 60, 'Sugestão'));
         }
 
         return productsData
-          .filter(p => {
+          .filter((p) => {
             const catId = p.category_id || p.main_category_id;
             return catId && viewedCategories.includes(catId) && !viewedSkus.includes(p.sku);
           })
           .slice(0, 6)
-          .map(p => mapProduct(p, 80, 'Baseado no seu histórico'));
+          .map((p) => mapProduct(p, 80, 'Baseado no seu histórico'));
       } catch (error) {
-        console.error("Error fetching recommendations:", error);
+        console.error('Error fetching recommendations:', error);
         return [];
       }
     },
@@ -161,14 +171,23 @@ export function useProductRecommendations(productId?: string, productSku?: strin
 
       if (error || !recentQuoteItems?.length) return [];
 
-      const productCounts = recentQuoteItems.reduce((acc, item) => {
-        const key = item.product_sku || item.product_name;
-        if (!acc[key]) {
-          acc[key] = { sku: item.product_sku, name: item.product_name, image: item.product_image_url, price: item.unit_price, count: 0 };
-        }
-        acc[key].count++;
-        return acc;
-      }, {} as Record<string, ProductCount>);
+      const productCounts = recentQuoteItems.reduce(
+        (acc, item) => {
+          const key = item.product_sku || item.product_name;
+          if (!acc[key]) {
+            acc[key] = {
+              sku: item.product_sku,
+              name: item.product_name,
+              image: item.product_image_url,
+              price: item.unit_price,
+              count: 0,
+            };
+          }
+          acc[key].count++;
+          return acc;
+        },
+        {} as Record<string, ProductCount>,
+      );
 
       const sorted = Object.values(productCounts)
         .sort((a, b) => b.count - a.count)
@@ -178,11 +197,12 @@ export function useProductRecommendations(productId?: string, productSku?: strin
       if (skus.length === 0) return [];
 
       try {
-        const { fetchPromobrindProducts, getProductPrice, getProductImageUrl } = await import('@/lib/external-db');
+        const { fetchPromobrindProducts, getProductPrice, getProductImageUrl } =
+          await import('@/lib/external-db');
         const productsData = await fetchPromobrindProducts({ limit: 500 });
-        const matchedProducts = productsData.filter(p => skus.includes(p.sku));
-        
-        return matchedProducts.map(p => {
+        const matchedProducts = productsData.filter((p) => skus.includes(p.sku));
+
+        return matchedProducts.map((p) => {
           const imageUrl = getProductImageUrl(p);
           return {
             id: p.id,
@@ -192,11 +212,11 @@ export function useProductRecommendations(productId?: string, productSku?: strin
             images: imageUrl ? [imageUrl] : p.images,
             category_id: p.category_id || p.main_category_id,
             score: 90,
-            reason: 'Em alta nas cotações'
+            reason: 'Em alta nas cotações',
           };
         });
       } catch (error) {
-        console.error("Error fetching trending products:", error);
+        console.error('Error fetching trending products:', error);
         return [];
       }
     },
@@ -207,8 +227,9 @@ export function useProductRecommendations(productId?: string, productSku?: strin
     frequentlyBoughtTogether,
     personalizedRecommendations,
     trendingProducts,
-    isLoading: frequentlyBoughtTogether.isLoading || 
-               personalizedRecommendations.isLoading || 
-               trendingProducts.isLoading,
+    isLoading:
+      frequentlyBoughtTogether.isLoading ||
+      personalizedRecommendations.isLoading ||
+      trendingProducts.isLoading,
   };
 }

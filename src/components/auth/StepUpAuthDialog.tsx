@@ -1,11 +1,18 @@
-import { useEffect, useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ShieldCheck, Mail, KeyRound, Loader2 } from "lucide-react";
-import { useStepUpAuth, StepUpAction } from "@/hooks/useStepUpAuth";
+import { useEffect, useState } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { ShieldCheck, Mail, KeyRound, Loader2 } from 'lucide-react';
+import { useStepUpAuth, StepUpAction } from '@/hooks/useStepUpAuth';
 
 interface Props {
   open: boolean;
@@ -16,10 +23,17 @@ interface Props {
   onVerified: (token: string) => void | Promise<void>;
 }
 
-export function StepUpAuthDialog({ open, onOpenChange, action, targetRef, actionLabel, onVerified }: Props) {
+export function StepUpAuthDialog({
+  open,
+  onOpenChange,
+  action,
+  targetRef,
+  actionLabel,
+  onVerified,
+}: Props) {
   const { state, reset, requestChallenge, verifyPassword, verifyOtp, cancel } = useStepUpAuth();
-  const [password, setPassword] = useState("");
-  const [otp, setOtp] = useState("");
+  const [password, setPassword] = useState('');
+  const [otp, setOtp] = useState('');
   const verifiedRef = useState({ done: false })[0];
 
   useEffect(() => {
@@ -30,13 +44,23 @@ export function StepUpAuthDialog({ open, onOpenChange, action, targetRef, action
     if (!open) {
       // Se o modal fechou sem token emitido, registra cancelamento server-side.
       if (!verifiedRef.done) {
-        void cancel("user_closed_dialog");
+        void cancel('user_closed_dialog');
       }
       reset();
-      setPassword("");
-      setOtp("");
+      setPassword('');
+      setOtp('');
     }
-  }, [open, action, targetRef, actionLabel, state.challengeId, requestChallenge, reset, cancel, verifiedRef]);
+  }, [
+    open,
+    action,
+    targetRef,
+    actionLabel,
+    state.challengeId,
+    requestChallenge,
+    reset,
+    cancel,
+    verifiedRef,
+  ]);
 
   const handlePassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,8 +77,11 @@ export function StepUpAuthDialog({ open, onOpenChange, action, targetRef, action
     }
   };
 
-  const step: "loading" | "password" | "otp" =
-    !state.challengeId ? "loading" : !state.passwordVerified ? "password" : "otp";
+  const step: 'loading' | 'password' | 'otp' = !state.challengeId
+    ? 'loading'
+    : !state.passwordVerified
+      ? 'password'
+      : 'otp';
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -65,7 +92,8 @@ export function StepUpAuthDialog({ open, onOpenChange, action, targetRef, action
             Verificação dupla obrigatória
           </DialogTitle>
           <DialogDescription>
-            Ação sensível: <strong>{actionLabel}</strong>. Confirme com sua senha e o código enviado por e-mail.
+            Ação sensível: <strong>{actionLabel}</strong>. Confirme com sua senha e o código enviado
+            por e-mail.
           </DialogDescription>
         </DialogHeader>
 
@@ -75,13 +103,13 @@ export function StepUpAuthDialog({ open, onOpenChange, action, targetRef, action
           </Alert>
         )}
 
-        {step === "loading" && (
-          <div className="flex items-center justify-center py-8 text-muted-foreground gap-2">
+        {step === 'loading' && (
+          <div className="flex items-center justify-center gap-2 py-8 text-muted-foreground">
             <Loader2 className="h-5 w-5 animate-spin" /> Iniciando verificação...
           </div>
         )}
 
-        {step === "password" && (
+        {step === 'password' && (
           <form onSubmit={handlePassword} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="su-pwd" className="flex items-center gap-2">
@@ -98,15 +126,17 @@ export function StepUpAuthDialog({ open, onOpenChange, action, targetRef, action
               />
             </div>
             <DialogFooter>
-              <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
+              <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
+                Cancelar
+              </Button>
               <Button type="submit" disabled={state.loading || !password}>
-                {state.loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Confirmar senha"}
+                {state.loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Confirmar senha'}
               </Button>
             </DialogFooter>
           </form>
         )}
 
-        {step === "otp" && (
+        {step === 'otp' && (
           <form onSubmit={handleOtp} className="space-y-4">
             <Alert>
               <Mail className="h-4 w-4" />
@@ -123,16 +153,18 @@ export function StepUpAuthDialog({ open, onOpenChange, action, targetRef, action
                 pattern="[0-9]{6}"
                 maxLength={6}
                 value={otp}
-                onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
                 required
                 autoFocus
-                className="text-center text-lg tracking-[0.5em] font-mono"
+                className="text-center font-mono text-lg tracking-[0.5em]"
               />
             </div>
             <DialogFooter>
-              <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
+              <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
+                Cancelar
+              </Button>
               <Button type="submit" disabled={state.loading || otp.length !== 6}>
-                {state.loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Liberar acesso"}
+                {state.loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Liberar acesso'}
               </Button>
             </DialogFooter>
           </form>

@@ -1,35 +1,35 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 /**
  * Robustly sanitizes HTML strings to prevent XSS.
  * Removes dangerous tags and attributes.
  */
 export function sanitizeHtml(html: string): string {
-  if (!html) return "";
-  
+  if (!html) return '';
+
   // Basic sanitization: strip script, object, embed, applet, link, iframe, and form tags
   // but allow safe formatting like <b>, <i>, <u>, <p>, <span>
   return html
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
-    .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, "")
-    .replace(/<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/gi, "")
-    .replace(/on\w+="[^"]*"/gi, "") // remove event handlers like onclick
-    .replace(/on\w+='[^']*'/gi, "")
-    .replace(/href="javascript:[^"]*"/gi, "")
-    .replace(/src="javascript:[^"]*"/gi, "");
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
+    .replace(/<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/gi, '')
+    .replace(/on\w+="[^"]*"/gi, '') // remove event handlers like onclick
+    .replace(/on\w+='[^']*'/gi, '')
+    .replace(/href="javascript:[^"]*"/gi, '')
+    .replace(/src="javascript:[^"]*"/gi, '');
 }
 
 /**
  * Sanitizes a string for safe rendering in text context (fully escaped).
  */
 export function sanitizeString(val: string): string {
-  if (!val) return "";
+  if (!val) return '';
   return val
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#x27;");
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;');
 }
 
 /**

@@ -8,71 +8,102 @@
  * - Notas sempre visíveis (textarea inline com debounce)
  * - Sidebar reorganizada (Hero pricing → Ação → Menu) + Health Checklist
  */
-import { useSellerCartContext } from "@/contexts/SellerCartContext";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useSellerCartContext } from '@/contexts/SellerCartContext';
+import { useCallback, useMemo, useRef, useState } from 'react';
 
-import { type CartStatus } from "@/hooks/useSellerCarts";
-import { CartCompanyPickerDialog } from "@/components/cart/CartCompanyPickerDialog";
-import { CartTabsRich } from "@/components/cart/CartTabsRich";
-import { CartEmptyStateSmart } from "@/components/cart/CartEmptyStateSmart";
-import { SortableCartItem } from "@/components/cart/SortableCartItem";
+import { type CartStatus } from '@/hooks/useSellerCarts';
+import { CartCompanyPickerDialog } from '@/components/cart/CartCompanyPickerDialog';
+import { CartTabsRich } from '@/components/cart/CartTabsRich';
+import { CartEmptyStateSmart } from '@/components/cart/CartEmptyStateSmart';
+import { SortableCartItem } from '@/components/cart/SortableCartItem';
 import {
-  getStatusCfg, STATUS_CONFIG, CartItemSkeleton, FollowUpTimer,
-  CompareCartsDialog, MobileSummarySheet, formatCurrency,
-} from "@/components/cart/CartUtilComponents";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
-import { Skeleton } from "@/components/ui/skeleton";
-import { EmptyState } from "@/components/common/EmptyState";
-import { DeleteConfirmDialog, ConfirmDialog } from "@/components/ui/ConfirmDialog";
+  getStatusCfg,
+  STATUS_CONFIG,
+  CartItemSkeleton,
+  FollowUpTimer,
+  CompareCartsDialog,
+  MobileSummarySheet,
+  formatCurrency,
+} from '@/components/cart/CartUtilComponents';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
+import { Skeleton } from '@/components/ui/skeleton';
+import { EmptyState } from '@/components/common/EmptyState';
+import { DeleteConfirmDialog, ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { motion, AnimatePresence } from "framer-motion";
-import { DndContext, closestCenter } from "@dnd-kit/core";
-import { SortableContext, rectSortingStrategy } from "@dnd-kit/sortable";
-import { cn } from "@/lib/utils";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { motion, AnimatePresence } from 'framer-motion';
+import { DndContext, closestCenter } from '@dnd-kit/core';
+import { SortableContext, rectSortingStrategy } from '@dnd-kit/sortable';
+import { cn } from '@/lib/utils';
 import {
-  ShoppingCart, Plus, Building2, Trash2, Clock, MapPin, FileText, Search, ArrowUpDown, Filter, Package, MoveRight, MessageSquare, GripVertical,
-} from "lucide-react";
-import { toast } from "sonner";
-import { formatDistanceToNow } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { PageSEO } from "@/components/seo/PageSEO";
-import { useSellerCartsPage } from "./seller-carts/useSellerCartsPage";
-import { CartSidebar } from "./seller-carts/CartSidebar";
+  ShoppingCart,
+  Plus,
+  Building2,
+  Trash2,
+  Clock,
+  MapPin,
+  FileText,
+  Search,
+  ArrowUpDown,
+  Filter,
+  Package,
+  MoveRight,
+  MessageSquare,
+  GripVertical,
+} from 'lucide-react';
+import { toast } from 'sonner';
+import { formatDistanceToNow } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { PageSEO } from '@/components/seo/PageSEO';
+import { useSellerCartsPage } from './seller-carts/useSellerCartsPage';
+import { CartSidebar } from './seller-carts/CartSidebar';
 
 export default function SellerCartsPage() {
   return (
     <>
-      <PageSEO title="Carrinhos" description="Gerencie carrinhos de seleção de produtos para seus clientes." path="/carrinhos" noIndex />
+      <PageSEO
+        title="Carrinhos"
+        description="Gerencie carrinhos de seleção de produtos para seus clientes."
+        path="/carrinhos"
+        noIndex
+      />
       <SellerCartsContent />
     </>
   );
 }
 
 const NOTES_PLACEHOLDERS = [
-  "Cliente quer entrega para o evento dia DD/MM...",
-  "Negociar prazo 30/60/90 dias...",
-  "Aprovar arte até dia X — produção começa após confirmação...",
-  "Margem-alvo: XX%. Frete por conta do cliente.",
+  'Cliente quer entrega para o evento dia DD/MM...',
+  'Negociar prazo 30/60/90 dias...',
+  'Aprovar arte até dia X — produção começa após confirmação...',
+  'Margem-alvo: XX%. Frete por conta do cliente.',
 ];
 
 function SellerCartsContent() {
   const s = useSellerCartsPage();
   const notesRef = useRef<HTMLTextAreaElement>(null);
-  const [bulkNote, setBulkNote] = useState("");
+  const [bulkNote, setBulkNote] = useState('');
 
   const focusNotes = useCallback(() => {
     notesRef.current?.focus();
-    notesRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    notesRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }, []);
 
   const aggregateTotal = useMemo(
-    () => s.carts.reduce((sum, c) => sum + c.items.reduce((a, i) => a + i.product_price * i.quantity, 0), 0),
-    [s.carts]
+    () =>
+      s.carts.reduce(
+        (sum, c) => sum + c.items.reduce((a, i) => a + i.product_price * i.quantity, 0),
+        0,
+      ),
+    [s.carts],
   );
 
   // Stable rotating placeholder per cart
@@ -82,104 +113,125 @@ function SellerCartsContent() {
     return NOTES_PLACEHOLDERS[seed];
   }, [s.activeCart]);
 
-  const handleDuplicateLast = useCallback((sourceCart: typeof s.activeCart) => {
-    if (!sourceCart) return;
-    sourceCart.items.forEach(i => {
-      // re-uses the addToActiveCart through handleLoadTemplate-like flow
-      s.handleLoadTemplate([{
-        product_id: i.product_id, product_name: i.product_name,
-        product_sku: i.product_sku || undefined, product_image_url: i.product_image_url || undefined,
-        product_price: i.product_price, quantity: i.quantity,
-        color_name: i.color_name || undefined, color_hex: i.color_hex || undefined,
-      }]);
-    });
-  }, [s]);
+  const handleDuplicateLast = useCallback(
+    (sourceCart: typeof s.activeCart) => {
+      if (!sourceCart) return;
+      sourceCart.items.forEach((i) => {
+        // re-uses the addToActiveCart through handleLoadTemplate-like flow
+        s.handleLoadTemplate([
+          {
+            product_id: i.product_id,
+            product_name: i.product_name,
+            product_sku: i.product_sku || undefined,
+            product_image_url: i.product_image_url || undefined,
+            product_price: i.product_price,
+            quantity: i.quantity,
+            color_name: i.color_name || undefined,
+            color_hex: i.color_hex || undefined,
+          },
+        ]);
+      });
+    },
+    [s],
+  );
 
   return (
-    <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
+    <div className="mx-auto w-full max-w-[1920px] animate-fade-in space-y-3 px-3 py-3 pb-24 sm:space-y-4 sm:px-4 sm:py-4 md:pb-6 lg:px-6 xl:px-8">
       {/* Header compactado */}
-      <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+      <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10">
             <ShoppingCart className="h-4.5 w-4.5 text-primary" />
           </div>
           <div className="min-w-0">
-            <h1 data-testid="page-title-carrinhos" className="text-xl lg:text-2xl font-display font-bold text-foreground leading-tight">Carrinhos</h1>
-            <p className="text-xs text-muted-foreground flex items-center gap-1.5 flex-wrap">
+            <h1
+              data-testid="page-title-carrinhos"
+              className="font-display text-xl font-bold leading-tight text-foreground lg:text-2xl"
+            >
+              Carrinhos
+            </h1>
+            <p className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
               <span className="tabular-nums">{s.carts.length}</span>
               <span className="text-muted-foreground/50">·</span>
               <span className="tabular-nums">{s.totalItems} itens</span>
               {aggregateTotal > 0 && (
                 <>
                   <span className="text-muted-foreground/50">·</span>
-                  <span className="tabular-nums font-medium text-foreground/80">{formatCurrency(aggregateTotal)}</span>
+                  <span className="font-medium tabular-nums text-foreground/80">
+                    {formatCurrency(aggregateTotal)}
+                  </span>
                 </>
               )}
-              <span className="hidden sm:inline-flex items-center gap-1 ml-2 text-muted-foreground/50" title="Buscar produtos">
-                <kbd className="text-[10px] px-1.5 py-0.5 bg-muted rounded font-mono">Ctrl+K</kbd>
+              <span
+                className="ml-2 hidden items-center gap-1 text-muted-foreground/50 sm:inline-flex"
+                title="Buscar produtos"
+              >
+                <kbd className="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px]">Ctrl+K</kbd>
               </span>
             </p>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {s.filteredCarts.length >= 2 && <CompareCartsDialog carts={s.filteredCarts} />}
-          
-          <div className="flex items-center gap-2 border border-border/40 bg-card/60 rounded-xl p-1 h-9 shadow-sm">
-            <Search className="h-3.5 w-3.5 text-muted-foreground ml-2" />
-            <input 
-              type="text" 
+
+          <div className="flex h-9 items-center gap-2 rounded-xl border border-border/40 bg-card/60 p-1 shadow-sm">
+            <Search className="ml-2 h-3.5 w-3.5 text-muted-foreground" />
+            <input
+              type="text"
               placeholder="Busca global..."
-              className="bg-transparent border-none text-xs w-32 sm:w-48 focus:ring-0 placeholder:text-muted-foreground/50 h-full"
+              className="h-full w-32 border-none bg-transparent text-xs placeholder:text-muted-foreground/50 focus:ring-0 sm:w-48"
               value={s.searchTerm}
               onChange={(e) => s.setSearchTerm(e.target.value)}
             />
           </div>
 
-          <div className="relative group/company">
+          <div className="group/company relative">
             <Select value={s.companyFilter} onValueChange={s.setCompanyFilter}>
-              <SelectTrigger className="h-9 text-xs w-[160px] gap-2 rounded-xl border-border/40 bg-card/60 shadow-sm hover:border-primary/30 transition-all">
+              <SelectTrigger className="h-9 w-[160px] gap-2 rounded-xl border-border/40 bg-card/60 text-xs shadow-sm transition-all hover:border-primary/30">
                 <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
                 <SelectValue placeholder="Empresa" />
               </SelectTrigger>
-              <SelectContent className="rounded-xl p-1 shadow-2xl border-border/40">
+              <SelectContent className="rounded-xl border-border/40 p-1 shadow-2xl">
                 <SelectItem value="all" className="rounded-lg py-2">
                   <span className="flex items-center gap-2">
                     <Filter className="h-3.5 w-3.5 opacity-40" />
                     Todas Empresas
                   </span>
                 </SelectItem>
-                <div className="h-px bg-muted/40 my-1 mx-1" />
-                {Array.from(new Set(s.carts.map(c => c.company_name))).sort().map(name => (
-                  <SelectItem key={name} value={name} className="rounded-lg py-2">
-                    <span className="flex items-center gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-primary/40" />
-                      {name}
-                    </span>
-                  </SelectItem>
-                ))}
+                <div className="mx-1 my-1 h-px bg-muted/40" />
+                {Array.from(new Set(s.carts.map((c) => c.company_name)))
+                  .sort()
+                  .map((name) => (
+                    <SelectItem key={name} value={name} className="rounded-lg py-2">
+                      <span className="flex items-center gap-2">
+                        <div className="h-1.5 w-1.5 rounded-full bg-primary/40" />
+                        {name}
+                      </span>
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
           </div>
 
-          <div className="relative flex items-center gap-2 border border-border/40 bg-card/60 rounded-xl p-1 h-9 shadow-sm">
-            <Package className="h-3.5 w-3.5 text-muted-foreground ml-2" />
-            <input 
-              type="text" 
+          <div className="relative flex h-9 items-center gap-2 rounded-xl border border-border/40 bg-card/60 p-1 shadow-sm">
+            <Package className="ml-2 h-3.5 w-3.5 text-muted-foreground" />
+            <input
+              type="text"
               placeholder="Filtrar produto..."
               list="product-suggestions"
-              className="bg-transparent border-none text-xs w-32 focus:ring-0 placeholder:text-muted-foreground/50 h-full"
+              className="h-full w-32 border-none bg-transparent text-xs placeholder:text-muted-foreground/50 focus:ring-0"
               value={s.productFilter}
               onChange={(e) => s.setProductFilter(e.target.value)}
             />
             <datalist id="product-suggestions">
-              {s.productSuggestions.map(name => (
+              {s.productSuggestions.map((name) => (
                 <option key={name} value={name} />
               ))}
             </datalist>
           </div>
 
           <Select value={s.sortBy} onValueChange={s.setSortBy}>
-            <SelectTrigger className="h-9 text-xs w-[140px] gap-2 rounded-xl border-border/40 bg-card/60 shadow-sm">
+            <SelectTrigger className="h-9 w-[140px] gap-2 rounded-xl border-border/40 bg-card/60 text-xs shadow-sm">
               <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
               <SelectValue placeholder="Ordenar" />
             </SelectTrigger>
@@ -191,19 +243,26 @@ function SellerCartsContent() {
             </SelectContent>
           </Select>
 
-          {(s.searchTerm || s.productFilter || s.companyFilter !== "all" || s.sortBy !== "date-desc") && (
-            <Button 
-              variant="ghost" 
+          {(s.searchTerm ||
+            s.productFilter ||
+            s.companyFilter !== 'all' ||
+            s.sortBy !== 'date-desc') && (
+            <Button
+              variant="ghost"
               onClick={s.handleClearFilters}
-              size="sm" 
-              className="h-9 px-3 rounded-xl text-xs gap-1.5 hover:bg-destructive/5 hover:text-destructive"
+              size="sm"
+              className="h-9 gap-1.5 rounded-xl px-3 text-xs hover:bg-destructive/5 hover:text-destructive"
             >
               <Trash2 className="h-3.5 w-3.5" /> Limpar
             </Button>
           )}
 
           {s.canCreateCart && (
-            <Button onClick={() => s.setShowNewCart(true)} size="sm" className="gap-1.5 bg-primary hover:bg-primary/90 text-primary-foreground h-9 shadow-sm rounded-xl px-4">
+            <Button
+              onClick={() => s.setShowNewCart(true)}
+              size="sm"
+              className="h-9 gap-1.5 rounded-xl bg-primary px-4 text-primary-foreground shadow-sm hover:bg-primary/90"
+            >
               <Plus className="h-4 w-4" /> Novo Carrinho
             </Button>
           )}
@@ -231,11 +290,11 @@ function SellerCartsContent() {
 
       {/* Conteúdo */}
       {s.isLoading ? (
-        <div className="grid grid-cols-1 xl:grid-cols-[1fr_340px] gap-6">
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1fr_340px]">
           <div className="space-y-4">
-            <div className="p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border border-border/20 rounded-xl bg-card/40 animate-pulse">
+            <div className="flex animate-pulse flex-col justify-between gap-3 rounded-xl border border-border/20 bg-card/40 p-3.5 sm:flex-row sm:items-center">
               <div className="flex items-center gap-3">
-                <Skeleton className="w-10 h-10 rounded-xl opacity-30" />
+                <Skeleton className="h-10 w-10 rounded-xl opacity-30" />
                 <div className="space-y-2">
                   <Skeleton className="h-4 w-32 opacity-20" />
                   <Skeleton className="h-3 w-48 opacity-10" />
@@ -243,11 +302,13 @@ function SellerCartsContent() {
               </div>
               <Skeleton className="h-8 w-32 rounded-lg opacity-20" />
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {[...Array(6)].map((_, i) => <CartItemSkeleton key={i} />)}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {[...Array(6)].map((_, i) => (
+                <CartItemSkeleton key={i} />
+              ))}
             </div>
           </div>
-          <div className="space-y-4 animate-pulse">
+          <div className="animate-pulse space-y-4">
             <Skeleton className="h-[400px] w-full rounded-xl opacity-20" />
             <Skeleton className="h-[200px] w-full rounded-xl opacity-10" />
           </div>
@@ -257,64 +318,104 @@ function SellerCartsContent() {
           variant="cart"
           title="Monte o carrinho perfeito para seu cliente"
           description="Crie carrinhos vinculados a empresas, adicione produtos do catálogo e gere orçamentos profissionais em segundos."
-          action={{ label: "Criar Primeiro Carrinho", onClick: () => s.setShowNewCart(true) }}
+          action={{ label: 'Criar Primeiro Carrinho', onClick: () => s.setShowNewCart(true) }}
         />
       ) : s.activeCart ? (
-        <div className="grid grid-cols-1 xl:grid-cols-[1fr_340px] gap-6">
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1fr_340px]">
           <div className="space-y-4">
             {/* Cart header fundido (status Select óbvio + ações inline) */}
             <Card
-              className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-border/40 shadow-sm relative overflow-hidden group/header"
-              style={s.companyAccentColor ? { borderLeft: `4px solid ${s.companyAccentColor}` } : undefined}
+              className="group/header relative flex flex-col justify-between gap-4 overflow-hidden border-border/40 p-4 shadow-sm sm:flex-row sm:items-center"
+              style={
+                s.companyAccentColor
+                  ? { borderLeft: `4px solid ${s.companyAccentColor}` }
+                  : undefined
+              }
             >
-              <div className="flex items-center gap-4 min-w-0">
+              <div className="flex min-w-0 items-center gap-4">
                 <div className="relative">
                   {s.activeCart.company_logo_url ? (
-                    <img src={s.activeCart.company_logo_url} alt="" className="w-12 h-12 rounded-xl object-contain bg-background border border-border/40 p-1.5 flex-shrink-0 shadow-inner group-hover/header:scale-105 transition-transform duration-300" loading="lazy" />
+                    <img
+                      src={s.activeCart.company_logo_url}
+                      alt=""
+                      className="h-12 w-12 flex-shrink-0 rounded-xl border border-border/40 bg-background object-contain p-1.5 shadow-inner transition-transform duration-300 group-hover/header:scale-105"
+                      loading="lazy"
+                    />
                   ) : (
-                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover/header:bg-primary/20 transition-colors">
+                    <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-primary/10 transition-colors group-hover/header:bg-primary/20">
                       <Building2 className="h-5 w-5 text-primary" />
                     </div>
                   )}
-                  <div className={cn(
-                    "absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-background",
-                    getStatusCfg(s.activeCart.status).color.split(" ")[0]
-                  )} />
+                  <div
+                    className={cn(
+                      'absolute -bottom-1 -right-1 h-4 w-4 rounded-full border-2 border-background',
+                      getStatusCfg(s.activeCart.status).color.split(' ')[0],
+                    )}
+                  />
                 </div>
-                <div className="min-w-0 flex flex-col gap-0.5">
-                  <h2 className="font-display font-bold text-lg truncate tracking-tight text-foreground/90">{s.activeCart.company_name}</h2>
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground font-medium">
+                <div className="flex min-w-0 flex-col gap-0.5">
+                  <h2 className="truncate font-display text-lg font-bold tracking-tight text-foreground/90">
+                    {s.activeCart.company_name}
+                  </h2>
+                  <div className="flex items-center gap-3 text-xs font-medium text-muted-foreground">
                     {s.activeCart.company_location && (
-                      <span className="flex items-center gap-1.5 truncate"><MapPin className="h-3 w-3 opacity-60" />{s.activeCart.company_location}</span>
+                      <span className="flex items-center gap-1.5 truncate">
+                        <MapPin className="h-3 w-3 opacity-60" />
+                        {s.activeCart.company_location}
+                      </span>
                     )}
                     <span className="flex items-center gap-1.5 whitespace-nowrap">
                       <Clock className="h-3 w-3 opacity-60" />
-                      Atualizado {formatDistanceToNow(new Date(s.activeCart.updated_at), { addSuffix: true, locale: ptBR })}
+                      Atualizado{' '}
+                      {formatDistanceToNow(new Date(s.activeCart.updated_at), {
+                        addSuffix: true,
+                        locale: ptBR,
+                      })}
                     </span>
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-2.5 flex-shrink-0">
+              <div className="flex flex-shrink-0 items-center gap-2.5">
                 <Select
                   value={s.activeCart.status}
                   onValueChange={(v) => s.updateCartStatus(s.activeCart!.id, v as CartStatus)}
                 >
-                  <SelectTrigger className="h-9 text-xs font-bold w-auto min-w-[170px] gap-2 rounded-xl border-border/40 bg-muted/20 hover:bg-muted/40 transition-all">
-                    <span className={cn("w-2 h-2 rounded-full inline-block ring-2 ring-background shadow-sm", getStatusCfg(s.activeCart.status).color.split(" ")[0])} />
+                  <SelectTrigger className="h-9 w-auto min-w-[170px] gap-2 rounded-xl border-border/40 bg-muted/20 text-xs font-bold transition-all hover:bg-muted/40">
+                    <span
+                      className={cn(
+                        'inline-block h-2 w-2 rounded-full shadow-sm ring-2 ring-background',
+                        getStatusCfg(s.activeCart.status).color.split(' ')[0],
+                      )}
+                    />
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl p-1">
-                    {(Object.entries(STATUS_CONFIG) as [CartStatus, typeof STATUS_CONFIG[CartStatus]][]).map(([key, cfg]) => (
+                    {(
+                      Object.entries(STATUS_CONFIG) as [
+                        CartStatus,
+                        (typeof STATUS_CONFIG)[CartStatus],
+                      ][]
+                    ).map(([key, cfg]) => (
                       <SelectItem key={key} value={key} className="rounded-lg py-2">
                         <span className="flex items-center gap-2.5">
-                          <span className={cn("w-2 h-2 rounded-full shadow-sm", cfg.color.split(" ")[0])} />
+                          <span
+                            className={cn(
+                              'h-2 w-2 rounded-full shadow-sm',
+                              cfg.color.split(' ')[0],
+                            )}
+                          />
                           <span className="font-medium">{cfg.label}</span>
                         </span>
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive hover:bg-destructive/5 gap-2 text-xs font-bold h-9 rounded-xl px-3 transition-all" onClick={() => s.setConfirmDeleteCart(true)}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-9 gap-2 rounded-xl px-3 text-xs font-bold text-destructive transition-all hover:bg-destructive/5 hover:text-destructive"
+                  onClick={() => s.setConfirmDeleteCart(true)}
+                >
                   <Trash2 className="h-4 w-4" /> Excluir
                 </Button>
               </div>
@@ -323,8 +424,11 @@ function SellerCartsContent() {
             <FollowUpTimer createdAt={s.activeCart.created_at} />
 
             {/* Notas sempre visíveis */}
-            <div className="space-y-2 group/notes bg-card/40 p-3 rounded-xl border border-border/30">
-              <label htmlFor="cart-notes" className="flex items-center gap-1.5 text-[11px] font-bold text-muted-foreground uppercase tracking-wider opacity-70 group-hover/notes:opacity-100 transition-opacity">
+            <div className="group/notes space-y-2 rounded-xl border border-border/30 bg-card/40 p-3">
+              <label
+                htmlFor="cart-notes"
+                className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground opacity-70 transition-opacity group-hover/notes:opacity-100"
+              >
                 <FileText className="h-3 w-3 text-primary" /> Notas da negociação
               </label>
               <Textarea
@@ -333,90 +437,121 @@ function SellerCartsContent() {
                 value={s.localCartNotes}
                 onChange={(e) => s.handleCartNotesChange(e.target.value)}
                 placeholder={notesPlaceholder}
-                className="text-sm min-h-[90px] resize-y bg-background/50 border-border/30 focus:border-primary/40 focus:ring-primary/10 transition-all rounded-lg"
+                className="min-h-[90px] resize-y rounded-lg border-border/30 bg-background/50 text-sm transition-all focus:border-primary/40 focus:ring-primary/10"
                 rows={3}
               />
             </div>
 
             {/* Produtos */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
+            <div className="mb-2 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
               <div className="flex items-center gap-3">
-                <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                <h3 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-muted-foreground">
                   <Package className="h-4 w-4" /> Produtos no carrinho
                 </h3>
                 {s.activeCart.items.length > 0 && (
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     className={cn(
-                      "h-7 text-[10px] font-black uppercase tracking-widest px-3 rounded-lg transition-all border border-transparent shadow-sm",
-                      s.selectedItemIds.size > 0 
-                        ? "bg-primary text-primary-foreground border-primary/20 hover:bg-primary/90" 
-                        : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                      'h-7 rounded-lg border border-transparent px-3 text-[10px] font-black uppercase tracking-widest shadow-sm transition-all',
+                      s.selectedItemIds.size > 0
+                        ? 'border-primary/20 bg-primary text-primary-foreground hover:bg-primary/90'
+                        : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground',
                     )}
                     onClick={() => {
                       if (s.selectedItemIds.size === s.activeCart!.items.length) s.clearSelection();
-                      else s.activeCart!.items.forEach(i => !s.selectedItemIds.has(i.id) && s.toggleItemSelection(i.id));
+                      else
+                        s.activeCart!.items.forEach(
+                          (i) => !s.selectedItemIds.has(i.id) && s.toggleItemSelection(i.id),
+                        );
                     }}
                   >
                     <div className="flex items-center gap-2">
-                      <div className={cn(
-                        "w-2.5 h-2.5 rounded-sm border-2 transition-all flex items-center justify-center",
-                        s.selectedItemIds.size === s.activeCart.items.length ? "bg-white border-white" : "border-current opacity-40"
-                      )}>
-                        {s.selectedItemIds.size === s.activeCart.items.length && <div className="w-1 h-1 bg-primary rounded-full" />}
+                      <div
+                        className={cn(
+                          'flex h-2.5 w-2.5 items-center justify-center rounded-sm border-2 transition-all',
+                          s.selectedItemIds.size === s.activeCart.items.length
+                            ? 'border-white bg-white'
+                            : 'border-current opacity-40',
+                        )}
+                      >
+                        {s.selectedItemIds.size === s.activeCart.items.length && (
+                          <div className="h-1 w-1 rounded-full bg-primary" />
+                        )}
                       </div>
-                      {s.selectedItemIds.size === s.activeCart.items.length ? "Desmarcar todos" : "Selecionar todos"}
+                      {s.selectedItemIds.size === s.activeCart.items.length
+                        ? 'Desmarcar todos'
+                        : 'Selecionar todos'}
                     </div>
                   </Button>
                 )}
               </div>
               <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1 mr-2 bg-muted/30 p-1 rounded-xl border border-border/20 shadow-inner">
-                  <Button 
-                    variant={s.itemsSortBy === "manual" ? "primary" : "ghost"} 
+                <div className="mr-2 flex items-center gap-1 rounded-xl border border-border/20 bg-muted/30 p-1 shadow-inner">
+                  <Button
+                    variant={s.itemsSortBy === 'manual' ? 'primary' : 'ghost'}
                     size="sm"
                     className={cn(
-                      "h-7 px-3 text-[10px] rounded-lg font-bold uppercase transition-all",
-                      s.itemsSortBy === "manual" ? "shadow-md scale-105" : "text-muted-foreground hover:bg-muted/50"
+                      'h-7 rounded-lg px-3 text-[10px] font-bold uppercase transition-all',
+                      s.itemsSortBy === 'manual'
+                        ? 'scale-105 shadow-md'
+                        : 'text-muted-foreground hover:bg-muted/50',
                     )}
-                    onClick={() => s.setItemsSortBy("manual")}
+                    onClick={() => s.setItemsSortBy('manual')}
                   >
-                    <GripVertical className="h-3 w-3 mr-1" />
+                    <GripVertical className="mr-1 h-3 w-3" />
                     Manual
                   </Button>
-                  <Button 
-                    variant={s.itemsSortBy !== "manual" ? "primary" : "ghost"} 
+                  <Button
+                    variant={s.itemsSortBy !== 'manual' ? 'primary' : 'ghost'}
                     size="sm"
                     className={cn(
-                      "h-7 px-3 text-[10px] rounded-lg font-bold uppercase transition-all",
-                      s.itemsSortBy !== "manual" ? "shadow-md scale-105" : "text-muted-foreground hover:bg-muted/50"
+                      'h-7 rounded-lg px-3 text-[10px] font-bold uppercase transition-all',
+                      s.itemsSortBy !== 'manual'
+                        ? 'scale-105 shadow-md'
+                        : 'text-muted-foreground hover:bg-muted/50',
                     )}
-                    onClick={() => s.itemsSortBy === "manual" && s.setItemsSortBy("price-desc")}
+                    onClick={() => s.itemsSortBy === 'manual' && s.setItemsSortBy('price-desc')}
                   >
-                    <ArrowUpDown className="h-3 w-3 mr-1" />
+                    <ArrowUpDown className="mr-1 h-3 w-3" />
                     Auto
                   </Button>
                 </div>
 
-                <Select 
-                  value={s.itemsSortBy === "manual" ? "" : s.itemsSortBy} 
+                <Select
+                  value={s.itemsSortBy === 'manual' ? '' : s.itemsSortBy}
                   onValueChange={s.setItemsSortBy}
-                  disabled={s.itemsSortBy === "manual"}
+                  disabled={s.itemsSortBy === 'manual'}
                 >
-                  <SelectTrigger className={cn(
-                    "h-8 text-[11px] w-[140px] rounded-lg border-border/40 bg-card/60 transition-all",
-                    s.itemsSortBy === "manual" ? "opacity-40 grayscale" : "opacity-100 ring-2 ring-primary/20 border-primary/40 shadow-sm"
-                  )}>
+                  <SelectTrigger
+                    className={cn(
+                      'h-8 w-[140px] rounded-lg border-border/40 bg-card/60 text-[11px] transition-all',
+                      s.itemsSortBy === 'manual'
+                        ? 'opacity-40 grayscale'
+                        : 'border-primary/40 opacity-100 shadow-sm ring-2 ring-primary/20',
+                    )}
+                  >
                     <SelectValue placeholder="Escolher ordem..." />
                   </SelectTrigger>
-                  <SelectContent className="rounded-xl p-1 shadow-2xl border-border/40">
-                    <SelectItem value="price-desc" className="rounded-lg py-2">Maior Preço</SelectItem>
-                    <SelectItem value="price-asc" className="rounded-lg py-2">Menor Preço</SelectItem>
-                    <SelectItem value="qty-desc" className="rounded-lg py-2">Maior Qtd</SelectItem>
-                    <SelectItem value="qty-asc" className="rounded-lg py-2">Menor Qtd</SelectItem>
-                    <SelectItem value="total-desc" className="rounded-lg py-2">Maior Subtotal</SelectItem>
-                    <SelectItem value="total-asc" className="rounded-lg py-2">Menor Subtotal</SelectItem>
+                  <SelectContent className="rounded-xl border-border/40 p-1 shadow-2xl">
+                    <SelectItem value="price-desc" className="rounded-lg py-2">
+                      Maior Preço
+                    </SelectItem>
+                    <SelectItem value="price-asc" className="rounded-lg py-2">
+                      Menor Preço
+                    </SelectItem>
+                    <SelectItem value="qty-desc" className="rounded-lg py-2">
+                      Maior Qtd
+                    </SelectItem>
+                    <SelectItem value="qty-asc" className="rounded-lg py-2">
+                      Menor Qtd
+                    </SelectItem>
+                    <SelectItem value="total-desc" className="rounded-lg py-2">
+                      Maior Subtotal
+                    </SelectItem>
+                    <SelectItem value="total-asc" className="rounded-lg py-2">
+                      Menor Subtotal
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -425,56 +560,62 @@ function SellerCartsContent() {
             {/* Ações em Massa (Barra flutuante) */}
             <AnimatePresence>
               {s.selectedItemIds.size > 0 && (
-                <motion.div 
+                <motion.div
                   initial={{ y: 100, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   exit={{ y: 100, opacity: 0 }}
-                  className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-4 bg-foreground text-background px-6 py-3 rounded-2xl shadow-2xl border border-border/10 backdrop-blur-xl"
+                  className="fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-4 rounded-2xl border border-border/10 bg-foreground px-6 py-3 text-background shadow-2xl backdrop-blur-xl"
                 >
-                  <div className="flex items-center gap-3 pr-4 border-r border-background/20">
-                    <span className="text-xs font-black tabular-nums bg-primary text-primary-foreground w-6 h-6 rounded-full flex items-center justify-center">
+                  <div className="flex items-center gap-3 border-r border-background/20 pr-4">
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-black tabular-nums text-primary-foreground">
                       {s.selectedItemIds.size}
                     </span>
-                    <span className="text-xs font-bold uppercase tracking-widest opacity-80 whitespace-nowrap">Itens Selecionados</span>
+                    <span className="whitespace-nowrap text-xs font-bold uppercase tracking-widest opacity-80">
+                      Itens Selecionados
+                    </span>
                   </div>
-                  
+
                   <div className="flex items-center gap-2">
                     <Select onValueChange={s.handleBulkMove}>
-                      <SelectTrigger className="h-9 bg-transparent border-background/20 text-background text-xs font-bold rounded-xl w-[180px] hover:bg-background/10 transition-colors">
-                        <MoveRight className="h-4 w-4 mr-2 opacity-60" />
+                      <SelectTrigger className="h-9 w-[180px] rounded-xl border-background/20 bg-transparent text-xs font-bold text-background transition-colors hover:bg-background/10">
+                        <MoveRight className="mr-2 h-4 w-4 opacity-60" />
                         <SelectValue placeholder="Mover para..." />
                       </SelectTrigger>
                       <SelectContent className="rounded-xl">
-                        {s.otherCarts.map(c => (
-                          <SelectItem key={c.id} value={c.id} className="rounded-lg">{c.company_name}</SelectItem>
+                        {s.otherCarts.map((c) => (
+                          <SelectItem key={c.id} value={c.id} className="rounded-lg">
+                            {c.company_name}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
 
                     <Popover>
                       <PopoverTrigger asChild>
-                        <Button 
-                          variant="ghost" 
-                          className="h-9 px-4 rounded-xl text-xs font-bold gap-2 hover:bg-background/10"
+                        <Button
+                          variant="ghost"
+                          className="h-9 gap-2 rounded-xl px-4 text-xs font-bold hover:bg-background/10"
                         >
                           <MessageSquare className="h-4 w-4" /> Notas em Massa
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-80 p-4 rounded-2xl shadow-2xl bg-card border-border/50">
+                      <PopoverContent className="w-80 rounded-2xl border-border/50 bg-card p-4 shadow-2xl">
                         <div className="space-y-3">
-                          <h4 className="text-xs font-bold uppercase tracking-tight text-muted-foreground">Adicionar notas aos itens selecionados</h4>
-                          <Textarea 
+                          <h4 className="text-xs font-bold uppercase tracking-tight text-muted-foreground">
+                            Adicionar notas aos itens selecionados
+                          </h4>
+                          <Textarea
                             placeholder="Ex: Todos com gravação laser..."
-                            className="text-xs min-h-[100px] rounded-xl"
+                            className="min-h-[100px] rounded-xl text-xs"
                             value={bulkNote}
                             onChange={(e) => setBulkNote(e.target.value)}
                           />
-                          <Button 
-                            className="w-full text-xs font-bold rounded-xl h-10" 
+                          <Button
+                            className="h-10 w-full rounded-xl text-xs font-bold"
                             disabled={!bulkNote.trim()}
                             onClick={() => {
                               s.handleBulkUpdateNotes(bulkNote.trim());
-                              setBulkNote("");
+                              setBulkNote('');
                             }}
                           >
                             Aplicar Notas
@@ -482,19 +623,19 @@ function SellerCartsContent() {
                         </div>
                       </PopoverContent>
                     </Popover>
-                    
-                    <Button 
-                      variant="ghost" 
+
+                    <Button
+                      variant="ghost"
                       onClick={s.handleBulkRemove}
-                      className="h-9 px-4 rounded-xl text-xs font-bold gap-2 text-destructive-foreground hover:bg-destructive/10"
+                      className="h-9 gap-2 rounded-xl px-4 text-xs font-bold text-destructive-foreground hover:bg-destructive/10"
                     >
                       <Trash2 className="h-4 w-4" /> Remover
                     </Button>
-                    
-                    <Button 
-                      variant="ghost" 
+
+                    <Button
+                      variant="ghost"
                       onClick={s.clearSelection}
-                      className="h-9 px-4 rounded-xl text-xs font-bold gap-2 hover:bg-background/10"
+                      className="h-9 gap-2 rounded-xl px-4 text-xs font-bold hover:bg-background/10"
                     >
                       Cancelar
                     </Button>
@@ -506,24 +647,44 @@ function SellerCartsContent() {
             {s.activeCart.items.length === 0 ? (
               <CartEmptyStateSmart
                 activeCart={s.activeCart}
-                templates={s.templates as { id: string; name: string; description?: string; items: import("@/hooks/useCartTemplates").CartTemplateItem[] }[]}
+                templates={
+                  s.templates as {
+                    id: string;
+                    name: string;
+                    description?: string;
+                    items: import('@/hooks/useCartTemplates').CartTemplateItem[];
+                  }[]
+                }
                 otherCarts={s.otherCarts}
                 onApplyTemplate={s.handleLoadTemplate}
                 onDuplicateLast={handleDuplicateLast}
-                onNavigateProducts={() => s.navigate("/produtos")}
+                onNavigateProducts={() => s.navigate('/produtos')}
               />
             ) : (
-              <DndContext sensors={s.sensors} collisionDetection={closestCenter} onDragEnd={s.handleDragEnd}>
-                <SortableContext items={s.sortedItems.map(i => i.id)} strategy={rectSortingStrategy}>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <DndContext
+                sensors={s.sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={s.handleDragEnd}
+              >
+                <SortableContext
+                  items={s.sortedItems.map((i) => i.id)}
+                  strategy={rectSortingStrategy}
+                >
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     <AnimatePresence mode="popLayout">
                       {s.sortedItems.map((item, index) => (
                         <SortableCartItem
-                          key={item.id} item={item} index={index}
-                          otherCarts={s.otherCarts} companyAccentColor={s.companyAccentColor}
-                          stockMap={s.stockMap} onRemove={s.handleRemoveItem}
-                          onUpdateQuantity={s.handleUpdateQuantity} onUpdateNotes={s.updateItemNotes}
-                          onMoveToCart={s.handleMoveItem} onDuplicateToCart={s.handleDuplicateItem}
+                          key={item.id}
+                          item={item}
+                          index={index}
+                          otherCarts={s.otherCarts}
+                          companyAccentColor={s.companyAccentColor}
+                          stockMap={s.stockMap}
+                          onRemove={s.handleRemoveItem}
+                          onUpdateQuantity={s.handleUpdateQuantity}
+                          onUpdateNotes={s.updateItemNotes}
+                          onMoveToCart={s.handleMoveItem}
+                          onDuplicateToCart={s.handleDuplicateItem}
                           onNavigate={s.navigate}
                           isSelected={s.selectedItemIds.has(item.id)}
                           isSelectionMode={s.selectedItemIds.size > 0}
@@ -535,28 +696,38 @@ function SellerCartsContent() {
                 </SortableContext>
               </DndContext>
             )}
-            
+
             {/* Legend/Helper text below list */}
             {s.activeCart.items.length > 0 && (
-              <div className="flex items-center justify-center gap-6 pt-6 text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-40">
-                <span className="flex items-center gap-1.5"><GripVertical className="h-3 w-3" /> Arraste para reordenar</span>
-                <span className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-sm border-2 border-muted-foreground/30" /> Selecione para ações em massa</span>
+              <div className="flex items-center justify-center gap-6 pt-6 text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-40">
+                <span className="flex items-center gap-1.5">
+                  <GripVertical className="h-3 w-3" /> Arraste para reordenar
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <div className="h-2 w-2 rounded-sm border-2 border-muted-foreground/30" />{' '}
+                  Selecione para ações em massa
+                </span>
               </div>
             )}
           </div>
           {/* Sidebar */}
           {s.activeCart.items.length > 0 && (
             <CartSidebar
-              cart={s.activeCart} otherCarts={s.otherCarts}
-              cartSubtotal={s.cartSubtotal} cartTotalQty={s.cartTotalQty}
-              cartAge={s.cartAge} weightVolume={s.weightVolume}
-              allProducts={s.allProducts} isLoadingProducts={s.isLoadingProducts}
-              templates={s.templates} canCreateCart={s.canCreateCart}
+              cart={s.activeCart}
+              otherCarts={s.otherCarts}
+              cartSubtotal={s.cartSubtotal}
+              cartTotalQty={s.cartTotalQty}
+              cartAge={s.cartAge}
+              weightVolume={s.weightVolume}
+              allProducts={s.allProducts}
+              isLoadingProducts={s.isLoadingProducts}
+              templates={s.templates}
+              canCreateCart={s.canCreateCart}
               onGenerateQuote={s.handleGenerateQuote}
               onShareCart={s.shareCartLink}
               onDuplicateCart={(id) => {
                 if (s.canCreateCart) s.duplicateCart(id);
-                else toast.error("Limite de 3 carrinhos atingido");
+                else toast.error('Limite de 3 carrinhos atingido');
               }}
               onExportCSV={s.exportCartToCSV}
               onExportPDF={s.exportCartToPDF}
@@ -574,31 +745,47 @@ function SellerCartsContent() {
 
       {/* Mobile summary */}
       {s.activeCart && (
-        <MobileSummarySheet cart={s.activeCart} subtotal={s.cartSubtotal} totalQty={s.cartTotalQty} onGenerateQuote={() => s.handleGenerateQuote(s.activeCart!)} />
+        <MobileSummarySheet
+          cart={s.activeCart}
+          subtotal={s.cartSubtotal}
+          totalQty={s.cartTotalQty}
+          onGenerateQuote={() => s.handleGenerateQuote(s.activeCart!)}
+        />
       )}
 
       {/* Dialogs */}
       <ConfirmDialog
         open={!!s.confirmQuoteCart}
-        onOpenChange={(open) => { if (!open) s.setConfirmQuoteCart(null); }}
+        onOpenChange={(open) => {
+          if (!open) s.setConfirmQuoteCart(null);
+        }}
         variant="warning"
         title={`Gerar orçamento para ${s.confirmQuoteCart?.company_name}?`}
         description={`Os ${s.confirmQuoteCart?.items.length || 0} itens serão transferidos para um novo orçamento e o carrinho será removido.`}
-        confirmLabel="Gerar Orçamento" cancelLabel="Cancelar"
+        confirmLabel="Gerar Orçamento"
+        cancelLabel="Cancelar"
         onConfirm={s.confirmGenerateQuote}
         testId="cart-confirm-dialog"
       />
       <DeleteConfirmDialog
-        open={s.confirmDeleteCart} onOpenChange={s.setConfirmDeleteCart}
-        entityName="carrinho" itemName={s.activeCart?.company_name}
-        onConfirm={() => { if (s.activeCart) s.deleteCart(s.activeCart.id); s.setConfirmDeleteCart(false); }}
+        open={s.confirmDeleteCart}
+        onOpenChange={s.setConfirmDeleteCart}
+        entityName="carrinho"
+        itemName={s.activeCart?.company_name}
+        onConfirm={() => {
+          if (s.activeCart) s.deleteCart(s.activeCart.id);
+          s.setConfirmDeleteCart(false);
+        }}
         testId="cart-delete-dialog"
       />
       <ConfirmDialog
-        open={s.confirmClearCart} onOpenChange={s.setConfirmClearCart}
-        variant="warning" title="Limpar todos os itens?"
+        open={s.confirmClearCart}
+        onOpenChange={s.setConfirmClearCart}
+        variant="warning"
+        title="Limpar todos os itens?"
         description={`${s.activeCart?.items.length || 0} itens serão removidos do carrinho de ${s.activeCart?.company_name}.`}
-        confirmLabel="Limpar" cancelLabel="Cancelar"
+        confirmLabel="Limpar"
+        cancelLabel="Cancelar"
         onConfirm={s.handleClearCart}
         testId="cart-clear-dialog"
       />

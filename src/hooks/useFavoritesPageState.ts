@@ -1,30 +1,34 @@
-import { useState, useMemo, useEffect } from "react";
-import { useFavoritesStore } from "@/stores/useFavoritesStore";
-import { useFavoriteLists, useFavoriteTrash, useLegacyFavoritesMigration } from "@/hooks/useFavoriteLists";
-import { useEnrichedFavoriteItems } from "@/hooks/useEnrichedFavoriteItems";
-import { useProductsContext } from "@/contexts/ProductsContext";
-import { useCatalogSelection } from "@/components/catalog/useCatalogSelection";
-import { useFavoritesGlobalShortcuts } from "@/hooks/useFavoritesGlobalShortcuts";
-import { useUndoStack } from "@/hooks/useUndoStack";
-import { getDefaultColumns, type ColumnCount } from "@/components/products/ColumnSelector";
-import type { FavoritesSort } from "@/components/favorites/FavoritesSortBar";
-import { toast } from "sonner";
+import { useState, useMemo, useEffect } from 'react';
+import { useFavoritesStore } from '@/stores/useFavoritesStore';
+import {
+  useFavoriteLists,
+  useFavoriteTrash,
+  useLegacyFavoritesMigration,
+} from '@/hooks/useFavoriteLists';
+import { useEnrichedFavoriteItems } from '@/hooks/useEnrichedFavoriteItems';
+import { useProductsContext } from '@/contexts/ProductsContext';
+import { useCatalogSelection } from '@/components/catalog/useCatalogSelection';
+import { useFavoritesGlobalShortcuts } from '@/hooks/useFavoritesGlobalShortcuts';
+import { useUndoStack } from '@/hooks/useUndoStack';
+import { getDefaultColumns, type ColumnCount } from '@/components/products/ColumnSelector';
+import type { FavoritesSort } from '@/components/favorites/FavoritesSortBar';
+import { toast } from 'sonner';
 
-type ViewMode = "grid" | "list" | "table";
-const VIEW_MODE_KEY = "favorites-view-mode";
-const GRID_COLS_KEY = "favorites-grid-cols";
-const SELECTED_LIST_KEY = "favorites-selected-list-id";
-const SORT_KEY = "favorites-sort";
-const PRICE_DROP_FILTER_KEY = "favorites-only-drops";
+type ViewMode = 'grid' | 'list' | 'table';
+const VIEW_MODE_KEY = 'favorites-view-mode';
+const GRID_COLS_KEY = 'favorites-grid-cols';
+const SELECTED_LIST_KEY = 'favorites-selected-list-id';
+const SORT_KEY = 'favorites-sort';
+const PRICE_DROP_FILTER_KEY = 'favorites-only-drops';
 
 function loadViewMode(): ViewMode {
   try {
     const v = localStorage.getItem(VIEW_MODE_KEY);
-    if (v === "grid" || v === "list" || v === "table") return v as ViewMode;
+    if (v === 'grid' || v === 'list' || v === 'table') return v as ViewMode;
   } catch (e) {
     // Ignore localStorage errors
   }
-  return "grid";
+  return 'grid';
 }
 
 function loadGridColumns(): ColumnCount {
@@ -43,12 +47,20 @@ function loadGridColumns(): ColumnCount {
 function loadSort(): FavoritesSort {
   try {
     const v = localStorage.getItem(SORT_KEY) as FavoritesSort | null;
-    const allowed: FavoritesSort[] = ["recent", "oldest", "price-asc", "price-desc", "name-asc", "name-desc", "category"];
+    const allowed: FavoritesSort[] = [
+      'recent',
+      'oldest',
+      'price-asc',
+      'price-desc',
+      'name-asc',
+      'name-desc',
+      'category',
+    ];
     if (v && allowed.includes(v)) return v;
   } catch (e) {
     // Ignore localStorage errors
   }
-  return "recent";
+  return 'recent';
 }
 
 export function useFavoritesPageState() {
@@ -58,25 +70,41 @@ export function useFavoritesPageState() {
   useLegacyFavoritesMigration();
 
   const { favorites, clearFavorites, favoriteCount, toggleFavorite } = useFavoritesStore();
-  const { lists, createList, updateList, deleteList, generateShareToken, revokeShareToken, moveItem } = useFavoriteLists();
+  const {
+    lists,
+    createList,
+    updateList,
+    deleteList,
+    generateShareToken,
+    revokeShareToken,
+    moveItem,
+  } = useFavoriteLists();
   const { items: trashItems } = useFavoriteTrash();
   const { getProductsByIds, products: _cacheSignal } = useProductsContext();
 
   // Basic UI State
   const [selectedListId, setSelectedListId] = useState<string | null>(() => {
-    try { return localStorage.getItem(SELECTED_LIST_KEY); } catch { return null; }
+    try {
+      return localStorage.getItem(SELECTED_LIST_KEY);
+    } catch {
+      return null;
+    }
   });
   const [showTrash, setShowTrash] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [presenting, setPresenting] = useState(false);
-  const [ariaAnnouncement, setAriaAnnouncement] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [ariaAnnouncement, setAriaAnnouncement] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<ViewMode>(loadViewMode);
   const [gridColumns, setGridColumns] = useState<ColumnCount>(loadGridColumns);
   const [sort, setSort] = useState<FavoritesSort>(loadSort);
   const [selectionMode, setSelectionMode] = useState(false);
   const [onlyPriceDrops, setOnlyPriceDrops] = useState<boolean>(() => {
-    try { return localStorage.getItem(PRICE_DROP_FILTER_KEY) === "1"; } catch { return false; }
+    try {
+      return localStorage.getItem(PRICE_DROP_FILTER_KEY) === '1';
+    } catch {
+      return false;
+    }
   });
 
   // Derived logic
@@ -88,13 +116,39 @@ export function useFavoritesPageState() {
     try {
       if (selectedListId) localStorage.setItem(SELECTED_LIST_KEY, selectedListId);
       else localStorage.removeItem(SELECTED_LIST_KEY);
-    } catch (e) { /* ignore */ }
+    } catch (e) {
+      /* ignore */
+    }
   }, [selectedListId]);
 
-  useEffect(() => { try { localStorage.setItem(VIEW_MODE_KEY, viewMode); } catch (e) { /* ignore */ } }, [viewMode]);
-  useEffect(() => { try { localStorage.setItem(GRID_COLS_KEY, String(gridColumns)); } catch (e) { /* ignore */ } }, [gridColumns]);
-  useEffect(() => { try { localStorage.setItem(SORT_KEY, sort); } catch (e) { /* ignore */ } }, [sort]);
-  useEffect(() => { try { localStorage.setItem(PRICE_DROP_FILTER_KEY, onlyPriceDrops ? "1" : "0"); } catch (e) { /* ignore */ } }, [onlyPriceDrops]);
+  useEffect(() => {
+    try {
+      localStorage.setItem(VIEW_MODE_KEY, viewMode);
+    } catch (e) {
+      /* ignore */
+    }
+  }, [viewMode]);
+  useEffect(() => {
+    try {
+      localStorage.setItem(GRID_COLS_KEY, String(gridColumns));
+    } catch (e) {
+      /* ignore */
+    }
+  }, [gridColumns]);
+  useEffect(() => {
+    try {
+      localStorage.setItem(SORT_KEY, sort);
+    } catch (e) {
+      /* ignore */
+    }
+  }, [sort]);
+  useEffect(() => {
+    try {
+      localStorage.setItem(PRICE_DROP_FILTER_KEY, onlyPriceDrops ? '1' : '0');
+    } catch (e) {
+      /* ignore */
+    }
+  }, [onlyPriceDrops]);
 
   // Maps and Products
   const variantMap = useMemo(() => {
@@ -113,7 +167,9 @@ export function useFavoritesPageState() {
 
   const productsWithVariant = useMemo(() => {
     if (isRemoteListView) {
-      return enriched.map((e) => e.productWithVariant).filter((p): p is NonNullable<typeof p> => !!p);
+      return enriched
+        .map((e) => e.productWithVariant)
+        .filter((p): p is NonNullable<typeof p> => !!p);
     }
     const legacyProducts = getProductsByIds(favorites.map((f) => f.productId));
     return legacyProducts.map((product) => {
@@ -129,10 +185,11 @@ export function useFavoritesPageState() {
     let list = [...productsWithVariant];
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
-      list = list.filter((p) =>
-        p.name.toLowerCase().includes(q) ||
-        p.sku?.toLowerCase().includes(q) ||
-        (p as any).brand?.toLowerCase().includes(q)
+      list = list.filter(
+        (p) =>
+          p.name.toLowerCase().includes(q) ||
+          p.sku?.toLowerCase().includes(q) ||
+          (p as any).brand?.toLowerCase().includes(q),
       );
     }
     // Sorting and drops logic... (Simplified for brevity as per instructions)
@@ -145,11 +202,11 @@ export function useFavoritesPageState() {
   // Handlers
   const handleClearAll = () => {
     if (isRemoteListView) {
-      toast.info("Use a lixeira para remover items individualmente");
+      toast.info('Use a lixeira para remover items individualmente');
       return;
     }
     clearFavorites();
-    toast.success("Todos os favoritos foram removidos");
+    toast.success('Todos os favoritos foram removidos');
   };
 
   const toggleSelectionMode = () => {
@@ -161,7 +218,7 @@ export function useFavoritesPageState() {
 
   const handleToggleFavorite = (productId: string) => {
     if (isRemoteListView) {
-      const item = rawItems.find(it => it.product_id === productId);
+      const item = rawItems.find((it) => it.product_id === productId);
       if (item) removeItem.mutate(item.id);
     } else {
       toggleFavorite(productId);
@@ -170,20 +227,36 @@ export function useFavoritesPageState() {
 
   return {
     state: {
-      selectedListId, setSelectedListId,
-      showTrash, setShowTrash,
-      sidebarOpen, setSidebarOpen,
-      presenting, setPresenting,
-      ariaAnnouncement, setAriaAnnouncement,
-      searchQuery, setSearchQuery,
-      viewMode, setViewMode,
-      gridColumns, setGridColumns,
-      sort, setSort,
-      selectionMode, setSelectionMode,
-      onlyPriceDrops, setOnlyPriceDrops,
+      selectedListId,
+      setSelectedListId,
+      showTrash,
+      setShowTrash,
+      sidebarOpen,
+      setSidebarOpen,
+      presenting,
+      setPresenting,
+      ariaAnnouncement,
+      setAriaAnnouncement,
+      searchQuery,
+      setSearchQuery,
+      viewMode,
+      setViewMode,
+      gridColumns,
+      setGridColumns,
+      sort,
+      setSort,
+      selectionMode,
+      setSelectionMode,
+      onlyPriceDrops,
+      setOnlyPriceDrops,
     },
     data: {
-      lists, createList, updateList, deleteList, generateShareToken, revokeShareToken,
+      lists,
+      createList,
+      updateList,
+      deleteList,
+      generateShareToken,
+      revokeShareToken,
       trashItems,
       filteredProducts,
       selection,
@@ -195,6 +268,6 @@ export function useFavoritesPageState() {
       toggleSelectionMode,
       handleToggleFavorite,
       moveItem,
-    }
+    },
   };
 }

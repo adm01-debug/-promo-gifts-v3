@@ -13,7 +13,9 @@ const mockSupabaseQuery = {
   limit: vi.fn().mockReturnThis(),
   maybeSingle: vi.fn().mockReturnThis(),
   single: vi.fn().mockReturnThis(),
-  then: vi.fn((cb) => cb({ data: [{ id: '1', order_number: 'ORD-001', status: 'pending' }], error: null, count: 1 })),
+  then: vi.fn((cb) =>
+    cb({ data: [{ id: '1', order_number: 'ORD-001', status: 'pending' }], error: null, count: 1 }),
+  ),
 };
 
 vi.mock('@/integrations/supabase/client', () => ({
@@ -46,7 +48,7 @@ describe('useOrdersList', () => {
   it('should call supabase with correct filters and pagination', async () => {
     const sellerId = 'user-123';
     const filters = { search: 'clientA', status: 'shipped', page: 2, pageSize: 10 };
-    
+
     // We need to extract the queryFn from useQuery mock to test its logic
     const { useQuery } = await import('@tanstack/react-query');
     renderHook(() => useOrdersList(sellerId, 'self', filters));
@@ -63,14 +65,16 @@ describe('useOrdersList', () => {
   });
 
   it('should handle errors gracefully', async () => {
-    mockSupabaseQuery.then.mockImplementationOnce((cb) => cb({ data: null, error: { message: 'RLS error' }, count: 0 }));
-    
+    mockSupabaseQuery.then.mockImplementationOnce((cb) =>
+      cb({ data: null, error: { message: 'RLS error' }, count: 0 }),
+    );
+
     const sellerId = 'user-123';
     const { useQuery } = await import('@tanstack/react-query');
     renderHook(() => useOrdersList(sellerId, 'self'));
 
     const queryFn = (useQuery as any).mock.calls[0][0].queryFn;
-    
+
     await expect(queryFn()).rejects.toThrow('RLS error');
   });
 });

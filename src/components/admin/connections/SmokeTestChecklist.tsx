@@ -14,10 +14,18 @@
  * facilitar QA via DevTools sem depender da UI.
  */
 
-import { useState } from "react";
-import { CheckCircle2, XCircle, Loader2, ListChecks, PlayCircle, Copy, AlertCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { useState } from 'react';
+import {
+  CheckCircle2,
+  XCircle,
+  Loader2,
+  ListChecks,
+  PlayCircle,
+  Copy,
+  AlertCircle,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import {
   Sheet,
   SheetContent,
@@ -25,24 +33,30 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@/components/ui/sheet";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
-import { toast } from "sonner";
+} from '@/components/ui/sheet';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 import {
   useSecretsManager,
   type SecretStatus,
   type RotationHistoryEntry,
-} from "@/hooks/useSecretsManager";
-import { ALLOWED_SECRET_NAMES } from "./secretWhitelist";
-import { formatMaskedSuffix, normalizeMaskedSuffix } from "@/lib/masked-suffix";
+} from '@/hooks/useSecretsManager';
+import { ALLOWED_SECRET_NAMES } from './secretWhitelist';
+import { formatMaskedSuffix, normalizeMaskedSuffix } from '@/lib/masked-suffix';
 
-type StepStatus = "idle" | "running" | "passed" | "failed" | "skipped";
+type StepStatus = 'idle' | 'running' | 'passed' | 'failed' | 'skipped';
 
 interface StepState {
-  id: "rotate" | "history" | "reload";
+  id: 'rotate' | 'history' | 'reload';
   title: string;
   description: string;
   status: StepStatus;
@@ -52,30 +66,31 @@ interface StepState {
 
 const INITIAL_STEPS: StepState[] = [
   {
-    id: "rotate",
-    title: "Rotação concluída",
-    description: "Substitui o valor e valida o novo sufixo retornado.",
-    status: "idle",
+    id: 'rotate',
+    title: 'Rotação concluída',
+    description: 'Substitui o valor e valida o novo sufixo retornado.',
+    status: 'idle',
   },
   {
-    id: "history",
-    title: "Histórico persistente",
-    description: "Garante que rotation_history ganhou registro com autor e timestamp.",
-    status: "idle",
+    id: 'history',
+    title: 'Histórico persistente',
+    description: 'Garante que rotation_history ganhou registro com autor e timestamp.',
+    status: 'idle',
   },
   {
-    id: "reload",
-    title: "Recarregamento após refresh",
-    description: "Lista os secrets do banco novamente para confirmar persistência.",
-    status: "idle",
+    id: 'reload',
+    title: 'Recarregamento após refresh',
+    description: 'Lista os secrets do banco novamente para confirmar persistência.',
+    status: 'idle',
   },
 ];
 
 function StatusIcon({ status }: { status: StepStatus }) {
-  if (status === "running") return <Loader2 className="h-4 w-4 animate-spin text-primary" />;
-  if (status === "passed") return <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />;
-  if (status === "failed") return <XCircle className="h-4 w-4 text-destructive" />;
-  if (status === "skipped") return <AlertCircle className="h-4 w-4 text-muted-foreground" />;
+  if (status === 'running') return <Loader2 className="h-4 w-4 animate-spin text-primary" />;
+  if (status === 'passed')
+    return <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />;
+  if (status === 'failed') return <XCircle className="h-4 w-4 text-destructive" />;
+  if (status === 'skipped') return <AlertCircle className="h-4 w-4 text-muted-foreground" />;
   return <div className="h-4 w-4 rounded-full border-2 border-muted-foreground/30" />;
 }
 
@@ -100,8 +115,8 @@ export function SmokeTestChecklist({ availableSecrets = [] }: Props) {
   const [open, setOpen] = useState(false);
   const [steps, setSteps] = useState<StepState[]>(INITIAL_STEPS);
   const [running, setRunning] = useState(false);
-  const [secretName, setSecretName] = useState<string>("");
-  const [customValue, setCustomValue] = useState("");
+  const [secretName, setSecretName] = useState<string>('');
+  const [customValue, setCustomValue] = useState('');
 
   // Names that exist AND are in the whitelist — only those are safely testable.
   const testableNames = availableSecrets
@@ -109,7 +124,7 @@ export function SmokeTestChecklist({ availableSecrets = [] }: Props) {
     .map((s) => s.name)
     .sort();
 
-  const updateStep = (id: StepState["id"], patch: Partial<StepState>) => {
+  const updateStep = (id: StepState['id'], patch: Partial<StepState>) => {
     setSteps((prev) => prev.map((s) => (s.id === id ? { ...s, ...patch } : s)));
   };
 
@@ -117,7 +132,7 @@ export function SmokeTestChecklist({ availableSecrets = [] }: Props) {
 
   const runChecklist = async () => {
     if (!secretName) {
-      toast.error("Selecione uma credencial para testar.");
+      toast.error('Selecione uma credencial para testar.');
       return;
     }
     setRunning(true);
@@ -131,26 +146,26 @@ export function SmokeTestChecklist({ availableSecrets = [] }: Props) {
     // eslint-disable-next-line no-console
     console.groupCollapsed(`[smoke-test] ${sessionId} • ${secretName}`);
     // eslint-disable-next-line no-console
-    console.log("[smoke-test] starting", { secretName, expectedSuffix, length: newValue.length });
+    console.log('[smoke-test] starting', { secretName, expectedSuffix, length: newValue.length });
 
     // STEP 1 — rotate
-    updateStep("rotate", { status: "running" });
+    updateStep('rotate', { status: 'running' });
     const t1 = performance.now();
     let rotateResult: Awaited<ReturnType<typeof rotateSecret>> | null = null;
     try {
       rotateResult = await rotateSecret(secretName, newValue, `smoke-test ${sessionId}`);
       const took = Math.round(performance.now() - t1);
       if (!rotateResult.ok) {
-        updateStep("rotate", {
-          status: "failed",
-          detail: rotateResult.error?.message ?? "Falha desconhecida",
+        updateStep('rotate', {
+          status: 'failed',
+          detail: rotateResult.error?.message ?? 'Falha desconhecida',
           durationMs: took,
         });
         // eslint-disable-next-line no-console
-        console.error("[smoke-test] step 1 FAILED", rotateResult.error);
+        console.error('[smoke-test] step 1 FAILED', rotateResult.error);
         setRunning(false);
-        updateStep("history", { status: "skipped", detail: "Pulado (rotação falhou)" });
-        updateStep("reload", { status: "skipped", detail: "Pulado (rotação falhou)" });
+        updateStep('history', { status: 'skipped', detail: 'Pulado (rotação falhou)' });
+        updateStep('reload', { status: 'skipped', detail: 'Pulado (rotação falhou)' });
         // eslint-disable-next-line no-console
         console.groupEnd();
         return;
@@ -158,31 +173,34 @@ export function SmokeTestChecklist({ availableSecrets = [] }: Props) {
       const suffixOk = normalizeMaskedSuffix(rotateResult.masked_suffix) === expectedSuffix;
       const lengthOk = (rotateResult.length ?? 0) === newValue.length;
       if (!suffixOk || !lengthOk) {
-        updateStep("rotate", {
-          status: "failed",
+        updateStep('rotate', {
+          status: 'failed',
           detail: `Sufixo esperado ${formatMaskedSuffix(expectedSuffix)}, recebido ${formatMaskedSuffix(rotateResult.masked_suffix)}`,
           durationMs: took,
         });
         // eslint-disable-next-line no-console
-        console.error("[smoke-test] step 1 mismatch", { expectedSuffix, got: rotateResult.masked_suffix });
+        console.error('[smoke-test] step 1 mismatch', {
+          expectedSuffix,
+          got: rotateResult.masked_suffix,
+        });
       } else {
-        updateStep("rotate", {
-          status: "passed",
-          detail: `previous=${rotateResult.previous_suffix ?? "(env)"} → new=${normalizeMaskedSuffix(rotateResult.masked_suffix)} • ${rotateResult.length} chars`,
+        updateStep('rotate', {
+          status: 'passed',
+          detail: `previous=${rotateResult.previous_suffix ?? '(env)'} → new=${normalizeMaskedSuffix(rotateResult.masked_suffix)} • ${rotateResult.length} chars`,
           durationMs: took,
         });
         // eslint-disable-next-line no-console
-        console.log("[smoke-test] step 1 OK", { took, suffix: rotateResult.masked_suffix });
+        console.log('[smoke-test] step 1 OK', { took, suffix: rotateResult.masked_suffix });
       }
     } catch (err) {
       const took = Math.round(performance.now() - t1);
-      updateStep("rotate", {
-        status: "failed",
-        detail: err instanceof Error ? err.message : "Erro inesperado",
+      updateStep('rotate', {
+        status: 'failed',
+        detail: err instanceof Error ? err.message : 'Erro inesperado',
         durationMs: took,
       });
       // eslint-disable-next-line no-console
-      console.error("[smoke-test] step 1 EXCEPTION", err);
+      console.error('[smoke-test] step 1 EXCEPTION', err);
       setRunning(false);
       // eslint-disable-next-line no-console
       console.groupEnd();
@@ -190,89 +208,94 @@ export function SmokeTestChecklist({ availableSecrets = [] }: Props) {
     }
 
     // STEP 2 — history persisted
-    updateStep("history", { status: "running" });
+    updateStep('history', { status: 'running' });
     const t2 = performance.now();
     try {
       const entries: RotationHistoryEntry[] = await getRotationHistory(secretName);
       const took = Math.round(performance.now() - t2);
       const matching = entries.find(
-        (e) => e.new_suffix === expectedSuffix && new Date(e.rotated_at).getTime() >= startedAt.getTime() - 5000,
+        (e) =>
+          e.new_suffix === expectedSuffix &&
+          new Date(e.rotated_at).getTime() >= startedAt.getTime() - 5000,
       );
       if (!matching) {
-        updateStep("history", {
-          status: "failed",
+        updateStep('history', {
+          status: 'failed',
           detail: `Nenhum registro com sufixo ${formatMaskedSuffix(expectedSuffix)} encontrado (${entries.length} entradas vistas).`,
           durationMs: took,
         });
         // eslint-disable-next-line no-console
-        console.error("[smoke-test] step 2 missing entry", { expectedSuffix, total: entries.length });
+        console.error('[smoke-test] step 2 missing entry', {
+          expectedSuffix,
+          total: entries.length,
+        });
       } else {
-        const author = matching.rotated_by_email ?? matching.rotated_by ?? "desconhecido";
-        updateStep("history", {
-          status: "passed",
-          detail: `Registro #${entries.length} • por ${author} • ${new Date(matching.rotated_at).toLocaleTimeString("pt-BR")}`,
+        const author = matching.rotated_by_email ?? matching.rotated_by ?? 'desconhecido';
+        updateStep('history', {
+          status: 'passed',
+          detail: `Registro #${entries.length} • por ${author} • ${new Date(matching.rotated_at).toLocaleTimeString('pt-BR')}`,
           durationMs: took,
         });
         // eslint-disable-next-line no-console
-        console.log("[smoke-test] step 2 OK", { took, author, entryId: matching.id });
+        console.log('[smoke-test] step 2 OK', { took, author, entryId: matching.id });
       }
     } catch (err) {
       const took = Math.round(performance.now() - t2);
-      updateStep("history", {
-        status: "failed",
-        detail: err instanceof Error ? err.message : "Erro ao consultar histórico",
+      updateStep('history', {
+        status: 'failed',
+        detail: err instanceof Error ? err.message : 'Erro ao consultar histórico',
         durationMs: took,
       });
       // eslint-disable-next-line no-console
-      console.error("[smoke-test] step 2 EXCEPTION", err);
+      console.error('[smoke-test] step 2 EXCEPTION', err);
     }
 
     // STEP 3 — cold reload from DB (simulates F5)
-    updateStep("reload", { status: "running" });
+    updateStep('reload', { status: 'running' });
     const t3 = performance.now();
     try {
       const fresh = await list([secretName]);
       const took = Math.round(performance.now() - t3);
       const target = (fresh ?? []).find((s) => s.name === secretName);
       if (!target) {
-        updateStep("reload", {
-          status: "failed",
-          detail: "Secret não retornou na listagem após reload.",
+        updateStep('reload', {
+          status: 'failed',
+          detail: 'Secret não retornou na listagem após reload.',
           durationMs: took,
         });
         // eslint-disable-next-line no-console
-        console.error("[smoke-test] step 3 missing in list");
+        console.error('[smoke-test] step 3 missing in list');
       } else if (normalizeMaskedSuffix(target.masked_suffix) !== expectedSuffix) {
-        updateStep("reload", {
-          status: "failed",
+        updateStep('reload', {
+          status: 'failed',
           detail: `Sufixo divergente após reload: esperado ${formatMaskedSuffix(expectedSuffix)}, recebido ${formatMaskedSuffix(target.masked_suffix)}`,
           durationMs: took,
         });
         // eslint-disable-next-line no-console
-        console.error("[smoke-test] step 3 suffix mismatch after reload", target);
+        console.error('[smoke-test] step 3 suffix mismatch after reload', target);
       } else {
-        const sourceTag = target.source ? ` • source=${target.source}` : "";
-        updateStep("reload", {
-          status: "passed",
+        const sourceTag = target.source ? ` • source=${target.source}` : '';
+        updateStep('reload', {
+          status: 'passed',
           detail: `Persistido • ${formatMaskedSuffix(target.masked_suffix)} • ${target.length} chars${sourceTag}`,
           durationMs: took,
         });
         // eslint-disable-next-line no-console
-        console.log("[smoke-test] step 3 OK", { took, source: target.source });
+        console.log('[smoke-test] step 3 OK', { took, source: target.source });
       }
     } catch (err) {
       const took = Math.round(performance.now() - t3);
-      updateStep("reload", {
-        status: "failed",
-        detail: err instanceof Error ? err.message : "Erro ao recarregar",
+      updateStep('reload', {
+        status: 'failed',
+        detail: err instanceof Error ? err.message : 'Erro ao recarregar',
         durationMs: took,
       });
       // eslint-disable-next-line no-console
-      console.error("[smoke-test] step 3 EXCEPTION", err);
+      console.error('[smoke-test] step 3 EXCEPTION', err);
     }
 
     // eslint-disable-next-line no-console
-    console.log("[smoke-test] finished", { sessionId, secretName });
+    console.log('[smoke-test] finished', { sessionId, secretName });
     // eslint-disable-next-line no-console
     console.groupEnd();
     setRunning(false);
@@ -280,16 +303,17 @@ export function SmokeTestChecklist({ availableSecrets = [] }: Props) {
 
   const copyReport = async () => {
     const lines = [
-      `Smoke Test • ${secretName || "(sem credencial)"} • ${new Date().toLocaleString("pt-BR")}`,
+      `Smoke Test • ${secretName || '(sem credencial)'} • ${new Date().toLocaleString('pt-BR')}`,
       ...steps.map(
-        (s) => `• [${s.status.toUpperCase()}] ${s.title}${s.detail ? ` — ${s.detail}` : ""}${s.durationMs ? ` (${s.durationMs}ms)` : ""}`,
+        (s) =>
+          `• [${s.status.toUpperCase()}] ${s.title}${s.detail ? ` — ${s.detail}` : ''}${s.durationMs ? ` (${s.durationMs}ms)` : ''}`,
       ),
     ];
     try {
-      await navigator.clipboard.writeText(lines.join("\n"));
-      toast.success("Relatório copiado para a área de transferência.");
+      await navigator.clipboard.writeText(lines.join('\n'));
+      toast.success('Relatório copiado para a área de transferência.');
     } catch {
-      toast.error("Não foi possível copiar.");
+      toast.error('Não foi possível copiar.');
     }
   };
 
@@ -311,14 +335,16 @@ export function SmokeTestChecklist({ availableSecrets = [] }: Props) {
           Smoke Test
         </Button>
       </SheetTrigger>
-      <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+      <SheetContent className="w-full overflow-y-auto sm:max-w-lg">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             <ListChecks className="h-5 w-5 text-primary" />
             Checklist de Smoke Test
           </SheetTitle>
           <SheetDescription>
-            Valida em sequência: rotação concluída, histórico persistente e recarregamento após refresh. Logs detalhados em <code className="text-xs">console.groupCollapsed("[smoke-test] …")</code>.
+            Valida em sequência: rotação concluída, histórico persistente e recarregamento após
+            refresh. Logs detalhados em{' '}
+            <code className="text-xs">console.groupCollapsed("[smoke-test] …")</code>.
           </SheetDescription>
         </SheetHeader>
 
@@ -328,7 +354,13 @@ export function SmokeTestChecklist({ availableSecrets = [] }: Props) {
             <Label htmlFor="smoke-secret">Credencial alvo</Label>
             <Select value={secretName} onValueChange={setSecretName} disabled={running}>
               <SelectTrigger id="smoke-secret">
-                <SelectValue placeholder={testableNames.length === 0 ? "Nenhuma credencial gravada disponível" : "Selecione…"} />
+                <SelectValue
+                  placeholder={
+                    testableNames.length === 0
+                      ? 'Nenhuma credencial gravada disponível'
+                      : 'Selecione…'
+                  }
+                />
               </SelectTrigger>
               <SelectContent>
                 {testableNames.map((n) => (
@@ -339,7 +371,8 @@ export function SmokeTestChecklist({ availableSecrets = [] }: Props) {
               </SelectContent>
             </Select>
             <p className="text-[11px] text-muted-foreground">
-              ⚠️ A rotação substitui o valor atual. Use uma credencial de teste ou esteja pronto para rotacionar de volta para o valor real.
+              ⚠️ A rotação substitui o valor atual. Use uma credencial de teste ou esteja pronto
+              para rotacionar de volta para o valor real.
             </p>
           </div>
 
@@ -356,9 +389,17 @@ export function SmokeTestChecklist({ availableSecrets = [] }: Props) {
           </div>
 
           <div className="flex gap-2">
-            <Button onClick={runChecklist} disabled={running || !secretName} className="gap-2 flex-1">
-              {running ? <Loader2 className="h-4 w-4 animate-spin" /> : <PlayCircle className="h-4 w-4" />}
-              {running ? "Executando…" : "Rodar checklist"}
+            <Button
+              onClick={runChecklist}
+              disabled={running || !secretName}
+              className="flex-1 gap-2"
+            >
+              {running ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <PlayCircle className="h-4 w-4" />
+              )}
+              {running ? 'Executando…' : 'Rodar checklist'}
             </Button>
             <Button variant="outline" onClick={copyReport} disabled={running} className="gap-2">
               <Copy className="h-4 w-4" />
@@ -367,39 +408,39 @@ export function SmokeTestChecklist({ availableSecrets = [] }: Props) {
           </div>
 
           {/* Steps */}
-          <ol className="space-y-3 mt-2">
+          <ol className="mt-2 space-y-3">
             {steps.map((step, idx) => (
               <li
                 key={step.id}
                 className={cn(
-                  "rounded-xl border p-3 transition-colors",
-                  step.status === "passed" && "border-green-500/40 bg-green-500/5",
-                  step.status === "failed" && "border-destructive/50 bg-destructive/5",
-                  step.status === "running" && "border-primary/50 bg-primary/5",
-                  step.status === "idle" && "border-border bg-muted/20",
-                  step.status === "skipped" && "border-border bg-muted/20 opacity-60",
+                  'rounded-xl border p-3 transition-colors',
+                  step.status === 'passed' && 'border-green-500/40 bg-green-500/5',
+                  step.status === 'failed' && 'border-destructive/50 bg-destructive/5',
+                  step.status === 'running' && 'border-primary/50 bg-primary/5',
+                  step.status === 'idle' && 'border-border bg-muted/20',
+                  step.status === 'skipped' && 'border-border bg-muted/20 opacity-60',
                 )}
               >
                 <div className="flex items-start gap-3">
                   <div className="mt-0.5 shrink-0">
                     <StatusIcon status={step.status} />
                   </div>
-                  <div className="flex-1 min-w-0">
+                  <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-muted-foreground font-mono">#{idx + 1}</span>
+                      <span className="font-mono text-xs text-muted-foreground">#{idx + 1}</span>
                       <h4 className="text-sm font-medium">{step.title}</h4>
-                      {typeof step.durationMs === "number" && (
-                        <Badge variant="outline" className="text-[10px] font-mono ml-auto">
+                      {typeof step.durationMs === 'number' && (
+                        <Badge variant="outline" className="ml-auto font-mono text-[10px]">
                           {step.durationMs}ms
                         </Badge>
                       )}
                     </div>
-                    <p className="text-xs text-muted-foreground mt-0.5">{step.description}</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">{step.description}</p>
                     {step.detail && (
                       <p
                         className={cn(
-                          "text-xs mt-1.5 font-mono",
-                          step.status === "failed" ? "text-destructive" : "text-foreground/80",
+                          'mt-1.5 font-mono text-xs',
+                          step.status === 'failed' ? 'text-destructive' : 'text-foreground/80',
                         )}
                       >
                         {step.detail}
@@ -415,15 +456,19 @@ export function SmokeTestChecklist({ availableSecrets = [] }: Props) {
           {(summary.passed || summary.failed) && !running && (
             <div
               className={cn(
-                "rounded-xl border p-3 text-sm",
-                allPassed && "border-green-500/40 bg-green-500/10 text-green-700 dark:text-green-400",
-                anyFailed && "border-destructive/50 bg-destructive/10 text-destructive",
+                'rounded-xl border p-3 text-sm',
+                allPassed &&
+                  'border-green-500/40 bg-green-500/10 text-green-700 dark:text-green-400',
+                anyFailed && 'border-destructive/50 bg-destructive/10 text-destructive',
               )}
             >
-              {allPassed && <span>✅ Todos os {steps.length} passos passaram. Pipeline saudável.</span>}
+              {allPassed && (
+                <span>✅ Todos os {steps.length} passos passaram. Pipeline saudável.</span>
+              )}
               {anyFailed && (
                 <span>
-                  ❌ {summary.failed} falha{summary.failed > 1 ? "s" : ""} de {steps.length}. Veja o console para stack traces.
+                  ❌ {summary.failed} falha{summary.failed > 1 ? 's' : ''} de {steps.length}. Veja o
+                  console para stack traces.
                 </span>
               )}
             </div>

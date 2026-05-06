@@ -37,28 +37,41 @@ interface MaterialGroupTreeProps {
     onSave: (data: { part: string; percentage: number | null; notes: string }) => void;
     onCancel: () => void;
   }>;
-  onUpdateMaterialDetail: (materialId: string, data: { part: string; percentage: number | null; notes: string }) => void;
+  onUpdateMaterialDetail: (
+    materialId: string,
+    data: { part: string; percentage: number | null; notes: string },
+  ) => void;
 }
 
 export function MaterialGroupTree({
-  groups, typesByGroup, filteredTypesByGroup, linkedMaterialIds, linkedMap,
-  openGroups, search, editingMaterialId,
-  onToggleGroup, onToggleMaterial, onEditMaterial,
-  MaterialDetailEditor, onUpdateMaterialDetail,
+  groups,
+  typesByGroup,
+  filteredTypesByGroup,
+  linkedMaterialIds,
+  linkedMap,
+  openGroups,
+  search,
+  editingMaterialId,
+  onToggleGroup,
+  onToggleMaterial,
+  onEditMaterial,
+  MaterialDetailEditor,
+  onUpdateMaterialDetail,
 }: MaterialGroupTreeProps) {
   const searchLower = search.toLowerCase();
   const visibleGroups = [...groups]
-    .filter(g =>
-      !search ||
-      g.group_name.toLowerCase().includes(searchLower) ||
-      (filteredTypesByGroup[g.group_id]?.length || 0) > 0
+    .filter(
+      (g) =>
+        !search ||
+        g.group_name.toLowerCase().includes(searchLower) ||
+        (filteredTypesByGroup[g.group_id]?.length || 0) > 0,
     )
     .sort((a, b) => a.group_name.localeCompare(b.group_name, 'pt-BR'));
 
   if (visibleGroups.length === 0 && search) {
     return (
-      <div className="text-center py-6">
-        <Search className="h-6 w-6 text-muted-foreground/50 mx-auto mb-2" />
+      <div className="py-6 text-center">
+        <Search className="mx-auto mb-2 h-6 w-6 text-muted-foreground/50" />
         <p className="text-sm text-muted-foreground">
           Nenhum material encontrado para "<span className="font-medium">{search}</span>"
         </p>
@@ -68,10 +81,13 @@ export function MaterialGroupTree({
 
   return (
     <div className="space-y-1.5 pr-3">
-      {visibleGroups.map(group => {
-        const types = (filteredTypesByGroup[group.group_id] || typesByGroup[group.group_id] || [])
-          .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
-        const linkedInGroup = types.filter(t => linkedMaterialIds.has(t.id)).length;
+      {visibleGroups.map((group) => {
+        const types = (
+          filteredTypesByGroup[group.group_id] ||
+          typesByGroup[group.group_id] ||
+          []
+        ).sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+        const linkedInGroup = types.filter((t) => linkedMaterialIds.has(t.id)).length;
         const isOpen = openGroups.has(group.group_id) || !!search;
         const hasAnySelection = linkedInGroup > 0;
 
@@ -79,10 +95,10 @@ export function MaterialGroupTree({
           <div
             key={group.group_id}
             className={cn(
-              "rounded-xl overflow-hidden transition-all duration-200",
+              'overflow-hidden rounded-xl transition-all duration-200',
               hasAnySelection
-                ? "bg-gradient-to-r from-primary/10 to-primary/5 ring-1 ring-primary/30"
-                : "bg-muted/30 hover:bg-muted/50"
+                ? 'bg-gradient-to-r from-primary/10 to-primary/5 ring-1 ring-primary/30'
+                : 'bg-muted/30 hover:bg-muted/50',
             )}
           >
             <div className="flex items-center gap-2 p-2.5">
@@ -90,77 +106,86 @@ export function MaterialGroupTree({
                 type="button"
                 onClick={() => onToggleGroup(group.group_id)}
                 className={cn(
-                  "p-1 rounded-xl transition-all duration-200",
-                  isOpen ? "bg-primary/10" : "bg-muted hover:bg-muted/80"
+                  'rounded-xl p-1 transition-all duration-200',
+                  isOpen ? 'bg-primary/10' : 'bg-muted hover:bg-muted/80',
                 )}
               >
-                <ChevronDown className={cn(
-                  "h-3.5 w-3.5 transition-transform duration-200",
-                  isOpen ? "rotate-180 text-primary" : "text-muted-foreground"
-                )} />
+                <ChevronDown
+                  className={cn(
+                    'h-3.5 w-3.5 transition-transform duration-200',
+                    isOpen ? 'rotate-180 text-primary' : 'text-muted-foreground',
+                  )}
+                />
               </button>
               <div
                 className={cn(
-                  "w-4 h-4 rounded-full flex-shrink-0 ring-2 ring-offset-1 ring-offset-background transition-all",
-                  hasAnySelection ? "ring-primary/50 scale-110" : "ring-border/50"
+                  'h-4 w-4 flex-shrink-0 rounded-full ring-2 ring-offset-1 ring-offset-background transition-all',
+                  hasAnySelection ? 'scale-110 ring-primary/50' : 'ring-border/50',
                 )}
                 style={{
                   backgroundColor: group.group_hex_code || 'hsl(var(--muted))',
                   boxShadow: group.group_hex_code ? `0 2px 8px ${group.group_hex_code}40` : 'none',
                 }}
               />
-              <span className={cn(
-                "text-sm font-medium truncate flex-1 transition-colors",
-                hasAnySelection ? "text-primary" : "text-foreground"
-              )}>
+              <span
+                className={cn(
+                  'flex-1 truncate text-sm font-medium transition-colors',
+                  hasAnySelection ? 'text-primary' : 'text-foreground',
+                )}
+              >
                 {group.group_name}
               </span>
-              <div className="flex items-center gap-1.5 flex-shrink-0">
+              <div className="flex flex-shrink-0 items-center gap-1.5">
                 {linkedInGroup > 0 && (
-                  <span className="bg-primary text-primary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+                  <span className="min-w-[18px] rounded-full bg-primary px-1.5 py-0.5 text-center text-[10px] font-bold text-primary-foreground">
                     {linkedInGroup}
                   </span>
                 )}
-                <span className={cn(
-                  "text-[11px] px-1.5 py-0.5 rounded-full",
-                  hasAnySelection
-                    ? "bg-primary/20 text-primary font-medium"
-                    : "bg-muted text-muted-foreground"
-                )}>
+                <span
+                  className={cn(
+                    'rounded-full px-1.5 py-0.5 text-[11px]',
+                    hasAnySelection
+                      ? 'bg-primary/20 font-medium text-primary'
+                      : 'bg-muted text-muted-foreground',
+                  )}
+                >
                   {types.length}
                 </span>
               </div>
             </div>
 
             {isOpen && types.length > 0 && (
-              <div className="px-2.5 pb-2.5 space-y-0.5">
-                <div className="border-t border-border/30 pt-2 ml-8">
-                  {types.map(type => {
+              <div className="space-y-0.5 px-2.5 pb-2.5">
+                <div className="ml-8 border-t border-border/30 pt-2">
+                  {types.map((type) => {
                     const isLinked = linkedMaterialIds.has(type.id);
                     const linked = linkedMap.get(type.id);
-                    const detailText = linked?.part || (linked?.percentage != null ? `${linked.percentage}%` : '');
+                    const detailText =
+                      linked?.part || (linked?.percentage != null ? `${linked.percentage}%` : '');
                     return (
                       <div key={type.id}>
                         <label
                           className={cn(
-                            "flex items-center gap-2.5 py-1.5 px-2.5 rounded-xl cursor-pointer text-sm transition-all duration-150",
+                            'flex cursor-pointer items-center gap-2.5 rounded-xl px-2.5 py-1.5 text-sm transition-all duration-150',
                             isLinked
-                              ? "bg-primary/15 text-foreground font-medium shadow-sm"
-                              : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+                              ? 'bg-primary/15 font-medium text-foreground shadow-sm'
+                              : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground',
                           )}
                         >
                           <Checkbox
                             checked={isLinked}
                             onCheckedChange={() => onToggleMaterial(type.id, isLinked)}
-                            className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                            className="data-[state=checked]:border-primary data-[state=checked]:bg-primary"
                           />
                           <span
-                            className="w-2 h-2 rounded-full flex-shrink-0"
+                            className="h-2 w-2 flex-shrink-0 rounded-full"
                             style={{ backgroundColor: group.group_hex_code || 'hsl(var(--muted))' }}
                           />
-                          <span className="truncate flex-1">{type.name}</span>
+                          <span className="flex-1 truncate">{type.name}</span>
                           {detailText && (
-                            <span className="text-[10px] text-muted-foreground italic">{detailText}</span>
+                            <span className="text-[10px] italic text-muted-foreground">
+                              {detailText}
+                            </span>
                           )}
                           {isLinked && (
                             <button
@@ -170,14 +195,14 @@ export function MaterialGroupTree({
                                 e.stopPropagation();
                                 onEditMaterial(editingMaterialId === type.id ? null : type.id);
                               }}
-                              className="text-muted-foreground hover:text-primary p-0.5"
+                              className="p-0.5 text-muted-foreground hover:text-primary"
                               title="Editar parte/% / obs"
                             >
                               <Pencil className="h-3 w-3" />
                             </button>
                           )}
                           {isLinked && !editingMaterialId && (
-                            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
                           )}
                         </label>
                         {editingMaterialId === type.id && isLinked && linked && (
@@ -196,8 +221,8 @@ export function MaterialGroupTree({
 
             {isOpen && types.length === 0 && (
               <div className="px-2.5 pb-2.5">
-                <div className="border-t border-border/30 pt-2 ml-8">
-                  <p className="text-xs text-muted-foreground italic py-2">
+                <div className="ml-8 border-t border-border/30 pt-2">
+                  <p className="py-2 text-xs italic text-muted-foreground">
                     Nenhum material neste grupo
                   </p>
                 </div>

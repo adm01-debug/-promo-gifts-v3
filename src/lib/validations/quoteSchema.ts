@@ -1,37 +1,42 @@
-import { z } from "zod";
+import { z } from 'zod';
 
-export const quoteFormSchema = z.object({
-  clientId: z.string().min(1, "Empresa é obrigatória"),
-  contactId: z.string().min(1, "Contato é obrigatório"),
-  paymentTerms: z.string().min(1, "Prazo de pagamento é obrigatório"),
-  deliveryTime: z.string().min(1, "Prazo de entrega é obrigatório"),
-  shippingType: z.string().min(1, "Tipo de frete é obrigatório"),
-  shippingCost: z.number().optional(),
-  validUntil: z.string().optional(),
-  discountType: z.enum(["percent", "amount"]).default("percent"),
-  discountValue: z.number().min(0, "Desconto não pode ser negativo").default(0),
-  notes: z.string().max(2000, "Observações devem ter no máximo 2000 caracteres").optional(),
-  internalNotes: z.string().max(2000, "Notas internas devem ter no máximo 2000 caracteres").optional(),
-}).refine(
-  (data) => {
-    if (data.shippingType === "fob" || data.shippingType === "fob_pre") {
-      return data.shippingCost !== undefined && data.shippingCost > 0;
-    }
-    return true;
-  },
-  {
-    message: "Valor do frete é obrigatório para modalidade FOB",
-    path: ["shippingCost"],
-  }
-);
+export const quoteFormSchema = z
+  .object({
+    clientId: z.string().min(1, 'Empresa é obrigatória'),
+    contactId: z.string().min(1, 'Contato é obrigatório'),
+    paymentTerms: z.string().min(1, 'Prazo de pagamento é obrigatório'),
+    deliveryTime: z.string().min(1, 'Prazo de entrega é obrigatório'),
+    shippingType: z.string().min(1, 'Tipo de frete é obrigatório'),
+    shippingCost: z.number().optional(),
+    validUntil: z.string().optional(),
+    discountType: z.enum(['percent', 'amount']).default('percent'),
+    discountValue: z.number().min(0, 'Desconto não pode ser negativo').default(0),
+    notes: z.string().max(2000, 'Observações devem ter no máximo 2000 caracteres').optional(),
+    internalNotes: z
+      .string()
+      .max(2000, 'Notas internas devem ter no máximo 2000 caracteres')
+      .optional(),
+  })
+  .refine(
+    (data) => {
+      if (data.shippingType === 'fob' || data.shippingType === 'fob_pre') {
+        return data.shippingCost !== undefined && data.shippingCost > 0;
+      }
+      return true;
+    },
+    {
+      message: 'Valor do frete é obrigatório para modalidade FOB',
+      path: ['shippingCost'],
+    },
+  );
 
 export const quoteItemSchema = z.object({
-  product_id: z.string().min(1, "Produto é obrigatório"),
-  product_name: z.string().min(1, "Nome do produto é obrigatório"),
+  product_id: z.string().min(1, 'Produto é obrigatório'),
+  product_name: z.string().min(1, 'Nome do produto é obrigatório'),
   product_sku: z.string().optional(),
   product_image_url: z.string().optional(),
-  quantity: z.number().int().min(1, "Quantidade mínima é 1"),
-  unit_price: z.number().min(0, "Preço não pode ser negativo"),
+  quantity: z.number().int().min(1, 'Quantidade mínima é 1'),
+  unit_price: z.number().min(0, 'Preço não pode ser negativo'),
   color_name: z.string().optional(),
   color_hex: z.string().optional(),
 });
@@ -64,12 +69,12 @@ export function validateQuoteForm(data: {
     for (const issue of result.error.issues) {
       const field = issue.path[0] as string;
       const fieldMap: Record<string, string> = {
-        clientId: "empresa",
-        contactId: "contato",
-        paymentTerms: "prazo_pagamento",
-        deliveryTime: "prazo_entrega",
-        shippingType: "frete",
-        shippingCost: "valor_frete",
+        clientId: 'empresa',
+        contactId: 'contato',
+        paymentTerms: 'prazo_pagamento',
+        deliveryTime: 'prazo_entrega',
+        shippingType: 'frete',
+        shippingCost: 'valor_frete',
       };
       const key = fieldMap[field] || field;
       if (!errors.includes(key)) errors.push(key);
@@ -77,20 +82,20 @@ export function validateQuoteForm(data: {
   }
 
   if (data.itemsCount === 0) {
-    errors.push("itens");
+    errors.push('itens');
   }
 
   return errors;
 }
 
 export const QUOTE_FIELD_LABELS: Record<string, string> = {
-  empresa: "Empresa",
-  contato: "Contato",
-  prazo_pagamento: "Prazo de Pagamento",
-  prazo_entrega: "Prazo de Entrega",
-  frete: "Frete",
-  valor_frete: "Valor do Frete",
-  itens: "Itens do Orçamento",
+  empresa: 'Empresa',
+  contato: 'Contato',
+  prazo_pagamento: 'Prazo de Pagamento',
+  prazo_entrega: 'Prazo de Entrega',
+  frete: 'Frete',
+  valor_frete: 'Valor do Frete',
+  itens: 'Itens do Orçamento',
 };
 
 export type QuoteFormData = z.infer<typeof quoteFormSchema>;

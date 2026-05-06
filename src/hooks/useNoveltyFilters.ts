@@ -1,11 +1,18 @@
-import { useState, useMemo, useEffect, useRef, useCallback } from "react";
-import { useSearchParams } from "react-router-dom";
-import { NoveltyWithDetails } from "./useNovelties";
-import { getDefaultColumns } from "@/components/products/ColumnSelector";
-import { useDebounce } from "./useDebounce";
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { NoveltyWithDetails } from './useNovelties';
+import { getDefaultColumns } from '@/components/products/ColumnSelector';
+import { useDebounce } from './useDebounce';
 
-export type ViewMode = "grid" | "list" | "table";
-export type SortMode = "name" | "price-asc" | "price-desc" | "newest" | "stock" | "best-seller-supplier" | "best-seller-promo";
+export type ViewMode = 'grid' | 'list' | 'table';
+export type SortMode =
+  | 'name'
+  | 'price-asc'
+  | 'price-desc'
+  | 'newest'
+  | 'stock'
+  | 'best-seller-supplier'
+  | 'best-seller-promo';
 
 export interface NoveltyFiltersState {
   viewMode: ViewMode;
@@ -22,79 +29,116 @@ export interface NoveltyFiltersState {
 export function useNoveltyFilters(allProducts: NoveltyWithDetails[]) {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const [viewMode, setViewMode] = useState<ViewMode>((searchParams.get("view") as ViewMode) || "grid");
-  const [gridColumns, setGridColumns] = useState<number>(Number(searchParams.get("cols")) || getDefaultColumns());
-  const [sortMode, setSortMode] = useState<SortMode>((searchParams.get("sort") as SortMode) || "newest");
-  const [selectedSupplier, setSelectedSupplier] = useState<string>(searchParams.get("supplier") || "all");
-  const [selectedCategory, setSelectedCategory] = useState<string>(searchParams.get("category") || "all");
-  const [selectedStatus, setSelectedStatus] = useState<string>(searchParams.get("status") || "all");
-  const [maxDays, setMaxDays] = useState<string>(searchParams.get("expires") || "all");
-  const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
-  const [currentPage, setCurrentPage] = useState(Number(searchParams.get("page")) || 1);
+  const [viewMode, setViewMode] = useState<ViewMode>(
+    (searchParams.get('view') as ViewMode) || 'grid',
+  );
+  const [gridColumns, setGridColumns] = useState<number>(
+    Number(searchParams.get('cols')) || getDefaultColumns(),
+  );
+  const [sortMode, setSortMode] = useState<SortMode>(
+    (searchParams.get('sort') as SortMode) || 'newest',
+  );
+  const [selectedSupplier, setSelectedSupplier] = useState<string>(
+    searchParams.get('supplier') || 'all',
+  );
+  const [selectedCategory, setSelectedCategory] = useState<string>(
+    searchParams.get('category') || 'all',
+  );
+  const [selectedStatus, setSelectedStatus] = useState<string>(searchParams.get('status') || 'all');
+  const [maxDays, setMaxDays] = useState<string>(searchParams.get('expires') || 'all');
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
+  const [currentPage, setCurrentPage] = useState(Number(searchParams.get('page')) || 1);
   const itemsPerPage = 20;
   const debouncedSearchQuery = useDebounce(searchQuery, 400);
 
   // Sync state to URL
   useEffect(() => {
     const params: Record<string, string> = {};
-    if (viewMode !== "grid") params.view = viewMode;
+    if (viewMode !== 'grid') params.view = viewMode;
     if (gridColumns !== getDefaultColumns()) params.cols = String(gridColumns);
-    if (sortMode !== "newest") params.sort = sortMode;
-    if (selectedSupplier !== "all") params.supplier = selectedSupplier;
-    if (selectedCategory !== "all") params.category = selectedCategory;
-    if (selectedStatus !== "all") params.status = selectedStatus;
-    if (maxDays !== "all") params.expires = maxDays;
+    if (sortMode !== 'newest') params.sort = sortMode;
+    if (selectedSupplier !== 'all') params.supplier = selectedSupplier;
+    if (selectedCategory !== 'all') params.category = selectedCategory;
+    if (selectedStatus !== 'all') params.status = selectedStatus;
+    if (maxDays !== 'all') params.expires = maxDays;
     if (searchQuery.trim()) params.q = searchQuery;
     if (currentPage !== 1) params.page = String(currentPage);
 
     setSearchParams(params, { replace: true });
-  }, [viewMode, gridColumns, sortMode, selectedSupplier, selectedCategory, selectedStatus, searchQuery, currentPage, setSearchParams]);
+  }, [
+    viewMode,
+    gridColumns,
+    sortMode,
+    selectedSupplier,
+    selectedCategory,
+    selectedStatus,
+    searchQuery,
+    currentPage,
+    setSearchParams,
+  ]);
 
   const filteredProducts = useMemo(() => {
     let filtered = [...allProducts];
-    
+
     if (debouncedSearchQuery.trim()) {
       const q = debouncedSearchQuery.toLowerCase().trim();
-      filtered = filtered.filter(p => 
-        p.product_name.toLowerCase().includes(q) || 
-        (p.product_sku && p.product_sku.toLowerCase().includes(q)) || 
-        (p.supplier_name && p.supplier_name.toLowerCase().includes(q))
+      filtered = filtered.filter(
+        (p) =>
+          p.product_name.toLowerCase().includes(q) ||
+          (p.product_sku && p.product_sku.toLowerCase().includes(q)) ||
+          (p.supplier_name && p.supplier_name.toLowerCase().includes(q)),
       );
     }
 
-    if (selectedSupplier !== "all") filtered = filtered.filter(p => p.supplier_id === selectedSupplier);
-    if (selectedCategory !== "all") filtered = filtered.filter(p => p.category_id === selectedCategory);
-    
+    if (selectedSupplier !== 'all')
+      filtered = filtered.filter((p) => p.supplier_id === selectedSupplier);
+    if (selectedCategory !== 'all')
+      filtered = filtered.filter((p) => p.category_id === selectedCategory);
+
     // Filtro de Status
-    if (selectedStatus !== "all") {
-      filtered = filtered.filter(p => p.status === selectedStatus);
+    if (selectedStatus !== 'all') {
+      filtered = filtered.filter((p) => p.status === selectedStatus);
     }
 
     // Filtro de Expiração (Data)
-    if (maxDays !== "all") {
+    if (maxDays !== 'all') {
       const days = parseInt(maxDays);
-      filtered = filtered.filter(p => p.days_remaining <= days);
+      filtered = filtered.filter((p) => p.days_remaining <= days);
     }
 
     filtered.sort((a, b) => {
       switch (sortMode) {
-        case "name": return (a.product_name || "").localeCompare(b.product_name || "", 'pt-BR');
-        case "price-asc": return (a.base_price || 0) - (b.base_price || 0);
-        case "price-desc": return (b.base_price || 0) - (a.base_price || 0);
-        case "newest": return new Date(b.detected_at).getTime() - new Date(a.detected_at).getTime();
-        case "stock": return (b.stock_quantity || 0) - (a.stock_quantity || 0);
-        case "best-seller-supplier": 
+        case 'name':
+          return (a.product_name || '').localeCompare(b.product_name || '', 'pt-BR');
+        case 'price-asc':
+          return (a.base_price || 0) - (b.base_price || 0);
+        case 'price-desc':
+          return (b.base_price || 0) - (a.base_price || 0);
+        case 'newest':
+          return new Date(b.detected_at).getTime() - new Date(a.detected_at).getTime();
+        case 'stock':
+          return (b.stock_quantity || 0) - (a.stock_quantity || 0);
+        case 'best-seller-supplier':
           if (a.is_highlighted !== b.is_highlighted) return a.is_highlighted ? -1 : 1;
           return (b.stock_quantity || 0) - (a.stock_quantity || 0);
-        case "best-seller-promo": 
+        case 'best-seller-promo':
           if (a.days_remaining !== b.days_remaining) return a.days_remaining - b.days_remaining;
           return (b.stock_quantity || 0) - (a.stock_quantity || 0);
-        default: return new Date(b.detected_at).getTime() - new Date(a.detected_at).getTime();
+        default:
+          return new Date(b.detected_at).getTime() - new Date(a.detected_at).getTime();
       }
     });
 
     return filtered;
-  }, [allProducts, selectedSupplier, selectedCategory, selectedStatus, maxDays, sortMode, debouncedSearchQuery]);
+  }, [
+    allProducts,
+    selectedSupplier,
+    selectedCategory,
+    selectedStatus,
+    maxDays,
+    sortMode,
+    debouncedSearchQuery,
+  ]);
 
   const totalPages = Math.max(1, Math.ceil(filteredProducts.length / itemsPerPage));
 
@@ -121,20 +165,20 @@ export function useNoveltyFilters(allProducts: NoveltyWithDetails[]) {
   }, [filteredProducts, currentPage]);
 
   const clearFilters = useCallback(() => {
-    setSelectedSupplier("all");
-    setSelectedCategory("all");
-    setSelectedStatus("all");
-    setMaxDays("all");
-    setSearchQuery("");
+    setSelectedSupplier('all');
+    setSelectedCategory('all');
+    setSelectedStatus('all');
+    setMaxDays('all');
+    setSearchQuery('');
     setCurrentPage(1);
   }, []);
 
-  const hasActiveFilters = 
-    selectedSupplier !== "all" || 
-    selectedCategory !== "all" || 
-    selectedStatus !== "all" || 
-    maxDays !== "all" || 
-    searchQuery.trim() !== "";
+  const hasActiveFilters =
+    selectedSupplier !== 'all' ||
+    selectedCategory !== 'all' ||
+    selectedStatus !== 'all' ||
+    maxDays !== 'all' ||
+    searchQuery.trim() !== '';
 
   return {
     state: {

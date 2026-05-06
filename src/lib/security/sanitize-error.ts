@@ -11,13 +11,14 @@
 
 /** Mensagens públicas reutilizáveis. */
 export const SAFE_MESSAGES = {
-  AUTH_GENERIC: "Não foi possível concluir esta operação. Verifique suas credenciais e tente novamente.",
-  AUTH_DENIED: "Acesso negado.",
-  STEP_UP_FAILED: "Não foi possível confirmar sua identidade. Tente novamente.",
-  STEP_UP_EXPIRED: "Sua confirmação expirou. Refaça a verificação.",
-  RATE_LIMITED: "Muitas tentativas. Aguarde alguns minutos e tente novamente.",
-  VALIDATION: "Verifique os dados informados e tente novamente.",
-  GENERIC: "Operação não pôde ser concluída. Tente novamente em instantes.",
+  AUTH_GENERIC:
+    'Não foi possível concluir esta operação. Verifique suas credenciais e tente novamente.',
+  AUTH_DENIED: 'Acesso negado.',
+  STEP_UP_FAILED: 'Não foi possível confirmar sua identidade. Tente novamente.',
+  STEP_UP_EXPIRED: 'Sua confirmação expirou. Refaça a verificação.',
+  RATE_LIMITED: 'Muitas tentativas. Aguarde alguns minutos e tente novamente.',
+  VALIDATION: 'Verifique os dados informados e tente novamente.',
+  GENERIC: 'Operação não pôde ser concluída. Tente novamente em instantes.',
 } as const;
 
 /**
@@ -25,29 +26,29 @@ export const SAFE_MESSAGES = {
  * Qualquer um destes vira AUTH_GENERIC ou AUTH_DENIED.
  */
 const SENSITIVE_CODES = new Set([
-  "unauthenticated",
-  "unauthorized",
-  "forbidden",
-  "not_dev",
-  "dev_role_required",
-  "role_required",
-  "role_check_failed",
-  "role_lost_at_consume",
-  "full_grant_forbidden",
-  "grant_check_failed",
-  "step_up_required",
-  "step_up_invalid",
-  "invalid_password",
-  "password_not_verified_first",
-  "wrong_otp",
-  "wrong_password",
-  "max_attempts_exceeded",
-  "challenge_invalid",
-  "invalid_or_expired_challenge",
-  "token_invalid_or_expired",
-  "action_mismatch",
-  "target_mismatch",
-  "rate_limited",
+  'unauthenticated',
+  'unauthorized',
+  'forbidden',
+  'not_dev',
+  'dev_role_required',
+  'role_required',
+  'role_check_failed',
+  'role_lost_at_consume',
+  'full_grant_forbidden',
+  'grant_check_failed',
+  'step_up_required',
+  'step_up_invalid',
+  'invalid_password',
+  'password_not_verified_first',
+  'wrong_otp',
+  'wrong_password',
+  'max_attempts_exceeded',
+  'challenge_invalid',
+  'invalid_or_expired_challenge',
+  'token_invalid_or_expired',
+  'action_mismatch',
+  'target_mismatch',
+  'rate_limited',
 ]);
 
 interface ErrorLike {
@@ -71,20 +72,21 @@ interface ErrorLike {
 export function sanitizeError(input: unknown): string {
   if (!input) return SAFE_MESSAGES.GENERIC;
 
-  const obj = (typeof input === "object" ? input : {}) as ErrorLike;
-  const code = String(obj.error ?? obj.code ?? "").toLowerCase();
+  const obj = (typeof input === 'object' ? input : {}) as ErrorLike;
+  const code = String(obj.error ?? obj.code ?? '').toLowerCase();
   const status = obj.status ?? 0;
 
   // 401/403 → sempre genérico (não diferencia autenticação de autorização)
   if (status === 401 || status === 403) return SAFE_MESSAGES.AUTH_GENERIC;
 
   if (SENSITIVE_CODES.has(code)) {
-    if (code === "rate_limited") return SAFE_MESSAGES.RATE_LIMITED;
-    if (code === "step_up_required" || code === "step_up_invalid") return SAFE_MESSAGES.STEP_UP_EXPIRED;
+    if (code === 'rate_limited') return SAFE_MESSAGES.RATE_LIMITED;
+    if (code === 'step_up_required' || code === 'step_up_invalid')
+      return SAFE_MESSAGES.STEP_UP_EXPIRED;
     return SAFE_MESSAGES.AUTH_GENERIC;
   }
 
-  if (status === 422 || code === "validation_failed") return SAFE_MESSAGES.VALIDATION;
+  if (status === 422 || code === 'validation_failed') return SAFE_MESSAGES.VALIDATION;
   if (status === 429) return SAFE_MESSAGES.RATE_LIMITED;
   if (status >= 500) return SAFE_MESSAGES.GENERIC;
 

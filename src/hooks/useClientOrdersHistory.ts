@@ -1,9 +1,9 @@
 /**
  * useClientOrdersHistory — agrega pedidos + LTV + ticket médio para visão 360° do cliente.
  */
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import type { OrderRow } from "./useOrders";
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import type { OrderRow } from './useOrders';
 
 export interface ClientOrdersHistory {
   orders: OrderRow[];
@@ -15,20 +15,20 @@ export interface ClientOrdersHistory {
 
 export function useClientOrdersHistory(clientId?: string) {
   return useQuery<ClientOrdersHistory>({
-    queryKey: ["client-orders-history", clientId],
+    queryKey: ['client-orders-history', clientId],
     enabled: !!clientId,
     queryFn: async () => {
       const { data, error } = await supabase
         // rls-allow: filtrado por client_id; RLS aplica seller scope
-        .from("orders")
-        .select("*")
-        .eq("client_id", clientId!)
-        .order("created_at", { ascending: false });
+        .from('orders')
+        .select('*')
+        .eq('client_id', clientId!)
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
 
       const orders = (data ?? []) as OrderRow[];
-      const valid = orders.filter((o) => o.status !== "cancelled");
+      const valid = orders.filter((o) => o.status !== 'cancelled');
       const totalLtv = valid.reduce((sum, o) => sum + (o.total ?? 0), 0);
       const ordersCount = valid.length;
       const avgTicket = ordersCount > 0 ? totalLtv / ordersCount : 0;

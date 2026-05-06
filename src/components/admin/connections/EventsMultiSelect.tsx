@@ -2,17 +2,17 @@
  * EventsMultiSelect — Onda 12 #6
  * Multi-select agrupado por categoria com busca, "todos do grupo" e suporte a eventos legacy.
  */
-import { useMemo, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Check, Search, X } from "lucide-react";
+import { useMemo, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Check, Search, X } from 'lucide-react';
 import {
   WEBHOOK_EVENTS_CATALOG,
   ALL_KNOWN_EVENTS,
   isLegacyEvent,
-} from "@/lib/webhook-events-catalog";
-import { cn } from "@/lib/utils";
+} from '@/lib/webhook-events-catalog';
+import { cn } from '@/lib/utils';
 
 interface Props {
   value: string[];
@@ -20,7 +20,7 @@ interface Props {
 }
 
 export function EventsMultiSelect({ value, onChange }: Props) {
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState('');
   const selected = useMemo(() => new Set(value), [value]);
   const legacy = useMemo(() => value.filter(isLegacyEvent), [value]);
 
@@ -62,7 +62,7 @@ export function EventsMultiSelect({ value, onChange }: Props) {
   return (
     <div className="space-y-3">
       <div className="relative">
-        <Search className="h-3 w-3 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+        <Search className="absolute left-2.5 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground" />
         <Input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -71,7 +71,7 @@ export function EventsMultiSelect({ value, onChange }: Props) {
         />
       </div>
 
-      <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
+      <div className="max-h-[300px] space-y-3 overflow-y-auto pr-1">
         {groups.map((g) => {
           const groupKeys = g.events.map((e) => e.key);
           const allOn = groupKeys.every((k) => selected.has(k));
@@ -92,7 +92,7 @@ export function EventsMultiSelect({ value, onChange }: Props) {
                   onClick={() => toggleGroup(groupKeys, allOn)}
                   className="text-[10px] text-primary hover:underline"
                 >
-                  {allOn ? "Limpar" : "Selecionar todos"}
+                  {allOn ? 'Limpar' : 'Selecionar todos'}
                 </button>
               </div>
               <div className="grid grid-cols-2 gap-1.5">
@@ -105,21 +105,21 @@ export function EventsMultiSelect({ value, onChange }: Props) {
                       onClick={() => toggle(e.key)}
                       title={e.description}
                       className={cn(
-                        "flex items-center gap-1.5 px-2 py-1.5 rounded text-[11px] border text-left transition-colors",
+                        'flex items-center gap-1.5 rounded border px-2 py-1.5 text-left text-[11px] transition-colors',
                         on
-                          ? "bg-primary/10 border-primary/40 text-foreground"
-                          : "bg-background border-border hover:bg-muted",
+                          ? 'border-primary/40 bg-primary/10 text-foreground'
+                          : 'border-border bg-background hover:bg-muted',
                       )}
                     >
                       <span
                         className={cn(
-                          "h-3 w-3 rounded-sm border flex items-center justify-center shrink-0",
-                          on ? "bg-primary border-primary" : "border-muted-foreground/40",
+                          'flex h-3 w-3 shrink-0 items-center justify-center rounded-sm border',
+                          on ? 'border-primary bg-primary' : 'border-muted-foreground/40',
                         )}
                       >
                         {on && <Check className="h-2.5 w-2.5 text-primary-foreground" />}
                       </span>
-                      <span className="flex-1 min-w-0 truncate">
+                      <span className="min-w-0 flex-1 truncate">
                         <span className="font-mono">{e.key}</span>
                       </span>
                     </button>
@@ -131,20 +131,24 @@ export function EventsMultiSelect({ value, onChange }: Props) {
         })}
 
         {groups.length === 0 && (
-          <div className="text-xs text-muted-foreground text-center py-4">
+          <div className="py-4 text-center text-xs text-muted-foreground">
             Nenhum evento corresponde à busca.
           </div>
         )}
       </div>
 
       {legacy.length > 0 && (
-        <div className="space-y-1.5 pt-2 border-t">
+        <div className="space-y-1.5 border-t pt-2">
           <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
             Eventos legacy ({legacy.length})
           </div>
           <div className="flex flex-wrap gap-1">
             {legacy.map((k) => (
-              <Badge key={k} variant="outline" className="text-[10px] gap-1 bg-warning/10 border-warning/20 text-warning">
+              <Badge
+                key={k}
+                variant="outline"
+                className="gap-1 border-warning/20 bg-warning/10 text-[10px] text-warning"
+              >
                 <span className="font-mono">{k}</span>
                 <button
                   type="button"
@@ -163,9 +167,11 @@ export function EventsMultiSelect({ value, onChange }: Props) {
         </div>
       )}
 
-      <div className="text-[10px] text-muted-foreground pt-1 border-t">
-        {selected.size} evento{selected.size !== 1 ? "s" : ""} selecionado{selected.size !== 1 ? "s" : ""}
-        {" · "}{ALL_KNOWN_EVENTS.length} no catálogo SSOT.
+      <div className="border-t pt-1 text-[10px] text-muted-foreground">
+        {selected.size} evento{selected.size !== 1 ? 's' : ''} selecionado
+        {selected.size !== 1 ? 's' : ''}
+        {' · '}
+        {ALL_KNOWN_EVENTS.length} no catálogo SSOT.
       </div>
     </div>
   );

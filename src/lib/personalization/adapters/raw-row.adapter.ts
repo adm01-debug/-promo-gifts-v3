@@ -101,10 +101,14 @@ const PRINT_AREA_PAIRS: Array<[string, string, Kind]> = [
 
 function coerce(value: unknown, kind: Kind): unknown {
   switch (kind) {
-    case 'number': return toNumberOrNull(value);
-    case 'bool': return toBoolOrNull(value);
-    case 'string': return value == null ? null : String(value);
-    default: return value;
+    case 'number':
+      return toNumberOrNull(value);
+    case 'bool':
+      return toBoolOrNull(value);
+    case 'string':
+      return value == null ? null : String(value);
+    default:
+      return value;
   }
 }
 
@@ -207,10 +211,17 @@ export function adaptPrintAreaTechniqueRow(raw: Raw): PrintAreaTechniqueCanonica
     return { id: '' } as PrintAreaTechniqueCanonical;
   }
   const out: PrintAreaTechniqueCanonical = { ...raw, id: String(raw.id ?? '') };
-  return mirrorPairs(out as Raw, raw, PRINT_AREA_PAIRS, 'print_area') as PrintAreaTechniqueCanonical;
+  return mirrorPairs(
+    out as Raw,
+    raw,
+    PRINT_AREA_PAIRS,
+    'print_area',
+  ) as PrintAreaTechniqueCanonical;
 }
 
-export function adaptPrintAreaTechniqueRows(rows: Raw[] | null | undefined): PrintAreaTechniqueCanonical[] {
+export function adaptPrintAreaTechniqueRows(
+  rows: Raw[] | null | undefined,
+): PrintAreaTechniqueCanonical[] {
   if (!Array.isArray(rows)) return [];
   return rows.map(adaptPrintAreaTechniqueRow);
 }

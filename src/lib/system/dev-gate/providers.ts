@@ -47,14 +47,14 @@ export class LocalStorageGateProvider implements GateFlagProvider {
 
   getFlag(): GateValue {
     if (typeof window === 'undefined' || !window.localStorage) return 'auto';
-    
+
     try {
       const raw = window.localStorage.getItem(this.key);
       // Otimização: Evitar parsing se o valor bruto no localStorage não mudou
       if (raw === this.lastRaw && this.lastValue !== null) {
         return this.lastValue;
       }
-      
+
       this.lastRaw = raw;
       this.lastValue = parseGateFlag(raw);
       return this.lastValue;

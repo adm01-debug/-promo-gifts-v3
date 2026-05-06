@@ -1,13 +1,13 @@
-import { useCallback } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { untypedFrom } from "@/lib/supabase-untyped";
-import { useAuth } from "@/contexts/AuthContext";
+import { useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { untypedFrom } from '@/lib/supabase-untyped';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface TrackViewParams {
   productId?: string;
   productSku?: string;
   productName: string;
-  viewType: "detail" | "card" | "compare" | "favorite";
+  viewType: 'detail' | 'card' | 'compare' | 'favorite';
 }
 
 interface TrackSearchParams {
@@ -26,7 +26,7 @@ export function useProductAnalytics() {
       try {
         // Using type assertion since table was just created
         // Silently insert - all errors are ignored for analytics to not affect UX
-        await untypedFrom("product_views").insert({
+        await untypedFrom('product_views').insert({
           product_id: productId,
           product_sku: productSku,
           product_name: productName,
@@ -39,7 +39,7 @@ export function useProductAnalytics() {
         // Silently ignore all tracking errors
       }
     },
-    [user?.id]
+    [user?.id],
   );
 
   const trackSearch = useCallback(
@@ -48,7 +48,7 @@ export function useProductAnalytics() {
 
       try {
         // Silently insert - all errors are ignored for analytics to not affect UX
-        await untypedFrom("search_analytics").insert({
+        await untypedFrom('search_analytics').insert({
           search_term: searchTerm.toLowerCase().trim(),
           results_count: resultsCount,
           seller_id: user.id,
@@ -59,7 +59,7 @@ export function useProductAnalytics() {
         // Silently ignore all tracking errors
       }
     },
-    [user?.id]
+    [user?.id],
   );
 
   return { trackProductView, trackSearch };

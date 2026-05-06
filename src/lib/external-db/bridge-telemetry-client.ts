@@ -38,23 +38,24 @@ export function startBridgeTelemetry(): () => void {
     const retries = pendingRetries;
     pendingRetries = 0;
 
-    const payload = event.type === 'unavailable'
-      ? {
-          p_operation: 'bridge_call',
-          p_error_message: event.reason.slice(0, 500),
-          p_is_503: true,
-          p_is_cold_start: true,
-          p_retry_count: Math.max(retries, event.attempts),
-          p_duration_ms: 0,
-        }
-      : {
-          p_operation: 'bridge_call',
-          p_error_message: event.reason.slice(0, 500),
-          p_is_503: true,
-          p_is_cold_start: true,
-          p_retry_count: retries,
-          p_duration_ms: event.delayMs,
-        };
+    const payload =
+      event.type === 'unavailable'
+        ? {
+            p_operation: 'bridge_call',
+            p_error_message: event.reason.slice(0, 500),
+            p_is_503: true,
+            p_is_cold_start: true,
+            p_retry_count: Math.max(retries, event.attempts),
+            p_duration_ms: 0,
+          }
+        : {
+            p_operation: 'bridge_call',
+            p_error_message: event.reason.slice(0, 500),
+            p_is_503: true,
+            p_is_cold_start: true,
+            p_retry_count: retries,
+            p_duration_ms: event.delayMs,
+          };
 
     // Fire-and-forget — falha de telemetria não pode quebrar o app.
     supabase.rpc('record_platform_failure', payload).then(({ error }) => {

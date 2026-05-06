@@ -115,7 +115,7 @@ export function useQuoteViewData(id: string | undefined) {
           bitrix_product_id: item.bitrix_product_id ?? null,
           kit_group_id: item.kit_group_id || null,
           kit_name: item.kit_name || null,
-           
+
           personalizations:
             item.personalizations?.map((p: any) => ({
               technique_name: p.technique_name || 'Personalizacao',

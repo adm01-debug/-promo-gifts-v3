@@ -18,9 +18,9 @@
  * Exposed on window as `__notificationsMetrics` for ad-hoc inspection.
  */
 
-export type TriggerSource = "hover" | "focus" | "drawer-open";
-export type FetchSource = "initial" | "polling" | "prefetch" | "mutation";
-export type BadgeRenderSource = "cache" | "network";
+export type TriggerSource = 'hover' | 'focus' | 'drawer-open';
+export type FetchSource = 'initial' | 'polling' | 'prefetch' | 'mutation';
+export type BadgeRenderSource = 'cache' | 'network';
 
 export interface BadgeRenderStat {
   source: BadgeRenderSource;
@@ -124,7 +124,7 @@ export const BADGE_RENDER_BUDGET_MS = 16;
 const state = {
   triggers: 0,
   fetches: 0,
-  byTrigger: { hover: 0, focus: 0, "drawer-open": 0 } as Record<TriggerSource, number>,
+  byTrigger: { hover: 0, focus: 0, 'drawer-open': 0 } as Record<TriggerSource, number>,
   byFetch: { initial: 0, polling: 0, prefetch: 0, mutation: 0 } as Record<FetchSource, number>,
   /** Wall-clock of the most recent recordFetch() call, used for TTL-window classification. */
   lastFetchAt: 0,
@@ -149,7 +149,7 @@ const state = {
   coalescingByTrigger: {
     hover: { triggers: 0, fetches: 0 },
     focus: { triggers: 0, fetches: 0 },
-    "drawer-open": { triggers: 0, fetches: 0 },
+    'drawer-open': { triggers: 0, fetches: 0 },
   } as Record<TriggerSource, { triggers: number; fetches: number }>,
 };
 
@@ -177,8 +177,8 @@ function buildBudget(): BadgeRenderBudget {
 
 function isDebugEnabled(): boolean {
   try {
-    if (typeof window === "undefined") return false;
-    if (window.localStorage?.getItem("debug:notifications") === "1") return true;
+    if (typeof window === 'undefined') return false;
+    if (window.localStorage?.getItem('debug:notifications') === '1') return true;
     return Boolean((import.meta as { env?: { DEV?: boolean } }).env?.DEV);
   } catch {
     return false;
@@ -203,11 +203,7 @@ const throttleByEvent = new Map<string, ThrottleEntry>();
 
 function emit(event: string, payload: Record<string, unknown>) {
   // eslint-disable-next-line no-console
-  console.log(
-    `%c[notifications-metrics:${event}]`,
-    "color:#0891b2;font-weight:600",
-    payload
-  );
+  console.log(`%c[notifications-metrics:${event}]`, 'color:#0891b2;font-weight:600', payload);
 }
 
 function debugLog(event: string, payload: Record<string, unknown>) {
@@ -256,7 +252,7 @@ export const notificationsMetrics = {
   recordTrigger(source: TriggerSource) {
     state.triggers += 1;
     state.byTrigger[source] += 1;
-    debugLog("trigger", {
+    debugLog('trigger', {
       source,
       triggers: state.triggers,
       fetches: state.fetches,
@@ -276,7 +272,7 @@ export const notificationsMetrics = {
     if (withinTtl) state.fetchesWithinTtl += 1;
     else state.fetchesAfterTtl += 1;
     state.lastFetchAt = now;
-    debugLog("fetch", {
+    debugLog('fetch', {
       source,
       triggers: state.triggers,
       fetches: state.fetches,
@@ -286,11 +282,11 @@ export const notificationsMetrics = {
     });
   },
 
-  recordBadgeRender(stat: Omit<BadgeRenderStat, "at">) {
+  recordBadgeRender(stat: Omit<BadgeRenderStat, 'at'>) {
     const isHit = stat.elapsedMs < BADGE_RENDER_BUDGET_MS;
     // Trust the running counter to be derived from the same threshold so the
     // hit/miss totals stay consistent even if a caller passes a stale `hit`.
-    const normalized: Omit<BadgeRenderStat, "at"> = { ...stat, hit: isHit };
+    const normalized: Omit<BadgeRenderStat, 'at'> = { ...stat, hit: isHit };
     const full: BadgeRenderStat = { ...normalized, at: Date.now() };
     state.badgeRenders.unshift(full);
     if (state.badgeRenders.length > BADGE_RENDER_HISTORY) {
@@ -299,18 +295,24 @@ export const notificationsMetrics = {
     const bucket = state.badgeBudget[stat.source];
     if (isHit) bucket.hits += 1;
     else bucket.misses += 1;
-    debugLog("badge-render", {
+    debugLog('badge-render', {
       ...(full as unknown as Record<string, unknown>),
       budgetMs: BADGE_RENDER_BUDGET_MS,
     });
     badgeListeners.forEach((l) => {
-      try { l(full); } catch { /* ignore */ }
+      try {
+        l(full);
+      } catch {
+        /* ignore */
+      }
     });
   },
 
   subscribeBadgeRender(listener: BadgeListener): () => void {
     badgeListeners.add(listener);
-    return () => { badgeListeners.delete(listener); };
+    return () => {
+      badgeListeners.delete(listener);
+    };
   },
 
   /**
@@ -318,11 +320,11 @@ export const notificationsMetrics = {
    * call from React unmount cleanups — silently no-ops if debug is OFF or if
    * no badge renders have been recorded yet.
    */
-  logBadgeBudgetSummary(reason: string = "unmount") {
+  logBadgeBudgetSummary(reason: string = 'unmount') {
     if (!isDebugEnabled()) return;
     const budget = buildBudget();
     if (budget.total === 0) return;
-    debugLog("badge-budget-summary", {
+    debugLog('badge-budget-summary', {
       reason,
       budgetMs: BADGE_RENDER_BUDGET_MS,
       ...budget,
@@ -335,7 +337,7 @@ export const notificationsMetrics = {
    * FIRST event in the burst (so debounceMs reflects the wait that actually
    * coalesced events).
    */
-  recordTriggerToFetch(sample: Omit<TriggerToFetchTiming, "totalMs" | "withinTtl" | "at">) {
+  recordTriggerToFetch(sample: Omit<TriggerToFetchTiming, 'totalMs' | 'withinTtl' | 'at'>) {
     const totalMs = Number((sample.debounceMs + sample.fetchMs).toFixed(2));
     const withinTtl = totalMs < TRIGGER_TO_FETCH_TTL_MS;
     const full: TriggerToFetchTiming = {
@@ -363,10 +365,10 @@ export const notificationsMetrics = {
       // eslint-disable-next-line no-console
       console.warn(
         `[notifications-metrics] trigger→fetch exceeded TTL window (${totalMs}ms >= ${TRIGGER_TO_FETCH_TTL_MS}ms)`,
-        full
+        full,
       );
     }
-    debugLog("trigger-to-fetch", {
+    debugLog('trigger-to-fetch', {
       ...(full as unknown as Record<string, unknown>),
       ttlMs: TRIGGER_TO_FETCH_TTL_MS,
     });
@@ -398,7 +400,7 @@ export const notificationsMetrics = {
           acc[src] = { triggers, fetches, saved, efficiency };
           return acc;
         },
-        {} as Snapshot["coalescingByTrigger"]
+        {} as Snapshot['coalescingByTrigger'],
       ),
     };
   },
@@ -406,7 +408,7 @@ export const notificationsMetrics = {
   reset() {
     state.triggers = 0;
     state.fetches = 0;
-    state.byTrigger = { hover: 0, focus: 0, "drawer-open": 0 };
+    state.byTrigger = { hover: 0, focus: 0, 'drawer-open': 0 };
     state.byFetch = { initial: 0, polling: 0, prefetch: 0, mutation: 0 };
     state.lastFetchAt = 0;
     state.fetchesWithinTtl = 0;
@@ -421,7 +423,7 @@ export const notificationsMetrics = {
     state.coalescingByTrigger = {
       hover: { triggers: 0, fetches: 0 },
       focus: { triggers: 0, fetches: 0 },
-      "drawer-open": { triggers: 0, fetches: 0 },
+      'drawer-open': { triggers: 0, fetches: 0 },
     };
     state.since = Date.now();
     resetThrottle();
@@ -434,12 +436,12 @@ export const notificationsMetrics = {
    */
   startAutoReset(intervalMs: number = AUTO_RESET_INTERVAL_MS): () => void {
     this.stopAutoReset();
-    if (typeof window === "undefined") return () => {};
+    if (typeof window === 'undefined') return () => {};
     autoResetIntervalMs = intervalMs;
     autoResetTimer = setInterval(() => {
       const prev = this.snapshot();
       this.reset();
-      debugLog("auto-reset", {
+      debugLog('auto-reset', {
         intervalMs,
         prevTriggers: prev.triggers,
         prevFetches: prev.fetches,
@@ -472,9 +474,10 @@ let autoResetTimer: ReturnType<typeof setInterval> | null = null;
 let autoResetIntervalMs = AUTO_RESET_INTERVAL_MS;
 
 // Expose for devtools inspection: window.__notificationsMetrics.snapshot()
-if (typeof window !== "undefined") {
-  (window as unknown as { __notificationsMetrics?: typeof notificationsMetrics }).__notificationsMetrics =
-    notificationsMetrics;
+if (typeof window !== 'undefined') {
+  (
+    window as unknown as { __notificationsMetrics?: typeof notificationsMetrics }
+  ).__notificationsMetrics = notificationsMetrics;
   // Auto-start the 15-minute reset cycle on module load (browser only).
   notificationsMetrics.startAutoReset();
 }

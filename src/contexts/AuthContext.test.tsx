@@ -15,7 +15,9 @@ vi.mock('@/integrations/supabase/client', () => ({
       signOut: vi.fn(),
       refreshSession: vi.fn(),
       mfa: {
-        getAuthenticatorAssuranceLevel: vi.fn().mockResolvedValue({ data: { currentLevel: 'aal1', nextLevel: 'aal1' } }),
+        getAuthenticatorAssuranceLevel: vi
+          .fn()
+          .mockResolvedValue({ data: { currentLevel: 'aal1', nextLevel: 'aal1' } }),
         listFactors: vi.fn().mockResolvedValue({ data: { totp: [] } }),
       },
     },
@@ -41,9 +43,7 @@ vi.mock('@/services/authService', () => ({
   },
 }));
 
-const wrapper = ({ children }: { children: ReactNode }) => (
-  <AuthProvider>{children}</AuthProvider>
-);
+const wrapper = ({ children }: { children: ReactNode }) => <AuthProvider>{children}</AuthProvider>;
 
 describe('AuthContext', () => {
   beforeEach(() => {
@@ -55,21 +55,23 @@ describe('AuthContext', () => {
       // Setup: user is logged in
       const mockUser = { id: 'user-123', email: 'test@example.com' };
       const mockSession = { user: mockUser, access_token: 'token' };
-      
-      vi.mocked(supabase.auth.getSession).mockResolvedValue({ data: { session: mockSession } } as any);
+
+      vi.mocked(supabase.auth.getSession).mockResolvedValue({
+        data: { session: mockSession },
+      } as any);
       vi.mocked(supabase.auth.signOut).mockRejectedValue(new Error('Network error'));
 
       const { result } = renderHook(() => useAuth(), { wrapper });
 
       // Wait for initialization
       await act(async () => {
-        await new Promise(resolve => setTimeout(resolve, 0));
+        await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
       // Verify initial state (mocked)
       // Note: we can't easily check the internal state of useAuth without causing a re-render
       // or using a test component.
-      
+
       await act(async () => {
         await result.current.signOut();
       });
@@ -84,12 +86,14 @@ describe('AuthContext', () => {
     it('calls log_user_logout RPC before signing out', async () => {
       const mockUser = { id: 'user-123' };
       const mockSession = { user: mockUser };
-      vi.mocked(supabase.auth.getSession).mockResolvedValue({ data: { session: mockSession } } as any);
+      vi.mocked(supabase.auth.getSession).mockResolvedValue({
+        data: { session: mockSession },
+      } as any);
 
       const { result } = renderHook(() => useAuth(), { wrapper });
-      
+
       await act(async () => {
-        await new Promise(resolve => setTimeout(resolve, 0));
+        await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
       await act(async () => {

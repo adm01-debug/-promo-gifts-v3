@@ -21,7 +21,11 @@ export type BridgeMetricsTab = 'calls' | 'longtasks';
 
 export function useBridgeMetrics(isAllowed: boolean) {
   const [open, setOpen] = useState<boolean>(() => {
-    try { return localStorage.getItem(STORAGE_KEY) === '1'; } catch { return false; }
+    try {
+      return localStorage.getItem(STORAGE_KEY) === '1';
+    } catch {
+      return false;
+    }
   });
   const [paused, setPaused] = useState(false);
   const [filter, setFilter] = useState<BridgeMetricsFilter>('all');
@@ -47,9 +51,13 @@ export function useBridgeMetrics(isAllowed: boolean) {
       if (target && /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)) return;
       if (target?.isContentEditable) return;
       e.preventDefault();
-      setOpen(v => {
+      setOpen((v) => {
         const next = !v;
-        try { localStorage.setItem(STORAGE_KEY, next ? '1' : '0'); } catch { /* noop */ }
+        try {
+          localStorage.setItem(STORAGE_KEY, next ? '1' : '0');
+        } catch {
+          /* noop */
+        }
         return next;
       });
     };
@@ -58,9 +66,13 @@ export function useBridgeMetrics(isAllowed: boolean) {
   }, [isAllowed]);
 
   const toggleOpen = useCallback((val?: boolean) => {
-    setOpen(v => {
+    setOpen((v) => {
       const next = val ?? !v;
-      try { localStorage.setItem(STORAGE_KEY, next ? '1' : '0'); } catch { /* noop */ }
+      try {
+        localStorage.setItem(STORAGE_KEY, next ? '1' : '0');
+      } catch {
+        /* noop */
+      }
       return next;
     });
   }, []);
@@ -71,20 +83,20 @@ export function useBridgeMetrics(isAllowed: boolean) {
       ? Math.round(last20.reduce((a, s) => a + s.durationMs, 0) / last20.length)
       : 0;
     const totalResp = last20.reduce((a, s) => a + s.respBytes, 0);
-    const errors = samples.filter(s => !s.ok).length;
-    return { 
-      total: samples.length, 
-      avg, 
-      totalResp, 
-      errors, 
-      last20: last20.length 
+    const errors = samples.filter((s) => !s.ok).length;
+    return {
+      total: samples.length,
+      avg,
+      totalResp,
+      errors,
+      last20: last20.length,
     };
   }, [samples]);
 
   const visibleSamples = useMemo(() => {
     let arr = samples.slice(-MAX_VISIBLE * 3);
-    if (filter === 'slow') arr = arr.filter(s => s.durationMs >= 600);
-    else if (filter === 'errors') arr = arr.filter(s => !s.ok);
+    if (filter === 'slow') arr = arr.filter((s) => s.durationMs >= 600);
+    else if (filter === 'errors') arr = arr.filter((s) => !s.ok);
     return arr.slice(-MAX_VISIBLE).reverse();
   }, [samples, filter]);
 
@@ -100,6 +112,6 @@ export function useBridgeMetrics(isAllowed: boolean) {
     samples: visibleSamples,
     longTasks,
     summary,
-    clear: clearBridgeSamples
+    clear: clearBridgeSamples,
   };
 }

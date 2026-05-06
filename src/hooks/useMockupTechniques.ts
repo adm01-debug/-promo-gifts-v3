@@ -1,20 +1,20 @@
 /**
  * useMockupTechniques — Filter techniques by product using fn_get_product_customization_options RPC
- * 
+ *
  * When a product is selected, fetches its REAL customization options from the external DB
  * and returns ONLY the techniques that are configured for that product.
- * 
+ *
  * When the product has NO customization data configured (locations: []),
  * returns all techniques BUT enriches them with their inherent max dimensions
  * from tabela_preco_gravacao_oficial + tabela_preco_gravacao_oficial_faixa.
  */
 
-import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { invokeExternalRpc } from "@/lib/external-rpc";
-import { invokeExternalDb } from "@/lib/external-db";
-import { adaptCustomizationOptions } from "@/lib/personalization/adapters";
-import { logger } from "@/lib/logger";
+import { useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { invokeExternalRpc } from '@/lib/external-rpc';
+import { invokeExternalDb } from '@/lib/external-db';
+import { adaptCustomizationOptions } from '@/lib/personalization/adapters';
+import { logger } from '@/lib/logger';
 
 interface Technique {
   id: string;
@@ -101,7 +101,7 @@ export function useProductCustomizationOptionsForMockup(productId: string | unde
     queryFn: async () => {
       const raw = await invokeExternalRpc<Record<string, unknown>>(
         'fn_get_product_customization_options',
-        { p_product_id: productId! }
+        { p_product_id: productId! },
       );
       // Passa pelo adapter para absorver futuras mudanças de schema (PT → EN).
       const adapted = adaptCustomizationOptions(raw);
@@ -129,10 +129,15 @@ function useAllTechniqueDimensions(techniques: Technique[], shouldFetch: boolean
         limit: 200,
       });
 
-      if (!techResult.records.length) return new Map<string, { maxWidth: number | null; maxHeight: number | null }>();
+      if (!techResult.records.length)
+        return new Map<string, { maxWidth: number | null; maxHeight: number | null }>();
 
       // 2. Fetch ALL faixas in one query
-      const faixaResult = await invokeExternalDb<{ tabela_preco_gravacao_id: string; largura_max: number | null; altura_max: number | null }>({
+      const faixaResult = await invokeExternalDb<{
+        tabela_preco_gravacao_id: string;
+        largura_max: number | null;
+        altura_max: number | null;
+      }>({
         table: 'tabela_preco_gravacao_oficial_faixa',
         operation: 'select',
         select: 'tabela_preco_gravacao_id,largura_max,altura_max',
@@ -178,7 +183,11 @@ function useAllTechniqueDimensions(techniques: Technique[], shouldFetch: boolean
         codeMap.set(tech.code, { maxWidth, maxHeight });
       }
 
-      logger.log('[useMockupTechniques] Loaded technique dimensions for', codeMap.size, 'techniques');
+      logger.log(
+        '[useMockupTechniques] Loaded technique dimensions for',
+        codeMap.size,
+        'techniques',
+      );
       return codeMap;
     },
     enabled: shouldFetch,
@@ -189,30 +198,29 @@ function useAllTechniqueDimensions(techniques: Technique[], shouldFetch: boolean
 /**
  * Filters techniques to ONLY those available for the selected product.
  * Uses fn_get_product_customization_options RPC.
- * 
+ *
  * When product has NO configured areas (locations: []):
  * → Returns all techniques enriched with their inherent max dimensions
  *   from the pricing tables (tabela_preco_gravacao_oficial_faixa).
- * 
+ *
  * Returns unique techniques with dimension limits from the best (largest) area.
  */
 export function useFilteredTechniques(
   techniques: Technique[],
-  selectedProduct: { id: string } | null
+  selectedProduct: { id: string } | null,
 ): TechniqueWithLimits[] {
   const { data: customizationData } = useProductCustomizationOptionsForMockup(selectedProduct?.id);
-  
+
   // Determine if we need technique-level dimensions (product has no configured areas)
-  const needsTechniqueDims = !!selectedProduct 
-    && !!customizationData?.locations 
-    && customizationData.locations.length === 0;
+  const needsTechniqueDims =
+    !!selectedProduct && !!customizationData?.locations && customizationData.locations.length === 0;
 
   const { data: techniqueDims } = useAllTechniqueDimensions(techniques, needsTechniqueDims);
 
   return useMemo(() => {
     // No product selected -> return all techniques without limits
     if (!selectedProduct || !techniques.length) {
-      return techniques.map(t => ({
+      return techniques.map((t) => ({
         ...t,
         maxWidth: null,
         maxHeight: null,
@@ -237,7 +245,7 @@ export function useFilteredTechniques(
     // RPC returned successfully but product has NO configured areas
     // → Use technique-level dimensions from pricing tables
     if (customizationData.locations.length === 0) {
-      return techniques.map(t => {
+      return techniques.map((t) => {
         const dims = t.code ? techniqueDims?.get(t.code) : undefined;
         return {
           ...t,
@@ -259,21 +267,24 @@ export function useFilteredTechniques(
 
     // Extract all unique techniques from all locations
     // Use a map keyed by tecnica_nome to deduplicate, keeping the best dimensions
-    const techniqueMap = new Map<string, {
-      option: CustomizationOption;
-      locationName: string;
-    }>();
+    const techniqueMap = new Map<
+      string,
+      {
+        option: CustomizationOption;
+        locationName: string;
+      }
+    >();
 
     for (const location of customizationData.locations) {
       for (const option of location.options) {
         const key = option.tecnica_nome;
         const existing = techniqueMap.get(key);
-        
+
         const area = option.efetiva_largura_max * option.efetiva_altura_max;
-        const existingArea = existing 
-          ? existing.option.efetiva_largura_max * existing.option.efetiva_altura_max 
+        const existingArea = existing
+          ? existing.option.efetiva_largura_max * existing.option.efetiva_altura_max
           : 0;
-        
+
         if (!existing || area > existingArea) {
           techniqueMap.set(key, {
             option,
@@ -289,7 +300,7 @@ export function useFilteredTechniques(
 
     // Build the result — use technique_id from the RPC as the ID
     const result: TechniqueWithLimits[] = [];
-    
+
     for (const [techName, { option, locationName }] of techniqueMap.entries()) {
       result.push({
         id: option.technique_id,

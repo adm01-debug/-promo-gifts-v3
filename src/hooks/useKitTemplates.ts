@@ -78,8 +78,11 @@ export function useKitTemplates() {
 
       // Increment usage_count (best-effort)
       try {
-        await (supabase as unknown as { rpc: (name: string, args: Record<string, unknown>) => Promise<unknown> })
-          .rpc('increment_kit_template_usage', { _template_id: template.id });
+        await (
+          supabase as unknown as {
+            rpc: (name: string, args: Record<string, unknown>) => Promise<unknown>;
+          }
+        ).rpc('increment_kit_template_usage', { _template_id: template.id });
       } catch {
         /* best-effort */
       }

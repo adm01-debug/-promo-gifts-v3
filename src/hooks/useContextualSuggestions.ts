@@ -197,7 +197,7 @@ export const useContextualSuggestions = (options: UseContextualSuggestionsOption
   // Determine current section from route
   const routeContext = useMemo((): RouteContext => {
     const pathname = location.pathname;
-    
+
     let section: RouteContext['section'] = 'other';
     let entityId: string | undefined;
 
@@ -225,7 +225,8 @@ export const useContextualSuggestions = (options: UseContextualSuggestionsOption
     allSuggestions.push(...filterSuggestions);
 
     // Add section-specific suggestions
-    const sectionSuggestions = SECTION_SUGGESTIONS[routeContext.section] || SECTION_SUGGESTIONS.other;
+    const sectionSuggestions =
+      SECTION_SUGGESTIONS[routeContext.section] || SECTION_SUGGESTIONS.other;
     allSuggestions.push(...sectionSuggestions);
 
     // Add time-based suggestions
@@ -235,13 +236,11 @@ export const useContextualSuggestions = (options: UseContextualSuggestionsOption
     // Filter out suggestions that match the current search query
     const normalizedQuery = searchQuery.toLowerCase().trim();
     const filtered = normalizedQuery
-      ? allSuggestions.filter(s => !s.text.toLowerCase().includes(normalizedQuery))
+      ? allSuggestions.filter((s) => !s.text.toLowerCase().includes(normalizedQuery))
       : allSuggestions;
 
     // Sort by priority and return top results
-    return filtered
-      .sort((a, b) => b.priority - a.priority)
-      .slice(0, 8);
+    return filtered.sort((a, b) => b.priority - a.priority).slice(0, 8);
   }, [routeContext, appliedFilters, searchQuery]);
 
   // Get suggestions matching a partial query
@@ -249,12 +248,12 @@ export const useContextualSuggestions = (options: UseContextualSuggestionsOption
     if (!query || query.length < 2) return suggestions;
 
     const normalizedQuery = query.toLowerCase().trim();
-    
+
     return suggestions
-      .filter(s => s.text.toLowerCase().includes(normalizedQuery))
+      .filter((s) => s.text.toLowerCase().includes(normalizedQuery))
       .sort((a, b) => {
         // Prioritize starts-with matches
-        const aStartsWith = s => s.text.toLowerCase().startsWith(normalizedQuery);
+        const aStartsWith = (s) => s.text.toLowerCase().startsWith(normalizedQuery);
         if (aStartsWith(a) && !aStartsWith(b)) return -1;
         if (!aStartsWith(a) && aStartsWith(b)) return 1;
         return b.priority - a.priority;

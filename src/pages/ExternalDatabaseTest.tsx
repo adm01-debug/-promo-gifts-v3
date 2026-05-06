@@ -1,32 +1,40 @@
-import { useState, useEffect } from "react";
-import { useExternalCompanies, useExternalProducts } from "@/hooks/useExternalDatabase";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Loader2, CheckCircle2, XCircle, Database, Building2, Package, RefreshCw } from "lucide-react";
-import { PageSEO } from "@/components/seo/PageSEO";
+import { useState, useEffect } from 'react';
+import { useExternalCompanies, useExternalProducts } from '@/hooks/useExternalDatabase';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  Loader2,
+  CheckCircle2,
+  XCircle,
+  Database,
+  Building2,
+  Package,
+  RefreshCw,
+} from 'lucide-react';
+import { PageSEO } from '@/components/seo/PageSEO';
 
 export default function ExternalDatabaseTest() {
-  const [activeTab, setActiveTab] = useState("companies");
-  
+  const [activeTab, setActiveTab] = useState('companies');
+
   // Usar os hooks corretamente (sem parâmetros)
   const companiesHook = useExternalCompanies();
   const productsHook = useExternalProducts();
-  
-  const { 
-    data: companies, 
-    isLoading: loadingCompanies, 
+
+  const {
+    data: companies,
+    isLoading: loadingCompanies,
     error: companiesError,
-    fetchAll: fetchCompanies 
+    fetchAll: fetchCompanies,
   } = companiesHook;
-  
-  const { 
-    data: products, 
-    isLoading: loadingProducts, 
+
+  const {
+    data: products,
+    isLoading: loadingProducts,
     error: productsError,
-    fetchAll: fetchProducts 
+    fetchAll: fetchProducts,
   } = productsHook;
 
   // Carregar dados ao montar o componente
@@ -43,14 +51,14 @@ export default function ExternalDatabaseTest() {
     await fetchProducts({ limit: 10 });
   };
 
-  const ConnectionStatus = ({ 
-    isLoading, 
-    error, 
-    data 
-  }: { 
-    isLoading: boolean; 
-    error: string | null; 
-    data: unknown[] | null 
+  const ConnectionStatus = ({
+    isLoading,
+    error,
+    data,
+  }: {
+    isLoading: boolean;
+    error: string | null;
+    data: unknown[] | null;
   }) => {
     if (isLoading) {
       return (
@@ -85,8 +93,13 @@ export default function ExternalDatabaseTest() {
 
   return (
     <>
-      <PageSEO title="Teste de Banco Externo" description="Teste de conexão com banco de dados externo." path="/external-db-test" noIndex />
-      <div className="container mx-auto py-6 space-y-6">
+      <PageSEO
+        title="Teste de Banco Externo"
+        description="Teste de conexão com banco de dados externo."
+        path="/external-db-test"
+        noIndex
+      />
+      <div className="container mx-auto space-y-6 py-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Database className="h-8 w-8 text-primary" />
@@ -97,7 +110,7 @@ export default function ExternalDatabaseTest() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <Card>
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
@@ -105,22 +118,26 @@ export default function ExternalDatabaseTest() {
                   <Building2 className="h-5 w-5" />
                   Empresas (Somente Leitura)
                 </CardTitle>
-                <ConnectionStatus isLoading={loadingCompanies} error={companiesError} data={companies} />
+                <ConnectionStatus
+                  isLoading={loadingCompanies}
+                  error={companiesError}
+                  data={companies}
+                />
               </div>
             </CardHeader>
             <CardContent>
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={handleRefetchCompanies}
                 disabled={loadingCompanies}
                 className="mb-3"
               >
-                <RefreshCw className={`h-4 w-4 mr-2 ${loadingCompanies ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`mr-2 h-4 w-4 ${loadingCompanies ? 'animate-spin' : ''}`} />
                 Recarregar
               </Button>
               {companiesError && (
-                <div className="text-destructive text-sm p-3 bg-destructive/10 rounded-md">
+                <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
                   {companiesError}
                 </div>
               )}
@@ -134,22 +151,26 @@ export default function ExternalDatabaseTest() {
                   <Package className="h-5 w-5" />
                   Produtos (CRUD Completo)
                 </CardTitle>
-                <ConnectionStatus isLoading={loadingProducts} error={productsError} data={products} />
+                <ConnectionStatus
+                  isLoading={loadingProducts}
+                  error={productsError}
+                  data={products}
+                />
               </div>
             </CardHeader>
             <CardContent>
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={handleRefetchProducts}
                 disabled={loadingProducts}
                 className="mb-3"
               >
-                <RefreshCw className={`h-4 w-4 mr-2 ${loadingProducts ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`mr-2 h-4 w-4 ${loadingProducts ? 'animate-spin' : ''}`} />
                 Recarregar
               </Button>
               {productsError && (
-                <div className="text-destructive text-sm p-3 bg-destructive/10 rounded-md">
+                <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
                   {productsError}
                 </div>
               )}
@@ -177,15 +198,15 @@ export default function ExternalDatabaseTest() {
               <CardContent>
                 <ScrollArea className="h-[400px]">
                   {loadingCompanies ? (
-                    <div className="flex items-center justify-center h-32">
+                    <div className="flex h-32 items-center justify-center">
                       <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                     </div>
                   ) : companies && companies.length > 0 ? (
-                    <pre className="text-xs bg-muted p-4 rounded-md overflow-auto">
+                    <pre className="overflow-auto rounded-md bg-muted p-4 text-xs">
                       {JSON.stringify(companies, null, 2)}
                     </pre>
                   ) : (
-                    <div className="text-center text-muted-foreground py-8">
+                    <div className="py-8 text-center text-muted-foreground">
                       Nenhum dado encontrado ou erro na conexão
                     </div>
                   )}
@@ -202,15 +223,15 @@ export default function ExternalDatabaseTest() {
               <CardContent>
                 <ScrollArea className="h-[400px]">
                   {loadingProducts ? (
-                    <div className="flex items-center justify-center h-32">
+                    <div className="flex h-32 items-center justify-center">
                       <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                     </div>
                   ) : products && products.length > 0 ? (
-                    <pre className="text-xs bg-muted p-4 rounded-md overflow-auto">
+                    <pre className="overflow-auto rounded-md bg-muted p-4 text-xs">
                       {JSON.stringify(products, null, 2)}
                     </pre>
                   ) : (
-                    <div className="text-center text-muted-foreground py-8">
+                    <div className="py-8 text-center text-muted-foreground">
                       Nenhum dado encontrado ou erro na conexão
                     </div>
                   )}

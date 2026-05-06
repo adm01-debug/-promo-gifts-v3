@@ -1,8 +1,8 @@
-import { renderHook, waitFor } from "@testing-library/react";
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { useLoginAttempts } from "./useLoginAttempts";
-import { supabase } from "@/integrations/supabase/client";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { renderHook, waitFor } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { useLoginAttempts } from './useLoginAttempts';
+import { supabase } from '@/integrations/supabase/client';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 // Mock implementation that actually returns itself
 const mockQuery: any = {
@@ -13,34 +13,32 @@ const mockQuery: any = {
   eq: vi.fn().mockImplementation(() => mockQuery),
 };
 
-vi.mock("@/integrations/supabase/client", () => ({
+vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
     from: vi.fn(() => mockQuery),
   },
 }));
 
 const queryClient = new QueryClient({
-  defaultOptions: { 
-    queries: { 
+  defaultOptions: {
+    queries: {
       retry: false,
-    } 
+    },
   },
 });
 
 const wrapper = ({ children }: { children: React.ReactNode }) => (
-  <QueryClientProvider client={queryClient}>
-    {children}
-  </QueryClientProvider>
+  <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
 );
 
-describe("useLoginAttempts Hook", () => {
+describe('useLoginAttempts Hook', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     queryClient.clear();
   });
 
-  it("fetches login attempts baseline", async () => {
-    const mockData = [{ id: "1", email: "test@example.com", success: true }];
+  it('fetches login attempts baseline', async () => {
+    const mockData = [{ id: '1', email: 'test@example.com', success: true }];
     mockQuery.range.mockResolvedValue({ data: mockData, count: 1, error: null });
 
     const { result } = renderHook(() => useLoginAttempts(), { wrapper });

@@ -1,5 +1,5 @@
-import type Fuse from "fuse.js";
-import { type IFuseOptions } from "fuse.js";
+import type Fuse from 'fuse.js';
+import { type IFuseOptions } from 'fuse.js';
 
 export interface SearchableProductLike {
   id: string;
@@ -13,12 +13,12 @@ export interface SearchableProductLike {
 
 const DEFAULT_FUSE_OPTIONS = {
   keys: [
-    { name: "sku", weight: 0.35 },
-    { name: "name", weight: 0.3 },
-    { name: "supplier_reference", weight: 0.1 },
-    { name: "brand", weight: 0.08 },
-    { name: "category_name", weight: 0.07 },
-    { name: "description", weight: 0.05 },
+    { name: 'sku', weight: 0.35 },
+    { name: 'name', weight: 0.3 },
+    { name: 'supplier_reference', weight: 0.1 },
+    { name: 'brand', weight: 0.08 },
+    { name: 'category_name', weight: 0.07 },
+    { name: 'description', weight: 0.05 },
   ],
   threshold: 0.4,
   distance: 100,
@@ -31,8 +31,8 @@ const DEFAULT_FUSE_OPTIONS = {
 
 export function normalizeProductSearch(value: string): string {
   return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
     .trim()
     .toLowerCase();
 }
@@ -48,17 +48,17 @@ export function dedupeById<T extends { id: string }>(items: T[]): T[] {
 }
 
 export function createProductFuseOptions<T extends SearchableProductLike>(
-  overrides: Partial<IFuseOptions<T>> = {}
+  overrides: Partial<IFuseOptions<T>> = {},
 ): IFuseOptions<T> {
   return {
     ...DEFAULT_FUSE_OPTIONS,
-    keys: DEFAULT_FUSE_OPTIONS.keys as IFuseOptions<T>["keys"],
+    keys: DEFAULT_FUSE_OPTIONS.keys as IFuseOptions<T>['keys'],
     ...overrides,
   };
 }
 
 function getNormalizedValue(value: unknown): string {
-  return typeof value === "string" ? normalizeProductSearch(value) : "";
+  return typeof value === 'string' ? normalizeProductSearch(value) : '';
 }
 
 function getBestFieldPosition<T extends SearchableProductLike>(product: T, query: string) {
@@ -83,7 +83,7 @@ function sortByRelevancePosition<T extends SearchableProductLike>(items: T[], qu
 }
 
 function escapeRegExp(value: string) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 /**
@@ -112,14 +112,14 @@ export function rankProductSearchResults<T extends SearchableProductLike>(
   options: {
     limit?: number;
     fuzzyThreshold?: number;
-  } = {}
+  } = {},
 ): T[] {
   const normalizedQuery = normalizeProductSearch(searchQuery);
   const limit = options.limit;
   const fuzzyThreshold = options.fuzzyThreshold ?? 0.45;
 
   if (!normalizedQuery || normalizedQuery.length < 2) {
-    return typeof limit === "number" ? products.slice(0, limit) : products;
+    return typeof limit === 'number' ? products.slice(0, limit) : products;
   }
 
   const exactCodeMatches = products.filter((product) => {
@@ -129,9 +129,7 @@ export function rankProductSearchResults<T extends SearchableProductLike>(
   });
 
   if (exactCodeMatches.length > 0) {
-    return typeof limit === "number"
-      ? exactCodeMatches.slice(0, limit)
-      : exactCodeMatches;
+    return typeof limit === 'number' ? exactCodeMatches.slice(0, limit) : exactCodeMatches;
   }
 
   const nameExact: T[] = [];
@@ -142,7 +140,7 @@ export function rankProductSearchResults<T extends SearchableProductLike>(
   const codeContains: T[] = [];
   const metadataContains: T[] = [];
 
-  const wordBoundary = new RegExp(`\\b${escapeRegExp(normalizedQuery)}\\b`, "i");
+  const wordBoundary = new RegExp(`\\b${escapeRegExp(normalizedQuery)}\\b`, 'i');
 
   for (const product of products) {
     const name = getNormalizedValue(product.name);
@@ -160,15 +158,9 @@ export function rankProductSearchResults<T extends SearchableProductLike>(
       nameExactWord.push(product);
     } else if (name.includes(normalizedQuery)) {
       nameContains.push(product);
-    } else if (
-      sku.startsWith(normalizedQuery) ||
-      supplierReference.startsWith(normalizedQuery)
-    ) {
+    } else if (sku.startsWith(normalizedQuery) || supplierReference.startsWith(normalizedQuery)) {
       codeStartsWith.push(product);
-    } else if (
-      sku.includes(normalizedQuery) ||
-      supplierReference.includes(normalizedQuery)
-    ) {
+    } else if (sku.includes(normalizedQuery) || supplierReference.includes(normalizedQuery)) {
       codeContains.push(product);
     } else if (
       brand.includes(normalizedQuery) ||
@@ -197,5 +189,5 @@ export function rankProductSearchResults<T extends SearchableProductLike>(
     ...fuzzyItems,
   ]);
 
-  return typeof limit === "number" ? combined.slice(0, limit) : combined;
+  return typeof limit === 'number' ? combined.slice(0, limit) : combined;
 }

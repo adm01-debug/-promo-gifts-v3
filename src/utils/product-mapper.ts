@@ -1,6 +1,6 @@
 /**
  * Product Mapper
- * 
+ *
  * Converts raw PromobrindProduct to the internal Product format.
  */
 import type { Product } from '@/types/product';
@@ -18,20 +18,28 @@ function parseMaterials(materials: any): string[] {
   if (!materials) return [];
   if (Array.isArray(materials)) return materials.filter(Boolean);
   if (typeof materials === 'string') {
-    return materials.split(/[,;|]/).map(m => m.trim()).filter(Boolean);
+    return materials
+      .split(/[,;|]/)
+      .map((m) => m.trim())
+      .filter(Boolean);
   }
   return [];
 }
 
 function parseTagList(value: unknown): string[] {
   if (!value) return [];
-  if (Array.isArray(value)) return value.filter((v): v is string => typeof v === 'string' && !!v.trim());
-  if (typeof value === 'string') return value.split(/[,;|]/).map(v => v.trim()).filter(Boolean);
+  if (Array.isArray(value))
+    return value.filter((v): v is string => typeof v === 'string' && !!v.trim());
+  if (typeof value === 'string')
+    return value
+      .split(/[,;|]/)
+      .map((v) => v.trim())
+      .filter(Boolean);
   return [];
 }
 
 function normalizeMarketingTags(rawTags: unknown): Product['tags'] {
-  const tags = (rawTags && typeof rawTags === 'object') ? rawTags as Record<string, unknown> : {};
+  const tags = rawTags && typeof rawTags === 'object' ? (rawTags as Record<string, unknown>) : {};
   return {
     publicoAlvo: parseTagList(tags.publicoAlvo ?? tags.publico_alvo),
     datasComemorativas: parseTagList(tags.datasComemorativas ?? tags.datas_comemorativas),
@@ -50,10 +58,12 @@ export function mapPromobrindToProduct(p: PromobrindProduct): Product {
   // Extrair imagens
   let images: string[] = [];
   if (p.images && Array.isArray(p.images)) {
-    images = p.images.map((img: any) => {
-      if (typeof img === 'string') return img;
-      return img.url || img.src || img.image_url || '';
-    }).filter(Boolean);
+    images = p.images
+      .map((img: any) => {
+        if (typeof img === 'string') return img;
+        return img.url || img.src || img.image_url || '';
+      })
+      .filter(Boolean);
   }
   if (images.length === 0 && imageUrl) images = [imageUrl];
   if (images.length === 0) images = ['/placeholder.svg'];
@@ -102,17 +112,21 @@ export function mapPromobrindToProduct(p: PromobrindProduct): Product {
     isKit: Boolean(p.is_kit),
     gender: p.gender || null,
     category: {
-      id: p.category_id || p.main_category_id || "0",
-      name: p.category_name || "Sem categoria",
+      id: p.category_id || p.main_category_id || '0',
+      name: p.category_name || 'Sem categoria',
     },
     supplier: {
-      id: p.supplier_id || p.supplier_reference || p.brand || "unknown",
-      name: p.supplier_name || p.brand || "Fornecedor",
+      id: p.supplier_id || p.supplier_reference || p.brand || 'unknown',
+      name: p.supplier_name || p.brand || 'Fornecedor',
     },
     tags: normalizeMarketingTags(p.tags),
     dimensions: {
-      height_cm: p.height_cm, width_cm: p.width_cm, length_cm: p.length_cm,
-      diameter_cm: p.diameter_cm, weight_g: p.weight_g, capacity_ml: p.capacity_ml,
+      height_cm: p.height_cm,
+      width_cm: p.width_cm,
+      length_cm: p.length_cm,
+      diameter_cm: p.diameter_cm,
+      weight_g: p.weight_g,
+      capacity_ml: p.capacity_ml,
     },
     packingType: p.packing_type,
     packingClassification: p.packing_classification,
@@ -120,9 +134,12 @@ export function mapPromobrindToProduct(p: PromobrindProduct): Product {
     repackingType: p.repacking_type,
     packagingContext: p.packaging_context as Product['packagingContext'],
     boxImage: p.box_image,
-    boxWidthMm: p.box_width_mm, boxHeightMm: p.box_height_mm,
-    boxLengthMm: p.box_length_mm, boxWeightKg: p.box_weight_kg,
-    boxQuantity: p.box_quantity, boxVolumeCm3: p.box_volume_cm3,
+    boxWidthMm: p.box_width_mm,
+    boxHeightMm: p.box_height_mm,
+    boxLengthMm: p.box_length_mm,
+    boxWeightKg: p.box_weight_kg,
+    boxQuantity: p.box_quantity,
+    boxVolumeCm3: p.box_volume_cm3,
     leadTimeDays: p.lead_time_days ?? null,
     // SSOT: coluna dedicada `price_updated_at` no BD externo (Promobrind),
     // mantida por trigger automático em mudanças de preço (cost_price,
@@ -133,34 +150,33 @@ export function mapPromobrindToProduct(p: PromobrindProduct): Product {
     priceUpdatedAt:
       (typeof p.price_updated_at === 'string' && p.price_updated_at.trim() !== ''
         ? p.price_updated_at
-        : null)
-      ?? (typeof p.updated_at === 'string' && p.updated_at.trim() !== ''
-        ? p.updated_at
-        : null),
+        : null) ??
+      (typeof p.updated_at === 'string' && p.updated_at.trim() !== '' ? p.updated_at : null),
     priceFreshnessThresholdDays: p.price_freshness_threshold_days ?? null,
     variations: variations.length > 0 ? variations : undefined,
     productVideos: p.product_videos?.length ? p.product_videos : undefined,
-    kitItems: p.kit_components?.map(c => ({
-      id: c.id,
-      productId: c.component_product_id || c.id,
-      productName: c.component_name || 'Componente',
-      quantity: c.quantity || 1,
-      sku: c.component_sku || c.component_code || '',
-      imageUrl: c.primary_image_url || null,
-      isOptional: c.is_optional || false,
-      isPackaging: c.is_packaging || false,
-      isReplaceable: c.is_replaceable || false,
-      allowsPersonalization: c.allows_personalization || false,
-      material: c.material || null,
-      weightG: c.weight_g || null,
-      heightMm: c.height_mm ?? null,
-      widthMm: c.width_mm ?? null,
-      lengthMm: c.length_mm ?? null,
-      componentTypeCode: c.component_type_code ?? null,
-      supplierComponentCode: c.supplier_component_code ?? null,
-      description: c.component_description ?? null,
-      personalizationNotes: c.personalization_notes ?? null,
-      color: c.color ?? null,
-    })) || undefined,
+    kitItems:
+      p.kit_components?.map((c) => ({
+        id: c.id,
+        productId: c.component_product_id || c.id,
+        productName: c.component_name || 'Componente',
+        quantity: c.quantity || 1,
+        sku: c.component_sku || c.component_code || '',
+        imageUrl: c.primary_image_url || null,
+        isOptional: c.is_optional || false,
+        isPackaging: c.is_packaging || false,
+        isReplaceable: c.is_replaceable || false,
+        allowsPersonalization: c.allows_personalization || false,
+        material: c.material || null,
+        weightG: c.weight_g || null,
+        heightMm: c.height_mm ?? null,
+        widthMm: c.width_mm ?? null,
+        lengthMm: c.length_mm ?? null,
+        componentTypeCode: c.component_type_code ?? null,
+        supplierComponentCode: c.supplier_component_code ?? null,
+        description: c.component_description ?? null,
+        personalizationNotes: c.personalization_notes ?? null,
+        color: c.color ?? null,
+      })) || undefined,
   };
 }

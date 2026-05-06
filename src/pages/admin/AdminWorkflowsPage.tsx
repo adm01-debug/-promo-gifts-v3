@@ -1,15 +1,20 @@
-import { MainLayout } from "@/components/layout/MainLayout";
-import { WorkflowCanvas } from "@/components/workflows/WorkflowCanvas";
-import { Workflow } from "lucide-react";
-import { PageSEO } from "@/components/seo/PageSEO";
+import { MainLayout } from '@/components/layout/MainLayout';
+import { WorkflowCanvas } from '@/components/workflows/WorkflowCanvas';
+import { Workflow } from 'lucide-react';
+import { PageSEO } from '@/components/seo/PageSEO';
 
 export default function AdminWorkflowsPage() {
   return (
     <MainLayout>
-      <PageSEO title="Workflows" description="Configure automações e fluxos de trabalho." path="/admin/workflows" noIndex />
-      <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
+      <PageSEO
+        title="Workflows"
+        description="Configure automações e fluxos de trabalho."
+        path="/admin/workflows"
+        noIndex
+      />
+      <div className="mx-auto w-full max-w-[1920px] animate-fade-in space-y-3 px-3 py-3 pb-24 sm:space-y-4 sm:px-4 sm:py-4 md:pb-6 lg:px-6 xl:px-8">
         <div className="flex items-center gap-3">
-          <div className="p-3 rounded-xl bg-primary/10">
+          <div className="rounded-xl bg-primary/10 p-3">
             <Workflow className="h-8 w-8 text-primary" />
           </div>
           <div>

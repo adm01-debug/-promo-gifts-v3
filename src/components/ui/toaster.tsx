@@ -1,6 +1,13 @@
-import { useToast } from "@/hooks/use-toast";
-import { Toast, ToastClose, ToastDescription, ToastProvider, ToastTitle, ToastViewport } from "@/components/ui/toast";
-import { CheckCircle, XCircle, AlertTriangle, Info } from "lucide-react";
+import { useToast } from '@/hooks/use-toast';
+import {
+  Toast,
+  ToastClose,
+  ToastDescription,
+  ToastProvider,
+  ToastTitle,
+  ToastViewport,
+} from '@/components/ui/toast';
+import { CheckCircle, XCircle, AlertTriangle, Info } from 'lucide-react';
 
 // Mapeamento de variantes para ícones (NF-01 a NF-04)
 const variantIcons = {
@@ -18,14 +25,12 @@ export function Toaster() {
     <ToastProvider>
       {toasts.map(function ({ id, title, description, action, variant, ...props }) {
         const Icon = variant ? variantIcons[variant as keyof typeof variantIcons] : null;
-        
+
         return (
           <Toast key={id} variant={variant} {...props}>
             <div className="flex items-start gap-3">
               {/* Ícone baseado na variante */}
-              {Icon && (
-                <Icon className="h-5 w-5 shrink-0 mt-0.5" />
-              )}
+              {Icon && <Icon className="mt-0.5 h-5 w-5 shrink-0" />}
               <div className="grid gap-1">
                 {title && <ToastTitle>{title}</ToastTitle>}
                 {description && <ToastDescription>{description}</ToastDescription>}

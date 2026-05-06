@@ -1,6 +1,6 @@
-import * as React from "react";
-import { cn } from "@/lib/utils";
-import { tokens } from "@/styles/tokens";
+import * as React from 'react';
+import { cn } from '@/lib/utils';
+import { tokens } from '@/styles/tokens';
 
 export interface PremiumIconProps extends React.SVGAttributes<SVGElement> {
   size?: number | string;
@@ -29,16 +29,16 @@ export const PremiumIcon = React.forwardRef<SVGSVGElement, PremiumIconProps>(
         strokeLinecap="round"
         strokeLinejoin="round"
         className={cn(
-          "inline-block transition-all duration-300",
-          glow && "drop-shadow-[0_0_8px_rgba(var(--primary-glow),0.4)]",
-          className
+          'inline-block transition-all duration-300',
+          glow && 'drop-shadow-[0_0_8px_rgba(var(--primary-glow),0.4)]',
+          className,
         )}
         {...props}
       >
         {children}
       </svg>
     );
-  }
+  },
 );
 
-PremiumIcon.displayName = "PremiumIcon";
+PremiumIcon.displayName = 'PremiumIcon';

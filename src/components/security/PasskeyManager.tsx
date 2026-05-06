@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
-import { Fingerprint, Trash2, Plus, Smartphone, Monitor, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { useState, useEffect } from 'react';
+import { Fingerprint, Trash2, Plus, Smartphone, Monitor, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,11 +13,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { useWebAuthn } from "@/hooks/useWebAuthn";
-import { useAuth } from "@/contexts/AuthContext";
-import { formatDistanceToNow } from "date-fns";
-import { ptBR } from "date-fns/locale";
+} from '@/components/ui/alert-dialog';
+import { useWebAuthn } from '@/hooks/useWebAuthn';
+import { useAuth } from '@/contexts/AuthContext';
+import { formatDistanceToNow } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 interface PasskeyManagerProps {
   targetUserId?: string;
@@ -27,7 +27,7 @@ export function PasskeyManager({ targetUserId }: PasskeyManagerProps) {
   const { user } = useAuth();
   const effectiveUserId = targetUserId || user?.id;
   const isManagingOther = !!targetUserId && targetUserId !== user?.id;
-  
+
   const {
     isSupported,
     isLoading,
@@ -61,7 +61,7 @@ export function PasskeyManager({ targetUserId }: PasskeyManagerProps) {
 
   const getDeviceIcon = (deviceName: string | null) => {
     if (!deviceName) return <Fingerprint className="h-5 w-5" />;
-    if (deviceName.includes("iOS") || deviceName.includes("Android")) {
+    if (deviceName.includes('iOS') || deviceName.includes('Android')) {
       return <Smartphone className="h-5 w-5" />;
     }
     return <Monitor className="h-5 w-5" />;
@@ -82,8 +82,8 @@ export function PasskeyManager({ targetUserId }: PasskeyManagerProps) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center gap-3 p-4 rounded-xl bg-muted/50 border border-border">
-            <div className="p-2 rounded-full bg-muted">
+          <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/50 p-4">
+            <div className="rounded-full bg-muted p-2">
               <Fingerprint className="h-5 w-5 text-muted-foreground" />
             </div>
             <div>
@@ -113,16 +113,19 @@ export function PasskeyManager({ targetUserId }: PasskeyManagerProps) {
                 : 'Login rápido e seguro usando Face ID, Touch ID ou Windows Hello'}
             </CardDescription>
           </div>
-          <Badge variant={passkeys.length > 0 ? "default" : "secondary"} className={passkeys.length > 0 ? "bg-success" : ""}>
-            {passkeys.length} {passkeys.length === 1 ? "registrada" : "registradas"}
+          <Badge
+            variant={passkeys.length > 0 ? 'default' : 'secondary'}
+            className={passkeys.length > 0 ? 'bg-success' : ''}
+          >
+            {passkeys.length} {passkeys.length === 1 ? 'registrada' : 'registradas'}
           </Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Platform authenticator status - only show for own account */}
         {!isManagingOther && !hasPlatformAuth && (
-          <div className="flex items-center gap-3 p-4 rounded-xl bg-warning/10 border border-warning/30">
-            <div className="p-2 rounded-full bg-warning/20">
+          <div className="flex items-center gap-3 rounded-xl border border-warning/30 bg-warning/10 p-4">
+            <div className="rounded-full bg-warning/20 p-2">
               <Fingerprint className="h-5 w-5 text-warning" />
             </div>
             <div>
@@ -140,25 +143,25 @@ export function PasskeyManager({ targetUserId }: PasskeyManagerProps) {
             {passkeys.map((passkey) => (
               <div
                 key={passkey.id}
-                className="flex items-center justify-between p-4 rounded-xl bg-muted/50 border border-border hover:border-orange/30 transition-colors"
+                className="flex items-center justify-between rounded-xl border border-border bg-muted/50 p-4 transition-colors hover:border-orange/30"
               >
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-full bg-orange/10">
+                  <div className="rounded-full bg-orange/10 p-2">
                     {getDeviceIcon(passkey.device_name)}
                   </div>
                   <div>
                     <p className="font-medium text-foreground">
-                      {passkey.device_name || "Dispositivo desconhecido"}
+                      {passkey.device_name || 'Dispositivo desconhecido'}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      Registrado{" "}
+                      Registrado{' '}
                       {formatDistanceToNow(new Date(passkey.created_at), {
                         addSuffix: true,
                         locale: ptBR,
                       })}
                       {passkey.last_used_at && (
                         <>
-                          {" • "}Último uso{" "}
+                          {' • '}Último uso{' '}
                           {formatDistanceToNow(new Date(passkey.last_used_at), {
                             addSuffix: true,
                             locale: ptBR,
@@ -173,7 +176,8 @@ export function PasskeyManager({ targetUserId }: PasskeyManagerProps) {
                   <AlertDialogTrigger asChild>
                     <Button
                       variant="ghost"
-                      size="icon" aria-label="Carregando"
+                      size="icon"
+                      aria-label="Carregando"
                       className="text-muted-foreground hover:text-destructive"
                       disabled={deletingId === passkey.id}
                     >
@@ -190,8 +194,8 @@ export function PasskeyManager({ targetUserId }: PasskeyManagerProps) {
                       <AlertDialogDescription>
                         {isManagingOther
                           ? 'Este usuário não poderá mais usar este dispositivo para login biométrico.'
-                          : 'Você não poderá mais usar este dispositivo para fazer login biométrico.'}
-                        {' '}Esta ação não pode ser desfeita.
+                          : 'Você não poderá mais usar este dispositivo para fazer login biométrico.'}{' '}
+                        Esta ação não pode ser desfeita.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -212,8 +216,8 @@ export function PasskeyManager({ targetUserId }: PasskeyManagerProps) {
 
         {/* Empty state */}
         {passkeys.length === 0 && (
-          <div className="text-center py-6 space-y-3">
-            <div className="mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center">
+          <div className="space-y-3 py-6 text-center">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-muted">
               <Fingerprint className="h-6 w-6 text-muted-foreground" />
             </div>
             <div>
@@ -244,9 +248,9 @@ export function PasskeyManager({ targetUserId }: PasskeyManagerProps) {
         )}
 
         {/* Info */}
-        <p className="text-xs text-muted-foreground text-center">
-          Passkeys são armazenadas de forma segura no dispositivo e usam biometria
-          (Face ID, Touch ID) ou PIN para autenticação.
+        <p className="text-center text-xs text-muted-foreground">
+          Passkeys são armazenadas de forma segura no dispositivo e usam biometria (Face ID, Touch
+          ID) ou PIN para autenticação.
         </p>
       </CardContent>
     </Card>

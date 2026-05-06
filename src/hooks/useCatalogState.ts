@@ -1,43 +1,56 @@
 /**
  * useCatalogState — all catalog page state & logic extracted from Index.tsx
  */
-import { useState, useMemo, useEffect, useRef, useCallback } from "react";
-import { useColorEnrichment } from "@/hooks/useColorEnrichment";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { Package, Heart, Users, Layers, Palette, FolderTree } from "lucide-react";
-import React from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import { useColorEnrichment } from '@/hooks/useColorEnrichment';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Package, Heart, Users, Layers, Palette, FolderTree } from 'lucide-react';
+import React from 'react';
 
-import { defaultFilters, type FilterState } from "@/components/filters/FilterPanel";
-import { getDefaultColumns, STORAGE_KEY as GRID_COLUMNS_KEY, type ColumnCount } from "@/components/products/ColumnSelector";
-import { useProductsCatalog } from "@/hooks/useProductsLightweight";
-import type { Product } from "@/hooks/useProducts";
-import { useProductsContext } from "@/contexts/ProductsContext";
-import { useSearch } from "@/hooks/useSearch";
-import { useFavoritesStore } from "@/stores/useFavoritesStore";
-import { useFavoriteQuickAdd } from "@/hooks/useFavoriteQuickAdd";
-import { useComparisonStore } from "@/stores/useComparisonStore";
-import { useProductsByMaterial } from "@/hooks/useProductsByMaterial";
-import { useProductFuzzySearch } from "@/hooks/useProductFuzzySearch";
-import { useProductsByCategory } from "@/hooks/useProductsByCategory";
-import { useDebounce } from "@/hooks/useDebounce";
-import { useExternalCategoriesQuery } from "@/hooks/useExternalCategoriesQuery";
-import { useCatalogRealStats } from "@/hooks/useCatalogRealStats";
-import { useToast } from "@/hooks/use-toast";
-import { usePromoSalesRanking } from "@/hooks/usePromoSalesRanking";
-import { useSupplierSalesRanking } from "@/hooks/useSupplierSalesRanking";
-import { useCatalogFiltering } from "./useCatalogFiltering";
+import { defaultFilters, type FilterState } from '@/components/filters/FilterPanel';
+import {
+  getDefaultColumns,
+  STORAGE_KEY as GRID_COLUMNS_KEY,
+  type ColumnCount,
+} from '@/components/products/ColumnSelector';
+import { useProductsCatalog } from '@/hooks/useProductsLightweight';
+import type { Product } from '@/hooks/useProducts';
+import { useProductsContext } from '@/contexts/ProductsContext';
+import { useSearch } from '@/hooks/useSearch';
+import { useFavoritesStore } from '@/stores/useFavoritesStore';
+import { useFavoriteQuickAdd } from '@/hooks/useFavoriteQuickAdd';
+import { useComparisonStore } from '@/stores/useComparisonStore';
+import { useProductsByMaterial } from '@/hooks/useProductsByMaterial';
+import { useProductFuzzySearch } from '@/hooks/useProductFuzzySearch';
+import { useProductsByCategory } from '@/hooks/useProductsByCategory';
+import { useDebounce } from '@/hooks/useDebounce';
+import { useExternalCategoriesQuery } from '@/hooks/useExternalCategoriesQuery';
+import { useCatalogRealStats } from '@/hooks/useCatalogRealStats';
+import { useToast } from '@/hooks/use-toast';
+import { usePromoSalesRanking } from '@/hooks/usePromoSalesRanking';
+import { useSupplierSalesRanking } from '@/hooks/useSupplierSalesRanking';
+import { useCatalogFiltering } from './useCatalogFiltering';
 
-export type ViewMode = "grid" | "list" | "table";
-export type SortOption = "relevance" | "name" | "price-asc" | "price-desc" | "stock" | "newest" | "color-match" | "best-seller-supplier" | "best-seller-promo";
+export type ViewMode = 'grid' | 'list' | 'table';
+export type SortOption =
+  | 'relevance'
+  | 'name'
+  | 'price-asc'
+  | 'price-desc'
+  | 'stock'
+  | 'newest'
+  | 'color-match'
+  | 'best-seller-supplier'
+  | 'best-seller-promo';
 
-const VIEW_MODE_KEY = "catalog-view-mode";
+const VIEW_MODE_KEY = 'catalog-view-mode';
 
 function getPersistedViewMode(): ViewMode {
   try {
     const saved = localStorage.getItem(VIEW_MODE_KEY);
-    if (saved === "grid" || saved === "list" || saved === "table") return saved;
+    if (saved === 'grid' || saved === 'list' || saved === 'table') return saved;
   } catch {}
-  return "grid";
+  return 'grid';
 }
 
 const ITEMS_PER_PAGE = 36;
@@ -52,37 +65,43 @@ export function useCatalogState() {
   const { registerProducts } = useProductsContext();
   const { data: promoSalesMap } = usePromoSalesRanking();
   const { data: supplierSalesMap } = useSupplierSalesRanking();
-  
+
   const isInternalUpdateRef = useRef(false);
   const [activePresetId, setActivePresetId] = useState<string | undefined>(
-    searchParams.get("preset") || undefined
+    searchParams.get('preset') || undefined,
   );
 
-  const setFiltersWithPreset = useCallback((newFilters: FilterState, presetId?: string) => {
-    isInternalUpdateRef.current = true;
-    setFilters(newFilters);
-    setActivePresetId(presetId);
-    
-    // Sincroniza o preset ID com a URL
-    setSearchParams(prev => {
-      const next = new URLSearchParams(prev);
-      if (presetId) {
-        next.set("preset", presetId);
-      } else {
-        next.delete("preset");
+  const setFiltersWithPreset = useCallback(
+    (newFilters: FilterState, presetId?: string) => {
+      isInternalUpdateRef.current = true;
+      setFilters(newFilters);
+      setActivePresetId(presetId);
+
+      // Sincroniza o preset ID com a URL
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          if (presetId) {
+            next.set('preset', presetId);
+          } else {
+            next.delete('preset');
+          }
+          return next;
+        },
+        { replace: true },
+      );
+
+      // Broadcast para outras abas (mecanismo fallback ao Realtime para UI state local)
+      try {
+        const channel = new BroadcastChannel('catalog_preset_sync');
+        channel.postMessage({ type: 'PRESET_APPLIED', presetId, filters: newFilters });
+        channel.close();
+      } catch (e) {
+        console.warn('BroadcastChannel not supported', e);
       }
-      return next;
-    }, { replace: true });
-    
-    // Broadcast para outras abas (mecanismo fallback ao Realtime para UI state local)
-    try {
-      const channel = new BroadcastChannel('catalog_preset_sync');
-      channel.postMessage({ type: 'PRESET_APPLIED', presetId, filters: newFilters });
-      channel.close();
-    } catch (e) {
-      console.warn("BroadcastChannel not supported", e);
-    }
-  }, [setSearchParams]);
+    },
+    [setSearchParams],
+  );
 
   // Efeito para sincronizar URL -> Estado (Navegação/Deep-link)
   useEffect(() => {
@@ -91,7 +110,7 @@ export function useCatalogState() {
       return;
     }
 
-    const presetFromUrl = searchParams.get("preset") || undefined;
+    const presetFromUrl = searchParams.get('preset') || undefined;
     if (presetFromUrl !== activePresetId) {
       setActivePresetId(presetFromUrl);
       // Aqui poderíamos carregar os filtros do preset se tivéssemos acesso aos presets cadastrados
@@ -99,8 +118,8 @@ export function useCatalogState() {
     }
   }, [searchParams, activePresetId]);
 
-  const searchQueryFromUrl = searchParams.get("search") || "";
-  
+  const searchQueryFromUrl = searchParams.get('search') || '';
+
   // Efeito para escutar sincronização entre abas via BroadcastChannel
   useEffect(() => {
     try {
@@ -116,7 +135,7 @@ export function useCatalogState() {
       };
       return () => channel.close();
     } catch (e) {
-      console.warn("BroadcastChannel not supported", e);
+      console.warn('BroadcastChannel not supported', e);
     }
   }, []);
 
@@ -124,14 +143,18 @@ export function useCatalogState() {
   const [viewMode, setViewModeState] = useState<ViewMode>(getPersistedViewMode);
   const setViewMode = useCallback((mode: ViewMode) => {
     setViewModeState(mode);
-    try { localStorage.setItem(VIEW_MODE_KEY, mode); } catch {}
+    try {
+      localStorage.setItem(VIEW_MODE_KEY, mode);
+    } catch {}
   }, []);
   const [gridColumns, setGridColumnsState] = useState<ColumnCount>(getDefaultColumns);
   const setGridColumns = useCallback((cols: ColumnCount) => {
     setGridColumnsState(cols);
-    try { localStorage.setItem(GRID_COLUMNS_KEY, String(cols)); } catch {}
+    try {
+      localStorage.setItem(GRID_COLUMNS_KEY, String(cols));
+    } catch {}
   }, []);
-  const [sortBy, setSortBy] = useState<SortOption>("relevance");
+  const [sortBy, setSortBy] = useState<SortOption>('relevance');
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedCount, setSelectedCount] = useState(0);
   const [activeProductId, setActiveProductId] = useState<string | null>(null);
@@ -151,45 +174,48 @@ export function useCatalogState() {
       return () => clearTimeout(timer);
     }
 
-    const currentPreset = searchParams.get("preset") || undefined;
+    const currentPreset = searchParams.get('preset') || undefined;
     if (currentPreset !== activePresetId) {
       setActivePresetId(currentPreset);
     }
 
     // Sincronização básica de filtros selecionados para a URL
     const timeout = setTimeout(() => {
-      setSearchParams(prev => {
-        const next = new URLSearchParams(prev);
-        
-        // Sincroniza query de busca
-        if (searchQuery) next.set("search", searchQuery);
-        else next.delete("search");
-        
-        // Sincroniza cores
-        if (filters.colorGroups?.length) next.set("colors", filters.colorGroups.join(","));
-        else if (!next.get("preset")) next.delete("colors"); // Apenas deleta se não for preset (pois preset pode ter filtros implícitos)
-        
-        // Sincroniza categorias
-        if (filters.categories?.length) next.set("cats", filters.categories.join(","));
-        else if (!next.get("preset")) next.delete("cats");
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
 
-        // Outros filtros relevantes para consistência total
-        if (filters.inStock) next.set("stock", "true");
-        else next.delete("stock");
+          // Sincroniza query de busca
+          if (searchQuery) next.set('search', searchQuery);
+          else next.delete('search');
 
-        if (filters.isKit) next.set("kit", "true");
-        else next.delete("kit");
+          // Sincroniza cores
+          if (filters.colorGroups?.length) next.set('colors', filters.colorGroups.join(','));
+          else if (!next.get('preset')) next.delete('colors'); // Apenas deleta se não for preset (pois preset pode ter filtros implícitos)
 
-        if (next.toString() === prev.toString()) return prev;
-        return next;
-      }, { replace: true });
+          // Sincroniza categorias
+          if (filters.categories?.length) next.set('cats', filters.categories.join(','));
+          else if (!next.get('preset')) next.delete('cats');
+
+          // Outros filtros relevantes para consistência total
+          if (filters.inStock) next.set('stock', 'true');
+          else next.delete('stock');
+
+          if (filters.isKit) next.set('kit', 'true');
+          else next.delete('kit');
+
+          if (next.toString() === prev.toString()) return prev;
+          return next;
+        },
+        { replace: true },
+      );
     }, 500);
-    
+
     return () => clearTimeout(timeout);
   }, [filters, searchQuery, activePresetId, setSearchParams, searchParams]);
 
   const toggleSelectionMode = useCallback(() => {
-    setSelectionMode(prev => {
+    setSelectionMode((prev) => {
       if (prev) setSelectedCount(0);
       return !prev;
     });
@@ -206,8 +232,8 @@ export function useCatalogState() {
       }
     };
     handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, [gridColumns]);
 
   const debouncedServerSearch = useDebounce(searchQuery, 400);
@@ -224,7 +250,7 @@ export function useCatalogState() {
 
   const realProducts = useMemo(() => {
     if (!catalogData?.pages) return [] as Product[];
-    return catalogData.pages.flatMap(page => page.products);
+    return catalogData.pages.flatMap((page) => page.products);
   }, [catalogData]);
 
   const totalEstimate = catalogData?.pages?.[0]?.totalEstimate ?? null;
@@ -243,14 +269,23 @@ export function useCatalogState() {
     if (realProducts.length > 0) registerProducts(realProducts);
   }, [realProducts, registerProducts]);
 
-  const { suggestions, quickSuggestions, history, addToHistory, clearHistory } = useSearch(realProducts);
+  const { suggestions, quickSuggestions, history, addToHistory, clearHistory } =
+    useSearch(realProducts);
 
-  const { productIds: materialFilteredProductIds, hasFilter: hasMaterialFilter, isLoading: isLoadingMaterialFilter } = useProductsByMaterial({
+  const {
+    productIds: materialFilteredProductIds,
+    hasFilter: hasMaterialFilter,
+    isLoading: isLoadingMaterialFilter,
+  } = useProductsByMaterial({
     materialGroupSlugs: filters.materialGroups || [],
     materialTypeSlugs: filters.materialTypes || [],
   });
 
-  const { productIds: categoryFilteredProductIds, hasFilter: hasCategoryFilter, isLoading: isLoadingCategoryFilter } = useProductsByCategory({
+  const {
+    productIds: categoryFilteredProductIds,
+    hasFilter: hasCategoryFilter,
+    isLoading: isLoadingCategoryFilter,
+  } = useProductsByCategory({
     categoryIds: filters.categories?.map(String) || [],
     includeDescendants: true,
   });
@@ -259,7 +294,8 @@ export function useCatalogState() {
   const { data: realStats } = useCatalogRealStats();
 
   const isLoading = isLoadingProducts || isLoadingMaterialFilter || isLoadingCategoryFilter;
-  const isInitialCatalogLoad = (isLoadingProducts || isFetchingProducts) && realProducts.length === 0;
+  const isInitialCatalogLoad =
+    (isLoadingProducts || isFetchingProducts) && realProducts.length === 0;
 
   useEffect(() => {
     setSearchQuery(searchQueryFromUrl);
@@ -294,19 +330,38 @@ export function useCatalogState() {
   }, [filters]);
 
   const debouncedSearchQuery = useDebounce(searchQuery, 350);
-  const { results: fuzzySearchResults, hasSearch: hasFuzzySearch } = useProductFuzzySearch(realProducts, debouncedSearchQuery);
+  const { results: fuzzySearchResults, hasSearch: hasFuzzySearch } = useProductFuzzySearch(
+    realProducts,
+    debouncedSearchQuery,
+  );
 
   const filteredProducts = useCatalogFiltering({
-    realProducts, filters, sortBy, hasFuzzySearch, fuzzySearchResults,
-    hasMaterialFilter, materialFilteredProductIds, isLoadingMaterialFilter,
-    hasCategoryFilter, categoryFilteredProductIds, isLoadingCategoryFilter,
-    promoSalesMap, supplierSalesMap,
+    realProducts,
+    filters,
+    sortBy,
+    hasFuzzySearch,
+    fuzzySearchResults,
+    hasMaterialFilter,
+    materialFilteredProductIds,
+    isLoadingMaterialFilter,
+    hasCategoryFilter,
+    categoryFilteredProductIds,
+    isLoadingCategoryFilter,
+    promoSalesMap,
+    supplierSalesMap,
   });
 
-  const rawPaginatedProducts = useMemo(() => filteredProducts.slice(0, displayCount), [filteredProducts, displayCount]);
+  const rawPaginatedProducts = useMemo(
+    () => filteredProducts.slice(0, displayCount),
+    [filteredProducts, displayCount],
+  );
 
-  const hasColorFilterActive = (filters.colorGroups?.length || 0) > 0 || (filters.colorVariations?.length || 0) > 0;
-  const paginatedProductIds = useMemo(() => rawPaginatedProducts.map(p => p.id), [rawPaginatedProducts]);
+  const hasColorFilterActive =
+    (filters.colorGroups?.length || 0) > 0 || (filters.colorVariations?.length || 0) > 0;
+  const paginatedProductIds = useMemo(
+    () => rawPaginatedProducts.map((p) => p.id),
+    [rawPaginatedProducts],
+  );
   const { data: catalogColorEnrichmentMap } = useColorEnrichment({
     productIds: paginatedProductIds,
     colorGroups: filters.colorGroups || [],
@@ -314,34 +369,53 @@ export function useCatalogState() {
   });
 
   const paginatedProducts = useMemo(() => {
-    if (!catalogColorEnrichmentMap || catalogColorEnrichmentMap.size === 0 || !hasColorFilterActive) return rawPaginatedProducts;
-    return rawPaginatedProducts.map(product => {
+    if (!catalogColorEnrichmentMap || catalogColorEnrichmentMap.size === 0 || !hasColorFilterActive)
+      return rawPaginatedProducts;
+    return rawPaginatedProducts.map((product) => {
       const enrichment = catalogColorEnrichmentMap.get(product.id);
       if (!enrichment) return product;
       return {
         ...product,
-        ...(enrichment.image ? {
-          og_image_url: enrichment.image,
-          images: [enrichment.image, ...product.images.filter((img: string) => img !== enrichment.image)],
-        } : {}),
+        ...(enrichment.image
+          ? {
+              og_image_url: enrichment.image,
+              images: [
+                enrichment.image,
+                ...product.images.filter((img: string) => img !== enrichment.image),
+              ],
+            }
+          : {}),
         stock: enrichment.stock,
         stockStatus: enrichment.stockStatus,
-        colors: enrichment.colorName ? [{
-          name: enrichment.colorName,
-          hex: enrichment.colorHex || '#CCCCCC',
-          group: enrichment.colorName,
-          groupSlug: filters.colorGroups?.[0] || undefined,
-          variationSlug: filters.colorVariations?.[0] || undefined,
-          image: enrichment.image || undefined,
-          images: enrichment.image ? [enrichment.image] : undefined,
-        }] : product.colors,
+        colors: enrichment.colorName
+          ? [
+              {
+                name: enrichment.colorName,
+                hex: enrichment.colorHex || '#CCCCCC',
+                group: enrichment.colorName,
+                groupSlug: filters.colorGroups?.[0] || undefined,
+                variationSlug: filters.colorVariations?.[0] || undefined,
+                image: enrichment.image || undefined,
+                images: enrichment.image ? [enrichment.image] : undefined,
+              },
+            ]
+          : product.colors,
       };
     });
-  }, [rawPaginatedProducts, catalogColorEnrichmentMap, hasColorFilterActive, filters.colorGroups, filters.colorVariations]);
+  }, [
+    rawPaginatedProducts,
+    catalogColorEnrichmentMap,
+    hasColorFilterActive,
+    filters.colorGroups,
+    filters.colorVariations,
+  ]);
 
-  const shouldShowCatalogSkeleton = isInitialCatalogLoad || (isLoading && paginatedProducts.length === 0 && !hasActiveCatalogConstraints);
+  const shouldShowCatalogSkeleton =
+    isInitialCatalogLoad ||
+    (isLoading && paginatedProducts.length === 0 && !hasActiveCatalogConstraints);
   const hasActiveCatalogConstraints = activeFiltersCount > 0 || searchQuery.trim().length > 0;
-  const shouldShowEmptyState = !shouldShowCatalogSkeleton && paginatedProducts.length === 0 && !isFetchingNextPage;
+  const shouldShowEmptyState =
+    !shouldShowCatalogSkeleton && paginatedProducts.length === 0 && !isFetchingNextPage;
 
   const hasMoreProducts = useMemo(() => {
     return paginatedProducts.length < filteredProducts.length || !!hasNextPage;
@@ -366,16 +440,29 @@ export function useCatalogState() {
       fetchNextPage().finally(() => {
         setDisplayCount((prev) => prev + ITEMS_PER_PAGE);
         setIsLoadingMore(false);
-        setTimeout(() => { isUpdatingRef.current = false; }, 100);
+        setTimeout(() => {
+          isUpdatingRef.current = false;
+        }, 100);
       });
     } else {
       setTimeout(() => {
         setDisplayCount((prev) => prev + ITEMS_PER_PAGE);
         setIsLoadingMore(false);
-        setTimeout(() => { isUpdatingRef.current = false; }, 100);
+        setTimeout(() => {
+          isUpdatingRef.current = false;
+        }, 100);
       }, 150);
     }
-  }, [isLoading, isLoadingMore, isFetchingNextPage, hasMoreProducts, displayCount, filteredProducts.length, hasNextPage, fetchNextPage]);
+  }, [
+    isLoading,
+    isLoadingMore,
+    isFetchingNextPage,
+    hasMoreProducts,
+    displayCount,
+    filteredProducts.length,
+    hasNextPage,
+    fetchNextPage,
+  ]);
 
   useEffect(() => {
     if (isLoading) return;
@@ -388,11 +475,13 @@ export function useCatalogState() {
           loadMore();
         }
       },
-      { threshold: 0.1, rootMargin: "200px" }
+      { threshold: 0.1, rootMargin: '200px' },
     );
 
     if (loadMoreRef.current) observerRef.current.observe(loadMoreRef.current);
-    return () => { observerRef.current?.disconnect(); };
+    return () => {
+      observerRef.current?.disconnect();
+    };
   }, [isLoading, hasMoreProducts, isLoadingMore, loadMore]);
 
   const statBadges = useMemo(() => {
@@ -404,41 +493,95 @@ export function useCatalogState() {
       return true;
     });
 
-    const productCount = hasActiveFilters ? deduped.length : (totalEstimate || deduped.length);
+    const productCount = hasActiveFilters ? deduped.length : totalEstimate || deduped.length;
     const localVariants = deduped.reduce((sum, p) => {
-      const colorCount = p.colors?.filter((c: Record<string, string>) => c.name?.trim()).length || 0;
+      const colorCount =
+        p.colors?.filter((c: Record<string, string>) => c.name?.trim()).length || 0;
       const variationCount = !colorCount && p.variations?.length ? p.variations.length : 0;
       return sum + colorCount + variationCount;
     }, 0);
-    const totalVariants = hasActiveFilters ? localVariants : (realStats?.totalVariants ?? localVariants);
+    const totalVariants = hasActiveFilters
+      ? localVariants
+      : (realStats?.totalVariants ?? localVariants);
 
-    const uniqueCategoryIds = new Set(deduped.map((p) => p.category_id || (p.category?.id ? String(p.category.id) : "")).filter((id) => id && id !== "0"));
-    const categoriesCount = hasActiveFilters ? uniqueCategoryIds.size : (realStats?.totalCategories ?? uniqueCategoryIds.size);
+    const uniqueCategoryIds = new Set(
+      deduped
+        .map((p) => p.category_id || (p.category?.id ? String(p.category.id) : ''))
+        .filter((id) => id && id !== '0'),
+    );
+    const categoriesCount = hasActiveFilters
+      ? uniqueCategoryIds.size
+      : (realStats?.totalCategories ?? uniqueCategoryIds.size);
 
-    const uniqueSuppliers = new Set(deduped.map((p) => p.supplier?.name?.trim().toLowerCase()).filter((n): n is string => !!n && n !== "sem fornecedor"));
-    const suppliersCount = hasActiveFilters ? uniqueSuppliers.size : (realStats?.totalSuppliers ?? uniqueSuppliers.size);
+    const uniqueSuppliers = new Set(
+      deduped
+        .map((p) => p.supplier?.name?.trim().toLowerCase())
+        .filter((n): n is string => !!n && n !== 'sem fornecedor'),
+    );
+    const suppliersCount = hasActiveFilters
+      ? uniqueSuppliers.size
+      : (realStats?.totalSuppliers ?? uniqueSuppliers.size);
 
-    const contextualFavoriteCount = isFavorite ? deduped.filter((p) => isFavorite(p.id)).length : favoriteCount;
+    const contextualFavoriteCount = isFavorite
+      ? deduped.filter((p) => isFavorite(p.id)).length
+      : favoriteCount;
 
     return [
-      { id: "products", label: "Produtos Únicos", value: productCount, icon: React.createElement(Package, { className: "h-4 w-4" }) },
-      { id: "variants", label: "Variações", value: totalVariants, icon: React.createElement(Palette, { className: "h-4 w-4" }) },
-      { id: "categories", label: "Categorias", value: categoriesCount, icon: React.createElement(FolderTree, { className: "h-4 w-4" }) },
-      { id: "suppliers", label: "Fornecedores", value: suppliersCount, icon: React.createElement(Users, { className: "h-4 w-4" }) },
-      { id: "favorites", label: "Favoritos", value: contextualFavoriteCount, icon: React.createElement(Heart, { className: "h-4 w-4" }) },
+      {
+        id: 'products',
+        label: 'Produtos Únicos',
+        value: productCount,
+        icon: React.createElement(Package, { className: 'h-4 w-4' }),
+      },
+      {
+        id: 'variants',
+        label: 'Variações',
+        value: totalVariants,
+        icon: React.createElement(Palette, { className: 'h-4 w-4' }),
+      },
+      {
+        id: 'categories',
+        label: 'Categorias',
+        value: categoriesCount,
+        icon: React.createElement(FolderTree, { className: 'h-4 w-4' }),
+      },
+      {
+        id: 'suppliers',
+        label: 'Fornecedores',
+        value: suppliersCount,
+        icon: React.createElement(Users, { className: 'h-4 w-4' }),
+      },
+      {
+        id: 'favorites',
+        label: 'Favoritos',
+        value: contextualFavoriteCount,
+        icon: React.createElement(Heart, { className: 'h-4 w-4' }),
+      },
     ];
-  }, [filteredProducts, favoriteCount, isFavorite, activeFiltersCount, searchQuery, totalEstimate, hasNextPage, realStats]);
+  }, [
+    filteredProducts,
+    favoriteCount,
+    isFavorite,
+    activeFiltersCount,
+    searchQuery,
+    totalEstimate,
+    hasNextPage,
+    realStats,
+  ]);
 
   const resetFilters = useCallback(() => {
     setFilters(defaultFilters);
-    setSortBy("name");
-    setSearchQuery("");
-    navigate("/", { replace: true });
+    setSortBy('name');
+    setSearchQuery('');
+    navigate('/', { replace: true });
   }, [navigate]);
 
-  const handleViewProduct = useCallback((product: Product) => {
-    navigate(`/produto/${product.id}`);
-  }, [navigate]);
+  const handleViewProduct = useCallback(
+    (product: Product) => {
+      navigate(`/produto/${product.id}`);
+    },
+    [navigate],
+  );
 
   const [shareProduct, setShareProduct] = useState<Product | null>(null);
 
@@ -446,39 +589,47 @@ export function useCatalogState() {
     setShareProduct(product);
   }, []);
 
-  const handleFavoriteProduct = useCallback((product: Product, e?: React.MouseEvent) => {
-    const result = favQuickAdd.handleFavoriteClick(product, { shiftKey: e?.shiftKey });
-    if (!result.resolved && result.reason === "picker-needed") {
-      const target = favQuickAdd.defaultList;
-      if (target) {
-        void favQuickAdd.addToList(target.id, product);
-        toast({
-          title: "Adicionado aos Favoritos",
-          description: `Salvo em "${target.name}". Use Shift+clique para confirmar a lista padrão sem confirmação.`,
-        });
-      } else {
-        toggleFavorite(product.id);
+  const handleFavoriteProduct = useCallback(
+    (product: Product, e?: React.MouseEvent) => {
+      const result = favQuickAdd.handleFavoriteClick(product, { shiftKey: e?.shiftKey });
+      if (!result.resolved && result.reason === 'picker-needed') {
+        const target = favQuickAdd.defaultList;
+        if (target) {
+          void favQuickAdd.addToList(target.id, product);
+          toast({
+            title: 'Adicionado aos Favoritos',
+            description: `Salvo em "${target.name}". Use Shift+clique para confirmar a lista padrão sem confirmação.`,
+          });
+        } else {
+          toggleFavorite(product.id);
+        }
       }
-    }
-  }, [favQuickAdd, toggleFavorite, toast]);
+    },
+    [favQuickAdd, toggleFavorite, toast],
+  );
 
-  const handleSearch = useCallback((query: string) => {
-    setIsSearching(true);
-    setSearchQuery(query);
-    if (query) addToHistory(query);
-    setTimeout(() => setIsSearching(false), 300);
-  }, [addToHistory]);
+  const handleSearch = useCallback(
+    (query: string) => {
+      setIsSearching(true);
+      setSearchQuery(query);
+      if (query) addToHistory(query);
+      setTimeout(() => setIsSearching(false), 300);
+    },
+    [addToHistory],
+  );
 
   // Keyboard Navigation Logic
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Ignore if typing in input/textarea or if dialogs are open (heuristic)
       const target = e.target as HTMLElement;
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) return;
-      if (document.querySelector('[role="dialog"]') || document.querySelector('[role="menu"]')) return;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
+        return;
+      if (document.querySelector('[role="dialog"]') || document.querySelector('[role="menu"]'))
+        return;
 
-      const currentIndex = paginatedProducts.findIndex(p => p.id === activeProductId);
-      
+      const currentIndex = paginatedProducts.findIndex((p) => p.id === activeProductId);
+
       switch (e.key) {
         case 'j':
         case 'ArrowDown':
@@ -506,7 +657,7 @@ export function useCatalogState() {
         case 'f':
           if (activeProductId) {
             e.preventDefault();
-            const product = paginatedProducts.find(p => p.id === activeProductId);
+            const product = paginatedProducts.find((p) => p.id === activeProductId);
             if (product) handleFavoriteProduct(product);
           }
           break;
@@ -527,20 +678,29 @@ export function useCatalogState() {
   }, [activeProductId, paginatedProducts, navigate, handleFavoriteProduct, selectionMode]);
 
   return {
-    filters, setFilters,
+    filters,
+    setFilters,
     setFiltersWithPreset,
     activePresetId,
-    viewMode, setViewMode,
-    gridColumns, setGridColumns,
-    sortBy, setSortBy,
+    viewMode,
+    setViewMode,
+    gridColumns,
+    setGridColumns,
+    sortBy,
+    setSortBy,
     refetchCatalog,
-    selectionMode, setSelectionMode,
-    selectedCount, setSelectedCount,
+    selectionMode,
+    setSelectionMode,
+    selectedCount,
+    setSelectedCount,
     toggleSelectionMode,
-    filterSheetOpen, setFilterSheetOpen,
-    searchQuery, setSearchQuery,
+    filterSheetOpen,
+    setFilterSheetOpen,
+    searchQuery,
+    setSearchQuery,
     isSearching,
-    displayCount, setDisplayCount,
+    displayCount,
+    setDisplayCount,
     isLoadingMore,
     isInitialCatalogLoad,
     isLoading,
@@ -574,6 +734,6 @@ export function useCatalogState() {
     searchHistory: history,
     clearHistory,
     navigate,
-    ITEMS_PER_PAGE
+    ITEMS_PER_PAGE,
   };
 }

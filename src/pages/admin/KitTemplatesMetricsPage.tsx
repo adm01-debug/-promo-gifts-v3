@@ -8,7 +8,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { PageSEO } from '@/components/seo/PageSEO';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { TrendingUp, Package, Award, Share2, Eye, Percent } from 'lucide-react';
@@ -89,7 +96,12 @@ export default function KitTemplatesMetricsPage() {
         .select('id, viewed_at, status, created_at')
         .limit(5000);
       if (error) throw error;
-      const rows = (data ?? []) as Array<{ id: string; viewed_at: string | null; status: string; created_at: string }>;
+      const rows = (data ?? []) as Array<{
+        id: string;
+        viewed_at: string | null;
+        status: string;
+        created_at: string;
+      }>;
       const generated = rows.length;
       const active = rows.filter((r) => r.status === 'active').length;
       const revoked = rows.filter((r) => r.status === 'revoked').length;
@@ -101,8 +113,14 @@ export default function KitTemplatesMetricsPage() {
       const recentViewed = recent.filter((r) => r.viewed_at).length;
       const recentRate = recent.length > 0 ? (recentViewed / recent.length) * 100 : 0;
       return {
-        generated, active, revoked, viewed, rate,
-        recent: recent.length, recentViewed, recentRate,
+        generated,
+        active,
+        revoked,
+        viewed,
+        rate,
+        recent: recent.length,
+        recentViewed,
+        recentRate,
       };
     },
   });
@@ -124,46 +142,46 @@ export default function KitTemplatesMetricsPage() {
         path="/admin/kit-templates/metricas"
         noIndex
       />
-      <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
+      <div className="mx-auto w-full max-w-[1920px] animate-fade-in space-y-3 px-3 py-3 pb-24 sm:space-y-4 sm:px-4 sm:py-4 md:pb-6 lg:px-6 xl:px-8">
         <div>
-          <h1 className="text-xl font-display font-semibold">Métricas de Kits</h1>
+          <h1 className="font-display text-xl font-semibold">Métricas de Kits</h1>
           <p className="text-sm text-muted-foreground">
             Adoção de templates e itens mais usados pela equipe.
           </p>
         </div>
 
         {/* KPIs */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <Card>
-            <CardContent className="p-4 flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+            <CardContent className="flex items-center gap-3 p-4">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
                 <Package className="h-5 w-5 text-primary" />
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Templates ativos</p>
-                <p className="text-xl font-display font-semibold">{stats.total}</p>
+                <p className="font-display text-xl font-semibold">{stats.total}</p>
               </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-4 flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+            <CardContent className="flex items-center gap-3 p-4">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
                 <TrendingUp className="h-5 w-5 text-primary" />
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Clonagens totais</p>
-                <p className="text-xl font-display font-semibold">{stats.totalUsage}</p>
+                <p className="font-display text-xl font-semibold">{stats.totalUsage}</p>
               </div>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-4 flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+            <CardContent className="flex items-center gap-3 p-4">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
                 <Award className="h-5 w-5 text-primary" />
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Templates populares (≥5 usos)</p>
-                <p className="text-xl font-display font-semibold">{stats.popular}</p>
+                <p className="font-display text-xl font-semibold">{stats.popular}</p>
               </div>
             </CardContent>
           </Card>
@@ -177,7 +195,9 @@ export default function KitTemplatesMetricsPage() {
           <CardContent>
             {loadingTemplates ? (
               <div className="space-y-2">
-                {[1, 2, 3].map((i) => <Skeleton key={i} className="h-10 w-full" />)}
+                {[1, 2, 3].map((i) => (
+                  <Skeleton key={i} className="h-10 w-full" />
+                ))}
               </div>
             ) : (
               <Table>
@@ -200,13 +220,21 @@ export default function KitTemplatesMetricsPage() {
                             style={{ backgroundColor: t.color }}
                           />
                           <span className="font-medium">{t.name}</span>
-                          {t.tag && <Badge variant="outline" className="text-[10px]">{t.tag}</Badge>}
+                          {t.tag && (
+                            <Badge variant="outline" className="text-[10px]">
+                              {t.tag}
+                            </Badge>
+                          )}
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="secondary" className="text-[10px]">{t.category}</Badge>
+                        <Badge variant="secondary" className="text-[10px]">
+                          {t.category}
+                        </Badge>
                       </TableCell>
-                      <TableCell className="text-right tabular-nums">{formatCurrency(t.total_price)}</TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        {formatCurrency(t.total_price)}
+                      </TableCell>
                       <TableCell className="text-right">
                         <Badge variant={t.usage_count >= 5 ? 'default' : 'outline'}>
                           {t.usage_count}
@@ -231,7 +259,9 @@ export default function KitTemplatesMetricsPage() {
           <CardContent>
             {loadingHeatmap ? (
               <div className="space-y-2">
-                {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-8 w-full" />)}
+                {[1, 2, 3, 4].map((i) => (
+                  <Skeleton key={i} className="h-8 w-full" />
+                ))}
               </div>
             ) : (heatmap ?? []).length === 0 ? (
               <p className="text-sm text-muted-foreground">Sem dados ainda.</p>
@@ -239,10 +269,14 @@ export default function KitTemplatesMetricsPage() {
               <div className="space-y-1.5">
                 {(heatmap ?? []).map((item, idx) => (
                   <div key={item.sku} className="flex items-center gap-3 text-sm">
-                    <span className="text-muted-foreground tabular-nums w-6 text-right">{idx + 1}.</span>
-                    <span className="truncate flex-1 font-medium">{item.name}</span>
-                    <span className="text-xs text-muted-foreground tabular-nums">{item.count}×</span>
-                    <div className="w-32 h-2 bg-muted rounded-full overflow-hidden">
+                    <span className="w-6 text-right tabular-nums text-muted-foreground">
+                      {idx + 1}.
+                    </span>
+                    <span className="flex-1 truncate font-medium">{item.name}</span>
+                    <span className="text-xs tabular-nums text-muted-foreground">
+                      {item.count}×
+                    </span>
+                    <div className="h-2 w-32 overflow-hidden rounded-full bg-muted">
                       <div
                         className="h-full bg-primary"
                         style={{ width: `${(item.count / maxCount) * 100}%` }}
@@ -258,44 +292,54 @@ export default function KitTemplatesMetricsPage() {
         {/* Conversão de compartilhamentos */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-base">
               <Share2 className="h-4 w-4 text-primary" />
               Conversão de compartilhamentos
             </CardTitle>
           </CardHeader>
           <CardContent>
             {loadingShare ? (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-20" />)}
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                {[1, 2, 3, 4].map((i) => (
+                  <Skeleton key={i} className="h-20" />
+                ))}
               </div>
             ) : !shareConversion || shareConversion.generated === 0 ? (
-              <p className="text-sm text-muted-foreground py-4">
+              <p className="py-4 text-sm text-muted-foreground">
                 Nenhum link de apresentação gerado ainda.
               </p>
             ) : (
               <div className="space-y-4">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
                   <div className="rounded-lg border bg-card/40 p-3">
-                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Gerados</p>
-                    <p className="text-xl font-display font-semibold tabular-nums">{shareConversion.generated}</p>
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                      Gerados
+                    </p>
+                    <p className="font-display text-xl font-semibold tabular-nums">
+                      {shareConversion.generated}
+                    </p>
                   </div>
                   <div className="rounded-lg border bg-card/40 p-3">
-                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                    <p className="flex items-center gap-1 text-[10px] uppercase tracking-wider text-muted-foreground">
                       <Eye className="h-3 w-3" /> Visualizados
                     </p>
-                    <p className="text-xl font-display font-semibold tabular-nums">{shareConversion.viewed}</p>
+                    <p className="font-display text-xl font-semibold tabular-nums">
+                      {shareConversion.viewed}
+                    </p>
                   </div>
                   <div className="rounded-lg border bg-card/40 p-3">
-                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                    <p className="flex items-center gap-1 text-[10px] uppercase tracking-wider text-muted-foreground">
                       <Percent className="h-3 w-3" /> Taxa
                     </p>
-                    <p className="text-xl font-display font-semibold tabular-nums text-primary">
+                    <p className="font-display text-xl font-semibold tabular-nums text-primary">
                       {shareConversion.rate.toFixed(1)}%
                     </p>
                   </div>
                   <div className="rounded-lg border bg-card/40 p-3">
-                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Ativos / Revogados</p>
-                    <p className="text-sm font-medium tabular-nums mt-1">
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                      Ativos / Revogados
+                    </p>
+                    <p className="mt-1 text-sm font-medium tabular-nums">
                       <span className="text-success">{shareConversion.active}</span>
                       <span className="text-muted-foreground"> / </span>
                       <span className="text-destructive">{shareConversion.revoked}</span>
@@ -304,11 +348,15 @@ export default function KitTemplatesMetricsPage() {
                 </div>
 
                 <div className="rounded-lg border bg-muted/30 p-3 text-sm">
-                  <p className="font-medium mb-1">Últimos 30 dias</p>
-                  <p className="text-muted-foreground text-xs">
-                    {shareConversion.recent} link{shareConversion.recent === 1 ? '' : 's'} gerado{shareConversion.recent === 1 ? '' : 's'} •{' '}
-                    {shareConversion.recentViewed} visualizado{shareConversion.recentViewed === 1 ? '' : 's'} •{' '}
-                    <span className="text-primary font-medium">{shareConversion.recentRate.toFixed(1)}%</span> de conversão
+                  <p className="mb-1 font-medium">Últimos 30 dias</p>
+                  <p className="text-xs text-muted-foreground">
+                    {shareConversion.recent} link{shareConversion.recent === 1 ? '' : 's'} gerado
+                    {shareConversion.recent === 1 ? '' : 's'} • {shareConversion.recentViewed}{' '}
+                    visualizado{shareConversion.recentViewed === 1 ? '' : 's'} •{' '}
+                    <span className="font-medium text-primary">
+                      {shareConversion.recentRate.toFixed(1)}%
+                    </span>{' '}
+                    de conversão
                   </p>
                 </div>
               </div>

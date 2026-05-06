@@ -34,7 +34,7 @@ vi.mock('../hooks/useCatalogPrefetch', () => ({
 
 // Mock components that use Router hooks outside a Router in the test tree
 vi.mock('../components/common/RouteScrollReset', () => ({
-  RouteScrollReset: () => null
+  RouteScrollReset: () => null,
 }));
 
 // Mock the App sub-components to prevent them from executing Router logic
@@ -54,7 +54,7 @@ vi.mock('../App', async (importOriginal) => {
           <div data-testid="app-shell" />
         </ThemeProvider>
       );
-    }
+    },
   };
 });
 
@@ -62,14 +62,16 @@ vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom');
   return {
     ...actual,
-    BrowserRouter: ({ children }: { children: React.ReactNode }) => <div data-testid="browser-router">{children}</div>,
+    BrowserRouter: ({ children }: { children: React.ReactNode }) => (
+      <div data-testid="browser-router">{children}</div>
+    ),
     useLocation: vi.fn(() => ({ pathname: '/' })),
   };
 });
 
 // Mock ThemeInitializer to see if it's mounted
 vi.mock('../components/ThemeInitializer', () => ({
-  ThemeInitializer: () => <div data-testid="theme-initializer" />
+  ThemeInitializer: () => <div data-testid="theme-initializer" />,
 }));
 
 describe('App Structure and Navigation', () => {
@@ -84,8 +86,3 @@ describe('App Structure and Navigation', () => {
     }
   });
 });
-
-
-
-
-

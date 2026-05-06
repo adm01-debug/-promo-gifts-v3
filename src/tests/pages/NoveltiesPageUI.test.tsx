@@ -43,8 +43,8 @@ vi.mock('@/hooks/useNovelties', async () => {
     useNoveltyStats: vi.fn(() => ({
       data: {
         totalNovelties: MOCK_NOVELTIES.length,
-        activeNovelties: MOCK_NOVELTIES.filter(p => p.status === 'active').length,
-        expiringSoon: MOCK_NOVELTIES.filter(p => p.status === 'expiring_soon').length,
+        activeNovelties: MOCK_NOVELTIES.filter((p) => p.status === 'active').length,
+        expiringSoon: MOCK_NOVELTIES.filter((p) => p.status === 'expiring_soon').length,
         arrivedToday: 1,
         arrivedThisWeek: 3,
         arrivedLast15Days: 5,
@@ -55,7 +55,7 @@ vi.mock('@/hooks/useNovelties', async () => {
       isSuccess: true,
     })),
     useExpiringNovelties: vi.fn(() => ({
-      data: MOCK_NOVELTIES.filter(p => p.status === 'expiring_soon'),
+      data: MOCK_NOVELTIES.filter((p) => p.status === 'expiring_soon'),
       isLoading: false,
       isSuccess: true,
     })),
@@ -86,7 +86,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 // Wrapper for required providers
 const AllProviders = ({ children }: { children: React.ReactNode }) => {
   const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false, staleTime: 0 } }
+    defaultOptions: { queries: { retry: false, staleTime: 0 } },
   });
 
   return (
@@ -95,9 +95,7 @@ const AllProviders = ({ children }: { children: React.ReactNode }) => {
         <TooltipProvider>
           <ProductsProvider>
             <CollectionsProvider>
-              <SellerCartProvider>
-                {children}
-              </SellerCartProvider>
+              <SellerCartProvider>{children}</SellerCartProvider>
             </CollectionsProvider>
           </ProductsProvider>
         </TooltipProvider>
@@ -113,15 +111,17 @@ describe('NoveltiesPage UI', () => {
 
   it('renders page title and description correctly', () => {
     render(<NoveltiesPage />, { wrapper: AllProviders });
-    
+
     const titles = screen.getAllByTestId('page-title-novidades');
     expect(titles.length).toBeGreaterThan(0);
-    expect(screen.getByText(/Produtos recém-chegados ao catálogo nos últimos 30 dias/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Produtos recém-chegados ao catálogo nos últimos 30 dias/i),
+    ).toBeInTheDocument();
   });
 
   it('renders stats cards with data', async () => {
     render(<NoveltiesPage />, { wrapper: AllProviders });
-    
+
     await waitFor(() => {
       expect(screen.getByText(/Chegaram Hoje/i)).toBeInTheDocument();
       expect(screen.getByText(/Novidades Ativas/i)).toBeInTheDocument();
@@ -131,51 +131,60 @@ describe('NoveltiesPage UI', () => {
 
   it('renders the product grid with mock products', async () => {
     render(<NoveltiesPage />, { wrapper: AllProviders });
-    
-    await waitFor(() => {
-      expect(screen.getAllByText('Power Bank Solar 20000mAh').length).toBeGreaterThan(0);
-    }, { timeout: 2000 });
+
+    await waitFor(
+      () => {
+        expect(screen.getAllByText('Power Bank Solar 20000mAh').length).toBeGreaterThan(0);
+      },
+      { timeout: 2000 },
+    );
   });
 
   it('filters products by search query', async () => {
     render(<NoveltiesPage />, { wrapper: AllProviders });
-    
+
     await waitFor(() => screen.getAllByText('Power Bank Solar 20000mAh'));
 
     const searchInputs = screen.getAllByPlaceholderText(/Buscar novidades…/i);
     fireEvent.change(searchInputs[0], { target: { value: 'Solar' } });
-    
-    await waitFor(() => {
-      expect(screen.getAllByText('Power Bank Solar 20000mAh').length).toBeGreaterThan(0);
-    }, { timeout: 2000 });
+
+    await waitFor(
+      () => {
+        expect(screen.getAllByText('Power Bank Solar 20000mAh').length).toBeGreaterThan(0);
+      },
+      { timeout: 2000 },
+    );
   });
 
   it('navigates to product detail on card click', async () => {
     render(<NoveltiesPage />, { wrapper: AllProviders });
-    
+
     const productName = (await screen.findAllByText('Power Bank Solar 20000mAh'))[0];
     const card = productName.closest('.cursor-pointer');
     if (!card) throw new Error('Card not found');
-    
+
     fireEvent.click(card);
     expect(mockNavigate).toHaveBeenCalledWith('/produto/p-1');
   });
 
   it('clears filters when clicking the clear button', async () => {
     render(<NoveltiesPage />, { wrapper: AllProviders });
-    
+
     await waitFor(() => screen.getAllByText('Power Bank Solar 20000mAh'));
 
     const searchInputs = screen.getAllByPlaceholderText(/Buscar novidades…/i);
     fireEvent.change(searchInputs[0], { target: { value: 'XYZ_NON_EXISTENT' } });
-    
-    await waitFor(() => {
-      expect(screen.getByText(/Nenhuma novidade encontrada/i)).toBeInTheDocument();
-    }, { timeout: 2000 });
-    
+
+    await waitFor(
+      () => {
+        expect(screen.getByText(/Nenhuma novidade encontrada/i)).toBeInTheDocument();
+      },
+      { timeout: 2000 },
+    );
+
     const clearButton = screen.getByText(/Limpar todos os filtros/i);
     fireEvent.click(clearButton);
-    
+
     await waitFor(() => {
       expect(screen.getAllByText('Power Bank Solar 20000mAh').length).toBeGreaterThan(0);
     });

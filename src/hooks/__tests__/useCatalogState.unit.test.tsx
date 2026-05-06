@@ -1,15 +1,15 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { renderHook, waitFor } from "@testing-library/react";
-import { useCatalogState } from "@/hooks/useCatalogState";
-import { BrowserRouter } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ProductsProvider } from "@/contexts/ProductsContext";
-import { AuthProvider } from "@/contexts/AuthContext";
-import { ThemeProvider } from "@/contexts/ThemeContext";
-import React from "react";
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { renderHook, waitFor } from '@testing-library/react';
+import { useCatalogState } from '@/hooks/useCatalogState';
+import { BrowserRouter } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ProductsProvider } from '@/contexts/ProductsContext';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { ThemeProvider } from '@/contexts/ThemeContext';
+import React from 'react';
 
 // Mock dependencies
-vi.mock("@/integrations/supabase/client", () => {
+vi.mock('@/integrations/supabase/client', () => {
   const mockAuth = {
     onAuthStateChange: vi.fn(() => ({
       data: { subscription: { unsubscribe: vi.fn() } },
@@ -18,7 +18,7 @@ vi.mock("@/integrations/supabase/client", () => {
     signInWithPassword: vi.fn(),
     signOut: vi.fn(),
   };
-  
+
   return {
     supabase: {
       auth: mockAuth,
@@ -37,14 +37,14 @@ vi.mock("@/integrations/supabase/client", () => {
   };
 });
 
-vi.mock("@/lib/external-db/bridge", () => ({
-  invokeBatchBridge: vi.fn().mockResolvedValue([
-    { success: true, data: { records: [], count: 0 } }
-  ]),
+vi.mock('@/lib/external-db/bridge', () => ({
+  invokeBatchBridge: vi
+    .fn()
+    .mockResolvedValue([{ success: true, data: { records: [], count: 0 } }]),
   invokeExternalDb: vi.fn().mockResolvedValue({ records: [], count: 0 }),
 }));
 
-describe("useCatalogState", () => {
+describe('useCatalogState', () => {
   let queryClient: QueryClient;
 
   beforeEach(() => {
@@ -63,41 +63,39 @@ describe("useCatalogState", () => {
       <BrowserRouter>
         <ThemeProvider>
           <AuthProvider>
-            <ProductsProvider>
-              {children}
-            </ProductsProvider>
+            <ProductsProvider>{children}</ProductsProvider>
           </AuthProvider>
         </ThemeProvider>
       </BrowserRouter>
     </QueryClientProvider>
   );
 
-  it("should initialize with default values", () => {
+  it('should initialize with default values', () => {
     const { result } = renderHook(() => useCatalogState(), { wrapper });
-    
-    expect(result.current.searchQuery).toBe("");
-    expect(result.current.viewMode).toBe("grid");
+
+    expect(result.current.searchQuery).toBe('');
+    expect(result.current.viewMode).toBe('grid');
     expect(result.current.activeFiltersCount).toBe(0);
     expect(result.current.paginatedProducts).toEqual([]);
   });
 
-  it("should update search query correctly", async () => {
+  it('should update search query correctly', async () => {
     const { result } = renderHook(() => useCatalogState(), { wrapper });
-    
+
     await waitFor(() => {
-      result.current.handleSearch("test search");
+      result.current.handleSearch('test search');
     });
 
-    expect(result.current.searchQuery).toBe("test search");
+    expect(result.current.searchQuery).toBe('test search');
   });
 
-  it("should reset filters correctly", async () => {
+  it('should reset filters correctly', async () => {
     const { result } = renderHook(() => useCatalogState(), { wrapper });
-    
+
     await waitFor(() => {
       result.current.setFilters({ ...result.current.filters, inStock: true });
     });
-    
+
     expect(result.current.activeFiltersCount).toBe(1);
 
     await waitFor(() => {
@@ -105,6 +103,6 @@ describe("useCatalogState", () => {
     });
 
     expect(result.current.activeFiltersCount).toBe(0);
-    expect(result.current.searchQuery).toBe("");
+    expect(result.current.searchQuery).toBe('');
   });
 });

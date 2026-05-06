@@ -11,7 +11,7 @@
  *
  * Pesos podem ser sobrescritos pelo consumidor (popover de ajuste).
  */
-import { useMemo } from "react";
+import { useMemo } from 'react';
 
 export interface ComparisonScoreWeights {
   price: number;
@@ -42,10 +42,14 @@ export interface ProductScore {
 function leadTimeProxy(stockStatus: string | undefined): number {
   // Lower is better → in-stock=1, low-stock=2, out-of-stock=4
   switch (stockStatus) {
-    case "in-stock": return 1;
-    case "low-stock": return 2;
-    case "out-of-stock": return 4;
-    default: return 2;
+    case 'in-stock':
+      return 1;
+    case 'low-stock':
+      return 2;
+    case 'out-of-stock':
+      return 4;
+    default:
+      return 2;
   }
 }
 
@@ -61,16 +65,16 @@ function normalizeHigherBetter(value: number, min: number, max: number): number 
 
 export function useComparisonScore(
   products: any[],
-  weights: ComparisonScoreWeights = DEFAULT_SCORE_WEIGHTS
+  weights: ComparisonScoreWeights = DEFAULT_SCORE_WEIGHTS,
 ): ProductScore[] {
   return useMemo(() => {
     if (!products || products.length === 0) return [];
 
-    const prices = products.map(p => Number(p.price ?? 0));
-    const stocks = products.map(p => Number(p.stock ?? 0));
-    const mins = products.map(p => Number(p.minQuantity ?? 1));
-    const colorCounts = products.map(p => (p.colors?.length ?? 0));
-    const leadTimes = products.map(p => leadTimeProxy(p.stockStatus));
+    const prices = products.map((p) => Number(p.price ?? 0));
+    const stocks = products.map((p) => Number(p.stock ?? 0));
+    const mins = products.map((p) => Number(p.minQuantity ?? 1));
+    const colorCounts = products.map((p) => p.colors?.length ?? 0);
+    const leadTimes = products.map((p) => leadTimeProxy(p.stockStatus));
 
     const minPrice = Math.min(...prices);
     const maxPrice = Math.max(...prices);
@@ -89,11 +93,17 @@ export function useComparisonScore(
       const verified = Boolean(p.supplier?.verified ?? p.supplier?.isVerified ?? false);
       const breakdown: Record<keyof ComparisonScoreWeights, number> = {
         price: normalizeLowerBetter(prices[i], minPrice, maxPrice) * weights.price,
-        stock: (stocks[i] > 0 ? normalizeHigherBetter(stocks[i], minStock, maxStock) : 0) * weights.stock,
+        stock:
+          (stocks[i] > 0 ? normalizeHigherBetter(stocks[i], minStock, maxStock) : 0) *
+          weights.stock,
         minQuantity: normalizeLowerBetter(mins[i], minMin, maxMin) * weights.minQuantity,
-        colorVariety: normalizeHigherBetter(colorCounts[i], minColors, maxColors) * weights.colorVariety,
+        colorVariety:
+          normalizeHigherBetter(colorCounts[i], minColors, maxColors) * weights.colorVariety,
         verifiedSupplier: (verified ? 1 : 0.4) * weights.verifiedSupplier,
-        leadTime: (p.stockStatus === "out-of-stock" ? 0.1 : normalizeLowerBetter(leadTimes[i], minLead, maxLead)) * weights.leadTime,
+        leadTime:
+          (p.stockStatus === 'out-of-stock'
+            ? 0.1
+            : normalizeLowerBetter(leadTimes[i], minLead, maxLead)) * weights.leadTime,
       };
       const total = Object.values(breakdown).reduce((a, b) => a + b, 0);
       return {
@@ -108,7 +118,7 @@ export function useComparisonScore(
     // Determina vencedor + rank
     const sorted = [...scores].sort((a, b) => b.total - a.total);
     sorted.forEach((s, idx) => {
-      const original = scores.find(x => x.productId === s.productId)!;
+      const original = scores.find((x) => x.productId === s.productId)!;
       original.rank = idx + 1;
       original.isWinner = idx === 0;
     });

@@ -19,7 +19,7 @@ vi.mock('@/integrations/supabase/client', () => ({
   },
 }));
 
-// Mock dynamic imports to avoid real network calls in unit tests, 
+// Mock dynamic imports to avoid real network calls in unit tests,
 // but still verify they can be imported
 const QuoteBuilderPage = lazy(() => import('../pages/QuoteBuilderPage'));
 const FiltersPage = lazy(() => import('../pages/FiltersPage'));
@@ -34,31 +34,35 @@ const renderWithProviders = (ui: React.ReactElement) => {
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <BrowserRouter>
-            <Suspense fallback={<div>Loading...</div>}>
-              {ui}
-            </Suspense>
+            <Suspense fallback={<div>Loading...</div>}>{ui}</Suspense>
           </BrowserRouter>
         </AuthProvider>
       </QueryClientProvider>
-    </HelmetProvider>
+    </HelmetProvider>,
   );
 };
 
 describe('Critical Routes Smoke Test', () => {
   it('renders QuoteBuilderPage without module failures', async () => {
     renderWithProviders(<QuoteBuilderPage />);
-    
+
     // We expect it to NOT show the "Falha no Módulo" text which would be rendered by ErrorBoundary
-    await waitFor(() => {
-      expect(screen.queryByText(/Falha no Módulo/i)).not.toBeInTheDocument();
-    }, { timeout: 5000 });
+    await waitFor(
+      () => {
+        expect(screen.queryByText(/Falha no Módulo/i)).not.toBeInTheDocument();
+      },
+      { timeout: 5000 },
+    );
   });
 
   it('renders FiltersPage without module failures', async () => {
     renderWithProviders(<FiltersPage />);
-    
-    await waitFor(() => {
-      expect(screen.queryByText(/Falha no Módulo/i)).not.toBeInTheDocument();
-    }, { timeout: 5000 });
+
+    await waitFor(
+      () => {
+        expect(screen.queryByText(/Falha no Módulo/i)).not.toBeInTheDocument();
+      },
+      { timeout: 5000 },
+    );
   });
 });

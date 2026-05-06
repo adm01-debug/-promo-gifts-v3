@@ -17,7 +17,7 @@ describe('Real-World Scenario: Security & Validation Layer', () => {
       paymentTerms: 'net30',
       deliveryTime: '10days',
       shippingType: 'cif',
-      discountValue: 0
+      discountValue: 0,
     };
     expect(quoteFormSchema.safeParse(validCIF).success).toBe(true);
 
@@ -27,7 +27,7 @@ describe('Real-World Scenario: Security & Validation Layer', () => {
       paymentTerms: 'net30',
       deliveryTime: '10days',
       shippingType: 'fob',
-      shippingCost: 0 // Should fail refine check
+      shippingCost: 0, // Should fail refine check
     };
     const fobResult = quoteFormSchema.safeParse(invalidFOB);
     expect(fobResult.success).toBe(false);

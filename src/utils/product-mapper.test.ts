@@ -9,17 +9,19 @@ const createMockRawProduct = (overrides = {}): any => ({
   price_updated_at: '2026-01-01T10:00:00Z',
   colors: [
     { name: 'Azul', hex: '#0000FF', stock: 50 },
-    { name: 'Vermelho', hex: '#FF0000', stock: 0 }
+    { name: 'Vermelho', hex: '#FF0000', stock: 0 },
   ],
   is_active: true,
-  ...overrides
+  ...overrides,
 });
 
 // Mock external-db helpers used by mapper
 vi.mock('@/lib/external-db', () => ({
   getProductImageUrl: vi.fn((p) => p.image_url || null),
   getProductPrice: vi.fn((p) => p.price || 99.9),
-  getProductStock: vi.fn((p) => (p.colors || []).reduce((acc: number, c: any) => acc + (c.stock || 0), 0)),
+  getProductStock: vi.fn((p) =>
+    (p.colors || []).reduce((acc: number, c: any) => acc + (c.stock || 0), 0),
+  ),
 }));
 
 describe('mapPromobrindToProduct', () => {
@@ -43,7 +45,7 @@ describe('mapPromobrindToProduct', () => {
 
   it('should handle low stock status', () => {
     const raw = createMockRawProduct({
-      colors: [{ name: 'Azul', hex: '#0000FF', stock: 5 }]
+      colors: [{ name: 'Azul', hex: '#0000FF', stock: 5 }],
     });
     const result = mapPromobrindToProduct(raw);
 
@@ -52,7 +54,7 @@ describe('mapPromobrindToProduct', () => {
 
   it('should handle out of stock status', () => {
     const raw = createMockRawProduct({
-      colors: [{ name: 'Azul', hex: '#0000FF', stock: 0 }]
+      colors: [{ name: 'Azul', hex: '#0000FF', stock: 0 }],
     });
     const result = mapPromobrindToProduct(raw);
 
@@ -62,7 +64,7 @@ describe('mapPromobrindToProduct', () => {
   it('should prioritize price_updated_at over updated_at', () => {
     const raw = createMockRawProduct({
       price_updated_at: '2026-05-01',
-      updated_at: '2026-01-01'
+      updated_at: '2026-01-01',
     });
     const result = mapPromobrindToProduct(raw);
 
@@ -72,7 +74,7 @@ describe('mapPromobrindToProduct', () => {
   it('should fallback to updated_at if price_updated_at is missing', () => {
     const raw = createMockRawProduct({
       price_updated_at: '',
-      updated_at: '2026-02-02'
+      updated_at: '2026-02-02',
     });
     const result = mapPromobrindToProduct(raw);
 

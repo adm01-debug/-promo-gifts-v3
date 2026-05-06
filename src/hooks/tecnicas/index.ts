@@ -1,6 +1,6 @@
 /**
  * Hooks de Técnicas - Barrel Export
- * 
+ *
  * Estrutura modular:
  * - keys: Query keys centralizadas
  * - useTecnicasList: Busca e filtragem de técnicas
@@ -65,8 +65,4 @@ export type {
   AreaShape,
 } from '@/types/gravacao';
 
-export {
-  TECHNIQUE_COLORS,
-  TECHNIQUE_ICONS,
-  SHAPE_STYLES,
-} from '@/types/gravacao';
+export { TECHNIQUE_COLORS, TECHNIQUE_ICONS, SHAPE_STYLES } from '@/types/gravacao';
