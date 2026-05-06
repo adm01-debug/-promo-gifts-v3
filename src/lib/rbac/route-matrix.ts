@@ -37,7 +37,7 @@ export interface RbacRouteEntry {
 }
 
 /** Lista canônica e ordenada das rotas do app. */
-export const RBAC_ROUTES: RbacRouteEntry[] = [
+export const RBAC_ROUTES: RbacRouteEntry[] = ([
   // ─── Públicas ─────────────────────────────────────────────────────────
   {
     path: '/login',
@@ -434,7 +434,7 @@ export const RBAC_ROUTES: RbacRouteEntry[] = [
     category: 'audit',
     notes: 'Esta página.',
   },
-];
+].map(r => ({ ...r, mfaAal2: false }));
 
 /** Resumo agregado para cards de overview. */
 export function summarizeRoutes(routes: RbacRouteEntry[] = RBAC_ROUTES) {

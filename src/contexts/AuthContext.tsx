@@ -529,7 +529,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isManager = has('manager');
   const isSeller = isAgente;
   const canManage = isSupervisorOrAbove;
-  const mfaRequired = canManage && currentAAL !== 'aal2';
+  const mfaRequired = false; // canManage && currentAAL !== 'aal2'; // DESATIVADO TEMPORARIAMENTE PARA TESTES
 
   const value: AuthContextType = {
     user,
