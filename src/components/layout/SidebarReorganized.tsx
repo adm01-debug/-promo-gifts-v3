@@ -92,7 +92,7 @@ const navGroups: NavGroup[] = [
     defaultOpen: false,
     items: [
       { icon: ImagePlus, label: "Mockup", href: "/mockup-generator", shortcut: "Alt+M" },
-      { icon: Sparkles, label: "Magic Up", href: "/magic-up" },
+      { icon: Sparkles, label: "Magic Up", href: "/ferramentas/magic-up" },
       { icon: Crosshair, label: "Match", href: "/match" },
       { icon: Boxes, label: "Kit Maker", href: "/montar-kit", shortcut: "Alt+K" },
       { icon: Calculator, label: "Mestre da Personalização", href: "/simulador", shortcut: "Alt+S" },
