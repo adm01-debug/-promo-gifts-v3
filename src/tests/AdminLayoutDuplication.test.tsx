@@ -47,6 +47,20 @@ vi.mock('../components/ui/aria-live', () => ({
   useAriaLive: () => ({ announce: vi.fn() }),
 }));
 
+// IMPORTANT: Mock PageTransition to avoid Framer Motion / AnimatePresence issues in RTL
+vi.mock('../components/effects/PageTransition', () => ({
+  PageTransition: ({ children }: { children: React.ReactNode }) => <div data-testid="page-transition">{children}</div>,
+}));
+
+// Mock Header and SidebarReorganized to avoid their internal dependencies/lazy loading complexity
+vi.mock('../components/layout/Header', () => ({
+  Header: () => <header data-testid="header"><button data-testid="header-mobile-search-trigger">Search</button></header>
+}));
+
+vi.mock('../components/layout/SidebarReorganized', () => ({
+  SidebarReorganized: () => <aside data-testid="sidebar"><div data-testid="sidebar-brand-header">Brand</div></aside>
+}));
+
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false } },
 });
@@ -80,8 +94,10 @@ const renderAdminRoute = async (path: string, Element: React.ComponentType) => {
 describe('Layout Duplication (RTL)', () => {
   it('AdminConexoesPage renders exactly ONE sidebar brand header', async () => {
     await renderAdminRoute('/admin/conexoes', AdminConexoesPage);
-    // Find all matching elements - if it's 2, the test fails
-    const brandHeaders = await screen.findAllByTestId('sidebar-brand-header');
+    
+    // We expect exactly ONE header and ONE sidebar brand header
+    // Since we mocked them, we check for our mock testids
+    const brandHeaders = screen.queryAllByTestId('sidebar-brand-header');
     expect(brandHeaders.length).toBe(1);
     
     const headers = screen.queryAllByTestId('header-mobile-search-trigger');
@@ -90,13 +106,13 @@ describe('Layout Duplication (RTL)', () => {
 
   it('AdminConexoesStatusPage renders exactly ONE sidebar brand header', async () => {
     await renderAdminRoute('/admin/conexoes/status', AdminConexoesStatusPage);
-    const brandHeaders = await screen.findAllByTestId('sidebar-brand-header');
+    const brandHeaders = screen.queryAllByTestId('sidebar-brand-header');
     expect(brandHeaders.length).toBe(1);
   });
 
   it('AdminRbacRoutesPage renders exactly ONE sidebar brand header', async () => {
     await renderAdminRoute('/admin/rbac-routes', AdminRbacRoutesPage);
-    const brandHeaders = await screen.findAllByTestId('sidebar-brand-header');
+    const brandHeaders = screen.queryAllByTestId('sidebar-brand-header');
     expect(brandHeaders.length).toBe(1);
   });
 });
