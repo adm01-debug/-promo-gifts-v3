@@ -158,6 +158,6 @@ export function StatCard({ title, value, icon, trend, variant = 'default', onCli
           {clickHint}
         </div>
       )}
-    </button>
+    </Button>
   );
 }
