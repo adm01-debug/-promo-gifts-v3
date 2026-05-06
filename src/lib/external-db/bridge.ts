@@ -3,8 +3,10 @@
  * Handles retry, error parsing, batch queries.
  */
 import { supabase } from '@/integrations/supabase/client';
-import { logger } from '@/lib/logger';
+import { createClientLogger } from '@/lib/telemetry/structuredLogger';
 import { emitBridgeStatus, isColdStartSignal } from './bridge-status-events';
+
+const log = createClientLogger('external-db.bridge');
 
 export type Operation = 'select' | 'insert' | 'update' | 'delete' | 'upsert' | 'batch_insert';
 
