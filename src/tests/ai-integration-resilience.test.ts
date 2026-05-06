@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { extractAndParseAIJSON } from '../supabase/functions/_shared/json-parser';
+import { extractAndParseAIJSON } from '../../supabase/functions/_shared/json-parser';
 
 // Simulating Deno environment for the shared util in Vitest if possible, 
 // or testing it as a regular JS function.

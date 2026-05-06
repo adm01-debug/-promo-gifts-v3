@@ -12,7 +12,15 @@ vi.mock('@/integrations/supabase/client', () => ({
     auth: {
       getSession: vi.fn(() => Promise.resolve({ data: { session: { user: { id: 'test' } } }, error: null })),
       onAuthStateChange: vi.fn(() => ({ data: { subscription: { unsubscribe: vi.fn() } } })),
+      mfa: { getAuthenticatorAssuranceLevel: vi.fn(() => Promise.resolve({ data: { currentLevel: 'aal1' }, error: null })) },
     },
+    from: vi.fn(() => ({
+      select: vi.fn(() => ({
+        eq: vi.fn(() => ({
+          maybeSingle: vi.fn(() => Promise.resolve({ data: { id: 'test' }, error: null })),
+        })),
+      })),
+    })),
     functions: { invoke: vi.fn(() => Promise.resolve({ data: {}, error: null })) },
   },
 }));
