@@ -164,12 +164,12 @@ html[data-scroll-locked] body {
     --ring: 24 100% 50%;
 
     /* 8. Radius Tokens */
-    --radius-xs: 0.375rem;
-    --radius-sm: 0.75rem;
-    --radius-md: 1rem;
-    --radius-lg: 1.25rem;
-    --radius-xl: 1.5rem;
-    --radius-2xl: 2rem;
+    --radius-xs: 0.25rem;
+    --radius-sm: 0.5rem;
+    --radius-md: 0.75rem;
+    --radius-lg: 1rem;
+    --radius-xl: 1.25rem;
+    --radius-2xl: 1.5rem;
     --radius-full: 9999px;
     --radius: var(--radius-sm);
 
