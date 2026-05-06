@@ -197,6 +197,18 @@ export function LogoPositionEditor({
           onSizeChange={onSizeChange}
           onLogoScaleChange={onLogoScaleChange}
         />
+
+        {techniqueColorConfig?.category === "laser" && logoPreview && (
+          <LogoProcessingPreview
+            originalUrl={logoPreview}
+            processedUrl={processedLogoUrl}
+            whiteThreshold={whiteThreshold}
+            alphaThreshold={alphaThreshold}
+            onWhiteThresholdChange={setWhiteThreshold}
+            onAlphaThresholdChange={setAlphaThreshold}
+            isProcessing={isProcessing}
+          />
+        )}
       </CardContent>
     </Card>
   );
