@@ -190,10 +190,10 @@ export function CartCompanyPickerDialog({ open, onOpenChange, onCreated }: CartC
         type="button"
         onClick={(e) => toggleFavorite(company, e)}
         className={cn(
-          "h-8 w-8 mr-1 rounded-xl flex items-center justify-center transition-colors flex-shrink-0",
+          "h-8 w-8 mr-1 rounded-xl flex items-center justify-center transition-colors flex-shrink-0 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 outline-none",
           isFavorite(company.id)
             ? "text-warning"
-            : "text-muted-foreground/40 opacity-0 group-hover:opacity-100 hover:text-warning"
+            : "text-muted-foreground/40 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 hover:text-warning"
         )}
         aria-label={isFavorite(company.id) ? "Remover dos favoritos" : "Adicionar aos favoritos"}
       >
