@@ -176,9 +176,9 @@ const BackgroundRockets = React.memo(() => {
 const Starfield = React.memo(() => {
   return (
     <>
-      {/* Camada Distante (Lenta/Desfocada) */}
-      {[...Array(24)].map((_, i) => {
-        const size = 1;
+      {/* Camada Distante — 60 estrelas */}
+      {[...Array(60)].map((_, i) => {
+        const size = 1 + (i % 2);
         const top = (i * 47 + 13) % 100;
         const left = (i * 61 + 9) % 100;
         const dur = 6 + (i % 4);
@@ -186,22 +186,21 @@ const Starfield = React.memo(() => {
         return (
           <div
             key={`star-far-${i}`}
-            className="absolute rounded-full bg-white opacity-10 blur-[1.5px] shadow-[0_0_10px_rgba(255,255,255,0.2)]"
+            className="absolute rounded-full bg-white opacity-30 blur-[1px] shadow-[0_0_10px_rgba(255,255,255,0.4)]"
             style={{
               width: `${size}px`,
               height: `${size}px`,
               top: `${top}%`,
               left: `${left}%`,
               animation: `twinkle ${dur}s ease-in-out ${delay}s infinite`,
-              transform: 'translateZ(-2px)',
             }}
           />
         );
       })}
 
-      {/* Camada Média */}
-      {[...Array(32)].map((_, i) => {
-        const size = 1 + (i % 2);
+      {/* Camada Média — 80 estrelas */}
+      {[...Array(80)].map((_, i) => {
+        const size = 1.5 + (i % 2);
         const top = (i * 37 + 11) % 100;
         const left = (i * 53 + 7) % 100;
         const dur = 3 + (i % 3);
@@ -209,22 +208,21 @@ const Starfield = React.memo(() => {
         return (
           <div
             key={`star-mid-${i}`}
-            className="absolute rounded-full bg-white opacity-20 shadow-[0_0_8px_rgba(255,255,255,0.3)]"
+            className="absolute rounded-full bg-white opacity-50 shadow-[0_0_8px_rgba(255,255,255,0.5)]"
             style={{
               width: `${size}px`,
               height: `${size}px`,
               top: `${top}%`,
               left: `${left}%`,
               animation: `twinkle ${dur}s ease-in-out ${delay}s infinite`,
-              transform: 'translateZ(-1px)',
             }}
           />
         );
       })}
 
-      {/* Camada Próxima (Nítida) */}
-      {[...Array(16)].map((_, i) => {
-        const size = 1.5 + (i % 2);
+      {/* Camada Próxima Brilhante — 40 estrelas */}
+      {[...Array(40)].map((_, i) => {
+        const size = 2 + (i % 2);
         const top = (i * 29 + 17) % 100;
         const left = (i * 41 + 5) % 100;
         const dur = 2 + (i % 2);
@@ -232,14 +230,13 @@ const Starfield = React.memo(() => {
         return (
           <div
             key={`star-near-${i}`}
-            className="absolute rounded-full bg-white opacity-40 shadow-[0_0_12px_rgba(255,255,255,0.5)]"
+            className="absolute rounded-full bg-white opacity-80 shadow-[0_0_14px_rgba(255,255,255,0.8)]"
             style={{
               width: `${size}px`,
               height: `${size}px`,
               top: `${top}%`,
               left: `${left}%`,
               animation: `twinkle ${dur}s ease-in-out ${delay}s infinite`,
-              transform: 'translateZ(0px)',
             }}
           />
         );
