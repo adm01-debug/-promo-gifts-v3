@@ -10,7 +10,7 @@ const ProductsManager = lazyWithRetry(() =>
   import('@/components/admin/ProductsManager').then((m) => ({ default: m.ProductsManager })),
 );
 const SuppliersManager = lazyWithRetry(() =>
-  import('@/components/admin/suppliers-manager').then((m) => ({ default: m.SuppliersManager })),
+  import('@/components/admin/suppliers-manager/SuppliersManager').then((m) => ({ default: m.SuppliersManager })),
 );
 const EngravingRegistrationContent = lazyWithRetry(() => import('@/pages/EngravingRegistrationPage'));
 

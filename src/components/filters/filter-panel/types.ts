@@ -1,57 +1,34 @@
 import React from 'react';
-import {
-  Palette,
-  LayoutGrid,
-  Package,
-  DollarSign,
-  Truck,
-  Users,
-  Calendar,
-  Briefcase,
-  Gem,
-  Building2,
-  Paintbrush,
-  Tag,
-  Sparkles,
-  Filter,
-  Target,
-  TrendingUp,
-  Zap,
-} from 'lucide-react';
-
-// ============================================
-// TIPOS E DEFAULTS
-// ============================================
+import { LucideIcon, Palette, Package, Truck, DollarSign, Users, Calendar, Heart, Layers, Briefcase, Settings, Tag, Zap, ArrowDownWideNarrow } from 'lucide-react';
 
 export interface FilterState {
   search: string;
+  categories: string[];
+  suppliers: string[];
+  colors: string[];
+  materials: string[];
+  techniques: string[];
+  tags: string[];
   colorGroups: string[];
   colorVariations: string[];
   colorNuances: string[];
-  colors: string[];
-  categories: string[];
-  suppliers: string[];
-  publicoAlvo: string[];
   datasComemorativas: string[];
+  publicoAlvo: string[];
   endomarketing: string[];
   ramosAtividade: string[];
   segmentosAtividade: string[];
-  materialGroups: string[];
-  materialTypes: string[];
-  materiais: string[];
-  techniques: string[];
-  tags: string[];
   priceRange: [number, number];
+  quantityRange: [number, number];
+  stockStatus: string;
   minStock: number;
-  inStock: boolean;
   isKit: boolean;
-  featured: boolean;
+  isFeatured: boolean;
   isNew: boolean;
   hasPersonalization: boolean;
-  hasCommercialPackaging: boolean;
+  maxLeadTimeDays: number | null;
+  sortBy: string;
   gender: string[];
   sizes: string[];
-  sortBy: string;
 }
 
 export interface FilterPanelProps {
@@ -59,101 +36,66 @@ export interface FilterPanelProps {
   onFilterChange: (filters: FilterState) => void;
   onReset: () => void;
   activeFiltersCount: number;
-  products?: Array<{
-    tags?: { publicoAlvo?: string[]; endomarketing?: string[]; ramo?: string[]; nicho?: string[] };
-  }>;
-  viewMode?: 'grid' | 'list';
-  onViewModeChange?: (mode: 'grid' | 'list') => void;
-  gridColumns?: import('@/components/products/ColumnSelector').ColumnCount;
-  onGridColumnsChange?: (cols: import('@/components/products/ColumnSelector').ColumnCount) => void;
+  products?: any[];
+  viewMode?: string;
+  onViewModeChange?: (mode: string) => void;
+  gridColumns?: number;
+  onGridColumnsChange?: (cols: number) => void;
   filteredResultsCount?: number;
 }
 
 export const defaultFilters: FilterState = {
   search: '',
+  categories: [],
+  suppliers: [],
+  colors: [],
+  materials: [],
+  techniques: [],
+  tags: [],
   colorGroups: [],
   colorVariations: [],
   colorNuances: [],
-  colors: [],
-  categories: [],
-  suppliers: [],
-  publicoAlvo: [],
   datasComemorativas: [],
+  publicoAlvo: [],
   endomarketing: [],
   ramosAtividade: [],
   segmentosAtividade: [],
-  materialGroups: [],
-  materialTypes: [],
-  materiais: [],
-  techniques: [],
-  tags: [],
   priceRange: [0, 9999],
+  quantityRange: [1, 10000],
+  stockStatus: 'all',
   minStock: 0,
-  inStock: false,
   isKit: false,
-  featured: false,
+  isFeatured: false,
   isNew: false,
   hasPersonalization: false,
-  hasCommercialPackaging: false,
+  maxLeadTimeDays: null,
+  sortBy: 'relevance',
   gender: [],
   sizes: [],
-  sortBy: 'name',
 };
 
 export const SECTION_CONFIG: Record<string, { title: string; icon: React.ReactNode }> = {
-  cores: { title: 'Cores', icon: React.createElement(Palette, { className: 'h-4 w-4' }) },
-  categorias: {
-    title: 'Categorias',
-    icon: React.createElement(LayoutGrid, { className: 'h-4 w-4' }),
-  },
-  estoque: { title: 'Estoque', icon: React.createElement(Package, { className: 'h-4 w-4' }) },
-  preco: {
-    title: 'Faixa de Preço',
-    icon: React.createElement(DollarSign, { className: 'h-4 w-4' }),
-  },
-  fornecedores: {
-    title: 'Fornecedores',
-    icon: React.createElement(Truck, { className: 'h-4 w-4' }),
-  },
-  publico: { title: 'Público-Alvo', icon: React.createElement(Users, { className: 'h-4 w-4' }) },
-  'datas-comemorativas': {
-    title: 'Datas Comemorativas',
-    icon: React.createElement(Calendar, { className: 'h-4 w-4' }),
-  },
-  endomarketing: {
-    title: 'Endomarketing',
-    icon: React.createElement(Briefcase, { className: 'h-4 w-4' }),
-  },
-  materiais: { title: 'Materiais', icon: React.createElement(Gem, { className: 'h-4 w-4' }) },
-  'ramos-atividade': {
-    title: 'Nichos/Segmentos',
-    icon: React.createElement(Building2, { className: 'h-4 w-4' }),
-  },
-  tecnicas: {
-    title: 'Técnicas de Gravação',
-    icon: React.createElement(Paintbrush, { className: 'h-4 w-4' }),
-  },
-  genero: { title: 'Gênero', icon: React.createElement(Users, { className: 'h-4 w-4' }) },
-  tamanhos: { title: 'Tamanhos', icon: React.createElement(Package, { className: 'h-4 w-4' }) },
-  tags: { title: 'Tags', icon: React.createElement(Tag, { className: 'h-4 w-4' }) },
-  'opcoes-rapidas': {
-    title: 'Opções Rápidas',
-    icon: React.createElement(Sparkles, { className: 'h-4 w-4' }),
-  },
-  ordenacao: { title: 'Ordenar por', icon: React.createElement(Filter, { className: 'h-4 w-4' }) },
+  cores: { title: 'Cores', icon: React.createElement(Palette, { className: "h-4 w-4" }) },
+  categorias: { title: 'Categorias', icon: React.createElement(Package, { className: "h-4 w-4" }) },
+  estoque: { title: 'Estoque Mínimo', icon: React.createElement(Layers, { className: "h-4 w-4" }) },
+  preco: { title: 'Faixa de Preço', icon: React.createElement(DollarSign, { className: "h-4 w-4" }) },
+  fornecedores: { title: 'Fornecedores', icon: React.createElement(Truck, { className: "h-4 w-4" }) },
+  publico: { title: 'Público Alvo', icon: React.createElement(Users, { className: "h-4 w-4" }) },
+  'datas-comemorativas': { title: 'Datas Comemorativas', icon: React.createElement(Calendar, { className: "h-4 w-4" }) },
+  endomarketing: { title: 'Endomarketing', icon: React.createElement(Heart, { className: "h-4 w-4" }) },
+  materiais: { title: 'Materiais', icon: React.createElement(Layers, { className: "h-4 w-4" }) },
+  'ramos-atividade': { title: 'Ramos de Atividade', icon: React.createElement(Briefcase, { className: "h-4 w-4" }) },
+  tecnicas: { title: 'Técnicas de Gravação', icon: React.createElement(Settings, { className: "h-4 w-4" }) },
+  tags: { title: 'Etiquetas / Tags', icon: React.createElement(Tag, { className: "h-4 w-4" }) },
+  'opcoes-rapidas': { title: 'Opções Rápidas', icon: React.createElement(Zap, { className: "h-4 w-4" }) },
+  ordenacao: { title: 'Ordenação', icon: React.createElement(ArrowDownWideNarrow, { className: "h-4 w-4" }) },
+  genero: { title: 'Gênero', icon: React.createElement(Users, { className: "h-4 w-4" }) },
+  tamanhos: { title: 'Tamanhos', icon: React.createElement(Package, { className: "h-4 w-4" }) },
 };
 
 export const SECTION_GROUPS = [
-  {
-    label: 'PRODUTO',
-    sections: ['cores', 'categorias', 'estoque', 'preco', 'materiais', 'genero', 'tamanhos'],
-    icon: Package,
-  },
-  { label: 'COMERCIAL', sections: ['fornecedores', 'tecnicas'], icon: TrendingUp },
-  {
-    label: 'MARKETING',
-    sections: ['publico', 'datas-comemorativas', 'endomarketing', 'ramos-atividade'],
-    icon: Target,
-  },
-  { label: 'ATALHOS', sections: ['tags', 'opcoes-rapidas'], icon: Zap },
+  { label: 'Produto', icon: Package, sections: ['cores', 'categorias', 'tamanhos', 'genero', 'materiais', 'tags'] },
+  { label: 'Comercial', icon: DollarSign, sections: ['estoque', 'preco', 'fornecedores', 'tecnicas', 'opcoes-rapidas'] },
+  { label: 'Marketing', icon: Zap, sections: ['publico', 'datas-comemorativas', 'endomarketing', 'ramos-atividade'] },
+  { label: 'Visualização', icon: ArrowDownWideNarrow, sections: ['ordenacao'] },
 ];

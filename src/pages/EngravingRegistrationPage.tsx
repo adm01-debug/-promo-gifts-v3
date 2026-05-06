@@ -5,7 +5,7 @@ import { TechniquesPanel } from '@/components/engraving/TechniquesPanel';
 import { PricingPanel } from '@/components/engraving/PricingPanel';
 import { ProductGroupsManager } from '@/components/admin/ProductGroupsManager';
 import { GroupPersonalizationManager } from '@/components/admin/GroupPersonalizationManager';
-import { ProductPersonalizationManager } from '@/components/admin/personalization-manager';
+import { ProductPersonalizationManager } from '@/components/admin/ProductPersonalizationManager';
 import { TechniquesManager } from '@/components/admin/TechniquesManager';
 import { PageSEO } from '@/components/seo/PageSEO';
 

@@ -22,10 +22,10 @@ import {
 } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Plus, Trash2, Loader2, MapPin, Check, X } from 'lucide-react';
-import { InlineEditField } from '../InlineEditField';
-import { ImageUploadButton } from '../ImageUploadButton';
-import { SortableItem } from '../SortableItem';
-import type { Component, Location, Technique, LocationTechnique } from './types';
+import { InlineEditField } from './InlineEditField';
+import { ImageUploadButton } from './ImageUploadButton';
+import { SortableItem } from './SortableItem';
+import type { Component, Location, Technique, LocationTechnique } from '@/types/domain/personalization';
 
 interface ComponentAccordionItemProps {
   component: Component;

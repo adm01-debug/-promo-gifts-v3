@@ -8,7 +8,7 @@ import { Search, AlertTriangle, X, Package } from 'lucide-react';
 import { SelectedItemsBadges } from './SelectedItemsBadges';
 import { ItemCard } from './ItemCard';
 import { Input } from '@/components/ui/input';
-import { ItemCardSkeleton } from './KitCardSkeleton';
+import { ItemCardSkeleton } from '@/components/kit-library/KitCardSkeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';

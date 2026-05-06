@@ -37,7 +37,7 @@ import { cn } from '@/lib/utils';
 import { InlineColorGroupFilter } from '@/components/filters/InlineColorGroupFilter';
 import { ExternalCategoryFilter } from '@/components/filters/ExternalCategoryFilter';
 import { DebouncedPriceInput } from '@/components/filters/DebouncedPriceInput';
-import { FilterSection } from '@/components/filters/filter-panel/FilterSection';
+import { FilterSection } from '@/components/filters/FilterSection';
 import type { StockFilters, StockStatus } from '@/types/stock';
 import { motion, AnimatePresence } from 'framer-motion';
 

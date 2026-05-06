@@ -7,7 +7,7 @@
  */
 
 import { useState, useMemo, useCallback } from 'react';
-import { TechniqueCard } from './TechniqueCard';
+import { TechniqueCard } from '@/components/shared/TechniqueCard';
 import { ConfigurationPanelV6 } from './ConfigurationPanelV6';
 import type {
   TechniqueOption,

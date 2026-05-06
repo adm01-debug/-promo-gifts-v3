@@ -20,7 +20,7 @@ export { defaultFilters, SECTION_CONFIG, SECTION_GROUPS } from './filter-panel/t
 import type { FilterPanelProps } from './filter-panel/types';
 import { SECTION_CONFIG, SECTION_GROUPS } from './filter-panel/types';
 import { useFilterPanelState } from './filter-panel/useFilterPanelState';
-import { FilterSection, GroupSeparator } from './filter-panel/FilterSection';
+import { FilterSection, GroupSeparator } from './FilterSection';
 import { FilterPanelHeader } from './filter-panel/FilterPanelHeader';
 import { SuppliersFilter } from './filter-panel/sections/SuppliersFilter';
 import { MaterialsFilter } from './filter-panel/sections/MaterialsFilter';
