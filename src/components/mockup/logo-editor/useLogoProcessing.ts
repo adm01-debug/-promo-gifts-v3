@@ -33,7 +33,7 @@ export function useLogoProcessing(
 
     if (isLaser) {
       const tone = techniqueColorConfig?.laserTone || "escuro";
-      promise = processLogoForLaser(logoPreview, tone);
+      promise = processLogoForLaser(logoPreview, tone, overrides);
     } else {
       const selectedColors = techniqueColorConfig?.selectedColors || [];
       if (selectedColors.length === 0) {
