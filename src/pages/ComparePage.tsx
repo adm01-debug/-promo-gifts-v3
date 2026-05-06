@@ -36,6 +36,7 @@ import { ComparisonMobileView } from "@/components/compare/ComparisonMobileView"
 import { ComparisonPresentationLauncher } from "@/components/compare/ComparisonPresentationLauncher";
 import { SimilarProductsRail } from "@/components/compare/SimilarProductsRail";
 import { CompareEmptyStateSmart } from "@/components/compare/CompareEmptyStateSmart";
+import { ComparisonSummaryDashboard } from "@/components/compare/ComparisonSummaryDashboard";
 import { RecentComparisonsSidebar } from "@/components/compare/RecentComparisonsSidebar";
 import { FavoritesClientPicker } from "@/components/favorites/FavoritesClientPicker";
 import { useComparisonSync } from "@/hooks/useComparisonSync";
@@ -290,6 +291,9 @@ export default function ComparePage() {
 
         {/* Desktop view (>=768px) */}
         <div className="hidden md:block space-y-4">
+          {/* Resumo Técnico (Dashboard Mock/Demo) */}
+          <ComparisonSummaryDashboard products={products} />
+
           {/* Score + Radar */}
           <div className={cn("grid grid-cols-1 gap-4", showRadar && "lg:grid-cols-2")}>
             <ComparisonScoreCard products={products} />
