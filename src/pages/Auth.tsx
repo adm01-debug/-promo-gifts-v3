@@ -264,21 +264,19 @@ export default function Auth() {
           )}
 
           {/* Auth Card */}
-          <Card className={`border-border/60 bg-card shadow-2xl ring-1 ring-border/20 backdrop-blur-sm ${ipBlocked ? 'opacity-50 pointer-events-none' : ''}`}>
+          <Card className={`border-border/30 bg-card/80 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] ring-1 ring-border/10 backdrop-blur-xl rounded-2xl overflow-hidden transition-all duration-500 ${ipBlocked ? 'opacity-50 pointer-events-none' : ''}`}>
             {showForgotPassword ? (
-              <CardContent className="pt-6 pb-6">
+              <CardContent className="p-8">
                 <ForgotPasswordForm onBack={() => setShowForgotPassword(false)} />
               </CardContent>
             ) : (
             <>
-              <CardHeader className="pb-4">
-                <div className="text-center space-y-1">
-                  <h2 className="text-xl font-semibold font-display text-foreground">Bem-vindo de volta</h2>
-                  <p className="text-sm text-muted-foreground">Entre com suas credenciais para continuar</p>
-                </div>
+              <CardHeader className="pt-10 pb-6 px-8 text-center space-y-2">
+                <h2 className="text-2xl font-bold font-display tracking-tight text-foreground">Bem-vindo de volta</h2>
+                <p className="text-[13px] text-muted-foreground font-medium">Insira suas credenciais para acessar a plataforma</p>
               </CardHeader>
 
-              <CardContent className="pt-2 space-y-6">
+              <CardContent className="pt-2 px-8 pb-10 space-y-6">
                   {socialError && (
                     <div
                       role="alert"
@@ -317,16 +315,16 @@ export default function Auth() {
                   )}
 
                   <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-4" data-testid="login-form">
-                    <div className="space-y-2">
-                      <Label htmlFor="login-email" className="text-foreground">Email</Label>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <div className="space-y-2.5">
+                      <Label htmlFor="login-email" className="text-[13px] font-bold uppercase tracking-wider text-muted-foreground ml-1">Email</Label>
+                      <div className="relative group">
+                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-muted-foreground/60 group-focus-within:text-primary transition-colors" />
                         <Input
                           id="login-email"
                           data-testid="login-email-input"
                           type="email"
                           placeholder="seu@email.com"
-                          className="pl-10 bg-[#EDF2F7] border-transparent focus:bg-white text-gray-900 placeholder:text-gray-500 lowercase h-12 rounded-xl transition-all duration-300"
+                          className="pl-11 bg-muted/30 border-border/40 focus:bg-background focus:border-primary/50 text-foreground placeholder:text-muted-foreground/40 lowercase h-12.5 rounded-xl transition-all duration-300 ring-offset-background"
                           {...loginForm.register("email")}
                           ref={(el) => {
                             loginForm.register("email").ref(el);
@@ -341,16 +339,16 @@ export default function Auth() {
                       )}
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="login-password" className="text-foreground">Senha</Label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <div className="space-y-2.5">
+                      <Label htmlFor="login-password" className="text-[13px] font-bold uppercase tracking-wider text-muted-foreground ml-1">Senha</Label>
+                      <div className="relative group">
+                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-muted-foreground/60 group-focus-within:text-primary transition-colors" />
                         <Input
                           id="login-password"
                           data-testid="login-password-input"
                           type={showPassword ? "text" : "password"}
                           placeholder="••••••••"
-                          className="pl-10 pr-10 bg-[#EDF2F7] border-transparent focus:bg-white text-gray-900 placeholder:text-gray-500 h-12 rounded-xl transition-all duration-300"
+                          className="pl-11 pr-11 bg-muted/30 border-border/40 focus:bg-background focus:border-primary/50 text-foreground placeholder:text-muted-foreground/40 h-12.5 rounded-xl transition-all duration-300 ring-offset-background"
                           {...loginForm.register("password")}
                         />
                         <button
@@ -370,22 +368,22 @@ export default function Auth() {
                       )}
                     </div>
 
-                    <div className="flex items-center justify-end">
+                    <div className="flex items-center justify-end pt-1">
                       <Button
                         type="button"
                         data-testid="login-forgot-link"
-                        variant="link-secondary"
-                        className="p-0 h-auto text-xs font-bold uppercase tracking-wider text-foreground hover:text-primary transition-colors"
+                        variant="link"
+                        className="p-0 h-auto text-[11px] font-bold uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors"
                         onClick={() => setShowForgotPassword(true)}
                       >
-                        ESQUECI MINHA SENHA
+                        Esqueci minha senha
                       </Button>
                     </div>
 
                     <Button 
                       type="submit" 
                       data-testid="login-submit"
-                      className="w-full h-12 text-base font-bold uppercase tracking-widest bg-[#3B82F6] hover:bg-[#2563EB] text-white shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-all duration-300 rounded-xl"
+                      className="w-full h-12.5 text-sm font-bold uppercase tracking-widest bg-primary hover:bg-primary-hover text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-[0.98] transition-all duration-300 rounded-xl mt-2"
                       disabled={isSubmitting}
                     >
                       {isSubmitting ? (
