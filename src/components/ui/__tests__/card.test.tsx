@@ -29,7 +29,7 @@ describe('Card Component', () => {
         <CardHeader className="custom-header">Header</CardHeader>
       </Card>
     );
-    expect(screen.getByText('Header').parentElement).toHaveClass('custom-header');
+    expect(screen.getByText('Header')).toHaveClass('custom-header');
     expect(screen.getByText('Header').closest('.custom-card')).toBeInTheDocument();
   });
 });
