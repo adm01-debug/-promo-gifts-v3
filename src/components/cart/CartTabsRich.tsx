@@ -43,6 +43,7 @@ export function CartTabsRich({ carts, activeCartId, canCreateCart, onSelect, onN
         const isActive = cart.id === activeCartId;
         const statusCfg = getStatusCfg(cart.status);
         const ageDays = differenceInDays(new Date(), new Date(cart.created_at));
+        const isCreatedToday = isSameDay(new Date(), new Date(cart.created_at));
         const needsFollowUp = ageDays >= 3 && cart.items.length > 0;
         const hasItems = cart.items.length > 0;
         return (
