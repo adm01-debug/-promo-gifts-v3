@@ -145,15 +145,21 @@ function SellerCartsContent() {
             </SelectContent>
           </Select>
 
-          <div className="flex items-center gap-2 border border-border/40 bg-card/60 rounded-xl p-1 h-9 shadow-sm">
+          <div className="relative flex items-center gap-2 border border-border/40 bg-card/60 rounded-xl p-1 h-9 shadow-sm">
             <Package className="h-3.5 w-3.5 text-muted-foreground ml-2" />
             <input 
               type="text" 
               placeholder="Filtrar produto..."
+              list="product-suggestions"
               className="bg-transparent border-none text-xs w-32 focus:ring-0 placeholder:text-muted-foreground/50 h-full"
               value={s.productFilter}
               onChange={(e) => s.setProductFilter(e.target.value)}
             />
+            <datalist id="product-suggestions">
+              {s.productSuggestions.map(name => (
+                <option key={name} value={name} />
+              ))}
+            </datalist>
           </div>
 
           <Select value={s.sortBy} onValueChange={s.setSortBy}>
@@ -168,6 +174,17 @@ function SellerCartsContent() {
               <SelectItem value="total-asc">Menor valor</SelectItem>
             </SelectContent>
           </Select>
+
+          {(s.searchTerm || s.productFilter || s.companyFilter !== "all" || s.sortBy !== "date-desc") && (
+            <Button 
+              variant="ghost" 
+              onClick={s.handleClearFilters}
+              size="sm" 
+              className="h-9 px-3 rounded-xl text-xs gap-1.5 hover:bg-destructive/5 hover:text-destructive"
+            >
+              <Trash2 className="h-3.5 w-3.5" /> Limpar
+            </Button>
+          )}
 
           {s.canCreateCart && (
             <Button onClick={() => s.setShowNewCart(true)} size="sm" className="gap-1.5 bg-primary hover:bg-primary/90 text-primary-foreground h-9 shadow-sm rounded-xl px-4">
