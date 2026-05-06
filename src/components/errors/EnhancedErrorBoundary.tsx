@@ -32,7 +32,7 @@ interface Props {
    * cache bust, retry counter) **continua** funcionando — apenas a tela
    * final do erro é substituída.
    */
-  fallback?: ReactNode;
+  fallback?: ReactNode | ((error: Error, errorInfo: ErrorInfo | null) => ReactNode);
 }
 
 interface State {
@@ -210,6 +210,9 @@ class EnhancedErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       // Custom fallback (modo inline) — auto-recovery acima continua ativo.
       if (this.props.fallback !== undefined) {
+        if (typeof this.props.fallback === 'function') {
+          return this.props.fallback(this.state.error!, this.state.errorInfo);
+        }
         return this.props.fallback;
       }
 

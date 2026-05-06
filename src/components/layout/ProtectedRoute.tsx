@@ -71,16 +71,27 @@ export function ProtectedRoute({
     <Suspense fallback={<div className="min-h-screen bg-background" />}>
       <MainLayout>
         <EnhancedErrorBoundary
-          fallback={
+          fallback={(error) => (
             <div className="p-8">
               <EmptyState
                 variant="error"
                 title="Falha no Módulo"
                 description="Ocorreu um erro ao carregar esta seção. Tente recarregar a página."
                 action={{ label: 'Recarregar', onClick: () => window.location.reload() }}
-              />
+              >
+                <div className="mt-4 overflow-hidden rounded-lg border border-destructive/20 bg-destructive/5 p-4 text-left">
+                  <p className="mb-2 font-mono text-xs font-bold text-destructive">
+                    {error.message}
+                  </p>
+                  {error.stack && (
+                    <pre className="max-h-40 overflow-auto font-mono text-[10px] text-destructive/70">
+                      {error.stack}
+                    </pre>
+                  )}
+                </div>
+              </EmptyState>
             </div>
-          }
+          )}
         >
           {children ? <>{children}</> : <Outlet />}
         </EnhancedErrorBoundary>
