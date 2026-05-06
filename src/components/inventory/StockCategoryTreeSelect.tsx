@@ -151,7 +151,7 @@ export function StockCategoryTreeSelect({ value, onChange }: StockCategoryTreeSe
         <div className="flex items-center gap-1.5 text-xs bg-primary/10 text-primary rounded-lg px-2 py-1">
           <FolderTree className="h-3 w-3 shrink-0" />
           <span className="truncate flex-1">{selectedName}</span>
-          <Button variant="ghost" size="icon" onClick={() => onChange(undefined)} className="hover:text-foreground h-5 w-5">
+          <Button variant="ghost" size="icon" onClick={() => onChange(undefined)} className="hover:text-foreground h-5 w-5" aria-label="Limpar seleção de categoria">
             <X className="h-3 w-3" />
           </Button>
         </div>
@@ -167,7 +167,7 @@ export function StockCategoryTreeSelect({ value, onChange }: StockCategoryTreeSe
           className="h-7 text-xs pl-7 pr-6"
         />
         {search && (
-          <Button variant="ghost" size="icon" onClick={() => setSearch("")} className="absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground h-5 w-5">
+          <Button variant="ghost" size="icon" onClick={() => setSearch("")} className="absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground h-5 w-5" aria-label="Limpar busca de categoria">
             <X className="h-3 w-3" />
           </Button>
         )}
