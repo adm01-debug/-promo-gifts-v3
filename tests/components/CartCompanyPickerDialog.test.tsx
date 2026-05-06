@@ -220,4 +220,24 @@ describe('CartCompanyPickerDialog - UI, Accessibility & Regression', () => {
     expect(input).toHaveClass('text-sm', 'bg-muted/20', 'h-9');
     expect(input).toHaveAttribute('placeholder', 'Nome, CNPJ ou segmento...');
   });
+
+  it('announces the number of results to screen readers when search is complete', async () => {
+    (reactQuery.useQuery as any).mockReturnValue({
+      data: [
+        { id: '1', name: 'Company A', razao_social: 'A', nome_fantasia: 'A', ramo: 'Tech', logo_url: null },
+        { id: '2', name: 'Company B', razao_social: 'B', nome_fantasia: 'B', ramo: 'Sales', logo_url: null },
+      ],
+      isLoading: false,
+    });
+
+    render(<CartCompanyPickerDialog {...defaultProps} />);
+    const user = userEvent.setup();
+    const input = screen.getByRole('textbox', { name: /Buscar empresa/i });
+    
+    await user.type(input, 'Comp');
+    
+    const announcement = document.getElementById('search-announcement');
+    expect(announcement).toHaveTextContent(/2 empresas encontradas/i);
+    expect(announcement).toHaveAttribute('aria-live', 'polite');
+  });
 });
