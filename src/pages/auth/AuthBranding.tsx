@@ -124,12 +124,14 @@ export const ContinuousRockets = React.memo(() => {
 });
 
 const BackgroundRockets = React.memo(() => {
-  // 4 foguetes decorativos de tamanhos diferentes subindo no fundo (visíveis mas suaves)
+  // 6 foguetes decorativos bem visíveis subindo no fundo
   const rockets = [
-    { left: 12, size: 56, duration: 16, delay: 0,   opacity: 0.28 },
-    { left: 72, size: 80, duration: 20, delay: 4,   opacity: 0.22 },
-    { left: 44, size: 38, duration: 13, delay: 2,   opacity: 0.32 },
-    { left: 88, size: 26, duration: 11, delay: 7,   opacity: 0.38 },
+    { left: 10, size: 70, duration: 14, delay: 0,    opacity: 0.55 },
+    { left: 28, size: 44, duration: 11, delay: 3,    opacity: 0.65 },
+    { left: 48, size: 90, duration: 18, delay: 1.5,  opacity: 0.45 },
+    { left: 66, size: 38, duration: 9,  delay: 5,    opacity: 0.7  },
+    { left: 82, size: 60, duration: 13, delay: 2.5,  opacity: 0.55 },
+    { left: 94, size: 32, duration: 8,  delay: 6.5,  opacity: 0.75 },
   ];
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden z-[0] motion-reduce:hidden" aria-hidden="true">
@@ -150,18 +152,18 @@ const BackgroundRockets = React.memo(() => {
               style={{
                 width: r.size,
                 height: r.size,
-                filter: `drop-shadow(0 0 ${r.size * 0.4}px rgba(251, 146, 60, 0.4))`,
+                filter: `drop-shadow(0 0 ${r.size * 0.5}px rgba(251, 146, 60, 0.7))`,
               }}
             />
             <div
               className="absolute left-1/2 -translate-x-1/2 rounded-full"
               style={{
                 top: `${r.size * 0.7}px`,
-                width: `${r.size * 0.35}px`,
-                height: `${r.size * 1.4}px`,
+                width: `${r.size * 0.4}px`,
+                height: `${r.size * 1.6}px`,
                 background: "linear-gradient(to bottom, #FB923C, #FBBF24, transparent)",
-                filter: "blur(6px)",
-                opacity: 0.6,
+                filter: "blur(4px)",
+                opacity: 0.85,
               }}
             />
           </div>
