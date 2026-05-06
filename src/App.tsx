@@ -13,6 +13,7 @@ import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
 import { AdminRoute } from '@/components/layout/AdminRoute';
 import { DevRoute } from '@/components/layout/DevRoute';
 import { DeprecatedRoute } from '@/components/layout/DeprecatedRoute';
+import { RouteErrorBoundary } from '@/components/errors/RouteErrorBoundary';
 import { AppProviders } from '@/components/providers/AppProviders';
 import { AccessibilityProvider, AriaLiveProvider } from '@/components/a11y';
 import { getFallback } from '@/components/layout/SkeletonLoaders';
@@ -206,18 +207,95 @@ function RoutePrefetcher() {
 const AppContent = () => {
   return (
     <Routes>
-      {/* Public Routes */}
-      <Route path="/login" element={<Auth />} />
-      <Route path="/reset-password" element={<ResetPassword />} />
-      <Route path="/approve/:token" element={<PublicQuoteApproval />} />
-      <Route path="/proposta/:token" element={<PublicQuoteApproval />} />
-      <Route path="/kit/:token" element={<PublicKitView />} />
-      <Route path="/lista-publica/:token" element={<PublicFavoriteList />} />
-      <Route path="/colecao-publica/:token" element={<PublicCollectionPage />} />
-      <Route path="/comparar-publica/:token" element={<PublicComparisonPage />} />
-      <Route path="/dossie/:token" element={<PublicDossierPage />} />
-      <Route path="/auth/callback" element={<SSOCallbackPage />} />
-      <Route path="/unauthorized" element={<Unauthorized />} />
+      {/* Public Routes - Wrapped in RouteErrorBoundary for safety */}
+      <Route
+        path="/login"
+        element={
+          <RouteErrorBoundary>
+            <Auth />
+          </RouteErrorBoundary>
+        }
+      />
+      <Route
+        path="/reset-password"
+        element={
+          <RouteErrorBoundary>
+            <ResetPassword />
+          </RouteErrorBoundary>
+        }
+      />
+      <Route
+        path="/approve/:token"
+        element={
+          <RouteErrorBoundary>
+            <PublicQuoteApproval />
+          </RouteErrorBoundary>
+        }
+      />
+      <Route
+        path="/proposta/:token"
+        element={
+          <RouteErrorBoundary>
+            <PublicQuoteApproval />
+          </RouteErrorBoundary>
+        }
+      />
+      <Route
+        path="/kit/:token"
+        element={
+          <RouteErrorBoundary>
+            <PublicKitView />
+          </RouteErrorBoundary>
+        }
+      />
+      <Route
+        path="/lista-publica/:token"
+        element={
+          <RouteErrorBoundary>
+            <PublicFavoriteList />
+          </RouteErrorBoundary>
+        }
+      />
+      <Route
+        path="/colecao-publica/:token"
+        element={
+          <RouteErrorBoundary>
+            <PublicCollectionPage />
+          </RouteErrorBoundary>
+        }
+      />
+      <Route
+        path="/comparar-publica/:token"
+        element={
+          <RouteErrorBoundary>
+            <PublicComparisonPage />
+          </RouteErrorBoundary>
+        }
+      />
+      <Route
+        path="/dossie/:token"
+        element={
+          <RouteErrorBoundary>
+            <PublicDossierPage />
+          </RouteErrorBoundary>
+        }
+      />
+      <Route
+        path="/auth/callback"
+        element={
+          <RouteErrorBoundary>
+            <SSOCallbackPage />
+          </RouteErrorBoundary>
+        }
+      />
+      <Route
+        path="/unauthorized"
+        element={
+          <RouteErrorBoundary>
+            <Unauthorized />
+          </RouteErrorBoundary>
+        }
+      />
 
       {/* Protected Layout Route */}
       <Route element={<ProtectedRoute />}>
