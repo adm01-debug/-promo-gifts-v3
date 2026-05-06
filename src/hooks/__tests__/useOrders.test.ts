@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { useOrdersList } from '../useOrders';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '../integrations/supabase/client';
 
 // Mock Supabase with a more robust chainable interface
 const mockSupabaseQuery = {
@@ -18,14 +18,14 @@ const mockSupabaseQuery = {
   ),
 };
 
-vi.mock('@/integrations/supabase/client', () => ({
+vi.mock('../integrations/supabase/client', () => ({
   supabase: {
     from: vi.fn(() => mockSupabaseQuery),
   },
 }));
 
 // Mock auth utilities
-vi.mock('@/lib/auth/apply-seller-scope', () => ({
+vi.mock('../lib/auth/apply-seller-scope', () => ({
   applySellerScope: vi.fn((q) => q),
 }));
 

@@ -1,13 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
-import { useSellerCarts } from './useSellerCarts';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
+import { useSellerCarts } from '../useSellerCarts';
+import { supabase } from '../integrations/supabase/client';
+import { useAuth } from '../contexts/AuthContext';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 
 // Mock dependencies
-vi.mock('@/integrations/supabase/client', () => {
+vi.mock('../integrations/supabase/client', () => {
   const mockQuery = {
     select: vi.fn().mockReturnThis(),
     eq: vi.fn().mockReturnThis(),
@@ -26,7 +26,7 @@ vi.mock('@/integrations/supabase/client', () => {
   };
 });
 
-vi.mock('@/contexts/AuthContext', () => ({
+vi.mock('../contexts/AuthContext', () => ({
   useAuth: vi.fn(),
 }));
 

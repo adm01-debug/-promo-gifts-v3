@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { maskCnpj, maskPhone, validateCnpj, maskCep } from './masks';
+import { maskCnpj, maskPhone, validateCnpj, maskCep } from '../masks';
 
 describe('Utility Masks & Validation', () => {
   describe('CNPJ Masking & Validation', () => {

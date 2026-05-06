@@ -1,42 +1,42 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import SellerCartsPage from './SellerCartsPage';
-import { useSellerCartsPage } from './seller-carts/useSellerCartsPage';
+import SellerCartsPage from '../SellerCartsPage';
+import { useSellerCartsPage } from '../seller-carts/useSellerCartsPage';
 import { BrowserRouter } from 'react-router-dom';
-import { TooltipProvider } from '@/components/ui/tooltip';
+import { TooltipProvider } from '../components/ui/tooltip';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 
 // Mock do hook de lógica
-vi.mock('./seller-carts/useSellerCartsPage', () => ({
+vi.mock('../seller-carts/useSellerCartsPage', () => ({
   useSellerCartsPage: vi.fn(),
 }));
 
 // Mock do contexto
-vi.mock('@/contexts/SellerCartContext', () => ({
+vi.mock('../contexts/SellerCartContext', () => ({
   useSellerCartContext: vi.fn(() => ({})),
   SellerCartProvider: ({ children }: any) => <>{children}</>,
 }));
 
 // Mock do SEO
-vi.mock('@/components/seo/PageSEO', () => ({
+vi.mock('../components/seo/PageSEO', () => ({
   PageSEO: () => null,
 }));
 
 // Mock dos componentes pesados/complexos com mocks vazios para evitar dependências circulares ou de UI complexas
-vi.mock('@/components/cart/SortableCartItem', () => ({
+vi.mock('../components/cart/SortableCartItem', () => ({
   SortableCartItem: ({ item }: any) => <div data-testid="mock-cart-item">{item.product_name}</div>,
 }));
 
-vi.mock('@/components/cart/CartTabsRich', () => ({
+vi.mock('../components/cart/CartTabsRich', () => ({
   CartTabsRich: () => <div data-testid="mock-tabs" />,
 }));
 
-vi.mock('./seller-carts/CartSidebar', () => ({
+vi.mock('../seller-carts/CartSidebar', () => ({
   CartSidebar: () => <div data-testid="mock-sidebar" />,
 }));
 
-vi.mock('@/components/cart/CartUtilComponents', () => ({
+vi.mock('../components/cart/CartUtilComponents', () => ({
   getStatusCfg: () => ({ label: 'Novo', color: 'bg-primary' }),
   STATUS_CONFIG: {},
   formatCurrency: (v: number) => `R$ ${v}`,
@@ -47,11 +47,11 @@ vi.mock('@/components/cart/CartUtilComponents', () => ({
   CompareCartsDialog: () => null,
 }));
 
-vi.mock('@/components/cart/CartCompanyPickerDialog', () => ({
+vi.mock('../components/cart/CartCompanyPickerDialog', () => ({
   CartCompanyPickerDialog: () => null,
 }));
 
-vi.mock('@/components/cart/CartEmptyStateSmart', () => ({
+vi.mock('../components/cart/CartEmptyStateSmart', () => ({
   CartEmptyStateSmart: () => <div data-testid="mock-empty-state" />,
 }));
 

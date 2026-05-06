@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { useQuotes } from '../useQuotes';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '../integrations/supabase/client';
 
 const mockSupabaseQuery = {
   select: vi.fn().mockReturnThis(),
@@ -14,7 +14,7 @@ const mockSupabaseQuery = {
   ),
 };
 
-vi.mock('@/integrations/supabase/client', () => ({
+vi.mock('../integrations/supabase/client', () => ({
   supabase: {
     from: vi.fn(() => mockSupabaseQuery),
     functions: { invoke: vi.fn() },
@@ -26,23 +26,23 @@ vi.mock('@/integrations/supabase/client', () => ({
   },
 }));
 
-vi.mock('@/contexts/AuthContext', () => ({
+vi.mock('../contexts/AuthContext', () => ({
   useAuth: () => ({ user: { id: 'user-123' } }),
 }));
 
-vi.mock('@/contexts/OrganizationContext', () => ({
+vi.mock('../contexts/OrganizationContext', () => ({
   useOrganization: () => ({ currentOrg: { id: 'org-123' } }),
 }));
 
-vi.mock('@/lib/auth/visibility-scope', () => ({
+vi.mock('../lib/auth/visibility-scope', () => ({
   useSalesScope: () => 'self',
 }));
 
-vi.mock('@/lib/auth/apply-seller-scope', () => ({
+vi.mock('../lib/auth/apply-seller-scope', () => ({
   applySellerScope: vi.fn((q) => q),
 }));
 
-vi.mock('@/lib/external-db', () => ({
+vi.mock('../lib/external-db', () => ({
   invokeExternalDb: vi.fn(() => Promise.resolve({ records: [], error: null })),
 }));
 

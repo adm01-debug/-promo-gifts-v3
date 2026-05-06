@@ -4,7 +4,7 @@ import {
   formatPriceDateShort,
   formatPriceDateLong,
   DEFAULT_PRICE_FRESHNESS_THRESHOLD_DAYS,
-} from './price-freshness';
+} from '../price-freshness';
 
 describe('Price Freshness Utility', () => {
   beforeEach(() => {

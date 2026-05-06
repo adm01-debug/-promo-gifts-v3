@@ -1,10 +1,10 @@
 import { renderHook, act } from '@testing-library/react';
-import { useFavoritesStore } from './useFavoritesStore';
+import { useFavoritesStore } from '../useFavoritesStore';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '../integrations/supabase/client';
 
 // Mock Supabase
-vi.mock('@/integrations/supabase/client', () => ({
+vi.mock('../integrations/supabase/client', () => ({
   supabase: {
     auth: {
       getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'user-123' } }, error: null }),
@@ -19,7 +19,7 @@ vi.mock('@/integrations/supabase/client', () => ({
 }));
 
 // Mock Toast
-vi.mock('@/hooks/use-toast', () => ({
+vi.mock('../hooks/use-toast', () => ({
   toast: vi.fn(),
 }));
 

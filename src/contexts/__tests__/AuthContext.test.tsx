@@ -1,11 +1,11 @@
 import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { AuthProvider, useAuth } from './AuthContext';
-import { supabase } from '@/integrations/supabase/client';
+import { AuthProvider, useAuth } from '../AuthContext';
+import { supabase } from '../integrations/supabase/client';
 import { ReactNode } from 'react';
 
 // Mock Supabase
-vi.mock('@/integrations/supabase/client', () => ({
+vi.mock('../integrations/supabase/client', () => ({
   supabase: {
     auth: {
       onAuthStateChange: vi.fn(() => ({ data: { subscription: { unsubscribe: vi.fn() } } })),
@@ -35,7 +35,7 @@ vi.mock('@/integrations/supabase/client', () => ({
 }));
 
 // Mock services and utils
-vi.mock('@/services/authService', () => ({
+vi.mock('../services/authService', () => ({
   authService: {
     fetchAAL: vi.fn().mockResolvedValue({ currentLevel: 'aal1', nextLevel: 'aal1', hasMFA: false }),
     fetchProfile: vi.fn().mockResolvedValue({ data: null, error: null }),

@@ -1,11 +1,11 @@
 import { describe, it, expect, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useDevGate } from '../useDevGate';
-import { useAuth } from '@/contexts/AuthContext';
-import { devInfraGate } from '@/lib/system/dev-gate/DevInfraGate';
+import { useAuth } from '../contexts/AuthContext';
+import { devInfraGate } from '../lib/system/dev-gate/DevInfraGate';
 
 // Mock do AuthContext
-vi.mock('@/contexts/AuthContext', () => ({
+vi.mock('../contexts/AuthContext', () => ({
   useAuth: vi.fn(),
 }));
 
