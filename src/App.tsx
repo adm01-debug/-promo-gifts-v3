@@ -340,6 +340,7 @@ const AppContent = () => {
         <Route path="/orcamentos/templates" element={<QuoteTemplatesPage />} />
         <Route path="/orcamentos/novo" element={<QuoteBuilderPage />} />
         <Route path="/orcamentos/:id/editar" element={<QuoteBuilderPage />} />
+        <Route path="/orcamentos/:id/detalhe" element={<QuoteDetailPage />} />
         <Route path="/orcamentos/:id" element={<QuoteViewPage />} />
 
         {/* Skins / Temas — disponível para todos os usuários autenticados (preferência local). */}
