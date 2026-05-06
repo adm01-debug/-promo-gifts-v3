@@ -104,7 +104,7 @@ export function AutoTestIntervalCard() {
 
         <div className="ml-auto flex items-center gap-2">
           <span className="text-xs tabular-nums text-muted-foreground">
-            Atual: {loading ? '…' : current != null ? formatLabel(current) : '—'}
+            Atual: {loading ? '…' : current !== null ? formatLabel(current) : '—'}
           </span>
           <Select value={draft} onValueChange={setDraft} disabled={loading || saving}>
             <SelectTrigger className="h-9 w-[120px]" aria-label="Selecionar intervalo">

@@ -310,7 +310,7 @@ export function OwnershipRepairDialog({ reportId, hasIssues }: Props) {
 function Stat({
   label,
   value,
-  icon: Icon,
+  icon: heroIcon,
   tone,
 }: {
   label: string;
@@ -327,7 +327,7 @@ function Stat({
   return (
     <div className="rounded-xl border p-3">
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
-        <Icon className="h-3.5 w-3.5" /> {label}
+        {heroIcon && <heroIcon className="h-3.5 w-3.5" />} {label}
       </div>
       <div className={`mt-1 text-2xl font-bold ${toneClass}`}>{value}</div>
     </div>

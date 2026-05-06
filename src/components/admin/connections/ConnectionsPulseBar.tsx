@@ -10,7 +10,7 @@
  * Tom de voz: híbrido com tradução (termo técnico + explicação curta).
  */
 import {
-  Activity,
+  type Activity,
   AlertTriangle,
   AlertOctagon,
   CheckCircle2,
@@ -63,7 +63,7 @@ const SEVERITY_META: Record<
 };
 
 function MiniKpi({
-  icon: Icon,
+  icon: heroIcon,
   label,
   value,
   tone = 'default',
@@ -98,7 +98,7 @@ function MiniKpi({
         explainOn && explain ? 'border-primary/40 bg-primary/5' : 'border-border/40',
       )}
     >
-      <Icon className={cn('h-3.5 w-3.5 shrink-0', iconCls)} aria-hidden="true" />
+      <heroIcon className={cn('h-3.5 w-3.5 shrink-0', iconCls)} aria-hidden="true" />
       <div className="flex min-w-0 flex-col leading-tight">
         <span className={cn('truncate text-xs font-semibold tabular-nums', valueCls)}>{value}</span>
         <span className="truncate text-[10px] text-muted-foreground">{label}</span>

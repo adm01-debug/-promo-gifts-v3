@@ -155,9 +155,10 @@ export function ConnectionTimelineDrawer({
   const stats = useMemo(() => {
     const total = rows.length;
     const ok = rows.filter((r) => r.success).length;
+    const rowsWithLatency = rows.filter((r) => r.latency_ms !== null);
     const avgLat =
-      rows.filter((r) => r.latency_ms != null).reduce((s, r) => s + (r.latency_ms ?? 0), 0) /
-      Math.max(1, rows.filter((r) => r.latency_ms != null).length);
+      rowsWithLatency.reduce((s, r) => s + (r.latency_ms ?? 0), 0) /
+      Math.max(1, rowsWithLatency.length);
     return {
       total,
       ok,
@@ -336,7 +337,7 @@ export function ConnectionTimelineDrawer({
                             )}
                           </TableCell>
                           <TableCell className="font-mono text-xs">
-                            {r.latency_ms != null ? `${r.latency_ms}ms` : '—'}
+                            {r.latency_ms !== null ? `${r.latency_ms}ms` : '—'}
                           </TableCell>
                           <TableCell
                             className={cn(

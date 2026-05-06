@@ -20,7 +20,7 @@ import {
 } from '@/hooks/usePasswordResetRequests';
 
 export function PasswordResetApproval() {
-  const { requests, isLoading, approveRequest, rejectRequest, refetch } =
+  const { requests, isLoading, approveRequest, rejectRequest } =
     usePasswordResetRequests();
   const [selectedRequest, setSelectedRequest] = useState<PasswordResetRequest | null>(null);
   const [action, setAction] = useState<'approve' | 'reject' | null>(null);

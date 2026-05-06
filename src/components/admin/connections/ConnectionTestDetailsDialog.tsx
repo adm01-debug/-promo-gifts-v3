@@ -71,7 +71,7 @@ function formatRelative(iso: string | null): string {
 }
 
 function statusClass(status: number | null): string {
-  if (status == null) return 'bg-muted text-muted-foreground border-muted-foreground/30';
+  if (status === null) return 'bg-muted text-muted-foreground border-muted-foreground/30';
   if (status >= 200 && status < 300)
     return 'bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/30';
   if (status >= 400) return 'bg-destructive/10 text-destructive border-destructive/30';
@@ -109,11 +109,11 @@ interface TimingSegment {
 
 function timingSegments(t: TestDetails['timing']): TimingSegment[] {
   const segs: TimingSegment[] = [];
-  if (t.dns_ms != null) segs.push({ label: 'DNS', ms: t.dns_ms, color: 'bg-purple-500' });
-  if (t.tcp_ms != null) segs.push({ label: 'TCP', ms: t.tcp_ms, color: 'bg-blue-500' });
-  if (t.tls_ms != null) segs.push({ label: 'TLS', ms: t.tls_ms, color: 'bg-cyan-500' });
-  if (t.ttfb_ms != null) segs.push({ label: 'TTFB', ms: t.ttfb_ms, color: 'bg-amber-500' });
-  if (t.download_ms != null)
+  if (t.dns_ms !== null) segs.push({ label: 'DNS', ms: t.dns_ms, color: 'bg-purple-500' });
+  if (t.tcp_ms !== null) segs.push({ label: 'TCP', ms: t.tcp_ms, color: 'bg-blue-500' });
+  if (t.tls_ms !== null) segs.push({ label: 'TLS', ms: t.tls_ms, color: 'bg-cyan-500' });
+  if (t.ttfb_ms !== null) segs.push({ label: 'TTFB', ms: t.ttfb_ms, color: 'bg-amber-500' });
+  if (t.download_ms !== null)
     segs.push({ label: 'Download', ms: t.download_ms, color: 'bg-green-500' });
   return segs;
 }
@@ -261,7 +261,7 @@ export function ConnectionTestDetailsDialog({
                 <div>
                   <div className="text-[11px] text-muted-foreground">Latência total</div>
                   <div className="mt-0.5 font-mono">
-                    {totalLatency != null ? `${totalLatency}ms` : '—'}
+                    {totalLatency !== null ? `${totalLatency}ms` : '—'}
                   </div>
                 </div>
                 <div>
@@ -327,12 +327,12 @@ export function ConnectionTestDetailsDialog({
                             {getKindLabel(copy.tone)}
                           </Badge>
                         )}
-                        {details.response.status != null && (
+                        {details.response.status !== null && (
                           <Badge variant="outline" className="h-5 font-mono text-[10px]">
                             HTTP {details.response.status}
                           </Badge>
                         )}
-                        {details.error?.kind === 'timeout' && timeoutMs != null && (
+                        {details.error?.kind === 'timeout' && timeoutMs !== null && (
                           <Badge variant="outline" className="h-5 font-mono text-[10px]">
                             timeout: {timeoutMs}ms
                           </Badge>
@@ -401,7 +401,7 @@ export function ConnectionTestDetailsDialog({
                   <div className="flex items-baseline justify-between">
                     <span className="text-sm">Latência total</span>
                     <span className="font-mono text-sm">
-                      {totalLatency != null ? `${totalLatency}ms` : '—'}
+                      {totalLatency !== null ? `${totalLatency}ms` : '—'}
                     </span>
                   </div>
                   <p className="rounded-xl border border-dashed p-3 text-xs text-muted-foreground">

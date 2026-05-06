@@ -179,7 +179,7 @@ function RoutePrefetcher() {
 
   useEffect(() => {
     // Check for save-data mode to avoid unnecessary data usage
-    const conn = (navigator as any).connection;
+    const conn = (navigator as unknown as { connection?: { saveData?: boolean } }).connection;
     if (conn?.saveData) {
       return;
     }
