@@ -2,6 +2,9 @@
  * Centralized JSON parsing utilities for Edge Functions.
  * Handles AI response extraction and safe request body parsing.
  */
+import { createStructuredLogger } from "./structured-logger.ts";
+
+const log = createStructuredLogger("json-parser");
 
 /**
  * Robustly extract & parse JSON from an LLM response.
