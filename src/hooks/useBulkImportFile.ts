@@ -132,7 +132,7 @@ export function useBulkImportFile() {
   }, [parsedData, columnMappings]);
 
   const handleFileSelect = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
+    (e: ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (file) parseFile(file);
     },
@@ -140,7 +140,7 @@ export function useBulkImportFile() {
   );
 
   const handleDrop = useCallback(
-    (e: React.DragEvent) => {
+    (e: DragEvent) => {
       e.preventDefault();
       setIsDragging(false);
       const file = e.dataTransfer.files?.[0];
