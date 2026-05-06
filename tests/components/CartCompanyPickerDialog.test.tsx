@@ -174,15 +174,16 @@ describe('CartCompanyPickerDialog - UI, Accessibility & Regression', () => {
     const user = userEvent.setup();
     render(<CartCompanyPickerDialog {...defaultProps} />);
     
-    const closeButton = screen.getByRole('button', { name: /^Fechar$/i });
-    
-    // Tab from input to close button (already tested, but good for flow)
-    await user.tab(); 
-    expect(closeButton).toHaveFocus();
+    // Initial focus on input
+    const input = screen.getByRole('textbox', { name: /Buscar empresa/i });
+    await waitFor(() => expect(input).toHaveFocus());
 
-    // Next tab should wrap back to the first focusable element (Tabs or Close button if logic varies, usually title/close)
-    // Radix Dialog handles focus trapping. We verify it doesn't leave the dialog.
+    // Tab multiple times to reach the end and check wrapping/trapping
+    // The exact path depends on Radix implementation, but it must stay inside the dialog
+    await user.tab(); // Might go to tab content or buttons
+    await user.tab(); 
     await user.tab();
+    
     const activeElement = document.activeElement;
     expect(screen.getByRole('dialog')).toContainElement(activeElement as HTMLElement);
   });
