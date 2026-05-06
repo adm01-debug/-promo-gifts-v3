@@ -1,15 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
-import { useCatalogState } from '@/hooks/useCatalogState';
+import { useCatalogState } from '../hooks/useCatalogState';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ProductsProvider } from '@/contexts/ProductsContext';
-import { AuthProvider } from '@/contexts/AuthContext';
-import { ThemeProvider } from '@/contexts/ThemeContext';
+import { ProductsProvider } from '../contexts/ProductsContext';
+import { AuthProvider } from '../contexts/AuthContext';
+import { ThemeProvider } from '../contexts/ThemeContext';
 import React from 'react';
 
 // Mock dependencies
-vi.mock('@/integrations/supabase/client', () => {
+vi.mock('../integrations/supabase/client', () => {
   const mockAuth = {
     onAuthStateChange: vi.fn(() => ({
       data: { subscription: { unsubscribe: vi.fn() } },
@@ -37,7 +37,7 @@ vi.mock('@/integrations/supabase/client', () => {
   };
 });
 
-vi.mock('@/lib/external-db/bridge', () => ({
+vi.mock('../lib/external-db/bridge', () => ({
   invokeBatchBridge: vi
     .fn()
     .mockResolvedValue([{ success: true, data: { records: [], count: 0 } }]),

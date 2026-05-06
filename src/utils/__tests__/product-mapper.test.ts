@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { mapPromobrindToProduct } from './product-mapper';
+import { mapPromobrindToProduct } from '../product-mapper';
 
 // Partial mock for PromobrindProduct
 const createMockRawProduct = (overrides = {}): any => ({
@@ -16,7 +16,7 @@ const createMockRawProduct = (overrides = {}): any => ({
 });
 
 // Mock external-db helpers used by mapper
-vi.mock('@/lib/external-db', () => ({
+vi.mock('../lib/external-db', () => ({
   getProductImageUrl: vi.fn((p) => p.image_url || null),
   getProductPrice: vi.fn((p) => p.price || 99.9),
   getProductStock: vi.fn((p) =>

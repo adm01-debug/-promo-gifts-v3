@@ -6,16 +6,16 @@ import { vi, describe, it, expect, beforeEach } from 'vitest';
 import React from 'react';
 
 // Mocks
-vi.mock('@/hooks/use-toast', () => ({
+vi.mock('../hooks/use-toast', () => ({
   useToast: () => ({ toast: vi.fn() }),
 }));
 
-vi.mock('@/contexts/AuthContext', () => ({
+vi.mock('../contexts/AuthContext', () => ({
   useAuth: () => ({ user: { id: 'test-user' } }),
   AuthProvider: ({ children }: any) => <>{children}</>,
 }));
 
-vi.mock('@/components/filters/FilterPanel', () => ({
+vi.mock('../components/filters/FilterPanel', () => ({
   defaultFilters: {
     colors: [],
     colorGroups: [],
@@ -39,23 +39,23 @@ vi.mock('@/components/filters/FilterPanel', () => ({
   },
 }));
 
-vi.mock('@/contexts/ProductsContext', () => ({
+vi.mock('../contexts/ProductsContext', () => ({
   useProductsContext: () => ({ registerProducts: vi.fn() }),
 }));
 
-vi.mock('@/hooks/useFavoriteQuickAdd', () => ({
+vi.mock('../hooks/useFavoriteQuickAdd', () => ({
   useFavoriteQuickAdd: () => ({ isAdding: false, quickAdd: vi.fn() }),
 }));
 
-vi.mock('@/hooks/usePromoSalesRanking', () => ({
+vi.mock('../hooks/usePromoSalesRanking', () => ({
   usePromoSalesRanking: () => ({ data: new Map() }),
 }));
 
-vi.mock('@/hooks/useSupplierSalesRanking', () => ({
+vi.mock('../hooks/useSupplierSalesRanking', () => ({
   useSupplierSalesRanking: () => ({ data: new Map() }),
 }));
 
-vi.mock('@/hooks/useProductsLightweight', () => ({
+vi.mock('../hooks/useProductsLightweight', () => ({
   useProductsCatalog: () => ({
     data: { pages: [] },
     isLoading: false,
@@ -66,7 +66,7 @@ vi.mock('@/hooks/useProductsLightweight', () => ({
   }),
 }));
 
-vi.mock('@/hooks/useSearch', () => ({
+vi.mock('../hooks/useSearch', () => ({
   useSearch: () => ({
     suggestions: [],
     quickSuggestions: [],
@@ -76,39 +76,39 @@ vi.mock('@/hooks/useSearch', () => ({
   }),
 }));
 
-vi.mock('@/hooks/useCatalogRealStats', () => ({
+vi.mock('../hooks/useCatalogRealStats', () => ({
   useCatalogRealStats: () => ({ data: null }),
 }));
 
-vi.mock('@/hooks/useCatalogFiltering', () => ({
+vi.mock('../hooks/useCatalogFiltering', () => ({
   useCatalogFiltering: () => [],
 }));
 
-vi.mock('@/hooks/useColorEnrichment', () => ({
+vi.mock('../hooks/useColorEnrichment', () => ({
   useColorEnrichment: () => ({ data: new Map() }),
 }));
 
-vi.mock('@/hooks/useProductsByMaterial', () => ({
+vi.mock('../hooks/useProductsByMaterial', () => ({
   useProductsByMaterial: () => ({ productIds: [], hasFilter: false, isLoading: false }),
 }));
 
-vi.mock('@/hooks/useProductsByCategory', () => ({
+vi.mock('../hooks/useProductsByCategory', () => ({
   useProductsByCategory: () => ({ productIds: [], hasFilter: false, isLoading: false }),
 }));
 
-vi.mock('@/hooks/useExternalCategoriesQuery', () => ({
+vi.mock('../hooks/useExternalCategoriesQuery', () => ({
   useExternalCategoriesQuery: () => ({ data: [] }),
 }));
 
-vi.mock('@/hooks/useProductFuzzySearch', () => ({
+vi.mock('../hooks/useProductFuzzySearch', () => ({
   useProductFuzzySearch: () => ({ results: [], hasSearch: false }),
 }));
 
-vi.mock('@/stores/useFavoritesStore', () => ({
+vi.mock('../stores/useFavoritesStore', () => ({
   useFavoritesStore: () => ({ isFavorite: vi.fn(), toggleFavorite: vi.fn(), favoriteCount: 0 }),
 }));
 
-vi.mock('@/stores/useComparisonStore', () => ({
+vi.mock('../stores/useComparisonStore', () => ({
   useComparisonStore: () => ({ isInCompare: vi.fn(), toggleCompare: vi.fn(), canAddMore: true }),
 }));
 

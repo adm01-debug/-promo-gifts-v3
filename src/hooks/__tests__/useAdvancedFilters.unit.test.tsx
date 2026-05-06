@@ -1,12 +1,12 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { useAdvancedFilters } from './useAdvancedFilters';
-import * as useExternalDatabaseModule from './useExternalDatabase';
-import { defaultAdvancedFilters } from '@/constants/filters';
+import { useAdvancedFilters } from '../useAdvancedFilters';
+import * as useExternalDatabaseModule from '../useExternalDatabase';
+import { defaultAdvancedFilters } from '../constants/filters';
 
 // Mocking useExternalDatabase and specific hooks
-vi.mock('./useExternalDatabase', async () => {
-  const actual = await vi.importActual('./useExternalDatabase');
+vi.mock('../useExternalDatabase', async () => {
+  const actual = await vi.importActual('../useExternalDatabase');
   return {
     ...actual,
     useExternalCategories: vi.fn(),

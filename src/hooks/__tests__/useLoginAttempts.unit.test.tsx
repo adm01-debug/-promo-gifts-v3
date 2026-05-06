@@ -1,7 +1,7 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { useLoginAttempts } from './useLoginAttempts';
-import { supabase } from '@/integrations/supabase/client';
+import { useLoginAttempts } from '../useLoginAttempts';
+import { supabase } from '../integrations/supabase/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 // Mock implementation that actually returns itself
@@ -13,7 +13,7 @@ const mockQuery: any = {
   eq: vi.fn().mockImplementation(() => mockQuery),
 };
 
-vi.mock('@/integrations/supabase/client', () => ({
+vi.mock('../integrations/supabase/client', () => ({
   supabase: {
     from: vi.fn(() => mockQuery),
   },

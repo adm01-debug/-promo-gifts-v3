@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { findKnownHex, detectColorGroup, normalizeColors } from './product-colors';
+import { findKnownHex, detectColorGroup, normalizeColors } from '../product-colors';
 
 describe('product-colors utilities', () => {
   describe('findKnownHex', () => {
