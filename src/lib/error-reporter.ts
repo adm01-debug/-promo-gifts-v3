@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/lib/logger';
 import { captureException } from '@/lib/sentry';
 import { onBridgeStatus, isColdStartSignal } from '@/lib/external-db/bridge-status-events';
+import { attemptChunkRecovery, isChunkLoadError } from '@/lib/chunk-recovery';
 
 interface ErrorReport {
   message: string;
@@ -209,8 +210,16 @@ export function reportError(error: Error, metadata?: Record<string, unknown>) {
  */
 export function installGlobalErrorHandlers() {
   installBridgeListenerOnce();
+  
   window.addEventListener('error', (event) => {
-    reportError(event.error || new Error(event.message), {
+    const error = event.error || new Error(event.message);
+    
+    // Auto-recovery para erros de chunk fora da árvore React
+    if (isChunkLoadError(error)) {
+      attemptChunkRecovery(error);
+    }
+
+    reportError(error, {
       type: 'unhandled_error',
       filename: event.filename,
       lineno: event.lineno,
@@ -222,6 +231,12 @@ export function installGlobalErrorHandlers() {
     const error = event.reason instanceof Error
       ? event.reason
       : new Error(String(event.reason));
+
+    // Auto-recovery para erros de chunk em promises (ex.: import() dinâmico solto)
+    if (isChunkLoadError(error)) {
+      attemptChunkRecovery(error);
+    }
+
     reportError(error, { type: 'unhandled_promise_rejection' });
   });
 }
