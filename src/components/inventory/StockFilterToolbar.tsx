@@ -358,9 +358,14 @@ export function StockFilterToolbar({
               <Badge variant="secondary" className="gap-1 text-xs pr-1">
                 <LayoutGrid className="h-3 w-3" />
                 Categoria
-                <button onClick={() => onUpdateFilter('categoryId', undefined)} className="ml-0.5 hover:text-foreground">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onUpdateFilter('categoryId', undefined)}
+                  className="ml-0.5 h-4 w-4 hover:text-foreground"
+                >
                   <X className="h-3 w-3" />
-                </button>
+                </Button>
               </Badge>
             )}
             {filters.supplierId && (
