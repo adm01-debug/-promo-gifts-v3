@@ -156,6 +156,10 @@ function RoutePrefetcher() {
   const { pathname } = useLocation();
   
   useEffect(() => {
+    console.log(`[App] Running version: ${typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : 'dev'}`);
+  }, []);
+
+  useEffect(() => {
     // Check for save-data mode to avoid unnecessary data usage
     const conn = (navigator as any).connection;
     if (conn?.saveData) {
