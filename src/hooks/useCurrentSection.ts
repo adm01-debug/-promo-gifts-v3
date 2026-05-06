@@ -7,7 +7,7 @@ const sectionMap: Record<string, string> = {
   "/filtros": "Super Filtro",
   "/novidades": "Novidades",
   "/colecoes": "Coleções",
-  "/estoque": "ESTOQUE 360º",
+  "/estoque": "Estoque 360º",
   "/orcamentos": "Orçamentos",
   "/orcamentos/novo": "Novo Orçamento",
   "/pedidos": "Pedidos",

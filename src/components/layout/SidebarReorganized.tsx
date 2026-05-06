@@ -80,7 +80,6 @@ const navGroups: NavGroup[] = [
       { icon: Zap, label: "Novidades", href: "/novidades" },
       { icon: RefreshCw, label: "Reposição", href: "/reposicao" },
       { icon: FolderOpen, label: "Coleções", href: "/colecoes" },
-      { icon: Layers, label: "ESTOQUE 360º", href: "/estoque", shortcut: "Alt+E" },
       { icon: Heart, label: "Favoritos", href: "/favoritos", shortcut: "Alt+V" },
       { icon: GitCompare, label: "Comparar", href: "/comparar", shortcut: "Alt+C" },
     ],
@@ -98,6 +97,7 @@ const navGroups: NavGroup[] = [
       { icon: Calculator, label: "Mestre da Personalização", href: "/simulador", shortcut: "Alt+S" },
       { icon: BarChart3, label: "Radar de Preços", href: "/simulador-precos" },
       { icon: DollarSign, label: "Busca por Preço", href: "/busca-preco" },
+      { icon: Layers, label: "Estoque 360º", href: "/estoque", shortcut: "Alt+E" },
     ],
   },
   {
@@ -107,7 +107,7 @@ const navGroups: NavGroup[] = [
     defaultOpen: false,
     items: [
       { icon: Brain, label: "Inteligência de Mercado", href: "/inteligencia-comercial" },
-      { icon: Sparkles, label: "ESTOQUE 360º", href: "/estoque" },
+      { icon: Sparkles, label: "Estoque 360º", href: "/estoque" },
       { icon: Activity, label: "Tendências", href: "/tendencias" },
     ],
   },
