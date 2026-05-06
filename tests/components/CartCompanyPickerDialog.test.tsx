@@ -383,4 +383,82 @@ describe('CartCompanyPickerDialog - UI, Accessibility & Regression', () => {
     await user.clear(input);
     expect(announcement).toBeEmptyDOMElement();
   });
+
+  it('validates focus trap including the Search and Favorites tabs and items', async () => {
+    const user = userEvent.setup();
+    render(<CartCompanyPickerDialog {...defaultProps} />);
+    
+    const input = screen.getByRole('textbox', { name: /Buscar empresa/i });
+    const closeButton = screen.getByRole('button', { name: /^Fechar$/i });
+    const recentTab = screen.getByRole('tab', { name: /Recentes/i });
+    const favoritesTab = screen.getByRole('tab', { name: /Favoritas/i });
+    const searchTab = screen.getByRole('tab', { name: /Todas/i });
+
+    // Initial focus on input
+    await waitFor(() => expect(input).toHaveFocus());
+
+    // Navigate to tabs
+    await user.tab({ shift: true }); 
+    // This depends on DOM order, usually tabs are before the content
+    // Let's use specific focus targets if standard tab sequence is complex
+    
+    // Tab forward from search input
+    await user.tab(); 
+    // In "search" tab, it goes Input -> Results area/Items if any -> Close Button
+    expect(closeButton).toHaveFocus();
+
+    // Tab back to input
+    await user.tab({ shift: true });
+    expect(input).toHaveFocus();
+
+    // Tab back to tabs list
+    await user.tab({ shift: true });
+    expect(searchTab).toHaveFocus();
+
+    // Arrow navigation between tabs
+    await user.keyboard('{ArrowLeft}');
+    expect(favoritesTab).toHaveFocus();
+    await user.keyboard('{ArrowLeft}');
+    expect(recentTab).toHaveFocus();
+  });
+
+  it('verifies that aria-live announcements are triggered when changing between loading and ready states', async () => {
+    const { rerender } = render(<CartCompanyPickerDialog {...defaultProps} />);
+    const user = userEvent.setup();
+    const input = screen.getByRole('textbox', { name: /Buscar empresa/i });
+    const announcement = document.getElementById('search-announcement');
+
+    // 1. Initial empty state
+    expect(announcement).toBeEmptyDOMElement();
+
+    // 2. Start typing
+    await user.type(input, 'Tech');
+
+    // 3. Mock loading state
+    (reactQuery.useQuery as any).mockReturnValue({
+      data: [],
+      isLoading: true,
+    });
+    rerender(<CartCompanyPickerDialog {...defaultProps} />);
+    expect(input).toHaveAttribute('aria-busy', 'true');
+    // Screen reader should see "Carregando empresas..." via sr-only span
+
+    // 4. Mock results ready
+    (reactQuery.useQuery as any).mockReturnValue({
+      data: [{ id: '1', name: 'Tech Solutions', razao_social: 'TS', nome_fantasia: 'TS', ramo: 'Tech', logo_url: null }],
+      isLoading: false,
+    });
+    rerender(<CartCompanyPickerDialog {...defaultProps} />);
+    
+    expect(announcement).toHaveTextContent(/1 empresas encontradas/i);
+
+    // 5. Mock no results found
+    (reactQuery.useQuery as any).mockReturnValue({
+      data: [],
+      isLoading: false,
+    });
+    rerender(<CartCompanyPickerDialog {...defaultProps} />);
+    
+    expect(announcement).toHaveTextContent(/Nenhuma empresa encontrada/i);
+  });
 });
