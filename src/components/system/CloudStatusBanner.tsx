@@ -29,7 +29,7 @@ export const CloudStatusBanner = memo(function CloudStatusBanner() {
 
   const config = status ? STATUS_CONFIG[status] : null;
 
-  if (!config) return null;
+  if (!config || status === 'healthy' || status === 'unknown') return null;
 
   // Lógica de visibilidade desacoplada:
   // Mensagens técnicas (warming) aparecem APENAS para usuários com role "dev".
