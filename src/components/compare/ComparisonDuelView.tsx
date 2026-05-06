@@ -106,10 +106,11 @@ export function ComparisonDuelView({ products, formatCurrency, onRemove, onProdu
   );
 
   return (
-    <div className="space-y-6 rounded-xl border-2 border-primary/20 bg-card p-4 sm:p-6 shadow-sm">
+    <div className="space-y-6 rounded-xl border-[2px] border-amber-400/30 bg-gradient-to-br from-amber-400/5 via-card to-card p-4 sm:p-6 shadow-xl relative overflow-hidden">
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-amber-400 to-transparent opacity-50" />
       <div className="flex items-center justify-center gap-3 pb-2">
-        <Badge variant="outline" className="text-xs">⚔️ Modo Duelo</Badge>
-        <span className="text-[11px] text-muted-foreground">Comparação 1 a 1 com destaques</span>
+        <Badge variant="outline" className="text-[10px] border-amber-400/40 text-amber-700 bg-amber-400/10">⚔️ ARENA DE DUELO</Badge>
+        <span className="text-[11px] font-bold uppercase tracking-tighter text-muted-foreground/80">Confronto 1 a 1 de Atributos</span>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] gap-6 items-start">
