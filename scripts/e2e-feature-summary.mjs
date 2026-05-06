@@ -365,6 +365,14 @@ console.log(
   `${C.dim}Wrote ${path.join(outDir, "feature-summary.md")} and feature-summary.json${C.reset}\n`,
 );
 
+const MIN_PASS_RATE = 100; // Exige 100% de sucesso para as features monitoradas no CI
+const passRate = (totals.passed / (totals.total - totals.skipped)) * 100;
+
+if (process.argv.includes("--check-thresholds") && passRate < MIN_PASS_RATE) {
+  console.error(`${C.red}${C.bold}Erro: Taxa de sucesso (${passRate.toFixed(1)}%) abaixo do alvo de ${MIN_PASS_RATE}%${C.reset}`);
+  process.exit(1);
+}
+
 if (totals.failed > 0) {
   console.log(`${C.red}${C.bold}Exit: 1 (${totals.failed} failure(s) detected)${C.reset}\n`);
   process.exit(1);
