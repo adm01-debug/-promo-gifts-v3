@@ -378,7 +378,11 @@ export function useSellerCartsPage() {
   const handleBulkUpdateNotes = useCallback((notes: string) => {
     if (selectedItemIds.size === 0) return;
     const count = selectedItemIds.size;
-    selectedItemIds.forEach(id => updateItemNotes({ itemId: id, notes }));
+    const itemsToUpdate = Array.from(selectedItemIds);
+    
+    // Atualizar cada item individualmente através da mutation do contexto
+    itemsToUpdate.forEach(id => updateItemNotes(id, notes));
+    
     toast.success(`Notas atualizadas em ${count} itens`);
     clearSelection();
   }, [selectedItemIds, updateItemNotes, clearSelection]);
