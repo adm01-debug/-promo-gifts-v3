@@ -100,7 +100,7 @@ export function useTheme() {
   const context = useContext(ThemeContext);
 
   if (context === undefined) {
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.DEV) {
       console.warn(
         'useTheme must be used within a ThemeProvider. Returning a fallback theme to avoid crash.',
       );
