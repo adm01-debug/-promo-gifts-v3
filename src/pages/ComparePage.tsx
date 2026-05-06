@@ -244,9 +244,9 @@ export default function ComparePage() {
             <TooltipProvider >
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="default" size="sm" onClick={handleCreateQuote}>
+                  <Button variant="default" size="sm" onClick={handleCreateQuote} className="bg-amber-500 hover:bg-amber-600 border-none font-bold">
                     <FileText className="h-4 w-4 mr-2" />
-                    Criar orçamento
+                    Gerar Orçamento
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Enviar produtos comparados para novo orçamento</TooltipContent>
