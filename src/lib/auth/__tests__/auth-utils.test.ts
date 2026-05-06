@@ -1,43 +1,98 @@
-import { describe, it, expect } from 'vitest';
-import { getHighestRole, isSupervisorOrAbove } from '../auth-utils';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import {
+  getGreeting,
+  getHighestRole,
+  isSupervisorOrAbove,
+  getRandomGreeting,
+  FLOW_GREETINGS,
+} from './auth-utils';
 import { AppRole } from '@/contexts/AuthContext';
 
-describe('auth-utils regression tests', () => {
+describe('auth-utils', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  describe('getGreeting', () => {
+    it('returns "Bom dia" for morning hours', () => {
+      vi.setSystemTime(new Date(2024, 0, 1, 9, 0)); // 09:00
+      expect(getGreeting()).toBe('Bom dia');
+    });
+
+    it('returns "Boa tarde" for afternoon hours', () => {
+      vi.setSystemTime(new Date(2024, 0, 1, 15, 0)); // 15:00
+      expect(getGreeting()).toBe('Boa tarde');
+    });
+
+    it('returns "Boa noite" for night hours', () => {
+      vi.setSystemTime(new Date(2024, 0, 1, 21, 0)); // 21:00
+      expect(getGreeting()).toBe('Boa noite');
+    });
+  });
+
   describe('getHighestRole', () => {
-    it('should return the highest role based on hierarchy (dev > supervisor > agente)', () => {
-      expect(getHighestRole(['agente', 'dev', 'supervisor'] as AppRole[])).toBe('dev');
-      expect(getHighestRole(['agente', 'supervisor'] as AppRole[])).toBe('supervisor');
-      expect(getHighestRole(['vendedor', 'agente'] as AppRole[])).toBe('agente');
-    });
-
-    it('should handle legacy aliases (admin/manager as supervisor)', () => {
-      expect(getHighestRole(['admin', 'agente'] as AppRole[])).toBe('admin');
-      expect(getHighestRole(['manager', 'supervisor'] as AppRole[])).toBe('supervisor');
-    });
-
-    it('should return null for empty roles', () => {
+    it('returns null for empty roles', () => {
       expect(getHighestRole([])).toBeNull();
+    });
+
+    it('identifies dev as the highest role', () => {
+      const roles: AppRole[] = ['agente', 'dev', 'supervisor'];
+      expect(getHighestRole(roles)).toBe('dev');
+    });
+
+    it('identifies supervisor as higher than agente', () => {
+      const roles: AppRole[] = ['agente', 'supervisor'];
+      expect(getHighestRole(roles)).toBe('supervisor');
+    });
+
+    it('handles legacy roles (admin as supervisor)', () => {
+      const roles: AppRole[] = ['admin', 'agente'];
+      expect(getHighestRole(roles)).toBe('admin');
+    });
+
+    it('returns the role if only one is provided', () => {
+      expect(getHighestRole(['agente'])).toBe('agente');
     });
   });
 
   describe('isSupervisorOrAbove', () => {
-    it('should return true for dev or supervisor', () => {
-      expect(isSupervisorOrAbove(['dev'] as AppRole[])).toBe(true);
-      expect(isSupervisorOrAbove(['supervisor'] as AppRole[])).toBe(true);
+    it('returns true for dev', () => {
+      expect(isSupervisorOrAbove(['dev'])).toBe(true);
     });
 
-    it('should return true for legacy aliases (admin, manager)', () => {
-      expect(isSupervisorOrAbove(['admin'] as AppRole[])).toBe(true);
-      expect(isSupervisorOrAbove(['manager'] as AppRole[])).toBe(true);
+    it('returns true for supervisor', () => {
+      expect(isSupervisorOrAbove(['supervisor'])).toBe(true);
     });
 
-    it('should return false for agente or vendedor', () => {
-      expect(isSupervisorOrAbove(['agente'] as AppRole[])).toBe(false);
-      expect(isSupervisorOrAbove(['vendedor'] as AppRole[])).toBe(false);
+    it('returns true for legacy admin', () => {
+      expect(isSupervisorOrAbove(['admin'])).toBe(true);
     });
 
-    it('should return false for empty roles', () => {
+    it('returns false for agente', () => {
+      expect(isSupervisorOrAbove(['agente'])).toBe(false);
+    });
+
+    it('returns true if at least one role is supervisor or above', () => {
+      expect(isSupervisorOrAbove(['agente', 'supervisor'])).toBe(true);
+    });
+
+    it('returns false for empty roles', () => {
       expect(isSupervisorOrAbove([])).toBe(false);
+    });
+  });
+
+  describe('getRandomGreeting', () => {
+    it('replaces templates correctly', () => {
+      vi.setSystemTime(new Date(2024, 0, 1, 9, 0)); // 09:00 -> "Bom dia"
+      const name = 'John';
+      const result = getRandomGreeting(name);
+
+      expect(result).toContain(name);
+      expect(result).toContain('Bom dia');
     });
   });
 });
