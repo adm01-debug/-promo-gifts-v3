@@ -9,18 +9,25 @@ export function initOTel() {
   // Disable in development if needed, but enabled for world-class observability
   const collectorUrl = import.meta.env.VITE_OTEL_EXPORTER_OTLP_ENDPOINT || 'https://otel-collector.gifts-store.app/v1/traces';
   
+  // Use consistent provider for web tracing
   const provider = new WebTracerProvider();
   
   const exporter = new OTLPTraceExporter({
     url: collectorUrl,
   });
 
-  provider.addSpanProcessor(new BatchSpanProcessor(exporter, {
-    maxQueueSize: 200,
-    scheduledDelayMillis: 5000,
-  }));
+  // Explicitly check for method existence to avoid crashing the whole app
+  // if there's a version mismatch in the environment
+  if (typeof (provider as any).addSpanProcessor === 'function') {
+    provider.addSpanProcessor(new BatchSpanProcessor(exporter, {
+      maxQueueSize: 200,
+      scheduledDelayMillis: 5000,
+    }));
+  }
 
-  provider.register();
+  if (typeof provider.register === 'function') {
+    provider.register();
+  }
 
   registerInstrumentations({
     instrumentations: [
