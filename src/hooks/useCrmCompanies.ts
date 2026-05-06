@@ -125,10 +125,9 @@ export function useCrmInfiniteCompanySelector() {
         const result = await invokeCrmDb<CrmCompany[]>({
           table: 'companies',
           operation: 'select',
-          select: 'id, razao_social, nome_fantasia, ramo_atividade, logo_url, cnpj, seller_id',
+          select: 'id, razao_social, nome_fantasia, ramo_atividade, logo_url, cnpj',
           filters: {
             deleted_at: null,
-            ...(scope === 'self' && user?.id ? { seller_id: user.id } : {}),
           },
           orderBy: { column: 'razao_social', ascending: true },
           limit: 100,
