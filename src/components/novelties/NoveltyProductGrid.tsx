@@ -28,8 +28,8 @@ import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, Dr
 import { NOVELTY_STATUS_CONFIG } from "@/hooks/useNovelties";
 import { exportNoveltiesToCsv, shareNoveltiesOnWhatsApp } from "@/utils/noveltiesExport";
 
-type ViewMode = "grid" | "list" | "table";
-type SortMode = "name" | "price-asc" | "price-desc" | "newest" | "stock" | "best-seller-supplier" | "best-seller-promo";
+// Types are now imported from useNoveltyFilters hook
+
 
 function getGridColsClass(cols: ColumnCount): string {
   switch (cols) {
