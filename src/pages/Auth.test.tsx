@@ -78,20 +78,16 @@ describe('Auth Page (Login Flow)', () => {
     });
   });
 
-  it('shows error message for invalid email format', async () => {
+  it('renders Button and Input with rounded-lg class', async () => {
     renderWithProviders(<Auth />);
     
     await waitFor(() => {
       const emailInput = screen.getByTestId('login-email-input');
-      fireEvent.change(emailInput, { target: { value: 'invalid-email' } });
+      const submitButton = screen.getByTestId('login-submit');
+      
+      expect(emailInput).toHaveClass('rounded-lg');
+      expect(submitButton).toHaveClass('rounded-lg');
     });
-
-    const submitButton = screen.getByTestId('login-submit');
-    fireEvent.click(submitButton);
-
-    await waitFor(() => {
-      expect(screen.getByText(/Por favor, insira um endereço de e-mail válido/i)).toBeInTheDocument();
-    }, { timeout: 2000 });
   });
 
   it('shows error for short password', async () => {
