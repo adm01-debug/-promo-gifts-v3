@@ -121,15 +121,21 @@ export function ComparisonScoreCard({ products, className }: ComparisonScoreCard
               <div
                 key={s.productId}
                 className={cn(
-                  "flex items-center gap-2 rounded-xl border px-2.5 py-1.5 text-xs",
+                  "flex items-center gap-2 rounded-xl border px-2.5 py-1.5 text-xs transition-all hover:scale-105",
                   s.isWinner
-                    ? "border-primary/40 bg-primary/5 font-medium"
+                    ? "border-amber-400/40 bg-amber-400/10 font-bold shadow-sm"
                     : "border-border bg-muted/30"
                 )}
               >
-                <span className="font-mono text-muted-foreground">#{s.rank}</span>
+                <span className={cn(
+                  "font-mono",
+                  s.isWinner ? "text-amber-600 dark:text-amber-400" : "text-muted-foreground"
+                )}>#{s.rank}</span>
                 <span className="line-clamp-1 max-w-[140px]">{p.name}</span>
-                <span className="font-bold text-primary">{s.total}</span>
+                <span className={cn(
+                  "font-bold",
+                  s.isWinner ? "text-amber-600" : "text-primary"
+                )}>{s.total}</span>
               </div>
             );
           })}
