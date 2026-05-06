@@ -240,6 +240,7 @@ export function Header({
                   variant="ghost"
                   size="icon"
                   aria-label="Ativar busca global"
+                  data-testid="header-mobile-search-trigger"
                   className="h-8 w-8 hover:bg-primary/10 hover:text-primary md:hidden"
                   onClick={() => {
                     const event = new KeyboardEvent('keydown', { key: 'k', ctrlKey: true });
