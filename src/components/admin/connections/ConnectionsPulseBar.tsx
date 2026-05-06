@@ -63,7 +63,7 @@ const SEVERITY_META: Record<
 };
 
 function MiniKpi({
-  icon: Icon,
+  icon: heroIcon,
   label,
   value,
   tone = 'default',
