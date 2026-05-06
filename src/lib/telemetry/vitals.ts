@@ -1,4 +1,4 @@
-import { onCLS, onFID, onLCP, onFCP, onTTFB, onINP, type Metric } from 'web-vitals';
+import { onCLS, onLCP, onFCP, onTTFB, onINP, type Metric } from 'web-vitals';
 import { supabase } from '@/integrations/supabase/client';
 import { newRequestId } from '@/lib/telemetry/requestId';
 
@@ -24,9 +24,8 @@ function sendToCollector(metric: Metric) {
 
 export function initWebVitals() {
   onCLS(sendToCollector);
-  onFID(sendToCollector);
   onLCP(sendToCollector);
   onFCP(sendToCollector);
   onTTFB(sendToCollector);
-  onINP(sendToCollector);
+  onINP(sendToCollector); // INP substitui FID em web-vitals v4+
 }
