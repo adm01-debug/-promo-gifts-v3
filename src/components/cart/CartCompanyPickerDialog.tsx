@@ -261,7 +261,7 @@ export function CartCompanyPickerDialog({ open, onOpenChange, onCreated }: CartC
 
           <TabsContent value="search" className="m-0 px-3 pt-3 pb-4 space-y-3">
             <div className="px-2">
-              <div className="relative">
+              <div className="relative" aria-live="polite">
                 <Search 
                   aria-hidden="true"
                   data-testid="search-icon"
@@ -281,11 +281,14 @@ export function CartCompanyPickerDialog({ open, onOpenChange, onCreated }: CartC
                   aria-busy={isLoading}
                 />
                 {isLoading && (
-                  <Loader2 
-                    aria-hidden="true"
-                    data-testid="loader-icon"
-                    className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-muted-foreground opacity-50 pointer-events-none" 
-                  />
+                  <>
+                    <Loader2 
+                      aria-hidden="true"
+                      data-testid="loader-icon"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-muted-foreground opacity-50 pointer-events-none" 
+                    />
+                    <span className="sr-only">Carregando empresas...</span>
+                  </>
                 )}
               </div>
             </div>
