@@ -71,7 +71,7 @@ export function SizeFilter({ selectedSizes, onToggleSize, products = [] }: SizeF
             className="h-7 pl-7 pr-7 text-xs"
           />
           {search && (
-            <Button variant="ghost" size="icon" onClick={() => setSearch("")} className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6" aria-label="Limpar busca de tamanho">
+            <Button variant="ghost" size="icon" onClick={() => setSearch("")} className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6">
               <X className="h-3 w-3 text-muted-foreground" />
             </Button>
           )}
@@ -94,7 +94,7 @@ export function SizeFilter({ selectedSizes, onToggleSize, products = [] }: SizeF
               )}
             >
               {size}
-            </Button>
+            </button>
           );
         })}
       </div>

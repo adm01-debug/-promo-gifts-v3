@@ -52,83 +52,60 @@ export default function PublicComparisonPage() {
 
   useEffect(() => {
     if (!token) { setError("Token inválido"); setLoading(false); return; }
-    
-    const abortController = new AbortController();
     let mounted = true;
-    
     (async () => {
-      try {
-        const { data: cmp, error: cErr } = await supabase
-          .from("user_comparisons")
-          .select("id, client_name, share_expires_at, is_public, items")
-          .eq("share_token", token)
-          .maybeSingle();
+      const { data: cmp, error: cErr } = await supabase
+        .from("user_comparisons")
+        .select("id, client_name, share_expires_at, is_public, items")
+        .eq("share_token", token)
+        .maybeSingle();
 
-        if (!mounted || abortController.signal.aborted) return;
-        
-        if (cErr || !cmp || !cmp.is_public) {
-          setError("Comparação não encontrada ou link inválido.");
-          setLoading(false);
-          return;
-        }
-        if (cmp.share_expires_at && new Date(cmp.share_expires_at) < new Date()) {
-          setError("Este link expirou.");
-          setLoading(false);
-          return;
-        }
-
-        const items = (cmp.items as CompareItem[]) ?? [];
-        setComparison({
-          id: cmp.id,
-          client_name: cmp.client_name,
-          share_expires_at: cmp.share_expires_at,
-          items,
-        });
-
-        const productIds = [...new Set(items.map(i => i.productId))];
-        if (productIds.length > 0) {
-          const { data: prods } = await supabase
-            .from("products")
-            .select("id, name, price, images, sku")
-            .in("id", productIds)
-            .abortSignal(abortController.signal);
-            
-          const pMap = new Map<string, ProductDetail>();
-          (prods ?? []).forEach((p: ProductDetail) => pMap.set(p.id, p));
-          if (mounted) setProducts(pMap);
-        }
-
-        const { data: reacts } = await supabase
-          .from("comparison_reactions")
-          .select("item_index, emoji")
-          .eq("comparison_id", cmp.id)
-          .abortSignal(abortController.signal);
-          
-        const rMap = new Map<number, Map<string, number>>();
-        (reacts ?? []).forEach((r: { item_index: number; emoji: string }) => {
-          if (!rMap.has(r.item_index)) rMap.set(r.item_index, new Map());
-          const m = rMap.get(r.item_index)!;
-          m.set(r.emoji, (m.get(r.emoji) ?? 0) + 1);
-        });
-        
-        if (mounted) {
-          setReactions(rMap);
-          setLoading(false);
-        }
-      } catch (err: any) {
-        if (err.name === 'AbortError') return;
-        console.error("[PublicComparisonPage] Fetch error:", err);
-        if (mounted) {
-          setError("Erro ao carregar dados.");
-          setLoading(false);
-        }
+      if (!mounted) return;
+      if (cErr || !cmp || !cmp.is_public) {
+        setError("Comparação não encontrada ou link inválido.");
+        setLoading(false);
+        return;
       }
-    })();
+      if (cmp.share_expires_at && new Date(cmp.share_expires_at) < new Date()) {
+        setError("Este link expirou.");
+        setLoading(false);
+        return;
+      }
 
-    return () => { 
-      mounted = false; 
-      abortController.abort();
-    };
+      const items = (cmp.items as CompareItem[]) ?? [];
+      setComparison({
+        id: cmp.id,
+        client_name: cmp.client_name,
+        share_expires_at: cmp.share_expires_at,
+        items,
+      });
+
+      const productIds = [...new Set(items.map(i => i.productId))];
+      if (productIds.length > 0) {
+        const { data: prods } = await supabase
+          .from("products")
+          .select("id, name, price, images, sku")
+          .in("id", productIds);
+        const pMap = new Map<string, ProductDetail>();
+        (prods ?? []).forEach((p: ProductDetail) => pMap.set(p.id, p));
+        setProducts(pMap);
+      }
+
+      const { data: reacts } = await supabase
+        .from("comparison_reactions")
+        .select("item_index, emoji")
+        .eq("comparison_id", cmp.id);
+      const rMap = new Map<number, Map<string, number>>();
+      (reacts ?? []).forEach((r: { item_index: number; emoji: string }) => {
+        if (!rMap.has(r.item_index)) rMap.set(r.item_index, new Map());
+        const m = rMap.get(r.item_index)!;
+        m.set(r.emoji, (m.get(r.emoji) ?? 0) + 1);
+      });
+      setReactions(rMap);
+
+      setLoading(false);
+    })();
+    return () => { mounted = false; };
   }, [token]);
 
   const sendReaction = async (itemIndex: number, emoji: string) => {

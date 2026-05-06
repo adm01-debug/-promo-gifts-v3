@@ -77,14 +77,7 @@ class EnhancedErrorBoundary extends Component<Props, State> {
   }
 
   static getDerivedStateFromError(error: Error): Partial<State> {
-    const isChunk = isChunkLoadError(error);
-    return { 
-      hasError: true, 
-      error,
-      // Se for erro de chunk, entra em modo de recovery imediatamente para evitar 
-      // flicker do fallback manual antes do reload disparar.
-      isAutoRecovering: isChunk 
-    };
+    return { hasError: true, error };
   }
 
   override componentDidCatch(error: Error, errorInfo: ErrorInfo): void {

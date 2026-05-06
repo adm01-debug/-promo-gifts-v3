@@ -9,13 +9,7 @@ import { visualizer } from "rollup-plugin-visualizer";
  * 
  * @see https://vitejs.dev/config/
  */
-export default defineConfig(({ mode }) => {
-  const version = new Date().getTime();
-  
-  return {
-    define: {
-      '__APP_VERSION__': JSON.stringify(version),
-    },
+export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     mode === 'development' && componentTagger(),
@@ -47,9 +41,6 @@ export default defineConfig(({ mode }) => {
     
     rollupOptions: {
       output: {
-        chunkFileNames: `assets/[name]-[hash]-v${version}.js`,
-        entryFileNames: `assets/[name]-[hash]-v${version}.js`,
-        assetFileNames: `assets/[name]-[hash]-v${version}.[ext]`,
         manualChunks(id) {
           // Core React
           if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/')) {
@@ -127,5 +118,4 @@ export default defineConfig(({ mode }) => {
   optimizeDeps: {
     include: ['react', 'react-dom', 'react-router-dom'],
   },
-  };
-})
+}))

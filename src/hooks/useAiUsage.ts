@@ -5,7 +5,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "sonner";
 
 export interface AiUsageLog {
   id: string;
@@ -131,11 +130,6 @@ export function useUpdateQuota() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["ai-usage-quotas"] });
-      toast.success("Quota atualizada com sucesso");
-    },
-    onError: (error: any) => {
-      console.error("[useUpdateQuota] erro:", error);
-      toast.error("Erro ao atualizar quota: " + (error.message || "Erro desconhecido"));
     },
   });
 }

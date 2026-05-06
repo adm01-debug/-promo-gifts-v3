@@ -415,9 +415,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange, isFiltering 
                         </span>
                         <span className="sr-only">{displayName}</span>
                         {rolesLoaded ? (
-                          <div aria-hidden="true">
-                            <RoleBadge role={role} className="h-4 px-1.5 text-[9px] leading-none" />
-                          </div>
+                          <RoleBadge role={role} className="h-4 px-1.5 text-[9px] leading-none" />
                         ) : (
                           <span
                             aria-hidden="true"
@@ -437,9 +435,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange, isFiltering 
                   <span className="font-medium">{displayName}</span>
                   <span className="text-[11px] text-muted-foreground">{user?.email}</span>
                   {rolesLoaded ? (
-                    <div aria-hidden="true">
-                      <RoleBadge role={role} className="self-start mt-1" />
-                    </div>
+                    <RoleBadge role={role} className="self-start mt-1" />
                   ) : (
                     <span
                       aria-hidden="true"

@@ -23,49 +23,36 @@
 
 import { logger } from "@/lib/logger";
 
-const APP_VERSION = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : 'dev';
 const STORAGE_KEY = "__chunk_recovery__";
 const WINDOW_MS = 30_000;
 const MAX_HARD_RELOADS = 2;
-const IS_DEV = import.meta.env.MODE === 'development';
 
 interface RecoveryState {
   attempts: number;
   firstAt: number;
   lastUrl?: string;
-  version?: string;
 }
 
 function readState(): RecoveryState {
   try {
     const raw = sessionStorage.getItem(STORAGE_KEY);
-    if (!raw) {
-      if (IS_DEV) console.log("[chunk-recovery] Nenhum estado anterior encontrado.");
-      return { attempts: 0, firstAt: 0 };
-    }
+    if (!raw) return { attempts: 0, firstAt: 0 };
     const parsed = JSON.parse(raw) as RecoveryState;
-    
     // Reset janela se passou tempo suficiente
     if (Date.now() - parsed.firstAt > WINDOW_MS) {
-      if (IS_DEV) console.log("[chunk-recovery] Janela de recuperação expirada. Resetando tentativas.");
       return { attempts: 0, firstAt: 0 };
     }
-    
-    if (IS_DEV) console.log(`[chunk-recovery] Estado recuperado: ${parsed.attempts} tentativas, versão: ${parsed.version || 'desconhecida'}`);
     return parsed;
-  } catch (err) {
-    if (IS_DEV) console.error("[chunk-recovery] Erro ao ler estado do sessionStorage:", err);
+  } catch {
     return { attempts: 0, firstAt: 0 };
   }
 }
 
 function writeState(state: RecoveryState): void {
   try {
-    if (IS_DEV) console.log(`[chunk-recovery] Salvando estado: ${state.attempts} tentativas, versão: ${APP_VERSION}`);
-    const stateToSave = { ...state, version: APP_VERSION };
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
-  } catch (err) {
-    if (IS_DEV) console.error("[chunk-recovery] Erro ao salvar estado:", err);
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch {
+    // sessionStorage indisponível (Safari privado / iframe sandbox) — ignora.
   }
 }
 
@@ -106,9 +93,7 @@ export function isChunkLoadError(error: unknown): boolean {
     message.includes("ChunkLoadError") ||
     message.includes("Importing a module script failed") ||
     message.includes("Unable to preload CSS") ||
-    message.includes("Unexpected token '<'") || // Comum quando o servidor retorna HTML (404/Login) em vez de JS
-    message.includes("Script error.") ||        // Erro genérico de script (CORS ou falha de rede)
-    /\b(404|502|503|504)\b/.test(message)
+    /\b(502|503|504)\b/.test(message)
   );
 }
 
@@ -237,7 +222,6 @@ export function attemptChunkRecovery(error: unknown): Promise<boolean> {
       attempts,
       firstAt,
       lastUrl: extractChunkUrl(error),
-      version: APP_VERSION,
     });
 
     if (attempts > MAX_HARD_RELOADS) {
@@ -285,11 +269,9 @@ export function markBootSuccessful(): void {
   if (typeof window === "undefined") return;
   window.setTimeout(() => {
     const state = readState();
-    if (state.attempts > 0 || state.version !== APP_VERSION) {
-      logger.info("[chunk-recovery] boot bem-sucedido após reload ou nova versão — limpando estado", {
+    if (state.attempts > 0) {
+      logger.info("[chunk-recovery] boot bem-sucedido após reload — limpando estado", {
         previousAttempts: state.attempts,
-        previousVersion: state.version,
-        currentVersion: APP_VERSION,
       });
     }
     clearChunkRecoveryState();

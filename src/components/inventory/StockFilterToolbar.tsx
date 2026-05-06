@@ -305,7 +305,6 @@ export function StockFilterToolbar({
               size="icon"
               onClick={() => setLocalSearch('')}
               className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground hover:text-foreground"
-              aria-label="Limpar busca"
             >
               <X className="h-4 w-4" />
             </Button>
@@ -338,7 +337,7 @@ export function StockFilterToolbar({
         </TooltipProvider>
 
         {activeFiltersCount > 0 && (
-          <Button variant="ghost" onClick={handleReset} size="icon" className="shrink-0" aria-label="Limpar todos os filtros">
+          <Button variant="ghost" onClick={handleReset} size="icon" className="shrink-0">
             <X className="h-4 w-4" />
           </Button>
         )}
@@ -364,7 +363,6 @@ export function StockFilterToolbar({
                   size="icon"
                   onClick={() => onUpdateFilter('categoryId', undefined)}
                   className="ml-0.5 h-4 w-4 hover:text-foreground"
-                  aria-label="Remover filtro de categoria"
                 >
                   <X className="h-3 w-3" />
                 </Button>
@@ -379,7 +377,6 @@ export function StockFilterToolbar({
                   size="icon"
                   onClick={() => onUpdateFilter('supplierId', undefined)}
                   className="ml-0.5 h-4 w-4 hover:text-foreground"
-                  aria-label="Remover filtro de fornecedor"
                 >
                   <X className="h-3 w-3" />
                 </Button>
@@ -394,7 +391,6 @@ export function StockFilterToolbar({
                   size="icon"
                   onClick={() => { onUpdateFilter('colorName', undefined); onUpdateFilter('colorGroup', undefined); }}
                   className="ml-0.5 h-4 w-4 hover:text-foreground"
-                  aria-label="Remover filtro de cor"
                 >
                   <X className="h-3 w-3" />
                 </Button>
@@ -409,7 +405,6 @@ export function StockFilterToolbar({
                   size="icon"
                   onClick={() => { setQuantityInput(''); onUpdateFilter('minQuantityNeeded', undefined); }}
                   className="ml-0.5 h-4 w-4 hover:text-foreground"
-                  aria-label="Remover filtro de quantidade mínima"
                 >
                   <X className="h-3 w-3" />
                 </Button>
