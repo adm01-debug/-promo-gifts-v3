@@ -15,13 +15,15 @@ export interface LaserToneConfig {
   hex: string;
   /** Alpha multiplier 0-1 for the final tone */
   opacity?: number;
-  /** Luminance threshold above which pixels are treated as "white/background" (0-255, default 230) */
+  /** Luminance threshold above which pixels are treated as "white/background" (0-255, default 220) */
   whiteThreshold?: number;
+  /** Alpha threshold below which pixels are treated as transparent (0-255, default 30) */
+  alphaThreshold?: number;
 }
 
 const LASER_TONES: Record<"claro" | "escuro", LaserToneConfig> = {
-  claro: { hex: "#BEBEBE", opacity: 0.85, whiteThreshold: 220 },
-  escuro: { hex: "#3A3A3A", opacity: 0.92, whiteThreshold: 220 },
+  claro: { hex: "#BEBEBE", opacity: 0.85, whiteThreshold: 220, alphaThreshold: 30 },
+  escuro: { hex: "#3A3A3A", opacity: 0.92, whiteThreshold: 220, alphaThreshold: 30 },
 };
 
 function hexToRgb(hex: string): [number, number, number] {
