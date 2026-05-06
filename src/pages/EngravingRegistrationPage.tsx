@@ -76,4 +76,4 @@ export function EngravingRegistrationContent() {
   );
 }
 
-// Default export removed — only EngravingRegistrationContent is used (via AdminCadastrosPage)
+export default EngravingRegistrationContent;
