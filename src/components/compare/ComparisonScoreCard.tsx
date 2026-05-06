@@ -2,14 +2,15 @@
  * ComparisonScoreCard — Card com score ponderado + popover para ajustar pesos.
  * Mostra o vencedor recomendado com badge Crown.
  */
-import { useState } from "react";
-import { Crown, Sliders, Sparkles } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Crown, Sliders, Sparkles, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { useComparisonWeights } from "@/hooks/useComparisonWeights";
 import {
   useComparisonScore,
   DEFAULT_SCORE_WEIGHTS,
