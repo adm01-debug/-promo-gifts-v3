@@ -212,6 +212,7 @@ const AppContent = () => {
         <Route path="/reposicao" element={<ReplenishmentsPage />} />
         <Route path="/favoritos" element={<FavoritesPage />} />
         <Route path="/estoque" element={<StockDashboardPage />} />
+        <Route path="/tendencias" element={<TrendsPage />} />
         <Route path="/carrinhos" element={<SellerCartsPage />} />
         
         <Route path="/carrinhos/:cartId" element={<SellerCartsPage />} />
