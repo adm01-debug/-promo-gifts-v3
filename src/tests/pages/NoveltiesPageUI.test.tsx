@@ -90,17 +90,19 @@ const AllProviders = ({ children }: { children: React.ReactNode }) => {
   });
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <ProductsProvider>
-          <CollectionsProvider>
-            <SellerCartProvider>
-              {children}
-            </SellerCartProvider>
-          </CollectionsProvider>
-        </ProductsProvider>
-      </TooltipProvider>
-    </QueryClientProvider>
+    <HelmetProvider>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <ProductsProvider>
+            <CollectionsProvider>
+              <SellerCartProvider>
+                {children}
+              </SellerCartProvider>
+            </CollectionsProvider>
+          </ProductsProvider>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </HelmetProvider>
   );
 };
 
