@@ -4,7 +4,6 @@
  */
 import { useQuery } from '@tanstack/react-query';
 import { invokeExternalDb } from '@/lib/external-db/bridge';
-import { invokeBatchBridge } from '@/lib/external-db/bridge';
 
 export interface CatalogRealStats {
   totalVariants: number;
