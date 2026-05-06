@@ -327,7 +327,7 @@ export function ConnectionTestDetailsDialog({
                             {getKindLabel(copy.tone)}
                           </Badge>
                         )}
-                        {details.response.status != null && (
+                        {details.response.status !== null && (
                           <Badge variant="outline" className="h-5 font-mono text-[10px]">
                             HTTP {details.response.status}
                           </Badge>
