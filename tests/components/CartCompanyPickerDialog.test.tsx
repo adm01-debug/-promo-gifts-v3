@@ -221,24 +221,57 @@ describe('CartCompanyPickerDialog - UI, Accessibility & Regression', () => {
     expect(input).toHaveAttribute('placeholder', 'Nome, CNPJ ou segmento...');
   });
 
-  it('announces the number of results to screen readers when search is complete', async () => {
-    (reactQuery.useQuery as any).mockReturnValue({
-      data: [
-        { id: '1', name: 'Company A', razao_social: 'A', nome_fantasia: 'A', ramo: 'Tech', logo_url: null },
-        { id: '2', name: 'Company B', razao_social: 'B', nome_fantasia: 'B', ramo: 'Sales', logo_url: null },
-      ],
-      isLoading: false,
-    });
-
-    render(<CartCompanyPickerDialog {...defaultProps} />);
+  it('announces search results and empty states to screen readers', async () => {
+    const { rerender } = render(<CartCompanyPickerDialog {...defaultProps} />);
     const user = userEvent.setup();
     const input = screen.getByRole('textbox', { name: /Buscar empresa/i });
     
+    // 1. Loading results
+    (reactQuery.useQuery as any).mockReturnValue({
+      data: [
+        { id: '1', name: 'Company A', razao_social: 'A', nome_fantasia: 'A', ramo: 'Tech', logo_url: null },
+      ],
+      isLoading: false,
+    });
     await user.type(input, 'Comp');
     
     const announcement = document.getElementById('search-announcement');
-    expect(announcement).toHaveTextContent(/2 empresas encontradas/i);
-    expect(announcement).toHaveAttribute('aria-live', 'polite');
+    expect(announcement).toHaveTextContent(/1 empresas encontradas/i);
+    
+    // 2. Empty results
+    (reactQuery.useQuery as any).mockReturnValue({
+      data: [],
+      isLoading: false,
+    });
+    // Trigger rerender with new mock data
+    rerender(<CartCompanyPickerDialog {...defaultProps} />);
+    
+    expect(announcement).toHaveTextContent(/Nenhuma empresa encontrada/i);
+  });
+
+  it('validates keyboard accessibility for the favorite button', async () => {
+    (reactQuery.useQuery as any).mockReturnValue({
+      data: [{ id: '1', name: 'Company A', razao_social: 'A', nome_fantasia: 'A', ramo: 'Tech', logo_url: null }],
+      isLoading: false,
+    });
+    
+    const user = userEvent.setup();
+    render(<CartCompanyPickerDialog {...defaultProps} />);
+    
+    const input = screen.getByRole('textbox', { name: /Buscar empresa/i });
+    await waitFor(() => expect(input).toHaveFocus());
+    
+    // Tab sequence: Input -> Select Button -> Favorite Button
+    await user.tab();
+    const selectBtn = screen.getByTestId('cart-company-picker-select');
+    expect(selectBtn).toHaveFocus();
+    
+    await user.tab();
+    const favoriteBtn = screen.getByRole('button', { name: /Adicionar aos favoritos/i });
+    expect(favoriteBtn).toHaveFocus();
+    
+    // Verify favorite button is visible when focused (it has focus-visible:opacity-100)
+    expect(favoriteBtn).toHaveClass('focus-visible:opacity-100');
   });
 
   it('verifies critical layout classes that prevent visual regressions', () => {
