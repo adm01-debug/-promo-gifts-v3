@@ -137,9 +137,9 @@ export function StockCategoryTreeSelect({ value, onChange }: StockCategoryTreeSe
   if (isLoading) {
     return (
       <div className="space-y-1.5">
-        <div className="h-3 w-20 bg-muted animate-pulse rounded" />
-        <div className="h-3 w-32 bg-muted animate-pulse rounded" />
-        <div className="h-3 w-24 bg-muted animate-pulse rounded" />
+        <div className="h-3 w-20 bg-muted animate-pulse rounded-lg" />
+        <div className="h-3 w-32 bg-muted animate-pulse rounded-lg" />
+        <div className="h-3 w-24 bg-muted animate-pulse rounded-lg" />
       </div>
     );
   }
