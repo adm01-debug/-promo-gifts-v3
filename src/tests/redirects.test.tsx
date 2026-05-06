@@ -5,6 +5,7 @@ import { AppContent } from '../App';
 import { AuthProvider } from '../contexts/AuthContext';
 import { AppProviders } from '../components/providers/AppProviders';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { HelmetProvider } from 'react-helmet-async';
 import { Suspense } from 'react';
 
 // Mocking dependencies to prevent errors during rendering
@@ -41,29 +42,26 @@ vi.mock('@/integrations/supabase/client', () => {
   return { supabase: mockSupabase };
 });
 
-// Mock ProtectedRoute to just render the Outlet
-vi.mock('@/components/layout/ProtectedRoute', () => ({
-  ProtectedRoute: () => <Outlet />,
-}));
-
-// Mock AdminRoute and other guards
+// Mock all layout routes to just render Outlet
+vi.mock('@/components/layout/ProtectedRoute', () => ({ ProtectedRoute: () => <Outlet /> }));
 vi.mock('@/components/layout/AdminRoute', () => ({ AdminRoute: () => <Outlet /> }));
 vi.mock('@/components/layout/DevRoute', () => ({ DevRoute: () => <Outlet /> }));
 vi.mock('@/components/layout/DeprecatedRoute', () => ({ DeprecatedRoute: () => <Outlet /> }));
-
-// Mock RouteErrorBoundary
 vi.mock('@/components/errors/RouteErrorBoundary', () => ({
   RouteErrorBoundary: ({ children }: { children: React.ReactNode }) => <>{children || <Outlet />}</>,
 }));
 
 // Mock useAppBootstrap
-vi.mock('@/hooks/useAppBootstrap', () => ({
-  useAppBootstrap: vi.fn(),
-}));
+vi.mock('@/hooks/useAppBootstrap', () => ({ useAppBootstrap: vi.fn() }));
 
-// Mock any heavy pages that might cause side effects or load errors
+// Mock all potential pages to avoid missing providers/dependencies
+// Using a proxy or a broad mock if possible, but manual for core ones
 vi.mock('../pages/Index', () => ({ default: () => <div data-testid="page-index">Index</div> }));
 vi.mock('../pages/MockupGenerator', () => ({ default: () => <div data-testid="page-mockup">Mockup</div> }));
+vi.mock('../pages/SimuladorWizard', () => ({ default: () => <div data-testid="page-simulador">Simulador</div> }));
+vi.mock('../pages/KitBuilderPage', () => ({ default: () => <div data-testid="page-kit-builder">Kit Builder</div> }));
+vi.mock('../pages/KitLibraryPage', () => ({ default: () => <div data-testid="page-kit-library">Kit Library</div> }));
+vi.mock('../pages/AdvancedPriceSearchPage', () => ({ default: () => <div data-testid="page-price-search">Price Search</div> }));
 
 const LocationDisplay = () => {
   const location = useLocation();
@@ -77,21 +75,22 @@ const queryClient = new QueryClient({
 describe('Navigation Redirects', () => {
   const testRedirect = async (fromPath: string, expectedToPath: string) => {
     render(
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <AppProviders>
-            <MemoryRouter initialEntries={[fromPath]}>
-              <Suspense fallback={<div data-testid="loading">Loading...</div>}>
-                <AppContent />
-                <LocationDisplay />
-              </Suspense>
-            </MemoryRouter>
-          </AppProviders>
-        </AuthProvider>
-      </QueryClientProvider>
+      <HelmetProvider>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <AppProviders>
+              <MemoryRouter initialEntries={[fromPath]}>
+                <Suspense fallback={<div data-testid="loading">Loading...</div>}>
+                  <AppContent />
+                  <LocationDisplay />
+                </Suspense>
+              </MemoryRouter>
+            </AppProviders>
+          </AuthProvider>
+        </QueryClientProvider>
+      </HelmetProvider>
     );
 
-    // Increase timeout slightly for transitions
     await waitFor(() => {
       const display = screen.getByTestId('location-display');
       expect(display.textContent).toBe(expectedToPath);
