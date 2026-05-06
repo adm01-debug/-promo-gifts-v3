@@ -135,18 +135,31 @@ function SellerCartsContent() {
             />
           </div>
 
-          <Select value={s.companyFilter} onValueChange={s.setCompanyFilter}>
-            <SelectTrigger className="h-9 text-xs w-[140px] gap-2 rounded-xl border-border/40 bg-card/60 shadow-sm">
-              <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
-              <SelectValue placeholder="Empresa" />
-            </SelectTrigger>
-            <SelectContent className="rounded-xl">
-              <SelectItem value="all">Todas Empresas</SelectItem>
-              {Array.from(new Set(s.carts.map(c => c.company_name))).map(name => (
-                <SelectItem key={name} value={name}>{name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="relative group/company">
+            <Select value={s.companyFilter} onValueChange={s.setCompanyFilter}>
+              <SelectTrigger className="h-9 text-xs w-[160px] gap-2 rounded-xl border-border/40 bg-card/60 shadow-sm hover:border-primary/30 transition-all">
+                <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
+                <SelectValue placeholder="Empresa" />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl p-1 shadow-2xl border-border/40">
+                <SelectItem value="all" className="rounded-lg py-2">
+                  <span className="flex items-center gap-2">
+                    <Filter className="h-3.5 w-3.5 opacity-40" />
+                    Todas Empresas
+                  </span>
+                </SelectItem>
+                <div className="h-px bg-muted/40 my-1 mx-1" />
+                {Array.from(new Set(s.carts.map(c => c.company_name))).sort().map(name => (
+                  <SelectItem key={name} value={name} className="rounded-lg py-2">
+                    <span className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-primary/40" />
+                      {name}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
           <div className="relative flex items-center gap-2 border border-border/40 bg-card/60 rounded-xl p-1 h-9 shadow-sm">
             <Package className="h-3.5 w-3.5 text-muted-foreground ml-2" />
