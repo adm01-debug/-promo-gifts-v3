@@ -49,7 +49,7 @@ vi.mock('../hooks/useSecretsManager', () => ({
 
 // Mock components that cause AriaLive issues or are too heavy
 vi.mock('../components/ui/aria-live', () => ({
-  AriaLiveProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  AriaLiveProvider: ({ children }: { children: React.ReactNode }) => <div data-testid="aria-live-provider">{children}</div>,
   useAriaLive: () => ({ announce: vi.fn() }),
 }));
 
@@ -67,9 +67,21 @@ vi.mock('../components/layout/SidebarReorganized', () => ({
   SidebarReorganized: () => <aside data-testid="sidebar"><div data-testid="sidebar-brand-header">Brand</div></aside>
 }));
 
-// Mock PulseBar components to avoid getRotationHistory and other errors
+// Mock sub-components that are failing due to missing hooks/props
 vi.mock('../components/admin/connections/ConnectionsPulseBar', () => ({
   ConnectionsPulseBar: () => <div data-testid="pulse-bar" />
+}));
+
+vi.mock('../components/admin/connections/SecretsManagerHealthPanel', () => ({
+  SecretsManagerHealthPanel: () => <div data-testid="health-panel" />
+}));
+
+vi.mock('../components/admin/connections/ExternalConnectionsSyncLogPanel', () => ({
+  ExternalConnectionsSyncLogPanel: () => <div data-testid="sync-log" />
+}));
+
+vi.mock('../components/admin/connections/ConnectionsOverviewTable', () => ({
+  ConnectionsOverviewTable: () => <div data-testid="overview-table" />
 }));
 
 const queryClient = new QueryClient({
@@ -105,12 +117,8 @@ const renderAdminRoute = async (path: string, Element: React.ComponentType) => {
 describe('Layout Duplication (RTL)', () => {
   it('AdminConexoesPage renders exactly ONE sidebar brand header', async () => {
     await renderAdminRoute('/admin/conexoes', AdminConexoesPage);
-    
-    // We expect exactly ONE header and ONE sidebar brand header
-    // Since we mocked them, we check for our mock testids
     const brandHeaders = screen.queryAllByTestId('sidebar-brand-header');
     expect(brandHeaders.length).toBe(1);
-    
     const headers = screen.queryAllByTestId('header-mobile-search-trigger');
     expect(headers.length).toBe(1);
   });
