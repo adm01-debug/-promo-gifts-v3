@@ -48,7 +48,7 @@ function getPersistedViewMode(): ViewMode {
   try {
     const saved = localStorage.getItem(VIEW_MODE_KEY);
     if (saved === 'grid' || saved === 'list' || saved === 'table') return saved;
-  } catch (e) {
+  } catch (_e) {
     // LocalStorage access can fail in some browsers/modes
   }
   return 'grid';
