@@ -1,8 +1,8 @@
 /**
  * Left-side branding panel for Auth page — extracted for modularity
  */
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Gift, Package, Factory, SlidersHorizontal, Brain, Rocket } from "lucide-react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { Gift, Package, Factory, SlidersHorizontal, Brain, Rocket, Sparkles } from "lucide-react";
 
 interface RocketData { id: number; left: number; size: number; duration: number; rotation: number; scale: number; }
 
@@ -173,86 +173,86 @@ const BackgroundRockets = React.memo(() => {
   );
 });
 
-const Starfield = React.memo(() => {
+const Starfield = React.memo(({ intensity = 1 }: { intensity?: number }) => {
+  const farStars = useMemo(() => [...Array(60)].map((_, i) => ({
+    size: 1 + (i % 2),
+    top: (i * 47 + 13) % 100,
+    left: (i * 61 + 9) % 100,
+    dur: 14 + (i % 8),
+    delay: (i * 0.7) % 12,
+  })), []);
+
+  const midStars = useMemo(() => [...Array(80)].map((_, i) => ({
+    size: 1.5 + (i % 2),
+    top: (i * 37 + 11) % 100,
+    left: (i * 53 + 7) % 100,
+    dur: 7 + (i % 5),
+    delay: (i * 0.4) % 6,
+  })), []);
+
+  const nearStars = useMemo(() => [...Array(40)].map((_, i) => ({
+    size: 2 + (i % 2),
+    top: (i * 29 + 17) % 100,
+    left: (i * 41 + 5) % 100,
+    dur: 3 + (i % 4),
+    delay: (i * 0.2) % 4,
+  })), []);
+
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {/* Camada Distante — 60 estrelas (Ritmo lento, brilho sutil) */}
-      {[...Array(60)].map((_, i) => {
-        const size = 1 + (i % 2);
-        const top = (i * 47 + 13) % 100;
-        const left = (i * 61 + 9) % 100;
-        // Slowest rhythm: 14-22s
-        const dur = 14 + (i % 8); 
-        const delay = (i * 0.7) % 12;
-        return (
-          <div
-            key={`star-far-${i}`}
-            className="absolute rounded-full bg-white blur-[1px] shadow-[0_0_8px_rgba(255,255,255,0.3)]"
-            style={{
-              width: `${size}px`,
-              height: `${size}px`,
-              top: `${top}%`,
-              left: `${left}%`,
-              "--star-base-opacity": "0.25",
-              "--star-peak-opacity": "0.6",
-              "--star-peak-scale": "1.1",
-              animation: `twinkle ${dur}s ease-in-out ${delay}s infinite`,
-            } as any}
-          />
-        );
-      })}
+      {/* Camada Distante */}
+      {farStars.map((s, i) => (
+        <div
+          key={`star-far-${i}`}
+          className="absolute rounded-full bg-white blur-[1px] shadow-[0_0_8px_rgba(255,255,255,0.3)]"
+          style={{
+            width: `${s.size}px`,
+            height: `${s.size}px`,
+            top: `${s.top}%`,
+            left: `${s.left}%`,
+            "--star-base-opacity": (0.25 / intensity).toString(),
+            "--star-peak-opacity": (0.6 * intensity).toString(),
+            "--star-peak-scale": (1 + 0.1 * intensity).toString(),
+            animation: `twinkle ${s.dur}s ease-in-out ${s.delay}s infinite`,
+          } as any}
+        />
+      ))}
 
-      {/* Camada Média — 80 estrelas (Ritmo médio, brilho balanceado) */}
-      {[...Array(80)].map((_, i) => {
-        const size = 1.5 + (i % 2);
-        const top = (i * 37 + 11) % 100;
-        const left = (i * 53 + 7) % 100;
-        // Medium rhythm: 7-11s
-        const dur = 7 + (i % 5);
-        const delay = (i * 0.4) % 6;
-        return (
-          <div
-            key={`star-mid-${i}`}
-            className="absolute rounded-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.4)]"
-            style={{
-              width: `${size}px`,
-              height: `${size}px`,
-              top: `${top}%`,
-              left: `${left}%`,
-              "--star-base-opacity": "0.45",
-              "--star-peak-opacity": "0.85",
-              "--star-peak-scale": "1.3",
-              animation: `twinkle ${dur}s ease-in-out ${delay}s infinite`,
-            } as any}
-          />
-        );
-      })}
+      {/* Camada Média */}
+      {midStars.map((s, i) => (
+        <div
+          key={`star-mid-${i}`}
+          className="absolute rounded-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.4)]"
+          style={{
+            width: `${s.size}px`,
+            height: `${s.size}px`,
+            top: `${s.top}%`,
+            left: `${s.left}%`,
+            "--star-base-opacity": (0.45 / intensity).toString(),
+            "--star-peak-opacity": (0.85 * intensity).toString(),
+            "--star-peak-scale": (1 + 0.3 * intensity).toString(),
+            animation: `twinkle ${s.dur}s ease-in-out ${s.delay}s infinite`,
+          } as any}
+        />
+      ))}
 
-      {/* Camada Próxima — 40 estrelas (Ritmo rápido, brilho intenso e expansivo) */}
-      {[...Array(40)].map((_, i) => {
-        const size = 2 + (i % 2);
-        const top = (i * 29 + 17) % 100;
-        const left = (i * 41 + 5) % 100;
-        // Fast rhythm: 3-6s
-        const dur = 3 + (i % 4);
-        const delay = (i * 0.2) % 4;
-        return (
-          <div
-            key={`star-near-${i}`}
-            className="absolute rounded-full bg-white shadow-[0_0_15px_rgba(255,255,255,0.7)]"
-            style={{
-              width: `${size}px`,
-              height: `${size}px`,
-              top: `${top}%`,
-              left: `${left}%`,
-              "--star-base-opacity": "0.7",
-              "--star-peak-opacity": "1",
-              "--star-peak-scale": "1.5",
-              animation: `twinkle ${dur}s ease-in-out ${delay}s infinite`,
-            } as any}
-          />
-        );
-      })}
+      {/* Camada Próxima */}
+      {nearStars.map((s, i) => (
+        <div
+          key={`star-near-${i}`}
+          className="absolute rounded-full bg-white shadow-[0_0_15px_rgba(255,255,255,0.7)]"
+          style={{
+            width: `${s.size}px`,
+            height: `${s.size}px`,
+            top: `${s.top}%`,
+            left: `${s.left}%`,
+            "--star-base-opacity": (0.7 / intensity).toString(),
+            "--star-peak-opacity": (1 * intensity).toString(),
+            "--star-peak-scale": (1 + 0.5 * intensity).toString(),
+            animation: `twinkle ${s.dur}s ease-in-out ${s.delay}s infinite`,
+          } as any}
+        />
+      ))}
     </div>
   );
 });
@@ -292,6 +292,9 @@ const FEATURE_ITEMS = [
  * Renderizado uma vez no topo do <Auth/>, antes do branding e do form.
  */
 export function AuthSpaceBackground() {
+  const [intensity, setIntensity] = useState(1);
+  const [showControls, setShowControls] = useState(false);
+
   return (
     <div className="absolute inset-0 overflow-hidden bg-[#0A0D14] pointer-events-none" aria-hidden="true">
       <div className="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_30%_50%,rgba(13,17,26,1)_0%,rgba(5,7,12,1)_100%)]" />
@@ -302,9 +305,42 @@ export function AuthSpaceBackground() {
       <div className="absolute top-1/4 -left-20 w-80 h-80 bg-orange/10 rounded-full blur-[120px] animate-pulse" />
       <div className="absolute bottom-1/4 right-0 w-96 h-96 bg-orange/5 rounded-full blur-[150px]" />
       <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-orange/5 rounded-full blur-[100px]" />
-      <Starfield />
+      <Starfield intensity={intensity} />
       <BackgroundRockets />
       <ContinuousRockets />
+
+      {/* Floating Control - Clickable only on parent area if we remove pointer-events-none or add it back to children */}
+      <div className="absolute bottom-6 right-6 z-[50] pointer-events-auto flex flex-col items-end gap-2 group">
+        {showControls && (
+          <div className="bg-black/80 backdrop-blur-xl border border-white/10 p-4 rounded-2xl shadow-2xl flex flex-col gap-3 animate-in fade-in slide-in-from-bottom-4 duration-300">
+            <div className="flex items-center justify-between gap-8">
+              <span className="text-[10px] font-bold text-white/60 uppercase tracking-widest">Intensidade do Brilho</span>
+              <span className="text-xs font-mono text-primary font-bold">{(intensity * 100).toFixed(0)}%</span>
+            </div>
+            <input 
+              type="range" 
+              min="0.2" 
+              max="2" 
+              step="0.1" 
+              value={intensity} 
+              onChange={(e) => setIntensity(parseFloat(e.target.value))}
+              className="w-48 h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-primary"
+            />
+            <div className="flex justify-between text-[8px] text-white/30 font-medium px-1">
+              <span>SUTIL</span>
+              <span>CINEMATOGRÁFICO</span>
+              <span>INTENSO</span>
+            </div>
+          </div>
+        )}
+        <button 
+          onClick={() => setShowControls(!showControls)}
+          className="w-12 h-12 rounded-full bg-black/60 backdrop-blur-md border border-white/10 flex items-center justify-center text-white/60 hover:text-primary hover:border-primary/50 transition-all hover:scale-110 shadow-xl"
+          title="Ajustar Estrelas"
+        >
+          <Sparkles className={`h-5 w-5 ${showControls ? 'text-primary' : ''}`} />
+        </button>
+      </div>
     </div>
   );
 }
