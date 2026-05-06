@@ -227,6 +227,7 @@ export function attemptChunkRecovery(error: unknown): Promise<boolean> {
       attempts,
       firstAt,
       lastUrl: extractChunkUrl(error),
+      version: APP_VERSION,
     });
 
     if (attempts > MAX_HARD_RELOADS) {
