@@ -28,7 +28,7 @@ import { ThemeInitializer } from '@/components/ThemeInitializer';
 import { prefetchRoute } from '@/lib/routePrefetch';
 import { initWebVitals } from '@/lib/telemetry/vitals';
 
-initWebVitals();
+// WebVitals initialization is handled in main.tsx to avoid duplication
 
 const queryClient = createQueryClient();
 
