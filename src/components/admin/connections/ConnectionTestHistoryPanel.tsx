@@ -476,7 +476,9 @@ export function ConnectionTestHistoryPanel({
 
   const stats = useMemo(() => {
     if (items.length === 0) return null;
-    const latencies = items.filter((i) => i.ok && i.latency_ms != null).map((i) => i.latency_ms!);
+    const latencies = items
+      .filter((i) => i.ok && i.latency_ms !== null)
+      .map((i) => i.latency_ms as number);
     const avg = latencies.length
       ? Math.round(latencies.reduce((s, n) => s + n, 0) / latencies.length)
       : null;
