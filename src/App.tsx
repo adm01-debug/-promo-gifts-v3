@@ -250,8 +250,8 @@ const AppContent = () => {
           <Route path="/admin/kit-templates" element={<KitTemplatesAdminPage />} />
           <Route path="/admin/kit-templates/metricas" element={<KitTemplatesMetricsPage />} />
           <Route path="/admin/aprovacoes-desconto" element={<DeprecatedRoute message="A gestão de descontos foi movida para a aba 'Descontos' em Usuários." redirectTo="/admin/usuarios?tab=discounts" />} />
-          <Route path="/admin/performance" element={<DeprecatedRoute message="O módulo de Performance foi descontinuado. Use o BI Comercial para análises." redirectTo="/ferramentas/bi" />} />
-          <Route path="/admin/performance-comercial" element={<DeprecatedRoute message="O módulo de Performance Comercial foi descontinuado. Use o BI Comercial para análises." redirectTo="/ferramentas/bi" />} />
+          <Route path="/admin/performance" element={<DeprecatedRoute message="O módulo de Performance foi descontinuado. Use o BI Comercial para análises." redirectTo="/ferramentas/bi-comercial" />} />
+          <Route path="/admin/performance-comercial" element={<DeprecatedRoute message="O módulo de Performance Comercial foi descontinuado. Use o BI Comercial para análises." redirectTo="/ferramentas/bi-comercial" />} />
           <Route path="/admin/comissoes" element={<DeprecatedRoute message="O módulo de Comissões foi descontinuado nesta plataforma." redirectTo="/admin/usuarios" />} />
           <Route path="/tendencias" element={<TrendsPage />} />
 
@@ -293,12 +293,12 @@ const AppContent = () => {
         <Route path="/simulador" element={<Navigate to="/ferramentas/simulador" replace />} />
         <Route path="/ferramentas/simulador-precos" element={<PriceSimulatorPage />} />
         <Route path="/simulador-precos" element={<Navigate to="/ferramentas/simulador-precos" replace />} />
-        <Route path="/ferramentas/estoque" element={<StockDashboardPage />} />
+        <Route path="/ferramentas/estoque" element={<Navigate to="/estoque" replace />} />
         <Route path="/ferramentas/busca-preco" element={<AdvancedPriceSearchPage />} />
         <Route path="/busca-preco" element={<Navigate to="/ferramentas/busca-preco" replace />} />
         <Route path="/ferramentas/match" element={<ProductMatchPage />} />
         <Route path="/match" element={<Navigate to="/ferramentas/match" replace />} />
-        <Route path="/ferramentas/bi" element={<BusinessIntelligencePage />} />
+        <Route path="/ferramentas/bi" element={<Navigate to="/ferramentas/bi-comercial" replace />} />
         <Route path="/ferramentas/bi-comercial" element={<CommercialIntelligencePage />} />
         <Route path="/inteligencia-comercial" element={<Navigate to="/ferramentas/bi-comercial" replace />} />
         <Route path="/ferramentas/dropbox" element={<DropboxBrowserPage />} />

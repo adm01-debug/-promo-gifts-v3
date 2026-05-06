@@ -105,7 +105,7 @@ const navGroups: NavGroup[] = [
     icon: Brain,
     defaultOpen: false,
     items: [
-      { icon: Brain, label: "Inteligência de Mercado", href: "/inteligencia-comercial" },
+      { icon: Brain, label: "Inteligência Comercial", href: "/ferramentas/bi-comercial" },
       { icon: Layers, label: "Estoque 360º", href: "/estoque", shortcut: "Alt+E" },
       { icon: Activity, label: "Tendências", href: "/tendencias" },
     ],
