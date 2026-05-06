@@ -172,10 +172,19 @@ Com base no perfil do cliente, recomende os produtos mais adequados.`;
 
     // Parse JSON from response — robust extraction + sanitization to survive
     // markdown fences, trailing commas, prose around the JSON, and minor truncation.
-    const recommendations = extractAndParseAIJSON(content);
+    const rawRecommendations = extractAndParseAIJSON(content);
 
-    return new Response(JSON.stringify(recommendations), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    // Validate the AI output with Zod
+    const validated = RecommendationResponseSchema.safeParse(rawRecommendations);
+    if (!validated.success) {
+      console.error("AI Output Validation Failed:", validated.error.format());
+      return new Response(JSON.stringify(rawRecommendations), {
+        headers: { ...corsHeaders, "Content-Type": "application/json", "X-AI-Validation": "failed" },
+      });
+    }
+
+    return new Response(JSON.stringify(validated.data), {
+      headers: { ...corsHeaders, "Content-Type": "application/json", "X-AI-Validation": "passed" },
     });
   } catch (error) {
     if (error instanceof QuotaExceededError) {
