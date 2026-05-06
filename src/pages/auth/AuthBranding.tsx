@@ -119,12 +119,12 @@ export const ContinuousRockets = React.memo(() => {
 });
 
 const BackgroundRockets = React.memo(() => {
-  // 4 foguetes decorativos de tamanhos diferentes subindo com velocidade ajustada
+  // 4 foguetes decorativos de tamanhos diferentes subindo no fundo (visíveis mas suaves)
   const rockets = [
-    { left: 8,  size: 50, duration: 25, delay: 0,   opacity: 0.07 },
-    { left: 78, size: 75, duration: 32, delay: 5,   opacity: 0.05 },
-    { left: 42, size: 35, duration: 22, delay: 10,  opacity: 0.09 },
-    { left: 92, size: 24, duration: 18, delay: 2,   opacity: 0.11 },
+    { left: 12, size: 56, duration: 16, delay: 0,   opacity: 0.28 },
+    { left: 72, size: 80, duration: 20, delay: 4,   opacity: 0.22 },
+    { left: 44, size: 38, duration: 13, delay: 2,   opacity: 0.32 },
+    { left: 88, size: 26, duration: 11, delay: 7,   opacity: 0.38 },
   ];
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden z-[0]" aria-hidden="true">
