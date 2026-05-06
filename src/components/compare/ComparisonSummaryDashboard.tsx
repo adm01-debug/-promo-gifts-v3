@@ -87,11 +87,11 @@ export function ComparisonSummaryDashboard({ products }: ComparisonSummaryDashbo
       </div>
 
       {/* Coluna 3: Status do Duelo */}
-      <div className="rounded-xl border bg-card p-4 flex flex-col justify-between">
+      <div className="rounded-xl border-[2px] border-destructive/20 bg-gradient-to-br from-destructive/5 to-transparent p-4 flex flex-col justify-between shadow-sm">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-semibold flex items-center gap-2">
-            <Swords className="h-4 w-4 text-destructive" />
-            Status do Confronto
+          <h3 className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2 text-destructive">
+            <Swords className="h-4 w-4" />
+            Arena de Confronto
           </h3>
         </div>
         
