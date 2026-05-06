@@ -89,9 +89,9 @@ describe('Auth Page (Login Flow)', () => {
     const submitButton = screen.getByTestId('login-submit');
     fireEvent.click(submitButton);
 
-    await waitFor(async () => {
-      expect(await screen.findByText(/Por favor, insira um endereço de e-mail válido/i)).toBeInTheDocument();
-    });
+    await waitFor(() => {
+      expect(screen.getByText(/Por favor, insira um endereço de e-mail válido/i)).toBeInTheDocument();
+    }, { timeout: 2000 });
   });
 
   it('shows error for short password', async () => {
