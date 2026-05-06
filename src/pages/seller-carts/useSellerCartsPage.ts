@@ -333,6 +333,44 @@ export function useSellerCartsPage() {
     return items;
   }, [activeCart, itemsSortBy]);
 
+  const [selectedItemIds, setSelectedItemIds] = useState<Set<string>>(new Set());
+
+  const toggleItemSelection = useCallback((itemId: string) => {
+    setSelectedItemIds(prev => {
+      const next = new Set(prev);
+      if (next.has(itemId)) next.delete(itemId);
+      else next.add(itemId);
+      return next;
+    });
+  }, []);
+
+  const clearSelection = useCallback(() => setSelectedItemIds(new Set()), []);
+
+  const handleBulkRemove = useCallback(() => {
+    if (selectedItemIds.size === 0) return;
+    const count = selectedItemIds.size;
+    selectedItemIds.forEach(id => removeItem(id));
+    toast.success(`${count} itens removidos do carrinho`);
+    clearSelection();
+  }, [selectedItemIds, removeItem, clearSelection]);
+
+  const handleBulkMove = useCallback((targetCartId: string) => {
+    if (selectedItemIds.size === 0) return;
+    const count = selectedItemIds.size;
+    const targetCart = carts.find(c => c.id === targetCartId);
+    selectedItemIds.forEach(id => moveItemToCart(id, targetCartId));
+    toast.success(`${count} itens movidos para ${targetCart?.company_name}`);
+    clearSelection();
+  }, [selectedItemIds, moveItemToCart, carts, clearSelection]);
+
+  const handleBulkUpdateNotes = useCallback((notes: string) => {
+    if (selectedItemIds.size === 0) return;
+    const count = selectedItemIds.size;
+    selectedItemIds.forEach(id => updateItemNotes({ itemId: id, notes }));
+    toast.success(`Notas atualizadas em ${count} itens`);
+    clearSelection();
+  }, [selectedItemIds, updateItemNotes, clearSelection]);
+
   const handleClearFilters = useCallback(() => {
     setSearchTerm("");
     setProductFilter("");
@@ -350,7 +388,9 @@ export function useSellerCartsPage() {
 
   return {
     navigate, carts, filteredCarts, activeCart, activeCartId, isLoading, totalItems, canCreateCart,
-    setActiveCartId, deleteCart, removeItem, updateItemNotes, updateCartStatus, duplicateCart,
+    setActiveCartId, deleteCart, removeItem, updateItemQuantity,
+    updateItemNotes, updateItemSortOrder, updateCartNotes, updateCartStatus,
+    duplicateCart, moveItemToCart, duplicateItemToCart, clearCart, restoreItems,
     templates, deleteTemplate, allProducts, showNewCart, setShowNewCart,
     cartNotesOpen, setCartNotesOpen, localCartNotes, handleCartNotesChange,
     stockMap, weightVolume, sensors, handleDragEnd, handleRemoveItem, handleUpdateQuantity,
@@ -360,6 +400,7 @@ export function useSellerCartsPage() {
     otherCarts, cartAge, cartSubtotal, cartTotalQty, companyAccentColor, isLoadingProducts,
     exportCartToCSV, exportCartToPDF, shareCartLink,
     searchTerm, setSearchTerm, sortBy, setSortBy, itemsSortBy, setItemsSortBy, sortedItems,
-    companyFilter, setCompanyFilter, productFilter, setProductFilter, handleClearFilters, productSuggestions
+    companyFilter, setCompanyFilter, productFilter, setProductFilter, handleClearFilters, productSuggestions,
+    selectedItemIds, toggleItemSelection, clearSelection, handleBulkRemove, handleBulkMove, handleBulkUpdateNotes
   };
 }

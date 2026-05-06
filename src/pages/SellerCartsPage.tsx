@@ -8,7 +8,7 @@
  * - Notas sempre visíveis (textarea inline com debounce)
  * - Sidebar reorganizada (Hero pricing → Ação → Menu) + Health Checklist
  */
-import { useCallback, useMemo, useRef } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 
 import { type CartStatus } from "@/hooks/useSellerCarts";
 import { CartCompanyPickerDialog } from "@/components/cart/CartCompanyPickerDialog";
@@ -28,12 +28,13 @@ import { DeleteConfirmDialog, ConfirmDialog } from "@/components/ui/ConfirmDialo
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { motion, AnimatePresence } from "framer-motion";
 import { DndContext, closestCenter } from "@dnd-kit/core";
 import { SortableContext, rectSortingStrategy } from "@dnd-kit/sortable";
 import { cn } from "@/lib/utils";
 import {
-  ShoppingCart, Plus, Building2, Trash2, Clock, MapPin, FileText, Search, ArrowUpDown, Filter, Package,
+  ShoppingCart, Plus, Building2, Trash2, Clock, MapPin, FileText, Search, ArrowUpDown, Filter, Package, MoveRight, MessageSquare,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
@@ -61,6 +62,7 @@ const NOTES_PLACEHOLDERS = [
 function SellerCartsContent() {
   const s = useSellerCartsPage();
   const notesRef = useRef<HTMLTextAreaElement>(null);
+  const [bulkNote, setBulkNote] = useState("");
 
   const focusNotes = useCallback(() => {
     notesRef.current?.focus();
@@ -323,10 +325,25 @@ function SellerCartsContent() {
             </div>
 
             {/* Produtos */}
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-                <Package className="h-4 w-4" /> Produtos no carrinho
-              </h3>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
+              <div className="flex items-center gap-3">
+                <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                  <Package className="h-4 w-4" /> Produtos no carrinho
+                </h3>
+                {s.activeCart.items.length > 0 && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-7 text-[10px] font-bold uppercase tracking-tight px-2 rounded-lg hover:bg-primary/5 hover:text-primary transition-all"
+                    onClick={() => {
+                      if (s.selectedItemIds.size === s.activeCart!.items.length) s.clearSelection();
+                      else s.activeCart!.items.forEach(i => !s.selectedItemIds.has(i.id) && s.toggleItemSelection(i.id));
+                    }}
+                  >
+                    {s.selectedItemIds.size === s.activeCart.items.length ? "Desmarcar todos" : "Selecionar todos"}
+                  </Button>
+                )}
+              </div>
               <div className="flex items-center gap-2">
                 <div className="flex items-center gap-1.5 mr-2 bg-muted/20 p-1 rounded-lg border border-border/20">
                   <span className="text-[10px] font-bold text-muted-foreground uppercase px-1">Modo:</span>
@@ -374,6 +391,87 @@ function SellerCartsContent() {
               </div>
             </div>
 
+            {/* Ações em Massa (Barra flutuante) */}
+            <AnimatePresence>
+              {s.selectedItemIds.size > 0 && (
+                <motion.div 
+                  initial={{ y: 100, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: 100, opacity: 0 }}
+                  className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-4 bg-foreground text-background px-6 py-3 rounded-2xl shadow-2xl border border-border/10 backdrop-blur-xl"
+                >
+                  <div className="flex items-center gap-3 pr-4 border-r border-background/20">
+                    <span className="text-xs font-black tabular-nums bg-primary text-primary-foreground w-6 h-6 rounded-full flex items-center justify-center">
+                      {s.selectedItemIds.size}
+                    </span>
+                    <span className="text-xs font-bold uppercase tracking-widest opacity-80 whitespace-nowrap">Itens Selecionados</span>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <Select onValueChange={s.handleBulkMove}>
+                      <SelectTrigger className="h-9 bg-transparent border-background/20 text-background text-xs font-bold rounded-xl w-[180px] hover:bg-background/10 transition-colors">
+                        <MoveRight className="h-4 w-4 mr-2 opacity-60" />
+                        <SelectValue placeholder="Mover para..." />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl">
+                        {s.otherCarts.map(c => (
+                          <SelectItem key={c.id} value={c.id} className="rounded-lg">{c.company_name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          className="h-9 px-4 rounded-xl text-xs font-bold gap-2 hover:bg-background/10"
+                        >
+                          <MessageSquare className="h-4 w-4" /> Notas em Massa
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-80 p-4 rounded-2xl shadow-2xl bg-card border-border/50">
+                        <div className="space-y-3">
+                          <h4 className="text-xs font-bold uppercase tracking-tight text-muted-foreground">Adicionar notas aos itens selecionados</h4>
+                          <Textarea 
+                            placeholder="Ex: Todos com gravação laser..."
+                            className="text-xs min-h-[100px] rounded-xl"
+                            value={bulkNote}
+                            onChange={(e) => setBulkNote(e.target.value)}
+                          />
+                          <Button 
+                            className="w-full text-xs font-bold rounded-xl h-10" 
+                            disabled={!bulkNote.trim()}
+                            onClick={() => {
+                              s.handleBulkUpdateNotes(bulkNote.trim());
+                              setBulkNote("");
+                            }}
+                          >
+                            Aplicar Notas
+                          </Button>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                    
+                    <Button 
+                      variant="ghost" 
+                      onClick={s.handleBulkRemove}
+                      className="h-9 px-4 rounded-xl text-xs font-bold gap-2 text-destructive-foreground hover:bg-destructive/10"
+                    >
+                      <Trash2 className="h-4 w-4" /> Remover
+                    </Button>
+                    
+                    <Button 
+                      variant="ghost" 
+                      onClick={s.clearSelection}
+                      className="h-9 px-4 rounded-xl text-xs font-bold gap-2 hover:bg-background/10"
+                    >
+                      Cancelar
+                    </Button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             {s.activeCart.items.length === 0 ? (
               <CartEmptyStateSmart
                 activeCart={s.activeCart}
@@ -396,6 +494,9 @@ function SellerCartsContent() {
                           onUpdateQuantity={s.handleUpdateQuantity} onUpdateNotes={s.updateItemNotes}
                           onMoveToCart={s.handleMoveItem} onDuplicateToCart={s.handleDuplicateItem}
                           onNavigate={s.navigate}
+                          isSelected={s.selectedItemIds.has(item.id)}
+                          isSelectionMode={s.selectedItemIds.size > 0}
+                          onToggleSelection={s.toggleItemSelection}
                         />
                       ))}
                     </AnimatePresence>
