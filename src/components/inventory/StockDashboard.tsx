@@ -313,14 +313,15 @@ export function StockDashboard() {
           <span className="text-sm text-muted-foreground">Filtro ativo:</span>
           <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 border border-primary/20 px-3 py-1 text-sm font-medium text-primary">
             {activeFilterLabel}
-            <button
-              type="button"
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={() => updateFilter('status', 'all')}
-              className="ml-0.5 rounded-full p-0.5 hover:bg-primary/20 transition-colors"
+              className="ml-0.5 h-5 w-5 rounded-full p-0.5 hover:bg-primary/20 transition-colors"
               aria-label="Remover filtro"
             >
               <X className="h-3.5 w-3.5" />
-            </button>
+            </Button>
           </span>
           <span className="text-[11px] text-muted-foreground">
             ({productStocks.length} de {allProductStocks.length} produtos)
