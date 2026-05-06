@@ -270,12 +270,13 @@ export function SupplierRiskPanel({ products }: SupplierRiskPanelProps) {
                           transform: `translateY(${virtualRow.start}px)`,
                         }}
                       >
-                        <button
+                        <Button
+                          variant="ghost"
                           onClick={() => setSelectedProductId(product.id)}
                           role="option"
                           aria-selected={selectedProductId === product.id}
                           className={cn(
-                            "w-full text-left p-2 rounded-xl text-xs transition-colors",
+                            "w-full text-left p-2 rounded-xl text-xs transition-colors h-auto justify-start",
                             selectedProductId === product.id
                               ? "bg-primary/10 border border-primary/20"
                               : "hover:bg-muted/50"
