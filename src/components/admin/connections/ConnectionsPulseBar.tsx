@@ -10,7 +10,7 @@
  * Tom de voz: híbrido com tradução (termo técnico + explicação curta).
  */
 import {
-  Activity,
+  type Activity,
   AlertTriangle,
   AlertOctagon,
   CheckCircle2,
