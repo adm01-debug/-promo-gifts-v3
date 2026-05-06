@@ -172,22 +172,22 @@ export interface PersonalizacaoSelecionada {
  * Cores por técnica para badges
  */
 export const TECHNIQUE_COLORS: Record<string, string> = {
-  SERIGRAFIA: 'bg-blue-100 text-blue-800',
-  LASER: 'bg-red-100 text-red-800',
-  LASER_CO2: 'bg-red-100 text-red-800',
-  LASER_UV: 'bg-red-100 text-red-800',
-  UV_DIGITAL: 'bg-purple-100 text-purple-800',
-  TAMPOGRAFIA: 'bg-green-100 text-green-800',
-  BORDADO: 'bg-yellow-100 text-yellow-800',
-  SUBLIMACAO: 'bg-pink-100 text-pink-800',
-  HOT_STAMPING: 'bg-orange-100 text-orange-800',
-  TRANSFER_DIGITAL: 'bg-cyan-100 text-cyan-800',
-  ADESIVO: 'bg-indigo-100 text-indigo-800',
-  ETIQUETA: 'bg-gray-100 text-gray-800',
-  FILME_RECORTE: 'bg-teal-100 text-teal-800',
-  DECALQUE: 'bg-amber-100 text-amber-800',
-  HEAT_TRANSFER: 'bg-rose-100 text-rose-800',
-  EMBORRACHADO: 'bg-lime-100 text-lime-800',
+  SERIGRAFIA: 'bg-info/10 text-info border-info/20',
+  LASER: 'bg-destructive/10 text-destructive border-destructive/20',
+  LASER_CO2: 'bg-destructive/10 text-destructive border-destructive/20',
+  LASER_UV: 'bg-destructive/10 text-destructive border-destructive/20',
+  UV_DIGITAL: 'bg-primary/10 text-primary border-primary/20',
+  TAMPOGRAFIA: 'bg-success/10 text-success border-success/20',
+  BORDADO: 'bg-warning/10 text-warning border-warning/20',
+  SUBLIMACAO: 'bg-pink-500/10 text-pink-500 border-pink-500/20',
+  HOT_STAMPING: 'bg-orange/10 text-orange border-orange/20',
+  TRANSFER_DIGITAL: 'bg-cyan-500/10 text-cyan-500 border-cyan-500/20',
+  ADESIVO: 'bg-indigo-500/10 text-indigo-500 border-indigo-500/20',
+  ETIQUETA: 'bg-muted/50 text-muted-foreground border-border/20',
+  FILME_RECORTE: 'bg-teal-500/10 text-teal-500 border-teal-500/20',
+  DECALQUE: 'bg-amber-500/10 text-amber-500 border-amber-500/20',
+  HEAT_TRANSFER: 'bg-rose-500/10 text-rose-500 border-rose-500/20',
+  EMBORRACHADO: 'bg-lime-500/10 text-lime-500 border-lime-500/20',
 };
 
 /**
@@ -216,7 +216,7 @@ export const TECHNIQUE_ICONS: Record<string, string> = {
  * Shapes para CSS
  */
 export const SHAPE_STYLES: Record<AreaShape, string> = {
-  rectangle: 'rounded-md',
+  rectangle: 'rounded-[var(--radius)]',
   circle: 'rounded-full',
   oval: 'rounded-[50%]',
   triangle: 'clip-path-triangle',
