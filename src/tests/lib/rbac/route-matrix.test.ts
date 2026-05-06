@@ -2,10 +2,11 @@ import { describe, it, expect } from 'vitest';
 import { RBAC_ROUTES, summarizeRoutes } from '@/lib/rbac/route-matrix';
 
 describe('RBAC Route Matrix Integrity', () => {
-  it('should have all routes with mfaAal2 disabled as per recent changes', () => {
-    // We recently mapped over the routes to force mfaAal2: false
+  it('should have MFA enabled for admin and dev routes', () => {
     RBAC_ROUTES.forEach(route => {
-      expect(route.mfaAal2).toBe(false);
+      if (route.role === 'admin' || route.role === 'dev') {
+        expect(route.mfaAal2).toBe(true);
+      }
     });
   });
 
