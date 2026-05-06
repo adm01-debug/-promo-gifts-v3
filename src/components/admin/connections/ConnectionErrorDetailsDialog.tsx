@@ -256,7 +256,7 @@ export function ConnectionErrorDetailsDialog({
             </div>
             <div>
               <div className="text-[11px] text-muted-foreground">Latência</div>
-              <div className="font-mono">{latency != null ? `${latency}ms` : '— (timeout)'}</div>
+              <div className="font-mono">{latency !== null ? `${latency}ms` : '— (timeout)'}</div>
             </div>
             <div>
               <div className="text-[11px] text-muted-foreground">HTTP Status</div>
