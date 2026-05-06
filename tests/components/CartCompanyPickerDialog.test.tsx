@@ -60,10 +60,14 @@ describe('CartCompanyPickerDialog - UI, Accessibility & Regression', () => {
     expect(input).toBeInTheDocument();
     expect(input).toHaveAttribute('id', 'company-search-input');
     expect(input).toHaveAttribute('type', 'text');
+    expect(input).toHaveAttribute('aria-controls', 'company-search-results');
     
     // Icons should be hidden from screen readers
     const searchIcon = screen.getByTestId('search-icon');
     expect(searchIcon).toHaveAttribute('aria-hidden', 'true');
+    
+    // Check results container existence
+    expect(document.getElementById('company-search-results')).toBeInTheDocument();
   });
 
   it('validates alignment and classes of Search and Loader2 icons in different states', () => {
