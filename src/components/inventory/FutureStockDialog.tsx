@@ -446,10 +446,15 @@ export function FutureStockDialog({ open, onOpenChange, entries }: FutureStockDi
               className="pl-9 h-9"
             />
             {search && (
-              <button type="button" onClick={() => setSearch('')}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+              <Button 
+                type="button" 
+                variant="ghost" 
+                size="icon"
+                onClick={() => setSearch('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground h-6 w-6"
+              >
                 <X className="h-3.5 w-3.5" />
-              </button>
+              </Button>
             )}
           </div>
 
