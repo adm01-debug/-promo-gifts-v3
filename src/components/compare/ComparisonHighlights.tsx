@@ -154,7 +154,7 @@ function HighlightCell({
               {formatValue(value)}
             </span>
             {type === "best" && diff === 0 && (
-              <TrendingUp className="h-3 w-3 text-success" />
+              <TrendingUp className="h-3 w-3 text-amber-500 animate-bounce" />
             )}
             {type !== "best" && diff > 0 && (
               <span className="text-[11px] text-muted-foreground">
