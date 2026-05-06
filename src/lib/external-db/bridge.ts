@@ -109,7 +109,9 @@ export async function invokeBridge<T>(body: Record<string, unknown>): Promise<Br
   let sawColdStart = false;
   const { data: sessionData } = await supabase.auth.getSession();
   const accessToken = sessionData?.session?.access_token;
-  const headers: Record<string, string> = {};
+  const headers: Record<string, string> = {
+    ...log.headers(),
+  };
   if (accessToken) {
     headers['Authorization'] = `Bearer ${accessToken}`;
   }
