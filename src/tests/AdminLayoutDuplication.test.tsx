@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, act } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { vi, describe, it, expect } from 'vitest';
 import AdminConexoesPage from '../pages/admin/AdminConexoesPage';
@@ -41,56 +41,61 @@ vi.mock('../hooks/useSecretsManager', () => ({
   useSecretsManager: () => ({ secrets: [], isLoading: false, list: vi.fn(), refreshCache: vi.fn() }),
 }));
 
-// We use the REAL SidebarBrandHeader which now has the data-testid
-vi.mock('../components/layout/SidebarReorganized', async (importOriginal) => {
-  const actual = await importOriginal<any>();
-  return {
-    ...actual,
-  };
-});
+// Mock components that cause AriaLive issues or are too heavy
+vi.mock('../components/ui/aria-live', () => ({
+  AriaLiveProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  useAriaLive: () => ({ announce: vi.fn() }),
+}));
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: false } },
 });
 
-const renderAdminRoute = (path: string, Element: React.ComponentType) => {
-  return render(
-    <HelmetProvider>
-      <TooltipProvider>
-        <QueryClientProvider client={queryClient}>
-          <MemoryRouter initialEntries={[path]}>
-            <ThemeProvider>
-              <AuthProvider>
-                <Routes>
-                  <Route element={<MainLayout><React.Suspense fallback={null}><Element /></React.Suspense></MainLayout>}>
-                    <Route path={path} element={<Element />} />
-                  </Route>
-                </Routes>
-              </AuthProvider>
-            </ThemeProvider>
-          </MemoryRouter>
-        </QueryClientProvider>
-      </TooltipProvider>
-    </HelmetProvider>
-  );
+const renderAdminRoute = async (path: string, Element: React.ComponentType) => {
+  let result: any;
+  await act(async () => {
+    result = render(
+      <HelmetProvider>
+        <TooltipProvider>
+          <QueryClientProvider client={queryClient}>
+            <MemoryRouter initialEntries={[path]}>
+              <ThemeProvider>
+                <AuthProvider>
+                  <Routes>
+                    <Route element={<MainLayout><React.Suspense fallback={<div data-testid="loading">Loading...</div>}><Element /></React.Suspense></MainLayout>}>
+                      <Route path={path} element={<Element />} />
+                    </Route>
+                  </Routes>
+                </AuthProvider>
+              </ThemeProvider>
+            </MemoryRouter>
+          </QueryClientProvider>
+        </TooltipProvider>
+      </HelmetProvider>
+    );
+  });
+  return result;
 };
 
 describe('Layout Duplication (RTL)', () => {
   it('AdminConexoesPage renders exactly ONE sidebar brand header', async () => {
-    renderAdminRoute('/admin/conexoes', AdminConexoesPage);
-    // Wait for lazy components
+    await renderAdminRoute('/admin/conexoes', AdminConexoesPage);
+    // Find all matching elements - if it's 2, the test fails
     const brandHeaders = await screen.findAllByTestId('sidebar-brand-header');
     expect(brandHeaders.length).toBe(1);
+    
+    const headers = screen.queryAllByTestId('header-mobile-search-trigger');
+    expect(headers.length).toBe(1);
   });
 
   it('AdminConexoesStatusPage renders exactly ONE sidebar brand header', async () => {
-    renderAdminRoute('/admin/conexoes/status', AdminConexoesStatusPage);
+    await renderAdminRoute('/admin/conexoes/status', AdminConexoesStatusPage);
     const brandHeaders = await screen.findAllByTestId('sidebar-brand-header');
     expect(brandHeaders.length).toBe(1);
   });
 
   it('AdminRbacRoutesPage renders exactly ONE sidebar brand header', async () => {
-    renderAdminRoute('/admin/rbac-routes', AdminRbacRoutesPage);
+    await renderAdminRoute('/admin/rbac-routes', AdminRbacRoutesPage);
     const brandHeaders = await screen.findAllByTestId('sidebar-brand-header');
     expect(brandHeaders.length).toBe(1);
   });
