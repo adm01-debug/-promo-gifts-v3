@@ -4,8 +4,7 @@ import SellerCartsPage from './SellerCartsPage';
 import { useSellerCartsPage } from './seller-carts/useSellerCartsPage';
 import { BrowserRouter } from 'react-router-dom';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { SellerCartProvider } from '@/contexts/SellerCartContext';
-import { AuthContext } from '@/contexts/AuthContext';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 
 // Mock do hook de lógica para isolar o componente
@@ -16,6 +15,17 @@ vi.mock('./seller-carts/useSellerCartsPage', () => ({
 // Mock do componente SEO
 vi.mock('@/components/seo/PageSEO', () => ({
   PageSEO: () => null,
+}));
+
+// Mock de contextos e componentes que dependem de rede/infra
+vi.mock('@/contexts/SellerCartContext', () => ({
+  useSellerCartContext: vi.fn(() => ({})),
+  SellerCartProvider: ({ children }: any) => <>{children}</>,
+}));
+
+vi.mock('@/contexts/AuthContext', () => ({
+  useAuth: vi.fn(() => ({ user: { id: '123' } })),
+  AuthContext: { Provider: ({ children }: any) => <>{children}</> },
 }));
 
 // Mock da animação para evitar problemas no jsdom
@@ -33,24 +43,19 @@ vi.mock('framer-motion', async () => {
   };
 });
 
-const mockAuthContext = {
-  user: { id: 'user-123' },
-  session: null,
-  isLoading: false,
-  signOut: vi.fn(),
-};
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: false } }
+});
 
 const renderWithContext = (ui: React.ReactElement) => {
   return render(
-    <AuthContext.Provider value={mockAuthContext as any}>
-      <SellerCartProvider>
-        <TooltipProvider>
-          <BrowserRouter>
-            {ui}
-          </BrowserRouter>
-        </TooltipProvider>
-      </SellerCartProvider>
-    </AuthContext.Provider>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <BrowserRouter>
+          {ui}
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
   );
 };
 
