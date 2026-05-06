@@ -206,9 +206,9 @@ export default function ComparePage() {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <PopoverTrigger asChild>
-                    <Button variant={client ? "default" : "outline"} size="sm">
+                    <Button variant={client ? "default" : "outline"} size="sm" className={cn(client && "bg-amber-500 hover:bg-amber-600 border-none")}>
                       <Building2 className="h-4 w-4 mr-2" />
-                      {client ? client.name.slice(0, 22) : "Cliente CRM"}
+                      {client ? client.name.slice(0, 22) : "Vincular Cliente"}
                     </Button>
                   </PopoverTrigger>
                 </TooltipTrigger>
