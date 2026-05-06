@@ -66,7 +66,7 @@ export function StatCard({
     <div
       onClick={onClick}
       className={cn(
-        "relative overflow-hidden rounded-xl border border-border bg-card p-5 transition-all duration-300",
+        "relative overflow-hidden rounded-lg border border-border bg-card p-5 transition-all duration-300",
         "hover:border-border/80 hover:shadow-lg",
         onClick && "cursor-pointer",
         className
@@ -104,7 +104,7 @@ export function StatCard({
         {/* Icon container with colored background */}
         <div
           className={cn(
-            "flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-all duration-300",
+            "flex h-12 w-12 shrink-0 items-center justify-center rounded-lg transition-all duration-300",
             styles.bg,
             styles.glow
           )}
@@ -149,14 +149,14 @@ export function MiniStatCard({
   return (
     <div
       className={cn(
-        "flex items-center gap-3 rounded-xl border border-border bg-card p-3 transition-all duration-200",
+        "flex items-center gap-3 rounded-lg border border-border bg-card p-3 transition-all duration-200",
         "hover:border-border/80",
         className
       )}
     >
       <div
         className={cn(
-          "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl",
+          "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg",
           styles.bg
         )}
       >
