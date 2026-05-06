@@ -17,7 +17,7 @@ export function useKitBuilderPageState() {
   const [searchParams] = useSearchParams();
   const kitIdParam = searchParams.get('kit');
   const productIdParam = searchParams.get('product');
-...
+
 
   const [currentKitId, setCurrentKitId] = useState<string | undefined>(kitIdParam || undefined);
   const [occasion, setOccasion] = useState<any>(null);

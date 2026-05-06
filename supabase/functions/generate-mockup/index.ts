@@ -180,8 +180,8 @@ Deno.serve(async (req) => {
         .replace(/\{\{verticalPos\}\}/g, verticalPos)
         .replace(/\{\{positionDesc\}\}/g, positionDesc)
         .replace(/\{\{sizeDesc\}\}/g, sizeDesc)
-        .replace(/\{\{logoWidthCm\}\}/g, String(logoWidthCm))
-        .replace(/\{\{logoHeightCm\}\}/g, String(logoHeightCm))
+        .replace(/\{\{logoWidthCm\}\}/g, String(safeLogoWidthCm))
+        .replace(/\{\{logoHeightCm\}\}/g, String(safeLogoHeightCm))
         .replace(/\{\{scaleInstruction\}\}/g, scaleInstruction)
         .replace(/\{\{rotationInstruction\}\}/g, rotationInstruction);
     } else {
