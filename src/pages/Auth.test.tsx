@@ -84,9 +84,10 @@ describe('Auth Page (Login Flow)', () => {
     await waitFor(() => {
       const emailInput = screen.getByTestId('login-email-input');
       fireEvent.change(emailInput, { target: { value: 'invalid-email' } });
-      const submitButton = screen.getByTestId('login-submit');
-      fireEvent.click(submitButton);
     });
+
+    const submitButton = screen.getByTestId('login-submit');
+    fireEvent.click(submitButton);
 
     await waitFor(async () => {
       expect(await screen.findByText(/Por favor, insira um endereço de e-mail válido/i)).toBeInTheDocument();
