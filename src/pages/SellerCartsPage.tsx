@@ -8,6 +8,7 @@
  * - Notas sempre visíveis (textarea inline com debounce)
  * - Sidebar reorganizada (Hero pricing → Ação → Menu) + Health Checklist
  */
+import { useSellerCartContext } from "@/contexts/SellerCartContext";
 import { useCallback, useMemo, useRef, useState } from "react";
 
 import { type CartStatus } from "@/hooks/useSellerCarts";
@@ -34,7 +35,7 @@ import { DndContext, closestCenter } from "@dnd-kit/core";
 import { SortableContext, rectSortingStrategy } from "@dnd-kit/sortable";
 import { cn } from "@/lib/utils";
 import {
-  ShoppingCart, Plus, Building2, Trash2, Clock, MapPin, FileText, Search, ArrowUpDown, Filter, Package, MoveRight, MessageSquare,
+  ShoppingCart, Plus, Building2, Trash2, Clock, MapPin, FileText, Search, ArrowUpDown, Filter, Package, MoveRight, MessageSquare, GripVertical,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
@@ -513,8 +514,6 @@ function SellerCartsContent() {
               </div>
             )}
           </div>
-          </div>
-
           {/* Sidebar */}
           {s.activeCart.items.length > 0 && (
             <CartSidebar
