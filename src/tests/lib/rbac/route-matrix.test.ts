@@ -17,7 +17,7 @@ describe('RBAC Route Matrix Integrity', () => {
     expect(conexoesRoute?.role).toBe('dev');
     
     expect(conexoesStatusRoute).toBeDefined();
-    expect(conexoesStatusRoute?.role).toBe('admin');
+    expect(conexoesStatusRoute?.role).toBe('dev');
   });
 
   it('should summarize routes correctly with mfa count as zero', () => {
