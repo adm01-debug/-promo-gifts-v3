@@ -401,6 +401,6 @@ export function useSellerCartsPage() {
     exportCartToCSV, exportCartToPDF, shareCartLink,
     searchTerm, setSearchTerm, sortBy, setSortBy, itemsSortBy, setItemsSortBy, sortedItems,
     companyFilter, setCompanyFilter, productFilter, setProductFilter, handleClearFilters, productSuggestions,
-    selectedItemIds, toggleItemSelection, clearSelection, handleBulkRemove, handleBulkMove
+    selectedItemIds, toggleItemSelection, clearSelection, handleBulkRemove, handleBulkMove, handleBulkUpdateNotes
   };
 }
