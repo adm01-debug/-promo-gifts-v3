@@ -88,4 +88,45 @@ describe('Quote State Machine', () => {
     actor.send({ type: 'APPROVE' });
     expect(actor.getSnapshot().value).toBe('approved');
   });
+
+  it('should not allow transition from draft to approved directly', () => {
+    const actor = createActor(quoteMachine, { input: initialContext }).start();
+    actor.send({ type: 'APPROVE' });
+    expect(actor.getSnapshot().value).toBe('draft');
+  });
+
+  it('should not allow transition from rejected to approved directly', () => {
+    const actor = createActor(quoteMachine, { input: initialContext }).start();
+    actor.send({ type: 'SUBMIT_FOR_APPROVAL' });
+    actor.send({ type: 'REJECT', reason: 'Denied' });
+    actor.send({ type: 'APPROVE' });
+    expect(actor.getSnapshot().value).toBe('rejected');
+  });
+
+  it('should allow expiry from approved state', () => {
+    const actor = createActor(quoteMachine, { input: initialContext }).start();
+    actor.send({ type: 'SUBMIT_FOR_APPROVAL' });
+    actor.send({ type: 'APPROVE' });
+    actor.send({ type: 'EXPIRE' });
+    expect(actor.getSnapshot().value).toBe('expired');
+  });
+
+  it('should return to draft from expired state', () => {
+    const actor = createActor(quoteMachine, { input: initialContext }).start();
+    actor.send({ type: 'SUBMIT_FOR_APPROVAL' });
+    actor.send({ type: 'EXPIRE' });
+    actor.send({ type: 'EDIT' });
+    expect(actor.getSnapshot().value).toBe('draft');
+  });
+
+  it('should prevent any transition from converted state', () => {
+    const actor = createActor(quoteMachine, { input: initialContext }).start();
+    actor.send({ type: 'SUBMIT_FOR_APPROVAL' });
+    actor.send({ type: 'APPROVE' });
+    actor.send({ type: 'CONVERT_TO_ORDER' });
+    
+    // Converted is final, no EDIT allowed per current machine definition (converted state has no on events)
+    actor.send({ type: 'EDIT' });
+    expect(actor.getSnapshot().value).toBe('converted');
+  });
 });
