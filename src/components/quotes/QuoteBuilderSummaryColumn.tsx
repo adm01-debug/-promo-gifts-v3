@@ -113,23 +113,25 @@ export function QuoteBuilderSummaryColumn({
   const [showOnlyStale, setShowOnlyStale] = useState(false);
 
   // ── Itens com preço pendente de confirmação (aging/stale e ainda não confirmado) ──
+  const safeItems = useMemo(() => (Array.isArray(items) ? items : []), [items]);
+
   const staleIndexes = useMemo(() => {
     const set = new Set<number>();
-    items.forEach((item, idx) => {
+    safeItems.forEach((item, idx) => {
       if (item.price_confirmed_at) return;
       const f = getPriceFreshness(item.price_updated_at, item.price_freshness_threshold_days);
       if (f.shouldWarn) set.add(idx);
     });
     return set;
-  }, [items]);
+  }, [safeItems]);
 
   const staleCount = staleIndexes.size;
   const visibleItems = useMemo(
     () =>
       showOnlyStale
-        ? items.map((it, idx) => ({ it, idx })).filter(({ idx }) => staleIndexes.has(idx))
-        : items.map((it, idx) => ({ it, idx })),
-    [items, showOnlyStale, staleIndexes],
+        ? safeItems.map((it, idx) => ({ it, idx })).filter(({ idx }) => staleIndexes.has(idx))
+        : safeItems.map((it, idx) => ({ it, idx })),
+    [safeItems, showOnlyStale, staleIndexes],
   );
 
   // Auto-desliga o filtro se a contagem zerar (após confirmar todos)
