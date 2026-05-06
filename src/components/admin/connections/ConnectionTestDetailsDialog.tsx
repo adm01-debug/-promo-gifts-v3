@@ -332,7 +332,7 @@ export function ConnectionTestDetailsDialog({
                             HTTP {details.response.status}
                           </Badge>
                         )}
-                        {details.error?.kind === 'timeout' && timeoutMs != null && (
+                        {details.error?.kind === 'timeout' && timeoutMs !== null && (
                           <Badge variant="outline" className="h-5 font-mono text-[10px]">
                             timeout: {timeoutMs}ms
                           </Badge>
