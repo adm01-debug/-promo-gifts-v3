@@ -40,7 +40,7 @@ export function KpiCard({
   const content = (
     <div
       className={cn(
-        "rounded-xl p-2 text-center animate-fade-in",
+        "rounded-lg p-2 text-center animate-fade-in",
         alert ? "bg-destructive/10 border border-destructive/20" :
         warning ? "bg-warning/10 border border-warning/20" :
         highlight ? "bg-primary/10 border border-primary/20" :

@@ -98,7 +98,7 @@ export function AIComparisonAdvisor({ products }: AIComparisonAdvisorProps) {
   if (products.length < 2) return null;
 
   return (
-    <div className="rounded-xl border-[2px] border-amber-400/20 bg-gradient-to-br from-amber-400/5 via-background to-background p-4 shadow-sm">
+    <div className="rounded-lg border-[2px] border-amber-400/20 bg-gradient-to-br from-amber-400/5 via-background to-background p-4 shadow-sm">
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-amber-600 shadow-md">
@@ -172,7 +172,7 @@ export function AIComparisonAdvisor({ products }: AIComparisonAdvisorProps) {
 
 function BestForCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border bg-card p-2.5">
+    <div className="rounded-lg border bg-card p-2.5">
       <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
         {label}
       </p>

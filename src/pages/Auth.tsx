@@ -218,7 +218,7 @@ export default function Auth() {
         <div className="w-full max-w-md space-y-8 animate-fade-in">
           {/* Mobile Logo */}
           <div className="text-center lg:hidden space-y-3">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-primary shadow-lg shadow-primary/30">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-lg bg-primary shadow-lg shadow-primary/30">
               <Gift className="h-8 w-8 text-orange-foreground" />
             </div>
             <div>

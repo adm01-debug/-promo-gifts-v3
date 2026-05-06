@@ -55,7 +55,7 @@ export function KitPricingCard({ kitState, kitQuantity, onKitQuantityChange }: K
               const qtyPricing = calculateTotalKitPrice(box, items, personalization, qty);
               const isCurrentQty = qty === kitQuantity;
               return (
-                <button key={qty} onClick={() => onKitQuantityChange(qty)} className={cn("rounded-xl p-2.5 border transition-all cursor-pointer", isCurrentQty ? "border-primary bg-primary/10 ring-1 ring-primary" : "border-border/50 bg-secondary/30 hover:border-primary/30")}>
+                <button key={qty} onClick={() => onKitQuantityChange(qty)} className={cn("rounded-lg p-2.5 border transition-all cursor-pointer", isCurrentQty ? "border-primary bg-primary/10 ring-1 ring-primary" : "border-border/50 bg-secondary/30 hover:border-primary/30")}>
                   <p className="text-[11px] text-muted-foreground">{qty} kits</p>
                   <p className={cn("text-sm font-bold", isCurrentQty && "text-primary")}>{formatCurrency(qtyPricing.unitPrice)}</p>
                   <p className="text-[10px] text-muted-foreground">/kit</p>
