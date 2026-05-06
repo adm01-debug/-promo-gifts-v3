@@ -25,7 +25,7 @@ describe('StockBadge Component', () => {
 
   it('formats quantity correctly (thousands)', () => {
     renderWithTooltip(<StockBadge status="in-stock" quantity={1500} showQuantity={true} />);
-    expect(screen.getByText(/1,5k un\./i)).toBeInTheDocument();
+    expect(screen.getByText(/1\.5k un\./i)).toBeInTheDocument();
   });
 
   it('returns correct stock status based on quantity', () => {
