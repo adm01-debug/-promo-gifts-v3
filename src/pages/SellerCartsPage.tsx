@@ -374,6 +374,55 @@ function SellerCartsContent() {
               </div>
             </div>
 
+            {/* Ações em Massa (Barra flutuante) */}
+            <AnimatePresence>
+              {s.selectedItemIds.size > 0 && (
+                <motion.div 
+                  initial={{ y: 100, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: 100, opacity: 0 }}
+                  className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-4 bg-foreground text-background px-6 py-3 rounded-2xl shadow-2xl border border-border/10 backdrop-blur-xl"
+                >
+                  <div className="flex items-center gap-3 pr-4 border-r border-background/20">
+                    <span className="text-xs font-black tabular-nums bg-primary text-primary-foreground w-6 h-6 rounded-full flex items-center justify-center">
+                      {s.selectedItemIds.size}
+                    </span>
+                    <span className="text-xs font-bold uppercase tracking-widest opacity-80 whitespace-nowrap">Itens Selecionados</span>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <Select onValueChange={s.handleBulkMove}>
+                      <SelectTrigger className="h-9 bg-transparent border-background/20 text-background text-xs font-bold rounded-xl w-[180px] hover:bg-background/10 transition-colors">
+                        <MoveRight className="h-4 w-4 mr-2 opacity-60" />
+                        <SelectValue placeholder="Mover para..." />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl">
+                        {s.otherCarts.map(c => (
+                          <SelectItem key={c.id} value={c.id} className="rounded-lg">{c.company_name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    
+                    <Button 
+                      variant="ghost" 
+                      onClick={s.handleBulkRemove}
+                      className="h-9 px-4 rounded-xl text-xs font-bold gap-2 text-destructive-foreground hover:bg-destructive/10"
+                    >
+                      <Trash2 className="h-4 w-4" /> Remover
+                    </Button>
+                    
+                    <Button 
+                      variant="ghost" 
+                      onClick={s.clearSelection}
+                      className="h-9 px-4 rounded-xl text-xs font-bold gap-2 hover:bg-background/10"
+                    >
+                      Cancelar
+                    </Button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             {s.activeCart.items.length === 0 ? (
               <CartEmptyStateSmart
                 activeCart={s.activeCart}
@@ -396,6 +445,9 @@ function SellerCartsContent() {
                           onUpdateQuantity={s.handleUpdateQuantity} onUpdateNotes={s.updateItemNotes}
                           onMoveToCart={s.handleMoveItem} onDuplicateToCart={s.handleDuplicateItem}
                           onNavigate={s.navigate}
+                          isSelected={s.selectedItemIds.has(item.id)}
+                          isSelectionMode={s.selectedItemIds.size > 0}
+                          onToggleSelection={s.toggleItemSelection}
                         />
                       ))}
                     </AnimatePresence>
