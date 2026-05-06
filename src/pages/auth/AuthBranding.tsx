@@ -176,13 +176,14 @@ const BackgroundRockets = React.memo(() => {
 const Starfield = React.memo(() => {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {/* Camada Distante — 60 estrelas */}
+      {/* Camada Distante — 60 estrelas (Sincronizadas com BackgroundRockets longos) */}
       {[...Array(60)].map((_, i) => {
         const size = 1 + (i % 2);
         const top = (i * 47 + 13) % 100;
         const left = (i * 61 + 9) % 100;
-        const dur = 6 + (i % 4);
-        const delay = (i * 0.5) % 4;
+        // Durations matching slower background rockets (14-18s)
+        const dur = 12 + (i % 6); 
+        const delay = (i * 0.7) % 10;
         return (
           <div
             key={`star-far-${i}`}
@@ -192,20 +193,21 @@ const Starfield = React.memo(() => {
               height: `${size}px`,
               top: `${top}%`,
               left: `${left}%`,
-              opacity: 0.3,
+              "--star-base-opacity": "0.3",
               animation: `twinkle ${dur}s ease-in-out ${delay}s infinite`,
-            }}
+            } as any}
           />
         );
       })}
 
-      {/* Camada Média — 80 estrelas */}
+      {/* Camada Média — 80 estrelas (Sincronizadas com BackgroundRockets médios) */}
       {[...Array(80)].map((_, i) => {
         const size = 1.5 + (i % 2);
         const top = (i * 37 + 11) % 100;
         const left = (i * 53 + 7) % 100;
-        const dur = 4 + (i % 3);
-        const delay = (i * 0.4) % 3;
+        // Durations matching mid background rockets (8-11s)
+        const dur = 7 + (i % 5);
+        const delay = (i * 0.4) % 6;
         return (
           <div
             key={`star-mid-${i}`}
@@ -215,20 +217,21 @@ const Starfield = React.memo(() => {
               height: `${size}px`,
               top: `${top}%`,
               left: `${left}%`,
-              opacity: 0.5,
+              "--star-base-opacity": "0.5",
               animation: `twinkle ${dur}s ease-in-out ${delay}s infinite`,
-            }}
+            } as any}
           />
         );
       })}
 
-      {/* Camada Próxima Brilhante — 40 estrelas */}
+      {/* Camada Próxima Brilhante — 40 estrelas (Sincronizadas com ContinuousRockets rápidos) */}
       {[...Array(40)].map((_, i) => {
         const size = 2 + (i % 2);
         const top = (i * 29 + 17) % 100;
         const left = (i * 41 + 5) % 100;
-        const dur = 2.5 + (i % 2);
-        const delay = (i * 0.3) % 2;
+        // Durations matching fast launch rockets (2.5-5s)
+        const dur = 2.5 + (i % 3);
+        const delay = (i * 0.2) % 3;
         return (
           <div
             key={`star-near-${i}`}
@@ -238,9 +241,9 @@ const Starfield = React.memo(() => {
               height: `${size}px`,
               top: `${top}%`,
               left: `${left}%`,
-              opacity: 0.8,
+              "--star-base-opacity": "0.8",
               animation: `twinkle ${dur}s ease-in-out ${delay}s infinite`,
-            }}
+            } as any}
           />
         );
       })}
@@ -286,7 +289,10 @@ export function AuthSpaceBackground() {
   return (
     <div className="absolute inset-0 overflow-hidden bg-[#0A0D14] pointer-events-none" aria-hidden="true">
       <div className="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_30%_50%,rgba(13,17,26,1)_0%,rgba(5,7,12,1)_100%)]" />
-      <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_30%_center,rgba(251,146,60,0.12)_0%,transparent_75%)]" />
+      <div 
+        className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_30%_center,rgba(251,146,60,0.12)_0%,transparent_75%)]" 
+        style={{ animation: 'space-shimmer 8s ease-in-out infinite' }}
+      />
       <div className="absolute top-1/4 -left-20 w-80 h-80 bg-orange/10 rounded-full blur-[120px] animate-pulse" />
       <div className="absolute bottom-1/4 right-0 w-96 h-96 bg-orange/5 rounded-full blur-[150px]" />
       <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-orange/5 rounded-full blur-[100px]" />
