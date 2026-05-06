@@ -70,7 +70,9 @@ function loadGridColumns(): ColumnCount {
       const n = Number(v) as ColumnCount;
       if ([3, 4, 5, 6, 8].includes(n)) return n as ColumnCount;
     }
-  } catch {}
+  } catch (err) {
+    console.warn("Failed to load grid columns:", err);
+  }
   return getDefaultColumns();
 }
 
