@@ -298,7 +298,7 @@ const AppContent = () => {
         <Route path="/busca-preco" element={<Navigate to="/ferramentas/busca-preco" replace />} />
         <Route path="/ferramentas/match" element={<ProductMatchPage />} />
         <Route path="/match" element={<Navigate to="/ferramentas/match" replace />} />
-        <Route path="/ferramentas/bi" element={<BusinessIntelligencePage />} />
+        <Route path="/ferramentas/bi" element={<Navigate to="/ferramentas/bi-comercial" replace />} />
         <Route path="/ferramentas/bi-comercial" element={<CommercialIntelligencePage />} />
         <Route path="/inteligencia-comercial" element={<Navigate to="/ferramentas/bi-comercial" replace />} />
         <Route path="/ferramentas/dropbox" element={<DropboxBrowserPage />} />
