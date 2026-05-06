@@ -221,16 +221,20 @@ export function useSellerCartsPage() {
   }, [activeCart, saveTemplate]);
 
   const handleLoadTemplate = useCallback((items: CartTemplateItem[]) => {
-    items.forEach(item => {
+    // Calculamos o maior sort_order atual para adicionar os novos itens ao final
+    const currentMaxSortOrder = activeCart?.items.reduce((max, i) => Math.max(max, i.sort_order ?? 0), -1) ?? -1;
+
+    items.forEach((item, index) => {
       addToActiveCart({
         product_id: item.product_id, product_name: item.product_name,
         product_sku: item.product_sku, product_image_url: item.product_image_url,
         product_price: item.product_price, quantity: item.quantity,
         color_name: item.color_name, color_hex: item.color_hex,
+        sort_order: currentMaxSortOrder + 1 + index,
       });
     });
     toast.success("Template aplicado ao carrinho");
-  }, [addToActiveCart]);
+  }, [addToActiveCart, activeCart]);
 
   const [confirmQuoteCart, setConfirmQuoteCart] = useState<SellerCart | null>(null);
   const [confirmDeleteCart, setConfirmDeleteCart] = useState(false);
