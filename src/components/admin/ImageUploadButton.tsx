@@ -55,7 +55,7 @@ export function ImageUploadButton({
       let retryCount = 0;
       const maxRetries = 3;
       let uploadSuccess = false;
-      let lastError: any = null;
+      let lastError: unknown = null;
 
       while (retryCount < maxRetries && !uploadSuccess) {
         try {
