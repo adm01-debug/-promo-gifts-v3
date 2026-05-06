@@ -88,8 +88,8 @@ describe('Auth Page (Login Flow)', () => {
       fireEvent.click(submitButton);
     });
 
-    await waitFor(() => {
-      expect(screen.getByText(/Por favor, insira um endereço de e-mail válido/i)).toBeInTheDocument();
+    await waitFor(async () => {
+      expect(await screen.findByText(/Por favor, insira um endereço de e-mail válido/i)).toBeInTheDocument();
     });
   });
 
