@@ -33,36 +33,36 @@ export function ComparisonSummaryDashboard({ products }: ComparisonSummaryDashbo
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 animate-in fade-in slide-in-from-top-4 duration-500">
       {/* Coluna 1: Resultado Geral */}
-      <div className="rounded-xl border bg-card p-4 flex flex-col justify-between">
+      <div className="rounded-xl border-[2px] border-amber-400/20 bg-gradient-to-br from-amber-400/5 to-transparent p-4 flex flex-col justify-between shadow-sm">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-semibold flex items-center gap-2">
-            <TrendingUp className="h-4 w-4 text-primary" />
-            Veredito Geral
+          <h3 className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2 text-amber-600">
+            <TrendingUp className="h-4 w-4" />
+            Veredito Global
           </h3>
-          <Badge variant="secondary" className="text-[10px]">Ponderado</Badge>
+          <Badge variant="secondary" className="text-[9px] bg-amber-500/10 text-amber-700 border-amber-500/20 uppercase font-black">Ponderado</Badge>
         </div>
         
         {winnerProduct && (
           <div className="space-y-2">
             <div className="flex items-end gap-2">
-              <span className="text-3xl font-display font-bold text-primary">{winnerScore?.total}</span>
-              <span className="text-sm text-muted-foreground mb-1">pontos</span>
+              <span className="text-3xl font-display font-black text-amber-500">{winnerScore?.total}</span>
+              <span className="text-xs font-bold text-muted-foreground mb-1 uppercase tracking-tighter">Índice Global</span>
             </div>
-            <p className="text-sm font-medium line-clamp-2">{winnerProduct.name}</p>
-            <div className="flex items-center gap-1.5 text-xs text-success font-medium">
+            <p className="text-sm font-bold line-clamp-2 text-foreground/80">{winnerProduct.name}</p>
+            <div className="flex items-center gap-1.5 text-[10px] text-amber-600 font-black uppercase tracking-widest bg-amber-500/10 p-1.5 rounded-lg border border-amber-500/20">
               <Crown className="h-3 w-3" />
-              Melhor custo-benefício identificado
+              Líder de Custo-Benefício
             </div>
           </div>
         )}
       </div>
 
       {/* Coluna 2: Diferenciadores Rápidos */}
-      <div className="rounded-xl border bg-card p-4">
+      <div className="rounded-xl border-[2px] border-blue-400/20 bg-gradient-to-br from-blue-400/5 to-transparent p-4 shadow-sm">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-semibold flex items-center gap-2">
-            <Info className="h-4 w-4 text-blue-500" />
-            Insights de Atributos
+          <h3 className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2 text-blue-600">
+            <Info className="h-4 w-4" />
+            Insights Técnicos
           </h3>
         </div>
         <div className="space-y-3">
@@ -87,11 +87,11 @@ export function ComparisonSummaryDashboard({ products }: ComparisonSummaryDashbo
       </div>
 
       {/* Coluna 3: Status do Duelo */}
-      <div className="rounded-xl border bg-card p-4 flex flex-col justify-between">
+      <div className="rounded-xl border-[2px] border-destructive/20 bg-gradient-to-br from-destructive/5 to-transparent p-4 flex flex-col justify-between shadow-sm">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-semibold flex items-center gap-2">
-            <Swords className="h-4 w-4 text-destructive" />
-            Status do Confronto
+          <h3 className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2 text-destructive">
+            <Swords className="h-4 w-4" />
+            Arena de Confronto
           </h3>
         </div>
         

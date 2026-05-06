@@ -114,10 +114,9 @@ export default function ComparePage() {
   if (compareCount < 2) {
     const handleLoadMocks = async (ids: string[]) => {
       setIsMockLoading(true);
-      toast.loading(`Carregando ${ids.length} produtos para teste...`, { id: "mock-loading" });
+      toast.loading(`Iniciando simulação com ${ids.length} itens...`, { id: "mock-loading" });
       
       try {
-        // Simular um pequeno delay para percepção de estado
         await new Promise(resolve => setTimeout(resolve, 800));
         
         let addedCount = 0;
@@ -125,9 +124,9 @@ export default function ComparePage() {
           if (addToCompare(id)) addedCount++;
         });
         
-        toast.success(`${addedCount} produtos carregados no Comparador`, { id: "mock-loading" });
+        toast.success(`Simulação concluída: ${addedCount} itens na Arena`, { id: "mock-loading" });
       } catch (error) {
-        toast.error("Erro ao carregar dados mockados", { id: "mock-loading" });
+        toast.error("Erro na simulação técnica", { id: "mock-loading" });
       } finally {
         setIsMockLoading(false);
       }
@@ -144,25 +143,25 @@ export default function ComparePage() {
               variant="outline" 
               size="sm" 
               disabled={isMockLoading}
-              className="gap-2 border-primary/20 hover:border-primary/50"
+              className="gap-2 border-amber-500/30 hover:border-amber-500 bg-amber-500/5 font-black uppercase text-[10px] tracking-widest"
               onClick={() => handleLoadMocks(["26462", "26463", "26464"])}
             >
-              {isMockLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3 text-primary" />}
-              Mock Rápido (3 itens)
+              {isMockLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3 text-amber-500" />}
+              Arena Rápida (3 Itens)
             </Button>
             <Button 
               variant="outline" 
               size="sm" 
               disabled={isMockLoading}
-              className="gap-2 border-primary/20 hover:border-primary/50"
+              className="gap-2 border-amber-500/30 hover:border-amber-500 bg-amber-500/5 font-black uppercase text-[10px] tracking-widest"
               onClick={() => handleLoadMocks(["26462", "26463", "26464", "26465", "26466", "26467", "26468", "26469"])}
             >
-              {isMockLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <List className="h-3 w-3 text-primary" />}
-              Mock Volume (8 itens)
+              {isMockLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <List className="h-3 w-3 text-amber-500" />}
+              Arena de Volume (8 Itens)
             </Button>
           </div>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-medium opacity-50">
-            Ambiente de Testes / Modo Demo
+          <p className="text-[10px] text-amber-600/50 uppercase tracking-[0.2em] font-black">
+            Laboratório de Engenharia / 10.10 Final
           </p>
         </div>
       </>
@@ -206,9 +205,9 @@ export default function ComparePage() {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <PopoverTrigger asChild>
-                    <Button variant={client ? "default" : "outline"} size="sm">
+                    <Button variant={client ? "default" : "outline"} size="sm" className={cn(client && "bg-amber-500 hover:bg-amber-600 border-none")}>
                       <Building2 className="h-4 w-4 mr-2" />
-                      {client ? client.name.slice(0, 22) : "Cliente CRM"}
+                      {client ? client.name.slice(0, 22) : "Vincular Cliente"}
                     </Button>
                   </PopoverTrigger>
                 </TooltipTrigger>
@@ -232,9 +231,10 @@ export default function ComparePage() {
                     size="sm"
                     onClick={() => setDifferencesOnly(v => !v)}
                     aria-pressed={differencesOnly}
+                    className={cn(differencesOnly && "bg-amber-500 hover:bg-amber-600 border-none")}
                   >
                     <Filter className="h-4 w-4 mr-2" />
-                    {differencesOnly ? "Mostrando diferenças" : "Só diferenças"}
+                    {differencesOnly ? "Confronto Ativo" : "Só Diferenças"}
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Destacar apenas atributos diferentes entre os produtos <kbd className="ml-1 px-1 py-0.5 rounded bg-primary-foreground/20 text-primary-foreground text-[10px] font-mono">D</kbd></TooltipContent>
@@ -243,9 +243,9 @@ export default function ComparePage() {
             <TooltipProvider >
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="default" size="sm" onClick={handleCreateQuote}>
+                  <Button variant="default" size="sm" onClick={handleCreateQuote} className="bg-amber-500 hover:bg-amber-600 border-none font-bold">
                     <FileText className="h-4 w-4 mr-2" />
-                    Criar orçamento
+                    Gerar Orçamento
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Enviar produtos comparados para novo orçamento</TooltipContent>

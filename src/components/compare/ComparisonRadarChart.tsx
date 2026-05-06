@@ -51,11 +51,11 @@ export function ComparisonRadarChart({ products, className }: ComparisonRadarCha
     const maxColors = Math.max(...colorCounts, 1);
 
     const axes = [
-      { key: "Preço", values: prices.map(v => Math.round((1 - v / maxPrice) * 100)) },
-      { key: "Estoque", values: stocks.map(v => Math.round((v / maxStock) * 100)) },
-      { key: "Cores", values: colorCounts.map(v => Math.round((v / maxColors) * 100)) },
-      { key: "Qtd. mín", values: mins.map(v => Math.round((1 - (v - 1) / Math.max(1, maxMin - 1)) * 100)) },
-      { key: "Lead time", values: products.map(p => leadTimeScore(p.stockStatus)) },
+      { key: "Economia", values: prices.map(v => Math.round((1 - v / maxPrice) * 100)) },
+      { key: "Pronta Entrega", values: stocks.map(v => Math.round((v / maxStock) * 100)) },
+      { key: "Variedade", values: colorCounts.map(v => Math.round((v / maxColors) * 100)) },
+      { key: "Acessibilidade", values: mins.map(v => Math.round((1 - (v - 1) / Math.max(1, maxMin - 1)) * 100)) },
+      { key: "Rapidez", values: products.map(p => leadTimeScore(p.stockStatus)) },
     ];
 
     return axes.map(axis => {
