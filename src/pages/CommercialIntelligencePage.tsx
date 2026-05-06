@@ -50,7 +50,7 @@ export default function CommercialIntelligencePage() {
             <Brain className="h-5 w-5 text-primary-foreground" />
           </div>
           <div className="flex-1 min-w-0">
-            <h1 data-testid="page-title-inteligencia-mercado" className="font-display text-xl font-bold text-foreground">Inteligência de Mercado</h1>
+            <h1 data-testid="page-title-inteligencia-mercado" className="font-display text-xl font-bold text-foreground">Inteligência Comercial</h1>
             <p className="text-sm text-muted-foreground">Produtos & Fornecedores · comportamento do mercado + vendas internas</p>
           </div>
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
