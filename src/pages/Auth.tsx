@@ -271,9 +271,9 @@ export default function Auth() {
               </CardContent>
             ) : (
             <>
-              <CardHeader className="pt-10 pb-6 px-8 text-center space-y-2">
-                <h2 className="text-2xl font-bold font-display tracking-tight text-foreground">Bem-vindo de volta</h2>
-                <p className="text-[13px] text-muted-foreground font-medium">Insira suas credenciais para acessar a plataforma</p>
+              <CardHeader className="pt-12 pb-6 px-8 text-center space-y-3">
+                <h2 className="text-3xl font-bold font-display tracking-tight text-foreground bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent">Bem-vindo</h2>
+                <p className="text-[13px] text-muted-foreground/80 font-medium leading-relaxed">Insira suas credenciais exclusivas para acessar o ecossistema Promo Gifts</p>
               </CardHeader>
 
               <CardContent className="pt-2 px-8 pb-10 space-y-6">
@@ -324,7 +324,7 @@ export default function Auth() {
                           data-testid="login-email-input"
                           type="email"
                           placeholder="seu@email.com"
-                          className="pl-11 bg-muted/30 border-border/40 focus:bg-background focus:border-primary/50 text-foreground placeholder:text-muted-foreground/40 lowercase h-12.5 rounded-xl transition-all duration-300 ring-offset-background"
+                          className="pl-11 bg-muted/20 border-border/40 focus:bg-background focus:border-primary/50 focus:ring-4 focus:ring-primary/5 text-foreground placeholder:text-muted-foreground/30 lowercase h-12.5 rounded-xl transition-all duration-300 ring-offset-background"
                           {...loginForm.register("email")}
                           ref={(el) => {
                             loginForm.register("email").ref(el);
@@ -348,7 +348,7 @@ export default function Auth() {
                           data-testid="login-password-input"
                           type={showPassword ? "text" : "password"}
                           placeholder="••••••••"
-                          className="pl-11 pr-11 bg-muted/30 border-border/40 focus:bg-background focus:border-primary/50 text-foreground placeholder:text-muted-foreground/40 h-12.5 rounded-xl transition-all duration-300 ring-offset-background"
+                          className="pl-11 pr-11 bg-muted/20 border-border/40 focus:bg-background focus:border-primary/50 focus:ring-4 focus:ring-primary/5 text-foreground placeholder:text-muted-foreground/30 h-12.5 rounded-xl transition-all duration-300 ring-offset-background"
                           {...loginForm.register("password")}
                         />
                         <button
@@ -383,29 +383,44 @@ export default function Auth() {
                     <Button 
                       type="submit" 
                       data-testid="login-submit"
-                      className="w-full h-12.5 text-sm font-bold uppercase tracking-widest bg-primary hover:bg-primary-hover text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-[0.98] transition-all duration-300 rounded-xl mt-2"
+                      className="w-full h-12.5 text-sm font-bold uppercase tracking-widest bg-primary hover:bg-primary-hover text-primary-foreground shadow-[0_10px_20px_-5px_rgba(255,107,0,0.3)] hover:shadow-[0_15px_25px_-5px_rgba(255,107,0,0.4)] active:scale-[0.98] transition-all duration-300 rounded-xl mt-2 relative overflow-hidden group"
                       disabled={isSubmitting}
                     >
+                      <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -translate-x-full group-hover:animate-[shimmer_2s_infinite] transition-transform" />
                       {isSubmitting ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Entrando...
+                          Autenticando...
                         </>
                       ) : (
-                        "Entrar"
+                        "Entrar na Plataforma"
                       )}
                     </Button>
 
-                    <div className="relative">
+                    <div className="relative py-2">
                       <div className="absolute inset-0 flex items-center">
-                        <span className="w-full border-t border-border" />
+                        <span className="w-full border-t border-border/40" />
                       </div>
-                      <div className="relative flex justify-center text-xs uppercase">
-                        <span className="bg-card px-2 text-muted-foreground font-bold">OU</span>
+                      <div className="relative flex justify-center text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50">
+                        <span className="bg-card px-4 uppercase">Ou acesse com</span>
                       </div>
                     </div>
 
-                    <SocialLoginButtons onError={handleSocialError} />
+                    <div className="grid grid-cols-1 gap-3">
+                      <PasskeyLogin
+                        email={loginForm.watch("email")}
+                        disabled={isSubmitting}
+                        onSuccess={async (userId) => {
+                          setIsSubmitting(true);
+                          try {
+                            await validateAndRedirect(userId, loginForm.getValues("email"));
+                          } finally {
+                            setIsSubmitting(false);
+                          }
+                        }}
+                      />
+                      <SocialLoginButtons onError={handleSocialError} />
+                    </div>
 
                     <PasskeyLogin
                       email={loginForm.watch("email")}
