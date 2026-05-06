@@ -437,7 +437,9 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange, isFiltering 
                   <span className="font-medium">{displayName}</span>
                   <span className="text-[11px] text-muted-foreground">{user?.email}</span>
                   {rolesLoaded ? (
-                    <RoleBadge role={role} className="self-start mt-1" />
+                    <div aria-hidden="true">
+                      <RoleBadge role={role} className="self-start mt-1" />
+                    </div>
                   ) : (
                     <span
                       aria-hidden="true"
