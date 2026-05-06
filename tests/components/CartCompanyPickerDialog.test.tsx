@@ -44,7 +44,8 @@ describe('CartCompanyPickerDialog - UI & Accessibility', () => {
     const { container } = render(<CartCompanyPickerDialog {...defaultProps} />);
     
     // The Search icon should have specific alignment classes
-    const searchIcon = container.querySelector('.lucide-search');
+    // Lucide icons render as SVG, searching by data-lucide or testing classes if available
+    const searchIcon = container.querySelector('svg.lucide-search');
     expect(searchIcon).toHaveClass('absolute', 'left-3', 'top-1/2', '-translate-y-1/2');
     
     const input = screen.getByRole('textbox', { name: /Buscar empresa/i });
