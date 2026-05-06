@@ -208,7 +208,7 @@ export function QuoteBuilderSummaryColumn({
           {/* Product Cards */}
           <div className="max-h-[50vh] min-h-0 flex-1 overflow-y-auto px-4">
             <div className="space-y-3 pr-1">
-              {items.length === 0 ? (
+              {safeItems.length === 0 ? (
                 <div className="group flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-muted-foreground/20 bg-muted/5 p-8 transition-all duration-300 hover:border-primary/30">
                   <div className="mb-3 rounded-full bg-muted/30 p-3 transition-colors group-hover:bg-primary/10">
                     <Package className="h-6 w-6 text-muted-foreground/40 group-hover:text-primary/50" />
@@ -427,7 +427,7 @@ export function QuoteBuilderSummaryColumn({
           </div>
 
           {/* Discount */}
-          {items.length > 0 && (
+          {safeItems.length > 0 && (
             <div className="space-y-2.5 px-4 pt-3">
               {maxDiscountPercent != null && (
                 <div
@@ -519,7 +519,7 @@ export function QuoteBuilderSummaryColumn({
           )}
 
           {/* Negotiation Markup (uso interno) */}
-          {items.length > 0 && setNegotiationMarkup && (
+          {safeItems.length > 0 && setNegotiationMarkup && (
             <div className="px-4 pt-3">
               <NegotiationMarkupCard
                 value={negotiationMarkup}
@@ -544,12 +544,12 @@ export function QuoteBuilderSummaryColumn({
             <div className="flex items-baseline justify-between gap-2">
               <div>
                 <span className="text-base font-bold">Total</span>
-                {items.length > 0 && (
+                {safeItems.length > 0 && (
                   <p className="text-[11px] text-muted-foreground">
                     ≈
                     {formatCurrency(
-                      items.reduce((s, i) => s + i.quantity, 0) > 0
-                        ? total / items.reduce((s, i) => s + i.quantity, 0)
+                      safeItems.reduce((s, i) => s + i.quantity, 0) > 0
+                        ? total / safeItems.reduce((s, i) => s + i.quantity, 0)
                         : 0,
                     )}
                     /un.
