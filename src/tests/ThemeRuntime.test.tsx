@@ -36,7 +36,7 @@ describe('Theme Runtime Safety', () => {
     warnSpy.mockClear();
 
     // Test production environment
-    process.env.NODE_ENV = 'production';
+    (import.meta.env as any).DEV = false;
     render(<ThemeConsumer />);
     expect(warnSpy).not.toHaveBeenCalled();
 
