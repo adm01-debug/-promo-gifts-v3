@@ -347,6 +347,6 @@ export default function AdminRbacRoutesPage() {
           </CardContent>
         </Card>
       </div>
-    </MainLayout>
+    </>
   );
 }
