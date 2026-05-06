@@ -41,7 +41,7 @@ describe('Theme Runtime Safety', () => {
     expect(warnSpy).not.toHaveBeenCalled();
 
     // Restore
-    process.env.NODE_ENV = originalEnv;
+    (import.meta.env as any).DEV = originalEnv;
     warnSpy.mockRestore();
   });
 
