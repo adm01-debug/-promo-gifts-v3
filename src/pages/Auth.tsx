@@ -263,8 +263,8 @@ export default function Auth() {
             </Card>
           )}
 
-          {/* Auth Card */}
-          <Card className={`border-border/30 bg-card/80 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] ring-1 ring-border/10 backdrop-blur-xl rounded-2xl overflow-hidden transition-all duration-500 ${ipBlocked ? 'opacity-50 pointer-events-none' : ''}`}>
+          {/* Auth Card — bold & vivid, no shadows */}
+          <Card className={`border-2 border-primary/30 bg-card rounded-2xl overflow-hidden transition-all duration-300 ${ipBlocked ? 'opacity-50 pointer-events-none' : ''}`}>
             {showForgotPassword ? (
               <CardContent className="p-8">
                 <ForgotPasswordForm onBack={() => setShowForgotPassword(false)} />
