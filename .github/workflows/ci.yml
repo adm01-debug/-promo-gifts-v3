@@ -108,6 +108,17 @@ jobs:
       - name: Run tests with coverage
         run: npm run test:coverage
 
+      - name: Check global coverage floor
+        run: node scripts/check-global-coverage.mjs
+
+      - name: Upload coverage artifacts
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 14
+
       - name: Security audit
         run: npm audit --audit-level=high || true
         continue-on-error: true
