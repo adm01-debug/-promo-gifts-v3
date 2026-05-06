@@ -119,6 +119,7 @@ export function AIComparisonAdvisor({ products }: AIComparisonAdvisorProps) {
         <Button
           size="sm"
           variant={result ? "outline" : "default"}
+          className={cn(!result && "bg-amber-500 hover:bg-amber-600 border-none font-bold")}
           onClick={fetchAdvice}
           disabled={loading}
         >
