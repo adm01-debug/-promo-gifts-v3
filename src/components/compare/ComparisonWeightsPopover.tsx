@@ -34,7 +34,7 @@ export function ComparisonWeightsPopover() {
           Pesos
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80" align="end">
+      <PopoverContent className="w-80 border-amber-500/20 bg-card/98 backdrop-blur-xl shadow-2xl" align="end">
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h4 className="font-semibold text-sm">Pesos do Score</h4>
