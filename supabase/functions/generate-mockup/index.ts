@@ -5,6 +5,7 @@ import { z } from "npm:zod@3.23.8";
 import { callAiWithTracking, QuotaExceededError } from '../_shared/ai-usage.ts';
 import { runBotProtection } from '../_shared/bot-protection.ts';
 import { safeJson } from '../_shared/json-parser.ts';
+import { createStructuredLogger, alertOnFailure } from '../_shared/structured-logging.ts';
 
 const MockupBodySchema = z.object({
   productImageUrl: z.string().url().max(2000),
@@ -31,6 +32,8 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const log = createStructuredLogger('generate-mockup', req);
+
   try {
     const auth = await authenticateRequest(req);
     const user = { id: auth.userId };
@@ -42,7 +45,12 @@ Deno.serve(async (req) => {
       blockSeconds: 3600,
       customIdentifier: `user:${user.id}`,
     }, corsHeaders);
-    if (!protection.allowed) return protection.blockResponse!;
+    
+    if (!protection.allowed) {
+      log.warn("Bot protection triggered", { userId: user.id });
+      return protection.blockResponse!;
+    }
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
@@ -273,21 +281,19 @@ Output the final image maintaining the exact same dimensions and aspect ratio as
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
 
-  } catch (error: unknown) {
+  } catch (error: any) {
+    await alertOnFailure(log, error, {
+      userId: (error as any)?.userId || 'unknown'
+    });
+
     if (error instanceof QuotaExceededError) {
-      return new Response(
-        JSON.stringify({ error: "Limite mensal de IA atingido. Contate o administrador." }),
-        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return log.respond({ error: "Limite mensal de IA atingido. Contate o administrador." }, 429, corsHeaders);
     }
-    if ((error as any)?.status === 401 || (error as any)?.status === 403) {
+    if (error?.status === 401 || error?.status === 403) {
       return authErrorResponse(error, corsHeaders);
     }
-    console.error("Error generating mockup:", error);
+    
     const message = error instanceof Error ? error.message : "Failed to generate mockup";
-    return new Response(
-      JSON.stringify({ error: message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return log.respond({ error: message }, 500, corsHeaders);
   }
 });
