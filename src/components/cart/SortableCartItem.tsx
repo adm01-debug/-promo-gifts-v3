@@ -31,17 +31,21 @@ interface SortableCartItemProps {
   otherCarts: SellerCart[];
   companyAccentColor?: string | null;
   stockMap: Map<string, number>;
+  isSelected?: boolean;
+  isSelectionMode?: boolean;
   onRemove: (id: string, name: string) => void;
   onUpdateQuantity: (id: string, qty: number) => void;
   onUpdateNotes: (id: string, notes: string) => void;
   onMoveToCart: (itemId: string, targetCartId: string) => void;
   onDuplicateToCart: (itemId: string, targetCartId: string) => void;
+  onToggleSelection?: (id: string) => void;
   onNavigate: (path: string) => void;
 }
 
 export const SortableCartItem = memo(function SortableCartItem({
   item, index, otherCarts, companyAccentColor, stockMap,
-  onRemove, onUpdateQuantity, onUpdateNotes, onMoveToCart, onDuplicateToCart, onNavigate,
+  isSelected, isSelectionMode,
+  onRemove, onUpdateQuantity, onUpdateNotes, onMoveToCart, onDuplicateToCart, onToggleSelection, onNavigate,
 }: SortableCartItemProps) {
   const [notesOpen, setNotesOpen] = useState(!!item.notes);
   const [localNotes, setLocalNotes] = useState(item.notes || "");
