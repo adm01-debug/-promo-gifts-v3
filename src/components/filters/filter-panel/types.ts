@@ -29,6 +29,8 @@ export interface FilterState {
   sortBy: string;
   gender: string[];
   sizes: string[];
+  materialGroups: string[];
+  materialTypes: string[];
 }
 
 export interface FilterPanelProps {
@@ -72,6 +74,8 @@ export const defaultFilters: FilterState = {
   sortBy: 'relevance',
   gender: [],
   sizes: [],
+  materialGroups: [],
+  materialTypes: [],
 };
 
 export const SECTION_CONFIG: Record<string, { title: string; icon: React.ReactNode }> = {

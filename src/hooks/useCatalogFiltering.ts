@@ -114,12 +114,12 @@ export function useCatalogFiltering({
       );
     }
 
-    if (filters.priceRange[0] > 0 || filters.priceRange[1] < 500) {
+    if (filters.priceRange[0] > 0 || filters.priceRange[1] < 9999) {
       const [min, max] = filters.priceRange;
       result = result.filter((p) => p.price >= min && p.price <= max);
     }
 
-    if (filters.inStock) {
+    if (filters.stockStatus === 'in-stock') {
       result = result.filter((p) => (p.stock || 0) > 0);
     }
 
@@ -133,8 +133,8 @@ export function useCatalogFiltering({
       } else {
         return [];
       }
-    } else if (filters.materiais.length) {
-      const lowerMateriais = filters.materiais.map((m) => m.toLowerCase());
+    } else if (filters.materials?.length) {
+      const lowerMateriais = filters.materials.map((m) => m.toLowerCase());
       result = result.filter((p) => {
         const mats = Array.isArray(p.materials)
           ? p.materials.join(' ').toLowerCase()
@@ -151,8 +151,8 @@ export function useCatalogFiltering({
     return result;
   }, [
     filters.priceRange,
-    filters.inStock,
-    filters.materiais, // De-structure simple filter primitives
+    filters.stockStatus,
+    filters.materials, // De-structure simple filter primitives
     sortBy,
     hasFuzzySearch,
     fuzzySearchResults,
