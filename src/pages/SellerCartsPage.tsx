@@ -504,6 +504,15 @@ function SellerCartsContent() {
                 </SortableContext>
               </DndContext>
             )}
+            
+            {/* Legend/Helper text below list */}
+            {s.activeCart.items.length > 0 && (
+              <div className="flex items-center justify-center gap-6 pt-6 text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-40">
+                <span className="flex items-center gap-1.5"><GripVertical className="h-3 w-3" /> Arraste para reordenar</span>
+                <span className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-sm border-2 border-muted-foreground/30" /> Selecione para ações em massa</span>
+              </div>
+            )}
+          </div>
           </div>
 
           {/* Sidebar */}

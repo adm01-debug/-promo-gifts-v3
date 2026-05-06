@@ -344,7 +344,6 @@ export function useSellerCarts() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
-      toast.success("Item movido para outro carrinho");
     },
   });
 
@@ -372,7 +371,6 @@ export function useSellerCarts() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
-      toast.success("Item duplicado para outro carrinho");
     },
   });
 
