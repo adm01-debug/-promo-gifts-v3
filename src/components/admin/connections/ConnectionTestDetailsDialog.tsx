@@ -401,7 +401,7 @@ export function ConnectionTestDetailsDialog({
                   <div className="flex items-baseline justify-between">
                     <span className="text-sm">Latência total</span>
                     <span className="font-mono text-sm">
-                      {totalLatency != null ? `${totalLatency}ms` : '—'}
+                      {totalLatency !== null ? `${totalLatency}ms` : '—'}
                     </span>
                   </div>
                   <p className="rounded-xl border border-dashed p-3 text-xs text-muted-foreground">
