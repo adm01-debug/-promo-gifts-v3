@@ -123,5 +123,15 @@ test.describe("RBAC — Permissões de Grão Fino (UI & API)", () => {
     await expect(title).toContainText("Área Administrativa");
     await expect(desc).toContainText("Acesso restrito a gestores e administradores");
   });
+
+  test("Validação de Feature Flags por Papel", async ({ page }) => {
+    // A flag 'advanced_analytics' é restrita a admin/manager
+    // Vendedores não devem ver o link ou acesso a essa feature
+    await page.goto("/ferramentas/bi-comercial");
+    
+    // Se a feature flag bloqueia o acesso, o usuário deve ser redirecionado ou ver EmptyState
+    // Vamos verificar se elementos específicos de 'advanced_analytics' estão ocultos
+    await expect(page.locator('text=Advanced Analytics')).not.toBeVisible();
+  });
 });
 
