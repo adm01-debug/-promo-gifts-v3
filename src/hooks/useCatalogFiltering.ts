@@ -151,8 +151,8 @@ export function useCatalogFiltering({
     return result;
   }, [
     filters.priceRange,
-    filters.inStock,
-    filters.materiais, // De-structure simple filter primitives
+    filters.stockStatus,
+    filters.materials, // De-structure simple filter primitives
     sortBy,
     hasFuzzySearch,
     fuzzySearchResults,
