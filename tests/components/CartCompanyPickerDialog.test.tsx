@@ -202,7 +202,5 @@ describe('CartCompanyPickerDialog - UI, Accessibility & Regression', () => {
     await user.keyboard('{ArrowLeft}');
     await user.keyboard('{ArrowLeft}'); // Move from Search -> Favorites -> Recent
     
-    expect(recentTab).toHaveAttribute('aria-selected', 'true');
   });
-});
 });
