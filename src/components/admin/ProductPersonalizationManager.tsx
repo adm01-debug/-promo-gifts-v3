@@ -144,7 +144,7 @@ export function ProductPersonalizationManager() {
 
   const handleAddTechnique = () => {
     if (!selectedLocationId || !newTechniqueId) return;
-    const location = getLocationsForComponent('').length ? undefined : undefined; // lookup below
+    // location variable removed as it was unused and causing lint error
     const allLocs = components?.flatMap((c) => getLocationsForComponent(c.id)) || [];
     const loc = allLocs.find((l) => l.id === selectedLocationId);
     const comp = components?.find((c) => c.id === loc?.component_id);
