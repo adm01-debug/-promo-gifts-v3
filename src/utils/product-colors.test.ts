@@ -33,7 +33,7 @@ describe('product-colors utilities', () => {
 
     it('should fallback to capitalized first word', () => {
       expect(detectColorGroup('bege-claro')).toBe('Marrom'); // 'bege' is a keyword for Marrom
-      expect(detectColorGroup('fucsia')).toBe('Rosa'); // 'fucsia' is a keyword for Rosa
+      expect(detectColorGroup('fúcsia')).toBe('Rosa'); // 'fúcsia' (with accent) is a keyword for Rosa
       expect(detectColorGroup('madeira')).toBe('Madeira');
     });
   });
