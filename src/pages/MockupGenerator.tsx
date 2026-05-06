@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { LogoPositionEditor } from "@/components/mockup/LogoPositionEditor";
 import { MockupWizard } from "@/components/mockup/MockupWizard";
 import { MockupResultCard } from "@/components/mockup/MockupResultCard";
@@ -397,13 +398,13 @@ export default function MockupGenerator() {
                     </div>
                   )}
 
-                  <AIMockupAssistant onApplySuggestion={(suggestion) => {
-                    if (suggestion.techniqueId) {
-                      const tech = mg.techniques.find(t => t.id === suggestion.techniqueId);
+                  <AIMockupAssistant onSuggestionApply={(type, value) => {
+                    if (type === "suggestion" && value?.techniqueId) {
+                      const tech = mg.techniques.find(t => t.id === value.techniqueId);
                       if (tech) technique.handleTechniqueChange(tech);
                     }
-                    if (suggestion.position) {
-                      mg.updateActiveArea({ positionX: suggestion.position.x, positionY: suggestion.position.y });
+                    if (type === "suggestion" && value?.position) {
+                      mg.updateActiveArea({ positionX: value.position.x, positionY: value.position.y });
                     }
                   }} />
                 </div>
@@ -434,10 +435,13 @@ export default function MockupGenerator() {
         </Tabs>
 
         <TechniqueChangeDialog 
-          open={technique.isDialogOpen} 
-          onOpenChange={technique.setIsDialogOpen} 
+          open={technique.techniqueChangeDialogOpen} 
+          onOpenChange={technique.setTechniqueChangeDialogOpen} 
+          fromName={mg.selectedTechnique?.name}
+          toName={technique.pendingTechnique?.name}
+          hasGeneratedMockup={!!mg.generatedMockup}
           onConfirm={technique.confirmTechniqueChange} 
-          techniqueName={technique.pendingTechnique?.name || ""} 
+          onCancel={() => technique.setTechniqueChangeDialogOpen(false)}
         />
 
         <DeleteMockupDialog 
