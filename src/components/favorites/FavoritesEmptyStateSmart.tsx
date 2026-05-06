@@ -53,7 +53,7 @@ export function FavoritesEmptyStateSmart({ onAddProduct }: Props) {
   if (products.length === 0) {
     return (
       <div data-testid="favorites-empty-state" className="flex flex-col items-center gap-6 py-16">
-        <div className="text-center bg-muted/20 rounded-lg border-[1.5px] border-dashed border-primary/10 p-8 w-full max-w-2xl">
+        <div className="text-center bg-muted/20 rounded-xl border-[1.5px] border-dashed border-primary/10 p-8 w-full max-w-2xl">
           <Sparkles className="h-12 w-12 text-primary/40 mx-auto mb-3" />
           <h3 className="font-display text-lg font-semibold text-foreground mb-1">
             Comece a salvar seus favoritos
@@ -98,7 +98,7 @@ export function FavoritesEmptyStateSmart({ onAddProduct }: Props) {
             key={p.id}
             type="button"
             onClick={() => onAddProduct?.(p.id) ?? navigate(`/produto/${p.id}`)}
-            className="group text-left rounded-lg border border-border bg-card hover:border-primary hover:shadow-md transition-all overflow-hidden"
+            className="group text-left rounded-xl border border-border bg-card hover:border-primary hover:shadow-md transition-all overflow-hidden"
           >
             <div className="aspect-square bg-muted overflow-hidden">
               {p.images?.[0] ? (

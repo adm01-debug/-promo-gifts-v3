@@ -69,7 +69,7 @@ export function SortableProductItem({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       className={cn(
-        "flex flex-col gap-2 p-3 rounded-lg border-[1.5px] bg-card transition-all duration-200",
+        "flex flex-col gap-2 p-3 rounded-xl border-[1.5px] bg-card transition-all duration-200",
         isSelected
           ? "border-primary/50 bg-primary/5 shadow-md shadow-primary/10"
           : "border-primary/15 hover:border-primary/30 hover:shadow-sm"
@@ -95,7 +95,7 @@ export function SortableProductItem({
           <img
             src={displayImage}
             alt={product.name}
-            className="w-12 h-12 rounded-lg object-cover"
+            className="w-12 h-12 rounded-xl object-cover"
             loading="lazy"
           />
         )}

@@ -120,7 +120,7 @@ export function CartSidebar({
         <div className="relative z-10 pt-1">
           <Button
             data-testid="cart-checkout-cta"
-            className="w-full gap-2.5 h-12 font-bold bg-success hover:bg-success/90 text-success-foreground rounded-lg shadow-lg shadow-success/20 hover:shadow-xl hover:shadow-success/30 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] group/cta"
+            className="w-full gap-2.5 h-12 font-bold bg-success hover:bg-success/90 text-success-foreground rounded-xl shadow-lg shadow-success/20 hover:shadow-xl hover:shadow-success/30 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] group/cta"
             onClick={() => onGenerateQuote(cart)}
           >
             Gerar Orçamento
@@ -162,7 +162,7 @@ export function CartSidebar({
             <motion.p 
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
-              className="text-[10px] text-destructive font-bold bg-destructive/5 rounded-lg px-3 py-2.5 border border-destructive/10 flex items-center gap-2"
+              className="text-[10px] text-destructive font-bold bg-destructive/5 rounded-xl px-3 py-2.5 border border-destructive/10 flex items-center gap-2"
             >
               <span className="w-1.5 h-1.5 rounded-full bg-destructive animate-pulse" />
               Carrinho há {cartAge} dias — Follow-up Urgente!

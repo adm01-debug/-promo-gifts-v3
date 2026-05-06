@@ -57,7 +57,7 @@ export function MockupCompareDialog({
           {/* Grid */}
           <div className={`grid ${gridCols} gap-4 p-4 overflow-auto`}>
             {mockups.map((mockup) => (
-              <div key={mockup.id} className="flex flex-col gap-2 border rounded-lg overflow-hidden bg-card">
+              <div key={mockup.id} className="flex flex-col gap-2 border rounded-xl overflow-hidden bg-card">
                 <div className="aspect-square bg-muted/30 overflow-hidden">
                   <img
                     src={mockup.layout_url || mockup.mockup_url}

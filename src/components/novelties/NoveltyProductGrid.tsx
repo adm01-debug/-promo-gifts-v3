@@ -220,7 +220,7 @@ export const NoveltyProductGrid = memo(function NoveltyProductGrid({
             const isSelected = sel.selectedIds.has(novelty.product_id);
             return (
               <div key={novelty.novelty_id} className="stagger-item" style={{ animationDelay: `${Math.min(index * 25, 250)}ms` }}>
-                <div className={cn("flex items-center gap-1", isSelected && "ring-2 ring-primary rounded-lg")}>
+                <div className={cn("flex items-center gap-1", isSelected && "ring-2 ring-primary rounded-xl")}>
                   {selectionMode && (
                     <div className="flex-shrink-0 ml-1">
                       <SelectionCheckbox checked={isSelected} onChange={() => sel.toggleSelect(novelty.product_id)} size="md" />
@@ -281,15 +281,13 @@ export const NoveltyProductGrid = memo(function NoveltyProductGrid({
                 )}
               </Badge>
               {hasActiveFilters && (
-                <Button 
-                  variant="ghost"
-                  size="sm"
+                <button 
                   onClick={clearFilters}
-                  className="h-auto p-0 text-[10px] font-medium text-primary hover:text-primary/80 flex items-center gap-0.5 transition-colors hover:bg-transparent"
+                  className="text-[10px] font-medium text-primary hover:text-primary/80 flex items-center gap-0.5 transition-colors"
                 >
                   <X className="h-3 w-3" />
                   Limpar
-                </Button>
+                </button>
               )}
             </div>
 
@@ -307,7 +305,7 @@ export const NoveltyProductGrid = memo(function NoveltyProductGrid({
               <div className="relative">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                 <Input placeholder="Buscar novidades…  /" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="h-8 text-xs pl-8 bg-muted/40 border-border/50 focus:bg-background" />
-                {searchQuery && <Button variant="ghost" size="icon" onClick={() => setSearchQuery("")} className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 text-muted-foreground hover:text-foreground"><X className="h-3 w-3" /></Button>}
+                {searchQuery && <button onClick={() => setSearchQuery("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"><X className="h-3 w-3" /></button>}
               </div>
             </div>
           </div>
@@ -322,7 +320,7 @@ export const NoveltyProductGrid = memo(function NoveltyProductGrid({
           <div className="relative flex-1">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
             <Input placeholder="Buscar novidades..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="h-8 text-xs pl-8 bg-muted/40 border-border/50 focus:bg-background" />
-            {searchQuery && <Button variant="ghost" size="icon" onClick={() => setSearchQuery("")} className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 text-muted-foreground hover:text-foreground"><X className="h-3 w-3" /></Button>}
+            {searchQuery && <button onClick={() => setSearchQuery("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"><X className="h-3 w-3" /></button>}
           </div>
         </div>
 
@@ -453,9 +451,9 @@ export const NoveltyProductGrid = memo(function NoveltyProductGrid({
                 <DrawerFooter className="px-6 pb-8 pt-2">
                   <div className="flex items-center gap-2">
                     <DrawerClose asChild>
-                      <Button className="flex-1 rounded-lg h-11 text-sm font-semibold">Ver {filteredProducts.length} Resultados</Button>
+                      <Button className="flex-1 rounded-xl h-11 text-sm font-semibold">Ver {filteredProducts.length} Resultados</Button>
                     </DrawerClose>
-                    <Button variant="ghost" className="rounded-lg h-11 text-muted-foreground" onClick={clearFilters}>Limpar</Button>
+                    <Button variant="ghost" className="rounded-xl h-11 text-muted-foreground" onClick={clearFilters}>Limpar</Button>
                   </div>
                 </DrawerFooter>
               </DrawerContent>

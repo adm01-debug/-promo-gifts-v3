@@ -106,7 +106,7 @@ function HighlightCell({
 }: HighlightCellProps) {
   if (value === null) {
     return (
-      <div className="flex-1 p-2 rounded-lg bg-muted/50 text-center">
+      <div className="flex-1 p-2 rounded-xl bg-muted/50 text-center">
         <span className="text-muted-foreground">—</span>
       </div>
     );
@@ -141,7 +141,7 @@ function HighlightCell({
       <TooltipTrigger asChild>
         <div
           className={cn(
-            "flex-1 p-2 rounded-lg border transition-all duration-200",
+            "flex-1 p-2 rounded-xl border transition-all duration-200",
             "hover:shadow-md cursor-default",
             style.bg
           )}

@@ -165,14 +165,12 @@ export default function QuotesKanbanPage() {
             <Badge variant="secondary" className="gap-2 py-1.5 px-3">
               <Building2 className="h-3.5 w-3.5" />
               Filtrando por: {selectedClientName}
-              <Button
-                variant="ghost"
-                size="icon"
+              <button
                 onClick={() => setSelectedClientId("all")}
-                className="ml-1 h-5 w-5 hover:text-destructive"
+                className="ml-1 hover:text-destructive"
               >
-                <X className="h-3 w-3" />
-              </Button>
+                ×
+              </button>
             </Badge>
           </div>
         )}

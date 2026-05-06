@@ -2,10 +2,7 @@
  * Left-side branding panel for Auth page — extracted for modularity
  */
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { Gift, Package, Factory, SlidersHorizontal, Brain, Rocket, Sparkles, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
+import { Gift, Package, Factory, SlidersHorizontal, Brain, Rocket, Sparkles } from "lucide-react";
 
 interface RocketData { id: number; left: number; size: number; duration: number; rotation: number; scale: number; }
 
@@ -78,7 +75,7 @@ export const ContinuousRockets = React.memo(() => {
               }}
             >
               <Rocket
-                className="-rotate-45 text-primary"
+                className="-rotate-45 text-orange"
                 style={{
                   width: r.size,
                   height: r.size,
@@ -151,7 +148,7 @@ const BackgroundRockets = React.memo(() => {
         >
           <div className="relative">
             <Rocket
-              className="-rotate-45 text-primary"
+              className="-rotate-45 text-orange"
               style={{
                 width: r.size,
                 height: r.size,
@@ -264,7 +261,7 @@ function FeatureCard({ item, index }: { item: typeof FEATURE_ITEMS[0]; index: nu
   const IconComponent = item.icon;
   return (
     <div 
-      className="p-5 rounded-lg bg-black/60 backdrop-blur-2xl border border-white/10 shadow-2xl hover:bg-black/80 hover:border-primary/50 transition-all duration-500 group opacity-0"
+      className="p-5 rounded-xl bg-black/60 backdrop-blur-2xl border border-white/10 shadow-2xl hover:bg-black/80 hover:border-primary/50 hover:scale-[1.02] transition-all duration-500 group opacity-0"
       style={{ 
         animation: `scale-fade-in 0.5s ease-out ${300 + index * 100}ms forwards`,
         boxShadow: '0 0 20px rgba(0,0,0,0.5)' 
@@ -319,14 +316,14 @@ export function AuthSpaceBackground() {
               <span className="text-[10px] font-bold text-white/60 uppercase tracking-widest">Intensidade do Brilho</span>
               <span className="text-xs font-mono text-primary font-bold">{(intensity * 100).toFixed(0)}%</span>
             </div>
-            <Input 
+            <input 
               type="range" 
               min="0.2" 
               max="2" 
               step="0.1" 
               value={intensity} 
               onChange={(e) => setIntensity(parseFloat(e.target.value))}
-              className="w-48 h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-primary p-0 border-none"
+              className="w-48 h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-primary"
             />
             <div className="flex justify-between text-[8px] text-white/30 font-medium px-1">
               <span>SUTIL</span>
@@ -335,18 +332,13 @@ export function AuthSpaceBackground() {
             </div>
           </div>
         )}
-        <Button 
-          variant="ghost"
-          size="icon"
+        <button 
           onClick={() => setShowControls(!showControls)}
-          className={cn(
-            "w-12 h-12 rounded-full bg-black/60 backdrop-blur-md border border-white/10 flex items-center justify-center text-white/60 hover:text-primary hover:border-primary transition-all shadow-xl",
-            showControls && "text-primary border-primary"
-          )}
+          className="w-12 h-12 rounded-full bg-black/60 backdrop-blur-md border border-white/10 flex items-center justify-center text-white/60 hover:text-primary hover:border-primary/50 transition-all hover:scale-110 shadow-xl"
           title="Ajustar Estrelas"
         >
-          <Sparkles className="h-5 w-5" />
-        </Button>
+          <Sparkles className={`h-5 w-5 ${showControls ? 'text-primary' : ''}`} />
+        </button>
       </div>
     </div>
   );
@@ -361,7 +353,7 @@ export function AuthBrandingPanel() {
       <div className="relative z-10 flex flex-col justify-center items-center px-12 xl:px-16 w-full">
         <div className="space-y-5 w-full max-w-lg">
           <div className="flex items-center gap-3">
-            <div className="w-[53px] h-[53px] rounded-lg bg-primary flex items-center justify-center shadow-lg shadow-primary/30">
+            <div className="w-[53px] h-[53px] rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/30">
               <Gift className="h-6 w-6 text-primary-foreground" />
             </div>
             <div>

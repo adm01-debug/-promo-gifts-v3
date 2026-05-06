@@ -70,7 +70,7 @@ export function ZoneRefreshButton({
             disabled={isLoading}
             aria-label={label}
             className={cn(
-              "inline-flex items-center gap-1 rounded-lg border border-border/50 bg-background/60 px-2 py-1 text-[11px] text-muted-foreground",
+              "inline-flex items-center gap-1 rounded-xl border border-border/50 bg-background/60 px-2 py-1 text-[11px] text-muted-foreground",
               "hover:text-foreground hover:bg-muted/60 transition-colors",
               "disabled:opacity-60 disabled:cursor-wait",
               "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",

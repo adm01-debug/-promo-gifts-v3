@@ -32,7 +32,7 @@ export function CollectionsEmptyStateSmart({ onAddProduct }: Props) {
 
   if (products.length === 0) {
     return (
-      <div className="text-center py-16 bg-muted/20 rounded-lg border-[1.5px] border-dashed border-primary/10">
+      <div className="text-center py-16 bg-muted/20 rounded-xl border-[1.5px] border-dashed border-primary/10">
         <Sparkles className="h-12 w-12 text-primary/40 mx-auto mb-3" />
         <h3 className="font-display text-lg font-semibold text-foreground mb-1">
           Comece a montar suas coleções
@@ -62,7 +62,7 @@ export function CollectionsEmptyStateSmart({ onAddProduct }: Props) {
             key={p.id}
             type="button"
             onClick={() => onAddProduct?.(p.id) ?? navigate(`/produto/${p.id}`)}
-            className="group text-left rounded-lg border border-border bg-card hover:border-primary hover:shadow-md transition-all overflow-hidden"
+            className="group text-left rounded-xl border border-border bg-card hover:border-primary hover:shadow-md transition-all overflow-hidden"
           >
             <div className="aspect-square bg-muted overflow-hidden">
               {p.images?.[0] ? (

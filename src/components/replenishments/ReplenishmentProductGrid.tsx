@@ -134,7 +134,7 @@ export function ReplenishmentProductGrid() {
           </div>
           <div className={`grid ${getGridColsClass(gridColumns)} ${getGridGapClass(gridColumns)}`}>
             {Array.from({ length: 10 }).map((_, i) => (
-              <div key={i} className="rounded-lg border border-border/30 overflow-hidden animate-pulse">
+              <div key={i} className="rounded-xl border border-border/30 overflow-hidden animate-pulse">
                 <div className="aspect-square bg-muted/40" />
                 <div className="p-3 space-y-2">
                   <div className="h-3 bg-muted/50 rounded w-3/4" />
@@ -151,7 +151,7 @@ export function ReplenishmentProductGrid() {
     if (error && products.length === 0) {
       return (
         <div className="text-center py-10" role="alert">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-lg bg-destructive/10 mb-3">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-destructive/10 mb-3">
             <AlertTriangle className="h-7 w-7 text-destructive" />
           </div>
           <p className="text-destructive font-medium text-sm">Erro ao carregar reposições</p>
@@ -163,7 +163,7 @@ export function ReplenishmentProductGrid() {
     if (filteredProducts.length === 0) {
       return (
         <div className="text-center py-10" role="status">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-lg bg-muted/80 mb-3">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-muted/80 mb-3">
             <Package className="h-7 w-7 text-muted-foreground/40" />
           </div>
           <p className="text-muted-foreground font-medium text-sm">

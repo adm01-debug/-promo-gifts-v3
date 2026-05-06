@@ -144,7 +144,7 @@ export function McpKeyDetailsDrawer({ source, open, onOpenChange }: Props) {
                 ) : (
                   <ul className="space-y-2">
                     {entries.map((e) => (
-                      <li key={e.id} className="border border-border rounded-lg p-2">
+                      <li key={e.id} className="border border-border rounded-xl p-2">
                         <div className="flex items-center justify-between text-xs">
                           <Badge variant="outline" className="text-xs">
                             {ACTION_LABELS[e.action] ?? e.action}

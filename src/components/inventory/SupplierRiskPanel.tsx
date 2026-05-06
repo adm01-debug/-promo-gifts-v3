@@ -16,9 +16,7 @@ import {
   Clock,
   Search,
   ShieldAlert,
-  X,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { type ProductStockSummary } from "@/types/stock";
 import { ProductRiskDetail } from "./risk/ProductRiskDetail";
@@ -176,7 +174,7 @@ export function SupplierRiskPanel({ products }: SupplierRiskPanelProps) {
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div>
             <CardTitle className="text-xl font-bold font-display tracking-tight flex items-center gap-2">
-              <div className="h-9 w-9 rounded-lg bg-amber-500/10 flex items-center justify-center shadow-inner">
+              <div className="h-9 w-9 rounded-xl bg-amber-500/10 flex items-center justify-center shadow-inner">
                 <ShieldAlert className="h-5 w-5 text-amber-500" aria-hidden="true" />
               </div>
               Análise de Risco no Fornecedor
@@ -221,13 +219,11 @@ export function SupplierRiskPanel({ products }: SupplierRiskPanelProps) {
                 { value: 'warning' as const, label: 'Atenção', count: globalCounts.warning },
                 { value: 'ok' as const, label: 'OK', count: globalCounts.ok },
               ]).map(opt => (
-                <Button
+                <button
                   key={opt.value}
-                  variant="ghost"
-                  size="sm"
                   onClick={() => setSeverityFilter(opt.value)}
                   className={cn(
-                    "text-[9px] px-2 py-0.5 rounded-full transition-colors h-auto",
+                    "text-[9px] px-2 py-0.5 rounded-full transition-colors",
                     severityFilter === opt.value
                       ? opt.value === 'critical' ? 'bg-destructive/15 text-destructive'
                         : opt.value === 'warning' ? 'bg-warning/15 text-warning'
@@ -239,7 +235,7 @@ export function SupplierRiskPanel({ products }: SupplierRiskPanelProps) {
                   role="radio"
                 >
                   {opt.label} ({opt.count})
-                </Button>
+                </button>
               ))}
             </div>
 
@@ -270,13 +266,12 @@ export function SupplierRiskPanel({ products }: SupplierRiskPanelProps) {
                           transform: `translateY(${virtualRow.start}px)`,
                         }}
                       >
-                        <Button
-                          variant="ghost"
+                        <button
                           onClick={() => setSelectedProductId(product.id)}
                           role="option"
                           aria-selected={selectedProductId === product.id}
                           className={cn(
-                            "w-full text-left p-2 rounded-lg text-xs transition-colors h-auto justify-start",
+                            "w-full text-left p-2 rounded-xl text-xs transition-colors",
                             selectedProductId === product.id
                               ? "bg-primary/10 border border-primary/20"
                               : "hover:bg-muted/50"
@@ -314,15 +309,15 @@ export function SupplierRiskPanel({ products }: SupplierRiskPanelProps) {
 
             {/* Summary — reflects filtered products */}
             <div className="grid grid-cols-3 gap-1.5 pt-2 border-t border-border">
-              <div className="text-center p-1.5 rounded-lg bg-destructive/10" role="status" aria-label={`${filteredCounts.critical} produtos críticos`}>
+              <div className="text-center p-1.5 rounded bg-destructive/10" role="status" aria-label={`${filteredCounts.critical} produtos críticos`}>
                 <p className="text-xl font-bold text-destructive">{filteredCounts.critical}</p>
                 <p className="text-[9px] text-destructive">Críticos</p>
               </div>
-              <div className="text-center p-1.5 rounded-lg bg-warning/10" role="status" aria-label={`${filteredCounts.warning} produtos em atenção`}>
+              <div className="text-center p-1.5 rounded bg-warning/10" role="status" aria-label={`${filteredCounts.warning} produtos em atenção`}>
                 <p className="text-xl font-bold text-warning">{filteredCounts.warning}</p>
                 <p className="text-[9px] text-warning">Atenção</p>
               </div>
-              <div className="text-center p-1.5 rounded-lg bg-primary/10" role="status" aria-label={`${filteredCounts.ok} produtos OK`}>
+              <div className="text-center p-1.5 rounded bg-primary/10" role="status" aria-label={`${filteredCounts.ok} produtos OK`}>
                 <p className="text-xl font-bold text-primary">{filteredCounts.ok}</p>
                 <p className="text-[9px] text-primary">OK</p>
               </div>

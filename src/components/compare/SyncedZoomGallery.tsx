@@ -108,7 +108,7 @@ export function SyncedZoomGallery({ products, onProductClick }: SyncedZoomGaller
 
   const GalleryContent = ({ inDialog = false }: { inDialog?: boolean }) => (
     <div className={cn("space-y-4", inDialog && "p-4")}>
-      <div className="flex items-center justify-center gap-4 p-3 rounded-lg bg-muted/50 backdrop-blur-md border border-border/30">
+      <div className="flex items-center justify-center gap-4 p-3 rounded-xl bg-muted/50 backdrop-blur-md border border-border/30">
         <Button variant="ghost" size="icon" onClick={handleZoomOut} disabled={zoom <= 1} className="h-8 w-8" aria-label="Reduzir">
           <ZoomOut className="h-4 w-4" />
         </Button>
@@ -159,7 +159,7 @@ export function SyncedZoomGallery({ products, onProductClick }: SyncedZoomGaller
               </h3>
               <div
                 className={cn(
-                  "relative aspect-square rounded-lg overflow-hidden bg-secondary/30 border border-border",
+                  "relative aspect-square rounded-xl overflow-hidden bg-secondary/30 border border-border",
                   zoom > 1 && "cursor-grab",
                   isPanning && "cursor-grabbing"
                 )}
@@ -212,7 +212,7 @@ export function SyncedZoomGallery({ products, onProductClick }: SyncedZoomGaller
                       key={idx}
                       onClick={() => setSelectedColorIdx(prev => ({ ...prev, [slotKey]: idx }))}
                       className={cn(
-                        "shrink-0 w-10 h-10 rounded-lg overflow-hidden transition-all",
+                        "shrink-0 w-10 h-10 rounded-xl overflow-hidden transition-all",
                         colorIdx === idx
                           ? "ring-2 ring-primary ring-offset-1 ring-offset-background"
                           : "opacity-60 hover:opacity-100"

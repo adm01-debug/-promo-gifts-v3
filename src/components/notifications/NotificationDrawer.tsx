@@ -176,7 +176,7 @@ function NotificationItem({
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.2 }}
       className={cn(
-        "group flex gap-3 p-3 rounded-lg transition-all duration-200 cursor-pointer hover:bg-muted/50 hover:shadow-sm",
+        "group flex gap-3 p-3 rounded-xl transition-all duration-200 cursor-pointer hover:bg-muted/50 hover:shadow-sm",
         !notification.is_read && "bg-primary/5 border-l-2 border-primary"
       )}
       onClick={() => {
@@ -184,7 +184,7 @@ function NotificationItem({
         if (notification.action_url) onNavigate(notification.action_url);
       }}
     >
-      <div className={cn("mt-0.5 p-1.5 rounded-lg shrink-0", config.bg)}>
+      <div className={cn("mt-0.5 p-1.5 rounded-xl shrink-0", config.bg)}>
         <Icon className={cn("h-4 w-4", config.color)} />
       </div>
       <div className="flex-1 min-w-0">
@@ -403,7 +403,7 @@ export const NotificationBell = React.forwardRef<HTMLDivElement, NotificationBel
             <div className="space-y-3 p-4">
               {[...Array(4)].map((_, i) => (
                 <div key={i} className="flex gap-3 animate-pulse">
-                  <div className="w-9 h-9 rounded-lg bg-muted" />
+                  <div className="w-9 h-9 rounded-xl bg-muted" />
                   <div className="flex-1 space-y-2">
                     <div className="h-3 bg-muted rounded w-3/4" />
                     <div className="h-3 bg-muted rounded w-1/2" />

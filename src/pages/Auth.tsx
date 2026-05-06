@@ -218,7 +218,7 @@ export default function Auth() {
         <div className="w-full max-w-md space-y-8 animate-fade-in">
           {/* Mobile Logo */}
           <div className="text-center lg:hidden space-y-3">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-lg bg-primary shadow-lg shadow-primary/30">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-orange shadow-lg shadow-orange/30">
               <Gift className="h-8 w-8 text-orange-foreground" />
             </div>
             <div>
@@ -236,7 +236,7 @@ export default function Auth() {
             <Card className="border-destructive bg-destructive/10 shadow-lg">
               <CardContent className="pt-6 pb-6">
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-lg bg-destructive/20 flex items-center justify-center flex-shrink-0">
+                  <div className="w-12 h-12 rounded-full bg-destructive/20 flex items-center justify-center flex-shrink-0">
                     <ShieldAlert className="h-6 w-6 text-destructive" />
                   </div>
                   <div className="space-y-2">
@@ -329,7 +329,7 @@ export default function Auth() {
                           data-testid="login-email-input"
                           type="email"
                           placeholder="seu@email.com"
-                          className="pl-10 bg-white/5 border-white/10 focus:bg-white/10 text-white placeholder:text-white/40 lowercase h-12 rounded-lg transition-all duration-300 backdrop-blur-md focus:ring-primary/50"
+                          className="pl-10 bg-white/10 border-white/10 focus:bg-white/20 text-white placeholder:text-white/40 lowercase h-12 rounded-xl transition-all duration-300 backdrop-blur-md"
                           {...loginForm.register("email")}
                           ref={(el) => {
                             loginForm.register("email").ref(el);
@@ -353,20 +353,18 @@ export default function Auth() {
                           data-testid="login-password-input"
                           type={showPassword ? "text" : "password"}
                           placeholder="••••••••"
-                          className="pl-10 pr-10 bg-white/5 border-white/10 focus:bg-white/10 text-white placeholder:text-white/40 h-12 rounded-lg transition-all duration-300 backdrop-blur-md focus:ring-primary/50"
+                          className="pl-10 pr-10 bg-white/10 border-white/10 focus:bg-white/20 text-white placeholder:text-white/40 h-12 rounded-xl transition-all duration-300 backdrop-blur-md"
                           {...loginForm.register("password")}
                         />
-                        <Button
+                        <button
                           type="button"
-                          variant="ghost"
-                          size="icon"
                           data-testid="login-password-toggle"
                           onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-primary hover:bg-white/5 transition-colors flex items-center justify-center h-8 w-8"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-orange transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center -mr-2"
                           aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
                         >
                           {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        </Button>
+                        </button>
                       </div>
                       {loginForm.formState.errors.password && (
                         <p className="text-sm text-destructive">
@@ -390,7 +388,7 @@ export default function Auth() {
                     <Button 
                       type="submit" 
                       data-testid="login-submit"
-                      className="w-full h-12 text-base font-bold uppercase tracking-widest bg-primary hover:bg-primary-hover text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-all duration-300 rounded-lg"
+                      className="w-full h-12 text-base font-bold uppercase tracking-widest bg-[#3B82F6] hover:bg-[#2563EB] text-white shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-all duration-300 rounded-xl"
                       disabled={isSubmitting}
                     >
                       {isSubmitting ? (

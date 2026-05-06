@@ -166,7 +166,7 @@ export function VisualSearchButton({ onResultsFound }: VisualSearchProps) {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="relative rounded-lg overflow-hidden border border-border"
+                className="relative rounded-xl overflow-hidden border border-border"
               >
                 <img src={previewImage} 
                   alt="Preview" 
@@ -199,7 +199,7 @@ export function VisualSearchButton({ onResultsFound }: VisualSearchProps) {
                   htmlFor="visual-search-input"
                   className={`
                     flex flex-col items-center justify-center w-full h-48 
-                    border-2 border-dashed rounded-lg cursor-pointer 
+                    border-2 border-dashed rounded-xl cursor-pointer 
                     transition-all duration-200
                     ${dragActive 
                       ? "border-orange bg-orange/10" 

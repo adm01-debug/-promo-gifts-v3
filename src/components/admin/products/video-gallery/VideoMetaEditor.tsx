@@ -20,7 +20,7 @@ export function VideoMetaEditor({ video, onSave, onCancel }: Props) {
 
   return (
     <div
-      className="absolute inset-0 bg-black/85 backdrop-blur-sm p-2 flex flex-col gap-1.5 z-10 rounded-lg"
+      className="absolute inset-0 bg-black/85 backdrop-blur-sm p-2 flex flex-col gap-1.5 z-10 rounded-xl"
       onClick={(e) => e.stopPropagation()}
     >
       <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Título do vídeo"

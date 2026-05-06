@@ -59,7 +59,7 @@ function MiniCard({ product, score, reason, onClick }: MiniCardProps) {
   return (
     <Card
       className={cn(
-        "min-w-[240px] max-w-[240px] shrink-0 border-[1.5px] border-border rounded-lg overflow-hidden",
+        "min-w-[240px] max-w-[240px] shrink-0 border-[1.5px] border-border rounded-xl overflow-hidden",
         "animate-fade-in transition-all duration-200",
         interactive && "cursor-pointer hover:border-primary hover:shadow-md hover:-translate-y-0.5"
       )}
@@ -98,7 +98,7 @@ function CarouselSkeleton({ count }: { count: number }) {
   return (
     <div className="flex gap-3 overflow-hidden">
       {Array.from({ length: count }).map((_, i) => (
-        <Card key={i} className="min-w-[240px] max-w-[240px] shrink-0 border-[1.5px] border-border rounded-lg">
+        <Card key={i} className="min-w-[240px] max-w-[240px] shrink-0 border-[1.5px] border-border rounded-xl">
           <CardContent className="p-3 space-y-2">
             <Skeleton className="h-4 w-3/4" />
             <Skeleton className="h-3 w-1/2" />

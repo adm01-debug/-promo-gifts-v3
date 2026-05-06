@@ -297,17 +297,12 @@ export function StockFilterToolbar({
             placeholder="Buscar no estoque (nome, SKU ou cor)... "
             value={localSearch}
             onChange={(e) => setLocalSearch(e.target.value)}
-            className="pl-10 pr-10 h-11 bg-card/40 border-border/50 focus:bg-card focus:border-primary/60 transition-all rounded-lg shadow-inner"
+            className="pl-10 pr-10 h-11 bg-card/40 border-border/50 focus:bg-card focus:border-primary/60 transition-all rounded-xl shadow-inner"
           />
           {localSearch && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setLocalSearch('')}
-              className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground hover:text-foreground"
-            >
+            <button onClick={() => setLocalSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
               <X className="h-4 w-4" />
-            </Button>
+            </button>
           )}
         </div>
 
@@ -322,7 +317,7 @@ export function StockFilterToolbar({
                   placeholder="Preciso de X unidades..."
                   value={quantityInput}
                   onChange={(e) => setQuantityInput(e.target.value)}
-                  className="pl-10 h-11 bg-card/40 border-border/50 focus:bg-card transition-all rounded-lg shadow-inner text-sm font-semibold"
+                  className="pl-10 h-11 bg-card/40 border-border/50 focus:bg-card transition-all rounded-xl shadow-inner text-sm font-semibold"
                   min={0}
                 />
               </div>
@@ -358,70 +353,45 @@ export function StockFilterToolbar({
               <Badge variant="secondary" className="gap-1 text-xs pr-1">
                 <LayoutGrid className="h-3 w-3" />
                 Categoria
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => onUpdateFilter('categoryId', undefined)}
-                  className="ml-0.5 h-4 w-4 hover:text-foreground"
-                >
+                <button onClick={() => onUpdateFilter('categoryId', undefined)} className="ml-0.5 hover:text-foreground">
                   <X className="h-3 w-3" />
-                </Button>
+                </button>
               </Badge>
             )}
             {filters.supplierId && (
               <Badge variant="secondary" className="gap-1 text-xs pr-1">
                 <Building2 className="h-3 w-3" />
                 {filters.supplierId}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => onUpdateFilter('supplierId', undefined)}
-                  className="ml-0.5 h-4 w-4 hover:text-foreground"
-                >
+                <button onClick={() => onUpdateFilter('supplierId', undefined)} className="ml-0.5 hover:text-foreground">
                   <X className="h-3 w-3" />
-                </Button>
+                </button>
               </Badge>
             )}
             {(filters.colorName || filters.colorGroup) && (
               <Badge variant="secondary" className="gap-1 text-xs pr-1">
                 <Palette className="h-3 w-3" />
                 {filters.colorName || filters.colorGroup}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => { onUpdateFilter('colorName', undefined); onUpdateFilter('colorGroup', undefined); }}
-                  className="ml-0.5 h-4 w-4 hover:text-foreground"
-                >
+                <button onClick={() => { onUpdateFilter('colorName', undefined); onUpdateFilter('colorGroup', undefined); }} className="ml-0.5 hover:text-foreground">
                   <X className="h-3 w-3" />
-                </Button>
+                </button>
               </Badge>
             )}
             {filters.minQuantityNeeded && filters.minQuantityNeeded > 0 && (
               <Badge variant="secondary" className="gap-1 text-xs pr-1">
                 <ShoppingCart className="h-3 w-3" />
                 ≥ {filters.minQuantityNeeded} un
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => { setQuantityInput(''); onUpdateFilter('minQuantityNeeded', undefined); }}
-                  className="ml-0.5 h-4 w-4 hover:text-foreground"
-                >
+                <button onClick={() => { setQuantityInput(''); onUpdateFilter('minQuantityNeeded', undefined); }} className="ml-0.5 hover:text-foreground">
                   <X className="h-3 w-3" />
-                </Button>
+                </button>
               </Badge>
             )}
             {filters.showOnlyWithAlerts && (
               <Badge variant="secondary" className="gap-1 text-xs pr-1">
                 <AlertTriangle className="h-3 w-3" />
                 Com alertas
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => onUpdateFilter('showOnlyWithAlerts', false)}
-                  className="ml-0.5 h-4 w-4 hover:text-foreground"
-                >
+                <button onClick={() => onUpdateFilter('showOnlyWithAlerts', false)} className="ml-0.5 hover:text-foreground">
                   <X className="h-3 w-3" />
-                </Button>
+                </button>
               </Badge>
             )}
 

@@ -69,7 +69,7 @@ const ProductCardWrapper = memo(function ProductCardWrapper({
           hasAnimated ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-8 scale-95'
         }`,
         "relative",
-        isSelected && "ring-2 ring-primary/40 rounded-lg"
+        isSelected && "ring-2 ring-primary/40 rounded-xl"
       )}
       style={reducedMotion ? undefined : {
         transitionDelay: hasAnimated ? '0ms' : `${Math.min(index * 80, 800)}ms`,

@@ -107,14 +107,14 @@ export const AddToCollectionModal = ({
                       transition={{ delay: idx * 0.03, type: "spring", stiffness: 400, damping: 25 }}
                       onClick={() => handleToggleCollection(collection.id, collection.name)}
                       className={cn(
-                        "w-full flex items-center gap-3 p-3 rounded-lg border-[1.5px] transition-all duration-200",
+                        "w-full flex items-center gap-3 p-3 rounded-xl border-[1.5px] transition-all duration-200",
                         isInCollection
                           ? "border-primary/50 bg-primary/5 shadow-sm shadow-primary/10"
                           : "border-border/50 hover:border-primary/40 hover:bg-accent/50"
                       )}
                     >
                       <motion.div
-                        className="w-10 h-10 rounded-lg flex items-center justify-center text-lg shrink-0"
+                        className="w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0"
                         style={{ backgroundColor: `${collection.color}20` }}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
@@ -168,7 +168,7 @@ export const AddToCollectionModal = ({
                 className="overflow-hidden"
               >
                 <div
-                  className="space-y-4 p-4 border-[1.5px] border-dashed border-primary/30 rounded-lg bg-primary/5"
+                  className="space-y-4 p-4 border-[1.5px] border-dashed border-primary/30 rounded-xl bg-primary/5"
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && newName.trim()) {
                       e.preventDefault();
@@ -177,13 +177,13 @@ export const AddToCollectionModal = ({
                   }}
                 >
                   {/* Mini preview */}
-                  <div className="flex items-center gap-2 p-2 rounded-lg bg-background/80 border border-border/50">
+                  <div className="flex items-center gap-2 p-2 rounded-xl bg-background/80 border border-border/50">
                     <motion.div
                       key={`${selectedColor}-${selectedIcon}`}
                       initial={{ scale: 0.8, rotate: -10 }}
                       animate={{ scale: 1, rotate: 0 }}
                       transition={{ type: "spring", stiffness: 500, damping: 25 }}
-                      className="w-8 h-8 rounded-lg flex items-center justify-center text-sm"
+                      className="w-8 h-8 rounded-xl flex items-center justify-center text-sm"
                       style={{ backgroundColor: `${selectedColor}20` }}
                     >
                       {selectedIcon}
@@ -233,7 +233,7 @@ export const AddToCollectionModal = ({
                           whileTap={{ scale: 0.9 }}
                           onClick={() => setSelectedIcon(icon)}
                           className={cn(
-                            "w-9 h-9 rounded-lg text-base flex items-center justify-center border transition-all",
+                            "w-9 h-9 rounded-xl text-base flex items-center justify-center border transition-all",
                             selectedIcon === icon
                               ? "border-primary bg-primary/10 shadow-sm"
                               : "border-border/50 hover:border-primary/40"
@@ -290,7 +290,7 @@ export const AddToCollectionModal = ({
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/40 border border-border/50"
+              className="flex items-center gap-2 px-3 py-2 rounded-xl bg-muted/40 border border-border/50"
             >
               <Package className="h-3.5 w-3.5 text-primary shrink-0" />
               <p className="text-[11px] text-muted-foreground">

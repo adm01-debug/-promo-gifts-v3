@@ -36,20 +36,20 @@ export const ExpertChatButton = React.forwardRef<HTMLButtonElement, ExpertChatBu
         <motion.button
           ref={ref}
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-20 right-4 sm:bottom-[6rem] sm:right-6 h-13 w-13 sm:h-14 sm:w-14 rounded-lg shadow-2xl z-40 flex items-center justify-center border border-primary/20 bg-gradient-to-br from-primary via-primary/80 to-primary/50 backdrop-blur-sm text-primary-foreground"
+          className="fixed bottom-20 right-4 sm:bottom-[6rem] sm:right-6 h-13 w-13 sm:h-14 sm:w-14 rounded-xl shadow-2xl z-40 flex items-center justify-center border border-primary/20 bg-gradient-to-br from-primary via-primary/80 to-primary/50 backdrop-blur-sm text-primary-foreground"
           whileHover={{ scale: 1.08, rotate: 2 }}
           whileTap={{ scale: 0.92 }}
           aria-label="Abrir Flow - Assistente Pessoal (Ctrl+J)"
         >
           {/* Outer pulsing glow ring */}
           <motion.div
-            className="absolute inset-0 rounded-lg bg-primary/25"
+            className="absolute inset-0 rounded-xl bg-primary/25"
             animate={{ scale: [1, 1.4, 1], opacity: [0.5, 0, 0.5] }}
             transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
           />
           {/* Inner subtle ring */}
           <motion.div
-            className="absolute inset-1 rounded-lg border border-primary-foreground/10"
+            className="absolute inset-1 rounded-xl border border-primary-foreground/10"
             animate={{ opacity: [0.3, 0.6, 0.3] }}
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
           />

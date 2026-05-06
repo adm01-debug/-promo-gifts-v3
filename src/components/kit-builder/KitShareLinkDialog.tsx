@@ -178,7 +178,7 @@ function TokenRow({ token, kitId, onCopy, onRevoke }: TokenRowProps) {
   const statusVariant = { active: 'default', revoked: 'destructive', expired: 'outline' }[status] as 'default' | 'destructive' | 'outline';
 
   return (
-    <li className="rounded-lg border bg-card p-3 space-y-2">
+    <li className="rounded-xl border bg-card p-3 space-y-2">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">

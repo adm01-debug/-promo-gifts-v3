@@ -6,12 +6,12 @@ import { Skeleton } from "@/components/ui/skeleton";
  */
 export function ProductListItemSkeleton() {
   return (
-    <div className="flex items-center gap-3 sm:gap-4 px-3 sm:px-4 py-2 sm:py-2.5 rounded-lg bg-card border border-border/40 relative overflow-hidden">
+    <div className="flex items-center gap-3 sm:gap-4 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-card border border-border/40 relative overflow-hidden">
       {/* Shimmer overlay */}
       <div className="absolute inset-0 bg-shimmer animate-shimmer pointer-events-none" />
 
       {/* Thumbnail */}
-      <Skeleton className="w-14 h-14 sm:w-[72px] sm:h-[72px] rounded-lg shrink-0 bg-muted/40" />
+      <Skeleton className="w-14 h-14 sm:w-[72px] sm:h-[72px] rounded-xl shrink-0 bg-muted/40" />
 
       {/* Info block */}
       <div className="flex-1 min-w-0 py-0.5 space-y-1.5">

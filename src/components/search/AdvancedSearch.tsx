@@ -243,7 +243,7 @@ export function AdvancedSearch({ onSearch, onVisualSearchResults, className }: A
       {isOpen && (
         <div
           ref={dropdownRef}
-          className="absolute top-full left-0 right-0 mt-2 bg-popover border border-border rounded-lg shadow-xl overflow-hidden z-50 animate-fade-in"
+          className="absolute top-full left-0 right-0 mt-2 bg-popover border border-border rounded-xl shadow-xl overflow-hidden z-50 animate-fade-in"
         >
           {/* Suggestions */}
           {suggestions.length > 0 ? (

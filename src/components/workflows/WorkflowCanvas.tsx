@@ -116,7 +116,7 @@ export function WorkflowCanvas() {
         <CardHeader className="pb-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-lg bg-primary/10">
+              <div className="p-2.5 rounded-xl bg-primary/10">
                 <Workflow className="h-6 w-6 text-primary" />
               </div>
               <div className="flex-1 min-w-0">

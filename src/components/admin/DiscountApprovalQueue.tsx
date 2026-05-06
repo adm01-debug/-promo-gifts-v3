@@ -108,7 +108,7 @@ export function DiscountApprovalQueue() {
                 {quote?.total !== null && <> · Total: <strong>R$ {Number(quote.total).toFixed(2)}</strong></>}
               </p>
               {hasMarkup && (
-                <div className="text-xs bg-warning/5 border border-warning/20 rounded-lg p-2 space-y-0.5">
+                <div className="text-xs bg-warning/5 border border-warning/20 rounded-xl p-2 space-y-0.5">
                   <p className="font-medium text-warning">⚠️ Margem de negociação aplicada (+{markup.toFixed(1)}%)</p>
                   <p className="text-muted-foreground">
                     Cliente vê subtotal R$ {Number(quote?.subtotal ?? 0).toFixed(2)} com {apparent.toFixed(1)}% off.

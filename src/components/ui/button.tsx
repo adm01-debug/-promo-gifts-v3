@@ -5,7 +5,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-[11px] font-bold uppercase tracking-widest ring-offset-background transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20 focus-visible:border-primary disabled:pointer-events-none disabled:opacity-40 disabled:grayscale [&_svg]:pointer-events-none [&_svg]:size-[1.2em] [&_svg]:shrink-0 touch-manipulation active:scale-[0.96] hover:-translate-y-0.5",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[var(--radius)] text-[11px] font-bold uppercase tracking-widest ring-offset-background transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20 focus-visible:border-primary disabled:pointer-events-none disabled:opacity-40 disabled:grayscale [&_svg]:pointer-events-none [&_svg]:size-[1.2em] [&_svg]:shrink-0 touch-manipulation active:scale-[0.96] hover:-translate-y-0.5",
   {
     variants: {
       variant: {
@@ -24,9 +24,9 @@ const buttonVariants = cva(
       },
       size: {
         default: "h-11 px-5 py-2.5 min-h-[44px]",
-        sm: "h-9 px-4 min-h-[36px]",
-        lg: "h-13 px-10 min-h-[52px] text-[13px]",
-        xl: "h-15 px-12 min-h-[60px] text-base font-extrabold tracking-widest",
+        sm: "h-9 rounded-xl px-4 min-h-[36px]",
+        lg: "h-13 rounded-xl px-10 min-h-[52px] text-[13px]",
+        xl: "h-15 rounded-xl px-12 min-h-[60px] text-base font-extrabold tracking-widest",
         icon: "h-11 w-11 min-h-[44px] min-w-[44px]",
       },
     },

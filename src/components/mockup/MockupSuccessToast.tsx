@@ -17,7 +17,7 @@ export function showMockupSuccessToast({
 }: MockupSuccessToastProps) {
   toast.custom(
     (t) => (
-      <div className="w-full max-w-sm bg-card border rounded-lg shadow-2xl overflow-hidden animate-in slide-in-from-top-2 duration-300">
+      <div className="w-full max-w-sm bg-card border rounded-xl shadow-2xl overflow-hidden animate-in slide-in-from-top-2 duration-300">
         {/* Preview Header */}
         <div className="relative h-32 bg-gradient-to-br from-success/20 to-primary/10">
           <img

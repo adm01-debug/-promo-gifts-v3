@@ -35,12 +35,12 @@ export function RelatedTemplates({ current, all, onSelect }: Props) {
               type="button"
               onClick={() => onSelect(t)}
               className={cn(
-                'flex items-center gap-2 p-2 rounded-lg border text-left',
+                'flex items-center gap-2 p-2 rounded-xl border text-left',
                 'hover:bg-muted/60 hover:border-primary/40 transition-colors',
               )}
             >
               <div
-                className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border"
+                className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border"
                 style={{ background: `${t.color}1A`, borderColor: `${t.color}40`, color: t.color }}
               >
                 <Icon className="h-4 w-4" />

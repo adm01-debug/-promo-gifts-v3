@@ -126,7 +126,7 @@ export function PromotionDialog({
         </DialogHeader>
 
         {user && (
-          <div className="rounded-lg border bg-muted/30 p-3">
+          <div className="rounded-xl border bg-muted/30 p-3">
             <div className="text-[11px] text-muted-foreground">Usuário</div>
             <div className="font-medium">{user.full_name || "Sem nome"}</div>
             <div className="text-[11px] text-muted-foreground">{user.email}</div>

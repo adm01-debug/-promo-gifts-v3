@@ -61,7 +61,7 @@ export function ComponentAccordionItem({
 
   return (
     <SortableItem key={component.id} id={component.id}>
-      <AccordionItem value={component.id} className="border rounded-lg px-4">
+      <AccordionItem value={component.id} className="border rounded-xl px-4">
         <AccordionTrigger className="hover:no-underline">
           <div className="flex items-center gap-3 flex-1">
             <Badge variant="outline" className="font-mono">{component.component_code}</Badge>
@@ -74,7 +74,7 @@ export function ComponentAccordionItem({
         </AccordionTrigger>
         <AccordionContent className="pt-4 pb-2">
           {/* Component fields */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-muted/30 rounded-lg mb-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-muted/30 rounded-xl mb-4">
             <div>
               <Label className="text-[11px] text-muted-foreground">Código</Label>
               <InlineEditField value={component.component_code} onSave={(v) => updateComponent({ id: component.id, component_code: v.toUpperCase() })} className="font-mono" />
@@ -125,7 +125,7 @@ export function ComponentAccordionItem({
             ) : (
               <div className="space-y-3 pl-6">
                 {compLocations.map((location) => (
-                  <div key={location.id} className="border rounded-lg p-3 bg-muted/30">
+                  <div key={location.id} className="border rounded-xl p-3 bg-muted/30">
                     <div className="grid grid-cols-2 md:grid-cols-6 gap-3 mb-3">
                       <div><Label className="text-[11px] text-muted-foreground">Código</Label><InlineEditField value={location.location_code} onSave={(v) => updateLocation({ id: location.id, location_code: v.toUpperCase() })} className="font-mono text-xs" /></div>
                       <div><Label className="text-[11px] text-muted-foreground">Nome</Label><InlineEditField value={location.location_name} onSave={(v) => updateLocation({ id: location.id, location_name: v })} /></div>

@@ -4,7 +4,6 @@
  */
 import { useState, useMemo } from "react";
 import { ChevronRight, FolderTree, Search, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
@@ -53,7 +52,7 @@ function TreeNodeItem({
     <div>
       <div
         className={cn(
-          "flex items-center gap-1.5 py-1.5 px-2 rounded-lg cursor-pointer transition-all text-xs",
+          "flex items-center gap-1.5 py-1.5 px-2 rounded cursor-pointer transition-all text-xs",
           "hover:bg-accent/60",
           isSelected && "bg-primary/15 text-primary font-semibold"
         )}
@@ -137,9 +136,9 @@ export function StockCategoryTreeSelect({ value, onChange }: StockCategoryTreeSe
   if (isLoading) {
     return (
       <div className="space-y-1.5">
-        <div className="h-3 w-20 bg-muted animate-pulse rounded-lg" />
-        <div className="h-3 w-32 bg-muted animate-pulse rounded-lg" />
-        <div className="h-3 w-24 bg-muted animate-pulse rounded-lg" />
+        <div className="h-3 w-20 bg-muted animate-pulse rounded" />
+        <div className="h-3 w-32 bg-muted animate-pulse rounded" />
+        <div className="h-3 w-24 bg-muted animate-pulse rounded" />
       </div>
     );
   }
@@ -148,12 +147,12 @@ export function StockCategoryTreeSelect({ value, onChange }: StockCategoryTreeSe
     <div className="space-y-2">
       {/* Selected indicator */}
       {selectedName && (
-        <div className="flex items-center gap-1.5 text-xs bg-primary/10 text-primary rounded-lg px-2 py-1">
+        <div className="flex items-center gap-1.5 text-xs bg-primary/10 text-primary rounded px-2 py-1">
           <FolderTree className="h-3 w-3 shrink-0" />
           <span className="truncate flex-1">{selectedName}</span>
-          <Button variant="ghost" size="icon" onClick={() => onChange(undefined)} className="hover:text-foreground h-5 w-5">
+          <button onClick={() => onChange(undefined)} className="hover:text-foreground">
             <X className="h-3 w-3" />
-          </Button>
+          </button>
         </div>
       )}
 
@@ -167,19 +166,19 @@ export function StockCategoryTreeSelect({ value, onChange }: StockCategoryTreeSe
           className="h-7 text-xs pl-7 pr-6"
         />
         {search && (
-          <Button variant="ghost" size="icon" onClick={() => setSearch("")} className="absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground h-5 w-5">
+          <button onClick={() => setSearch("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
             <X className="h-3 w-3" />
-          </Button>
+          </button>
         )}
       </div>
 
       {/* Tree */}
-      <div className="h-52 overflow-y-auto border border-border/40 rounded-lg scrollbar-thin scrollbar-thumb-muted-foreground/30 scrollbar-track-transparent">
+      <div className="h-52 overflow-y-auto border border-border/40 rounded-xl scrollbar-thin scrollbar-thumb-muted-foreground/30 scrollbar-track-transparent">
         <div className="space-y-0.5">
           {/* "Todas" option */}
           <div
             className={cn(
-              "flex items-center gap-1.5 py-1.5 px-2 rounded-lg cursor-pointer transition-all text-xs",
+              "flex items-center gap-1.5 py-1.5 px-2 rounded cursor-pointer transition-all text-xs",
               "hover:bg-accent/60",
               !value && "bg-primary/15 text-primary font-semibold"
             )}

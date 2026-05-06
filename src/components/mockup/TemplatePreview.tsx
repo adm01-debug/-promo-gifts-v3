@@ -81,7 +81,7 @@ export function TemplatePreview({
   return (
     <div
       className={cn(
-        "relative rounded-lg border border-border bg-muted/50",
+        "relative rounded-xl border border-border bg-muted/50",
         "transition-all duration-200",
         config.container,
         className
@@ -126,7 +126,7 @@ export function TemplatePreviewExpanded({
   return (
     <div 
       className={cn(
-        "relative w-full aspect-square rounded-lg border border-border overflow-hidden bg-muted/30",
+        "relative w-full aspect-square rounded-xl border border-border overflow-hidden bg-muted/30",
         className
       )}
     >

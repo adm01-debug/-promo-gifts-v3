@@ -52,7 +52,7 @@ function ClientColumn({ clientId, onRemove }: { clientId: string; onRemove: () =
     <div className="flex-1 min-w-[240px] border-l first:border-l-0 p-4 space-y-3 relative">
       <button
         onClick={onRemove}
-        className="absolute top-2 right-2 h-6 w-6 rounded-lg hover:bg-muted flex items-center justify-center text-muted-foreground"
+        className="absolute top-2 right-2 h-6 w-6 rounded-xl hover:bg-muted flex items-center justify-center text-muted-foreground"
         aria-label="Remover"
       >
         <X className="h-3.5 w-3.5" />
@@ -63,8 +63,8 @@ function ClientColumn({ clientId, onRemove }: { clientId: string; onRemove: () =
           <Badge variant="secondary" className="text-[10px] mt-1">{row.ramoAtividade}</Badge>
         )}
       </div>
-      <div className={cn("rounded-lg p-3 flex items-center gap-3", tier.color.split(" ").slice(-1)[0])}>
-        <div className="h-14 w-14 rounded-lg bg-background/80 border-[1.5px] flex flex-col items-center justify-center">
+      <div className={cn("rounded-xl p-3 flex items-center gap-3", tier.color.split(" ").slice(-1)[0])}>
+        <div className="h-14 w-14 rounded-xl bg-background/80 border-[1.5px] flex flex-col items-center justify-center">
           <span className={cn("font-display font-bold text-2xl leading-none", tier.color.split(" ")[0], tier.color.split(" ")[1])}>
             {row.score}
           </span>

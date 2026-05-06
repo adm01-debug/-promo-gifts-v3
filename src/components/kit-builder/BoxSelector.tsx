@@ -84,7 +84,7 @@ export function BoxSelector({
       <Card className="border-primary bg-primary/5">
         <CardContent className="p-6">
           <div className="flex items-start gap-4">
-            <div className="w-24 h-24 rounded-lg bg-secondary overflow-hidden flex-shrink-0">
+            <div className="w-24 h-24 rounded-xl bg-secondary overflow-hidden flex-shrink-0">
               {selectedBox.imageUrl ? (
                 
 <img src={selectedBox.imageUrl} alt={selectedBox.name} className="w-full h-full object-cover"  loading="lazy" />
@@ -261,7 +261,7 @@ export function BoxSelector({
               <Card
                 key={box.id}
                 className={cn(
-                  "group cursor-pointer rounded-lg border-border/50 transition-all duration-200 will-change-transform",
+                  "group cursor-pointer rounded-xl border-border/50 transition-all duration-200 will-change-transform",
                   "hover:-translate-y-0.5 hover:shadow-lg hover:border-primary/40",
                   "focus-within:ring-2 focus-within:ring-primary/60",
                 )}
@@ -269,7 +269,7 @@ export function BoxSelector({
               >
                 <CardContent className="p-4">
                   <div className="flex gap-3">
-                    <div className="w-20 h-20 rounded-lg bg-secondary overflow-hidden flex-shrink-0">
+                    <div className="w-20 h-20 rounded-xl bg-secondary overflow-hidden flex-shrink-0">
                       {box.imageUrl ? (
                         <img
                           src={box.imageUrl}

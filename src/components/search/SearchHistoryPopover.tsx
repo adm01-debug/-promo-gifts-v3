@@ -44,7 +44,7 @@ export function SearchHistoryPopover({ type = "general", onSelect }: SearchHisto
                 variant="outline" 
                 size="icon" 
                 className={cn(
-                  "relative h-11 w-11 shrink-0 rounded-lg border-muted-foreground/20 transition-all duration-200",
+                  "relative h-11 w-11 shrink-0 rounded-xl border-muted-foreground/20 transition-all duration-200",
                   itemCount > 0 ? "hover:border-primary/50 group" : "opacity-60 hover:opacity-100"
                 )}
                 aria-label="Histórico de buscas"

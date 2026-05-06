@@ -99,7 +99,7 @@ export function ProductInfoSection({
         </div>
         <div>
           <FieldLabel htmlFor="country_of_origin" hint="País onde o produto é fabricado ou de onde é importado">País de Origem</FieldLabel>
-          <select id="country_of_origin" {...register('country_of_origin')} className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm">
+          <select id="country_of_origin" {...register('country_of_origin')} className="h-9 w-full rounded-xl border border-input bg-background px-3 text-sm">
             <option value="">Selecione...</option>
             <option value="Alemanha">Alemanha</option>
             <option value="Bangladesh">Bangladesh</option>

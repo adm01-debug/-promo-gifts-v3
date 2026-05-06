@@ -266,7 +266,7 @@ export function SupplierFiscalInfo({ productId, supplierId }: Props) {
 
       {/* ── EDIT MODE ── */}
       {isEditing ? (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3 rounded-lg bg-muted/30 border border-border/50">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3 rounded-xl bg-muted/30 border border-border/50">
           <EditField label="CST" value={form.cst || ''} onChange={v => updateField('cst', v)} mono placeholder="Ex: 060" />
           <EditField label="CFOP" value={form.cfop || ''} onChange={v => updateField('cfop', v)} mono placeholder="Ex: 5102" />
           <EditField label="ICMS (%)" value={form.icms_rate != null ? String(form.icms_rate) : ''} onChange={v => updateField('icms_rate', v)} type="number" placeholder="Ex: 17" />

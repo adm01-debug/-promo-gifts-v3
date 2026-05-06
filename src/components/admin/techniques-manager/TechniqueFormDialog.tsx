@@ -134,15 +134,15 @@ export function TechniqueFormDialog({ categorias, isCreating, onCreate }: Techni
           <div className="space-y-3 pt-2 border-t">
             <Label className="text-base">Tipo de Precificação</Label>
             <div className="grid grid-cols-3 gap-4">
-              <div className="flex items-center justify-between p-3 rounded-lg border">
+              <div className="flex items-center justify-between p-3 rounded-xl border">
                 <div className="flex items-center gap-2"><Droplets className="h-4 w-4 text-info" /><span className="text-sm">Por Cor</span></div>
                 <Switch checked={form.priceByColor} onCheckedChange={c => update("priceByColor", c)} />
               </div>
-              <div className="flex items-center justify-between p-3 rounded-lg border">
+              <div className="flex items-center justify-between p-3 rounded-xl border">
                 <div className="flex items-center gap-2"><Ruler className="h-4 w-4 text-success" /><span className="text-sm">Por Área</span></div>
                 <Switch checked={form.priceByArea} onCheckedChange={c => update("priceByArea", c)} />
               </div>
-              <div className="flex items-center justify-between p-3 rounded-lg border">
+              <div className="flex items-center justify-between p-3 rounded-xl border">
                 <div className="flex items-center gap-2"><Hash className="h-4 w-4 text-primary" /><span className="text-sm">Por Pontos</span></div>
                 <Switch checked={form.priceByStitches} onCheckedChange={c => update("priceByStitches", c)} />
               </div>

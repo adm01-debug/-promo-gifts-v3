@@ -51,7 +51,7 @@ function StatCard({ label, value, suffix = "", subtitle, icon, variant, delay = 
       <Card className={cn("border-border/50 transition-all duration-300", styles.glow)}>
         <CardContent className="p-2.5 sm:p-3">
           <div className="flex items-center gap-2.5">
-            <Skeleton className={cn("shrink-0 h-9 w-9 sm:h-10 sm:w-10 rounded-lg", styles.iconBg)} />
+            <Skeleton className={cn("shrink-0 h-9 w-9 sm:h-10 sm:w-10 rounded-xl", styles.iconBg)} />
             <div className="min-w-0 flex-1 space-y-1.5">
               <Skeleton className="h-5 w-16" />
               <Skeleton className="h-3 w-24" />
@@ -72,7 +72,7 @@ function StatCard({ label, value, suffix = "", subtitle, icon, variant, delay = 
     >
       <CardContent className="p-2.5 sm:p-3">
         <div className="flex items-center gap-2.5">
-          <div className={cn("shrink-0 p-2 rounded-lg", styles.iconBg)}>
+          <div className={cn("shrink-0 p-2 rounded-xl", styles.iconBg)}>
             {icon}
           </div>
           <div className="min-w-0 flex-1">
@@ -99,7 +99,7 @@ function StatCardSkeleton() {
     <Card className="border-border/50">
       <CardContent className="p-3 sm:p-4">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 sm:h-11 sm:w-11 rounded-lg shimmer" />
+          <div className="h-10 w-10 sm:h-11 sm:w-11 rounded-xl shimmer" />
           <div className="space-y-2">
             <div className="h-6 w-16 rounded shimmer" style={{ animationDelay: '100ms' }} />
             <div className="h-4 w-24 rounded shimmer" style={{ animationDelay: '200ms' }} />

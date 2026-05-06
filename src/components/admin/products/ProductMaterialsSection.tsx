@@ -210,9 +210,9 @@ export function ProductMaterialsSection({ productId }: ProductMaterialsSectionPr
   if (isLoading) {
     return (
       <div className="space-y-2">
-        <Skeleton className="h-12 w-full rounded-lg" />
-        <Skeleton className="h-12 w-full rounded-lg" />
-        <Skeleton className="h-12 w-full rounded-lg" />
+        <Skeleton className="h-12 w-full rounded-xl" />
+        <Skeleton className="h-12 w-full rounded-xl" />
+        <Skeleton className="h-12 w-full rounded-xl" />
       </div>
     );
   }
@@ -250,7 +250,7 @@ export function ProductMaterialsSection({ productId }: ProductMaterialsSectionPr
     <div className="space-y-3">
       {/* Badges dos materiais selecionados — padrão Super Filtro */}
       {linkedCount > 0 && (
-        <div className="p-2.5 bg-primary/5 rounded-lg border border-primary/20">
+        <div className="p-2.5 bg-primary/5 rounded-xl border border-primary/20">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-medium text-primary flex items-center gap-1.5">
               <Gem className="h-3 w-3" />

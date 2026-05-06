@@ -36,7 +36,7 @@ export function SecretMaskedDiff({
   return (
     <div
       className={cn(
-        "rounded-lg border border-border bg-muted/50 p-4 space-y-2",
+        "rounded-xl border border-border bg-muted/50 p-4 space-y-2",
         className,
       )}
       role="group"

@@ -42,7 +42,7 @@ export function RamoAtividadeGroupAccordion({
   if (compact) {
     return (
       <div className={cn(
-        "rounded-lg overflow-hidden transition-all duration-200",
+        "rounded-xl overflow-hidden transition-all duration-200",
         hasSelection ? "bg-primary/5" : "bg-muted/20"
       )}>
         {/* Header compacto */}
@@ -109,7 +109,7 @@ export function RamoAtividadeGroupAccordion({
 
   return (
     <div className={cn(
-      "rounded-lg overflow-hidden transition-all duration-300",
+      "rounded-xl overflow-hidden transition-all duration-300",
       hasSelection 
         ? "bg-gradient-to-br from-primary/10 via-primary/5 to-transparent ring-1 ring-primary/25 shadow-sm" 
         : "bg-muted/30 hover:bg-muted/40"
@@ -121,7 +121,7 @@ export function RamoAtividadeGroupAccordion({
           type="button"
           onClick={() => setIsOpen(!isOpen)}
           className={cn(
-            "p-1.5 rounded-lg transition-all duration-200",
+            "p-1.5 rounded-xl transition-all duration-200",
             isOpen 
               ? "bg-primary/15 text-primary" 
               : "bg-muted/50 text-muted-foreground hover:bg-muted"
@@ -217,7 +217,7 @@ export function RamoAtividadeGroupAccordion({
                     }
                   }}
                   className={cn(
-                    "flex items-center gap-2 w-full text-xs py-1.5 px-2 rounded-lg transition-colors mb-1",
+                    "flex items-center gap-2 w-full text-xs py-1.5 px-2 rounded-xl transition-colors mb-1",
                     allSegmentosSelected
                       ? "text-primary bg-primary/10"
                       : "text-muted-foreground hover:bg-muted/50"

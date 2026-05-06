@@ -8,12 +8,12 @@ interface Props {
 }
 
 const MAP = {
-  active: { icon: CheckCircle2, label: "Ativo", cls: "bg-success/10 text-success border-success/30" },
-  degraded: { icon: AlertTriangle, label: "Degradado", cls: "bg-warning/10 text-warning border-warning/30" },
-  error: { icon: XCircle, label: "Erro", cls: "bg-destructive/10 text-destructive border-destructive/30" },
+  active: { icon: CheckCircle2, label: "Ativo", cls: "bg-green-500/10 text-green-700 border-green-500/30" },
+  degraded: { icon: AlertTriangle, label: "Degradado", cls: "bg-amber-500/10 text-amber-700 border-amber-500/30" },
+  error: { icon: XCircle, label: "Erro", cls: "bg-red-500/10 text-red-700 border-red-500/30" },
   unconfigured: { icon: CircleSlash, label: "Sem credenciais", cls: "bg-muted text-muted-foreground border-border" },
   disabled: { icon: CircleSlash, label: "Desabilitado", cls: "bg-muted text-muted-foreground border-border" },
-  never_tested: { icon: CircleDashed, label: "Não testado", cls: "bg-info/10 text-info border-info/30" },
+  never_tested: { icon: CircleDashed, label: "Não testado", cls: "bg-sky-500/10 text-sky-700 border-sky-500/30" },
 } as const;
 
 export function ConnectionStatusBadge({ status, className }: Props) {

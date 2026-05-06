@@ -253,7 +253,7 @@ export function SharePreviewDialog({ open, onOpenChange, product, selectedVarian
                 contactName={contactSelection?.contactName}
               />
             ) : (
-              <div className="bg-secondary/50 rounded-lg p-3 border border-border">
+              <div className="bg-secondary/50 rounded-xl p-3 border border-border">
                 <Textarea
                   value={message}
                   onChange={(e) => setCustomMessage(e.target.value)}

@@ -173,7 +173,7 @@ export function PdfGenerationDialog({
               {/* Preview area — scrollable */}
               <div className="flex-1 overflow-auto bg-muted/30 p-4" style={{ maxHeight: "calc(90vh - 160px)" }}>
                 <div className="mx-auto" style={{ maxWidth: "794px" }}>
-                  <div className="relative bg-white rounded-lg shadow-lg overflow-hidden">
+                  <div className="relative bg-white rounded-xl shadow-lg overflow-hidden">
                     {/* Watermark for drafts */}
                     {isDraft && (
                       <div 
@@ -198,7 +198,7 @@ export function PdfGenerationDialog({
 
               {/* Actions footer */}
               <div className="px-6 py-4 border-t border-border bg-card flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2 bg-warning/10 border border-warning/30 text-warning dark:text-warning rounded-lg px-3 py-2">
+                <div className="flex items-center gap-2 bg-warning/10 border border-warning/30 text-warning dark:text-warning rounded-xl px-3 py-2">
                   <span className="text-xl">⚠️</span>
                   <p className="text-sm font-semibold">
                     Confira as informações antes de enviar
@@ -300,7 +300,7 @@ function ActionButton({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "flex flex-col items-center gap-2 p-4 rounded-lg border transition-all duration-200",
+        "flex flex-col items-center gap-2 p-4 rounded-xl border transition-all duration-200",
         "hover:scale-105 active:scale-95 disabled:opacity-40 disabled:pointer-events-none",
         variant === "primary" && "bg-primary/10 border-primary/30 text-primary hover:bg-primary/20",
         variant === "whatsapp" && "bg-primary/10 border-primary/30 text-primary hover:bg-primary/20",

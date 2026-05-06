@@ -10,7 +10,7 @@ export function KitCardSkeleton() {
       <Skeleton className="h-1.5 w-full rounded-none" />
       <CardContent className="p-4 space-y-3">
         <div className="flex items-start gap-3">
-          <Skeleton className="w-12 h-12 rounded-lg" />
+          <Skeleton className="w-12 h-12 rounded-xl" />
           <div className="flex-1 space-y-2">
             <Skeleton className="h-4 w-3/4" />
             <Skeleton className="h-3 w-full" />
@@ -27,8 +27,8 @@ export function KitCardSkeleton() {
             <Skeleton className="h-5 w-20" />
           </div>
           <div className="flex gap-1">
-            <Skeleton className="h-8 w-8 rounded-lg" />
-            <Skeleton className="h-8 w-8 rounded-lg" />
+            <Skeleton className="h-8 w-8 rounded-xl" />
+            <Skeleton className="h-8 w-8 rounded-xl" />
           </div>
         </div>
       </CardContent>

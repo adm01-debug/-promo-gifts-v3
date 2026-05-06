@@ -112,7 +112,7 @@ export function SuggestionSkeleton() {
   return (
     <div className="space-y-2 animate-pulse">
       {[1, 2, 3].map((i) => (
-        <div key={i} className="flex items-start gap-2.5 p-3 rounded-lg border border-border/20 bg-muted/5 group">
+        <div key={i} className="flex items-start gap-2.5 p-3 rounded-xl border border-border/20 bg-muted/5 group">
           <Skeleton className="h-5 w-5 rounded-full flex-shrink-0 mt-0.5 opacity-40 group-hover:opacity-60 transition-opacity" />
           <div className="space-y-2 flex-1">
             <Skeleton className="h-2.5 w-full opacity-30" />
@@ -139,7 +139,7 @@ export function FollowUpTimer({ createdAt }: { createdAt: string }) {
 
   return (
     <div className={cn(
-      "flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg border",
+      "flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-xl border",
       isUrgent
         ? "bg-destructive/10 text-destructive border-destructive/20"
         : isWarning
@@ -226,7 +226,7 @@ export function SmartSuggestions({ cart, allProducts, isLoading }: { cart: Selle
       {suggestions.map((s, i) => {
         const Icon = s.icon;
         return (
-          <div key={i} className="flex items-start gap-2.5 text-[10px] text-muted-foreground leading-relaxed bg-primary/5 hover:bg-primary/10 transition-colors rounded-lg px-3 py-2.5 border border-primary/10">
+          <div key={i} className="flex items-start gap-2.5 text-[10px] text-muted-foreground leading-relaxed bg-primary/5 hover:bg-primary/10 transition-colors rounded-xl px-3 py-2.5 border border-primary/10">
             <div className="p-1 rounded-full bg-background/80 shadow-sm flex-shrink-0 mt-0.5">
               <Icon className="h-3 w-3 text-primary" />
             </div>

@@ -56,13 +56,13 @@ export function NegotiationMarkupCard({
   return (
     <TooltipProvider>
       <div className={cn(
-        "rounded-lg border border-border/50 bg-gradient-to-br from-card to-muted/20 p-3 space-y-3",
+        "rounded-xl border border-border/50 bg-gradient-to-br from-card to-muted/20 p-3 space-y-3",
         className
       )}>
         {/* Header */}
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
-            <div className="p-1.5 rounded-lg bg-primary/10 shrink-0">
+            <div className="p-1.5 rounded-xl bg-primary/10 shrink-0">
               <Sparkles className="h-3.5 w-3.5 text-primary" />
             </div>
             <div className="min-w-0">
@@ -114,7 +114,7 @@ export function NegotiationMarkupCard({
             {/* Comparison preview */}
             <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border/40">
               {/* Real (interno) */}
-              <div className="rounded-lg bg-muted/40 p-2 space-y-1">
+              <div className="rounded-xl bg-muted/40 p-2 space-y-1">
                 <p className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1">
                   <ShieldCheck className="h-2.5 w-2.5" /> Real (interno)
                 </p>
@@ -136,7 +136,7 @@ export function NegotiationMarkupCard({
               </div>
 
               {/* Cliente vê */}
-              <div className="rounded-lg bg-primary/5 border border-primary/20 p-2 space-y-1">
+              <div className="rounded-xl bg-primary/5 border border-primary/20 p-2 space-y-1">
                 <p className="text-[9px] font-semibold uppercase tracking-wider text-primary">Cliente vê</p>
                 <div className="space-y-0.5 text-[10px]">
                   <div className="flex justify-between">
@@ -160,7 +160,7 @@ export function NegotiationMarkupCard({
             {/* Status badge */}
             {maxDiscountPercent != null && (
               isOverLimit ? (
-                <div className="flex items-start gap-2 rounded-lg bg-warning/10 border border-warning/30 px-2.5 py-1.5">
+                <div className="flex items-start gap-2 rounded-xl bg-warning/10 border border-warning/30 px-2.5 py-1.5">
                   <AlertTriangle className="h-3.5 w-3.5 text-warning shrink-0 mt-0.5" />
                   <p className="text-[10px] text-warning leading-snug">
                     Mesmo com markup, o desconto real ({realDiscountPercent.toFixed(1)}%) excede sua alçada de {maxDiscountPercent}%.
@@ -168,7 +168,7 @@ export function NegotiationMarkupCard({
                   </p>
                 </div>
               ) : realFitsLimit && apparentDiscountPercent > maxDiscountPercent ? (
-                <div className="flex items-start gap-2 rounded-lg bg-success/10 border border-success/30 px-2.5 py-1.5">
+                <div className="flex items-start gap-2 rounded-xl bg-success/10 border border-success/30 px-2.5 py-1.5">
                   <ShieldCheck className="h-3.5 w-3.5 text-success shrink-0 mt-0.5" />
                   <p className="text-[10px] text-success leading-snug">
                     Cliente percebe <strong>{apparentDiscountPercent.toFixed(1)}%</strong> de desconto, mas o real é

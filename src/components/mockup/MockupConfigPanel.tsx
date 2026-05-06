@@ -344,7 +344,7 @@ function MobileCollapsibleSection({
       <div className="md:hidden">
         <Collapsible defaultOpen={!isCompleted}>
           <CollapsibleTrigger className="w-full">
-            <div className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 transition-colors">
+            <div className="flex items-center justify-between p-2 rounded-xl hover:bg-muted/50 transition-colors">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium">{label}</span>
                 {required && <span className="text-destructive text-xs">*</span>}

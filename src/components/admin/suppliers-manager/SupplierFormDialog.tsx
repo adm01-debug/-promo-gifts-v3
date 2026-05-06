@@ -104,13 +104,13 @@ export function SupplierFormDialog({
             <div className="flex items-center gap-4">
               <div className="relative shrink-0">
                 {editingSupplier.logo_url ? (
-                  <div className="relative w-20 h-20 rounded-lg border border-border overflow-hidden bg-muted">
+                  <div className="relative w-20 h-20 rounded-xl border border-border overflow-hidden bg-muted">
                     
 <img src={editingSupplier.logo_url} alt="Logo" className="w-full h-full object-contain"  loading="lazy" />
                     <button type="button" onClick={() => updateField('logo_url', null)} className="absolute -top-1 -right-1 rounded-full bg-destructive text-destructive-foreground p-0.5"><X className="h-3 w-3" /></button>
                   </div>
                 ) : (
-                  <button type="button" onClick={() => logoInputRef.current?.click()} disabled={uploadingLogo} className="w-20 h-20 rounded-lg border-2 border-dashed border-border hover:border-primary/50 flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-primary transition-colors">
+                  <button type="button" onClick={() => logoInputRef.current?.click()} disabled={uploadingLogo} className="w-20 h-20 rounded-xl border-2 border-dashed border-border hover:border-primary/50 flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-primary transition-colors">
                     {uploadingLogo ? <Loader2 className="h-5 w-5 animate-spin" /> : <><ImagePlus className="h-5 w-5" /><span className="text-[10px]">Logo</span></>}
                   </button>
                 )}
@@ -172,7 +172,7 @@ export function SupplierFormDialog({
                 </Select>
               </div>
             </div>
-            <div className="flex items-center justify-between rounded-lg border border-border p-3"><Label className="text-sm">Ativo</Label><Switch checked={editingSupplier.active ?? true} onCheckedChange={v => updateField('active', v)} /></div>
+            <div className="flex items-center justify-between rounded-xl border border-border p-3"><Label className="text-sm">Ativo</Label><Switch checked={editingSupplier.active ?? true} onCheckedChange={v => updateField('active', v)} /></div>
           </TabsContent>
 
           {/* CONTACTS */}
@@ -183,7 +183,7 @@ export function SupplierFormDialog({
             </div>
             <div className="space-y-3 max-h-[320px] overflow-y-auto pr-1">
               {contacts.map((contact, index) => (
-                <div key={contact.id} className="rounded-lg border border-border bg-muted/30 p-3 space-y-3">
+                <div key={contact.id} className="rounded-xl border border-border bg-muted/30 p-3 space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-semibold text-muted-foreground">Contato {index + 1}</span>
                     {contacts.length > 1 && <Button type="button" variant="ghost" size="sm" className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive" onClick={() => removeContact(contact.id)}><Trash2 className="h-3.5 w-3.5" /></Button>}
@@ -212,7 +212,7 @@ export function SupplierFormDialog({
             <div className="grid grid-cols-2 gap-4">
               <div><Label className="text-xs font-semibold">CEP</Label><Input value={editingSupplier.cep || ''} onChange={e => handleCepLookup(e.target.value)} placeholder="00000-000" className={`${fieldClass} font-mono`} maxLength={9} /></div>
               <div><Label className="text-xs font-semibold">Tipo Logradouro</Label>
-                <select value={editingSupplier.tipo_logradouro || ''} onChange={e => updateField('tipo_logradouro', e.target.value)} className="mt-1.5 h-9 w-full rounded-lg border border-input bg-background px-3 text-sm">
+                <select value={editingSupplier.tipo_logradouro || ''} onChange={e => updateField('tipo_logradouro', e.target.value)} className="mt-1.5 h-9 w-full rounded-xl border border-input bg-background px-3 text-sm">
                   <option value="">Selecione</option>{['Rua', 'Avenida', 'Alameda', 'Travessa', 'Praça', 'Rodovia', 'Estrada', 'Viela', 'Largo', 'Outro'].map(t => <option key={t} value={t}>{t}</option>)}
                 </select>
               </div>
@@ -228,7 +228,7 @@ export function SupplierFormDialog({
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div><Label className="text-xs font-semibold">Estado</Label>
-                <select value={editingSupplier.estado || ''} onChange={e => updateField('estado', e.target.value)} className="mt-1.5 h-9 w-full rounded-lg border border-input bg-background px-3 text-sm"><option value="">Selecione</option>{ESTADOS_BR.map(uf => <option key={uf} value={uf}>{uf}</option>)}</select>
+                <select value={editingSupplier.estado || ''} onChange={e => updateField('estado', e.target.value)} className="mt-1.5 h-9 w-full rounded-xl border border-input bg-background px-3 text-sm"><option value="">Selecione</option>{ESTADOS_BR.map(uf => <option key={uf} value={uf}>{uf}</option>)}</select>
               </div>
               <div><Label className="text-xs font-semibold">País</Label><Input value={editingSupplier.pais || 'Brasil'} onChange={e => updateField('pais', e.target.value)} className={fieldClass} /></div>
             </div>
@@ -277,7 +277,7 @@ export function SupplierFormDialog({
                   />
                   {searchingCarriers && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-muted-foreground" />}
                   {showCarrierDropdown && carrierResults.length > 0 && (
-                    <div className="absolute z-50 w-full mt-1 max-h-48 overflow-y-auto rounded-lg border bg-popover shadow-lg">
+                    <div className="absolute z-50 w-full mt-1 max-h-48 overflow-y-auto rounded-xl border bg-popover shadow-lg">
                       {carrierResults.map((c) => (
                         <button
                           key={c.id}
@@ -344,13 +344,13 @@ export function SupplierFormDialog({
               </div>
             </div>
             {formaPagamento.includes('PIX') && (
-              <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-4">
+              <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-4">
                 <div className="flex items-center justify-between">
                   <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Chaves PIX</p>
                   <Button type="button" variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={addPixKey}><Plus className="h-3.5 w-3.5" />Adicionar Chave</Button>
                 </div>
                 {pixKeys.map((pix, idx) => (
-                  <div key={pix.id} className="rounded-lg border border-border bg-background/50 p-3 space-y-3">
+                  <div key={pix.id} className="rounded-xl border border-border bg-background/50 p-3 space-y-3">
                     <div className="flex items-center justify-between">
                       <label className="flex items-center gap-2 text-xs cursor-pointer">
                         <input type="radio" name="pix-principal-edit" checked={pix.principal} onChange={() => updatePixKey(pix.id, 'principal', true)} className="accent-primary" />
@@ -375,11 +375,11 @@ export function SupplierFormDialog({
 
           {/* CLASSIFICATION */}
           <TabsContent value="classification" className="space-y-6 pt-3">
-            <div className="flex items-center justify-between rounded-lg border border-border p-4">
+            <div className="flex items-center justify-between rounded-xl border border-border p-4">
               <div><p className="text-sm font-medium">Fornecedor de Produtos</p><p className="text-[11px] text-muted-foreground">Fornece produtos físicos para revenda</p></div>
               <Switch checked={editingSupplier.is_product_supplier ?? true} onCheckedChange={v => updateField('is_product_supplier', v)} />
             </div>
-            <div className="flex items-center justify-between rounded-lg border border-border p-4">
+            <div className="flex items-center justify-between rounded-xl border border-border p-4">
               <div><p className="text-sm font-medium">Fornecedor de Gravação</p><p className="text-[11px] text-muted-foreground">Fornece serviços de personalização/gravação</p></div>
               <Switch checked={editingSupplier.is_engraving_supplier ?? false} onCheckedChange={v => updateField('is_engraving_supplier', v)} />
             </div>

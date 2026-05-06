@@ -204,7 +204,7 @@ class EnhancedErrorBoundary extends Component<Props, State> {
             {/* Icon */}
             <div className="flex justify-center">
               <div className="relative">
-                <div className="h-20 w-20 rounded-lg bg-destructive/10 flex items-center justify-center">
+                <div className="h-20 w-20 rounded-xl bg-destructive/10 flex items-center justify-center">
                   <AlertTriangle className="h-10 w-10 text-destructive" />
                 </div>
                 <div className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-destructive/20 flex items-center justify-center">
@@ -237,7 +237,7 @@ class EnhancedErrorBoundary extends Component<Props, State> {
 
             {/* Error message — sempre visível para o usuário entender o que houve */}
             {error?.message && (
-              <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-4 space-y-2">
+              <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-4 space-y-2">
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-[11px] uppercase tracking-wider text-destructive/80 font-semibold">
                     Mensagem do erro
@@ -261,7 +261,7 @@ class EnhancedErrorBoundary extends Component<Props, State> {
             <div className="flex gap-3">
               <button
                 onClick={this.handleGoHome}
-                className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg border border-border bg-background px-4 py-3 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 py-3 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <Home className="h-4 w-4" />
                 Início
@@ -269,7 +269,7 @@ class EnhancedErrorBoundary extends Component<Props, State> {
               <button
                 aria-label="Recarregar"
                 onClick={this.handleReload}
-                className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <RefreshCw className="h-4 w-4" />
                 Recarregar
@@ -280,7 +280,7 @@ class EnhancedErrorBoundary extends Component<Props, State> {
             <button
               onClick={this.handleClearCacheReload}
               disabled={isClearingCache}
-              className="w-full inline-flex items-center justify-center gap-2 rounded-lg border border-border/60 bg-background px-4 py-2.5 text-sm font-medium text-foreground hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-60 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="w-full inline-flex items-center justify-center gap-2 rounded-xl border border-border/60 bg-background px-4 py-2.5 text-sm font-medium text-foreground hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-60 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               {isClearingCache
                 ? <RotateCcw className="h-4 w-4 animate-spin" />
@@ -292,7 +292,7 @@ class EnhancedErrorBoundary extends Component<Props, State> {
             {!isChunk && (
               <button
                 onClick={this.handleRetry}
-                className="w-full inline-flex items-center justify-center gap-2 rounded-lg border border-border/50 bg-background/50 px-4 py-2.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+                className="w-full inline-flex items-center justify-center gap-2 rounded-xl border border-border/50 bg-background/50 px-4 py-2.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
               >
                 <RotateCcw className="h-3.5 w-3.5" />
                 Tentar renderizar novamente
@@ -304,7 +304,7 @@ class EnhancedErrorBoundary extends Component<Props, State> {
               <div className="pt-2">
                 <button
                   onClick={() => this.setState(prev => ({ showDetails: !prev.showDetails }))}
-                  className="w-full inline-flex items-center justify-between rounded-lg px-3 py-2 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+                  className="w-full inline-flex items-center justify-between rounded-xl px-3 py-2 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
                 >
                   <span>Detalhes técnicos</span>
                   {showDetails
@@ -312,7 +312,7 @@ class EnhancedErrorBoundary extends Component<Props, State> {
                     : <ChevronDown className="h-3.5 w-3.5" />}
                 </button>
                 {showDetails && (
-                  <pre className="mt-2 max-h-48 overflow-auto rounded-lg bg-muted p-4 text-[11px] leading-relaxed text-muted-foreground font-mono">
+                  <pre className="mt-2 max-h-48 overflow-auto rounded-xl bg-muted p-4 text-[11px] leading-relaxed text-muted-foreground font-mono">
                     {error?.stack || 'Stack trace não disponível'}
                     {errorInfo?.componentStack ? `\n\nComponent Stack:${errorInfo.componentStack}` : ''}
                   </pre>

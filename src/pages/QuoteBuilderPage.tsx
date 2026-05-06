@@ -89,7 +89,7 @@ export default function QuoteBuilderPage() {
             </TooltipProvider>
             <div>
               <h1 data-testid="page-title-orcamento-novo" className="font-display text-2xl font-bold text-foreground flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-gradient-to-br from-primary/20 to-primary/10">
+                <div className="p-2 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10">
                   {s.isEditMode ? <Edit className="h-6 w-6 text-primary" /> : <FileText className="h-6 w-6 text-primary" />}
                 </div>
                 {s.isEditMode ? "Editar Orçamento" : "Novo Orçamento"}
@@ -237,24 +237,10 @@ export default function QuoteBuilderPage() {
                       Prazo | Entrega {s.validationErrors.includes("prazo_entrega") && <span className="ml-1">*</span>}
                     </Label>
                     <div className="flex gap-0.5 rounded-md bg-muted p-0.5">
-                      <Button
-                        type="button"
-                        variant={s.deliveryMode === "prazo" ? "secondary" : "ghost"}
-                        size="sm"
-                        onClick={() => { s.setDeliveryMode("prazo"); s.setDeliveryTime(""); s.setDeliveryDate(undefined); }}
-                        className={cn("h-6 px-2 text-[10px] rounded-sm font-medium transition-colors", s.deliveryMode === "prazo" ? "bg-background shadow-sm" : "text-muted-foreground")}
-                      >
-                        Prazo
-                      </Button>
-                      <Button
-                        type="button"
-                        variant={s.deliveryMode === "data" ? "secondary" : "ghost"}
-                        size="sm"
-                        onClick={() => { s.setDeliveryMode("data"); s.setDeliveryTime(""); }}
-                        className={cn("h-6 px-2 text-[10px] rounded-sm font-medium transition-colors", s.deliveryMode === "data" ? "bg-background shadow-sm" : "text-muted-foreground")}
-                      >
-                        Data
-                      </Button>
+                      <button type="button" onClick={() => { s.setDeliveryMode("prazo"); s.setDeliveryTime(""); s.setDeliveryDate(undefined); }}
+                        className={cn("px-2 py-0.5 text-[10px] rounded-sm font-medium transition-colors", s.deliveryMode === "prazo" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground")}>Prazo</button>
+                      <button type="button" onClick={() => { s.setDeliveryMode("data"); s.setDeliveryTime(""); }}
+                        className={cn("px-2 py-0.5 text-[10px] rounded-sm font-medium transition-colors", s.deliveryMode === "data" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground")}>Data</button>
                     </div>
                   </div>
                   {s.deliveryMode === "prazo" ? (

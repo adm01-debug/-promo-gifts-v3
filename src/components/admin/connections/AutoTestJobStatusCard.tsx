@@ -68,10 +68,10 @@ export function AutoTestJobStatusCard() {
   const successRate24 = total24 > 0 ? Math.round((ok24 / total24) * 100) : null;
 
   return (
-    <div className="rounded-lg border bg-card p-4 space-y-4">
+    <div className="rounded-xl border bg-card p-4 space-y-4">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-2">
-          <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
+          <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
             <Activity className="h-4 w-4 text-primary" />
           </div>
           <div>
@@ -98,7 +98,7 @@ export function AutoTestJobStatusCard() {
         <>
           {/* KPIs do último run */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div className="rounded-lg border bg-background/50 p-3">
+            <div className="rounded-xl border bg-background/50 p-3">
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                 <Clock className="h-3 w-3" />
                 Último run
@@ -110,7 +110,7 @@ export function AutoTestJobStatusCard() {
                 {lastRun ? formatTime(lastRun.run_started_at) : ""}
               </div>
             </div>
-            <div className="rounded-lg border bg-background/50 p-3">
+            <div className="rounded-xl border bg-background/50 p-3">
               <div className="text-[11px] text-muted-foreground">Duração</div>
               <div className="mt-1 text-sm font-semibold tabular-nums">
                 {lastRun ? formatDuration(lastRun.duration_ms) : "—"}
@@ -119,7 +119,7 @@ export function AutoTestJobStatusCard() {
                 {lastRun ? `${lastRun.total_tested} conexões` : ""}
               </div>
             </div>
-            <div className="rounded-lg border bg-background/50 p-3">
+            <div className="rounded-xl border bg-background/50 p-3">
               <div className="text-[11px] text-muted-foreground">Resultado</div>
               <div className="mt-1 flex items-center gap-2 text-sm font-semibold tabular-nums">
                 <span className="text-success inline-flex items-center gap-1">
@@ -137,7 +137,7 @@ export function AutoTestJobStatusCard() {
               </div>
               <div className="text-[11px] text-muted-foreground">OK / falha</div>
             </div>
-            <div className="rounded-lg border bg-background/50 p-3">
+            <div className="rounded-xl border bg-background/50 p-3">
               <div className="text-[11px] text-muted-foreground">Sucesso 24h</div>
               <div className="mt-1 text-sm font-semibold tabular-nums">
                 {successRate24 !== null ? `${successRate24}%` : "—"}
@@ -149,7 +149,7 @@ export function AutoTestJobStatusCard() {
           </div>
 
           {/* Tabela de runs */}
-          <div className="border rounded-lg overflow-hidden">
+          <div className="border rounded-xl overflow-hidden">
             <div className="grid grid-cols-12 text-[11px] uppercase tracking-wide text-muted-foreground bg-muted/40 px-3 py-2 font-medium">
               <div className="col-span-3">Início</div>
               <div className="col-span-2 text-right">Duração</div>

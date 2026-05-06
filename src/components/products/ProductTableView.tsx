@@ -68,7 +68,7 @@ const stockColor = (status: string) => {
   return "text-destructive";
 };
 
-const CONTAINER_CLASS = "h-[calc(100vh-200px)] min-h-[550px] overflow-y-auto rounded-lg border border-border/40 bg-gradient-to-b from-background/80 to-background/40 backdrop-blur-sm scrollbar-products shadow-inner";
+const CONTAINER_CLASS = "h-[calc(100vh-200px)] min-h-[550px] overflow-y-auto rounded-xl border border-border/40 bg-gradient-to-b from-background/80 to-background/40 backdrop-blur-sm scrollbar-products shadow-inner";
 
 function SortHeader({
   label, col, activeCol, activeDir, onSort, className,
@@ -245,7 +245,7 @@ export const ProductTableView = memo(function ProductTableView({
                 {selectionMode && <div className="w-10 px-2 flex justify-center"><SelectionCheckbox checked={!!isSelected} onChange={() => onToggleSelect?.(product.id)} size="sm" /></div>}
                 
                 <div className="w-12 px-2">
-                  <div className="w-10 h-10 rounded-lg overflow-hidden bg-muted/30 border border-border/30">
+                  <div className="w-10 h-10 rounded-xl overflow-hidden bg-muted/30 border border-border/30">
                     <img src={thumbUrl} alt="" className="w-full h-full object-contain" loading="lazy" />
                   </div>
                 </div>

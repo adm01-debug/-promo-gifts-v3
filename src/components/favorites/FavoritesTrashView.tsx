@@ -55,8 +55,8 @@ export function FavoritesTrashView() {
           const variantInfo = it.variant_info as { color_name?: string; thumbnail?: string } | null;
           const thumb = variantInfo?.thumbnail ?? p?.images?.[0];
           return (
-            <div key={it.id} className="flex gap-3 p-3 rounded-lg border border-border bg-card">
-              <div className="w-16 h-16 rounded-lg bg-muted overflow-hidden shrink-0">
+            <div key={it.id} className="flex gap-3 p-3 rounded-xl border border-border bg-card">
+              <div className="w-16 h-16 rounded-xl bg-muted overflow-hidden shrink-0">
                 {thumb && (
                   <img src={thumb} alt={p?.name ?? it.product_id} className="w-full h-full object-cover" loading="lazy" />
                 )}

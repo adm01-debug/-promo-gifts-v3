@@ -67,7 +67,7 @@ export default function BridgeMetricsOverlay() {
 
   return (
     <div
-      className="fixed bottom-0 right-0 sm:bottom-4 sm:right-4 z-[9999] flex h-[60vh] sm:max-h-[70vh] w-full sm:w-[480px] flex-col overflow-hidden rounded-t-xl sm:rounded-lg border border-white/10 bg-zinc-950/95 text-xs font-mono text-zinc-100 shadow-2xl backdrop-blur max-h-[85vh] sm:max-h-[70vh]"
+      className="fixed bottom-0 right-0 sm:bottom-4 sm:right-4 z-[9999] flex h-[60vh] sm:max-h-[70vh] w-full sm:w-[480px] flex-col overflow-hidden rounded-t-xl sm:rounded-xl border border-white/10 bg-zinc-950/95 text-xs font-mono text-zinc-100 shadow-2xl backdrop-blur max-h-[85vh] sm:max-h-[70vh]"
       style={{ 
         pointerEvents: 'auto',
         paddingBottom: 'env(safe-area-inset-bottom, 0px)'

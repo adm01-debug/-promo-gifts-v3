@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
 import { TrendingUp, TrendingDown } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 // Animated counter hook
@@ -95,16 +94,15 @@ export function StatCard({ title, value, icon, trend, variant = 'default', onCli
     : value;
 
   return (
-    <Button
+    <button
       type="button"
-      variant="ghost"
       onClick={(e) => {
         e.preventDefault();
         e.stopPropagation();
         onClick?.();
       }}
       className={cn(
-        "group relative w-full overflow-hidden rounded-lg border text-left p-0 block h-auto",
+        "group relative w-full overflow-hidden rounded-xl border text-left",
         "transition-all duration-300 ease-out",
         styles.base,
         onClick && "cursor-pointer",
@@ -143,7 +141,7 @@ export function StatCard({ title, value, icon, trend, variant = 'default', onCli
             )}
           </div>
           <div className={cn(
-            "h-12 w-12 rounded-lg flex items-center justify-center shrink-0 transition-all duration-300",
+            "h-12 w-12 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300",
             isActive ? `${styles.iconBg} shadow-sm` : "bg-muted/50 group-hover:scale-110",
             styles.iconColor,
           )} aria-hidden="true">
@@ -158,6 +156,6 @@ export function StatCard({ title, value, icon, trend, variant = 'default', onCli
           {clickHint}
         </div>
       )}
-    </Button>
+    </button>
   );
 }

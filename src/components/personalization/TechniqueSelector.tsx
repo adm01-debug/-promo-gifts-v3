@@ -229,7 +229,7 @@ export function TechniqueSelector({
 
           {/* Advanced filters panel */}
           {showActiveFilters && (
-            <div className="p-4 bg-muted/50 rounded-lg space-y-4">
+            <div className="p-4 bg-muted/50 rounded-xl space-y-4">
               <div>
                 <Label className="text-sm">Faixa de Preço (p/ {quantity} un.)</Label>
                 <div className="mt-2 px-2">
@@ -280,7 +280,7 @@ export function TechniqueSelector({
             <TooltipProvider key={technique.id}>
               <div
                 className={cn(
-                  "relative flex items-center gap-3 p-3 rounded-lg border transition-all",
+                  "relative flex items-center gap-3 p-3 rounded-xl border transition-all",
                   isSelected
                     ? "border-primary bg-primary/5"
                     : "border-border hover:border-primary/50",

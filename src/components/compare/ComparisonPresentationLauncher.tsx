@@ -133,7 +133,7 @@ function ProductSlide({ product, idx, formatCurrency, isWinner }: {
   if (!product) return null;
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 max-w-7xl mx-auto h-full items-center">
-      <div className="relative aspect-square rounded-lg bg-muted overflow-hidden">
+      <div className="relative aspect-square rounded-xl bg-muted overflow-hidden">
         <img src={product.images?.[0]} alt={product.name} className="w-full h-full object-contain p-8" loading="lazy" />
         {isWinner && (
           <Badge className="absolute top-4 left-4 bg-primary text-primary-foreground gap-1.5 shadow-xl text-sm py-1.5 px-3">
@@ -162,7 +162,7 @@ function ProductSlide({ product, idx, formatCurrency, isWinner }: {
 
 function Stat({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="rounded-lg bg-muted/50 p-4">
+    <div className="rounded-xl bg-muted/50 p-4">
       <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">{label}</p>
       <p className="text-xl font-display font-semibold">{value}</p>
     </div>

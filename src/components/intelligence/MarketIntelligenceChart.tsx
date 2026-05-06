@@ -325,7 +325,7 @@ function MacroSupplierComparison({ suppliers, supplierNames }: { suppliers: Macr
             <div
               key={s.supplierId}
               className={cn(
-                "flex flex-col gap-1 p-2 rounded-lg bg-muted/40 border-l-2",
+                "flex flex-col gap-1 p-2 rounded-xl bg-muted/40 border-l-2",
                 COLORS[idx % COLORS.length]
               )}
             >
@@ -388,7 +388,7 @@ function MarketMacroTooltip({ active, payload }: any) {
   if (!data) return null;
 
   return (
-    <div className="bg-popover border border-border rounded-lg p-3 shadow-lg min-w-[180px]">
+    <div className="bg-popover border border-border rounded-xl p-3 shadow-lg min-w-[180px]">
       <p className="text-xs font-medium text-foreground">{data.fullDate}</p>
       <div className="mt-2 space-y-1.5">
         {data.stockClose > 0 && (

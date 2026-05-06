@@ -83,7 +83,7 @@ export function LogoProcessingPreview({
 
       {/* Before/After Preview */}
       <div className="relative group mt-2">
-        <div className="grid grid-cols-2 gap-2 rounded-lg border bg-muted/20 p-2">
+        <div className="grid grid-cols-2 gap-2 rounded-xl border bg-muted/20 p-2">
           <div className="space-y-1">
             <span className="text-[9px] text-muted-foreground block text-center uppercase font-medium">Original</span>
             <div className="aspect-square rounded-lg border bg-background flex items-center justify-center p-2 relative overflow-hidden">

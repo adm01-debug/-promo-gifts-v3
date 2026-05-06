@@ -49,7 +49,7 @@ export function ChatInputBar({
       {isLoading && (
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="flex justify-center mb-2">
           <button onClick={onStopGenerating}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium border border-border/50 bg-background hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-all">
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-medium border border-border/50 bg-background hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-all">
             <Square className="h-3 w-3 fill-current" />
             Parar de gerar
           </button>
@@ -59,15 +59,15 @@ export function ChatInputBar({
         <textarea ref={inputRef} value={input}
           onChange={e => { setInput(e.target.value); e.target.style.height = "auto"; e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px"; }}
           onKeyDown={onKeyDown} placeholder="Pergunte ao Flow…" disabled={isLoading} rows={1}
-          className="flex-1 min-h-[40px] max-h-[120px] rounded-lg border border-border/30 bg-muted/20 text-sm px-3 py-2.5 resize-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/20 focus-visible:border-primary/25 transition-all placeholder:text-muted-foreground/40 disabled:opacity-50" />
+          className="flex-1 min-h-[40px] max-h-[120px] rounded-xl border border-border/30 bg-muted/20 text-sm px-3 py-2.5 resize-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/20 focus-visible:border-primary/25 transition-all placeholder:text-muted-foreground/40 disabled:opacity-50" />
         {!input.trim() && !isLoading && (
           <Button variant="ghost" size="icon" onClick={handleVoiceInput} aria-label="Entrada por voz"
-            className="h-10 w-10 rounded-lg shrink-0 text-muted-foreground hover:text-primary hover:bg-primary/10">
+            className="h-10 w-10 rounded-xl shrink-0 text-muted-foreground hover:text-primary hover:bg-primary/10">
             <Mic className="h-5 w-5" />
           </Button>
         )}
         <Button data-oracle-send onClick={onSend} disabled={!input.trim() || isLoading} size="icon" aria-label="Enviar mensagem"
-          className="h-10 w-10 rounded-lg shrink-0">
+          className="h-10 w-10 rounded-xl shrink-0">
           {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
         </Button>
       </div>

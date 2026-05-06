@@ -174,7 +174,7 @@ export function CartCompanyPicker({ onCreated, onCancel }: CartCompanyPickerProp
                 <div key={item.id} className="group relative">
                   <button
                     type="button"
-                    className="w-full flex items-center gap-2 px-2 py-1 rounded-lg text-left hover:bg-accent/50 text-sm"
+                    className="w-full flex items-center gap-2 px-2 py-1 rounded-xl text-left hover:bg-accent/50 text-sm"
                     onClick={() => handleSelect({ id: item.id, name: item.label })}
                   >
                     <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
@@ -198,7 +198,7 @@ export function CartCompanyPicker({ onCreated, onCancel }: CartCompanyPickerProp
               key={company.id}
               type="button"
               className={cn(
-                "w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left",
+                "w-full flex items-center gap-2 px-2 py-1.5 rounded-xl text-left",
                 "hover:bg-accent/50 transition-colors text-sm"
               )}
               onClick={() => handleSelect(company)}

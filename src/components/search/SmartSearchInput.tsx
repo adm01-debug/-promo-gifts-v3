@@ -194,7 +194,7 @@ export const SmartSearchInput = forwardRef<HTMLDivElement, SmartSearchInputProps
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -4, scale: 0.98 }}
             transition={{ duration: 0.15, ease: "easeOut" }}
-            className="absolute top-full left-0 right-0 mt-2 z-50 bg-popover border border-border rounded-lg shadow-xl overflow-hidden"
+            className="absolute top-full left-0 right-0 mt-2 z-50 bg-popover border border-border rounded-xl shadow-xl overflow-hidden"
             role="listbox"
           >
             <ScrollArea className="max-h-[420px]">
@@ -227,7 +227,7 @@ export const SmartSearchInput = forwardRef<HTMLDivElement, SmartSearchInputProps
                           initial={{ opacity: 0, x: -8 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: index * 0.03 }}
-                          className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-muted group cursor-pointer transition-colors"
+                          className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-muted group cursor-pointer transition-colors"
                           onClick={() => { handleSelectResult({ type: "history", id: item.id, label: item.label }); }}
                         >
                           <Clock className="h-4 w-4 text-muted-foreground" />

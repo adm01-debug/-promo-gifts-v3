@@ -242,7 +242,7 @@ export function ProductPersonalizationRules({ productId, productSku, productName
     return (
       <div className="space-y-3">
         <Skeleton className="h-6 w-48" />
-        <Skeleton className="h-24 w-full rounded-lg" />
+        <Skeleton className="h-24 w-full rounded-xl" />
       </div>
     );
   }
@@ -331,11 +331,11 @@ export function ProductPersonalizationRules({ productId, productSku, productName
           <AccordionItem 
             key={component.id} 
             value={component.id}
-            className="border border-border rounded-lg mb-2 px-4 bg-card/50"
+            className="border border-border rounded-xl mb-2 px-4 bg-card/50"
           >
             <AccordionTrigger className="hover:no-underline py-4">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center">
                   <Layers className="h-4 w-4 text-primary" />
                 </div>
                 <div className="text-left">
@@ -351,7 +351,7 @@ export function ProductPersonalizationRules({ productId, productSku, productName
                 {component.locations.map((location) => (
                   <div 
                     key={location.id} 
-                    className="p-4 rounded-lg bg-secondary/30 border border-border/50 space-y-3"
+                    className="p-4 rounded-xl bg-secondary/30 border border-border/50 space-y-3"
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
@@ -376,7 +376,7 @@ export function ProductPersonalizationRules({ productId, productSku, productName
 
                     {/* Area image */}
                     {location.areaImageUrl && (
-                      <div className="relative rounded-lg overflow-hidden border border-border/50 bg-background">
+                      <div className="relative rounded-xl overflow-hidden border border-border/50 bg-background">
                         <img src={location.areaImageUrl} 
                           alt={`Área de impressão - ${location.name}`}
                           className="w-full max-h-40 object-contain"

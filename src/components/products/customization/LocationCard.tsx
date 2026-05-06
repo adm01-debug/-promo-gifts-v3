@@ -153,7 +153,7 @@ export function LocationCard({
     <Collapsible open={isExpanded} onOpenChange={onToggle}>
       <div
         className={cn(
-          "rounded-lg border transition-all duration-200",
+          "rounded-xl border transition-all duration-200",
           hasSelection
             ? "bg-card border-primary/40 shadow-lg shadow-primary/5"
             : isExpanded
@@ -167,7 +167,7 @@ export function LocationCard({
             <div className="flex items-center gap-3">
               <div
                 className={cn(
-                  "w-10 h-10 rounded-lg flex items-center justify-center transition-colors",
+                  "w-10 h-10 rounded-xl flex items-center justify-center transition-colors",
                   hasSelection
                     ? "bg-primary text-primary-foreground"
                     : isExpanded

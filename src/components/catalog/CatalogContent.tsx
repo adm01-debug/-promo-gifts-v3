@@ -109,7 +109,7 @@ function useScrollableContainer(hasMore: boolean, isLoadingMore: boolean, onLoad
   return { parentRef, showScrollTop, scrollToTop };
 }
 
-const CONTAINER_CLASS = "h-[calc(100vh-200px)] min-h-[550px] overflow-y-auto rounded-lg border border-border/40 bg-gradient-to-b from-background/80 to-background/40 backdrop-blur-sm scrollbar-products shadow-inner";
+const CONTAINER_CLASS = "h-[calc(100vh-200px)] min-h-[550px] overflow-y-auto rounded-xl border border-border/40 bg-gradient-to-b from-background/80 to-background/40 backdrop-blur-sm scrollbar-products shadow-inner";
 
 function VirtualGrid({ products, columns, navigate, handleViewProduct, handleShareProduct, isFavorite, toggleFavorite, isInCompare, onToggleCompare, canAddToCompare, hasMore, isLoadingMore, totalEstimate, filteredCount, loadMoreRef, itemsPerPage, onLoadMore, selectionMode, selectedIds, onToggleSelect, activeColorFilter, activeProductId, setActiveProductId }: {
   products: Product[]; columns: ColumnCount; navigate: (p: string) => void;
@@ -167,7 +167,7 @@ function VirtualGrid({ products, columns, navigate, handleViewProduct, handleSha
                   return (
                     <div key={product.id} className="relative" onMouseEnter={() => setActiveProductId?.(product.id)}>
                       {selectionMode && <div className="absolute top-2.5 left-2.5 z-20"><SelectionCheckbox checked={!!isSelected} onChange={() => onToggleSelect?.(product.id)} size="lg" animateEntry /></div>}
-                      <div className={cn("transition-all duration-200 rounded-lg", isSelected && "ring-2 ring-primary/50 shadow-[0_0_12px_-4px_hsl(var(--primary)/0.3)]", isActive && "ring-2 ring-primary shadow-lg scale-[1.01] z-10")}>
+                      <div className={cn("transition-all duration-200 rounded-xl", isSelected && "ring-2 ring-primary/50 shadow-[0_0_12px_-4px_hsl(var(--primary)/0.3)]", isActive && "ring-2 ring-primary shadow-lg scale-[1.01] z-10")}>
                         <ProductCard
                           product={product}
                           onClick={() => {
@@ -242,7 +242,7 @@ function VirtualList({ products, navigate, handleViewProduct, handleShareProduct
                 style={{ position: "absolute", top: 0, left: 0, width: "100%", transform: `translateY(${vr.start}px)`, paddingBottom: "8px" }}
                 onMouseEnter={() => setActiveProductId?.(product.id)}
               >
-                <div className={cn("flex items-center gap-2 rounded-lg transition-all duration-200", isSelected && "ring-2 ring-primary/40 bg-primary/5", isActive && "ring-2 ring-primary bg-primary/10 shadow-md")}>
+                <div className={cn("flex items-center gap-2 rounded-xl transition-all duration-200", isSelected && "ring-2 ring-primary/40 bg-primary/5", isActive && "ring-2 ring-primary bg-primary/10 shadow-md")}>
                   {selectionMode && <div className="flex-shrink-0 ml-1"><SelectionCheckbox checked={!!isSelected} onChange={() => onToggleSelect?.(product.id)} size="md" /></div>}
                   <div className="flex-1 min-w-0">
                     <ProductListItem product={product} onClick={() => selectionMode ? onToggleSelect?.(product.id) : handleViewProduct(product)} onView={handleViewProduct} onShare={handleShareProduct} isFavorited={isFavorite(product.id)} onToggleFavorite={toggleFavorite} isInCompare={isInCompare(product.id)} onToggleCompare={onToggleCompare} canAddToCompare={canAddToCompare} activeColorFilter={activeColorFilter} />

@@ -38,7 +38,7 @@ export function SupplierSales({ days = 30, categoryId, supplierId, productId, ca
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="text-base flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg skin-icon flex items-center justify-center">
+              <div className="w-7 h-7 rounded-xl skin-icon flex items-center justify-center">
                 <Truck className="h-3.5 w-3.5" />
               </div>
               📦 Vendas por Fornecedor

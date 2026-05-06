@@ -67,7 +67,7 @@ export function MobileSummarySheet({
         <div className="px-5 pb-1">
           <Button
             data-testid="cart-checkout-cta"
-            className="w-full gap-2 h-11 font-semibold bg-success hover:bg-success/90 text-success-foreground rounded-lg shadow-md shadow-success/20 hover:shadow-lg hover:shadow-success/30 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+            className="w-full gap-2 h-11 font-semibold bg-success hover:bg-success/90 text-success-foreground rounded-xl shadow-md shadow-success/20 hover:shadow-lg hover:shadow-success/30 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
             onClick={onGenerateQuote}
           >
             <ArrowRight className="h-4 w-4" />

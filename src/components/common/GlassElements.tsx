@@ -28,7 +28,7 @@ export function GlassCard({
   return (
     <div
       className={cn(
-        "relative rounded-[var(--radius-xl)]",
+        "relative rounded-xl",
         blurLevels[blur],
         border && "border border-white/20 dark:border-white/10",
         gradient && "bg-gradient-to-br from-white/10 to-white/5 dark:from-white/5 dark:to-white/[0.02]",
@@ -57,7 +57,7 @@ export function GlassPanel({
     <div
       className={cn(
         "backdrop-blur-sm bg-background/60",
-        "border border-border/50 rounded-[var(--radius-xl)]",
+        "border border-border/50 rounded-xl",
         "shadow-sm",
         className
       )}
@@ -79,7 +79,7 @@ export function GlassOverlay({
     <div
       className={cn(
         "backdrop-blur-xl bg-background/80",
-        "border border-border/30 rounded-[var(--radius-xl)]",
+        "border border-border/30 rounded-xl",
         "shadow-2xl shadow-black/20",
         className
       )}
@@ -106,15 +106,14 @@ export function GlassButton({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "px-4 py-2 rounded-[var(--radius-xl)]",
+        "px-4 py-2 rounded-xl",
         "backdrop-blur-md bg-background/10",
         "border border-white/20 dark:border-white/10",
-        "text-foreground font-bold uppercase text-[11px] tracking-widest",
-        "hover:bg-background/20 hover:-translate-y-0.5",
-        "active:scale-[0.96]",
-        "transition-all duration-300 ease-out",
-        "disabled:opacity-40 disabled:cursor-not-allowed",
-        "focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20",
+        "text-foreground font-medium",
+        "hover:bg-background/20",
+        "active:scale-[0.98]",
+        "transition-all duration-200",
+        "disabled:opacity-50 disabled:cursor-not-allowed",
         className
       )}
     >
@@ -177,12 +176,12 @@ export function GlassInput({
   return (
     <input
       className={cn(
-        "w-full px-4 py-2 h-11 rounded-[var(--radius-xl)]",
+        "w-full px-4 py-2 rounded-xl",
         "backdrop-blur-sm bg-background/10",
         "border border-white/20 dark:border-white/10",
-        "text-foreground placeholder:text-muted-foreground/60 font-medium text-sm",
-        "focus:outline-none focus:ring-4 focus:ring-primary/20 focus:border-primary/40",
-        "transition-all duration-300",
+        "text-foreground placeholder:text-muted-foreground",
+        "focus:outline-none focus:ring-2 focus:ring-primary/50",
+        "transition-all duration-200",
         className
       )}
       {...props}
@@ -202,7 +201,7 @@ export function GlassTooltip({
     <div
       className={cn(
         "backdrop-blur-xl bg-popover/90",
-        "border border-border/50 rounded-[var(--radius-xl)]",
+        "border border-border/50 rounded-xl",
         "shadow-lg",
         "p-3",
         className

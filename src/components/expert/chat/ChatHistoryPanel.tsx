@@ -42,7 +42,7 @@ export function ChatHistoryPanel({
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/40" />
           <input value={historySearch} onChange={e => onSearchChange(e.target.value)}
             placeholder="Buscar conversas…"
-            className="w-full h-8 pl-8 pr-3 rounded-lg border border-border/30 bg-muted/20 text-xs placeholder:text-muted-foreground/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/20 focus-visible:border-primary/25 transition-all" />
+            className="w-full h-8 pl-8 pr-3 rounded-xl border border-border/30 bg-muted/20 text-xs placeholder:text-muted-foreground/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/20 focus-visible:border-primary/25 transition-all" />
         </div>
         <div className="flex items-center gap-1.5 mb-3 px-0.5">
           <CalendarDays className="h-3 w-3 text-muted-foreground/40 shrink-0" />
@@ -53,7 +53,7 @@ export function ChatHistoryPanel({
             { key: "month", label: "Mês" },
           ] as const).map(({ key, label }) => (
             <button key={key} onClick={() => onDateFilterChange(key)}
-              className={cn("px-2.5 py-1 rounded-lg text-[11px] font-medium border transition-all",
+              className={cn("px-2.5 py-1 rounded-xl text-[11px] font-medium border transition-all",
                 historyDateFilter === key
                   ? "bg-primary/15 text-primary border-primary/30"
                   : "bg-muted/20 text-muted-foreground/60 border-transparent hover:bg-muted/40"
@@ -67,7 +67,7 @@ export function ChatHistoryPanel({
           <div className="flex justify-center py-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground/40" /></div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-12">
-            <div className="h-12 w-12 rounded-lg bg-muted/50 flex items-center justify-center mx-auto mb-3">
+            <div className="h-12 w-12 rounded-xl bg-muted/50 flex items-center justify-center mx-auto mb-3">
               <MessageSquare className="h-5 w-5 text-muted-foreground/40" />
             </div>
             <p className="text-sm text-muted-foreground/60">{historySearch ? "Nenhuma conversa encontrada" : "Nenhuma conversa ainda"}</p>
@@ -79,7 +79,7 @@ export function ChatHistoryPanel({
               <motion.div key={conv.id}
                 variants={{ hidden: { opacity: 0, y: 6 }, visible: { opacity: 1, y: 0 } }}
                 onClick={() => onLoadConversation(conv)}
-                className={cn("group px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-150",
+                className={cn("group px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-150",
                   currentConversationId === conv.id ? "bg-primary/8 border border-primary/15" : "hover:bg-muted/50 border border-transparent"
                 )}>
                 <div className="flex items-center justify-between gap-2">
@@ -90,7 +90,7 @@ export function ChatHistoryPanel({
                     </p>
                   </div>
                   <Button variant="ghost" size="icon" aria-label="Excluir"
-                    className="h-7 w-7 rounded-lg opacity-0 group-hover:opacity-100 text-muted-foreground/40 hover:text-destructive hover:bg-destructive/10 transition-all"
+                    className="h-7 w-7 rounded-xl opacity-0 group-hover:opacity-100 text-muted-foreground/40 hover:text-destructive hover:bg-destructive/10 transition-all"
                     onClick={e => onDeleteConversation(e, conv.id)}>
                     <Trash2 className="h-3.5 w-3.5" />
                   </Button>

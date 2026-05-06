@@ -64,7 +64,7 @@ export function TrendsTour() {
         <CardContent className="p-4 space-y-3">
           <div className="flex items-start justify-between gap-2">
             <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-lg bg-primary/15">
+              <div className="p-1.5 rounded-xl bg-primary/15">
                 <Sparkles className="h-4 w-4 text-primary" />
               </div>
               <div>
@@ -72,9 +72,9 @@ export function TrendsTour() {
                 <p className="text-[10px] text-muted-foreground">Passo {step + 1} de {STEPS.length}</p>
               </div>
             </div>
-            <Button variant="ghost" size="icon" onClick={dismiss} className="h-6 w-6 text-muted-foreground hover:text-foreground" aria-label="Fechar">
+            <button onClick={dismiss} className="text-muted-foreground hover:text-foreground" aria-label="Fechar">
               <X className="h-4 w-4" />
-            </Button>
+            </button>
           </div>
           <p className="text-sm text-foreground/80 leading-relaxed">{current.body}</p>
           <div className="flex items-center justify-between gap-2 pt-1">

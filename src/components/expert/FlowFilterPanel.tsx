@@ -151,26 +151,26 @@ export function FlowFilterPanel({ isOpen, onClose, filters, onFiltersChange, opt
       {isOpen && (
         <>
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}
-            className="absolute inset-0 bg-black/50 backdrop-blur-[3px] z-20 rounded-lg" onClick={onClose} />
+            className="absolute inset-0 bg-black/50 backdrop-blur-[3px] z-20 rounded-xl" onClick={onClose} />
           <motion.div initial={{ x: "-100%", opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: "-100%", opacity: 0 }}
             transition={{ type: "spring", damping: 28, stiffness: 300 }}
             className="absolute left-0 top-0 bottom-0 z-30 w-[310px] max-w-[90%] bg-card/98 backdrop-blur-xl border-r border-border/20 rounded-l-2xl flex flex-col shadow-2xl shadow-black/20">
             {/* Header */}
             <div className="flex items-center justify-between px-4 pt-3.5 pb-2.5 border-b border-border/10">
               <div className="flex items-center gap-2.5">
-                <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center shadow-sm shadow-primary/5"><SlidersHorizontal className="h-3.5 w-3.5 text-primary" /></div>
+                <div className="h-7 w-7 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center shadow-sm shadow-primary/5"><SlidersHorizontal className="h-3.5 w-3.5 text-primary" /></div>
                 <div><span className="text-sm font-semibold tracking-tight">Filtros</span>{activeFiltersCount > 0 && <p className="text-[9px] text-primary font-bold leading-tight">{activeFiltersCount} ativo{activeFiltersCount > 1 ? "s" : ""}</p>}</div>
               </div>
               <div className="flex items-center gap-1">
-                {activeFiltersCount > 0 && <Button variant="ghost" size="sm" onClick={onReset} className="h-6 px-2 text-[9px] text-muted-foreground hover:text-destructive gap-1 rounded-lg"><RotateCcw className="h-2.5 w-2.5" />Limpar</Button>}
-                <Button variant="ghost" size="sm" onClick={onClose} className="h-6 w-6 p-0 rounded-lg"><X className="h-3.5 w-3.5" /></Button>
+                {activeFiltersCount > 0 && <Button variant="ghost" size="sm" onClick={onReset} className="h-6 px-2 text-[9px] text-muted-foreground hover:text-destructive gap-1 rounded-xl"><RotateCcw className="h-2.5 w-2.5" />Limpar</Button>}
+                <Button variant="ghost" size="sm" onClick={onClose} className="h-6 w-6 p-0 rounded-xl"><X className="h-3.5 w-3.5" /></Button>
               </div>
             </div>
             {/* Search */}
             <div className="px-3 pt-2 pb-1">
               <div className="relative"><Filter className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground/30" />
                 <input value={globalSearch} onChange={(e) => setGlobalSearch(e.target.value)} placeholder="Buscar seção de filtro…"
-                  className="w-full h-7 pl-7 pr-2 rounded-lg border border-border/15 bg-muted/10 text-[11px] placeholder:text-muted-foreground/25 focus:outline-none focus:ring-1 focus:ring-primary/20 transition-all" />
+                  className="w-full h-7 pl-7 pr-2 rounded-xl border border-border/15 bg-muted/10 text-[11px] placeholder:text-muted-foreground/25 focus:outline-none focus:ring-1 focus:ring-primary/20 transition-all" />
               </div>
             </div>
             {/* Sections */}
@@ -197,7 +197,7 @@ export function FlowFilterPanel({ isOpen, onClose, filters, onFiltersChange, opt
                 <div className="mt-4 pt-3 border-t border-border/10">
                   <div className="flex items-center justify-between px-1 py-1">
                     <div className="flex items-center gap-2.5">
-                      <div className="h-6 w-6 rounded-lg bg-muted/20 flex items-center justify-center"><Volume2 className="h-3 w-3 text-muted-foreground/40" /></div>
+                      <div className="h-6 w-6 rounded-xl bg-muted/20 flex items-center justify-center"><Volume2 className="h-3 w-3 text-muted-foreground/40" /></div>
                       <div><span className="text-[11px] text-foreground/70 font-medium">Auto-play por voz</span><p className="text-[9px] text-muted-foreground/30 leading-tight">Reproduzir respostas automaticamente</p></div>
                     </div>
                     <Switch checked={autoPlayTts} onCheckedChange={onAutoPlayTtsChange} className="scale-[0.75] origin-right" />
@@ -207,7 +207,7 @@ export function FlowFilterPanel({ isOpen, onClose, filters, onFiltersChange, opt
             </ScrollArea>
             {/* Footer */}
             <div className="px-3 py-2.5 border-t border-border/10">
-              <Button size="sm" onClick={onClose} className="w-full h-9 rounded-lg text-[11px] font-semibold gap-1.5 shadow-sm">
+              <Button size="sm" onClick={onClose} className="w-full h-9 rounded-xl text-[11px] font-semibold gap-1.5 shadow-sm">
                 <Sparkles className="h-3 w-3" />Aplicar filtros
                 {activeFiltersCount > 0 && <span className="ml-1 h-4.5 min-w-5 px-1.5 rounded-full bg-primary-foreground/20 text-[10px] font-bold flex items-center justify-center">{activeFiltersCount}</span>}
               </Button>

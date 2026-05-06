@@ -159,7 +159,7 @@ export function OnboardingTour() {
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="absolute border-2 border-primary rounded-lg pointer-events-none"
+            className="absolute border-2 border-primary rounded-xl pointer-events-none"
             style={{
               top: highlightRect.top - 4,
               left: highlightRect.left - 4,
@@ -183,7 +183,7 @@ export function OnboardingTour() {
             left: tooltipPosition.left,
           }}
         >
-          <div className="bg-card border border-border rounded-lg shadow-2xl overflow-hidden">
+          <div className="bg-card border border-border rounded-xl shadow-2xl overflow-hidden">
             {/* Header */}
             <div className="bg-gradient-to-r from-primary/10 to-primary/5 px-4 py-3 flex items-center justify-between">
               <div className="flex items-center gap-2">

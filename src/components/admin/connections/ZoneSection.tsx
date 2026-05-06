@@ -61,7 +61,7 @@ export function ZoneSection({
       id={id}
       aria-labelledby={headingId}
       className={cn(
-        "scroll-mt-24 space-y-4 rounded-lg transition-shadow duration-500 -mx-2 px-2 py-1",
+        "scroll-mt-24 space-y-4 rounded-xl transition-shadow duration-500 -mx-2 px-2 py-1",
         highlight && "ring-2 ring-primary/60 ring-offset-2 ring-offset-background shadow-[0_0_0_4px_hsl(var(--primary)/0.15)]",
         className,
       )}
@@ -73,7 +73,7 @@ export function ZoneSection({
         />
         <div
           className={cn(
-            "h-9 w-9 rounded-lg flex items-center justify-center shrink-0",
+            "h-9 w-9 rounded-xl flex items-center justify-center shrink-0",
             tcls.iconBg,
           )}
           aria-hidden="true"

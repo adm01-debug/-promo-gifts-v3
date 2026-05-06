@@ -125,8 +125,8 @@ export function MockupProductSelector({ selection, onSelect, disabled }: MockupP
   // ─── State: Product + Color confirmed ──────────────────────────────
   if (selection) {
     return (
-      <div className="flex items-center gap-3 p-3 rounded-lg border border-border/30 bg-card">
-        <div className="w-11 h-11 rounded-lg bg-muted overflow-hidden shrink-0">
+      <div className="flex items-center gap-3 p-3 rounded-xl border border-border/30 bg-card">
+        <div className="w-11 h-11 rounded-xl bg-muted overflow-hidden shrink-0">
           <img
             src={selection.imageUrl}
             alt={selection.product.name}
@@ -195,7 +195,7 @@ export function MockupProductSelector({ selection, onSelect, disabled }: MockupP
         <DialogTrigger asChild>
           <Button 
             variant="outline" 
-            className="w-full h-24 border-dashed border-primary/30 bg-primary/5 hover:bg-primary/10 hover:border-primary/50 group flex flex-col gap-2 transition-all duration-300 rounded-lg"
+            className="w-full h-24 border-dashed border-primary/30 bg-primary/5 hover:bg-primary/10 hover:border-primary/50 group flex flex-col gap-2 transition-all duration-300 rounded-xl"
             disabled={disabled}
           >
             <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -224,7 +224,7 @@ export function MockupProductSelector({ selection, onSelect, disabled }: MockupP
                   placeholder="Busque por nome, SKU ou palavras-chave..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-12 pr-12 h-14 text-base border-primary/20 bg-muted/20 focus-visible:ring-primary/20 rounded-lg"
+                  className="pl-12 pr-12 h-14 text-base border-primary/20 bg-muted/20 focus-visible:ring-primary/20 rounded-xl"
                   autoFocus
                 />
                 {searchQuery && (
@@ -274,8 +274,8 @@ export function MockupProductSelector({ selection, onSelect, disabled }: MockupP
                 {isLoadingProducts || isFilterPending ? (
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                     {Array.from({ length: 12 }).map((_, i) => (
-                      <div key={i} className="space-y-3 p-3 rounded-lg border border-border/30 bg-card">
-                        <Skeleton className="aspect-square w-full rounded-lg" />
+                      <div key={i} className="space-y-3 p-3 rounded-xl border border-border/30 bg-card">
+                        <Skeleton className="aspect-square w-full rounded-xl" />
                         <div className="space-y-2">
                           <Skeleton className="h-4 w-3/4" />
                           <Skeleton className="h-3 w-1/2" />
@@ -313,12 +313,12 @@ export function MockupProductSelector({ selection, onSelect, disabled }: MockupP
                             <div
                               key={product.id}
                               onClick={() => handleProductPick(product)}
-                              className="group relative flex flex-col p-3 rounded-lg border border-border/30 bg-card hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5 cursor-pointer transition-all duration-300 focus-visible:ring-2 focus-visible:ring-primary outline-none"
+                              className="group relative flex flex-col p-3 rounded-xl border border-border/30 bg-card hover:border-primary/50 hover:shadow-xl hover:shadow-primary/5 cursor-pointer transition-all duration-300 focus-visible:ring-2 focus-visible:ring-primary outline-none"
                               role="button"
                               tabIndex={0}
                               onKeyDown={(e) => e.key === 'Enter' && handleProductPick(product)}
                             >
-                              <div className="aspect-square rounded-lg bg-muted overflow-hidden mb-3 relative">
+                              <div className="aspect-square rounded-xl bg-muted overflow-hidden mb-3 relative">
                                 <img
                                   src={product.image_url}
                                   alt={product.name}

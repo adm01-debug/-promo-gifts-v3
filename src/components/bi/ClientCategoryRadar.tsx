@@ -178,7 +178,7 @@ export function ClientCategoryRadar({ clientId, ramoAtividade, clientName }: Pro
         <CardContent className="p-6 space-y-4">
           <Skeleton className="h-6 w-72" />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-20 rounded-lg" />)}
+            {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-20 rounded-xl" />)}
           </div>
         </CardContent>
       </Card>
@@ -191,7 +191,7 @@ export function ClientCategoryRadar({ clientId, ramoAtividade, clientName }: Pro
         {/* Cabeçalho */}
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
           <div className="flex items-start gap-3">
-            <div className="h-10 w-10 rounded-lg bg-primary/15 flex items-center justify-center shrink-0">
+            <div className="h-10 w-10 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
               <Radar className="h-5 w-5 text-primary" />
             </div>
             <div className="min-w-0">
@@ -280,7 +280,7 @@ export function ClientCategoryRadar({ clientId, ramoAtividade, clientName }: Pro
                 >
                   <div
                     className={cn(
-                      "rounded-lg border-[1.5px] bg-background/70 backdrop-blur transition-all",
+                      "rounded-xl border-[1.5px] bg-background/70 backdrop-blur transition-all",
                       isFocused
                         ? "border-violet-500 ring-2 ring-violet-500/30 shadow-md"
                         : isOpen ? "border-primary/40 shadow-sm" : "border-border hover:border-primary/30",
@@ -395,7 +395,7 @@ export function ClientCategoryRadar({ clientId, ramoAtividade, clientName }: Pro
                               {row.clientCat.topProducts.slice(0, 3).map((p, i) => (
                                 <div
                                   key={`${p.productId ?? i}`}
-                                  className="p-2 rounded-lg bg-muted/40 border text-xs"
+                                  className="p-2 rounded-xl bg-muted/40 border text-xs"
                                 >
                                   <div className="font-medium line-clamp-2 leading-tight min-h-[2rem]">
                                     {p.productName}
@@ -423,7 +423,7 @@ export function ClientCategoryRadar({ clientId, ramoAtividade, clientName }: Pro
                               {row.industryCat.topProducts.slice(0, 3).map((p, i) => (
                                 <div
                                   key={`${p.productId ?? i}-ind`}
-                                  className="p-2 rounded-lg bg-violet-500/5 border border-violet-500/20 text-xs"
+                                  className="p-2 rounded-xl bg-violet-500/5 border border-violet-500/20 text-xs"
                                 >
                                   <div className="font-medium line-clamp-2 leading-tight min-h-[2rem]">
                                     {p.productName}

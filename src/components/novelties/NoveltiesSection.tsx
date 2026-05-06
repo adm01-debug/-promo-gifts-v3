@@ -73,7 +73,7 @@ export function NoveltiesSection() {
       <CardHeader className="pb-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-gradient-to-br from-success to-success/80 text-success-foreground shadow-lg">
+            <div className="p-2 rounded-xl bg-gradient-to-br from-success to-success/80 text-success-foreground shadow-lg">
               <Sparkles className="h-5 w-5" />
             </div>
             <div>
@@ -156,7 +156,7 @@ export function NoveltiesSection() {
             {Array.from({ length: 4 }).map((_, i) => (
               <Card key={i} className="border-border/50">
                 <CardContent className="p-3">
-                  <Skeleton className="aspect-square rounded-lg mb-3" />
+                  <Skeleton className="aspect-square rounded-xl mb-3" />
                   <div className="space-y-2">
                     <Skeleton className="h-4 w-full" />
                     <Skeleton className="h-3 w-2/3" />

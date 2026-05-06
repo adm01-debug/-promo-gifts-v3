@@ -90,7 +90,7 @@ export function KitAIPromptDialog({ onApply }: KitAIPromptDialogProps) {
           </Button>
 
           {suggestion && (
-            <div className="rounded-lg border p-3 space-y-2 bg-muted/30 animate-fade-in">
+            <div className="rounded-xl border p-3 space-y-2 bg-muted/30 animate-fade-in">
               <p className="text-sm">{suggestion.narrative}</p>
               <div className="flex flex-wrap gap-1">
                 <Badge variant="outline" className="text-[10px]">Tipo: {suggestion.kit_type}</Badge>

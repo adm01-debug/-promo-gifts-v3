@@ -35,7 +35,7 @@ export function CartActionsMenu({
         <Tooltip>
           <TooltipTrigger asChild>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="w-full gap-2.5 text-xs h-10 border-border/40 hover:border-primary/30 hover:bg-primary/[0.02] transition-all rounded-lg relative group shadow-sm hover:shadow-md">
+              <Button variant="outline" size="sm" className="w-full gap-2.5 text-xs h-10 border-border/40 hover:border-primary/30 hover:bg-primary/[0.02] transition-all rounded-xl relative group shadow-sm hover:shadow-md">
                 <MoreHorizontal className="h-3.5 w-3.5 group-hover:rotate-90 transition-transform duration-500 text-muted-foreground group-hover:text-primary" />
                 <span className="font-semibold text-muted-foreground group-hover:text-primary transition-colors">Gerenciar Carrinho</span>
               </Button>

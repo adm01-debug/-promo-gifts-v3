@@ -120,13 +120,13 @@ export function ExternalConnectionsSyncLogPanel() {
         ) : (
           <>
             <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="rounded-lg border border-border/40 p-2">
+              <div className="rounded-xl border border-border/40 p-2">
                 <div className="text-muted-foreground">Última execução OK</div>
                 <div className="font-medium">
                   {lastOk ? `${formatRelative(lastOk.ran_at)} • ${lastOk.processed} processada(s)` : "—"}
                 </div>
               </div>
-              <div className="rounded-lg border border-border/40 p-2">
+              <div className="rounded-xl border border-border/40 p-2">
                 <div className="text-muted-foreground">Última falha</div>
                 <div className="font-medium">
                   {lastError ? formatRelative(lastError.ran_at) : "Nenhuma"}
@@ -139,7 +139,7 @@ export function ExternalConnectionsSyncLogPanel() {
                 {rows.map((r) => (
                   <li
                     key={r.id}
-                    className="rounded-lg border border-border/40 p-2 text-xs space-y-1"
+                    className="rounded-xl border border-border/40 p-2 text-xs space-y-1"
                   >
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2">

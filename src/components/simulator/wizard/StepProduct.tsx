@@ -90,7 +90,7 @@ export function StepProduct({ wizard }: StepProductProps) {
       {/* Top Row: Quantity + Header inline */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-8">
         {/* Quantity Section - compact inline */}
-        <div className="p-4 rounded-lg bg-card border flex items-center gap-4 shrink-0">
+        <div className="p-4 rounded-xl bg-card border flex items-center gap-4 shrink-0">
           <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">
             Quantidade
           </h4>
@@ -102,7 +102,7 @@ export function StepProduct({ wizard }: StepProductProps) {
                 size="sm"
                 onClick={() => wizard.setQuantity(qty)}
                 className={cn(
-                  'min-w-[44px] rounded-lg h-9',
+                  'min-w-[44px] rounded-xl h-9',
                   wizard.quantity === qty && 'shadow-lg shadow-primary/20'
                 )}
               >
@@ -115,13 +115,13 @@ export function StepProduct({ wizard }: StepProductProps) {
             value={wizard.quantity}
             onChange={e => wizard.setQuantity(parseInt(e.target.value) || 1)}
             min={1}
-            className="text-center text-lg font-bold h-9 w-24 rounded-lg"
+            className="text-center text-lg font-bold h-9 w-24 rounded-xl"
           />
         </div>
 
         {/* Section Header */}
         <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5">
+          <div className="p-2.5 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5">
             <Package className="h-5 w-5 text-primary" />
           </div>
           <div>
@@ -141,7 +141,7 @@ export function StepProduct({ wizard }: StepProductProps) {
               key={draft.id}
               variant="outline"
               size="sm"
-              className="h-7 text-xs gap-1.5 shrink-0 rounded-lg"
+              className="h-7 text-xs gap-1.5 shrink-0 rounded-xl"
               onClick={() => {
                 if (draft.product_data) {
                   wizard.selectProduct(draft.product_data);
@@ -162,7 +162,7 @@ export function StepProduct({ wizard }: StepProductProps) {
           placeholder="Pesquisar por nome, SKU ou categoria..."
           value={searchTerm}
           onChange={e => setSearchTerm(e.target.value)}
-          className="pl-12 pr-12 h-14 text-base rounded-lg bg-muted/30 border-0 focus-visible:ring-2 focus-visible:ring-primary/40 shadow-sm"
+          className="pl-12 pr-12 h-14 text-base rounded-xl bg-muted/30 border-0 focus-visible:ring-2 focus-visible:ring-primary/40 shadow-sm"
         />
         {searchTerm && (
           <Button
@@ -186,16 +186,16 @@ export function StepProduct({ wizard }: StepProductProps) {
       )}
 
       {/* Products Grid - Virtualized */}
-      <div ref={parentRef} className="h-[520px] overflow-auto pr-2 rounded-lg" style={{ contain: 'strict' }}>
+      <div ref={parentRef} className="h-[520px] overflow-auto pr-2 rounded-xl" style={{ contain: 'strict' }}>
         {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[1, 2, 3, 4, 5, 6].map(i => (
-              <Skeleton key={i} className="h-20 w-full rounded-lg" />
+              <Skeleton key={i} className="h-20 w-full rounded-xl" />
             ))}
           </div>
         ) : searchTerm.trim().length < 2 ? (
           <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-            <div className="p-5 rounded-lg bg-primary/5 border border-primary/10 mb-5">
+            <div className="p-5 rounded-xl bg-primary/5 border border-primary/10 mb-5">
               <Search className="h-12 w-12 text-primary/40" />
             </div>
             <p className="font-display font-semibold text-xl text-foreground mb-1">Escolha o produto</p>
@@ -260,7 +260,7 @@ export function StepProduct({ wizard }: StepProductProps) {
                         key={product.id}
                         onClick={() => handleSelectProduct(product)}
                         className={cn(
-                          'w-full p-4 rounded-lg text-left transition-all duration-200',
+                          'w-full p-4 rounded-xl text-left transition-all duration-200',
                           'flex items-center gap-4 group',
                           isSelected 
                             ? 'bg-primary/10 ring-2 ring-primary shadow-lg shadow-primary/10'
@@ -269,7 +269,7 @@ export function StepProduct({ wizard }: StepProductProps) {
                       >
                         {/* Image */}
                         <div className={cn(
-                          'w-14 h-14 rounded-lg flex-shrink-0 overflow-hidden transition-transform',
+                          'w-14 h-14 rounded-xl flex-shrink-0 overflow-hidden transition-transform',
                           'bg-gradient-to-br from-muted to-muted/50',
                           'group-hover:scale-105'
                         )}>
@@ -328,15 +328,15 @@ export function StepProduct({ wizard }: StepProductProps) {
         >
           {/* Color variants */}
           {wizard.selectedProduct.colors && wizard.selectedProduct.colors.length > 0 && (
-            <div className="p-4 rounded-lg bg-card border">
+            <div className="p-4 rounded-xl bg-card border">
               <ProductColorGrid colors={wizard.selectedProduct.colors} />
             </div>
           )}
 
           {/* CTA bar */}
-          <div className="flex items-center justify-between p-5 rounded-lg bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20">
+          <div className="flex items-center justify-between p-5 rounded-xl bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-lg bg-muted overflow-hidden">
+              <div className="w-12 h-12 rounded-xl bg-muted overflow-hidden">
                 {wizard.selectedProduct.imageUrl ? (
                   
 <img src={wizard.selectedProduct.imageUrl} alt="" className="w-full h-full object-cover"  loading="lazy"/>
@@ -354,7 +354,7 @@ export function StepProduct({ wizard }: StepProductProps) {
               </div>
             </div>
             <Button
-              className="h-12 px-8 text-base gap-2 rounded-lg shadow-lg shadow-primary/20"
+              className="h-12 px-8 text-base gap-2 rounded-xl shadow-lg shadow-primary/20"
               size="lg"
               disabled={!wizard.canProceed}
               onClick={wizard.nextStep}

@@ -292,7 +292,7 @@ export function ProductPriceSimulator({ className }: ProductPriceSimulatorProps)
             <ProductSearch onSelect={handleProductSelect} selectedProduct={selectedProduct} />
           )}
           {selectedProduct && (
-            <div className="p-3 rounded-lg bg-muted/50 flex items-center gap-3">
+            <div className="p-3 rounded-xl bg-muted/50 flex items-center gap-3">
               <Check className="w-5 h-5 text-success shrink-0" />
               <div className="flex-1 min-w-0">
                 <span className="font-medium truncate block">{selectedProduct.name}</span>
@@ -342,7 +342,7 @@ export function ProductPriceSimulator({ className }: ProductPriceSimulatorProps)
             )}
 
             {mode === 'adding' && (
-              <div className="space-y-4 p-4 rounded-lg border-2 border-dashed border-primary/30 bg-primary/5 animate-scale-in">
+              <div className="space-y-4 p-4 rounded-xl border-2 border-dashed border-primary/30 bg-primary/5 animate-scale-in">
                 <div className="flex items-center justify-between">
                   <h4 className="text-sm font-medium">Nova Gravação</h4>
                   <TooltipProvider >
@@ -368,7 +368,7 @@ export function ProductPriceSimulator({ className }: ProductPriceSimulatorProps)
 
                 {currentTechnique && (
                   <div className="space-y-4 animate-fade-in">
-                    <div className="p-3 rounded-lg bg-background border flex items-center gap-3">
+                    <div className="p-3 rounded-xl bg-background border flex items-center gap-3">
                       <Check className="w-5 h-5 text-success shrink-0" />
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-sm">{currentTechnique.techniqueName}</p>

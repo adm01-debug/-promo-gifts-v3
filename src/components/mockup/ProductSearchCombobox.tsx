@@ -106,7 +106,7 @@ export function ProductSearchCombobox({
           {selectedProduct ? (
             <div className="flex items-center gap-3 flex-1 min-w-0">
               {/* Product thumbnail */}
-              <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-muted overflow-hidden">
+              <div className="flex-shrink-0 w-8 h-8 rounded-xl bg-muted overflow-hidden">
                 {getProductImage(selectedProduct) ? (
                   <img
                     src={getProductImage(selectedProduct)!}
@@ -207,7 +207,7 @@ export function ProductSearchCombobox({
                   </div>
 
                   {/* Product thumbnail */}
-                  <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-muted overflow-hidden">
+                  <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-muted overflow-hidden">
                     {getProductImage(product) ? (
                       <img
                         src={getProductImage(product)!}

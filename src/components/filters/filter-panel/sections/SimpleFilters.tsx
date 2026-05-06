@@ -34,9 +34,9 @@ export function SearchableCheckboxList({
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
           <Input placeholder={searchPlaceholder} value={search} onChange={(e) => setSearch(e.target.value)} className="h-8 text-sm pl-8 pr-8" aria-label={searchLabel} />
           {search && (
-            <Button variant="ghost" size="icon" type="button" onClick={() => setSearch('')} className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 text-muted-foreground hover:text-foreground" aria-label="Limpar busca">
+            <button type="button" onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" aria-label="Limpar busca">
               <X className="h-3.5 w-3.5" />
-            </Button>
+            </button>
           )}
         </div>
       )}
@@ -132,9 +132,9 @@ export function TechniquesFilter({
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
           <Input placeholder="Buscar técnica..." value={techniqueSearch} onChange={(e) => setTechniqueSearch(e.target.value)} className="h-8 text-sm pl-8 pr-8" aria-label="Buscar técnica de gravação" />
           {techniqueSearch && (
-            <Button variant="ghost" size="icon" type="button" onClick={() => setTechniqueSearch('')} className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 text-muted-foreground hover:text-foreground" aria-label="Limpar busca">
+            <button type="button" onClick={() => setTechniqueSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" aria-label="Limpar busca">
               <X className="h-3.5 w-3.5" />
-            </Button>
+            </button>
           )}
         </div>
       )}
@@ -185,9 +185,9 @@ export function TagsFilter({
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
           <Input placeholder="Buscar tag..." value={tagSearch} onChange={(e) => setTagSearch(e.target.value)} className="h-8 text-sm pl-8 pr-8" aria-label="Buscar tag" />
           {tagSearch && (
-            <Button variant="ghost" size="icon" type="button" onClick={() => setTagSearch('')} className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 text-muted-foreground hover:text-foreground" aria-label="Limpar busca">
+            <button type="button" onClick={() => setTagSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" aria-label="Limpar busca">
               <X className="h-3.5 w-3.5" />
-            </Button>
+            </button>
           )}
         </div>
       )}
@@ -196,14 +196,12 @@ export function TagsFilter({
           .filter(t => !tagSearch || t.name.toLowerCase().includes(tagSearch.toLowerCase()))
           .slice(0, 30)
           .map(tag => (
-          <Button
+          <button
             key={tag.id}
-            variant="outline"
-            size="sm"
             onClick={() => toggleArrayFilter('tags', tag.id)}
             aria-label={`Tag ${tag.name}`}
             className={cn(
-              "h-auto px-2.5 py-1 text-xs rounded-full border transition-all",
+              "px-2.5 py-1 text-xs rounded-full border transition-all",
               (filters.tags || []).includes(tag.id)
                 ? "bg-orange text-orange-foreground border-orange"
                 : "bg-muted/50 text-muted-foreground border-border hover:bg-muted"
@@ -251,7 +249,7 @@ export function QuickOptionsFilter({
         <Checkbox id="filter-inStock" checked={filters.inStock} onCheckedChange={() => toggleBooleanFilter('inStock')} />
         <Label htmlFor="filter-inStock" className="text-sm cursor-pointer">Em Estoque</Label>
       </div>
-      <div className="flex items-center gap-2 p-2 rounded-lg border border-warning/20 bg-warning/5">
+      <div className="flex items-center gap-2 p-2 rounded-xl border border-warning/20 bg-warning/5">
         <Checkbox
           id="has-commercial-packaging"
           checked={filters.hasCommercialPackaging}

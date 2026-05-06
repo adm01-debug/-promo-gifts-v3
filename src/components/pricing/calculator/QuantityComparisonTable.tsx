@@ -76,7 +76,7 @@ export function QuantityComparisonTable({ product, selectedConfigs, quantities }
                   const isBest = bestPricePerConfig.get(config.technique.id) === qty;
                   if (!result) return <TableCell key={qty} className="text-center text-xs text-muted-foreground">N/D</TableCell>;
                   return (
-                    <TableCell key={qty} className={cn("text-center relative", isBest && "bg-success/10 border border-success/30 rounded-lg")}>
+                    <TableCell key={qty} className={cn("text-center relative", isBest && "bg-success/10 border border-success/30 rounded-xl")}>
                       {isBest && <Trophy className="w-3 h-3 text-success absolute top-1 right-1" />}
                       <div className="space-y-1"><p className={cn("font-bold text-sm", isBest ? "text-success" : "text-primary")}>{formatCurrency(result.unitTotal)}</p><p className="text-[11px] text-muted-foreground">Total: {formatCurrency(result.grandTotal)}</p></div>
                     </TableCell>
@@ -91,7 +91,7 @@ export function QuantityComparisonTable({ product, selectedConfigs, quantities }
           </TableBody>
         </Table>
       </div>
-      <div className="text-xs text-muted-foreground p-3 bg-muted/50 rounded-lg">
+      <div className="text-xs text-muted-foreground p-3 bg-muted/50 rounded-xl">
         <p className="font-medium mb-1">Valores incluem:</p>
         <ul className="list-disc list-inside space-y-0.5"><li>Preço do produto ({formatCurrency(product.price)}/un)</li><li>Custo de gravação por unidade</li><li>Custo de setup (quando aplicável)</li></ul>
       </div>

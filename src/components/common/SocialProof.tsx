@@ -371,7 +371,7 @@ export function LowStockAlert({
       initial={{ opacity: 0, x: -10 }}
       animate={{ opacity: 1, x: 0 }}
       className={cn(
-        "flex items-center gap-2 px-3 py-1.5 rounded-lg",
+        "flex items-center gap-2 px-3 py-1.5 rounded-xl",
         "bg-warning/10 text-warning",
         "text-sm font-medium",
         className
@@ -410,7 +410,7 @@ export function Testimonial({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       className={cn(
-        "p-4 rounded-lg bg-muted/50 border border-border",
+        "p-4 rounded-xl bg-muted/50 border border-border",
         className
       )}
     >
@@ -444,7 +444,7 @@ export function ConversionStats({
 }: ConversionStatsProps) {
   return (
     <div className={cn(
-      "flex flex-wrap gap-6 py-4 px-6 rounded-lg bg-muted/30",
+      "flex flex-wrap gap-6 py-4 px-6 rounded-xl bg-muted/30",
       className
     )}>
       <div className="text-center">

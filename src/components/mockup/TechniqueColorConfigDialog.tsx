@@ -177,7 +177,7 @@ export function TechniqueColorConfigDialog({
                     <label
                       key={key}
                       className={cn(
-                        "relative flex flex-col items-center gap-2 rounded-lg border-2 p-4 cursor-pointer transition-all",
+                        "relative flex flex-col items-center gap-2 rounded-xl border-2 p-4 cursor-pointer transition-all",
                         laserTone === key
                           ? "border-primary bg-primary/5 shadow-sm"
                           : "border-muted hover:border-primary/30"
@@ -202,7 +202,7 @@ export function TechniqueColorConfigDialog({
                 )}
               </RadioGroup>
               
-              <div className="flex items-start gap-2 p-2.5 rounded-lg bg-muted/50 text-xs text-muted-foreground">
+              <div className="flex items-start gap-2 p-2.5 rounded-xl bg-muted/50 text-xs text-muted-foreground">
                 <Info className="h-3.5 w-3.5 mt-0.5 shrink-0" />
                 <span>
                   O logo será convertido automaticamente para monocromia no tom selecionado.
@@ -250,7 +250,7 @@ export function TechniqueColorConfigDialog({
                         <label
                           key={idx}
                           className={cn(
-                            "flex items-center gap-3 rounded-lg border p-3 cursor-pointer transition-all",
+                            "flex items-center gap-3 rounded-xl border p-3 cursor-pointer transition-all",
                             isSelected
                               ? "border-primary bg-primary/5"
                               : atMax
@@ -285,7 +285,7 @@ export function TechniqueColorConfigDialog({
                   </div>
                 </div>
               ) : (
-                <div className="flex items-start gap-2 p-3 rounded-lg bg-warning/5 dark:bg-warning/10 border border-warning/20 dark:border-warning/40">
+                <div className="flex items-start gap-2 p-3 rounded-xl bg-warning/5 dark:bg-warning/10 border border-warning/20 dark:border-warning/40">
                   <Info className="h-4 w-4 text-warning mt-0.5 shrink-0" />
                   <div className="text-xs text-warning dark:text-warning">
                     <p className="font-medium mb-1">Cores não detectadas</p>
@@ -294,7 +294,7 @@ export function TechniqueColorConfigDialog({
                 </div>
               )}
               
-              <div className="flex items-start gap-2 p-2.5 rounded-lg bg-muted/50 text-xs text-muted-foreground">
+              <div className="flex items-start gap-2 p-2.5 rounded-xl bg-muted/50 text-xs text-muted-foreground">
                 <Paintbrush className="h-3.5 w-3.5 mt-0.5 shrink-0" />
                 <span>
                   {colorCount === 1

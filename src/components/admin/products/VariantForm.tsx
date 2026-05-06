@@ -33,7 +33,7 @@ export function VariantForm({ initial, onSave, onCancel, isSaving }: VariantForm
   const hasExtraData = !!(form.supplier_sku || form.ean || form.size_code || form.capacity_ml || form.height_mm || form.width_mm || form.length_mm || form.weight_g);
 
   return (
-    <div className="rounded-lg border border-primary/30 bg-accent/30 p-3 space-y-3">
+    <div className="rounded-xl border border-primary/30 bg-accent/30 p-3 space-y-3">
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1">
           <Label className="text-xs">Nome *</Label>
@@ -53,7 +53,7 @@ export function VariantForm({ initial, onSave, onCancel, isSaving }: VariantForm
         <div className="space-y-1">
           <Label className="text-xs">Cor (hex)</Label>
           <div className="flex items-center gap-2">
-            <input type="color" value={form.color_hex || '#000000'} onChange={e => set('color_hex', e.target.value)} className="w-8 h-8 rounded-lg border border-border bg-background cursor-pointer shadow-soft hover:shadow-medium transition-shadow" />
+            <input type="color" value={form.color_hex || '#000000'} onChange={e => set('color_hex', e.target.value)} className="w-8 h-8 rounded border border-input bg-background cursor-pointer" />
             <Input value={form.color_hex} onChange={e => set('color_hex', e.target.value)} placeholder="#0000FF" className="h-8 text-sm font-mono flex-1" />
           </div>
         </div>

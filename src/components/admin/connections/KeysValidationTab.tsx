@@ -177,13 +177,13 @@ function classifyKey(expected: ExpectedKey, secrets: SecretStatus[]): EvalRow["s
 
 const SEV_BADGE: Record<Severity, { label: string; cls: string }> = {
   required: { label: "obrigatório", cls: "border-destructive/40 text-destructive bg-destructive/5" },
-  recommended: { label: "recomendado", cls: "border-warning/40 text-warning bg-warning/5" },
+  recommended: { label: "recomendado", cls: "border-amber-500/40 text-amber-700 bg-amber-500/5" },
   optional: { label: "opcional", cls: "border-muted-foreground/30 text-muted-foreground" },
 };
 
 const STATUS_META: Record<EvalRow["status"], { label: string; cls: string; Icon: typeof CheckCircle2 }> = {
-  ok: { label: "configurado", cls: "border-success/40 text-success bg-success/5", Icon: CheckCircle2 },
-  empty: { label: "vazio", cls: "border-warning/40 text-warning bg-warning/5", Icon: AlertTriangle },
+  ok: { label: "configurado", cls: "border-green-500/40 text-green-700 bg-green-500/5", Icon: CheckCircle2 },
+  empty: { label: "vazio", cls: "border-amber-500/40 text-amber-700 bg-amber-500/5", Icon: AlertTriangle },
   missing: { label: "faltando", cls: "border-destructive/40 text-destructive bg-destructive/5", Icon: XCircle },
 };
 
@@ -260,7 +260,7 @@ export function KeysValidationTab() {
       {/* Header */}
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="flex items-start gap-3">
-          <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+          <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
             <ShieldCheck className="h-5 w-5 text-primary" aria-hidden="true" />
           </div>
           <div>
@@ -286,7 +286,7 @@ export function KeysValidationTab() {
           <CardContent className="space-y-2">
             {loading ? <Skeleton className="h-8 w-20" /> : (
               <>
-                <div className={cn("text-3xl font-bold tabular-nums", score === 100 ? "text-success" : score >= 80 ? "text-warning" : "text-destructive")}>
+                <div className={cn("text-3xl font-bold tabular-nums", score === 100 ? "text-green-600" : score >= 80 ? "text-amber-600" : "text-destructive")}>
                   {score}%
                 </div>
                 <Progress value={score} className="h-1.5" />
@@ -311,13 +311,13 @@ export function KeysValidationTab() {
         <Card className={totals.warnings > 0 ? "border-amber-500/40 bg-amber-500/5" : ""}>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-1.5">
-              <AlertTriangle className={cn("h-4 w-4", totals.warnings > 0 ? "text-warning" : "text-muted-foreground")} />
+              <AlertTriangle className={cn("h-4 w-4", totals.warnings > 0 ? "text-amber-600" : "text-muted-foreground")} />
               Avisos
             </CardTitle>
             <CardDescription className="text-xs">Recomendadas faltando</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className={cn("text-3xl font-bold tabular-nums", totals.warnings > 0 ? "text-warning" : "text-muted-foreground")}>
+            <div className={cn("text-3xl font-bold tabular-nums", totals.warnings > 0 ? "text-amber-600" : "text-muted-foreground")}>
               {totals.warnings}
             </div>
           </CardContent>
@@ -325,13 +325,13 @@ export function KeysValidationTab() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm flex items-center gap-1.5">
-              <CheckCircle2 className="h-4 w-4 text-success" />
+              <CheckCircle2 className="h-4 w-4 text-green-600" />
               Configuradas
             </CardTitle>
             <CardDescription className="text-xs">Com valor presente</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold tabular-nums text-success">{totals.ok}</div>
+            <div className="text-3xl font-bold tabular-nums text-green-600">{totals.ok}</div>
           </CardContent>
         </Card>
       </div>
@@ -408,12 +408,12 @@ export function KeysValidationTab() {
                         )}
                       </div>
                       <div className={cn(
-                        "h-9 w-9 rounded-lg flex items-center justify-center shrink-0",
-                        groupOk ? "bg-success/10" : groupBlockers > 0 ? "bg-destructive/10" : "bg-warning/10",
+                        "h-9 w-9 rounded-xl flex items-center justify-center shrink-0",
+                        groupOk ? "bg-green-500/10" : groupBlockers > 0 ? "bg-destructive/10" : "bg-amber-500/10",
                       )}>
                         <Icon className={cn(
                           "h-4 w-4",
-                          groupOk ? "text-success" : groupBlockers > 0 ? "text-destructive" : "text-warning",
+                          groupOk ? "text-green-600" : groupBlockers > 0 ? "text-destructive" : "text-amber-600",
                         )} />
                       </div>
                       <div className="min-w-0">
@@ -428,7 +428,7 @@ export function KeysValidationTab() {
                     </button>
                     <div className="flex items-center gap-1.5 shrink-0">
                       {groupOk ? (
-                        <Badge variant="outline" className="border-success/40 text-success bg-success/5">
+                        <Badge variant="outline" className="border-green-500/40 text-green-700 bg-green-500/5">
                           <CheckCircle2 className="h-3 w-3 mr-1" /> ok
                         </Badge>
                       ) : (
@@ -439,7 +439,7 @@ export function KeysValidationTab() {
                             </Badge>
                           )}
                           {groupWarnings > 0 && (
-                            <Badge variant="outline" className="border-warning/40 text-warning bg-warning/5">
+                            <Badge variant="outline" className="border-amber-500/40 text-amber-700 bg-amber-500/5">
                               <AlertTriangle className="h-3 w-3 mr-1" /> {groupWarnings} aviso(s)
                             </Badge>
                           )}

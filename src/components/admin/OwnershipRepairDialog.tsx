@@ -149,7 +149,7 @@ export function OwnershipRepairDialog({ reportId, hasIssues }: Props) {
                 <Stat label="Revisão manual" value={display.totals.manual_review} icon={FileWarning} tone="muted" />
               </div>
 
-              <div className="border rounded-lg">
+              <div className="border rounded-xl">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -232,7 +232,7 @@ function Stat({ label, value, icon: Icon, tone }: { label: string; value: number
     tone === "warning"     ? "text-amber-600 dark:text-amber-400" :
                              "text-muted-foreground";
   return (
-    <div className="border rounded-lg p-3">
+    <div className="border rounded-xl p-3">
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
         <Icon className="h-3.5 w-3.5" /> {label}
       </div>

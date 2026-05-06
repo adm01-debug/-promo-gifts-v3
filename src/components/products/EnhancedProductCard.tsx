@@ -130,7 +130,7 @@ export function EnhancedProductCard({
   return (
     <article
       className={cn(
-        "group relative overflow-hidden rounded-lg bg-card border border-border/50",
+        "group relative overflow-hidden rounded-xl bg-card border border-border/50",
         "transition-all duration-300 ease-out cursor-pointer",
         "hover:border-primary/30 hover:shadow-2xl hover:-translate-y-1",
         isHovered && "ring-2 ring-primary/20"
@@ -408,7 +408,7 @@ export function EnhancedProductCard({
       <AnimatePresence>
         {showPreview && (
           <motion.div
-            className="absolute left-full top-0 ml-4 w-72 bg-card rounded-lg shadow-xl border z-50 overflow-hidden"
+            className="absolute left-full top-0 ml-4 w-72 bg-card rounded-xl shadow-xl border z-50 overflow-hidden"
             initial={{ opacity: 0, x: -20, scale: 0.95 }}
             animate={{ opacity: 1, x: 0, scale: 1 }}
             exit={{ opacity: 0, x: -20, scale: 0.95 }}

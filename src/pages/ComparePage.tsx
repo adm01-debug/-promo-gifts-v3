@@ -254,7 +254,7 @@ export default function ComparePage() {
                     {differencesOnly ? "Confronto Ativo" : "Só Diferenças"}
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Destacar apenas atributos diferentes entre os produtos <kbd className="ml-1 px-1 py-0.5 rounded-lg bg-primary-foreground/20 text-primary-foreground text-[10px] font-mono">D</kbd></TooltipContent>
+                <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Destacar apenas atributos diferentes entre os produtos <kbd className="ml-1 px-1 py-0.5 rounded bg-primary-foreground/20 text-primary-foreground text-[10px] font-mono">D</kbd></TooltipContent>
               </Tooltip>
             </TooltipProvider>
             <TooltipProvider >
@@ -356,7 +356,7 @@ export default function ComparePage() {
                         key={`card-${entry.index}`}
                         data-compare-product={entry.index}
                         tabIndex={-1}
-                        className="p-4 rounded-lg bg-card border-[1.5px] border-primary/20 hover:border-primary/50 hover:shadow-xl card-lift transition-all duration-300 space-y-3 focus:outline-none focus:ring-2 focus:ring-primary"
+                        className="p-4 rounded-xl bg-card border-[1.5px] border-primary/20 hover:border-primary/50 hover:shadow-xl card-lift transition-all duration-300 space-y-3 focus:outline-none focus:ring-2 focus:ring-primary"
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">

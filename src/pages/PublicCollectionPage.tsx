@@ -162,7 +162,7 @@ export default function PublicCollectionPage() {
         <div className="max-w-5xl mx-auto space-y-4">
           <Skeleton className="h-12 w-64" />
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[1, 2, 3, 4, 5, 6].map((i) => <Skeleton key={i} className="h-72 rounded-lg" />)}
+            {[1, 2, 3, 4, 5, 6].map((i) => <Skeleton key={i} className="h-72 rounded-xl" />)}
           </div>
         </div>
       </div>
@@ -195,7 +195,7 @@ export default function PublicCollectionPage() {
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 flex items-center gap-4">
           <div
-            className="w-12 h-12 rounded-lg flex items-center justify-center text-2xl shrink-0"
+            className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shrink-0"
             style={{ backgroundColor: `${collection.icon_color ?? "#8B5CF6"}20` }}
           >
             {collection.icon ?? "📁"}
@@ -232,7 +232,7 @@ export default function PublicCollectionPage() {
               return (
                 <article
                   key={item.id}
-                  className="rounded-lg border border-border bg-card overflow-hidden flex flex-col hover:shadow-md transition-shadow"
+                  className="rounded-xl border border-border bg-card overflow-hidden flex flex-col hover:shadow-md transition-shadow"
                 >
                   <div className="aspect-square bg-muted overflow-hidden">
                     {img ? (

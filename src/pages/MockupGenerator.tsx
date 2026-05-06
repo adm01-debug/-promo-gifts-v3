@@ -50,11 +50,11 @@ function MockupHeader({
   activeTab: string;
 }) {
   return (
-    <div className="relative overflow-hidden rounded-lg bg-gradient-to-r from-primary/10 via-accent/5 to-transparent p-6 border border-primary/20">
+    <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-primary/10 via-accent/5 to-transparent p-6 border border-primary/20">
       <div className="absolute -top-24 -right-24 w-48 h-48 bg-accent/10 rounded-full blur-3xl" />
       <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="flex items-center justify-center w-14 h-14 rounded-lg bg-primary/10 ring-2 ring-primary/20 shrink-0">
+          <div className="flex items-center justify-center w-14 h-14 rounded-xl bg-primary/10 ring-2 ring-primary/20 shrink-0">
             <Wand2 className="h-7 w-7 text-primary animate-pulse" />
           </div>
           <div className="min-w-0">
@@ -195,7 +195,7 @@ export default function MockupGenerator() {
       <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
 
         {mg.activeTab !== "history" && (
-          <div className="sticky top-0 z-[40] bg-background/80 backdrop-blur-md py-2 -mx-2 px-2 rounded-lg transition-all duration-300 border border-transparent hover:border-border/40">
+          <div className="sticky top-0 z-[40] bg-background/80 backdrop-blur-md py-2 -mx-2 px-2 rounded-xl transition-all duration-300 border border-transparent hover:border-border/40">
             <Suspense fallback={null}>
               <MockupWizard
                 currentStep={mg.wizardStep}

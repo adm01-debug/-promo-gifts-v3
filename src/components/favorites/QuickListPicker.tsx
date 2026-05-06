@@ -84,7 +84,7 @@ export function QuickListPicker({
                   type="button"
                   onClick={(e) => { e.stopPropagation(); onPick(l.id); onOpenChange(false); }}
                   className={cn(
-                    "w-full flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm text-left transition-colors",
+                    "w-full flex items-center gap-2 rounded-xl px-2 py-1.5 text-sm text-left transition-colors",
                     "hover:bg-muted",
                     exists && "bg-success/10 text-success-foreground"
                   )}
@@ -124,7 +124,7 @@ export function QuickListPicker({
             <button
               type="button"
               onClick={(e) => { e.stopPropagation(); setCreating(true); }}
-              className="w-full flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+              className="w-full flex items-center gap-2 rounded-xl px-2 py-1.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
             >
               <Plus className="h-3.5 w-3.5" />
               Nova lista…

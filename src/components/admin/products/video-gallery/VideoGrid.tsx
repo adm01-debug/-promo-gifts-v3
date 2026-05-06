@@ -58,7 +58,7 @@ export function VideoGrid({
             onDrop={(e) => handleDrop(e, index)}
             onDragEnd={handleDragEnd}
             className={cn(
-              'relative group rounded-lg border-2 overflow-hidden aspect-video transition-all cursor-pointer',
+              'relative group rounded-xl border-2 overflow-hidden aspect-video transition-all cursor-pointer',
               video.is_primary ? 'border-primary ring-1 ring-primary/30' : 'border-border/60',
               dragIndex === index && 'opacity-50 scale-95',
               dragOverIndex === index && dragIndex !== index && 'border-primary border-dashed',

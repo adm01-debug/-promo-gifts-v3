@@ -35,19 +35,19 @@ export function ProductLoaderAndColorSelector({ productId, onSelect, onBack }: P
 
   if (isLoadingProduct || isLoadingVariants) {
     return (
-      <div className="border border-border/30 rounded-lg p-4 space-y-4">
+      <div className="border border-border/30 rounded-xl p-4 space-y-4">
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="sm" onClick={onBack}><ArrowLeft className="h-4 w-4 mr-1" /> Voltar</Button>
           <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" />Carregando detalhes...</div>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">{Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-20 rounded-lg" />)}</div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">{Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)}</div>
       </div>
     );
   }
 
   if (!fullProduct) {
     return (
-      <div className="border border-border/30 rounded-lg p-4 space-y-4">
+      <div className="border border-border/30 rounded-xl p-4 space-y-4">
         <div className="flex items-center gap-2"><Button variant="ghost" size="sm" onClick={onBack}><ArrowLeft className="h-4 w-4 mr-1" /> Voltar</Button></div>
         <div className="text-center py-6 text-muted-foreground"><AlertTriangle className="h-8 w-8 mx-auto mb-2 opacity-50" /><p>Produto não encontrado</p></div>
       </div>
@@ -57,14 +57,14 @@ export function ProductLoaderAndColorSelector({ productId, onSelect, onBack }: P
   if (!variants || variants.length === 0) {
     setTimeout(() => onSelect(null, fullProduct), 0);
     return (
-      <div className="flex items-center gap-3 p-3 rounded-lg border border-border/30 bg-card animate-pulse">
-        <Skeleton className="w-11 h-11 rounded-lg" /><Skeleton className="h-4 w-40" />
+      <div className="flex items-center gap-3 p-3 rounded-xl border border-border/30 bg-card animate-pulse">
+        <Skeleton className="w-11 h-11 rounded-xl" /><Skeleton className="h-4 w-40" />
       </div>
     );
   }
 
   return (
-    <div className="border border-border/30 rounded-lg p-4 space-y-4">
+    <div className="border border-border/30 rounded-xl p-4 space-y-4">
       <div className="flex items-center gap-2">
         <Button variant="ghost" size="sm" onClick={onBack}><ArrowLeft className="h-4 w-4 mr-1" /> Voltar</Button>
         <div className="flex-1 min-w-0">
@@ -81,11 +81,11 @@ export function ProductLoaderAndColorSelector({ productId, onSelect, onBack }: P
               key={variant.id}
               onClick={() => onSelect(variant, fullProduct)}
               className={cn(
-                "group relative flex flex-col items-center gap-1.5 p-2 rounded-lg border transition-all duration-200 text-left",
+                "group relative flex flex-col items-center gap-1.5 p-2 rounded-xl border transition-all duration-200 text-left",
                 outOfStock ? "border-border/20 opacity-60 hover:opacity-80" : "border-border/30 hover:border-primary/40 hover:bg-accent/40"
               )}
             >
-              <div className="w-full aspect-square rounded-lg bg-muted overflow-hidden relative">
+              <div className="w-full aspect-square rounded-xl bg-muted overflow-hidden relative">
                 <img src={thumbSrc} alt={variant.color_name || 'Variante'} className="w-full h-full object-cover" loading="lazy" onError={(e) => { e.currentTarget.src = '/placeholder.svg'; }} />
                 {outOfStock && <div className="absolute inset-0 bg-background/60 flex items-center justify-center"><AlertTriangle className="h-4 w-4 text-destructive" /></div>}
               </div>

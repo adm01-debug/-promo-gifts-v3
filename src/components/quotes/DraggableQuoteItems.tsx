@@ -151,7 +151,7 @@ function SortableItem({
             </button>
 
             {/* Product Image */}
-            <div className="shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-muted">
+            <div className="shrink-0 w-16 h-16 rounded-xl overflow-hidden bg-muted">
               {item.product_image_url ? (
                 <img
                   src={item.product_image_url}
@@ -255,7 +255,7 @@ function SortableItem({
                 variant="ghost"
                 size="sm"
                 className={cn(
-                  "w-full justify-between text-sm font-medium rounded-lg border transition-all",
+                  "w-full justify-between text-sm font-medium rounded-xl border transition-all",
                   isExpanded
                     ? "bg-primary/10 border-primary/30 text-primary hover:bg-primary/15"
                     : "bg-accent/50 border-border hover:bg-accent hover:border-primary/20"
@@ -341,7 +341,7 @@ export function DraggableQuoteItems({
 
   if (items.length === 0) {
     return (
-      <div className="text-center py-12 border-2 border-dashed rounded-lg">
+      <div className="text-center py-12 border-2 border-dashed rounded-xl">
         <Package className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
         <p className="text-muted-foreground font-medium">Nenhum item adicionado</p>
         <p className="text-sm text-muted-foreground/70 mt-1">
@@ -393,12 +393,12 @@ export function DraggableQuoteItems({
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <GripVertical className="h-5 w-5 text-muted-foreground" />
-                <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center">
+                <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center">
                   {activeItem.product_image_url ? (
                     <img
                       src={activeItem.product_image_url}
                       alt={activeItem.product_name}
-                      className="w-full h-full object-cover rounded-lg" loading="lazy" />
+                      className="w-full h-full object-cover rounded-xl" loading="lazy" />
                   ) : (
                     <Package className="h-5 w-5 text-muted-foreground" />
                   )}

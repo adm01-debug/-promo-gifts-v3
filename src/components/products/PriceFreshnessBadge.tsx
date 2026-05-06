@@ -424,7 +424,7 @@ export function PriceFreshnessBadge({
           role="status"
           aria-label={ariaLabel}
           className={cn(
-            "inline-flex items-start gap-2.5 rounded-lg border-[1.5px] border-amber-300 bg-amber-100/80 px-3.5 py-2.5 text-amber-900 dark:border-amber-500/60 dark:bg-amber-500/15 dark:text-amber-200",
+            "inline-flex items-start gap-2.5 rounded-xl border-[1.5px] border-amber-300 bg-amber-100/80 px-3.5 py-2.5 text-amber-900 dark:border-amber-500/60 dark:bg-amber-500/15 dark:text-amber-200",
             className,
           )}
         >

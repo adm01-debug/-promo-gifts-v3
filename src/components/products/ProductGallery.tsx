@@ -123,9 +123,9 @@ export function ProductGallery({
       {/* Main image */}
       <div className="relative group">
         <div className="absolute -inset-4 bg-gradient-to-br from-primary/5 via-transparent to-primary/5 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-        <div className="relative rounded-lg overflow-hidden shadow-lg border border-border/30 group-hover:shadow-2xl group-hover:shadow-primary/10 group-hover:border-primary/20 transition-all duration-500">
+        <div className="relative rounded-xl overflow-hidden shadow-lg border border-border/30 group-hover:shadow-2xl group-hover:shadow-primary/10 group-hover:border-primary/20 transition-all duration-500">
           {/* Image view inline */}
-          <div className="relative overflow-hidden aspect-[4/3] rounded-lg bg-white"
+          <div className="relative overflow-hidden aspect-[4/3] rounded-xl bg-white"
             onMouseDown={handleMouseDown} onMouseMove={handleMouseMove} onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp} onWheel={handleWheel}
           >
             {!isVideo(selectedIndex) && <div className="absolute inset-0 bg-white" />}

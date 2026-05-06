@@ -75,7 +75,7 @@ export function ColumnSelector({ value, onChange, className }: ColumnSelectorPro
 
   return (
     <div className={cn(
-      "inline-flex items-center gap-0.5 p-1 rounded-lg bg-muted/60 border border-border/40",
+      "inline-flex items-center gap-0.5 p-1 rounded-xl bg-muted/60 border border-border/40",
       className
     )}>
       <AnimatePresence mode="popLayout">
@@ -87,7 +87,7 @@ export function ColumnSelector({ value, onChange, className }: ColumnSelectorPro
                 <button
                   aria-label={opt.label}
                   className={cn(
-                    "relative flex items-center justify-center h-9 w-9 rounded-lg transition-colors duration-150",
+                    "relative flex items-center justify-center h-9 w-9 rounded-xl transition-colors duration-150",
                     isActive
                       ? "text-primary-foreground"
                       : "text-muted-foreground hover:text-foreground hover:bg-muted"
@@ -100,7 +100,7 @@ export function ColumnSelector({ value, onChange, className }: ColumnSelectorPro
                   {isActive && (
                     <motion.div
                       layoutId="column-selector-bg"
-                      className="absolute inset-0 rounded-lg bg-primary shadow-sm"
+                      className="absolute inset-0 rounded-xl bg-primary shadow-sm"
                       transition={{ type: "spring", stiffness: 500, damping: 35 }}
                     />
                   )}

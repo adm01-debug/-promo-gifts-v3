@@ -126,9 +126,9 @@ export function MyDiscountRequestsWidget() {
             filtered.map((r) => (
               <div
                 key={r.id}
-                className="flex items-center gap-3 p-2 rounded-lg hover:bg-secondary/50 transition-colors"
+                className="flex items-center gap-3 p-2 rounded-xl hover:bg-secondary/50 transition-colors"
               >
-                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
                   <Percent className="h-4 w-4 text-primary" />
                 </div>
                 <div className="flex-1 min-w-0">

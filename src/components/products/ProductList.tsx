@@ -55,7 +55,7 @@ function ProductListItemWrapper({
         className={cn(
           "relative transition-all duration-300 ease-out group/row",
           hasAnimated ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-3",
-          isSelected && "ring-2 ring-primary/40 rounded-lg bg-primary/5"
+          isSelected && "ring-2 ring-primary/40 rounded-xl bg-primary/5"
         )}
       >
         <div className={cn(

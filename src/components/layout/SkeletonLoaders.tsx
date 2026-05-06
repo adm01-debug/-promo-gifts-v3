@@ -53,7 +53,7 @@ export const CatalogSkeleton = makeSkeleton(
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
         {Array.from({ length: 15 }).map((_, i) => (
           <div key={i} className="space-y-3">
-            <Skeleton className="aspect-square w-full rounded-lg" />
+            <Skeleton className="aspect-square w-full rounded-xl" />
             <Skeleton className="h-4 w-3/4" />
             <Skeleton className="h-4 w-1/2" />
             <Skeleton className="h-5 w-1/3" />
@@ -73,7 +73,7 @@ export const ProductDetailSkeleton = makeSkeleton(
       <Skeleton className="h-6 w-40" />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Image */}
-        <Skeleton className="aspect-square w-full rounded-lg" />
+        <Skeleton className="aspect-square w-full rounded-xl" />
         {/* Info */}
         <div className="space-y-4">
           <Skeleton className="h-8 w-3/4" />
@@ -85,8 +85,8 @@ export const ProductDetailSkeleton = makeSkeleton(
             <Skeleton className="h-4 w-4/6" />
           </div>
           <div className="flex gap-3 pt-4">
-            <Skeleton className="h-12 w-40 rounded-lg" />
-            <Skeleton className="h-12 w-40 rounded-lg" />
+            <Skeleton className="h-12 w-40 rounded-xl" />
+            <Skeleton className="h-12 w-40 rounded-xl" />
           </div>
         </div>
       </div>
@@ -111,7 +111,7 @@ export const QuotesSkeleton = makeSkeleton(
       </div>
       <div className="space-y-3">
         {Array.from({ length: 6 }).map((_, i) => (
-          <Skeleton key={i} className="h-20 w-full rounded-lg" />
+          <Skeleton key={i} className="h-20 w-full rounded-xl" />
         ))}
       </div>
     </>
@@ -131,13 +131,13 @@ export const AdminSkeleton = makeSkeleton(
       {/* Stats row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <Skeleton key={i} className="h-24 rounded-lg" />
+          <Skeleton key={i} className="h-24 rounded-xl" />
         ))}
       </div>
       {/* Table */}
-      <Skeleton className="h-10 w-full rounded-lg" />
+      <Skeleton className="h-10 w-full rounded-xl" />
       {Array.from({ length: 8 }).map((_, i) => (
-        <Skeleton key={i} className="h-14 w-full rounded-lg" />
+        <Skeleton key={i} className="h-14 w-full rounded-xl" />
       ))}
     </>
   ),
@@ -152,12 +152,12 @@ export const DashboardSkeleton = makeSkeleton(
       <Skeleton className="h-8 w-64" />
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <Skeleton key={i} className="h-32 rounded-lg" />
+          <Skeleton key={i} className="h-32 rounded-xl" />
         ))}
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Skeleton className="h-64 rounded-lg" />
-        <Skeleton className="h-64 rounded-lg" />
+        <Skeleton className="h-64 rounded-xl" />
+        <Skeleton className="h-64 rounded-xl" />
       </div>
     </>
   ),
@@ -176,7 +176,7 @@ export const OrdersSkeleton = makeSkeleton(
       <Skeleton className="h-10 w-full max-w-sm" />
       <div className="space-y-3">
         {Array.from({ length: 6 }).map((_, i) => (
-          <Skeleton key={i} className="h-24 w-full rounded-lg" />
+          <Skeleton key={i} className="h-24 w-full rounded-xl" />
         ))}
       </div>
     </>
@@ -192,8 +192,8 @@ export const ToolsSkeleton = makeSkeleton(
       <div className="flex items-center justify-between">
         <Skeleton className="h-8 w-52" />
         <div className="flex gap-2">
-          <Skeleton className="h-10 w-10 rounded-lg" />
-          <Skeleton className="h-10 w-10 rounded-lg" />
+          <Skeleton className="h-10 w-10 rounded-xl" />
+          <Skeleton className="h-10 w-10 rounded-xl" />
         </div>
       </div>
       {/* Wizard steps */}
@@ -205,12 +205,12 @@ export const ToolsSkeleton = makeSkeleton(
       {/* Main content area */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-4">
-          <Skeleton className="h-64 w-full rounded-lg" />
-          <Skeleton className="h-10 w-full rounded-lg" />
+          <Skeleton className="h-64 w-full rounded-xl" />
+          <Skeleton className="h-10 w-full rounded-xl" />
         </div>
         <div className="space-y-4">
-          <Skeleton className="h-48 w-full rounded-lg" />
-          <Skeleton className="h-12 w-full rounded-lg" />
+          <Skeleton className="h-48 w-full rounded-xl" />
+          <Skeleton className="h-12 w-full rounded-xl" />
         </div>
       </div>
     </>
@@ -232,10 +232,10 @@ export const ProfileSkeleton = makeSkeleton(
       </div>
       <div className="space-y-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <Skeleton key={i} className="h-14 w-full rounded-lg" />
+          <Skeleton key={i} className="h-14 w-full rounded-xl" />
         ))}
       </div>
-      <Skeleton className="h-12 w-32 rounded-lg" />
+      <Skeleton className="h-12 w-32 rounded-xl" />
     </>
   ),
   "p-4 lg:p-6 space-y-6 max-w-2xl mx-auto",
@@ -249,8 +249,8 @@ export const GenericSkeleton = makeSkeleton(
       <Skeleton className="h-8 w-48" />
       <Skeleton className="h-4 w-96 max-w-full" />
       <div className="space-y-4 pt-4">
-        <Skeleton className="h-40 w-full rounded-lg" />
-        <Skeleton className="h-40 w-full rounded-lg" />
+        <Skeleton className="h-40 w-full rounded-xl" />
+        <Skeleton className="h-40 w-full rounded-xl" />
       </div>
     </>
   ),

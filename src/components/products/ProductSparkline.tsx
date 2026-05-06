@@ -198,7 +198,7 @@ export function ProductSparkline({ productId, className }: ProductSparklineProps
             marginBottom: 6,
           }}
         >
-          <div className="bg-popover/95 backdrop-blur-md border border-border/60 rounded-lg shadow-2xl shadow-black/20 overflow-hidden min-w-[220px]">
+          <div className="bg-popover/95 backdrop-blur-md border border-border/60 rounded-xl shadow-2xl shadow-black/20 overflow-hidden min-w-[220px]">
             {/* Header with day info */}
             <div className="px-3 py-2 bg-gradient-to-r from-muted/80 to-transparent border-b border-border/40">
               <div className="flex items-center justify-between">

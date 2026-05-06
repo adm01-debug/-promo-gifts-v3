@@ -20,7 +20,7 @@ export function ProductCardSkeleton({
   const baseClass = "";
 
   return (
-    <div className={cn("rounded-lg bg-card border border-border/40 overflow-hidden shadow-sm", baseClass)}>
+    <div className={cn("rounded-xl bg-card border border-border/40 overflow-hidden shadow-sm", baseClass)}>
       {/* Image skeleton - matches aspect-[4/5] */}
       <div className="relative aspect-[4/5] bg-muted/40">
         {/* Shimmer overlay */}
@@ -125,9 +125,9 @@ export function ProductGridSkeleton({
 // Inline skeleton for loading states in smaller contexts
 export function ProductCardInlineSkeleton() {
   return (
-    <div className="flex items-center gap-3 p-3 rounded-lg bg-card border border-border/40 relative overflow-hidden">
+    <div className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border/40 relative overflow-hidden">
       <div className="absolute inset-0 bg-shimmer animate-shimmer pointer-events-none" />
-      <Skeleton className="h-16 w-16 rounded-lg shrink-0 bg-muted/40" />
+      <Skeleton className="h-16 w-16 rounded-xl shrink-0 bg-muted/40" />
       <div className="flex-1 space-y-2">
         <Skeleton className="h-4 w-3/4 opacity-80" />
         <Skeleton className="h-3 w-1/2 opacity-50" />

@@ -199,7 +199,7 @@ export default function SellerDiscountLimitsAdminPage() {
         {/* Header */}
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="p-3 rounded-lg bg-primary/10">
+            <div className="p-3 rounded-xl bg-primary/10">
               <Percent className="h-8 w-8 text-primary" />
             </div>
             <div>

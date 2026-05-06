@@ -134,10 +134,10 @@ export function ConversionFunnel({ days }: ConversionFunnelProps) {
                     </div>
                   )}
                   <div
-                    className={`h-12 rounded-lg flex items-center px-3 transition-all ${stage.bgClass}`}
+                    className={`h-12 rounded-xl flex items-center px-3 transition-all ${stage.bgClass}`}
                     style={{ width: `${widthPercent}%`, minWidth: "180px" }}
                   >
-                    <div className={`p-1.5 rounded-lg mr-3 ${stage.bgSoftClass}`}>
+                    <div className={`p-1.5 rounded-xl mr-3 ${stage.bgSoftClass}`}>
                       <Icon className={`h-4 w-4 ${stage.iconClass}`} />
                     </div>
                     <div className="flex-1">

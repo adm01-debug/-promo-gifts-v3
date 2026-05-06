@@ -102,10 +102,10 @@ export function QuoteBuilderSummaryColumn({
   return (
     <div className="lg:col-span-4">
       <div className="sticky top-24">
-        <div className="flex flex-col rounded-lg border border-border/50 bg-card shadow-xl overflow-hidden">
+        <div className="flex flex-col rounded-xl border border-border/50 bg-card shadow-xl overflow-hidden">
           {/* Header */}
           <div className="flex items-center gap-2 p-4 pb-3 shrink-0">
-            <div className="p-2 rounded-lg bg-primary/10">
+            <div className="p-2 rounded-xl bg-primary/10">
               <ShoppingCart className="h-4 w-4 text-primary" />
             </div>
             <h3 className="font-display font-semibold text-base">Resumo (Apresentado)</h3>
@@ -118,7 +118,7 @@ export function QuoteBuilderSummaryColumn({
                 type="button"
                 onClick={() => setShowOnlyStale((v) => !v)}
                 className={cn(
-                  "inline-flex items-center gap-1.5 rounded-lg border-[1.5px] px-2.5 py-1 text-xs font-medium transition-all",
+                  "inline-flex items-center gap-1.5 rounded-xl border-[1.5px] px-2.5 py-1 text-xs font-medium transition-all",
                   showOnlyStale
                     ? "border-warning bg-warning/15 text-warning shadow-sm"
                     : "border-warning/40 bg-warning/5 text-warning hover:bg-warning/10",
@@ -156,7 +156,7 @@ export function QuoteBuilderSummaryColumn({
           <div className="flex-1 min-h-0 px-4 overflow-y-auto max-h-[50vh]">
             <div className="space-y-3 pr-1">
               {items.length === 0 ? (
-                <div className="flex flex-col items-center justify-center p-8 rounded-lg border-2 border-dashed border-muted-foreground/20 bg-muted/5 group hover:border-primary/30 transition-all duration-300">
+                <div className="flex flex-col items-center justify-center p-8 rounded-xl border-2 border-dashed border-muted-foreground/20 bg-muted/5 group hover:border-primary/30 transition-all duration-300">
                   <div className="p-3 rounded-full bg-muted/30 mb-3 group-hover:bg-primary/10 transition-colors">
                     <Package className="h-6 w-6 text-muted-foreground/40 group-hover:text-primary/50" />
                   </div>
@@ -164,7 +164,7 @@ export function QuoteBuilderSummaryColumn({
                   <p className="text-[11px] text-muted-foreground/60 mt-1 max-w-[150px] text-center">Busque produtos na coluna ao lado para começar</p>
                 </div>
               ) : visibleItems.length === 0 ? (
-                <div className="flex flex-col items-center justify-center p-6 rounded-lg border-2 border-dashed border-warning/30 bg-warning/[0.03]">
+                <div className="flex flex-col items-center justify-center p-6 rounded-xl border-2 border-dashed border-warning/30 bg-warning/[0.03]">
                   <CheckCircle2 className="h-6 w-6 text-warning mb-2" />
                   <p className="text-sm font-medium text-warning">Preços Confirmados</p>
                   <button
@@ -184,7 +184,7 @@ export function QuoteBuilderSummaryColumn({
                   <div
                     key={idx}
                     className={cn(
-                      "rounded-lg border transition-all cursor-pointer",
+                      "rounded-xl border transition-all cursor-pointer",
                       isActive ? "border-primary/50 bg-primary/5 ring-1 ring-primary/20" : "border-border/60 bg-muted/30 hover:border-border",
                       isStale && !isActive && "border-warning/40 bg-warning/[0.04]",
                       isStale && isActive && "ring-warning/30"
@@ -195,9 +195,9 @@ export function QuoteBuilderSummaryColumn({
                       <div className="flex items-start gap-3">
                         <div className="shrink-0">
                           {item.product_image_url ? (
-                            <img src={item.product_image_url} alt={item.product_name} className="w-12 h-12 object-cover rounded-lg bg-muted" loading="lazy" />
+                            <img src={item.product_image_url} alt={item.product_name} className="w-12 h-12 object-cover rounded-xl bg-muted" loading="lazy" />
                           ) : (
-                            <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center">
+                            <div className="w-12 h-12 bg-muted rounded-xl flex items-center justify-center">
                               <Package className="h-5 w-5 text-muted-foreground" />
                             </div>
                           )}
@@ -278,7 +278,7 @@ export function QuoteBuilderSummaryColumn({
                         </div>
                         <div className="space-y-1">
                           {item.personalizations.map((p, pIdx) => (
-                            <div key={pIdx} className="flex items-center justify-between gap-1 px-2 py-1 rounded-lg border border-border/40 bg-card text-xs">
+                            <div key={pIdx} className="flex items-center justify-between gap-1 px-2 py-1 rounded-xl border border-border/40 bg-card text-xs">
                               <div className="flex items-center gap-1.5 min-w-0 flex-1">
                                 <Badge variant="secondary" className="text-[9px] px-1 py-0 h-4 shrink-0 font-bold">{pIdx + 1}</Badge>
                                 <div className="min-w-0">
@@ -306,7 +306,7 @@ export function QuoteBuilderSummaryColumn({
           <div className="px-4 pt-3 space-y-2.5">
               {maxDiscountPercent != null && (
                 <div className={cn(
-                  "flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs transition-colors",
+                  "flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-xs transition-colors",
                   isDiscountExceeded ? "bg-amber-500/10 border border-amber-500/30" : "bg-muted/50"
                 )}>
                   <Shield className={cn("h-3.5 w-3.5 shrink-0", isDiscountExceeded ? "text-amber-500" : "text-muted-foreground")} />
@@ -341,7 +341,7 @@ export function QuoteBuilderSummaryColumn({
                 />
               </div>
               {isDiscountExceeded && (
-                <div className="flex items-start gap-2 rounded-lg bg-amber-500/10 border border-amber-500/30 px-3 py-2">
+                <div className="flex items-start gap-2 rounded-xl bg-amber-500/10 border border-amber-500/30 px-3 py-2">
                   <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
                   <div>
                     <p className="text-xs text-amber-600 font-semibold">Desconto acima do autorizado</p>
@@ -389,7 +389,7 @@ export function QuoteBuilderSummaryColumn({
             </div>
 
             {!isFormValid && (
-              <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 space-y-1">
+              <div className="rounded-xl border border-destructive/30 bg-destructive/5 px-3 py-2 space-y-1">
                 <p className="text-xs font-semibold text-destructive flex items-center gap-1">
                   <AlertTriangle className="h-3 w-3" /> Campos obrigatórios pendentes:
                 </p>
@@ -444,7 +444,7 @@ export function QuoteBuilderSummaryColumn({
           </DialogHeader>
           <div className="space-y-4 py-2">
             {/* Visual comparison */}
-            <div className="rounded-lg bg-muted/50 border border-border/40 p-3 space-y-2">
+            <div className="rounded-xl bg-muted/50 border border-border/40 p-3 space-y-2">
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div>
                   <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Seu Limite</p>

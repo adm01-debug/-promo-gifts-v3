@@ -88,7 +88,7 @@ export default function BusinessIntelligencePage() {
         {/* Header compacto */}
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-lg bg-gradient-to-br from-violet-600 to-fuchsia-700 flex items-center justify-center shadow-lg shadow-primary/25">
+            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-violet-600 to-fuchsia-700 flex items-center justify-center shadow-lg shadow-primary/25">
               <Brain className="h-5 w-5 text-primary-foreground" />
             </div>
             <div>

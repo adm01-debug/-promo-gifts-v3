@@ -607,7 +607,7 @@ export default function FavoritesPage() {
                             data-product-id={product.id}
                             data-product-name={product.name}
                             className={cn(
-                              "animate-fade-in relative rounded-lg transition-all",
+                              "animate-fade-in relative rounded-xl transition-all",
                               selectionMode && "cursor-pointer",
                               isSelected && "ring-2 ring-primary ring-offset-2 ring-offset-background"
                             )}
@@ -681,7 +681,7 @@ export default function FavoritesPage() {
                     </div>
                   )
                 ) : productsWithVariant.length > 0 && searchQuery ? (
-                  <div className="text-center py-12 bg-muted/20 rounded-lg border-[1.5px] border-dashed border-primary/10">
+                  <div className="text-center py-12 bg-muted/20 rounded-xl border-[1.5px] border-dashed border-primary/10">
                     <Search className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
                     <h3 className="font-display text-lg font-semibold text-foreground mb-1">
                       Nenhum favorito encontrado

@@ -164,12 +164,12 @@ html[data-scroll-locked] body {
     --ring: 24 100% 50%;
 
     /* 8. Radius Tokens */
-    --radius-xs: 0.25rem;
-    --radius-sm: 0.5rem;
-    --radius-md: 0.75rem;
-    --radius-lg: 1rem;
-    --radius-xl: 1.25rem;
-    --radius-2xl: 1.5rem;
+    --radius-xs: 0.375rem;
+    --radius-sm: 0.75rem;
+    --radius-md: 1rem;
+    --radius-lg: 1.25rem;
+    --radius-xl: 1.5rem;
+    --radius-2xl: 2rem;
     --radius-full: 9999px;
     --radius: var(--radius-sm);
 
@@ -1527,12 +1527,12 @@ html[data-scroll-locked] body {
 
   /* Card Variants */
   .card-base {
-    @apply rounded-lg border border-border bg-card p-[var(--spacing-card)] transition-all duration-200;
+    @apply rounded-xl border border-border bg-card p-[var(--spacing-card)] transition-all duration-200;
     box-shadow: var(--shadow-sm);
   }
 
   .card-elevated {
-    @apply rounded-lg border border-border p-[var(--spacing-card)] transition-all duration-200;
+    @apply rounded-xl border border-border p-[var(--spacing-card)] transition-all duration-200;
     background: hsl(var(--card-elevated));
     box-shadow: var(--shadow-md);
   }
@@ -1542,7 +1542,7 @@ html[data-scroll-locked] body {
   }
 
   .card-interactive {
-    @apply relative cursor-pointer overflow-hidden rounded-lg border-[1.5px] border-primary/15 bg-card p-[var(--spacing-card)] transition-all duration-300 hover:border-primary/45 hover:shadow-lg;
+    @apply relative cursor-pointer overflow-hidden rounded-xl border-[1.5px] border-primary/15 bg-card p-[var(--spacing-card)] transition-all duration-300 hover:border-primary/45 hover:shadow-lg;
   }
 
   .card-interactive::before {
@@ -1575,13 +1575,13 @@ html[data-scroll-locked] body {
   }
 
   .glass-card {
-    @apply rounded-lg border p-[var(--spacing-card)] backdrop-blur-md transition-all duration-200;
+    @apply rounded-xl border p-[var(--spacing-card)] backdrop-blur-md transition-all duration-200;
     background: hsl(var(--glass-bg));
     border-color: hsl(var(--glass-border));
   }
 
   .stat-card {
-    @apply rounded-lg border-[1.5px] border-primary/15 bg-card p-[var(--spacing-card-sm)] transition-all duration-200 hover:border-primary/40 hover:shadow-sm;
+    @apply rounded-xl border-[1.5px] border-primary/15 bg-card p-[var(--spacing-card-sm)] transition-all duration-200 hover:border-primary/40 hover:shadow-sm;
   }
 
   .card-subtle {
@@ -1655,7 +1655,7 @@ html[data-scroll-locked] body {
 
   /* Search Bar */
   .search-bar {
-    @apply flex items-center gap-3 rounded-lg border border-border bg-secondary/50 px-4 py-3 transition-all duration-200 focus-within:border-primary focus-within:bg-card;
+    @apply flex items-center gap-3 rounded-xl border border-border bg-secondary/50 px-4 py-3 transition-all duration-200 focus-within:border-primary focus-within:bg-card;
     box-shadow: var(--shadow-xs);
   }
 
@@ -1698,7 +1698,7 @@ html[data-scroll-locked] body {
 
   /* Quick Filter Chips */
   .quick-filter-chip {
-    @apply inline-flex cursor-pointer items-center gap-2 rounded-lg border border-border bg-card px-4 py-2.5 text-sm font-medium shadow-sm transition-all duration-200;
+    @apply inline-flex cursor-pointer items-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-medium shadow-sm transition-all duration-200;
   }
 
   .quick-filter-chip:hover {

@@ -180,11 +180,11 @@ export function StockDashboard() {
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {[1, 2, 3, 4, 5].map(i => (
-            <Skeleton key={i} className="h-28 rounded-lg" />
+            <Skeleton key={i} className="h-28 rounded-xl" />
           ))}
         </div>
-        <Skeleton className="h-12 rounded-lg" />
-        <Skeleton className="h-96 rounded-lg" />
+        <Skeleton className="h-12 rounded-xl" />
+        <Skeleton className="h-96 rounded-xl" />
       </div>
     );
   }
@@ -203,7 +203,7 @@ export function StockDashboard() {
       {/* Header with Health Score */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-card/60 border border-border/40 p-4 rounded-2xl shadow-sm">
         <div className="flex items-center gap-4">
-          <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary shadow-inner">
+          <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary shadow-inner">
             <Package className="h-6 w-6" />
           </div>
           <div>
@@ -313,15 +313,14 @@ export function StockDashboard() {
           <span className="text-sm text-muted-foreground">Filtro ativo:</span>
           <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 border border-primary/20 px-3 py-1 text-sm font-medium text-primary">
             {activeFilterLabel}
-            <Button
-              variant="ghost"
-              size="icon"
+            <button
+              type="button"
               onClick={() => updateFilter('status', 'all')}
-              className="ml-0.5 h-5 w-5 rounded-full p-0.5 hover:bg-primary/20 transition-colors"
+              className="ml-0.5 rounded-full p-0.5 hover:bg-primary/20 transition-colors"
               aria-label="Remover filtro"
             >
               <X className="h-3.5 w-3.5" />
-            </Button>
+            </button>
           </span>
           <span className="text-[11px] text-muted-foreground">
             ({productStocks.length} de {allProductStocks.length} produtos)
@@ -408,16 +407,15 @@ export function StockDashboard() {
 
       {/* Collapsible Risk Panel */}
       <div className="space-y-0">
-        <Button
-          variant="ghost"
-          size="sm"
+        <button
+          type="button"
           onClick={() => setRiskPanelOpen(prev => !prev)}
-          className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors mb-2 h-auto p-0"
+          className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors mb-2"
         >
           {riskPanelOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
           <BarChart3 className="h-4 w-4" />
           Painel de Risco do Fornecedor
-        </Button>
+        </button>
         {riskPanelOpen && <SupplierRiskPanel products={allProductStocks} />}
       </div>
 

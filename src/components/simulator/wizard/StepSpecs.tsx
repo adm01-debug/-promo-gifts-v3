@@ -102,7 +102,7 @@ export function StepSpecs({ wizard }: StepSpecsProps) {
     <div className="max-w-5xl mx-auto space-y-8">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <div className="p-3 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5">
+        <div className="p-3 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5">
           <SlidersHorizontal className="h-6 w-6 text-primary" />
         </div>
         <div>
@@ -127,7 +127,7 @@ export function StepSpecs({ wizard }: StepSpecsProps) {
           >
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-primary/10">
+                <div className="p-2 rounded-xl bg-primary/10">
                   <Palette className="h-5 w-5 text-primary" />
                 </div>
                 <h4 className="font-bold text-lg">Nº de Cores</h4>
@@ -143,7 +143,7 @@ export function StepSpecs({ wizard }: StepSpecsProps) {
                   size="sm"
                   onClick={() => wizard.updateSpecs({ colors: num })}
                   className={cn(
-                    'h-12 px-5 rounded-lg text-sm font-bold',
+                    'h-12 px-5 rounded-xl text-sm font-bold',
                     engravingSpecs.colors === num && 'shadow-lg shadow-primary/20'
                   )}
                 >
@@ -169,7 +169,7 @@ export function StepSpecs({ wizard }: StepSpecsProps) {
             className="p-6 rounded-3xl bg-card border shadow-sm"
           >
             <div className="flex items-center gap-3 mb-3">
-              <div className="p-2 rounded-lg bg-primary/10">
+              <div className="p-2 rounded-xl bg-primary/10">
                 <Palette className="h-5 w-5 text-primary" />
               </div>
               <h4 className="font-bold text-lg">Cores</h4>
@@ -194,7 +194,7 @@ export function StepSpecs({ wizard }: StepSpecsProps) {
           >
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-primary/10">
+                <div className="p-2 rounded-xl bg-primary/10">
                   <Ruler className="h-5 w-5 text-primary" />
                 </div>
                 <h4 className="font-bold text-lg">Tamanho</h4>
@@ -210,7 +210,7 @@ export function StepSpecs({ wizard }: StepSpecsProps) {
                   <Button
                     variant="outline"
                     size="icon"
-                    className="h-7 w-7 rounded-lg"
+                    className="h-7 w-7 rounded-xl"
                     onClick={() => wizard.updateSpecs({ width: Math.max(0.5, engravingSpecs.width - 0.5) })}
                     disabled={engravingSpecs.width <= 0.5}
                     aria-label="Diminuir largura"
@@ -227,12 +227,12 @@ export function StepSpecs({ wizard }: StepSpecsProps) {
                     min={0.5}
                     max={maxWidth}
                     step={0.5}
-                    className="w-20 h-7 text-center text-sm font-bold rounded-lg"
+                    className="w-20 h-7 text-center text-sm font-bold rounded-xl"
                   />
                   <Button
                     variant="outline"
                     size="icon"
-                    className="h-7 w-7 rounded-lg"
+                    className="h-7 w-7 rounded-xl"
                     onClick={() => wizard.updateSpecs({ width: Math.min(maxWidth, engravingSpecs.width + 0.5) })}
                     disabled={engravingSpecs.width >= maxWidth}
                     aria-label="Aumentar largura"
@@ -260,7 +260,7 @@ export function StepSpecs({ wizard }: StepSpecsProps) {
                   <Button
                     variant="outline"
                     size="icon"
-                    className="h-7 w-7 rounded-lg"
+                    className="h-7 w-7 rounded-xl"
                     onClick={() => wizard.updateSpecs({ height: Math.max(0.5, engravingSpecs.height - 0.5) })}
                     disabled={engravingSpecs.height <= 0.5}
                     aria-label="Diminuir altura"
@@ -277,12 +277,12 @@ export function StepSpecs({ wizard }: StepSpecsProps) {
                     min={0.5}
                     max={maxHeight}
                     step={0.5}
-                    className="w-20 h-7 text-center text-sm font-bold rounded-lg"
+                    className="w-20 h-7 text-center text-sm font-bold rounded-xl"
                   />
                   <Button
                     variant="outline"
                     size="icon"
-                    className="h-7 w-7 rounded-lg"
+                    className="h-7 w-7 rounded-xl"
                     onClick={() => wizard.updateSpecs({ height: Math.min(maxHeight, engravingSpecs.height + 0.5) })}
                     disabled={engravingSpecs.height >= maxHeight}
                     aria-label="Aumentar altura"
@@ -315,7 +315,7 @@ export function StepSpecs({ wizard }: StepSpecsProps) {
 
             {/* Area */}
             <div className={cn(
-              'p-4 rounded-lg border transition-colors',
+              'p-4 rounded-xl border transition-colors',
               areaExceeded ? 'bg-warning/10 border-warning' : 'bg-muted/50'
             )}>
               <div className="flex items-center justify-between">
@@ -339,7 +339,7 @@ export function StepSpecs({ wizard }: StepSpecsProps) {
 
       {/* Compatibility info */}
       {compatibleCount < techniques.length && (
-        <div className="flex items-center gap-2 p-3 rounded-lg bg-warning/10 border border-warning/20 text-sm text-warning-foreground">
+        <div className="flex items-center gap-2 p-3 rounded-xl bg-warning/10 border border-warning/20 text-sm text-warning-foreground">
           <AlertTriangle className="h-4 w-4 shrink-0" />
           <span>
             Com {engravingSpecs.colors} {engravingSpecs.colors === 1 ? 'cor' : 'cores'}, apenas {compatibleCount} de {techniques.length} técnicas serão compatíveis.
@@ -352,11 +352,11 @@ export function StepSpecs({ wizard }: StepSpecsProps) {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="p-4 rounded-lg bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20"
+          className="p-4 rounded-xl bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20"
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary/10">
+              <div className="p-2 rounded-xl bg-primary/10">
                 <DollarSign className="h-4 w-4 text-primary" />
               </div>
               <div>
@@ -395,7 +395,7 @@ export function StepSpecs({ wizard }: StepSpecsProps) {
                 Ver detalhamento do cálculo
               </CollapsibleTrigger>
               <CollapsibleContent className="mt-3">
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2 p-3 rounded-lg bg-background/60 border border-border/60 text-xs">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2 p-3 rounded-xl bg-background/60 border border-border/60 text-xs">
                   <div>
                     <p className="text-muted-foreground">Área</p>
                     <p className="font-semibold truncate" title={estimate.breakdown.areaName}>
@@ -507,7 +507,7 @@ export function StepSpecs({ wizard }: StepSpecsProps) {
             disabled={wizard.isCalculating || areaExceeded}
             onClick={handleCompare}
             size="lg"
-            className="gap-3 min-w-[220px] h-14 rounded-lg shadow-lg shadow-primary/25 text-base"
+            className="gap-3 min-w-[220px] h-14 rounded-xl shadow-lg shadow-primary/25 text-base"
           >
             {wizard.isCalculating ? (
               <>

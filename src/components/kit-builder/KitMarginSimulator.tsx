@@ -56,24 +56,24 @@ export function KitMarginSimulator({ unitPrice, totalPrice, kitQuantity }: KitMa
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <div className="rounded-lg bg-secondary/50 p-3 text-center">
+          <div className="rounded-xl bg-secondary/50 p-3 text-center">
             <p className="text-[11px] text-muted-foreground mb-1">Venda/Kit</p>
             <p className="text-xl font-bold text-foreground">{formatCurrency(sellPerKit)}</p>
           </div>
-          <div className="rounded-lg bg-secondary/50 p-3 text-center">
+          <div className="rounded-xl bg-secondary/50 p-3 text-center">
             <p className="text-[11px] text-muted-foreground mb-1">Venda Total ({kitQuantity}x)</p>
             <p className="text-xl font-bold text-foreground">{formatCurrency(sellTotal)}</p>
           </div>
-          <div className="rounded-lg bg-primary/10 p-3 text-center">
+          <div className="rounded-xl bg-primary/10 p-3 text-center">
             <p className="text-[11px] text-muted-foreground mb-1">Lucro/Kit</p>
             <p className="text-xl font-bold text-primary">{formatCurrency(profitPerKit)}</p>
           </div>
-          <div className="rounded-lg bg-primary/10 p-3 text-center">
+          <div className="rounded-xl bg-primary/10 p-3 text-center">
             <p className="text-[11px] text-muted-foreground mb-1">Lucro Total</p>
             <p className="text-xl font-bold text-primary">{formatCurrency(profitTotal)}</p>
           </div>
         </div>
-        <div className="flex items-center justify-between text-sm bg-muted/50 rounded-lg p-3">
+        <div className="flex items-center justify-between text-sm bg-muted/50 rounded-xl p-3">
           <span className="text-muted-foreground">Margem Líquida</span>
           <span className={cn("font-bold text-lg", marginPercent >= 20 ? "text-primary" : "text-destructive")}>
             {marginPercent.toFixed(1)}%

@@ -183,7 +183,7 @@ export function PresentationMode({ slides, title, subtitle, brandName, onClose }
             <button
               onClick={() => goTo(0)}
               className={cn(
-                "aspect-video rounded-lg border-2 overflow-hidden transition-all hover:scale-105",
+                "aspect-video rounded-xl border-2 overflow-hidden transition-all hover:scale-105",
                 current === 0 ? "border-primary ring-2 ring-primary/50" : "border-white/20"
               )}
             >
@@ -197,7 +197,7 @@ export function PresentationMode({ slides, title, subtitle, brandName, onClose }
                 key={s.id}
                 onClick={() => goTo(i + 1)}
                 className={cn(
-                  "aspect-video rounded-lg border-2 overflow-hidden transition-all hover:scale-105 relative",
+                  "aspect-video rounded-xl border-2 overflow-hidden transition-all hover:scale-105 relative",
                   current === i + 1 ? "border-primary ring-2 ring-primary/50" : "border-white/20"
                 )}
               >
@@ -276,9 +276,9 @@ export function PresentationMode({ slides, title, subtitle, brandName, onClose }
                     <img
                       src={slide.imageUrl}
                       alt={slide.title}
-                      className="max-w-full max-h-[65vh] object-contain rounded-lg shadow-2xl" loading="lazy" />
+                      className="max-w-full max-h-[65vh] object-contain rounded-xl shadow-2xl" loading="lazy" />
                   ) : (
-                    <div className="w-80 h-80 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center">
+                    <div className="w-80 h-80 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center">
                       <span className="text-white/20 text-lg">Sem imagem</span>
                     </div>
                   )}

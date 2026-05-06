@@ -20,7 +20,7 @@ export function Skeleton({ className, animate = true }: SkeletonProps) {
   return (
     <div 
       className={cn(
-        "relative overflow-hidden rounded-lg bg-muted",
+        "relative overflow-hidden rounded-xl bg-muted",
         className
       )}
     >
@@ -38,7 +38,7 @@ export function Skeleton({ className, animate = true }: SkeletonProps) {
 
 export function ProductCardSkeleton() {
   return (
-    <div className="group relative flex flex-col rounded-lg border border-border bg-card overflow-hidden">
+    <div className="group relative flex flex-col rounded-xl border border-border bg-card overflow-hidden">
       {/* Image */}
       <Skeleton className="aspect-square w-full" />
       
@@ -76,7 +76,7 @@ export function ProductGridSkeleton({ count = 8 }: { count?: number }) {
 
 export function QuoteCardSkeleton() {
   return (
-    <div className="rounded-lg border border-border bg-card p-4 space-y-4">
+    <div className="rounded-xl border border-border bg-card p-4 space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <Skeleton className="h-5 w-24" />
@@ -92,14 +92,14 @@ export function QuoteCardSkeleton() {
       {/* Items preview */}
       <div className="flex gap-2">
         {[1, 2, 3].map((i) => (
-          <Skeleton key={i} className="h-12 w-12 rounded-lg" />
+          <Skeleton key={i} className="h-12 w-12 rounded-xl" />
         ))}
       </div>
       
       {/* Footer */}
       <div className="flex items-center justify-between pt-2 border-t border-border">
         <Skeleton className="h-6 w-24" />
-        <Skeleton className="h-8 w-20 rounded-lg" />
+        <Skeleton className="h-8 w-20 rounded-xl" />
       </div>
     </div>
   );
@@ -129,7 +129,7 @@ export function TableRowSkeleton({ columns = 5 }: { columns?: number }) {
 
 export function TableSkeleton({ rows = 5, columns = 5 }: { rows?: number; columns?: number }) {
   return (
-    <div className="rounded-lg border border-border overflow-hidden">
+    <div className="rounded-xl border border-border overflow-hidden">
       <table className="w-full">
         <thead className="bg-muted/50">
           <tr>
@@ -152,10 +152,10 @@ export function TableSkeleton({ rows = 5, columns = 5 }: { rows?: number; column
 
 export function StatCardSkeleton() {
   return (
-    <div className="rounded-lg border border-border bg-card p-4 space-y-3">
+    <div className="rounded-xl border border-border bg-card p-4 space-y-3">
       <div className="flex items-center justify-between">
         <Skeleton className="h-4 w-24" />
-        <Skeleton className="h-8 w-8 rounded-lg" />
+        <Skeleton className="h-8 w-8 rounded-xl" />
       </div>
       <Skeleton className="h-8 w-20" />
       <Skeleton className="h-3 w-32" />
@@ -175,7 +175,7 @@ export function StatsGridSkeleton({ count = 4 }: { count?: number }) {
 
 export function ClientCardSkeleton() {
   return (
-    <div className="rounded-lg border border-border bg-card p-4 space-y-4">
+    <div className="rounded-xl border border-border bg-card p-4 space-y-4">
       {/* Avatar and name */}
       <div className="flex items-center gap-3">
         <Skeleton className="h-12 w-12 rounded-full" />
@@ -231,18 +231,18 @@ export function DashboardSkeleton() {
       
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="rounded-lg border border-border bg-card p-4">
+        <div className="rounded-xl border border-border bg-card p-4">
           <Skeleton className="h-6 w-40 mb-4" />
-          <Skeleton className="h-64 w-full rounded-lg" />
+          <Skeleton className="h-64 w-full rounded-xl" />
         </div>
-        <div className="rounded-lg border border-border bg-card p-4">
+        <div className="rounded-xl border border-border bg-card p-4">
           <Skeleton className="h-6 w-40 mb-4" />
-          <Skeleton className="h-64 w-full rounded-lg" />
+          <Skeleton className="h-64 w-full rounded-xl" />
         </div>
       </div>
       
       {/* Recent activity */}
-      <div className="rounded-lg border border-border bg-card p-4">
+      <div className="rounded-xl border border-border bg-card p-4">
         <Skeleton className="h-6 w-48 mb-4" />
         <TableSkeleton rows={4} columns={5} />
       </div>

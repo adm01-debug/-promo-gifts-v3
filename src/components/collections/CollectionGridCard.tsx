@@ -99,7 +99,7 @@ export function CollectionGridCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.035, type: "spring", stiffness: 380, damping: 28 }}
       className={cn(
-        "group relative rounded-lg overflow-hidden cursor-pointer bg-card shadow-sm transition-all duration-500",
+        "group relative rounded-xl overflow-hidden cursor-pointer bg-card shadow-sm transition-all duration-500",
         "border-[1.5px] border-border/40 hover:border-primary/40",
         isSelected && "border-primary ring-2 ring-primary/25 shadow-lg shadow-primary/10"
       )}
@@ -123,7 +123,7 @@ export function CollectionGridCard({
               variant="ghost"
               size="icon"
               aria-label="Mais opções"
-              className="h-8 w-8 rounded-lg sm:opacity-0 sm:group-hover:opacity-100 transition-opacity bg-background/95 hover:bg-background shadow-sm border border-border/30"
+              className="h-8 w-8 rounded-xl sm:opacity-0 sm:group-hover:opacity-100 transition-opacity bg-background/95 hover:bg-background shadow-sm border border-border/30"
               onClick={(e) => e.stopPropagation()}
             >
               <MoreVertical className="h-3.5 w-3.5" />
@@ -164,7 +164,7 @@ export function CollectionGridCard({
           </>
         ) : (
           <div className="flex flex-col items-center justify-center h-full gap-4">
-            <div className="w-16 h-16 rounded-lg flex items-center justify-center bg-muted/15 border border-border/20">
+            <div className="w-16 h-16 rounded-xl flex items-center justify-center bg-muted/15 border border-border/20">
               <FolderOpen className="h-8 w-8 text-muted-foreground/25" />
             </div>
             <span className="text-xs text-muted-foreground/35 font-medium tracking-wide">Coleção vazia</span>
@@ -177,7 +177,7 @@ export function CollectionGridCard({
         {/* Row 1: Icon + Title + Star */}
         <div className="flex items-center gap-3">
           <div
-            className="w-11 h-11 rounded-lg flex items-center justify-center text-lg shrink-0 shadow-md"
+            className="w-11 h-11 rounded-xl flex items-center justify-center text-lg shrink-0 shadow-md"
             style={{
               backgroundColor: collection.color,
               color: "#fff",
@@ -198,7 +198,7 @@ export function CollectionGridCard({
         {/* Row 2: Meta chips */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 text-xs text-muted-foreground">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-muted/50 font-medium">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-muted/50 font-medium">
               <Package className="h-3 w-3 text-primary" />
               {productCount} {productCount === 1 ? "item" : "itens"}
             </span>
@@ -210,7 +210,7 @@ export function CollectionGridCard({
             )}
           </div>
 
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-primary text-primary-foreground opacity-0 group-hover:opacity-100 transition-all duration-200 shrink-0 shadow-sm">
+          <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-primary text-primary-foreground opacity-0 group-hover:opacity-100 transition-all duration-200 shrink-0 shadow-sm">
             <ArrowUpRight className="h-4 w-4" />
           </div>
         </div>

@@ -55,7 +55,7 @@ export function VoiceTranscriptPanel({
             exit={{ opacity: 0, y: -10 }}
             className="w-full"
           >
-            <div className="bg-white/[0.06] border border-white/[0.08] rounded-lg px-5 py-4 backdrop-blur-sm">
+            <div className="bg-white/[0.06] border border-white/[0.08] rounded-xl px-5 py-4 backdrop-blur-sm">
               <p className="text-[10px] text-white/35 uppercase tracking-[0.15em] font-medium mb-1.5">
                 {phase === "listening" ? "🎙️ Você está dizendo:" : "✅ Você disse:"}
               </p>
@@ -86,7 +86,7 @@ export function VoiceTranscriptPanel({
             exit={{ opacity: 0, scale: 0.95, y: -10 }}
             className="w-full"
           >
-            <div className="bg-white/[0.06] border border-white/[0.08] rounded-lg px-5 py-4 backdrop-blur-sm">
+            <div className="bg-white/[0.06] border border-white/[0.08] rounded-xl px-5 py-4 backdrop-blur-sm">
               <div className="flex items-start gap-3">
                 {(() => {
                   const actionType = currentAction?.action || "answer";
@@ -97,7 +97,7 @@ export function VoiceTranscriptPanel({
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
                       transition={{ type: "spring", damping: 10, stiffness: 200 }}
-                      className="h-8 w-8 rounded-lg bg-white/[0.08] border border-white/[0.1] flex items-center justify-center shrink-0 mt-0.5"
+                      className="h-8 w-8 rounded-xl bg-white/[0.08] border border-white/[0.1] flex items-center justify-center shrink-0 mt-0.5"
                     >
                       <Icon className={`h-4 w-4 ${actionMeta.color}`} />
                     </motion.div>
@@ -131,7 +131,7 @@ export function VoiceTranscriptPanel({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="w-full bg-destructive/10 border border-destructive/20 rounded-lg px-5 py-4"
+            className="w-full bg-destructive/10 border border-destructive/20 rounded-xl px-5 py-4"
           >
             <div className="flex items-start gap-3">
               <div className="h-7 w-7 rounded-full bg-destructive/20 flex items-center justify-center shrink-0 mt-0.5">

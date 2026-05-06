@@ -31,11 +31,11 @@ export function ExternalCollectionCard({
         initial={{ opacity: 0, x: -10 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: index * 0.03 }}
-        className="group flex items-center gap-4 p-3 rounded-lg bg-card border border-border/50 hover:border-primary/40 hover:shadow-md cursor-pointer transition-all duration-200"
+        className="group flex items-center gap-4 p-3 rounded-xl bg-card border border-border/50 hover:border-primary/40 hover:shadow-md cursor-pointer transition-all duration-200"
         onClick={onNavigate}
       >
         <div
-          className="w-12 h-12 rounded-lg flex items-center justify-center text-lg shrink-0 overflow-hidden"
+          className="w-12 h-12 rounded-xl flex items-center justify-center text-lg shrink-0 overflow-hidden"
           style={{ backgroundColor: collection.color ? `${collection.color}20` : "hsl(var(--muted))" }}
         >
           {collection.image_url ? (
@@ -75,7 +75,7 @@ export function ExternalCollectionCard({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05, type: "spring", stiffness: 400, damping: 25 }}
-      className="group relative rounded-lg bg-card overflow-hidden cursor-pointer border-[1.5px] border-border/40 hover:border-primary/40 shadow-sm transition-all duration-500"
+      className="group relative rounded-xl bg-card overflow-hidden cursor-pointer border-[1.5px] border-border/40 hover:border-primary/40 shadow-sm transition-all duration-500"
       onClick={onNavigate}
     >
       <div
@@ -105,7 +105,7 @@ export function ExternalCollectionCard({
       <div className="p-4 space-y-3">
         <div className="flex items-center gap-3">
           <div
-            className="w-11 h-11 rounded-lg flex items-center justify-center text-lg shrink-0 shadow-md"
+            className="w-11 h-11 rounded-xl flex items-center justify-center text-lg shrink-0 shadow-md"
             style={{
               backgroundColor: collection.color || "hsl(var(--primary))",
               color: "#fff",
@@ -129,7 +129,7 @@ export function ExternalCollectionCard({
         </div>
 
         <div className="flex items-center justify-between">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-muted/50 text-xs text-muted-foreground font-medium">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-muted/50 text-xs text-muted-foreground font-medium">
             <Package className="h-3 w-3 text-primary" />
             {productCount ?? "…"} produtos
           </span>

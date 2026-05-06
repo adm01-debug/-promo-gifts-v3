@@ -57,7 +57,7 @@ export function ImageGrid({
             onDragEnd={handleDragEnd}
             onClick={bulkMode ? () => toggleSelect(img) : undefined}
             className={cn(
-              'relative group rounded-lg border-2 overflow-hidden aspect-square transition-all',
+              'relative group rounded-xl border-2 overflow-hidden aspect-square transition-all',
               isFirst && !bulkMode ? 'border-primary ring-1 ring-primary/30' : 'border-border/60',
               dragIndex === globalIndex && 'opacity-50 scale-95',
               dragOverIndex === globalIndex && dragIndex !== globalIndex && 'border-primary border-dashed',

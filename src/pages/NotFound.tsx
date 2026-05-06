@@ -17,7 +17,7 @@ const NotFound = () => {
       <div className="text-center max-w-md mx-auto space-y-8">
         {/* Branding */}
         <div className="flex flex-col items-center gap-3">
-          <div className="h-14 w-14 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
+          <div className="h-14 w-14 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
             <Gift className="h-7 w-7 text-primary" />
           </div>
           <span className="font-display text-sm font-semibold text-muted-foreground tracking-wide uppercase">

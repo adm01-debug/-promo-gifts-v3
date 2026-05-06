@@ -70,7 +70,7 @@ export function VariantGridMatrix({ variants, selectedId, onSelect, mode = "view
                 <button 
                   onClick={() => isAdmin ? toggleSelection(variant.id) : onSelect?.(variant)} 
                   className={cn(
-                    "flex items-center gap-2 px-3 py-2 rounded-lg border-2 transition-all text-sm",
+                    "flex items-center gap-2 px-3 py-2 rounded-xl border-2 transition-all text-sm",
                     isBulk ? "border-primary bg-primary/15 ring-2 ring-primary/30" : 
                     isSelected ? "border-primary bg-primary/10 ring-1 ring-primary/20" : 
                     "border-border bg-card hover:border-primary/40", 
@@ -102,7 +102,7 @@ export function VariantGridMatrix({ variants, selectedId, onSelect, mode = "view
         <Badge variant="secondary" className="text-[10px] px-1.5">{colors.length} cores × {sizes.length} tamanhos</Badge>
         {isAdmin && !selectedIds.size && <span className="text-[10px] text-muted-foreground ml-auto font-normal">Clique nas células para selecionar</span>}
       </h4>
-      <div className="overflow-x-auto rounded-lg border border-border">
+      <div className="overflow-x-auto rounded-xl border border-border">
         <table className="w-full text-xs">
           <thead><tr className="bg-muted/50">
             {isAdmin && <th className={cn("sticky left-0 z-20 bg-muted/80 backdrop-blur-sm text-center border-b border-r border-border w-8", compact ? "px-1 py-1.5" : "px-2 py-2")}>
@@ -138,7 +138,7 @@ export function VariantGridMatrix({ variants, selectedId, onSelect, mode = "view
                           <button 
                             onClick={() => isAdmin ? toggleSelection(variant.id) : onSelect?.(variant)} 
                             className={cn(
-                              "w-full min-w-[3rem] py-1.5 px-2 rounded-lg transition-all text-xs font-medium",
+                              "w-full min-w-[3rem] py-1.5 px-2 rounded-xl transition-all text-xs font-medium",
                               isBulk ? "bg-primary/20 text-primary ring-2 ring-primary/40 shadow-sm" : 
                               isItem ? "bg-primary text-primary-foreground ring-2 ring-primary/30 shadow-sm" : 
                               stock > 0 ? "bg-secondary/60 hover:bg-secondary text-foreground hover:shadow-sm" : 

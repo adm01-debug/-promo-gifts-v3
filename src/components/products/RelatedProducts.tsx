@@ -15,7 +15,7 @@ function ProductMiniCard({ product, onClick }: { product: Product; onClick: () =
   return (
     <div
       className={cn(
-        "group relative flex flex-col rounded-lg bg-card border border-border/50 overflow-hidden",
+        "group relative flex flex-col rounded-xl bg-card border border-border/50 overflow-hidden",
         "transition-all duration-300 cursor-pointer",
         "hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1"
       )}
@@ -188,7 +188,7 @@ export function RecommendedProducts({ currentProduct, allProducts, maxItems = 4 
   return (
     <section className="space-y-6">
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center shadow-lg shadow-primary/25">
+        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center shadow-lg shadow-primary/25">
           <Sparkles className="h-5 w-5 text-primary-foreground" />
         </div>
         <div>

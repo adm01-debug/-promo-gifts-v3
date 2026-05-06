@@ -27,7 +27,7 @@ export function ContactDropdown({ contacts, contactId, onContactChange, onContac
 
   return (
     <div ref={ref} className="relative">
-      <button type="button" className={cn("flex h-10 w-full items-center justify-between rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 hover:bg-accent/50 transition-colors")}
+      <button type="button" className={cn("flex h-10 w-full items-center justify-between rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 hover:bg-accent/50 transition-colors")}
         onClick={() => setOpen(!open)}>
         <div className={cn("flex items-center gap-2 min-w-0", !selected && "text-muted-foreground")}>
           {selected ? (
@@ -37,7 +37,7 @@ export function ContactDropdown({ contacts, contactId, onContactChange, onContac
         <ChevronDown className="h-4 w-4 text-muted-foreground flex-shrink-0" />
       </button>
       {open && (
-        <div className="absolute z-50 mt-1 w-full rounded-lg border border-border bg-popover shadow-lg max-h-[280px] overflow-y-auto">
+        <div className="absolute z-50 mt-1 w-full rounded-xl border border-border bg-popover shadow-lg max-h-[280px] overflow-y-auto">
           {contacts.map((contact) => (
             <button key={contact.id} type="button" className={cn("flex w-full items-center gap-3 px-3 py-2.5 text-sm hover:bg-accent/50 transition-colors text-left", contactId === contact.id && "bg-accent")}
               onClick={() => { onContactChange?.(contact.id); onContactInfoChange?.({ id: contact.id, name: contact.name, email: contact.email, phone: contact.phone, cargo: contact.cargo }); setOpen(false); }}>
@@ -64,7 +64,7 @@ export function SingleContactDisplay({ contact, contactId, onContactChange, onCo
   }, [contact.id]);
 
   return (
-    <div className="flex h-10 w-full items-center justify-between rounded-lg border border-input bg-background px-3 py-2 text-sm">
+    <div className="flex h-10 w-full items-center justify-between rounded-xl border border-input bg-background px-3 py-2 text-sm">
       <div className="flex items-center gap-2 min-w-0">
         <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 bg-primary/10 text-primary"><User className="h-3.5 w-3.5" /></div>
         <span className="truncate font-medium">{contact.name}</span>

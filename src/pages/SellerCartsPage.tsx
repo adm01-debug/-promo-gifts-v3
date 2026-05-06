@@ -124,7 +124,7 @@ function SellerCartsContent() {
         <div className="flex flex-wrap items-center gap-2">
           {s.filteredCarts.length >= 2 && <CompareCartsDialog carts={s.filteredCarts} />}
           
-          <div className="flex items-center gap-2 border border-border/40 bg-card/60 rounded-lg p-1 h-9 shadow-sm">
+          <div className="flex items-center gap-2 border border-border/40 bg-card/60 rounded-xl p-1 h-9 shadow-sm">
             <Search className="h-3.5 w-3.5 text-muted-foreground ml-2" />
             <input 
               type="text" 
@@ -137,11 +137,11 @@ function SellerCartsContent() {
 
           <div className="relative group/company">
             <Select value={s.companyFilter} onValueChange={s.setCompanyFilter}>
-              <SelectTrigger className="h-9 text-xs w-[160px] gap-2 rounded-lg border-border/40 bg-card/60 shadow-sm hover:border-primary/30 transition-all">
+              <SelectTrigger className="h-9 text-xs w-[160px] gap-2 rounded-xl border-border/40 bg-card/60 shadow-sm hover:border-primary/30 transition-all">
                 <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
                 <SelectValue placeholder="Empresa" />
               </SelectTrigger>
-              <SelectContent className="rounded-lg p-1 shadow-2xl border-border/40">
+              <SelectContent className="rounded-xl p-1 shadow-2xl border-border/40">
                 <SelectItem value="all" className="rounded-lg py-2">
                   <span className="flex items-center gap-2">
                     <Filter className="h-3.5 w-3.5 opacity-40" />
@@ -161,7 +161,7 @@ function SellerCartsContent() {
             </Select>
           </div>
 
-          <div className="relative flex items-center gap-2 border border-border/40 bg-card/60 rounded-lg p-1 h-9 shadow-sm">
+          <div className="relative flex items-center gap-2 border border-border/40 bg-card/60 rounded-xl p-1 h-9 shadow-sm">
             <Package className="h-3.5 w-3.5 text-muted-foreground ml-2" />
             <input 
               type="text" 
@@ -179,11 +179,11 @@ function SellerCartsContent() {
           </div>
 
           <Select value={s.sortBy} onValueChange={s.setSortBy}>
-            <SelectTrigger className="h-9 text-xs w-[140px] gap-2 rounded-lg border-border/40 bg-card/60 shadow-sm">
+            <SelectTrigger className="h-9 text-xs w-[140px] gap-2 rounded-xl border-border/40 bg-card/60 shadow-sm">
               <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
               <SelectValue placeholder="Ordenar" />
             </SelectTrigger>
-            <SelectContent className="rounded-lg">
+            <SelectContent className="rounded-xl">
               <SelectItem value="date-desc">Mais recentes</SelectItem>
               <SelectItem value="date-asc">Mais antigos</SelectItem>
               <SelectItem value="total-desc">Maior valor</SelectItem>
@@ -196,14 +196,14 @@ function SellerCartsContent() {
               variant="ghost" 
               onClick={s.handleClearFilters}
               size="sm" 
-              className="h-9 px-3 rounded-lg text-xs gap-1.5 hover:bg-destructive/5 hover:text-destructive"
+              className="h-9 px-3 rounded-xl text-xs gap-1.5 hover:bg-destructive/5 hover:text-destructive"
             >
               <Trash2 className="h-3.5 w-3.5" /> Limpar
             </Button>
           )}
 
           {s.canCreateCart && (
-            <Button onClick={() => s.setShowNewCart(true)} size="sm" className="gap-1.5 bg-primary hover:bg-primary/90 text-primary-foreground h-9 shadow-sm rounded-lg px-4">
+            <Button onClick={() => s.setShowNewCart(true)} size="sm" className="gap-1.5 bg-primary hover:bg-primary/90 text-primary-foreground h-9 shadow-sm rounded-xl px-4">
               <Plus className="h-4 w-4" /> Novo Carrinho
             </Button>
           )}
@@ -233,9 +233,9 @@ function SellerCartsContent() {
       {s.isLoading ? (
         <div className="grid grid-cols-1 xl:grid-cols-[1fr_340px] gap-6">
           <div className="space-y-4">
-            <div className="p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border border-border/20 rounded-lg bg-card/40 animate-pulse">
+            <div className="p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border border-border/20 rounded-xl bg-card/40 animate-pulse">
               <div className="flex items-center gap-3">
-                <Skeleton className="w-10 h-10 rounded-lg opacity-30" />
+                <Skeleton className="w-10 h-10 rounded-xl opacity-30" />
                 <div className="space-y-2">
                   <Skeleton className="h-4 w-32 opacity-20" />
                   <Skeleton className="h-3 w-48 opacity-10" />
@@ -248,8 +248,8 @@ function SellerCartsContent() {
             </div>
           </div>
           <div className="space-y-4 animate-pulse">
-            <Skeleton className="h-[400px] w-full rounded-lg opacity-20" />
-            <Skeleton className="h-[200px] w-full rounded-lg opacity-10" />
+            <Skeleton className="h-[400px] w-full rounded-xl opacity-20" />
+            <Skeleton className="h-[200px] w-full rounded-xl opacity-10" />
           </div>
         </div>
       ) : s.carts.length === 0 ? (
@@ -270,9 +270,9 @@ function SellerCartsContent() {
               <div className="flex items-center gap-4 min-w-0">
                 <div className="relative">
                   {s.activeCart.company_logo_url ? (
-                    <img src={s.activeCart.company_logo_url} alt="" className="w-12 h-12 rounded-lg object-contain bg-background border border-border/40 p-1.5 flex-shrink-0 shadow-inner group-hover/header:scale-105 transition-transform duration-300" loading="lazy" />
+                    <img src={s.activeCart.company_logo_url} alt="" className="w-12 h-12 rounded-xl object-contain bg-background border border-border/40 p-1.5 flex-shrink-0 shadow-inner group-hover/header:scale-105 transition-transform duration-300" loading="lazy" />
                   ) : (
-                    <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover/header:bg-primary/20 transition-colors">
+                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover/header:bg-primary/20 transition-colors">
                       <Building2 className="h-5 w-5 text-primary" />
                     </div>
                   )}
@@ -299,11 +299,11 @@ function SellerCartsContent() {
                   value={s.activeCart.status}
                   onValueChange={(v) => s.updateCartStatus(s.activeCart!.id, v as CartStatus)}
                 >
-                  <SelectTrigger className="h-9 text-xs font-bold w-auto min-w-[170px] gap-2 rounded-lg border-border/40 bg-muted/20 hover:bg-muted/40 transition-all">
+                  <SelectTrigger className="h-9 text-xs font-bold w-auto min-w-[170px] gap-2 rounded-xl border-border/40 bg-muted/20 hover:bg-muted/40 transition-all">
                     <span className={cn("w-2 h-2 rounded-full inline-block ring-2 ring-background shadow-sm", getStatusCfg(s.activeCart.status).color.split(" ")[0])} />
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="rounded-lg p-1">
+                  <SelectContent className="rounded-xl p-1">
                     {(Object.entries(STATUS_CONFIG) as [CartStatus, typeof STATUS_CONFIG[CartStatus]][]).map(([key, cfg]) => (
                       <SelectItem key={key} value={key} className="rounded-lg py-2">
                         <span className="flex items-center gap-2.5">
@@ -314,7 +314,7 @@ function SellerCartsContent() {
                     ))}
                   </SelectContent>
                 </Select>
-                <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive hover:bg-destructive/5 gap-2 text-xs font-bold h-9 rounded-lg px-3 transition-all" onClick={() => s.setConfirmDeleteCart(true)}>
+                <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive hover:bg-destructive/5 gap-2 text-xs font-bold h-9 rounded-xl px-3 transition-all" onClick={() => s.setConfirmDeleteCart(true)}>
                   <Trash2 className="h-4 w-4" /> Excluir
                 </Button>
               </div>
@@ -323,7 +323,7 @@ function SellerCartsContent() {
             <FollowUpTimer createdAt={s.activeCart.created_at} />
 
             {/* Notas sempre visíveis */}
-            <div className="space-y-2 group/notes bg-card/40 p-3 rounded-lg border border-border/30">
+            <div className="space-y-2 group/notes bg-card/40 p-3 rounded-xl border border-border/30">
               <label htmlFor="cart-notes" className="flex items-center gap-1.5 text-[11px] font-bold text-muted-foreground uppercase tracking-wider opacity-70 group-hover/notes:opacity-100 transition-opacity">
                 <FileText className="h-3 w-3 text-primary" /> Notas da negociação
               </label>
@@ -372,7 +372,7 @@ function SellerCartsContent() {
                 )}
               </div>
               <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1 mr-2 bg-muted/30 p-1 rounded-lg border border-border/20 shadow-inner">
+                <div className="flex items-center gap-1 mr-2 bg-muted/30 p-1 rounded-xl border border-border/20 shadow-inner">
                   <Button 
                     variant={s.itemsSortBy === "manual" ? "primary" : "ghost"} 
                     size="sm"
@@ -410,7 +410,7 @@ function SellerCartsContent() {
                   )}>
                     <SelectValue placeholder="Escolher ordem..." />
                   </SelectTrigger>
-                  <SelectContent className="rounded-lg p-1 shadow-2xl border-border/40">
+                  <SelectContent className="rounded-xl p-1 shadow-2xl border-border/40">
                     <SelectItem value="price-desc" className="rounded-lg py-2">Maior Preço</SelectItem>
                     <SelectItem value="price-asc" className="rounded-lg py-2">Menor Preço</SelectItem>
                     <SelectItem value="qty-desc" className="rounded-lg py-2">Maior Qtd</SelectItem>
@@ -440,11 +440,11 @@ function SellerCartsContent() {
                   
                   <div className="flex items-center gap-2">
                     <Select onValueChange={s.handleBulkMove}>
-                      <SelectTrigger className="h-9 bg-transparent border-background/20 text-background text-xs font-bold rounded-lg w-[180px] hover:bg-background/10 transition-colors">
+                      <SelectTrigger className="h-9 bg-transparent border-background/20 text-background text-xs font-bold rounded-xl w-[180px] hover:bg-background/10 transition-colors">
                         <MoveRight className="h-4 w-4 mr-2 opacity-60" />
                         <SelectValue placeholder="Mover para..." />
                       </SelectTrigger>
-                      <SelectContent className="rounded-lg">
+                      <SelectContent className="rounded-xl">
                         {s.otherCarts.map(c => (
                           <SelectItem key={c.id} value={c.id} className="rounded-lg">{c.company_name}</SelectItem>
                         ))}
@@ -455,7 +455,7 @@ function SellerCartsContent() {
                       <PopoverTrigger asChild>
                         <Button 
                           variant="ghost" 
-                          className="h-9 px-4 rounded-lg text-xs font-bold gap-2 hover:bg-background/10"
+                          className="h-9 px-4 rounded-xl text-xs font-bold gap-2 hover:bg-background/10"
                         >
                           <MessageSquare className="h-4 w-4" /> Notas em Massa
                         </Button>
@@ -465,12 +465,12 @@ function SellerCartsContent() {
                           <h4 className="text-xs font-bold uppercase tracking-tight text-muted-foreground">Adicionar notas aos itens selecionados</h4>
                           <Textarea 
                             placeholder="Ex: Todos com gravação laser..."
-                            className="text-xs min-h-[100px] rounded-lg"
+                            className="text-xs min-h-[100px] rounded-xl"
                             value={bulkNote}
                             onChange={(e) => setBulkNote(e.target.value)}
                           />
                           <Button 
-                            className="w-full text-xs font-bold rounded-lg h-10" 
+                            className="w-full text-xs font-bold rounded-xl h-10" 
                             disabled={!bulkNote.trim()}
                             onClick={() => {
                               s.handleBulkUpdateNotes(bulkNote.trim());
@@ -486,7 +486,7 @@ function SellerCartsContent() {
                     <Button 
                       variant="ghost" 
                       onClick={s.handleBulkRemove}
-                      className="h-9 px-4 rounded-lg text-xs font-bold gap-2 text-destructive-foreground hover:bg-destructive/10"
+                      className="h-9 px-4 rounded-xl text-xs font-bold gap-2 text-destructive-foreground hover:bg-destructive/10"
                     >
                       <Trash2 className="h-4 w-4" /> Remover
                     </Button>
@@ -494,7 +494,7 @@ function SellerCartsContent() {
                     <Button 
                       variant="ghost" 
                       onClick={s.clearSelection}
-                      className="h-9 px-4 rounded-lg text-xs font-bold gap-2 hover:bg-background/10"
+                      className="h-9 px-4 rounded-xl text-xs font-bold gap-2 hover:bg-background/10"
                     >
                       Cancelar
                     </Button>
