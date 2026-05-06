@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '../test-utils';
+import { render, screen, fireEvent, waitFor } from '../../../tests/test-utils';
 import NoveltiesPage from '@/pages/NoveltiesPage';
 import { MOCK_NOVELTIES } from '@/hooks/useNoveltiesMocks';
 import React from 'react';
