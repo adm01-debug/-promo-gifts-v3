@@ -80,7 +80,7 @@ const navGroups: NavGroup[] = [
       { icon: Zap, label: "Novidades", href: "/novidades" },
       { icon: RefreshCw, label: "Reposição", href: "/reposicao" },
       { icon: FolderOpen, label: "Coleções", href: "/colecoes" },
-      { icon: Layers, label: "Estoque", href: "/estoque", shortcut: "Alt+E" },
+      { icon: Layers, label: "ESTOQUE 360º", href: "/estoque", shortcut: "Alt+E" },
       { icon: Heart, label: "Favoritos", href: "/favoritos", shortcut: "Alt+V" },
       { icon: GitCompare, label: "Comparar", href: "/comparar", shortcut: "Alt+C" },
     ],
@@ -107,7 +107,7 @@ const navGroups: NavGroup[] = [
     defaultOpen: false,
     items: [
       { icon: Brain, label: "Inteligência de Mercado", href: "/inteligencia-comercial" },
-      { icon: Sparkles, label: "Estoque", href: "/estoque" },
+      { icon: Sparkles, label: "ESTOQUE 360º", href: "/estoque" },
       { icon: Activity, label: "Tendências", href: "/tendencias" },
     ],
   },

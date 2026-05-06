@@ -207,7 +207,7 @@ export function StockDashboard() {
             <Package className="h-6 w-6" />
           </div>
           <div>
-            <h2 className="text-xl font-bold font-display tracking-tight text-foreground">Visão Geral do Estoque</h2>
+            <h2 className="text-xl font-bold font-display tracking-tight text-foreground">ESTOQUE 360º</h2>
             <div className="flex items-center gap-2 mt-0.5">
               <TooltipProvider>
                 <Tooltip>
