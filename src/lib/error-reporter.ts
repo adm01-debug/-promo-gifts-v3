@@ -209,8 +209,6 @@ export function reportError(error: Error, metadata?: Record<string, unknown>) {
  * Install global error listeners for unhandled errors and promise rejections.
  */
 export function installGlobalErrorHandlers() {
-  const { attemptChunkRecovery, isChunkLoadError } = require('@/lib/chunk-recovery');
-  
   installBridgeListenerOnce();
   
   window.addEventListener('error', (event) => {
