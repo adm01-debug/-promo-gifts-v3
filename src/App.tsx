@@ -357,6 +357,8 @@ const AppContent = () => {
           <Route path="/admin/compliance" element={<ComplianceEvidencePage />} />
           <Route path="/admin/cadastros" element={<AdminCadastrosPage />} />
           <Route path="/admin/cadastros/produto/:id" element={<AdminProductFormPage />} />
+          <Route path="/admin/cadastros/produto/novo" element={<ProductRegistrationPage />} />
+          <Route path="/admin/cadastros/gravacoes" element={<EngravingRegistrationPage />} />
           <Route path="/admin/permissoes" element={<PermissionsPage />} />
           <Route path="/admin/roles" element={<RolesPage />} />
           <Route path="/admin/role-permissoes" element={<RolePermissionsPage />} />
