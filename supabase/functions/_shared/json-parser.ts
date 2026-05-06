@@ -2,13 +2,24 @@
  * Centralized JSON parsing utilities for Edge Functions.
  * Handles AI response extraction and safe request body parsing.
  */
+import { createStructuredLogger } from "./structured-logger.ts";
+
+// Helper to get a logger without needing Request object (useful for shared utils)
+function getLogger() {
+  return createStructuredLogger({ 
+    fn: "json-parser", 
+    requestId: "internal", 
+    base: { module: "shared-json-parser" } 
+  });
+}
 
 /**
  * Robustly extract & parse JSON from an LLM response.
  * Handles markdown fences, prose around JSON, trailing commas, and minor
- * truncation (auto-closes one missing `]` or `}` at the end).
+ * truncation (auto-closes multiple missing `]` or `}` at the end).
  */
 export function extractAndParseAIJSON(raw: string): unknown {
+  const log = getLogger();
   let s = String(raw ?? "").trim();
 
   // Strip markdown fences
@@ -25,8 +36,14 @@ export function extractAndParseAIJSON(raw: string): unknown {
   if (start === -1) throw new Error("No JSON object/array found in AI response");
   
   const isArray = s[start] === "[";
-  const end = isArray ? s.lastIndexOf("]") : s.lastIndexOf("}");
-  s = end > start ? s.slice(start, end + 1) : s.slice(start);
+  let end = isArray ? s.lastIndexOf("]") : s.lastIndexOf("}");
+  
+  // If no matching closing bracket found, we slice until the end to attempt repair
+  if (end === -1 || end < start) {
+    end = s.length - 1;
+  }
+  
+  s = s.slice(start, end + 1);
 
   // Remove trailing commas before } or ]
   const cleaned = s.replace(/,(\s*[}\]])/g, "$1");
@@ -35,31 +52,65 @@ export function extractAndParseAIJSON(raw: string): unknown {
     return JSON.parse(cleaned);
   } catch (e1) {
     // Repair attempt 1: escape unescaped double quotes inside string values.
-    // Heuristic: walk the string tracking whether we're inside a JSON string.
-    // A `"` is treated as a string terminator only if followed (after whitespace)
-    // by one of: , } ] : or end-of-input. Otherwise it's escaped.
     const repaired = repairUnescapedQuotes(cleaned);
     if (repaired !== cleaned) {
-      try { return JSON.parse(repaired); } catch { /* fall through */ }
+      try { 
+        const result = JSON.parse(repaired);
+        log.info("AI JSON repaired successfully (quotes)", { 
+          original_len: cleaned.length, 
+          repaired_len: repaired.length 
+        });
+        return result;
+      } catch { /* fall through */ }
     }
 
     // Repair attempt 2: auto-close missing brackets if truncated
     const base = repaired !== cleaned ? repaired : cleaned;
-    const opens = (base.match(/[{[]/g) || []).length;
-    const closes = (base.match(/[}\]]/g) || []).length;
-    if (opens > closes) {
-      const patched = base + (isArray ? "]" : "}").repeat(opens - closes);
-      try { return JSON.parse(patched); } catch { /* fall through */ }
+    
+    // Attempt 2: auto-close missing brackets if truncated
+    // We walk backwards and count missing opens
+    let opens = 0;
+    const stack: ("obj" | "arr")[] = [];
+    for (const char of base) {
+      if (char === "{") stack.push("obj");
+      else if (char === "[") stack.push("arr");
+      else if (char === "}") stack.pop();
+      else if (char === "]") stack.pop();
     }
-    console.error("[json-parser] AI JSON parse failed. Snippet:", cleaned.slice(0, 500));
+
+    if (stack.length > 0) {
+      let patched = base;
+      const reversedStack = [...stack].reverse();
+      for (const type of reversedStack) {
+        patched += (type === "obj" ? "}" : "]");
+        try {
+          const result = JSON.parse(patched);
+          log.info("AI JSON repaired successfully (truncated stack)", { 
+            original_len: base.length, 
+            patched_len: patched.length,
+            stack: stack.join(",")
+          });
+          return result;
+        } catch { /* continue patching */ }
+      }
+    }
+
+    log.error("AI JSON parse failed final attempt", { 
+      snippet: cleaned.slice(0, 500),
+      repaired_snippet: base.slice(0, 500),
+      error: e1 instanceof Error ? e1.message : String(e1)
+    });
     throw e1;
   }
 }
 
 function repairUnescapedQuotes(input: string): string {
+  const log = getLogger();
   const out: string[] = [];
   let inString = false;
   let escape = false;
+  let repairedCount = 0;
+
   for (let i = 0; i < input.length; i++) {
     const ch = input[i];
     if (escape) {
@@ -87,12 +138,18 @@ function repairUnescapedQuotes(input: string): string {
         } else {
           // Unescaped quote inside string value — escape it
           out.push("\\", '"');
+          repairedCount++;
         }
       }
       continue;
     }
     out.push(ch);
   }
+
+  if (repairedCount > 0) {
+    log.info("AI JSON quotes repaired", { repairedCount });
+  }
+
   return out.join("");
 }
 
