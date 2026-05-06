@@ -41,7 +41,7 @@ export function ComparisonScoreCard({ products, className }: ComparisonScoreCard
   return (
     <div
       className={cn(
-        "relative rounded-xl border-[1.5px] border-primary/30 bg-gradient-to-br from-primary/5 via-background to-background p-4 shadow-md",
+        "relative rounded-xl border-[2px] border-amber-400/30 bg-gradient-to-br from-amber-400/10 via-background to-background p-4 shadow-lg",
         className
       )}
     >
