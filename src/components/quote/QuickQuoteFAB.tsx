@@ -43,7 +43,7 @@ const quickActions: QuickAction[] = [
     label: 'Simulador',
     description: 'Calcular personalização',
     icon: Calculator,
-    href: '/simulador',
+    href: '/ferramentas/simulador-wizard',
     color: 'bg-warning text-warning-foreground',
   },
   {
