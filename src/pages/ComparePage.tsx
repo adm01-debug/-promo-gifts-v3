@@ -120,11 +120,28 @@ export default function ComparePage() {
         await new Promise(resolve => setTimeout(resolve, 800));
         
         let addedCount = 0;
-        ids.forEach(id => {
-          if (addToCompare(id)) addedCount++;
-        });
+        let skippedCount = 0;
+        let limitReached = false;
         
-        toast.success(`Simulação concluída: ${addedCount} itens na Arena`, { id: "mock-loading" });
+        for (const id of ids) {
+          if (compareItems.length + addedCount >= 12) {
+            limitReached = true;
+            break;
+          }
+          if (addToCompare(id)) {
+            addedCount++;
+          } else {
+            skippedCount++;
+          }
+        }
+        
+        if (limitReached) {
+          toast.warning(`Limite de 12 itens atingido. ${addedCount} adicionados.`, { id: "mock-loading" });
+        } else if (addedCount > 0) {
+          toast.success(`Simulação concluída: ${addedCount} itens na Arena${skippedCount > 0 ? ` (${skippedCount} duplicados ignorados)` : ""}`, { id: "mock-loading" });
+        } else {
+          toast.info("Todos os itens já estavam na Arena", { id: "mock-loading" });
+        }
       } catch (error) {
         toast.error("Erro na simulação técnica", { id: "mock-loading" });
       } finally {
