@@ -333,6 +333,21 @@ export function useSellerCartsPage() {
     return items;
   }, [activeCart, itemsSortBy]);
 
+  const handleClearFilters = useCallback(() => {
+    setSearchTerm("");
+    setProductFilter("");
+    setCompanyFilter("all");
+    setSortBy("date-desc");
+  }, []);
+
+  const productSuggestions = useMemo(() => {
+    const names = new Set<string>();
+    carts.forEach(c => {
+      c.items.forEach(i => names.add(i.product_name));
+    });
+    return Array.from(names).sort();
+  }, [carts]);
+
   return {
     navigate, carts, filteredCarts, activeCart, activeCartId, isLoading, totalItems, canCreateCart,
     setActiveCartId, deleteCart, removeItem, updateItemNotes, updateCartStatus, duplicateCart,
@@ -345,6 +360,6 @@ export function useSellerCartsPage() {
     otherCarts, cartAge, cartSubtotal, cartTotalQty, companyAccentColor, isLoadingProducts,
     exportCartToCSV, exportCartToPDF, shareCartLink,
     searchTerm, setSearchTerm, sortBy, setSortBy, itemsSortBy, setItemsSortBy, sortedItems,
-    companyFilter, setCompanyFilter, productFilter, setProductFilter
+    companyFilter, setCompanyFilter, productFilter, setProductFilter, handleClearFilters, productSuggestions
   };
 }
