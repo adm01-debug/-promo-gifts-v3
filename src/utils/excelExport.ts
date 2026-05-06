@@ -1,21 +1,21 @@
 // src/utils/excelExport.ts
 
-import { formatDate, formatDateTime } from '@/lib/date-utils';
+import { formatDateTime } from '@/lib/date-utils';
 
 const getXLSX = () => import('@e965/xlsx');
 
 /**
  * Configuração de exportação Excel
  */
-export interface ExcelExportConfig {
+export interface ExcelExportConfig<T = Record<string, any>> {
   /** Nome do arquivo (sem extensão) */
   filename: string;
   /** Nome da planilha */
   sheetName?: string;
   /** Colunas a exportar */
-  columns: ExcelColumn[];
+  columns: ExcelColumn<T>[];
   /** Dados a exportar */
-  data: any[];
+  data: T[];
   /** Incluir timestamp no nome do arquivo */
   includeTimestamp?: boolean;
 }
@@ -23,7 +23,7 @@ export interface ExcelExportConfig {
 /**
  * Definição de coluna
  */
-export interface ExcelColumn {
+export interface ExcelColumn<T = Record<string, any>> {
   /** Chave do campo no objeto de dados */
   key: string;
   /** Cabeçalho da coluna */
@@ -31,36 +31,20 @@ export interface ExcelColumn {
   /** Largura da coluna (em caracteres) */
   width?: number;
   /** Função de formatação customizada */
-  format?: (value: any, row: any) => string | number;
+  format?: (value: any, row: T) => string | number;
 }
 
 /**
  * Exporta dados para arquivo Excel (.xlsx)
- *
- * @example
- * ```typescript
- * exportToExcel({
- *   filename: 'orcamentos',
- *   sheetName: 'Orçamentos 2025',
- *   columns: [
- *     { key: 'quote_number', header: 'Número', width: 15 },
- *     { key: 'client_name', header: 'Cliente', width: 30 },
- *     { key: 'total', header: 'Valor Total', format: (v) => `R$ ${v.toFixed(2)}` },
- *     { key: 'created_at', header: 'Data', format: (v) => formatDate(v) }
- *   ],
- *   data: quotes,
- *   includeTimestamp: true
- * });
- * ```
  */
-export async function exportToExcel(config: ExcelExportConfig): Promise<void> {
+export async function exportToExcel<T = Record<string, any>>(config: ExcelExportConfig<T>): Promise<void> {
   const { filename, sheetName = 'Dados', columns, data, includeTimestamp = true } = config;
 
   try {
     const XLSX = await getXLSX();
     // 1. Preparar dados formatados
     const formattedData = data.map((row) => {
-      const formattedRow: any = {};
+      const formattedRow: Record<string, string | number> = {};
 
       columns.forEach((col) => {
         const value = getNestedValue(row, col.key);
@@ -98,13 +82,12 @@ export async function exportToExcel(config: ExcelExportConfig): Promise<void> {
     worksheet['!cols'] = colWidths;
 
     // 4. Aplicar estilos no cabeçalho (se possível)
-    // Nota: XLSX gratuito tem suporte limitado a estilos
     const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1');
     for (let C = range.s.c; C <= range.e.c; ++C) {
       const address = XLSX.utils.encode_col(C) + '1';
       if (!worksheet[address]) continue;
 
-      // Fonte em negrito para cabeçalho (se biblioteca suportar)
+      // Fonte em negrito para cabeçalho
       if (worksheet[address].s) {
         worksheet[address].s.font = { bold: true };
       }
@@ -130,7 +113,7 @@ export async function exportMultipleSheets(
   filename: string,
   sheets: Array<{
     sheetName: string;
-    columns: ExcelColumn[];
+    columns: ExcelColumn<any>[];
     data: any[];
   }>,
   includeTimestamp = true,
@@ -142,7 +125,7 @@ export async function exportMultipleSheets(
     sheets.forEach(({ sheetName, columns, data }) => {
       // Formatar dados
       const formattedData = data.map((row) => {
-        const formattedRow: any = {};
+        const formattedRow: Record<string, string | number> = {};
         columns.forEach((col) => {
           const value = getNestedValue(row, col.key);
           formattedRow[col.header] = col.format ? col.format(value, row) : formatValue(value);
@@ -183,7 +166,7 @@ function getNestedValue(obj: any, path: string): any {
 }
 
 // Formata valor automaticamente
-function formatValue(value: any): string | number {
+function formatValue(value: unknown): string | number {
   if (value instanceof Date) {
     return formatDateTime(value);
   }
