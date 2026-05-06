@@ -70,8 +70,10 @@ export function useFiltersPageState() {
       try {
         const preset = presets.find(p => p.id === activePresetId);
         if (preset) {
-          // If current filters are default (or mostly empty), apply preset filters
-          const isDefault = activeFiltersCount === 0;
+          // If current filters are still at defaults, apply preset filters.
+          // We compare against `defaultFilters` directly here to avoid a TDZ
+          // reference to `activeFiltersCount` (declared later in this hook).
+          const isDefault = JSON.stringify(filters) === JSON.stringify(defaultFilters);
           if (isDefault) {
             setFilters(preset.filters);
             presetAppliedFromUrl.current = true;
@@ -82,7 +84,9 @@ export function useFiltersPageState() {
         console.error("[useFiltersPageState] Erro ao carregar preset da URL:", err);
       }
     }
-  }, [activePresetId, presets, activeFiltersCount]);
+    // `filters` intentionally omitted: we only want to evaluate on preset/URL changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activePresetId, presets]);
 
   const debouncedServerSearch = useDebounce(filters.search || '', 400);
   const urlSearch = searchParams.get('search') || '';
