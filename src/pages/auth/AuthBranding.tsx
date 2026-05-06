@@ -149,16 +149,16 @@ function FeatureCard({ item, index }: { item: typeof FEATURE_ITEMS[0]; index: nu
   const IconComponent = item.icon;
   return (
     <div 
-      className="p-4 rounded-xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-lg hover:bg-white/10 hover:border-primary/30 hover:scale-[1.02] transition-all duration-500 group opacity-0"
+      className="p-5 rounded-xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-lg hover:bg-white/10 hover:border-primary/30 hover:scale-[1.02] transition-all duration-500 group opacity-0"
       style={{ animation: `scale-fade-in 0.5s ease-out ${300 + index * 100}ms forwards` }}
     >
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-base font-bold text-primary truncate leading-tight">{item.label}</p>
-          <p className="text-[11px] font-medium text-white/50 truncate uppercase tracking-wider mt-0.5">{item.desc}</p>
+          <p className="text-lg font-bold text-primary truncate leading-tight">{item.label}</p>
+          <p className="text-[13px] font-medium text-white/50 truncate uppercase tracking-wider mt-0.5">{item.desc}</p>
         </div>
-        <div className="w-9 h-9 rounded-lg bg-primary/15 flex items-center justify-center group-hover:bg-primary/25 transition-colors shrink-0">
-          <IconComponent className="h-4 w-4 text-primary" />
+        <div className="w-11 h-11 rounded-lg bg-primary/15 flex items-center justify-center group-hover:bg-primary/25 transition-colors shrink-0">
+          <IconComponent className="h-5 w-5 text-primary" />
         </div>
       </div>
     </div>
