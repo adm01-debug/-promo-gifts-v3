@@ -151,6 +151,27 @@ describe('CartCompanyPickerDialog - UI, Accessibility & Regression', () => {
     });
   });
 
+  it('validates typography and spacing consistency for font-size regression', () => {
+    render(<CartCompanyPickerDialog {...defaultProps} />);
+    
+    // Header typography
+    const title = screen.getByText(/Vincular a uma empresa/i);
+    expect(title).toHaveClass('text-lg', 'font-display');
+    
+    const description = screen.getByText(/Escolha uma empresa para criar o carrinho/i);
+    expect(description).toHaveClass('text-xs');
+    
+    // Tabs typography
+    const tabs = screen.getAllByRole('tab');
+    tabs.forEach(tab => {
+      expect(tab).toHaveClass('text-xs');
+    });
+    
+    // Search input typography
+    const input = screen.getByRole('textbox', { name: /Buscar empresa/i });
+    expect(input).toHaveClass('text-sm');
+  });
+
   it('verifies visual regression states (isLoading=true/false) for icon positioning', () => {
     const { rerender } = render(<CartCompanyPickerDialog {...defaultProps} />);
     
