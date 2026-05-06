@@ -42,11 +42,14 @@ function hexToRgb(hex: string): [number, number, number] {
  */
 export async function processLogoForLaser(
   imageUrl: string,
-  tone: "claro" | "escuro"
+  tone: "claro" | "escuro",
+  overrides?: Partial<LaserToneConfig>
 ): Promise<string> {
-  const config = LASER_TONES[tone];
+  const baseConfig = LASER_TONES[tone];
+  const config = { ...baseConfig, ...overrides };
   const [tR, tG, tB] = hexToRgb(config.hex);
-  const whiteThreshold = config.whiteThreshold ?? 220;
+  const whiteThreshold = Math.min(255, Math.max(0, config.whiteThreshold ?? 220));
+  const alphaThreshold = Math.min(255, Math.max(0, config.alphaThreshold ?? 30));
 
   // Load image — handle CORS by fetching as blob first
   const blob = await fetchAsBlob(imageUrl);
