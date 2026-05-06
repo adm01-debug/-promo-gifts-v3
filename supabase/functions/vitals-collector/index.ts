@@ -1,6 +1,9 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { getCorsHeaders, handleCorsPreflightIfNeeded } from "../_shared/cors.ts";
 import { z } from "npm:zod@3.23.8";
+import { initEdgeOTel, withEdgeTracing } from "../_shared/telemetry.ts";
+
+initEdgeOTel("vitals-collector");
 
 const VitalSchema = z.object({
   name: z.string().max(20),
@@ -12,16 +15,20 @@ const VitalSchema = z.object({
 });
 
 Deno.serve(async (req) => {
-  const corsHeaders = getCorsHeaders(req);
-  const preflight = handleCorsPreflightIfNeeded(req);
-  if (preflight) return preflight;
+  return await withEdgeTracing(req, "handle-vitals", async (span) => {
+    const corsHeaders = getCorsHeaders(req);
+    const preflight = handleCorsPreflightIfNeeded(req);
+    if (preflight) return preflight;
 
-  try {
-    const body = await req.json();
-    const parsed = VitalSchema.safeParse(body);
-    if (!parsed.success) {
-      return new Response(JSON.stringify({ error: parsed.error }), { status: 400, headers: corsHeaders });
-    }
+    try {
+      const body = await req.json();
+      span.setAttribute("app.vital.name", body.name);
+      span.setAttribute("app.vital.value", body.value);
+      
+      const parsed = VitalSchema.safeParse(body);
+      if (!parsed.success) {
+        return new Response(JSON.stringify({ error: parsed.error }), { status: 400, headers: corsHeaders });
+      }
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -44,7 +51,8 @@ Deno.serve(async (req) => {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: corsHeaders });
-  }
+    } catch (err) {
+      return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: corsHeaders });
+    }
+  });
 });

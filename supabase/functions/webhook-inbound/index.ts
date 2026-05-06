@@ -7,6 +7,9 @@ import { encodeHex } from "https://deno.land/std@0.224.0/encoding/hex.ts";
 import { buildPublicCorsHeaders } from "../_shared/cors.ts";
 import { createStructuredLogger } from "../_shared/structured-logger.ts";
 import { getOrCreateRequestId } from "../_shared/request-id.ts";
+import { initEdgeOTel, withEdgeTracing } from "../_shared/telemetry.ts";
+
+initEdgeOTel("webhook-inbound");
 
 
 const corsHeaders = buildPublicCorsHeaders({ extraAllowHeaders: ["x-signature-256","x-event"], allowMethods: "POST, OPTIONS" });
@@ -28,8 +31,10 @@ function timingSafeEqual(a: string, b: string): boolean {
 }
 
 Deno.serve(async (req) => {
-  const requestId = getOrCreateRequestId(req);
-  const log = createStructuredLogger({ fn: "webhook-inbound", requestId, req });
+  return await withEdgeTracing(req, "process-webhook", async (span) => {
+    const requestId = getOrCreateRequestId(req);
+    const log = createStructuredLogger({ fn: "webhook-inbound", requestId, req });
+    span.setAttribute("app.request_id", requestId);
 
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -108,12 +113,12 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     }));
 
-  } catch (err) {
-    log.error("unexpected_error", { err });
-    const msg = err instanceof Error ? err.message : "Erro";
-    return log.respond(new Response(JSON.stringify({ error: msg }), {
-      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-    }));
-  }
-
+    } catch (err) {
+      log.error("unexpected_error", { err });
+      const msg = err instanceof Error ? err.message : "Erro";
+      return log.respond(new Response(JSON.stringify({ error: msg }), {
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }));
+    }
+  });
 });

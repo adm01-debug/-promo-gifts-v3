@@ -429,8 +429,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           ua: navigator.userAgent,
         },
         headers: log.headers(),
-
-        headers: log.headers(),
       })
       .catch(() => {});
 
