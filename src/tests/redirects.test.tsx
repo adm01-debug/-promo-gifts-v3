@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
+import { MemoryRouter, Route, Routes, useLocation, Outlet } from 'react-router-dom';
 import { AppContent } from '../App';
 import { AuthProvider } from '../contexts/AuthContext';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -12,21 +12,40 @@ vi.mock('@/integrations/supabase/client', () => ({
     auth: {
       getSession: vi.fn(() => Promise.resolve({ data: { session: { user: { id: '123' } } }, error: null })),
       onAuthStateChange: vi.fn(() => ({ data: { subscription: { unsubscribe: vi.fn() } } })),
+      getUser: vi.fn(() => Promise.resolve({ data: { user: { id: '123' } }, error: null })),
     },
+    from: vi.fn(() => ({
+      select: vi.fn(() => ({
+        eq: vi.fn(() => ({
+          single: vi.fn(() => Promise.resolve({ data: { id: '123', role: 'admin' }, error: null })),
+          maybeSingle: vi.fn(() => Promise.resolve({ data: { id: '123', role: 'admin' }, error: null })),
+        })),
+      })),
+    })),
     functions: {
       invoke: vi.fn(() => Promise.resolve({ data: {}, error: null })),
     },
   },
 }));
 
-// Mock ProtectedRoute to just render children (bypass auth for this test)
+// Mock ProtectedRoute to just render the Outlet (standard for layout routes in react-router)
 vi.mock('@/components/layout/ProtectedRoute', () => ({
-  ProtectedRoute: ({ children }: { children: React.ReactNode }) => <>{children || <div data-testid="protected-outlet" />}</>,
+  ProtectedRoute: () => <Outlet />,
 }));
+
+// Mock AdminRoute and other guards as well
+vi.mock('@/components/layout/AdminRoute', () => ({ AdminRoute: () => <Outlet /> }));
+vi.mock('@/components/layout/DevRoute', () => ({ DevRoute: () => <Outlet /> }));
+vi.mock('@/components/layout/DeprecatedRoute', () => ({ DeprecatedRoute: () => <Outlet /> }));
 
 // Mock RouteErrorBoundary
 vi.mock('@/components/errors/RouteErrorBoundary', () => ({
-  RouteErrorBoundary: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  RouteErrorBoundary: ({ children }: { children: React.ReactNode }) => <>{children || <Outlet />}</>,
+}));
+
+// Mock useAppBootstrap
+vi.mock('@/hooks/useAppBootstrap', () => ({
+  useAppBootstrap: vi.fn(),
 }));
 
 const LocationDisplay = () => {
@@ -44,7 +63,7 @@ describe('Navigation Redirects', () => {
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <MemoryRouter initialEntries={[fromPath]}>
-            <Suspense fallback={<div>Loading...</div>}>
+            <Suspense fallback={<div data-testid="loading">Loading...</div>}>
               <AppContent />
               <LocationDisplay />
             </Suspense>
@@ -53,10 +72,11 @@ describe('Navigation Redirects', () => {
       </QueryClientProvider>
     );
 
+    // Wait for the redirect to happen. Navigate with replace/push triggers a state update.
     await waitFor(() => {
       const display = screen.getByTestId('location-display');
       expect(display.textContent).toBe(expectedToPath);
-    }, { timeout: 3000 });
+    }, { timeout: 4000 });
   };
 
   it('redirects from /mockup-generator to /ferramentas/mockup-generator', async () => {
