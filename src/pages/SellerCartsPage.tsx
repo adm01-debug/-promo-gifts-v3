@@ -348,13 +348,26 @@ function SellerCartsContent() {
                   <Button 
                     variant="ghost" 
                     size="sm" 
-                    className="h-7 text-[10px] font-bold uppercase tracking-tight px-2 rounded-lg hover:bg-primary/5 hover:text-primary transition-all"
+                    className={cn(
+                      "h-7 text-[10px] font-black uppercase tracking-widest px-3 rounded-lg transition-all border border-transparent shadow-sm",
+                      s.selectedItemIds.size > 0 
+                        ? "bg-primary text-primary-foreground border-primary/20 hover:bg-primary/90" 
+                        : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                    )}
                     onClick={() => {
                       if (s.selectedItemIds.size === s.activeCart!.items.length) s.clearSelection();
                       else s.activeCart!.items.forEach(i => !s.selectedItemIds.has(i.id) && s.toggleItemSelection(i.id));
                     }}
                   >
-                    {s.selectedItemIds.size === s.activeCart.items.length ? "Desmarcar todos" : "Selecionar todos"}
+                    <div className="flex items-center gap-2">
+                      <div className={cn(
+                        "w-2.5 h-2.5 rounded-sm border-2 transition-all flex items-center justify-center",
+                        s.selectedItemIds.size === s.activeCart.items.length ? "bg-white border-white" : "border-current opacity-40"
+                      )}>
+                        {s.selectedItemIds.size === s.activeCart.items.length && <div className="w-1 h-1 bg-primary rounded-full" />}
+                      </div>
+                      {s.selectedItemIds.size === s.activeCart.items.length ? "Desmarcar todos" : "Selecionar todos"}
+                    </div>
                   </Button>
                 )}
               </div>
