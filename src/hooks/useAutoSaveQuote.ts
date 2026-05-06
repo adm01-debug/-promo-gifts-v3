@@ -23,13 +23,15 @@ interface AutoSaveOptions<T> {
  * Migra dados de versões antigas para a versão atual.
  */
 export function migratePayload<T>(
-  payload: any,
+  payload: unknown,
   currentVersion: number = AUTOSAVE_SCHEMA_VERSION,
 ): AutoSavePayload<T> | null {
   if (!payload) return null;
 
+  const typedPayload = payload as Record<string, unknown>;
+
   // Se for um payload antigo sem versão (v1)
-  if (!payload.version) {
+  if (!typedPayload.version) {
     console.log('[AutoSave] Migrating from v1 to v2');
     return {
       version: currentVersion,
@@ -40,7 +42,7 @@ export function migratePayload<T>(
 
   // Se a versão do payload for maior que a atual, tratamos como inseguro
   // e retornamos null para evitar corrupção de estado (o usuário perderá o rascunho, mas não quebrará o app)
-  if (payload.version > currentVersion) {
+  if (typedPayload.version > currentVersion) {
     console.warn(
       '[AutoSave] Future payload version detected, skipping restore to prevent state corruption',
     );
@@ -48,9 +50,9 @@ export function migratePayload<T>(
   }
 
   // Adicione futuras migrações aqui:
-  // if (payload.version === 2) { ... migrate to 3 ... }
+  // if (typedPayload.version === 2) { ... migrate to 3 ... }
 
-  return payload as AutoSavePayload<T>;
+  return typedPayload as AutoSavePayload<T>;
 }
 
 /**
@@ -73,7 +75,7 @@ export function useAutoSaveQuote<T>({
     const saved = localStorage.getItem(key);
     if (saved) {
       try {
-        let payload = JSON.parse(saved);
+        const payload = JSON.parse(saved);
 
         // Aplica migrações se necessário
         const migrated = migratePayload<T>(payload);

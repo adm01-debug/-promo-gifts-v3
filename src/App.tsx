@@ -52,7 +52,7 @@ const FavoritesPage = lazyWithRetry(() => import('./pages/FavoritesPage'));
 const SellerCartsPage = lazyWithRetry(() => import('./pages/SellerCartsPage'));
 const ComparePage = lazyWithRetry(() => import('./pages/ComparePage'));
 const CollectionsPage = lazyWithRetry(() => import('./pages/CollectionsPage'));
-const PersonalizationSimulator = lazyWithRetry(() => import('./pages/PersonalizationSimulator'));
+
 const CollectionDetailPage = lazyWithRetry(() => import('./pages/CollectionDetailPage'));
 
 // Quote Pages

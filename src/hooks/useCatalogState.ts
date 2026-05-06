@@ -1,11 +1,10 @@
 /**
  * useCatalogState — all catalog page state & logic extracted from Index.tsx
  */
-import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useColorEnrichment } from '@/hooks/useColorEnrichment';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Package, Heart, Users, Layers, Palette, FolderTree } from 'lucide-react';
-import React from 'react';
+import { Package, Heart, Users, Palette, FolderTree } from 'lucide-react';
 
 import { defaultFilters, type FilterState } from '@/components/filters/FilterPanel';
 import {
@@ -49,7 +48,9 @@ function getPersistedViewMode(): ViewMode {
   try {
     const saved = localStorage.getItem(VIEW_MODE_KEY);
     if (saved === 'grid' || saved === 'list' || saved === 'table') return saved;
-  } catch {}
+  } catch {
+    // LocalStorage access can fail in some browsers/modes
+  }
   return 'grid';
 }
 
@@ -96,8 +97,8 @@ export function useCatalogState() {
         const channel = new BroadcastChannel('catalog_preset_sync');
         channel.postMessage({ type: 'PRESET_APPLIED', presetId, filters: newFilters });
         channel.close();
-      } catch (e) {
-        console.warn('BroadcastChannel not supported', e);
+      } catch {
+        // BroadcastChannel not supported
       }
     },
     [setSearchParams],
@@ -134,8 +135,8 @@ export function useCatalogState() {
         }
       };
       return () => channel.close();
-    } catch (e) {
-      console.warn('BroadcastChannel not supported', e);
+    } catch {
+      // BroadcastChannel not supported
     }
   }, []);
 
@@ -145,14 +146,18 @@ export function useCatalogState() {
     setViewModeState(mode);
     try {
       localStorage.setItem(VIEW_MODE_KEY, mode);
-    } catch {}
+    } catch {
+      // LocalStorage access can fail
+    }
   }, []);
   const [gridColumns, setGridColumnsState] = useState<ColumnCount>(getDefaultColumns);
   const setGridColumns = useCallback((cols: ColumnCount) => {
     setGridColumnsState(cols);
     try {
       localStorage.setItem(GRID_COLUMNS_KEY, String(cols));
-    } catch {}
+    } catch {
+      // LocalStorage access can fail
+    }
   }, []);
   const [sortBy, setSortBy] = useState<SortOption>('relevance');
   const [selectionMode, setSelectionMode] = useState(false);
@@ -290,7 +295,8 @@ export function useCatalogState() {
     includeDescendants: true,
   });
 
-  const { data: externalCategories = [] } = useExternalCategoriesQuery();
+  // Use externalCategories if needed, currently just ensuring it's queried to warm cache
+  useExternalCategoriesQuery();
   const { data: realStats } = useCatalogRealStats();
 
   const isLoading = isLoadingProducts || isLoadingMaterialFilter || isLoadingCategoryFilter;
