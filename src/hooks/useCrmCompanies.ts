@@ -50,11 +50,10 @@ export function useCrmCompanies(filters?: CrmCompanyFilters) {
         return results;
       }
 
-      // Nota: RLS no CRM é aplicado via Edge Function crm-db-bridge.
-      // Se necessário aplicar filtro de seller no CRM, deve ser passado nos queryFilters.
-      if (scope === 'self' && user?.id) {
-        queryFilters.seller_id = user.id;
-      }
+      // Nota: O CRM externo não possui coluna `seller_id` em companies.
+      // RLS/escopo é aplicado server-side via crm-db-bridge.
+      void scope;
+      void user;
 
       const results = await selectCrm<CrmCompany>('companies', {
         filters: Object.keys(queryFilters).length > 0 ? queryFilters : undefined,
@@ -126,10 +125,9 @@ export function useCrmInfiniteCompanySelector() {
         const result = await invokeCrmDb<CrmCompany[]>({
           table: 'companies',
           operation: 'select',
-          select: 'id, razao_social, nome_fantasia, ramo_atividade, logo_url, cnpj, seller_id',
+          select: 'id, razao_social, nome_fantasia, ramo_atividade, logo_url, cnpj',
           filters: {
             deleted_at: null,
-            ...(scope === 'self' && user?.id ? { seller_id: user.id } : {}),
           },
           orderBy: { column: 'razao_social', ascending: true },
           limit: 100,
