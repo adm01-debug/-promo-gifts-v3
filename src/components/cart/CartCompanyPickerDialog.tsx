@@ -261,7 +261,7 @@ export function CartCompanyPickerDialog({ open, onOpenChange, onCreated }: CartC
 
           <TabsContent value="search" className="m-0 px-3 pt-3 pb-4 space-y-3">
             <div className="px-2">
-              <div className="relative" aria-live="polite">
+              <div className="relative">
                 <Search 
                   aria-hidden="true"
                   data-testid="search-icon"
@@ -279,6 +279,7 @@ export function CartCompanyPickerDialog({ open, onOpenChange, onCreated }: CartC
                   placeholder="Nome, CNPJ ou segmento..."
                   className="h-9 pl-8 pr-8 text-sm bg-muted/20 border-border/40 focus:bg-background transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1"
                   aria-busy={isLoading}
+                  aria-controls="company-search-results"
                 />
                 {isLoading && (
                   <>
@@ -290,6 +291,13 @@ export function CartCompanyPickerDialog({ open, onOpenChange, onCreated }: CartC
                     <span className="sr-only">Carregando empresas...</span>
                   </>
                 )}
+                <div 
+                  className="sr-only" 
+                  aria-live="polite" 
+                  id="search-announcement"
+                >
+                  {searchTerm && !isLoading && `${filteredCompanies.length} empresas encontradas`}
+                </div>
               </div>
             </div>
             <ScrollArea className="h-[290px] pr-2">
