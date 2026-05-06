@@ -261,7 +261,7 @@ export function ConnectionErrorDetailsDialog({
             <div>
               <div className="text-[11px] text-muted-foreground">HTTP Status</div>
               <div>
-                {status != null ? (
+                {status !== null ? (
                   <Badge variant={statusVariant} className="font-mono">
                     {status}
                   </Badge>
