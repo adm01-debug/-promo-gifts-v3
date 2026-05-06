@@ -29,6 +29,8 @@ export interface FilterState {
   sortBy: string;
   gender: string[];
   sizes: string[];
+  materialGroups: string[];
+  materialTypes: string[];
 }
 
 export interface FilterPanelProps {
