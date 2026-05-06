@@ -42,7 +42,7 @@ export function migratePayload<T>(
 
   // Se a versão do payload for maior que a atual, tratamos como inseguro
   // e retornamos null para evitar corrupção de estado (o usuário perderá o rascunho, mas não quebrará o app)
-  if (payload.version > currentVersion) {
+  if (typedPayload.version > currentVersion) {
     console.warn(
       '[AutoSave] Future payload version detected, skipping restore to prevent state corruption',
     );
@@ -50,9 +50,9 @@ export function migratePayload<T>(
   }
 
   // Adicione futuras migrações aqui:
-  // if (payload.version === 2) { ... migrate to 3 ... }
+  // if (typedPayload.version === 2) { ... migrate to 3 ... }
 
-  return payload as AutoSavePayload<T>;
+  return typedPayload as AutoSavePayload<T>;
 }
 
 /**
