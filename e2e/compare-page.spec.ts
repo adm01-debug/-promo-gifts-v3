@@ -1,64 +1,67 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Módulo de Comparador de Produtos - E2E', () => {
-  test.beforeEach(async ({ page }) => {
-    // Navega para a página do comparador
+  test('deve validar o fluxo "Adicionar à Arena" da página de detalhes', async ({ page }) => {
+    // 1. Navegar para um produto específico (ID real do mock)
+    await page.goto('/produto/26462');
+    
+    // 2. Verificar se o botão de adicionar à arena existe e clicar
+    const arenaBtn = page.getByRole('button', { name: /Adicionar à Arena/i });
+    await expect(arenaBtn).toBeVisible();
+    await arenaBtn.click();
+
+    // 3. Verificar toast de sucesso
+    await expect(page.locator('text=adicionado ao comparador')).toBeVisible();
+
+    // 4. Clicar no link "Ver agora" do toast ou navegar manualmente
     await page.goto('/comparar');
+
+    // 5. Verificar se o produto está lá
+    await expect(page.locator('text=Comparando 1 produto')).toBeVisible();
+    
+    // 6. Voltar para outro produto e adicionar também
+    await page.goto('/produto/26463');
+    await page.getByRole('button', { name: /Adicionar à Arena/i }).click();
+    await page.goto('/comparar');
+
+    // 7. Verificar se agora temos 2 e o Modo Duelo está disponível
+    await expect(page.locator('text=Comparando 2 produtos')).toBeVisible();
+    await expect(page.getByRole('button', { name: /Modo Duelo/i })).toBeVisible();
   });
 
-  test('deve carregar mocks e exibir o Radar e Score', async ({ page }) => {
-    // Clica no botão de Mock Rápido (3 itens)
-    const mockBtn = page.getByRole('button', { name: /Mock Rápido/i });
-    await expect(mockBtn).toBeVisible();
-    await mockBtn.click();
-
-    // Verifica se os toasts de loading apareceram e sumiram
-    await expect(page.locator('text=produtos carregados')).toBeVisible();
-
-    // Verifica se o título da página está correto
-    await expect(page.getByTestId('page-title-comparador')).toBeVisible();
-
-    // Verifica se o Score Card está visível
-    await expect(page.locator('text=Recomendado')).toBeVisible();
-
-    // Verifica se o Radar Chart está renderizado (geralmente um SVG ou canvas)
-    // Procuramos pelo container ou texto dentro dele
-    await expect(page.locator('text=Radar de Atributos')).toBeVisible();
-  });
-
-  test('deve validar o Modo Duelo com 2 produtos', async ({ page }) => {
-    // Carrega o mock
-    await page.getByRole('button', { name: /Mock Rápido/i }).click();
+  test('deve carregar mock de volume e persistir após recarregar', async ({ page }) => {
+    await page.goto('/comparar');
     
-    // Remove um produto para sobrar 2 (Modo Duelo exige 2)
-    const removeButtons = page.locator('button[aria-label="Remover"]');
-    await removeButtons.first().click();
-    
-    // Verifica se o botão de Modo Duelo aparece
-    const duelBtn = page.getByRole('button', { name: /Modo Duelo/i });
-    await expect(duelBtn).toBeVisible();
-    
-    // Ativa o Modo Duelo se não estiver ativo
-    const isActive = await duelBtn.innerText();
-    if (isActive.includes('Ativar')) {
-      await duelBtn.click();
+    // Limpar se houver algo
+    if (await page.getByRole('button', { name: /Limpar Tudo/i }).isVisible()) {
+      await page.getByRole('button', { name: /Limpar Tudo/i }).click();
     }
-    
-    // Verifica se a visualização de duelo está visível (ex: Swords icon ou layout específico)
-    await expect(page.locator('text=Duelo 1v1 Disponível')).toBeVisible();
+
+    // Clicar no mock de volume (8 itens)
+    await page.getByRole('button', { name: /Arena de Volume/i }).click();
+    await expect(page.locator('text=Simulação concluída')).toBeVisible();
+
+    // Verificar contagem
+    await expect(page.locator('text=Comparando 8 produtos')).toBeVisible();
+
+    // Recarregar página
+    await page.reload();
+
+    // Verificar se persistiu (via localStorage/Zustand)
+    await expect(page.locator('text=Comparando 8 produtos')).toBeVisible();
+    await expect(page.locator('text=Radar de Performance')).toBeVisible();
   });
 
-  test('deve limpar a comparação e voltar ao estado vazio', async ({ page }) => {
-    // Carrega mock
-    await page.getByRole('button', { name: /Mock Rápido/i }).click();
+  test('deve validar limites e duplicatas', async ({ page }) => {
+    await page.goto('/comparar');
+    await page.getByRole('button', { name: /Arena Rápida/i }).click();
     
-    // Clica em Limpar Tudo
-    await page.getByRole('button', { name: /Limpar Tudo/i }).click();
+    // Tentar adicionar o mesmo produto (ID 26462 já está no mock rápido)
+    await page.goto('/produto/26462');
+    await page.getByRole('button', { name: /Adicionar à Arena/i }).click();
     
-    // Verifica toast
-    await expect(page.locator('text=Comparação limpa')).toBeVisible();
-    
-    // Deve estar de volta no empty state
-    await expect(page.locator('text=Selecione pelo menos 2 produtos')).toBeVisible();
+    // Deve mostrar toast de info/erro duplicado
+    await expect(page.locator('text=já está na lista')).toBeVisible();
   });
 });
+
