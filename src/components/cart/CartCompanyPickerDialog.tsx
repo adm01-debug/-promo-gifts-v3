@@ -282,6 +282,7 @@ export function CartCompanyPickerDialog({ open, onOpenChange, onCreated }: CartC
                 {isLoading && (
                   <Loader2 
                     aria-hidden="true"
+                    data-testid="loader-icon"
                     className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-muted-foreground opacity-50 pointer-events-none" 
                   />
                 )}
