@@ -9,7 +9,13 @@ import { visualizer } from "rollup-plugin-visualizer";
  * 
  * @see https://vitejs.dev/config/
  */
-export default defineConfig(({ mode }) => ({
+export default defineConfig(({ mode }) => {
+  const version = new Date().getTime();
+  
+  return {
+    define: {
+      '__APP_VERSION__': JSON.stringify(version),
+    },
   plugins: [
     react(),
     mode === 'development' && componentTagger(),
