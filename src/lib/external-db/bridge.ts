@@ -102,10 +102,7 @@ export async function invokeBridge<T>(body: Record<string, unknown>): Promise<Br
   const op = body.operation as string | undefined;
   if (op !== 'batch' && (!body.table || typeof body.table !== 'string')) {
     const caller = new Error().stack?.split('\n')[2]?.trim() || 'unknown';
-    logger.error(
-      `[external-db] invokeBridge called without table! operation=${op}, caller=${caller}`,
-      body,
-    );
+    log.error('missing_table', { operation: op, body });
     throw new Error(`invokeBridge: tabela não informada (operation=${op})`);
   }
 
