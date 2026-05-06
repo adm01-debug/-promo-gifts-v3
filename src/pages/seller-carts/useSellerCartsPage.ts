@@ -117,6 +117,8 @@ export function useSellerCartsPage() {
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
+  const [itemsSortBy, setItemsSortBy] = useState<string>("manual");
+
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id || !activeCart) return;
