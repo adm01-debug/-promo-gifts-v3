@@ -71,7 +71,7 @@ function formatRelative(iso: string | null): string {
 }
 
 function statusClass(status: number | null): string {
-  if (status == null) return 'bg-muted text-muted-foreground border-muted-foreground/30';
+  if (status === null) return 'bg-muted text-muted-foreground border-muted-foreground/30';
   if (status >= 200 && status < 300)
     return 'bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/30';
   if (status >= 400) return 'bg-destructive/10 text-destructive border-destructive/30';
