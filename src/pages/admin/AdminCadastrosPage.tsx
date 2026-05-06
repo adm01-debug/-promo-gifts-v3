@@ -13,11 +13,7 @@ const ProductsManager = lazyWithRetry(() =>
 const SuppliersManager = lazyWithRetry(() =>
   import('@/components/admin/suppliers-manager').then((m) => ({ default: m.SuppliersManager })),
 );
-const EngravingRegistrationContent = lazyWithRetry(() =>
-  import('@/pages/EngravingRegistrationPage').then((m) => ({
-    default: m.EngravingRegistrationContent,
-  })),
-);
+const EngravingRegistrationContent = lazyWithRetry(() => import('@/pages/EngravingRegistrationPage'));
 
 function TabFallback() {
   return (
