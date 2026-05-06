@@ -29,6 +29,7 @@ import { GeneratingOverlay } from "@/components/mockup/GeneratingOverlay";
 import { TechniqueColorConfigDialog } from "@/components/mockup/TechniqueColorConfigDialog";
 import { MockupLayoutButtons } from "@/components/mockup/approval/MockupLayoutButtons";
 import { OffscreenLayoutCapture } from "@/components/mockup/approval/OffscreenLayoutCapture";
+import { AIMockupAssistant } from "@/components/ai";
 import { useMockupGenerator } from "@/hooks/useMockupGenerator";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTechniqueHandlers } from "./mockup-generator/MockupTechniqueHandlers";
