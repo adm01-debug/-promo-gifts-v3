@@ -232,9 +232,10 @@ export default function ComparePage() {
                     size="sm"
                     onClick={() => setDifferencesOnly(v => !v)}
                     aria-pressed={differencesOnly}
+                    className={cn(differencesOnly && "bg-amber-500 hover:bg-amber-600 border-none")}
                   >
                     <Filter className="h-4 w-4 mr-2" />
-                    {differencesOnly ? "Mostrando diferenças" : "Só diferenças"}
+                    {differencesOnly ? "Confronto Ativo" : "Só Diferenças"}
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Destacar apenas atributos diferentes entre os produtos <kbd className="ml-1 px-1 py-0.5 rounded bg-primary-foreground/20 text-primary-foreground text-[10px] font-mono">D</kbd></TooltipContent>
