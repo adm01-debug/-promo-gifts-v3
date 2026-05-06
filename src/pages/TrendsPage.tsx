@@ -342,7 +342,7 @@ export default function TrendsPage() {
             <p className="text-muted-foreground mt-1">
               {canManage
                 ? "Crescimento, conversão e demanda reprimida em tempo real"
-                : "Suas vendas, suas buscas, sua atividade"}
+                : "Crescimento, conversão e demanda reprimida em tempo real"}
             </p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
