@@ -406,7 +406,21 @@ export default function Auth() {
                       </div>
                     </div>
 
-                    <SocialLoginButtons onError={handleSocialError} />
+                    <div className="grid grid-cols-1 gap-3">
+                      <PasskeyLogin
+                        email={loginForm.watch("email")}
+                        disabled={isSubmitting}
+                        onSuccess={async (userId) => {
+                          setIsSubmitting(true);
+                          try {
+                            await validateAndRedirect(userId, loginForm.getValues("email"));
+                          } finally {
+                            setIsSubmitting(false);
+                          }
+                        }}
+                      />
+                      <SocialLoginButtons onError={handleSocialError} />
+                    </div>
 
                     <PasskeyLogin
                       email={loginForm.watch("email")}
