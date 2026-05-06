@@ -278,6 +278,42 @@ export type Database = {
         }
         Relationships: []
       }
+      app_vitals: {
+        Row: {
+          created_at: string
+          id: string
+          metric_name: string
+          metric_value: number
+          page_url: string | null
+          rating: string | null
+          request_id: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          metric_name: string
+          metric_value: number
+          page_url?: string | null
+          rating?: string | null
+          request_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          metric_name?: string
+          metric_value?: number
+          page_url?: string | null
+          rating?: string | null
+          request_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       art_file_attachments: {
         Row: {
           created_at: string
@@ -6104,6 +6140,18 @@ export type Database = {
       mcp_audit_actor: { Args: { _fallback: string }; Returns: string }
       notify_hardening_regression: { Args: never; Returns: Json }
       purge_old_audit_logs: { Args: never; Returns: undefined }
+      record_app_vital: {
+        Args: {
+          _name: string
+          _rating: string
+          _req_id: string
+          _ua: string
+          _uid?: string
+          _url: string
+          _value: number
+        }
+        Returns: undefined
+      }
       record_auth_attempt: {
         Args: {
           _email: string
