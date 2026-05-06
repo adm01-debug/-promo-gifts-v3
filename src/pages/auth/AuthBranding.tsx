@@ -118,6 +118,54 @@ export const ContinuousRockets = React.memo(() => {
   );
 });
 
+const BackgroundRockets = React.memo(() => {
+  // 4 foguetes decorativos de tamanhos diferentes subindo lentamente atrás do texto
+  const rockets = [
+    { left: 8,  size: 64, duration: 14, delay: 0,   opacity: 0.10 },
+    { left: 78, size: 96, duration: 18, delay: 3,   opacity: 0.08 },
+    { left: 42, size: 44, duration: 11, delay: 6,   opacity: 0.12 },
+    { left: 92, size: 28, duration: 9,  delay: 1.5, opacity: 0.14 },
+  ];
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden z-[0]" aria-hidden="true">
+      {rockets.map((r, i) => (
+        <div
+          key={`bg-rocket-${i}`}
+          className="absolute bottom-[-10%]"
+          style={{
+            left: `${r.left}%`,
+            opacity: r.opacity,
+            animation: `rocketLaunch ${r.duration}s linear ${r.delay}s infinite`,
+            willChange: "transform, opacity",
+          }}
+        >
+          <div className="relative">
+            <Rocket
+              className="-rotate-45 text-orange"
+              style={{
+                width: r.size,
+                height: r.size,
+                filter: `drop-shadow(0 0 ${r.size * 0.4}px rgba(251, 146, 60, 0.5))`,
+              }}
+            />
+            <div
+              className="absolute left-1/2 -translate-x-1/2 rounded-full"
+              style={{
+                top: `${r.size * 0.7}px`,
+                width: `${r.size * 0.35}px`,
+                height: `${r.size * 1.4}px`,
+                background: "linear-gradient(to bottom, #FB923C, #FBBF24, transparent)",
+                filter: "blur(4px)",
+                opacity: 0.7,
+              }}
+            />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+});
+
 const Starfield = React.memo(() => {
   return (
     <>
@@ -181,6 +229,7 @@ export function AuthBrandingPanel() {
         <div className="absolute bottom-1/4 right-0 w-96 h-96 bg-orange/10 rounded-full blur-[150px]" />
         <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-orange/5 rounded-full blur-[100px]" />
         <Starfield />
+        <BackgroundRockets />
         <ContinuousRockets />
       </div>
 
