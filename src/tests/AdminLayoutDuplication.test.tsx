@@ -13,41 +13,43 @@ import { HelmetProvider } from 'react-helmet-async';
 import { AriaLiveProvider } from '../components/a11y/AriaLive';
 import React from 'react';
 
-// Mock robusto do Supabase
-const mockSupabaseQuery = {
-  select: vi.fn().mockReturnThis(),
-  order: vi.fn().mockReturnThis(),
-  limit: vi.fn().mockReturnThis(),
-  eq: vi.fn().mockReturnThis(),
-  insert: vi.fn().mockReturnThis(),
-  update: vi.fn().mockReturnThis(),
-  delete: vi.fn().mockReturnThis(),
-  like: vi.fn().mockReturnThis(),
-  single: vi.fn().mockResolvedValue({ data: null, error: null }),
-  maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
-  then: vi.fn().mockImplementation((resolve) => resolve({ data: null, error: null })),
-};
+// Mock robusto do Supabase - definido DENTRO do vi.mock para evitar erro de hoisting
+vi.mock('../integrations/supabase/client', () => {
+  const mockQuery = {
+    select: vi.fn().mockReturnThis(),
+    order: vi.fn().mockReturnThis(),
+    limit: vi.fn().mockReturnThis(),
+    eq: vi.fn().mockReturnThis(),
+    insert: vi.fn().mockReturnThis(),
+    update: vi.fn().mockReturnThis(),
+    delete: vi.fn().mockReturnThis(),
+    like: vi.fn().mockReturnThis(),
+    single: vi.fn().mockResolvedValue({ data: null, error: null }),
+    maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+    then: vi.fn().mockImplementation((resolve) => resolve({ data: null, error: null })),
+  };
 
-vi.mock('../integrations/supabase/client', () => ({
-  supabase: {
-    auth: {
-      getSession: vi.fn().mockResolvedValue({ data: { session: null }, error: null }),
-      onAuthStateChange: vi.fn().mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } }),
-      getUser: vi.fn().mockResolvedValue({ data: { user: null }, error: null }),
+  return {
+    supabase: {
+      auth: {
+        getSession: vi.fn().mockResolvedValue({ data: { session: null }, error: null }),
+        onAuthStateChange: vi.fn().mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } }),
+        getUser: vi.fn().mockResolvedValue({ data: { user: null }, error: null }),
+      },
+      from: vi.fn().mockReturnValue(mockQuery),
+      rpc: vi.fn().mockResolvedValue({ data: null, error: null }),
+      functions: {
+        invoke: vi.fn().mockResolvedValue({ data: null, error: null }),
+      },
+      channel: vi.fn().mockReturnValue({
+        on: vi.fn().mockReturnThis(),
+        subscribe: vi.fn().mockReturnThis(),
+        unsubscribe: vi.fn().mockReturnThis(),
+      }),
+      removeChannel: vi.fn().mockResolvedValue(null),
     },
-    from: vi.fn().mockReturnValue(mockSupabaseQuery),
-    rpc: vi.fn().mockResolvedValue({ data: null, error: null }),
-    functions: {
-      invoke: vi.fn().mockResolvedValue({ data: null, error: null }),
-    },
-    channel: vi.fn().mockReturnValue({
-      on: vi.fn().mockReturnThis(),
-      subscribe: vi.fn().mockReturnThis(),
-      unsubscribe: vi.fn().mockReturnThis(),
-    }),
-    removeChannel: vi.fn().mockResolvedValue(null),
-  },
-}));
+  };
+});
 
 vi.mock('../hooks/useSecretsManager', () => ({
   useSecretsManager: () => ({ secrets: [], isLoading: false, list: vi.fn(), refreshCache: vi.fn() }),
