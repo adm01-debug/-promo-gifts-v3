@@ -165,7 +165,7 @@ export function ConnectionDetailsDialog({
                   </dd>
                   <dt className="text-muted-foreground">Quando</dt>
                   <dd>{fmtDate(last.tested_at)}</dd>
-                  {last.latency_ms != null && (
+                  {last.latency_ms !== null && (
                     <>
                       <dt className="text-muted-foreground">Latência</dt>
                       <dd>{last.latency_ms} ms</dd>
