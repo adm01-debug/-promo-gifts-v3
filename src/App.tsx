@@ -114,8 +114,10 @@ const OwnershipAuditAdminPage = lazyWithRetry(
   () => import('./pages/admin/OwnershipAuditAdminPage'),
 );
 const ComplianceEvidencePage = lazyWithRetry(() => import('./pages/admin/ComplianceEvidencePage'));
-
-// Tools Pages
+const EngravingRegistrationPage = lazyWithRetry(
+  () => import('./pages/EngravingRegistrationPage'),
+);
+const ProductRegistrationPage = lazyWithRetry(() => import('./pages/ProductRegistrationPage'));
 const SimuladorWizard = lazyWithRetry(() => import('./pages/SimuladorWizard'));
 const MockupGenerator = lazyWithRetry(() => import('./pages/MockupGenerator'));
 const MagicUp = lazyWithRetry(() => import('./pages/MagicUp'));
