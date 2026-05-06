@@ -372,36 +372,56 @@ export function StockFilterToolbar({
               <Badge variant="secondary" className="gap-1 text-xs pr-1">
                 <Building2 className="h-3 w-3" />
                 {filters.supplierId}
-                <button onClick={() => onUpdateFilter('supplierId', undefined)} className="ml-0.5 hover:text-foreground">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onUpdateFilter('supplierId', undefined)}
+                  className="ml-0.5 h-4 w-4 hover:text-foreground"
+                >
                   <X className="h-3 w-3" />
-                </button>
+                </Button>
               </Badge>
             )}
             {(filters.colorName || filters.colorGroup) && (
               <Badge variant="secondary" className="gap-1 text-xs pr-1">
                 <Palette className="h-3 w-3" />
                 {filters.colorName || filters.colorGroup}
-                <button onClick={() => { onUpdateFilter('colorName', undefined); onUpdateFilter('colorGroup', undefined); }} className="ml-0.5 hover:text-foreground">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => { onUpdateFilter('colorName', undefined); onUpdateFilter('colorGroup', undefined); }}
+                  className="ml-0.5 h-4 w-4 hover:text-foreground"
+                >
                   <X className="h-3 w-3" />
-                </button>
+                </Button>
               </Badge>
             )}
             {filters.minQuantityNeeded && filters.minQuantityNeeded > 0 && (
               <Badge variant="secondary" className="gap-1 text-xs pr-1">
                 <ShoppingCart className="h-3 w-3" />
                 ≥ {filters.minQuantityNeeded} un
-                <button onClick={() => { setQuantityInput(''); onUpdateFilter('minQuantityNeeded', undefined); }} className="ml-0.5 hover:text-foreground">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => { setQuantityInput(''); onUpdateFilter('minQuantityNeeded', undefined); }}
+                  className="ml-0.5 h-4 w-4 hover:text-foreground"
+                >
                   <X className="h-3 w-3" />
-                </button>
+                </Button>
               </Badge>
             )}
             {filters.showOnlyWithAlerts && (
               <Badge variant="secondary" className="gap-1 text-xs pr-1">
                 <AlertTriangle className="h-3 w-3" />
                 Com alertas
-                <button onClick={() => onUpdateFilter('showOnlyWithAlerts', false)} className="ml-0.5 hover:text-foreground">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => onUpdateFilter('showOnlyWithAlerts', false)}
+                  className="ml-0.5 h-4 w-4 hover:text-foreground"
+                >
                   <X className="h-3 w-3" />
-                </button>
+                </Button>
               </Badge>
             )}
 
