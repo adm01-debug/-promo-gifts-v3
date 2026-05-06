@@ -457,7 +457,7 @@ const diversityPreset: ThemePreset = {
     'sidebar-accent-foreground': '290 80% 35%',
     'sidebar-border': '330 40% 92%',
     'sidebar-ring': PRIDE_PINK,
-    // === GRADIENTES — TODOS RAINBOW ===
+    // === GRADIENTES — RAINBOW ===
     'gradient-primary': rainbowGrad,
     'gradient-secondary': rainbowGrad,
     'gradient-success': `linear-gradient(135deg, hsl(${PRIDE_GREEN}), hsl(${PRIDE_BLUE}))`,
