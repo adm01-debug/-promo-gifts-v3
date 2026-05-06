@@ -196,14 +196,14 @@ export function useCatalogState() {
 
           // Sincroniza cores
           if (filters.colorGroups?.length) next.set('colors', filters.colorGroups.join(','));
-          else if (!next.get('preset')) next.delete('colors'); // Apenas deleta se não for preset (pois preset pode ter filtros implícitos)
+          else if (!next.get('preset')) next.delete('colors');
 
           // Sincroniza categorias
           if (filters.categories?.length) next.set('cats', filters.categories.join(','));
           else if (!next.get('preset')) next.delete('cats');
 
           // Outros filtros relevantes para consistência total
-          if (filters.inStock) next.set('stock', 'true');
+          if (filters.stockStatus === 'in-stock') next.set('stock', 'true');
           else next.delete('stock');
 
           if (filters.isKit) next.set('kit', 'true');
@@ -303,8 +303,11 @@ export function useCatalogState() {
   const isInitialCatalogLoad =
     (isLoadingProducts || isFetchingProducts) && realProducts.length === 0;
 
+  // Sincroniza searchQuery da URL com o estado local se mudar externamente
   useEffect(() => {
-    setSearchQuery(searchQueryFromUrl);
+    if (searchQueryFromUrl !== searchQuery) {
+      setSearchQuery(searchQueryFromUrl);
+    }
   }, [searchQueryFromUrl]);
 
   useEffect(() => {
@@ -312,6 +315,7 @@ export function useCatalogState() {
   }, [filters, sortBy, searchQuery]);
 
   const activeFiltersCount = useMemo(() => {
+    if (!filters) return 0;
     let count = 0;
     if (filters.colors?.length) count += filters.colors.length;
     if (filters.colorGroups?.length) count += filters.colorGroups.length;
@@ -326,13 +330,15 @@ export function useCatalogState() {
     if (filters.segmentosAtividade?.length) count += filters.segmentosAtividade.length;
     if (filters.materialGroups?.length) count += filters.materialGroups.length;
     if (filters.materialTypes?.length) count += filters.materialTypes.length;
-    if ((filters as any).materiais?.length) count += (filters as any).materiais.length;
     if (filters.materials?.length) count += filters.materials.length;
-    if (filters.priceRange?.[0] > 0 || filters.priceRange?.[1] < 500) count += 1;
-    if ((filters as any).inStock) count += 1;
+    if (filters.priceRange?.[0] > 0 || filters.priceRange?.[1] < 9999) count += 1;
+    if (filters.stockStatus !== 'all' || filters.minStock > 0) count += 1;
     if (filters.isKit) count += 1;
-    if ((filters as any).featured || filters.isFeatured) count += 1;
+    if (filters.isFeatured) count += 1;
+    if (filters.isNew) count += 1;
+    if (filters.hasPersonalization) count += 1;
     if (filters.gender?.length) count += filters.gender.length;
+    if (filters.sizes?.length) count += filters.sizes.length;
     return count;
   }, [filters]);
 
