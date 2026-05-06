@@ -21,6 +21,7 @@ import { MockupToolbar } from "./mockup-generator/MockupToolbar";
 import { MockupEmptyState } from "./mockup-generator/MockupEmptyState";
 import { useKeyboardShortcuts } from "@/components/mockup/KeyboardShortcuts";
 import { GeneratingOverlay } from "@/components/mockup/GeneratingOverlay";
+import { TechniqueColorConfigDialog } from "@/components/mockup/TechniqueColorConfigDialog";
 import { useMockupGenerator } from "@/hooks/useMockupGenerator";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTechniqueHandlers } from "./mockup-generator/MockupTechniqueHandlers";
@@ -37,7 +38,6 @@ const MockupConfigPanel = lazyWithRetry(() => import("@/components/mockup/Mockup
 const MockupHistoryPanel = lazyWithRetry(() => import("@/components/mockup/MockupHistoryPanel").then(m => ({ default: m.MockupHistoryPanel })));
 const MockupLayoutButtons = lazyWithRetry(() => import("@/components/mockup/approval/MockupLayoutButtons").then(m => ({ default: m.MockupLayoutButtons })));
 const OffscreenLayoutCapture = lazyWithRetry(() => import("@/components/mockup/approval/OffscreenLayoutCapture").then(m => ({ default: m.OffscreenLayoutCapture })));
-const TechniqueColorConfigDialog = lazyWithRetry(() => import("@/components/mockup/TechniqueColorConfigDialog").then(m => ({ default: m.TechniqueColorConfigDialog })));
 const AIMockupAssistant = lazyWithRetry(() => import("@/components/ai").then(m => ({ default: m.AIMockupAssistant })));
 
 // ─── Sub-components ──────────────────────────────────────────────────
