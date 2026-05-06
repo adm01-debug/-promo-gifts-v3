@@ -71,7 +71,7 @@ export function MockupPromptManager() {
     try {
       const [cr, tr] = await Promise.all([
         supabase.from('mockup_prompt_configs').select('*').order('config_key'),
-        supabase.from('personalization_techniques').select('id, name, code').eq('is_active', true),
+        supabase.from('personalization_techniques').select('id, name, code').eq('is_active', true) as any,
       ]);
       if (cr.error) throw cr.error;
       if (tr.error) throw tr.error;
