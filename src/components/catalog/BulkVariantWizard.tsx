@@ -16,6 +16,8 @@ import {
   Heart,
   GitCompare,
   FolderPlus,
+  Check,
+  ArrowRight,
 } from 'lucide-react';
 import {
   useExternalVariantStock,
