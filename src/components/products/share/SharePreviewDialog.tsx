@@ -17,6 +17,9 @@ import { MESSAGE_TEMPLATES, type TemplateKey } from "./MessageTemplates";
 import { WhatsAppPreview } from "./WhatsAppPreview";
 import { openWhatsAppShare } from "./whatsapp";
 import { cn } from "@/lib/utils";
+import { createClientLogger } from "@/lib/telemetry/structuredLogger";
+
+const log = createClientLogger("share.preview-dialog");
 
 interface SelectedVariantInfo {
   variantName?: string | null;
