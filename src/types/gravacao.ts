@@ -216,7 +216,7 @@ export const TECHNIQUE_ICONS: Record<string, string> = {
  * Shapes para CSS
  */
 export const SHAPE_STYLES: Record<AreaShape, string> = {
-  rectangle: 'rounded-[var(--radius)]',
+  rectangle: 'rounded-lg',
   circle: 'rounded-full',
   oval: 'rounded-[50%]',
   triangle: 'clip-path-triangle',

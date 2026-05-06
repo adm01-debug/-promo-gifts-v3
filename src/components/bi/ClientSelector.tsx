@@ -116,7 +116,7 @@ export function ClientSelector({ value, onChange }: ClientSelectorProps) {
                       <button
                         type="button"
                         onClick={() => handleSelect(item.id, item.label)}
-                        className="w-full px-2 py-1.5 text-left flex items-center gap-2 hover:bg-accent rounded-xl transition-colors"
+                        className="w-full px-2 py-1.5 text-left flex items-center gap-2 hover:bg-accent rounded-lg transition-colors"
                       >
                         <Building2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                         <span className="text-sm truncate flex-1">{item.label}</span>

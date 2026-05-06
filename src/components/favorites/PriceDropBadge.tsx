@@ -37,7 +37,7 @@ export function PriceDropBadge({
         <TooltipTrigger asChild>
           <div
             className={cn(
-              "inline-flex items-center gap-1 rounded-xl px-1.5 py-0.5 font-semibold tabular-nums backdrop-blur-sm border shadow-sm",
+              "inline-flex items-center gap-1 rounded-lg px-1.5 py-0.5 font-semibold tabular-nums backdrop-blur-sm border shadow-sm",
               size === "sm" ? "text-[10px]" : "text-xs",
               isDrop
                 ? "bg-success/15 text-success border-success/30"

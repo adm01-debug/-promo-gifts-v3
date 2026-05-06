@@ -243,11 +243,11 @@ export function ProductDetailHero({
                   productId={id} productName={product.name} productSku={product.sku}
                   productImageUrl={product.images?.[0]} productPrice={product.price}
                   minQuantity={minQuantity} variant="button" buttonSize="lg"
-                  className="flex-1 basis-0 h-12 xl:h-13 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-display font-bold text-[0.875rem] tracking-wide shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none gap-1.5"
+                  className="flex-1 basis-0 h-12 xl:h-13 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-display font-bold text-[0.875rem] tracking-wide shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none gap-1.5"
                   labelOverride="Carrinho" iconOverride="cart"
                 />
                 <Button size="lg"
-                  className="flex-1 basis-0 h-12 xl:h-13 rounded-xl bg-success hover:bg-success/90 text-success-foreground font-display font-bold text-[0.875rem] tracking-wide shadow-md shadow-success/20 hover:shadow-lg hover:shadow-success/30 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none gap-1.5"
+                  className="flex-1 basis-0 h-12 xl:h-13 rounded-lg bg-success hover:bg-success/90 text-success-foreground font-display font-bold text-[0.875rem] tracking-wide shadow-md shadow-success/20 hover:shadow-lg hover:shadow-success/30 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none gap-1.5"
                   onClick={() => setQuoteVariantWizardOpen(true)}
                 >
                   <FileText className="h-4 w-4" />Orçamento

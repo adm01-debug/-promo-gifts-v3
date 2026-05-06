@@ -228,7 +228,7 @@ export function GlobalSearch({ isOpen, onClose, placeholder = "Buscar produtos, 
             transition={{ duration: 0.15 }}
             className="fixed top-[10%] left-1/2 -translate-x-1/2 z-50 w-full max-w-2xl px-4"
           >
-            <div className="bg-card rounded-xl shadow-2xl border border-border overflow-hidden">
+            <div className="bg-card rounded-lg shadow-2xl border border-border overflow-hidden">
               {/* Search Input */}
               <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
                 <Search className="h-5 w-5 text-muted-foreground flex-shrink-0" />
@@ -295,7 +295,7 @@ export function GlobalSearch({ isOpen, onClose, placeholder = "Buscar produtos, 
                             )}
                           >
                             <div className={cn(
-                              "p-2 rounded-xl bg-muted",
+                              "p-2 rounded-lg bg-muted",
                               categoryConfig[result.category].color
                             )}>
                               <CategoryIcon className="h-4 w-4" />
@@ -392,7 +392,7 @@ export function GlobalSearch({ isOpen, onClose, placeholder = "Buscar produtos, 
                                 : "hover:bg-muted/50"
                             )}
                           >
-                            <div className="p-2 rounded-xl bg-primary/10">
+                            <div className="p-2 rounded-lg bg-primary/10">
                               <Icon className="h-4 w-4 text-primary" />
                             </div>
                             <span className="text-sm font-medium text-foreground">

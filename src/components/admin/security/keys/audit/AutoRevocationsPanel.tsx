@@ -71,7 +71,7 @@ export function AutoRevocationsPanel() {
                 return (
                   <li
                     key={row.id}
-                    className="border border-border rounded-xl p-3 hover:bg-accent/30 transition-colors"
+                    className="border border-border rounded-lg p-3 hover:bg-accent/30 transition-colors"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="space-y-1 min-w-0 flex-1">

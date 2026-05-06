@@ -220,7 +220,7 @@ export const NoveltyProductGrid = memo(function NoveltyProductGrid({
             const isSelected = sel.selectedIds.has(novelty.product_id);
             return (
               <div key={novelty.novelty_id} className="stagger-item" style={{ animationDelay: `${Math.min(index * 25, 250)}ms` }}>
-                <div className={cn("flex items-center gap-1", isSelected && "ring-2 ring-primary rounded-xl")}>
+                <div className={cn("flex items-center gap-1", isSelected && "ring-2 ring-primary rounded-lg")}>
                   {selectionMode && (
                     <div className="flex-shrink-0 ml-1">
                       <SelectionCheckbox checked={isSelected} onChange={() => sel.toggleSelect(novelty.product_id)} size="md" />
@@ -453,9 +453,9 @@ export const NoveltyProductGrid = memo(function NoveltyProductGrid({
                 <DrawerFooter className="px-6 pb-8 pt-2">
                   <div className="flex items-center gap-2">
                     <DrawerClose asChild>
-                      <Button className="flex-1 rounded-xl h-11 text-sm font-semibold">Ver {filteredProducts.length} Resultados</Button>
+                      <Button className="flex-1 rounded-lg h-11 text-sm font-semibold">Ver {filteredProducts.length} Resultados</Button>
                     </DrawerClose>
-                    <Button variant="ghost" className="rounded-xl h-11 text-muted-foreground" onClick={clearFilters}>Limpar</Button>
+                    <Button variant="ghost" className="rounded-lg h-11 text-muted-foreground" onClick={clearFilters}>Limpar</Button>
                   </div>
                 </DrawerFooter>
               </DrawerContent>

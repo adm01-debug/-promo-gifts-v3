@@ -27,7 +27,7 @@ const SimilarProductCard = forwardRef<
       ref={ref}
       className={cn(
         "group relative min-w-0 shrink-0 snap-start",
-        "rounded-xl bg-card border border-border/50 overflow-hidden",
+        "rounded-lg bg-card border border-border/50 overflow-hidden",
         "transition-all duration-300 cursor-pointer",
         "hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1",
         "animate-fade-in"
@@ -143,7 +143,7 @@ export function SimilarProducts({
     return (
       <section className="space-y-4">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-accent/50 flex items-center justify-center shrink-0">
+          <div className="w-9 h-9 rounded-lg bg-accent/50 flex items-center justify-center shrink-0">
             <Layers className="h-4.5 w-4.5 text-foreground" />
           </div>
           <h2 className="font-display text-lg font-bold text-foreground">Produtos Semelhantes</h2>
@@ -160,7 +160,7 @@ export function SimilarProducts({
     <section className="space-y-4 overflow-hidden">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0 flex-1">
-          <div className="w-9 h-9 rounded-xl bg-accent/50 flex items-center justify-center shrink-0">
+          <div className="w-9 h-9 rounded-lg bg-accent/50 flex items-center justify-center shrink-0">
             <Layers className="h-4.5 w-4.5 text-foreground" />
           </div>
           <div className="min-w-0">
@@ -177,7 +177,7 @@ export function SimilarProducts({
           <Button
             variant="outline"
             size="icon" aria-label="Voltar"
-            className="h-10 w-10 rounded-xl border-2 border-primary/40 bg-primary/10 hover:bg-primary/20 hover:border-primary/60 transition-all duration-200 shadow-md"
+            className="h-10 w-10 rounded-lg border-2 border-primary/40 bg-primary/10 hover:bg-primary/20 hover:border-primary/60 transition-all duration-200 shadow-md"
             onClick={() => scroll("left")}
             disabled={!canScrollLeft}
           >
@@ -186,7 +186,7 @@ export function SimilarProducts({
           <Button
             variant="outline"
             size="icon" aria-label="Avançar"
-            className="h-10 w-10 rounded-xl border-2 border-primary/40 bg-primary/10 hover:bg-primary/20 hover:border-primary/60 transition-all duration-200 shadow-md"
+            className="h-10 w-10 rounded-lg border-2 border-primary/40 bg-primary/10 hover:bg-primary/20 hover:border-primary/60 transition-all duration-200 shadow-md"
             onClick={() => scroll("right")}
             disabled={!canScrollRight}
           >

@@ -46,10 +46,10 @@ export function WizardContextBar({ wizard }: WizardContextBarProps) {
     <motion.div
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex items-center gap-3 p-3 rounded-xl bg-muted/60 border border-border/50"
+      className="flex items-center gap-3 p-3 rounded-lg bg-muted/60 border border-border/50"
     >
       {/* Product image/icon */}
-      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
         {selectedProduct.imageUrl ? (
           
 <img src={selectedProduct.imageUrl} alt="" className="w-8 h-8 rounded object-cover"  loading="lazy"/>

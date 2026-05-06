@@ -213,7 +213,7 @@ export function CollectionTableView({
   return (
     <div className="space-y-2">
       {/* Table */}
-      <div className="rounded-xl border border-border/50 overflow-hidden">
+      <div className="rounded-lg border border-border/50 overflow-hidden">
         <table className="w-full text-left">
           <thead>
             <tr className="bg-muted/30 border-b border-border/50">

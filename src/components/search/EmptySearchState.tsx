@@ -63,7 +63,7 @@ export const EmptySearchState = memo(function EmptySearchState({
   return (
     <div className="flex flex-col gap-4 px-4 py-6 animate-in fade-in-0 zoom-in-95 duration-300">
       <div className="flex items-center gap-3">
-        <div className="h-12 w-12 rounded-xl [background-color:hsl(var(--command-surface-raised))] flex items-center justify-center border [border-color:hsl(var(--command-border))]">
+        <div className="h-12 w-12 rounded-lg [background-color:hsl(var(--command-surface-raised))] flex items-center justify-center border [border-color:hsl(var(--command-border))]">
           <Search className="h-5 w-5 [color:hsl(var(--command-text-subtle))]" />
         </div>
         <div>
@@ -82,12 +82,12 @@ export const EmptySearchState = memo(function EmptySearchState({
             key={a.key}
             onClick={a.onClick}
             className={cn(
-              "flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all",
+              "flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all",
               "border [border-color:hsl(var(--command-border))]",
               "hover:[background-color:hsl(var(--command-accent))] hover:[border-color:hsl(var(--command-border-strong))]"
             )}
           >
-            <div className="h-8 w-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+            <div className="h-8 w-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
               {a.icon}
             </div>
             <div className="flex-1 min-w-0">
@@ -108,7 +108,7 @@ export const EmptySearchState = memo(function EmptySearchState({
               <button
                 key={term}
                 onClick={() => onPickRecent(term)}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] border [border-color:hsl(var(--command-border))] [background-color:hsl(var(--command-surface-raised))] hover:[background-color:hsl(var(--command-accent))] transition-colors"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] border [border-color:hsl(var(--command-border))] [background-color:hsl(var(--command-surface-raised))] hover:[background-color:hsl(var(--command-accent))] transition-colors"
               >
                 <Clock className="h-3 w-3 [color:hsl(var(--command-text-subtle))]" />
                 <span className="truncate max-w-[160px]">{term}</span>

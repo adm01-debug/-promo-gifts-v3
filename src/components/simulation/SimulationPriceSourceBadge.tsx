@@ -87,7 +87,7 @@ export function SimulationPriceSourceBadge({
               role="status"
               aria-label="Estimativa: cálculo oficial indisponível"
               className={cn(
-                "flex items-start gap-2.5 rounded-xl border-[1.5px] px-3 py-2.5 text-left",
+                "flex items-start gap-2.5 rounded-lg border-[1.5px] px-3 py-2.5 text-left",
                 "border-amber-300 bg-amber-100 text-amber-900",
                 "dark:border-amber-500/60 dark:bg-amber-500/15 dark:text-amber-200",
                 className,

@@ -68,7 +68,7 @@ function ClassificationCard({ title, subtitle, icon: Icon, iconColor, children, 
         className="flex items-center gap-3 w-full px-4 py-3.5 text-left hover:bg-accent/30 transition-colors"
       >
         <div className={cn(
-          "flex h-9 w-9 items-center justify-center rounded-xl shrink-0",
+          "flex h-9 w-9 items-center justify-center rounded-lg shrink-0",
           iconColor
         )}>
           <Icon className="h-4 w-4" />
@@ -109,7 +109,7 @@ export default function ProductClassificationSection({
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
           <Layers className="h-5 w-5" />
         </div>
         <div>
@@ -214,7 +214,7 @@ export default function ProductClassificationSection({
       </div>
 
       {!showFullContent && (
-        <div className="flex items-center gap-2 p-3 rounded-xl bg-muted/30 text-xs text-muted-foreground border border-border/30">
+        <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/30 text-xs text-muted-foreground border border-border/30">
           <Info className="h-4 w-4 shrink-0 text-primary" />
           <span>Salve o produto primeiro para editar as classificações acima.</span>
         </div>

@@ -111,7 +111,7 @@ export function InlinePriceCalculator({
   if (defaultOpen) {
     return (
       <div className={cn("space-y-5", className)}>
-        <div className="overflow-hidden rounded-xl border border-border/40">
+        <div className="overflow-hidden rounded-lg border border-border/40">
           <PriceTiersTable tiers={priceTiers} isLoading={isLoading} compact formatPrice={formatPrice} />
         </div>
         <QuantityCalculator compact customQuantity={customQuantity} onQuantityChange={setCustomQuantity} minQuantity={minQuantity} unitPrice={customPriceInfo.unitPrice} total={customTotal} discount={customPriceInfo.discount} formatPrice={formatPrice} />
@@ -126,7 +126,7 @@ export function InlinePriceCalculator({
           <CardHeader className="cursor-pointer hover:bg-primary/5 transition-colors py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center"><Calculator className="h-5 w-5 text-primary" /></div>
+                <div className="w-10 h-10 rounded-lg bg-primary/15 flex items-center justify-center"><Calculator className="h-5 w-5 text-primary" /></div>
                 <div><CardTitle className="text-base">Tabela de Preços</CardTitle><p className="text-sm text-muted-foreground">Veja os descontos por quantidade</p></div>
               </div>
               {isOpen ? <ChevronUp className="h-5 w-5 text-muted-foreground" /> : <ChevronDown className="h-5 w-5 text-muted-foreground" />}
@@ -135,7 +135,7 @@ export function InlinePriceCalculator({
         </CollapsibleTrigger>
         <CollapsibleContent>
           <CardContent className="pt-0 space-y-6">
-            <div className="overflow-hidden rounded-xl border border-border">
+            <div className="overflow-hidden rounded-lg border border-border">
               <PriceTiersTable tiers={priceTiers} isLoading={isLoading} formatPrice={formatPrice} />
             </div>
             <Separator />

@@ -70,7 +70,7 @@ export function LogoColorAnalyzer({
 
       {/* Warning if exceeds max */}
       {exceedsMax && (
-        <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-destructive/10 border border-destructive/20">
+        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-destructive/10 border border-destructive/20">
           <AlertTriangle className="h-4 w-4 text-destructive shrink-0" />
           <span className="text-xs text-destructive">
             O número máximo de cores é <strong>{maxColors}</strong>. Substitua uma ou mais cores para continuar.
@@ -115,7 +115,7 @@ function ColorRow({ color, index, onPantoneChange }: ColorRowProps) {
   return (
     <div className="grid grid-cols-2 gap-2 items-center">
       {/* Detected color */}
-      <div className="flex items-center gap-2 px-2 py-1.5 rounded-xl bg-muted/30">
+      <div className="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-muted/30">
         <div
           className="w-6 h-6 rounded border border-border/50 shrink-0"
           style={{ backgroundColor: color.hex }}
@@ -170,7 +170,7 @@ function PantoneDropdown({ selectedCode, pantoneHex, deltaE, onChange }: Pantone
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <button
-          className="flex items-center gap-2 px-2 py-1.5 rounded-xl border border-border/50 
+          className="flex items-center gap-2 px-2 py-1.5 rounded-lg border border-border/50 
                      hover:bg-muted/50 transition-colors w-full text-left"
          aria-label="Recolher">
           <div

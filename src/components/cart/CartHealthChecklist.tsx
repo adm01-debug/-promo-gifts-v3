@@ -124,7 +124,7 @@ export function CartHealthChecklist({ cart, cartSubtotal, onFocusNotes, onAddPro
               onClick={c.ok ? undefined : c.onFix}
               disabled={c.ok || !c.onFix}
               className={cn(
-                "w-full flex items-center gap-2.5 text-xs py-1.5 px-2 rounded-xl text-left transition-all duration-200 group/item",
+                "w-full flex items-center gap-2.5 text-xs py-1.5 px-2 rounded-lg text-left transition-all duration-200 group/item",
                 !c.ok && c.onFix && "hover:bg-primary/5 hover:translate-x-1 cursor-pointer",
                 (c.ok || !c.onFix) && "cursor-default",
                 c.ok ? "opacity-60" : "opacity-100"

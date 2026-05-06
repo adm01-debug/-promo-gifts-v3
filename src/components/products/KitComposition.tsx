@@ -38,7 +38,7 @@ export function KitComposition({ items, onViewProduct }: KitCompositionProps) {
     <>
       {/* Trigger Card */}
       <div
-        className="rounded-xl border border-border bg-card overflow-hidden shadow-sm cursor-pointer hover:border-primary/40 transition-all group"
+        className="rounded-lg border border-border bg-card overflow-hidden shadow-sm cursor-pointer hover:border-primary/40 transition-all group"
         onClick={() => setDialogOpen(true)}
         role="button"
         tabIndex={0}
@@ -46,7 +46,7 @@ export function KitComposition({ items, onViewProduct }: KitCompositionProps) {
       >
         <div className="flex items-center justify-between px-5 py-4">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/15 transition-colors">
+            <div className="w-11 h-11 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/15 transition-colors">
               <Layers className="h-5 w-5 text-primary" />
             </div>
             <div className="text-left">
@@ -57,12 +57,12 @@ export function KitComposition({ items, onViewProduct }: KitCompositionProps) {
           <div className="flex items-center gap-2">
             <div className="hidden sm:flex -space-x-2">
               {items.slice(0, 4).map((item) => (
-                <div key={item.id} className="w-8 h-8 rounded-xl bg-muted border-2 border-card flex items-center justify-center overflow-hidden">
+                <div key={item.id} className="w-8 h-8 rounded-lg bg-muted border-2 border-card flex items-center justify-center overflow-hidden">
                   {item.imageUrl ? 
 <img src={item.imageUrl} alt="" className="w-full h-full object-contain p-0.5" loading="lazy" /> : <Package className="h-3.5 w-3.5 text-muted-foreground/50" />}
                 </div>
               ))}
-              {items.length > 4 && <div className="w-8 h-8 rounded-xl bg-muted border-2 border-card flex items-center justify-center text-[10px] font-bold text-muted-foreground">+{items.length - 4}</div>}
+              {items.length > 4 && <div className="w-8 h-8 rounded-lg bg-muted border-2 border-card flex items-center justify-center text-[10px] font-bold text-muted-foreground">+{items.length - 4}</div>}
             </div>
             <ChevronDown className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
           </div>
@@ -74,7 +74,7 @@ export function KitComposition({ items, onViewProduct }: KitCompositionProps) {
         <DialogContent className="sm:max-w-[540px] max-h-[72vh] p-0 gap-0 overflow-hidden">
           <DialogHeader className="px-6 pt-6 pb-4 border-b border-border space-y-3">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
                 <Layers className="h-5 w-5 text-primary" />
               </div>
               <div>
@@ -96,7 +96,7 @@ export function KitComposition({ items, onViewProduct }: KitCompositionProps) {
             <div className="px-6 py-4 space-y-5">
               {packagingItems.length > 0 && (
                 <Collapsible open={expandedSections.packaging} onOpenChange={(open) => setExpandedSections((s) => ({ ...s, packaging: open }))}>
-                  <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2.5 bg-warning/5 border border-warning/20 rounded-xl hover:bg-warning/10 transition-colors">
+                  <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2.5 bg-warning/5 border border-warning/20 rounded-lg hover:bg-warning/10 transition-colors">
                     <span className="text-[11px] font-semibold uppercase tracking-wider text-warning dark:text-warning flex items-center gap-1.5"><Box className="h-3.5 w-3.5" />Embalagem ({packagingItems.length})</span>
                     {expandedSections.packaging ? <ChevronUp className="h-4 w-4 text-warning dark:text-warning" /> : <ChevronDown className="h-4 w-4 text-warning dark:text-warning" />}
                   </CollapsibleTrigger>
@@ -112,7 +112,7 @@ export function KitComposition({ items, onViewProduct }: KitCompositionProps) {
 
               {productItems.length > 0 && (
                 <Collapsible open={expandedSections.products} onOpenChange={(open) => setExpandedSections((s) => ({ ...s, products: open }))}>
-                  <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2.5 bg-muted/30 rounded-xl hover:bg-muted/50 transition-colors border border-border/50">
+                  <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2.5 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors border border-border/50">
                     <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5"><ShoppingBag className="h-3.5 w-3.5" />Itens do Kit ({productItems.length})</span>
                     {expandedSections.products ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
                   </CollapsibleTrigger>
@@ -134,7 +134,7 @@ export function KitComposition({ items, onViewProduct }: KitCompositionProps) {
       <Dialog open={!!zoomImageUrl} onOpenChange={() => setZoomImageUrl(null)}>
         <DialogContent className="max-w-2xl p-2 bg-background/95 backdrop-blur-xl">
           {zoomImageUrl && 
-<img src={zoomImageUrl} alt="Zoom" className="w-full h-auto max-h-[80vh] object-contain rounded-xl" loading="lazy" />}
+<img src={zoomImageUrl} alt="Zoom" className="w-full h-auto max-h-[80vh] object-contain rounded-lg" loading="lazy" />}
         </DialogContent>
       </Dialog>
     </>

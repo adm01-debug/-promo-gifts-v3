@@ -44,7 +44,7 @@ export function QuoteClientInfo({ clientCompany, clientName, clientEmail, client
             );
           })()
         ) : (
-          <div className="flex items-center gap-3 p-3 rounded-xl border border-dashed border-muted-foreground/30 print:hidden">
+          <div className="flex items-center gap-3 p-3 rounded-lg border border-dashed border-muted-foreground/30 print:hidden">
             <UserPlus className="h-5 w-5 text-muted-foreground" />
             <div>
               <p className="text-sm font-medium text-muted-foreground">Nenhum cliente vinculado</p>

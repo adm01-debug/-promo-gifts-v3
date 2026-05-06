@@ -331,7 +331,7 @@ export function WidgetPicker({ availableWidgets, onAddWidget, className }: Widge
                   onAddWidget(config);
                   setIsOpen(false);
                 }}
-                className="flex items-start gap-3 p-3 rounded-xl text-left hover:bg-muted transition-colors"
+                className="flex items-start gap-3 p-3 rounded-lg text-left hover:bg-muted transition-colors"
               >
                 <div className="flex-shrink-0 w-8 h-8 bg-primary/10 rounded flex items-center justify-center">
                   {config.icon || <LayoutGrid className="h-4 w-4 text-primary" />}

@@ -128,7 +128,7 @@ export default function ComplianceEvidencePage() {
         </div>
 
         <Tabs defaultValue="evidence" className="space-y-6">
-          <TabsList className="bg-muted/50 p-1 rounded-xl w-full sm:w-auto overflow-x-auto">
+          <TabsList className="bg-muted/50 p-1 rounded-lg w-full sm:w-auto overflow-x-auto">
             <TabsTrigger value="evidence" className="gap-2 px-6 py-2.5">
               <Code className="h-4 w-4" /> Dossiê de Código
             </TabsTrigger>
@@ -153,13 +153,13 @@ export default function ComplianceEvidencePage() {
                   variant={statusFilter === "all" ? "default" : "outline"}
                   onClick={() => setStatusFilter("all")}
                   size="sm"
-                  className="rounded-xl h-11"
+                  className="rounded-lg h-11"
                 >Todos</Button>
                 <Button 
                   variant={statusFilter === "achado" ? "default" : "outline"}
                   onClick={() => setStatusFilter("achado")}
                   size="sm"
-                  className="rounded-xl h-11"
+                  className="rounded-lg h-11"
                 >Encontrados</Button>
               </div>
             </div>
@@ -198,7 +198,7 @@ export default function ComplianceEvidencePage() {
                           </Button>
                         </div>
                         {expandedSnippets[item.name] && (
-                          <div className="mt-4 p-4 rounded-xl bg-black/95 text-green-400 font-mono text-[11px] border border-white/5 shadow-2xl animate-in slide-in-from-top-2 duration-200 overflow-x-auto whitespace-pre">
+                          <div className="mt-4 p-4 rounded-lg bg-black/95 text-green-400 font-mono text-[11px] border border-white/5 shadow-2xl animate-in slide-in-from-top-2 duration-200 overflow-x-auto whitespace-pre">
                             <div className="flex items-center justify-between mb-2 opacity-50 border-b border-white/5 pb-2">
                               <span>// Path: {item.path}</span>
                               <span>TypeScript</span>
@@ -221,7 +221,7 @@ export default function ComplianceEvidencePage() {
                 <CardDescription>Critérios objetivos e prioridades (P0-P3).</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="rounded-xl border overflow-hidden">
+                <div className="rounded-lg border overflow-hidden">
                   <Table>
                     <TableHeader className="bg-muted/50">
                       <TableRow>

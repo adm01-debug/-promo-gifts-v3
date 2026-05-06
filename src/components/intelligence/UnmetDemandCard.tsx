@@ -71,7 +71,7 @@ export function UnmetDemandCard({ days }: UnmetDemandCardProps) {
         <div className="flex items-start justify-between gap-3">
           <div>
             <CardTitle className="text-base flex items-center gap-2">
-              <div className="w-7 h-7 rounded-xl bg-warning/20 flex items-center justify-center">
+              <div className="w-7 h-7 rounded-lg bg-warning/20 flex items-center justify-center">
                 <AlertTriangle className="h-3.5 w-3.5 text-warning" />
               </div>
               Demanda Reprimida
@@ -90,7 +90,7 @@ export function UnmetDemandCard({ days }: UnmetDemandCardProps) {
       <CardContent className="p-0">
         {isLoading ? (
           <div className="p-3 space-y-2">
-            {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-12 rounded-xl" />)}
+            {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-12 rounded-lg" />)}
           </div>
         ) : !data?.length ? (
           <div className="flex flex-col items-center py-10 text-muted-foreground">

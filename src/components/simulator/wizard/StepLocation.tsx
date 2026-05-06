@@ -34,7 +34,7 @@ export function StepLocation({ wizard }: StepLocationProps) {
     <div className="max-w-5xl mx-auto space-y-8">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <div className="p-3 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5">
+        <div className="p-3 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5">
           <MapPin className="h-6 w-6 text-primary" />
         </div>
         <div>
@@ -47,7 +47,7 @@ export function StepLocation({ wizard }: StepLocationProps) {
       {locationsLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {[1, 2, 3, 4].map(i => (
-            <Skeleton key={i} className="h-44 w-full rounded-xl" />
+            <Skeleton key={i} className="h-44 w-full rounded-lg" />
           ))}
         </div>
       ) : availableLocationsFiltered.length === 0 ? (
@@ -111,7 +111,7 @@ export function StepLocation({ wizard }: StepLocationProps) {
                   transition={{ delay: idx * 0.04 }}
                   onClick={() => wizard.selectLocation(location)}
                   className={cn(
-                    'w-full p-4 rounded-xl text-left transition-all duration-200 group',
+                    'w-full p-4 rounded-lg text-left transition-all duration-200 group',
                     isSelected
                       ? 'bg-primary/10 ring-2 ring-primary shadow-lg shadow-primary/10'
                       : 'bg-card border hover:border-primary/30 hover:shadow-md'
@@ -194,7 +194,7 @@ export function StepLocation({ wizard }: StepLocationProps) {
           disabled={!wizard.canProceed}
           onClick={wizard.nextStep}
           size="lg"
-          className="gap-2 min-w-[180px] rounded-xl shadow-lg shadow-primary/20"
+          className="gap-2 min-w-[180px] rounded-lg shadow-lg shadow-primary/20"
         >
           Configurar Especificações
           <ChevronRight className="h-5 w-5" />

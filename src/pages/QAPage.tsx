@@ -78,7 +78,7 @@ export default function QAPage() {
       </header>
 
       <div 
-        className="mx-auto border-2 border-dashed border-muted rounded-xl transition-all duration-300 overflow-hidden bg-zinc-50 dark:bg-zinc-950 shadow-inner"
+        className="mx-auto border-2 border-dashed border-muted rounded-lg transition-all duration-300 overflow-hidden bg-zinc-50 dark:bg-zinc-950 shadow-inner"
         style={{ width: viewportWidth }}
       >
         <div className="p-4 md:p-6 space-y-12">

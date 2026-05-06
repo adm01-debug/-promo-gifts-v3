@@ -180,11 +180,11 @@ export function StockDashboard() {
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {[1, 2, 3, 4, 5].map(i => (
-            <Skeleton key={i} className="h-28 rounded-xl" />
+            <Skeleton key={i} className="h-28 rounded-lg" />
           ))}
         </div>
-        <Skeleton className="h-12 rounded-xl" />
-        <Skeleton className="h-96 rounded-xl" />
+        <Skeleton className="h-12 rounded-lg" />
+        <Skeleton className="h-96 rounded-lg" />
       </div>
     );
   }
@@ -203,7 +203,7 @@ export function StockDashboard() {
       {/* Header with Health Score */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-card/60 border border-border/40 p-4 rounded-2xl shadow-sm">
         <div className="flex items-center gap-4">
-          <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary shadow-inner">
+          <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary shadow-inner">
             <Package className="h-6 w-6" />
           </div>
           <div>

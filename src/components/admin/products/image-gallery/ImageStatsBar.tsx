@@ -37,7 +37,7 @@ export function ImageStatsBar({ stats, hasPrimary, hasOgImage }: Props) {
   const seo = getSeoScore(stats, hasPrimary, hasOgImage);
 
   return (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-muted-foreground px-2 py-2 rounded-xl bg-muted/20 border border-border/30">
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-muted-foreground px-2 py-2 rounded-lg bg-muted/20 border border-border/30">
       <span className="font-medium text-foreground/70">{stats.total} no BD externo</span>
       <span className="flex items-center gap-1"><CheckCircle2 className="h-3 w-3 text-primary" />{stats.withAlt}/{stats.total} com alt text</span>
       {stats.withoutVariant > 0 && <span>{stats.withoutVariant} gerais (sem cor)</span>}

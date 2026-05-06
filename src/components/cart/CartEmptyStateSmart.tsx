@@ -55,7 +55,7 @@ export function CartEmptyStateSmart({
           topTemplates.length === 0 && "opacity-50 grayscale-[0.5]"
         )}>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center transition-transform group-hover:scale-110">
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center transition-transform group-hover:scale-110">
               <LayoutTemplate className="h-5 w-5 text-primary" />
             </div>
             <h4 className="font-bold text-sm tracking-tight">Aplicar template</h4>
@@ -64,7 +64,7 @@ export function CartEmptyStateSmart({
             <>
               <ul className="space-y-2 text-xs text-muted-foreground flex-1">
                 {topTemplates.map(t => (
-                  <li key={t.id} className="flex items-center justify-between gap-3 p-2 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
+                  <li key={t.id} className="flex items-center justify-between gap-3 p-2 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
                     <span className="truncate font-medium">{t.name}</span>
                     <span className="tabular-nums text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">{t.items.length} itens</span>
                   </li>
@@ -80,7 +80,7 @@ export function CartEmptyStateSmart({
               </Button>
             </>
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center py-4 border-2 border-dashed border-border/20 rounded-xl">
+            <div className="flex-1 flex flex-col items-center justify-center py-4 border-2 border-dashed border-border/20 rounded-lg">
               <p className="text-[11px] text-muted-foreground text-center px-4">Crie templates a partir de carrinhos existentes para acelerar seu fluxo.</p>
             </div>
           )}
@@ -92,14 +92,14 @@ export function CartEmptyStateSmart({
           !lastCartSameCompany && "opacity-50 grayscale-[0.5]"
         )}>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center transition-transform group-hover:scale-110">
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center transition-transform group-hover:scale-110">
               <Copy className="h-5 w-5 text-primary" />
             </div>
             <h4 className="font-bold text-sm tracking-tight">Duplicar anterior</h4>
           </div>
           {lastCartSameCompany ? (
             <>
-              <div className="flex-1 bg-muted/30 p-3 rounded-xl border border-border/20 space-y-2">
+              <div className="flex-1 bg-muted/30 p-3 rounded-lg border border-border/20 space-y-2">
                 <p className="text-xs text-muted-foreground leading-relaxed">
                   Último carrinho para <span className="font-bold text-foreground">{lastCartSameCompany.company_name}</span>.
                 </p>
@@ -120,7 +120,7 @@ export function CartEmptyStateSmart({
               </Button>
             </>
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center py-4 border-2 border-dashed border-border/20 rounded-xl">
+            <div className="flex-1 flex flex-col items-center justify-center py-4 border-2 border-dashed border-border/20 rounded-lg">
               <p className="text-[11px] text-muted-foreground text-center px-4">Nenhum histórico recente para esta empresa no momento.</p>
             </div>
           )}
@@ -129,7 +129,7 @@ export function CartEmptyStateSmart({
         {/* Catalog */}
         <Card className="p-5 flex flex-col gap-4 border-border/40 hover:border-primary/40 hover:bg-primary/[0.02] transition-all duration-300 group shadow-sm hover:shadow-md">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center transition-transform group-hover:scale-110">
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center transition-transform group-hover:scale-110">
               <Package className="h-5 w-5 text-primary" />
             </div>
             <h4 className="font-bold text-sm tracking-tight">Explorar catálogo</h4>

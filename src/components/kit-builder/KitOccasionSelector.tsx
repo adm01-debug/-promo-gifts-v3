@@ -161,7 +161,7 @@ export function KitOccasionSelector({ value, onChange, className }: KitOccasionS
                 type="button"
                 onClick={() => { onChange(o.id); setExpanded(false); }}
                 className={cn(
-                  'group flex flex-col items-start gap-1 rounded-xl border p-3 text-left transition-all',
+                  'group flex flex-col items-start gap-1 rounded-lg border p-3 text-left transition-all',
                   'hover:border-primary hover:bg-primary/5',
                   active && 'border-primary bg-primary/10 ring-2 ring-primary/30'
                 )}

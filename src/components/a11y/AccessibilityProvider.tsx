@@ -147,7 +147,7 @@ export function SkipToContent() {
         fixed top-0 left-0 z-[9999]
         px-4 py-2 m-3
         bg-primary text-primary-foreground
-        font-semibold rounded-xl
+        font-semibold rounded-lg
         transform -translate-y-full
         focus:translate-y-0
         transition-transform

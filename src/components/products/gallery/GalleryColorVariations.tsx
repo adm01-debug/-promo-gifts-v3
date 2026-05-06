@@ -83,7 +83,7 @@ export function GalleryColorVariations({ colors, selectedColorIndex, onColorSele
                 key={`${color.name}-${color.sku}`}
                 onClick={() => handleColorClick(originalIndex)}
                 className={cn(
-                  "group/color relative shrink-0 w-24 rounded-xl overflow-hidden transition-all duration-300",
+                  "group/color relative shrink-0 w-24 rounded-lg overflow-hidden transition-all duration-300",
                   "bg-card shadow-sm hover:shadow-xl hover:shadow-primary/10 hover:-translate-y-1.5"
                 )}
                 style={{

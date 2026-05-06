@@ -9,7 +9,7 @@
  * - Bloco de insights gerais
  * - Estados: loading, error, empty
  *
- * Tokens: Outfit, var(--primary), border-[1.5px], rounded-xl, animate-fade-in.
+ * Tokens: Outfit, var(--primary), border-[1.5px], rounded-lg, animate-fade-in.
  */
 import { useState, useCallback, useMemo, type ChangeEvent } from "react";
 import { Sparkles, AlertCircle, RefreshCcw, TrendingUp, Package } from "lucide-react";
@@ -60,7 +60,7 @@ function RecommendationCard({ product, score, reason, rank, onClick }: Recommend
   return (
     <Card
       className={cn(
-        "border-[1.5px] border-border rounded-xl overflow-hidden animate-fade-in transition-all duration-200",
+        "border-[1.5px] border-border rounded-lg overflow-hidden animate-fade-in transition-all duration-200",
         interactive && "cursor-pointer hover:border-primary hover:shadow-md hover:-translate-y-0.5"
       )}
       onClick={onClick}
@@ -115,7 +115,7 @@ function LoadingSkeleton() {
   return (
     <div className="grid gap-3 sm:grid-cols-2">
       {[0, 1, 2, 3].map((i) => (
-        <Card key={i} className="border-[1.5px] border-border rounded-xl">
+        <Card key={i} className="border-[1.5px] border-border rounded-lg">
           <CardHeader className="p-4 pb-2">
             <Skeleton className="h-5 w-3/4" />
           </CardHeader>
@@ -180,7 +180,7 @@ export function AIRecommendationsPanel({
     <div className={cn("space-y-4 font-display", className)}>
       {/* Formulário do cliente */}
       {!hideClientForm && (
-        <Card className="border-[1.5px] border-border rounded-xl">
+        <Card className="border-[1.5px] border-border rounded-lg">
           <CardContent className="p-5 space-y-4">
             <FormSection title="Perfil do cliente" description="Quanto mais detalhes, melhores as recomendações.">
               <div className="grid gap-3 sm:grid-cols-2">
@@ -254,7 +254,7 @@ export function AIRecommendationsPanel({
       {error && !isLoading && (
         <div
           role="alert"
-          className="flex items-start gap-2 rounded-xl border-[1.5px] border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive"
+          className="flex items-start gap-2 rounded-lg border-[1.5px] border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive"
         >
           <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" aria-hidden="true" />
           <span>{error}</span>
@@ -285,7 +285,7 @@ export function AIRecommendationsPanel({
           </div>
 
           {insights && (
-            <Card className="border-[1.5px] border-primary/30 bg-primary/5 rounded-xl">
+            <Card className="border-[1.5px] border-primary/30 bg-primary/5 rounded-lg">
               <CardHeader className="p-5 pb-2">
                 <CardTitle className="text-base font-display flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-primary" aria-hidden="true" />
@@ -302,7 +302,7 @@ export function AIRecommendationsPanel({
 
       {/* Empty */}
       {!isLoading && !error && recommendations.length === 0 && data === null && (
-        <div className="flex flex-col items-center justify-center rounded-xl border-[1.5px] border-dashed border-border py-10 text-center text-muted-foreground">
+        <div className="flex flex-col items-center justify-center rounded-lg border-[1.5px] border-dashed border-border py-10 text-center text-muted-foreground">
           <Sparkles className="h-10 w-10 mb-3 opacity-40" aria-hidden="true" />
           <p className="text-sm">Preencha o perfil e clique em "Gerar Recomendações"</p>
         </div>

@@ -152,12 +152,12 @@ export function BreakerStatusCard() {
         ) : (
           <>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <div className="p-3 rounded-xl border border-border/50 bg-muted/30">
+              <div className="p-3 rounded-lg border border-border/50 bg-muted/30">
                 <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Estado</p>
                 <p className="font-display text-2xl font-bold tabular-nums">{snap.state}</p>
                 <p className="text-[10px] text-muted-foreground mt-0.5">isolate atual</p>
               </div>
-              <div className="p-3 rounded-xl border border-border/50 bg-muted/30">
+              <div className="p-3 rounded-lg border border-border/50 bg-muted/30">
                 <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Falhas (janela)</p>
                 <p
                   className={`font-display text-2xl font-bold tabular-nums ${
@@ -179,7 +179,7 @@ export function BreakerStatusCard() {
                   {snap.breaker ? `janela ${fmtMs(snap.breaker.windowMs)}` : '—'}
                 </p>
               </div>
-              <div className="p-3 rounded-xl border border-border/50 bg-muted/30">
+              <div className="p-3 rounded-lg border border-border/50 bg-muted/30">
                 <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Aberto desde</p>
                 <p className="font-display text-2xl font-bold tabular-nums">
                   {snap.openedAt > 0 ? new Date(snap.openedAt).toLocaleTimeString() : '—'}
@@ -188,7 +188,7 @@ export function BreakerStatusCard() {
                   {snap.openedAt > 0 ? 'última transição p/ OPEN' : 'nunca abriu nesta vida'}
                 </p>
               </div>
-              <div className="p-3 rounded-xl border border-border/50 bg-muted/30">
+              <div className="p-3 rounded-lg border border-border/50 bg-muted/30">
                 <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Reset em</p>
                 <p
                   className={`font-display text-2xl font-bold tabular-nums ${

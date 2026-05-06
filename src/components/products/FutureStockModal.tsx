@@ -114,7 +114,7 @@ export function FutureStockModal({
       <DialogContent className="max-w-3xl max-h-[85vh] p-0 gap-0 overflow-hidden">
         <DialogHeader className="p-6 pb-4 border-b border-border">
           <DialogTitle className="flex items-center gap-3 text-xl">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
               <CalendarClock className="h-5 w-5 text-primary" />
             </div>
             <div>
@@ -231,7 +231,7 @@ export function FutureStockModal({
                           onClick={() => setSelectedColor(isSelected ? null : color.name)}
                           title={`${color.name}\nAtual: ${color.currentStock.toLocaleString("pt-BR")}\nPrevisto: +${color.incomingTotal.toLocaleString("pt-BR")}`}
                           className={cn(
-                            "relative rounded-xl overflow-hidden transition-all duration-200",
+                            "relative rounded-lg overflow-hidden transition-all duration-200",
                             "border bg-card hover:shadow-md hover:scale-105",
                             isSelected && "ring-2 ring-primary ring-offset-1 ring-offset-background",
                             !hasEntries && "opacity-40 grayscale"
@@ -334,13 +334,13 @@ export function FutureStockModal({
                       <div
                         key={entry.id}
                         className={cn(
-                          "flex items-center gap-4 p-4 rounded-xl border bg-card transition-all",
+                          "flex items-center gap-4 p-4 rounded-lg border bg-card transition-all",
                           isUrgent && !isPast && "border-warning/30 bg-warning/5",
                           isPast && "border-destructive/30 bg-destructive/5"
                         )}
                       >
                         {/* Imagem ou Cor */}
-                        <div className="w-12 h-12 rounded-xl shrink-0 overflow-hidden border border-border">
+                        <div className="w-12 h-12 rounded-lg shrink-0 overflow-hidden border border-border">
                           {entry.thumbnail ? (
                             <img
                               src={entry.thumbnail}
@@ -417,10 +417,10 @@ export function FutureStockModal({
             
             {/* Resumo total */}
             {!isLoading && !error && !hasNoFutureStock && filteredAndSortedEntries.length > 0 && (
-              <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
+              <div className="p-4 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
                       <Truck className="h-5 w-5 text-primary" />
                     </div>
                     <div>

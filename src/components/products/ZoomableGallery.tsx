@@ -38,7 +38,7 @@ export function ZoomableGallery({ images, productName, className, onShare, onDow
   const ImageViewer = useCallback(({ fullscreen = false }: { fullscreen?: boolean }) => (
     <motion.div
       ref={containerRef}
-      className={cn("relative overflow-hidden", fullscreen ? "w-full h-full" : "aspect-square rounded-xl")}
+      className={cn("relative overflow-hidden", fullscreen ? "w-full h-full" : "aspect-square rounded-lg")}
       onWheel={g.handleWheel}
     >
       <motion.img
@@ -69,7 +69,7 @@ export function ZoomableGallery({ images, productName, className, onShare, onDow
     <>
       <div className={cn("space-y-4", className)}>
         <div className="relative group">
-          <div className="rounded-xl overflow-hidden border border-border/50 shadow-lg group-hover:shadow-xl transition-shadow">
+          <div className="rounded-lg overflow-hidden border border-border/50 shadow-lg group-hover:shadow-xl transition-shadow">
             <ImageViewer />
           </div>
           {images.length > 1 && (

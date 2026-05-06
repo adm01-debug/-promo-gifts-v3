@@ -178,7 +178,7 @@ export const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(func
         
         {/* Icon */}
         <div className={cn(
-          "relative z-10 p-6 rounded-xl bg-gradient-subtle",
+          "relative z-10 p-6 rounded-lg bg-gradient-subtle",
           "border border-border shadow-sm"
         )}>
           <Icon className={cn("h-12 w-12", config.color)} strokeWidth={1.5} />
@@ -249,7 +249,7 @@ export function InlineEmptyState({
 }) {
   return (
     <div className={cn(
-      "flex items-center gap-3 py-4 px-4 rounded-xl bg-muted/30",
+      "flex items-center gap-3 py-4 px-4 rounded-lg bg-muted/30",
       "text-muted-foreground text-sm",
       className
     )}>

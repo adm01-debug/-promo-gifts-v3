@@ -34,12 +34,12 @@ export function ComparisonCard({
   return (
     <div className="relative">
       {isBestValue && !isSelected && (
-        <div className="absolute -inset-px rounded-xl bg-gradient-to-r from-warning/40 via-primary/30 to-warning/40 blur-sm pointer-events-none" />
+        <div className="absolute -inset-px rounded-lg bg-gradient-to-r from-warning/40 via-primary/30 to-warning/40 blur-sm pointer-events-none" />
       )}
       <button
         onClick={() => onSelect(result)}
         className={cn(
-          'relative w-full p-6 rounded-xl text-left transition-all duration-300 group',
+          'relative w-full p-6 rounded-lg text-left transition-all duration-300 group',
           'bg-card border hover:border-primary/40 hover:shadow-xl hover:shadow-primary/10',
           isSelected && 'ring-2 ring-primary border-primary/50 shadow-lg shadow-primary/10',
           !isSelected && isBestValue && 'ring-2 ring-warning/50 border-warning/30 shadow-lg shadow-warning/10',
@@ -50,7 +50,7 @@ export function ComparisonCard({
           {/* Checkbox */}
           <motion.div
             className={cn(
-              'mt-0.5 w-8 h-8 rounded-xl border-2 flex items-center justify-center shrink-0 transition-all',
+              'mt-0.5 w-8 h-8 rounded-lg border-2 flex items-center justify-center shrink-0 transition-all',
               isSelected ? 'bg-primary border-primary' : 'border-muted-foreground/30 group-hover:border-primary/50'
             )}
             animate={isSelected ? { scale: [1, 1.15, 1] } : {}}
@@ -140,7 +140,7 @@ export function ComparisonCard({
 
           {/* Total Price */}
           <div className="text-right shrink-0">
-            <div className="p-4 rounded-xl bg-muted/50 group-hover:bg-primary/5 transition-colors min-w-[140px]">
+            <div className="p-4 rounded-lg bg-muted/50 group-hover:bg-primary/5 transition-colors min-w-[140px]">
               <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-1">Total</p>
               <p className="text-xl font-bold text-primary">{formatCurrency(result.totalPrice)}</p>
               <p className="text-xs text-muted-foreground mt-1">{formatCurrency(result.costPerUnit)}/un</p>

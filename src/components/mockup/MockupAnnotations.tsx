@@ -94,7 +94,7 @@ export function MockupAnnotations({
       <div
         ref={containerRef}
         className={cn(
-          "relative rounded-xl border",
+          "relative rounded-lg border",
           isAnnotating && "cursor-crosshair ring-2 ring-primary"
         )}
         onClick={handleClick}
@@ -122,13 +122,13 @@ export function MockupAnnotations({
               </div>
               {/* Tooltip */}
               {ann.text && editingId !== ann.id && (
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-background/95 backdrop-blur-sm border rounded-xl shadow-md text-xs max-w-[200px] whitespace-pre-wrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-background/95 backdrop-blur-sm border rounded-lg shadow-md text-xs max-w-[200px] whitespace-pre-wrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                   {ann.text}
                 </div>
               )}
               {/* Edit form */}
               {editingId === ann.id && (
-                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-background border rounded-xl shadow-lg p-2 z-20 min-w-[200px]"
+                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-background border rounded-lg shadow-lg p-2 z-20 min-w-[200px]"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <Input

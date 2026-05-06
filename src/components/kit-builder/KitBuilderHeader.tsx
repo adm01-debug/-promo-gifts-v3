@@ -77,7 +77,7 @@ export function KitBuilderHeader({
         {/* TIER 1 — Identity */}
         <div className="flex items-center gap-3 mb-3">
           <div
-            className="relative w-11 h-11 rounded-xl flex items-center justify-center shrink-0 border transition-colors"
+            className="relative w-11 h-11 rounded-lg flex items-center justify-center shrink-0 border transition-colors"
             style={{
               background: `${identityColor}1A`,
               borderColor: `${identityColor}40`,

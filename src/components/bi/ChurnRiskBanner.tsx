@@ -41,7 +41,7 @@ export function ChurnRiskBanner({ clientId, clientName, clientPhone }: Props) {
       <CardContent className="p-4 flex items-start gap-3 flex-wrap">
         <div
           className={cn(
-            "h-10 w-10 rounded-xl flex items-center justify-center shrink-0",
+            "h-10 w-10 rounded-lg flex items-center justify-center shrink-0",
             isHigh ? "bg-red-500/20 text-red-600 dark:text-red-400" : "bg-amber-500/20 text-amber-600 dark:text-amber-400",
           )}
         >

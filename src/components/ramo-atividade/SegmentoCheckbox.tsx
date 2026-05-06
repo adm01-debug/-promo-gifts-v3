@@ -40,7 +40,7 @@ export function SegmentoCheckbox({
 
   return (
     <label className={cn(
-      "flex items-center gap-3 py-2 px-3 rounded-xl cursor-pointer transition-all duration-200",
+      "flex items-center gap-3 py-2 px-3 rounded-lg cursor-pointer transition-all duration-200",
       isSelected 
         ? "bg-primary/10 text-primary ring-1 ring-primary/20" 
         : "hover:bg-muted/50 text-foreground"

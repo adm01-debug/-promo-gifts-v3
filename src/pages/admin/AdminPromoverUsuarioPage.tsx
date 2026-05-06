@@ -132,7 +132,7 @@ export default function AdminPromoverUsuarioPage() {
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
-          <div className="p-3 rounded-xl bg-primary/10">
+          <div className="p-3 rounded-lg bg-primary/10">
             <ShieldCheck className="h-7 w-7 text-primary" />
           </div>
           <div>

@@ -48,7 +48,7 @@ export function BIProductCard({
       <CardContent className="p-4 space-y-3">
         <div className="flex items-start gap-3">
           {imageUrl ? (
-            <div className="h-14 w-14 rounded-xl bg-muted/40 overflow-hidden shrink-0 border">
+            <div className="h-14 w-14 rounded-lg bg-muted/40 overflow-hidden shrink-0 border">
               <img
                 src={imageUrl}
                 alt={name}
@@ -60,7 +60,7 @@ export function BIProductCard({
               />
             </div>
           ) : (
-            <div className="h-12 w-12 rounded-xl bg-muted/60 flex items-center justify-center shrink-0">
+            <div className="h-12 w-12 rounded-lg bg-muted/60 flex items-center justify-center shrink-0">
               <Package className="h-5 w-5 text-muted-foreground" />
             </div>
           )}

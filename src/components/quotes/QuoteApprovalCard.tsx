@@ -41,7 +41,7 @@ export function QuoteApprovalCard({
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="rounded-xl bg-muted/50 p-4">
+        <div className="rounded-lg bg-muted/50 p-4">
           <p className="text-[11px] text-muted-foreground">Valor total</p>
           <p className="text-3xl font-semibold text-primary">R$ {total.toFixed(2)}</p>
         </div>

@@ -210,7 +210,7 @@ export function PricingPanel() {
                 onOpenChange={() => toggleExpand(tecnicaNome)}
               >
                 <CollapsibleTrigger asChild>
-                  <div className="flex items-center justify-between p-4 rounded-xl border bg-card hover:bg-accent/50 cursor-pointer transition-colors">
+                  <div className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent/50 cursor-pointer transition-colors">
                     <div className="flex items-center gap-3">
                       {expandedTables.has(tecnicaNome) ? (
                         <ChevronDown className="h-5 w-5 text-muted-foreground" />
@@ -256,7 +256,7 @@ export function PricingPanel() {
                   </div>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
-                  <div className="mt-2 rounded-xl border overflow-hidden">
+                  <div className="mt-2 rounded-lg border overflow-hidden">
                     <Table>
                       <TableHeader>
                         <TableRow className="bg-muted/50">
@@ -363,7 +363,7 @@ export function PricingPanel() {
         )}
 
         {/* Legenda e Info */}
-        <div className="mt-6 p-4 rounded-xl bg-muted/50 border">
+        <div className="mt-6 p-4 rounded-lg bg-muted/50 border">
           <div className="flex items-start gap-2">
             <Info className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
             <div className="text-sm text-muted-foreground">

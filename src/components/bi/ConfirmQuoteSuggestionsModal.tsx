@@ -124,7 +124,7 @@ export function ConfirmQuoteSuggestionsModal({
                   key={s.name}
                   htmlFor={`sug-${s.name}`}
                   className={cn(
-                    "flex items-center gap-3 p-3 rounded-xl border-[1.5px] cursor-pointer transition-all",
+                    "flex items-center gap-3 p-3 rounded-lg border-[1.5px] cursor-pointer transition-all",
                     isSelected
                       ? "border-primary/40 bg-primary/5"
                       : "border-border hover:border-primary/20 hover:bg-muted/40",
@@ -136,7 +136,7 @@ export function ConfirmQuoteSuggestionsModal({
                     onCheckedChange={() => toggle(s.name)}
                   />
                   {s.imageUrl ? (
-                    <div className="h-12 w-12 rounded-xl overflow-hidden bg-muted shrink-0 border">
+                    <div className="h-12 w-12 rounded-lg overflow-hidden bg-muted shrink-0 border">
                       <img
                         src={s.imageUrl}
                         alt={s.name}
@@ -148,7 +148,7 @@ export function ConfirmQuoteSuggestionsModal({
                       />
                     </div>
                   ) : (
-                    <div className="h-12 w-12 rounded-xl bg-muted flex items-center justify-center shrink-0">
+                    <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center shrink-0">
                       <Package className="h-5 w-5 text-muted-foreground" />
                     </div>
                   )}

@@ -84,7 +84,7 @@ export function StepComplete({ importResult, importMode, invalidCount, validatio
       </div>
 
       {importResult.errors.length > 0 && (
-        <ScrollArea className="h-[150px] border rounded-xl p-3">
+        <ScrollArea className="h-[150px] border rounded-lg p-3">
           <p className="text-xs font-medium mb-2">Erros detalhados:</p>
           {importResult.errors.map((e, i) => (
             <p key={i} className="text-xs text-destructive mb-1">Linhas {e.startRow}–{e.endRow}: {e.message}</p>

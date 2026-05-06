@@ -116,7 +116,7 @@ export const SidebarNavGroup = forwardRef<HTMLDivElement, SidebarNavGroupProps>(
             aria-label={`Expandir ${item.label}`}
             onClick={() => toggleSubMenu(item.label)}
             className={cn(
-              "flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all duration-150 group relative",
+              "flex items-center gap-3 w-full px-3 py-2 rounded-lg transition-all duration-150 group relative",
               "hover:bg-sidebar-accent/50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-orange/20 active:scale-[0.995]",
               hasActiveChild
                 ? "text-orange font-semibold bg-orange/[0.03] before:absolute before:left-0 before:top-[20%] before:bottom-[20%] before:w-[1.5px] before:rounded-r-full before:bg-orange"
@@ -169,7 +169,7 @@ export const SidebarNavGroup = forwardRef<HTMLDivElement, SidebarNavGroupProps>(
         data-tour={item.tourId}
         aria-label={`${item.label}${item.shortcut ? ` (atalho ${item.shortcut.replace('Alt+', 'Alt mais ')})` : ''}`}
         className={cn(
-          "flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-150 group relative focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-orange/20 active:scale-[0.995]",
+          "flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-150 group relative focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-orange/20 active:scale-[0.995]",
           "hover:bg-sidebar-accent/50",
           isActive
             ? "bg-orange/[0.03] text-orange font-bold before:absolute before:left-0 before:top-[20%] before:bottom-[20%] before:w-[1.5px] before:rounded-r-full before:bg-orange"
@@ -249,7 +249,7 @@ export const SidebarNavGroup = forwardRef<HTMLDivElement, SidebarNavGroupProps>(
           aria-expanded={isOpen}
           aria-label={groupToggleLabel}
           className={cn(
-            "flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-orange/15 active:scale-[0.995]",
+            "flex items-center gap-3 w-full px-3 py-2 rounded-lg transition-all duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-orange/15 active:scale-[0.995]",
             "hover:bg-sidebar-accent/50 text-sidebar-foreground/70 hover:text-sidebar-foreground",
             hasActiveItem && "text-orange bg-orange/[0.02]"
           )}

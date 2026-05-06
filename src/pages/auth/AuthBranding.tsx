@@ -263,7 +263,7 @@ function FeatureCard({ item, index }: { item: typeof FEATURE_ITEMS[0]; index: nu
   const IconComponent = item.icon;
   return (
     <div 
-      className="p-5 rounded-xl bg-black/60 backdrop-blur-2xl border border-white/10 shadow-2xl hover:bg-black/80 hover:border-primary/50 transition-all duration-500 group opacity-0"
+      className="p-5 rounded-lg bg-black/60 backdrop-blur-2xl border border-white/10 shadow-2xl hover:bg-black/80 hover:border-primary/50 transition-all duration-500 group opacity-0"
       style={{ 
         animation: `scale-fade-in 0.5s ease-out ${300 + index * 100}ms forwards`,
         boxShadow: '0 0 20px rgba(0,0,0,0.5)' 
@@ -360,7 +360,7 @@ export function AuthBrandingPanel() {
       <div className="relative z-10 flex flex-col justify-center items-center px-12 xl:px-16 w-full">
         <div className="space-y-5 w-full max-w-lg">
           <div className="flex items-center gap-3">
-            <div className="w-[53px] h-[53px] rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/30">
+            <div className="w-[53px] h-[53px] rounded-lg bg-primary flex items-center justify-center shadow-lg shadow-primary/30">
               <Gift className="h-6 w-6 text-primary-foreground" />
             </div>
             <div>

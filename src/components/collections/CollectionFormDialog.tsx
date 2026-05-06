@@ -67,14 +67,14 @@ export function CollectionFormDialog({
           {/* Live preview */}
           <motion.div
             layout
-            className="flex items-center gap-3 p-3 rounded-xl border-[1.5px] border-primary/20 bg-muted/30"
+            className="flex items-center gap-3 p-3 rounded-lg border-[1.5px] border-primary/20 bg-muted/30"
           >
             <motion.div
               key={`${formData.color}-${formData.icon}`}
               initial={{ scale: 0.8, rotate: -10 }}
               animate={{ scale: 1, rotate: 0 }}
               transition={{ type: "spring", stiffness: 500, damping: 25 }}
-              className="w-12 h-12 rounded-xl flex items-center justify-center text-xl shrink-0"
+              className="w-12 h-12 rounded-lg flex items-center justify-center text-xl shrink-0"
               style={{ backgroundColor: `${formData.color}20` }}
             >
               {formData.icon}
@@ -153,7 +153,7 @@ export function CollectionFormDialog({
                   whileTap={{ scale: 0.9 }}
                   onClick={() => onFormChange({ ...formData, icon })}
                   className={cn(
-                    "w-10 h-10 rounded-xl text-lg flex items-center justify-center border transition-all",
+                    "w-10 h-10 rounded-lg text-lg flex items-center justify-center border transition-all",
                     formData.icon === icon
                       ? "border-primary bg-primary/10 shadow-sm"
                       : "border-border hover:border-primary/50"

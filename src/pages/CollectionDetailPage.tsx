@@ -278,7 +278,7 @@ export default function CollectionDetailPage() {
           <Skeleton className="h-8 w-48" />
           <Skeleton className="h-16 w-full" />
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {[1, 2, 3, 4, 5, 6].map((i) => <Skeleton key={i} className="aspect-square rounded-xl" />)}
+            {[1, 2, 3, 4, 5, 6].map((i) => <Skeleton key={i} className="aspect-square rounded-lg" />)}
           </div>
         </div>
       </>
@@ -581,7 +581,7 @@ export default function CollectionDetailPage() {
                       />
                     )
                   ) : (
-                    <div className="text-center py-12 bg-muted/20 rounded-xl border-[1.5px] border-dashed border-primary/10">
+                    <div className="text-center py-12 bg-muted/20 rounded-lg border-[1.5px] border-dashed border-primary/10">
                       <Search className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
                       <h3 className="font-display text-lg font-semibold mb-1">Nenhum produto encontrado</h3>
                       <p className="text-muted-foreground text-sm">
@@ -590,7 +590,7 @@ export default function CollectionDetailPage() {
                     </div>
                   )
                 ) : (
-                  <div className="text-center py-16 bg-muted/20 rounded-xl border-[1.5px] border-dashed border-primary/10">
+                  <div className="text-center py-16 bg-muted/20 rounded-lg border-[1.5px] border-dashed border-primary/10">
                     <Package className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
                     <h3 className="font-display text-lg font-semibold text-foreground mb-2">Coleção vazia</h3>
                     <p className="text-muted-foreground mb-6 max-w-md mx-auto">
@@ -646,7 +646,7 @@ export default function CollectionDetailPage() {
               )}
             </div>
           ) : (
-            <div className="text-center py-16 bg-muted/20 rounded-xl border-[1.5px] border-dashed border-primary/10">
+            <div className="text-center py-16 bg-muted/20 rounded-lg border-[1.5px] border-dashed border-primary/10">
               <Package className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
               <h3 className="font-display text-lg font-semibold text-foreground mb-2">Nenhum produto nesta coleção</h3>
               <p className="text-muted-foreground mb-6 max-w-md mx-auto">

@@ -83,7 +83,7 @@ export function MobilePersonalizationSummary({
           {/* Right: CTA */}
           <Button
             size="sm"
-            className="gap-2 shrink-0 rounded-xl shadow-lg shadow-primary/20"
+            className="gap-2 shrink-0 rounded-lg shadow-lg shadow-primary/20"
             onClick={onGenerateQuote}
           >
             <FileText className="h-4 w-4" />

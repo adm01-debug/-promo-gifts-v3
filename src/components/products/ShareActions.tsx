@@ -68,7 +68,7 @@ export function ShareActions({ product, selectedPhotosCount = 0, selectedVariant
 
   return (
     <>
-      <div className="inline-flex rounded-xl shadow-sm">
+      <div className="inline-flex rounded-lg shadow-sm">
         <Button
           className="gap-2 rounded-r-none border-r border-primary/20 bg-primary hover:bg-primary/90 text-primary-foreground"
           onClick={() => setShowPreview(true)}

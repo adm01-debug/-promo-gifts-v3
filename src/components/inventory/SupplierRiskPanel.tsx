@@ -176,7 +176,7 @@ export function SupplierRiskPanel({ products }: SupplierRiskPanelProps) {
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div>
             <CardTitle className="text-xl font-bold font-display tracking-tight flex items-center gap-2">
-              <div className="h-9 w-9 rounded-xl bg-amber-500/10 flex items-center justify-center shadow-inner">
+              <div className="h-9 w-9 rounded-lg bg-amber-500/10 flex items-center justify-center shadow-inner">
                 <ShieldAlert className="h-5 w-5 text-amber-500" aria-hidden="true" />
               </div>
               Análise de Risco no Fornecedor
@@ -276,7 +276,7 @@ export function SupplierRiskPanel({ products }: SupplierRiskPanelProps) {
                           role="option"
                           aria-selected={selectedProductId === product.id}
                           className={cn(
-                            "w-full text-left p-2 rounded-xl text-xs transition-colors h-auto justify-start",
+                            "w-full text-left p-2 rounded-lg text-xs transition-colors h-auto justify-start",
                             selectedProductId === product.id
                               ? "bg-primary/10 border border-primary/20"
                               : "hover:bg-muted/50"

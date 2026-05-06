@@ -7,7 +7,7 @@
  * - Loading state, error state, cancelamento via AbortController
  * - Markdown leve + reconhecimento do padrão [[PRODUTO:id:nome:imageUrl]]
  *   (memory: features/ai/flow-product-integration-spec)
- * - Tokens de design semânticos (Outfit, var(--primary), border-[1.5px], rounded-xl)
+ * - Tokens de design semânticos (Outfit, var(--primary), border-[1.5px], rounded-lg)
  */
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { Send, Loader2, Bot, User as UserIcon, AlertCircle, RotateCcw } from "lucide-react";
@@ -105,7 +105,7 @@ function MessageBubble({ message }: MessageBubbleProps) {
       </div>
       <div
         className={cn(
-          "max-w-[80%] rounded-xl border-[1.5px] px-4 py-2.5 text-sm leading-relaxed font-display",
+          "max-w-[80%] rounded-lg border-[1.5px] px-4 py-2.5 text-sm leading-relaxed font-display",
           isUser
             ? "bg-primary text-primary-foreground border-primary"
             : "bg-card text-card-foreground border-border"
@@ -123,7 +123,7 @@ function TypingIndicator() {
       <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-[1.5px] bg-muted text-muted-foreground border-border">
         <Bot className="h-4 w-4" />
       </div>
-      <div className="rounded-xl border-[1.5px] border-border bg-card px-4 py-2.5">
+      <div className="rounded-lg border-[1.5px] border-border bg-card px-4 py-2.5">
         <div className="flex gap-1">
           <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground [animation-delay:-0.3s]" />
           <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground [animation-delay:-0.15s]" />
@@ -274,7 +274,7 @@ export function AIChat({
   return (
     <div
       className={cn(
-        "flex flex-col rounded-xl border-[1.5px] border-border bg-background overflow-hidden",
+        "flex flex-col rounded-lg border-[1.5px] border-border bg-background overflow-hidden",
         className
       )}
     >
@@ -344,7 +344,7 @@ export function AIChat({
             disabled={isLoading}
             aria-label="Mensagem para o assistente"
             className={cn(
-              "flex-1 resize-none rounded-xl border-[1.5px] border-input bg-background px-3 py-2 text-sm",
+              "flex-1 resize-none rounded-lg border-[1.5px] border-input bg-background px-3 py-2 text-sm",
               "font-display ring-offset-background transition-all duration-200",
               "placeholder:text-muted-foreground",
               "focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20 focus-visible:border-primary",
@@ -359,7 +359,7 @@ export function AIChat({
             disabled={!input.trim() || isLoading}
             size="icon"
             aria-label="Enviar mensagem"
-            className="h-10 w-10 shrink-0 rounded-xl"
+            className="h-10 w-10 shrink-0 rounded-lg"
           >
             {isLoading ? (
               <Loader2 className="h-4 w-4 animate-spin" />

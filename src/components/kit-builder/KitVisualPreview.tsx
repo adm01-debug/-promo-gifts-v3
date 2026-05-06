@@ -39,7 +39,7 @@ export function KitVisualPreview({ kitState }: KitVisualPreviewProps) {
         <div className="space-y-4">
           {/* Box schematic */}
           <div className={cn(
-            "relative border-2 border-dashed rounded-xl p-4 min-h-[200px] transition-colors",
+            "relative border-2 border-dashed rounded-lg p-4 min-h-[200px] transition-colors",
             fillColor
           )}>
             {/* Box label */}
@@ -61,7 +61,7 @@ export function KitVisualPreview({ kitState }: KitVisualPreviewProps) {
                     className="flex flex-col items-center gap-1"
                   >
                     <div
-                      className="rounded-xl bg-card border shadow-sm flex items-center justify-center overflow-hidden"
+                      className="rounded-lg bg-card border shadow-sm flex items-center justify-center overflow-hidden"
                       style={{ width: relativeSize, height: relativeSize }}
                     >
                       {item.imageUrl ? (

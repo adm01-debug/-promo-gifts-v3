@@ -97,7 +97,7 @@ export function RotationHistoryDialog({ secretName, open, onOpenChange }: Props)
         ) : (
           <>
             {last && (
-              <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 space-y-2 animate-in fade-in duration-200">
+              <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 space-y-2 animate-in fade-in duration-200">
                 <div className="flex items-center justify-between gap-2 flex-wrap">
                   <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
                     <Clock className="h-3.5 w-3.5" /> Última operação

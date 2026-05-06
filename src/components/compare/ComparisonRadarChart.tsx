@@ -93,7 +93,7 @@ export function ComparisonRadarChart({ products, className }: ComparisonRadarCha
 
   return (
     <div className={className}>
-      <div className="rounded-xl border-[2px] border-amber-400/20 bg-gradient-to-br from-amber-400/5 to-transparent p-4 shadow-sm">
+      <div className="rounded-lg border-[2px] border-amber-400/20 bg-gradient-to-br from-amber-400/5 to-transparent p-4 shadow-sm">
         <h3 className="text-[10px] font-black uppercase tracking-widest mb-4 flex items-center gap-2 text-amber-600">
           <span className="inline-block w-1.5 h-4 bg-amber-500 rounded-full animate-pulse" />
           Radar de Performance (0–100)

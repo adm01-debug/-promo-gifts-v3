@@ -175,7 +175,7 @@ export function RecentlyViewedPopover({ maxVisible = 50 }: RecentlyViewedPopover
                                 navigate(`/produto/${product.id}`);
                               }}
                               className={cn(
-                                "w-full aspect-square rounded-xl overflow-hidden border border-border/60",
+                                "w-full aspect-square rounded-lg overflow-hidden border border-border/60",
                                 "bg-card cursor-pointer hover:border-primary/40 transition-all duration-200",
                                 "hover:shadow-sm"
                               )}

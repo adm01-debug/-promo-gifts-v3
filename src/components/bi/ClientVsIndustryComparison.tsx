@@ -46,7 +46,7 @@ function MetricRow({ metric }: { metric: MetricComparison }) {
   const deltaSign = metric.deltaPercent > 0 ? "+" : "";
 
   return (
-    <div className="space-y-2 p-3 rounded-xl border bg-card/50">
+    <div className="space-y-2 p-3 rounded-lg border bg-card/50">
       <div className="flex items-center justify-between gap-2">
         <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
           {metric.label}
@@ -105,7 +105,7 @@ function ShareOfWalletCard({ clientLtv, industryAvgLtv }: { clientLtv: number; i
     <button
       type="button"
       onClick={() => setOpen((o) => !o)}
-      className="text-left space-y-2 p-3 rounded-xl border bg-card/50 hover:border-primary/40 hover:shadow-sm transition-all"
+      className="text-left space-y-2 p-3 rounded-lg border bg-card/50 hover:border-primary/40 hover:shadow-sm transition-all"
       aria-expanded={open}
     >
       <div className="flex items-center justify-between gap-2">
@@ -146,7 +146,7 @@ export function ClientVsIndustryComparison({ clientId, ramoAtividade }: Props) {
     return (
       <Card className="border-[1.5px] border-dashed">
         <CardContent className="p-6 flex items-start gap-3">
-          <div className="h-10 w-10 rounded-xl bg-muted flex items-center justify-center shrink-0">
+          <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
             <Info className="h-4 w-4 text-muted-foreground" />
           </div>
           <div className="space-y-1">
@@ -169,7 +169,7 @@ export function ClientVsIndustryComparison({ clientId, ramoAtividade }: Props) {
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-2.5">
-            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-success to-success/70 flex items-center justify-center shadow-md shadow-success/20">
+            <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-success to-success/70 flex items-center justify-center shadow-md shadow-success/20">
               <Scale className="h-4 w-4 text-success-foreground" />
             </div>
             <div>
@@ -199,7 +199,7 @@ export function ClientVsIndustryComparison({ clientId, ramoAtividade }: Props) {
         </div>
 
         {insight && (
-          <div className="flex items-start gap-2.5 p-3 rounded-xl bg-primary/5 border border-primary/10">
+          <div className="flex items-start gap-2.5 p-3 rounded-lg bg-primary/5 border border-primary/10">
             <Lightbulb className="h-4 w-4 text-primary mt-0.5 shrink-0" />
             <p className="text-xs text-foreground leading-relaxed">{insight}</p>
           </div>

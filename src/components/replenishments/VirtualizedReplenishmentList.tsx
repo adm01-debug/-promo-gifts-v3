@@ -76,7 +76,7 @@ export function VirtualizedReplenishmentList({
                 transform: `translateY(${virtualRow.start}px)`,
               }}
             >
-              <div className={cn("flex items-center gap-1", isSelected && "ring-2 ring-primary rounded-xl")}>
+              <div className={cn("flex items-center gap-1", isSelected && "ring-2 ring-primary rounded-lg")}>
                 {selectionMode && (
                   <div className="flex-shrink-0 ml-1">
                     <SelectionCheckbox checked={isSelected} onChange={() => onToggleSelect(item.product_id)} size="md" aria-label={`Selecionar ${item.product_name}`} />

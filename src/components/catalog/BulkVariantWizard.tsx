@@ -109,7 +109,7 @@ function ProductVariantStep({
         <ProductHeader product={product} step={stepIndex} total={totalSteps} />
         <div className="grid grid-cols-2 gap-2">
           {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-16 rounded-xl" />
+            <Skeleton key={i} className="h-16 rounded-lg" />
           ))}
         </div>
       </div>
@@ -127,12 +127,12 @@ function ProductVariantStep({
       className="space-y-3"
     >
       {/* Product info card */}
-      <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/40 border border-border/50">
+      <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/40 border border-border/50">
         {product.images?.[0] && (
           <img
             src={product.images[0]}
             alt={product.name}
-            className="w-12 h-12 rounded-xl object-cover border border-border/60 shrink-0 shadow-sm"
+            className="w-12 h-12 rounded-lg object-cover border border-border/60 shrink-0 shadow-sm"
           />
         )}
         <div className="flex-1 min-w-0">
@@ -149,7 +149,7 @@ function ProductVariantStep({
       <button
         onClick={() => toggleVariant(null)}
         className={cn(
-          "w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left text-sm group",
+          "w-full flex items-center gap-3 p-3 rounded-lg border transition-all text-left text-sm group",
           selectedVariants.some(v => v === null)
             ? "border-primary bg-primary/5 text-primary"
             : "border-dashed border-border/60 text-muted-foreground hover:border-primary/40 hover:bg-primary/5"
@@ -174,7 +174,7 @@ function ProductVariantStep({
               key={variant.id}
               onClick={() => toggleVariant(variant)}
               className={cn(
-                'relative flex items-center gap-2.5 p-2.5 rounded-xl border transition-all text-left group',
+                'relative flex items-center gap-2.5 p-2.5 rounded-lg border transition-all text-left group',
                 isSelected
                   ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
                   : 'hover:border-primary/50 hover:bg-accent/60',
@@ -190,7 +190,7 @@ function ProductVariantStep({
                 <img
                   src={`${variant.selected_thumbnail}/thumbnail`}
                   alt={variant.color_name ?? ''}
-                  className="w-10 h-10 rounded-xl object-cover border border-border/50 shrink-0 shadow-sm group-hover:scale-105 transition-transform"
+                  className="w-10 h-10 rounded-lg object-cover border border-border/50 shrink-0 shadow-sm group-hover:scale-105 transition-transform"
                   onError={(e) => {
                     const t = e.currentTarget;
                     if (t.src.includes('/thumbnail')) {
@@ -202,7 +202,7 @@ function ProductVariantStep({
                 />
               ) : (
                 <div
-                  className="w-10 h-10 rounded-xl border border-border/50 shrink-0 shadow-sm group-hover:scale-105 transition-transform"
+                  className="w-10 h-10 rounded-lg border border-border/50 shrink-0 shadow-sm group-hover:scale-105 transition-transform"
                   style={{ backgroundColor: variant.color_hex || '#CCC' }}
                 />
               )}
@@ -265,12 +265,12 @@ function ProductHeader({
   total: number;
 }) {
   return (
-    <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/40 border border-border/50">
+    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/40 border border-border/50">
       {product.images?.[0] && (
         <img
           src={product.images[0]}
           alt={product.name}
-          className="w-12 h-12 rounded-xl object-cover border border-border/60 shrink-0 shadow-sm"
+          className="w-12 h-12 rounded-lg object-cover border border-border/60 shrink-0 shadow-sm"
         />
       )}
       <div className="flex-1 min-w-0">
@@ -372,7 +372,7 @@ export function BulkVariantWizard({ open, onOpenChange, products, mode, onComple
           <DialogHeader className="p-0">
             <DialogTitle className="flex items-center gap-2.5 text-base font-display font-semibold">
               <div className={cn(
-                'w-8 h-8 rounded-xl flex items-center justify-center shrink-0',
+                'w-8 h-8 rounded-lg flex items-center justify-center shrink-0',
                 bgClass,
               )}>
                 <Icon className={cn('h-4 w-4', colorClass)} />

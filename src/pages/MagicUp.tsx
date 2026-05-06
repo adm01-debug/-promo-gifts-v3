@@ -19,7 +19,7 @@ function MagicUpSkeleton() {
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
         {[1, 2, 3].map(i => (
-          <div key={i} className="rounded-xl border border-border bg-card p-4 space-y-3">
+          <div key={i} className="rounded-lg border border-border bg-card p-4 space-y-3">
             <div className="flex items-center gap-2">
               <div className="h-4 w-4 rounded bg-muted animate-pulse" />
               <div className="h-4 w-20 rounded bg-muted animate-pulse" />
@@ -28,7 +28,7 @@ function MagicUpSkeleton() {
           </div>
         ))}
       </div>
-      <div className="rounded-xl border border-border bg-card p-4 space-y-4">
+      <div className="rounded-lg border border-border bg-card p-4 space-y-4">
         <div className="aspect-square w-full rounded-lg bg-muted animate-pulse" />
       </div>
     </div>
@@ -37,11 +37,11 @@ function MagicUpSkeleton() {
 
 function MagicUpHeader({ variationsCount, historyCount, summary }: { variationsCount: number; historyCount: number; summary: string }) {
   return (
-    <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-primary/10 via-accent/5 to-transparent p-6 border border-primary/20">
+    <div className="relative overflow-hidden rounded-lg bg-gradient-to-r from-primary/10 via-accent/5 to-transparent p-6 border border-primary/20">
       <div className="absolute -top-24 -right-24 w-48 h-48 bg-accent/10 rounded-full blur-3xl" />
       <div className="relative flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <div className="flex items-center justify-center w-14 h-14 rounded-xl bg-primary/10 ring-2 ring-primary/20">
+          <div className="flex items-center justify-center w-14 h-14 rounded-lg bg-primary/10 ring-2 ring-primary/20">
             <Sparkles className="h-7 w-7 text-primary animate-pulse" />
           </div>
           <div>

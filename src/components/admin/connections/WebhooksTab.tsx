@@ -134,7 +134,7 @@ export function WebhooksTab() {
             ) : (
               <div className="space-y-2">
                 {outbound.map((h) => (
-                  <div key={h.id} className="p-3 border border-border rounded-xl">
+                  <div key={h.id} className="p-3 border border-border rounded-lg">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
                         <div className="font-medium flex items-center gap-2">
@@ -224,7 +224,7 @@ export function WebhooksTab() {
             ) : (
               <div className="space-y-2">
                 {inbound.map((ep) => (
-                  <div key={ep.id} className="p-3 border border-border rounded-xl">
+                  <div key={ep.id} className="p-3 border border-border rounded-lg">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0 space-y-1">
                         <div className="font-medium">{ep.name} <span className="text-[11px] text-muted-foreground">({ep.source_system})</span></div>

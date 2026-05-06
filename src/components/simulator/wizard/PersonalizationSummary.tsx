@@ -108,7 +108,7 @@ export function PersonalizationSummary({
     <div className="flex flex-col h-full p-4 overflow-hidden">
       {/* Header */}
       <div className="flex items-center gap-2 mb-3 shrink-0">
-        <div className="p-2 rounded-xl bg-primary/10">
+        <div className="p-2 rounded-lg bg-primary/10">
           <ShoppingCart className="h-4 w-4 text-primary" />
         </div>
         <h3 className="font-display font-semibold text-base">Resumo</h3>
@@ -119,7 +119,7 @@ export function PersonalizationSummary({
         <ScrollArea className="h-full">
           <div className="space-y-3 pr-2">
             {/* Produto */}
-            <div className="p-3 rounded-xl bg-muted/50">
+            <div className="p-3 rounded-lg bg-muted/50">
               <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
                 Produto
               </span>
@@ -195,7 +195,7 @@ export function PersonalizationSummary({
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="p-4 rounded-xl border border-dashed border-muted-foreground/30 text-center"
+                    className="p-4 rounded-lg border border-dashed border-muted-foreground/30 text-center"
                   >
                     <Sparkles className="h-5 w-5 mx-auto mb-2 text-muted-foreground/40" />
                     <p className="text-[11px] text-muted-foreground">
@@ -329,7 +329,7 @@ function PersonalizationRow({
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
       className={`
-        p-2.5 rounded-xl border transition-all
+        p-2.5 rounded-lg border transition-all
         ${isActive
           ? 'border-primary bg-primary/5 shadow-sm shadow-primary/10' 
           : 'bg-card hover:bg-muted/30 border-border/60'

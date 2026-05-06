@@ -204,7 +204,7 @@ export function TestAllConnectionsButton({ className }: { className?: string }) 
           )}
 
           {summary && (
-            <div className="flex items-center flex-wrap gap-2 rounded-xl border bg-muted/20 px-3 py-2 text-xs">
+            <div className="flex items-center flex-wrap gap-2 rounded-lg border bg-muted/20 px-3 py-2 text-xs">
               {summary.ok > 0 && (
                 <Badge
                   variant="outline"
@@ -259,7 +259,7 @@ function ResultRow({ result }: { result: PerEnvResult }) {
       : "border-destructive/40 bg-destructive/5";
 
   return (
-    <li className={`rounded-xl border p-3 ${headerTone}`}>
+    <li className={`rounded-lg border p-3 ${headerTone}`}>
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-2 min-w-0">
           <Database className="h-4 w-4 text-primary shrink-0" />
@@ -352,7 +352,7 @@ function TestDetails({ test }: { test: TestResult }) {
   const copy = getErrorCopy(test.error_kind, test.status, test.error ?? test.message, test.timeout_ms);
   const Icon = copy.icon;
   return (
-    <div className="mt-2 rounded-xl border border-destructive/40 bg-destructive/5 p-2 text-xs">
+    <div className="mt-2 rounded-lg border border-destructive/40 bg-destructive/5 p-2 text-xs">
       <div className="flex items-center gap-1.5 font-medium text-destructive">
         <Icon className="h-3.5 w-3.5" />
         {copy.title}

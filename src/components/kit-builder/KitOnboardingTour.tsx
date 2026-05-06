@@ -50,7 +50,7 @@ export function KitOnboardingTour() {
           <Sparkles className="h-5 w-5 text-primary" />
           <h3 className="font-display text-lg font-semibold">Bem-vindo ao Kit Maker</h3>
         </div>
-        <div className="bg-muted/40 rounded-xl p-4 space-y-1">
+        <div className="bg-muted/40 rounded-lg p-4 space-y-1">
           <p className="font-medium">{current.title}</p>
           <p className="text-sm text-muted-foreground">{current.desc}</p>
         </div>

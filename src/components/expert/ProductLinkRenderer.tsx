@@ -72,7 +72,7 @@ export function ProductAwareLink({ href, children, ...props }: React.AnchorHTMLA
           navigate(`/produto/${productId}`);
         }}
         className={cn(
-          "inline-flex items-center gap-2 my-1 rounded-xl",
+          "inline-flex items-center gap-2 my-1 rounded-lg",
           "bg-card hover:bg-accent/50",
           "text-[12px] font-medium transition-all duration-200",
           "border border-border/40 hover:border-primary/30",
@@ -85,12 +85,12 @@ export function ProductAwareLink({ href, children, ...props }: React.AnchorHTMLA
           <img
             src={proxiedImage}
             alt={name}
-            className="h-10 w-10 rounded-xl object-contain bg-muted/30 flex-shrink-0"
+            className="h-10 w-10 rounded-lg object-contain bg-muted/30 flex-shrink-0"
             loading="lazy"
             onError={() => setImgError(true)}
           />
         ) : (
-          <div className="h-6 w-6 rounded-xl bg-primary/8 flex items-center justify-center flex-shrink-0">
+          <div className="h-6 w-6 rounded-lg bg-primary/8 flex items-center justify-center flex-shrink-0">
             <Package className="h-3 w-3 text-primary/60" />
           </div>
         )}
