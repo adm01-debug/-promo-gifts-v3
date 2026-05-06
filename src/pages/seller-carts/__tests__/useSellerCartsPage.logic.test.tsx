@@ -108,4 +108,65 @@ describe('useSellerCartsPage Logic - Sorting', () => {
     expect(['1', '3']).toContain(result.current.sortedItems[1].id);
     expect(['1', '3']).toContain(result.current.sortedItems[2].id);
   });
+
+  it('should call updateItemSortOrder correctly on handleDragEnd', () => {
+    const updateItemSortOrder = vi.fn();
+    (useSellerCartContext as any).mockReturnValue({
+      carts: [mockActiveCart],
+      activeCart: mockActiveCart,
+      activeCartId: 'cart-1',
+      isLoading: false,
+      totalItems: 3,
+      updateItemSortOrder,
+    });
+
+    const { result } = renderHook(() => useSellerCartsPage(), { wrapper });
+    
+    // Simulate drag: move "Produto B" (id: 1) to after "Produto C" (id: 3)
+    // mockItems order by sort_order: [2 (0), 1 (1), 3 (2)]
+    // Moving 1 to index of 3.
+    
+    act(() => {
+      result.current.handleDragEnd({
+        active: { id: '1' },
+        over: { id: '3' },
+      } as any);
+    });
+
+    expect(updateItemSortOrder).toHaveBeenCalled();
+    const calls = updateItemSortOrder.mock.calls[0][0];
+    
+    // The expected new order should be [2, 3, 1]
+    expect(calls[0]).toEqual({ id: '2', sort_order: 0 });
+    expect(calls[1]).toEqual({ id: '3', sort_order: 1 });
+    expect(calls[2]).toEqual({ id: '1', sort_order: 2 });
+  });
+
+  it('should prevent drag and drop if sortBy is not manual', () => {
+    const updateItemSortOrder = vi.fn();
+    (useSellerCartContext as any).mockReturnValue({
+      carts: [mockActiveCart],
+      activeCart: mockActiveCart,
+      activeCartId: 'cart-1',
+      isLoading: false,
+      totalItems: 3,
+      updateItemSortOrder,
+    });
+
+    const { result } = renderHook(() => useSellerCartsPage(), { wrapper });
+    
+    act(() => {
+      result.current.setItemsSortBy('price-desc');
+    });
+
+    act(() => {
+      result.current.handleDragEnd({
+        active: { id: '1' },
+        over: { id: '3' },
+      } as any);
+    });
+
+    expect(updateItemSortOrder).not.toHaveBeenCalled();
+  });
 });
+
