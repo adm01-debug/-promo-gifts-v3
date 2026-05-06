@@ -804,7 +804,7 @@ export function ConnectionTestHistoryPanel({
                 >
                   {stats.rate}%
                 </span>
-                {stats.avg != null && (
+                {stats.avg !== null && (
                   <>
                     {' '}
                     · Latência média:{' '}
