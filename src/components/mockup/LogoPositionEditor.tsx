@@ -11,6 +11,7 @@ import { useLogoDrag } from "./logo-editor/useLogoDrag";
 import { LogoPreviewCanvas } from "./logo-editor/LogoPreviewCanvas";
 import { LogoQuickActions } from "./logo-editor/LogoQuickActions";
 import { LogoSizeControls } from "./logo-editor/LogoSizeControls";
+import { LogoProcessingPreview } from "./logo-editor/LogoProcessingPreview";
 
 interface LogoPositionEditorProps {
   productImageUrl: string;
