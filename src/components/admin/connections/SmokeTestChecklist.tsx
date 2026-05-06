@@ -52,6 +52,9 @@ import {
 } from '@/hooks/useSecretsManager';
 import { ALLOWED_SECRET_NAMES } from './secretWhitelist';
 import { formatMaskedSuffix, normalizeMaskedSuffix } from '@/lib/masked-suffix';
+import { createClientLogger } from '@/lib/telemetry/structuredLogger';
+
+const log = createClientLogger('admin.secrets.smoke-test');
 
 type StepStatus = 'idle' | 'running' | 'passed' | 'failed' | 'skipped';
 
@@ -143,10 +146,8 @@ export function SmokeTestChecklist({ availableSecrets = [] }: Props) {
     const startedAt = new Date();
     const sessionId = `smoke-${Date.now().toString(36)}`;
 
-    // eslint-disable-next-line no-console
-    console.groupCollapsed(`[smoke-test] ${sessionId} • ${secretName}`);
-    // eslint-disable-next-line no-console
-    console.log('[smoke-test] starting', { secretName, expectedSuffix, length: newValue.length });
+    const logger = log.child(sessionId, { secretName, expectedSuffix });
+    logger.info('starting');
 
     // STEP 1 — rotate
     updateStep('rotate', { status: 'running' });
@@ -161,13 +162,10 @@ export function SmokeTestChecklist({ availableSecrets = [] }: Props) {
           detail: rotateResult.error?.message ?? 'Falha desconhecida',
           durationMs: took,
         });
-        // eslint-disable-next-line no-console
-        console.error('[smoke-test] step 1 FAILED', rotateResult.error);
+        logger.error('step1_failed', { error: rotateResult.error });
         setRunning(false);
         updateStep('history', { status: 'skipped', detail: 'Pulado (rotação falhou)' });
         updateStep('reload', { status: 'skipped', detail: 'Pulado (rotação falhou)' });
-        // eslint-disable-next-line no-console
-        console.groupEnd();
         return;
       }
       const suffixOk = normalizeMaskedSuffix(rotateResult.masked_suffix) === expectedSuffix;
@@ -178,8 +176,7 @@ export function SmokeTestChecklist({ availableSecrets = [] }: Props) {
           detail: `Sufixo esperado ${formatMaskedSuffix(expectedSuffix)}, recebido ${formatMaskedSuffix(rotateResult.masked_suffix)}`,
           durationMs: took,
         });
-        // eslint-disable-next-line no-console
-        console.error('[smoke-test] step 1 mismatch', {
+        logger.error('step1_mismatch', {
           expectedSuffix,
           got: rotateResult.masked_suffix,
         });
@@ -189,8 +186,7 @@ export function SmokeTestChecklist({ availableSecrets = [] }: Props) {
           detail: `previous=${rotateResult.previous_suffix ?? '(env)'} → new=${normalizeMaskedSuffix(rotateResult.masked_suffix)} • ${rotateResult.length} chars`,
           durationMs: took,
         });
-        // eslint-disable-next-line no-console
-        console.log('[smoke-test] step 1 OK', { took, suffix: rotateResult.masked_suffix });
+        logger.info('step1_ok', { took, suffix: rotateResult.masked_suffix });
       }
     } catch (err) {
       const took = Math.round(performance.now() - t1);
@@ -199,11 +195,8 @@ export function SmokeTestChecklist({ availableSecrets = [] }: Props) {
         detail: err instanceof Error ? err.message : 'Erro inesperado',
         durationMs: took,
       });
-      // eslint-disable-next-line no-console
-      console.error('[smoke-test] step 1 EXCEPTION', err);
+      logger.error('step1_exception', { err });
       setRunning(false);
-      // eslint-disable-next-line no-console
-      console.groupEnd();
       return;
     }
 
@@ -224,8 +217,7 @@ export function SmokeTestChecklist({ availableSecrets = [] }: Props) {
           detail: `Nenhum registro com sufixo ${formatMaskedSuffix(expectedSuffix)} encontrado (${entries.length} entradas vistas).`,
           durationMs: took,
         });
-        // eslint-disable-next-line no-console
-        console.error('[smoke-test] step 2 missing entry', {
+        logger.error('step2_missing_entry', {
           expectedSuffix,
           total: entries.length,
         });
@@ -236,8 +228,7 @@ export function SmokeTestChecklist({ availableSecrets = [] }: Props) {
           detail: `Registro #${entries.length} • por ${author} • ${new Date(matching.rotated_at).toLocaleTimeString('pt-BR')}`,
           durationMs: took,
         });
-        // eslint-disable-next-line no-console
-        console.log('[smoke-test] step 2 OK', { took, author, entryId: matching.id });
+        logger.info('step2_ok', { took, author, entryId: matching.id });
       }
     } catch (err) {
       const took = Math.round(performance.now() - t2);
@@ -246,8 +237,7 @@ export function SmokeTestChecklist({ availableSecrets = [] }: Props) {
         detail: err instanceof Error ? err.message : 'Erro ao consultar histórico',
         durationMs: took,
       });
-      // eslint-disable-next-line no-console
-      console.error('[smoke-test] step 2 EXCEPTION', err);
+      logger.error('step2_exception', { err });
     }
 
     // STEP 3 — cold reload from DB (simulates F5)
@@ -263,16 +253,14 @@ export function SmokeTestChecklist({ availableSecrets = [] }: Props) {
           detail: 'Secret não retornou na listagem após reload.',
           durationMs: took,
         });
-        // eslint-disable-next-line no-console
-        console.error('[smoke-test] step 3 missing in list');
+        logger.error('step3_missing_list');
       } else if (normalizeMaskedSuffix(target.masked_suffix) !== expectedSuffix) {
         updateStep('reload', {
           status: 'failed',
           detail: `Sufixo divergente após reload: esperado ${formatMaskedSuffix(expectedSuffix)}, recebido ${formatMaskedSuffix(target.masked_suffix)}`,
           durationMs: took,
         });
-        // eslint-disable-next-line no-console
-        console.error('[smoke-test] step 3 suffix mismatch after reload', target);
+        logger.error('step3_suffix_mismatch', { target });
       } else {
         const sourceTag = target.source ? ` • source=${target.source}` : '';
         updateStep('reload', {
@@ -280,8 +268,7 @@ export function SmokeTestChecklist({ availableSecrets = [] }: Props) {
           detail: `Persistido • ${formatMaskedSuffix(target.masked_suffix)} • ${target.length} chars${sourceTag}`,
           durationMs: took,
         });
-        // eslint-disable-next-line no-console
-        console.log('[smoke-test] step 3 OK', { took, source: target.source });
+        logger.info('step3_ok', { took, source: target.source });
       }
     } catch (err) {
       const took = Math.round(performance.now() - t3);
@@ -290,14 +277,10 @@ export function SmokeTestChecklist({ availableSecrets = [] }: Props) {
         detail: err instanceof Error ? err.message : 'Erro ao recarregar',
         durationMs: took,
       });
-      // eslint-disable-next-line no-console
-      console.error('[smoke-test] step 3 EXCEPTION', err);
+      logger.error('step3_exception', { err });
     }
 
-    // eslint-disable-next-line no-console
-    console.log('[smoke-test] finished', { sessionId, secretName });
-    // eslint-disable-next-line no-console
-    console.groupEnd();
+    logger.info('finished');
     setRunning(false);
   };
 

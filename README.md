@@ -5,6 +5,10 @@
 [![Stack](https://img.shields.io/badge/Stack-React%2018%20%2B%20TypeScript%205%20%2B%20Supabase-blue)]()
 [![Build](https://img.shields.io/badge/Build-Vite%205-purple)]()
 [![Design](https://img.shields.io/badge/UI-Tailwind%20CSS%20%2B%20shadcn%2Fui-cyan)]()
+[![CI](https://github.com/lovable/promo-brindes/actions/workflows/ci.yml/badge.svg)](https://github.com/lovable/promo-brindes/actions/workflows/ci.yml)
+[![Release](https://github.com/lovable/promo-brindes/actions/workflows/release-please.yml/badge.svg)](https://github.com/lovable/promo-brindes/actions/workflows/release-please.yml)
+[![Quality](https://img.shields.io/badge/Quality-100%25-brightgreen)]()
+
 
 ---
 
