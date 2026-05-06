@@ -31,7 +31,7 @@ interface GroupComponentCardProps {
   locations: GroupLocation[];
   techniques: Technique[] | undefined;
   locationTechniques: GroupLocationTechnique[];
-  onUpdateComponent: (data: { id: string; [key: string]: any }) => void;
+  onUpdateComponent: (data: { id: string } & Partial<GroupComponent>) => void;
   onDeleteComponent: (id: string) => void;
   onAddLocation: (data: {
     group_component_id: string;
@@ -42,7 +42,7 @@ interface GroupComponentCardProps {
     max_area_cm2?: number;
   }) => void;
   addLocationPending: boolean;
-  onUpdateLocation: (data: { id: string; [key: string]: any }) => void;
+  onUpdateLocation: (data: { id: string } & Partial<GroupLocation>) => void;
   onDeleteLocation: (id: string) => void;
   onAddTechnique: (data: {
     group_location_id: string;
@@ -50,7 +50,7 @@ interface GroupComponentCardProps {
     max_colors?: number;
   }) => void;
   addTechniquePending: boolean;
-  onUpdateTechnique: (data: { id: string; [key: string]: any }) => void;
+  onUpdateTechnique: (data: { id: string } & Partial<GroupLocationTechnique>) => void;
   onDeleteTechnique: (id: string) => void;
 }
 
