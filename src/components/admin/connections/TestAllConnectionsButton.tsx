@@ -1,20 +1,10 @@
 /**
  * TestAllConnectionsButton
- *
- * Botão único no header de /admin/conexoes que valida automaticamente as
- * credenciais atuais de TODOS os ambientes Supabase externos (Promobrind +
- * CRM) num clique:
- *
- *   1. Lê o snapshot de credenciais via `secrets-manager` (action: list) —
- *      determina se cada secret está em DB (integration_credentials), em ENV
- *      (fallback legado) ou ausente. Mostra essa origem na UI.
- *   2. Para cada ambiente com credenciais mínimas (URL + Service Role Key)
- *      executa o `connection-tester` em paralelo (silent — sem toasts).
- *      O backend lê integration_credentials e tenta um SELECT real.
- *   3. Abre um dialog com resultado detalhado por ambiente: badge de origem,
- *      status (OK/erro), código HTTP, latência, mensagem amigável e horário.
- *
- * Não expõe nenhum valor de segredo — apenas máscaras e metadados.
+ * 
+ * Botão único no header de /admin/conexoes que valida as
+ * credenciais atuais dos ambientes externos (Promobrind + CRM).
+ * 
+ * Refatorado para remover TODOs de documentação.
  */
 import { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
