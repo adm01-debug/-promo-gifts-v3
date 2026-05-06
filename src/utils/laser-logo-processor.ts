@@ -83,7 +83,7 @@ export async function processLogoForLaser(
         const a = data[i + 3];
 
         // Skip fully/mostly transparent pixels
-        if (a < 30) {
+        if (a < alphaThreshold) {
           data[i + 3] = 0;
           continue;
         }
