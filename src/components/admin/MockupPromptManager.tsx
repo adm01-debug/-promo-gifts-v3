@@ -107,7 +107,7 @@ export function MockupPromptManager() {
           ai_model: config.ai_model,
           changed_by: user?.id,
           change_notes: changeNotes[config.id] || null,
-        });
+        } as any);
       const { error } = await supabase
         .from('mockup_prompt_configs')
         .update({
