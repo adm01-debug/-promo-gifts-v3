@@ -101,14 +101,11 @@ describe('CartCompanyPickerDialog - UI, Accessibility & Regression', () => {
   });
 
   it('validates responsive and typography scaling properties', () => {
-    const { container } = render(<CartCompanyPickerDialog {...defaultProps} />);
+    render(<CartCompanyPickerDialog {...defaultProps} />);
     
-    // Check for max-width on DialogContent (sm breakpoint)
-    // Note: Dialog content is usually rendered in a portal, so we find it by role
+    // DialogContent is usually rendered in a portal
     const dialog = screen.getByRole('dialog');
-    // The class is on the content wrapper
-    const content = container.querySelector('[class*="sm:max-w-[520px]"]');
-    expect(content).toBeInTheDocument();
+    expect(dialog).toHaveClass('sm:max-w-[520px]');
 
     // Verify relative sizes for typography consistency
     const input = screen.getByRole('textbox', { name: /Buscar empresa/i });
