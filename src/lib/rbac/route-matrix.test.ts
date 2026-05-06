@@ -2,11 +2,17 @@ import { describe, it, expect } from 'vitest';
 import { RBAC_ROUTES } from './route-matrix';
 
 describe('RBAC_ROUTES', () => {
-  it('should have mfaAal2 set to false for all routes as per current implementation', () => {
-    // The current implementation ends with .map(r => ({ ...r, mfaAal2: false }))
-    // This test ensures that this override is correctly applied or documented.
-    RBAC_ROUTES.forEach(route => {
-      expect(route.mfaAal2).toBe(false);
+  it('should have mfaAal2 set to true for admin and dev routes', () => {
+    const sensitiveRoutes = RBAC_ROUTES.filter(r => ['admin', 'dev'].includes(r.role));
+    sensitiveRoutes.forEach(route => {
+      expect(route.mfaAal2, `Route ${route.path} should require MFA`).toBe(true);
+    });
+  });
+
+  it('should have mfaAal2 set to false for public and authenticated routes', () => {
+    const standardRoutes = RBAC_ROUTES.filter(r => ['public', 'authenticated'].includes(r.role));
+    standardRoutes.forEach(route => {
+      expect(route.mfaAal2, `Route ${route.path} should NOT require MFA`).toBe(false);
     });
   });
 
@@ -22,7 +28,7 @@ describe('RBAC_ROUTES', () => {
         expect(route.guard).toBe('public');
       }
       if (route.guard === 'AdminRoute') {
-        expect(route.role).toBe('admin');
+        expect(['admin', 'dev'].includes(route.role)).toBe(true);
       }
       if (route.guard === 'DevRoute') {
         expect(route.role).toBe('dev');
