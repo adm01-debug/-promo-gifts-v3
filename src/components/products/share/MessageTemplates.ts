@@ -26,7 +26,7 @@ export const MESSAGE_TEMPLATES: MessageTemplate[] = [
     label: "Formal",
     description: "Linguagem profissional para clientes corporativos",
     generate: (product) => {
-      const colors = product.colors.map((c) => c.name).join(", ");
+      const colors = getColorsLabel(product);
       return `Prezado(a),
 
 Segue informações sobre o produto solicitado:
@@ -52,7 +52,7 @@ Promo Brindes`;
     label: "Informal",
     description: "Tom descontraído e direto",
     generate: (product) => {
-      const colors = product.colors.map((c) => c.name).join(", ");
+      const colors = getColorsLabel(product);
       return `Oi! 😊
 
 Olha esse produto que separei pra você:
@@ -74,7 +74,7 @@ Promo Brindes - Brindes com Excelência!`;
     label: "Promoção",
     description: "Destaque urgência e benefícios",
     generate: (product) => {
-      const colors = product.colors.map((c) => c.name).join(", ");
+      const colors = getColorsLabel(product);
       return `🔥 *OPORTUNIDADE ESPECIAL* 🔥
 
 *${product.name}*
