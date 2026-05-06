@@ -31,6 +31,8 @@ interface RecoveryState {
   attempts: number;
   firstAt: number;
   lastUrl?: string;
+  version?: string;
+}
 }
 
 function readState(): RecoveryState {
