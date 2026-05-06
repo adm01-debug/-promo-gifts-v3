@@ -119,12 +119,12 @@ export const ContinuousRockets = React.memo(() => {
 });
 
 const BackgroundRockets = React.memo(() => {
-  // 4 foguetes decorativos de tamanhos diferentes subindo lentamente atrás do texto
+  // 4 foguetes decorativos de tamanhos diferentes subindo com velocidade ajustada
   const rockets = [
-    { left: 8,  size: 64, duration: 14, delay: 0,   opacity: 0.10 },
-    { left: 78, size: 96, duration: 18, delay: 3,   opacity: 0.08 },
-    { left: 42, size: 44, duration: 11, delay: 6,   opacity: 0.12 },
-    { left: 92, size: 28, duration: 9,  delay: 1.5, opacity: 0.14 },
+    { left: 8,  size: 50, duration: 25, delay: 0,   opacity: 0.07 },
+    { left: 78, size: 75, duration: 32, delay: 5,   opacity: 0.05 },
+    { left: 42, size: 35, duration: 22, delay: 10,  opacity: 0.09 },
+    { left: 92, size: 24, duration: 18, delay: 2,   opacity: 0.11 },
   ];
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden z-[0]" aria-hidden="true">
@@ -145,7 +145,7 @@ const BackgroundRockets = React.memo(() => {
               style={{
                 width: r.size,
                 height: r.size,
-                filter: `drop-shadow(0 0 ${r.size * 0.4}px rgba(251, 146, 60, 0.5))`,
+                filter: `drop-shadow(0 0 ${r.size * 0.4}px rgba(251, 146, 60, 0.4))`,
               }}
             />
             <div
@@ -155,8 +155,8 @@ const BackgroundRockets = React.memo(() => {
                 width: `${r.size * 0.35}px`,
                 height: `${r.size * 1.4}px`,
                 background: "linear-gradient(to bottom, #FB923C, #FBBF24, transparent)",
-                filter: "blur(4px)",
-                opacity: 0.7,
+                filter: "blur(6px)",
+                opacity: 0.6,
               }}
             />
           </div>
@@ -169,16 +169,20 @@ const BackgroundRockets = React.memo(() => {
 const Starfield = React.memo(() => {
   return (
     <>
-      {[...Array(32)].map((_, i) => {
-        const size = 1 + (i % 3);
+      {[...Array(48)].map((_, i) => {
+        const isFar = i >= 32;
+        const size = isFar ? 1 : 1 + (i % 3);
         const top = (i * 37 + 11) % 100;
         const left = (i * 53 + 7) % 100;
-        const dur = 2 + (i % 5);
+        const dur = isFar ? 4 + (i % 4) : 2 + (i % 5);
         const delay = (i * 0.4) % 3;
+        const opacity = isFar ? "opacity-10" : "opacity-30";
+        const blur = isFar ? "blur-[1px]" : "";
+        
         return (
           <div
             key={`star-${i}`}
-            className="absolute rounded-full bg-white/30 shadow-[0_0_8px_rgba(255,255,255,0.3)]"
+            className={`absolute rounded-full bg-white ${opacity} ${blur} shadow-[0_0_8px_rgba(255,255,255,0.3)]`}
             style={{
               width: `${size}px`,
               height: `${size}px`,
@@ -197,15 +201,15 @@ function FeatureCard({ item, index }: { item: typeof FEATURE_ITEMS[0]; index: nu
   const IconComponent = item.icon;
   return (
     <div 
-      className="p-5 rounded-xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-lg hover:bg-white/10 hover:border-primary/30 hover:scale-[1.02] transition-all duration-500 group opacity-0"
+      className="p-5 rounded-xl bg-black/40 backdrop-blur-2xl border border-white/10 shadow-xl hover:bg-black/60 hover:border-primary/40 hover:scale-[1.02] transition-all duration-500 group opacity-0"
       style={{ animation: `scale-fade-in 0.5s ease-out ${300 + index * 100}ms forwards` }}
     >
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-lg font-bold text-primary truncate leading-tight">{item.label}</p>
-          <p className="text-[13px] font-medium text-white/50 truncate uppercase tracking-wider mt-0.5">{item.desc}</p>
+          <p className="text-lg font-bold text-white group-hover:text-primary transition-colors truncate leading-tight">{item.label}</p>
+          <p className="text-[13px] font-medium text-white/70 truncate uppercase tracking-wider mt-0.5">{item.desc}</p>
         </div>
-        <div className="w-11 h-11 rounded-lg bg-primary/15 flex items-center justify-center group-hover:bg-primary/25 transition-colors shrink-0">
+        <div className="w-11 h-11 rounded-lg bg-primary/20 flex items-center justify-center group-hover:bg-primary/30 transition-colors shrink-0 shadow-inner">
           <IconComponent className="h-5 w-5 text-primary" />
         </div>
       </div>
@@ -223,10 +227,11 @@ const FEATURE_ITEMS = [
 export function AuthBrandingPanel() {
   return (
     <div className="hidden lg:flex lg:w-1/2 bg-[#0A0D14] relative overflow-hidden">
-      {/* Background decoration */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/4 -left-20 w-80 h-80 bg-orange/20 rounded-full blur-[120px] animate-pulse" />
-        <div className="absolute bottom-1/4 right-0 w-96 h-96 bg-orange/10 rounded-full blur-[150px]" />
+      {/* Background decoration with deep space gradient */}
+      <div className="absolute inset-0 overflow-hidden bg-[radial-gradient(circle_at_50%_50%,rgba(10,13,20,1)_0%,rgba(5,7,12,1)_100%)]">
+        <div className="absolute inset-0 opacity-30 bg-[radial-gradient(ellipse_at_center,rgba(251,146,60,0.08)_0%,transparent_70%)]" />
+        <div className="absolute top-1/4 -left-20 w-80 h-80 bg-orange/15 rounded-full blur-[120px] animate-pulse" />
+        <div className="absolute bottom-1/4 right-0 w-96 h-96 bg-orange/5 rounded-full blur-[150px]" />
         <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-orange/5 rounded-full blur-[100px]" />
         <Starfield />
         <BackgroundRockets />
@@ -254,7 +259,7 @@ export function AuthBrandingPanel() {
                 Melhor Time das Galáxias!
               </span>
             </h2>
-            <p className="text-base text-white/60 leading-relaxed font-normal">
+            <p className="text-base text-white/80 leading-relaxed font-normal drop-shadow-sm">
               Acesso ao maior mix de produtos personalizados, estoque em tempo real e técnicas de personalização. Feito para você decolar.
             </p>
           </div>
