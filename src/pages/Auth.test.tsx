@@ -11,6 +11,7 @@ vi.mock('@/integrations/supabase/client', () => ({
     auth: {
       getSession: vi.fn(() => Promise.resolve({ data: { session: null }, error: null })),
       signInWithPassword: vi.fn(),
+      onAuthStateChange: vi.fn(() => ({ data: { subscription: { unsubscribe: vi.fn() } } })),
     },
     functions: {
       invoke: vi.fn(() => Promise.resolve({ data: { ip: '127.0.0.1', city: 'Test' }, error: null })),
