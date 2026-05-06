@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { TrendingUp, TrendingDown } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 // Animated counter hook
 function useCountUp(target: number, duration = 600) {
