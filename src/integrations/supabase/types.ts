@@ -5462,60 +5462,6 @@ export type Database = {
         }
         Relationships: []
       }
-      webhook_delivery_metrics_old: {
-        Row: {
-          attempt: number
-          direction: string
-          duration_ms: number | null
-          endpoint: string | null
-          error_class: string | null
-          error_message: string | null
-          event_type: string | null
-          http_status: number | null
-          id: string
-          metadata: Json
-          occurred_at: string
-          payload_bytes: number | null
-          request_id: string
-          source: string
-          success: boolean
-        }
-        Insert: {
-          attempt?: number
-          direction: string
-          duration_ms?: number | null
-          endpoint?: string | null
-          error_class?: string | null
-          error_message?: string | null
-          event_type?: string | null
-          http_status?: number | null
-          id?: string
-          metadata?: Json
-          occurred_at?: string
-          payload_bytes?: number | null
-          request_id: string
-          source: string
-          success: boolean
-        }
-        Update: {
-          attempt?: number
-          direction?: string
-          duration_ms?: number | null
-          endpoint?: string | null
-          error_class?: string | null
-          error_message?: string | null
-          event_type?: string | null
-          http_status?: number | null
-          id?: string
-          metadata?: Json
-          occurred_at?: string
-          payload_bytes?: number | null
-          request_id?: string
-          source?: string
-          success?: boolean
-        }
-        Relationships: []
-      }
       webhook_delivery_metrics_y2026m05: {
         Row: {
           attempt: number | null
