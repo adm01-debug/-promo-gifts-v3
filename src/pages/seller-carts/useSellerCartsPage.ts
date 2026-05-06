@@ -313,7 +313,7 @@ export function useSellerCartsPage() {
     });
 
     return result;
-  }, [carts, searchTerm, sortBy]);
+  }, [carts, searchTerm, sortBy, companyFilter, productFilter]);
 
   const sortedItems = useMemo(() => {
     if (!activeCart) return [];
