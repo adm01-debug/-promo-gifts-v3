@@ -42,6 +42,9 @@ vi.mock("@/contexts/CollectionsContext", () => ({
   useCollectionsContext: () => ({
     collections: [],
     addPendingProduct: vi.fn(),
+    defaultColors: ["#000000"],
+    defaultIcons: ["folder"],
+    isProductInCollection: vi.fn().mockReturnValue(false),
   }),
 }));
 
