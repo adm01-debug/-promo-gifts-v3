@@ -322,6 +322,14 @@ const AppContent = () => {
         {/* Products */}
         <Route path="/produtos" element={<Index />} />
         <Route path="/produto" element={<Navigate to="/produtos" replace />} />
+        <Route path="/mockup-generator" element={<Navigate to="/ferramentas/mockup-generator" replace />} />
+        <Route path="/simulador" element={<Navigate to="/ferramentas/simulador-wizard" replace />} />
+        <Route path="/simulador-precos" element={<Navigate to="/ferramentas/simulador-preco" replace />} />
+        <Route path="/montar-kit" element={<Navigate to="/ferramentas/kit-builder" replace />} />
+        <Route path="/kits" element={<Navigate to="/ferramentas/kit-builder" replace />} />
+        <Route path="/meus-kits" element={<Navigate to="/ferramentas/kit-library" replace />} />
+        <Route path="/busca-preco" element={<Navigate to="/ferramentas/busca-avancada-preco" replace />} />
+        <Route path="/busca-precos" element={<Navigate to="/ferramentas/busca-avancada-preco" replace />} />
         <Route path="/produto/:id" element={<ProductDetail />} />
         <Route path="/filtros" element={<FiltersPage />} />
         <Route path="/novidades" element={<NoveltiesPage />} />
@@ -438,7 +446,6 @@ const AppContent = () => {
         <Route path="/ferramentas/simulador-wizard" element={<SimuladorWizard />} />
         <Route path="/ferramentas/magic-up" element={<MagicUp />} />
         <Route path="/ferramentas/mockup-generator" element={<MockupGenerator />} />
-        <Route path="/mockup-generator" element={<Navigate to="/ferramentas/mockup-generator" replace />} />
         <Route path="/ferramentas/simulador-preco" element={<PriceSimulatorPage />} />
         <Route path="/ferramentas/kit-builder" element={<KitBuilderPage />} />
         <Route path="/ferramentas/kit-library" element={<MeusKitsPage />} />

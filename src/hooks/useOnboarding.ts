@@ -70,7 +70,7 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
       'Calcule custos de personalização em tempo real. Configure técnicas (silk, bordado, laser), posições, cores e quantidades!',
     targetSelector: "[data-tour='sidebar']",
     position: 'right',
-    route: '/simulador',
+    route: '/ferramentas/simulador-wizard',
   },
   {
     id: 'mockup',
@@ -79,7 +79,7 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
       'Crie visualizações profissionais com logo do cliente! Posicione a arte, ajuste tamanho e gere mockups para apresentações.',
     targetSelector: "[data-tour='sidebar']",
     position: 'right',
-    route: '/mockup-generator',
+    route: '/ferramentas/mockup-generator',
   },
   {
     id: 'trends',

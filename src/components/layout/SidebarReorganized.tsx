@@ -110,18 +110,18 @@ const navGroups: NavGroup[] = [
     icon: Wrench,
     defaultOpen: false,
     items: [
-      { icon: ImagePlus, label: 'Mockup', href: '/mockup-generator', shortcut: 'Alt+M' },
+      { icon: ImagePlus, label: 'Mockup', href: '/ferramentas/mockup-generator', shortcut: 'Alt+M' },
       { icon: Sparkles, label: 'Magic Up', href: '/ferramentas/magic-up' },
       { icon: Crosshair, label: 'Match', href: '/ferramentas/match' },
-      { icon: Boxes, label: 'Kit Maker', href: '/montar-kit', shortcut: 'Alt+K' },
+      { icon: Boxes, label: 'Kit Maker', href: '/ferramentas/kit-builder', shortcut: 'Alt+K' },
       {
         icon: Calculator,
         label: 'Mestre da Personalização',
-        href: '/simulador',
+        href: '/ferramentas/simulador-wizard',
         shortcut: 'Alt+S',
       },
-      { icon: BarChart3, label: 'Radar de Preços', href: '/simulador-precos' },
-      { icon: DollarSign, label: 'Busca por Preço', href: '/busca-preco' },
+      { icon: BarChart3, label: 'Radar de Preços', href: '/ferramentas/simulador-preco' },
+      { icon: DollarSign, label: 'Busca por Preço', href: '/ferramentas/busca-avancada-preco' },
     ],
   },
   {

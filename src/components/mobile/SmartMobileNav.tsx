@@ -43,8 +43,8 @@ const mainNavItems: NavItem[] = [
 const quickActions: NavItem[] = [
   { icon: FileText, label: 'Novo Orçamento', href: '/orcamentos/novo' },
   { icon: Heart, label: 'Favoritos', href: '/favoritos' },
-  { icon: Wand2, label: 'Mockup', href: '/mockup-generator' },
-  { icon: Calculator, label: 'Simulador', href: '/simulador' },
+  { icon: Wand2, label: 'Mockup', href: '/ferramentas/mockup-generator' },
+  { icon: Calculator, label: 'Simulador', href: '/ferramentas/simulador-wizard' },
   { icon: FolderOpen, label: 'Coleções', href: '/colecoes' },
 ];
 
