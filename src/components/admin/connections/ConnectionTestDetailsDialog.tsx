@@ -109,11 +109,11 @@ interface TimingSegment {
 
 function timingSegments(t: TestDetails['timing']): TimingSegment[] {
   const segs: TimingSegment[] = [];
-  if (t.dns_ms != null) segs.push({ label: 'DNS', ms: t.dns_ms, color: 'bg-purple-500' });
-  if (t.tcp_ms != null) segs.push({ label: 'TCP', ms: t.tcp_ms, color: 'bg-blue-500' });
-  if (t.tls_ms != null) segs.push({ label: 'TLS', ms: t.tls_ms, color: 'bg-cyan-500' });
-  if (t.ttfb_ms != null) segs.push({ label: 'TTFB', ms: t.ttfb_ms, color: 'bg-amber-500' });
-  if (t.download_ms != null)
+  if (t.dns_ms !== null) segs.push({ label: 'DNS', ms: t.dns_ms, color: 'bg-purple-500' });
+  if (t.tcp_ms !== null) segs.push({ label: 'TCP', ms: t.tcp_ms, color: 'bg-blue-500' });
+  if (t.tls_ms !== null) segs.push({ label: 'TLS', ms: t.tls_ms, color: 'bg-cyan-500' });
+  if (t.ttfb_ms !== null) segs.push({ label: 'TTFB', ms: t.ttfb_ms, color: 'bg-amber-500' });
+  if (t.download_ms !== null)
     segs.push({ label: 'Download', ms: t.download_ms, color: 'bg-green-500' });
   return segs;
 }
