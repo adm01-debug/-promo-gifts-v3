@@ -94,10 +94,10 @@ const navGroups: NavGroup[] = [
       { icon: Sparkles, label: "Magic Up", href: "/ferramentas/magic-up" },
       { icon: Crosshair, label: "Match", href: "/ferramentas/match" },
       { icon: Boxes, label: "Kit Maker", href: "/montar-kit", shortcut: "Alt+K" },
+      { icon: Layers, label: "Estoque 360º", href: "/estoque", shortcut: "Alt+E" },
       { icon: Calculator, label: "Mestre da Personalização", href: "/simulador", shortcut: "Alt+S" },
       { icon: BarChart3, label: "Radar de Preços", href: "/simulador-precos" },
       { icon: DollarSign, label: "Busca por Preço", href: "/busca-preco" },
-      { icon: Layers, label: "Estoque 360º", href: "/estoque", shortcut: "Alt+E" },
     ],
   },
   {
