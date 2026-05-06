@@ -7,6 +7,7 @@ import { Ruler, Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 const SIZE_ORDER = [
   "PP", "P", "M", "G", "GG", "XG", "XXG", "EG", "EGG",
