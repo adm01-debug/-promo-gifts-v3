@@ -135,7 +135,7 @@ export default function QuoteBuilderPage() {
 
           {/* Right Column: Summary */}
           <div className="lg:col-span-3">
-            <QuoteBuilderSummaryColumn s={s} />
+            <QuoteBuilderSummaryColumn {...s} />
           </div>
         </div>
 
