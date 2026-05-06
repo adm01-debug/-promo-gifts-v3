@@ -117,6 +117,8 @@ export function useSellerCartsPage() {
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
+  const [itemsSortBy, setItemsSortBy] = useState<string>("manual");
+
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id || !activeCart) return;
@@ -268,7 +270,6 @@ export function useSellerCartsPage() {
     return cart.company_primary_color || null;
   }, [activeCart]);
 
-  const [itemsSortBy, setItemsSortBy] = useState<string>("manual");
 
   const filteredCarts = useMemo(() => {
     let result = [...carts];
@@ -312,7 +313,7 @@ export function useSellerCartsPage() {
     });
 
     return result;
-  }, [carts, searchTerm, sortBy]);
+  }, [carts, searchTerm, sortBy, companyFilter, productFilter]);
 
   const sortedItems = useMemo(() => {
     if (!activeCart) return [];
