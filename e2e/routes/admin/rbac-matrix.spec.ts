@@ -60,7 +60,7 @@ test.describe("RBAC — Matriz de Acesso por Papel", () => {
 
 test.describe("RBAC — Permissões de Grão Fino (UI & API)", () => {
   // Nota: o setup global gera o state como agente (vendedor)
-  test.use({ storageState: "e2e/.auth/storageState.json" });
+  test.use({ storageState: "e2e/.auth/agente.json" });
 
   test("Vendedor não deve ver botão de Gerenciar Usuários no Sidebar", async ({ page }) => {
     await page.goto("/");
@@ -89,6 +89,17 @@ test.describe("RBAC — Permissões de Grão Fino (UI & API)", () => {
     
     if (response) {
       expect([401, 403]).toContain(response.status());
+      // Valida que o payload está vazio ou segue o schema de erro (auth/unauthorized)
+      const body = await response.text();
+      try {
+        const json = JSON.parse(body);
+        // Se houver JSON, deve conter mensagens de erro e não dados sensíveis
+        expect(json).toHaveProperty("error");
+        expect(json).not.toHaveProperty("data"); 
+      } catch {
+        // Se não for JSON (ex: 403 via Cloudflare), o body deve ser mínimo/vazio
+        expect(body.length).toBeLessThan(500);
+      }
     }
   });
 
@@ -103,6 +114,10 @@ test.describe("RBAC — Permissões de Grão Fino (UI & API)", () => {
     // No AdminRoute.tsx o título é "Área Administrativa" e desc "Acesso restrito a gestores..."
     await expect(title).toContainText("Área Administrativa");
     await expect(desc).toContainText("Acesso restrito a gestores e administradores");
+    
+    // Valida consistência visual específica: ícone e cor da variante security
+    const icon = page.locator('svg.text-warning'); // Variante security usa text-warning
+    await expect(icon).toBeVisible();
   });
 
   test("Validação de Feature Flags por Papel", async ({ page }) => {
