@@ -95,11 +95,11 @@ export function useAuditLog() {
    * Helper para calcular apenas os campos alterados em um UPDATE
    */
   const getChangedFields = (
-    oldRecord: Record<string, any>,
-    newRecord: Record<string, any>,
-  ): { oldFields: Record<string, any>; newFields: Record<string, any> } => {
-    const oldFields: Record<string, any> = {};
-    const newFields: Record<string, any> = {};
+    oldRecord: Record<string, unknown>,
+    newRecord: Record<string, unknown>,
+  ): { oldFields: Record<string, unknown>; newFields: Record<string, unknown> } => {
+    const oldFields: Record<string, unknown> = {};
+    const newFields: Record<string, unknown> = {};
 
     Object.keys(newRecord).forEach((key) => {
       // Ignorar campos de timestamp que mudam automaticamente
