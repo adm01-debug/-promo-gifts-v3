@@ -75,6 +75,9 @@ jobs:
       - name: TypeScript type check
         run: npx tsc --noEmit
 
+      - name: Build check (ESBuild/Vite)
+        run: npm run build
+
       - name: Run tests
         run: npm run test
 
