@@ -10,8 +10,7 @@
  *     e em `admin_audit_log` (rastreio por usuário e por evento).
  *  5. Acompanhar histórico de lotes com drill-down nos itens.
  *
- * RBAC: a RPC server-side exige `is_admin_strict`; aqui no front também
- * gateamos por `useUserRole` para evitar mostrar a UI a quem não pode usar.
+ * RBAC: a RPC server-side exige `is_admin_strict`.
  */
 import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -34,7 +33,7 @@ const ROLES: AppRole[] = ["admin", "manager", "supervisor", "vendedor", "dev"];
 const OPERATIONS = [
   { value: "add", label: "Adicionar papel", description: "INSERT user_roles (mantém os demais)" },
   { value: "remove", label: "Remover papel", description: "DELETE user_roles deste papel específico" },
-  { value: "replace", label: "Substituir todos", description: "DELETE todos os papéis + INSERT do novo" },
+  { value: "replace", label: "Substituir todos", description: "Remove papéis atuais e adiciona o novo" },
 ] as const;
 
 interface ProfileLite {
@@ -235,7 +234,7 @@ export function RoleMigrationPanel() {
               <AlertTriangle className="h-4 w-4" />
               <AlertTitle>Operação de alto impacto</AlertTitle>
               <AlertDescription>
-                {operation === "replace" && "Esta operação remove TODOS os papéis atuais antes de inserir o novo. "}
+                {operation === "replace" && "Esta operação remove os papéis atuais antes de inserir o novo. "}
                 {(toRole === "admin" || toRole === "dev") && `Promover a "${toRole}" concede acesso administrativo. `}
                 Sempre execute dry-run primeiro e revise o histórico.
               </AlertDescription>
