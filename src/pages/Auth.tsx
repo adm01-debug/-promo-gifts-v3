@@ -236,7 +236,7 @@ export default function Auth() {
             <Card className="border-destructive bg-destructive/10 shadow-lg">
               <CardContent className="pt-6 pb-6">
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-full bg-destructive/20 flex items-center justify-center flex-shrink-0">
+                  <div className="w-12 h-12 rounded-lg bg-destructive/20 flex items-center justify-center flex-shrink-0">
                     <ShieldAlert className="h-6 w-6 text-destructive" />
                   </div>
                   <div className="space-y-2">

@@ -152,13 +152,13 @@ export default function CollectionsPage() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -12, scale: 0.98 }}
               transition={{ type: "spring", stiffness: 500, damping: 30 }}
-              className="sticky top-[calc(var(--header-h,56px)+var(--breadcrumb-h,0px))] z-30 rounded-xl overflow-hidden"
+              className="sticky top-[calc(var(--header-h,56px)+var(--breadcrumb-h,0px))] z-30 rounded-lg overflow-hidden"
             >
-              <div className="bg-gradient-to-r from-primary/15 via-primary/10 to-primary/15 border-2 border-primary/30 backdrop-blur-xl rounded-xl px-5 py-4">
+              <div className="bg-gradient-to-r from-primary/15 via-primary/10 to-primary/15 border-2 border-primary/30 backdrop-blur-xl rounded-lg px-5 py-4">
                 <div className="flex items-center justify-between gap-4 flex-wrap">
                   <div className="flex items-center gap-3 min-w-0">
                     <motion.div
-                      className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/25"
+                      className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary text-primary-foreground shadow-lg shadow-primary/25"
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
                       transition={{ type: "spring", stiffness: 600, damping: 25 }}
