@@ -25,8 +25,8 @@ const FUZZ_SCENARIOS = [
 function mockValidate(schema: any, input: any) {
   try {
     return schema.parse(input);
-  } catch (e) {
-    return { error: e.message };
+  } catch (e: any) {
+    return { error: e?.message || "Unknown error" };
   }
 }
 
