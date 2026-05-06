@@ -53,7 +53,7 @@ function TreeNodeItem({
     <div>
       <div
         className={cn(
-          "flex items-center gap-1.5 py-1.5 px-2 rounded cursor-pointer transition-all text-xs",
+          "flex items-center gap-1.5 py-1.5 px-2 rounded-lg cursor-pointer transition-all text-xs",
           "hover:bg-accent/60",
           isSelected && "bg-primary/15 text-primary font-semibold"
         )}
@@ -137,9 +137,9 @@ export function StockCategoryTreeSelect({ value, onChange }: StockCategoryTreeSe
   if (isLoading) {
     return (
       <div className="space-y-1.5">
-        <div className="h-3 w-20 bg-muted animate-pulse rounded" />
-        <div className="h-3 w-32 bg-muted animate-pulse rounded" />
-        <div className="h-3 w-24 bg-muted animate-pulse rounded" />
+        <div className="h-3 w-20 bg-muted animate-pulse rounded-lg" />
+        <div className="h-3 w-32 bg-muted animate-pulse rounded-lg" />
+        <div className="h-3 w-24 bg-muted animate-pulse rounded-lg" />
       </div>
     );
   }
@@ -148,7 +148,7 @@ export function StockCategoryTreeSelect({ value, onChange }: StockCategoryTreeSe
     <div className="space-y-2">
       {/* Selected indicator */}
       {selectedName && (
-        <div className="flex items-center gap-1.5 text-xs bg-primary/10 text-primary rounded px-2 py-1">
+        <div className="flex items-center gap-1.5 text-xs bg-primary/10 text-primary rounded-lg px-2 py-1">
           <FolderTree className="h-3 w-3 shrink-0" />
           <span className="truncate flex-1">{selectedName}</span>
           <Button variant="ghost" size="icon" onClick={() => onChange(undefined)} className="hover:text-foreground h-5 w-5">
@@ -179,7 +179,7 @@ export function StockCategoryTreeSelect({ value, onChange }: StockCategoryTreeSe
           {/* "Todas" option */}
           <div
             className={cn(
-              "flex items-center gap-1.5 py-1.5 px-2 rounded cursor-pointer transition-all text-xs",
+              "flex items-center gap-1.5 py-1.5 px-2 rounded-lg cursor-pointer transition-all text-xs",
               "hover:bg-accent/60",
               !value && "bg-primary/15 text-primary font-semibold"
             )}
