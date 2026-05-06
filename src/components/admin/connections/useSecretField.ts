@@ -1,19 +1,23 @@
-import { useState, useRef, useEffect, useMemo } from "react";
-import { toast } from "sonner";
-import { useSecretsManager, type SecretStatus, type SecretMutationResult } from "@/hooks/useSecretsManager";
-import { normalizeSecret } from "./secretNormalizers";
-import { validateSecretName } from "./secretWhitelist";
-import { validateSecret, getMinLength, MIN_SUFFIX_LENGTH } from "./secretValidators";
-import { normalizeMaskedSuffix } from "@/lib/masked-suffix";
-import { withRetryBackoff, CancelledError } from "./secretRetry";
-import { normalizeSecretError, type NormalizedSecretError } from "./secretErrors";
-import { useConnectionTestDetails } from "@/hooks/useConnectionTestDetails";
-import { mapConnectionToTester } from "./SecretField.utils";
+import { useState, useRef, useEffect, useMemo } from 'react';
+import { toast } from 'sonner';
+import {
+  useSecretsManager,
+  type SecretStatus,
+  type SecretMutationResult,
+} from '@/hooks/useSecretsManager';
+import { normalizeSecret } from './secretNormalizers';
+import { validateSecretName } from './secretWhitelist';
+import { validateSecret, getMinLength, MIN_SUFFIX_LENGTH } from './secretValidators';
+import { normalizeMaskedSuffix } from '@/lib/masked-suffix';
+import { withRetryBackoff, CancelledError } from './secretRetry';
+import { normalizeSecretError, type NormalizedSecretError } from './secretErrors';
+import { useConnectionTestDetails } from '@/hooks/useConnectionTestDetails';
+import { mapConnectionToTester } from './SecretField.utils';
 
 export interface FlashState {
   masked_suffix: string | null;
   length: number;
-  action: "set" | "rotate";
+  action: 'set' | 'rotate';
   was_update: boolean;
   was_env_fallback: boolean;
   key: number;
@@ -28,13 +32,13 @@ interface UseSecretFieldProps {
 
 export function useSecretField({ secretName, status, connectionId, onSaved }: UseSecretFieldProps) {
   const { setSecret, rotateSecret } = useSecretsManager();
-  const draftScope = connectionId ?? "_";
+  const draftScope = connectionId ?? '_';
   const draftKey = `secret-draft:${draftScope}:${secretName}`;
   const legacyDraftKey = `secret-draft:${secretName}`;
 
   const [editing, setEditing] = useState(false);
-  const [mode, setMode] = useState<"set" | "rotate">("set");
-  const [value, setValue] = useState("");
+  const [mode, setMode] = useState<'set' | 'rotate'>('set');
+  const [value, setValue] = useState('');
   const [show, setShow] = useState(false);
   const [saving, setSaving] = useState(false);
   const [flash, setFlash] = useState<FlashState | null>(null);
@@ -43,7 +47,7 @@ export function useSecretField({ secretName, status, connectionId, onSaved }: Us
   const flashCounter = useRef(0);
   const [lastNormalization, setLastNormalization] = useState<string[] | null>(null);
   const normTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  
+
   const [rotateConfirmOpen, setRotateConfirmOpen] = useState(false);
   const [rotateConfirmError, setRotateConfirmError] = useState<string | null>(null);
   const [saveConfirmOpen, setSaveConfirmOpen] = useState(false);
@@ -54,7 +58,7 @@ export function useSecretField({ secretName, status, connectionId, onSaved }: Us
   const testerMap = useMemo(() => mapConnectionToTester(connectionId), [connectionId]);
   const testDetailsState = useConnectionTestDetails({
     open: detailsOpen && !!testerMap,
-    type: testerMap?.type ?? "n8n",
+    type: testerMap?.type ?? 'n8n',
     envKey: testerMap?.envKey,
     connectionId,
   });
@@ -64,9 +68,9 @@ export function useSecretField({ secretName, status, connectionId, onSaved }: Us
     setLastNormalization(changes);
     if (normTimerRef.current) clearTimeout(normTimerRef.current);
     normTimerRef.current = setTimeout(() => setLastNormalization(null), 4000);
-    toast.info("Valor normalizado", {
+    toast.info('Valor normalizado', {
       id: `paste-norm-${secretName}`,
-      description: changes.join(", "),
+      description: changes.join(', '),
       duration: 3500,
     });
   };
@@ -78,7 +82,7 @@ export function useSecretField({ secretName, status, connectionId, onSaved }: Us
   }, []);
 
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
-    const raw = e.clipboardData.getData("text");
+    const raw = e.clipboardData.getData('text');
     if (!raw) return;
     e.preventDefault();
     const { value: normalized, changes } = normalizeSecret(secretName, raw);
@@ -103,9 +107,9 @@ export function useSecretField({ secretName, status, connectionId, onSaved }: Us
     // Reset transients on change
     abortController?.abort();
     abortRef.current = null;
-    setValue("");
+    setValue('');
     setEditing(false);
-    setMode("set");
+    setMode('set');
     setShow(false);
     setSaving(false);
     setLastError(null);
@@ -128,7 +132,7 @@ export function useSecretField({ secretName, status, connectionId, onSaved }: Us
         const draft = JSON.parse(raw);
         if (draft.value) {
           setValue(draft.value);
-          setMode(draft.mode === "rotate" ? "rotate" : "set");
+          setMode(draft.mode === 'rotate' ? 'rotate' : 'set');
           setEditing(true);
           if (!scopedRaw) {
             sessionStorage.setItem(draftKey, raw);
@@ -147,14 +151,19 @@ export function useSecretField({ secretName, status, connectionId, onSaved }: Us
     }
   }, [editing, value, mode, draftKey]);
 
-  const performSave = async (currentMode: "set" | "rotate", currentValue: string, notes?: string) => {
+  const performSave = async (
+    currentMode: 'set' | 'rotate',
+    currentValue: string,
+    notes?: string,
+  ) => {
     const wasEnvFallback = !!status?.env_fallback_active;
     const toastId = `secret-${secretName}-${Date.now()}`;
     const controller = new AbortController();
     abortRef.current = controller;
 
-    const baseLabel = currentMode === "rotate" ? `Rotacionando ${secretName}` : `Salvando ${secretName}`;
-    const cancelAction = { label: "Cancelar", onClick: () => controller.abort() };
+    const baseLabel =
+      currentMode === 'rotate' ? `Rotacionando ${secretName}` : `Salvando ${secretName}`;
+    const cancelAction = { label: 'Cancelar', onClick: () => controller.abort() };
 
     const slowTimer = setTimeout(() => {
       toast.loading(`${baseLabel}…`, { id: toastId, action: cancelAction });
@@ -163,9 +172,10 @@ export function useSecretField({ secretName, status, connectionId, onSaved }: Us
     let result: SecretMutationResult;
     try {
       result = await withRetryBackoff(
-        () => currentMode === "rotate"
-          ? rotateSecret(secretName, currentValue, notes)
-          : setSecret(secretName, currentValue),
+        () =>
+          currentMode === 'rotate'
+            ? rotateSecret(secretName, currentValue, notes)
+            : setSecret(secretName, currentValue),
         {
           signal: controller.signal,
           onAttempt: (attempt, nextDelayMs) => {
@@ -174,37 +184,57 @@ export function useSecretField({ secretName, status, connectionId, onSaved }: Us
               const desc = nextDelayMs
                 ? `Rede instável — nova tentativa em ${sec}s (tentativa ${attempt}/3)`
                 : `Tentativa ${attempt}/3…`;
-              toast.loading(`${baseLabel}…`, { id: toastId, description: desc, action: cancelAction });
+              toast.loading(`${baseLabel}…`, {
+                id: toastId,
+                description: desc,
+                action: cancelAction,
+              });
             }
           },
-        }
+        },
       );
     } catch (err) {
       if (err instanceof CancelledError) {
         clearTimeout(slowTimer);
         abortRef.current = null;
         toast(`${baseLabel} cancelado`, { id: toastId, duration: 3000 });
-        return { ok: false as const, errorDescription: "Cancelado pelo usuário", cancelled: true };
+        return { ok: false as const, errorDescription: 'Cancelado pelo usuário', cancelled: true };
       }
-      result = { ok: false, error: { code: "unexpected", message: err instanceof Error ? err.message : "Erro inesperado" } };
+      result = {
+        ok: false,
+        error: {
+          code: 'unexpected',
+          message: err instanceof Error ? err.message : 'Erro inesperado',
+        },
+      };
     }
-    
+
     clearTimeout(slowTimer);
     abortRef.current = null;
 
     if (!result.ok || !result.secret) {
-      const err = result.error ?? { code: "unexpected", message: "Erro desconhecido" };
-      const normalized = normalizeSecretError(err, secretName, { action: currentMode === "rotate" ? "rotate" : "save" });
+      const err = result.error ?? { code: 'unexpected', message: 'Erro desconhecido' };
+      const normalized = normalizeSecretError(err, secretName, {
+        action: currentMode === 'rotate' ? 'rotate' : 'save',
+      });
       setLastError(normalized);
-      const toastDescription = normalized.hint ? `${normalized.description} ${normalized.hint}` : normalized.description;
+      const toastDescription = normalized.hint
+        ? `${normalized.description} ${normalized.hint}`
+        : normalized.description;
       toast.error(normalized.title, {
         id: toastId,
         description: toastDescription,
         duration: 7000,
-        action: normalized.retryable ? {
-          label: "Tentar novamente",
-          onClick: () => { setMode(currentMode); setValue(currentValue); setEditing(true); }
-        } : undefined,
+        action: normalized.retryable
+          ? {
+              label: 'Tentar novamente',
+              onClick: () => {
+                setMode(currentMode);
+                setValue(currentValue);
+                setEditing(true);
+              },
+            }
+          : undefined,
       });
       return { ok: false as const, errorDescription: toastDescription, cancelled: false };
     }
@@ -214,13 +244,21 @@ export function useSecretField({ secretName, status, connectionId, onSaved }: Us
     const suffix = normalizeMaskedSuffix(secret.masked_suffix);
     const length = secret.length ?? currentValue.length;
 
-    toast.success(currentMode === "rotate" ? "Rotação concluída" : (was_update ? "Credencial atualizada" : "Credencial salva"), {
-      id: toastId,
-      description: currentMode === "rotate" 
-        ? `${secretName}: ${previous_suffix} → ${suffix} (${length} chars · registrado no log)`
-        : `${secretName} agora termina em ${suffix} (${length} chars)`,
-      duration: 5000,
-    });
+    toast.success(
+      currentMode === 'rotate'
+        ? 'Rotação concluída'
+        : was_update
+          ? 'Credencial atualizada'
+          : 'Credencial salva',
+      {
+        id: toastId,
+        description:
+          currentMode === 'rotate'
+            ? `${secretName}: ${previous_suffix} → ${suffix} (${length} chars · registrado no log)`
+            : `${secretName} agora termina em ${suffix} (${length} chars)`,
+        duration: 5000,
+      },
+    );
 
     flashCounter.current += 1;
     setFlash({
@@ -232,10 +270,10 @@ export function useSecretField({ secretName, status, connectionId, onSaved }: Us
       key: flashCounter.current,
     });
 
-    if (currentMode === "rotate") setRotationRefreshKey((k) => k + 1);
-    setValue("");
+    if (currentMode === 'rotate') setRotationRefreshKey((k) => k + 1);
+    setValue('');
     setEditing(false);
-    setMode("set");
+    setMode('set');
     onSaved?.();
     return { ok: true as const, cancelled: false };
   };
@@ -243,17 +281,29 @@ export function useSecretField({ secretName, status, connectionId, onSaved }: Us
   const nameValidation = useMemo(() => validateSecretName(secretName), [secretName]);
   const validation = useMemo(() => validateSecret(secretName, value), [secretName, value]);
   const suffixGuardOk = value.length === 0 || value.length >= MIN_SUFFIX_LENGTH;
-  
-  const canSave = !saving && nameValidation.ok && value.length > 0 && suffixGuardOk && validation.ok;
-  
-  const saveDisabledReason = saving ? null : !nameValidation.ok ? nameValidation.message ?? "Nome não permitido" : value.length === 0 ? "Cole um valor" : !suffixGuardOk ? `Mínimo ${MIN_SUFFIX_LENGTH} chars` : !validation.ok ? validation.message ?? "Corrija o formato" : null;
+
+  const canSave =
+    !saving && nameValidation.ok && value.length > 0 && suffixGuardOk && validation.ok;
+
+  const saveDisabledReason = saving
+    ? null
+    : !nameValidation.ok
+      ? (nameValidation.message ?? 'Nome não permitido')
+      : value.length === 0
+        ? 'Cole um valor'
+        : !suffixGuardOk
+          ? `Mínimo ${MIN_SUFFIX_LENGTH} chars`
+          : !validation.ok
+            ? (validation.message ?? 'Corrija o formato')
+            : null;
 
   const minLen = getMinLength(secretName);
-  const storedLooksSuspicious = !editing && !!status?.has_value && !!minLen && (status.length ?? 0) < minLen;
+  const storedLooksSuspicious =
+    !editing && !!status?.has_value && !!minLen && (status.length ?? 0) < minLen;
 
   const handleSave = async () => {
     if (!canSave) return;
-    if (mode === "rotate") {
+    if (mode === 'rotate') {
       setRotateConfirmError(null);
       setRotateConfirmOpen(true);
     } else {
@@ -266,7 +316,7 @@ export function useSecretField({ secretName, status, connectionId, onSaved }: Us
     if (!canSave) return;
     setSaving(true);
     setSaveConfirmError(null);
-    const res = await performSave("set", value);
+    const res = await performSave('set', value);
     setSaving(false);
     if (res.ok) setSaveConfirmOpen(false);
     else if (!res.cancelled) setSaveConfirmError(res.errorDescription);
@@ -276,29 +326,39 @@ export function useSecretField({ secretName, status, connectionId, onSaved }: Us
     if (!value || !validation.ok || !nameValidation.ok) return;
     setSaving(true);
     setRotateConfirmError(null);
-    const res = await performSave("rotate", value, notes);
+    const res = await performSave('rotate', value, notes);
     setSaving(false);
     if (res.ok) setRotateConfirmOpen(false);
     else if (!res.cancelled) setRotateConfirmError(res.errorDescription);
   };
 
-  const startEdit = (m: "set" | "rotate") => { setMode(m); setEditing(true); };
+  const startEdit = (m: 'set' | 'rotate') => {
+    setMode(m);
+    setEditing(true);
+  };
 
   return {
-    editing, setEditing,
-    mode, setMode,
-    value, setValue,
-    show, setShow,
+    editing,
+    setEditing,
+    mode,
+    setMode,
+    value,
+    setValue,
+    show,
+    setShow,
     saving,
     flash,
     rotationRefreshKey,
     lastError,
     lastNormalization,
-    rotateConfirmOpen, setRotateConfirmOpen,
+    rotateConfirmOpen,
+    setRotateConfirmOpen,
     rotateConfirmError,
-    saveConfirmOpen, setSaveConfirmOpen,
+    saveConfirmOpen,
+    setSaveConfirmOpen,
     saveConfirmError,
-    detailsOpen, setDetailsOpen,
+    detailsOpen,
+    setDetailsOpen,
     testDetailsState,
     handlePaste,
     handleBlur,
@@ -309,6 +369,6 @@ export function useSecretField({ secretName, status, connectionId, onSaved }: Us
     canSave,
     saveDisabledReason,
     storedLooksSuspicious,
-    detailsAvailable: !!testerMap
+    detailsAvailable: !!testerMap,
   };
 }

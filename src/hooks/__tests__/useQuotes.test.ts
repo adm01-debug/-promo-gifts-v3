@@ -9,7 +9,9 @@ const mockSupabaseQuery = {
   or: vi.fn().mockReturnThis(),
   order: vi.fn().mockReturnThis(),
   range: vi.fn().mockReturnThis(),
-  then: vi.fn((cb) => cb({ data: [{ id: 'q1', quote_number: 'Q-001', status: 'draft' }], error: null, count: 1 })),
+  then: vi.fn((cb) =>
+    cb({ data: [{ id: 'q1', quote_number: 'Q-001', status: 'draft' }], error: null, count: 1 }),
+  ),
 };
 
 vi.mock('@/integrations/supabase/client', () => ({
@@ -17,8 +19,10 @@ vi.mock('@/integrations/supabase/client', () => ({
     from: vi.fn(() => mockSupabaseQuery),
     functions: { invoke: vi.fn() },
     auth: {
-      getSession: vi.fn(() => Promise.resolve({ data: { session: { access_token: 'tk' } }, error: null })),
-    }
+      getSession: vi.fn(() =>
+        Promise.resolve({ data: { session: { access_token: 'tk' } }, error: null }),
+      ),
+    },
   },
 }));
 
@@ -52,8 +56,11 @@ describe('useQuotes', () => {
     renderHook(() => useQuotes(filters));
 
     // Simple check that it calls supabase.from
-    await waitFor(() => {
-      expect(supabase.from).toHaveBeenCalledWith('quotes');
-    }, { timeout: 3000 });
+    await waitFor(
+      () => {
+        expect(supabase.from).toHaveBeenCalledWith('quotes');
+      },
+      { timeout: 3000 },
+    );
   });
 });

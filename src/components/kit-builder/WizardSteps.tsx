@@ -15,16 +15,40 @@ interface WizardStepsProps {
   kitState?: KitState;
 }
 
-const STEPS: { id: KitBuilderStep; label: string; ordinal: string; icon: typeof Package; tagline: string }[] = [
+const STEPS: {
+  id: KitBuilderStep;
+  label: string;
+  ordinal: string;
+  icon: typeof Package;
+  tagline: string;
+}[] = [
   { id: 'box', label: 'Caixa', ordinal: '01', icon: Package, tagline: 'A primeira impressão' },
   { id: 'items', label: 'Itens', ordinal: '02', icon: Gift, tagline: 'O coração do kit' },
-  { id: 'personalization', label: 'Personalização', ordinal: '03', icon: Palette, tagline: 'Sua marca presente' },
-  { id: 'summary', label: 'Resumo', ordinal: '04', icon: FileText, tagline: 'Pronto para encantar' },
+  {
+    id: 'personalization',
+    label: 'Personalização',
+    ordinal: '03',
+    icon: Palette,
+    tagline: 'Sua marca presente',
+  },
+  {
+    id: 'summary',
+    label: 'Resumo',
+    ordinal: '04',
+    icon: FileText,
+    tagline: 'Pronto para encantar',
+  },
 ];
 
-export function WizardSteps({ currentStep, completedSteps, onStepClick, kitState }: WizardStepsProps) {
-  const currentIndex = STEPS.findIndex(s => s.id === currentStep);
-  const progressPercent = ((currentIndex + (completedSteps.includes(currentStep) ? 1 : 0.5)) / STEPS.length) * 100;
+export function WizardSteps({
+  currentStep,
+  completedSteps,
+  onStepClick,
+  kitState,
+}: WizardStepsProps) {
+  const currentIndex = STEPS.findIndex((s) => s.id === currentStep);
+  const progressPercent =
+    ((currentIndex + (completedSteps.includes(currentStep) ? 1 : 0.5)) / STEPS.length) * 100;
 
   const getStepSummary = (stepId: KitBuilderStep): string | null => {
     if (!kitState) return null;
@@ -34,8 +58,9 @@ export function WizardSteps({ currentStep, completedSteps, onStepClick, kitState
       return `${kitState.items.length} produtos · ${totalQty} un.`;
     }
     if (stepId === 'personalization') {
-      const count = (kitState.personalization.box?.enabled ? 1 : 0)
-        + Object.values(kitState.personalization.items).filter(p => p?.enabled).length;
+      const count =
+        (kitState.personalization.box?.enabled ? 1 : 0) +
+        Object.values(kitState.personalization.items).filter((p) => p?.enabled).length;
       if (count > 0) return `${count} ${count === 1 ? 'item' : 'itens'} personalizados`;
     }
     return null;
@@ -60,8 +85,8 @@ export function WizardSteps({ currentStep, completedSteps, onStepClick, kitState
           const summary = getStepSummary(step.id);
 
           return (
-            <div key={step.id} className="flex items-center flex-1 min-w-0">
-              <TooltipProvider >
+            <div key={step.id} className="flex min-w-0 flex-1 items-center">
+              <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <button
@@ -69,57 +94,67 @@ export function WizardSteps({ currentStep, completedSteps, onStepClick, kitState
                       disabled={!isClickable}
                       aria-current={isActive ? 'step' : undefined}
                       className={cn(
-                        'group flex items-center gap-2.5 flex-1 min-w-0 px-1 py-1 transition-all rounded-xl',
+                        'group flex min-w-0 flex-1 items-center gap-2.5 rounded-xl px-1 py-1 transition-all',
                         isClickable ? 'cursor-pointer' : 'cursor-not-allowed opacity-60',
                       )}
                     >
-                <div
-                  className={cn(
-                    'relative flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border-2 transition-all duration-300',
-                    isActive && 'border-primary bg-primary text-primary-foreground shadow-[0_0_18px_hsl(var(--primary)/0.4)]',
-                    isCompleted && !isActive && 'border-success/50 bg-success/10 text-success',
-                    !isActive && !isCompleted && 'border-border bg-muted/40 text-muted-foreground group-hover:border-border/80',
-                  )}
-                >
-                  {isCompleted && !isActive ? (
-                    <Check className="h-4 w-4" strokeWidth={2.5} />
-                  ) : (
-                    <Icon className="h-4 w-4" />
-                  )}
-                </div>
+                      <div
+                        className={cn(
+                          'relative flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border-2 transition-all duration-300',
+                          isActive &&
+                            'border-primary bg-primary text-primary-foreground shadow-[0_0_18px_hsl(var(--primary)/0.4)]',
+                          isCompleted &&
+                            !isActive &&
+                            'border-success/50 bg-success/10 text-success',
+                          !isActive &&
+                            !isCompleted &&
+                            'border-border bg-muted/40 text-muted-foreground group-hover:border-border/80',
+                        )}
+                      >
+                        {isCompleted && !isActive ? (
+                          <Check className="h-4 w-4" strokeWidth={2.5} />
+                        ) : (
+                          <Icon className="h-4 w-4" />
+                        )}
+                      </div>
 
-                <div className="text-left min-w-0 flex-1">
-                  <p
-                    className={cn(
-                      'text-sm font-display font-semibold tracking-tight truncate leading-tight transition-colors',
-                      isActive && 'text-foreground',
-                      isCompleted && !isActive && 'text-foreground/80',
-                      !isActive && !isCompleted && 'text-muted-foreground',
-                    )}
-                  >
-                    {step.label}
-                  </p>
-                  {summary ? (
-                    <p className="text-[10px] text-success font-medium truncate leading-tight" title={summary}>
-                      ✓ {summary}
-                    </p>
-                  ) : (
-                    <p className="text-[10px] text-muted-foreground/70 truncate leading-tight hidden md:block">
-                      {step.tagline}
-                    </p>
-                  )}
-                </div>
+                      <div className="min-w-0 flex-1 text-left">
+                        <p
+                          className={cn(
+                            'truncate font-display text-sm font-semibold leading-tight tracking-tight transition-colors',
+                            isActive && 'text-foreground',
+                            isCompleted && !isActive && 'text-foreground/80',
+                            !isActive && !isCompleted && 'text-muted-foreground',
+                          )}
+                        >
+                          {step.label}
+                        </p>
+                        {summary ? (
+                          <p
+                            className="truncate text-[10px] font-medium leading-tight text-success"
+                            title={summary}
+                          >
+                            ✓ {summary}
+                          </p>
+                        ) : (
+                          <p className="hidden truncate text-[10px] leading-tight text-muted-foreground/70 md:block">
+                            {step.tagline}
+                          </p>
+                        )}
+                      </div>
                     </button>
                   </TooltipTrigger>
-                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
-                    {isClickable ? `Ir para etapa: ${step.label}` : `Complete as etapas anteriores para acessar ${step.label}`}
+                  <TooltipContent className="border-none bg-primary px-2 py-1 text-[11px] font-medium text-primary-foreground shadow-xl">
+                    {isClickable
+                      ? `Ir para etapa: ${step.label}`
+                      : `Complete as etapas anteriores para acessar ${step.label}`}
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
 
               {/* Connector */}
               {index < STEPS.length - 1 && (
-                <div className="hidden sm:block flex-shrink-0 w-4 h-px bg-border/60" aria-hidden />
+                <div className="hidden h-px w-4 flex-shrink-0 bg-border/60 sm:block" aria-hidden />
               )}
             </div>
           );

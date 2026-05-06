@@ -1,24 +1,35 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import { PageSEO } from "@/components/seo/PageSEO";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { PageSEO } from '@/components/seo/PageSEO';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff, Loader2, Gift, Mail, Lock, ShieldAlert, Globe, Wifi, AlertTriangle } from "lucide-react";
-import { AuthBrandingPanel, AuthSpaceBackground } from "./auth/AuthBranding";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/contexts/AuthContext";
-import { ForgotPasswordForm } from "@/components/auth/ForgotPasswordForm";
-import { useIPValidation } from "@/hooks/useIPValidation";
-import { PasskeyLogin } from "@/components/auth/PasskeyLogin";
-import { SocialLoginButtons } from "@/components/auth/SocialLoginButtons";
-import { supabase } from "@/integrations/supabase/client";
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import {
+  Eye,
+  EyeOff,
+  Loader2,
+  Gift,
+  Mail,
+  Lock,
+  ShieldAlert,
+  Globe,
+  Wifi,
+  AlertTriangle,
+} from 'lucide-react';
+import { AuthBrandingPanel, AuthSpaceBackground } from './auth/AuthBranding';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
+import { ForgotPasswordForm } from '@/components/auth/ForgotPasswordForm';
+import { useIPValidation } from '@/hooks/useIPValidation';
+import { PasskeyLogin } from '@/components/auth/PasskeyLogin';
+import { SocialLoginButtons } from '@/components/auth/SocialLoginButtons';
+import { supabase } from '@/integrations/supabase/client';
 
-import { loginSchema, type LoginFormData } from "@/lib/validations";
+import { loginSchema, type LoginFormData } from '@/lib/validations';
 
 type LoginForm = LoginFormData;
 
@@ -44,11 +55,11 @@ export default function Auth() {
   // Captura `?error=` vindo do SSOCallbackPage (Google falhou) e exibe o
   // banner de fallback. Limpa o param da URL para não persistir.
   useEffect(() => {
-    const err = searchParams.get("error");
+    const err = searchParams.get('error');
     if (err) {
       setSocialError(err);
       const next = new URLSearchParams(searchParams);
-      next.delete("error");
+      next.delete('error');
       setSearchParams(next, { replace: true });
     }
   }, [searchParams, setSearchParams]);
@@ -60,7 +71,7 @@ export default function Auth() {
 
   const focusEmailFallback = useCallback(() => {
     emailInputRef.current?.focus();
-    emailInputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    emailInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }, []);
 
   // Fetch IP and geolocation via edge function (works in preview + production)
@@ -82,48 +93,49 @@ export default function Auth() {
   // Redirect if already logged in (only on initial load)
   useEffect(() => {
     if (user && !authLoading && !isSubmitting) {
-      navigate("/", { replace: true });
+      navigate('/', { replace: true });
     }
   }, [user, authLoading, navigate, isSubmitting]);
 
   const loginForm = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { email: "", password: "" },
+    defaultValues: { email: '', password: '' },
   });
 
   const validateAndRedirect = async (userId: string, email: string) => {
     try {
       const ipValidation = await validateIPForAuthenticatedUser(userId);
-      
+
       if (!ipValidation.isAllowed && ipValidation.hasRestrictions) {
         await signOut();
         const reason = ipValidation.reason || 'access_blocked';
         await logLoginAttempt(email, userId, false, `${reason}: ${ipValidation.error}`);
-        
+
         setIpBlocked(true);
         setBlockedIP(ipValidation.currentIP);
-        
+
         toast({
-          variant: "destructive",
-          title: "Acesso Bloqueado",
-          description: ipValidation.error || `Seu IP (${ipValidation.currentIP}) não está autorizado.`,
+          variant: 'destructive',
+          title: 'Acesso Bloqueado',
+          description:
+            ipValidation.error || `Seu IP (${ipValidation.currentIP}) não está autorizado.`,
           duration: 10000,
         });
         return false;
       }
 
       await logLoginAttempt(email, userId, true);
-      
+
       toast({
-        title: "Bem-vindo!",
-        description: "Login realizado com sucesso",
+        title: 'Bem-vindo!',
+        description: 'Login realizado com sucesso',
       });
-      
-      navigate("/", { replace: true });
+
+      navigate('/', { replace: true });
       return true;
     } catch (error) {
-      console.error("Validation error:", error);
-      navigate("/", { replace: true }); // Fail-open
+      console.error('Validation error:', error);
+      navigate('/', { replace: true }); // Fail-open
       return true;
     }
   };
@@ -131,18 +143,21 @@ export default function Auth() {
   const handleLogin = async (data: LoginForm) => {
     setIsSubmitting(true);
     setIpBlocked(false);
-    
+
     try {
       // 10/10 Hardening: Verificação de rate-limit via server-side edge function
-      const { data: limitData, error: limitError } = await supabase.functions.invoke('rate-limit-check', {
-        body: { endpoint: 'login' }
-      });
+      const { data: limitData, error: limitError } = await supabase.functions.invoke(
+        'rate-limit-check',
+        {
+          body: { endpoint: 'login' },
+        },
+      );
 
       if (limitError || (limitData && !limitData.allowed)) {
         const retryAfter = limitData?.retryAfter || 60;
         toast({
-          variant: "destructive",
-          title: "Muitas tentativas",
+          variant: 'destructive',
+          title: 'Muitas tentativas',
           description: `Por segurança, seu acesso foi temporariamente suspenso. Tente novamente em ${retryAfter} segundos.`,
         });
         setIsSubmitting(false);
@@ -150,17 +165,17 @@ export default function Auth() {
       }
 
       const { error } = await signIn(data.email, data.password);
-      
+
       if (error) {
         await logLoginAttempt(data.email, null, false, error.message);
-        
-        const description = error.message.includes("Invalid login credentials") 
-          ? "Email ou senha incorretos" 
+
+        const description = error.message.includes('Invalid login credentials')
+          ? 'Email ou senha incorretos'
           : error.message;
 
         toast({
-          variant: "destructive",
-          title: "Erro ao entrar",
+          variant: 'destructive',
+          title: 'Erro ao entrar',
           description,
         });
         return;
@@ -172,13 +187,13 @@ export default function Auth() {
       if (userId) {
         await validateAndRedirect(userId, data.email);
       } else {
-        navigate("/");
+        navigate('/');
       }
     } catch (error) {
       toast({
-        variant: "destructive",
-        title: "Erro inesperado",
-        description: "Tente novamente mais tarde",
+        variant: 'destructive',
+        title: 'Erro inesperado',
+        description: 'Tente novamente mais tarde',
       });
     } finally {
       setIsSubmitting(false);
@@ -187,24 +202,32 @@ export default function Auth() {
 
   if (authLoading) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-background" role="main" aria-label="Carregando autenticação">
+      <main
+        className="flex min-h-screen items-center justify-center bg-background"
+        role="main"
+        aria-label="Carregando autenticação"
+      >
         <Loader2 className="h-8 w-8 animate-spin text-orange" />
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen flex bg-[#0A0D14] relative overflow-hidden" role="main" aria-label="Autenticação">
+    <main
+      className="relative flex min-h-screen overflow-hidden bg-[#0A0D14]"
+      role="main"
+      aria-label="Autenticação"
+    >
       <PageSEO
         title="Login"
         description="Acesse a plataforma Promo Gifts. Faça login para gerenciar seus orçamentos e catálogo."
         path="/login"
         jsonLd={{
-          "@context": "https://schema.org",
-          "@type": "WebPage",
-          "name": "Login — Promo Gifts",
-          "description": "Página de autenticação da plataforma Promo Gifts.",
-          "url": "https://criar-together-now.lovable.app/login"
+          '@context': 'https://schema.org',
+          '@type': 'WebPage',
+          name: 'Login — Promo Gifts',
+          description: 'Página de autenticação da plataforma Promo Gifts.',
+          url: 'https://criar-together-now.lovable.app/login',
         }}
       />
       {/* Fundo espacial unificado — cobre toda a tela (sem divisão no meio) */}
@@ -214,29 +237,25 @@ export default function Auth() {
       <AuthBrandingPanel />
 
       {/* Right side - Auth Form */}
-      <div className="relative z-10 flex-1 flex items-center justify-center p-6 lg:p-12">
-        <div className="w-full max-w-md space-y-8 animate-fade-in">
+      <div className="relative z-10 flex flex-1 items-center justify-center p-6 lg:p-12">
+        <div className="w-full max-w-md animate-fade-in space-y-8">
           {/* Mobile Logo */}
-          <div className="text-center lg:hidden space-y-3">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-orange shadow-lg shadow-orange/30">
+          <div className="space-y-3 text-center lg:hidden">
+            <div className="inline-flex h-16 w-16 items-center justify-center rounded-xl bg-orange shadow-lg shadow-orange/30">
               <Gift className="h-8 w-8 text-orange-foreground" />
             </div>
             <div>
-              <h1 className="font-display text-2xl font-bold text-foreground">
-                Promo Gifts
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                Plataforma de Vendas
-              </p>
+              <h1 className="font-display text-2xl font-bold text-foreground">Promo Gifts</h1>
+              <p className="text-sm text-muted-foreground">Plataforma de Vendas</p>
             </div>
           </div>
 
           {/* IP Blocked Alert */}
           {ipBlocked && (
             <Card className="border-destructive bg-destructive/10 shadow-lg">
-              <CardContent className="pt-6 pb-6">
+              <CardContent className="pb-6 pt-6">
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-full bg-destructive/20 flex items-center justify-center flex-shrink-0">
+                  <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-destructive/20">
                     <ShieldAlert className="h-6 w-6 text-destructive" />
                   </div>
                   <div className="space-y-2">
@@ -244,7 +263,9 @@ export default function Auth() {
                       Acesso Bloqueado
                     </h3>
                     <p className="text-sm text-muted-foreground">
-                      Seu endereço IP (<span className="font-mono font-semibold text-foreground">{blockedIP}</span>) não está autorizado a acessar esta conta.
+                      Seu endereço IP (
+                      <span className="font-mono font-semibold text-foreground">{blockedIP}</span>)
+                      não está autorizado a acessar esta conta.
                     </p>
                     <p className="text-sm text-muted-foreground">
                       Entre em contato com o administrador do sistema para liberar seu acesso.
@@ -267,32 +288,38 @@ export default function Auth() {
           )}
 
           {/* Auth Card */}
-          <Card className={`border-white/10 bg-black/50 backdrop-blur-2xl shadow-2xl ring-1 ring-white/5 ${ipBlocked ? 'opacity-50 pointer-events-none' : ''}`}>
+          <Card
+            className={`border-white/10 bg-black/50 shadow-2xl ring-1 ring-white/5 backdrop-blur-2xl ${ipBlocked ? 'pointer-events-none opacity-50' : ''}`}
+          >
             {showForgotPassword ? (
-              <CardContent className="pt-6 pb-6">
+              <CardContent className="pb-6 pt-6">
                 <ForgotPasswordForm onBack={() => setShowForgotPassword(false)} />
               </CardContent>
             ) : (
-            <>
-              <CardHeader className="pb-4">
-                <div className="text-center space-y-1">
-                   <h2 className="text-xl font-semibold font-display text-white">Bem-vindo de volta</h2>
-                   <p className="text-sm text-white/60">Entre com suas credenciais para continuar</p>
-                </div>
-              </CardHeader>
+              <>
+                <CardHeader className="pb-4">
+                  <div className="space-y-1 text-center">
+                    <h2 className="font-display text-xl font-semibold text-white">
+                      Bem-vindo de volta
+                    </h2>
+                    <p className="text-sm text-white/60">
+                      Entre com suas credenciais para continuar
+                    </p>
+                  </div>
+                </CardHeader>
 
-              <CardContent className="pt-2 space-y-6">
+                <CardContent className="space-y-6 pt-2">
                   {socialError && (
                     <div
                       role="alert"
                       data-testid="social-login-fallback-banner"
-                      className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-foreground space-y-2 animate-fade-in"
+                      className="animate-fade-in space-y-2 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-foreground"
                     >
                       <div className="flex items-start gap-2">
-                        <AlertTriangle className="h-4 w-4 mt-0.5 text-amber-600 shrink-0" />
+                        <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
                         <div className="flex-1 space-y-1">
                           <p className="font-medium">Não consegui te autenticar pelo Google.</p>
-                          <p className="text-xs text-muted-foreground break-words">{socialError}</p>
+                          <p className="break-words text-xs text-muted-foreground">{socialError}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2 pt-1">
@@ -319,20 +346,26 @@ export default function Auth() {
                     </div>
                   )}
 
-                  <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-4" data-testid="login-form">
+                  <form
+                    onSubmit={loginForm.handleSubmit(handleLogin)}
+                    className="space-y-4"
+                    data-testid="login-form"
+                  >
                     <div className="space-y-2">
-                      <Label htmlFor="login-email" className="text-white/90">Email</Label>
+                      <Label htmlFor="login-email" className="text-white/90">
+                        Email
+                      </Label>
                       <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/50" />
+                        <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/50" />
                         <Input
                           id="login-email"
                           data-testid="login-email-input"
                           type="email"
                           placeholder="seu@email.com"
-                          className="pl-10 bg-white/10 border-white/10 focus:bg-white/20 text-white placeholder:text-white/40 lowercase h-12 rounded-xl transition-all duration-300 backdrop-blur-md"
-                          {...loginForm.register("email")}
+                          className="h-12 rounded-xl border-white/10 bg-white/10 pl-10 lowercase text-white backdrop-blur-md transition-all duration-300 placeholder:text-white/40 focus:bg-white/20"
+                          {...loginForm.register('email')}
                           ref={(el) => {
-                            loginForm.register("email").ref(el);
+                            loginForm.register('email').ref(el);
                             emailInputRef.current = el;
                           }}
                         />
@@ -345,25 +378,31 @@ export default function Auth() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="login-password" className="text-white/90">Senha</Label>
+                      <Label htmlFor="login-password" className="text-white/90">
+                        Senha
+                      </Label>
                       <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/50" />
+                        <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/50" />
                         <Input
                           id="login-password"
                           data-testid="login-password-input"
-                          type={showPassword ? "text" : "password"}
+                          type={showPassword ? 'text' : 'password'}
                           placeholder="••••••••"
-                          className="pl-10 pr-10 bg-white/10 border-white/10 focus:bg-white/20 text-white placeholder:text-white/40 h-12 rounded-xl transition-all duration-300 backdrop-blur-md"
-                          {...loginForm.register("password")}
+                          className="h-12 rounded-xl border-white/10 bg-white/10 pl-10 pr-10 text-white backdrop-blur-md transition-all duration-300 placeholder:text-white/40 focus:bg-white/20"
+                          {...loginForm.register('password')}
                         />
                         <button
                           type="button"
                           data-testid="login-password-toggle"
                           onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-orange transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center -mr-2"
-                          aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                          className="absolute right-3 top-1/2 -mr-2 flex min-h-[44px] min-w-[44px] -translate-y-1/2 items-center justify-center text-white/50 transition-colors hover:text-orange"
+                          aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
                         >
-                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          {showPassword ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
                         </button>
                       </div>
                       {loginForm.formState.errors.password && (
@@ -378,17 +417,17 @@ export default function Auth() {
                         type="button"
                         data-testid="login-forgot-link"
                         variant="link-secondary"
-                        className="p-0 h-auto text-xs font-bold uppercase tracking-wider text-white/70 hover:text-primary transition-colors"
+                        className="h-auto p-0 text-xs font-bold uppercase tracking-wider text-white/70 transition-colors hover:text-primary"
                         onClick={() => setShowForgotPassword(true)}
                       >
                         ESQUECI MINHA SENHA
                       </Button>
                     </div>
 
-                    <Button 
-                      type="submit" 
+                    <Button
+                      type="submit"
                       data-testid="login-submit"
-                      className="w-full h-12 text-base font-bold uppercase tracking-widest bg-[#3B82F6] hover:bg-[#2563EB] text-white shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-all duration-300 rounded-xl"
+                      className="h-12 w-full rounded-xl bg-[#3B82F6] text-base font-bold uppercase tracking-widest text-white shadow-lg shadow-primary/30 transition-all duration-300 hover:bg-[#2563EB] hover:shadow-xl hover:shadow-primary/40"
                       disabled={isSubmitting}
                     >
                       {isSubmitting ? (
@@ -397,7 +436,7 @@ export default function Auth() {
                           Entrando...
                         </>
                       ) : (
-                        "Entrar"
+                        'Entrar'
                       )}
                     </Button>
 
@@ -406,40 +445,45 @@ export default function Auth() {
                         <span className="w-full border-t border-border" />
                       </div>
                       <div className="relative flex justify-center text-xs uppercase">
-                        <span className="bg-[#0A0D14]/0 px-2 text-white/50 font-bold backdrop-blur-sm">OU</span>
+                        <span className="bg-[#0A0D14]/0 px-2 font-bold text-white/50 backdrop-blur-sm">
+                          OU
+                        </span>
                       </div>
                     </div>
 
                     <SocialLoginButtons onError={handleSocialError} />
 
                     <PasskeyLogin
-                      email={loginForm.watch("email")}
+                      email={loginForm.watch('email')}
                       disabled={isSubmitting}
                       onSuccess={async (userId) => {
                         setIsSubmitting(true);
                         try {
-                          await validateAndRedirect(userId, loginForm.getValues("email"));
+                          await validateAndRedirect(userId, loginForm.getValues('email'));
                         } finally {
                           setIsSubmitting(false);
                         }
                       }}
                     />
                   </form>
-              </CardContent>
-            </>
+                </CardContent>
+              </>
             )}
           </Card>
 
           {/* IP/Location Widget */}
           {currentIP && (
-            <div className="flex items-center justify-center gap-3 mx-auto px-5 py-2.5 rounded-full bg-black/40 backdrop-blur-xl border border-white/10 shadow-2xl max-w-fit opacity-0" style={{ animation: 'scale-fade-in 0.5s ease-out 600ms forwards' }}>
+            <div
+              className="mx-auto flex max-w-fit items-center justify-center gap-3 rounded-full border border-white/10 bg-black/40 px-5 py-2.5 opacity-0 shadow-2xl backdrop-blur-xl"
+              style={{ animation: 'scale-fade-in 0.5s ease-out 600ms forwards' }}
+            >
               <div className="flex items-center gap-2 text-xs text-white/70">
                 <Globe className="h-3.5 w-3.5 text-primary" />
                 <span className="font-mono font-bold tracking-tighter">{currentIP}</span>
               </div>
               {geoLocation && (
                 <>
-                  <div className="w-px h-4 bg-white/10" />
+                  <div className="h-4 w-px bg-white/10" />
                   <div className="flex items-center gap-1.5 text-xs text-white/70">
                     <Wifi className="h-3.5 w-3.5 text-success" />
                     <span className="font-bold">{geoLocation}</span>

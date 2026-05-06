@@ -45,7 +45,7 @@ describe('useDevGate Hook — Unit Tests', () => {
 
     // Mock do retorno da store
     const spy = vi.spyOn(devInfraGate, 'shouldShow').mockReturnValue(false);
-    
+
     vi.useFakeTimers();
     await act(async () => {
       devInfraGate.invalidateCache();
@@ -53,7 +53,7 @@ describe('useDevGate Hook — Unit Tests', () => {
     });
 
     expect(result.current.isAllowed).toBe(false);
-    
+
     spy.mockRestore();
     vi.useRealTimers();
   });

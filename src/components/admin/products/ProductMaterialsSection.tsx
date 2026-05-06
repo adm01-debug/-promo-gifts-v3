@@ -41,16 +41,18 @@ function MaterialDetailEditor({
   onCancel: () => void;
 }) {
   const [part, setPart] = useState(linked.part || '');
-  const [percentage, setPercentage] = useState<string>(linked.percentage != null ? String(linked.percentage) : '');
+  const [percentage, setPercentage] = useState<string>(
+    linked.percentage != null ? String(linked.percentage) : '',
+  );
   const [notes, setNotes] = useState(linked.notes || '');
 
   return (
-    <div className="flex items-center gap-2 mt-1 ml-7">
+    <div className="ml-7 mt-1 flex items-center gap-2">
       <Input
         value={part}
         onChange={(e) => setPart(e.target.value)}
         placeholder="Parte (ex: corpo)"
-        className="h-6 text-[11px] w-24 px-1.5"
+        className="h-6 w-24 px-1.5 text-[11px]"
       />
       <Input
         type="number"
@@ -59,24 +61,35 @@ function MaterialDetailEditor({
         placeholder="%"
         min="0"
         max="100"
-        className="h-6 text-[11px] w-16 px-1.5"
+        className="h-6 w-16 px-1.5 text-[11px]"
       />
       <Input
         value={notes}
         onChange={(e) => setNotes(e.target.value)}
         placeholder="Obs..."
-        className="h-6 text-[11px] flex-1 px-1.5"
+        className="h-6 flex-1 px-1.5 text-[11px]"
       />
       <Button
         type="button"
         variant="ghost"
-        size="icon" aria-label="Salvar"
+        size="icon"
+        aria-label="Salvar"
         className="h-6 w-6"
-        onClick={() => onSave({ part, percentage: percentage ? parseFloat(percentage) : null, notes })}
+        onClick={() =>
+          onSave({ part, percentage: percentage ? parseFloat(percentage) : null, notes })
+        }
       >
         <Save className="h-3 w-3 text-primary" />
       </Button>
-      <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={onCancel} aria-label="Fechar"><X className="h-3 w-3" />
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        className="h-6 w-6"
+        onClick={onCancel}
+        aria-label="Fechar"
+      >
+        <X className="h-3 w-3" />
       </Button>
     </div>
   );
@@ -101,7 +114,9 @@ export function ProductMaterialsSection({ productId }: ProductMaterialsSectionPr
   });
 
   // Fetch full linked records (with part, percentage, notes)
-  const { data: linkedRecords = [], isLoading: loadingProductMaterials } = useQuery<LinkedMaterial[]>({
+  const { data: linkedRecords = [], isLoading: loadingProductMaterials } = useQuery<
+    LinkedMaterial[]
+  >({
     queryKey: ['product-materials-full', productId],
     queryFn: async () => {
       const { data, error } = await supabase.functions.invoke('external-db-bridge', {
@@ -118,9 +133,7 @@ export function ProductMaterialsSection({ productId }: ProductMaterialsSectionPr
     enabled: !!productId,
   });
 
-  const linkedMap = new Map<string, LinkedMaterial>(
-    linkedRecords.map((r) => [r.material_id, r])
-  );
+  const linkedMap = new Map<string, LinkedMaterial>(linkedRecords.map((r) => [r.material_id, r]));
   const linkedMaterialIds = new Set<string>(linkedMap.keys());
 
   const allTypes = typesData?.types || [];
@@ -133,64 +146,73 @@ export function ProductMaterialsSection({ productId }: ProductMaterialsSectionPr
     return acc;
   }, {});
 
-  const toggleMaterial = useCallback(async (materialId: string, isLinked: boolean) => {
-    try {
-      if (isLinked) {
-        const linked = linkedMap.get(materialId);
-        if (!linked?.id) { toast.error('Registro não encontrado'); return; }
-        const { error: delError } = await supabase.functions.invoke('external-db-bridge', {
-          body: { table: 'product_materials', operation: 'delete', id: linked.id },
-        });
-        if (delError) throw new Error(delError.message);
-        toast.success('Material removido');
-      } else {
+  const toggleMaterial = useCallback(
+    async (materialId: string, isLinked: boolean) => {
+      try {
+        if (isLinked) {
+          const linked = linkedMap.get(materialId);
+          if (!linked?.id) {
+            toast.error('Registro não encontrado');
+            return;
+          }
+          const { error: delError } = await supabase.functions.invoke('external-db-bridge', {
+            body: { table: 'product_materials', operation: 'delete', id: linked.id },
+          });
+          if (delError) throw new Error(delError.message);
+          toast.success('Material removido');
+        } else {
+          const { error } = await supabase.functions.invoke('external-db-bridge', {
+            body: {
+              table: 'product_materials',
+              operation: 'insert',
+              data: { product_id: productId, material_id: materialId },
+            },
+          });
+          if (error) throw new Error(error.message);
+          toast.success('Material adicionado');
+        }
+        queryClient.invalidateQueries({ queryKey: ['product-materials-full', productId] });
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : 'Erro ao alterar material');
+      }
+    },
+    [productId, queryClient, linkedMap],
+  );
+
+  const updateMaterialDetail = useCallback(
+    async (
+      materialId: string,
+      data: { part: string; percentage: number | null; notes: string },
+    ) => {
+      const linked = linkedMap.get(materialId);
+      if (!linked?.id) return;
+
+      try {
         const { error } = await supabase.functions.invoke('external-db-bridge', {
           body: {
             table: 'product_materials',
-            operation: 'insert',
-            data: { product_id: productId, material_id: materialId },
+            operation: 'update',
+            id: linked.id,
+            data: {
+              part: data.part.trim() || null,
+              percentage: data.percentage,
+              notes: data.notes.trim() || null,
+            },
           },
         });
         if (error) throw new Error(error.message);
-        toast.success('Material adicionado');
+        toast.success('Detalhes atualizados');
+        setEditingMaterialId(null);
+        queryClient.invalidateQueries({ queryKey: ['product-materials-full', productId] });
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : 'Erro ao atualizar');
       }
-      queryClient.invalidateQueries({ queryKey: ['product-materials-full', productId] });
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Erro ao alterar material');
-    }
-  }, [productId, queryClient, linkedMap]);
-
-  const updateMaterialDetail = useCallback(async (
-    materialId: string,
-    data: { part: string; percentage: number | null; notes: string }
-  ) => {
-    const linked = linkedMap.get(materialId);
-    if (!linked?.id) return;
-
-    try {
-      const { error } = await supabase.functions.invoke('external-db-bridge', {
-        body: {
-          table: 'product_materials',
-          operation: 'update',
-          id: linked.id,
-          data: {
-            part: data.part.trim() || null,
-            percentage: data.percentage,
-            notes: data.notes.trim() || null,
-          },
-        },
-      });
-      if (error) throw new Error(error.message);
-      toast.success('Detalhes atualizados');
-      setEditingMaterialId(null);
-      queryClient.invalidateQueries({ queryKey: ['product-materials-full', productId] });
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Erro ao atualizar');
-    }
-  }, [productId, queryClient, linkedMap]);
+    },
+    [productId, queryClient, linkedMap],
+  );
 
   const toggleGroup = (groupId: string) => {
-    setOpenGroups(prev => {
+    setOpenGroups((prev) => {
       const next = new Set(prev);
       if (next.has(groupId)) next.delete(groupId);
       else next.add(groupId);
@@ -199,7 +221,7 @@ export function ProductMaterialsSection({ productId }: ProductMaterialsSectionPr
   };
 
   const clearAll = useCallback(async () => {
-    const linkedTypes = allTypes.filter(t => linkedMaterialIds.has(t.id));
+    const linkedTypes = allTypes.filter((t) => linkedMaterialIds.has(t.id));
     for (const t of linkedTypes) {
       await toggleMaterial(t.id, true);
     }
@@ -219,8 +241,8 @@ export function ProductMaterialsSection({ productId }: ProductMaterialsSectionPr
 
   if (groups.length === 0) {
     return (
-      <div className="text-center py-8">
-        <Gem className="h-8 w-8 text-muted-foreground/50 mx-auto mb-2" />
+      <div className="py-8 text-center">
+        <Gem className="mx-auto mb-2 h-8 w-8 text-muted-foreground/50" />
         <p className="text-sm text-muted-foreground">Nenhum material disponível</p>
       </div>
     );
@@ -233,16 +255,17 @@ export function ProductMaterialsSection({ productId }: ProductMaterialsSectionPr
     ? Object.fromEntries(
         Object.entries(typesByGroup).map(([gid, types]) => [
           gid,
-          types.filter(t => t.name.toLowerCase().includes(searchLower)),
-        ])
+          types.filter((t) => t.name.toLowerCase().includes(searchLower)),
+        ]),
       )
     : typesByGroup;
 
   const visibleGroups = [...groups]
-    .filter(g =>
-      !search ||
-      g.group_name.toLowerCase().includes(searchLower) ||
-      (filteredTypesByGroup[g.group_id]?.length || 0) > 0
+    .filter(
+      (g) =>
+        !search ||
+        g.group_name.toLowerCase().includes(searchLower) ||
+        (filteredTypesByGroup[g.group_id]?.length || 0) > 0,
     )
     .sort((a, b) => a.group_name.localeCompare(b.group_name, 'pt-BR'));
 
@@ -250,26 +273,26 @@ export function ProductMaterialsSection({ productId }: ProductMaterialsSectionPr
     <div className="space-y-3">
       {/* Badges dos materiais selecionados — padrão Super Filtro */}
       {linkedCount > 0 && (
-        <div className="p-2.5 bg-primary/5 rounded-xl border border-primary/20">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-medium text-primary flex items-center gap-1.5">
+        <div className="rounded-xl border border-primary/20 bg-primary/5 p-2.5">
+          <div className="mb-2 flex items-center justify-between">
+            <span className="flex items-center gap-1.5 text-xs font-medium text-primary">
               <Gem className="h-3 w-3" />
               Selecionados
             </span>
             <button
               type="button"
               onClick={clearAll}
-              className="text-[10px] text-muted-foreground hover:text-destructive transition-colors"
+              className="text-[10px] text-muted-foreground transition-colors hover:text-destructive"
             >
               Limpar todos
             </button>
           </div>
           <div className="flex flex-wrap gap-1.5">
             {allTypes
-              .filter(t => linkedMaterialIds.has(t.id))
+              .filter((t) => linkedMaterialIds.has(t.id))
               .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
-              .map(t => {
-                const group = groups.find(g => g.group_id === t.group_id);
+              .map((t) => {
+                const group = groups.find((g) => g.group_id === t.group_id);
                 const linked = linkedMap.get(t.id);
                 const hasDetail = linked?.part || linked?.percentage != null;
                 return (
@@ -284,7 +307,7 @@ export function ProductMaterialsSection({ productId }: ProductMaterialsSectionPr
                     <button
                       type="button"
                       onClick={() => setEditingMaterialId(editingMaterialId === t.id ? null : t.id)}
-                      className="text-muted-foreground hover:text-primary p-0.5"
+                      className="p-0.5 text-muted-foreground hover:text-primary"
                       title="Editar detalhes (parte, %, obs)"
                     >
                       <Pencil className="h-2.5 w-2.5" />
@@ -306,12 +329,12 @@ export function ProductMaterialsSection({ productId }: ProductMaterialsSectionPr
 
       {/* Busca */}
       <div className="relative">
-        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+        <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
         <Input
           placeholder="Buscar material ou grupo..."
           value={search}
-          onChange={e => setSearch(e.target.value)}
-          className="h-8 text-sm pl-8 pr-8"
+          onChange={(e) => setSearch(e.target.value)}
+          className="h-8 pl-8 pr-8 text-sm"
         />
         {search && (
           <button
@@ -325,12 +348,12 @@ export function ProductMaterialsSection({ productId }: ProductMaterialsSectionPr
       </div>
 
       {/* Estatísticas */}
-      <div className="flex items-center justify-between text-[11px] text-muted-foreground px-1">
+      <div className="flex items-center justify-between px-1 text-[11px] text-muted-foreground">
         <span>{groups.length} grupos</span>
         <span>•</span>
         <span>{allTypes.length} materiais</span>
         <span>•</span>
-        <span className={cn("font-medium", linkedCount > 0 && "text-primary")}>
+        <span className={cn('font-medium', linkedCount > 0 && 'text-primary')}>
           {linkedCount} selecionados
         </span>
       </div>

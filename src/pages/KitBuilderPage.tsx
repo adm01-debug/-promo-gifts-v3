@@ -1,15 +1,22 @@
 import { lazy, Suspense } from 'react';
-import { PageSEO } from "@/components/seo/PageSEO";
-import { useKitBuilderPageState } from "@/hooks/useKitBuilderPageState";
+import { PageSEO } from '@/components/seo/PageSEO';
+import { useKitBuilderPageState } from '@/hooks/useKitBuilderPageState';
 import { Card, CardContent } from '@/components/ui/card';
-import { 
-  WizardSteps, BoxSelector, ItemSelector, 
-  PersonalizationConfig, KitSummary,
+import {
+  WizardSteps,
+  BoxSelector,
+  ItemSelector,
+  PersonalizationConfig,
+  KitSummary,
 } from '@/components/kit-builder';
 import { KitBuilderHeader } from '@/components/kit-builder/KitBuilderHeader';
 import { KitHeroPricingCard } from '@/components/kit-builder/KitHeroPricingCard';
 
-const KitIsometricPreview = lazy(() => import('@/components/kit-builder/KitIsometricPreview').then(m => ({ default: m.KitIsometricPreview })));
+const KitIsometricPreview = lazy(() =>
+  import('@/components/kit-builder/KitIsometricPreview').then((m) => ({
+    default: m.KitIsometricPreview,
+  })),
+);
 
 export default function KitBuilderPage() {
   const { state, actions, meta } = useKitBuilderPageState();
@@ -17,7 +24,7 @@ export default function KitBuilderPage() {
   return (
     <>
       <div
-        className="min-h-screen relative"
+        className="relative min-h-screen"
         style={{
           background: `
             radial-gradient(ellipse 80% 50% at 50% -20%, hsl(var(--primary) / 0.08), transparent),
@@ -26,7 +33,12 @@ export default function KitBuilderPage() {
           `,
         }}
       >
-        <PageSEO title="Kit Maker" description="Monte kits personalizados." path="/kit-builder" noIndex />
+        <PageSEO
+          title="Kit Maker"
+          description="Monte kits personalizados."
+          path="/kit-builder"
+          noIndex
+        />
 
         <KitBuilderHeader
           kitName={state.kitState.name}
@@ -60,9 +72,9 @@ export default function KitBuilderPage() {
         </div>
 
         <div className="container py-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             <div className="lg:col-span-2">
-              <Card className="rounded-2xl border-border/60 shadow-sm overflow-hidden">
+              <Card className="overflow-hidden rounded-2xl border-border/60 shadow-sm">
                 <CardContent className="p-6">
                   {state.wizardState.currentStep === 'box' && (
                     <BoxSelector
@@ -99,9 +111,11 @@ export default function KitBuilderPage() {
               </Card>
             </div>
 
-            <div className="lg:col-span-1 space-y-6">
+            <div className="space-y-6 lg:col-span-1">
               <KitHeroPricingCard pricing={meta.pricing} kitQuantity={state.kitQuantity} />
-              <Suspense fallback={<div className="aspect-square bg-muted animate-pulse rounded-2xl" />}>
+              <Suspense
+                fallback={<div className="aspect-square animate-pulse rounded-2xl bg-muted" />}
+              >
                 <KitIsometricPreview kitState={state.kitState} />
               </Suspense>
             </div>

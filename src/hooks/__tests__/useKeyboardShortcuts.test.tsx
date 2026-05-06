@@ -23,9 +23,9 @@ describe('useGlobalShortcuts', () => {
     const event = new KeyboardEvent('keydown', {
       key: 'k',
       ctrlKey: true,
-      bubbles: true
+      bubbles: true,
     });
-    
+
     // Simulating event on input
     input.dispatchEvent(event);
 
@@ -34,7 +34,7 @@ describe('useGlobalShortcuts', () => {
     const jEvent = new KeyboardEvent('keydown', {
       key: 'j',
       ctrlKey: true,
-      bubbles: true
+      bubbles: true,
     });
     input.dispatchEvent(jEvent);
 
@@ -48,7 +48,7 @@ describe('useGlobalShortcuts', () => {
       stopImmediatePropagation: vi.fn(),
     } as unknown as KeyboardEvent;
 
-    // Trigger the internal handler if we could... 
+    // Trigger the internal handler if we could...
     // Instead, let's just verify the logic in the hook file
   });
 });

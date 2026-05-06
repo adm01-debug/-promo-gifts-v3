@@ -11,11 +11,11 @@ import React from 'react';
 // Mock specific logic
 vi.mock('@/contexts/DevChallengeContext', () => ({
   DevChallengeProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
-  useDevChallenge: () => ({ 
-    challenge: null, 
-    isLoading: false, 
-    markStepCompleted: vi.fn(), 
-    isStepCompleted: vi.fn().mockReturnValue(false) 
+  useDevChallenge: () => ({
+    challenge: null,
+    isLoading: false,
+    markStepCompleted: vi.fn(),
+    isStepCompleted: vi.fn().mockReturnValue(false),
   }),
 }));
 
@@ -54,7 +54,7 @@ vi.mock('@/components/seo/PageSEO', () => ({
     const pageName = window.location.pathname;
     seoCaptures[pageName] = props;
     return <div data-testid="page-seo" data-title={props.title} />;
-  }
+  },
 }));
 
 // Import all admin pages
@@ -70,9 +70,7 @@ const wrapper = ({ children }: { children: React.ReactNode }) => (
       <MemoryRouter>
         <ThemeProvider>
           <AuthProvider>
-            <TooltipProvider>
-              {children}
-            </TooltipProvider>
+            <TooltipProvider>{children}</TooltipProvider>
           </AuthProvider>
         </ThemeProvider>
       </MemoryRouter>
@@ -84,11 +82,17 @@ describe('Admin Module Programmatic Standard Rules', () => {
   const originalError = console.error;
   beforeAll(() => {
     console.error = (...args) => {
-      if (args[0]?.toString().includes('act(...)') || args[0]?.toString().includes('HelmetProvider')) return;
+      if (
+        args[0]?.toString().includes('act(...)') ||
+        args[0]?.toString().includes('HelmetProvider')
+      )
+        return;
       originalError(...args);
     };
   });
-  afterAll(() => { console.error = originalError; });
+  afterAll(() => {
+    console.error = originalError;
+  });
 
   Object.entries(adminPageModules).forEach(([path, module]: [string, any]) => {
     const Component = module.default;
@@ -98,12 +102,12 @@ describe('Admin Module Programmatic Standard Rules', () => {
 
     it(`${pageName} should render with correct PageSEO config`, async () => {
       render(<Component />, { wrapper });
-      
+
       // We look for the SEO marker. Since it's often conditional or inside MainLayout,
       // we use findBy to allow for hydration/state resolution.
       const seo = await screen.findByTestId('page-seo', {}, { timeout: 3000 });
       expect(seo, `Page ${pageName} is missing PageSEO`).not.toBeNull();
-      
+
       // Basic title check - should not be empty
       expect(seo?.getAttribute('data-title')).not.toBe('');
     });
@@ -111,7 +115,7 @@ describe('Admin Module Programmatic Standard Rules', () => {
     it(`${pageName} should use standard max-w classes in its layout container`, () => {
       render(<Component />, { wrapper });
       const mainContent = screen.queryByRole('main');
-      
+
       // We look for the standardized container div
       const container = mainContent?.querySelector('[class*="max-w-"]');
       expect(container, `Page ${pageName} missing standardized max-w container`).not.toBeNull();

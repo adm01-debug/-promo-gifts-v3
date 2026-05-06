@@ -1,7 +1,7 @@
-import { useState, useCallback } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "sonner";
+import { useState, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 export interface ApprovalToken {
   id: string;
@@ -23,61 +23,64 @@ export function useQuoteApproval() {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
-  const generateApprovalLink = useCallback(async (
-    quoteId: string,
-    clientName?: string,
-    clientEmail?: string
-  ): Promise<{ token: ApprovalToken; link: string } | null> => {
-    if (!user) {
-      toast.error("Usuário não autenticado");
-      return null;
-    }
+  const generateApprovalLink = useCallback(
+    async (
+      quoteId: string,
+      clientName?: string,
+      clientEmail?: string,
+    ): Promise<{ token: ApprovalToken; link: string } | null> => {
+      if (!user) {
+        toast.error('Usuário não autenticado');
+        return null;
+      }
 
-    setIsLoading(true);
-    try {
-      const expiresAt = new Date();
-      expiresAt.setHours(expiresAt.getHours() + 48); // 48h TTL para segurança
+      setIsLoading(true);
+      try {
+        const expiresAt = new Date();
+        expiresAt.setHours(expiresAt.getHours() + 48); // 48h TTL para segurança
 
-      const { data, error } = await supabase
-        .from("quote_approval_tokens")
-        .insert({
-          quote_id: quoteId,
-          seller_id: user.id,
-          client_name: clientName || null,
-          client_email: clientEmail || null,
-          expires_at: expiresAt.toISOString(),
-        })
-        .select()
-        .single();
+        const { data, error } = await supabase
+          .from('quote_approval_tokens')
+          .insert({
+            quote_id: quoteId,
+            seller_id: user.id,
+            client_name: clientName || null,
+            client_email: clientEmail || null,
+            expires_at: expiresAt.toISOString(),
+          })
+          .select()
+          .single();
 
-      if (error) throw error;
+        if (error) throw error;
 
-      const link = `${window.location.origin}/proposta/${data.token}`;
-      toast.success("Link de aprovação gerado!");
-      return { token: data as ApprovalToken, link };
-    } catch (err) {
-      console.error("Error generating approval link:", err);
-      toast.error("Erro ao gerar link de aprovação");
-      return null;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [user]);
+        const link = `${window.location.origin}/proposta/${data.token}`;
+        toast.success('Link de aprovação gerado!');
+        return { token: data as ApprovalToken, link };
+      } catch (err) {
+        console.error('Error generating approval link:', err);
+        toast.error('Erro ao gerar link de aprovação');
+        return null;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [user],
+  );
 
   const getApprovalStatus = useCallback(async (quoteId: string): Promise<ApprovalToken | null> => {
     try {
       const { data, error } = await supabase
-        .from("quote_approval_tokens")
-        .select("*")
-        .eq("quote_id", quoteId)
-        .order("created_at", { ascending: false })
+        .from('quote_approval_tokens')
+        .select('*')
+        .eq('quote_id', quoteId)
+        .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
 
       if (error) throw error;
       return data as ApprovalToken | null;
     } catch (err) {
-      console.error("Error fetching approval status:", err);
+      console.error('Error fetching approval status:', err);
       return null;
     }
   }, []);
@@ -85,16 +88,16 @@ export function useQuoteApproval() {
   const revokeToken = useCallback(async (tokenId: string): Promise<boolean> => {
     try {
       const { error } = await supabase
-        .from("quote_approval_tokens")
-        .update({ status: "revoked" })
-        .eq("id", tokenId);
+        .from('quote_approval_tokens')
+        .update({ status: 'revoked' })
+        .eq('id', tokenId);
 
       if (error) throw error;
-      toast.success("Link revogado");
+      toast.success('Link revogado');
       return true;
     } catch (err) {
-      console.error("Error revoking token:", err);
-      toast.error("Erro ao revogar link");
+      console.error('Error revoking token:', err);
+      toast.error('Erro ao revogar link');
       return false;
     }
   }, []);

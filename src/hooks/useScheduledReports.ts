@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useSalesScope } from "@/lib/auth/visibility-scope";
-import { applySellerScope } from "@/lib/auth/apply-seller-scope";
+import { useSalesScope } from '@/lib/auth/visibility-scope';
+import { applySellerScope } from '@/lib/auth/apply-seller-scope';
 import { toast } from 'sonner';
 
 export type ReportFrequency = 'daily' | 'weekly' | 'monthly';
@@ -55,11 +55,9 @@ export function useScheduledReports() {
     if (!user) return;
     setIsLoading(true);
     try {
-      let q = supabase
-        .from('scheduled_reports')
-        .select('*');
+      let q = supabase.from('scheduled_reports').select('*');
 
-      q = applySellerScope(q, { scope, userId: user.id, column: "user_id" });
+      q = applySellerScope(q, { scope, userId: user.id, column: 'user_id' });
 
       const { data, error } = await q.order('created_at', { ascending: false });
 
@@ -72,17 +70,16 @@ export function useScheduledReports() {
     }
   }, [user]);
 
-  const createReport = useCallback(async (input: CreateReportInput): Promise<boolean> => {
-    if (!user) {
-      toast.error('Usuário não autenticado');
-      return false;
-    }
+  const createReport = useCallback(
+    async (input: CreateReportInput): Promise<boolean> => {
+      if (!user) {
+        toast.error('Usuário não autenticado');
+        return false;
+      }
 
-    try {
-      const nextRun = calculateNextRun(input.frequency);
-      const { error } = await supabase
-        .from('scheduled_reports')
-        .insert({
+      try {
+        const nextRun = calculateNextRun(input.frequency);
+        const { error } = await supabase.from('scheduled_reports').insert({
           user_id: user.id,
           report_type: input.report_type,
           frequency: input.frequency,
@@ -92,18 +89,20 @@ export function useScheduledReports() {
           next_run_at: nextRun.toISOString(),
         });
 
-      if (error) throw error;
-      toast.success('Relatório agendado criado!', {
-        description: `${REPORT_TYPE_LABELS[input.report_type]} — ${FREQUENCY_LABELS[input.frequency]}`,
-      });
-      await fetchReports();
-      return true;
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Erro ao criar relatório';
-      toast.error('Erro ao agendar relatório', { description: msg });
-      return false;
-    }
-  }, [user, fetchReports]);
+        if (error) throw error;
+        toast.success('Relatório agendado criado!', {
+          description: `${REPORT_TYPE_LABELS[input.report_type]} — ${FREQUENCY_LABELS[input.frequency]}`,
+        });
+        await fetchReports();
+        return true;
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'Erro ao criar relatório';
+        toast.error('Erro ao agendar relatório', { description: msg });
+        return false;
+      }
+    },
+    [user, fetchReports],
+  );
 
   const toggleActive = useCallback(async (reportId: string, active: boolean) => {
     try {
@@ -113,7 +112,7 @@ export function useScheduledReports() {
         .eq('id', reportId);
 
       if (error) throw error;
-      setReports(prev => prev.map(r => r.id === reportId ? { ...r, is_active: active } : r));
+      setReports((prev) => prev.map((r) => (r.id === reportId ? { ...r, is_active: active } : r)));
       toast.success(active ? 'Relatório ativado' : 'Relatório pausado');
     } catch {
       toast.error('Erro ao atualizar relatório');
@@ -122,13 +121,10 @@ export function useScheduledReports() {
 
   const deleteReport = useCallback(async (reportId: string) => {
     try {
-      const { error } = await supabase
-        .from('scheduled_reports')
-        .delete()
-        .eq('id', reportId);
+      const { error } = await supabase.from('scheduled_reports').delete().eq('id', reportId);
 
       if (error) throw error;
-      setReports(prev => prev.filter(r => r.id !== reportId));
+      setReports((prev) => prev.filter((r) => r.id !== reportId));
       toast.success('Relatório excluído');
     } catch {
       toast.error('Erro ao excluir relatório');

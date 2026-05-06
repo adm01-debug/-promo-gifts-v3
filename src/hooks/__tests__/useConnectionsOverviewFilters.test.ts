@@ -1,32 +1,32 @@
-import { describe, it, expect } from "vitest";
-import { applyFilters, OverviewFilters } from "../useConnectionsOverviewFilters";
-import { OverviewRow } from "../useConnectionsOverview";
+import { describe, it, expect } from 'vitest';
+import { applyFilters, OverviewFilters } from '../useConnectionsOverviewFilters';
+import { OverviewRow } from '../useConnectionsOverview';
 
-describe("useConnectionsOverviewFilters regression tests", () => {
+describe('useConnectionsOverviewFilters regression tests', () => {
   const mockRows: OverviewRow[] = [
     {
-      key: "1",
-      id: "1",
-      type: "supabase",
-      name: "DB 1",
-      env_key: "promobrind",
-      status: "active",
+      key: '1',
+      id: '1',
+      type: 'supabase',
+      name: 'DB 1',
+      env_key: 'promobrind',
+      status: 'active',
       last_test_at: new Date().toISOString(),
       last_test_ok: true,
-      last_test_message: "OK",
+      last_test_message: 'OK',
       last_latency_ms: 50,
       auto_test_enabled: true,
     },
     {
-      key: "2",
-      id: "2",
-      type: "bitrix24",
-      name: "CRM",
-      env_key: "crm",
-      status: "error",
+      key: '2',
+      id: '2',
+      type: 'bitrix24',
+      name: 'CRM',
+      env_key: 'crm',
+      status: 'error',
       last_test_at: new Date().toISOString(),
       last_test_ok: false,
-      last_test_message: "Fail",
+      last_test_message: 'Fail',
       last_latency_ms: null,
       auto_test_enabled: true,
     },
@@ -34,38 +34,38 @@ describe("useConnectionsOverviewFilters regression tests", () => {
 
   const defaultFilters: OverviewFilters = {
     types: [],
-    status: "all",
-    window: "any",
+    status: 'all',
+    window: 'any',
     onlyConsecutiveFailures: false,
   };
 
-  it("should return all rows when filters are empty", () => {
+  it('should return all rows when filters are empty', () => {
     const result = applyFilters(mockRows, defaultFilters);
     expect(result).toHaveLength(2);
   });
 
-  it("should filter by type", () => {
-    const filters: OverviewFilters = { ...defaultFilters, types: ["supabase"] };
+  it('should filter by type', () => {
+    const filters: OverviewFilters = { ...defaultFilters, types: ['supabase'] };
     const result = applyFilters(mockRows, filters);
     expect(result).toHaveLength(1);
-    expect(result[0].type).toBe("supabase");
+    expect(result[0].type).toBe('supabase');
   });
 
-  it("should filter by status OK", () => {
-    const filters: OverviewFilters = { ...defaultFilters, status: "ok" };
+  it('should filter by status OK', () => {
+    const filters: OverviewFilters = { ...defaultFilters, status: 'ok' };
     const result = applyFilters(mockRows, filters);
     expect(result).toHaveLength(1);
     expect(result[0].last_test_ok).toBe(true);
   });
 
-  it("should filter by status FAIL", () => {
-    const filters: OverviewFilters = { ...defaultFilters, status: "fail" };
+  it('should filter by status FAIL', () => {
+    const filters: OverviewFilters = { ...defaultFilters, status: 'fail' };
     const result = applyFilters(mockRows, filters);
     expect(result).toHaveLength(1);
     expect(result[0].last_test_ok).toBe(false);
   });
 
-  it("should filter by window", () => {
+  it('should filter by window', () => {
     const oldDate = new Date();
     oldDate.setHours(oldDate.getHours() - 2); // 2 hours ago
 
@@ -74,11 +74,11 @@ describe("useConnectionsOverviewFilters regression tests", () => {
       last_test_at: oldDate.toISOString(),
     };
 
-    const filters: OverviewFilters = { ...defaultFilters, window: "1h" };
+    const filters: OverviewFilters = { ...defaultFilters, window: '1h' };
     const result = applyFilters([rowWithOldDate], filters);
     expect(result).toHaveLength(0);
 
-    const recentFilters: OverviewFilters = { ...defaultFilters, window: "24h" };
+    const recentFilters: OverviewFilters = { ...defaultFilters, window: '24h' };
     const recentResult = applyFilters([rowWithOldDate], recentFilters);
     expect(recentResult).toHaveLength(1);
   });

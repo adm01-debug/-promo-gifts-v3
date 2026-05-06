@@ -1,13 +1,15 @@
-import { type ReactNode, lazy, Suspense } from "react";
-import { Navigate, useLocation, Outlet } from "react-router-dom";
-import { Loader2 } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
-import { EnhancedErrorBoundary } from "@/components/errors/EnhancedErrorBoundary";
-import { EmptyState } from "@/components/common/EmptyState";
-import { checkAccess, AccessPolicy } from "@/lib/access/access-policy";
-import { lazyWithRetry } from "@/lib/lazyWithRetry";
+import { type ReactNode, lazy, Suspense } from 'react';
+import { Navigate, useLocation, Outlet } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { EnhancedErrorBoundary } from '@/components/errors/EnhancedErrorBoundary';
+import { EmptyState } from '@/components/common/EmptyState';
+import { checkAccess, AccessPolicy } from '@/lib/access/access-policy';
+import { lazyWithRetry } from '@/lib/lazyWithRetry';
 
-const MainLayout = lazyWithRetry(() => import("./MainLayout").then(m => ({ default: m.MainLayout })));
+const MainLayout = lazyWithRetry(() =>
+  import('./MainLayout').then((m) => ({ default: m.MainLayout })),
+);
 
 interface ProtectedRouteProps extends AccessPolicy {
   children?: ReactNode;
@@ -27,7 +29,7 @@ export function ProtectedRoute({
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="flex min-h-screen items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
@@ -37,25 +39,30 @@ export function ProtectedRoute({
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  const effectiveRole = requiredRole || (requireDev ? "dev" : requireAdmin ? "supervisor" : undefined);
-  const { allowed, reason } = checkAccess(roles, currentAAL, { 
-    requiredRole: effectiveRole, 
-    requireMfa, 
-    requireDev 
+  const effectiveRole =
+    requiredRole || (requireDev ? 'dev' : requireAdmin ? 'supervisor' : undefined);
+  const { allowed, reason } = checkAccess(roles, currentAAL, {
+    requiredRole: effectiveRole,
+    requireMfa,
+    requireDev,
   });
 
   if (!allowed) {
     if (reason === 'mfa_required') {
-       // O AdminRoute/DevRoute tratam o diálogo de MFA, aqui apenas bloqueamos se for o caso
-       // mas o ProtectedRoute genérico geralmente não exige MFA a menos que passado explicitamente
+      // O AdminRoute/DevRoute tratam o diálogo de MFA, aqui apenas bloqueamos se for o caso
+      // mas o ProtectedRoute genérico geralmente não exige MFA a menos que passado explicitamente
     }
-    
+
     return (
-      <EmptyState 
-        variant="security" 
-        title="Acesso Restrito" 
-        description={reason === 'insufficient_role' ? "Você não tem permissão para acessar esta área." : "Autenticação adicional necessária."}
-        action={{ label: "Voltar ao início", onClick: () => window.location.href = "/" }}
+      <EmptyState
+        variant="security"
+        title="Acesso Restrito"
+        description={
+          reason === 'insufficient_role'
+            ? 'Você não tem permissão para acessar esta área.'
+            : 'Autenticação adicional necessária.'
+        }
+        action={{ label: 'Voltar ao início', onClick: () => (window.location.href = '/') }}
       />
     );
   }
@@ -66,11 +73,11 @@ export function ProtectedRoute({
         <EnhancedErrorBoundary
           fallback={
             <div className="p-8">
-              <EmptyState 
-                variant="error" 
-                title="Falha no Módulo" 
+              <EmptyState
+                variant="error"
+                title="Falha no Módulo"
                 description="Ocorreu um erro ao carregar esta seção. Tente recarregar a página."
-                action={{ label: "Recarregar", onClick: () => window.location.reload() }}
+                action={{ label: 'Recarregar', onClick: () => window.location.reload() }}
               />
             </div>
           }
@@ -81,4 +88,3 @@ export function ProtectedRoute({
     </Suspense>
   );
 }
-

@@ -1,13 +1,18 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { type QuoteTemplate, type QuoteTemplateItem, type CreateTemplateInput, useQuoteTemplates } from "@/hooks/useQuoteTemplates";
-import { Save, X } from "lucide-react";
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import {
+  type QuoteTemplate,
+  type QuoteTemplateItem,
+  type CreateTemplateInput,
+  useQuoteTemplates,
+} from '@/hooks/useQuoteTemplates';
+import { Save, X } from 'lucide-react';
 
 interface QuoteTemplateFormProps {
   template?: QuoteTemplate | null;
@@ -26,16 +31,16 @@ export function QuoteTemplateForm({
   const [saving, setSaving] = useState(false);
 
   const [formData, setFormData] = useState<CreateTemplateInput>({
-    name: template?.name || "",
-    description: template?.description || "",
+    name: template?.name || '',
+    description: template?.description || '',
     is_default: template?.is_default || false,
     items_data: template?.items_data || initialItems,
     discount_percent: template?.discount_percent || 0,
     discount_amount: template?.discount_amount || 0,
-    notes: template?.notes || "",
-    internal_notes: template?.internal_notes || "",
-    payment_terms: template?.payment_terms || "",
-    delivery_time: template?.delivery_time || "",
+    notes: template?.notes || '',
+    internal_notes: template?.internal_notes || '',
+    payment_terms: template?.payment_terms || '',
+    delivery_time: template?.delivery_time || '',
     validity_days: template?.validity_days || 30,
   });
 
@@ -43,7 +48,7 @@ export function QuoteTemplateForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.name.trim()) {
       return;
     }
@@ -64,30 +69,32 @@ export function QuoteTemplateForm({
 
   const updateField = <K extends keyof CreateTemplateInput>(
     field: K,
-    value: CreateTemplateInput[K]
+    value: CreateTemplateInput[K],
   ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
     }).format(value);
   };
 
   const calculateTotal = () => {
     const itemsTotal = (formData.items_data || []).reduce((sum, item) => {
       const itemBase = item.quantity * item.unitPrice;
-      const personalizationCost = item.personalizations?.reduce((pSum, p) => {
-        return pSum + (p.unitCost || 0) * item.quantity + (p.setupCost || 0);
-      }, 0) || 0;
+      const personalizationCost =
+        item.personalizations?.reduce((pSum, p) => {
+          return pSum + (p.unitCost || 0) * item.quantity + (p.setupCost || 0);
+        }, 0) || 0;
       return sum + itemBase + personalizationCost;
     }, 0);
 
-    const discountValue = formData.discount_percent && formData.discount_percent > 0
-      ? itemsTotal * (formData.discount_percent / 100)
-      : formData.discount_amount || 0;
+    const discountValue =
+      formData.discount_percent && formData.discount_percent > 0
+        ? itemsTotal * (formData.discount_percent / 100)
+        : formData.discount_amount || 0;
 
     return itemsTotal - discountValue;
   };
@@ -96,11 +103,11 @@ export function QuoteTemplateForm({
     <form onSubmit={handleSubmit} className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>{isEditing ? "Editar Template" : "Novo Template"}</CardTitle>
+          <CardTitle>{isEditing ? 'Editar Template' : 'Novo Template'}</CardTitle>
           <CardDescription>
-            {isEditing 
-              ? "Atualize as informações do template de orçamento" 
-              : "Crie um template reutilizável para agilizar seus orçamentos"}
+            {isEditing
+              ? 'Atualize as informações do template de orçamento'
+              : 'Crie um template reutilizável para agilizar seus orçamentos'}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -111,7 +118,7 @@ export function QuoteTemplateForm({
               <Input
                 id="name"
                 value={formData.name}
-                onChange={(e) => updateField("name", e.target.value)}
+                onChange={(e) => updateField('name', e.target.value)}
                 placeholder="Ex: Kits Corporativos Padrão"
                 required
               />
@@ -124,7 +131,7 @@ export function QuoteTemplateForm({
                 min={1}
                 max={365}
                 value={formData.validity_days}
-                onChange={(e) => updateField("validity_days", parseInt(e.target.value) || 30)}
+                onChange={(e) => updateField('validity_days', parseInt(e.target.value) || 30)}
               />
             </div>
           </div>
@@ -133,8 +140,8 @@ export function QuoteTemplateForm({
             <Label htmlFor="description">Descrição</Label>
             <Textarea
               id="description"
-              value={formData.description || ""}
-              onChange={(e) => updateField("description", e.target.value)}
+              value={formData.description || ''}
+              onChange={(e) => updateField('description', e.target.value)}
               placeholder="Descreva o template para facilitar a identificação..."
               rows={2}
             />
@@ -149,7 +156,7 @@ export function QuoteTemplateForm({
             </div>
             <Switch
               checked={formData.is_default}
-              onCheckedChange={(checked) => updateField("is_default", checked)}
+              onCheckedChange={(checked) => updateField('is_default', checked)}
             />
           </div>
 
@@ -167,10 +174,10 @@ export function QuoteTemplateForm({
                   min={0}
                   max={100}
                   step={0.1}
-                  value={formData.discount_percent || ""}
+                  value={formData.discount_percent || ''}
                   onChange={(e) => {
-                    updateField("discount_percent", parseFloat(e.target.value) || 0);
-                    if (e.target.value) updateField("discount_amount", 0);
+                    updateField('discount_percent', parseFloat(e.target.value) || 0);
+                    if (e.target.value) updateField('discount_amount', 0);
                   }}
                   placeholder="0"
                 />
@@ -182,10 +189,10 @@ export function QuoteTemplateForm({
                   type="number"
                   min={0}
                   step={0.01}
-                  value={formData.discount_amount || ""}
+                  value={formData.discount_amount || ''}
                   onChange={(e) => {
-                    updateField("discount_amount", parseFloat(e.target.value) || 0);
-                    if (e.target.value) updateField("discount_percent", 0);
+                    updateField('discount_amount', parseFloat(e.target.value) || 0);
+                    if (e.target.value) updateField('discount_percent', 0);
                   }}
                   placeholder="0,00"
                 />
@@ -203,8 +210,8 @@ export function QuoteTemplateForm({
                 <Label htmlFor="payment_terms">Condições de Pagamento</Label>
                 <Input
                   id="payment_terms"
-                  value={formData.payment_terms || ""}
-                  onChange={(e) => updateField("payment_terms", e.target.value)}
+                  value={formData.payment_terms || ''}
+                  onChange={(e) => updateField('payment_terms', e.target.value)}
                   placeholder="Ex: 50% entrada + 50% na entrega"
                 />
               </div>
@@ -212,8 +219,8 @@ export function QuoteTemplateForm({
                 <Label htmlFor="delivery_time">Prazo de Entrega</Label>
                 <Input
                   id="delivery_time"
-                  value={formData.delivery_time || ""}
-                  onChange={(e) => updateField("delivery_time", e.target.value)}
+                  value={formData.delivery_time || ''}
+                  onChange={(e) => updateField('delivery_time', e.target.value)}
                   placeholder="Ex: 15 dias úteis"
                 />
               </div>
@@ -229,8 +236,8 @@ export function QuoteTemplateForm({
               <Label htmlFor="notes">Observações para o Cliente</Label>
               <Textarea
                 id="notes"
-                value={formData.notes || ""}
-                onChange={(e) => updateField("notes", e.target.value)}
+                value={formData.notes || ''}
+                onChange={(e) => updateField('notes', e.target.value)}
                 placeholder="Observações que aparecerão na proposta..."
                 rows={3}
               />
@@ -239,8 +246,8 @@ export function QuoteTemplateForm({
               <Label htmlFor="internal_notes">Notas Internas</Label>
               <Textarea
                 id="internal_notes"
-                value={formData.internal_notes || ""}
-                onChange={(e) => updateField("internal_notes", e.target.value)}
+                value={formData.internal_notes || ''}
+                onChange={(e) => updateField('internal_notes', e.target.value)}
                 placeholder="Notas visíveis apenas para a equipe..."
                 rows={2}
               />
@@ -253,13 +260,13 @@ export function QuoteTemplateForm({
               <Separator />
               <div className="space-y-3">
                 <h4 className="font-medium">Itens do Template</h4>
-                <div className="bg-muted/50 rounded-xl p-4 space-y-2">
+                <div className="space-y-2 rounded-xl bg-muted/50 p-4">
                   {formData.items_data.map((item, index) => (
                     <div key={index} className="flex items-center justify-between text-sm">
-                      <span className="truncate flex-1">
+                      <span className="flex-1 truncate">
                         {item.quantity}x {item.productName}
                       </span>
-                      <span className="font-medium ml-4">
+                      <span className="ml-4 font-medium">
                         {formatCurrency(item.quantity * item.unitPrice)}
                       </span>
                     </div>
@@ -279,13 +286,13 @@ export function QuoteTemplateForm({
       <div className="flex items-center justify-end gap-3">
         {onCancel && (
           <Button type="button" variant="outline" onClick={onCancel}>
-            <X className="h-4 w-4 mr-2" />
+            <X className="mr-2 h-4 w-4" />
             Cancelar
           </Button>
         )}
         <Button type="submit" disabled={saving || !formData.name.trim()}>
-          <Save className="h-4 w-4 mr-2" />
-          {saving ? "Salvando..." : isEditing ? "Salvar Alterações" : "Criar Template"}
+          <Save className="mr-2 h-4 w-4" />
+          {saving ? 'Salvando...' : isEditing ? 'Salvar Alterações' : 'Criar Template'}
         </Button>
       </div>
     </form>

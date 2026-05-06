@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
-import { processLogoForLaser, processLogoForSerigrafia } from "@/utils/laser-logo-processor";
-import type { TechniqueColorConfig } from "../techniqueColorUtils";
+import { useState, useEffect } from 'react';
+import { processLogoForLaser, processLogoForSerigrafia } from '@/utils/laser-logo-processor';
+import type { TechniqueColorConfig } from '../techniqueColorUtils';
 
 /**
  * Canvas-based logo processing for Laser + Serigrafia techniques.
@@ -11,14 +11,14 @@ import type { TechniqueColorConfig } from "../techniqueColorUtils";
 export function useLogoProcessing(
   logoPreview: string | null,
   techniqueColorConfig?: TechniqueColorConfig | null,
-  overrides?: { whiteThreshold?: number; alphaThreshold?: number }
+  overrides?: { whiteThreshold?: number; alphaThreshold?: number },
 ) {
   const [processedLogoUrl, setProcessedLogoUrl] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
-    const isLaser = techniqueColorConfig?.category === "laser";
-    const isSerigrafia = techniqueColorConfig?.category === "serigrafia";
+    const isLaser = techniqueColorConfig?.category === 'laser';
+    const isSerigrafia = techniqueColorConfig?.category === 'serigrafia';
     const needsProcessing = isLaser || isSerigrafia;
 
     if (!needsProcessing || !logoPreview) {
@@ -32,7 +32,7 @@ export function useLogoProcessing(
     let promise: Promise<string>;
 
     if (isLaser) {
-      const tone = techniqueColorConfig?.laserTone || "escuro";
+      const tone = techniqueColorConfig?.laserTone || 'escuro';
       promise = processLogoForLaser(logoPreview, tone, overrides);
     } else {
       const selectedColors = techniqueColorConfig?.selectedColors || [];
@@ -45,12 +45,27 @@ export function useLogoProcessing(
     }
 
     promise
-      .then((dataUrl) => { if (!cancelled) setProcessedLogoUrl(dataUrl); })
-      .catch(() => { if (!cancelled) setProcessedLogoUrl(null); })
-      .finally(() => { if (!cancelled) setIsProcessing(false); });
+      .then((dataUrl) => {
+        if (!cancelled) setProcessedLogoUrl(dataUrl);
+      })
+      .catch(() => {
+        if (!cancelled) setProcessedLogoUrl(null);
+      })
+      .finally(() => {
+        if (!cancelled) setIsProcessing(false);
+      });
 
-    return () => { cancelled = true; };
-  }, [logoPreview, techniqueColorConfig?.category, techniqueColorConfig?.laserTone, techniqueColorConfig?.selectedColors, overrides?.whiteThreshold, overrides?.alphaThreshold]);
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    logoPreview,
+    techniqueColorConfig?.category,
+    techniqueColorConfig?.laserTone,
+    techniqueColorConfig?.selectedColors,
+    overrides?.whiteThreshold,
+    overrides?.alphaThreshold,
+  ]);
 
   return { processedLogoUrl, isProcessing };
 }

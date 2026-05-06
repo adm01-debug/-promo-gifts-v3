@@ -1,10 +1,10 @@
 /**
  * useColorEnrichment — Batch-enriches lightweight products with color-specific
  * images and stock when a color filter is active.
- * 
+ *
  * Without this, lightweight products have colors: [] and the card cannot
  * show the variant image/stock for the filtered color.
- * 
+ *
  * Uses incremental enrichment: keeps a growing cache of results and only
  * fetches data for NEW product IDs that haven't been enriched yet.
  */
@@ -33,12 +33,22 @@ interface UseColorEnrichmentOptions {
 
 // Cached reference tables (shared across instances)
 let cachedColorGroups: Array<{ id: string; slug: string }> | null = null;
-let cachedColorVariations: Array<{ id: string; name: string; slug: string; group_id: string; hex_code?: string }> | null = null;
+let cachedColorVariations: Array<{
+  id: string;
+  name: string;
+  slug: string;
+  group_id: string;
+  hex_code?: string;
+}> | null = null;
 
 /**
  * Returns a Map<productId, ColorEnrichmentData> for products matching the color filter.
  */
-export function useColorEnrichment({ productIds, colorGroups, colorVariations }: UseColorEnrichmentOptions) {
+export function useColorEnrichment({
+  productIds,
+  colorGroups,
+  colorVariations,
+}: UseColorEnrichmentOptions) {
   const hasFilter = colorGroups.length > 0 || colorVariations.length > 0;
   const filterKey = [...colorGroups].sort().join(',') + '|' + [...colorVariations].sort().join(',');
 
@@ -59,10 +69,10 @@ export function useColorEnrichment({ productIds, colorGroups, colorVariations }:
   // Find product IDs that haven't been enriched yet
   const newProductIds = useMemo(() => {
     if (!hasFilter) return [];
-    return productIds.filter(id => !enrichedIdsRef.current.has(id));
+    return productIds.filter((id) => !enrichedIdsRef.current.has(id));
   }, [productIds, hasFilter, filterKey]);
 
-  // Stable key: use count of new IDs + total count  
+  // Stable key: use count of new IDs + total count
   const queryEnabled = hasFilter && newProductIds.length > 0;
 
   const query = useQuery({
@@ -93,12 +103,22 @@ export function useColorEnrichment({ productIds, colorGroups, colorVariations }:
           },
         ]);
 
-        cachedColorGroups = refResults[0]?.success ? (refResults[0].data?.records || []) as Array<{ id: string; slug: string }> : [];
-        cachedColorVariations = refResults[1]?.success ? (refResults[1].data?.records || []) as Array<{ id: string; name: string; slug: string; group_id: string; hex_code: string | null }> : [];
+        cachedColorGroups = refResults[0]?.success
+          ? ((refResults[0].data?.records || []) as Array<{ id: string; slug: string }>)
+          : [];
+        cachedColorVariations = refResults[1]?.success
+          ? ((refResults[1].data?.records || []) as Array<{
+              id: string;
+              name: string;
+              slug: string;
+              group_id: string;
+              hex_code: string | null;
+            }>)
+          : [];
       }
 
-      const groupsBySlug = new Map(cachedColorGroups!.map(g => [g.slug, g.id]));
-      const variationsBySlug = new Map(cachedColorVariations!.map(v => [v.slug, v]));
+      const groupsBySlug = new Map(cachedColorGroups!.map((g) => [g.slug, g.id]));
+      const variationsBySlug = new Map(cachedColorVariations!.map((v) => [v.slug, v]));
 
       // Resolve target color_ids
       const targetColorIds = new Set<string>();
@@ -136,14 +156,17 @@ export function useColorEnrichment({ productIds, colorGroups, colorVariations }:
 
       for (let i = 0; i < newProductIds.length; i += CHUNK) {
         const pidChunk = newProductIds.slice(i, i + CHUNK);
-        const results = await invokeBatchBridge([{
-          table: 'product_variants',
-          operation: 'select' as const,
-          select: 'id, product_id, color_id, color_name, color_hex, color_code, stock_quantity, selected_thumbnail, images',
-          filters: { is_active: true, product_id: pidChunk, color_id: colorIdArray },
-          limit: 3000,
-          offset: 0,
-        }]);
+        const results = await invokeBatchBridge([
+          {
+            table: 'product_variants',
+            operation: 'select' as const,
+            select:
+              'id, product_id, color_id, color_name, color_hex, color_code, stock_quantity, selected_thumbnail, images',
+            filters: { is_active: true, product_id: pidChunk, color_id: colorIdArray },
+            limit: 3000,
+            offset: 0,
+          },
+        ]);
 
         if (results[0]?.success && results[0].data?.records) {
           allVariants.push(...(results[0].data.records as typeof allVariants));
@@ -151,7 +174,7 @@ export function useColorEnrichment({ productIds, colorGroups, colorVariations }:
       }
 
       // Step 3: Fetch images for products with variants
-      const productIdsWithVariants = [...new Set(allVariants.map(v => v.product_id))];
+      const productIdsWithVariants = [...new Set(allVariants.map((v) => v.product_id))];
       const allImages: Array<{
         product_id: string;
         variant_id: string | null;
@@ -164,14 +187,17 @@ export function useColorEnrichment({ productIds, colorGroups, colorVariations }:
 
       for (let i = 0; i < productIdsWithVariants.length; i += CHUNK) {
         const pidChunk = productIdsWithVariants.slice(i, i + CHUNK);
-        const results = await invokeBatchBridge([{
-          table: 'product_images',
-          operation: 'select' as const,
-          select: 'product_id, variant_id, supplier_code, url_cdn, is_og_image, is_primary, image_type',
-          filters: { product_id: pidChunk },
-          limit: 3000,
-          offset: 0,
-        }]);
+        const results = await invokeBatchBridge([
+          {
+            table: 'product_images',
+            operation: 'select' as const,
+            select:
+              'product_id, variant_id, supplier_code, url_cdn, is_og_image, is_primary, image_type',
+            filters: { product_id: pidChunk },
+            limit: 3000,
+            offset: 0,
+          },
+        ]);
 
         if (results[0]?.success && results[0].data?.records) {
           allImages.push(...(results[0].data.records as typeof allImages));
@@ -187,7 +213,8 @@ export function useColorEnrichment({ productIds, colorGroups, colorVariations }:
       for (const img of allImages) {
         if (!img.url_cdn || img.image_type === 'box') continue;
         if ((img.is_primary || img.is_og_image) && img.url_cdn) {
-          if (!primaryImagesByProduct.has(img.product_id)) primaryImagesByProduct.set(img.product_id, new Set());
+          if (!primaryImagesByProduct.has(img.product_id))
+            primaryImagesByProduct.set(img.product_id, new Set());
           primaryImagesByProduct.get(img.product_id)!.add(img.url_cdn);
         }
         if (img.variant_id) {
@@ -229,10 +256,22 @@ export function useColorEnrichment({ productIds, colorGroups, colorVariations }:
           if (bestImage) break;
           // Priority 1: Direct variant_id link in product_images
           const variantImage = imagesByVariantId.get(v.id) || null;
-          if (variantImage) { bestImage = variantImage; bestColorName = v.color_name; bestColorHex = v.color_hex; break; }
+          if (variantImage) {
+            bestImage = variantImage;
+            bestColorName = v.color_name;
+            bestColorHex = v.color_hex;
+            break;
+          }
           // Priority 2: color_code → supplier_code match
-          const colorImage = v.color_code ? imagesByProductAndCode.get(`${productId}|${v.color_code.toUpperCase()}`) || null : null;
-          if (colorImage) { bestImage = colorImage; bestColorName = v.color_name; bestColorHex = v.color_hex; break; }
+          const colorImage = v.color_code
+            ? imagesByProductAndCode.get(`${productId}|${v.color_code.toUpperCase()}`) || null
+            : null;
+          if (colorImage) {
+            bestImage = colorImage;
+            bestColorName = v.color_name;
+            bestColorHex = v.color_hex;
+            break;
+          }
         }
 
         // Priority 3: selected_thumbnail (only if not the main product image)
@@ -241,7 +280,12 @@ export function useColorEnrichment({ productIds, colorGroups, colorVariations }:
             if (v.selected_thumbnail) {
               const productPrimaries = primaryImagesByProduct.get(productId);
               const isMainImage = productPrimaries?.has(v.selected_thumbnail) || false;
-              if (!isMainImage) { bestImage = v.selected_thumbnail; bestColorName = v.color_name; bestColorHex = v.color_hex; break; }
+              if (!isMainImage) {
+                bestImage = v.selected_thumbnail;
+                bestColorName = v.color_name;
+                bestColorHex = v.color_hex;
+                break;
+              }
             }
           }
         }
@@ -252,10 +296,20 @@ export function useColorEnrichment({ productIds, colorGroups, colorVariations }:
             if (v.images?.length) {
               // Filter out main product images from variant images
               const productPrimaries = primaryImagesByProduct.get(productId);
-              const validImages = v.images.filter(img => !productPrimaries?.has(img));
-              if (validImages.length > 0) { bestImage = validImages[0]; bestColorName = v.color_name; bestColorHex = v.color_hex; break; }
+              const validImages = v.images.filter((img) => !productPrimaries?.has(img));
+              if (validImages.length > 0) {
+                bestImage = validImages[0];
+                bestColorName = v.color_name;
+                bestColorHex = v.color_hex;
+                break;
+              }
               // Last resort: use first image even if it's a main image
-              if (v.images.length > 0) { bestImage = v.images[0]; bestColorName = v.color_name; bestColorHex = v.color_hex; break; }
+              if (v.images.length > 0) {
+                bestImage = v.images[0];
+                bestColorName = v.color_name;
+                bestColorHex = v.color_hex;
+                break;
+              }
             }
           }
         }
@@ -266,12 +320,14 @@ export function useColorEnrichment({ productIds, colorGroups, colorVariations }:
           bestColorHex = variants[0].color_hex;
         }
 
-        if (bestImage) withImage++; else withoutImage++;
+        if (bestImage) withImage++;
+        else withoutImage++;
 
         accumulatedMapRef.current.set(productId, {
           image: bestImage,
           stock: totalStock,
-          stockStatus: totalStock <= 0 ? 'out-of-stock' : totalStock < 10 ? 'low-stock' : 'in-stock',
+          stockStatus:
+            totalStock <= 0 ? 'out-of-stock' : totalStock < 10 ? 'low-stock' : 'in-stock',
           colorName: bestColorName,
           colorHex: bestColorHex,
         });
@@ -282,7 +338,9 @@ export function useColorEnrichment({ productIds, colorGroups, colorVariations }:
         enrichedIdsRef.current.add(id);
       }
 
-      logger.log(`[useColorEnrichment] Enriched ${newProductIds.length} new products (${accumulatedMapRef.current.size} total) for ${colorIdArray.length} color IDs | withImage: ${withImage}, withoutImage: ${withoutImage}, noVariant: ${newProductIds.length - variantsByProduct.size}`);
+      logger.log(
+        `[useColorEnrichment] Enriched ${newProductIds.length} new products (${accumulatedMapRef.current.size} total) for ${colorIdArray.length} color IDs | withImage: ${withImage}, withoutImage: ${withoutImage}, noVariant: ${newProductIds.length - variantsByProduct.size}`,
+      );
       return new Map(accumulatedMapRef.current);
     },
     enabled: queryEnabled,
@@ -291,7 +349,8 @@ export function useColorEnrichment({ productIds, colorGroups, colorVariations }:
   });
 
   // Return accumulated map even when query isn't running (for already-enriched products)
-  const resultMap = query.data || (accumulatedMapRef.current.size > 0 ? accumulatedMapRef.current : undefined);
+  const resultMap =
+    query.data || (accumulatedMapRef.current.size > 0 ? accumulatedMapRef.current : undefined);
 
   return { data: resultMap, isLoading: query.isLoading };
 }

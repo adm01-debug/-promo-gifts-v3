@@ -29,7 +29,7 @@ const routeImportMap: Record<string, () => Promise<unknown>> = {
   '/kits': () => import('@/pages/KitBuilderPage'),
   '/meus-kits': () => import('@/pages/KitLibraryPage'),
   '/pedidos': () => import('@/pages/OrdersPage'),
-  
+
   '/tendencias': () => import('@/pages/TrendsPage'),
   '/busca-precos': () => import('@/pages/AdvancedPriceSearchPage'),
   '/ferramentas/bi-comercial': () => import('@/pages/CommercialIntelligencePage'),
@@ -49,9 +49,10 @@ export function prefetchRoute(path: string): void {
 
   prefetched.add(path);
   // Use requestIdleCallback when available for non-blocking prefetch
-  const schedule = typeof requestIdleCallback === 'function'
-    ? requestIdleCallback
-    : (fn: () => void) => setTimeout(fn, 0);
+  const schedule =
+    typeof requestIdleCallback === 'function'
+      ? requestIdleCallback
+      : (fn: () => void) => setTimeout(fn, 0);
 
   schedule(() => {
     importer().catch(() => {

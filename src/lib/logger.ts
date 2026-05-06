@@ -2,7 +2,7 @@
  * Production-safe structured logger utility.
  * - DEV mode: prints all levels with full context
  * - PROD mode: only errors are printed (with structured metadata)
- * 
+ *
  * Usage:
  *   logger.info('User logged in', { userId: '123' });
  *   logger.error('Failed to fetch', { url, status });
@@ -30,7 +30,12 @@ function formatEntry(level: LogLevel, message: string, data?: Record<string, unk
 
 function extractData(args: unknown[]): Record<string, unknown> | undefined {
   if (args.length === 0) return undefined;
-  if (args.length === 1 && typeof args[0] === 'object' && args[0] !== null && !(args[0] instanceof Error)) {
+  if (
+    args.length === 1 &&
+    typeof args[0] === 'object' &&
+    args[0] !== null &&
+    !(args[0] instanceof Error)
+  ) {
     return args[0] as Record<string, unknown>;
   }
   return { details: args };

@@ -53,13 +53,14 @@ export function useProductVariantsWithStock(productId: string | undefined) {
       }>({
         table: 'product_variants',
         operation: 'select',
-        select: 'id, product_id, sku, color_code, color_name, color_hex, stock_quantity, selected_thumbnail',
+        select:
+          'id, product_id, sku, color_code, color_name, color_hex, stock_quantity, selected_thumbnail',
         filters: { product_id: productId, is_active: true },
         limit: 200,
       });
 
       // Map to VariantWithStock (next_entry fields come from variant_supplier_sources if available)
-      return result.records.map(v => ({
+      return result.records.map((v) => ({
         ...v,
         next_entry_date: null,
         next_entry_quantity: null,
@@ -97,7 +98,7 @@ export function processStockEntries(variants: VariantWithStock[]): StockEntry[] 
  */
 export function calculateColorSummary(
   variants: VariantWithStock[],
-  stockEntries: StockEntry[]
+  stockEntries: StockEntry[],
 ): ColorSummary[] {
   const colorMap = new Map<string, ColorSummary>();
 

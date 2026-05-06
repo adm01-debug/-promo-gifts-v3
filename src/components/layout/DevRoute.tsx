@@ -1,12 +1,12 @@
-import { type ReactNode, useEffect, useState } from "react";
-import { Navigate, Outlet, useLocation } from "react-router-dom";
-import { Loader2 } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "sonner";
-import { MfaEnrollmentDialog } from "@/components/security/MfaEnrollmentDialog";
-import { MfaChallengeDialog } from "@/components/security/MfaChallengeDialog";
-import { logAccessDenied } from "@/lib/access/log-access-denied";
-import { DevAccessDeniedPage } from "@/components/access/DevAccessDeniedPage";
+import { type ReactNode, useEffect, useState } from 'react';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
+import { MfaEnrollmentDialog } from '@/components/security/MfaEnrollmentDialog';
+import { MfaChallengeDialog } from '@/components/security/MfaChallengeDialog';
+import { logAccessDenied } from '@/lib/access/log-access-denied';
+import { DevAccessDeniedPage } from '@/components/access/DevAccessDeniedPage';
 
 interface DevRouteProps {
   children?: ReactNode;
@@ -34,15 +34,7 @@ interface DevRouteProps {
  *      • Retorno para destino seguro (supervisor → /admin/usuarios, agente → /).
  */
 export function DevRoute({ children }: DevRouteProps) {
-  const {
-    user,
-    isDev,
-    isLoading,
-    currentAAL,
-    hasMFA,
-    mfaRequired,
-    role,
-  } = useAuth();
+  const { user, isDev, isLoading, currentAAL, hasMFA, mfaRequired, role } = useAuth();
   const location = useLocation();
   const [enrollOpen, setEnrollOpen] = useState(false);
 
@@ -73,12 +65,12 @@ export function DevRoute({ children }: DevRouteProps) {
   useEffect(() => {
     if (isLoading || !user || isDev) return;
 
-    const TOAST_ID = "dev-route-blocked";
+    const TOAST_ID = 'dev-route-blocked';
     const STORAGE_KEY = `dev-route-toast:${user.id}`;
     const WINDOW_MS = 60_000;
     let shouldShow = true;
     try {
-      const last = Number(sessionStorage.getItem(STORAGE_KEY) ?? "0");
+      const last = Number(sessionStorage.getItem(STORAGE_KEY) ?? '0');
       if (last && Date.now() - last < WINDOW_MS) shouldShow = false;
       else sessionStorage.setItem(STORAGE_KEY, String(Date.now()));
     } catch {
@@ -86,9 +78,9 @@ export function DevRoute({ children }: DevRouteProps) {
     }
 
     if (shouldShow) {
-      toast.error("Acesso restrito", {
+      toast.error('Acesso restrito', {
         id: TOAST_ID,
-        description: "Área exclusiva da equipe técnica.",
+        description: 'Área exclusiva da equipe técnica.',
         duration: 4000,
       });
     }
@@ -96,14 +88,14 @@ export function DevRoute({ children }: DevRouteProps) {
     void logAccessDenied({
       userId: user.id,
       blockedPath,
-      requiredRole: "dev",
+      requiredRole: 'dev',
       userRole: role,
     });
   }, [isLoading, user, isDev, blockedPath, role]);
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="flex min-h-screen items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
@@ -118,22 +110,18 @@ export function DevRoute({ children }: DevRouteProps) {
   if (isDev && !hasMFA) {
     return (
       <>
-        <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex min-h-screen items-center justify-center bg-background">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
-        <MfaEnrollmentDialog
-          open={enrollOpen}
-          onOpenChange={setEnrollOpen}
-          enforce
-        />
+        <MfaEnrollmentDialog open={enrollOpen} onOpenChange={setEnrollOpen} enforce />
       </>
     );
   }
 
-  if (isDev && mfaRequired && currentAAL === "aal1") {
+  if (isDev && mfaRequired && currentAAL === 'aal1') {
     return (
       <>
-        <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex min-h-screen items-center justify-center bg-background">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
         <MfaChallengeDialog open />

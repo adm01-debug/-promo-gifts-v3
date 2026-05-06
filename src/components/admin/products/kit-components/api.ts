@@ -118,7 +118,10 @@ export async function createComponentMedia(payload: Record<string, unknown>): Pr
   if (!data?.success) throw new Error(data?.error || 'Erro ao criar mídia');
 }
 
-export async function updateComponentMedia(id: string, payload: Record<string, unknown>): Promise<void> {
+export async function updateComponentMedia(
+  id: string,
+  payload: Record<string, unknown>,
+): Promise<void> {
   const { data, error } = await supabase.functions.invoke('external-db-bridge', {
     body: { table: 'kit_component_media', operation: 'update', id, data: payload },
   });

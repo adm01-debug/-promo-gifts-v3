@@ -1,5 +1,5 @@
-import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
+import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
 
 interface SkeletonProps {
   className?: string;
@@ -7,23 +7,18 @@ interface SkeletonProps {
 }
 
 const shimmer = {
-  initial: { x: "-100%" },
-  animate: { x: "100%" },
+  initial: { x: '-100%' },
+  animate: { x: '100%' },
   transition: {
     repeat: Infinity,
     duration: 1.5,
-    ease: "easeInOut"
-  }
+    ease: 'easeInOut',
+  },
 };
 
 export function Skeleton({ className, animate = true }: SkeletonProps) {
   return (
-    <div 
-      className={cn(
-        "relative overflow-hidden rounded-xl bg-muted",
-        className
-      )}
-    >
+    <div className={cn('relative overflow-hidden rounded-xl bg-muted', className)}>
       {animate && (
         <motion.div
           className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
@@ -38,22 +33,22 @@ export function Skeleton({ className, animate = true }: SkeletonProps) {
 
 export function ProductCardSkeleton() {
   return (
-    <div className="group relative flex flex-col rounded-xl border border-border bg-card overflow-hidden">
+    <div className="group relative flex flex-col overflow-hidden rounded-xl border border-border bg-card">
       {/* Image */}
       <Skeleton className="aspect-square w-full" />
-      
+
       {/* Content */}
-      <div className="p-4 space-y-3">
+      <div className="space-y-3 p-4">
         {/* Category badge */}
         <Skeleton className="h-5 w-20 rounded-full" />
-        
+
         {/* Title */}
         <Skeleton className="h-5 w-full" />
         <Skeleton className="h-5 w-3/4" />
-        
+
         {/* SKU */}
         <Skeleton className="h-4 w-24" />
-        
+
         {/* Price */}
         <div className="flex items-center justify-between pt-2">
           <Skeleton className="h-6 w-20" />
@@ -66,7 +61,7 @@ export function ProductCardSkeleton() {
 
 export function ProductGridSkeleton({ count = 8 }: { count?: number }) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {Array.from({ length: count }).map((_, i) => (
         <ProductCardSkeleton key={i} />
       ))}
@@ -76,28 +71,28 @@ export function ProductGridSkeleton({ count = 8 }: { count?: number }) {
 
 export function QuoteCardSkeleton() {
   return (
-    <div className="rounded-xl border border-border bg-card p-4 space-y-4">
+    <div className="space-y-4 rounded-xl border border-border bg-card p-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <Skeleton className="h-5 w-24" />
         <Skeleton className="h-6 w-20 rounded-full" />
       </div>
-      
+
       {/* Client */}
       <div className="space-y-2">
         <Skeleton className="h-5 w-40" />
         <Skeleton className="h-4 w-32" />
       </div>
-      
+
       {/* Items preview */}
       <div className="flex gap-2">
         {[1, 2, 3].map((i) => (
           <Skeleton key={i} className="h-12 w-12 rounded-xl" />
         ))}
       </div>
-      
+
       {/* Footer */}
-      <div className="flex items-center justify-between pt-2 border-t border-border">
+      <div className="flex items-center justify-between border-t border-border pt-2">
         <Skeleton className="h-6 w-24" />
         <Skeleton className="h-8 w-20 rounded-xl" />
       </div>
@@ -107,7 +102,7 @@ export function QuoteCardSkeleton() {
 
 export function QuoteListSkeleton({ count = 6 }: { count?: number }) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
       {Array.from({ length: count }).map((_, i) => (
         <QuoteCardSkeleton key={i} />
       ))}
@@ -119,7 +114,7 @@ export function TableRowSkeleton({ columns = 5 }: { columns?: number }) {
   return (
     <tr className="border-b border-border">
       {Array.from({ length: columns }).map((_, i) => (
-        <td key={i} className="py-4 px-4">
+        <td key={i} className="px-4 py-4">
           <Skeleton className="h-5 w-full max-w-[120px]" />
         </td>
       ))}
@@ -129,12 +124,12 @@ export function TableRowSkeleton({ columns = 5 }: { columns?: number }) {
 
 export function TableSkeleton({ rows = 5, columns = 5 }: { rows?: number; columns?: number }) {
   return (
-    <div className="rounded-xl border border-border overflow-hidden">
+    <div className="overflow-hidden rounded-xl border border-border">
       <table className="w-full">
         <thead className="bg-muted/50">
           <tr>
             {Array.from({ length: columns }).map((_, i) => (
-              <th key={i} className="py-3 px-4 text-left">
+              <th key={i} className="px-4 py-3 text-left">
                 <Skeleton className="h-4 w-20" />
               </th>
             ))}
@@ -152,7 +147,7 @@ export function TableSkeleton({ rows = 5, columns = 5 }: { rows?: number; column
 
 export function StatCardSkeleton() {
   return (
-    <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+    <div className="space-y-3 rounded-xl border border-border bg-card p-4">
       <div className="flex items-center justify-between">
         <Skeleton className="h-4 w-24" />
         <Skeleton className="h-8 w-8 rounded-xl" />
@@ -165,7 +160,7 @@ export function StatCardSkeleton() {
 
 export function StatsGridSkeleton({ count = 4 }: { count?: number }) {
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
       {Array.from({ length: count }).map((_, i) => (
         <StatCardSkeleton key={i} />
       ))}
@@ -175,7 +170,7 @@ export function StatsGridSkeleton({ count = 4 }: { count?: number }) {
 
 export function ClientCardSkeleton() {
   return (
-    <div className="rounded-xl border border-border bg-card p-4 space-y-4">
+    <div className="space-y-4 rounded-xl border border-border bg-card p-4">
       {/* Avatar and name */}
       <div className="flex items-center gap-3">
         <Skeleton className="h-12 w-12 rounded-full" />
@@ -184,15 +179,15 @@ export function ClientCardSkeleton() {
           <Skeleton className="h-4 w-24" />
         </div>
       </div>
-      
+
       {/* Contact info */}
       <div className="space-y-2">
         <Skeleton className="h-4 w-48" />
         <Skeleton className="h-4 w-36" />
       </div>
-      
+
       {/* Stats */}
-      <div className="flex gap-4 pt-2 border-t border-border">
+      <div className="flex gap-4 border-t border-border pt-2">
         <div className="space-y-1">
           <Skeleton className="h-3 w-16" />
           <Skeleton className="h-5 w-20" />
@@ -211,7 +206,7 @@ export function OrderTimelineSkeleton() {
     <div className="space-y-4">
       {Array.from({ length: 4 }).map((_, i) => (
         <div key={i} className="flex gap-4">
-          <Skeleton className="h-10 w-10 rounded-full flex-shrink-0" />
+          <Skeleton className="h-10 w-10 flex-shrink-0 rounded-full" />
           <div className="flex-1 space-y-2">
             <Skeleton className="h-5 w-40" />
             <Skeleton className="h-4 w-full max-w-[300px]" />
@@ -228,22 +223,22 @@ export function DashboardSkeleton() {
     <div className="space-y-6">
       {/* Stats */}
       <StatsGridSkeleton />
-      
+
       {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div className="rounded-xl border border-border bg-card p-4">
-          <Skeleton className="h-6 w-40 mb-4" />
+          <Skeleton className="mb-4 h-6 w-40" />
           <Skeleton className="h-64 w-full rounded-xl" />
         </div>
         <div className="rounded-xl border border-border bg-card p-4">
-          <Skeleton className="h-6 w-40 mb-4" />
+          <Skeleton className="mb-4 h-6 w-40" />
           <Skeleton className="h-64 w-full rounded-xl" />
         </div>
       </div>
-      
+
       {/* Recent activity */}
       <div className="rounded-xl border border-border bg-card p-4">
-        <Skeleton className="h-6 w-48 mb-4" />
+        <Skeleton className="mb-4 h-6 w-48" />
         <TableSkeleton rows={4} columns={5} />
       </div>
     </div>

@@ -42,10 +42,10 @@ export function useSegmentosCompletos() {
     queryKey: [...QUERY_KEY, 'completos'],
     queryFn: async () => {
       const { segmentos, count } = await ramoAtividadeService.getSegmentosCompletos();
-      
+
       // Agrupar por ramo
       const byRamo = new Map<string, SegmentoComplete[]>();
-      segmentos.forEach(seg => {
+      segmentos.forEach((seg) => {
         const list = byRamo.get(seg.ramo_slug) || [];
         list.push(seg);
         byRamo.set(seg.ramo_slug, list);

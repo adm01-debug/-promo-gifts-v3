@@ -1,5 +1,5 @@
-import { cn } from "@/lib/utils";
-import { type ReactNode } from "react";
+import { cn } from '@/lib/utils';
+import { type ReactNode } from 'react';
 
 /**
  * Enhanced Skeleton with shimmer effect
@@ -15,11 +15,11 @@ export function SkeletonShimmer({ className, children }: SkeletonShimmerProps) {
   return (
     <div
       className={cn(
-        "relative overflow-hidden rounded-xl bg-muted",
-        "before:absolute before:inset-0",
-        "before:-translate-x-full before:animate-shimmer",
-        "before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent",
-        className
+        'relative overflow-hidden rounded-xl bg-muted',
+        'before:absolute before:inset-0',
+        'before:-translate-x-full before:animate-shimmer',
+        'before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent',
+        className,
       )}
       aria-hidden="true"
       role="presentation"
@@ -36,20 +36,13 @@ interface TextSkeletonProps {
   lastLineWidth?: string;
 }
 
-export function TextSkeleton({ 
-  lines = 3, 
-  className,
-  lastLineWidth = "60%" 
-}: TextSkeletonProps) {
+export function TextSkeleton({ lines = 3, className, lastLineWidth = '60%' }: TextSkeletonProps) {
   return (
-    <div className={cn("space-y-2", className)} aria-label="Carregando texto...">
+    <div className={cn('space-y-2', className)} aria-label="Carregando texto...">
       {Array.from({ length: lines }).map((_, i) => (
         <SkeletonShimmer
           key={i}
-          className={cn(
-            "h-4",
-            i === lines - 1 ? `w-[${lastLineWidth}]` : "w-full"
-          )}
+          className={cn('h-4', i === lines - 1 ? `w-[${lastLineWidth}]` : 'w-full')}
           style={i === lines - 1 ? { width: lastLineWidth } : undefined}
         />
       ))}
@@ -64,22 +57,17 @@ interface CardSkeletonProps {
   className?: string;
 }
 
-export function CardSkeleton({ 
-  showImage = true, 
+export function CardSkeleton({
+  showImage = true,
   showActions = true,
-  className 
+  className,
 }: CardSkeletonProps) {
   return (
-    <div 
-      className={cn(
-        "rounded-xl border bg-card p-4 space-y-4",
-        className
-      )}
+    <div
+      className={cn('space-y-4 rounded-xl border bg-card p-4', className)}
       aria-label="Carregando card..."
     >
-      {showImage && (
-        <SkeletonShimmer className="h-40 w-full rounded-xl" />
-      )}
+      {showImage && <SkeletonShimmer className="h-40 w-full rounded-xl" />}
       <div className="space-y-2">
         <SkeletonShimmer className="h-5 w-3/4" />
         <SkeletonShimmer className="h-4 w-1/2" />
@@ -101,23 +89,14 @@ interface TableRowSkeletonProps {
   className?: string;
 }
 
-export function TableRowSkeleton({ 
-  columns = 5, 
-  className 
-}: TableRowSkeletonProps) {
+export function TableRowSkeleton({ columns = 5, className }: TableRowSkeletonProps) {
   return (
-    <div 
-      className={cn("flex items-center gap-4 py-3 px-4", className)}
+    <div
+      className={cn('flex items-center gap-4 px-4 py-3', className)}
       aria-label="Carregando linha..."
     >
       {Array.from({ length: columns }).map((_, i) => (
-        <SkeletonShimmer
-          key={i}
-          className={cn(
-            "h-4",
-            i === 0 ? "w-8" : "flex-1"
-          )}
-        />
+        <SkeletonShimmer key={i} className={cn('h-4', i === 0 ? 'w-8' : 'flex-1')} />
       ))}
     </div>
   );
@@ -131,27 +110,21 @@ interface TableSkeletonProps {
   className?: string;
 }
 
-export function TableSkeleton({ 
-  rows = 5, 
+export function TableSkeleton({
+  rows = 5,
   columns = 5,
   showHeader = true,
-  className 
+  className,
 }: TableSkeletonProps) {
   return (
-    <div 
-      className={cn("rounded-xl border bg-card overflow-hidden", className)}
+    <div
+      className={cn('overflow-hidden rounded-xl border bg-card', className)}
       aria-label="Carregando tabela..."
     >
       {showHeader && (
-        <div className="flex items-center gap-4 py-3 px-4 bg-muted/50 border-b">
+        <div className="flex items-center gap-4 border-b bg-muted/50 px-4 py-3">
           {Array.from({ length: columns }).map((_, i) => (
-            <SkeletonShimmer
-              key={i}
-              className={cn(
-                "h-4",
-                i === 0 ? "w-8" : "flex-1"
-              )}
-            />
+            <SkeletonShimmer key={i} className={cn('h-4', i === 0 ? 'w-8' : 'flex-1')} />
           ))}
         </div>
       )}
@@ -166,33 +139,26 @@ export function TableSkeleton({
 
 // Avatar skeleton
 interface AvatarSkeletonProps {
-  size?: "sm" | "md" | "lg" | "xl";
+  size?: 'sm' | 'md' | 'lg' | 'xl';
   className?: string;
 }
 
-export function AvatarSkeleton({ size = "md", className }: AvatarSkeletonProps) {
+export function AvatarSkeleton({ size = 'md', className }: AvatarSkeletonProps) {
   const sizeClasses = {
-    sm: "h-8 w-8",
-    md: "h-10 w-10",
-    lg: "h-12 w-12",
-    xl: "h-16 w-16"
+    sm: 'h-8 w-8',
+    md: 'h-10 w-10',
+    lg: 'h-12 w-12',
+    xl: 'h-16 w-16',
   };
 
-  return (
-    <SkeletonShimmer 
-      className={cn("rounded-full", sizeClasses[size], className)} 
-    />
-  );
+  return <SkeletonShimmer className={cn('rounded-full', sizeClasses[size], className)} />;
 }
 
 // Stats card skeleton
 export function StatsCardSkeleton({ className }: { className?: string }) {
   return (
-    <div 
-      className={cn(
-        "rounded-xl border bg-card p-6 space-y-4",
-        className
-      )}
+    <div
+      className={cn('space-y-4 rounded-xl border bg-card p-6', className)}
       aria-label="Carregando estatística..."
     >
       <div className="flex items-center justify-between">
@@ -211,18 +177,15 @@ export function StatsCardSkeleton({ className }: { className?: string }) {
 // Chart skeleton
 export function ChartSkeleton({ className }: { className?: string }) {
   return (
-    <div 
-      className={cn(
-        "rounded-xl border bg-card p-6 space-y-4",
-        className
-      )}
+    <div
+      className={cn('space-y-4 rounded-xl border bg-card p-6', className)}
       aria-label="Carregando gráfico..."
     >
       <div className="flex items-center justify-between">
         <SkeletonShimmer className="h-5 w-32" />
         <SkeletonShimmer className="h-8 w-24 rounded-xl" />
       </div>
-      <div className="flex items-end gap-2 h-48">
+      <div className="flex h-48 items-end gap-2">
         {Array.from({ length: 12 }).map((_, i) => (
           <SkeletonShimmer
             key={i}
@@ -243,15 +206,12 @@ export function ChartSkeleton({ className }: { className?: string }) {
 // Product card skeleton (specific for this app)
 export function ProductCardSkeleton({ className }: { className?: string }) {
   return (
-    <div 
-      className={cn(
-        "rounded-xl border bg-card overflow-hidden",
-        className
-      )}
+    <div
+      className={cn('overflow-hidden rounded-xl border bg-card', className)}
       aria-label="Carregando produto..."
     >
       <SkeletonShimmer className="h-48 w-full" />
-      <div className="p-4 space-y-3">
+      <div className="space-y-3 p-4">
         <SkeletonShimmer className="h-5 w-3/4" />
         <div className="flex items-center gap-2">
           <SkeletonShimmer className="h-4 w-16" />
@@ -269,36 +229,24 @@ export function ProductCardSkeleton({ className }: { className?: string }) {
 // List item skeleton
 export function ListItemSkeleton({ className }: { className?: string }) {
   return (
-    <div 
-      className={cn(
-        "flex items-center gap-4 p-4 rounded-xl border bg-card",
-        className
-      )}
+    <div
+      className={cn('flex items-center gap-4 rounded-xl border bg-card p-4', className)}
       aria-label="Carregando item..."
     >
-      <SkeletonShimmer className="h-12 w-12 rounded-xl flex-shrink-0" />
+      <SkeletonShimmer className="h-12 w-12 flex-shrink-0 rounded-xl" />
       <div className="flex-1 space-y-2">
         <SkeletonShimmer className="h-4 w-3/4" />
         <SkeletonShimmer className="h-3 w-1/2" />
       </div>
-      <SkeletonShimmer className="h-8 w-8 rounded-xl flex-shrink-0" />
+      <SkeletonShimmer className="h-8 w-8 flex-shrink-0 rounded-xl" />
     </div>
   );
 }
 
 // Form skeleton
-export function FormSkeleton({ 
-  fields = 4,
-  className 
-}: { 
-  fields?: number;
-  className?: string;
-}) {
+export function FormSkeleton({ fields = 4, className }: { fields?: number; className?: string }) {
   return (
-    <div 
-      className={cn("space-y-6", className)}
-      aria-label="Carregando formulário..."
-    >
+    <div className={cn('space-y-6', className)} aria-label="Carregando formulário...">
       {Array.from({ length: fields }).map((_, i) => (
         <div key={i} className="space-y-2">
           <SkeletonShimmer className="h-4 w-24" />
@@ -316,10 +264,7 @@ export function FormSkeleton({
 // Page header skeleton
 export function PageHeaderSkeleton({ className }: { className?: string }) {
   return (
-    <div 
-      className={cn("space-y-4", className)}
-      aria-label="Carregando cabeçalho..."
-    >
+    <div className={cn('space-y-4', className)} aria-label="Carregando cabeçalho...">
       <div className="flex items-center justify-between">
         <div className="space-y-2">
           <SkeletonShimmer className="h-8 w-48" />
@@ -337,17 +282,14 @@ export function PageHeaderSkeleton({ className }: { className?: string }) {
 // Full page loading skeleton
 export function PageSkeleton({ className }: { className?: string }) {
   return (
-    <div 
-      className={cn("space-y-6 p-6", className)}
-      aria-label="Carregando página..."
-    >
+    <div className={cn('space-y-6 p-6', className)} aria-label="Carregando página...">
       <PageHeaderSkeleton />
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
         {Array.from({ length: 4 }).map((_, i) => (
           <StatsCardSkeleton key={i} />
         ))}
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <ChartSkeleton />
         <TableSkeleton rows={5} columns={4} />
       </div>

@@ -1,5 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { getGreeting, getHighestRole, isSupervisorOrAbove, getRandomGreeting, FLOW_GREETINGS } from './auth-utils';
+import {
+  getGreeting,
+  getHighestRole,
+  isSupervisorOrAbove,
+  getRandomGreeting,
+  FLOW_GREETINGS,
+} from './auth-utils';
 import { AppRole } from '@/contexts/AuthContext';
 
 describe('auth-utils', () => {
@@ -84,10 +90,9 @@ describe('auth-utils', () => {
       vi.setSystemTime(new Date(2024, 0, 1, 9, 0)); // 09:00 -> "Bom dia"
       const name = 'John';
       const result = getRandomGreeting(name);
-      
+
       expect(result).toContain(name);
       expect(result).toContain('Bom dia');
     });
   });
 });
-

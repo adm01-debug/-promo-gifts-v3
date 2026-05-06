@@ -1,5 +1,5 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 // Tipos baseados nas respostas das RPCs
 export interface CommemorativeDate {
@@ -48,26 +48,26 @@ export interface CommemorativeDateVariant {
 // Helper para chamar a edge function
 async function callCommemorativeDatesAPI<T>(
   action: string,
-  params?: Record<string, unknown>
+  params?: Record<string, unknown>,
 ): Promise<T> {
   const { data: sessionData } = await supabase.auth.getSession();
   const token = sessionData?.session?.access_token;
 
   if (!token) {
-    throw new Error("Usuário não autenticado");
+    throw new Error('Usuário não autenticado');
   }
 
-  const { data, error } = await supabase.functions.invoke("commemorative-dates", {
+  const { data, error } = await supabase.functions.invoke('commemorative-dates', {
     body: { action, params },
   });
 
   if (error) {
     console.error(`Error calling commemorative-dates/${action}:`, error);
-    throw new Error(error.message || "Erro ao buscar datas comemorativas");
+    throw new Error(error.message || 'Erro ao buscar datas comemorativas');
   }
 
   if (!data?.success) {
-    throw new Error(data?.error || "Erro desconhecido");
+    throw new Error(data?.error || 'Erro desconhecido');
   }
 
   return data.data as T;
@@ -79,8 +79,8 @@ async function callCommemorativeDatesAPI<T>(
  */
 export function useActiveCommemorativeDates() {
   return useQuery({
-    queryKey: ["commemorative-dates", "active"],
-    queryFn: () => callCommemorativeDatesAPI<CommemorativeDate[]>("get_active_dates"),
+    queryKey: ['commemorative-dates', 'active'],
+    queryFn: () => callCommemorativeDatesAPI<CommemorativeDate[]>('get_active_dates'),
     staleTime: 1000 * 60 * 5, // 5 minutos
     gcTime: 1000 * 60 * 30, // 30 minutos
   });
@@ -92,9 +92,9 @@ export function useActiveCommemorativeDates() {
  */
 export function useUpcomingCommemorativeDates(daysAhead: number = 60) {
   return useQuery({
-    queryKey: ["commemorative-dates", "upcoming", daysAhead],
+    queryKey: ['commemorative-dates', 'upcoming', daysAhead],
     queryFn: () =>
-      callCommemorativeDatesAPI<CommemorativeDate[]>("get_upcoming_dates", {
+      callCommemorativeDatesAPI<CommemorativeDate[]>('get_upcoming_dates', {
         days_ahead: daysAhead,
       }),
     staleTime: 1000 * 60 * 10, // 10 minutos
@@ -108,9 +108,9 @@ export function useUpcomingCommemorativeDates(daysAhead: number = 60) {
  */
 export function useCommemorativeDatesWithColors() {
   return useQuery({
-    queryKey: ["commemorative-dates", "with-colors"],
+    queryKey: ['commemorative-dates', 'with-colors'],
     queryFn: () =>
-      callCommemorativeDatesAPI<CommemorativeDateWithColors[]>("get_dates_with_colors"),
+      callCommemorativeDatesAPI<CommemorativeDateWithColors[]>('get_dates_with_colors'),
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 30,
   });
@@ -125,12 +125,12 @@ export function useCommemorativeDatesWithColors() {
 export function useProductsByCommemorativeDate(
   slug: string | null,
   limit: number = 100,
-  includeAllColors: boolean = false
+  includeAllColors: boolean = false,
 ) {
   return useQuery({
-    queryKey: ["commemorative-dates", "products", slug, limit, includeAllColors],
+    queryKey: ['commemorative-dates', 'products', slug, limit, includeAllColors],
     queryFn: () =>
-      callCommemorativeDatesAPI<CommemorativeDateVariant[]>("get_products_by_date", {
+      callCommemorativeDatesAPI<CommemorativeDateVariant[]>('get_products_by_date', {
         slug,
         limit,
         include_all_colors: includeAllColors,
@@ -159,7 +159,8 @@ export function useCommemorativeDateColorGroups(dateSlug: string | null) {
   }
 
   const colorGroupIds = date.associated_colors.map((c) => c.color_group_id);
-  const primaryColor = date.associated_colors.find((c) => c.is_primary) || date.associated_colors[0];
+  const primaryColor =
+    date.associated_colors.find((c) => c.is_primary) || date.associated_colors[0];
 
   return {
     colorGroupIds,

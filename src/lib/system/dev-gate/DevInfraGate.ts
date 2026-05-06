@@ -49,20 +49,14 @@ export class DevInfraGate {
   private readonly accessPolicy: AccessPolicy;
   private readonly cache: Map<string, boolean> = new Map();
   private readonly listeners: Set<() => void> = new Set();
-  
+
   private debounceTimer: ReturnType<typeof setTimeout> | null = null;
   private envFlagCache: GateValue | null = null;
 
-  constructor(
-    providers?: GateFlagProvider[], 
-    accessPolicy?: AccessPolicy
-  ) {
-    this.providers = providers ?? [
-      new EnvGateProvider(),
-      new LocalStorageGateProvider()
-    ];
+  constructor(providers?: GateFlagProvider[], accessPolicy?: AccessPolicy) {
+    this.providers = providers ?? [new EnvGateProvider(), new LocalStorageGateProvider()];
     this.accessPolicy = accessPolicy ?? new DefaultAccessPolicy(DEFAULT_ALLOWED_ROLES);
-    
+
     this.setupStorageListener();
   }
 
@@ -123,14 +117,14 @@ export class DevInfraGate {
 
     const cacheKey = this.generateCacheKey(userRoles);
     const cachedResult = this.cache.get(cacheKey);
-    
+
     if (cachedResult !== undefined) return cachedResult;
 
     const finalResult = this.evaluateProviders();
     // Cache limitado para evitar crescimento infinito do Map se roles variarem muito (leak prevention)
     if (this.cache.size > 100) this.cache.clear();
     this.cache.set(cacheKey, finalResult);
-    
+
     return finalResult;
   }
 
@@ -158,7 +152,7 @@ export class DevInfraGate {
    */
   private evaluateProviders(): boolean {
     // Valor padrão caso nenhum provider decida (auto)
-    let decision = true; 
+    let decision = true;
 
     for (const provider of this.providers) {
       const value = this.getProviderValue(provider);
@@ -200,7 +194,7 @@ export class DevInfraGate {
 
     this.debounceTimer = setTimeout(() => {
       this.debounceTimer = null;
-      this.listeners.forEach(listener => listener());
+      this.listeners.forEach((listener) => listener());
     }, 50);
   }
 }

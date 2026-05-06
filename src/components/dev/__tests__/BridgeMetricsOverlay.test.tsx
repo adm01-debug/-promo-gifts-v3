@@ -1,31 +1,31 @@
-import { render, screen, fireEvent } from "@testing-library/react";
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import BridgeMetricsOverlay from "../BridgeMetricsOverlay";
-import { useDevGate } from "@/hooks/useDevGate";
-import { useBridgeMetrics } from "@/hooks/dev/useBridgeMetrics";
+import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import BridgeMetricsOverlay from '../BridgeMetricsOverlay';
+import { useDevGate } from '@/hooks/useDevGate';
+import { useBridgeMetrics } from '@/hooks/dev/useBridgeMetrics';
 
 // Mocks
-vi.mock("@/hooks/useDevGate", () => ({
+vi.mock('@/hooks/useDevGate', () => ({
   useDevGate: vi.fn(),
 }));
 
-vi.mock("@/hooks/dev/useBridgeMetrics", () => ({
+vi.mock('@/hooks/dev/useBridgeMetrics', () => ({
   useBridgeMetrics: vi.fn(),
 }));
 
 // We need to mock import.meta.env.PROD
 // Vitest allows this via vi.stubEnv or define
-vi.stubEnv("PROD", ""); // Ensure it's not PROD by default
+vi.stubEnv('PROD', ''); // Ensure it's not PROD by default
 
-describe("BridgeMetricsOverlay Regression Tests", () => {
+describe('BridgeMetricsOverlay Regression Tests', () => {
   const mockMetrics = {
     open: false,
     setOpen: vi.fn(),
     paused: false,
     setPaused: vi.fn(),
-    filter: "all",
+    filter: 'all',
     setFilter: vi.fn(),
-    tab: "calls",
+    tab: 'calls',
     setTab: vi.fn(),
     samples: [],
     longTasks: [],
@@ -37,7 +37,7 @@ describe("BridgeMetricsOverlay Regression Tests", () => {
     vi.clearAllMocks();
   });
 
-  it("should return null if not allowed", () => {
+  it('should return null if not allowed', () => {
     (useDevGate as any).mockReturnValue({ isAllowed: false, isDev: false });
     (useBridgeMetrics as any).mockReturnValue(mockMetrics);
 
@@ -45,24 +45,24 @@ describe("BridgeMetricsOverlay Regression Tests", () => {
     expect(container.firstChild).toBeNull();
   });
 
-  it("should render the open button if allowed but closed", () => {
+  it('should render the open button if allowed but closed', () => {
     (useDevGate as any).mockReturnValue({ isAllowed: true, isDev: true });
     (useBridgeMetrics as any).mockReturnValue({ ...mockMetrics, open: false });
 
     render(<BridgeMetricsOverlay />);
-    expect(screen.getByRole("button", { name: /Abrir métricas de bridge/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Abrir métricas de bridge/i })).toBeInTheDocument();
   });
 
-  it("should render the full panel when open", () => {
+  it('should render the full panel when open', () => {
     (useDevGate as any).mockReturnValue({ isAllowed: true, isDev: true });
     (useBridgeMetrics as any).mockReturnValue({ ...mockMetrics, open: true });
 
     render(<BridgeMetricsOverlay />);
-    expect(screen.getByText("Métricas de Bridge")).toBeInTheDocument();
-    expect(screen.getByText("live")).toBeInTheDocument();
+    expect(screen.getByText('Métricas de Bridge')).toBeInTheDocument();
+    expect(screen.getByText('live')).toBeInTheDocument();
   });
 
-  it("should toggle between calls and longtasks tabs", () => {
+  it('should toggle between calls and longtasks tabs', () => {
     const setTabMock = vi.fn();
     (useDevGate as any).mockReturnValue({ isAllowed: true, isDev: true });
     (useBridgeMetrics as any).mockReturnValue({ ...mockMetrics, open: true, setTab: setTabMock });
@@ -71,6 +71,6 @@ describe("BridgeMetricsOverlay Regression Tests", () => {
     const longTasksTab = screen.getByText(/longtasks/i);
     fireEvent.click(longTasksTab);
 
-    expect(setTabMock).toHaveBeenCalledWith("longtasks");
+    expect(setTabMock).toHaveBeenCalledWith('longtasks');
   });
 });

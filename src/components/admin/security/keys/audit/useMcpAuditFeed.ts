@@ -3,26 +3,26 @@
  * Lê admin_audit_log filtrado por resource_type='mcp_api_key', cruza com profiles
  * para exibir email do ator. Suporta filtros de ação, ator, período, keyId, "só FULL".
  */
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 export type AuditAction =
-  | "mcp_key.issued"
-  | "mcp_key.rotated"
-  | "mcp_key.updated"
-  | "mcp_key.revoked"
-  | "mcp_key.scope_escalated"
-  | "mcp_key.issue_denied"
-  | "mcp_key.issue_error"
-  | "mcp_key.revoke_denied"
-  | "mcp_key.revoke_error"
-  | "mcp_key.update_denied"
-  | "mcp_key.update_error"
-  | "mcp_key.rotate_denied"
-  | "mcp_key.rotate_error"
-  | "mcp_tool.granted"
-  | "mcp_tool.denied"
-  | "mcp_tool.error";
+  | 'mcp_key.issued'
+  | 'mcp_key.rotated'
+  | 'mcp_key.updated'
+  | 'mcp_key.revoked'
+  | 'mcp_key.scope_escalated'
+  | 'mcp_key.issue_denied'
+  | 'mcp_key.issue_error'
+  | 'mcp_key.revoke_denied'
+  | 'mcp_key.revoke_error'
+  | 'mcp_key.update_denied'
+  | 'mcp_key.update_error'
+  | 'mcp_key.rotate_denied'
+  | 'mcp_key.rotate_error'
+  | 'mcp_tool.granted'
+  | 'mcp_tool.denied'
+  | 'mcp_tool.error';
 
 export interface AuditFeedRow {
   id: string;
@@ -38,7 +38,7 @@ export interface AuditFeedRow {
   started_at?: string | null;
   finished_at?: string | null;
   duration_ms?: number | null;
-  status?: "success" | "error" | "denied" | "partial" | null;
+  status?: 'success' | 'error' | 'denied' | 'partial' | null;
   payload_summary?: Record<string, unknown> | null;
   source?: string | null;
   // Derivados
@@ -50,7 +50,7 @@ export interface AuditFeedRow {
 }
 
 export interface AuditFilters {
-  action: "all" | AuditAction;
+  action: 'all' | AuditAction;
   query: string;
   onlyFull: boolean;
   keyId?: string;
@@ -63,23 +63,25 @@ export function useMcpAuditFeed() {
   const [rows, setRows] = useState<AuditFeedRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<AuditFilters>({
-    action: "all",
-    query: "",
+    action: 'all',
+    query: '',
     onlyFull: false,
   });
 
   const load = useCallback(async () => {
     setLoading(true);
     let q = supabase
-      .from("admin_audit_log")
-      .select("id, action, user_id, resource_id, ip_address, user_agent, details, created_at, request_id, started_at, finished_at, duration_ms, status, payload_summary, source")
-      .eq("resource_type", "mcp_api_key")
-      .order("created_at", { ascending: false })
+      .from('admin_audit_log')
+      .select(
+        'id, action, user_id, resource_id, ip_address, user_agent, details, created_at, request_id, started_at, finished_at, duration_ms, status, payload_summary, source',
+      )
+      .eq('resource_type', 'mcp_api_key')
+      .order('created_at', { ascending: false })
       .limit(PAGE_SIZE * 4);
 
-    if (filters.action !== "all") q = q.eq("action", filters.action);
-    if (filters.keyId) q = q.eq("resource_id", filters.keyId);
-    if (filters.fromDate) q = q.gte("created_at", filters.fromDate);
+    if (filters.action !== 'all') q = q.eq('action', filters.action);
+    if (filters.keyId) q = q.eq('resource_id', filters.keyId);
+    if (filters.fromDate) q = q.gte('created_at', filters.fromDate);
 
     const { data, error } = await q;
     if (error) {
@@ -93,19 +95,21 @@ export function useMcpAuditFeed() {
     let profiles: Record<string, { email?: string | null; full_name?: string | null }> = {};
     if (userIds.length > 0) {
       const { data: profs } = await supabase
-        .from("profiles")
-        .select("user_id, email, full_name")
-        .in("user_id", userIds);
-      (profs ?? []).forEach((p: { user_id: string; email?: string | null; full_name?: string | null }) => {
-        profiles[p.user_id] = { email: p.email, full_name: p.full_name };
-      });
+        .from('profiles')
+        .select('user_id, email, full_name')
+        .in('user_id', userIds);
+      (profs ?? []).forEach(
+        (p: { user_id: string; email?: string | null; full_name?: string | null }) => {
+          profiles[p.user_id] = { email: p.email, full_name: p.full_name };
+        },
+      );
     }
 
     const enriched = base.map<AuditFeedRow>((r) => {
       const d = (r.details ?? {}) as Record<string, unknown>;
-      const scopes = (d.scopes ?? d.after?.["scopes"] ?? []) as string[];
-      const isFull = Array.isArray(scopes) && scopes.includes("*") || d.is_full_access === true;
-      const escalated = d.escalated_to_full === true || r.action === "mcp_key.scope_escalated";
+      const scopes = (d.scopes ?? d.after?.['scopes'] ?? []) as string[];
+      const isFull = (Array.isArray(scopes) && scopes.includes('*')) || d.is_full_access === true;
+      const escalated = d.escalated_to_full === true || r.action === 'mcp_key.scope_escalated';
       const prof = r.user_id ? profiles[r.user_id] : undefined;
       return {
         ...r,
@@ -121,28 +125,34 @@ export function useMcpAuditFeed() {
     setLoading(false);
   }, [filters.action, filters.keyId, filters.fromDate]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const filtered = useMemo(() => {
     return rows.filter((r) => {
       if (filters.onlyFull && !r.is_full) return false;
       if (filters.query) {
         const q = filters.query.toLowerCase();
-        const hay = `${r.actor_email ?? ""} ${r.actor_name ?? ""} ${r.key_prefix ?? ""} ${r.action}`.toLowerCase();
+        const hay =
+          `${r.actor_email ?? ''} ${r.actor_name ?? ''} ${r.key_prefix ?? ''} ${r.action}`.toLowerCase();
         if (!hay.includes(q)) return false;
       }
       return true;
     });
   }, [rows, filters.onlyFull, filters.query]);
 
-  const counts = useMemo(() => ({
-    total: rows.length,
-    issued: rows.filter((r) => r.action === "mcp_key.issued").length,
-    rotated: rows.filter((r) => r.action === "mcp_key.rotated").length,
-    updated: rows.filter((r) => r.action === "mcp_key.updated").length,
-    revoked: rows.filter((r) => r.action === "mcp_key.revoked").length,
-    escalated: rows.filter((r) => r.escalated).length,
-  }), [rows]);
+  const counts = useMemo(
+    () => ({
+      total: rows.length,
+      issued: rows.filter((r) => r.action === 'mcp_key.issued').length,
+      rotated: rows.filter((r) => r.action === 'mcp_key.rotated').length,
+      updated: rows.filter((r) => r.action === 'mcp_key.updated').length,
+      revoked: rows.filter((r) => r.action === 'mcp_key.revoked').length,
+      escalated: rows.filter((r) => r.escalated).length,
+    }),
+    [rows],
+  );
 
   return { rows: filtered, allRows: rows, loading, filters, setFilters, counts, reload: load };
 }

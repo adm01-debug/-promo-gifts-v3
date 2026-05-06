@@ -1,14 +1,11 @@
 /**
  * Hook: Cálculo de Preços
- * 
+ *
  * Responsável por: Lógica de cálculo e simulação de preços
  */
 import { useState, useCallback, useMemo } from 'react';
 import { useTabelasPreco } from './useTabelasPreco';
-import type { 
-  TabelaPrecoTecnica,
-  ResultadoCalculoPreco,
-} from '@/types/tecnica-unificada';
+import type { TabelaPrecoTecnica, ResultadoCalculoPreco } from '@/types/tecnica-unificada';
 
 // ============================================
 // TIPOS DE COMPATIBILIDADE
@@ -74,9 +71,9 @@ export interface LegacyPriceTable {
  * Calcula preço usando TabelaPrecoTecnica
  */
 export function calcularPreco(
-  tabela: TabelaPrecoTecnica, 
+  tabela: TabelaPrecoTecnica,
   quantidade: number,
-  numeroCores?: number
+  numeroCores?: number,
 ): ResultadoCalculoPreco {
   const faixas = tabela.faixas;
   if (!faixas.length) {
@@ -100,9 +97,9 @@ export function calcularPreco(
 
   const faixaUtilizada = faixas[foundIdx];
   let precoUnitario = faixaUtilizada.precoUnitario;
-  
+
   if (tabela.precoPorCor && numeroCores && tabela.maxCores && numeroCores > tabela.maxCores) {
-    precoUnitario *= (numeroCores / tabela.maxCores);
+    precoUnitario *= numeroCores / tabela.maxCores;
   }
 
   return {
@@ -136,25 +133,25 @@ export function extractPriceTiersFromTabela(tabela: TabelaPrecoTecnica): PriceTi
  */
 export function calculatePriceForQuantity(
   tabela: TabelaPrecoTecnica,
-  quantity: number
+  quantity: number,
 ): PriceCalculation | null {
   if (tabela.faixas.length === 0) return null;
-  
+
   let selectedFaixa = tabela.faixas[0];
   for (const faixa of tabela.faixas) {
     if (quantity >= faixa.quantidadeMinima) {
       selectedFaixa = faixa;
     }
   }
-  
+
   const unitPrice = selectedFaixa.precoUnitario;
   const totalPrice = unitPrice * quantity;
   const grandTotal = totalPrice + tabela.precoSetup + tabela.precoManuseio;
-  
+
   const minPrice = tabela.faixas[0].precoUnitario;
   const savingsPerUnit = minPrice - unitPrice;
   const percentageOff = minPrice > 0 ? ((minPrice - unitPrice) / minPrice) * 100 : 0;
-  
+
   return {
     technique: tabela.nomeTecnica,
     techniqueCode: tabela.codigoTabela,
@@ -170,10 +167,13 @@ export function calculatePriceForQuantity(
       width: tabela.larguraMaxCm || 0,
       height: tabela.alturaMaxCm || 0,
     },
-    savings: savingsPerUnit > 0 ? {
-      comparedToMin: savingsPerUnit * quantity,
-      percentageOff: Math.round(percentageOff),
-    } : undefined,
+    savings:
+      savingsPerUnit > 0
+        ? {
+            comparedToMin: savingsPerUnit * quantity,
+            percentageOff: Math.round(percentageOff),
+          }
+        : undefined,
   };
 }
 
@@ -187,27 +187,36 @@ export function calculatePriceForQuantity(
 export function usePrecoCalculation() {
   const { data: tabelas = [], isLoading, error, refetch } = useTabelasPreco({ apenasAtivas: true });
 
-  const calculateAllPrices = useCallback((quantity: number): PriceCalculation[] => {
-    return tabelas
-      .map(tabela => calculatePriceForQuantity(tabela, quantity))
-      .filter((calc): calc is PriceCalculation => calc !== null)
-      .sort((a, b) => a.unitPrice - b.unitPrice);
-  }, [tabelas]);
+  const calculateAllPrices = useCallback(
+    (quantity: number): PriceCalculation[] => {
+      return tabelas
+        .map((tabela) => calculatePriceForQuantity(tabela, quantity))
+        .filter((calc): calc is PriceCalculation => calc !== null)
+        .sort((a, b) => a.unitPrice - b.unitPrice);
+    },
+    [tabelas],
+  );
 
-  const calculatePrice = useCallback((techniqueCode: string, quantity: number): PriceCalculation | null => {
-    const tabela = tabelas.find(t => t.codigoTabela === techniqueCode);
-    if (!tabela) return null;
-    return calculatePriceForQuantity(tabela, quantity);
-  }, [tabelas]);
+  const calculatePrice = useCallback(
+    (techniqueCode: string, quantity: number): PriceCalculation | null => {
+      const tabela = tabelas.find((t) => t.codigoTabela === techniqueCode);
+      if (!tabela) return null;
+      return calculatePriceForQuantity(tabela, quantity);
+    },
+    [tabelas],
+  );
 
-  const getTiers = useCallback((techniqueCode: string): PriceTier[] => {
-    const tabela = tabelas.find(t => t.codigoTabela === techniqueCode);
-    if (!tabela) return [];
-    return extractPriceTiersFromTabela(tabela);
-  }, [tabelas]);
+  const getTiers = useCallback(
+    (techniqueCode: string): PriceTier[] => {
+      const tabela = tabelas.find((t) => t.codigoTabela === techniqueCode);
+      if (!tabela) return [];
+      return extractPriceTiersFromTabela(tabela);
+    },
+    [tabelas],
+  );
 
   const techniques = useMemo(() => {
-    return tabelas.map(tabela => ({
+    return tabelas.map((tabela) => ({
       code: tabela.codigoTabela,
       name: tabela.nomeTecnica,
       maxColors: tabela.maxCores || 1,
@@ -220,9 +229,7 @@ export function usePrecoCalculation() {
     }));
   }, [tabelas]);
 
-  const standardQuantities = useMemo(() => [
-    50, 100, 250, 500, 1000, 2500, 5000, 10000
-  ], []);
+  const standardQuantities = useMemo(() => [50, 100, 250, 500, 1000, 2500, 5000, 10000], []);
 
   return {
     tabelas,
@@ -251,7 +258,7 @@ export function usePriceSimulator(productBasePrice: number = 0) {
 
   const selectedCalculation = useMemo(() => {
     if (!selectedTechniqueCode) return calculations[0] || null;
-    return calculations.find(c => c.techniqueCode === selectedTechniqueCode) || null;
+    return calculations.find((c) => c.techniqueCode === selectedTechniqueCode) || null;
   }, [calculations, selectedTechniqueCode]);
 
   const totalWithProduct = useMemo(() => {

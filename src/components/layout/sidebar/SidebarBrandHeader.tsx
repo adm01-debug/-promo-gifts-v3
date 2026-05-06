@@ -1,5 +1,5 @@
-import { forwardRef } from "react";
-import { Gift } from "lucide-react";
+import { forwardRef } from 'react';
+import { Gift } from 'lucide-react';
 
 interface SidebarBrandHeaderProps {
   isCollapsed: boolean;
@@ -9,34 +9,34 @@ export const SidebarBrandHeader = forwardRef<HTMLDivElement, SidebarBrandHeaderP
   ({ isCollapsed }, ref) => {
     if (isCollapsed) {
       return (
-        <div ref={ref} className="flex flex-col items-center justify-center gap-4 py-4 mb-2">
-          <div className="w-8 h-8 rounded-xl bg-[#3B82F6] flex items-center justify-center shadow-lg shadow-primary/20">
-            <span className="text-[10px] font-bold text-white tracking-tight">PG</span>
+        <div ref={ref} className="mb-2 flex flex-col items-center justify-center gap-4 py-4">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#3B82F6] shadow-lg shadow-primary/20">
+            <span className="text-[10px] font-bold tracking-tight text-white">PG</span>
           </div>
         </div>
       );
     }
 
     return (
-      <div ref={ref} className="px-4 py-3 mb-2">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-9 h-9 rounded-xl bg-[#3B82F6] flex items-center justify-center shrink-0 shadow-lg shadow-primary/20">
+      <div ref={ref} className="mb-2 px-4 py-3">
+        <div className="flex min-w-0 items-center gap-2.5">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#3B82F6] shadow-lg shadow-primary/20">
             <Gift className="h-4.5 w-4.5 text-white" />
           </div>
-          <div className="flex flex-col min-w-0">
-            <span className="text-sm font-bold text-sidebar-foreground tracking-tight">
+          <div className="flex min-w-0 flex-col">
+            <span className="text-sm font-bold tracking-tight text-sidebar-foreground">
               Promo Gifts
             </span>
-            <span className="text-[10px] text-sidebar-foreground/40 font-medium uppercase tracking-widest">
+            <span className="text-[10px] font-medium uppercase tracking-widest text-sidebar-foreground/40">
               Plataforma de Vendas
             </span>
           </div>
         </div>
       </div>
     );
-  }
+  },
 );
 
-SidebarBrandHeader.displayName = "SidebarBrandHeader";
+SidebarBrandHeader.displayName = 'SidebarBrandHeader';
 
-SidebarBrandHeader.displayName = "SidebarBrandHeader";
+SidebarBrandHeader.displayName = 'SidebarBrandHeader';

@@ -45,7 +45,7 @@ export function useSupplierTrust(productId?: string) {
           countMode: 'none',
         });
 
-        const variantIds = variantResult.records.map(v => v.id);
+        const variantIds = variantResult.records.map((v) => v.id);
         if (!variantIds.length) {
           return getMockSupplierTrust(productId);
         }
@@ -68,7 +68,7 @@ export function useSupplierTrust(productId?: string) {
         }
 
         // Use preferred source, or first active one
-        const preferred = sources.find(s => s.is_preferred) ?? sources[0];
+        const preferred = sources.find((s) => s.is_preferred) ?? sources[0];
         const leadTimeDays = preferred.lead_time_days;
 
         // 2. Check if supplier is "verified" (active in suppliers table)

@@ -38,7 +38,7 @@ describe('structuredLogger.ts', () => {
   it('should log info messages to console.log', () => {
     const log = createClientLogger('test.scope');
     log.info('test_event', { key: 'value' });
-    
+
     expect(consoleSpy.log).toHaveBeenCalled();
     const lastCall = consoleSpy.log.mock.calls[0];
     // In dev mode, it uses formatted output. In prod, it uses JSON stringify.
@@ -59,7 +59,7 @@ describe('structuredLogger.ts', () => {
           event: 'db_error',
           request_id: 'test-request-id',
         }),
-      })
+      }),
     );
     expect(consoleSpy.error).toHaveBeenCalled();
   });
@@ -78,10 +78,10 @@ describe('structuredLogger.ts', () => {
   it('should create child loggers with appended scopes', () => {
     const log = createClientLogger('parent');
     const child = log.child('child', { extra: 'data' });
-    
+
     expect(child.scope).toBe('parent.child');
     expect(child.requestId).toBe('test-request-id'); // Same request ID
-    
+
     child.info('event');
     expect(consoleSpy.log).toHaveBeenCalled();
     const payload = JSON.parse(JSON.stringify(consoleSpy.log.mock.calls[0][1]));

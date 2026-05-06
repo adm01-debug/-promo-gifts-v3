@@ -1,10 +1,10 @@
 /**
  * ExportDossierButton — botão de exportação do Dossiê BI em PDF.
  */
-import { Button } from "@/components/ui/button";
-import { FileDown, Loader2 } from "lucide-react";
-import { toast } from "sonner";
-import { useBIDossierExport } from "@/hooks/bi/useBIDossierExport";
+import { Button } from '@/components/ui/button';
+import { FileDown, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { useBIDossierExport } from '@/hooks/bi/useBIDossierExport';
 
 interface Props {
   clientId: string;
@@ -16,13 +16,13 @@ export function ExportDossierButton({ clientId }: Props) {
   const handleClick = async () => {
     try {
       await exportPDF();
-      toast.success("Dossiê exportado", {
-        description: "PDF gerado com sucesso.",
+      toast.success('Dossiê exportado', {
+        description: 'PDF gerado com sucesso.',
       });
     } catch (err) {
-      console.error("[ExportDossierButton] erro ao gerar PDF", err);
-      toast.error("Falha ao gerar dossiê", {
-        description: err instanceof Error ? err.message : "Tente novamente.",
+      console.error('[ExportDossierButton] erro ao gerar PDF', err);
+      toast.error('Falha ao gerar dossiê', {
+        description: err instanceof Error ? err.message : 'Tente novamente.',
       });
     }
   };
@@ -50,7 +50,9 @@ export function ExportDossierButton({ clientId }: Props) {
           )}
         </Button>
       </TooltipTrigger>
-      <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Baixar dossiê BI completo em PDF</TooltipContent>
+      <TooltipContent className="border-none bg-primary px-2 py-1 text-[11px] text-primary-foreground">
+        Baixar dossiê BI completo em PDF
+      </TooltipContent>
     </Tooltip>
   );
 }

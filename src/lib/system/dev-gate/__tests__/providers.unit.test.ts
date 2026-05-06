@@ -31,10 +31,10 @@ describe('DevInfraGate Providers & Utils', () => {
     it('lê valores do localStorage', () => {
       const provider = new LocalStorageGateProvider('test_key');
       const getItemSpy = vi.spyOn(Storage.prototype, 'getItem').mockReturnValue('true');
-      
+
       expect(provider.getFlag()).toBe(true);
       expect(getItemSpy).toHaveBeenCalledWith('test_key');
-      
+
       getItemSpy.mockRestore();
     });
 
@@ -43,7 +43,7 @@ describe('DevInfraGate Providers & Utils', () => {
       vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
         throw new Error('Access denied');
       });
-      
+
       expect(provider.getFlag()).toBe('auto');
       vi.restoreAllMocks();
     });

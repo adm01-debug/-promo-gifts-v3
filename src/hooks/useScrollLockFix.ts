@@ -1,8 +1,8 @@
-import { useEffect } from "react";
+import { useEffect } from 'react';
 
 /**
  * Scroll-lock fix v9 — Minimal observer, no layout thrashing.
- * 
+ *
  * Only listens for `data-state` attribute changes (not childList)
  * to detect overlay close transitions. Avoids getComputedStyle to
  * prevent forced reflows.
@@ -40,7 +40,7 @@ function cleanupScrollLock() {
     if (s.width === '100%' && el === document.body) s.width = '';
   }
 
-  document.body.classList.forEach(cls => {
+  document.body.classList.forEach((cls) => {
     if (cls.startsWith('block-interactivity-')) {
       document.body.classList.remove(cls);
     }

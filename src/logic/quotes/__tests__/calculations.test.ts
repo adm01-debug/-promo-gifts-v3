@@ -1,11 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { 
-  calculateItemPersonalizationTotal, 
-  calculateItemTotal, 
-  calculateSubtotal, 
-  applyMarkup, 
+import {
+  calculateItemPersonalizationTotal,
+  calculateItemTotal,
+  calculateSubtotal,
+  applyMarkup,
   calculateDiscountAmount,
-  calculateRealDiscountPercent
+  calculateRealDiscountPercent,
 } from '../calculations';
 
 describe('calculations.ts edge cases', () => {
@@ -15,9 +15,11 @@ describe('calculations.ts edge cases', () => {
     });
 
     it('handles null total_cost in personalization', () => {
-      expect(calculateItemPersonalizationTotal({ 
-        personalizations: [{ total_cost: undefined }, { total_cost: 10 }] as any 
-      })).toBe(10);
+      expect(
+        calculateItemPersonalizationTotal({
+          personalizations: [{ total_cost: undefined }, { total_cost: 10 }] as any,
+        }),
+      ).toBe(10);
     });
 
     it('handles undefined personalizations', () => {
@@ -78,7 +80,7 @@ describe('calculations.ts edge cases', () => {
     });
 
     it('handles cases where presented subtotal is higher than real (markup)', () => {
-      // real: 100, presented: 120, discount: 10 -> final: 110. 
+      // real: 100, presented: 120, discount: 10 -> final: 110.
       // formula: ((realSubtotal - finalBeforeShipping) / realSubtotal) * 100
       // ((100 - (120 - 10)) / 100) * 100 = -10%
       expect(calculateRealDiscountPercent(100, 120, 10)).toBe(-10);

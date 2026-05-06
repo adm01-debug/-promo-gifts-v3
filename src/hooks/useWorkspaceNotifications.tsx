@@ -1,14 +1,14 @@
-import { useState, useEffect, useCallback, useRef } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
-import { notificationsMetrics, type FetchSource } from "@/lib/notifications-metrics";
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { notificationsMetrics, type FetchSource } from '@/lib/notifications-metrics';
 
 export interface WorkspaceNotification {
   id: string;
   user_id: string;
   title: string;
   message: string;
-  type: "info" | "warning" | "success" | "error";
+  type: 'info' | 'warning' | 'success' | 'error';
   category: string;
   is_read: boolean;
   action_url: string | null;
@@ -16,7 +16,7 @@ export interface WorkspaceNotification {
   created_at: string;
 }
 
-const CACHE_PREFIX = "workspace_notifications_cache:";
+const CACHE_PREFIX = 'workspace_notifications_cache:';
 const CACHE_TTL_MS = 60_000; // 60s
 const PREFETCH_MIN_INTERVAL_MS = 10_000; // Aumentado de 5s para 10s para melhor coalescing
 
@@ -48,8 +48,8 @@ function writeCache(userId: string, notifications: WorkspaceNotification[]) {
 
 function isDebugEnabled(): boolean {
   try {
-    if (typeof window === "undefined") return false;
-    if (window.localStorage?.getItem("debug:notifications") === "1") return true;
+    if (typeof window === 'undefined') return false;
+    if (window.localStorage?.getItem('debug:notifications') === '1') return true;
     return Boolean((import.meta as { env?: { DEV?: boolean } }).env?.DEV);
   } catch {
     return false;
@@ -59,11 +59,7 @@ function isDebugEnabled(): boolean {
 function debugLog(event: string, payload: Record<string, unknown>) {
   if (!isDebugEnabled()) return;
   // eslint-disable-next-line no-console
-  console.log(
-    `%c[notifications:${event}]`,
-    "color:#7c3aed;font-weight:600",
-    payload
-  );
+  console.log(`%c[notifications:${event}]`, 'color:#7c3aed;font-weight:600', payload);
 }
 
 export function useWorkspaceNotifications() {
@@ -77,8 +73,10 @@ export function useWorkspaceNotifications() {
   const [unreadCount, setUnreadCount] = useState(0);
   const lastFetchAtRef = useRef<number>(0);
   const hydratedRef = useRef<string | null>(null);
-  const mountAtRef = useRef<number>(typeof performance !== "undefined" ? performance.now() : Date.now());
-  const badgeSourceRef = useRef<"pending" | "cache" | "network">("pending");
+  const mountAtRef = useRef<number>(
+    typeof performance !== 'undefined' ? performance.now() : Date.now(),
+  );
+  const badgeSourceRef = useRef<'pending' | 'cache' | 'network'>('pending');
   // In-flight guards: prevent duplicate fetchNotifications when the user
   // double-clicks markAllAsRead/clearAll before the first call resolves.
   const markAllInFlightRef = useRef(false);
@@ -90,7 +88,7 @@ export function useWorkspaceNotifications() {
       setNotifications([]);
       setUnreadCount(0);
       hydratedRef.current = null;
-      badgeSourceRef.current = "pending";
+      badgeSourceRef.current = 'pending';
       return;
     }
     if (hydratedRef.current === user.id) return;
@@ -100,21 +98,20 @@ export function useWorkspaceNotifications() {
       setNotifications(cached.notifications);
       setUnreadCount(cached.notifications.filter((n) => !n.is_read).length);
       const elapsedMs =
-        (typeof performance !== "undefined" ? performance.now() : Date.now()) -
-        mountAtRef.current;
-      badgeSourceRef.current = "cache";
+        (typeof performance !== 'undefined' ? performance.now() : Date.now()) - mountAtRef.current;
+      badgeSourceRef.current = 'cache';
       const cacheAgeMs = Date.now() - cached.cachedAt;
       const unread = cached.notifications.filter((n) => !n.is_read).length;
-      debugLog("badge-render", {
-        source: "cache",
+      debugLog('badge-render', {
+        source: 'cache',
         elapsedMs: Number(elapsedMs.toFixed(2)),
-        target: "<16ms",
+        target: '<16ms',
         hit: elapsedMs < 16,
         unreadCount: unread,
         cacheAgeMs,
       });
       notificationsMetrics.recordBadgeRender({
-        source: "cache",
+        source: 'cache',
         elapsedMs: Number(elapsedMs.toFixed(2)),
         cacheAgeMs,
         networkMs: null,
@@ -133,14 +130,14 @@ export function useWorkspaceNotifications() {
       if (silent) setIsRefetching(true);
       else setIsLoading(true);
 
-      notificationsMetrics.recordFetch(opts.source ?? "initial");
-      const t0 = typeof performance !== "undefined" ? performance.now() : Date.now();
+      notificationsMetrics.recordFetch(opts.source ?? 'initial');
+      const t0 = typeof performance !== 'undefined' ? performance.now() : Date.now();
       try {
         const { data, error } = await supabase
-          .from("workspace_notifications")
-          .select("*")
-          .eq("user_id", user.id)
-          .order("created_at", { ascending: false })
+          .from('workspace_notifications')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
           .limit(50);
 
         if (error) throw error;
@@ -149,25 +146,25 @@ export function useWorkspaceNotifications() {
         setUnreadCount(items.filter((n) => !n.is_read).length);
         lastFetchAtRef.current = Date.now();
         writeCache(user.id, items);
-        if (badgeSourceRef.current !== "cache") {
+        if (badgeSourceRef.current !== 'cache') {
           const elapsedMs =
-            (typeof performance !== "undefined" ? performance.now() : Date.now()) -
+            (typeof performance !== 'undefined' ? performance.now() : Date.now()) -
             mountAtRef.current;
-          badgeSourceRef.current = "network";
+          badgeSourceRef.current = 'network';
           const networkMs = Number(
-            ((typeof performance !== "undefined" ? performance.now() : Date.now()) - t0).toFixed(2)
+            ((typeof performance !== 'undefined' ? performance.now() : Date.now()) - t0).toFixed(2),
           );
           const unread = items.filter((n) => !n.is_read).length;
-          debugLog("badge-render", {
-            source: "network",
+          debugLog('badge-render', {
+            source: 'network',
             elapsedMs: Number(elapsedMs.toFixed(2)),
-            target: "<16ms",
+            target: '<16ms',
             hit: elapsedMs < 16,
             unreadCount: unread,
             networkMs,
           });
           notificationsMetrics.recordBadgeRender({
-            source: "network",
+            source: 'network',
             elapsedMs: Number(elapsedMs.toFixed(2)),
             cacheAgeMs: null,
             networkMs,
@@ -175,22 +172,24 @@ export function useWorkspaceNotifications() {
             hit: elapsedMs < 16,
           });
         } else {
-          debugLog("background-refresh", {
+          debugLog('background-refresh', {
             silent,
             networkMs: Number(
-              ((typeof performance !== "undefined" ? performance.now() : Date.now()) - t0).toFixed(2)
+              ((typeof performance !== 'undefined' ? performance.now() : Date.now()) - t0).toFixed(
+                2,
+              ),
             ),
             unreadCount: items.filter((n) => !n.is_read).length,
           });
         }
       } catch (err) {
-        console.error("Error fetching notifications:", err);
+        console.error('Error fetching notifications:', err);
       } finally {
         if (silent) setIsRefetching(false);
         else setIsLoading(false);
       }
     },
-    [user, notifications.length]
+    [user, notifications.length],
   );
 
   // Initial fetch (always, but in background if cache hydrated)
@@ -203,7 +202,7 @@ export function useWorkspaceNotifications() {
   useEffect(() => {
     if (!user) return;
     const interval = setInterval(() => {
-      fetchNotifications({ silent: true, source: "polling" });
+      fetchNotifications({ silent: true, source: 'polling' });
     }, 30_000);
     return () => clearInterval(interval);
   }, [user, fetchNotifications]);
@@ -213,7 +212,7 @@ export function useWorkspaceNotifications() {
   // scrolling through every individual badge-render log. No-op if debug is OFF.
   useEffect(() => {
     return () => {
-      notificationsMetrics.logBadgeBudgetSummary("hook-unmount");
+      notificationsMetrics.logBadgeBudgetSummary('hook-unmount');
     };
   }, []);
 
@@ -221,16 +220,16 @@ export function useWorkspaceNotifications() {
   const prefetch = useCallback(async () => {
     if (!user) return;
     if (Date.now() - lastFetchAtRef.current < PREFETCH_MIN_INTERVAL_MS) return;
-    await fetchNotifications({ silent: true, source: "prefetch" });
+    await fetchNotifications({ silent: true, source: 'prefetch' });
   }, [user, fetchNotifications]);
 
   const markAsRead = useCallback(
     async (id: string) => {
       if (!user) return;
       const { error } = await supabase
-        .from("workspace_notifications")
+        .from('workspace_notifications')
         .update({ is_read: true })
-        .eq("id", id);
+        .eq('id', id);
 
       if (error) return;
       setNotifications((prev) => {
@@ -240,7 +239,7 @@ export function useWorkspaceNotifications() {
       });
       setUnreadCount((prev) => Math.max(0, prev - 1));
     },
-    [user]
+    [user],
   );
 
   const markAllAsRead = useCallback(async () => {
@@ -250,10 +249,10 @@ export function useWorkspaceNotifications() {
     setIsMutationRehydrating(true);
     try {
       const { error } = await supabase
-        .from("workspace_notifications")
+        .from('workspace_notifications')
         .update({ is_read: true })
-        .eq("user_id", user.id)
-        .eq("is_read", false);
+        .eq('user_id', user.id)
+        .eq('is_read', false);
 
       if (error) return;
       // Optimistic local update
@@ -269,7 +268,7 @@ export function useWorkspaceNotifications() {
         // ignore
       }
       lastFetchAtRef.current = 0;
-      await fetchNotifications({ silent: true, source: "mutation" });
+      await fetchNotifications({ silent: true, source: 'mutation' });
     } finally {
       markAllInFlightRef.current = false;
       setIsMutationRehydrating(false);
@@ -283,9 +282,9 @@ export function useWorkspaceNotifications() {
     setIsMutationRehydrating(true);
     try {
       const { error } = await supabase
-        .from("workspace_notifications")
+        .from('workspace_notifications')
         .delete()
-        .eq("user_id", user.id);
+        .eq('user_id', user.id);
 
       if (error) return;
       setNotifications([]);
@@ -297,7 +296,7 @@ export function useWorkspaceNotifications() {
         // ignore
       }
       lastFetchAtRef.current = 0;
-      await fetchNotifications({ silent: true, source: "mutation" });
+      await fetchNotifications({ silent: true, source: 'mutation' });
     } finally {
       clearAllInFlightRef.current = false;
       setIsMutationRehydrating(false);

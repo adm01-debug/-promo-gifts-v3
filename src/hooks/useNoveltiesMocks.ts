@@ -32,8 +32,9 @@ export const MOCK_NOVELTIES: NoveltyWithDetails[] = [
     product_sku: 'TECH-001',
     product_name: 'Power Bank Solar 20000mAh',
     product_description: 'Carregador solar de alta capacidade para brindes tecnológicos.',
-    base_price: 159.90,
-    product_image: 'https://images.unsplash.com/photo-1619441207978-3d326c46e2c9?auto=format&fit=crop&q=80&w=400',
+    base_price: 159.9,
+    product_image:
+      'https://images.unsplash.com/photo-1619441207978-3d326c46e2c9?auto=format&fit=crop&q=80&w=400',
     category_id: 'cat-1',
     category_name: 'Eletrônicos',
     supplier_id: 'sup-3',
@@ -56,8 +57,9 @@ export const MOCK_NOVELTIES: NoveltyWithDetails[] = [
     product_sku: 'ECO-045',
     product_name: 'Kit Escrita Sustentável Bambu',
     product_description: 'Conjunto de caneta e lapiseira em bambu reflorestado.',
-    base_price: 45.00,
-    product_image: 'https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?auto=format&fit=crop&q=80&w=400',
+    base_price: 45.0,
+    product_image:
+      'https://images.unsplash.com/photo-1583485088034-697b5bc54ccd?auto=format&fit=crop&q=80&w=400',
     category_id: 'cat-2',
     category_name: 'Escritório',
     supplier_id: 'sup-2',
@@ -80,8 +82,9 @@ export const MOCK_NOVELTIES: NoveltyWithDetails[] = [
     product_sku: 'PREM-992',
     product_name: 'Mochila Executiva Anti-Furto',
     product_description: 'Mochila com compartimento oculto e saída USB.',
-    base_price: 289.00,
-    product_image: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&q=80&w=400',
+    base_price: 289.0,
+    product_image:
+      'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&q=80&w=400',
     category_id: 'cat-3',
     category_name: 'Vestuário',
     supplier_id: 'sup-1',
@@ -104,8 +107,9 @@ export const MOCK_NOVELTIES: NoveltyWithDetails[] = [
     product_sku: 'TECH-552',
     product_name: 'Fone Bluetooth Noise Cancelling',
     product_description: 'Fone de ouvido premium com cancelamento de ruído.',
-    base_price: 320.00,
-    product_image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&q=80&w=400',
+    base_price: 320.0,
+    product_image:
+      'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&q=80&w=400',
     category_id: 'cat-1',
     category_name: 'Eletrônicos',
     supplier_id: 'sup-3',
@@ -128,8 +132,9 @@ export const MOCK_NOVELTIES: NoveltyWithDetails[] = [
     product_sku: 'ECO-881',
     product_name: 'Garrafa Térmica Aço Inox 750ml',
     product_description: 'Garrafa térmica com parede dupla e acabamento fosco.',
-    base_price: 89.90,
-    product_image: 'https://images.unsplash.com/photo-1602143399827-bd934344c5c1?auto=format&fit=crop&q=80&w=400',
+    base_price: 89.9,
+    product_image:
+      'https://images.unsplash.com/photo-1602143399827-bd934344c5c1?auto=format&fit=crop&q=80&w=400',
     category_id: 'cat-2',
     category_name: 'Escritório',
     supplier_id: 'sup-2',
@@ -152,8 +157,9 @@ export const MOCK_NOVELTIES: NoveltyWithDetails[] = [
     product_sku: 'PREM-123',
     product_name: 'Agenda 2024 Couro Sintético',
     product_description: 'Agenda premium com capa texturizada e fecho magnético.',
-    base_price: 65.00,
-    product_image: 'https://images.unsplash.com/photo-1506784365847-bbad939e9335?auto=format&fit=crop&q=80&w=400',
+    base_price: 65.0,
+    product_image:
+      'https://images.unsplash.com/photo-1506784365847-bbad939e9335?auto=format&fit=crop&q=80&w=400',
     category_id: 'cat-2',
     category_name: 'Escritório',
     supplier_id: 'sup-1',
@@ -169,7 +175,7 @@ export const MOCK_NOVELTIES: NoveltyWithDetails[] = [
     stock_quantity: 80,
     min_quantity: 20,
     stock_status: 'in-stock',
-  }
+  },
 ];
 
 // Garante que MOCK_STATS segue estritamente o NoveltyStatsDisplay

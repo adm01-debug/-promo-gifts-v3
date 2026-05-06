@@ -36,7 +36,7 @@ export interface ExcelColumn {
 
 /**
  * Exporta dados para arquivo Excel (.xlsx)
- * 
+ *
  * @example
  * ```typescript
  * exportToExcel({
@@ -54,23 +54,17 @@ export interface ExcelColumn {
  * ```
  */
 export async function exportToExcel(config: ExcelExportConfig): Promise<void> {
-  const {
-    filename,
-    sheetName = 'Dados',
-    columns,
-    data,
-    includeTimestamp = true
-  } = config;
+  const { filename, sheetName = 'Dados', columns, data, includeTimestamp = true } = config;
 
   try {
     const XLSX = await getXLSX();
     // 1. Preparar dados formatados
     const formattedData = data.map((row) => {
       const formattedRow: any = {};
-      
+
       columns.forEach((col) => {
         const value = getNestedValue(row, col.key);
-        
+
         if (col.format) {
           // Aplicar formatação customizada
           formattedRow[col.header] = col.format(value, row);
@@ -88,7 +82,7 @@ export async function exportToExcel(config: ExcelExportConfig): Promise<void> {
           formattedRow[col.header] = String(value);
         }
       });
-      
+
       return formattedRow;
     });
 
@@ -99,7 +93,7 @@ export async function exportToExcel(config: ExcelExportConfig): Promise<void> {
 
     // 3. Configurar larguras das colunas
     const colWidths = columns.map((col) => ({
-      wch: col.width || 20
+      wch: col.width || 20,
     }));
     worksheet['!cols'] = colWidths;
 
@@ -109,7 +103,7 @@ export async function exportToExcel(config: ExcelExportConfig): Promise<void> {
     for (let C = range.s.c; C <= range.e.c; ++C) {
       const address = XLSX.utils.encode_col(C) + '1';
       if (!worksheet[address]) continue;
-      
+
       // Fonte em negrito para cabeçalho (se biblioteca suportar)
       if (worksheet[address].s) {
         worksheet[address].s.font = { bold: true };
@@ -117,8 +111,8 @@ export async function exportToExcel(config: ExcelExportConfig): Promise<void> {
     }
 
     // 5. Gerar nome do arquivo
-    const timestamp = includeTimestamp 
-      ? `_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}` 
+    const timestamp = includeTimestamp
+      ? `_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}`
       : '';
     const fullFilename = `${filename}${timestamp}.xlsx`;
 
@@ -139,7 +133,7 @@ export async function exportMultipleSheets(
     columns: ExcelColumn[];
     data: any[];
   }>,
-  includeTimestamp = true
+  includeTimestamp = true,
 ): Promise<void> {
   try {
     const XLSX = await getXLSX();
@@ -151,16 +145,14 @@ export async function exportMultipleSheets(
         const formattedRow: any = {};
         columns.forEach((col) => {
           const value = getNestedValue(row, col.key);
-          formattedRow[col.header] = col.format 
-            ? col.format(value, row)
-            : formatValue(value);
+          formattedRow[col.header] = col.format ? col.format(value, row) : formatValue(value);
         });
         return formattedRow;
       });
 
       // Criar worksheet
       const worksheet = XLSX.utils.json_to_sheet(formattedData);
-      
+
       // Configurar larguras
       const colWidths = columns.map((col) => ({ wch: col.width || 20 }));
       worksheet['!cols'] = colWidths;
@@ -170,8 +162,8 @@ export async function exportMultipleSheets(
     });
 
     // Gerar arquivo
-    const timestamp = includeTimestamp 
-      ? `_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}` 
+    const timestamp = includeTimestamp
+      ? `_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}`
       : '';
     const fullFilename = `${filename}${timestamp}.xlsx`;
 
@@ -210,7 +202,7 @@ function formatValue(value: any): string | number {
 export function formatCurrency(value: number): string {
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
-    currency: 'BRL'
+    currency: 'BRL',
   }).format(value);
 }
 
@@ -226,16 +218,16 @@ export function formatPercentage(value: number): string {
  */
 export function formatStatus(status: string): string {
   const statusMap: Record<string, string> = {
-    'draft': '📝 Rascunho',
-    'sent': '📤 Enviado',
-    'approved': '✅ Aprovado',
-    'rejected': '❌ Rejeitado',
-    'expired': '⏰ Expirado',
-    'pending': '⏳ Pendente',
-    'processing': '🔄 Processando',
-    'completed': '✅ Concluído',
-    'cancelled': '🚫 Cancelado'
+    draft: '📝 Rascunho',
+    sent: '📤 Enviado',
+    approved: '✅ Aprovado',
+    rejected: '❌ Rejeitado',
+    expired: '⏰ Expirado',
+    pending: '⏳ Pendente',
+    processing: '🔄 Processando',
+    completed: '✅ Concluído',
+    cancelled: '🚫 Cancelado',
   };
-  
+
   return statusMap[status] || status;
 }

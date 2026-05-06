@@ -2,7 +2,12 @@ import { useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { invokeBatchBridge } from '@/lib/external-db';
-import { mapLightweightToProduct, PRODUCT_SELECT_LIGHTWEIGHT, CATALOG_PAGE_SIZE, CATALOG_BATCH_PAGES } from '@/hooks/useProductsLightweight';
+import {
+  mapLightweightToProduct,
+  PRODUCT_SELECT_LIGHTWEIGHT,
+  CATALOG_PAGE_SIZE,
+  CATALOG_BATCH_PAGES,
+} from '@/hooks/useProductsLightweight';
 
 /**
  * Prefetch do catálogo SOMENTE após autenticação (#6).
@@ -15,7 +20,7 @@ export function useCatalogPrefetch() {
 
   useEffect(() => {
     if (isLoading || !isAuthenticated || prefetchedRef.current) return;
-    
+
     // Otimização: Delay de 400ms para prefetch não competir com o render inicial crítico (LCP),
     // mas rápido o suficiente para estar pronto antes que o usuário interaja.
     const timer = setTimeout(() => {
@@ -48,7 +53,8 @@ export function useCatalogPrefetch() {
           }
           return {
             products,
-            nextOffset: lastPageSize === CATALOG_PAGE_SIZE ? CATALOG_BATCH_PAGES * CATALOG_PAGE_SIZE : null,
+            nextOffset:
+              lastPageSize === CATALOG_PAGE_SIZE ? CATALOG_BATCH_PAGES * CATALOG_PAGE_SIZE : null,
             totalEstimate,
           };
         },

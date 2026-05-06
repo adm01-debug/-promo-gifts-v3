@@ -2,15 +2,10 @@ import { useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
-import { PageSEO } from "@/components/seo/PageSEO";
+import { PageSEO } from '@/components/seo/PageSEO';
 import { logger } from '@/lib/logger';
 import { useAuth } from '@/contexts/AuthContext';
-import {
-  authDebug,
-  authDebugError,
-  authDebugUrl,
-  summarizeSession,
-} from '@/lib/auth/auth-debug';
+import { authDebug, authDebugError, authDebugUrl, summarizeSession } from '@/lib/auth/auth-debug';
 
 /**
  * Callback do login social.
@@ -40,7 +35,10 @@ export default function SSOCallbackPage() {
     const error = searchParams.get('error');
     const errorDescription = searchParams.get('error_description');
     if (error) {
-      authDebugError('sso-callback', 'provider returned error in query', { error, errorDescription });
+      authDebugError('sso-callback', 'provider returned error in query', {
+        error,
+        errorDescription,
+      });
       logger.error('[sso-callback] provider returned error', { error, errorDescription });
       navigate('/login?error=' + encodeURIComponent(errorDescription || error), { replace: true });
       return;
@@ -70,7 +68,9 @@ export default function SSOCallbackPage() {
         authDebug('sso-callback', 'refreshSession ok, navigating to /');
       } catch (e) {
         authDebugError('sso-callback', 'refreshSession failed', e);
-        logger.warn('[sso-callback] refreshSession failed', { message: e instanceof Error ? e.message : String(e) });
+        logger.warn('[sso-callback] refreshSession failed', {
+          message: e instanceof Error ? e.message : String(e),
+        });
       }
       if (cancelled) return;
       navigate('/', { replace: true });
@@ -89,21 +89,30 @@ export default function SSOCallbackPage() {
         // (2) Fluxo PKCE — troca o code por sessão
         if (code) {
           authDebug('sso-callback', 'PKCE flow: exchangeCodeForSession start');
-          const { data: exData, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+          const { data: exData, error: exchangeError } =
+            await supabase.auth.exchangeCodeForSession(code);
           if (exchangeError) {
             authDebugError('sso-callback', 'exchangeCodeForSession failed', exchangeError);
-            logger.error('[sso-callback] exchangeCodeForSession failed', { message: exchangeError.message });
+            logger.error('[sso-callback] exchangeCodeForSession failed', {
+              message: exchangeError.message,
+            });
             goLogin(exchangeError.message);
             return;
           }
-          authDebug('sso-callback', 'exchangeCodeForSession ok', summarizeSession(exData?.session ?? null));
+          authDebug(
+            'sso-callback',
+            'exchangeCodeForSession ok',
+            summarizeSession(exData?.session ?? null),
+          );
           await goHome();
           return;
         }
 
         // (1) e (3) Verifica se já existe sessão (broker Lovable já chamou setSession,
         // ou supabase-js já parseou o hash fragment automaticamente).
-        const { data: { session } } = await supabase.auth.getSession();
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
         authDebug('sso-callback', 'initial getSession()', summarizeSession(session));
         if (session) {
           await goHome();
@@ -113,7 +122,11 @@ export default function SSOCallbackPage() {
         // Caso a sessão ainda não tenha sido aplicada, escuta onAuthStateChange.
         authDebug('sso-callback', 'no session yet — subscribing to onAuthStateChange');
         const { data } = supabase.auth.onAuthStateChange((event, newSession) => {
-          authDebug('sso-callback', `onAuthStateChange event=${event}`, summarizeSession(newSession));
+          authDebug(
+            'sso-callback',
+            `onAuthStateChange event=${event}`,
+            summarizeSession(newSession),
+          );
           if (newSession) {
             void goHome();
           }
@@ -150,8 +163,13 @@ export default function SSOCallbackPage() {
   }, [navigate, searchParams, refreshSession]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <PageSEO title="Autenticação SSO" description="Processando autenticação via SSO." path="/auth/callback" noIndex />
+    <div className="flex min-h-screen items-center justify-center">
+      <PageSEO
+        title="Autenticação SSO"
+        description="Processando autenticação via SSO."
+        path="/auth/callback"
+        noIndex
+      />
       <div className="flex flex-col items-center gap-4">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
         <p className="text-muted-foreground">Processando autenticação...</p>

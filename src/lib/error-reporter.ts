@@ -76,9 +76,7 @@ const TRANSIENT_RE = new RegExp(TRANSIENT_EDGE_RUNTIME_PATTERNS.join('|'), 'i');
 
 export function isTransientEdgeRuntimeError(input: string | Error | null | undefined): boolean {
   if (!input) return false;
-  const haystack = typeof input === 'string'
-    ? input
-    : `${input.message} ${input.stack ?? ''}`;
+  const haystack = typeof input === 'string' ? input : `${input.message} ${input.stack ?? ''}`;
   // isColdStartSignal cobre o vocabulário oficial da bridge; o regex local
   // amplia para variações que podem chegar do Error Boundary sem passar pela bridge.
   return isColdStartSignal(haystack) || TRANSIENT_RE.test(haystack);
@@ -103,7 +101,7 @@ async function flushErrors() {
     }
 
     // Log to admin_audit_log for observability
-    const rows = batch.map(err => ({
+    const rows = batch.map((err) => ({
       action: 'client_error',
       resource_type: 'error',
       resource_id: null,
@@ -219,9 +217,7 @@ export function installGlobalErrorHandlers() {
   });
 
   window.addEventListener('unhandledrejection', (event) => {
-    const error = event.reason instanceof Error
-      ? event.reason
-      : new Error(String(event.reason));
+    const error = event.reason instanceof Error ? event.reason : new Error(String(event.reason));
     reportError(error, { type: 'unhandled_promise_rejection' });
   });
 }

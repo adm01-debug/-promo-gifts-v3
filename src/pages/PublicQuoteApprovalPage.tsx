@@ -2,27 +2,42 @@
  * PublicQuoteApprovalPage — Refactored orchestrator.
  * Logic in usePublicQuoteApproval, status screens in PublicQuoteStatusScreens.
  */
-import { useParams } from "react-router-dom";
-import { Helmet } from "react-helmet-async";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useParams } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
-  CheckCircle, XCircle, User, Phone, Mail, Loader2,
-  CreditCard, Calendar, Clock, ShieldCheck, AlertCircle,
-} from "lucide-react";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { usePublicQuoteApproval, calcPersonalizationTotal } from "./public-approval/usePublicQuoteApproval";
-import { PublicQuoteItemsList, PublicQuoteTotals } from "./public-approval/PublicQuoteItems";
+  CheckCircle,
+  XCircle,
+  User,
+  Phone,
+  Mail,
+  Loader2,
+  CreditCard,
+  Calendar,
+  Clock,
+  ShieldCheck,
+  AlertCircle,
+} from 'lucide-react';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import {
-  LoadingScreen, ExpiredScreen, AlreadyRespondedScreen,
-  ErrorScreen, SubmittedScreen,
-} from "./public-approval/PublicQuoteStatusScreens";
+  usePublicQuoteApproval,
+  calcPersonalizationTotal,
+} from './public-approval/usePublicQuoteApproval';
+import { PublicQuoteItemsList, PublicQuoteTotals } from './public-approval/PublicQuoteItems';
+import {
+  LoadingScreen,
+  ExpiredScreen,
+  AlreadyRespondedScreen,
+  ErrorScreen,
+  SubmittedScreen,
+} from './public-approval/PublicQuoteStatusScreens';
 
 export default function PublicQuoteApprovalPage() {
   const { token } = useParams<{ token: string }>();
@@ -32,20 +47,24 @@ export default function PublicQuoteApprovalPage() {
   if (state.isExpired) return <ExpiredScreen />;
   if (state.alreadyResponded) return <AlreadyRespondedScreen data={state.alreadyResponded} />;
   if (state.error || !state.data) return <ErrorScreen error={state.error} />;
-  if (state.submitted) return <SubmittedScreen response={state.submitted} receipt={state.signatureReceipt} />;
+  if (state.submitted)
+    return <SubmittedScreen response={state.submitted} receipt={state.signatureReceipt} />;
 
   const { quote, seller } = state.data;
   const items = quote.items || [];
 
-  const subtotal = items.reduce((sum: number, item: any) =>
-    sum + item.quantity * item.unit_price + calcPersonalizationTotal(item), 0);
+  const subtotal = items.reduce(
+    (sum: number, item: any) =>
+      sum + item.quantity * item.unit_price + calcPersonalizationTotal(item),
+    0,
+  );
 
   const discountAmount = quote.discount_percent
     ? subtotal * (quote.discount_percent / 100)
     : quote.discount_amount || 0;
 
   const shippingCost =
-    quote.shipping_type === "fob" || quote.shipping_type === "fob_pre"
+    quote.shipping_type === 'fob' || quote.shipping_type === 'fob_pre'
       ? quote.shipping_cost || 0
       : 0;
 
@@ -55,28 +74,33 @@ export default function PublicQuoteApprovalPage() {
     <div className="min-h-screen bg-background">
       <Helmet>
         <title>Proposta #{quote.quote_number} | Promo Gifts</title>
-        <meta name="description" content={`Proposta comercial #${quote.quote_number} para aprovação`} />
+        <meta
+          name="description"
+          content={`Proposta comercial #${quote.quote_number} para aprovação`}
+        />
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
       {/* Header */}
-      <div className="bg-card border-b border-border">
-        <div className="max-w-4xl mx-auto px-4 py-6">
+      <div className="border-b border-border bg-card">
+        <div className="mx-auto max-w-4xl px-4 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="font-display text-2xl font-bold text-foreground">Proposta Comercial</h1>
-              <p className="text-muted-foreground mt-1">#{quote.quote_number}</p>
+              <h1 className="font-display text-2xl font-bold text-foreground">
+                Proposta Comercial
+              </h1>
+              <p className="mt-1 text-muted-foreground">#{quote.quote_number}</p>
             </div>
             {quote.valid_until && (
               <Badge variant="outline" className="gap-1.5">
                 <Clock className="h-3 w-3" />
-                Válido até {format(new Date(quote.valid_until), "dd/MM/yyyy", { locale: ptBR })}
+                Válido até {format(new Date(quote.valid_until), 'dd/MM/yyyy', { locale: ptBR })}
               </Badge>
             )}
           </div>
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
+      <div className="mx-auto max-w-4xl space-y-6 px-4 py-8">
         {/* Seller Info */}
         {seller && (
           <Card>
@@ -85,17 +109,21 @@ export default function PublicQuoteApprovalPage() {
                 <Avatar className="h-12 w-12">
                   <AvatarImage src={seller.avatar_url} />
                   <AvatarFallback className="bg-primary/10 text-primary">
-                    {(seller.full_name || "V").charAt(0).toUpperCase()}
+                    {(seller.full_name || 'V').charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
-                  <p className="font-medium">{seller.full_name || "Vendedor"}</p>
-                  <div className="flex flex-wrap gap-3 text-sm text-muted-foreground mt-1">
+                  <p className="font-medium">{seller.full_name || 'Vendedor'}</p>
+                  <div className="mt-1 flex flex-wrap gap-3 text-sm text-muted-foreground">
                     {seller.email && (
-                      <span className="flex items-center gap-1"><Mail className="h-3 w-3" /> {seller.email}</span>
+                      <span className="flex items-center gap-1">
+                        <Mail className="h-3 w-3" /> {seller.email}
+                      </span>
                     )}
                     {seller.phone && (
-                      <span className="flex items-center gap-1"><Phone className="h-3 w-3" /> {seller.phone}</span>
+                      <span className="flex items-center gap-1">
+                        <Phone className="h-3 w-3" /> {seller.phone}
+                      </span>
                     )}
                   </div>
                 </div>
@@ -108,14 +136,16 @@ export default function PublicQuoteApprovalPage() {
         {(quote.client_name || quote.client_company) && (
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 text-sm font-medium">
                 <User className="h-4 w-4 text-primary" />
                 Destinatário
               </CardTitle>
             </CardHeader>
-            <CardContent className="text-sm space-y-1">
+            <CardContent className="space-y-1 text-sm">
               {quote.client_name && <p className="font-medium">{quote.client_name}</p>}
-              {quote.client_company && <p className="text-muted-foreground">{quote.client_company}</p>}
+              {quote.client_company && (
+                <p className="text-muted-foreground">{quote.client_company}</p>
+              )}
             </CardContent>
           </Card>
         )}
@@ -131,11 +161,11 @@ export default function PublicQuoteApprovalPage() {
         />
 
         {/* Terms */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {quote.payment_terms && (
             <Card>
               <CardContent className="p-4">
-                <div className="flex items-center gap-2 text-sm font-medium mb-1">
+                <div className="mb-1 flex items-center gap-2 text-sm font-medium">
                   <CreditCard className="h-4 w-4 text-primary" />
                   Condições de Pagamento
                 </div>
@@ -146,13 +176,13 @@ export default function PublicQuoteApprovalPage() {
           {quote.delivery_time && (
             <Card>
               <CardContent className="p-4">
-                <div className="flex items-center gap-2 text-sm font-medium mb-1">
+                <div className="mb-1 flex items-center gap-2 text-sm font-medium">
                   <Calendar className="h-4 w-4 text-primary" />
                   Prazo de Entrega
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  {quote.delivery_time.startsWith("date:")
-                    ? `Entrega até ${format(new Date(quote.delivery_time.replace("date:", "")), "dd/MM/yyyy")}`
+                  {quote.delivery_time.startsWith('date:')
+                    ? `Entrega até ${format(new Date(quote.delivery_time.replace('date:', '')), 'dd/MM/yyyy')}`
                     : quote.delivery_time}
                 </p>
               </CardContent>
@@ -163,8 +193,8 @@ export default function PublicQuoteApprovalPage() {
         {quote.notes && (
           <Card>
             <CardContent className="p-4">
-              <p className="text-sm font-medium mb-1">Observações</p>
-              <p className="text-sm text-muted-foreground whitespace-pre-line">{quote.notes}</p>
+              <p className="mb-1 text-sm font-medium">Observações</p>
+              <p className="whitespace-pre-line text-sm text-muted-foreground">{quote.notes}</p>
             </CardContent>
           </Card>
         )}
@@ -172,14 +202,14 @@ export default function PublicQuoteApprovalPage() {
         {/* Response Section with Electronic Signature */}
         <Card className="border-2 border-[#3B82F6]/30 bg-[#3B82F6]/[0.03] shadow-lg shadow-primary/5">
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2 text-foreground">
+            <CardTitle className="flex items-center gap-2 text-lg text-foreground">
               <ShieldCheck className="h-5 w-5 text-[#3B82F6]" />
               Responder e assinar proposta
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {/* E-signature fields */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <Label htmlFor="signer-name" className="text-xs font-medium">
                   Nome completo <span className="text-destructive">*</span>
@@ -215,34 +245,44 @@ export default function PublicQuoteApprovalPage() {
               className="min-h-[80px] resize-none bg-background"
             />
 
-            <p className="text-[11px] text-muted-foreground leading-relaxed flex items-start gap-1.5">
-              <ShieldCheck className="h-3.5 w-3.5 text-success mt-0.5 shrink-0" />
-              Ao clicar em <strong>Aprovar</strong>, você assina eletronicamente esta proposta. Serão registrados seu nome, documento, IP, navegador, data/hora e um hash de integridade — com validade jurídica conforme MP 2.200-2/2001.
+            <p className="flex items-start gap-1.5 text-[11px] leading-relaxed text-muted-foreground">
+              <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-success" />
+              Ao clicar em <strong>Aprovar</strong>, você assina eletronicamente esta proposta.
+              Serão registrados seu nome, documento, IP, navegador, data/hora e um hash de
+              integridade — com validade jurídica conforme MP 2.200-2/2001.
             </p>
 
             {state.signatureError && (
-              <div className="flex items-start gap-2 text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md p-2.5">
-                <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+              <div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/10 p-2.5 text-sm text-destructive">
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
                 <span>{state.signatureError}</span>
               </div>
             )}
 
-            <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row">
               <Button
-                onClick={() => state.handleResponse("approved")}
+                onClick={() => state.handleResponse('approved')}
                 disabled={state.isSubmitting}
-                className="flex-1 h-12 text-base bg-[#3B82F6] hover:bg-[#2563EB] text-white shadow-lg shadow-primary/20"
+                className="h-12 flex-1 bg-[#3B82F6] text-base text-white shadow-lg shadow-primary/20 hover:bg-[#2563EB]"
               >
-                {state.isSubmitting ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <CheckCircle className="h-5 w-5 mr-2" />}
+                {state.isSubmitting ? (
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                ) : (
+                  <CheckCircle className="mr-2 h-5 w-5" />
+                )}
                 Aprovar e Assinar
               </Button>
               <Button
-                onClick={() => state.handleResponse("rejected")}
+                onClick={() => state.handleResponse('rejected')}
                 disabled={state.isSubmitting}
                 variant="destructive"
-                className="flex-1 h-12 text-base"
+                className="h-12 flex-1 text-base"
               >
-                {state.isSubmitting ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <XCircle className="h-5 w-5 mr-2" />}
+                {state.isSubmitting ? (
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                ) : (
+                  <XCircle className="mr-2 h-5 w-5" />
+                )}
                 Recusar Proposta
               </Button>
             </div>
@@ -251,7 +291,7 @@ export default function PublicQuoteApprovalPage() {
       </div>
 
       {/* Footer */}
-      <div className="border-t border-border mt-8 py-6 text-center text-xs text-muted-foreground">
+      <div className="mt-8 border-t border-border py-6 text-center text-xs text-muted-foreground">
         <p>Proposta gerada automaticamente • Promo Gifts</p>
       </div>
     </div>

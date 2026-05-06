@@ -1,11 +1,11 @@
 /**
  * useGravacaoPriceV2 - Fluxo para cálculo de preço de gravação
- * 
+ *
  * ARQUITETURA DEFINITIVA (v5.9):
  * - product_print_areas: áreas de gravação por produto
  * - tabela_preco_gravacao_oficial: 50 tabelas de preço (16 grupos)
  * - fn_get_customization_price: RPC única que calcula preço via p_area_id
- * 
+ *
  * NÃO usa mais fn_get_customization_price_v2 (eliminada).
  * NÃO usa mais conceito de variantes (tecnica_variante_id eliminado).
  */
@@ -208,9 +208,9 @@ async function buildPrintAreasFromTables(productId: string): Promise<PrintAreaV2
   // 1. Buscar áreas da tabela print_area_techniques (SSOT)
   const { fetchPrintAreasFromProduct } = await import('@/lib/fetch-print-areas');
   const fetchedAreas = await fetchPrintAreasFromProduct(productId);
-  
+
   if (!fetchedAreas.length) return [];
-  
+
   // Cast para interface esperada
   const areasResult = { records: fetchedAreas as unknown as ProductPrintAreaRaw[] };
 
@@ -240,7 +240,7 @@ async function buildPrintAreasFromTables(productId: string): Promise<PrintAreaV2
   }
 
   // 4. Montar PrintAreaV2 para cada área
-  return areasResult.records.map(area => {
+  return areasResult.records.map((area) => {
     const tech = area.customization_price_table_id
       ? techById.get(area.customization_price_table_id)
       : undefined;
@@ -302,34 +302,35 @@ export function useCustomizationPriceV2() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const calculatePrice = useCallback(async (
-    params: CalculatePriceParams
-  ): Promise<CustomizationPriceFlat | null> => {
-    setLoading(true);
-    setError(null);
+  const calculatePrice = useCallback(
+    async (params: CalculatePriceParams): Promise<CustomizationPriceFlat | null> => {
+      setLoading(true);
+      setError(null);
 
-    try {
-      const result = await invokeExternalRpc<CustomizationPriceResponse>(
-        'fn_get_customization_price',
-        {
-          p_area_id: params.areaId,
-          p_quantidade: params.quantidade,
-          p_num_cores: params.numCores ?? 1,
-          p_largura_cm: params.larguraCm ?? null,
-          p_altura_cm: params.alturaCm ?? null,
-        }
-      );
-      
-      setLoading(false);
-      if (!result?.success) return null;
-      return adaptPriceResponse(result);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Erro ao calcular preço';
-      setError(message);
-      setLoading(false);
-      return null;
-    }
-  }, []);
+      try {
+        const result = await invokeExternalRpc<CustomizationPriceResponse>(
+          'fn_get_customization_price',
+          {
+            p_area_id: params.areaId,
+            p_quantidade: params.quantidade,
+            p_num_cores: params.numCores ?? 1,
+            p_largura_cm: params.larguraCm ?? null,
+            p_altura_cm: params.alturaCm ?? null,
+          },
+        );
+
+        setLoading(false);
+        if (!result?.success) return null;
+        return adaptPriceResponse(result);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Erro ao calcular preço';
+        setError(message);
+        setLoading(false);
+        return null;
+      }
+    },
+    [],
+  );
 
   return { calculatePrice, loading, error };
 }
@@ -337,7 +338,7 @@ export function useCustomizationPriceV2() {
 export function useCustomizationPriceReactive(
   areaId: string | null,
   quantidade: number,
-  numCores: number = 1
+  numCores: number = 1,
 ) {
   const [price, setPrice] = useState<CustomizationPriceFlat | null>(null);
   const [loading, setLoading] = useState(false);
@@ -352,14 +353,11 @@ export function useCustomizationPriceReactive(
     setLoading(true);
     setError(null);
 
-    invokeExternalRpc<CustomizationPriceResponse>(
-      'fn_get_customization_price',
-      {
-        p_area_id: areaId,
-        p_quantidade: quantidade,
-        p_num_cores: numCores,
-      }
-    )
+    invokeExternalRpc<CustomizationPriceResponse>('fn_get_customization_price', {
+      p_area_id: areaId,
+      p_quantidade: quantidade,
+      p_num_cores: numCores,
+    })
       .then((data) => {
         if (data && data.success) {
           setPrice(adaptPriceResponse(data));
@@ -377,18 +375,15 @@ export function useCustomizationPriceReactive(
 }
 
 export async function calculateCustomizationPrice(
-  params: CalculatePriceParams
+  params: CalculatePriceParams,
 ): Promise<CustomizationPriceFlat> {
-  const result = await invokeExternalRpc<CustomizationPriceResponse>(
-    'fn_get_customization_price',
-    {
-      p_area_id: params.areaId,
-      p_quantidade: params.quantidade,
-      p_num_cores: params.numCores ?? 1,
-      p_largura_cm: params.larguraCm ?? null,
-      p_altura_cm: params.alturaCm ?? null,
-    }
-  );
+  const result = await invokeExternalRpc<CustomizationPriceResponse>('fn_get_customization_price', {
+    p_area_id: params.areaId,
+    p_quantidade: params.quantidade,
+    p_num_cores: params.numCores ?? 1,
+    p_largura_cm: params.larguraCm ?? null,
+    p_altura_cm: params.alturaCm ?? null,
+  });
   return adaptPriceResponse(result);
 }
 

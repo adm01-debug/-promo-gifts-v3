@@ -13,7 +13,9 @@ vi.mock('@/integrations/supabase/client', () => ({
       signInWithPassword: vi.fn(),
     },
     functions: {
-      invoke: vi.fn(() => Promise.resolve({ data: { ip: '127.0.0.1', city: 'Test' }, error: null })),
+      invoke: vi.fn(() =>
+        Promise.resolve({ data: { ip: '127.0.0.1', city: 'Test' }, error: null }),
+      ),
     },
   },
 }));
@@ -37,11 +39,9 @@ const renderWithProviders = (ui: React.ReactElement) => {
   return render(
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <BrowserRouter>
-          {ui}
-        </BrowserRouter>
+        <BrowserRouter>{ui}</BrowserRouter>
       </AuthProvider>
-    </QueryClientProvider>
+    </QueryClientProvider>,
   );
 };
 
@@ -52,7 +52,7 @@ describe('Auth Page (Login Flow)', () => {
 
   it('renders login form correctly', async () => {
     renderWithProviders(<Auth />);
-    
+
     await waitFor(() => {
       expect(screen.getByTestId('login-email-input')).toBeInTheDocument();
       expect(screen.getByTestId('login-password-input')).toBeInTheDocument();
@@ -62,7 +62,7 @@ describe('Auth Page (Login Flow)', () => {
 
   it('shows error messages for empty fields', async () => {
     renderWithProviders(<Auth />);
-    
+
     await waitFor(() => {
       const submitButton = screen.getByTestId('login-submit');
       fireEvent.click(submitButton);
@@ -76,7 +76,7 @@ describe('Auth Page (Login Flow)', () => {
 
   it('shows error message for invalid email format', async () => {
     renderWithProviders(<Auth />);
-    
+
     await waitFor(() => {
       const emailInput = screen.getByTestId('login-email-input');
       fireEvent.change(emailInput, { target: { value: 'invalid-email' } });
@@ -85,13 +85,15 @@ describe('Auth Page (Login Flow)', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText(/Por favor, insira um endereço de e-mail válido/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Por favor, insira um endereço de e-mail válido/i),
+      ).toBeInTheDocument();
     });
   });
 
   it('shows error for short password', async () => {
     renderWithProviders(<Auth />);
-    
+
     await waitFor(() => {
       const emailInput = screen.getByTestId('login-email-input');
       const passwordInput = screen.getByTestId('login-password-input');

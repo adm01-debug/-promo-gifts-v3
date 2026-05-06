@@ -8,7 +8,8 @@ const log = createClientLogger('hooks.useNovelties');
 const USE_MOCKS = true; // Flag para facilitar alternar entre dados reais e mocks
 
 const NOVELTY_WINDOW_DAYS = 30;
-const NOVELTY_SELECT = 'id, name, sku, primary_image_url, sale_price, category_id, supplier_id, created_at, stock_quantity, min_quantity';
+const NOVELTY_SELECT =
+  'id, name, sku, primary_image_url, sale_price, category_id, supplier_id, created_at, stock_quantity, min_quantity';
 
 /**
  * Calcula a data de corte para novidades (últimos N dias)
@@ -89,15 +90,22 @@ interface RawProduct {
   min_quantity: number | null;
 }
 
-interface CategoryRecord { id: string; name: string; }
-interface SupplierRecord { id: string; name: string; code?: string; }
+interface CategoryRecord {
+  id: string;
+  name: string;
+}
+interface SupplierRecord {
+  id: string;
+  name: string;
+  code?: string;
+}
 
 /**
  * Enriquece novidades com nomes de categoria e fornecedor
  */
 async function enrichNovelties(novelties: NoveltyWithDetails[]): Promise<NoveltyWithDetails[]> {
-  const categoryIds = [...new Set(novelties.map(n => n.category_id).filter(Boolean))] as string[];
-  const supplierIds = [...new Set(novelties.map(n => n.supplier_id).filter(Boolean))] as string[];
+  const categoryIds = [...new Set(novelties.map((n) => n.category_id).filter(Boolean))] as string[];
+  const supplierIds = [...new Set(novelties.map((n) => n.supplier_id).filter(Boolean))] as string[];
 
   const [catResult, supResult] = await Promise.all([
     categoryIds.length > 0
@@ -120,10 +128,10 @@ async function enrichNovelties(novelties: NoveltyWithDetails[]): Promise<Novelty
       : { records: [] as SupplierRecord[] },
   ]);
 
-  const catMap = new Map(catResult.records.map(c => [c.id, c.name]));
-  const supMap = new Map(supResult.records.map(s => [s.id, { name: s.name, code: s.code }]));
+  const catMap = new Map(catResult.records.map((c) => [c.id, c.name]));
+  const supMap = new Map(supResult.records.map((s) => [s.id, { name: s.name, code: s.code }]));
 
-  return novelties.map(n => ({
+  return novelties.map((n) => ({
     ...n,
     category_name: (n.category_id && catMap.get(n.category_id)) || null,
     supplier_name: (n.supplier_id && supMap.get(n.supplier_id)?.name) || null,
@@ -140,11 +148,14 @@ async function enrichNovelties(novelties: NoveltyWithDetails[]): Promise<Novelty
  */
 function toNovelty(p: RawProduct): NoveltyWithDetails {
   const daysRemaining = calcDaysRemaining(p.created_at);
-  const expiresAt = new Date(new Date(p.created_at).getTime() + NOVELTY_WINDOW_DAYS * 86400000).toISOString();
+  const expiresAt = new Date(
+    new Date(p.created_at).getTime() + NOVELTY_WINDOW_DAYS * 86400000,
+  ).toISOString();
   const stock = p.stock_quantity ?? 0;
   const minQty = p.min_quantity ?? 10;
-  const stockStatus: NoveltyWithDetails['stock_status'] = stock === 0 ? 'out-of-stock' : stock < minQty ? 'low-stock' : 'in-stock';
-  
+  const stockStatus: NoveltyWithDetails['stock_status'] =
+    stock === 0 ? 'out-of-stock' : stock < minQty ? 'low-stock' : 'in-stock';
+
   return {
     novelty_id: p.id,
     product_id: p.id,
@@ -188,24 +199,29 @@ export function useNoveltiesWithDetails(options: UseNoveltiesOptions = {}) {
   return useQuery<NoveltyWithDetails[]>({
     queryKey: ['novelties-details', limit, onlyHighlighted, options.status, options.maxDays],
     queryFn: async () => {
-      log.info('fetch_details_start', { limit, onlyHighlighted, status: options.status, maxDays: options.maxDays });
+      log.info('fetch_details_start', {
+        limit,
+        onlyHighlighted,
+        status: options.status,
+        maxDays: options.maxDays,
+      });
       if (USE_MOCKS) {
         let mocked = [...MOCK_NOVELTIES];
         if (options.status) {
-          mocked = mocked.filter(n => n.status === options.status);
+          mocked = mocked.filter((n) => n.status === options.status);
         }
         if (options.maxDays) {
-          mocked = mocked.filter(n => n.days_remaining <= options.maxDays!);
+          mocked = mocked.filter((n) => n.days_remaining <= options.maxDays!);
         }
         if (onlyHighlighted) {
-          mocked = mocked.filter(n => n.is_highlighted);
+          mocked = mocked.filter((n) => n.is_highlighted);
         }
         return mocked.slice(0, limit);
       }
-      
+
       const cutoff = getCutoffDate();
       const filters: any = { is_active: true, created_at: `gte.${cutoff}` };
-      
+
       try {
         const result = await invokeExternalDb<RawProduct>({
           table: 'products',
@@ -216,18 +232,18 @@ export function useNoveltiesWithDetails(options: UseNoveltiesOptions = {}) {
           limit,
         });
 
-        let novelties = result.records.map(toNovelty).filter(n => n.is_active);
+        let novelties = result.records.map(toNovelty).filter((n) => n.is_active);
 
         if (options.status) {
-          novelties = novelties.filter(n => n.status === options.status);
+          novelties = novelties.filter((n) => n.status === options.status);
         }
 
         if (options.maxDays) {
-          novelties = novelties.filter(n => n.days_remaining <= options.maxDays!);
+          novelties = novelties.filter((n) => n.days_remaining <= options.maxDays!);
         }
 
         if (onlyHighlighted) {
-          novelties = novelties.filter(n => n.is_highlighted);
+          novelties = novelties.filter((n) => n.is_highlighted);
         }
 
         log.info('fetch_details_ok', { count: novelties.length });
@@ -250,14 +266,14 @@ export function useExpiringNovelties(maxDays: number = 7) {
     queryKey: ['expiring-novelties', maxDays],
     queryFn: async () => {
       if (USE_MOCKS) {
-        return MOCK_NOVELTIES
-          .filter(n => n.days_remaining <= maxDays)
-          .sort((a, b) => a.days_remaining - b.days_remaining);
+        return MOCK_NOVELTIES.filter((n) => n.days_remaining <= maxDays).sort(
+          (a, b) => a.days_remaining - b.days_remaining,
+        );
       }
 
       // Buscar todas as novidades dos últimos 30 dias
       const cutoff = getCutoffDate();
-      
+
       const result = await invokeExternalDb<RawProduct>({
         table: 'products',
         operation: 'select',
@@ -269,7 +285,7 @@ export function useExpiringNovelties(maxDays: number = 7) {
 
       return result.records
         .map(toNovelty)
-        .filter(n => n.is_active && n.days_remaining <= maxDays)
+        .filter((n) => n.is_active && n.days_remaining <= maxDays)
         .sort((a, b) => a.days_remaining - b.days_remaining);
     },
     staleTime: 5 * 60 * 1000,
@@ -285,7 +301,7 @@ export function useNoveltyStats(filteredProducts?: NoveltyWithDetails[]) {
     queryKey: ['novelty-stats', filteredProducts?.length],
     queryFn: async () => {
       log.info('fetch_stats_start', { isFiltered: !!filteredProducts });
-      
+
       if (filteredProducts) {
         // Recalcula KPIs baseados no subset filtrado
         const now = new Date().toISOString().split('T')[0];
@@ -295,11 +311,11 @@ export function useNoveltyStats(filteredProducts?: NoveltyWithDetails[]) {
         return {
           ...MOCK_STATS,
           totalNovelties: filteredProducts.length,
-          activeNovelties: filteredProducts.filter(p => p.status === 'active').length,
-          expiringSoon: filteredProducts.filter(p => p.status === 'expiring_soon').length,
-          arrivedToday: filteredProducts.filter(p => p.detected_at.startsWith(now)).length,
-          arrivedThisWeek: filteredProducts.filter(p => p.detected_at >= last7).length,
-          arrivedLast15Days: filteredProducts.filter(p => p.detected_at >= last15).length,
+          activeNovelties: filteredProducts.filter((p) => p.status === 'active').length,
+          expiringSoon: filteredProducts.filter((p) => p.status === 'expiring_soon').length,
+          arrivedToday: filteredProducts.filter((p) => p.detected_at.startsWith(now)).length,
+          arrivedThisWeek: filteredProducts.filter((p) => p.detected_at >= last7).length,
+          arrivedLast15Days: filteredProducts.filter((p) => p.detected_at >= last15).length,
           filteredCount: filteredProducts.length,
         };
       }
@@ -315,7 +331,9 @@ export function useNoveltyStats(filteredProducts?: NoveltyWithDetails[]) {
 /**
  * Hook para buscar novidades via interface simplificada (compatível com NoveltiesSection)
  */
-export function useNovelties(options: UseNoveltiesOptions & { supplierCode?: string; maxDays?: number } = {}) {
+export function useNovelties(
+  options: UseNoveltiesOptions & { supplierCode?: string; maxDays?: number } = {},
+) {
   const { supplierCode, limit = 50, maxDays } = options;
 
   return useQuery<NoveltyWithDetails[]>({
@@ -323,13 +341,14 @@ export function useNovelties(options: UseNoveltiesOptions & { supplierCode?: str
     queryFn: async () => {
       if (USE_MOCKS) {
         let mocked = [...MOCK_NOVELTIES];
-        if (supplierCode) mocked = mocked.filter(n => n.supplier_code === supplierCode);
-        if (maxDays) mocked = mocked.filter(n => n.days_remaining >= (NOVELTY_WINDOW_DAYS - maxDays));
+        if (supplierCode) mocked = mocked.filter((n) => n.supplier_code === supplierCode);
+        if (maxDays)
+          mocked = mocked.filter((n) => n.days_remaining >= NOVELTY_WINDOW_DAYS - maxDays);
         return mocked.slice(0, limit);
       }
       const cutoff = getCutoffDate();
       const filters: Record<string, unknown> = { is_active: true, created_at: `gte.${cutoff}` };
-      
+
       if (supplierCode) {
         // Precisa buscar o supplier_id pelo code
         const supplierResult = await invokeExternalDb<{ id: string }>({
@@ -353,10 +372,10 @@ export function useNovelties(options: UseNoveltiesOptions & { supplierCode?: str
         limit,
       });
 
-      let novelties = result.records.map(toNovelty).filter(n => n.is_active);
+      let novelties = result.records.map(toNovelty).filter((n) => n.is_active);
 
       if (maxDays) {
-        novelties = novelties.filter(n => n.days_remaining >= (NOVELTY_WINDOW_DAYS - maxDays));
+        novelties = novelties.filter((n) => n.days_remaining >= NOVELTY_WINDOW_DAYS - maxDays);
       }
 
       return novelties;
@@ -375,7 +394,7 @@ export function useNoveltyCount() {
     queryFn: async () => {
       if (USE_MOCKS) return MOCK_NOVELTIES.length;
       const cutoff = getCutoffDate();
-      
+
       const result = await invokeExternalDb<{ id: string }>({
         table: 'products',
         operation: 'select',
@@ -400,10 +419,10 @@ export function useIsProductNovelty(productId: string) {
     queryKey: ['is-novelty', productId],
     queryFn: async () => {
       if (USE_MOCKS) {
-        const found = MOCK_NOVELTIES.find(n => n.product_id === productId);
-        return { 
-          isNovelty: !!found && found.days_remaining > 0, 
-          daysRemaining: found ? found.days_remaining : null 
+        const found = MOCK_NOVELTIES.find((n) => n.product_id === productId);
+        return {
+          isNovelty: !!found && found.days_remaining > 0,
+          daysRemaining: found ? found.days_remaining : null,
         };
       }
       const result = await invokeExternalDb<RawProduct>({
@@ -436,9 +455,9 @@ export function useNoveltyProductIds() {
   return useQuery<Set<string>>({
     queryKey: ['novelty-product-ids'],
     queryFn: async () => {
-      if (USE_MOCKS) return new Set(MOCK_NOVELTIES.map(n => n.product_id));
+      if (USE_MOCKS) return new Set(MOCK_NOVELTIES.map((n) => n.product_id));
       const cutoff = getCutoffDate();
-      
+
       const result = await invokeExternalDb<{ id: string }>({
         table: 'products',
         operation: 'select',
@@ -447,7 +466,7 @@ export function useNoveltyProductIds() {
         limit: 500,
       });
 
-      return new Set(result.records.map(r => r.id));
+      return new Set(result.records.map((r) => r.id));
     },
     staleTime: 2 * 60 * 1000,
   });
@@ -459,4 +478,3 @@ export const NOVELTY_STATUS_CONFIG = {
   expiring_soon: { label: 'Expirando', color: 'warning' },
   expired: { label: 'Expirado', color: 'destructive' },
 } as const;
-

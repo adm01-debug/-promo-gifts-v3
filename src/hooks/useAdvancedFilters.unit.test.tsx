@@ -18,7 +18,7 @@ vi.mock('./useExternalDatabase', async () => {
 
 describe('useAdvancedFilters', () => {
   const mockFetchAll = vi.fn().mockResolvedValue({ success: true });
-  
+
   const mockCategories = [
     { id: '1', name: 'Escrita', slug: 'escrita', level: 0, is_active: true },
     { id: '2', name: 'Canetas', parent_id: '1', slug: 'canetas', level: 1, is_active: true },
@@ -28,13 +28,11 @@ describe('useAdvancedFilters', () => {
     { id: 't1', name: 'Silk', code: 'SK', estimated_days: 5, min_quantity: 10, is_active: true },
   ];
 
-  const mockSuppliers = [
-    { id: 's1', name: 'Supplier A', code: 'SUPA', lead_time_days: 10 },
-  ];
+  const mockSuppliers = [{ id: 's1', name: 'Supplier A', code: 'SUPA', lead_time_days: 10 }];
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Default mock setup for all database hooks
     (useExternalDatabaseModule.useExternalCategories as any).mockReturnValue({
       data: mockCategories,
@@ -66,7 +64,7 @@ describe('useAdvancedFilters', () => {
 
   it('calls fetchAll on mount for all filter options', async () => {
     renderHook(() => useAdvancedFilters());
-    
+
     await waitFor(() => {
       expect(mockFetchAll).toHaveBeenCalled();
     });
@@ -75,11 +73,11 @@ describe('useAdvancedFilters', () => {
   it('updates a single filter correctly', async () => {
     const { result } = renderHook(() => useAdvancedFilters());
     await waitFor(() => expect(result.current.isLoading).toBe(false));
-    
+
     act(() => {
       result.current.updateFilter('search', 'test search');
     });
-    
+
     expect(result.current.filters.search).toBe('test search');
     expect(result.current.activeFiltersCount).toBe(1);
   });
@@ -87,12 +85,12 @@ describe('useAdvancedFilters', () => {
   it('toggles an array filter item', async () => {
     const { result } = renderHook(() => useAdvancedFilters());
     await waitFor(() => expect(result.current.isLoading).toBe(false));
-    
+
     act(() => {
       result.current.toggleArrayFilter('categories', '1');
     });
     expect(result.current.filters.categories).toContain('1');
-    
+
     act(() => {
       result.current.toggleArrayFilter('categories', '1');
     });
@@ -102,18 +100,18 @@ describe('useAdvancedFilters', () => {
   it('resets all filters to default', async () => {
     const { result } = renderHook(() => useAdvancedFilters());
     await waitFor(() => expect(result.current.isLoading).toBe(false));
-    
+
     act(() => {
       result.current.updateFilter('search', 'dirty');
       result.current.toggleArrayFilter('colors', 'red');
     });
-    
+
     expect(result.current.activeFiltersCount).toBe(2);
-    
+
     act(() => {
       result.current.resetFilters();
     });
-    
+
     expect(result.current.filters).toEqual(defaultAdvancedFilters);
     expect(result.current.activeFiltersCount).toBe(0);
   });
@@ -121,7 +119,7 @@ describe('useAdvancedFilters', () => {
   it('builds category tree correctly from flat data', async () => {
     const { result } = renderHook(() => useAdvancedFilters());
     await waitFor(() => expect(result.current.isLoading).toBe(false));
-    
+
     expect(result.current.categoryTree).toHaveLength(1);
     expect(result.current.categoryTree[0].name).toBe('Escrita');
     expect(result.current.categoryTree[0].children).toHaveLength(1);
@@ -131,24 +129,24 @@ describe('useAdvancedFilters', () => {
   it('correctly calculates active filters count for ranges', async () => {
     const { result } = renderHook(() => useAdvancedFilters());
     await waitFor(() => expect(result.current.isLoading).toBe(false));
-    
+
     act(() => {
       result.current.updateFilter('priceRange', [10, 500]);
     });
-    
+
     expect(result.current.activeFiltersCount).toBe(1);
   });
 
   it('detects active filters in a group', async () => {
     const { result } = renderHook(() => useAdvancedFilters());
     await waitFor(() => expect(result.current.isLoading).toBe(false));
-    
+
     expect(result.current.hasActiveFiltersInGroup(['categories', 'suppliers'])).toBe(false);
-    
+
     act(() => {
       result.current.toggleArrayFilter('categories', '1');
     });
-    
+
     expect(result.current.hasActiveFiltersInGroup(['categories', 'suppliers'])).toBe(true);
     expect(result.current.hasActiveFiltersInGroup(['colors'])).toBe(false);
   });

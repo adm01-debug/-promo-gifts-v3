@@ -1,25 +1,25 @@
-import { useState, useCallback, useMemo, useEffect } from "react";
-import { MessageCircle, Send, Eye, Pencil } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useState, useCallback, useMemo, useEffect } from 'react';
+import { MessageCircle, Send, Eye, Pencil } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
-import type { Product } from "@/hooks/useProducts";
-import { PhotoSelector } from "./PhotoSelector";
-import { ShareContactSelector, type ShareContactSelection } from "./ShareContactSelector";
-import { MESSAGE_TEMPLATES, type TemplateKey } from "./MessageTemplates";
-import { WhatsAppPreview } from "./WhatsAppPreview";
-import { openWhatsAppShare } from "./whatsapp";
-import { cn } from "@/lib/utils";
-import { createClientLogger } from "@/lib/telemetry/structuredLogger";
+} from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
+import type { Product } from '@/hooks/useProducts';
+import { PhotoSelector } from './PhotoSelector';
+import { ShareContactSelector, type ShareContactSelection } from './ShareContactSelector';
+import { MESSAGE_TEMPLATES, type TemplateKey } from './MessageTemplates';
+import { WhatsAppPreview } from './WhatsAppPreview';
+import { openWhatsAppShare } from './whatsapp';
+import { cn } from '@/lib/utils';
+import { createClientLogger } from '@/lib/telemetry/structuredLogger';
 
-const log = createClientLogger("share.preview-dialog");
+const log = createClientLogger('share.preview-dialog');
 
 interface SelectedVariantInfo {
   variantName?: string | null;
@@ -34,9 +34,14 @@ interface SharePreviewDialogProps {
   selectedVariant?: SelectedVariantInfo | null;
 }
 
-export function SharePreviewDialog({ open, onOpenChange, product, selectedVariant }: SharePreviewDialogProps) {
+export function SharePreviewDialog({
+  open,
+  onOpenChange,
+  product,
+  selectedVariant,
+}: SharePreviewDialogProps) {
   const { toast } = useToast();
-  const [activeTemplate, setActiveTemplate] = useState<TemplateKey>("informal");
+  const [activeTemplate, setActiveTemplate] = useState<TemplateKey>('informal');
   const [customMessage, setCustomMessage] = useState<string | null>(null);
   const [contactSelection, setContactSelection] = useState<ShareContactSelection | null>(null);
   const [previewMode, setPreviewMode] = useState(false);
@@ -49,22 +54,29 @@ export function SharePreviewDialog({ open, onOpenChange, product, selectedVarian
     const colors = Array.isArray(product?.colors) ? product.colors : null;
     const colorCount = colors?.length ?? 0;
     if (colorCount === 0) {
-      log.warn("share_open_missing_colors", {
+      log.warn('share_open_missing_colors', {
         productId: product?.id,
         sku: product?.sku || null,
-        colorsField: colors === null ? "undefined" : "empty_array",
+        colorsField: colors === null ? 'undefined' : 'empty_array',
         hasSelectedVariant: !!selectedVariant?.variantName,
         imagesCount: Array.isArray(product?.images) ? product.images.length : 0,
       });
     } else {
-      log.info("share_open_ok", {
+      log.info('share_open_ok', {
         productId: product?.id,
         sku: product?.sku || null,
         colorCount,
         hasSelectedVariant: !!selectedVariant?.variantName,
       });
     }
-  }, [open, product?.id, product?.sku, product?.colors, product?.images, selectedVariant?.variantName]);
+  }, [
+    open,
+    product?.id,
+    product?.sku,
+    product?.colors,
+    product?.images,
+    selectedVariant?.variantName,
+  ]);
 
   // Filter out color-specific images — keep only main product photos
   const mainImages = useMemo(() => {
@@ -86,13 +98,15 @@ export function SharePreviewDialog({ open, onOpenChange, product, selectedVarian
     });
 
     const filtered = product.images.filter((img) => !colorImageUrls.has(img));
-    preferredImages.push(...(filtered.length > 0 ? filtered : product.images[0] ? [product.images[0]] : []));
+    preferredImages.push(
+      ...(filtered.length > 0 ? filtered : product.images[0] ? [product.images[0]] : []),
+    );
 
     return Array.from(new Set(preferredImages));
   }, [product.images, product.colors, selectedVariant?.thumbnailUrl]);
 
   const [selectedImages, setSelectedImages] = useState<Set<number>>(
-    () => new Set(mainImages.map((_, i) => i))
+    () => new Set(mainImages.map((_, i) => i)),
   );
 
   // Reset selected images when the available images change (e.g. different variant)
@@ -139,7 +153,7 @@ export function SharePreviewDialog({ open, onOpenChange, product, selectedVarian
   };
 
   const handleSend = () => {
-    const target = contactSelection?.contactName || contactSelection?.companyName || "destinatário";
+    const target = contactSelection?.contactName || contactSelection?.companyName || 'destinatário';
 
     const { opened } = openWhatsAppShare({
       message,
@@ -148,14 +162,14 @@ export function SharePreviewDialog({ open, onOpenChange, product, selectedVarian
 
     if (opened) {
       toast({
-        title: "WhatsApp aberto",
+        title: 'WhatsApp aberto',
         description: `Mensagem preparada para ${target}`,
       });
     } else {
       toast({
-        title: "Não foi possível abrir o WhatsApp",
-        description: "Verifique se popups estão permitidos no navegador.",
-        variant: "destructive",
+        title: 'Não foi possível abrir o WhatsApp',
+        description: 'Verifique se popups estão permitidos no navegador.',
+        variant: 'destructive',
       });
     }
     onOpenChange(false);
@@ -163,15 +177,22 @@ export function SharePreviewDialog({ open, onOpenChange, product, selectedVarian
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md max-h-[64vh] overflow-y-auto" onClick={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()}>
+      <DialogContent
+        className="max-h-[64vh] overflow-y-auto sm:max-w-md"
+        onClick={(e) => e.stopPropagation()}
+        onPointerDown={(e) => e.stopPropagation()}
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <MessageCircle className="h-5 w-5 text-success" />
             Enviar Produto
             {selectedVariant?.variantName && (
-              <span className="inline-flex items-center gap-1.5 ml-1">
+              <span className="ml-1 inline-flex items-center gap-1.5">
                 {selectedVariant.colorHex && (
-                  <span className="w-3 h-3 rounded-full border border-border/50 shrink-0" style={{ backgroundColor: selectedVariant.colorHex }} />
+                  <span
+                    className="h-3 w-3 shrink-0 rounded-full border border-border/50"
+                    style={{ backgroundColor: selectedVariant.colorHex }}
+                  />
                 )}
                 <span className="text-xs font-normal text-muted-foreground">
                   — {selectedVariant.variantName}
@@ -179,9 +200,7 @@ export function SharePreviewDialog({ open, onOpenChange, product, selectedVarian
               </span>
             )}
           </DialogTitle>
-          <DialogDescription>
-            Selecione fotos, modelo de mensagem e contato
-          </DialogDescription>
+          <DialogDescription>Selecione fotos, modelo de mensagem e contato</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -204,10 +223,10 @@ export function SharePreviewDialog({ open, onOpenChange, product, selectedVarian
                   type="button"
                   onClick={() => handleTemplateChange(t.key)}
                   className={cn(
-                    "px-3 py-1.5 rounded-full text-xs font-medium transition-colors",
+                    'rounded-full px-3 py-1.5 text-xs font-medium transition-colors',
                     activeTemplate === t.key
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
                   )}
                   title={t.description}
                 >
@@ -224,10 +243,10 @@ export function SharePreviewDialog({ open, onOpenChange, product, selectedVarian
               type="button"
               onClick={() => setPreviewMode(!previewMode)}
               className={cn(
-                "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-colors",
+                'flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-colors',
                 previewMode
-                  ? "bg-[hsl(142,40%,28%)] text-primary-foreground"
-                  : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                  ? 'bg-[hsl(142,40%,28%)] text-primary-foreground'
+                  : 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
               )}
             >
               {previewMode ? (
@@ -244,7 +263,7 @@ export function SharePreviewDialog({ open, onOpenChange, product, selectedVarian
             </button>
           </div>
 
-          <div key={previewMode ? "preview" : "edit"} className="animate-fade-in">
+          <div key={previewMode ? 'preview' : 'edit'} className="animate-fade-in">
             {previewMode ? (
               <WhatsAppPreview
                 message={message}
@@ -253,11 +272,11 @@ export function SharePreviewDialog({ open, onOpenChange, product, selectedVarian
                 contactName={contactSelection?.contactName}
               />
             ) : (
-              <div className="bg-secondary/50 rounded-xl p-3 border border-border">
+              <div className="rounded-xl border border-border bg-secondary/50 p-3">
                 <Textarea
                   value={message}
                   onChange={(e) => setCustomMessage(e.target.value)}
-                  className="min-h-[160px] bg-transparent border-0 resize-none focus-visible:ring-0 text-sm"
+                  className="min-h-[160px] resize-none border-0 bg-transparent text-sm focus-visible:ring-0"
                 />
               </div>
             )}
@@ -266,22 +285,18 @@ export function SharePreviewDialog({ open, onOpenChange, product, selectedVarian
           {/* Contact selector */}
           <div className="space-y-2">
             <span className="text-xs font-medium text-muted-foreground">Destinatário</span>
-            <ShareContactSelector
-              selection={contactSelection}
-              onSelect={setContactSelection}
-            />
+            <ShareContactSelector selection={contactSelection} onSelect={setContactSelection} />
           </div>
 
           {/* Actions */}
           <div className="flex gap-2 pt-1">
-            <Button
-              variant="outline"
-              className="flex-1"
-              onClick={() => onOpenChange(false)}
-            >
+            <Button variant="outline" className="flex-1" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
-            <Button className="flex-1 gap-2 bg-primary hover:bg-primary/90 text-primary-foreground" onClick={handleSend}>
+            <Button
+              className="flex-1 gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
+              onClick={handleSend}
+            >
               <Send className="h-4 w-4" />
               Enviar - WhatsApp
             </Button>

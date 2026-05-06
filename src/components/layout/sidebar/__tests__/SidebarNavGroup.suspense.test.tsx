@@ -14,45 +14,45 @@
  * `SidebarReorganized.computeAutoOpen` (setState durante render quando o
  * pathname muda), isolando a lógica para teste.
  */
-import React from "react";
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { act, render, screen } from "@testing-library/react";
+import React from 'react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { act, render, screen } from '@testing-library/react';
 import {
   createMemoryRouter,
   RouterProvider,
   Outlet,
   useLocation,
   type Router,
-} from "react-router-dom";
-import { Plus, FileText, ShoppingCart } from "lucide-react";
-import type { NavGroup } from "../SidebarNavGroup";
-import { isNavItemActive } from "@/lib/navigation/active-match";
+} from 'react-router-dom';
+import { Plus, FileText, ShoppingCart } from 'lucide-react';
+import type { NavGroup } from '../SidebarNavGroup';
+import { isNavItemActive } from '@/lib/navigation/active-match';
 
-vi.mock("@/contexts/AuthContext", () => ({
-  useAuth: () => ({ isAdmin: true, isDev: true, user: { id: "u1" } }),
+vi.mock('@/contexts/AuthContext', () => ({
+  useAuth: () => ({ isAdmin: true, isDev: true, user: { id: 'u1' } }),
 }));
-vi.mock("@/hooks/useRBAC", () => ({
+vi.mock('@/hooks/useRBAC', () => ({
   useRBAC: () => ({ hasPermission: () => true }),
 }));
-vi.mock("@/lib/routePrefetch", () => ({
+vi.mock('@/lib/routePrefetch', () => ({
   getPrefetchHandlers: () => ({ onMouseEnter: () => {}, onTouchStart: () => {} }),
 }));
-vi.mock("@/lib/navigation/restricted-routes", () => ({
+vi.mock('@/lib/navigation/restricted-routes', () => ({
   isDevOnlyPath: () => false,
   isAdminOnlyPath: () => false,
 }));
 
-import { SidebarNavGroup } from "../SidebarNavGroup";
+import { SidebarNavGroup } from '../SidebarNavGroup';
 
 const group: NavGroup = {
-  id: "quotes",
-  label: "Orçamentos",
+  id: 'quotes',
+  label: 'Orçamentos',
   icon: FileText,
   defaultOpen: true,
   items: [
-    { icon: Plus, label: "Novo Orçamento", href: "/orcamentos/novo", shortcut: "Alt+N" },
-    { icon: FileText, label: "Orçamentos", href: "/orcamentos", exact: true, shortcut: "Alt+O" },
-    { icon: ShoppingCart, label: "Carrinhos", href: "/carrinhos", shortcut: "Alt+R" },
+    { icon: Plus, label: 'Novo Orçamento', href: '/orcamentos/novo', shortcut: 'Alt+N' },
+    { icon: FileText, label: 'Orçamentos', href: '/orcamentos', exact: true, shortcut: 'Alt+O' },
+    { icon: ShoppingCart, label: 'Carrinhos', href: '/carrinhos', shortcut: 'Alt+R' },
   ],
 };
 
@@ -62,7 +62,7 @@ function ControlledSidebarGroup() {
     () =>
       group.items.some((item) => isNavItemActive(location.pathname, item.href, item.exact)) ||
       (group.defaultOpen ?? false),
-    [location.pathname]
+    [location.pathname],
   );
   const [isOpen, setIsOpen] = React.useState<boolean>(computeAutoOpen);
   const lastPathRef = React.useRef(location.pathname);
@@ -92,7 +92,7 @@ function makeDeferredLazy(label: string) {
   return {
     Lazy,
     resolve: () => {
-      if (!resolveFn) throw new Error("resolveFn missing");
+      if (!resolveFn) throw new Error('resolveFn missing');
       resolveFn();
     },
   };
@@ -103,7 +103,7 @@ function setupRouterWithSuspense(initialPath: string, deferredPath: string) {
   const router = createMemoryRouter(
     [
       {
-        path: "*",
+        path: '*',
         element: (
           <>
             <ControlledSidebarGroup />
@@ -113,28 +113,28 @@ function setupRouterWithSuspense(initialPath: string, deferredPath: string) {
           </>
         ),
         children: [
-          { path: deferredPath.replace(/^\//, ""), element: <Lazy /> },
-          { path: "*", element: <div data-testid="page-other">other</div> },
+          { path: deferredPath.replace(/^\//, ''), element: <Lazy /> },
+          { path: '*', element: <div data-testid="page-other">other</div> },
         ],
       },
     ],
-    { initialEntries: [initialPath] }
+    { initialEntries: [initialPath] },
   );
   render(<RouterProvider router={router} />);
   return { router, resolve };
 }
 
 function getNavLink(label: string): HTMLAnchorElement {
-  return screen.getByRole("link", { name: new RegExp(label, "i") }) as HTMLAnchorElement;
+  return screen.getByRole('link', { name: new RegExp(label, 'i') }) as HTMLAnchorElement;
 }
 function isLinkActive(label: string): boolean {
-  return getNavLink(label).className.includes("bg-orange/10");
+  return getNavLink(label).className.includes('bg-orange/10');
 }
 function getHeader(): HTMLButtonElement {
-  return screen.getByRole("button", { name: /alternar grupo|orçamentos/i }) as HTMLButtonElement;
+  return screen.getByRole('button', { name: /alternar grupo|orçamentos/i }) as HTMLButtonElement;
 }
 function isGroupExpanded(): boolean {
-  return getHeader().getAttribute("aria-expanded") === "true";
+  return getHeader().getAttribute('aria-expanded') === 'true';
 }
 async function pushTo(router: Router, path: string) {
   await act(async () => {
@@ -142,21 +142,21 @@ async function pushTo(router: Router, path: string) {
   });
 }
 
-describe("SidebarNavGroup — sem flicker durante Suspense (rota lazy)", () => {
-  it("ao navegar para /orcamentos/novo enquanto o chunk ainda NÃO resolveu, o destaque já está no item correto", async () => {
-    const { router, resolve } = setupRouterWithSuspense("/dashboard", "/orcamentos/novo");
+describe('SidebarNavGroup — sem flicker durante Suspense (rota lazy)', () => {
+  it('ao navegar para /orcamentos/novo enquanto o chunk ainda NÃO resolveu, o destaque já está no item correto', async () => {
+    const { router, resolve } = setupRouterWithSuspense('/dashboard', '/orcamentos/novo');
 
     // Estado inicial: rota neutra, ninguém ativo, mas grupo aberto via defaultOpen.
-    expect(isLinkActive("Novo Orçamento")).toBe(false);
+    expect(isLinkActive('Novo Orçamento')).toBe(false);
     expect(isGroupExpanded()).toBe(true);
 
-    await pushTo(router, "/orcamentos/novo");
+    await pushTo(router, '/orcamentos/novo');
 
     // Mesmo com o chunk ainda pendente (fallback visível), a sidebar JÁ
     // reflete o destaque e a expansão — sem esperar o resolve.
-    expect(screen.getByTestId("route-fallback")).toBeInTheDocument();
-    expect(isLinkActive("Novo Orçamento")).toBe(true);
-    expect(isLinkActive("Carrinhos")).toBe(false);
+    expect(screen.getByTestId('route-fallback')).toBeInTheDocument();
+    expect(isLinkActive('Novo Orçamento')).toBe(true);
+    expect(isLinkActive('Carrinhos')).toBe(false);
     expect(isGroupExpanded()).toBe(true);
 
     // Resolve o chunk. O destaque NÃO pode mudar (idempotente).
@@ -165,69 +165,69 @@ describe("SidebarNavGroup — sem flicker durante Suspense (rota lazy)", () => {
       await Promise.resolve(); // flush da microtask do React.lazy
     });
 
-    expect(screen.queryByTestId("route-fallback")).not.toBeInTheDocument();
-    expect(screen.getByTestId("page-/orcamentos/novo")).toBeInTheDocument();
-    expect(isLinkActive("Novo Orçamento")).toBe(true);
+    expect(screen.queryByTestId('route-fallback')).not.toBeInTheDocument();
+    expect(screen.getByTestId('page-/orcamentos/novo')).toBeInTheDocument();
+    expect(isLinkActive('Novo Orçamento')).toBe(true);
     expect(isGroupExpanded()).toBe(true);
   });
 
-  it("o aria-expanded do grupo NÃO oscila entre true e false durante o ciclo Suspense", async () => {
-    const { router, resolve } = setupRouterWithSuspense("/dashboard", "/orcamentos/novo");
+  it('o aria-expanded do grupo NÃO oscila entre true e false durante o ciclo Suspense', async () => {
+    const { router, resolve } = setupRouterWithSuspense('/dashboard', '/orcamentos/novo');
 
     // Snapshot do aria-expanded em cada fase do ciclo.
     const phases: { label: string; expanded: string | null }[] = [];
 
-    phases.push({ label: "antes", expanded: getHeader().getAttribute("aria-expanded") });
+    phases.push({ label: 'antes', expanded: getHeader().getAttribute('aria-expanded') });
 
-    await pushTo(router, "/orcamentos/novo");
-    phases.push({ label: "durante-fallback", expanded: getHeader().getAttribute("aria-expanded") });
+    await pushTo(router, '/orcamentos/novo');
+    phases.push({ label: 'durante-fallback', expanded: getHeader().getAttribute('aria-expanded') });
 
     await act(async () => {
       resolve();
       await Promise.resolve();
     });
-    phases.push({ label: "após-resolve", expanded: getHeader().getAttribute("aria-expanded") });
+    phases.push({ label: 'após-resolve', expanded: getHeader().getAttribute('aria-expanded') });
 
     // Em todas as fases para uma rota relevante, o grupo está aberto.
     // A única fase em que NÃO precisa estar aberto é "antes" (rota neutra),
     // mas ali defaultOpen=true também o mantém aberto. Logo: tudo "true".
     for (const p of phases) {
-      expect(p.expanded).toBe("true");
+      expect(p.expanded).toBe('true');
     }
   });
 
   it("o aria-current do link Novo Orçamento permanece 'page' durante TODA a janela Suspense", async () => {
-    const { router, resolve } = setupRouterWithSuspense("/dashboard", "/orcamentos/novo");
+    const { router, resolve } = setupRouterWithSuspense('/dashboard', '/orcamentos/novo');
 
-    expect(getNavLink("Novo Orçamento").getAttribute("aria-current")).not.toBe("page");
+    expect(getNavLink('Novo Orçamento').getAttribute('aria-current')).not.toBe('page');
 
-    await pushTo(router, "/orcamentos/novo");
+    await pushTo(router, '/orcamentos/novo');
     // Sem flicker: aria-current já está correto durante o fallback.
-    expect(getNavLink("Novo Orçamento").getAttribute("aria-current")).toBe("page");
-    expect(screen.getByTestId("route-fallback")).toBeInTheDocument();
+    expect(getNavLink('Novo Orçamento').getAttribute('aria-current')).toBe('page');
+    expect(screen.getByTestId('route-fallback')).toBeInTheDocument();
 
     await act(async () => {
       resolve();
       await Promise.resolve();
     });
-    expect(getNavLink("Novo Orçamento").getAttribute("aria-current")).toBe("page");
+    expect(getNavLink('Novo Orçamento').getAttribute('aria-current')).toBe('page');
   });
 });
 
-describe("SidebarNavGroup — sem flicker em navegações rápidas em sequência (double-click)", () => {
-  it("dois pushes consecutivos /carrinhos -> /orcamentos/novo aplicam só o destaque final, sem estado intermediário inconsistente", async () => {
-    const { router, resolve } = setupRouterWithSuspense("/dashboard", "/orcamentos/novo");
+describe('SidebarNavGroup — sem flicker em navegações rápidas em sequência (double-click)', () => {
+  it('dois pushes consecutivos /carrinhos -> /orcamentos/novo aplicam só o destaque final, sem estado intermediário inconsistente', async () => {
+    const { router, resolve } = setupRouterWithSuspense('/dashboard', '/orcamentos/novo');
 
     await act(async () => {
       // dispara DUAS navegações no mesmo tick — apenas a última deve valer.
-      router.navigate("/carrinhos");
-      router.navigate("/orcamentos/novo");
+      router.navigate('/carrinhos');
+      router.navigate('/orcamentos/novo');
     });
 
     // Após o batching, o destaque reflete o destino FINAL.
-    expect(isLinkActive("Novo Orçamento")).toBe(true);
-    expect(isLinkActive("Carrinhos")).toBe(false);
-    expect(isLinkActive("Orçamentos")).toBe(false);
+    expect(isLinkActive('Novo Orçamento')).toBe(true);
+    expect(isLinkActive('Carrinhos')).toBe(false);
+    expect(isLinkActive('Orçamentos')).toBe(false);
     expect(isGroupExpanded()).toBe(true);
 
     await act(async () => {
@@ -235,37 +235,37 @@ describe("SidebarNavGroup — sem flicker em navegações rápidas em sequência
       await Promise.resolve();
     });
 
-    expect(isLinkActive("Novo Orçamento")).toBe(true);
-    expect(isLinkActive("Carrinhos")).toBe(false);
+    expect(isLinkActive('Novo Orçamento')).toBe(true);
+    expect(isLinkActive('Carrinhos')).toBe(false);
     expect(isGroupExpanded()).toBe(true);
   });
 
-  it("clique repetido no MESMO link (/orcamentos/novo) não desativa nem fecha o grupo entre os cliques", async () => {
-    const { router, resolve } = setupRouterWithSuspense("/orcamentos/novo", "/orcamentos/novo");
+  it('clique repetido no MESMO link (/orcamentos/novo) não desativa nem fecha o grupo entre os cliques', async () => {
+    const { router, resolve } = setupRouterWithSuspense('/orcamentos/novo', '/orcamentos/novo');
 
     // Estado inicial já em /orcamentos/novo (Suspense em curso para o conteúdo).
-    expect(isLinkActive("Novo Orçamento")).toBe(true);
+    expect(isLinkActive('Novo Orçamento')).toBe(true);
     expect(isGroupExpanded()).toBe(true);
 
     // Re-navegar para a mesma URL — não pode "resetar" o estado visual.
-    await pushTo(router, "/orcamentos/novo");
-    expect(isLinkActive("Novo Orçamento")).toBe(true);
+    await pushTo(router, '/orcamentos/novo');
+    expect(isLinkActive('Novo Orçamento')).toBe(true);
     expect(isGroupExpanded()).toBe(true);
 
-    await pushTo(router, "/orcamentos/novo");
-    expect(isLinkActive("Novo Orçamento")).toBe(true);
+    await pushTo(router, '/orcamentos/novo');
+    expect(isLinkActive('Novo Orçamento')).toBe(true);
     expect(isGroupExpanded()).toBe(true);
 
     await act(async () => {
       resolve();
       await Promise.resolve();
     });
-    expect(isLinkActive("Novo Orçamento")).toBe(true);
+    expect(isLinkActive('Novo Orçamento')).toBe(true);
     expect(isGroupExpanded()).toBe(true);
   });
 });
 
-describe("SidebarNavGroup — sem flicker quando metadata da página resolve depois", () => {
+describe('SidebarNavGroup — sem flicker quando metadata da página resolve depois', () => {
   /**
    * Simula um cenário em que o conteúdo da página dispara um efeito
    * assíncrono (carregamento de metadata, breadcrumbs, etc.) que só resolve
@@ -277,14 +277,14 @@ describe("SidebarNavGroup — sem flicker quando metadata da página resolve dep
       const t = setTimeout(() => setLoaded(true), delayMs);
       return () => clearTimeout(t);
     }, [delayMs]);
-    return <div data-testid={`metadata-${loaded ? "ready" : "loading"}`}>x</div>;
+    return <div data-testid={`metadata-${loaded ? 'ready' : 'loading'}`}>x</div>;
   }
 
   function setupRouterWithMetadata(initialPath: string) {
     const router = createMemoryRouter(
       [
         {
-          path: "*",
+          path: '*',
           element: (
             <>
               <ControlledSidebarGroup />
@@ -294,7 +294,7 @@ describe("SidebarNavGroup — sem flicker quando metadata da página resolve dep
           ),
         },
       ],
-      { initialEntries: [initialPath] }
+      { initialEntries: [initialPath] },
     );
     render(<RouterProvider router={router} />);
     return router;
@@ -307,48 +307,48 @@ describe("SidebarNavGroup — sem flicker quando metadata da página resolve dep
     vi.useRealTimers();
   });
 
-  it("destaque e expansão estão corretos ANTES de a metadata terminar de carregar", async () => {
-    const router = setupRouterWithMetadata("/dashboard");
-    expect(screen.getByTestId("metadata-loading")).toBeInTheDocument();
+  it('destaque e expansão estão corretos ANTES de a metadata terminar de carregar', async () => {
+    const router = setupRouterWithMetadata('/dashboard');
+    expect(screen.getByTestId('metadata-loading')).toBeInTheDocument();
 
     await act(async () => {
-      await router.navigate("/orcamentos/novo");
+      await router.navigate('/orcamentos/novo');
     });
     // Imediatamente — sem avançar timers — destaque/expansão já corretos.
-    expect(isLinkActive("Novo Orçamento")).toBe(true);
+    expect(isLinkActive('Novo Orçamento')).toBe(true);
     expect(isGroupExpanded()).toBe(true);
-    expect(screen.getByTestId("metadata-loading")).toBeInTheDocument();
+    expect(screen.getByTestId('metadata-loading')).toBeInTheDocument();
 
     // Avança timers até a metadata resolver. Estado visual da sidebar NÃO muda.
     await act(async () => {
       vi.advanceTimersByTime(60);
     });
-    expect(screen.getByTestId("metadata-ready")).toBeInTheDocument();
-    expect(isLinkActive("Novo Orçamento")).toBe(true);
+    expect(screen.getByTestId('metadata-ready')).toBeInTheDocument();
+    expect(isLinkActive('Novo Orçamento')).toBe(true);
     expect(isGroupExpanded()).toBe(true);
   });
 
-  it("ao trocar rota antes da metadata resolver, o destaque acompanha a rota corrente (não a antiga)", async () => {
-    const router = setupRouterWithMetadata("/dashboard");
+  it('ao trocar rota antes da metadata resolver, o destaque acompanha a rota corrente (não a antiga)', async () => {
+    const router = setupRouterWithMetadata('/dashboard');
 
     await act(async () => {
-      await router.navigate("/orcamentos/novo");
+      await router.navigate('/orcamentos/novo');
     });
-    expect(isLinkActive("Novo Orçamento")).toBe(true);
+    expect(isLinkActive('Novo Orçamento')).toBe(true);
 
     // Antes de a metadata resolver, troca para /carrinhos.
     await act(async () => {
-      await router.navigate("/carrinhos");
+      await router.navigate('/carrinhos');
     });
-    expect(isLinkActive("Carrinhos")).toBe(true);
-    expect(isLinkActive("Novo Orçamento")).toBe(false);
+    expect(isLinkActive('Carrinhos')).toBe(true);
+    expect(isLinkActive('Novo Orçamento')).toBe(false);
     expect(isGroupExpanded()).toBe(true);
 
     await act(async () => {
       vi.advanceTimersByTime(60);
     });
     // Metadata da rota antiga "vazou"? Não — destaque continua em Carrinhos.
-    expect(isLinkActive("Carrinhos")).toBe(true);
-    expect(isLinkActive("Novo Orçamento")).toBe(false);
+    expect(isLinkActive('Carrinhos')).toBe(true);
+    expect(isLinkActive('Novo Orçamento')).toBe(false);
   });
 });

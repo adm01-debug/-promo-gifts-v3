@@ -40,7 +40,10 @@ export function useProductSupplierSources(productId?: string) {
   const [isLoading, setIsLoading] = useState(false);
 
   const fetchSources = useCallback(async () => {
-    if (!productId) { setSources([]); return; }
+    if (!productId) {
+      setSources([]);
+      return;
+    }
     setIsLoading(true);
     try {
       const result = await bridgeInvoke({
@@ -64,90 +67,112 @@ export function useProductSupplierSources(productId?: string) {
     }
   }, [productId]);
 
-  useEffect(() => { fetchSources(); }, [fetchSources]);
-
-  const addSource = useCallback(async (input: SupplierSourceInput) => {
-    try {
-      await bridgeInvoke({
-        table: BRIDGE_TABLE,
-        operation: 'insert',
-        data: input,
-      });
-      toast.success('Fonte de fornecimento adicionada');
-      await fetchSources();
-      return true;
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : '';
-      if (msg.includes('duplicate') || msg.includes('23505')) {
-      } else {
-        toast.error('Erro ao adicionar fonte');
-      }
-      return false;
-    }
+  useEffect(() => {
+    fetchSources();
   }, [fetchSources]);
 
-  const updateSource = useCallback(async (id: string, updates: Partial<SupplierSourceInput>) => {
-    try {
-      await bridgeInvoke({
-        table: BRIDGE_TABLE,
-        operation: 'update',
-        id,
-        data: updates,
-      });
-      toast.success('Fonte atualizada');
-      await fetchSources();
-      return true;
-    } catch (err: unknown) {
-      toast.error('Erro ao atualizar fonte');
-      return false;
-    }
-  }, [fetchSources]);
-
-  const removeSource = useCallback(async (id: string) => {
-    try {
-      await bridgeInvoke({
-        table: BRIDGE_TABLE,
-        operation: 'delete',
-        id,
-      });
-      toast.success('Fonte removida');
-      await fetchSources();
-      return true;
-    } catch (err: unknown) {
-      toast.error('Erro ao remover fonte');
-      return false;
-    }
-  }, [fetchSources]);
-
-  const setPreferred = useCallback(async (id: string) => {
-    if (!productId) return false;
-    try {
-      // First unset all preferred for this product
-      for (const src of sources) {
-        if (src.is_preferred && src.id !== id) {
-          await bridgeInvoke({
-            table: BRIDGE_TABLE,
-            operation: 'update',
-            id: src.id,
-            data: { is_preferred: false },
-          });
+  const addSource = useCallback(
+    async (input: SupplierSourceInput) => {
+      try {
+        await bridgeInvoke({
+          table: BRIDGE_TABLE,
+          operation: 'insert',
+          data: input,
+        });
+        toast.success('Fonte de fornecimento adicionada');
+        await fetchSources();
+        return true;
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : '';
+        if (msg.includes('duplicate') || msg.includes('23505')) {
+        } else {
+          toast.error('Erro ao adicionar fonte');
         }
+        return false;
       }
-      // Set new preferred
-      await bridgeInvoke({
-        table: BRIDGE_TABLE,
-        operation: 'update',
-        id,
-        data: { is_preferred: true },
-      });
-      toast.success('Fornecedor preferencial atualizado');
-      await fetchSources();
-      return true;
-    } catch {
-      toast.error('Erro ao definir preferencial');
-      return false;
-    }
-  }, [productId, sources, fetchSources]);
+    },
+    [fetchSources],
+  );
 
-  return { sources, isLoading, addSource, updateSource, removeSource, setPreferred, refetch: fetchSources };
+  const updateSource = useCallback(
+    async (id: string, updates: Partial<SupplierSourceInput>) => {
+      try {
+        await bridgeInvoke({
+          table: BRIDGE_TABLE,
+          operation: 'update',
+          id,
+          data: updates,
+        });
+        toast.success('Fonte atualizada');
+        await fetchSources();
+        return true;
+      } catch (err: unknown) {
+        toast.error('Erro ao atualizar fonte');
+        return false;
+      }
+    },
+    [fetchSources],
+  );
+
+  const removeSource = useCallback(
+    async (id: string) => {
+      try {
+        await bridgeInvoke({
+          table: BRIDGE_TABLE,
+          operation: 'delete',
+          id,
+        });
+        toast.success('Fonte removida');
+        await fetchSources();
+        return true;
+      } catch (err: unknown) {
+        toast.error('Erro ao remover fonte');
+        return false;
+      }
+    },
+    [fetchSources],
+  );
+
+  const setPreferred = useCallback(
+    async (id: string) => {
+      if (!productId) return false;
+      try {
+        // First unset all preferred for this product
+        for (const src of sources) {
+          if (src.is_preferred && src.id !== id) {
+            await bridgeInvoke({
+              table: BRIDGE_TABLE,
+              operation: 'update',
+              id: src.id,
+              data: { is_preferred: false },
+            });
+          }
+        }
+        // Set new preferred
+        await bridgeInvoke({
+          table: BRIDGE_TABLE,
+          operation: 'update',
+          id,
+          data: { is_preferred: true },
+        });
+        toast.success('Fornecedor preferencial atualizado');
+        await fetchSources();
+        return true;
+      } catch {
+        toast.error('Erro ao definir preferencial');
+        return false;
+      }
+    },
+    [productId, sources, fetchSources],
+  );
+
+  return {
+    sources,
+    isLoading,
+    addSource,
+    updateSource,
+    removeSource,
+    setPreferred,
+    refetch: fetchSources,
+  };
 }

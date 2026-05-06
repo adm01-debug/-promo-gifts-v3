@@ -1,13 +1,13 @@
-import { useEffect, useRef } from "react";
-import { useLocation } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
-import { useTheme } from "@/contexts/ThemeContext";
-import { useGlobalErrorCatcher } from "@/hooks/useErrorHandler";
-import { markBootSuccessful } from "@/lib/chunk-recovery";
-import { loadThemeConfig, applyThemePreset, applyRadius } from "@/lib/theme-presets";
-import { startBridgeTelemetry } from "@/lib/external-db/bridge-telemetry-client";
-import { startColdStartRecorder } from "@/lib/external-db/cold-start-recorder";
-import { useCatalogPrefetch } from "@/hooks/useCatalogPrefetch";
+import { useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
+import { useGlobalErrorCatcher } from '@/hooks/useErrorHandler';
+import { markBootSuccessful } from '@/lib/chunk-recovery';
+import { loadThemeConfig, applyThemePreset, applyRadius } from '@/lib/theme-presets';
+import { startBridgeTelemetry } from '@/lib/external-db/bridge-telemetry-client';
+import { startColdStartRecorder } from '@/lib/external-db/cold-start-recorder';
+import { useCatalogPrefetch } from '@/hooks/useCatalogPrefetch';
 
 /**
  * useAppBootstrap — Centraliza a lógica de inicialização do App.
@@ -26,10 +26,10 @@ export function useAppBootstrap() {
   useEffect(() => {
     if (initializedRef.current) return;
     initializedRef.current = true;
-    
+
     startBridgeTelemetry();
     startColdStartRecorder();
-    
+
     // Limpa marcador de chunk-recovery após boot bem-sucedido
     markBootSuccessful();
   }, []);
@@ -47,27 +47,24 @@ export function useAppBootstrap() {
       // Futuro: Adicionar lógica de toast de offline/online global
     };
 
-    window.addEventListener("online", handleStatusChange);
-    window.addEventListener("offline", handleStatusChange);
+    window.addEventListener('online', handleStatusChange);
+    window.addEventListener('offline', handleStatusChange);
 
     return () => {
-      window.removeEventListener("online", handleStatusChange);
-      window.removeEventListener("offline", handleStatusChange);
+      window.removeEventListener('online', handleStatusChange);
+      window.removeEventListener('offline', handleStatusChange);
     };
   }, []);
 
   // 4. Lógica de Scroll Progressivo em Navegação
-  const isHome = location.pathname === "/";
+  const isHome = location.pathname === '/';
   useEffect(() => {
-    document.documentElement.style.setProperty(
-      "--breadcrumb-h",
-      isHome ? "0px" : "40px"
-    );
+    document.documentElement.style.setProperty('--breadcrumb-h', isHome ? '0px' : '40px');
   }, [isHome]);
 
   return {
     isHome,
     authLoading,
-    isAuthenticated
+    isAuthenticated,
   };
 }

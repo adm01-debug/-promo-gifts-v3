@@ -6,12 +6,31 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { Key, Plus, Edit, Trash2 } from 'lucide-react';
-import { PageSEO } from "@/components/seo/PageSEO";
+import { PageSEO } from '@/components/seo/PageSEO';
 
 interface Permission {
   id: string;
@@ -22,14 +41,27 @@ interface Permission {
   created_at: string;
 }
 
-const CATEGORIES = ['geral', 'produtos', 'orcamentos', 'pedidos', 'clientes', 'admin', 'relatorios'];
+const CATEGORIES = [
+  'geral',
+  'produtos',
+  'orcamentos',
+  'pedidos',
+  'clientes',
+  'admin',
+  'relatorios',
+];
 
 export default function PermissionsPage() {
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPermission, setEditingPermission] = useState<Permission | null>(null);
-  const [formData, setFormData] = useState({ code: '', name: '', description: '', category: 'geral' });
+  const [formData, setFormData] = useState({
+    code: '',
+    name: '',
+    description: '',
+    category: 'geral',
+  });
   const { toast } = useToast();
 
   useEffect(() => {
@@ -97,16 +129,24 @@ export default function PermissionsPage() {
     }
   };
 
-  const groupedPermissions = permissions.reduce((acc, perm) => {
-    if (!acc[perm.category]) acc[perm.category] = [];
-    acc[perm.category].push(perm);
-    return acc;
-  }, {} as Record<string, Permission[]>);
+  const groupedPermissions = permissions.reduce(
+    (acc, perm) => {
+      if (!acc[perm.category]) acc[perm.category] = [];
+      acc[perm.category].push(perm);
+      return acc;
+    },
+    {} as Record<string, Permission[]>,
+  );
 
   return (
     <>
-      <PageSEO title="Permissões" description="Gerencie permissões de acesso do sistema." path="/admin/permissoes" noIndex />
-      <div className="w-full max-w-[1920px] mx-auto space-y-4 animate-fade-in">
+      <PageSEO
+        title="Permissões"
+        description="Gerencie permissões de acesso do sistema."
+        path="/admin/permissoes"
+        noIndex
+      />
+      <div className="mx-auto w-full max-w-[1920px] animate-fade-in space-y-4">
         <div className="flex items-center justify-between">
           <h1 className="font-display text-2xl font-bold">Gestão de Permissões</h1>
         </div>
@@ -123,14 +163,21 @@ export default function PermissionsPage() {
               </div>
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button onClick={() => { setEditingPermission(null); setFormData({ code: '', name: '', description: '', category: 'geral' }); }}>
-                    <Plus className="h-4 w-4 mr-2" />
+                  <Button
+                    onClick={() => {
+                      setEditingPermission(null);
+                      setFormData({ code: '', name: '', description: '', category: 'geral' });
+                    }}
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
                     Nova Permissão
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>{editingPermission ? 'Editar Permissão' : 'Nova Permissão'}</DialogTitle>
+                    <DialogTitle>
+                      {editingPermission ? 'Editar Permissão' : 'Nova Permissão'}
+                    </DialogTitle>
                   </DialogHeader>
                   <div className="space-y-4 py-4">
                     <div className="space-y-2">
@@ -151,13 +198,18 @@ export default function PermissionsPage() {
                     </div>
                     <div className="space-y-2">
                       <Label>Categoria</Label>
-                      <Select value={formData.category} onValueChange={(v) => setFormData({ ...formData, category: v })}>
+                      <Select
+                        value={formData.category}
+                        onValueChange={(v) => setFormData({ ...formData, category: v })}
+                      >
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
                           {CATEGORIES.map((cat) => (
-                            <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                            <SelectItem key={cat} value={cat}>
+                              {cat}
+                            </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
@@ -180,13 +232,13 @@ export default function PermissionsPage() {
             <CardContent>
               {isLoading ? (
                 <div className="flex justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+                  <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary" />
                 </div>
               ) : (
                 <div className="space-y-6">
                   {Object.entries(groupedPermissions).map(([category, perms]) => (
                     <div key={category}>
-                      <h3 className="font-display font-medium mb-2 capitalize">{category}</h3>
+                      <h3 className="mb-2 font-display font-medium capitalize">{category}</h3>
                       <Table>
                         <TableHeader>
                           <TableRow>
@@ -203,15 +255,25 @@ export default function PermissionsPage() {
                                 <Badge variant="secondary">{perm.code}</Badge>
                               </TableCell>
                               <TableCell>{perm.name}</TableCell>
-                              <TableCell className="text-muted-foreground text-sm">
+                              <TableCell className="text-sm text-muted-foreground">
                                 {perm.description || '-'}
                               </TableCell>
                               <TableCell>
                                 <div className="flex gap-2">
-                                  <Button variant="ghost" size="icon" aria-label="Editar" onClick={() => handleEdit(perm)}>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    aria-label="Editar"
+                                    onClick={() => handleEdit(perm)}
+                                  >
                                     <Edit className="h-4 w-4" />
                                   </Button>
-                                  <Button variant="ghost" size="icon" aria-label="Excluir" onClick={() => handleDelete(perm.id)}>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    aria-label="Excluir"
+                                    onClick={() => handleDelete(perm.id)}
+                                  >
                                     <Trash2 className="h-4 w-4 text-destructive" />
                                   </Button>
                                 </div>

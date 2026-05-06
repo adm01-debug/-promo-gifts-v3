@@ -1,18 +1,17 @@
-
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { PresetsBar } from "./PresetsBar";
-import { defaultFilters } from "./FilterPanel";
-import { useFilterPresets } from "./FilterPresets";
-import { toast } from "sonner";
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { PresetsBar } from './PresetsBar';
+import { defaultFilters } from './FilterPanel';
+import { useFilterPresets } from './FilterPresets';
+import { toast } from 'sonner';
 
 // Mock dependencies
-vi.mock("./FilterPresets", () => ({
+vi.mock('./FilterPresets', () => ({
   useFilterPresets: vi.fn(),
 }));
 
-vi.mock("sonner", () => ({
+vi.mock('sonner', () => ({
   toast: {
     success: vi.fn(),
     error: vi.fn(),
@@ -22,16 +21,16 @@ vi.mock("sonner", () => ({
 
 const mockPresets = [
   {
-    id: "preset-1",
-    name: "Summer Campaign",
-    description: "Filters for summer items",
-    filters: { ...defaultFilters, search: "summer", categories: ["cat-1"] },
-    icon: "☀️",
-    color: "#FFD700",
+    id: 'preset-1',
+    name: 'Summer Campaign',
+    description: 'Filters for summer items',
+    filters: { ...defaultFilters, search: 'summer', categories: ['cat-1'] },
+    icon: '☀️',
+    color: '#FFD700',
   },
 ];
 
-describe("PresetsBar", () => {
+describe('PresetsBar', () => {
   const onApplyPreset = vi.fn();
 
   beforeEach(() => {
@@ -45,7 +44,7 @@ describe("PresetsBar", () => {
     });
   });
 
-  it("renders correctly with presets", () => {
+  it('renders correctly with presets', () => {
     render(
       <TooltipProvider>
         <PresetsBar
@@ -53,16 +52,16 @@ describe("PresetsBar", () => {
           onApplyPreset={onApplyPreset}
           activePresetId={undefined}
         />
-      </TooltipProvider>
+      </TooltipProvider>,
     );
 
     const trigger = screen.getByLabelText(/Presets de filtros salvos/i);
     expect(trigger).toBeInTheDocument();
     // Badge showing preset count
-    expect(screen.getByText("1")).toBeInTheDocument();
+    expect(screen.getByText('1')).toBeInTheDocument();
   });
 
-  it("applies a preset when clicked", async () => {
+  it('applies a preset when clicked', async () => {
     render(
       <TooltipProvider>
         <PresetsBar
@@ -70,7 +69,7 @@ describe("PresetsBar", () => {
           onApplyPreset={onApplyPreset}
           activePresetId={undefined}
         />
-      </TooltipProvider>
+      </TooltipProvider>,
     );
 
     // Open popover
@@ -78,17 +77,17 @@ describe("PresetsBar", () => {
 
     // Wait for popover content
     await waitFor(() => {
-      expect(screen.getByText("Summer Campaign")).toBeInTheDocument();
+      expect(screen.getByText('Summer Campaign')).toBeInTheDocument();
     });
 
     // Click the preset
-    fireEvent.click(screen.getByText("Summer Campaign"));
+    fireEvent.click(screen.getByText('Summer Campaign'));
 
-    expect(onApplyPreset).toHaveBeenCalledWith(mockPresets[0].filters, "preset-1");
+    expect(onApplyPreset).toHaveBeenCalledWith(mockPresets[0].filters, 'preset-1');
     expect(toast.success).toHaveBeenCalledWith('Preset "Summer Campaign" aplicado');
   });
 
-  it("clears a preset when clicking the clear button on an active preset", async () => {
+  it('clears a preset when clicking the clear button on an active preset', async () => {
     render(
       <TooltipProvider>
         <PresetsBar
@@ -96,7 +95,7 @@ describe("PresetsBar", () => {
           onApplyPreset={onApplyPreset}
           activePresetId="preset-1"
         />
-      </TooltipProvider>
+      </TooltipProvider>,
     );
 
     // Open popover
@@ -108,12 +107,12 @@ describe("PresetsBar", () => {
     });
 
     expect(onApplyPreset).toHaveBeenCalledWith(defaultFilters, undefined);
-    expect(toast.info).toHaveBeenCalledWith("Preset desativado");
+    expect(toast.info).toHaveBeenCalledWith('Preset desativado');
   });
 
-  it("handles errors when applying a preset", async () => {
+  it('handles errors when applying a preset', async () => {
     onApplyPreset.mockImplementation(() => {
-      throw new Error("Failed to apply");
+      throw new Error('Failed to apply');
     });
 
     render(
@@ -123,15 +122,15 @@ describe("PresetsBar", () => {
           onApplyPreset={onApplyPreset}
           activePresetId={undefined}
         />
-      </TooltipProvider>
+      </TooltipProvider>,
     );
 
     fireEvent.click(screen.getByLabelText(/Presets de filtros salvos/i));
-    
+
     await waitFor(() => {
-      fireEvent.click(screen.getByText("Summer Campaign"));
+      fireEvent.click(screen.getByText('Summer Campaign'));
     });
 
-    expect(toast.error).toHaveBeenCalledWith("Falha ao aplicar preset", expect.any(Object));
+    expect(toast.error).toHaveBeenCalledWith('Falha ao aplicar preset', expect.any(Object));
   });
 });

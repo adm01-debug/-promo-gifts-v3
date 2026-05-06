@@ -7,7 +7,7 @@ test.describe('Mockup Generator - Error Handling & Resilience', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to mockup generator page
     await page.goto('/mockup-generator');
-    
+
     // Wait for the page to be ready
     await expect(page.getByTestId('page-title-mockup-generator')).toBeVisible();
   });
@@ -18,7 +18,9 @@ test.describe('Mockup Generator - Error Handling & Resilience', () => {
     // In our case, we check for the text usually shown in the config panel when loading.
     const loadingText = page.getByText(/Carregando dados.../i);
     // It might be too fast to catch, but we check if it exists or if the panel eventually shows up
-    await expect(page.locator('div:has-text("Carregando dados...")').or(page.getByText('Configuração'))).toBeVisible();
+    await expect(
+      page.locator('div:has-text("Carregando dados...")').or(page.getByText('Configuração')),
+    ).toBeVisible();
   });
 
   test('should display error message when mockup generation fails', async ({ page }) => {
@@ -40,18 +42,18 @@ test.describe('Mockup Generator - Error Handling & Resilience', () => {
 
     // 4. Upload Logo (We simulate this by intercepting the network or assuming failure)
     // To test error message visibility, we can mock the generate-mockup edge function to return error
-    await page.route('**/functions/v1/generate-mockup', async route => {
+    await page.route('**/functions/v1/generate-mockup', async (route) => {
       await route.fulfill({
         status: 500,
         contentType: 'application/json',
-        body: JSON.stringify({ error: 'Timeout generating mockup from IA service' })
+        body: JSON.stringify({ error: 'Timeout generating mockup from IA service' }),
       });
     });
 
     // Attempt to generate (we need to have a logo for this button to be enabled)
-    // Since we can't easily upload a real file in this environment without complex setup, 
+    // Since we can't easily upload a real file in this environment without complex setup,
     // we'll check if the Alert component with variant="destructive" appears when an error occurs.
-    
+
     // Validation: Check for error alert presence (logic check)
     // In MockupGenerator.tsx: {mg.generationError && !mg.isLoading && ( ... <Alert variant="destructive"> ... )}
     const errorAlert = page.locator('.bg-destructive'); // Standard shadcn destructive alert class
@@ -81,15 +83,15 @@ test.describe('Mockup Generator - Error Handling & Resilience', () => {
   test('should block generation if mandatory data is missing', async ({ page }) => {
     // The "Gerar" button should be disabled if steps are missing
     const generateBtn = page.getByRole('button', { name: /Gerar Mockup/i });
-    
+
     // Initially disabled (no product/technique/logo)
     await expect(generateBtn).toBeDisabled();
-    
+
     // Fill client only
     await page.click('text=Empresa');
     await page.getByPlaceholder(/Buscar empresa/i).fill('Block Test');
     await page.locator('div[role="option"]').first().click();
-    
+
     // Still disabled
     await expect(generateBtn).toBeDisabled();
   });

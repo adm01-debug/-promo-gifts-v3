@@ -8,9 +8,9 @@
  * - Cache em memória por chave de request
  * - Tratamento específico para 429 (rate limit) e 402 (créditos)
  */
-import { useState, useCallback, useRef } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { useState, useCallback, useRef } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 // ============================================
 // TIPOS
@@ -54,7 +54,10 @@ const INITIAL_BACKOFF_MS = 500;
 
 /** Gera chave de cache a partir do payload */
 function cacheKey(client: ClientProfile, products: ProductForRecommendation[]): string {
-  return `${client.name}|${client.industry ?? ""}|${products.map((p) => p.id).sort().join(",")}`;
+  return `${client.name}|${client.industry ?? ''}|${products
+    .map((p) => p.id)
+    .sort()
+    .join(',')}`;
 }
 
 /** Delay com promise */
@@ -91,10 +94,10 @@ export function useAIRecommendations() {
       try {
         // Validações
         if (!client.name) {
-          throw new Error("Nome do cliente é obrigatório");
+          throw new Error('Nome do cliente é obrigatório');
         }
         if (!products.length) {
-          throw new Error("É necessário fornecer pelo menos um produto");
+          throw new Error('É necessário fornecer pelo menos um produto');
         }
 
         // Verifica cache
@@ -109,7 +112,7 @@ export function useAIRecommendations() {
         const { data: sessionData } = await supabase.auth.getSession();
         const token = sessionData?.session?.access_token;
         if (!token) {
-          throw new Error("Usuário não autenticado");
+          throw new Error('Usuário não autenticado');
         }
 
         // Fetch com retry
@@ -117,7 +120,7 @@ export function useAIRecommendations() {
 
         for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
           if (controller.signal.aborted) {
-            throw new DOMException("Requisição cancelada", "AbortError");
+            throw new DOMException('Requisição cancelada', 'AbortError');
           }
 
           if (attempt > 0) {
@@ -128,29 +131,31 @@ export function useAIRecommendations() {
             const response = await fetch(
               `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-recommendations`,
               {
-                method: "POST",
+                method: 'POST',
                 headers: {
-                  "Content-Type": "application/json",
+                  'Content-Type': 'application/json',
                   apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
                   Authorization: `Bearer ${token}`,
                 },
                 body: JSON.stringify({ client, products }),
                 signal: controller.signal,
-              }
+              },
             );
 
             if (!response.ok) {
               if (response.status === 429) {
-                throw new Error("Limite de requisições excedido. Tente novamente em alguns minutos.");
+                throw new Error(
+                  'Limite de requisições excedido. Tente novamente em alguns minutos.',
+                );
               }
               if (response.status === 402) {
-                throw new Error("Créditos de IA esgotados. Contate o administrador.");
+                throw new Error('Créditos de IA esgotados. Contate o administrador.');
               }
               if (isRetryable(response.status) && attempt < MAX_RETRIES) {
                 lastError = new Error(`Erro do servidor: ${response.status}`);
                 continue;
               }
-              const errText = await response.text().catch(() => "");
+              const errText = await response.text().catch(() => '');
               throw new Error(`Erro ao gerar recomendações: ${response.status} ${errText}`);
             }
 
@@ -159,11 +164,13 @@ export function useAIRecommendations() {
             setData(result);
             return result;
           } catch (fetchErr) {
-            if (fetchErr instanceof DOMException && fetchErr.name === "AbortError") {
+            if (fetchErr instanceof DOMException && fetchErr.name === 'AbortError') {
               throw fetchErr;
             }
-            if ((fetchErr as Error).message?.includes("Limite") ||
-                (fetchErr as Error).message?.includes("Créditos")) {
+            if (
+              (fetchErr as Error).message?.includes('Limite') ||
+              (fetchErr as Error).message?.includes('Créditos')
+            ) {
               throw fetchErr;
             }
             lastError = fetchErr instanceof Error ? fetchErr : new Error(String(fetchErr));
@@ -175,10 +182,10 @@ export function useAIRecommendations() {
         return null;
       } catch (err) {
         // Ignora silenciosamente requisições abortadas
-        if (err instanceof DOMException && err.name === "AbortError") {
+        if (err instanceof DOMException && err.name === 'AbortError') {
           return null;
         }
-        const message = err instanceof Error ? err.message : "Erro desconhecido";
+        const message = err instanceof Error ? err.message : 'Erro desconhecido';
         setError(message);
         toast.error(message);
         return null;
@@ -188,7 +195,7 @@ export function useAIRecommendations() {
         }
       }
     },
-    []
+    [],
   );
 
   const reset = useCallback(() => {
@@ -205,7 +212,7 @@ export function useAIRecommendations() {
   return {
     data,
     recommendations: data?.recommendations ?? [],
-    insights: data?.insights ?? "",
+    insights: data?.insights ?? '',
     isLoading,
     error,
     fetchRecommendations,

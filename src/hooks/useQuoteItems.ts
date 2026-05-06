@@ -1,7 +1,7 @@
-import { useState, useCallback, useMemo } from "react";
-import { QuoteItem, QuoteItemPersonalization } from "@/hooks/useQuotes";
-import { ExternalVariantStock } from "@/hooks/useExternalVariantStock";
-import { getPriceFreshness } from "@/utils/price-freshness";
+import { useState, useCallback, useMemo } from 'react';
+import { QuoteItem, QuoteItemPersonalization } from '@/hooks/useQuotes';
+import { ExternalVariantStock } from '@/hooks/useExternalVariantStock';
+import { getPriceFreshness } from '@/utils/price-freshness';
 
 interface Product {
   id: string;
@@ -19,83 +19,110 @@ export function useQuoteItems(initialItems: QuoteItem[] = [], isLoadingItems = f
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
 
   const toggleExpanded = useCallback((index: number) => {
-    setExpandedItems(prev => {
+    setExpandedItems((prev) => {
       const n = new Set(prev);
       n.has(index) ? n.delete(index) : n.add(index);
       return n;
     });
   }, []);
 
-  const addProductWithColor = useCallback((product: Product, variant: ExternalVariantStock | null) => {
-    const colorName = variant?.color_name || undefined;
-    const colorHex = variant?.color_hex || undefined;
-    const sizeCode = variant?.size_code || undefined;
-    const imageUrl = variant?.selected_thumbnail || (variant?.images?.length ? variant.images[0] : undefined) || (Array.isArray(product.images) && product.images.length > 0 ? product.images[0] : undefined);
-    
-    setItems(prev => {
-      const existingIndex = prev.findIndex(i => i.product_id === product.id && i.color_name === colorName && i.size_code === sizeCode);
-      if (existingIndex >= 0) {
-        const newItems = prev.map((item, idx) => idx === existingIndex ? { ...item, quantity: item.quantity + 1 } : item);
-        setActiveItemIndex(existingIndex);
+  const addProductWithColor = useCallback(
+    (product: Product, variant: ExternalVariantStock | null) => {
+      const colorName = variant?.color_name || undefined;
+      const colorHex = variant?.color_hex || undefined;
+      const sizeCode = variant?.size_code || undefined;
+      const imageUrl =
+        variant?.selected_thumbnail ||
+        (variant?.images?.length ? variant.images[0] : undefined) ||
+        (Array.isArray(product.images) && product.images.length > 0
+          ? product.images[0]
+          : undefined);
+
+      setItems((prev) => {
+        const existingIndex = prev.findIndex(
+          (i) =>
+            i.product_id === product.id && i.color_name === colorName && i.size_code === sizeCode,
+        );
+        if (existingIndex >= 0) {
+          const newItems = prev.map((item, idx) =>
+            idx === existingIndex ? { ...item, quantity: item.quantity + 1 } : item,
+          );
+          setActiveItemIndex(existingIndex);
+          return newItems;
+        }
+
+        const newItems = [
+          ...prev,
+          {
+            product_id: product.id,
+            product_name: product.name,
+            product_sku: product.sku,
+            product_image_url: imageUrl,
+            quantity: 1,
+            unit_price: product.price,
+            color_name: colorName,
+            color_hex: colorHex,
+            size_code: sizeCode,
+            bitrix_product_id: variant?.bitrix_product_id ?? null,
+            price_updated_at: product.priceUpdatedAt ?? null,
+            price_freshness_threshold_days: product.priceFreshnessThresholdDays ?? null,
+            personalizations: [],
+          },
+        ];
+        setActiveItemIndex(newItems.length - 1);
         return newItems;
-      }
-      
-      const newItems = [...prev, {
-        product_id: product.id, 
-        product_name: product.name, 
-        product_sku: product.sku,
-        product_image_url: imageUrl, 
-        quantity: 1, 
-        unit_price: product.price,
-        color_name: colorName, 
-        color_hex: colorHex, 
-        size_code: sizeCode,
-        bitrix_product_id: variant?.bitrix_product_id ?? null,
-        price_updated_at: product.priceUpdatedAt ?? null,
-        price_freshness_threshold_days: product.priceFreshnessThresholdDays ?? null,
-        personalizations: [],
-      }];
-      setActiveItemIndex(newItems.length - 1);
-      return newItems;
-    });
-  }, []);
+      });
+    },
+    [],
+  );
 
   const updateItemQuantity = useCallback((index: number, quantity: number) => {
     if (quantity < 1) return;
-    setItems(prev => prev.map((item, idx) => idx === index ? { ...item, quantity } : item));
+    setItems((prev) => prev.map((item, idx) => (idx === index ? { ...item, quantity } : item)));
   }, []);
 
   const updateItemPrice = useCallback((index: number, price: number) => {
-    setItems(prev => prev.map((item, idx) => idx === index ? { ...item, unit_price: price } : item));
+    setItems((prev) =>
+      prev.map((item, idx) => (idx === index ? { ...item, unit_price: price } : item)),
+    );
   }, []);
 
   const removeItem = useCallback((index: number) => {
-    setItems(prev => prev.filter((_, idx) => idx !== index));
-    setActiveItemIndex(prev => {
+    setItems((prev) => prev.filter((_, idx) => idx !== index));
+    setActiveItemIndex((prev) => {
       if (prev === index) return null;
       if (prev !== null && prev > index) return prev - 1;
       return prev;
     });
   }, []);
 
-  const handlePersonalizationsChange = useCallback((index: number, personalizations: QuoteItemPersonalization[]) => {
-    setItems(prev => prev.map((item, idx) => idx === index ? { ...item, personalizations } : item));
-  }, []);
+  const handlePersonalizationsChange = useCallback(
+    (index: number, personalizations: QuoteItemPersonalization[]) => {
+      setItems((prev) =>
+        prev.map((item, idx) => (idx === index ? { ...item, personalizations } : item)),
+      );
+    },
+    [],
+  );
 
   const confirmItemPrice = useCallback((index: number) => {
     const ts = new Date().toISOString();
-    setItems(prev => prev.map((item, idx) => idx === index ? { ...item, price_confirmed_at: ts } : item));
+    setItems((prev) =>
+      prev.map((item, idx) => (idx === index ? { ...item, price_confirmed_at: ts } : item)),
+    );
   }, []);
 
   const confirmAllStalePrices = useCallback(() => {
     const ts = new Date().toISOString();
-    setItems(prev => prev.map(item => {
-      const f = getPriceFreshness(item.price_updated_at, item.price_freshness_threshold_days);
-      if (f.shouldWarn && !item.price_confirmed_at) {
-        return { ...item, price_confirmed_at: ts };
-      }
-      return item;
-    }));
+    setItems((prev) =>
+      prev.map((item) => {
+        const f = getPriceFreshness(item.price_updated_at, item.price_freshness_threshold_days);
+        if (f.shouldWarn && !item.price_confirmed_at) {
+          return { ...item, price_confirmed_at: ts };
+        }
+        return item;
+      }),
+    );
   }, []);
 
   return {
@@ -113,6 +140,6 @@ export function useQuoteItems(initialItems: QuoteItem[] = [], isLoadingItems = f
     removeItem,
     handlePersonalizationsChange,
     confirmItemPrice,
-    confirmAllStalePrices
+    confirmAllStalePrices,
   };
 }

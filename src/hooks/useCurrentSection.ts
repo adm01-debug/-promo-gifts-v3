@@ -1,33 +1,33 @@
-import { useLocation } from "react-router-dom";
-import { useMemo } from "react";
+import { useLocation } from 'react-router-dom';
+import { useMemo } from 'react';
 
 const sectionMap: Record<string, string> = {
-  "/": "Catálogo",
-  "/produtos": "Catálogo",
-  "/filtros": "Super Filtro",
-  "/novidades": "Novidades",
-  "/colecoes": "Coleções",
-  "/estoque": "Estoque 360º",
-  "/ferramentas/bi-comercial": "Inteligência Comercial",
-  "/tendencias": "Análise de Tendências",
-  "/orcamentos": "Orçamentos",
-  "/orcamentos/novo": "Novo Orçamento",
-  "/pedidos": "Pedidos",
-  "/montar-kit": "Kit Maker",
-  "/simulador": "Mestre da Personalização",
-  "/simulador-precos": "Radar de Preços",
-  "/busca-preco": "Busca por Preço",
-  "/ferramentas/match": "Match de Produtos",
-  "/mockup-generator": "Gerador de Mockups",
-  "/ferramentas/magic-up": "Magic Up",
-  "/magic-up": "Magic Up",
-  "/favoritos": "Favoritos",
-  "/comparar": "Comparar",
-  
-  "/configuracoes": "Configurações",
-  "/admin": "Administração",
-  "/admin/temas": "Skins",
-  "/seguranca": "Segurança",
+  '/': 'Catálogo',
+  '/produtos': 'Catálogo',
+  '/filtros': 'Super Filtro',
+  '/novidades': 'Novidades',
+  '/colecoes': 'Coleções',
+  '/estoque': 'Estoque 360º',
+  '/ferramentas/bi-comercial': 'Inteligência Comercial',
+  '/tendencias': 'Análise de Tendências',
+  '/orcamentos': 'Orçamentos',
+  '/orcamentos/novo': 'Novo Orçamento',
+  '/pedidos': 'Pedidos',
+  '/montar-kit': 'Kit Maker',
+  '/simulador': 'Mestre da Personalização',
+  '/simulador-precos': 'Radar de Preços',
+  '/busca-preco': 'Busca por Preço',
+  '/ferramentas/match': 'Match de Produtos',
+  '/mockup-generator': 'Gerador de Mockups',
+  '/ferramentas/magic-up': 'Magic Up',
+  '/magic-up': 'Magic Up',
+  '/favoritos': 'Favoritos',
+  '/comparar': 'Comparar',
+
+  '/configuracoes': 'Configurações',
+  '/admin': 'Administração',
+  '/admin/temas': 'Skins',
+  '/seguranca': 'Segurança',
 };
 
 export function useCurrentSection(): string {
@@ -38,13 +38,13 @@ export function useCurrentSection(): string {
     if (sectionMap[pathname]) return sectionMap[pathname];
 
     // Try progressively shorter prefixes
-    const parts = pathname.split("/").filter(Boolean);
+    const parts = pathname.split('/').filter(Boolean);
     while (parts.length > 0) {
-      const prefix = "/" + parts.join("/");
+      const prefix = '/' + parts.join('/');
       if (sectionMap[prefix]) return sectionMap[prefix];
       parts.pop();
     }
 
-    return "Início";
+    return 'Início';
   }, [pathname]);
 }

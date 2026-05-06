@@ -18,7 +18,9 @@ export function saveSession(state: SimulatorWizardState) {
       savedAt: Date.now(),
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
-  } catch { /* quota exceeded or private mode */ }
+  } catch {
+    /* quota exceeded or private mode */
+  }
 }
 
 export function loadSession(): Partial<SimulatorWizardState> | null {

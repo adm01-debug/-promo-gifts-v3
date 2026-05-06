@@ -1,8 +1,8 @@
-import { create } from "zustand";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/hooks/use-toast";
+import { create } from 'zustand';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 
-const STORAGE_KEY = "product-favorites";
+const STORAGE_KEY = 'product-favorites';
 
 export interface FavoriteVariantInfo {
   color_name?: string | null;
@@ -43,7 +43,7 @@ interface FavoritesStore extends FavoritesState, FavoritesActions {
 }
 
 function loadFromStorage(): FavoriteItem[] {
-  if (typeof window === "undefined") return [];
+  if (typeof window === 'undefined') return [];
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     return stored ? JSON.parse(stored) : [];
@@ -53,7 +53,7 @@ function loadFromStorage(): FavoriteItem[] {
 }
 
 function saveToStorage(items: FavoriteItem[]) {
-  if (typeof window === "undefined") return;
+  if (typeof window === 'undefined') return;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
 }
 
@@ -61,8 +61,8 @@ export const useFavoritesStore = create<FavoritesStore>((set, get) => {
   const initial = loadFromStorage();
 
   // Listen for storage changes to sync across tabs
-  if (typeof window !== "undefined") {
-    window.addEventListener("storage", (event) => {
+  if (typeof window !== 'undefined') {
+    window.addEventListener('storage', (event) => {
       if (event.key === STORAGE_KEY) {
         const next = loadFromStorage();
         set({ favorites: next, favoriteCount: next.length });
@@ -80,7 +80,7 @@ export const useFavoritesStore = create<FavoritesStore>((set, get) => {
     setError: (error: string | null) => set({ error }),
 
     migrateLegacyData: async () => {
-      const legacyKey = "favorites"; // Nome anterior se houver
+      const legacyKey = 'favorites'; // Nome anterior se houver
       const legacyData = localStorage.getItem(legacyKey);
       if (legacyData) {
         try {
@@ -88,14 +88,14 @@ export const useFavoritesStore = create<FavoritesStore>((set, get) => {
           if (Array.isArray(parsed)) {
             const current = get().favorites;
             const migrated = [...current];
-            
+
             parsed.forEach((item: any) => {
-              const id = typeof item === "string" ? item : item.productId;
-              if (!migrated.some(f => f.productId === id)) {
+              const id = typeof item === 'string' ? item : item.productId;
+              if (!migrated.some((f) => f.productId === id)) {
                 migrated.push({
                   productId: id,
                   addedAt: item.addedAt || new Date().toISOString(),
-                  variant: item.variant
+                  variant: item.variant,
                 });
               }
             });
@@ -105,7 +105,7 @@ export const useFavoritesStore = create<FavoritesStore>((set, get) => {
             localStorage.removeItem(legacyKey);
           }
         } catch (e) {
-          console.error("Migration failed", e);
+          console.error('Migration failed', e);
         }
       }
     },
@@ -115,26 +115,26 @@ export const useFavoritesStore = create<FavoritesStore>((set, get) => {
       set({ isSyncing: true });
       try {
         const { data, error } = await supabase
-          .from("favorites")
-          .select("*")
-          .eq("user_id", userId)
-          .eq("is_deleted", false);
+          .from('favorites')
+          .select('*')
+          .eq('user_id', userId)
+          .eq('is_deleted', false);
 
         if (error) throw error;
 
         if (data) {
-          const cloudItems: FavoriteItem[] = data.map(f => ({
+          const cloudItems: FavoriteItem[] = data.map((f) => ({
             productId: f.product_id,
             addedAt: f.added_at,
-            variant: f.variant_info as FavoriteVariantInfo
+            variant: f.variant_info as FavoriteVariantInfo,
           }));
 
           // Merge local with cloud based on timestamp (SSOT)
           const localItems = get().favorites;
           const merged = [...cloudItems];
-          
-          localItems.forEach(local => {
-            const existsInCloud = cloudItems.find(c => c.productId === local.productId);
+
+          localItems.forEach((local) => {
+            const existsInCloud = cloudItems.find((c) => c.productId === local.productId);
             if (!existsInCloud) {
               merged.push(local);
               // Async push to cloud
@@ -146,7 +146,7 @@ export const useFavoritesStore = create<FavoritesStore>((set, get) => {
           set({ favorites: merged, favoriteCount: merged.length });
         }
       } catch (err) {
-        console.error("Sync failed", err);
+        console.error('Sync failed', err);
       } finally {
         set({ isSyncing: false });
       }
@@ -155,36 +155,44 @@ export const useFavoritesStore = create<FavoritesStore>((set, get) => {
     addFavorite: async (productId: string, variant?: FavoriteVariantInfo) => {
       const previousFavorites = get().favorites;
       if (previousFavorites.some((f) => f.productId === productId)) return;
-      
+
       const newItem = { productId, addedAt: new Date().toISOString(), variant };
       const next = [...previousFavorites, newItem];
-      
+
       // Optimistic Update
       set({ favorites: next, favoriteCount: next.length, error: null });
       saveToStorage(next);
 
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (user) {
         try {
-          const { error } = await supabase
-            .from("favorites")
-            .upsert({
+          const { error } = await supabase.from('favorites').upsert(
+            {
               user_id: user.id,
               product_id: productId,
               variant_info: variant,
               added_at: newItem.addedAt,
-              is_deleted: false
-            }, { onConflict: "user_id,product_id" });
+              is_deleted: false,
+            },
+            { onConflict: 'user_id,product_id' },
+          );
 
           if (error) throw error;
         } catch (err) {
           // Rollback
-          set({ favorites: previousFavorites, favoriteCount: previousFavorites.length, error: "Falha na sincronização com a nuvem" });
+          set({
+            favorites: previousFavorites,
+            favoriteCount: previousFavorites.length,
+            error: 'Falha na sincronização com a nuvem',
+          });
           saveToStorage(previousFavorites);
           toast({
-            title: "Erro de Sincronização",
-            description: "Não foi possível salvar o favorito no servidor. A alteração foi revertida.",
-            variant: "destructive"
+            title: 'Erro de Sincronização',
+            description:
+              'Não foi possível salvar o favorito no servidor. A alteração foi revertida.',
+            variant: 'destructive',
           });
         }
       }
@@ -193,29 +201,35 @@ export const useFavoritesStore = create<FavoritesStore>((set, get) => {
     removeFavorite: async (productId: string) => {
       const previousFavorites = get().favorites;
       const next = previousFavorites.filter((f) => f.productId !== productId);
-      
+
       // Optimistic Update
       set({ favorites: next, favoriteCount: next.length, error: null });
       saveToStorage(next);
 
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (user) {
         try {
           const { error } = await supabase
-            .from("favorites")
+            .from('favorites')
             .update({ is_deleted: true })
-            .eq("user_id", user.id)
-            .eq("product_id", productId);
+            .eq('user_id', user.id)
+            .eq('product_id', productId);
 
           if (error) throw error;
         } catch (err) {
           // Rollback
-          set({ favorites: previousFavorites, favoriteCount: previousFavorites.length, error: "Falha ao remover favorito na nuvem" });
+          set({
+            favorites: previousFavorites,
+            favoriteCount: previousFavorites.length,
+            error: 'Falha ao remover favorito na nuvem',
+          });
           saveToStorage(previousFavorites);
           toast({
-            title: "Erro ao Remover",
-            description: "Falha ao sincronizar remoção. Tente novamente.",
-            variant: "destructive"
+            title: 'Erro ao Remover',
+            description: 'Falha ao sincronizar remoção. Tente novamente.',
+            variant: 'destructive',
           });
         }
       }
@@ -231,8 +245,7 @@ export const useFavoritesStore = create<FavoritesStore>((set, get) => {
       }
     },
 
-    isFavorite: (productId: string) =>
-      get().favorites.some((f) => f.productId === productId),
+    isFavorite: (productId: string) => get().favorites.some((f) => f.productId === productId),
 
     getFavoriteVariant: (productId: string) =>
       get().favorites.find((f) => f.productId === productId)?.variant,
@@ -242,22 +255,24 @@ export const useFavoritesStore = create<FavoritesStore>((set, get) => {
       set({ favorites: [], favoriteCount: 0, error: null });
       saveToStorage([]);
 
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (user) {
         try {
           const { error } = await supabase
-            .from("favorites")
+            .from('favorites')
             .update({ is_deleted: true })
-            .eq("user_id", user.id);
+            .eq('user_id', user.id);
 
           if (error) throw error;
         } catch (err) {
           set({ favorites: previousFavorites, favoriteCount: previousFavorites.length });
           saveToStorage(previousFavorites);
           toast({
-            title: "Erro",
-            description: "Falha ao limpar favoritos no servidor.",
-            variant: "destructive"
+            title: 'Erro',
+            description: 'Falha ao limpar favoritos no servidor.',
+            variant: 'destructive',
           });
         }
       }

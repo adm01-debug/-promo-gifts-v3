@@ -9,26 +9,26 @@ const STATUS_CONFIG: Record<string, { message: string; icon: any; className: str
   down: {
     message: 'Backend indisponível. Verifique sua conexão e tente novamente.',
     icon: WifiOff,
-    className: 'bg-destructive text-destructive-foreground border-destructive/40'
+    className: 'bg-destructive text-destructive-foreground border-destructive/40',
   },
   degraded: {
     message: 'Backend instável — algumas operações podem falhar momentaneamente.',
     icon: AlertTriangle,
-    className: 'bg-warning text-warning-foreground border-warning/40'
+    className: 'bg-warning text-warning-foreground border-warning/40',
   },
   warming: {
     message: 'Backend reiniciando, aguarde alguns segundos…',
     icon: Loader2,
-    className: 'bg-muted text-muted-foreground border-border'
-  }
+    className: 'bg-muted text-muted-foreground border-border',
+  },
 };
 
 export const CloudStatusBanner = memo(function CloudStatusBanner() {
   const { isDev } = useDevGate();
   const { status, retry, isChecking } = useCloudStatus();
-  
+
   const config = status ? STATUS_CONFIG[status] : null;
-  
+
   if (!config) return null;
 
   // Lógica de visibilidade desacoplada:
@@ -51,14 +51,17 @@ export const CloudStatusBanner = memo(function CloudStatusBanner() {
         transition={{ duration: 0.2 }}
         role="status"
         aria-live="polite"
-        className={`sticky top-0 z-50 w-full border-b safe-area-top ${config.className}`}
+        className={`safe-area-top sticky top-0 z-50 w-full border-b ${config.className}`}
       >
-        <div className="container mx-auto flex flex-col sm:flex-row items-start sm:items-center gap-3 px-4 py-2 text-sm">
-          <div className="flex items-start sm:items-center gap-3 flex-1">
-            <Icon className={`h-4 w-4 shrink-0 mt-0.5 sm:mt-0 ${status === 'warming' ? 'animate-spin' : ''}`} aria-hidden />
+        <div className="container mx-auto flex flex-col items-start gap-3 px-4 py-2 text-sm sm:flex-row sm:items-center">
+          <div className="flex flex-1 items-start gap-3 sm:items-center">
+            <Icon
+              className={`mt-0.5 h-4 w-4 shrink-0 sm:mt-0 ${status === 'warming' ? 'animate-spin' : ''}`}
+              aria-hidden
+            />
             <span className="flex-1 leading-tight">{config.message}</span>
           </div>
-          
+
           {status === 'down' && (
             <Button
               size="sm"

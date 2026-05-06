@@ -1,10 +1,14 @@
 // Hook CRUD para Técnicas de Gravação (via external-db-bridge)
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { invokeExternalDb, invokeExternalDbSingle, invokeExternalDbDelete } from '@/lib/external-db';
-import type { 
-  TecnicaGravacao, 
+import {
+  invokeExternalDb,
+  invokeExternalDbSingle,
+  invokeExternalDbDelete,
+} from '@/lib/external-db';
+import type {
+  TecnicaGravacao,
   TecnicaGravacaoFormData,
-  TecnicaGravacaoWithVariantes 
+  TecnicaGravacaoWithVariantes,
 } from '@/types/gravacao-database';
 import { toast } from 'sonner';
 
@@ -71,9 +75,9 @@ export function useTecnicasGravacao() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: async ({ 
-      id, 
-      ...updates 
+    mutationFn: async ({
+      id,
+      ...updates
     }: Partial<TecnicaGravacaoFormData> & { id: string }): Promise<TecnicaGravacao> => {
       const updateData: Record<string, unknown> = { ...updates };
       if (updates.nome) {
@@ -107,7 +111,9 @@ export function useTecnicasGravacao() {
       });
 
       if (variantesResult.count > 0) {
-        throw new Error(`Não é possível excluir: existem ${variantesResult.count} variante(s) vinculada(s)`);
+        throw new Error(
+          `Não é possível excluir: existem ${variantesResult.count} variante(s) vinculada(s)`,
+        );
       }
 
       await invokeExternalDbDelete('tecnica_gravacao', id);

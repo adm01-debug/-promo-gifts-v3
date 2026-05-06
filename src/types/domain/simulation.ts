@@ -1,6 +1,6 @@
 /**
  * Domain Types: Simulação de Personalização
- * 
+ *
  * Tipos de domínio para o simulador de preços e personalização.
  */
 
@@ -70,31 +70,31 @@ export interface TechniqueSettings {
  */
 export interface SimulationOption {
   id: string;
-  
+
   // Identificação da técnica
   techniqueId: string;
   techniqueName: string;
   techniqueCode: string;
-  
+
   // Configuração aplicada
   colors: number;
   width: number;
   height: number;
   positions: number;
-  
+
   // Custos de personalização
   unitCost: number;
   setupCost: number;
   totalPersonalizationCost: number;
   costPerUnit: number;
-  
+
   // Prazo
   estimatedDays: number;
-  
+
   // Custos do produto
   productUnitPrice: number;
   totalProductCost: number;
-  
+
   // Totais
   grandTotal: number;
   grandTotalPerUnit: number;

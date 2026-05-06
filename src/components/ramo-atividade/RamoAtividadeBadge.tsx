@@ -1,20 +1,15 @@
-import React from "react";
-import { cn } from "@/lib/utils";
-import { X, Building2 } from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import React from 'react';
+import { cn } from '@/lib/utils';
+import { X, Building2 } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface RamoAtividadeBadgeProps {
   name: string;
   ramoName?: string;
   hexCode?: string | null;
   icon?: string | null;
-  size?: "sm" | "md" | "lg";
-  variant?: "default" | "outline" | "solid" | "ghost";
+  size?: 'sm' | 'md' | 'lg';
+  variant?: 'default' | 'outline' | 'solid' | 'ghost';
   showRamo?: boolean;
   onClick?: () => void;
   onRemove?: () => void;
@@ -28,8 +23,8 @@ export function RamoAtividadeBadge({
   ramoName,
   hexCode,
   icon,
-  size = "md",
-  variant = "default",
+  size = 'md',
+  variant = 'default',
   showRamo = false,
   onClick,
   onRemove,
@@ -38,22 +33,22 @@ export function RamoAtividadeBadge({
   productCount,
 }: RamoAtividadeBadgeProps) {
   const sizeClasses = {
-    sm: "text-[11px] px-2 py-0.5 gap-1",
-    md: "text-xs px-2.5 py-1 gap-1.5",
-    lg: "text-sm px-3 py-1.5 gap-2",
+    sm: 'text-[11px] px-2 py-0.5 gap-1',
+    md: 'text-xs px-2.5 py-1 gap-1.5',
+    lg: 'text-sm px-3 py-1.5 gap-2',
   };
 
   const colorDotSizes = {
-    sm: "w-2 h-2",
-    md: "w-2.5 h-2.5",
-    lg: "w-3 h-3",
+    sm: 'w-2 h-2',
+    md: 'w-2.5 h-2.5',
+    lg: 'w-3 h-3',
   };
 
   const variantClasses = {
-    default: "bg-muted/60 text-muted-foreground hover:bg-muted",
-    outline: "border border-border bg-background text-foreground hover:bg-muted/50",
-    solid: "bg-primary/15 text-primary border border-primary/20 hover:bg-primary/25",
-    ghost: "bg-transparent text-muted-foreground hover:bg-muted/50",
+    default: 'bg-muted/60 text-muted-foreground hover:bg-muted',
+    outline: 'border border-border bg-background text-foreground hover:bg-muted/50',
+    solid: 'bg-primary/15 text-primary border border-primary/20 hover:bg-primary/25',
+    ghost: 'bg-transparent text-muted-foreground hover:bg-muted/50',
   };
 
   const displayText = showRamo && ramoName ? `${ramoName} → ${name}` : name;
@@ -61,38 +56,41 @@ export function RamoAtividadeBadge({
   const badgeContent = (
     <span
       className={cn(
-        "inline-flex items-center rounded-full font-medium transition-all duration-200",
+        'inline-flex items-center rounded-full font-medium transition-all duration-200',
         sizeClasses[size],
         variantClasses[variant],
-        onClick && "cursor-pointer",
-        onRemove && "pr-1",
-        className
+        onClick && 'cursor-pointer',
+        onRemove && 'pr-1',
+        className,
       )}
       onClick={onClick}
     >
-      
       {/* Texto */}
-      <span className={cn(
-        "truncate",
-        size === "sm" && "max-w-[100px]",
-        size === "md" && "max-w-[140px]",
-        size === "lg" && "max-w-[180px]"
-      )}>
+      <span
+        className={cn(
+          'truncate',
+          size === 'sm' && 'max-w-[100px]',
+          size === 'md' && 'max-w-[140px]',
+          size === 'lg' && 'max-w-[180px]',
+        )}
+      >
         {displayText}
       </span>
-      
+
       {/* Contador de produtos */}
       {productCount !== undefined && productCount > 0 && (
-        <span className={cn(
-          "rounded-full bg-background/80 text-muted-foreground font-normal",
-          size === "sm" && "text-[9px] px-1",
-          size === "md" && "text-[10px] px-1.5",
-          size === "lg" && "text-xs px-2"
-        )}>
+        <span
+          className={cn(
+            'rounded-full bg-background/80 font-normal text-muted-foreground',
+            size === 'sm' && 'px-1 text-[9px]',
+            size === 'md' && 'px-1.5 text-[10px]',
+            size === 'lg' && 'px-2 text-xs',
+          )}
+        >
           {productCount}
         </span>
       )}
-      
+
       {/* Botão remover */}
       {onRemove && (
         <button
@@ -102,17 +100,19 @@ export function RamoAtividadeBadge({
             onRemove();
           }}
           className={cn(
-            "rounded-full transition-all duration-150 hover:bg-destructive/20 hover:text-destructive",
-            size === "sm" && "p-0.5 ml-0.5",
-            size === "md" && "p-0.5 ml-1",
-            size === "lg" && "p-1 ml-1"
+            'rounded-full transition-all duration-150 hover:bg-destructive/20 hover:text-destructive',
+            size === 'sm' && 'ml-0.5 p-0.5',
+            size === 'md' && 'ml-1 p-0.5',
+            size === 'lg' && 'ml-1 p-1',
           )}
         >
-          <X className={cn(
-            size === "sm" && "w-2.5 h-2.5",
-            size === "md" && "w-3 h-3",
-            size === "lg" && "w-3.5 h-3.5"
-          )} />
+          <X
+            className={cn(
+              size === 'sm' && 'h-2.5 w-2.5',
+              size === 'md' && 'h-3 w-3',
+              size === 'lg' && 'h-3.5 w-3.5',
+            )}
+          />
         </button>
       )}
     </span>
@@ -121,19 +121,12 @@ export function RamoAtividadeBadge({
   // Com tooltip
   if (showTooltip && (ramoName || productCount)) {
     return (
-      <TooltipProvider >
+      <TooltipProvider>
         <Tooltip>
-          <TooltipTrigger asChild>
-            {badgeContent}
-          </TooltipTrigger>
-          <TooltipContent 
-            side="top" 
-            className="text-xs"
-          >
+          <TooltipTrigger asChild>{badgeContent}</TooltipTrigger>
+          <TooltipContent side="top" className="text-xs">
             <div className="flex flex-col gap-0.5">
-              {ramoName && (
-                <span className="font-medium">{ramoName}</span>
-              )}
+              {ramoName && <span className="font-medium">{ramoName}</span>}
               <span>{name}</span>
               {productCount !== undefined && (
                 <span className="text-muted-foreground">
@@ -167,13 +160,13 @@ export function CompactRamoAtividadeBadge({
       type="button"
       onClick={onClick}
       className={cn(
-        "inline-flex items-center gap-1.5 text-xs px-2 py-1 rounded-xl transition-all duration-150",
+        'inline-flex items-center gap-1.5 rounded-xl px-2 py-1 text-xs transition-all duration-150',
         isSelected
-          ? "bg-primary/15 text-primary font-medium ring-1 ring-primary/30"
-          : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+          ? 'bg-primary/15 font-medium text-primary ring-1 ring-primary/30'
+          : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground',
       )}
     >
-      <span className="truncate max-w-[100px]">{name}</span>
+      <span className="max-w-[100px] truncate">{name}</span>
     </button>
   );
 }

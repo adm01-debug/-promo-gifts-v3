@@ -1,9 +1,9 @@
 /**
  * Hook Unificado para Técnicas de Gravação/Personalização
- * 
+ *
  * REFATORADO: Este arquivo agora re-exporta dos hooks modulares
  * para manter compatibilidade com código existente.
- * 
+ *
  * Nova estrutura em: src/hooks/tecnicas/
  * - useTecnicasList.ts
  * - useTecnicaMutations.ts
@@ -44,7 +44,7 @@ export {
 // ALIASES DE COMPATIBILIDADE
 // ============================================
 
-import { 
+import {
   useTecnicasList,
   useTecnicaById as useTecnicaByIdInternal,
   useTecnicaByCodigo as useTecnicaByCodigoInternal,
@@ -95,7 +95,7 @@ export const useTecnicaPorCodigo = useTecnicaByCodigoInternal;
  */
 export function useCustomizationPricing() {
   const calc = usePrecoCalculation();
-  
+
   return {
     priceTables: [], // Legado - não mais usado
     techniques: calc.techniques,
@@ -139,18 +139,20 @@ export interface CustomizationPriceTable {
 /**
  * @deprecated Use extractPriceTiersFromTabela
  */
-export function extractPriceTiers(table: CustomizationPriceTable): import('./tecnicas').PriceTier[] {
+export function extractPriceTiers(
+  table: CustomizationPriceTable,
+): import('./tecnicas').PriceTier[] {
   const tiers: import('./tecnicas').PriceTier[] = [];
-  
+
   for (let i = 1; i <= 15; i++) {
     const minQty = table[`min_qty_${i}`] as number | undefined;
     const price = table[`price_${i}`] as number | undefined;
     const sla = table[`sla_${i}`] as number | undefined;
-    
+
     if (minQty !== undefined && minQty !== null && price !== undefined && price !== null) {
       const nextMinQty = table[`min_qty_${i + 1}`] as number | undefined;
       const maxQty = nextMinQty ? nextMinQty - 1 : null;
-      
+
       tiers.push({
         tierIndex: i,
         minQuantity: minQty,
@@ -160,7 +162,7 @@ export function extractPriceTiers(table: CustomizationPriceTable): import('./tec
       });
     }
   }
-  
+
   return tiers;
 }
 
@@ -169,29 +171,29 @@ export function extractPriceTiers(table: CustomizationPriceTable): import('./tec
  */
 export function calculatePriceForQuantityLegacy(
   table: CustomizationPriceTable,
-  quantity: number
+  quantity: number,
 ): import('./tecnicas').PriceCalculation | null {
   const tiers = extractPriceTiers(table);
-  
+
   if (tiers.length === 0) return null;
-  
+
   let selectedTier = tiers[0];
   for (const tier of tiers) {
     if (quantity >= tier.minQuantity) {
       selectedTier = tier;
     }
   }
-  
+
   const unitPrice = selectedTier.unitPrice;
   const totalPrice = unitPrice * quantity;
   const setupPrice = table.setup_price || 0;
   const handlingPrice = table.handling_price || 0;
   const grandTotal = totalPrice + setupPrice + handlingPrice;
-  
+
   const minTierPrice = tiers[0].unitPrice;
   const savingsPerUnit = minTierPrice - unitPrice;
   const percentageOff = minTierPrice > 0 ? ((minTierPrice - unitPrice) / minTierPrice) * 100 : 0;
-  
+
   return {
     technique: table.customization_type_name,
     techniqueCode: table.table_code,
@@ -207,9 +209,12 @@ export function calculatePriceForQuantityLegacy(
       width: table.max_area_width_cm || 0,
       height: table.max_area_height_cm || 0,
     },
-    savings: savingsPerUnit > 0 ? {
-      comparedToMin: savingsPerUnit * quantity,
-      percentageOff: Math.round(percentageOff),
-    } : undefined,
+    savings:
+      savingsPerUnit > 0
+        ? {
+            comparedToMin: savingsPerUnit * quantity,
+            percentageOff: Math.round(percentageOff),
+          }
+        : undefined,
   };
 }

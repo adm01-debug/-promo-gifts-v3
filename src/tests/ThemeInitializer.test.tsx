@@ -21,7 +21,7 @@ describe('ThemeInitializer', () => {
   it('should not call apply functions if ThemeContext is not available', () => {
     // Render without provider (ctx will be undefined in ThemeInitializer)
     render(<ThemeInitializer />);
-    
+
     expect(themePresets.applyThemePreset).not.toHaveBeenCalled();
     expect(themePresets.applyRadius).not.toHaveBeenCalled();
   });
@@ -37,7 +37,7 @@ describe('ThemeInitializer', () => {
     render(
       <ThemeContext.Provider value={mockContext}>
         <ThemeInitializer />
-      </ThemeContext.Provider>
+      </ThemeContext.Provider>,
     );
 
     expect(themePresets.applyThemePreset).toHaveBeenCalledWith('default', 'light');
@@ -46,28 +46,32 @@ describe('ThemeInitializer', () => {
 
   it('should re-apply theme when actualTheme changes (HMR/Re-render simulation)', () => {
     const { rerender } = render(
-      <ThemeContext.Provider value={{
-        theme: 'light',
-        actualTheme: 'light',
-        setTheme: vi.fn(),
-        toggleTheme: vi.fn(),
-      }}>
+      <ThemeContext.Provider
+        value={{
+          theme: 'light',
+          actualTheme: 'light',
+          setTheme: vi.fn(),
+          toggleTheme: vi.fn(),
+        }}
+      >
         <ThemeInitializer />
-      </ThemeContext.Provider>
+      </ThemeContext.Provider>,
     );
 
     expect(themePresets.applyThemePreset).toHaveBeenCalledWith('default', 'light');
 
     // Simulate theme change/re-render
     rerender(
-      <ThemeContext.Provider value={{
-        theme: 'dark',
-        actualTheme: 'dark',
-        setTheme: vi.fn(),
-        toggleTheme: vi.fn(),
-      }}>
+      <ThemeContext.Provider
+        value={{
+          theme: 'dark',
+          actualTheme: 'dark',
+          setTheme: vi.fn(),
+          toggleTheme: vi.fn(),
+        }}
+      >
         <ThemeInitializer />
-      </ThemeContext.Provider>
+      </ThemeContext.Provider>,
     );
 
     expect(themePresets.applyThemePreset).toHaveBeenCalledWith('default', 'dark');

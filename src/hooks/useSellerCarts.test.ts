@@ -33,22 +33,26 @@ vi.mock('@/contexts/AuthContext', () => ({
 const createWrapper = () => {
   const queryClient = new QueryClient({
     defaultOptions: {
-      queries: { 
+      queries: {
         retry: false,
         staleTime: 0,
-        gcTime: 0
+        gcTime: 0,
       },
     },
   });
-  return ({ children }: { children: React.ReactNode }) => (
-    React.createElement(QueryClientProvider, { client: queryClient }, children)
-  );
+  return ({ children }: { children: React.ReactNode }) =>
+    React.createElement(QueryClientProvider, { client: queryClient }, children);
 };
 
 describe('useSellerCarts', () => {
   const mockUserId = 'user-123';
   const mockCarts = [
-    { id: 'cart-1', seller_id: mockUserId, company_name: 'Company A', updated_at: new Date().toISOString() },
+    {
+      id: 'cart-1',
+      seller_id: mockUserId,
+      company_name: 'Company A',
+      updated_at: new Date().toISOString(),
+    },
   ];
   const mockItems = [
     { id: 'item-1', cart_id: 'cart-1', product_name: 'Product A', product_price: 10, quantity: 2 },
@@ -61,7 +65,7 @@ describe('useSellerCarts', () => {
 
   it('should fetch carts and items correctly', async () => {
     const fromMock = supabase.from as any;
-    
+
     fromMock.mockImplementation((table: string) => ({
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
@@ -70,13 +74,13 @@ describe('useSellerCarts', () => {
         if (table === 'seller_carts') return Promise.resolve({ data: mockCarts, error: null });
         if (table === 'seller_cart_items') return Promise.resolve({ data: mockItems, error: null });
         return Promise.resolve({ data: [], error: null });
-      })
+      }),
     }));
 
     const { result } = renderHook(() => useSellerCarts(), { wrapper: createWrapper() });
 
     await waitFor(() => expect(result.current.isLoading).toBe(false), { timeout: 3000 });
-    
+
     expect(result.current.carts.length).toBe(1);
     expect(result.current.carts[0].items.length).toBe(1);
   });
@@ -84,7 +88,7 @@ describe('useSellerCarts', () => {
   it('should enforce the limit of 3 carts', async () => {
     const manyCarts = [{ id: '1' }, { id: '2' }, { id: '3' }];
     const fromMock = supabase.from as any;
-    
+
     // Precisamos resetar o mockImplementation para este teste específico
     fromMock.mockImplementation((table: string) => ({
       select: vi.fn().mockReturnThis(),
@@ -93,13 +97,13 @@ describe('useSellerCarts', () => {
       order: vi.fn().mockImplementation(() => {
         if (table === 'seller_carts') return Promise.resolve({ data: manyCarts, error: null });
         return Promise.resolve({ data: [], error: null });
-      })
+      }),
     }));
 
     const { result } = renderHook(() => useSellerCarts(), { wrapper: createWrapper() });
 
     await waitFor(() => expect(result.current.isLoading).toBe(false), { timeout: 3000 });
-    
+
     // No código useSellerCarts.ts: canCreateCart = carts.length < 3
     // Se temos 3, canCreateCart deve ser false.
     expect(result.current.carts.length).toBe(3);

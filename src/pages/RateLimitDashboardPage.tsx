@@ -3,12 +3,19 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { Shield, AlertTriangle, Ban, RefreshCw, Clock, Activity } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { PageSEO } from "@/components/seo/PageSEO";
+import { PageSEO } from '@/components/seo/PageSEO';
 
 interface RateLimitLog {
   id: string;
@@ -66,15 +73,22 @@ export default function RateLimitDashboardPage() {
 
   return (
     <>
-      <PageSEO title="Rate Limit" description="Monitore limites de requisições e controle de acesso." path="/admin/rate-limit" noIndex />
-      <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
+      <PageSEO
+        title="Rate Limit"
+        description="Monitore limites de requisições e controle de acesso."
+        path="/admin/rate-limit"
+        noIndex
+      />
+      <div className="mx-auto w-full max-w-[1920px] animate-fade-in space-y-3 px-3 py-3 pb-24 sm:space-y-4 sm:px-4 sm:py-4 md:pb-6 lg:px-6 xl:px-8">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="font-display text-2xl font-bold tracking-tight">Dashboard de Rate Limiting</h1>
+            <h1 className="font-display text-2xl font-bold tracking-tight">
+              Dashboard de Rate Limiting
+            </h1>
             <p className="text-muted-foreground">Monitoramento de requisições e bloqueios</p>
           </div>
           <Button variant="outline" size="sm" onClick={fetchData}>
-            <RefreshCw className="h-4 w-4 mr-2" />
+            <RefreshCw className="mr-2 h-4 w-4" />
             Atualizar
           </Button>
         </div>
@@ -100,7 +114,8 @@ export default function RateLimitDashboardPage() {
               <p className="text-xs text-muted-foreground">
                 {stats.totalRequests > 0
                   ? ((stats.blockedRequests / stats.totalRequests) * 100).toFixed(1)
-                  : 0}% do total
+                  : 0}
+                % do total
               </p>
             </CardContent>
           </Card>
@@ -127,7 +142,7 @@ export default function RateLimitDashboardPage() {
           <CardContent>
             {isLoading ? (
               <div className="flex justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+                <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary" />
               </div>
             ) : (
               <Table>
@@ -142,7 +157,7 @@ export default function RateLimitDashboardPage() {
                 <TableBody>
                   {logs.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                      <TableCell colSpan={4} className="py-8 text-center text-muted-foreground">
                         Nenhuma tentativa registrada
                       </TableCell>
                     </TableRow>
@@ -153,18 +168,18 @@ export default function RateLimitDashboardPage() {
                         <TableCell>{log.endpoint}</TableCell>
                         <TableCell>
                           {log.blocked ? (
-                            <Badge variant="destructive" className="flex items-center gap-1 w-fit">
+                            <Badge variant="destructive" className="flex w-fit items-center gap-1">
                               <AlertTriangle className="h-3 w-3" />
                               Falhou
                             </Badge>
                           ) : (
-                            <Badge variant="outline" className="text-success border-success">
+                            <Badge variant="outline" className="border-success text-success">
                               Sucesso
                             </Badge>
                           )}
                         </TableCell>
                         <TableCell className="text-muted-foreground">
-                          {format(new Date(log.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                          {format(new Date(log.created_at), 'dd/MM/yyyy HH:mm', { locale: ptBR })}
                         </TableCell>
                       </TableRow>
                     ))

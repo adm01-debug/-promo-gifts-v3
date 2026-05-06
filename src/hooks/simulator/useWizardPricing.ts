@@ -5,7 +5,10 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 import { invokeExternalRpc } from '@/lib/external-rpc';
-import type { CustomizationPriceResponse, CustomizationPriceFlat } from '@/hooks/useGravacaoPriceV2';
+import type {
+  CustomizationPriceResponse,
+  CustomizationPriceFlat,
+} from '@/hooks/useGravacaoPriceV2';
 import { adaptPriceResponse } from '@/lib/personalization/adapters';
 import type {
   SimulatorWizardState,
@@ -14,7 +17,7 @@ import type {
   Personalization,
   AvailableTechnique,
 } from '@/types/domain/simulator-wizard';
-import { logger } from "@/lib/logger";
+import { logger } from '@/lib/logger';
 
 interface UseWizardPricingParams {
   state: SimulatorWizardState;
@@ -30,7 +33,7 @@ export function useWizardPricing({ state, dispatch }: UseWizardPricingParams) {
 
   useEffect(() => {
     const persToRecalc = state.personalizations.filter(
-      (p) => (p.pricing as unknown)?._needsRecalc === true
+      (p) => (p.pricing as unknown)?._needsRecalc === true,
     );
     if (persToRecalc.length === 0) return;
 
@@ -40,12 +43,13 @@ export function useWizardPricing({ state, dispatch }: UseWizardPricingParams) {
       for (const pers of persToRecalc) {
         try {
           const tech = state.availableLocations
-            .flatMap(loc => loc.availableTechniques)
-            .find(t => t.printAreaId === pers.technique.id);
+            .flatMap((loc) => loc.availableTechniques)
+            .find((t) => t.printAreaId === pers.technique.id);
 
           const usaDimensao = tech?.usaDimensao !== false;
           const cobraPorCor = tech?.cobraPorCor !== false;
-          const effectiveColors = (!cobraPorCor || (tech?.maxColors ?? 0) <= 1) ? 1 : pers.specs.colors;
+          const effectiveColors =
+            !cobraPorCor || (tech?.maxColors ?? 0) <= 1 ? 1 : pers.specs.colors;
 
           const rpcParams: Record<string, unknown> = {
             p_area_id: pers.technique.id,
@@ -60,7 +64,7 @@ export function useWizardPricing({ state, dispatch }: UseWizardPricingParams) {
 
           const result = await invokeExternalRpc<CustomizationPriceResponse>(
             'fn_get_customization_price',
-            rpcParams
+            rpcParams,
           );
 
           if (result?.success) {
@@ -121,18 +125,25 @@ export function useWizardPricing({ state, dispatch }: UseWizardPricingParams) {
           return;
         }
 
-        if (tech.maxColors !== null && tech.maxColors > 0 && state.engravingSpecs.colors > tech.maxColors) {
-          allResults.push(createUnavailableResult(
-            tech,
-            `Máximo ${tech.maxColors} ${tech.maxColors === 1 ? 'cor' : 'cores'}`
-          ));
+        if (
+          tech.maxColors !== null &&
+          tech.maxColors > 0 &&
+          state.engravingSpecs.colors > tech.maxColors
+        ) {
+          allResults.push(
+            createUnavailableResult(
+              tech,
+              `Máximo ${tech.maxColors} ${tech.maxColors === 1 ? 'cor' : 'cores'}`,
+            ),
+          );
           return;
         }
 
         const cobraPorCor = tech.cobraPorCor !== false;
-        const effectiveColors = (!cobraPorCor || tech.maxColors === 0 || tech.maxColors === 1)
-          ? 1
-          : state.engravingSpecs.colors;
+        const effectiveColors =
+          !cobraPorCor || tech.maxColors === 0 || tech.maxColors === 1
+            ? 1
+            : state.engravingSpecs.colors;
 
         try {
           const usaDimensao = tech.usaDimensao !== false;
@@ -149,7 +160,7 @@ export function useWizardPricing({ state, dispatch }: UseWizardPricingParams) {
 
           const result = await invokeExternalRpc<CustomizationPriceResponse>(
             'fn_get_customization_price',
-            rpcParams
+            rpcParams,
           );
 
           if (!result || !result.success) {
@@ -189,14 +200,14 @@ export function useWizardPricing({ state, dispatch }: UseWizardPricingParams) {
 
       await Promise.all(promises);
 
-      const available = allResults.filter(r => r.isAvailable);
+      const available = allResults.filter((r) => r.isAvailable);
       if (available.length > 0) {
         const cheapest = [...available].sort((a, b) => a.totalPrice - b.totalPrice)[0];
-        const fastest = [...available].sort((a, b) =>
-          (a.productionDays || 999) - (b.productionDays || 999)
+        const fastest = [...available].sort(
+          (a, b) => (a.productionDays || 999) - (b.productionDays || 999),
         )[0];
 
-        allResults.forEach(r => {
+        allResults.forEach((r) => {
           if (r.isAvailable) {
             r.isCheapest = r.printAreaId === cheapest.printAreaId;
             r.isFastest = r.printAreaId === fastest.printAreaId && available.length > 1;
@@ -206,7 +217,7 @@ export function useWizardPricing({ state, dispatch }: UseWizardPricingParams) {
 
       const sorted = [
         ...available.sort((a, b) => a.totalPrice - b.totalPrice),
-        ...allResults.filter(r => !r.isAvailable),
+        ...allResults.filter((r) => !r.isAvailable),
       ];
 
       dispatch({ type: 'SET_COMPARISON_RESULTS', payload: sorted });
@@ -221,42 +232,48 @@ export function useWizardPricing({ state, dispatch }: UseWizardPricingParams) {
   }, [state.selectedLocation, state.quantity, state.engravingSpecs, dispatch]);
 
   // Confirmar técnica selecionada → cria personalização
-  const confirmTechnique = useCallback((comparison: TechniqueComparisonResult) => {
-    if (!state.selectedLocation || !comparison.isAvailable) return;
+  const confirmTechnique = useCallback(
+    (comparison: TechniqueComparisonResult) => {
+      if (!state.selectedLocation || !comparison.isAvailable) return;
 
-    dispatch({ type: 'SELECT_COMPARISON', payload: comparison });
+      dispatch({ type: 'SELECT_COMPARISON', payload: comparison });
 
-    const personalization: Personalization = {
-      id: `pers-${Date.now()}`,
-      index: state.isEditingPersonalization
-        ? state.currentPersonalizationIndex + 1
-        : state.personalizations.length + 1,
-      location: state.selectedLocation,
-      technique: {
-        id: comparison.techniqueId,
-        code: comparison.techniqueCode,
-        name: comparison.techniqueName,
-      },
-      specs: { ...state.engravingSpecs },
-      pricing: {
-        unitPrice: comparison.unitPrice,
-        setupPrice: comparison.setupPrice,
-        subtotal: comparison.subtotal,
-        totalPrice: comparison.totalPrice,
-        costPerUnit: comparison.costPerUnit,
-        budgetCode: comparison.budgetCode,
-        productionDays: comparison.productionDays,
-      },
-    };
+      const personalization: Personalization = {
+        id: `pers-${Date.now()}`,
+        index: state.isEditingPersonalization
+          ? state.currentPersonalizationIndex + 1
+          : state.personalizations.length + 1,
+        location: state.selectedLocation,
+        technique: {
+          id: comparison.techniqueId,
+          code: comparison.techniqueCode,
+          name: comparison.techniqueName,
+        },
+        specs: { ...state.engravingSpecs },
+        pricing: {
+          unitPrice: comparison.unitPrice,
+          setupPrice: comparison.setupPrice,
+          subtotal: comparison.subtotal,
+          totalPrice: comparison.totalPrice,
+          costPerUnit: comparison.costPerUnit,
+          budgetCode: comparison.budgetCode,
+          productionDays: comparison.productionDays,
+        },
+      };
 
-    if (state.isEditingPersonalization) {
-      dispatch({ type: 'UPDATE_PERSONALIZATION', payload: { index: state.currentPersonalizationIndex, personalization } });
-      toast.success(`Gravação ${personalization.index} atualizada`);
-    } else {
-      dispatch({ type: 'ADD_PERSONALIZATION', payload: personalization });
-      toast.success(`${comparison.techniqueName} adicionada`);
-    }
-  }, [state, dispatch]);
+      if (state.isEditingPersonalization) {
+        dispatch({
+          type: 'UPDATE_PERSONALIZATION',
+          payload: { index: state.currentPersonalizationIndex, personalization },
+        });
+        toast.success(`Gravação ${personalization.index} atualizada`);
+      } else {
+        dispatch({ type: 'ADD_PERSONALIZATION', payload: personalization });
+        toast.success(`${comparison.techniqueName} adicionada`);
+      }
+    },
+    [state, dispatch],
+  );
 
   return { fetchComparisonPrices, confirmTechnique };
 }
@@ -273,7 +290,7 @@ function createUnavailableResult(
     printAreaId: string;
     maxColors: number | null;
   },
-  reason: string
+  reason: string,
 ): TechniqueComparisonResult {
   return {
     techniqueId: tech.techniqueId,

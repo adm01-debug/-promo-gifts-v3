@@ -1,11 +1,11 @@
 /**
  * simulationClipboard — Clipboard helpers for the simulator.
  */
-import { toast } from "sonner";
-import type { SimulationOption, Product } from "@/types/simulation";
+import { toast } from 'sonner';
+import type { SimulationOption, Product } from '@/types/simulation';
 
 export function formatCurrency(value: number) {
-  return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 }
 
 export async function copyOptionToClipboard(
@@ -31,7 +31,7 @@ ${option.techniqueName}
 
   await navigator.clipboard.writeText(text);
   setCopiedId(option.id);
-  toast.success("Copiado para área de transferência");
+  toast.success('Copiado para área de transferência');
   setTimeout(() => setCopiedId(null), 2000);
 }
 
@@ -51,7 +51,8 @@ Quantidade: ${quantity} unidades
 
   const optionsText = options
     .sort((a, b) => a.grandTotal - b.grandTotal)
-    .map((opt, idx) => `
+    .map((opt, idx) =>
+      `
 Opção ${idx + 1}: ${opt.techniqueName}
 - Cores: ${opt.colors}
 - Tamanho: ${opt.width} x ${opt.height} cm
@@ -64,8 +65,10 @@ Opção ${idx + 1}: ${opt.techniqueName}
 - TOTAL GERAL: ${formatCurrency(opt.grandTotal)}
 - Custo final/un: ${formatCurrency(opt.grandTotalPerUnit)}
 - Prazo estimado: ~${opt.estimatedDays} dias
-    `.trim()).join("\n\n");
+    `.trim(),
+    )
+    .join('\n\n');
 
   await navigator.clipboard.writeText(header + optionsText);
-  toast.success("Todas as opções copiadas!");
+  toast.success('Todas as opções copiadas!');
 }

@@ -3,7 +3,7 @@
  * Extraído de useExternalDatabase.ts para modularização.
  */
 import { supabase } from '@/integrations/supabase/client';
-import { logger } from "@/lib/logger";
+import { logger } from '@/lib/logger';
 import { emitBridgeStatus, isColdStartSignal } from './bridge-status-events';
 import { ensureCloudReady, CloudNotReadyError, getCachedCloudStatus } from '@/lib/cloud-status';
 import { recordBridgeCall, estimatePayloadBytes } from '@/lib/telemetry/bridgeCallMetrics';
@@ -21,27 +21,38 @@ function deriveExternalOp(body: Record<string, unknown>): { op: string; target?:
 const MAX_RETRIES = 3;
 const INITIAL_BACKOFF_MS = 800;
 const RETRYABLE_PATTERNS = [
-  'statement timeout', '57014', '502', '503', '504',
-  'bad gateway', 'FunctionsHttpError',
-  'network', 'fetch', 'ECONNRESET', 'socket hang up',
-  'AbortError', 'Failed to fetch',
+  'statement timeout',
+  '57014',
+  '502',
+  '503',
+  '504',
+  'bad gateway',
+  'FunctionsHttpError',
+  'network',
+  'fetch',
+  'ECONNRESET',
+  'socket hang up',
+  'AbortError',
+  'Failed to fetch',
   // Cold-start / runtime boot do isolate da edge function (plataforma)
-  'supabase_edge_runtime_error', 'service is temporarily unavailable',
-  'boot_error', 'function failed to start',
+  'supabase_edge_runtime_error',
+  'service is temporarily unavailable',
+  'boot_error',
+  'function failed to start',
 ];
 
 // Erros determinísticos do Postgres/PostgREST: retry NUNCA muda o resultado.
 // Falhar imediatamente economiza até 3×backoff (~5.6s) por chamada inválida.
 const NON_RETRYABLE_PATTERNS = [
-  'does not exist',          // column / relation X does not exist
-  'invalid input syntax',    // type cast failures
-  'pgrst',                   // PostgREST schema/parse errors
-  'permission denied',       // RLS / role mismatch
-  'duplicate key',           // 23505
-  'violates ',               // foreign key / not-null / check constraints
-  'syntax error',            // SQL syntax
+  'does not exist', // column / relation X does not exist
+  'invalid input syntax', // type cast failures
+  'pgrst', // PostgREST schema/parse errors
+  'permission denied', // RLS / role mismatch
+  'duplicate key', // 23505
+  'violates ', // foreign key / not-null / check constraints
+  'syntax error', // SQL syntax
   'malformed',
-  'jwt',                     // auth-related (cliente precisa renovar, não retry)
+  'jwt', // auth-related (cliente precisa renovar, não retry)
   'unauthorized',
 ];
 
@@ -52,7 +63,7 @@ const NON_RETRYABLE_HTTP_RE = /(?:returned\s+|status[: ]\s*|http[:/ ])(400|401|4
 
 function matches(msg: string, patterns: string[]): boolean {
   const lower = msg.toLowerCase();
-  return patterns.some(p => lower.includes(p.toLowerCase()));
+  return patterns.some((p) => lower.includes(p.toLowerCase()));
 }
 
 function isNonRetryableError(msg: string): boolean {
@@ -77,11 +88,21 @@ export async function extractFunctionErrorMessage(error: unknown): Promise<strin
         if (raw) {
           try {
             const parsed = JSON.parse(raw) as {
-              error?: string; details?: string; hint?: string;
-              message?: string; code?: string;
+              error?: string;
+              details?: string;
+              hint?: string;
+              message?: string;
+              code?: string;
             };
-            const detailed = [parsed.error, parsed.code, parsed.message, parsed.details, parsed.hint]
-              .filter(Boolean).join(' | ');
+            const detailed = [
+              parsed.error,
+              parsed.code,
+              parsed.message,
+              parsed.details,
+              parsed.hint,
+            ]
+              .filter(Boolean)
+              .join(' | ');
             if (detailed) return `${error.message} | ${detailed}`;
           } catch {
             return `${error.message} | ${raw}`;
@@ -100,7 +121,7 @@ export async function extractFunctionErrorMessage(error: unknown): Promise<strin
 export async function invokeWithRetry(
   body: Record<string, unknown>,
   retries = MAX_RETRIES,
-  onRetry?: (attempt: number, maxRetries: number, delayMs: number) => void
+  onRetry?: (attempt: number, maxRetries: number, delayMs: number) => void,
 ): Promise<{ data: unknown; error: Error | null }> {
   let sawColdStart = false;
   const startedAt = performance.now();
@@ -172,7 +193,9 @@ export async function invokeWithRetry(
       const base = INITIAL_BACKOFF_MS * Math.pow(2, attempt);
       const jitter = Math.floor(Math.random() * 200);
       const delay = Math.min(base + jitter, 4000);
-      logger.warn(`[external-db] Retry ${attempt + 1}/${retries} after ${delay}ms (base=${base}+jitter=${jitter}): ${msg}`);
+      logger.warn(
+        `[external-db] Retry ${attempt + 1}/${retries} after ${delay}ms (base=${base}+jitter=${jitter}): ${msg}`,
+      );
       onRetry?.(attempt + 1, retries, delay);
       if (isColdStartSignal(msg)) {
         sawColdStart = true;
@@ -186,7 +209,7 @@ export async function invokeWithRetry(
           reason: msg,
         });
       }
-      await new Promise(r => setTimeout(r, delay));
+      await new Promise((r) => setTimeout(r, delay));
       continue;
     }
 

@@ -60,17 +60,9 @@ export function useKitAutoSave(
     try {
       const kitId = autoSavedKitId || currentKitId;
       if (kitId) {
-        await supabase
-          .from('custom_kits')
-          .update(payload)
-          .eq('id', kitId)
-          .eq('user_id', user.id);
+        await supabase.from('custom_kits').update(payload).eq('id', kitId).eq('user_id', user.id);
       } else {
-        const { data } = await supabase
-          .from('custom_kits')
-          .insert(payload)
-          .select('id')
-          .single();
+        const { data } = await supabase.from('custom_kits').insert(payload).select('id').single();
         if (data) {
           setAutoSavedKitId(data.id);
           onKitIdCreated?.(data.id);
@@ -90,7 +82,7 @@ export function useKitAutoSave(
       isFirstRender.current = false;
       snapshotRef.current = JSON.stringify({
         box: kitState.box?.id,
-        items: kitState.items.map(i => `${i.id}:${i.quantity}`),
+        items: kitState.items.map((i) => `${i.id}:${i.quantity}`),
         personalization: kitState.personalization,
         name: kitState.name,
         qty: kitQuantity,
@@ -100,7 +92,7 @@ export function useKitAutoSave(
 
     const newSnapshot = JSON.stringify({
       box: kitState.box?.id,
-      items: kitState.items.map(i => `${i.id}:${i.quantity}`),
+      items: kitState.items.map((i) => `${i.id}:${i.quantity}`),
       personalization: kitState.personalization,
       name: kitState.name,
       qty: kitQuantity,
@@ -115,7 +107,14 @@ export function useKitAutoSave(
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [kitState.box?.id, kitState.items, kitState.personalization, kitState.name, kitQuantity, saveToDb]);
+  }, [
+    kitState.box?.id,
+    kitState.items,
+    kitState.personalization,
+    kitState.name,
+    kitQuantity,
+    saveToDb,
+  ]);
 
   // Update autoSavedKitId when currentKitId changes externally
   useEffect(() => {

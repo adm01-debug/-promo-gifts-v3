@@ -1,31 +1,31 @@
 /**
  * QuoteCommentsThread — thread de comentários internos do orçamento.
  */
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Skeleton } from "@/components/ui/skeleton";
-import { MessageSquare, Send } from "lucide-react";
-import { toast } from "sonner";
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Skeleton } from '@/components/ui/skeleton';
+import { MessageSquare, Send } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface QuoteCommentsThreadProps {
   quoteId: string;
 }
 
 export function QuoteCommentsThread({ quoteId }: QuoteCommentsThreadProps) {
-  const [content, setContent] = useState("");
+  const [content, setContent] = useState('');
   const qc = useQueryClient();
 
   const { data, isLoading } = useQuery({
-    queryKey: ["quote-comments", quoteId],
+    queryKey: ['quote-comments', quoteId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("quote_comments")
-        .select("*")
-        .eq("quote_id", quoteId)
-        .order("created_at", { ascending: true });
+        .from('quote_comments')
+        .select('*')
+        .eq('quote_id', quoteId)
+        .order('created_at', { ascending: true });
       if (error) throw error;
       return data || [];
     },
@@ -34,8 +34,8 @@ export function QuoteCommentsThread({ quoteId }: QuoteCommentsThreadProps) {
   const create = useMutation({
     mutationFn: async () => {
       const { data: u } = await supabase.auth.getUser();
-      if (!u.user) throw new Error("Não autenticado");
-      const { error } = await supabase.from("quote_comments").insert({
+      if (!u.user) throw new Error('Não autenticado');
+      const { error } = await supabase.from('quote_comments').insert({
         quote_id: quoteId,
         user_id: u.user.id,
         content: content.trim(),
@@ -43,15 +43,15 @@ export function QuoteCommentsThread({ quoteId }: QuoteCommentsThreadProps) {
       if (error) throw error;
     },
     onSuccess: () => {
-      setContent("");
-      qc.invalidateQueries({ queryKey: ["quote-comments", quoteId] });
+      setContent('');
+      qc.invalidateQueries({ queryKey: ['quote-comments', quoteId] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
 
   return (
     <div className="space-y-4">
-      <h3 className="font-medium flex items-center gap-2">
+      <h3 className="flex items-center gap-2 font-medium">
         <MessageSquare className="h-4 w-4 text-primary" /> Comentários
       </h3>
 
@@ -64,9 +64,9 @@ export function QuoteCommentsThread({ quoteId }: QuoteCommentsThreadProps) {
           {data.map((c) => (
             <li key={c.id} className="rounded-xl border bg-muted/30 p-3 text-sm">
               <p className="whitespace-pre-wrap">{c.content}</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                {new Date(c.created_at).toLocaleString("pt-BR")}
-                {c.is_edited && " · editado"}
+              <p className="mt-1 text-xs text-muted-foreground">
+                {new Date(c.created_at).toLocaleString('pt-BR')}
+                {c.is_edited && ' · editado'}
               </p>
             </li>
           ))}
@@ -86,7 +86,7 @@ export function QuoteCommentsThread({ quoteId }: QuoteCommentsThreadProps) {
           disabled={!content.trim() || create.isPending}
           className="self-end"
         >
-          <Send className="h-4 w-4 mr-1" /> Enviar
+          <Send className="mr-1 h-4 w-4" /> Enviar
         </Button>
       </div>
     </div>

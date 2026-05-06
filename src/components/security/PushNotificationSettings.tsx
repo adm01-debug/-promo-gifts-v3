@@ -6,27 +6,21 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useToast } from '@/hooks/use-toast';
-import { 
-  Bell, 
-  BellOff, 
+import {
+  Bell,
+  BellOff,
   BellRing,
   CheckCircle2,
   XCircle,
   AlertTriangle,
   Smartphone,
   Volume2,
-  VolumeX
+  VolumeX,
 } from 'lucide-react';
 
 export function PushNotificationSettings() {
   const {
-    push: {
-      isSupported,
-      isEnabled,
-      permission,
-      requestPermission,
-      showSecurityAlert,
-    },
+    push: { isSupported, isEnabled, permission, requestPermission, showSecurityAlert },
   } = useNotifications();
   const { toast } = useToast();
   const [isRequesting, setIsRequesting] = useState(false);
@@ -45,7 +39,7 @@ export function PushNotificationSettings() {
           showSecurityAlert(
             'Configuração concluída',
             'As notificações de segurança estão ativas!',
-            'info'
+            'info',
           );
         }, 1000);
       } else {
@@ -64,7 +58,7 @@ export function PushNotificationSettings() {
     showSecurityAlert(
       'Teste de notificação',
       'Esta é uma notificação de teste do sistema de segurança.',
-      'info'
+      'info',
     );
   };
 
@@ -76,12 +70,10 @@ export function PushNotificationSettings() {
             <BellOff className="h-5 w-5 text-muted-foreground" />
             Notificações Push
           </CardTitle>
-          <CardDescription>
-            Seu navegador não suporta notificações push.
-          </CardDescription>
+          <CardDescription>Seu navegador não suporta notificações push.</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center gap-3 p-4 rounded-xl bg-muted/50">
+          <div className="flex items-center gap-3 rounded-xl bg-muted/50 p-4">
             <AlertTriangle className="h-5 w-5 text-orange" />
             <div>
               <p className="text-sm font-medium">Navegador não compatível</p>
@@ -103,7 +95,7 @@ export function PushNotificationSettings() {
           Notificações Push
           {isEnabled && (
             <Badge variant="default" className="ml-2">
-              <CheckCircle2 className="h-3 w-3 mr-1" />
+              <CheckCircle2 className="mr-1 h-3 w-3" />
               Ativo
             </Badge>
           )}
@@ -114,14 +106,14 @@ export function PushNotificationSettings() {
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Status */}
-        <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50">
+        <div className="flex items-center justify-between rounded-xl bg-muted/50 p-4">
           <div className="flex items-center gap-3">
             {isEnabled ? (
-              <div className="p-2 rounded-full bg-success/10">
+              <div className="rounded-full bg-success/10 p-2">
                 <BellRing className="h-5 w-5 text-success" />
               </div>
             ) : (
-              <div className="p-2 rounded-full bg-muted">
+              <div className="rounded-full bg-muted p-2">
                 <BellOff className="h-5 w-5 text-muted-foreground" />
               </div>
             )}
@@ -130,31 +122,28 @@ export function PushNotificationSettings() {
                 {isEnabled ? 'Notificações ativas' : 'Notificações desativadas'}
               </p>
               <p className="text-sm text-muted-foreground">
-                {isEnabled 
-                  ? 'Você receberá alertas de segurança em tempo real' 
+                {isEnabled
+                  ? 'Você receberá alertas de segurança em tempo real'
                   : 'Ative para receber alertas importantes'}
               </p>
             </div>
           </div>
           {!isEnabled && (
-            <Button
-              onClick={handleEnableNotifications}
-              disabled={isRequesting}
-            >
+            <Button onClick={handleEnableNotifications} disabled={isRequesting}>
               {isRequesting ? 'Ativando...' : 'Ativar'}
             </Button>
           )}
         </div>
 
         {permission === 'denied' && (
-          <div className="flex items-start gap-3 p-4 rounded-xl border border-destructive/20 bg-destructive/5">
-            <XCircle className="h-5 w-5 text-destructive mt-0.5" />
+          <div className="flex items-start gap-3 rounded-xl border border-destructive/20 bg-destructive/5 p-4">
+            <XCircle className="mt-0.5 h-5 w-5 text-destructive" />
             <div>
               <p className="font-medium text-destructive">Permissão bloqueada</p>
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="mt-1 text-sm text-muted-foreground">
                 Você bloqueou as notificações anteriormente. Para ativar:
               </p>
-              <ol className="text-sm text-muted-foreground mt-2 list-decimal list-inside space-y-1">
+              <ol className="mt-2 list-inside list-decimal space-y-1 text-sm text-muted-foreground">
                 <li>Clique no ícone de cadeado na barra de endereço</li>
                 <li>Encontre "Notificações" nas configurações do site</li>
                 <li>Altere de "Bloquear" para "Permitir"</li>
@@ -169,42 +158,48 @@ export function PushNotificationSettings() {
             {/* Notification Types */}
             <div className="space-y-4">
               <h4 className="text-sm font-medium">Tipos de alerta</h4>
-              
+
               <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 rounded-xl border">
+                <div className="flex items-center justify-between rounded-xl border p-3">
                   <div className="flex items-center gap-3">
-                    <div className="p-1.5 rounded bg-destructive/10">
+                    <div className="rounded bg-destructive/10 p-1.5">
                       <AlertTriangle className="h-4 w-4 text-destructive" />
                     </div>
                     <div>
                       <p className="text-sm font-medium">Tentativas de login falhas</p>
-                      <p className="text-[11px] text-muted-foreground">Alerta quando houver tentativas inválidas</p>
+                      <p className="text-[11px] text-muted-foreground">
+                        Alerta quando houver tentativas inválidas
+                      </p>
                     </div>
                   </div>
                   <Switch defaultChecked disabled />
                 </div>
 
-                <div className="flex items-center justify-between p-3 rounded-xl border">
+                <div className="flex items-center justify-between rounded-xl border p-3">
                   <div className="flex items-center gap-3">
-                    <div className="p-1.5 rounded bg-orange/10">
+                    <div className="rounded bg-orange/10 p-1.5">
                       <Smartphone className="h-4 w-4 text-orange" />
                     </div>
                     <div>
                       <p className="text-sm font-medium">Novos dispositivos</p>
-                      <p className="text-[11px] text-muted-foreground">Alerta quando um novo dispositivo acessar</p>
+                      <p className="text-[11px] text-muted-foreground">
+                        Alerta quando um novo dispositivo acessar
+                      </p>
                     </div>
                   </div>
                   <Switch defaultChecked disabled />
                 </div>
 
-                <div className="flex items-center justify-between p-3 rounded-xl border">
+                <div className="flex items-center justify-between rounded-xl border p-3">
                   <div className="flex items-center gap-3">
-                    <div className="p-1.5 rounded bg-primary/10">
+                    <div className="rounded bg-primary/10 p-1.5">
                       <Bell className="h-4 w-4 text-primary" />
                     </div>
                     <div>
                       <p className="text-sm font-medium">Alertas gerais de segurança</p>
-                      <p className="text-[11px] text-muted-foreground">Outras notificações importantes</p>
+                      <p className="text-[11px] text-muted-foreground">
+                        Outras notificações importantes
+                      </p>
                     </div>
                   </div>
                   <Switch defaultChecked disabled />
@@ -213,13 +208,9 @@ export function PushNotificationSettings() {
             </div>
 
             {/* Test Notification */}
-            <div className="pt-4 border-t">
-              <Button 
-                variant="outline" 
-                onClick={handleTestNotification}
-                className="w-full"
-              >
-                <BellRing className="h-4 w-4 mr-2" />
+            <div className="border-t pt-4">
+              <Button variant="outline" onClick={handleTestNotification} className="w-full">
+                <BellRing className="mr-2 h-4 w-4" />
                 Enviar notificação de teste
               </Button>
             </div>

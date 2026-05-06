@@ -3,8 +3,8 @@
  * Usa jsPDF + jspdf-autotable para gerar um documento A4 profissional
  */
 
-const getJsPDF = () => import('jspdf').then(m => m.default);
-const getAutoTable = () => import('jspdf-autotable').then(m => m.default);
+const getJsPDF = () => import('jspdf').then((m) => m.default);
+const getAutoTable = () => import('jspdf-autotable').then((m) => m.default);
 import type { ProductFormData } from '@/components/admin/products/ProductFormSchema';
 
 interface ProductPdfOptions {
@@ -24,7 +24,12 @@ const formatBool = (value: boolean | undefined) => (value ? 'Sim' : 'Não');
 
 const nonEmpty = (value: string | null | undefined) => value?.trim() || '—';
 
-export async function exportProductPdf({ formData, productImages, categoryName, supplierName }: ProductPdfOptions) {
+export async function exportProductPdf({
+  formData,
+  productImages,
+  categoryName,
+  supplierName,
+}: ProductPdfOptions) {
   const [jsPDF, autoTable] = await Promise.all([getJsPDF(), getAutoTable()]);
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -47,7 +52,9 @@ export async function exportProductPdf({ formData, productImages, categoryName, 
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
   doc.text(`SKU: ${formData.sku || 'N/A'}`, margin, 20);
-  doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')}`, pageWidth - margin, 20, { align: 'right' });
+  doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')}`, pageWidth - margin, 20, {
+    align: 'right',
+  });
 
   y = 36;
 
@@ -93,7 +100,11 @@ export async function exportProductPdf({ formData, productImages, categoryName, 
       startY: y,
       margin: { left: margin, right: margin },
       theme: 'plain',
-      styles: { fontSize: 9, cellPadding: { top: 2, bottom: 2, left: 4, right: 4 }, textColor: darkColor },
+      styles: {
+        fontSize: 9,
+        cellPadding: { top: 2, bottom: 2, left: 4, right: 4 },
+        textColor: darkColor,
+      },
       columnStyles: {
         0: { fontStyle: 'bold', cellWidth: 55, textColor: grayColor },
         1: { cellWidth: contentWidth - 55 },
@@ -122,7 +133,10 @@ export async function exportProductPdf({ formData, productImages, categoryName, 
     ['Preço Sugerido', formatCurrency(formData.suggested_price)],
     ['Estoque', `${formData.stock_quantity} ${formData.stock_unit || 'un'}`],
     ['Qtd. Mínima', `${formData.min_quantity}`],
-    ['Qtd. Mín. Pedido', formData.min_order_quantity != null ? `${formData.min_order_quantity}` : '—'],
+    [
+      'Qtd. Mín. Pedido',
+      formData.min_order_quantity != null ? `${formData.min_order_quantity}` : '—',
+    ],
   ]);
 
   // ====== COMERCIAL ======
@@ -163,7 +177,12 @@ export async function exportProductPdf({ formData, productImages, categoryName, 
   ]);
 
   // Dimensões internas (only if any are set)
-  const hasInternal = [formData.internal_height_cm, formData.internal_width_cm, formData.internal_length_cm, formData.internal_diameter_cm].some(v => v != null);
+  const hasInternal = [
+    formData.internal_height_cm,
+    formData.internal_width_cm,
+    formData.internal_length_cm,
+    formData.internal_diameter_cm,
+  ].some((v) => v != null);
   if (hasInternal) {
     addSectionTitle('Dimensões Internas');
     addTable([
@@ -218,14 +237,23 @@ export async function exportProductPdf({ formData, productImages, categoryName, 
       doc.setFontSize(9);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(...darkColor);
-      const benefitLines = doc.splitTextToSize(`Benefícios: ${formData.key_benefits}`, contentWidth);
-      if (y + benefitLines.length * 4 > 280) { doc.addPage(); y = margin; }
+      const benefitLines = doc.splitTextToSize(
+        `Benefícios: ${formData.key_benefits}`,
+        contentWidth,
+      );
+      if (y + benefitLines.length * 4 > 280) {
+        doc.addPage();
+        y = margin;
+      }
       doc.text(benefitLines, margin, y);
       y += benefitLines.length * 4 + 3;
     }
     if (formData.use_cases) {
       const caseLines = doc.splitTextToSize(`Casos de Uso: ${formData.use_cases}`, contentWidth);
-      if (y + caseLines.length * 4 > 280) { doc.addPage(); y = margin; }
+      if (y + caseLines.length * 4 > 280) {
+        doc.addPage();
+        y = margin;
+      }
       doc.text(caseLines, margin, y);
       y += caseLines.length * 4 + 3;
     }
@@ -239,7 +267,10 @@ export async function exportProductPdf({ formData, productImages, categoryName, 
     doc.setTextColor(...darkColor);
     const descLines = doc.splitTextToSize(formData.description, contentWidth);
     for (const line of descLines) {
-      if (y > 280) { doc.addPage(); y = margin; }
+      if (y > 280) {
+        doc.addPage();
+        y = margin;
+      }
       doc.text(line, margin, y);
       y += 4;
     }
@@ -256,7 +287,7 @@ export async function exportProductPdf({ formData, productImages, categoryName, 
       `Ficha Técnica — ${formData.sku || 'N/A'} — Página ${i}/${totalPages}`,
       pageWidth / 2,
       doc.internal.pageSize.getHeight() - 6,
-      { align: 'center' }
+      { align: 'center' },
     );
   }
 
