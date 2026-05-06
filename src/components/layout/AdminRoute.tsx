@@ -51,9 +51,8 @@ export function AdminRoute({ children }: AdminRouteProps) {
     );
   }
 
-  /* DESATIVADO TEMPORARIAMENTE PARA TESTES
   // Admin/manager sem MFA → mostra dialog de enrollment obrigatório (não renderiza filhos)
-  if (!hasMFA) {
+  if (canManage && !hasMFA) {
     return (
       <>
         <div className="flex min-h-screen items-center justify-center bg-background">
@@ -65,7 +64,7 @@ export function AdminRoute({ children }: AdminRouteProps) {
   }
 
   // Admin/manager com MFA mas sessão em aal1 → exige challenge antes de renderizar filhos
-  if (mfaRequired && currentAAL === 'aal1') {
+  if (canManage && mfaRequired && currentAAL === 'aal1') {
     return (
       <>
         <div className="flex min-h-screen items-center justify-center bg-background">
@@ -75,7 +74,6 @@ export function AdminRoute({ children }: AdminRouteProps) {
       </>
     );
   }
-  */
 
   return (
     <EnhancedErrorBoundary

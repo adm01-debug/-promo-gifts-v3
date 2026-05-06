@@ -105,7 +105,6 @@ export function DevRoute({ children }: DevRouteProps) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  /* DESATIVADO TEMPORARIAMENTE PARA TESTES
   // Hardening MFA/AAL2 — só aplicável a usuários `dev` (que efetivamente passariam).
   // Não-dev segue para a tela de bloqueio com ações contextuais (sem pedir MFA).
   if (isDev && !hasMFA) {
@@ -129,7 +128,6 @@ export function DevRoute({ children }: DevRouteProps) {
       </>
     );
   }
-  */
 
   if (!isDev) {
     return (
