@@ -356,19 +356,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     log.info('start');
 
-    // Client-side brute force protection
-    const { allowed, remainingSeconds } = checkLoginAllowed(email);
-    if (!allowed) {
-      const minutes = Math.ceil(remainingSeconds / 60);
-      log.warn('rate_limited_client', { remaining_seconds: remainingSeconds });
+    // 1. Client-side brute force protection (fast fallback)
+    const clientLimit = checkLoginAllowed(email);
+    if (!clientLimit.allowed) {
+      const minutes = Math.ceil(clientLimit.remainingSeconds / 60);
+      log.warn('rate_limited_client', { remaining_seconds: clientLimit.remainingSeconds });
       return {
         error: {
-          message: `Conta temporariamente bloqueada por excesso de tentativas. Tente novamente em ${minutes} minuto(s).`,
+          message: `Muitas tentativas. Bloqueio local de ${minutes} min.`,
           name: 'RateLimitError',
           status: 429,
         } as { message: string; name: string; status: number },
       };
     }
+
+    // 2. Server-side brute force protection (authoritative)
+    try {
+      const { data: throttle, error: throttleErr } = await supabase.functions.invoke('check-auth-throttling', {
+        body: { email, ip: 'client' },
+        headers: log.headers(),
+      });
+
+      if (!throttleErr && throttle && throttle.allowed === false) {
+        const mins = Math.ceil((throttle.remaining_seconds || 0) / 60);
+        log.warn('rate_limited_server', { remaining_seconds: throttle.remaining_seconds });
+        return {
+          error: {
+            message: `Acesso bloqueado por segurança. Tente em ${mins} min.`,
+            name: 'RateLimitError',
+            status: 429,
+          } as { message: string; name: string; status: number },
+        };
+      }
+    } catch (e) {
+      log.warn('throttling_check_failed', { err: String(e) });
+    }
+
 
     const { error } = await supabase.auth.signInWithPassword({
       email,
@@ -391,20 +414,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } else {
       // Successful login — clear attempts
       clearLoginAttempts(email);
+      supabase.functions.invoke('clear-auth-attempts', { body: { email }, headers: log.headers() }).catch(() => {});
+
       log.info('signin_ok');
     }
 
-    // Log attempt server-side (fire-and-forget) — propaga X-Request-Id
     supabase.functions
-      .invoke('log-login-attempt', {
+      .invoke('record-auth-attempt', {
         body: {
           email,
-          user_id: error ? null : undefined,
-          ip_address: 'client',
+          ip: 'client',
           success: !error,
-          failure_reason: error?.message || null,
-          user_agent: navigator.userAgent,
+          reason: error?.message || null,
+          ua: navigator.userAgent,
         },
+        headers: log.headers(),
+
         headers: log.headers(),
       })
       .catch(() => {});
