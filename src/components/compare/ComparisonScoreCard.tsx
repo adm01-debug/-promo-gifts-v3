@@ -2,14 +2,15 @@
  * ComparisonScoreCard — Card com score ponderado + popover para ajustar pesos.
  * Mostra o vencedor recomendado com badge Crown.
  */
-import { useState } from "react";
-import { Crown, Sliders, Sparkles } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Crown, Sliders, Sparkles, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { useComparisonWeights } from "@/hooks/useComparisonWeights";
 import {
   useComparisonScore,
   DEFAULT_SCORE_WEIGHTS,
@@ -31,8 +32,19 @@ const WEIGHT_LABELS: Record<keyof ComparisonScoreWeights, string> = {
 };
 
 export function ComparisonScoreCard({ products, className }: ComparisonScoreCardProps) {
-  const [weights, setWeights] = useState<ComparisonScoreWeights>(DEFAULT_SCORE_WEIGHTS);
-  const scores = useComparisonScore(products, weights);
+  const { weights: persistentWeights, setWeights, reset, loading: weightsLoading } = useComparisonWeights();
+  
+  // Transform ComparisonWeights to ComparisonScoreWeights
+  const mappedWeights: ComparisonScoreWeights = {
+    price: persistentWeights.price,
+    stock: persistentWeights.stock,
+    minQuantity: persistentWeights.minQty,
+    colorVariety: persistentWeights.colors,
+    verifiedSupplier: persistentWeights.verified,
+    leadTime: persistentWeights.leadTime,
+  };
+
+  const scores = useComparisonScore(products, mappedWeights);
   const winner = scores.find(s => s.isWinner);
   const winnerProduct = winner ? products.find(p => String(p.id) === winner.productId) : null;
 
@@ -79,28 +91,40 @@ export function ComparisonScoreCard({ products, className }: ComparisonScoreCard
                   Ajuste para refletir suas prioridades.
                 </p>
               </div>
-              {(Object.keys(weights) as Array<keyof ComparisonScoreWeights>).map(key => (
-                <div key={key} className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-xs">{WEIGHT_LABELS[key]}</Label>
-                    <span className="text-xs font-mono text-muted-foreground">
-                      {weights[key]}
-                    </span>
-                  </div>
-                  <Slider
-                    value={[weights[key]]}
-                    onValueChange={(v) => setWeights({ ...weights, [key]: v[0] })}
-                    min={0}
-                    max={50}
-                    step={5}
-                  />
+              {weightsLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin text-amber-500" />
                 </div>
-              ))}
+              ) : (
+                (Object.keys(WEIGHT_LABELS) as Array<keyof ComparisonScoreWeights>).map(key => {
+                  const persistentKey = key === "minQuantity" ? "minQty" : 
+                                      key === "colorVariety" ? "colors" : 
+                                      key === "verifiedSupplier" ? "verified" : key;
+                  
+                  return (
+                    <div key={key} className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs">{WEIGHT_LABELS[key]}</Label>
+                        <span className="text-xs font-mono text-muted-foreground">
+                          {persistentWeights[persistentKey as keyof typeof persistentWeights]}%
+                        </span>
+                      </div>
+                      <Slider
+                        value={[persistentWeights[persistentKey as keyof typeof persistentWeights]]}
+                        onValueChange={(v) => setWeights({ ...persistentWeights, [persistentKey]: v[0] })}
+                        min={0}
+                        max={50}
+                        step={5}
+                      />
+                    </div>
+                  );
+                })
+              )}
               <Button
                 variant="ghost"
                 size="sm"
                 className="w-full"
-                onClick={() => setWeights(DEFAULT_SCORE_WEIGHTS)}
+                onClick={() => reset()}
               >
                 Restaurar padrão
               </Button>
