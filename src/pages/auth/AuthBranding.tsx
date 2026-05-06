@@ -250,16 +250,19 @@ function FeatureCard({ item, index }: { item: typeof FEATURE_ITEMS[0]; index: nu
   const IconComponent = item.icon;
   return (
     <div 
-      className="p-5 rounded-xl bg-black/40 backdrop-blur-2xl border border-white/10 shadow-xl hover:bg-black/60 hover:border-primary/40 hover:scale-[1.02] transition-all duration-500 group opacity-0"
-      style={{ animation: `scale-fade-in 0.5s ease-out ${300 + index * 100}ms forwards` }}
+      className="p-5 rounded-xl bg-black/60 backdrop-blur-2xl border border-white/10 shadow-2xl hover:bg-black/80 hover:border-primary/50 hover:scale-[1.02] transition-all duration-500 group opacity-0"
+      style={{ 
+        animation: `scale-fade-in 0.5s ease-out ${300 + index * 100}ms forwards`,
+        boxShadow: '0 0 20px rgba(0,0,0,0.5)' 
+      }}
     >
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-lg font-bold text-white group-hover:text-primary transition-colors truncate leading-tight">{item.label}</p>
-          <p className="text-[13px] font-medium text-white/70 truncate uppercase tracking-wider mt-0.5">{item.desc}</p>
+          <p className="text-lg font-bold text-white group-hover:text-primary transition-colors truncate leading-tight drop-shadow-md">{item.label}</p>
+          <p className="text-[13px] font-medium text-white/80 truncate uppercase tracking-wider mt-0.5 drop-shadow-sm">{item.desc}</p>
         </div>
         <div className="w-11 h-11 rounded-lg bg-primary/20 flex items-center justify-center group-hover:bg-primary/30 transition-colors shrink-0 shadow-inner">
-          <IconComponent className="h-5 w-5 text-primary" />
+          <IconComponent className="h-5 w-5 text-primary drop-shadow-[0_0_8px_rgba(var(--primary),0.5)]" />
         </div>
       </div>
     </div>
