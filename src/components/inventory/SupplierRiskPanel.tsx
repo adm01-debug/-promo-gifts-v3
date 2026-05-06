@@ -221,11 +221,13 @@ export function SupplierRiskPanel({ products }: SupplierRiskPanelProps) {
                 { value: 'warning' as const, label: 'Atenção', count: globalCounts.warning },
                 { value: 'ok' as const, label: 'OK', count: globalCounts.ok },
               ]).map(opt => (
-                <button
+                <Button
                   key={opt.value}
+                  variant="ghost"
+                  size="sm"
                   onClick={() => setSeverityFilter(opt.value)}
                   className={cn(
-                    "text-[9px] px-2 py-0.5 rounded-full transition-colors",
+                    "text-[9px] px-2 py-0.5 rounded-full transition-colors h-auto",
                     severityFilter === opt.value
                       ? opt.value === 'critical' ? 'bg-destructive/15 text-destructive'
                         : opt.value === 'warning' ? 'bg-warning/15 text-warning'
@@ -237,7 +239,7 @@ export function SupplierRiskPanel({ products }: SupplierRiskPanelProps) {
                   role="radio"
                 >
                   {opt.label} ({opt.count})
-                </button>
+                </Button>
               ))}
             </div>
 
