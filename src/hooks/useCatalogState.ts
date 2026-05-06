@@ -326,13 +326,15 @@ export function useCatalogState() {
     if (filters.segmentosAtividade?.length) count += filters.segmentosAtividade.length;
     if (filters.materialGroups?.length) count += filters.materialGroups.length;
     if (filters.materialTypes?.length) count += filters.materialTypes.length;
-    if ((filters as any).materiais?.length) count += (filters as any).materiais.length;
     if (filters.materials?.length) count += filters.materials.length;
-    if (filters.priceRange?.[0] > 0 || filters.priceRange?.[1] < 500) count += 1;
-    if ((filters as any).inStock) count += 1;
+    if (filters.priceRange?.[0] > 0 || filters.priceRange?.[1] < 9999) count += 1;
+    if (filters.stockStatus !== 'all' || filters.minStock > 0) count += 1;
     if (filters.isKit) count += 1;
-    if ((filters as any).featured || filters.isFeatured) count += 1;
+    if (filters.isFeatured) count += 1;
+    if (filters.isNew) count += 1;
+    if (filters.hasPersonalization) count += 1;
     if (filters.gender?.length) count += filters.gender.length;
+    if (filters.sizes?.length) count += filters.sizes.length;
     return count;
   }, [filters]);
 
