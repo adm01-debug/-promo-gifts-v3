@@ -50,7 +50,7 @@ export function useLogoProcessing(
       .finally(() => { if (!cancelled) setIsProcessing(false); });
 
     return () => { cancelled = true; };
-  }, [logoPreview, techniqueColorConfig?.category, techniqueColorConfig?.laserTone, techniqueColorConfig?.selectedColors]);
+  }, [logoPreview, techniqueColorConfig?.category, techniqueColorConfig?.laserTone, techniqueColorConfig?.selectedColors, overrides?.whiteThreshold, overrides?.alphaThreshold]);
 
   return { processedLogoUrl, isProcessing };
 }
