@@ -132,7 +132,7 @@ const BackgroundRockets = React.memo(() => {
     { left: 88, size: 26, duration: 11, delay: 7,   opacity: 0.38 },
   ];
   return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden z-[0]" aria-hidden="true">
+    <div className="pointer-events-none absolute inset-0 overflow-hidden z-[0] motion-reduce:hidden" aria-hidden="true">
       {rockets.map((r, i) => (
         <div
           key={`bg-rocket-${i}`}
