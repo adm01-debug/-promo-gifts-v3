@@ -36,7 +36,11 @@ export function extractAndParseAIJSON(raw: string): unknown {
   if (start === -1) throw new Error("No JSON object/array found in AI response");
   
   const isArray = s[start] === "[";
-  const end = isArray ? s.lastIndexOf("]") : s.lastIndexOf("}");
+  let end = isArray ? s.lastIndexOf("]") : s.lastIndexOf("}");
+  
+  // If no matching closing bracket found, we slice until the end to attempt repair
+  if (end === -1) end = s.length - 1;
+  
   s = end > start ? s.slice(start, end + 1) : s.slice(start);
 
   // Remove trailing commas before } or ]
