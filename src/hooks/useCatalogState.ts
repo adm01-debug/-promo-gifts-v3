@@ -3,10 +3,10 @@
  */
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useColorEnrichment } from '@/hooks/useColorEnrichment';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Package, Heart, Users, Palette, FolderTree } from 'lucide-react';
 
-import { defaultFilters, type FilterState } from '@/components/filters/FilterPanel';
+import { defaultFilters } from '@/components/filters/FilterPanel';
 import {
   getDefaultColumns,
   STORAGE_KEY as GRID_COLUMNS_KEY,
@@ -19,9 +19,6 @@ import { useSearch } from '@/hooks/useSearch';
 import { useFavoritesStore } from '@/stores/useFavoritesStore';
 import { useFavoriteQuickAdd } from '@/hooks/useFavoriteQuickAdd';
 import { useComparisonStore } from '@/stores/useComparisonStore';
-import { useProductsByMaterial } from '@/hooks/useProductsByMaterial';
-import { useProductFuzzySearch } from '@/hooks/useProductFuzzySearch';
-import { useProductsByCategory } from '@/hooks/useProductsByCategory';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useExternalCategoriesQuery } from '@/hooks/useExternalCategoriesQuery';
 import { useCatalogRealStats } from '@/hooks/useCatalogRealStats';
@@ -29,6 +26,7 @@ import { useToast } from '@/hooks/use-toast';
 import { usePromoSalesRanking } from '@/hooks/usePromoSalesRanking';
 import { useSupplierSalesRanking } from '@/hooks/useSupplierSalesRanking';
 import { useCatalogFiltering } from './useCatalogFiltering';
+import { useCatalogFilters } from './useCatalogFilters';
 
 export type ViewMode = 'grid' | 'list' | 'table';
 export type SortOption =
@@ -48,9 +46,7 @@ function getPersistedViewMode(): ViewMode {
   try {
     const saved = localStorage.getItem(VIEW_MODE_KEY);
     if (saved === 'grid' || saved === 'list' || saved === 'table') return saved;
-  } catch {
-    // LocalStorage access can fail in some browsers/modes
-  }
+  } catch { /* ignore */ }
   return 'grid';
 }
 
@@ -58,7 +54,6 @@ const ITEMS_PER_PAGE = 36;
 
 export function useCatalogState() {
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
   const { isFavorite, toggleFavorite, favoriteCount } = useFavoritesStore();
   const favQuickAdd = useFavoriteQuickAdd();
@@ -67,157 +62,46 @@ export function useCatalogState() {
   const { data: promoSalesMap } = usePromoSalesRanking();
   const { data: supplierSalesMap } = useSupplierSalesRanking();
 
-  const isInternalUpdateRef = useRef(false);
-  const [activePresetId, setActivePresetId] = useState<string | undefined>(
-    searchParams.get('preset') || undefined,
-  );
+  const {
+    filters,
+    setFilters,
+    setFiltersWithPreset,
+    activePresetId,
+    searchQuery,
+    setSearchQuery,
+    activeFiltersCount,
+    materialFilteredProductIds,
+    hasMaterialFilter,
+    isLoadingMaterialFilter,
+    categoryFilteredProductIds,
+    hasCategoryFilter,
+    isLoadingCategoryFilter,
+  } = useCatalogFilters();
 
-  const setFiltersWithPreset = useCallback(
-    (newFilters: FilterState, presetId?: string) => {
-      isInternalUpdateRef.current = true;
-      setFilters(newFilters);
-      setActivePresetId(presetId);
-
-      // Sincroniza o preset ID com a URL
-      setSearchParams(
-        (prev) => {
-          const next = new URLSearchParams(prev);
-          if (presetId) {
-            next.set('preset', presetId);
-          } else {
-            next.delete('preset');
-          }
-          return next;
-        },
-        { replace: true },
-      );
-
-      // Broadcast para outras abas (mecanismo fallback ao Realtime para UI state local)
-      try {
-        const channel = new BroadcastChannel('catalog_preset_sync');
-        channel.postMessage({ type: 'PRESET_APPLIED', presetId, filters: newFilters });
-        channel.close();
-      } catch {
-        // BroadcastChannel not supported
-      }
-    },
-    [setSearchParams],
-  );
-
-  // Efeito para sincronizar URL -> Estado (Navegação/Deep-link)
-  useEffect(() => {
-    if (isInternalUpdateRef.current) {
-      isInternalUpdateRef.current = false;
-      return;
-    }
-
-    const presetFromUrl = searchParams.get('preset') || undefined;
-    if (presetFromUrl !== activePresetId) {
-      setActivePresetId(presetFromUrl);
-      // Aqui poderíamos carregar os filtros do preset se tivéssemos acesso aos presets cadastrados
-      // Por enquanto, apenas sincronizamos o ID visual
-    }
-  }, [searchParams, activePresetId]);
-
-  const searchQueryFromUrl = searchParams.get('search') || '';
-
-  // Efeito para escutar sincronização entre abas via BroadcastChannel
-  useEffect(() => {
-    try {
-      const channel = new BroadcastChannel('catalog_preset_sync');
-      channel.onmessage = (event) => {
-        if (event.data?.type === 'PRESET_APPLIED') {
-          const { presetId, filters: newFilters } = event.data;
-          // Quando vem via BroadcastChannel, marcamos como interno para não re-sincronizar URL
-          isInternalUpdateRef.current = true;
-          setFilters(newFilters);
-          setActivePresetId(presetId);
-        }
-      };
-      return () => channel.close();
-    } catch {
-      // BroadcastChannel not supported
-    }
-  }, []);
-
-  const [filters, setFilters] = useState<FilterState>(defaultFilters);
   const [viewMode, setViewModeState] = useState<ViewMode>(getPersistedViewMode);
   const setViewMode = useCallback((mode: ViewMode) => {
     setViewModeState(mode);
     try {
       localStorage.setItem(VIEW_MODE_KEY, mode);
-    } catch {
-      // LocalStorage access can fail
-    }
+    } catch { /* ignore */ }
   }, []);
+
   const [gridColumns, setGridColumnsState] = useState<ColumnCount>(getDefaultColumns);
   const setGridColumns = useCallback((cols: ColumnCount) => {
     setGridColumnsState(cols);
     try {
       localStorage.setItem(GRID_COLUMNS_KEY, String(cols));
-    } catch {
-      // LocalStorage access can fail
-    }
+    } catch { /* ignore */ }
   }, []);
+
   const [sortBy, setSortBy] = useState<SortOption>('relevance');
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedCount, setSelectedCount] = useState(0);
   const [activeProductId, setActiveProductId] = useState<string | null>(null);
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState(searchQueryFromUrl);
   const [isSearching, setIsSearching] = useState(false);
   const [displayCount, setDisplayCount] = useState(ITEMS_PER_PAGE);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-
-  // Efeito para sincronizar filtros selecionados com a URL (além do preset)
-  useEffect(() => {
-    if (isInternalUpdateRef.current) {
-      // Se foi uma atualização interna, apenas resetamos o ref depois que o ciclo de render terminou
-      const timer = setTimeout(() => {
-        isInternalUpdateRef.current = false;
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-
-    const currentPreset = searchParams.get('preset') || undefined;
-    if (currentPreset !== activePresetId) {
-      setActivePresetId(currentPreset);
-    }
-
-    // Sincronização básica de filtros selecionados para a URL
-    const timeout = setTimeout(() => {
-      setSearchParams(
-        (prev) => {
-          const next = new URLSearchParams(prev);
-
-          // Sincroniza query de busca
-          if (searchQuery) next.set('search', searchQuery);
-          else next.delete('search');
-
-          // Sincroniza cores
-          if (filters.colorGroups?.length) next.set('colors', filters.colorGroups.join(','));
-          else if (!next.get('preset')) next.delete('colors');
-
-          // Sincroniza categorias
-          if (filters.categories?.length) next.set('cats', filters.categories.join(','));
-          else if (!next.get('preset')) next.delete('cats');
-
-          // Outros filtros relevantes para consistência total
-          if (filters.stockStatus === 'in-stock') next.set('stock', 'true');
-          else next.delete('stock');
-
-          if (filters.isKit) next.set('kit', 'true');
-          else next.delete('kit');
-
-          if (next.toString() === prev.toString()) return prev;
-          return next;
-        },
-        { replace: true },
-      );
-    }, 500);
-
-    return () => clearTimeout(timeout);
-  }, [filters, searchQuery, activePresetId, setSearchParams, searchParams]);
 
   const toggleSelectionMode = useCallback(() => {
     setSelectionMode((prev) => {
@@ -226,15 +110,11 @@ export function useCatalogState() {
     });
   }, []);
 
-  // Responsive clamp
   useEffect(() => {
     const handleResize = () => {
       const w = window.innerWidth;
-      if (w < 640 && gridColumns > 1) {
-        setGridColumnsState(1);
-      } else if (w >= 640 && w < 768 && gridColumns > 2) {
-        setGridColumnsState(2);
-      }
+      if (w < 640 && gridColumns > 1) setGridColumnsState(1);
+      else if (w >= 640 && w < 768 && gridColumns > 2) setGridColumnsState(2);
     };
     handleResize();
     window.addEventListener('resize', handleResize);
@@ -262,11 +142,8 @@ export function useCatalogState() {
 
   useEffect(() => {
     if (hasNextPage && !isFetchingNextPage) {
-      if ('requestIdleCallback' in window) {
-        window.requestIdleCallback(() => fetchNextPage());
-      } else {
-        setTimeout(() => fetchNextPage(), 1000);
-      }
+      if ('requestIdleCallback' in window) window.requestIdleCallback(() => fetchNextPage());
+      else setTimeout(() => fetchNextPage(), 1000);
     }
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
@@ -277,25 +154,6 @@ export function useCatalogState() {
   const { suggestions, quickSuggestions, history, addToHistory, clearHistory } =
     useSearch(realProducts);
 
-  const {
-    productIds: materialFilteredProductIds,
-    hasFilter: hasMaterialFilter,
-    isLoading: isLoadingMaterialFilter,
-  } = useProductsByMaterial({
-    materialGroupSlugs: filters.materialGroups || [],
-    materialTypeSlugs: filters.materialTypes || [],
-  });
-
-  const {
-    productIds: categoryFilteredProductIds,
-    hasFilter: hasCategoryFilter,
-    isLoading: isLoadingCategoryFilter,
-  } = useProductsByCategory({
-    categoryIds: filters.categories?.map(String) || [],
-    includeDescendants: true,
-  });
-
-  // Use externalCategories if needed, currently just ensuring it's queried to warm cache
   useExternalCategoriesQuery();
   const { data: realStats } = useCatalogRealStats();
 
@@ -303,44 +161,9 @@ export function useCatalogState() {
   const isInitialCatalogLoad =
     (isLoadingProducts || isFetchingProducts) && realProducts.length === 0;
 
-  // Sincroniza searchQuery da URL com o estado local se mudar externamente
-  useEffect(() => {
-    if (searchQueryFromUrl !== searchQuery) {
-      setSearchQuery(searchQueryFromUrl);
-    }
-  }, [searchQueryFromUrl]);
-
   useEffect(() => {
     setDisplayCount(ITEMS_PER_PAGE);
   }, [filters, sortBy, searchQuery]);
-
-  const activeFiltersCount = useMemo(() => {
-    if (!filters) return 0;
-    let count = 0;
-    if (filters.colors?.length) count += filters.colors.length;
-    if (filters.colorGroups?.length) count += filters.colorGroups.length;
-    if (filters.colorVariations?.length) count += filters.colorVariations.length;
-    if (filters.colorNuances?.length) count += filters.colorNuances.length;
-    if (filters.categories?.length) count += filters.categories.length;
-    if (filters.suppliers?.length) count += filters.suppliers.length;
-    if (filters.publicoAlvo?.length) count += filters.publicoAlvo.length;
-    if (filters.datasComemorativas?.length) count += filters.datasComemorativas.length;
-    if (filters.endomarketing?.length) count += filters.endomarketing.length;
-    if (filters.ramosAtividade?.length) count += filters.ramosAtividade.length;
-    if (filters.segmentosAtividade?.length) count += filters.segmentosAtividade.length;
-    if (filters.materialGroups?.length) count += filters.materialGroups.length;
-    if (filters.materialTypes?.length) count += filters.materialTypes.length;
-    if (filters.materials?.length) count += filters.materials.length;
-    if (filters.priceRange?.[0] > 0 || filters.priceRange?.[1] < 9999) count += 1;
-    if (filters.stockStatus !== 'all' || filters.minStock > 0) count += 1;
-    if (filters.isKit) count += 1;
-    if (filters.isFeatured) count += 1;
-    if (filters.isNew) count += 1;
-    if (filters.hasPersonalization) count += 1;
-    if (filters.gender?.length) count += filters.gender.length;
-    if (filters.sizes?.length) count += filters.sizes.length;
-    return count;
-  }, [filters]);
 
   const debouncedSearchQuery = useDebounce(searchQuery, 350);
   const { results: fuzzySearchResults, hasSearch: hasFuzzySearch } = useProductFuzzySearch(
@@ -371,10 +194,12 @@ export function useCatalogState() {
 
   const hasColorFilterActive =
     (filters.colorGroups?.length || 0) > 0 || (filters.colorVariations?.length || 0) > 0;
+  
   const paginatedProductIds = useMemo(
     () => rawPaginatedProducts.map((p) => p.id),
     [rawPaginatedProducts],
   );
+
   const { data: catalogColorEnrichmentMap } = useColorEnrichment({
     productIds: paginatedProductIds,
     colorGroups: filters.colorGroups || [],
@@ -425,7 +250,7 @@ export function useCatalogState() {
 
   const shouldShowCatalogSkeleton =
     isInitialCatalogLoad ||
-    (isLoading && paginatedProducts.length === 0 && !hasActiveCatalogConstraints);
+    (isLoading && paginatedProducts.length === 0 && !(activeFiltersCount > 0 || searchQuery.trim().length > 0));
   const hasActiveCatalogConstraints = activeFiltersCount > 0 || searchQuery.trim().length > 0;
   const shouldShowEmptyState =
     !shouldShowCatalogSkeleton && paginatedProducts.length === 0 && !isFetchingNextPage;
@@ -439,9 +264,7 @@ export function useCatalogState() {
   const isUpdatingRef = useRef(false);
 
   const loadMore = useCallback(() => {
-    if (isUpdatingRef.current) return;
-    if (isLoading || isLoadingMore || isFetchingNextPage) return;
-    if (!hasMoreProducts) return;
+    if (isUpdatingRef.current || isLoading || isLoadingMore || isFetchingNextPage || !hasMoreProducts) return;
 
     isUpdatingRef.current = true;
     setIsLoadingMore(true);
@@ -453,17 +276,13 @@ export function useCatalogState() {
       fetchNextPage().finally(() => {
         setDisplayCount((prev) => prev + ITEMS_PER_PAGE);
         setIsLoadingMore(false);
-        setTimeout(() => {
-          isUpdatingRef.current = false;
-        }, 100);
+        setTimeout(() => { isUpdatingRef.current = false; }, 100);
       });
     } else {
       setTimeout(() => {
         setDisplayCount((prev) => prev + ITEMS_PER_PAGE);
         setIsLoadingMore(false);
-        setTimeout(() => {
-          isUpdatingRef.current = false;
-        }, 100);
+        setTimeout(() => { isUpdatingRef.current = false; }, 100);
       }, 150);
     }
   }, [
@@ -492,9 +311,7 @@ export function useCatalogState() {
     );
 
     if (loadMoreRef.current) observerRef.current.observe(loadMoreRef.current);
-    return () => {
-      observerRef.current?.disconnect();
-    };
+    return () => observerRef.current?.disconnect();
   }, [isLoading, hasMoreProducts, isLoadingMore, loadMore]);
 
   const statBadges = useMemo(() => {
@@ -508,99 +325,44 @@ export function useCatalogState() {
 
     const productCount = hasActiveFilters ? deduped.length : totalEstimate || deduped.length;
     const localVariants = deduped.reduce((sum, p) => {
-      const colorCount =
-        p.colors?.filter((c: Record<string, string>) => c.name?.trim()).length || 0;
+      const colorCount = p.colors?.filter((c: Record<string, string>) => c.name?.trim()).length || 0;
       const variationCount = !colorCount && p.variations?.length ? p.variations.length : 0;
       return sum + colorCount + variationCount;
     }, 0);
-    const totalVariants = hasActiveFilters
-      ? localVariants
-      : (realStats?.totalVariants ?? localVariants);
+    const totalVariants = hasActiveFilters ? localVariants : (realStats?.totalVariants ?? localVariants);
 
     const uniqueCategoryIds = new Set(
-      deduped
-        .map((p) => p.category_id || (p.category?.id ? String(p.category.id) : ''))
-        .filter((id) => id && id !== '0'),
+      deduped.map((p) => p.category_id || (p.category?.id ? String(p.category.id) : '')).filter((id) => id && id !== '0'),
     );
-    const categoriesCount = hasActiveFilters
-      ? uniqueCategoryIds.size
-      : (realStats?.totalCategories ?? uniqueCategoryIds.size);
+    const categoriesCount = hasActiveFilters ? uniqueCategoryIds.size : (realStats?.totalCategories ?? uniqueCategoryIds.size);
 
     const uniqueSuppliers = new Set(
-      deduped
-        .map((p) => p.supplier?.name?.trim().toLowerCase())
-        .filter((n): n is string => !!n && n !== 'sem fornecedor'),
+      deduped.map((p) => p.supplier?.name?.trim().toLowerCase()).filter((n): n is string => !!n && n !== 'sem fornecedor'),
     );
-    const suppliersCount = hasActiveFilters
-      ? uniqueSuppliers.size
-      : (realStats?.totalSuppliers ?? uniqueSuppliers.size);
+    const suppliersCount = hasActiveFilters ? uniqueSuppliers.size : (realStats?.totalSuppliers ?? uniqueSuppliers.size);
 
-    const contextualFavoriteCount = isFavorite
-      ? deduped.filter((p) => isFavorite(p.id)).length
-      : favoriteCount;
+    const contextualFavoriteCount = isFavorite ? deduped.filter((p) => isFavorite(p.id)).length : favoriteCount;
 
     return [
-      {
-        id: 'products',
-        label: 'Produtos Únicos',
-        value: productCount,
-        icon: React.createElement(Package, { className: 'h-4 w-4' }),
-      },
-      {
-        id: 'variants',
-        label: 'Variações',
-        value: totalVariants,
-        icon: React.createElement(Palette, { className: 'h-4 w-4' }),
-      },
-      {
-        id: 'categories',
-        label: 'Categorias',
-        value: categoriesCount,
-        icon: React.createElement(FolderTree, { className: 'h-4 w-4' }),
-      },
-      {
-        id: 'suppliers',
-        label: 'Fornecedores',
-        value: suppliersCount,
-        icon: React.createElement(Users, { className: 'h-4 w-4' }),
-      },
-      {
-        id: 'favorites',
-        label: 'Favoritos',
-        value: contextualFavoriteCount,
-        icon: React.createElement(Heart, { className: 'h-4 w-4' }),
-      },
+      { id: 'products', label: 'Produtos Únicos', value: productCount, icon: React.createElement(Package, { className: 'h-4 w-4' }) },
+      { id: 'variants', label: 'Variações', value: totalVariants, icon: React.createElement(Palette, { className: 'h-4 w-4' }) },
+      { id: 'categories', label: 'Categorias', value: categoriesCount, icon: React.createElement(FolderTree, { className: 'h-4 w-4' }) },
+      { id: 'suppliers', label: 'Fornecedores', value: suppliersCount, icon: React.createElement(Users, { className: 'h-4 w-4' }) },
+      { id: 'favorites', label: 'Favoritos', value: contextualFavoriteCount, icon: React.createElement(Heart, { className: 'h-4 w-4' }) },
     ];
-  }, [
-    filteredProducts,
-    favoriteCount,
-    isFavorite,
-    activeFiltersCount,
-    searchQuery,
-    totalEstimate,
-    hasNextPage,
-    realStats,
-  ]);
+  }, [filteredProducts, favoriteCount, isFavorite, activeFiltersCount, searchQuery, totalEstimate, realStats]);
 
   const resetFilters = useCallback(() => {
     setFilters(defaultFilters);
     setSortBy('name');
     setSearchQuery('');
     navigate('/', { replace: true });
-  }, [navigate]);
+  }, [navigate, setFilters, setSearchQuery]);
 
-  const handleViewProduct = useCallback(
-    (product: Product) => {
-      navigate(`/produto/${product.id}`);
-    },
-    [navigate],
-  );
+  const handleViewProduct = useCallback((product: Product) => navigate(`/produto/${product.id}`), [navigate]);
 
   const [shareProduct, setShareProduct] = useState<Product | null>(null);
-
-  const handleShareProduct = useCallback((product: Product) => {
-    setShareProduct(product);
-  }, []);
+  const handleShareProduct = useCallback((product: Product) => setShareProduct(product), []);
 
   const handleFavoriteProduct = useCallback(
     (product: Product, e?: React.MouseEvent) => {
@@ -609,13 +371,8 @@ export function useCatalogState() {
         const target = favQuickAdd.defaultList;
         if (target) {
           void favQuickAdd.addToList(target.id, product);
-          toast({
-            title: 'Adicionado aos Favoritos',
-            description: `Salvo em "${target.name}". Use Shift+clique para confirmar a lista padrão sem confirmação.`,
-          });
-        } else {
-          toggleFavorite(product.id);
-        }
+          toast({ title: 'Adicionado aos Favoritos', description: `Salvo em "${target.name}".` });
+        } else toggleFavorite(product.id);
       }
     },
     [favQuickAdd, toggleFavorite, toast],
@@ -628,44 +385,28 @@ export function useCatalogState() {
       if (query) addToHistory(query);
       setTimeout(() => setIsSearching(false), 300);
     },
-    [addToHistory],
+    [addToHistory, setSearchQuery],
   );
 
-  // Keyboard Navigation Logic
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Ignore if typing in input/textarea or if dialogs are open (heuristic)
       const target = e.target as HTMLElement;
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
-        return;
-      if (document.querySelector('[role="dialog"]') || document.querySelector('[role="menu"]'))
-        return;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) return;
+      if (document.querySelector('[role="dialog"]') || document.querySelector('[role="menu"]')) return;
 
       const currentIndex = paginatedProducts.findIndex((p) => p.id === activeProductId);
-
       switch (e.key) {
-        case 'j':
-        case 'ArrowDown':
+        case 'j': case 'ArrowDown':
           e.preventDefault();
-          if (currentIndex < paginatedProducts.length - 1) {
-            setActiveProductId(paginatedProducts[currentIndex + 1].id);
-          }
+          if (currentIndex < paginatedProducts.length - 1) setActiveProductId(paginatedProducts[currentIndex + 1].id);
           break;
-        case 'k':
-        case 'ArrowUp':
+        case 'k': case 'ArrowUp':
           e.preventDefault();
-          if (currentIndex > 0) {
-            setActiveProductId(paginatedProducts[currentIndex - 1].id);
-          } else if (currentIndex === -1 && paginatedProducts.length > 0) {
-            setActiveProductId(paginatedProducts[0].id);
-          }
+          if (currentIndex > 0) setActiveProductId(paginatedProducts[currentIndex - 1].id);
+          else if (currentIndex === -1 && paginatedProducts.length > 0) setActiveProductId(paginatedProducts[0].id);
           break;
-        case 'Enter':
-        case 'o':
-          if (activeProductId) {
-            e.preventDefault();
-            navigate(`/produto/${activeProductId}`);
-          }
+        case 'Enter': case 'o':
+          if (activeProductId) { e.preventDefault(); navigate(`/produto/${activeProductId}`); }
           break;
         case 'f':
           if (activeProductId) {
@@ -675,13 +416,8 @@ export function useCatalogState() {
           }
           break;
         case 'Escape':
-          if (activeProductId) {
-            e.preventDefault();
-            setActiveProductId(null);
-          }
-          if (selectionMode) {
-            setSelectionMode(false);
-          }
+          if (activeProductId) { e.preventDefault(); setActiveProductId(null); }
+          if (selectionMode) setSelectionMode(false);
           break;
       }
     };
