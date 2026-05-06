@@ -27,6 +27,7 @@ const APP_VERSION = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '
 const STORAGE_KEY = "__chunk_recovery__";
 const WINDOW_MS = 30_000;
 const MAX_HARD_RELOADS = 2;
+const IS_DEV = import.meta.env.MODE === 'development';
 
 interface RecoveryState {
   attempts: number;
@@ -39,32 +40,32 @@ function readState(): RecoveryState {
   try {
     const raw = sessionStorage.getItem(STORAGE_KEY);
     if (!raw) {
-      console.log("[chunk-recovery] Nenhum estado anterior encontrado.");
+      if (IS_DEV) console.log("[chunk-recovery] Nenhum estado anterior encontrado.");
       return { attempts: 0, firstAt: 0 };
     }
     const parsed = JSON.parse(raw) as RecoveryState;
     
     // Reset janela se passou tempo suficiente
     if (Date.now() - parsed.firstAt > WINDOW_MS) {
-      console.log("[chunk-recovery] Janela de recuperação expirada. Resetando tentativas.");
+      if (IS_DEV) console.log("[chunk-recovery] Janela de recuperação expirada. Resetando tentativas.");
       return { attempts: 0, firstAt: 0 };
     }
     
-    console.log(`[chunk-recovery] Estado recuperado: ${parsed.attempts} tentativas, versão: ${parsed.version || 'desconhecida'}`);
+    if (IS_DEV) console.log(`[chunk-recovery] Estado recuperado: ${parsed.attempts} tentativas, versão: ${parsed.version || 'desconhecida'}`);
     return parsed;
   } catch (err) {
-    console.error("[chunk-recovery] Erro ao ler estado do sessionStorage:", err);
+    if (IS_DEV) console.error("[chunk-recovery] Erro ao ler estado do sessionStorage:", err);
     return { attempts: 0, firstAt: 0 };
   }
 }
 
 function writeState(state: RecoveryState): void {
   try {
-    console.log(`[chunk-recovery] Salvando estado: ${state.attempts} tentativas, versão: ${APP_VERSION}`);
+    if (IS_DEV) console.log(`[chunk-recovery] Salvando estado: ${state.attempts} tentativas, versão: ${APP_VERSION}`);
     const stateToSave = { ...state, version: APP_VERSION };
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
   } catch (err) {
-    console.error("[chunk-recovery] Erro ao salvar estado:", err);
+    if (IS_DEV) console.error("[chunk-recovery] Erro ao salvar estado:", err);
   }
 }
 

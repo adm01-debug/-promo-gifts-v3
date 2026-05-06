@@ -101,7 +101,7 @@ export function FavoritesClientPicker({ selectedClientId, selectedClientName, on
             <p className="text-[10px] text-muted-foreground">Cliente vinculado</p>
           </div>
         </div>
-        <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => onSelect(null)}>
+        <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => onSelect(null)} aria-label="Remover cliente vinculado">
           <X className="h-3.5 w-3.5" />
         </Button>
       </div>
