@@ -3,6 +3,16 @@ import { describe, it, expect, vi } from "vitest";
 import { ProductCard } from "./ProductCard";
 import { BrowserRouter } from "react-router-dom";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+// Create a client for the provider
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: false,
+    },
+  },
+});
 
 // Mock des hooks e stores
 vi.mock("@/stores/useFavoritesStore", () => ({
@@ -21,6 +31,20 @@ vi.mock("@/stores/useComparisonStore", () => ({
   }),
 }));
 
+// Mock dos contextos que faltavam
+vi.mock("@/contexts/SellerCartContext", () => ({
+  useSellerCartContext: () => ({
+    addToCart: vi.fn(),
+  }),
+}));
+
+vi.mock("@/contexts/CollectionsContext", () => ({
+  useCollectionsContext: () => ({
+    collections: [],
+    addPendingProduct: vi.fn(),
+  }),
+}));
+
 const mockProduct = {
   id: "1",
   name: "Produto Teste",
@@ -28,6 +52,7 @@ const mockProduct = {
   price: 100,
   images: ["test.jpg"],
   og_image_url: "test.jpg",
+  colors: [], // Adicionado para evitar erro de undefined.length
   stock: 10,
   stockStatus: "in-stock",
   category: "Teste",
@@ -41,11 +66,13 @@ const mockProduct = {
 
 const renderWithProviders = (ui: React.ReactElement) => {
   return render(
-    <BrowserRouter>
-      <TooltipProvider>
-        {ui}
-      </TooltipProvider>
-    </BrowserRouter>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <TooltipProvider>
+          {ui}
+        </TooltipProvider>
+      </BrowserRouter>
+    </QueryClientProvider>
   );
 };
 
