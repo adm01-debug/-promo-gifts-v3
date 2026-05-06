@@ -75,7 +75,7 @@ export const ContinuousRockets = React.memo(() => {
               }}
             >
               <Rocket
-                className="-rotate-45 text-orange"
+                className="-rotate-45 text-primary"
                 style={{
                   width: r.size,
                   height: r.size,
@@ -148,7 +148,7 @@ const BackgroundRockets = React.memo(() => {
         >
           <div className="relative">
             <Rocket
-              className="-rotate-45 text-orange"
+              className="-rotate-45 text-primary"
               style={{
                 width: r.size,
                 height: r.size,
@@ -261,7 +261,7 @@ function FeatureCard({ item, index }: { item: typeof FEATURE_ITEMS[0]; index: nu
   const IconComponent = item.icon;
   return (
     <div 
-      className="p-5 rounded-xl bg-black/60 backdrop-blur-2xl border border-white/10 shadow-2xl hover:bg-black/80 hover:border-primary/50 hover:scale-[1.02] transition-all duration-500 group opacity-0"
+      className="p-5 rounded-xl bg-black/60 backdrop-blur-2xl border border-white/10 shadow-2xl hover:bg-black/80 hover:border-primary/50 transition-all duration-500 group opacity-0"
       style={{ 
         animation: `scale-fade-in 0.5s ease-out ${300 + index * 100}ms forwards`,
         boxShadow: '0 0 20px rgba(0,0,0,0.5)' 
@@ -323,7 +323,7 @@ export function AuthSpaceBackground() {
               step="0.1" 
               value={intensity} 
               onChange={(e) => setIntensity(parseFloat(e.target.value))}
-              className="w-48 h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-primary"
+              className="w-48 h-1.5 bg-white/10 rounded-full appearance-none cursor-pointer accent-primary"
             />
             <div className="flex justify-between text-[8px] text-white/30 font-medium px-1">
               <span>SUTIL</span>
@@ -334,7 +334,7 @@ export function AuthSpaceBackground() {
         )}
         <button 
           onClick={() => setShowControls(!showControls)}
-          className="w-12 h-12 rounded-full bg-black/60 backdrop-blur-md border border-white/10 flex items-center justify-center text-white/60 hover:text-primary hover:border-primary/50 transition-all hover:scale-110 shadow-xl"
+          className="w-12 h-12 rounded-full bg-black/60 backdrop-blur-md border border-white/10 flex items-center justify-center text-white/60 hover:text-primary hover:border-primary transition-all shadow-xl"
           title="Ajustar Estrelas"
         >
           <Sparkles className={`h-5 w-5 ${showControls ? 'text-primary' : ''}`} />
