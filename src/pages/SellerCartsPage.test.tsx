@@ -182,7 +182,7 @@ describe('SellerCartsPage Component', () => {
       selectedItemIds: new Set(['item-1']),
     });
     renderWithContext(<SellerCartsPage />);
-    expect(screen.getByText('1')).toBeInTheDocument();
+    expect(screen.getAllByText('1')).toHaveLength(2);
     expect(screen.getByText('Itens Selecionados')).toBeInTheDocument();
   });
 });
