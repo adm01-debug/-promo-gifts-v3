@@ -33,4 +33,17 @@ describe('Input Component', () => {
     render(<Input type="password" placeholder="Password" />);
     expect(screen.getByPlaceholderText(/password/i)).toHaveAttribute('type', 'password');
   });
+
+  it('handles number input with specific attributes', () => {
+    render(<Input type="number" min="0" max="10" step="1" data-testid="number-input" />);
+    const input = screen.getByTestId('number-input');
+    expect(input).toHaveAttribute('min', '0');
+    expect(input).toHaveAttribute('max', '10');
+    expect(input).toHaveAttribute('step', '1');
+  });
+
+  it('reflects value correctly even if empty', () => {
+    render(<Input value="" onChange={() => {}} data-testid="empty-input" />);
+    expect((screen.getByTestId('empty-input') as HTMLInputElement).value).toBe('');
+  });
 });
