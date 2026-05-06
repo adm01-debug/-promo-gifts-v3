@@ -3,31 +3,11 @@ import { useSellerCartsPage } from '../useSellerCartsPage';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { BrowserRouter } from 'react-router-dom';
 import React from 'react';
+import { useSellerCartContext } from '@/contexts/SellerCartContext';
 
 // Mocks
 vi.mock('@/contexts/SellerCartContext', () => ({
-  useSellerCartContext: vi.fn(() => ({
-    carts: [],
-    activeCart: null,
-    activeCartId: null,
-    isLoading: false,
-    totalItems: 0,
-    canCreateCart: true,
-    setActiveCartId: vi.fn(),
-    deleteCart: vi.fn(),
-    addToActiveCart: vi.fn(),
-    removeItem: vi.fn(),
-    updateItemQuantity: vi.fn(),
-    updateItemNotes: vi.fn(),
-    updateItemSortOrder: vi.fn(),
-    updateCartNotes: vi.fn(),
-    updateCartStatus: vi.fn(),
-    duplicateCart: vi.fn(),
-    moveItemToCart: vi.fn(),
-    duplicateItemToCart: vi.fn(),
-    clearCart: vi.fn(),
-    restoreItems: vi.fn(),
-  })),
+  useSellerCartContext: vi.fn(),
 }));
 
 vi.mock('@/hooks/useCartTemplates', () => ({
@@ -70,14 +50,14 @@ describe('useSellerCartsPage Logic - Sorting', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    const { useSellerCartContext } = require('@/contexts/SellerCartContext');
-    useSellerCartContext.mockReturnValue({
+    (useSellerCartContext as any).mockReturnValue({
       carts: [mockActiveCart],
       activeCart: mockActiveCart,
       activeCartId: 'cart-1',
       isLoading: false,
       totalItems: 3,
       setActiveCartId: vi.fn(),
+      updateItemSortOrder: vi.fn(),
     });
   });
 
