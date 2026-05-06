@@ -9,8 +9,10 @@ import {
 } from 'react';
 import { type User, type Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { logger } from '@/lib/logger';
 import { createClientLogger } from '@/lib/telemetry/structuredLogger';
+
+const log = createClientLogger('contexts.AuthContext');
+
 import {
   checkLoginAllowed,
   recordFailedAttempt,
@@ -114,9 +116,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setNextAAL(data.nextLevel);
       setHasMFA(data.hasMFA);
     } catch (e) {
-      if (import.meta.env.DEV)
-        logger.warn('AAL fetch failed', e instanceof Error ? e.message : String(e));
+      log.warn('aal_fetch_failed', { err: e });
     }
+
   }, []);
 
   const fetchUserData = useCallback(async (userId: string) => {
@@ -147,10 +149,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             { requestedUserId: userId, hasSession: !!sess },
           );
           if (import.meta.env.DEV) {
-            console.warn(
-              '[AUTH-DEBUG] fetchUserData abortado: sem sessão ativa. Não consultando user_roles como anon.',
-            );
+            log.warn('fetch_aborted_no_session');
           }
+
           return;
         }
         if (!sessionMatchesTarget) {
@@ -194,8 +195,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (profileResult.error) {
           authDebugError('AuthContext.fetchUserData', 'profile query failed', profileResult.error);
           if (import.meta.env.DEV) {
-            console.error('Error fetching profile:', profileResult.error);
+            log.error('profile_fetch_failed', { error: profileResult.error });
           }
+
         } else if (profileResult.data) {
           authDebug('AuthContext.fetchUserData', 'profile loaded', {
             id: profileResult.data.id,
@@ -211,16 +213,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             .eq('user_id', userId)
             .then(({ error }) => {
               if (error && import.meta.env.DEV) {
-                logger.warn('Failed to update last_login_at:', error.message);
+                log.warn('last_login_update_failed', { error: error.message });
               }
+
             });
         }
 
         if (rolesResult.error) {
           authDebugError('AuthContext.fetchUserData', 'user_roles query failed', rolesResult.error);
           if (import.meta.env.DEV) {
-            console.error('Error fetching user roles:', rolesResult.error);
+            log.error('roles_fetch_failed', { error: rolesResult.error });
           }
+
           // Não chutar fallback "agente" — deixa userRoles vazio (estado indeterminado);
           // consumidores devem usar `rolesLoaded` para diferenciar carregando/falha de "sem role".
         } else if (rolesResult.data) {
@@ -238,8 +242,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch (error) {
         authDebugError('AuthContext.fetchUserData', 'unexpected exception', error);
         if (import.meta.env.DEV) {
-          console.error('Error fetching user data:', error);
+          log.error('userdata_fetch_exception', { err: error });
         }
+
         // Não chutar fallback "agente" — manter userRoles como está (vazio = indeterminado).
       } finally {
         fetchPromiseRef.current = null;
@@ -351,19 +356,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     log.info('start');
 
-    // Client-side brute force protection
-    const { allowed, remainingSeconds } = checkLoginAllowed(email);
-    if (!allowed) {
-      const minutes = Math.ceil(remainingSeconds / 60);
-      log.warn('rate_limited_client', { remaining_seconds: remainingSeconds });
+    // 1. Client-side brute force protection (fast fallback)
+    const clientLimit = checkLoginAllowed(email);
+    if (!clientLimit.allowed) {
+      const minutes = Math.ceil(clientLimit.remainingSeconds / 60);
+      log.warn('rate_limited_client', { remaining_seconds: clientLimit.remainingSeconds });
       return {
         error: {
-          message: `Conta temporariamente bloqueada por excesso de tentativas. Tente novamente em ${minutes} minuto(s).`,
+          message: `Muitas tentativas. Bloqueio local de ${minutes} min.`,
           name: 'RateLimitError',
           status: 429,
         } as { message: string; name: string; status: number },
       };
     }
+
+    // 2. Server-side brute force protection (authoritative)
+    try {
+      const { data: throttle, error: throttleErr } = await supabase.functions.invoke('check-auth-throttling', {
+        body: { email, ip: 'client' },
+        headers: log.headers(),
+      });
+
+      if (!throttleErr && throttle && throttle.allowed === false) {
+        const mins = Math.ceil((throttle.remaining_seconds || 0) / 60);
+        log.warn('rate_limited_server', { remaining_seconds: throttle.remaining_seconds });
+        return {
+          error: {
+            message: `Acesso bloqueado por segurança. Tente em ${mins} min.`,
+            name: 'RateLimitError',
+            status: 429,
+          } as { message: string; name: string; status: number },
+        };
+      }
+    } catch (e) {
+      log.warn('throttling_check_failed', { err: String(e) });
+    }
+
 
     const { error } = await supabase.auth.signInWithPassword({
       email,
@@ -386,20 +414,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } else {
       // Successful login — clear attempts
       clearLoginAttempts(email);
+      supabase.functions.invoke('clear-auth-attempts', { body: { email }, headers: log.headers() }).catch(() => {});
+
       log.info('signin_ok');
     }
 
-    // Log attempt server-side (fire-and-forget) — propaga X-Request-Id
     supabase.functions
-      .invoke('log-login-attempt', {
+      .invoke('record-auth-attempt', {
         body: {
           email,
-          user_id: error ? null : undefined,
-          ip_address: 'client',
+          ip: 'client',
           success: !error,
-          failure_reason: error?.message || null,
-          user_agent: navigator.userAgent,
+          reason: error?.message || null,
+          ua: navigator.userAgent,
         },
+        headers: log.headers(),
+
         headers: log.headers(),
       })
       .catch(() => {});

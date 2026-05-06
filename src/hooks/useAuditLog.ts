@@ -1,5 +1,9 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { createClientLogger } from '@/lib/telemetry/structuredLogger';
+
+const log = createClientLogger('hooks.useAuditLog');
+
 
 export type AuditAction = 'INSERT' | 'UPDATE' | 'DELETE';
 
@@ -74,15 +78,17 @@ export function useAuditLog() {
       });
 
       if (error) {
-        console.error('Erro ao registrar audit log:', error);
+        log.error('log_insert_failed', { error, action, entityType, entityId });
         return { success: false, error: new Error(error.message) };
       }
 
+
       return { success: true };
     } catch (error) {
-      console.error('Erro ao registrar audit log:', error);
+      log.error('unexpected_log_error', { err: error, action, entityType, entityId });
       return { success: false, error: error as Error };
     }
+
   };
 
   /**
@@ -221,9 +227,10 @@ export async function fetchAuditHistory(
     .order('created_at', { ascending: false });
 
   if (error) {
-    console.error('Erro ao buscar histórico de auditoria:', error);
+    log.error('fetch_history_failed', { error, entityType, entityId });
     return [];
   }
+
 
   return (data || []) as AuditLogEntry[];
 }
@@ -274,9 +281,10 @@ export async function fetchAllAuditLogs(
   const { data, error } = await query;
 
   if (error) {
-    console.error('Erro ao buscar logs de auditoria:', error);
+    log.error('fetch_all_failed', { error, filters });
     return [];
   }
+
 
   return (data || []) as AuditLogEntry[];
 }

@@ -26,6 +26,10 @@ import { useAppBootstrap } from '@/hooks/useAppBootstrap';
 import './App.css';
 import { ThemeInitializer } from '@/components/ThemeInitializer';
 import { prefetchRoute } from '@/lib/routePrefetch';
+import { initWebVitals } from '@/lib/telemetry/vitals';
+
+initWebVitals();
+
 const queryClient = createQueryClient();
 
 // Auth Pages

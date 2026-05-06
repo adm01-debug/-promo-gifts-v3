@@ -1,6 +1,10 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { createClientLogger } from '@/lib/telemetry/structuredLogger';
+
+const log = createClientLogger('contexts.OrganizationContext');
+
 
 export interface Organization {
   id: string;
@@ -96,8 +100,9 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
         localStorage.setItem(ORG_STORAGE_KEY, selected.id);
       }
     } catch (err) {
-      console.error('Failed to fetch organizations:', err);
+      log.error('fetch_failed', { err });
     } finally {
+
       setIsLoading(false);
     }
   }, [user]);
@@ -138,9 +143,10 @@ export function OrganizationProvider({ children }: { children: ReactNode }) {
       });
 
       if (error) {
-        console.error('Failed to create organization:', error);
+        log.error('create_failed', { error, name, slug });
         return null;
       }
+
 
       await fetchOrganizations();
       switchOrganization(orgId);

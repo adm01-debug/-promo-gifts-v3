@@ -278,6 +278,42 @@ export type Database = {
         }
         Relationships: []
       }
+      app_vitals: {
+        Row: {
+          created_at: string
+          id: string
+          metric_name: string
+          metric_value: number
+          page_url: string | null
+          rating: string | null
+          request_id: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          metric_name: string
+          metric_value: number
+          page_url?: string | null
+          rating?: string | null
+          request_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          metric_name?: string
+          metric_value?: number
+          page_url?: string | null
+          rating?: string | null
+          request_id?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       art_file_attachments: {
         Row: {
           created_at: string
@@ -350,6 +386,36 @@ export type Database = {
           id?: string
           identifier?: string
           metadata?: Json | null
+        }
+        Relationships: []
+      }
+      auth_login_attempts: {
+        Row: {
+          created_at: string
+          email: string
+          failure_reason: string | null
+          id: string
+          ip_address: string | null
+          success: boolean
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          failure_reason?: string | null
+          id?: string
+          ip_address?: string | null
+          success?: boolean
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          failure_reason?: string | null
+          id?: string
+          ip_address?: string | null
+          success?: boolean
+          user_agent?: string | null
         }
         Relationships: []
       }
@@ -5380,8 +5446,8 @@ export type Database = {
       }
       webhook_delivery_metrics: {
         Row: {
-          attempt: number
-          direction: string
+          attempt: number | null
+          direction: string | null
           duration_ms: number | null
           endpoint: string | null
           error_class: string | null
@@ -5389,16 +5455,16 @@ export type Database = {
           event_type: string | null
           http_status: number | null
           id: string
-          metadata: Json
+          metadata: Json | null
           occurred_at: string
           payload_bytes: number | null
-          request_id: string
-          source: string
-          success: boolean
+          request_id: string | null
+          source: string | null
+          success: boolean | null
         }
         Insert: {
-          attempt?: number
-          direction: string
+          attempt?: number | null
+          direction?: string | null
           duration_ms?: number | null
           endpoint?: string | null
           error_class?: string | null
@@ -5406,16 +5472,16 @@ export type Database = {
           event_type?: string | null
           http_status?: number | null
           id?: string
-          metadata?: Json
+          metadata?: Json | null
           occurred_at?: string
           payload_bytes?: number | null
-          request_id: string
-          source: string
-          success: boolean
+          request_id?: string | null
+          source?: string | null
+          success?: boolean | null
         }
         Update: {
-          attempt?: number
-          direction?: string
+          attempt?: number | null
+          direction?: string | null
           duration_ms?: number | null
           endpoint?: string | null
           error_class?: string | null
@@ -5423,12 +5489,120 @@ export type Database = {
           event_type?: string | null
           http_status?: number | null
           id?: string
-          metadata?: Json
+          metadata?: Json | null
           occurred_at?: string
           payload_bytes?: number | null
-          request_id?: string
-          source?: string
-          success?: boolean
+          request_id?: string | null
+          source?: string | null
+          success?: boolean | null
+        }
+        Relationships: []
+      }
+      webhook_delivery_metrics_y2026m05: {
+        Row: {
+          attempt: number | null
+          direction: string | null
+          duration_ms: number | null
+          endpoint: string | null
+          error_class: string | null
+          error_message: string | null
+          event_type: string | null
+          http_status: number | null
+          id: string
+          metadata: Json | null
+          occurred_at: string
+          payload_bytes: number | null
+          request_id: string | null
+          source: string | null
+          success: boolean | null
+        }
+        Insert: {
+          attempt?: number | null
+          direction?: string | null
+          duration_ms?: number | null
+          endpoint?: string | null
+          error_class?: string | null
+          error_message?: string | null
+          event_type?: string | null
+          http_status?: number | null
+          id?: string
+          metadata?: Json | null
+          occurred_at?: string
+          payload_bytes?: number | null
+          request_id?: string | null
+          source?: string | null
+          success?: boolean | null
+        }
+        Update: {
+          attempt?: number | null
+          direction?: string | null
+          duration_ms?: number | null
+          endpoint?: string | null
+          error_class?: string | null
+          error_message?: string | null
+          event_type?: string | null
+          http_status?: number | null
+          id?: string
+          metadata?: Json | null
+          occurred_at?: string
+          payload_bytes?: number | null
+          request_id?: string | null
+          source?: string | null
+          success?: boolean | null
+        }
+        Relationships: []
+      }
+      webhook_delivery_metrics_y2026m06: {
+        Row: {
+          attempt: number | null
+          direction: string | null
+          duration_ms: number | null
+          endpoint: string | null
+          error_class: string | null
+          error_message: string | null
+          event_type: string | null
+          http_status: number | null
+          id: string
+          metadata: Json | null
+          occurred_at: string
+          payload_bytes: number | null
+          request_id: string | null
+          source: string | null
+          success: boolean | null
+        }
+        Insert: {
+          attempt?: number | null
+          direction?: string | null
+          duration_ms?: number | null
+          endpoint?: string | null
+          error_class?: string | null
+          error_message?: string | null
+          event_type?: string | null
+          http_status?: number | null
+          id?: string
+          metadata?: Json | null
+          occurred_at?: string
+          payload_bytes?: number | null
+          request_id?: string | null
+          source?: string | null
+          success?: boolean | null
+        }
+        Update: {
+          attempt?: number | null
+          direction?: string | null
+          duration_ms?: number | null
+          endpoint?: string | null
+          error_class?: string | null
+          error_message?: string | null
+          event_type?: string | null
+          http_status?: number | null
+          id?: string
+          metadata?: Json | null
+          occurred_at?: string
+          payload_bytes?: number | null
+          request_id?: string | null
+          source?: string | null
+          success?: boolean | null
         }
         Relationships: []
       }
@@ -5536,6 +5710,13 @@ export type Database = {
       can_view_connections: { Args: { _user_id?: string }; Returns: boolean }
       can_view_telemetry: { Args: { _user_id?: string }; Returns: boolean }
       check_ai_quota: { Args: { _user_id: string }; Returns: Json }
+      check_auth_throttling: {
+        Args: { _email: string; _ip: string }
+        Returns: {
+          allowed: boolean
+          remaining_seconds: number
+        }[]
+      }
       check_hardening_status: { Args: never; Returns: Json }
       check_ip_access: { Args: { _ip: string }; Returns: string }
       check_mcp_abuse_threshold: {
@@ -5587,6 +5768,7 @@ export type Database = {
       cleanup_rate_limits: { Args: never; Returns: undefined }
       cleanup_security_logs: { Args: never; Returns: Json }
       cleanup_webhook_logs: { Args: never; Returns: Json }
+      clear_auth_attempts: { Args: { _email: string }; Returns: undefined }
       complete_optimization: {
         Args: {
           _error?: string
@@ -5945,6 +6127,7 @@ export type Database = {
       }
       log_user_logout: { Args: never; Returns: undefined }
       lookup_request_id: { Args: { _request_id: string }; Returns: Json }
+      maintain_webhook_metrics: { Args: never; Returns: undefined }
       mark_all_notifications_read: { Args: never; Returns: undefined }
       mark_notification_read: {
         Args: { p_notification_id: string }
@@ -5957,6 +6140,28 @@ export type Database = {
       mcp_audit_actor: { Args: { _fallback: string }; Returns: string }
       notify_hardening_regression: { Args: never; Returns: Json }
       purge_old_audit_logs: { Args: never; Returns: undefined }
+      record_app_vital: {
+        Args: {
+          _name: string
+          _rating: string
+          _req_id: string
+          _ua: string
+          _uid?: string
+          _url: string
+          _value: number
+        }
+        Returns: undefined
+      }
+      record_auth_attempt: {
+        Args: {
+          _email: string
+          _ip: string
+          _reason?: string
+          _success: boolean
+          _ua?: string
+        }
+        Returns: undefined
+      }
       record_dev_route_telemetry: {
         Args: {
           _blocked_path: string
