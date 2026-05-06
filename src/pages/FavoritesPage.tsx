@@ -30,7 +30,7 @@ import {
   CheckSquare, X, FolderOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
+
 import { toast } from "sonner";
 import { DeleteConfirmDialog } from "@/components/ui/ConfirmDialog";
 
