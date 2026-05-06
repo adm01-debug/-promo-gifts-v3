@@ -337,7 +337,7 @@ export function ConnectionTimelineDrawer({
                             )}
                           </TableCell>
                           <TableCell className="font-mono text-xs">
-                            {r.latency_ms != null ? `${r.latency_ms}ms` : '—'}
+                            {r.latency_ms !== null ? `${r.latency_ms}ms` : '—'}
                           </TableCell>
                           <TableCell
                             className={cn(
