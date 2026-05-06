@@ -1,19 +1,12 @@
-import { render, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import { MemoryRouter, Routes, Route, useLocation } from 'react-router-dom';
-import { AppProviders } from '../components/providers/AppProviders';
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { AppContent } from '../App';
+import { AuthProvider } from '../contexts/AuthContext';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Suspense } from 'react';
 
-// Mocking AppBootstrapContainer because it runs useAppBootstrap which might have side effects
-vi.mock('../App', async (importOriginal) => {
-  const actual = await importOriginal<any>();
-  return {
-    ...actual,
-    // We'll use the real AppContent but we might need to export it first
-  };
-});
-
-// Mock dependencies that we don't want to run in tests
+// Mocking dependencies to prevent errors during rendering
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
     auth: {
@@ -26,22 +19,63 @@ vi.mock('@/integrations/supabase/client', () => ({
   },
 }));
 
-// Mock useAppBootstrap
-vi.mock('@/hooks/useAppBootstrap', () => ({
-  useAppBootstrap: vi.fn(),
+// Mock ProtectedRoute to just render children (bypass auth for this test)
+vi.mock('@/components/layout/ProtectedRoute', () => ({
+  ProtectedRoute: ({ children }: { children: React.ReactNode }) => <>{children || <div data-testid="protected-outlet" />}</>,
 }));
 
-// Component to track location in tests
-const LocationTracker = () => {
+// Mock RouteErrorBoundary
+vi.mock('@/components/errors/RouteErrorBoundary', () => ({
+  RouteErrorBoundary: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}));
+
+const LocationDisplay = () => {
   const location = useLocation();
-  return <div data-testid="location">{location.pathname}</div>;
+  return <div data-testid="location-display">{location.pathname}</div>;
 };
 
-describe('Legacy Redirects', () => {
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: false } },
+});
+
+describe('Navigation Redirects', () => {
+  const testRedirect = async (fromPath: string, expectedToPath: string) => {
+    render(
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <MemoryRouter initialEntries={[fromPath]}>
+            <Suspense fallback={<div>Loading...</div>}>
+              <AppContent />
+              <LocationDisplay />
+            </Suspense>
+          </MemoryRouter>
+        </AuthProvider>
+      </QueryClientProvider>
+    );
+
+    await waitFor(() => {
+      const display = screen.getByTestId('location-display');
+      expect(display.textContent).toBe(expectedToPath);
+    }, { timeout: 3000 });
+  };
+
   it('redirects from /mockup-generator to /ferramentas/mockup-generator', async () => {
-    // Note: To test this properly without loading the whole App (which might be slow/complex),
-    // we could either export AppContent from App.tsx or duplicate the specific redirect routes here.
-    // However, the user wants to ensure FUTURE changes don't break it, 
-    // so testing the actual App configuration is better.
+    await testRedirect('/mockup-generator', '/ferramentas/mockup-generator');
+  });
+
+  it('redirects from /simulador to /ferramentas/simulador-wizard', async () => {
+    await testRedirect('/simulador', '/ferramentas/simulador-wizard');
+  });
+
+  it('redirects from /montar-kit to /ferramentas/kit-builder', async () => {
+    await testRedirect('/montar-kit', '/ferramentas/kit-builder');
+  });
+
+  it('redirects from /meus-kits to /ferramentas/kit-library', async () => {
+    await testRedirect('/meus-kits', '/ferramentas/kit-library');
+  });
+
+  it('redirects from /busca-preco to /ferramentas/busca-avancada-preco', async () => {
+    await testRedirect('/busca-preco', '/ferramentas/busca-avancada-preco');
   });
 });
