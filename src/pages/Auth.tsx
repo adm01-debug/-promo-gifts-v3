@@ -263,17 +263,17 @@ export default function Auth() {
             </Card>
           )}
 
-          {/* Auth Card */}
-          <Card className={`border-border/30 bg-card/80 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] ring-1 ring-border/10 backdrop-blur-xl rounded-2xl overflow-hidden transition-all duration-500 ${ipBlocked ? 'opacity-50 pointer-events-none' : ''}`}>
+          {/* Auth Card — bold & vivid, no shadows */}
+          <Card className={`border-2 border-primary/30 bg-card rounded-2xl overflow-hidden transition-all duration-300 ${ipBlocked ? 'opacity-50 pointer-events-none' : ''}`}>
             {showForgotPassword ? (
               <CardContent className="p-8">
                 <ForgotPasswordForm onBack={() => setShowForgotPassword(false)} />
               </CardContent>
             ) : (
             <>
-              <CardHeader className="pt-12 pb-6 px-8 text-center space-y-3">
-                <h2 className="text-3xl font-bold font-display tracking-tight text-foreground bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent">Bem-vindo</h2>
-                <p className="text-[13px] text-muted-foreground/80 font-medium leading-relaxed">Insira suas credenciais exclusivas para acessar o ecossistema Promo Gifts</p>
+              <CardHeader className="pt-10 pb-4 px-8 text-center space-y-2">
+                <h2 className="text-3xl font-bold font-display tracking-tight text-foreground">Bem-vindo</h2>
+                <p className="text-[13px] text-muted-foreground font-medium leading-relaxed">Insira suas credenciais exclusivas para acessar o ecossistema Promo Gifts</p>
               </CardHeader>
 
               <CardContent className="pt-2 px-8 pb-10 space-y-6">
@@ -324,7 +324,7 @@ export default function Auth() {
                           data-testid="login-email-input"
                           type="email"
                           placeholder="seu@email.com"
-                          className="pl-11 bg-muted/20 border-border/40 focus:bg-background focus:border-primary/50 focus:ring-4 focus:ring-primary/5 text-foreground placeholder:text-muted-foreground/30 lowercase h-12.5 rounded-xl transition-all duration-300 ring-offset-background"
+                          className="pl-11 bg-background border-2 border-border focus:border-primary focus:ring-0 text-foreground placeholder:text-muted-foreground/40 lowercase h-12 rounded-xl transition-colors duration-200"
                           {...loginForm.register("email")}
                           ref={(el) => {
                             loginForm.register("email").ref(el);
@@ -348,7 +348,7 @@ export default function Auth() {
                           data-testid="login-password-input"
                           type={showPassword ? "text" : "password"}
                           placeholder="••••••••"
-                          className="pl-11 pr-11 bg-muted/20 border-border/40 focus:bg-background focus:border-primary/50 focus:ring-4 focus:ring-primary/5 text-foreground placeholder:text-muted-foreground/30 h-12.5 rounded-xl transition-all duration-300 ring-offset-background"
+                          className="pl-11 pr-11 bg-background border-2 border-border focus:border-primary focus:ring-0 text-foreground placeholder:text-muted-foreground/40 h-12 rounded-xl transition-colors duration-200"
                           {...loginForm.register("password")}
                         />
                         <button
@@ -380,13 +380,12 @@ export default function Auth() {
                       </Button>
                     </div>
 
-                    <Button 
-                      type="submit" 
+                    <Button
+                      type="submit"
                       data-testid="login-submit"
-                      className="w-full h-12.5 text-sm font-bold uppercase tracking-widest bg-primary hover:bg-primary-hover text-primary-foreground shadow-[0_10px_20px_-5px_rgba(255,107,0,0.3)] hover:shadow-[0_15px_25px_-5px_rgba(255,107,0,0.4)] active:scale-[0.98] transition-all duration-300 rounded-xl mt-2 relative overflow-hidden group"
+                      className="w-full h-12 text-sm font-bold uppercase tracking-widest bg-primary hover:bg-primary-hover text-primary-foreground active:scale-[0.98] transition-colors duration-200 rounded-xl mt-2"
                       disabled={isSubmitting}
                     >
-                      <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -translate-x-full group-hover:animate-[shimmer_2s_infinite] transition-transform" />
                       {isSubmitting ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
