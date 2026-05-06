@@ -262,7 +262,10 @@ export function CartCompanyPickerDialog({ open, onOpenChange, onCreated }: CartC
           <TabsContent value="search" className="m-0 px-3 pt-3 pb-4 space-y-3">
             <div className="px-2">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+                <Search 
+                  aria-hidden="true"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" 
+                />
                 <Input
                   ref={inputRef}
                   value={searchTerm}
