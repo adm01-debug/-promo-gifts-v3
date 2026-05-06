@@ -438,6 +438,7 @@ const AppContent = () => {
         <Route path="/ferramentas/simulador-wizard" element={<SimuladorWizard />} />
         <Route path="/ferramentas/magic-up" element={<MagicUp />} />
         <Route path="/ferramentas/mockup-generator" element={<MockupGenerator />} />
+        <Route path="/mockup-generator" element={<Navigate to="/ferramentas/mockup-generator" replace />} />
         <Route path="/ferramentas/simulador-preco" element={<PriceSimulatorPage />} />
         <Route path="/ferramentas/kit-builder" element={<KitBuilderPage />} />
         <Route path="/ferramentas/kit-library" element={<MeusKitsPage />} />
