@@ -240,4 +240,20 @@ describe('CartCompanyPickerDialog - UI, Accessibility & Regression', () => {
     expect(announcement).toHaveTextContent(/2 empresas encontradas/i);
     expect(announcement).toHaveAttribute('aria-live', 'polite');
   });
+
+  it('verifies critical layout classes that prevent visual regressions', () => {
+    render(<CartCompanyPickerDialog {...defaultProps} />);
+    
+    const searchIcon = screen.getByTestId('search-icon');
+    // translate-y-1/2 combined with top-1/2 is the standard centering trick
+    expect(searchIcon).toHaveClass('-translate-y-1/2', 'top-1/2', 'pointer-events-none');
+    
+    const dialogContent = screen.getByRole('dialog');
+    // Ensure the dialog has the expected max-width on larger screens (simulated by checking the class)
+    expect(dialogContent).toHaveClass('sm:max-w-[520px]');
+    
+    // Check padding on the tabs container
+    const tabsList = screen.getByRole('tablist').parentElement;
+    expect(tabsList).toHaveClass('px-5');
+  });
 });
