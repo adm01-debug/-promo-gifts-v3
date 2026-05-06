@@ -25,8 +25,8 @@ describe('Theme Runtime Safety', () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
     // Test development environment
-    const originalEnv = process.env.NODE_ENV;
-    process.env.NODE_ENV = 'development';
+    const originalEnv = import.meta.env.DEV;
+    (import.meta.env as any).DEV = true;
 
     render(<ThemeConsumer />);
     expect(warnSpy).toHaveBeenCalledWith(
