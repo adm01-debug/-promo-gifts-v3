@@ -5,7 +5,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, Loader2, Gift, Mail, Lock, ShieldAlert, Globe, Wifi, AlertTriangle } from "lucide-react";
-import { AuthBrandingPanel } from "./auth/AuthBranding";
+import { AuthBrandingPanel, AuthSpaceBackground } from "./auth/AuthBranding";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -194,7 +194,7 @@ export default function Auth() {
   }
 
   return (
-    <main className="min-h-screen flex bg-background" role="main" aria-label="Autenticação">
+    <main className="min-h-screen flex bg-[#0A0D14] relative overflow-hidden" role="main" aria-label="Autenticação">
       <PageSEO
         title="Login"
         description="Acesse a plataforma Promo Gifts. Faça login para gerenciar seus orçamentos e catálogo."
@@ -207,11 +207,14 @@ export default function Auth() {
           "url": "https://criar-together-now.lovable.app/login"
         }}
       />
+      {/* Fundo espacial unificado — cobre toda a tela (sem divisão no meio) */}
+      <AuthSpaceBackground />
+
       {/* Left side - Branding */}
       <AuthBrandingPanel />
 
       {/* Right side - Auth Form */}
-      <div className="flex-1 flex items-center justify-center p-6 lg:p-12">
+      <div className="relative z-10 flex-1 flex items-center justify-center p-6 lg:p-12">
         <div className="w-full max-w-md space-y-8 animate-fade-in">
           {/* Mobile Logo */}
           <div className="text-center lg:hidden space-y-3">
@@ -264,7 +267,7 @@ export default function Auth() {
           )}
 
           {/* Auth Card */}
-          <Card className={`border-border/60 bg-card shadow-2xl ring-1 ring-border/20 backdrop-blur-sm ${ipBlocked ? 'opacity-50 pointer-events-none' : ''}`}>
+          <Card className={`border-white/10 bg-black/50 backdrop-blur-2xl shadow-2xl ring-1 ring-white/5 ${ipBlocked ? 'opacity-50 pointer-events-none' : ''}`}>
             {showForgotPassword ? (
               <CardContent className="pt-6 pb-6">
                 <ForgotPasswordForm onBack={() => setShowForgotPassword(false)} />
@@ -403,7 +406,7 @@ export default function Auth() {
                         <span className="w-full border-t border-border" />
                       </div>
                       <div className="relative flex justify-center text-xs uppercase">
-                        <span className="bg-card px-2 text-muted-foreground font-bold">OU</span>
+                        <span className="bg-[#0A0D14]/0 px-2 text-white/50 font-bold backdrop-blur-sm">OU</span>
                       </div>
                     </div>
 
