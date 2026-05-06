@@ -80,7 +80,7 @@ export function useAccessSecurity() {
       toast.error("Erro ao atualizar configurações");
       return;
     }
-    setSettings({ ...settings, ...updates });
+    setSettings(prev => prev ? { ...prev, ...updates } : null);
     toast.success("Configurações atualizadas");
   };
 
@@ -158,3 +158,4 @@ export function useAccessSecurity() {
     refetch: fetchAll,
   };
 }
+
