@@ -1,5 +1,5 @@
 /**
- * Left-side branding panel for Auth page — extracted for modularity
+ * Left-side branding panel for Auth page — Bold & Vivid edition (no shadows)
  */
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Gift, Package, Factory, SlidersHorizontal, Brain, Rocket } from "lucide-react";
@@ -12,37 +12,22 @@ export const ContinuousRockets = React.memo(() => {
 
   const spawnRocket = useCallback((isInitial = false) => {
     const id = nextIdRef.current++;
-    
     const left = 5 + Math.random() * 90;
     const size = 20 + Math.random() * 35;
-    const duration = isInitial 
-      ? (1.5 + Math.random() * 1.5) 
-      : (2.2 + Math.random() * 2.8);
-    
+    const duration = isInitial ? (1.5 + Math.random() * 1.5) : (2.2 + Math.random() * 2.8);
     const rotationOffset = -6 + Math.random() * 12;
     const scale = 0.8 + Math.random() * 0.4;
-
-    const rocket: RocketData = { 
-      id, left, size, duration, rotation: rotationOffset, scale 
-    };
-    
+    const rocket: RocketData = { id, left, size, duration, rotation: rotationOffset, scale };
     setRockets((prev) => [...prev, rocket]);
-    
-    setTimeout(() => {
-      setRockets((prev) => prev.filter((r) => r.id !== id));
-    }, (duration + 0.5) * 1000);
+    setTimeout(() => setRockets((prev) => prev.filter((r) => r.id !== id)), (duration + 0.5) * 1000);
   }, []);
 
   useEffect(() => {
-    // Initial burst
     const delays = [0, 200, 500, 900, 1400, 2000, 2800];
     const timers = delays.map(d => setTimeout(() => spawnRocket(true), d));
-
-    // Sustained cycle
     const interval = setInterval(() => {
       if (document.visibilityState === 'visible') spawnRocket();
     }, 2800);
-
     return () => {
       timers.forEach(clearTimeout);
       clearInterval(interval);
@@ -55,110 +40,66 @@ export const ContinuousRockets = React.memo(() => {
         <div
           key={r.id}
           className="absolute bottom-0"
-          style={{
-            left: `${r.left}%`,
-            animation: `rocketLaunch ${r.duration}s ease-out forwards`,
-            willChange: "transform, opacity",
-          }}
+          style={{ left: `${r.left}%`, animation: `rocketLaunch ${r.duration}s ease-out forwards`, willChange: "transform, opacity" }}
         >
           <div style={{ transform: `scale(${r.scale}) rotate(${r.rotation}deg)` }}>
-            <div 
-              className="relative animate-rocket-shake"
-              style={{ 
-                animation: "rocketShake 0.15s ease-in-out infinite",
-              }}
-            >
+            <div className="relative" style={{ animation: "rocketShake 0.15s ease-in-out infinite" }}>
               <Rocket
                 className="-rotate-45 text-orange"
-                style={{
-                  width: r.size,
-                  height: r.size,
-                  filter: "drop-shadow(0 0 12px rgba(251, 146, 60, 0.6))",
-                }}
+                style={{ width: r.size, height: r.size }}
               />
             </div>
-          {/* Rastro de chamas — gradiente fixo laranja→amarelo para efeito de propulsão consistente */}
-          <div
-            className="absolute left-1/2 -translate-x-1/2 rounded-full opacity-70"
-            style={{
-              top: `${r.size * 0.7}px`,
-              width: `${r.size * 0.3}px`,
-              height: `${r.size * 1.2}px`,
-              animation: "flameTrail 0.3s ease-in-out infinite alternate",
-              background: "linear-gradient(to bottom, #FB923C, #FBBF24, transparent)",
-              zIndex: -1,
-            }}
-          />
-          <div
-            className="absolute left-1/2 -translate-x-1/2 rounded-full opacity-40"
-            style={{
-              top: `${r.size * 0.8}px`,
-              width: `${r.size * 0.15}px`,
-              height: `${r.size * 1.8}px`,
-              animation: "flameTrail 0.2s ease-in-out infinite alternate-reverse",
-              background: "linear-gradient(to bottom, #FB923C, transparent)",
-              zIndex: -1,
-            }}
-          />
-          <div
-            className="absolute left-1/2 -translate-x-1/2 rounded-full bg-orange/10"
-            style={{
-              top: `${r.size}px`,
-              width: `${r.size * 2}px`,
-              height: `${r.size * 2}px`,
-              animation: "smokeRise 2s ease-out forwards",
-              filter: "blur(12px)",
-              zIndex: -2,
-            }}
-          />
+            <div
+              className="absolute left-1/2 -translate-x-1/2 rounded-full opacity-80"
+              style={{
+                top: `${r.size * 0.7}px`,
+                width: `${r.size * 0.3}px`,
+                height: `${r.size * 1.2}px`,
+                animation: "flameTrail 0.3s ease-in-out infinite alternate",
+                background: "linear-gradient(to bottom, #FB923C, #FBBF24, transparent)",
+                zIndex: -1,
+              }}
+            />
+          </div>
         </div>
-      </div>
       ))}
     </div>
   );
 });
 
-const Starfield = React.memo(() => {
-  return (
-    <>
-      {[...Array(32)].map((_, i) => {
-        const size = 1 + (i % 3);
-        const top = (i * 37 + 11) % 100;
-        const left = (i * 53 + 7) % 100;
-        const dur = 2 + (i % 5);
-        const delay = (i * 0.4) % 3;
-        return (
-          <div
-            key={`star-${i}`}
-            className="absolute rounded-full bg-white/30 shadow-[0_0_8px_rgba(255,255,255,0.3)]"
-            style={{
-              width: `${size}px`,
-              height: `${size}px`,
-              top: `${top}%`,
-              left: `${left}%`,
-              animation: `twinkle ${dur}s ease-in-out ${delay}s infinite`
-            }}
-          />
-        );
-      })}
-    </>
-  );
-});
+const Starfield = React.memo(() => (
+  <>
+    {[...Array(32)].map((_, i) => {
+      const size = 1 + (i % 3);
+      const top = (i * 37 + 11) % 100;
+      const left = (i * 53 + 7) % 100;
+      const dur = 2 + (i % 5);
+      const delay = (i * 0.4) % 3;
+      return (
+        <div
+          key={`star-${i}`}
+          className="absolute rounded-full bg-white/40"
+          style={{ width: `${size}px`, height: `${size}px`, top: `${top}%`, left: `${left}%`, animation: `twinkle ${dur}s ease-in-out ${delay}s infinite` }}
+        />
+      );
+    })}
+  </>
+));
 
 function FeatureCard({ item, index }: { item: typeof FEATURE_ITEMS[0]; index: number }) {
   const IconComponent = item.icon;
   return (
-    <div 
-      className="p-4 rounded-xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-lg hover:bg-white/10 hover:border-primary/30 hover:scale-[1.02] transition-all duration-500 group opacity-0"
+    <div
+      className="p-4 rounded-xl bg-white/5 border-2 border-white/10 hover:bg-primary/15 hover:border-primary transition-all duration-300 group opacity-0"
       style={{ animation: `scale-fade-in 0.5s ease-out ${300 + index * 100}ms forwards` }}
     >
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
           <p className="text-base font-bold text-primary truncate leading-tight">{item.label}</p>
-          <p className="text-[11px] font-medium text-white/50 truncate uppercase tracking-wider mt-0.5">{item.desc}</p>
+          <p className="text-[11px] font-medium text-white/60 truncate uppercase tracking-wider mt-0.5">{item.desc}</p>
         </div>
-        <div className="w-9 h-9 rounded-lg bg-primary/15 flex items-center justify-center group-hover:bg-primary/25 transition-colors shrink-0">
-          <IconComponent className="h-4 w-4 text-primary" />
+        <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center shrink-0">
+          <IconComponent className="h-4 w-4 text-primary-foreground" />
         </div>
       </div>
     </div>
@@ -175,25 +116,24 @@ const FEATURE_ITEMS = [
 export function AuthBrandingPanel() {
   return (
     <div className="hidden lg:flex lg:w-1/2 bg-[#0A0D14] relative overflow-hidden">
-      {/* Background decoration */}
+      {/* Background decoration — solid vivid blobs, no blur shadows */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/4 -left-20 w-80 h-80 bg-orange/20 rounded-full blur-[120px] animate-pulse" />
-        <div className="absolute bottom-1/4 right-0 w-96 h-96 bg-orange/10 rounded-full blur-[150px]" />
-        <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-orange/5 rounded-full blur-[100px]" />
+        <div className="absolute -top-32 -left-32 w-[420px] h-[420px] rounded-full bg-primary/25" />
+        <div className="absolute -bottom-40 -right-20 w-[480px] h-[480px] rounded-full bg-primary/15" />
+        <div className="absolute top-1/2 left-1/3 w-72 h-72 rounded-full bg-orange/10" />
         <Starfield />
         <ContinuousRockets />
       </div>
 
-      {/* Content */}
       <div className="relative z-10 flex flex-col justify-center items-center px-12 xl:px-16 w-full">
-        <div className="space-y-5 w-full max-w-lg">
+        <div className="space-y-6 w-full max-w-lg">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/30">
-              <Gift className="h-5 w-5 text-primary-foreground" />
+            <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center">
+              <Gift className="h-6 w-6 text-primary-foreground" />
             </div>
             <div>
               <h1 className="font-display text-2xl font-bold text-white tracking-tight leading-none">Promo Gifts</h1>
-              <p className="text-primary font-semibold uppercase tracking-[0.2em] text-[10px] mt-1">Plataforma de Vendas</p>
+              <p className="text-primary font-bold uppercase tracking-[0.2em] text-[10px] mt-1">Plataforma de Vendas</p>
             </div>
           </div>
 
@@ -205,7 +145,7 @@ export function AuthBrandingPanel() {
                 Melhor Time das Galáxias!
               </span>
             </h2>
-            <p className="text-sm text-white/60 leading-relaxed font-normal">
+            <p className="text-sm text-white/70 leading-relaxed">
               Acesso ao maior mix de produtos personalizados, estoque em tempo real e técnicas de personalização. Feito para você decolar.
             </p>
           </div>
@@ -216,7 +156,6 @@ export function AuthBrandingPanel() {
             ))}
           </div>
 
-          {/* Trust Indicators */}
           <div className="flex items-center gap-4 pt-6 opacity-0" style={{ animation: 'scale-fade-in 0.5s ease-out 900ms forwards' }}>
             {[
               { label: "Conexão segura", path: "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" },
@@ -224,12 +163,12 @@ export function AuthBrandingPanel() {
               { label: "Infraestrutura SOC 2", path: "M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" },
             ].map((item, i) => (
               <React.Fragment key={i}>
-                {i > 0 && <div className="w-px h-4 bg-border" />}
-                <div className="flex items-center gap-2 text-xs text-white/40">
+                {i > 0 && <div className="w-px h-4 bg-white/20" />}
+                <div className="flex items-center gap-2 text-xs text-white/60">
                   <svg className="h-4 w-4 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.path} />
                   </svg>
-                  <span>{item.label}</span>
+                  <span className="font-medium">{item.label}</span>
                 </div>
               </React.Fragment>
             ))}
@@ -239,4 +178,3 @@ export function AuthBrandingPanel() {
     </div>
   );
 }
-
