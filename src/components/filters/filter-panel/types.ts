@@ -74,6 +74,8 @@ export const defaultFilters: FilterState = {
   sortBy: 'relevance',
   gender: [],
   sizes: [],
+  materialGroups: [],
+  materialTypes: [],
 };
 
 export const SECTION_CONFIG: Record<string, { title: string; icon: React.ReactNode }> = {
