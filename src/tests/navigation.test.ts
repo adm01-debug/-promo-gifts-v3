@@ -11,8 +11,18 @@ test.describe('Navigation Redirects', () => {
     await expect(page).toHaveURL(/\/ferramentas\/simulador-wizard/);
   });
 
+  test('should redirect /simulador-precos to /ferramentas/simulador-preco', async ({ page }) => {
+    await page.goto('/simulador-precos');
+    await expect(page).toHaveURL(/\/ferramentas\/simulador-preco/);
+  });
+
   test('should redirect /montar-kit to /ferramentas/kit-builder', async ({ page }) => {
     await page.goto('/montar-kit');
+    await expect(page).toHaveURL(/\/ferramentas\/kit-builder/);
+  });
+
+  test('should redirect /kits to /ferramentas/kit-builder', async ({ page }) => {
+    await page.goto('/kits');
     await expect(page).toHaveURL(/\/ferramentas\/kit-builder/);
   });
 
@@ -23,6 +33,11 @@ test.describe('Navigation Redirects', () => {
 
   test('should redirect /busca-preco to /ferramentas/busca-avancada-preco', async ({ page }) => {
     await page.goto('/busca-preco');
+    await expect(page).toHaveURL(/\/ferramentas\/busca-avancada-preco/);
+  });
+
+  test('should redirect /busca-precos to /ferramentas/busca-avancada-preco', async ({ page }) => {
+    await page.goto('/busca-precos');
     await expect(page).toHaveURL(/\/ferramentas\/busca-avancada-preco/);
   });
 });
