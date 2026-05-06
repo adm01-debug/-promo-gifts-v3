@@ -5,7 +5,7 @@
 import { type SellerCart } from "@/hooks/useSellerCarts";
 import { Building2, Plus, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { differenceInDays } from "date-fns";
+import { differenceInDays, isSameDay } from "date-fns";
 import { getStatusCfg } from "@/components/cart/CartUtilComponents";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
