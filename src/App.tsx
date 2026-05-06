@@ -36,6 +36,7 @@ const Unauthorized = lazyWithRetry(() =>
 const ResetPassword = lazyWithRetry(() => import('./pages/ResetPassword'));
 const Index = lazyWithRetry(() => import('./pages/Index'));
 const PublicQuoteApproval = lazyWithRetry(() => import('./pages/PublicQuoteApprovalPage'));
+const QuoteApprovalPage = lazyWithRetry(() => import('./pages/QuoteApprovalPage'));
 const PublicKitView = lazyWithRetry(() => import('./pages/PublicKitViewPage'));
 const PublicFavoriteList = lazyWithRetry(() => import('./pages/PublicFavoriteListPage'));
 const PublicCollectionPage = lazyWithRetry(() => import('./pages/PublicCollectionPage'));
@@ -60,6 +61,7 @@ const QuotesListPage = lazyWithRetry(() => import('./pages/QuotesListPage'));
 const QuotesDashboardPage = lazyWithRetry(() => import('./pages/QuotesDashboardPage'));
 const QuoteBuilderPage = lazyWithRetry(() => import('./pages/QuoteBuilderPage'));
 const QuoteViewPage = lazyWithRetry(() => import('./pages/QuoteViewPage'));
+const QuoteDetailPage = lazyWithRetry(() => import('./pages/QuoteDetailPage'));
 const QuotesKanbanPage = lazyWithRetry(() => import('./pages/QuotesKanbanPage'));
 
 // Admin Pages
@@ -112,8 +114,10 @@ const OwnershipAuditAdminPage = lazyWithRetry(
   () => import('./pages/admin/OwnershipAuditAdminPage'),
 );
 const ComplianceEvidencePage = lazyWithRetry(() => import('./pages/admin/ComplianceEvidencePage'));
-
-// Tools Pages
+const EngravingRegistrationPage = lazyWithRetry(
+  () => import('./pages/EngravingRegistrationPage'),
+);
+const ProductRegistrationPage = lazyWithRetry(() => import('./pages/ProductRegistrationPage'));
 const SimuladorWizard = lazyWithRetry(() => import('./pages/SimuladorWizard'));
 const MockupGenerator = lazyWithRetry(() => import('./pages/MockupGenerator'));
 const MagicUp = lazyWithRetry(() => import('./pages/MagicUp'));
@@ -241,6 +245,14 @@ const AppContent = () => {
         }
       />
       <Route
+        path="/approval/:token"
+        element={
+          <RouteErrorBoundary>
+            <QuoteApprovalPage />
+          </RouteErrorBoundary>
+        }
+      />
+      <Route
         path="/kit/:token"
         element={
           <RouteErrorBoundary>
@@ -328,6 +340,7 @@ const AppContent = () => {
         <Route path="/orcamentos/templates" element={<QuoteTemplatesPage />} />
         <Route path="/orcamentos/novo" element={<QuoteBuilderPage />} />
         <Route path="/orcamentos/:id/editar" element={<QuoteBuilderPage />} />
+        <Route path="/orcamentos/:id/detalhe" element={<QuoteDetailPage />} />
         <Route path="/orcamentos/:id" element={<QuoteViewPage />} />
 
         {/* Skins / Temas — disponível para todos os usuários autenticados (preferência local). */}
@@ -344,6 +357,8 @@ const AppContent = () => {
           <Route path="/admin/compliance" element={<ComplianceEvidencePage />} />
           <Route path="/admin/cadastros" element={<AdminCadastrosPage />} />
           <Route path="/admin/cadastros/produto/:id" element={<AdminProductFormPage />} />
+          <Route path="/admin/cadastros/produto/novo" element={<ProductRegistrationPage />} />
+          <Route path="/admin/cadastros/gravacoes" element={<EngravingRegistrationPage />} />
           <Route path="/admin/permissoes" element={<PermissionsPage />} />
           <Route path="/admin/roles" element={<RolesPage />} />
           <Route path="/admin/role-permissoes" element={<RolePermissionsPage />} />
@@ -510,3 +525,4 @@ const App = () => {
 };
 
 export default App;
+// Force re-read

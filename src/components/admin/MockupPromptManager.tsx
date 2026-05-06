@@ -71,7 +71,7 @@ export function MockupPromptManager() {
     try {
       const [cr, tr] = await Promise.all([
         supabase.from('mockup_prompt_configs').select('*').order('config_key'),
-        supabase.from('personalization_techniques').select('id, name, code').eq('is_active', true),
+        supabase.from('personalization_techniques').select('id, name, code').eq('is_active', true) as any,
       ]);
       if (cr.error) throw cr.error;
       if (tr.error) throw tr.error;
@@ -107,7 +107,7 @@ export function MockupPromptManager() {
           ai_model: config.ai_model,
           changed_by: user?.id,
           change_notes: changeNotes[config.id] || null,
-        });
+        } as any);
       const { error } = await supabase
         .from('mockup_prompt_configs')
         .update({
@@ -115,7 +115,7 @@ export function MockupPromptManager() {
           ai_model: edited.ai_model,
           version: config.version + 1,
           updated_by: user?.id,
-        })
+        } as any)
         .eq('id', config.id);
       if (error) throw error;
       toast.success(`Prompt "${config.label}" salvo (v${config.version + 1})`);
@@ -188,7 +188,7 @@ export function MockupPromptManager() {
           ai_model: 'google/gemini-2.5-flash-image-preview',
           technique_id: tech.id,
           created_by: user?.id,
-        });
+        } as any);
       if (error) throw error;
       toast.success(`Prompt para "${tech.name}" criado`);
       setAddTechniqueDialog(false);
