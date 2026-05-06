@@ -11,6 +11,9 @@ export const ContinuousRockets = React.memo(() => {
   const nextIdRef = useRef(0);
 
   const spawnRocket = useCallback((isInitial = false) => {
+    // Check for reduced motion
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
     const id = nextIdRef.current++;
     
     const left = 5 + Math.random() * 90;
@@ -34,6 +37,9 @@ export const ContinuousRockets = React.memo(() => {
   }, []);
 
   useEffect(() => {
+    const isReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (isReduced) return;
+
     // Initial burst
     const delays = [0, 200, 500, 900, 1400, 2000, 2800];
     const timers = delays.map(d => setTimeout(() => spawnRocket(true), d));
@@ -50,7 +56,7 @@ export const ContinuousRockets = React.memo(() => {
   }, [spawnRocket]);
 
   return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden z-[1]" aria-hidden="true">
+    <div className="pointer-events-none absolute inset-0 overflow-hidden z-[1] motion-reduce:hidden" aria-hidden="true">
       {rockets.map((r) => (
         <div
           key={r.id}
@@ -77,7 +83,6 @@ export const ContinuousRockets = React.memo(() => {
                 }}
               />
             </div>
-          {/* Rastro de chamas — gradiente fixo laranja→amarelo para efeito de propulsão consistente */}
           <div
             className="absolute left-1/2 -translate-x-1/2 rounded-full opacity-70"
             style={{
@@ -127,7 +132,7 @@ const BackgroundRockets = React.memo(() => {
     { left: 88, size: 26, duration: 11, delay: 7,   opacity: 0.38 },
   ];
   return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden z-[0]" aria-hidden="true">
+    <div className="pointer-events-none absolute inset-0 overflow-hidden z-[0] motion-reduce:hidden" aria-hidden="true">
       {rockets.map((r, i) => (
         <div
           key={`bg-rocket-${i}`}
@@ -169,26 +174,70 @@ const BackgroundRockets = React.memo(() => {
 const Starfield = React.memo(() => {
   return (
     <>
-      {[...Array(48)].map((_, i) => {
-        const isFar = i >= 32;
-        const size = isFar ? 1 : 1 + (i % 3);
-        const top = (i * 37 + 11) % 100;
-        const left = (i * 53 + 7) % 100;
-        const dur = isFar ? 4 + (i % 4) : 2 + (i % 5);
-        const delay = (i * 0.4) % 3;
-        const opacity = isFar ? "opacity-10" : "opacity-30";
-        const blur = isFar ? "blur-[1px]" : "";
-        
+      {/* Camada Distante (Lenta/Desfocada) */}
+      {[...Array(24)].map((_, i) => {
+        const size = 1;
+        const top = (i * 47 + 13) % 100;
+        const left = (i * 61 + 9) % 100;
+        const dur = 6 + (i % 4);
+        const delay = (i * 0.5) % 4;
         return (
           <div
-            key={`star-${i}`}
-            className={`absolute rounded-full bg-white ${opacity} ${blur} shadow-[0_0_8px_rgba(255,255,255,0.3)]`}
+            key={`star-far-${i}`}
+            className="absolute rounded-full bg-white opacity-10 blur-[1.5px] shadow-[0_0_10px_rgba(255,255,255,0.2)]"
             style={{
               width: `${size}px`,
               height: `${size}px`,
               top: `${top}%`,
               left: `${left}%`,
-              animation: `twinkle ${dur}s ease-in-out ${delay}s infinite`
+              animation: `twinkle ${dur}s ease-in-out ${delay}s infinite`,
+              transform: 'translateZ(-2px)',
+            }}
+          />
+        );
+      })}
+
+      {/* Camada Média */}
+      {[...Array(32)].map((_, i) => {
+        const size = 1 + (i % 2);
+        const top = (i * 37 + 11) % 100;
+        const left = (i * 53 + 7) % 100;
+        const dur = 3 + (i % 3);
+        const delay = (i * 0.4) % 3;
+        return (
+          <div
+            key={`star-mid-${i}`}
+            className="absolute rounded-full bg-white opacity-20 shadow-[0_0_8px_rgba(255,255,255,0.3)]"
+            style={{
+              width: `${size}px`,
+              height: `${size}px`,
+              top: `${top}%`,
+              left: `${left}%`,
+              animation: `twinkle ${dur}s ease-in-out ${delay}s infinite`,
+              transform: 'translateZ(-1px)',
+            }}
+          />
+        );
+      })}
+
+      {/* Camada Próxima (Nítida) */}
+      {[...Array(16)].map((_, i) => {
+        const size = 1.5 + (i % 2);
+        const top = (i * 29 + 17) % 100;
+        const left = (i * 41 + 5) % 100;
+        const dur = 2 + (i % 2);
+        const delay = (i * 0.3) % 2;
+        return (
+          <div
+            key={`star-near-${i}`}
+            className="absolute rounded-full bg-white opacity-40 shadow-[0_0_12px_rgba(255,255,255,0.5)]"
+            style={{
+              width: `${size}px`,
+              height: `${size}px`,
+              top: `${top}%`,
+              left: `${left}%`,
+              animation: `twinkle ${dur}s ease-in-out ${delay}s infinite`,
+              transform: 'translateZ(0px)',
             }}
           />
         );
@@ -201,16 +250,19 @@ function FeatureCard({ item, index }: { item: typeof FEATURE_ITEMS[0]; index: nu
   const IconComponent = item.icon;
   return (
     <div 
-      className="p-5 rounded-xl bg-black/40 backdrop-blur-2xl border border-white/10 shadow-xl hover:bg-black/60 hover:border-primary/40 hover:scale-[1.02] transition-all duration-500 group opacity-0"
-      style={{ animation: `scale-fade-in 0.5s ease-out ${300 + index * 100}ms forwards` }}
+      className="p-5 rounded-xl bg-black/60 backdrop-blur-2xl border border-white/10 shadow-2xl hover:bg-black/80 hover:border-primary/50 hover:scale-[1.02] transition-all duration-500 group opacity-0"
+      style={{ 
+        animation: `scale-fade-in 0.5s ease-out ${300 + index * 100}ms forwards`,
+        boxShadow: '0 0 20px rgba(0,0,0,0.5)' 
+      }}
     >
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-lg font-bold text-white group-hover:text-primary transition-colors truncate leading-tight">{item.label}</p>
-          <p className="text-[13px] font-medium text-white/70 truncate uppercase tracking-wider mt-0.5">{item.desc}</p>
+          <p className="text-lg font-bold text-white group-hover:text-primary transition-colors truncate leading-tight drop-shadow-md">{item.label}</p>
+          <p className="text-[13px] font-medium text-white/80 truncate uppercase tracking-wider mt-0.5 drop-shadow-sm">{item.desc}</p>
         </div>
         <div className="w-11 h-11 rounded-lg bg-primary/20 flex items-center justify-center group-hover:bg-primary/30 transition-colors shrink-0 shadow-inner">
-          <IconComponent className="h-5 w-5 text-primary" />
+          <IconComponent className="h-5 w-5 text-primary drop-shadow-[0_0_8px_rgba(var(--primary),0.5)]" />
         </div>
       </div>
     </div>
@@ -228,9 +280,10 @@ export function AuthBrandingPanel() {
   return (
     <div className="hidden lg:flex lg:w-1/2 bg-[#0A0D14] relative overflow-hidden">
       {/* Background decoration with deep space gradient */}
-      <div className="absolute inset-0 overflow-hidden bg-[radial-gradient(circle_at_50%_50%,rgba(10,13,20,1)_0%,rgba(5,7,12,1)_100%)]">
-        <div className="absolute inset-0 opacity-30 bg-[radial-gradient(ellipse_at_center,rgba(251,146,60,0.08)_0%,transparent_70%)]" />
-        <div className="absolute top-1/4 -left-20 w-80 h-80 bg-orange/15 rounded-full blur-[120px] animate-pulse" />
+      <div className="absolute inset-0 overflow-hidden bg-[#0A0D14]">
+        <div className="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_50%_50%,rgba(13,17,26,1)_0%,rgba(5,7,12,1)_100%)]" />
+        <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_center,rgba(251,146,60,0.12)_0%,transparent_75%)]" />
+        <div className="absolute top-1/4 -left-20 w-80 h-80 bg-orange/10 rounded-full blur-[120px] animate-pulse" />
         <div className="absolute bottom-1/4 right-0 w-96 h-96 bg-orange/5 rounded-full blur-[150px]" />
         <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-orange/5 rounded-full blur-[100px]" />
         <Starfield />
