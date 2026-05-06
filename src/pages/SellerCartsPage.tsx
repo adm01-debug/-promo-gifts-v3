@@ -33,7 +33,7 @@ import { DndContext, closestCenter } from "@dnd-kit/core";
 import { SortableContext, rectSortingStrategy } from "@dnd-kit/sortable";
 import { cn } from "@/lib/utils";
 import {
-  ShoppingCart, Plus, Building2, Trash2, Clock, MapPin, FileText, Search, ArrowUpDown, Filter,
+  ShoppingCart, Plus, Building2, Trash2, Clock, MapPin, FileText, Search, ArrowUpDown, Filter, Package,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
@@ -118,18 +118,44 @@ function SellerCartsContent() {
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {s.carts.length >= 2 && <CompareCartsDialog carts={s.carts} />}
+          
           <div className="flex items-center gap-2 border border-border/40 bg-card/60 rounded-xl p-1 h-9 shadow-sm">
             <Search className="h-3.5 w-3.5 text-muted-foreground ml-2" />
             <input 
               type="text" 
-              placeholder="Buscar por empresa ou produto..."
-              className="bg-transparent border-none text-xs w-40 sm:w-60 focus:ring-0 placeholder:text-muted-foreground/50 h-full"
+              placeholder="Busca global..."
+              className="bg-transparent border-none text-xs w-32 sm:w-48 focus:ring-0 placeholder:text-muted-foreground/50 h-full"
               value={s.searchTerm}
               onChange={(e) => s.setSearchTerm(e.target.value)}
             />
           </div>
+
+          <Select value={s.companyFilter} onValueChange={s.setCompanyFilter}>
+            <SelectTrigger className="h-9 text-xs w-[140px] gap-2 rounded-xl border-border/40 bg-card/60 shadow-sm">
+              <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
+              <SelectValue placeholder="Empresa" />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl">
+              <SelectItem value="all">Todas Empresas</SelectItem>
+              {Array.from(new Set(s.carts.map(c => c.company_name))).map(name => (
+                <SelectItem key={name} value={name}>{name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <div className="flex items-center gap-2 border border-border/40 bg-card/60 rounded-xl p-1 h-9 shadow-sm">
+            <Package className="h-3.5 w-3.5 text-muted-foreground ml-2" />
+            <input 
+              type="text" 
+              placeholder="Filtrar produto..."
+              className="bg-transparent border-none text-xs w-32 focus:ring-0 placeholder:text-muted-foreground/50 h-full"
+              value={s.productFilter}
+              onChange={(e) => s.setProductFilter(e.target.value)}
+            />
+          </div>
+
           <Select value={s.sortBy} onValueChange={s.setSortBy}>
             <SelectTrigger className="h-9 text-xs w-[140px] gap-2 rounded-xl border-border/40 bg-card/60 shadow-sm">
               <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
@@ -142,6 +168,7 @@ function SellerCartsContent() {
               <SelectItem value="total-asc">Menor valor</SelectItem>
             </SelectContent>
           </Select>
+
           {s.canCreateCart && (
             <Button onClick={() => s.setShowNewCart(true)} size="sm" className="gap-1.5 bg-primary hover:bg-primary/90 text-primary-foreground h-9 shadow-sm rounded-xl px-4">
               <Plus className="h-4 w-4" /> Novo Carrinho

@@ -24,6 +24,26 @@ export function useSellerCartsPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { cartId: routeCartId } = useParams<{ cartId?: string }>();
+  
+  // Sync search and sort with URL
+  const initialSearch = searchParams.get("search") || "";
+  const initialSortBy = searchParams.get("sort") || "date-desc";
+  const initialProductFilter = searchParams.get("product") || "";
+  
+  const [searchTerm, setSearchTerm] = useState(initialSearch);
+  const [productFilter, setProductFilter] = useState(initialProductFilter);
+  const [sortBy, setSortBy] = useState<string>(initialSortBy);
+  const [companyFilter, setCompanyFilter] = useState<string>(searchParams.get("company") || "all");
+  
+  useEffect(() => {
+    const params: Record<string, string> = {};
+    if (searchTerm) params.search = searchTerm;
+    if (productFilter) params.product = productFilter;
+    if (sortBy !== "date-desc") params.sort = sortBy;
+    if (companyFilter !== "all") params.company = companyFilter;
+    setSearchParams(params, { replace: true });
+  }, [searchTerm, productFilter, sortBy, companyFilter, setSearchParams]);
+
   const {
     carts, activeCart, activeCartId, isLoading, totalItems, canCreateCart,
     setActiveCartId, deleteCart, addToActiveCart, removeItem, updateItemQuantity,
@@ -100,13 +120,21 @@ export function useSellerCartsPage() {
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id || !activeCart) return;
+    
+    // Solo permitir reordenar manualmente si el modo de ordenación es "manual"
+    if (itemsSortBy !== "manual") {
+      toast.error("Mude para ordenação 'Manual' para arrastar os itens");
+      return;
+    }
+
     const items = activeCart.items;
     const oldIndex = items.findIndex(i => i.id === active.id);
     const newIndex = items.findIndex(i => i.id === over.id);
     if (oldIndex === -1 || newIndex === -1) return;
+    
     const reordered = arrayMove(items, oldIndex, newIndex);
     updateItemSortOrder(reordered.map((item, idx) => ({ id: item.id, sort_order: idx })));
-  }, [activeCart, updateItemSortOrder]);
+  }, [activeCart, updateItemSortOrder, itemsSortBy]);
 
   const handleRemoveItem = useCallback((itemId: string, itemName: string) => {
     const item = activeCart?.items.find(i => i.id === itemId);
@@ -240,12 +268,12 @@ export function useSellerCartsPage() {
     return cart.company_primary_color || null;
   }, [activeCart]);
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState<string>(searchParams.get("sort") || "date-desc");
   const [itemsSortBy, setItemsSortBy] = useState<string>("manual");
 
   const filteredCarts = useMemo(() => {
     let result = [...carts];
+    
+    // Global Search (Company or Product)
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       result = result.filter(c => 
@@ -254,7 +282,18 @@ export function useSellerCartsPage() {
       );
     }
     
-    // Status filter if implemented in future
+    // Specific Company Filter
+    if (companyFilter !== "all") {
+      result = result.filter(c => c.company_name === companyFilter);
+    }
+    
+    // Specific Product Filter (Autocomplete)
+    if (productFilter) {
+      const term = productFilter.toLowerCase();
+      result = result.filter(c => 
+        c.items.some(i => i.product_name.toLowerCase().includes(term))
+      );
+    }
     
     result.sort((a, b) => {
       if (sortBy === "date-desc") return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
@@ -304,6 +343,7 @@ export function useSellerCartsPage() {
     confirmClearCart, setConfirmClearCart, handleGenerateQuote, confirmGenerateQuote, handleClearCart,
     otherCarts, cartAge, cartSubtotal, cartTotalQty, companyAccentColor, isLoadingProducts,
     exportCartToCSV, exportCartToPDF, shareCartLink,
-    searchTerm, setSearchTerm, sortBy, setSortBy, itemsSortBy, setItemsSortBy, sortedItems
+    searchTerm, setSearchTerm, sortBy, setSortBy, itemsSortBy, setItemsSortBy, sortedItems,
+    companyFilter, setCompanyFilter, productFilter, setProductFilter
   };
 }
