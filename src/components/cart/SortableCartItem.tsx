@@ -96,21 +96,46 @@ export const SortableCartItem = memo(function SortableCartItem({
 
         {/* Product image */}
         <div className="relative aspect-square bg-muted/20 group/img-container overflow-hidden">
-          <Tooltip>
-            <TooltipTrigger asChild>
+          <div className="absolute top-2.5 left-2.5 z-30 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-300">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  {...attributes}
+                  {...listeners}
+                  className="h-8 w-8 flex items-center justify-center rounded-xl bg-card/90 backdrop-blur-md text-muted-foreground hover:text-primary cursor-grab active:cursor-grabbing shadow-sm border border-border/50"
+                  aria-label="Arrastar"
+                >
+                  <GripVertical className="h-4 w-4" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="right" className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">
+                Arraste para reordenar
+              </TooltipContent>
+            </Tooltip>
+
+            {onToggleSelection && (
               <button
-                {...attributes}
-                {...listeners}
-                className="absolute top-2.5 left-2.5 z-20 h-8 w-8 flex items-center justify-center rounded-xl bg-card/90 backdrop-blur-md text-muted-foreground hover:text-primary cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-sm border border-border/50"
-                aria-label="Arrastar"
+                onClick={(e) => { e.stopPropagation(); onToggleSelection(item.id); }}
+                className={cn(
+                  "h-8 w-8 flex items-center justify-center rounded-xl backdrop-blur-md transition-all shadow-sm border",
+                  isSelected 
+                    ? "bg-primary text-primary-foreground border-primary/20 scale-110" 
+                    : "bg-card/90 text-muted-foreground hover:text-primary border-border/50"
+                )}
+                aria-label="Selecionar"
               >
-                <GripVertical className="h-4 w-4" />
+                <div className={cn(
+                  "h-4 w-4 rounded-[4px] border-2 transition-all",
+                  isSelected ? "bg-white border-white" : "border-muted-foreground/30"
+                )} />
               </button>
-            </TooltipTrigger>
-            <TooltipContent side="right" className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">
-              Arraste para reordenar
-            </TooltipContent>
-          </Tooltip>
+            )}
+          </div>
+
+          {/* Selection state overlay (always visible if selected) */}
+          {isSelected && (
+            <div className="absolute inset-0 bg-primary/5 ring-4 ring-primary/30 ring-inset z-10 transition-all" />
+          )}
           
           <div
             data-testid="cart-item-image"
