@@ -30,7 +30,7 @@ import {
   CheckSquare, X, FolderOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
+
 import { toast } from "sonner";
 import { DeleteConfirmDialog } from "@/components/ui/ConfirmDialog";
 
@@ -58,8 +58,9 @@ function loadViewMode(): ViewMode {
   try {
     const v = localStorage.getItem(VIEW_MODE_KEY);
     if (v === "grid" || v === "list" || v === "table") return v as ViewMode;
-  } catch {}
-  return "grid";
+  } catch (err) {
+    console.warn("Failed to load view mode:", err);
+  }
 }
 
 function loadGridColumns(): ColumnCount {
@@ -69,7 +70,9 @@ function loadGridColumns(): ColumnCount {
       const n = Number(v) as ColumnCount;
       if ([3, 4, 5, 6, 8].includes(n)) return n as ColumnCount;
     }
-  } catch {}
+  } catch (err) {
+    console.warn("Failed to load grid columns:", err);
+  }
   return getDefaultColumns();
 }
 
@@ -78,7 +81,9 @@ function loadSort(): FavoritesSort {
     const v = localStorage.getItem(SORT_KEY) as FavoritesSort | null;
     const allowed: FavoritesSort[] = ["recent", "oldest", "price-asc", "price-desc", "name-asc", "name-desc", "category"];
     if (v && allowed.includes(v)) return v;
-  } catch {}
+  } catch (err) {
+    console.warn("Failed to load sort:", err);
+  }
   return "recent";
 }
 
