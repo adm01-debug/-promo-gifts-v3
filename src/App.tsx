@@ -13,6 +13,7 @@ import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
 import { AdminRoute } from '@/components/layout/AdminRoute';
 import { DevRoute } from '@/components/layout/DevRoute';
 import { DeprecatedRoute } from '@/components/layout/DeprecatedRoute';
+import { RouteErrorBoundary } from '@/components/errors/RouteErrorBoundary';
 import { AppProviders } from '@/components/providers/AppProviders';
 import { AccessibilityProvider, AriaLiveProvider } from '@/components/a11y';
 import { getFallback } from '@/components/layout/SkeletonLoaders';
