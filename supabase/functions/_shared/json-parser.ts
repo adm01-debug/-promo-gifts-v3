@@ -38,12 +38,16 @@ export function extractAndParseAIJSON(raw: string): unknown {
     return JSON.parse(cleaned);
   } catch (e1) {
     // Repair attempt 1: escape unescaped double quotes inside string values.
-    // Heuristic: walk the string tracking whether we're inside a JSON string.
-    // A `"` is treated as a string terminator only if followed (after whitespace)
-    // by one of: , } ] : or end-of-input. Otherwise it's escaped.
     const repaired = repairUnescapedQuotes(cleaned);
     if (repaired !== cleaned) {
-      try { return JSON.parse(repaired); } catch { /* fall through */ }
+      try { 
+        const result = JSON.parse(repaired);
+        log.info("AI JSON repaired successfully (quotes)", { 
+          original_len: cleaned.length, 
+          repaired_len: repaired.length 
+        });
+        return result;
+      } catch { /* fall through */ }
     }
 
     // Repair attempt 2: auto-close missing brackets if truncated
@@ -52,9 +56,23 @@ export function extractAndParseAIJSON(raw: string): unknown {
     const closes = (base.match(/[}\]]/g) || []).length;
     if (opens > closes) {
       const patched = base + (isArray ? "]" : "}").repeat(opens - closes);
-      try { return JSON.parse(patched); } catch { /* fall through */ }
+      try { 
+        const result = JSON.parse(patched);
+        log.info("AI JSON repaired successfully (truncated)", { 
+          original_len: base.length, 
+          patched_len: patched.length,
+          opens,
+          closes
+        });
+        return result;
+      } catch { /* fall through */ }
     }
-    console.error("[json-parser] AI JSON parse failed. Snippet:", cleaned.slice(0, 500));
+
+    log.error("AI JSON parse failed final attempt", { 
+      snippet: cleaned.slice(0, 500),
+      repaired_snippet: base.slice(0, 500),
+      error: e1 instanceof Error ? e1.message : String(e1)
+    });
     throw e1;
   }
 }
@@ -63,6 +81,8 @@ function repairUnescapedQuotes(input: string): string {
   const out: string[] = [];
   let inString = false;
   let escape = false;
+  let repairedCount = 0;
+
   for (let i = 0; i < input.length; i++) {
     const ch = input[i];
     if (escape) {
@@ -90,12 +110,18 @@ function repairUnescapedQuotes(input: string): string {
         } else {
           // Unescaped quote inside string value — escape it
           out.push("\\", '"');
+          repairedCount++;
         }
       }
       continue;
     }
     out.push(ch);
   }
+
+  if (repairedCount > 0) {
+    log.info("AI JSON quotes repaired", { repairedCount });
+  }
+
   return out.join("");
 }
 
