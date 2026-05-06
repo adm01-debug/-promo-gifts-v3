@@ -264,7 +264,7 @@ export function CartCompanyPickerDialog({ open, onOpenChange, onCreated }: CartC
           </TabsContent>
 
           <TabsContent value="search" className="m-0 px-3 pt-3 pb-4 space-y-3">
-            <div className="px-2">
+            <div className="px-2" role="search">
               <div className="relative">
                 <Search 
                   aria-hidden="true"
