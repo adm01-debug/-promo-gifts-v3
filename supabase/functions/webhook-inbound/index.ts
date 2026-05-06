@@ -5,6 +5,9 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { crypto } from "https://deno.land/std@0.224.0/crypto/mod.ts";
 import { encodeHex } from "https://deno.land/std@0.224.0/encoding/hex.ts";
 import { buildPublicCorsHeaders } from "../_shared/cors.ts";
+import { createStructuredLogger } from "../_shared/structured-logger.ts";
+import { getOrCreateRequestId } from "../_shared/request-id.ts";
+
 
 const corsHeaders = buildPublicCorsHeaders({ extraAllowHeaders: ["x-signature-256","x-event"], allowMethods: "POST, OPTIONS" });
 
@@ -25,6 +28,9 @@ function timingSafeEqual(a: string, b: string): boolean {
 }
 
 Deno.serve(async (req) => {
+  const requestId = getOrCreateRequestId(req);
+  const log = createStructuredLogger({ fn: "webhook-inbound", requestId, req });
+
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   const supabase = createClient(
@@ -32,16 +38,18 @@ Deno.serve(async (req) => {
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   );
 
+
   try {
     const url = new URL(req.url);
     const slug = url.searchParams.get("slug")
       || url.pathname.split("/").filter(Boolean).pop()
       || "";
     if (!slug) {
-      return new Response(JSON.stringify({ error: "slug ausente" }), {
+      return log.respond(new Response(JSON.stringify({ error: "slug ausente" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      }));
     }
+
 
     const { data: endpoint } = await supabase
       .from("inbound_webhook_endpoints")
@@ -50,10 +58,11 @@ Deno.serve(async (req) => {
       .eq("active", true)
       .maybeSingle();
     if (!endpoint) {
-      return new Response(JSON.stringify({ error: "endpoint não encontrado" }), {
+      return log.respond(new Response(JSON.stringify({ error: "endpoint não encontrado" }), {
         status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      }));
     }
+
 
     const rawBody = await req.text();
     const signatureHeader = req.headers.get("x-signature-256")
@@ -90,18 +99,21 @@ Deno.serve(async (req) => {
     }).eq("id", endpoint.id);
 
     if (!signatureValid) {
-      return new Response(JSON.stringify({ error: "Assinatura inválida" }), {
+      return log.respond(new Response(JSON.stringify({ error: "Assinatura inválida" }), {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      }));
     }
 
-    return new Response(JSON.stringify({ ok: true, received: true }), {
+    return log.respond(new Response(JSON.stringify({ ok: true, received: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    }));
+
   } catch (err) {
+    log.error("unexpected_error", { err });
     const msg = err instanceof Error ? err.message : "Erro";
-    return new Response(JSON.stringify({ error: msg }), {
+    return log.respond(new Response(JSON.stringify({ error: msg }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    }));
   }
+
 });
