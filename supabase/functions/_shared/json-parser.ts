@@ -16,7 +16,7 @@ function getLogger() {
 /**
  * Robustly extract & parse JSON from an LLM response.
  * Handles markdown fences, prose around JSON, trailing commas, and minor
- * truncation (auto-closes one missing `]` or `}` at the end).
+ * truncation (auto-closes multiple missing `]` or `}` at the end).
  */
 export function extractAndParseAIJSON(raw: string): unknown {
   const log = getLogger();
@@ -39,9 +39,11 @@ export function extractAndParseAIJSON(raw: string): unknown {
   let end = isArray ? s.lastIndexOf("]") : s.lastIndexOf("}");
   
   // If no matching closing bracket found, we slice until the end to attempt repair
-  if (end === -1) end = s.length - 1;
+  if (end === -1 || end < start) {
+    end = s.length - 1;
+  }
   
-  s = end > start ? s.slice(start, end + 1) : s.slice(start);
+  s = s.slice(start, end + 1);
 
   // Remove trailing commas before } or ]
   const cleaned = s.replace(/,(\s*[}\]])/g, "$1");
@@ -64,20 +66,32 @@ export function extractAndParseAIJSON(raw: string): unknown {
 
     // Repair attempt 2: auto-close missing brackets if truncated
     const base = repaired !== cleaned ? repaired : cleaned;
-    const opens = (base.match(/[{[]/g) || []).length;
-    const closes = (base.match(/[}\]]/g) || []).length;
-    if (opens > closes) {
-      const patched = base + (isArray ? "]" : "}").repeat(opens - closes);
-      try { 
+    
+    // Heuristic for multi-bracket repair:
+    // We try adding up to 5 levels of brackets
+    let patched = base;
+    for (let i = 1; i <= 5; i++) {
+      // Very simple: try closing objects, then try closing arrays
+      // This is hit-or-miss but better than nothing
+      const opensObj = (patched.match(/{/g) || []).length;
+      const closesObj = (patched.match(/}/g) || []).length;
+      const opensArr = (patched.match(/\[/g) || []).length;
+      const closesArr = (patched.match(/\]/g) || []).length;
+
+      if (opensObj > closesObj) patched += "}";
+      if (opensArr > closesArr) patched += "]";
+      
+      try {
         const result = JSON.parse(patched);
         log.info("AI JSON repaired successfully (truncated)", { 
           original_len: base.length, 
           patched_len: patched.length,
-          opens,
-          closes
+          attempts: i
         });
         return result;
-      } catch { /* fall through */ }
+      } catch {
+        // If still failing, continue adding brackets or move to error
+      }
     }
 
     log.error("AI JSON parse failed final attempt", { 
