@@ -88,6 +88,7 @@ export async function processLogoForLaser(
 
         // White/near-white pixels = background or intentional gaps between elements
         // → make transparent to preserve spaces (e.g. between SICOOB triangles)
+        // Adjust: also check if original pixel was already very close to white
         if (luminance > whiteThreshold && a > 200) {
           data[i + 3] = 0; // transparent
           continue;
