@@ -5,6 +5,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from "react"
 import { Gift, Package, Factory, SlidersHorizontal, Brain, Rocket, Sparkles, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
 interface RocketData { id: number; left: number; size: number; duration: number; rotation: number; scale: number; }
 

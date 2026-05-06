@@ -446,10 +446,15 @@ export function FutureStockDialog({ open, onOpenChange, entries }: FutureStockDi
               className="pl-9 h-9"
             />
             {search && (
-              <button type="button" onClick={() => setSearch('')}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+              <Button 
+                type="button" 
+                variant="ghost" 
+                size="icon"
+                onClick={() => setSearch('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground h-6 w-6"
+              >
                 <X className="h-3.5 w-3.5" />
-              </button>
+              </Button>
             )}
           </div>
 
@@ -533,18 +538,18 @@ export function FutureStockDialog({ open, onOpenChange, entries }: FutureStockDi
             <div className="space-y-1">
               {/* List Header */}
               <div className="grid grid-cols-[1fr_90px_110px_100px_70px] gap-2 px-3 py-2 bg-muted/30 rounded-lg text-xs font-medium text-muted-foreground sticky top-0 z-[1]">
-                <button type="button" onClick={() => toggleSort('product')} className="flex items-center gap-1 hover:text-foreground transition-colors text-left">
+                <Button variant="ghost" size="sm" type="button" onClick={() => toggleSort('product')} className="flex items-center gap-1 hover:text-foreground transition-colors text-left p-0 h-auto font-medium text-xs">
                   Produto {sortField === 'product' && <ArrowUpDown className="h-3 w-3" />}
-                </button>
-                <button type="button" onClick={() => toggleSort('quantity')} className="flex items-center gap-1 hover:text-foreground transition-colors">
+                </Button>
+                <Button variant="ghost" size="sm" type="button" onClick={() => toggleSort('quantity')} className="flex items-center gap-1 hover:text-foreground transition-colors p-0 h-auto font-medium text-xs">
                   Qtd. {sortField === 'quantity' && <ArrowUpDown className="h-3 w-3" />}
-                </button>
-                <button type="button" onClick={() => toggleSort('date')} className="flex items-center gap-1 hover:text-foreground transition-colors">
+                </Button>
+                <Button variant="ghost" size="sm" type="button" onClick={() => toggleSort('date')} className="flex items-center gap-1 hover:text-foreground transition-colors p-0 h-auto font-medium text-xs">
                   Previsão {sortField === 'date' && <ArrowUpDown className="h-3 w-3" />}
-                </button>
-                <button type="button" onClick={() => toggleSort('status')} className="flex items-center gap-1 hover:text-foreground transition-colors">
+                </Button>
+                <Button variant="ghost" size="sm" type="button" onClick={() => toggleSort('status')} className="flex items-center gap-1 hover:text-foreground transition-colors p-0 h-auto font-medium text-xs">
                   Status {sortField === 'status' && <ArrowUpDown className="h-3 w-3" />}
-                </button>
+                </Button>
                 <span className="text-right">Tempo</span>
               </div>
               {filtered.map(entry => (

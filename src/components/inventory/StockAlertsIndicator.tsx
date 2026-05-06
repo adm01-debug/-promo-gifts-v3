@@ -276,12 +276,15 @@ export function StockAlertsIndicator({
             sideOffset={8}
           >
             {/* Close */}
-            <button aria-label="Fechar"
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              aria-label="Fechar"
               className="absolute top-3 right-3 h-7 w-7 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors z-10"
               onClick={() => setIsOpen(false)}
             >
               <X className="h-4 w-4" />
-            </button>
+            </Button>
 
             {/* Header */}
             <div className="px-4 pt-4 pb-3 border-b border-border/40">
@@ -302,11 +305,13 @@ export function StockAlertsIndicator({
                 const count = counts[tab.key];
                 const isActive = activeTab === tab.key;
                 return (
-                  <button
+                  <Button
                     key={tab.key}
+                    variant="ghost"
+                    size="sm"
                     onClick={() => setActiveTab(tab.key)}
                     className={cn(
-                      "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium border transition-all",
+                      "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium border transition-all h-auto",
                       isActive
                         ? tab.activeColor
                         : "border-transparent text-muted-foreground hover:bg-muted/40"
@@ -321,7 +326,7 @@ export function StockAlertsIndicator({
                         {count > 99 ? "99+" : count}
                       </span>
                     )}
-                  </button>
+                  </Button>
                 );
               })}
             </div>
@@ -398,7 +403,9 @@ export function StockAlertsIndicator({
                       <div className="flex flex-col gap-1 flex-shrink-0">
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <button
+                            <Button
+                              variant="ghost"
+                              size="icon"
                               className="h-6 w-6 flex items-center justify-center rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors opacity-0 group-hover:opacity-100"
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -407,11 +414,13 @@ export function StockAlertsIndicator({
                               }}
                             >
                               <ExternalLink className="h-3 w-3" />
-                            </button>
+                            </Button>
                           </TooltipTrigger>
                           <TooltipContent side="left" className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Ver produto</TooltipContent>
                         </Tooltip>
-                        <button
+                        <Button
+                          variant="ghost"
+                          size="icon"
                           className="h-6 w-6 flex items-center justify-center rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors opacity-0 group-hover:opacity-100"
                           onClick={(e) => {
                             e.stopPropagation();
@@ -419,7 +428,7 @@ export function StockAlertsIndicator({
                           }}
                         >
                           <X className="h-3 w-3" />
-                        </button>
+                        </Button>
                       </div>
                     </motion.div>
                   ))}

@@ -4,6 +4,7 @@
  */
 import { useState, useMemo } from "react";
 import { ChevronRight, FolderTree, Search, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
@@ -150,9 +151,9 @@ export function StockCategoryTreeSelect({ value, onChange }: StockCategoryTreeSe
         <div className="flex items-center gap-1.5 text-xs bg-primary/10 text-primary rounded px-2 py-1">
           <FolderTree className="h-3 w-3 shrink-0" />
           <span className="truncate flex-1">{selectedName}</span>
-          <button onClick={() => onChange(undefined)} className="hover:text-foreground">
+          <Button variant="ghost" size="icon" onClick={() => onChange(undefined)} className="hover:text-foreground h-5 w-5">
             <X className="h-3 w-3" />
-          </button>
+          </Button>
         </div>
       )}
 
@@ -166,9 +167,9 @@ export function StockCategoryTreeSelect({ value, onChange }: StockCategoryTreeSe
           className="h-7 text-xs pl-7 pr-6"
         />
         {search && (
-          <button onClick={() => setSearch("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+          <Button variant="ghost" size="icon" onClick={() => setSearch("")} className="absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground h-5 w-5">
             <X className="h-3 w-3" />
-          </button>
+          </Button>
         )}
       </div>
 
