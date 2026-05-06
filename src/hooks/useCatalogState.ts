@@ -303,8 +303,11 @@ export function useCatalogState() {
   const isInitialCatalogLoad =
     (isLoadingProducts || isFetchingProducts) && realProducts.length === 0;
 
+  // Sincroniza searchQuery da URL com o estado local se mudar externamente
   useEffect(() => {
-    setSearchQuery(searchQueryFromUrl);
+    if (searchQueryFromUrl !== searchQuery) {
+      setSearchQuery(searchQueryFromUrl);
+    }
   }, [searchQueryFromUrl]);
 
   useEffect(() => {
