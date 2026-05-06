@@ -32,8 +32,19 @@ const WEIGHT_LABELS: Record<keyof ComparisonScoreWeights, string> = {
 };
 
 export function ComparisonScoreCard({ products, className }: ComparisonScoreCardProps) {
-  const [weights, setWeights] = useState<ComparisonScoreWeights>(DEFAULT_SCORE_WEIGHTS);
-  const scores = useComparisonScore(products, weights);
+  const { weights: persistentWeights, setWeights, reset, loading: weightsLoading } = useComparisonWeights();
+  
+  // Transform ComparisonWeights to ComparisonScoreWeights
+  const mappedWeights: ComparisonScoreWeights = {
+    price: persistentWeights.price,
+    stock: persistentWeights.stock,
+    minQuantity: persistentWeights.minQty,
+    colorVariety: persistentWeights.colors,
+    verifiedSupplier: persistentWeights.verified,
+    leadTime: persistentWeights.leadTime,
+  };
+
+  const scores = useComparisonScore(products, mappedWeights);
   const winner = scores.find(s => s.isWinner);
   const winnerProduct = winner ? products.find(p => String(p.id) === winner.productId) : null;
 
