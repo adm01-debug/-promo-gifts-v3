@@ -33,7 +33,7 @@ const ROLES: AppRole[] = ["admin", "manager", "supervisor", "vendedor", "dev"];
 const OPERATIONS = [
   { value: "add", label: "Adicionar papel", description: "INSERT user_roles (mantém os demais)" },
   { value: "remove", label: "Remover papel", description: "DELETE user_roles deste papel específico" },
-  { value: "replace", label: "Substituir todos", description: "DELETE todos os papéis + INSERT do novo" },
+  { value: "replace", label: "Substituir todos", description: "Remove papéis atuais e adiciona o novo" },
 ] as const;
 
 interface ProfileLite {
