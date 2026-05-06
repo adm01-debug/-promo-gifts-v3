@@ -1,10 +1,12 @@
 import { useNavigate } from "react-router-dom";
-import { Building2, CalendarClock, GitCompare } from "lucide-react";
+import { Building2, CalendarClock, GitCompare, LayoutGrid } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { getSupplierColors } from "@/lib/supplier-colors";
+import { useComparisonStore } from "@/stores/useComparisonStore";
+import { toast } from "sonner";
 
 interface ProductInfoBarProps {
   sku: string;
