@@ -83,17 +83,17 @@ describe('Admin Layout Standardization', () => {
     vi.clearAllMocks();
   });
 
-  it('AdminConexoesPage deve renderizar dentro do MainLayout (com sidebar)', async () => {
+  it('AdminConexoesPage NÃO deve renderizar o sidebar diretamente (deve delegar ao DevRoute/MainLayout)', async () => {
     renderWithProviders(<AdminConexoesPage />);
-    // O MainLayout renderiza o sidebar. Verificamos se o mock do sidebar apareceu.
-    expect(screen.getByTestId('sidebar')).toBeInTheDocument();
+    // Agora que removemos o MainLayout das páginas, elas não devem conter o sidebar se renderizadas isoladamente sem o DevRoute wrapper
+    expect(screen.queryByTestId('sidebar')).not.toBeInTheDocument();
     // Verifica título da página para garantir que o conteúdo está lá
     expect(screen.getAllByText(/Conexões/i).length).toBeGreaterThan(0);
   });
 
-  it('AdminConexoesStatusPage deve renderizar dentro do MainLayout (com sidebar)', async () => {
+  it('AdminConexoesStatusPage NÃO deve renderizar o sidebar diretamente', async () => {
     renderWithProviders(<AdminConexoesStatusPage />);
-    expect(screen.getByTestId('sidebar')).toBeInTheDocument();
+    expect(screen.queryByTestId('sidebar')).not.toBeInTheDocument();
     expect(screen.getByText(/Status da sincronização/i)).toBeInTheDocument();
   });
 });
