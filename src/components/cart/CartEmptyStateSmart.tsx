@@ -30,9 +30,9 @@ export function CartEmptyStateSmart({
   onApplyTemplate, onDuplicateLast, onNavigateProducts,
 }: CartEmptyStateSmartProps) {
   const topTemplates = templates.slice(0, 3);
-  const lastCartSameCompany = otherCarts
+  const lastCartSameCompany = useMemo(() => otherCarts
     .filter(c => c.company_id === activeCart.company_id && c.items.length > 0)
-    .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())[0];
+    .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())[0], [otherCarts, activeCart.company_id]);
 
   return (
     <div className="space-y-4 animate-in fade-in zoom-in duration-500 max-w-4xl mx-auto">
