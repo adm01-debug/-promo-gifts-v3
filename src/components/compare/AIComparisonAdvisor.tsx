@@ -98,7 +98,7 @@ export function AIComparisonAdvisor({ products }: AIComparisonAdvisorProps) {
   if (products.length < 2) return null;
 
   return (
-    <div className="rounded-xl border-[1.5px] border-accent/40 bg-gradient-to-br from-accent/10 via-background to-background p-4">
+    <div className="rounded-xl border-[2px] border-amber-400/20 bg-gradient-to-br from-amber-400/5 via-background to-background p-4 shadow-sm">
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-accent to-primary shadow-md">
