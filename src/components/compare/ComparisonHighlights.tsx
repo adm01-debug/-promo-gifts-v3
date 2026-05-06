@@ -114,16 +114,16 @@ function HighlightCell({
 
   const styles = {
     best: {
-      bg: "bg-success/10 border-success/30",
-      text: "text-success font-semibold",
+      bg: "bg-amber-400/10 border-amber-400/30",
+      text: "text-amber-600 dark:text-amber-400 font-bold",
       icon: Crown,
-      tooltip: "Melhor valor",
+      tooltip: "Melhor performance técnica",
     },
     worst: {
       bg: "bg-destructive/10 border-destructive/30",
-      text: "text-destructive",
+      text: "text-destructive font-medium",
       icon: AlertTriangle,
-      tooltip: "Valor mais alto",
+      tooltip: "Ponto de atenção técnica",
     },
     neutral: {
       bg: "bg-muted/50 border-border",
