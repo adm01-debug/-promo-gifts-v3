@@ -363,6 +363,14 @@ export function useSellerCartsPage() {
     clearSelection();
   }, [selectedItemIds, moveItemToCart, carts, clearSelection]);
 
+  const handleBulkUpdateNotes = useCallback((notes: string) => {
+    if (selectedItemIds.size === 0) return;
+    const count = selectedItemIds.size;
+    selectedItemIds.forEach(id => updateItemNotes({ itemId: id, notes }));
+    toast.success(`Notas atualizadas em ${count} itens`);
+    clearSelection();
+  }, [selectedItemIds, updateItemNotes, clearSelection]);
+
   const handleClearFilters = useCallback(() => {
     setSearchTerm("");
     setProductFilter("");
