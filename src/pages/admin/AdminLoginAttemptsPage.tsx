@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { MainLayout } from '@/components/layout/MainLayout';
 import { useLoginAttempts, useLoginAttemptStats } from '@/hooks/useLoginAttempts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -41,7 +40,7 @@ export default function AdminLoginAttemptsPage() {
   const { data: stats } = useLoginAttemptStats();
 
   return (
-    <MainLayout>
+    <>
       <div className="mx-auto w-full max-w-[1920px] animate-fade-in space-y-3 px-3 py-3 pb-24 sm:space-y-4 sm:px-4 sm:py-4 md:pb-6 lg:px-6 xl:px-8">
         <PageSEO
           title="Tentativas de Login"
@@ -240,6 +239,6 @@ export default function AdminLoginAttemptsPage() {
           </CardContent>
         </Card>
       </div>
-    </MainLayout>
+    </>
   );
 }

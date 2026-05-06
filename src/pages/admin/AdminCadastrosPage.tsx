@@ -1,6 +1,5 @@
 import React, { Suspense } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { MainLayout } from '@/components/layout/MainLayout';
 import { PageSEO } from '@/components/seo/PageSEO';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Package, Palette, FolderOpen, Truck } from 'lucide-react';
@@ -38,7 +37,7 @@ export default function AdminCadastrosPage() {
   };
 
   return (
-    <MainLayout>
+    <>
       <PageSEO
         title="Cadastros"
         description="Gerencie produtos, fornecedores e técnicas de personalização."
@@ -93,6 +92,6 @@ export default function AdminCadastrosPage() {
           </TabsContent>
         </Tabs>
       </div>
-    </MainLayout>
+    </>
   );
 }

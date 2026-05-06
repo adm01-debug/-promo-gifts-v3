@@ -1,7 +1,6 @@
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MainLayout } from '@/components/layout/MainLayout';
 import { PageSEO } from '@/components/seo/PageSEO';
 
 /**
@@ -158,7 +157,7 @@ const BORDER_WIDTHS = [
 
 export default function AdminDesignTokensPage() {
   return (
-    <MainLayout>
+    <>
       <PageSEO
         title="Design Tokens"
         description="Paleta visual viva dos tokens do sistema."
@@ -355,6 +354,6 @@ export default function AdminDesignTokensPage() {
           `:root` + `.dark`). Esta página reflete automaticamente.
         </footer>
       </div>
-    </MainLayout>
+    </>
   );
 }

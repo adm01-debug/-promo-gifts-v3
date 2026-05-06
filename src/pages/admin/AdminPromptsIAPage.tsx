@@ -1,11 +1,10 @@
-import { MainLayout } from '@/components/layout/MainLayout';
 import { MockupPromptManager } from '@/components/admin/MockupPromptManager';
 import { Brain } from 'lucide-react';
 import { PageSEO } from '@/components/seo/PageSEO';
 
 export default function AdminPromptsIAPage() {
   return (
-    <MainLayout>
+    <>
       <PageSEO
         title="Prompts de IA"
         description="Configure e gerencie prompts de inteligência artificial."
@@ -27,6 +26,6 @@ export default function AdminPromptsIAPage() {
 
         <MockupPromptManager />
       </div>
-    </MainLayout>
+    </>
   );
 }

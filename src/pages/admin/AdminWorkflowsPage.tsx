@@ -1,11 +1,10 @@
-import { MainLayout } from '@/components/layout/MainLayout';
 import { WorkflowCanvas } from '@/components/workflows/WorkflowCanvas';
 import { Workflow } from 'lucide-react';
 import { PageSEO } from '@/components/seo/PageSEO';
 
 export default function AdminWorkflowsPage() {
   return (
-    <MainLayout>
+    <>
       <PageSEO
         title="Workflows"
         description="Configure automações e fluxos de trabalho."
@@ -27,6 +26,6 @@ export default function AdminWorkflowsPage() {
 
         <WorkflowCanvas />
       </div>
-    </MainLayout>
+    </>
   );
 }

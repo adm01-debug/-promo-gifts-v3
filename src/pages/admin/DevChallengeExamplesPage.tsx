@@ -18,7 +18,6 @@
  * (modal de step-up, supersede, retry on invalid, toast com CTA).
  */
 import { useState } from 'react';
-import { MainLayout } from '@/components/layout/MainLayout';
 import { PageSEO } from '@/components/seo/PageSEO';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -276,7 +275,7 @@ function ExampleCard({ config }: { config: ExampleConfig }) {
 
 export default function DevChallengeExamplesPage() {
   return (
-    <MainLayout>
+    <>
       <PageSEO
         title="Exemplos — Challenge Reutilizável"
         description="Documentação interativa do challenge reutilizável de dev para liberar operações full scope."
@@ -456,6 +455,6 @@ export default function DevChallengeExamplesPage() {
           </TabsContent>
         </Tabs>
       </div>
-    </MainLayout>
+    </>
   );
 }

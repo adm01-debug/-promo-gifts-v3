@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { MainLayout } from '@/components/layout/MainLayout';
 import { PageSEO } from '@/components/seo/PageSEO';
 import {
   ShieldCheck,
@@ -124,7 +123,7 @@ export default function ComplianceEvidencePage() {
     .filter((module) => module.items.length > 0);
 
   return (
-    <MainLayout>
+    <>
       <PageSEO title="Dossiê de Evidências | Compliance" noIndex />
       <div className="mx-auto w-full max-w-[1920px] space-y-6 px-4 py-6">
         <div className="flex flex-col justify-between gap-4 border-b border-border/50 pb-6 md:flex-row md:items-center">
@@ -364,6 +363,6 @@ export default function ComplianceEvidencePage() {
           </TabsContent>
         </Tabs>
       </div>
-    </MainLayout>
+    </>
   );
 }

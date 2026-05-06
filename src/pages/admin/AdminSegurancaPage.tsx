@@ -1,4 +1,3 @@
-import { MainLayout } from '@/components/layout/MainLayout';
 import { PageSEO } from '@/components/seo/PageSEO';
 import { AccessSecurityManager } from '@/components/admin/AccessSecurityManager';
 import { SecurityDashboard } from '@/components/security/SecurityDashboard';
@@ -8,7 +7,7 @@ import { SecureUploadManager } from '@/components/admin/security/SecureUploadMan
 
 export default function AdminSegurancaPage() {
   return (
-    <MainLayout>
+    <>
       <PageSEO
         title="Segurança"
         description="Central de segurança, monitoramento de acessos e restrições."
@@ -55,6 +54,6 @@ export default function AdminSegurancaPage() {
           </TabsContent>
         </Tabs>
       </div>
-    </MainLayout>
+    </>
   );
 }

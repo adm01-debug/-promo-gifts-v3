@@ -1,5 +1,4 @@
 import { lazy, Suspense } from 'react';
-import { MainLayout } from '@/components/layout/MainLayout';
 import { PageSEO } from '@/components/seo/PageSEO';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -179,7 +178,7 @@ export default function AdminTelemetriaPage() {
   const { errors1h, errors24h, isLoading: errorsLoading } = useErrorCounters();
 
   return (
-    <MainLayout>
+    <>
       <PageSEO
         title="Telemetria — Monitoramento"
         description="Monitoramento de performance de queries do banco externo"
@@ -605,6 +604,6 @@ export default function AdminTelemetriaPage() {
           </CardContent>
         </Card>
       </div>
-    </MainLayout>
+    </>
   );
 }
