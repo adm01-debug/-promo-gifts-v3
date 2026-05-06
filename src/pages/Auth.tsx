@@ -271,9 +271,9 @@ export default function Auth() {
               </CardContent>
             ) : (
             <>
-              <CardHeader className="pt-10 pb-6 px-8 text-center space-y-2">
-                <h2 className="text-2xl font-bold font-display tracking-tight text-foreground">Bem-vindo de volta</h2>
-                <p className="text-[13px] text-muted-foreground font-medium">Insira suas credenciais para acessar a plataforma</p>
+              <CardHeader className="pt-12 pb-6 px-8 text-center space-y-3">
+                <h2 className="text-3xl font-bold font-display tracking-tight text-foreground bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent">Bem-vindo</h2>
+                <p className="text-[13px] text-muted-foreground/80 font-medium leading-relaxed">Insira suas credenciais exclusivas para acessar o ecossistema Promo Gifts</p>
               </CardHeader>
 
               <CardContent className="pt-2 px-8 pb-10 space-y-6">
@@ -324,7 +324,7 @@ export default function Auth() {
                           data-testid="login-email-input"
                           type="email"
                           placeholder="seu@email.com"
-                          className="pl-11 bg-muted/30 border-border/40 focus:bg-background focus:border-primary/50 text-foreground placeholder:text-muted-foreground/40 lowercase h-12.5 rounded-xl transition-all duration-300 ring-offset-background"
+                          className="pl-11 bg-muted/20 border-border/40 focus:bg-background focus:border-primary/50 focus:ring-4 focus:ring-primary/5 text-foreground placeholder:text-muted-foreground/30 lowercase h-12.5 rounded-xl transition-all duration-300 ring-offset-background"
                           {...loginForm.register("email")}
                           ref={(el) => {
                             loginForm.register("email").ref(el);
@@ -348,7 +348,7 @@ export default function Auth() {
                           data-testid="login-password-input"
                           type={showPassword ? "text" : "password"}
                           placeholder="••••••••"
-                          className="pl-11 pr-11 bg-muted/30 border-border/40 focus:bg-background focus:border-primary/50 text-foreground placeholder:text-muted-foreground/40 h-12.5 rounded-xl transition-all duration-300 ring-offset-background"
+                          className="pl-11 pr-11 bg-muted/20 border-border/40 focus:bg-background focus:border-primary/50 focus:ring-4 focus:ring-primary/5 text-foreground placeholder:text-muted-foreground/30 h-12.5 rounded-xl transition-all duration-300 ring-offset-background"
                           {...loginForm.register("password")}
                         />
                         <button
