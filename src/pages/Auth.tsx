@@ -347,7 +347,7 @@ export default function Auth() {
                     <div className="space-y-2">
                       <Label htmlFor="login-password" className="text-white/90">Senha</Label>
                       <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/50" />
                         <Input
                           id="login-password"
                           data-testid="login-password-input"
