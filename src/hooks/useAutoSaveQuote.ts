@@ -23,7 +23,7 @@ interface AutoSaveOptions<T> {
  * Migra dados de versões antigas para a versão atual.
  */
 export function migratePayload<T>(
-  payload: any,
+  payload: unknown,
   currentVersion: number = AUTOSAVE_SCHEMA_VERSION,
 ): AutoSavePayload<T> | null {
   if (!payload) return null;
