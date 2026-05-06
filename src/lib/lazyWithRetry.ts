@@ -2,6 +2,9 @@ import { lazy, type ComponentType } from 'react';
 import { logger } from "@/lib/logger";
 import { attemptChunkRecovery, isChunkLoadError } from "@/lib/chunk-recovery";
 
+// Global version defined in vite.config.ts
+const APP_VERSION = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : 'dev';
+
 /**
  * Wrapper around React.lazy that retries on chunk loading failures.
  * Handles stale cache issues after deployments and Vite 502 spikes.
