@@ -6,6 +6,7 @@ import { StatCard } from '../components/inventory/StockStatCard';
 import { AuthProvider } from '../contexts/AuthContext';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Package } from 'lucide-react';
+import { HelmetProvider } from 'react-helmet-async';
 
 // Mock Supabase
 vi.mock('@/integrations/supabase/client', () => ({
