@@ -102,8 +102,8 @@ export function ComparisonMobileView({ products, formatCurrency, onRemove, onPro
           </div>
         </div>
       ))}
-      <Button variant="outline" size="sm" className="w-full" onClick={() => onProductClick?.(products[0]?.id)}>
-        Ver detalhes do primeiro produto
+      <Button variant="outline" size="sm" className="w-full border-amber-500/20 text-amber-600 hover:bg-amber-500/5 font-black uppercase text-[10px] tracking-widest h-10" onClick={() => onProductClick?.(products[0]?.id)}>
+        Ver Detalhes do Líder
       </Button>
     </div>
   );
