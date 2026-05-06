@@ -383,16 +383,17 @@ export default function Auth() {
                     <Button 
                       type="submit" 
                       data-testid="login-submit"
-                      className="w-full h-12.5 text-sm font-bold uppercase tracking-widest bg-primary hover:bg-primary-hover text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-[0.98] transition-all duration-300 rounded-xl mt-2"
+                      className="w-full h-12.5 text-sm font-bold uppercase tracking-widest bg-primary hover:bg-primary-hover text-primary-foreground shadow-[0_10px_20px_-5px_rgba(255,107,0,0.3)] hover:shadow-[0_15px_25px_-5px_rgba(255,107,0,0.4)] active:scale-[0.98] transition-all duration-300 rounded-xl mt-2 relative overflow-hidden group"
                       disabled={isSubmitting}
                     >
+                      <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -translate-x-full group-hover:animate-[shimmer_2s_infinite] transition-transform" />
                       {isSubmitting ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Entrando...
+                          Autenticando...
                         </>
                       ) : (
-                        "Entrar"
+                        "Entrar na Plataforma"
                       )}
                     </Button>
 
