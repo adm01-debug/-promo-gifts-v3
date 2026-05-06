@@ -328,33 +328,23 @@ export default function FavoritesPage() {
     <>
       <PageSEO title="Favoritos" description="Suas listas de produtos favoritos com organização, anotações e compartilhamento." path="/favoritos" />
       <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 pb-24 md:pb-6 animate-fade-in">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-          <div className="flex items-center gap-3">
-            <div
-              data-testid="favorites-icon"
-              aria-label="Favoritos"
-              className="w-12 h-12 rounded-xl bg-destructive/10 flex items-center justify-center"
-            >
-              <Heart className="h-6 w-6 text-destructive fill-destructive" />
-            </div>
-            <div>
-              <h1 data-testid="page-title-favoritos" className="text-xl lg:text-3xl font-display font-bold text-foreground">
-                Meus Favoritos
-              </h1>
-              <p data-testid="favorites-count" className="text-muted-foreground text-sm">
-                <span data-testid="favorites-count-items">{headerTotalCount}</span>{" "}
-                {headerTotalCount === 1 ? "item" : "itens"}
-                {lists.length > 0 && (
-                  <>
-                    {" • "}
-                    <span data-testid="favorites-count-lists">{lists.length}</span>{" "}
-                    {lists.length === 1 ? "lista" : "listas"}
-                  </>
-                )}
-              </p>
-            </div>
-          </div>
+        {/* Título acessível mantido para SEO/E2E (oculto visualmente) */}
+        <h1 data-testid="page-title-favoritos" className="sr-only">
+          Meus Favoritos
+        </h1>
+        <p data-testid="favorites-count" className="sr-only">
+          <span data-testid="favorites-count-items">{headerTotalCount}</span>{" "}
+          {headerTotalCount === 1 ? "item" : "itens"}
+          {lists.length > 0 && (
+            <>
+              {" • "}
+              <span data-testid="favorites-count-lists">{lists.length}</span>{" "}
+              {lists.length === 1 ? "lista" : "listas"}
+            </>
+          )}
+        </p>
 
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3 mb-4">
           <div className="flex gap-2 items-center flex-wrap">
             <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
               <SheetTrigger asChild>
