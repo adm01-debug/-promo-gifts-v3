@@ -31,8 +31,10 @@ function timingSafeEqual(a: string, b: string): boolean {
 }
 
 Deno.serve(async (req) => {
-  const requestId = getOrCreateRequestId(req);
-  const log = createStructuredLogger({ fn: "webhook-inbound", requestId, req });
+  return await withEdgeTracing(req, "process-webhook", async (span) => {
+    const requestId = getOrCreateRequestId(req);
+    const log = createStructuredLogger({ fn: "webhook-inbound", requestId, req });
+    span.setAttribute("app.request_id", requestId);
 
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
