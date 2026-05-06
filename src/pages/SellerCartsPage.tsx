@@ -122,7 +122,7 @@ function SellerCartsContent() {
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          {s.carts.length >= 2 && <CompareCartsDialog carts={s.carts} />}
+          {s.filteredCarts.length >= 2 && <CompareCartsDialog carts={s.filteredCarts} />}
           
           <div className="flex items-center gap-2 border border-border/40 bg-card/60 rounded-xl p-1 h-9 shadow-sm">
             <Search className="h-3.5 w-3.5 text-muted-foreground ml-2" />
