@@ -2,8 +2,7 @@
  * useBulkImportFile — Encapsulates file parsing, column mapping, and data transformation
  * for the BulkImportPanel component.
  */
-import type React from 'react';
-import { useState, useCallback, useRef } from 'react';
+import { type ChangeEvent, type DragEvent, useState, useCallback, useRef } from 'react';
 import {
   PRODUCT_FIELDS,
   type BulkImportRow,
