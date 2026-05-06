@@ -61,6 +61,7 @@ const QuotesListPage = lazyWithRetry(() => import('./pages/QuotesListPage'));
 const QuotesDashboardPage = lazyWithRetry(() => import('./pages/QuotesDashboardPage'));
 const QuoteBuilderPage = lazyWithRetry(() => import('./pages/QuoteBuilderPage'));
 const QuoteViewPage = lazyWithRetry(() => import('./pages/QuoteViewPage'));
+const QuoteDetailPage = lazyWithRetry(() => import('./pages/QuoteDetailPage'));
 const QuotesKanbanPage = lazyWithRetry(() => import('./pages/QuotesKanbanPage'));
 
 // Admin Pages
