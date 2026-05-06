@@ -295,7 +295,8 @@ export function useCatalogState() {
     includeDescendants: true,
   });
 
-  const { data: externalCategories = [] } = useExternalCategoriesQuery();
+  // Use externalCategories if needed, currently just ensuring it's queried to warm cache
+  useExternalCategoriesQuery();
   const { data: realStats } = useCatalogRealStats();
 
   const isLoading = isLoadingProducts || isLoadingMaterialFilter || isLoadingCategoryFilter;
