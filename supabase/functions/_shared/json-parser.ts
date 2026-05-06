@@ -67,30 +67,31 @@ export function extractAndParseAIJSON(raw: string): unknown {
     // Repair attempt 2: auto-close missing brackets if truncated
     const base = repaired !== cleaned ? repaired : cleaned;
     
-    // Heuristic for multi-bracket repair:
-    // We try adding up to 5 levels of brackets
-    let patched = base;
-    for (let i = 1; i <= 8; i++) {
-      // Very simple: try closing objects, then try closing arrays
-      // This is hit-or-miss but better than nothing
-      const opensObj = (patched.match(/{/g) || []).length;
-      const closesObj = (patched.match(/}/g) || []).length;
-      const opensArr = (patched.match(/\[/g) || []).length;
-      const closesArr = (patched.match(/\]/g) || []).length;
+    // Attempt 2: auto-close missing brackets if truncated
+    // We walk backwards and count missing opens
+    let opens = 0;
+    const stack: ("obj" | "arr")[] = [];
+    for (const char of base) {
+      if (char === "{") stack.push("obj");
+      else if (char === "[") stack.push("arr");
+      else if (char === "}") stack.pop();
+      else if (char === "]") stack.pop();
+    }
 
-      if (opensObj > closesObj) patched += "}";
-      else if (opensArr > closesArr) patched += "]";
-
-      try {
-        const result = JSON.parse(patched);
-        log.info("AI JSON repaired successfully (truncated)", { 
-          original_len: base.length, 
-          patched_len: patched.length,
-          attempts: i
-        });
-        return result;
-      } catch {
-        // If still failing, continue adding brackets or move to error
+    if (stack.length > 0) {
+      let patched = base;
+      const reversedStack = [...stack].reverse();
+      for (const type of reversedStack) {
+        patched += (type === "obj" ? "}" : "]");
+        try {
+          const result = JSON.parse(patched);
+          log.info("AI JSON repaired successfully (truncated stack)", { 
+            original_len: base.length, 
+            patched_len: patched.length,
+            stack: stack.join(",")
+          });
+          return result;
+        } catch { /* continue patching */ }
       }
     }
 
