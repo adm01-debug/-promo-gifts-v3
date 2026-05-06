@@ -10,8 +10,7 @@
  *     e em `admin_audit_log` (rastreio por usuário e por evento).
  *  5. Acompanhar histórico de lotes com drill-down nos itens.
  *
- * RBAC: a RPC server-side exige `is_admin_strict`; aqui no front também
- * gateamos por `useUserRole` para evitar mostrar a UI a quem não pode usar.
+ * RBAC: a RPC server-side exige `is_admin_strict`.
  */
 import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
