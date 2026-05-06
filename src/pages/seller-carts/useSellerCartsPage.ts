@@ -270,7 +270,6 @@ export function useSellerCartsPage() {
     return cart.company_primary_color || null;
   }, [activeCart]);
 
-  const [itemsSortBy, setItemsSortBy] = useState<string>("manual");
 
   const filteredCarts = useMemo(() => {
     let result = [...carts];
