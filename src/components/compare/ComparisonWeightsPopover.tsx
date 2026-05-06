@@ -38,7 +38,7 @@ export function ComparisonWeightsPopover() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h4 className="font-black text-[10px] uppercase tracking-widest text-amber-600">Calibragem do Algoritmo</h4>
-            <Button variant="ghost" size="sm" onClick={() => { reset(); toast.success("Pesos restaurados"); }}>
+            <Button variant="ghost" size="sm" onClick={() => { reset(); toast.success("Algoritmo restaurado para o padrão"); }}>
               <RotateCcw className="h-3 w-3 mr-1" /> Reset
             </Button>
           </div>
