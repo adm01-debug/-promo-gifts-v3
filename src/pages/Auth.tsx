@@ -263,20 +263,22 @@ export default function Auth() {
             </Card>
           )}
 
-          {/* Auth Card — bold & vivid, no shadows */}
-          <Card className={`border-2 border-primary/30 bg-card rounded-2xl overflow-hidden transition-all duration-300 ${ipBlocked ? 'opacity-50 pointer-events-none' : ''}`}>
+          {/* Auth Card */}
+          <Card className={`border-border/60 bg-card shadow-2xl ring-1 ring-border/20 backdrop-blur-sm ${ipBlocked ? 'opacity-50 pointer-events-none' : ''}`}>
             {showForgotPassword ? (
-              <CardContent className="p-8">
+              <CardContent className="pt-6 pb-6">
                 <ForgotPasswordForm onBack={() => setShowForgotPassword(false)} />
               </CardContent>
             ) : (
             <>
-              <CardHeader className="pt-10 pb-4 px-8 text-center space-y-2">
-                <h2 className="text-3xl font-bold font-display tracking-tight text-foreground">Bem-vindo</h2>
-                <p className="text-[13px] text-muted-foreground font-medium leading-relaxed">Insira suas credenciais exclusivas para acessar o ecossistema Promo Gifts</p>
+              <CardHeader className="pb-4">
+                <div className="text-center space-y-1">
+                  <h2 className="text-xl font-semibold font-display text-foreground">Bem-vindo de volta</h2>
+                  <p className="text-sm text-muted-foreground">Entre com suas credenciais para continuar</p>
+                </div>
               </CardHeader>
 
-              <CardContent className="pt-2 px-8 pb-10 space-y-6">
+              <CardContent className="pt-2 space-y-6">
                   {socialError && (
                     <div
                       role="alert"
@@ -315,16 +317,16 @@ export default function Auth() {
                   )}
 
                   <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-4" data-testid="login-form">
-                    <div className="space-y-2.5">
-                      <Label htmlFor="login-email" className="text-[13px] font-bold uppercase tracking-wider text-muted-foreground ml-1">Email</Label>
-                      <div className="relative group">
-                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-muted-foreground/60 group-focus-within:text-primary transition-colors" />
+                    <div className="space-y-2">
+                      <Label htmlFor="login-email" className="text-foreground">Email</Label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
                           id="login-email"
                           data-testid="login-email-input"
                           type="email"
                           placeholder="seu@email.com"
-                          className="pl-11 bg-background border-2 border-border focus:border-primary focus:ring-0 text-foreground placeholder:text-muted-foreground/40 lowercase h-12 rounded-xl transition-colors duration-200"
+                          className="pl-10 bg-[#EDF2F7] border-transparent focus:bg-white text-gray-900 placeholder:text-gray-500 lowercase h-12 rounded-xl transition-all duration-300"
                           {...loginForm.register("email")}
                           ref={(el) => {
                             loginForm.register("email").ref(el);
@@ -339,16 +341,16 @@ export default function Auth() {
                       )}
                     </div>
 
-                    <div className="space-y-2.5">
-                      <Label htmlFor="login-password" className="text-[13px] font-bold uppercase tracking-wider text-muted-foreground ml-1">Senha</Label>
-                      <div className="relative group">
-                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-muted-foreground/60 group-focus-within:text-primary transition-colors" />
+                    <div className="space-y-2">
+                      <Label htmlFor="login-password" className="text-foreground">Senha</Label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
                           id="login-password"
                           data-testid="login-password-input"
                           type={showPassword ? "text" : "password"}
                           placeholder="••••••••"
-                          className="pl-11 pr-11 bg-background border-2 border-border focus:border-primary focus:ring-0 text-foreground placeholder:text-muted-foreground/40 h-12 rounded-xl transition-colors duration-200"
+                          className="pl-10 pr-10 bg-[#EDF2F7] border-transparent focus:bg-white text-gray-900 placeholder:text-gray-500 h-12 rounded-xl transition-all duration-300"
                           {...loginForm.register("password")}
                         />
                         <button
@@ -368,58 +370,44 @@ export default function Auth() {
                       )}
                     </div>
 
-                    <div className="flex items-center justify-end pt-1">
+                    <div className="flex items-center justify-end">
                       <Button
                         type="button"
                         data-testid="login-forgot-link"
-                        variant="link"
-                        className="p-0 h-auto text-[11px] font-bold uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors"
+                        variant="link-secondary"
+                        className="p-0 h-auto text-xs font-bold uppercase tracking-wider text-foreground hover:text-primary transition-colors"
                         onClick={() => setShowForgotPassword(true)}
                       >
-                        Esqueci minha senha
+                        ESQUECI MINHA SENHA
                       </Button>
                     </div>
 
-                    <Button
-                      type="submit"
+                    <Button 
+                      type="submit" 
                       data-testid="login-submit"
-                      className="w-full h-12 text-sm font-bold uppercase tracking-widest bg-primary hover:bg-primary-hover text-primary-foreground active:scale-[0.98] transition-colors duration-200 rounded-xl mt-2"
+                      className="w-full h-12 text-base font-bold uppercase tracking-widest bg-[#3B82F6] hover:bg-[#2563EB] text-white shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-all duration-300 rounded-xl"
                       disabled={isSubmitting}
                     >
                       {isSubmitting ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Autenticando...
+                          Entrando...
                         </>
                       ) : (
-                        "Entrar na Plataforma"
+                        "Entrar"
                       )}
                     </Button>
 
-                    <div className="relative py-2">
+                    <div className="relative">
                       <div className="absolute inset-0 flex items-center">
-                        <span className="w-full border-t border-border/40" />
+                        <span className="w-full border-t border-border" />
                       </div>
-                      <div className="relative flex justify-center text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50">
-                        <span className="bg-card px-4 uppercase">Ou acesse com</span>
+                      <div className="relative flex justify-center text-xs uppercase">
+                        <span className="bg-card px-2 text-muted-foreground font-bold">OU</span>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 gap-3">
-                      <PasskeyLogin
-                        email={loginForm.watch("email")}
-                        disabled={isSubmitting}
-                        onSuccess={async (userId) => {
-                          setIsSubmitting(true);
-                          try {
-                            await validateAndRedirect(userId, loginForm.getValues("email"));
-                          } finally {
-                            setIsSubmitting(false);
-                          }
-                        }}
-                      />
-                      <SocialLoginButtons onError={handleSocialError} />
-                    </div>
+                    <SocialLoginButtons onError={handleSocialError} />
 
                     <PasskeyLogin
                       email={loginForm.watch("email")}
