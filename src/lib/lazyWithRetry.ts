@@ -24,9 +24,11 @@ export function lazyWithRetry<T extends ComponentType<unknown>>(
 
     for (let i = 0; i < retries; i++) {
       try {
-        return await componentImport();
+        const component = await componentImport();
+        return component;
       } catch (error) {
         lastError = error as Error;
+        console.error(`[lazyWithRetry] Failed to load component (attempt ${i + 1}/${retries}):`, error);
 
         if (isChunkLoadError(error)) {
           logger.warn(`Chunk load failed (attempt ${i + 1}/${retries}), retrying...`);
