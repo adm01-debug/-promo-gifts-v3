@@ -1,9 +1,9 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { BrowserRouter } from 'react-router-dom';
-import Auth from '@/pages/Auth';
-import { StatCard } from '@/components/inventory/StockStatCard';
-import { AuthProvider } from '@/contexts/AuthContext';
+import Auth from '../pages/Auth';
+import { StatCard } from '../components/inventory/StockStatCard';
+import { AuthProvider } from '../contexts/AuthContext';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Package } from 'lucide-react';
 
