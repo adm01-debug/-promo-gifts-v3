@@ -81,17 +81,26 @@ vi.mock('react-router-dom', async () => {
 });
 
 // Wrapper for required providers
-const AllProviders = ({ children }: { children: React.ReactNode }) => (
-  <TooltipProvider>
-    <ProductsProvider>
-      <CollectionsProvider>
-        <SellerCartProvider>
-          {children}
-        </SellerCartProvider>
-      </CollectionsProvider>
-    </ProductsProvider>
-  </TooltipProvider>
-);
+const AllProviders = ({ children }: { children: React.ReactNode }) => {
+  const queryClient = new (require('@tanstack/react-query').QueryClient)({
+    defaultOptions: { queries: { retry: false, staleTime: 0 } }
+  });
+  const { QueryClientProvider } = require('@tanstack/react-query');
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <ProductsProvider>
+          <CollectionsProvider>
+            <SellerCartProvider>
+              {children}
+            </SellerCartProvider>
+          </CollectionsProvider>
+        </ProductsProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 describe('NoveltiesPage UI', () => {
   beforeEach(() => {
