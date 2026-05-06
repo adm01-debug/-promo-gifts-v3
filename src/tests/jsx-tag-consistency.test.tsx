@@ -1,20 +1,19 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import React from 'react';
-import { SimpleFilters } from '../components/filters/filter-panel/sections/SimpleFilters';
+import { TagsFilter } from '../components/filters/filter-panel/sections/SimpleFilters';
 import { SizeFilter } from '../components/filters/filter-panel/sections/SizeFilter';
 import { SupplierRiskPanel } from '../components/inventory/SupplierRiskPanel';
 
 describe('JSX Tag Consistency', () => {
-  it('SimpleFilters is a valid component (transpiles correctly)', () => {
-    // If there were mismatched tags, this import would fail during test collection
-    expect(SimpleFilters).toBeDefined();
+  it('TagsFilter (from SimpleFilters) is a valid component', () => {
+    expect(TagsFilter).toBeDefined();
   });
 
-  it('SizeFilter is a valid component (transpiles correctly)', () => {
+  it('SizeFilter is a valid component', () => {
     expect(SizeFilter).toBeDefined();
   });
 
-  it('SupplierRiskPanel is a valid component (transpiles correctly)', () => {
+  it('SupplierRiskPanel is a valid component', () => {
     expect(SupplierRiskPanel).toBeDefined();
   });
 });
