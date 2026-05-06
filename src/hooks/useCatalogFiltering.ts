@@ -114,12 +114,12 @@ export function useCatalogFiltering({
       );
     }
 
-    if (filters.priceRange[0] > 0 || filters.priceRange[1] < 500) {
+    if (filters.priceRange[0] > 0 || filters.priceRange[1] < 9999) {
       const [min, max] = filters.priceRange;
       result = result.filter((p) => p.price >= min && p.price <= max);
     }
 
-    if (filters.inStock) {
+    if (filters.stockStatus === 'in-stock') {
       result = result.filter((p) => (p.stock || 0) > 0);
     }
 
