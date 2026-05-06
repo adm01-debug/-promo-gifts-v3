@@ -260,4 +260,71 @@ describe('useSellerCartsPage Logic - Filtering & Persistence', () => {
   });
 });
 
+describe('useSellerCartsPage Logic - Mass Actions', () => {
+  const mockItems = [
+    { id: '1', product_name: 'Item 1', product_price: 10, quantity: 1 },
+    { id: '2', product_name: 'Item 2', product_price: 20, quantity: 2 },
+  ];
+
+  const mockActiveCart = {
+    id: 'cart-1',
+    company_name: 'Test Co',
+    items: mockItems,
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('should call removeItem for each selected item on handleBulkRemove', () => {
+    const removeItem = vi.fn();
+    (useSellerCartContext as any).mockReturnValue({
+      carts: [mockActiveCart],
+      activeCart: mockActiveCart,
+      activeCartId: 'cart-1',
+      removeItem,
+    });
+
+    const { result } = renderHook(() => useSellerCartsPage(), { wrapper });
+
+    act(() => {
+      result.current.toggleItemSelection('1');
+      result.current.toggleItemSelection('2');
+    });
+
+    act(() => {
+      result.current.handleBulkRemove();
+    });
+
+    expect(removeItem).toHaveBeenCalledTimes(2);
+    expect(removeItem).toHaveBeenCalledWith('1');
+    expect(removeItem).toHaveBeenCalledWith('2');
+    expect(result.current.selectedItemIds.size).toBe(0); // selection cleared
+  });
+
+  it('should call updateItemNotes for each selected item on handleBulkUpdateNotes', () => {
+    const updateItemNotes = vi.fn();
+    (useSellerCartContext as any).mockReturnValue({
+      carts: [mockActiveCart],
+      activeCart: mockActiveCart,
+      activeCartId: 'cart-1',
+      updateItemNotes,
+    });
+
+    const { result } = renderHook(() => useSellerCartsPage(), { wrapper });
+
+    act(() => {
+      result.current.toggleItemSelection('1');
+    });
+
+    act(() => {
+      result.current.handleBulkUpdateNotes('Nova nota');
+    });
+
+    expect(updateItemNotes).toHaveBeenCalledWith('1', 'Nova nota');
+    expect(result.current.selectedItemIds.size).toBe(0);
+  });
+});
+
+
 
