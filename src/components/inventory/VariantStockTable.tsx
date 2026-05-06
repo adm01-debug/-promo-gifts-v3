@@ -545,10 +545,15 @@ export function VariantStockTable({ products, className }: VariantStockTableProp
             className="pl-8 h-8 text-sm"
           />
           {inlineSearch && (
-            <button type="button" onClick={() => setInlineSearch('')}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => setInlineSearch('')}
+              className="absolute right-2 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground hover:text-foreground"
+            >
               <X className="h-3 w-3" />
-            </button>
+            </Button>
           )}
         </div>
 
