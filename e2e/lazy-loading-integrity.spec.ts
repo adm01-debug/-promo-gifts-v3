@@ -1,7 +1,7 @@
 import { test, expect } from "./fixtures/test-base";
 import { loginAs } from "./helpers/auth";
 
-test.describe("Lazy Loading Integrity", () => {
+test.describe("Lazy Loading Integrity @smoke", () => {
   test.beforeEach(async ({ page }) => {
     // Requires a logged in user to access protected routes
     await loginAs(page, "admin"); 
@@ -17,6 +17,7 @@ test.describe("Lazy Loading Integrity", () => {
 
   for (const route of routes) {
     test(`Route ${route} should render without "Falha no Módulo"`, async ({ page }) => {
+      // Use gotoAndSettle if available, but standard goto is fine for basic check
       await page.goto(route);
       
       // Wait for network idle or a specific selector to ensure loading started
@@ -29,6 +30,11 @@ test.describe("Lazy Loading Integrity", () => {
       // Also check for standard error indicators if any
       const errorText = page.getByText(/Erro ao carregar|Ocorreu um erro/i);
       await expect(errorText).not.toBeVisible();
+      
+      // Verify that at least some content rendered (e.g. not a blank page)
+      // Check for main layout elements
+      const mainContent = page.locator("main, #root > div");
+      await expect(mainContent).toBeVisible();
     });
   }
 });
