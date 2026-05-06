@@ -137,7 +137,7 @@ export function ProductInfoBar({
             onClick={handleToggleCompare}
             className={cn(
               "rounded-full h-8 px-3 text-xs gap-1.5 transition-all duration-300",
-              productId && isInCompare(productId) && "bg-amber-500 hover:bg-amber-600 border-none shadow-md shadow-amber-500/20"
+              productId && isInCompare(productId) && "bg-amber-500 hover:bg-amber-600 border-none shadow-md shadow-orange/20"
             )}
           >
             <LayoutGrid className={cn("h-3.5 w-3.5", productId && isInCompare(productId) ? "text-white" : "text-primary")} />

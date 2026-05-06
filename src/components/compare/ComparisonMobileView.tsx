@@ -93,7 +93,7 @@ export function ComparisonMobileView({ products, formatCurrency, onRemove, onPro
                 key={`${p.id}-${idx}`}
                 className={cn(
                   "shrink-0 snap-start min-w-[48%] max-w-[48%] flex items-center justify-center p-3 rounded-2xl border border-border bg-background transition-all duration-500",
-                  winnerIdx === idx && "border-amber-500/50 bg-amber-500/[0.02] ring-2 ring-amber-500/10 shadow-lg shadow-amber-500/5"
+                  winnerIdx === idx && "border-amber-500/50 bg-amber-500/[0.02] ring-2 ring-amber-500/10 shadow-lg shadow-orange/10"
                 )}
               >
                 {renderCell(row.key, p, idx)}
