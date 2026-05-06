@@ -24,9 +24,8 @@ function sendToCollector(metric: Metric) {
 
 export function initWebVitals() {
   onCLS(sendToCollector);
-  onFID(sendToCollector);
   onLCP(sendToCollector);
   onFCP(sendToCollector);
   onTTFB(sendToCollector);
-  onINP(sendToCollector);
+  onINP(sendToCollector); // INP substitui FID em web-vitals v4+
 }
