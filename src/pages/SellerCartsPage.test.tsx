@@ -185,4 +185,35 @@ describe('SellerCartsPage Component', () => {
     expect(screen.getAllByText('1')).toHaveLength(2);
     expect(screen.getByText('Itens Selecionados')).toBeInTheDocument();
   });
+
+  it('deve permitir trocar o modo de ordenação dos itens', () => {
+    renderWithContext(<SellerCartsPage />);
+    const autoBtn = screen.getByText('Auto');
+    fireEvent.click(autoBtn);
+    expect(mockBaseState.setItemsSortBy).toHaveBeenCalledWith('price-desc');
+  });
+
+  it('deve manter a busca global ao alternar entre carrinhos', () => {
+    const { rerender } = renderWithContext(<SellerCartsPage />);
+    
+    const input = screen.getByPlaceholderText('Busca global...');
+    fireEvent.change(input, { target: { value: 'Nike' } });
+    expect(mockBaseState.setSearchTerm).toHaveBeenCalledWith('Nike');
+
+    // Simula mudança de carrinho mantendo o searchTerm no estado do mock
+    (useSellerCartsPage as any).mockReturnValue({
+      ...mockBaseState,
+      searchTerm: 'Nike',
+      activeCartId: 'cart-2',
+      activeCart: { ...mockCarts[0], id: 'cart-2', company_name: 'Nike' }
+    });
+
+    rerender(
+      <BrowserRouter>
+        <SellerCartsPage />
+      </BrowserRouter>
+    );
+
+    expect(screen.getByPlaceholderText('Busca global...')).toHaveValue('Nike');
+  });
 });
