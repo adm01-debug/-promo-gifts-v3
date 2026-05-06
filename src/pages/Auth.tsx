@@ -329,7 +329,7 @@ export default function Auth() {
                           data-testid="login-email-input"
                           type="email"
                           placeholder="seu@email.com"
-                          className="pl-10 bg-white/5 border-white/10 focus:bg-white/10 text-white placeholder:text-white/40 lowercase h-12 rounded-xl transition-all duration-300 backdrop-blur-md focus:ring-primary/50"
+                          className="pl-10 bg-white/5 border-white/10 focus:bg-white/10 text-white placeholder:text-white/40 lowercase h-12 rounded-lg transition-all duration-300 backdrop-blur-md focus:ring-primary/50"
                           {...loginForm.register("email")}
                           ref={(el) => {
                             loginForm.register("email").ref(el);
@@ -353,18 +353,20 @@ export default function Auth() {
                           data-testid="login-password-input"
                           type={showPassword ? "text" : "password"}
                           placeholder="••••••••"
-                          className="pl-10 pr-10 bg-white/5 border-white/10 focus:bg-white/10 text-white placeholder:text-white/40 h-12 rounded-xl transition-all duration-300 backdrop-blur-md focus:ring-primary/50"
+                          className="pl-10 pr-10 bg-white/5 border-white/10 focus:bg-white/10 text-white placeholder:text-white/40 h-12 rounded-lg transition-all duration-300 backdrop-blur-md focus:ring-primary/50"
                           {...loginForm.register("password")}
                         />
-                        <button
+                        <Button
                           type="button"
+                          variant="ghost"
+                          size="icon"
                           data-testid="login-password-toggle"
                           onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-primary transition-colors flex items-center justify-center p-2"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-primary hover:bg-white/5 transition-colors flex items-center justify-center h-8 w-8"
                           aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
                         >
                           {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        </button>
+                        </Button>
                       </div>
                       {loginForm.formState.errors.password && (
                         <p className="text-sm text-destructive">
@@ -388,7 +390,7 @@ export default function Auth() {
                     <Button 
                       type="submit" 
                       data-testid="login-submit"
-                      className="w-full h-12 text-base font-bold uppercase tracking-widest bg-primary hover:bg-primary-hover text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-all duration-300 rounded-xl"
+                      className="w-full h-12 text-base font-bold uppercase tracking-widest bg-primary hover:bg-primary-hover text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-all duration-300 rounded-lg"
                       disabled={isSubmitting}
                     >
                       {isSubmitting ? (

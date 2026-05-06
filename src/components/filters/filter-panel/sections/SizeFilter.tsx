@@ -7,6 +7,7 @@ import { Ruler, Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 const SIZE_ORDER = [
   "PP", "P", "M", "G", "GG", "XG", "XXG", "EG", "EGG",
@@ -70,9 +71,9 @@ export function SizeFilter({ selectedSizes, onToggleSize, products = [] }: SizeF
             className="h-7 pl-7 pr-7 text-xs"
           />
           {search && (
-            <button onClick={() => setSearch("")} className="absolute right-2 top-1/2 -translate-y-1/2">
+            <Button variant="ghost" size="icon" onClick={() => setSearch("")} className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6">
               <X className="h-3 w-3 text-muted-foreground" />
-            </button>
+            </Button>
           )}
         </div>
       )}
@@ -80,11 +81,13 @@ export function SizeFilter({ selectedSizes, onToggleSize, products = [] }: SizeF
         {filteredSizes.map((size) => {
           const isSelected = selectedSizes.includes(size);
           return (
-            <button
+            <Button
               key={size}
+              variant="outline"
+              size="sm"
               onClick={() => onToggleSize(size)}
               className={cn(
-                "px-2.5 py-1 rounded-xl text-xs font-medium border transition-all",
+                "h-auto px-2.5 py-1 rounded-lg text-xs font-medium border transition-all",
                 isSelected
                   ? "bg-primary text-primary-foreground border-primary shadow-sm"
                   : "bg-card border-border text-foreground hover:border-primary/40 hover:bg-accent"
