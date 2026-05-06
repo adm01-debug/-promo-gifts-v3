@@ -170,3 +170,94 @@ describe('useSellerCartsPage Logic - Sorting', () => {
   });
 });
 
+describe('useSellerCartsPage Logic - Filtering & Persistence', () => {
+  const mockCarts = [
+    {
+      id: 'cart-1',
+      company_name: 'Coca-Cola',
+      items: [{ id: 'i1', product_name: 'Soda' }],
+      updated_at: new Date().toISOString(),
+      created_at: new Date().toISOString(),
+    },
+    {
+      id: 'cart-2',
+      company_name: 'Pepsi',
+      items: [{ id: 'i2', product_name: 'Cola' }],
+      updated_at: new Date().toISOString(),
+      created_at: new Date().toISOString(),
+    }
+  ];
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    (useSellerCartContext as any).mockReturnValue({
+      carts: mockCarts,
+      activeCart: mockCarts[0],
+      activeCartId: 'cart-1',
+      isLoading: false,
+      totalItems: 2,
+      setActiveCartId: vi.fn(),
+    });
+  });
+
+  it('should maintain searchTerm when activeCartId changes', () => {
+    const { result, rerender } = renderHook(() => useSellerCartsPage(), { wrapper });
+    
+    act(() => {
+      result.current.setSearchTerm('test-search');
+    });
+
+    expect(result.current.searchTerm).toBe('test-search');
+
+    // Simulate change in activeCartId from external source (e.g. context)
+    (useSellerCartContext as any).mockReturnValue({
+      carts: mockCarts,
+      activeCart: mockCarts[1],
+      activeCartId: 'cart-2',
+      isLoading: false,
+      totalItems: 2,
+      setActiveCartId: vi.fn(),
+    });
+
+    rerender();
+
+    expect(result.current.searchTerm).toBe('test-search');
+  });
+
+  it('should correctly filter carts based on global search', () => {
+    const { result } = renderHook(() => useSellerCartsPage(), { wrapper });
+    
+    act(() => {
+      result.current.setSearchTerm('Pepsi');
+    });
+
+    expect(result.current.filteredCarts).toHaveLength(1);
+    expect(result.current.filteredCarts[0].company_name).toBe('Pepsi');
+
+    act(() => {
+      result.current.setSearchTerm('Soda'); // search by item name
+    });
+
+    expect(result.current.filteredCarts).toHaveLength(1);
+    expect(result.current.filteredCarts[0].company_name).toBe('Coca-Cola');
+  });
+
+  it('should clear all filters correctly', () => {
+    const { result } = renderHook(() => useSellerCartsPage(), { wrapper });
+    
+    act(() => {
+      result.current.setSearchTerm('Nike');
+      result.current.setCompanyFilter('Some Company');
+      result.current.setItemsSortBy('price-desc');
+    });
+
+    act(() => {
+      result.current.handleClearFilters();
+    });
+
+    expect(result.current.searchTerm).toBe('');
+    expect(result.current.companyFilter).toBe('all');
+  });
+});
+
+
