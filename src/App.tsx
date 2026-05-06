@@ -206,7 +206,7 @@ function RoutePrefetcher() {
   return null;
 }
 
-const AppContent = () => {
+export const AppContent = () => {
   return (
     <Routes>
       {/* Public Routes - Wrapped in RouteErrorBoundary for safety */}
