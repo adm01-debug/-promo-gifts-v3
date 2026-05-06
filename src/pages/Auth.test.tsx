@@ -105,4 +105,16 @@ describe('Auth Page (Login Flow)', () => {
       expect(screen.getByText(/A senha deve conter no mínimo 6 caracteres/i)).toBeInTheDocument();
     });
   });
+
+  it('renders Button and Input with rounded-lg class', async () => {
+    renderWithProviders(<Auth />);
+    
+    await waitFor(() => {
+      const emailInput = screen.getByTestId('login-email-input');
+      const submitButton = screen.getByTestId('login-submit');
+      
+      expect(emailInput).toHaveClass('rounded-lg');
+      expect(submitButton).toHaveClass('rounded-lg');
+    });
+  });
 });
