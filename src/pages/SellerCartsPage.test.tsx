@@ -138,6 +138,7 @@ describe('SellerCartsPage Component', () => {
       filteredCarts: [],
       activeCart: null,
     });
+    // Renderizamos dentro do mock de contexto se necessário, ou apenas mockamos o componente que usa o contexto
     renderWithRouter(<SellerCartsPage />);
     expect(screen.getByText('Monte o carrinho perfeito para seu cliente')).toBeInTheDocument();
   });
