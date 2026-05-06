@@ -35,7 +35,7 @@ const quickActions: QuickAction[] = [
     label: 'Gerar Mockup',
     description: 'Visualização com logo',
     icon: Wand2,
-    href: '/mockup-generator',
+    href: '/ferramentas/mockup-generator',
     color: 'bg-primary/80 text-primary-foreground',
   },
   {
@@ -88,7 +88,7 @@ export function QuickQuoteFAB({ productId, productName }: QuickQuoteFABProps) {
   }, [bridgeOpen, expertOpen, pendingMessage]);
 
   // Don't show on certain pages
-  const hiddenPaths = ['/orcamentos/novo', '/auth', '/mockup-generator'];
+  const hiddenPaths = ['/orcamentos/novo', '/auth', '/ferramentas/mockup-generator'];
   if (hiddenPaths.some((path) => location.pathname.startsWith(path))) {
     return null;
   }
@@ -109,7 +109,7 @@ export function QuickQuoteFAB({ productId, productName }: QuickQuoteFABProps) {
 
     if (productId && href === '/orcamentos/novo') {
       navigate(`${href}?productId=${productId}`);
-    } else if (productId && href === '/mockup-generator') {
+    } else if (productId && href === '/ferramentas/mockup-generator') {
       navigate(`${href}?productId=${productId}`);
     } else {
       navigate(href);

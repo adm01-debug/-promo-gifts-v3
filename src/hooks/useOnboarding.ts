@@ -79,7 +79,7 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
       'Crie visualizações profissionais com logo do cliente! Posicione a arte, ajuste tamanho e gere mockups para apresentações.',
     targetSelector: "[data-tour='sidebar']",
     position: 'right',
-    route: '/mockup-generator',
+    route: '/ferramentas/mockup-generator',
   },
   {
     id: 'trends',

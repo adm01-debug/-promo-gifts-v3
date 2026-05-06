@@ -110,7 +110,7 @@ const navGroups: NavGroup[] = [
     icon: Wrench,
     defaultOpen: false,
     items: [
-      { icon: ImagePlus, label: 'Mockup', href: '/mockup-generator', shortcut: 'Alt+M' },
+      { icon: ImagePlus, label: 'Mockup', href: '/ferramentas/mockup-generator', shortcut: 'Alt+M' },
       { icon: Sparkles, label: 'Magic Up', href: '/ferramentas/magic-up' },
       { icon: Crosshair, label: 'Match', href: '/ferramentas/match' },
       { icon: Boxes, label: 'Kit Maker', href: '/montar-kit', shortcut: 'Alt+K' },
