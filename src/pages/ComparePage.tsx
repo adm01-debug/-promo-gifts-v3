@@ -171,10 +171,10 @@ export default function ComparePage() {
               size="sm" 
               disabled={isMockLoading}
               className="gap-2 border-amber-500/30 hover:border-amber-500 bg-amber-500/5 font-black uppercase text-[10px] tracking-widest"
-              onClick={() => handleLoadMocks(["26462", "26463", "26464", "26465", "26466", "26467", "26468", "26469"])}
+              onClick={() => handleLoadMocks(["26462", "26463", "26464", "26465", "26466", "26467", "26468", "26469", "26470", "26471", "26472", "26473"])}
             >
               {isMockLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <List className="h-3 w-3 text-amber-500" />}
-              Arena de Volume (8 Itens)
+              Arena Total (12 Itens)
             </Button>
           </div>
           <p className="text-[10px] text-amber-600/50 uppercase tracking-[0.2em] font-black">

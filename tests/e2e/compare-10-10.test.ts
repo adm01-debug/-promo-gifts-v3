@@ -41,21 +41,22 @@ test("deve carregar mock de volume e persistir após recarregar", async ({ page 
     await clearBtn.click();
   }
 
-  // Clicar no mock de volume (8 itens)
-  const volBtn = page.getByRole("button", { name: /Arena de Volume/i });
+  // Clicar no mock de volume (12 itens)
+  const volBtn = page.getByRole("button", { name: /Arena Total/i });
   await expect(volBtn).toBeVisible();
   await volBtn.click();
   
   await expect(page.locator("text=Simulação concluída")).toBeVisible();
+  await expect(page.locator("text=12 itens na Arena")).toBeVisible();
 
   // Verificar contagem
-  await expect(page.locator("text=Comparando 8 produtos")).toBeVisible();
+  await expect(page.locator("text=Comparando 12 produtos")).toBeVisible();
 
   // Recarregar página
   await page.reload();
 
   // Verificar se persistiu (via localStorage/Zustand)
-  await expect(page.locator("text=Comparando 8 produtos")).toBeVisible();
+  await expect(page.locator("text=Comparando 12 produtos")).toBeVisible();
   await expect(page.locator("text=Radar de Performance")).toBeVisible();
 });
 

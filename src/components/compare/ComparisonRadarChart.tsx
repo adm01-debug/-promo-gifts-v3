@@ -21,9 +21,17 @@ interface ComparisonRadarChartProps {
 
 const COLORS = [
   "hsl(var(--primary))",
-  "hsl(var(--success))",
-  "hsl(var(--warning))",
-  "hsl(var(--destructive))",
+  "#22c55e", // green-500
+  "#eab308", // yellow-500
+  "#ef4444", // red-500
+  "#8b5cf6", // violet-500
+  "#06b6d4", // cyan-500
+  "#f97316", // orange-500
+  "#ec4899", // pink-500
+  "#6366f1", // indigo-500
+  "#14b8a6", // teal-500
+  "#f43f5e", // rose-500
+  "#a855f7", // purple-500
 ];
 
 function leadTimeScore(status: string | undefined): number {
@@ -124,8 +132,8 @@ export function ComparisonRadarChart({ products, className }: ComparisonRadarCha
                 dataKey={String(p.id)}
                 stroke={COLORS[i % COLORS.length]}
                 fill={COLORS[i % COLORS.length]}
-                fillOpacity={opacity[String(p.id)] ?? 0.18}
-                strokeOpacity={opacity[String(p.id)] ? 1 : 0.8}
+                fillOpacity={opacity[String(p.id)] ?? (Object.keys(opacity).length > 0 ? 0.05 : 0.18)}
+                strokeOpacity={opacity[String(p.id)] ? 1 : (Object.keys(opacity).length > 0 ? 0.2 : 0.8)}
                 strokeWidth={2}
                 animationBegin={i * 100}
                 animationDuration={800}

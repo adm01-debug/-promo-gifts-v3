@@ -20,7 +20,11 @@ export function ComparisonSummaryDashboard({ products }: ComparisonSummaryDashbo
 
   if (products.length < 2) return null;
 
-  // Encontrar atributos que mais diferenciam (exemplo: preço e estoque)
+  // Calcular destaques por categoria
+  const bestPrice = [...products].sort((a, b) => a.price - b.price)[0];
+  const bestStock = [...products].sort((a, b) => (b.stock || 0) - (a.stock || 0))[0];
+  const bestVariety = [...products].sort((a, b) => (b.colors?.length || 0) - (a.colors?.length || 0))[0];
+
   const maxPrice = Math.max(...products.map(p => p.price));
   const minPrice = Math.min(...products.map(p => p.price));
   const priceDiff = maxPrice - minPrice;
@@ -57,32 +61,34 @@ export function ComparisonSummaryDashboard({ products }: ComparisonSummaryDashbo
         )}
       </div>
 
-      {/* Coluna 2: Diferenciadores Rápidos */}
+      {/* Coluna 2: Líderes por Categoria */}
       <div className="rounded-xl border-[2px] border-blue-400/20 bg-gradient-to-br from-blue-400/5 to-transparent p-4 shadow-sm">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2 text-blue-600">
             <Info className="h-4 w-4" />
-            Insights Técnicos
+            Liderança Técnica
           </h3>
         </div>
         <div className="space-y-3">
-          {hasBigPriceDiff && (
-            <div className="flex items-start gap-2 text-xs">
-              <div className="h-2 w-2 rounded-full bg-blue-500 mt-1" />
-              <p><span className="font-bold">Alta variação de preço:</span> diferença de até {Math.round((priceDiff/minPrice)*100)}% entre itens.</p>
-            </div>
-          )}
-          {hasBigStockDiff && (
-            <div className="flex items-start gap-2 text-xs">
-              <div className="h-2 w-2 rounded-full bg-orange-500 mt-1" />
-              <p><span className="font-bold">Disponibilidade crítica:</span> um dos itens possui estoque significativamente maior.</p>
-            </div>
-          )}
-          {!hasBigPriceDiff && !hasBigStockDiff && (
-            <div className="text-xs text-muted-foreground italic">
-              Produtos com especificações técnicas e comerciais muito similares.
-            </div>
-          )}
+          <div className="flex items-center justify-between text-[11px]">
+            <span className="text-muted-foreground">Melhor Preço:</span>
+            <span className="font-bold text-blue-700 truncate max-w-[120px]" title={bestPrice.name}>{bestPrice.name}</span>
+          </div>
+          <div className="flex items-center justify-between text-[11px]">
+            <span className="text-muted-foreground">Maior Estoque:</span>
+            <span className="font-bold text-green-700 truncate max-w-[120px]" title={bestStock.name}>{bestStock.name}</span>
+          </div>
+          <div className="flex items-center justify-between text-[11px]">
+            <span className="text-muted-foreground">Mais Versátil:</span>
+            <span className="font-bold text-purple-700 truncate max-w-[120px]" title={bestVariety.name}>{bestVariety.name}</span>
+          </div>
+          <div className="pt-2 mt-2 border-t border-blue-400/10">
+            {hasBigPriceDiff && (
+              <p className="text-[10px] text-blue-600/80 font-medium">
+                Destaque: Variação de {Math.round((priceDiff/minPrice)*100)}% em preço.
+              </p>
+            )}
+          </div>
         </div>
       </div>
 
