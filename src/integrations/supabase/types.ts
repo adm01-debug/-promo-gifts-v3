@@ -5410,6 +5410,60 @@ export type Database = {
       }
       webhook_delivery_metrics: {
         Row: {
+          attempt: number | null
+          direction: string | null
+          duration_ms: number | null
+          endpoint: string | null
+          error_class: string | null
+          error_message: string | null
+          event_type: string | null
+          http_status: number | null
+          id: string
+          metadata: Json | null
+          occurred_at: string
+          payload_bytes: number | null
+          request_id: string | null
+          source: string | null
+          success: boolean | null
+        }
+        Insert: {
+          attempt?: number | null
+          direction?: string | null
+          duration_ms?: number | null
+          endpoint?: string | null
+          error_class?: string | null
+          error_message?: string | null
+          event_type?: string | null
+          http_status?: number | null
+          id?: string
+          metadata?: Json | null
+          occurred_at?: string
+          payload_bytes?: number | null
+          request_id?: string | null
+          source?: string | null
+          success?: boolean | null
+        }
+        Update: {
+          attempt?: number | null
+          direction?: string | null
+          duration_ms?: number | null
+          endpoint?: string | null
+          error_class?: string | null
+          error_message?: string | null
+          event_type?: string | null
+          http_status?: number | null
+          id?: string
+          metadata?: Json | null
+          occurred_at?: string
+          payload_bytes?: number | null
+          request_id?: string | null
+          source?: string | null
+          success?: boolean | null
+        }
+        Relationships: []
+      }
+      webhook_delivery_metrics_old: {
+        Row: {
           attempt: number
           direction: string
           duration_ms: number | null
@@ -5459,6 +5513,114 @@ export type Database = {
           request_id?: string
           source?: string
           success?: boolean
+        }
+        Relationships: []
+      }
+      webhook_delivery_metrics_y2026m05: {
+        Row: {
+          attempt: number | null
+          direction: string | null
+          duration_ms: number | null
+          endpoint: string | null
+          error_class: string | null
+          error_message: string | null
+          event_type: string | null
+          http_status: number | null
+          id: string
+          metadata: Json | null
+          occurred_at: string
+          payload_bytes: number | null
+          request_id: string | null
+          source: string | null
+          success: boolean | null
+        }
+        Insert: {
+          attempt?: number | null
+          direction?: string | null
+          duration_ms?: number | null
+          endpoint?: string | null
+          error_class?: string | null
+          error_message?: string | null
+          event_type?: string | null
+          http_status?: number | null
+          id?: string
+          metadata?: Json | null
+          occurred_at?: string
+          payload_bytes?: number | null
+          request_id?: string | null
+          source?: string | null
+          success?: boolean | null
+        }
+        Update: {
+          attempt?: number | null
+          direction?: string | null
+          duration_ms?: number | null
+          endpoint?: string | null
+          error_class?: string | null
+          error_message?: string | null
+          event_type?: string | null
+          http_status?: number | null
+          id?: string
+          metadata?: Json | null
+          occurred_at?: string
+          payload_bytes?: number | null
+          request_id?: string | null
+          source?: string | null
+          success?: boolean | null
+        }
+        Relationships: []
+      }
+      webhook_delivery_metrics_y2026m06: {
+        Row: {
+          attempt: number | null
+          direction: string | null
+          duration_ms: number | null
+          endpoint: string | null
+          error_class: string | null
+          error_message: string | null
+          event_type: string | null
+          http_status: number | null
+          id: string
+          metadata: Json | null
+          occurred_at: string
+          payload_bytes: number | null
+          request_id: string | null
+          source: string | null
+          success: boolean | null
+        }
+        Insert: {
+          attempt?: number | null
+          direction?: string | null
+          duration_ms?: number | null
+          endpoint?: string | null
+          error_class?: string | null
+          error_message?: string | null
+          event_type?: string | null
+          http_status?: number | null
+          id?: string
+          metadata?: Json | null
+          occurred_at?: string
+          payload_bytes?: number | null
+          request_id?: string | null
+          source?: string | null
+          success?: boolean | null
+        }
+        Update: {
+          attempt?: number | null
+          direction?: string | null
+          duration_ms?: number | null
+          endpoint?: string | null
+          error_class?: string | null
+          error_message?: string | null
+          event_type?: string | null
+          http_status?: number | null
+          id?: string
+          metadata?: Json | null
+          occurred_at?: string
+          payload_bytes?: number | null
+          request_id?: string | null
+          source?: string | null
+          success?: boolean | null
         }
         Relationships: []
       }
@@ -5983,6 +6145,7 @@ export type Database = {
       }
       log_user_logout: { Args: never; Returns: undefined }
       lookup_request_id: { Args: { _request_id: string }; Returns: Json }
+      maintain_webhook_metrics: { Args: never; Returns: undefined }
       mark_all_notifications_read: { Args: never; Returns: undefined }
       mark_notification_read: {
         Args: { p_notification_id: string }
