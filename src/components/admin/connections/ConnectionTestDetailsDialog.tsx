@@ -261,7 +261,7 @@ export function ConnectionTestDetailsDialog({
                 <div>
                   <div className="text-[11px] text-muted-foreground">Latência total</div>
                   <div className="mt-0.5 font-mono">
-                    {totalLatency != null ? `${totalLatency}ms` : '—'}
+                    {totalLatency !== null ? `${totalLatency}ms` : '—'}
                   </div>
                 </div>
                 <div>
