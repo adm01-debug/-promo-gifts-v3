@@ -25,6 +25,11 @@ vi.mock('../integrations/supabase/client', () => ({
       order: vi.fn().mockReturnThis(),
       limit: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
+      insert: vi.fn().mockReturnThis(),
+      update: vi.fn().mockReturnThis(),
+      delete: vi.fn().mockReturnThis(),
+      single: vi.fn(),
+      maybeSingle: vi.fn(),
     }),
     functions: {
       invoke: vi.fn().mockResolvedValue({ data: null, error: null }),
@@ -34,6 +39,7 @@ vi.mock('../integrations/supabase/client', () => ({
       subscribe: vi.fn().mockReturnThis(),
       unsubscribe: vi.fn().mockReturnThis(),
     }),
+    removeChannel: vi.fn().mockResolvedValue(null),
   },
 }));
 
@@ -59,6 +65,11 @@ vi.mock('../components/layout/Header', () => ({
 
 vi.mock('../components/layout/SidebarReorganized', () => ({
   SidebarReorganized: () => <aside data-testid="sidebar"><div data-testid="sidebar-brand-header">Brand</div></aside>
+}));
+
+// Mock PulseBar components to avoid getRotationHistory and other errors
+vi.mock('../components/admin/connections/ConnectionsPulseBar', () => ({
+  ConnectionsPulseBar: () => <div data-testid="pulse-bar" />
 }));
 
 const queryClient = new QueryClient({
