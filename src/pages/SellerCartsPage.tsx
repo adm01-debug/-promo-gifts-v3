@@ -323,10 +323,25 @@ function SellerCartsContent() {
             </div>
 
             {/* Produtos */}
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-                <Package className="h-4 w-4" /> Produtos no carrinho
-              </h3>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
+              <div className="flex items-center gap-3">
+                <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                  <Package className="h-4 w-4" /> Produtos no carrinho
+                </h3>
+                {s.activeCart.items.length > 0 && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-7 text-[10px] font-bold uppercase tracking-tight px-2 rounded-lg hover:bg-primary/5 hover:text-primary transition-all"
+                    onClick={() => {
+                      if (s.selectedItemIds.size === s.activeCart!.items.length) s.clearSelection();
+                      else s.activeCart!.items.forEach(i => !s.selectedItemIds.has(i.id) && s.toggleItemSelection(i.id));
+                    }}
+                  >
+                    {s.selectedItemIds.size === s.activeCart.items.length ? "Desmarcar todos" : "Selecionar todos"}
+                  </Button>
+                )}
+              </div>
               <div className="flex items-center gap-2">
                 <div className="flex items-center gap-1.5 mr-2 bg-muted/20 p-1 rounded-lg border border-border/20">
                   <span className="text-[10px] font-bold text-muted-foreground uppercase px-1">Modo:</span>
