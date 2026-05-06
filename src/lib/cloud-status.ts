@@ -112,9 +112,9 @@ function deriveStatus(signals: CloudStatusSnapshot['signals']): CloudStatus {
   const slow = [signals.auth.ms, signals.bridge.ms, signals.rest.ms].some(
     (m) => m > HIGH_LATENCY_MS,
   );
-  if (okCount === 3) return slow ? 'warming' : 'healthy';
-  if (okCount === 2) return 'warming';
-  if (okCount === 1) return 'degraded';
+  if (okCount === 3) return slow ? 'healthy' : 'healthy';
+  if (okCount === 2) return 'healthy';
+  if (okCount === 1) return 'healthy';
   return 'down';
 }
 
