@@ -113,7 +113,7 @@ export function SyncedZoomGallery({ products, onProductClick }: SyncedZoomGaller
           <ZoomOut className="h-4 w-4" />
         </Button>
         <div className="flex items-center gap-3 w-48">
-          <Slider value={[zoom]} min={1} max={4} step={0.1} onValueChange={handleSliderChange} className="flex-1" />
+          <Slider value={[zoom]} min={1} max={4} step={0.1} onValueChange={handleSliderChange} className="flex-1 cursor-pointer" />
           <span className="text-sm font-medium w-12 text-center">{Math.round(zoom * 100)}%</span>
         </div>
         <Button variant="ghost" size="icon" aria-label="Ampliar" onClick={handleZoomIn} disabled={zoom >= 4} className="h-8 w-8">
