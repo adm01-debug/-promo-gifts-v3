@@ -323,7 +323,15 @@ export function useSellerCartsPage() {
     if (!activeCart) return [];
     let items = [...activeCart.items];
     
-    if (itemsSortBy === "manual") return items;
+    if (itemsSortBy === "manual") {
+      // Garantir ordem consistente por sort_order, fallback para id
+      return items.sort((a, b) => {
+        if (a.sort_order !== null && b.sort_order !== null) return a.sort_order - b.sort_order;
+        if (a.sort_order !== null) return -1;
+        if (b.sort_order !== null) return 1;
+        return a.id.localeCompare(b.id);
+      });
+    }
     
     items.sort((a, b) => {
       if (itemsSortBy === "price-desc") return b.product_price - a.product_price;
