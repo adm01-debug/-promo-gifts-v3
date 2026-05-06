@@ -45,13 +45,13 @@ export function ComparisonSummaryDashboard({ products }: ComparisonSummaryDashbo
         {winnerProduct && (
           <div className="space-y-2">
             <div className="flex items-end gap-2">
-              <span className="text-3xl font-display font-bold text-primary">{winnerScore?.total}</span>
-              <span className="text-sm text-muted-foreground mb-1">pontos</span>
+              <span className="text-3xl font-display font-black text-amber-500">{winnerScore?.total}</span>
+              <span className="text-xs font-bold text-muted-foreground mb-1 uppercase tracking-tighter">Índice Global</span>
             </div>
-            <p className="text-sm font-medium line-clamp-2">{winnerProduct.name}</p>
-            <div className="flex items-center gap-1.5 text-xs text-success font-medium">
+            <p className="text-sm font-bold line-clamp-2 text-foreground/80">{winnerProduct.name}</p>
+            <div className="flex items-center gap-1.5 text-[10px] text-amber-600 font-black uppercase tracking-widest bg-amber-500/10 p-1.5 rounded-lg border border-amber-500/20">
               <Crown className="h-3 w-3" />
-              Melhor custo-benefício identificado
+              Líder de Custo-Benefício
             </div>
           </div>
         )}
