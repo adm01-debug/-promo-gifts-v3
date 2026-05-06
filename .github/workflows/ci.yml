@@ -102,6 +102,9 @@ jobs:
         if: always()
         run: node scripts/e2e-feature-summary.mjs
 
+      - name: Check per-route quality gate
+        run: node scripts/check-route-quality.mjs
+
       - name: Upload Playwright Reports (HTML/JSON/Markdown)
         if: always()
         uses: actions/upload-artifact@v4
