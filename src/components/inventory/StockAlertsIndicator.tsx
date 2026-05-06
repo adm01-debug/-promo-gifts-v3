@@ -305,11 +305,13 @@ export function StockAlertsIndicator({
                 const count = counts[tab.key];
                 const isActive = activeTab === tab.key;
                 return (
-                  <button
+                  <Button
                     key={tab.key}
+                    variant="ghost"
+                    size="sm"
                     onClick={() => setActiveTab(tab.key)}
                     className={cn(
-                      "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium border transition-all",
+                      "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium border transition-all h-auto",
                       isActive
                         ? tab.activeColor
                         : "border-transparent text-muted-foreground hover:bg-muted/40"
@@ -324,7 +326,7 @@ export function StockAlertsIndicator({
                         {count > 99 ? "99+" : count}
                       </span>
                     )}
-                  </button>
+                  </Button>
                 );
               })}
             </div>
