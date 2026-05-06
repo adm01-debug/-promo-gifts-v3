@@ -38,7 +38,6 @@ const routeLabels: Record<string, string> = {
   "favoritos": "Favoritos",
   "comparar": "Comparar",
   "colecoes": "Coleções",
-  "bi": "Estoque 360º",
   "estoque": "Estoque 360º",
   "tendencias": "Tendências",
   
