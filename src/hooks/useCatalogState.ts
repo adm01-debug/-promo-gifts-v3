@@ -146,7 +146,7 @@ export function useCatalogState() {
     setViewModeState(mode);
     try {
       localStorage.setItem(VIEW_MODE_KEY, mode);
-    } catch (e) {
+    } catch (_e) {
       // LocalStorage access can fail
     }
   }, []);
@@ -155,7 +155,7 @@ export function useCatalogState() {
     setGridColumnsState(cols);
     try {
       localStorage.setItem(GRID_COLUMNS_KEY, String(cols));
-    } catch (e) {
+    } catch (_e) {
       // LocalStorage access can fail
     }
   }, []);
