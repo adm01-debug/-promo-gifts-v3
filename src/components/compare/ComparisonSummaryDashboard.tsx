@@ -58,11 +58,11 @@ export function ComparisonSummaryDashboard({ products }: ComparisonSummaryDashbo
       </div>
 
       {/* Coluna 2: Diferenciadores Rápidos */}
-      <div className="rounded-xl border bg-card p-4">
+      <div className="rounded-xl border-[2px] border-blue-400/20 bg-gradient-to-br from-blue-400/5 to-transparent p-4 shadow-sm">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-semibold flex items-center gap-2">
-            <Info className="h-4 w-4 text-blue-500" />
-            Insights de Atributos
+          <h3 className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2 text-blue-600">
+            <Info className="h-4 w-4" />
+            Insights Técnicos
           </h3>
         </div>
         <div className="space-y-3">
