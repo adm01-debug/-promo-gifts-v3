@@ -10,31 +10,12 @@ test.describe("RBAC — Matriz de Acesso por Papel", () => {
 
   for (const role of rolesToTest) {
     test.describe(`Papel: ${role}`, () => {
-      // Setup de autenticação por papel (pula para público)
-      test.beforeEach(async ({ page }) => {
-        if (role === "publico") {
-          await page.context().clearCookies();
-          await page.evaluate(() => localStorage.clear());
-        } else {
-          // Nota: O setup global já deve ter preparado os storageStates se usarmos projects específicos,
-          // mas para um teste de matriz completa em um único arquivo, podemos usar logins programáticos
-          // ou assumir que o worker está isolado.
-          // Aqui usamos o helper de navegação para forçar o estado se necessário.
-          await page.goto("/login");
-          
-          const email = role === "dev" ? process.env.E2E_ADMIN_EMAIL : 
-                        role === "supervisor" ? process.env.E2E_SUPERVISOR_EMAIL : 
-                        process.env.E2E_USER_EMAIL;
-          const password = process.env.E2E_USER_PASSWORD; // Assumindo mesma senha para simplificar testes
-
-          if (email && password) {
-             // Realiza login se não estiver logado como o papel correto
-             // (Em um ambiente real, usaríamos storageState específico por role via projects do Playwright)
-          }
-        }
+      test.use({ 
+        storageState: role === "publico" ? { cookies: [], origins: [] } : `e2e/.auth/${role}.json` 
       });
 
       const routes = PERMISSION_MATRIX[role];
+
       for (const route of routes) {
         const paths = resolvePaths(route);
         for (const path of paths) {
