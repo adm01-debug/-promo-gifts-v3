@@ -9,7 +9,7 @@ export const SidebarBrandHeader = forwardRef<HTMLDivElement, SidebarBrandHeaderP
   ({ isCollapsed }, ref) => {
     if (isCollapsed) {
       return (
-        <div ref={ref} className="mb-2 flex flex-col items-center justify-center gap-4 py-4">
+        <div ref={ref} className="mb-2 flex flex-col items-center justify-center gap-4 py-4" data-testid="sidebar-brand-header">
           <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#3B82F6] shadow-lg shadow-primary/20">
             <span className="text-[10px] font-bold tracking-tight text-white">PG</span>
           </div>
@@ -18,7 +18,7 @@ export const SidebarBrandHeader = forwardRef<HTMLDivElement, SidebarBrandHeaderP
     }
 
     return (
-      <div ref={ref} className="mb-2 px-4 py-3">
+      <div ref={ref} className="mb-2 px-4 py-3" data-testid="sidebar-brand-header">
         <div className="flex min-w-0 items-center gap-2.5">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#3B82F6] shadow-lg shadow-primary/20">
             <Gift className="h-4.5 w-4.5 text-white" />

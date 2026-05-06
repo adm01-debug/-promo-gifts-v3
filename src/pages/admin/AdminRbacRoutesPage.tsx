@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { MainLayout } from '@/components/layout/MainLayout';
+
 import { PageSEO } from '@/components/seo/PageSEO';
 import {
   ShieldCheck,
@@ -118,7 +118,7 @@ export default function AdminRbacRoutesPage() {
   };
 
   return (
-    <MainLayout>
+    <>
       <PageSEO
         title="Auditoria RBAC de Rotas"
         description="Matriz de auditoria das rotas técnicas, papéis exigidos, guards e helpers RLS."
@@ -347,6 +347,6 @@ export default function AdminRbacRoutesPage() {
           </CardContent>
         </Card>
       </div>
-    </MainLayout>
+    </>
   );
 }
