@@ -245,6 +245,14 @@ const AppContent = () => {
         }
       />
       <Route
+        path="/approval/:token"
+        element={
+          <RouteErrorBoundary>
+            <QuoteApprovalPage />
+          </RouteErrorBoundary>
+        }
+      />
+      <Route
         path="/kit/:token"
         element={
           <RouteErrorBoundary>
