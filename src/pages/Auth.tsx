@@ -276,8 +276,8 @@ export default function Auth() {
             <>
               <CardHeader className="pb-4">
                 <div className="text-center space-y-1">
-                  <h2 className="text-xl font-semibold font-display text-foreground">Bem-vindo de volta</h2>
-                  <p className="text-sm text-muted-foreground">Entre com suas credenciais para continuar</p>
+                   <h2 className="text-xl font-semibold font-display text-white">Bem-vindo de volta</h2>
+                   <p className="text-sm text-white/60">Entre com suas credenciais para continuar</p>
                 </div>
               </CardHeader>
 
@@ -321,15 +321,15 @@ export default function Auth() {
 
                   <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-4" data-testid="login-form">
                     <div className="space-y-2">
-                      <Label htmlFor="login-email" className="text-foreground">Email</Label>
+                      <Label htmlFor="login-email" className="text-white/90">Email</Label>
                       <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/50" />
                         <Input
                           id="login-email"
                           data-testid="login-email-input"
                           type="email"
                           placeholder="seu@email.com"
-                          className="pl-10 bg-[#EDF2F7] border-transparent focus:bg-white text-gray-900 placeholder:text-gray-500 lowercase h-12 rounded-xl transition-all duration-300"
+                          className="pl-10 bg-white/10 border-white/10 focus:bg-white/20 text-white placeholder:text-white/40 lowercase h-12 rounded-xl transition-all duration-300 backdrop-blur-md"
                           {...loginForm.register("email")}
                           ref={(el) => {
                             loginForm.register("email").ref(el);
@@ -345,22 +345,22 @@ export default function Auth() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="login-password" className="text-foreground">Senha</Label>
+                      <Label htmlFor="login-password" className="text-white/90">Senha</Label>
                       <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/50" />
                         <Input
                           id="login-password"
                           data-testid="login-password-input"
                           type={showPassword ? "text" : "password"}
                           placeholder="••••••••"
-                          className="pl-10 pr-10 bg-[#EDF2F7] border-transparent focus:bg-white text-gray-900 placeholder:text-gray-500 h-12 rounded-xl transition-all duration-300"
+                          className="pl-10 pr-10 bg-white/10 border-white/10 focus:bg-white/20 text-white placeholder:text-white/40 h-12 rounded-xl transition-all duration-300 backdrop-blur-md"
                           {...loginForm.register("password")}
                         />
                         <button
                           type="button"
                           data-testid="login-password-toggle"
                           onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-orange transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center -mr-2"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-orange transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center -mr-2"
                           aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
                         >
                           {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -378,7 +378,7 @@ export default function Auth() {
                         type="button"
                         data-testid="login-forgot-link"
                         variant="link-secondary"
-                        className="p-0 h-auto text-xs font-bold uppercase tracking-wider text-foreground hover:text-primary transition-colors"
+                        className="p-0 h-auto text-xs font-bold uppercase tracking-wider text-white/70 hover:text-primary transition-colors"
                         onClick={() => setShowForgotPassword(true)}
                       >
                         ESQUECI MINHA SENHA
