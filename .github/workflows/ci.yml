@@ -196,3 +196,17 @@ jobs:
 
 
 
+  ci-gate:
+    name: 🛡️ CI Merge Block Gate
+    runs-on: ubuntu-latest
+    needs: [quality, e2e-tests, edge-functions, theme-and-a11y, generate-final-report]
+    if: always()
+    steps:
+      - name: Evaluate Pipeline Status
+        run: |
+          if [ "${{ needs.quality.result }}" != "success" ]; then echo "Quality check failed"; exit 1; fi
+          if [ "${{ needs.e2e-tests.result }}" != "success" ]; then echo "E2E tests failed"; exit 1; fi
+          if [ "${{ needs.edge-functions.result }}" != "success" ]; then echo "Edge functions check failed"; exit 1; fi
+          if [ "${{ needs.theme-and-a11y.result }}" != "success" ]; then echo "Theme/A11y check failed"; exit 1; fi
+          echo "All critical paths cleared. Merge authorized. ✅"
+
