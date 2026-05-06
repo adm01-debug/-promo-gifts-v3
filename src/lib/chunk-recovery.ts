@@ -34,7 +34,6 @@ interface RecoveryState {
   lastUrl?: string;
   version?: string;
 }
-}
 
 function readState(): RecoveryState {
   try {
