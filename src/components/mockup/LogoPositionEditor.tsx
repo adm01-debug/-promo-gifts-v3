@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Move } from "lucide-react";
 import { useProductBounds } from "@/hooks/useProductBounds";
@@ -11,6 +11,7 @@ import { useLogoDrag } from "./logo-editor/useLogoDrag";
 import { LogoPreviewCanvas } from "./logo-editor/LogoPreviewCanvas";
 import { LogoQuickActions } from "./logo-editor/LogoQuickActions";
 import { LogoSizeControls } from "./logo-editor/LogoSizeControls";
+import { LogoProcessingPreview } from "./logo-editor/LogoProcessingPreview";
 
 interface LogoPositionEditorProps {
   productImageUrl: string;
@@ -61,7 +62,15 @@ export function LogoPositionEditor({
 }: LogoPositionEditorProps) {
   const { ref: containerRef, size: containerSize } = useElementSize<HTMLDivElement>();
   const productBounds = useProductBounds(productImageUrl);
-  const { processedLogoUrl } = useLogoProcessing(logoPreview, techniqueColorConfig);
+  
+  // Advanced processing state for Laser
+  const [whiteThreshold, setWhiteThreshold] = useState(220);
+  const [alphaThreshold, setAlphaThreshold] = useState(30);
+
+  const { processedLogoUrl, isProcessing } = useLogoProcessing(logoPreview, techniqueColorConfig, {
+    whiteThreshold,
+    alphaThreshold
+  });
   const { handlePointerDown } = useLogoDrag(containerRef, positionX, positionY, onPositionChange);
 
   const techniqueFilter = useMemo(
@@ -188,6 +197,18 @@ export function LogoPositionEditor({
           onSizeChange={onSizeChange}
           onLogoScaleChange={onLogoScaleChange}
         />
+
+        {techniqueColorConfig?.category === "laser" && logoPreview && (
+          <LogoProcessingPreview
+            originalUrl={logoPreview}
+            processedUrl={processedLogoUrl}
+            whiteThreshold={whiteThreshold}
+            alphaThreshold={alphaThreshold}
+            onWhiteThresholdChange={setWhiteThreshold}
+            onAlphaThresholdChange={setAlphaThreshold}
+            isProcessing={isProcessing}
+          />
+        )}
       </CardContent>
     </Card>
   );
