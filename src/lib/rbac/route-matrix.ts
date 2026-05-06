@@ -434,7 +434,7 @@ export const RBAC_ROUTES: RbacRouteEntry[] = ([
     category: 'audit',
     notes: 'Esta página.',
   },
-].map(r => ({ ...r, mfaAal2: false }));
+] as RbacRouteEntry[]).map(r => ({ ...r, mfaAal2: false }));
 
 /** Resumo agregado para cards de overview. */
 export function summarizeRoutes(routes: RbacRouteEntry[] = RBAC_ROUTES) {
