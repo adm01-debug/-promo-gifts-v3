@@ -1,7 +1,7 @@
 import { create } from "zustand";
 
 const STORAGE_KEY = "product-comparison";
-const MAX_COMPARE_ITEMS = 4;
+const MAX_COMPARE_ITEMS = 12; // Aumentado para suportar testes de volume e variações complexas de Radar/Score
 
 export interface CompareVariantInfo {
   color_name?: string | null;

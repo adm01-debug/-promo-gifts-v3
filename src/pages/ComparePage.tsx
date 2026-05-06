@@ -21,7 +21,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { GitCompare, X, ArrowLeft, Share2, Image as ImageIcon, List, Filter, FileText, Building2, Swords } from "lucide-react";
+import { GitCompare, X, ArrowLeft, Share2, Image as ImageIcon, List, Filter, FileText, Building2, Swords, Trash2, Loader2, Sparkles } from "lucide-react";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { SyncedZoomGallery } from "@/components/compare/SyncedZoomGallery";
 import { CompareTableView } from "@/components/compare/CompareTableView";
@@ -47,9 +48,10 @@ export default function ComparePage() {
   const [duelMode, setDuelMode] = useState(true);
   const [showRadar, setShowRadar] = useState(true);
   const [shareOpen, setShareOpen] = useState(false);
+  const [isMockLoading, setIsMockLoading] = useState(false);
   const [client, setClient] = useState<{ id: string; name: string } | null>(null);
   const [ariaMessage, setAriaMessage] = useState("");
-  const { compareItems, removeByIndex, clearCompare, compareCount } = useComparisonStore();
+  const { compareItems, removeByIndex, clearCompare, compareCount, addToCompare } = useComparisonStore();
   const { getProductsByIds, products: _cacheSignal } = useProductsContext();
 
   // Track previous count for ARIA-live announcements
@@ -109,24 +111,58 @@ export default function ComparePage() {
 
   // Empty state with smart suggestions
   if (compareCount < 2) {
+    const handleLoadMocks = async (ids: string[]) => {
+      setIsMockLoading(true);
+      toast.loading(`Carregando ${ids.length} produtos para teste...`, { id: "mock-loading" });
+      
+      try {
+        // Simular um pequeno delay para percepção de estado
+        await new Promise(resolve => setTimeout(resolve, 800));
+        
+        let addedCount = 0;
+        ids.forEach(id => {
+          if (addToCompare(id)) addedCount++;
+        });
+        
+        toast.success(`${addedCount} produtos carregados no Comparador`, { id: "mock-loading" });
+      } catch (error) {
+        toast.error("Erro ao carregar dados mockados", { id: "mock-loading" });
+      } finally {
+        setIsMockLoading(false);
+      }
+    };
+
     return (
       <>
         <PageSEO title="Comparar Produtos" description="Compare brindes lado a lado." path="/comparar"
           jsonLd={{ "@context": "https://schema.org", "@type": "WebPage", "name": "Comparar Produtos", "url": "https://criar-together-now.lovable.app/comparar" }} />
         <CompareEmptyStateSmart />
-        <div className="flex justify-center pb-12">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="text-[10px] text-muted-foreground opacity-30 hover:opacity-100 transition-opacity"
-            onClick={() => {
-              // Ids conhecidos que costumam ter dados ricos no banco Promobrind
-              const mockIds = ["26462", "26463", "26464"];
-              mockIds.forEach(id => addToCompare(id));
-            }}
-          >
-            MODO DEMO: Preencher com dados mockados
-          </Button>
+        <div className="flex flex-col items-center gap-4 pb-20">
+          <div className="flex flex-wrap justify-center gap-3">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              disabled={isMockLoading}
+              className="gap-2 border-primary/20 hover:border-primary/50"
+              onClick={() => handleLoadMocks(["26462", "26463", "26464"])}
+            >
+              {isMockLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3 text-primary" />}
+              Mock Rápido (3 itens)
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              disabled={isMockLoading}
+              className="gap-2 border-primary/20 hover:border-primary/50"
+              onClick={() => handleLoadMocks(["26462", "26463", "26464", "26465", "26466", "26467", "26468", "26469"])}
+            >
+              {isMockLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <List className="h-3 w-3 text-primary" />}
+              Mock Volume (8 itens)
+            </Button>
+          </div>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-medium opacity-50">
+            Ambiente de Testes / Modo Demo
+          </p>
         </div>
       </>
     );
@@ -229,7 +265,14 @@ export default function ComparePage() {
             <TooltipProvider >
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="outline" size="sm" onClick={() => { clearCompare(); navigate("/"); }}>Limpar</Button>
+                  <Button variant="outline" size="sm" onClick={() => { 
+                    clearCompare(); 
+                    toast.success("Comparação limpa");
+                    navigate("/comparar"); 
+                  }} className="text-destructive hover:bg-destructive/10 border-destructive/20">
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Limpar Tudo
+                  </Button>
                 </TooltipTrigger>
                 <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Remover todos os produtos da comparação</TooltipContent>
               </Tooltip>
