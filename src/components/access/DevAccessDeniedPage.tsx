@@ -116,7 +116,7 @@ export function DevAccessDeniedPage({
       finalizedRef.current = true;
       emit(event);
     },
-    [blockedPath, role, sinceView],
+    [blockedPath, role, viewedAtRef],
   );
 
   // 1) Registra "view" uma única vez ao montar (sem duration).
