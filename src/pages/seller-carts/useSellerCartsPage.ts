@@ -3,7 +3,7 @@
  * Extracted to follow Page → Hook → Service pattern.
  */
 import { useState, useCallback, useMemo, useRef, useEffect, useContext } from "react";
-import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { useSearchParams, useNavigate, useParams, useLocation } from "react-router-dom";
 import { useSellerCartContext } from "@/contexts/SellerCartContext";
 import { type SellerCart, CartStatus } from "@/hooks/useSellerCarts";
 import { useCartTemplates, type CartTemplateItem } from "@/hooks/useCartTemplates";
@@ -20,6 +20,7 @@ import {
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 
 export function useSellerCartsPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const location = useLocation();
   const { cartId: routeCartId } = useParams<{ cartId?: string }>();
@@ -239,8 +240,61 @@ export function useSellerCartsPage() {
     return cart.company_primary_color || null;
   }, [activeCart]);
 
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState<string>(searchParams.get("sort") || "date-desc");
+  const [itemsSortBy, setItemsSortBy] = useState<string>("manual");
+
+  const filteredCarts = useMemo(() => {
+    let result = [...carts];
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      result = result.filter(c => 
+        c.company_name.toLowerCase().includes(term) || 
+        c.items.some(i => i.product_name.toLowerCase().includes(term))
+      );
+    }
+    
+    // Status filter if implemented in future
+    
+    result.sort((a, b) => {
+      if (sortBy === "date-desc") return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+      if (sortBy === "date-asc") return new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime();
+      if (sortBy === "total-desc") {
+        const totalA = a.items.reduce((sum, i) => sum + i.product_price * i.quantity, 0);
+        const totalB = b.items.reduce((sum, i) => sum + i.product_price * i.quantity, 0);
+        return totalB - totalA;
+      }
+      if (sortBy === "total-asc") {
+        const totalA = a.items.reduce((sum, i) => sum + i.product_price * i.quantity, 0);
+        const totalB = b.items.reduce((sum, i) => sum + i.product_price * i.quantity, 0);
+        return totalA - totalB;
+      }
+      return 0;
+    });
+
+    return result;
+  }, [carts, searchTerm, sortBy]);
+
+  const sortedItems = useMemo(() => {
+    if (!activeCart) return [];
+    let items = [...activeCart.items];
+    
+    if (itemsSortBy === "manual") return items;
+    
+    items.sort((a, b) => {
+      if (itemsSortBy === "price-desc") return b.product_price - a.product_price;
+      if (itemsSortBy === "price-asc") return a.product_price - b.product_price;
+      if (itemsSortBy === "qty-desc") return b.quantity - a.quantity;
+      if (itemsSortBy === "qty-asc") return a.quantity - b.quantity;
+      if (itemsSortBy === "total-desc") return (b.product_price * b.quantity) - (a.product_price * a.quantity);
+      if (itemsSortBy === "total-asc") return (a.product_price * a.quantity) - (b.product_price * b.quantity);
+      return 0;
+    });
+    return items;
+  }, [activeCart, itemsSortBy]);
+
   return {
-    navigate, carts, activeCart, activeCartId, isLoading, totalItems, canCreateCart,
+    navigate, carts, filteredCarts, activeCart, activeCartId, isLoading, totalItems, canCreateCart,
     setActiveCartId, deleteCart, removeItem, updateItemNotes, updateCartStatus, duplicateCart,
     templates, deleteTemplate, allProducts, showNewCart, setShowNewCart,
     cartNotesOpen, setCartNotesOpen, localCartNotes, handleCartNotesChange,
@@ -250,5 +304,6 @@ export function useSellerCartsPage() {
     confirmClearCart, setConfirmClearCart, handleGenerateQuote, confirmGenerateQuote, handleClearCart,
     otherCarts, cartAge, cartSubtotal, cartTotalQty, companyAccentColor, isLoadingProducts,
     exportCartToCSV, exportCartToPDF, shareCartLink,
+    searchTerm, setSearchTerm, sortBy, setSortBy, itemsSortBy, setItemsSortBy, sortedItems
   };
 }

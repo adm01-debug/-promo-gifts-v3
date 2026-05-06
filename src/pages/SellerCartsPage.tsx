@@ -33,7 +33,7 @@ import { DndContext, closestCenter } from "@dnd-kit/core";
 import { SortableContext, rectSortingStrategy } from "@dnd-kit/sortable";
 import { cn } from "@/lib/utils";
 import {
-  ShoppingCart, Plus, Building2, Trash2, Clock, MapPin, FileText,
+  ShoppingCart, Plus, Building2, Trash2, Clock, MapPin, FileText, Search, ArrowUpDown, Filter,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
@@ -120,9 +120,31 @@ function SellerCartsContent() {
         </div>
         <div className="flex items-center gap-2">
           {s.carts.length >= 2 && <CompareCartsDialog carts={s.carts} />}
+          <div className="flex items-center gap-2 border border-border/40 bg-card/60 rounded-xl p-1 h-9 shadow-sm">
+            <Search className="h-3.5 w-3.5 text-muted-foreground ml-2" />
+            <input 
+              type="text" 
+              placeholder="Buscar por empresa ou produto..."
+              className="bg-transparent border-none text-xs w-40 sm:w-60 focus:ring-0 placeholder:text-muted-foreground/50 h-full"
+              value={s.searchTerm}
+              onChange={(e) => s.setSearchTerm(e.target.value)}
+            />
+          </div>
+          <Select value={s.sortBy} onValueChange={s.setSortBy}>
+            <SelectTrigger className="h-9 text-xs w-[140px] gap-2 rounded-xl border-border/40 bg-card/60 shadow-sm">
+              <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
+              <SelectValue placeholder="Ordenar" />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl">
+              <SelectItem value="date-desc">Mais recentes</SelectItem>
+              <SelectItem value="date-asc">Mais antigos</SelectItem>
+              <SelectItem value="total-desc">Maior valor</SelectItem>
+              <SelectItem value="total-asc">Menor valor</SelectItem>
+            </SelectContent>
+          </Select>
           {s.canCreateCart && (
-            <Button onClick={() => s.setShowNewCart(true)} size="sm" className="gap-1.5 bg-primary hover:bg-primary/90 text-primary-foreground h-9">
-              <Plus className="h-3.5 w-3.5" /> Novo Carrinho
+            <Button onClick={() => s.setShowNewCart(true)} size="sm" className="gap-1.5 bg-primary hover:bg-primary/90 text-primary-foreground h-9 shadow-sm rounded-xl px-4">
+              <Plus className="h-4 w-4" /> Novo Carrinho
             </Button>
           )}
         </div>
@@ -138,7 +160,7 @@ function SellerCartsContent() {
       {/* Tabs ricas */}
       {s.carts.length > 0 && (
         <CartTabsRich
-          carts={s.carts}
+          carts={s.filteredCarts}
           activeCartId={s.activeCartId}
           canCreateCart={s.canCreateCart}
           onSelect={s.setActiveCartId}
@@ -257,6 +279,29 @@ function SellerCartsContent() {
             </div>
 
             {/* Produtos */}
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                <Package className="h-4 w-4" /> Produtos no carrinho
+              </h3>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold text-muted-foreground uppercase">Ordenar itens:</span>
+                <Select value={s.itemsSortBy} onValueChange={s.setItemsSortBy}>
+                  <SelectTrigger className="h-8 text-[11px] w-[130px] rounded-lg border-border/40 bg-card/60">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl">
+                    <SelectItem value="manual">Manual (Arrastar)</SelectItem>
+                    <SelectItem value="price-desc">Maior Preço</SelectItem>
+                    <SelectItem value="price-asc">Menor Preço</SelectItem>
+                    <SelectItem value="qty-desc">Maior Qtd</SelectItem>
+                    <SelectItem value="qty-asc">Menor Qtd</SelectItem>
+                    <SelectItem value="total-desc">Maior Subtotal</SelectItem>
+                    <SelectItem value="total-asc">Menor Subtotal</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
             {s.activeCart.items.length === 0 ? (
               <CartEmptyStateSmart
                 activeCart={s.activeCart}
@@ -268,10 +313,10 @@ function SellerCartsContent() {
               />
             ) : (
               <DndContext sensors={s.sensors} collisionDetection={closestCenter} onDragEnd={s.handleDragEnd}>
-                <SortableContext items={s.activeCart.items.map(i => i.id)} strategy={rectSortingStrategy}>
+                <SortableContext items={s.sortedItems.map(i => i.id)} strategy={rectSortingStrategy}>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <AnimatePresence>
-                      {s.activeCart.items.map((item, index) => (
+                    <AnimatePresence mode="popLayout">
+                      {s.sortedItems.map((item, index) => (
                         <SortableCartItem
                           key={item.id} item={item} index={index}
                           otherCarts={s.otherCarts} companyAccentColor={s.companyAccentColor}
