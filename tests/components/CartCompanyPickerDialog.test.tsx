@@ -44,9 +44,13 @@ describe('CartCompanyPickerDialog - UI, Accessibility & Regression', () => {
       data: [],
       isLoading: false,
     });
+    
+    // Reset window width
+    Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: 1024 });
+    window.dispatchEvent(new Event('resize'));
   });
 
-  it('renders search input with correct accessibility labels', () => {
+  it('renders search input with robust accessibility labels and attributes', () => {
     render(<CartCompanyPickerDialog {...defaultProps} />);
     
     const label = screen.getByLabelText(/Buscar empresa por nome, CNPJ ou segmento/i);
@@ -55,69 +59,92 @@ describe('CartCompanyPickerDialog - UI, Accessibility & Regression', () => {
     const input = screen.getByPlaceholderText(/Nome, CNPJ ou segmento.../i);
     expect(input).toBeInTheDocument();
     expect(input).toHaveAttribute('id', 'company-search-input');
+    expect(input).toHaveAttribute('type', 'text');
+    
+    // Icons should be hidden from screen readers
+    const searchIcon = screen.getByTestId('search-icon');
+    expect(searchIcon).toHaveAttribute('aria-hidden', 'true');
   });
 
-  it('validates alignment and classes of Search and Loader2 icons', () => {
+  it('validates alignment and classes of Search and Loader2 icons in different states', () => {
     // Force loading state to see Loader2
     (reactQuery.useQuery as any).mockReturnValue({
       data: [],
       isLoading: true,
     });
 
-    render(<CartCompanyPickerDialog {...defaultProps} />);
+    const { rerender } = render(<CartCompanyPickerDialog {...defaultProps} />);
     
     const searchIcon = screen.getByTestId('search-icon');
-    expect(searchIcon).toHaveClass('absolute', 'left-3', 'top-1/2', '-translate-y-1/2');
-    
     const loaderIcon = screen.getByTestId('loader-icon');
-    expect(loaderIcon).toHaveClass('absolute', 'right-3', 'top-1/2', '-translate-y-1/2', 'animate-spin');
-    
     const input = screen.getByRole('textbox', { name: /Buscar empresa/i });
-    expect(input).toHaveClass('pl-8', 'pr-8');
+
+    // Check absolute alignment classes
+    expect(searchIcon).toHaveClass('absolute', 'left-3', 'top-1/2', '-translate-y-1/2');
+    expect(loaderIcon).toHaveClass('absolute', 'right-3', 'top-1/2', '-translate-y-1/2', 'animate-spin');
+    expect(input).toHaveClass('pl-8', 'pr-8'); // Padding ensures text doesn't overlap icons
+
+    // Verify loading indicator accessibility
+    expect(loaderIcon).toHaveAttribute('aria-hidden', 'true');
     expect(input).toHaveAttribute('aria-busy', 'true');
+
+    // Simulate different screen widths (classes should remain consistent as they are responsive via Tailwind)
+    Object.defineProperty(window, 'innerWidth', { value: 375 }); // Mobile
+    window.dispatchEvent(new Event('resize'));
+    rerender(<CartCompanyPickerDialog {...defaultProps} />);
+    
+    expect(searchIcon).toHaveClass('left-3');
+    expect(loaderIcon).toHaveClass('right-3');
   });
 
-  it('handles keyboard navigation and focus correctly', async () => {
+  it('validates keyboard navigation (Tab/Shift+Tab) and focus visibility', async () => {
     const user = userEvent.setup();
     render(<CartCompanyPickerDialog {...defaultProps} />);
     
     const input = screen.getByRole('textbox', { name: /Buscar empresa/i });
+    const closeButton = screen.getByRole('button', { name: /Fechar/i });
     
-    // Test initial focus (it has a useEffect that focuses the input)
+    // 1. Initial focus (managed by useEffect)
     await waitFor(() => {
       expect(input).toHaveFocus();
     });
 
-    // Test visual focus classes
+    // 2. Visible focus classes
     expect(input).toHaveClass('focus-visible:ring-2', 'focus-visible:ring-primary');
 
-    // Simulate Tab out
+    // 3. Navigation with Tab (to TabsTriggers first, then Input, etc. - order depends on DOM)
+    // Actually, in our Dialog, the focus starts at the input because of useEffect.
+    // Tabbing out should move to the next focusable element (Buttons or Tabs).
     await user.tab();
     expect(input).not.toHaveFocus();
 
-    // Tab back in (Shift+Tab)
+    // 4. Shift+Tab back to input
     await user.tab({ shift: true });
     expect(input).toHaveFocus();
   });
 
-  it('validates responsive and typography scaling properties', () => {
+  it('maintains layout integrity across different "simulated" resolutions and font sizes', () => {
+    // In JSDOM, we test "integrity" by ensuring the correct utility classes are present 
+    // that handle these scenarios (rem-based units).
     render(<CartCompanyPickerDialog {...defaultProps} />);
     
-    // DialogContent is usually rendered in a portal
-    const dialog = screen.getByRole('dialog');
-    expect(dialog).toHaveClass('sm:max-w-[520px]');
-
-    // Verify relative sizes for typography consistency
     const input = screen.getByRole('textbox', { name: /Buscar empresa/i });
-    expect(input).toHaveClass('h-9', 'text-sm'); // Uses standard shadcn/ui sizes which are responsive
+    
+    // Ensure height and text size use standard responsive units
+    expect(input).toHaveClass('h-9', 'text-sm'); 
+    
+    const dialog = screen.getByRole('dialog');
+    expect(dialog).toHaveClass('sm:max-w-[520px]'); // Responsive max-width
   });
 
-  it('toggles aria-busy correctly based on loading state', () => {
+  it('ensures aria-busy and accessibility attributes are consistent during state transitions', async () => {
     const { rerender } = render(<CartCompanyPickerDialog {...defaultProps} />);
     let input = screen.getByRole('textbox', { name: /Buscar empresa/i });
+    
+    // Initial state: not loading
     expect(input).toHaveAttribute('aria-busy', 'false');
 
-    // Simulate loading
+    // Transition to loading
     (reactQuery.useQuery as any).mockReturnValue({
       data: [],
       isLoading: true,
@@ -126,5 +153,10 @@ describe('CartCompanyPickerDialog - UI, Accessibility & Regression', () => {
     rerender(<CartCompanyPickerDialog {...defaultProps} />);
     input = screen.getByRole('textbox', { name: /Buscar empresa/i });
     expect(input).toHaveAttribute('aria-busy', 'true');
+    
+    // Ensure Loader2 is present and correctly identified as decorative
+    const loaderIcon = screen.getByTestId('loader-icon');
+    expect(loaderIcon).toBeInTheDocument();
+    expect(loaderIcon).toHaveAttribute('aria-hidden', 'true');
   });
 });
