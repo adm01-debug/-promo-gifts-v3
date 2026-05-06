@@ -28,8 +28,10 @@ export function migratePayload<T>(
 ): AutoSavePayload<T> | null {
   if (!payload) return null;
 
+  const typedPayload = payload as Record<string, any>;
+
   // Se for um payload antigo sem versão (v1)
-  if (!payload.version) {
+  if (!typedPayload.version) {
     console.log('[AutoSave] Migrating from v1 to v2');
     return {
       version: currentVersion,
