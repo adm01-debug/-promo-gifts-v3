@@ -78,7 +78,7 @@ const AdminWorkflowsPage = lazyWithRetry(() => import('./pages/admin/AdminWorkfl
 const AdminLoginAttemptsPage = lazyWithRetry(() => import('./pages/admin/AdminLoginAttemptsPage'));
 const AdminExternalDbPage = lazyWithRetry(() => import('./pages/admin/AdminExternalDbPage'));
 const AdminVideoVariantsPage = lazyWithRetry(() => import('./pages/admin/AdminVideoVariantsPage'));
-// const AdminAiUsagePage = lazyWithRetry(() => import('./pages/admin/AdminAiUsagePage'));
+const AdminAiUsagePage = lazyWithRetry(() => import('./pages/admin/AdminAiUsagePage'));
 const KitTemplatesAdminPage = lazyWithRetry(() => import('./pages/admin/KitTemplatesAdminPage'));
 const KitTemplatesMetricsPage = lazyWithRetry(
   () => import('./pages/admin/KitTemplatesMetricsPage'),
@@ -129,7 +129,7 @@ const CommercialIntelligencePage = lazyWithRetry(
   () => import('./pages/CommercialIntelligencePage'),
 );
 const ProductMatchPage = lazyWithRetry(() => import('./pages/ProductMatchPage'));
-// const BusinessIntelligencePage = lazyWithRetry(() => import('./pages/BusinessIntelligencePage'));
+const BusinessIntelligencePage = lazyWithRetry(() => import('./pages/BusinessIntelligencePage'));
 const ClientComparatorPage = lazyWithRetry(() => import('./pages/ClientComparatorPage'));
 const PublicDossierPage = lazyWithRetry(() => import('./pages/PublicDossierPage'));
 
@@ -350,6 +350,7 @@ const AppContent = () => {
           <Route path="/admin/video-variantes" element={<AdminVideoVariantsPage />} />
           <Route path="/admin/kit-templates" element={<KitTemplatesAdminPage />} />
           <Route path="/admin/kit-templates/metricas" element={<KitTemplatesMetricsPage />} />
+          <Route path="/admin/ia-uso" element={<AdminAiUsagePage />} />
           <Route
             path="/admin/aprovacoes-desconto"
             element={
@@ -441,6 +442,7 @@ const AppContent = () => {
           element={<Navigate to="/ferramentas/bi-comercial" replace />}
         />
         <Route path="/ferramentas/bi-comercial" element={<CommercialIntelligencePage />} />
+        <Route path="/ferramentas/bi-mercado" element={<BusinessIntelligencePage />} />
         <Route
           path="/inteligencia-comercial"
           element={<Navigate to="/ferramentas/bi-comercial" replace />}
