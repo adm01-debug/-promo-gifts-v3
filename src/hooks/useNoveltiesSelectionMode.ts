@@ -10,6 +10,9 @@ import type { BulkVariantSelection, BulkWizardMode } from "@/components/catalog/
 import { useFavoritesStore } from "@/stores/useFavoritesStore";
 import { useComparisonStore } from "@/stores/useComparisonStore";
 import { toast } from "sonner";
+import { createClientLogger } from "@/lib/telemetry/structuredLogger";
+
+const log = createClientLogger("novelties.mapping");
 
 interface UseNoveltiesSelectionModeParams {
   selectionMode: boolean;
