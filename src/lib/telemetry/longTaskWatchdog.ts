@@ -33,7 +33,7 @@ export interface LongTaskEvent {
   startedAtWallMs: number;
   /** Atribuição reportada pelo browser. */
   attribution: LongTaskAttribution[];
-  /** Chamadas de bridge que estavam ativas durante TODO ou PARTE do bloqueio. */
+  /** Chamadas de bridge que estavam ativas durante o bloqueio. */
   overlappingCalls: readonly BridgeCallSample[];
   /** Chamadas de bridge que terminaram imediatamente antes (janela de cooldown). */
   recentlyCompletedCalls: readonly BridgeCallSample[];
