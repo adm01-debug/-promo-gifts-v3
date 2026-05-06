@@ -81,6 +81,9 @@ export function CartTabsRich({ carts, activeCartId, canCreateCart, onSelect, onN
               <div className="flex items-center gap-2 opacity-80">
                 <span className={cn("w-2 h-2 rounded-full ring-2 ring-background shadow-sm", statusCfg.color.split(" ")[0])} aria-hidden />
                 <span className="text-[10px] text-muted-foreground font-bold tracking-tight uppercase opacity-60">{statusCfg.label}</span>
+                {isCreatedToday && (
+                  <Badge variant="outline" className="h-4 px-1.5 text-[8px] font-black uppercase bg-success/10 text-success border-success/20 animate-pulse-slow">Hoje</Badge>
+                )}
               </div>
             </div>
             <span
