@@ -174,26 +174,70 @@ const BackgroundRockets = React.memo(() => {
 const Starfield = React.memo(() => {
   return (
     <>
-      {[...Array(48)].map((_, i) => {
-        const isFar = i >= 32;
-        const size = isFar ? 1 : 1 + (i % 3);
-        const top = (i * 37 + 11) % 100;
-        const left = (i * 53 + 7) % 100;
-        const dur = isFar ? 4 + (i % 4) : 2 + (i % 5);
-        const delay = (i * 0.4) % 3;
-        const opacity = isFar ? "opacity-10" : "opacity-30";
-        const blur = isFar ? "blur-[1px]" : "";
-        
+      {/* Camada Distante (Lenta/Desfocada) */}
+      {[...Array(24)].map((_, i) => {
+        const size = 1;
+        const top = (i * 47 + 13) % 100;
+        const left = (i * 61 + 9) % 100;
+        const dur = 6 + (i % 4);
+        const delay = (i * 0.5) % 4;
         return (
           <div
-            key={`star-${i}`}
-            className={`absolute rounded-full bg-white ${opacity} ${blur} shadow-[0_0_8px_rgba(255,255,255,0.3)]`}
+            key={`star-far-${i}`}
+            className="absolute rounded-full bg-white opacity-10 blur-[1.5px] shadow-[0_0_10px_rgba(255,255,255,0.2)]"
             style={{
               width: `${size}px`,
               height: `${size}px`,
               top: `${top}%`,
               left: `${left}%`,
-              animation: `twinkle ${dur}s ease-in-out ${delay}s infinite`
+              animation: `twinkle ${dur}s ease-in-out ${delay}s infinite`,
+              transform: 'translateZ(-2px)',
+            }}
+          />
+        );
+      })}
+
+      {/* Camada Média */}
+      {[...Array(32)].map((_, i) => {
+        const size = 1 + (i % 2);
+        const top = (i * 37 + 11) % 100;
+        const left = (i * 53 + 7) % 100;
+        const dur = 3 + (i % 3);
+        const delay = (i * 0.4) % 3;
+        return (
+          <div
+            key={`star-mid-${i}`}
+            className="absolute rounded-full bg-white opacity-20 shadow-[0_0_8px_rgba(255,255,255,0.3)]"
+            style={{
+              width: `${size}px`,
+              height: `${size}px`,
+              top: `${top}%`,
+              left: `${left}%`,
+              animation: `twinkle ${dur}s ease-in-out ${delay}s infinite`,
+              transform: 'translateZ(-1px)',
+            }}
+          />
+        );
+      })}
+
+      {/* Camada Próxima (Nítida) */}
+      {[...Array(16)].map((_, i) => {
+        const size = 1.5 + (i % 2);
+        const top = (i * 29 + 17) % 100;
+        const left = (i * 41 + 5) % 100;
+        const dur = 2 + (i % 2);
+        const delay = (i * 0.3) % 2;
+        return (
+          <div
+            key={`star-near-${i}`}
+            className="absolute rounded-full bg-white opacity-40 shadow-[0_0_12px_rgba(255,255,255,0.5)]"
+            style={{
+              width: `${size}px`,
+              height: `${size}px`,
+              top: `${top}%`,
+              left: `${left}%`,
+              animation: `twinkle ${dur}s ease-in-out ${delay}s infinite`,
+              transform: 'translateZ(0px)',
             }}
           />
         );
