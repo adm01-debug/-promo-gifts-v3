@@ -281,13 +281,15 @@ export const NoveltyProductGrid = memo(function NoveltyProductGrid({
                 )}
               </Badge>
               {hasActiveFilters && (
-                <button 
+                <Button 
+                  variant="ghost"
+                  size="sm"
                   onClick={clearFilters}
-                  className="text-[10px] font-medium text-primary hover:text-primary/80 flex items-center gap-0.5 transition-colors"
+                  className="h-auto p-0 text-[10px] font-medium text-primary hover:text-primary/80 flex items-center gap-0.5 transition-colors hover:bg-transparent"
                 >
                   <X className="h-3 w-3" />
                   Limpar
-                </button>
+                </Button>
               )}
             </div>
 
@@ -305,7 +307,7 @@ export const NoveltyProductGrid = memo(function NoveltyProductGrid({
               <div className="relative">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                 <Input placeholder="Buscar novidades…  /" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="h-8 text-xs pl-8 bg-muted/40 border-border/50 focus:bg-background" />
-                {searchQuery && <button onClick={() => setSearchQuery("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"><X className="h-3 w-3" /></button>}
+                {searchQuery && <Button variant="ghost" size="icon" onClick={() => setSearchQuery("")} className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 text-muted-foreground hover:text-foreground"><X className="h-3 w-3" /></Button>}
               </div>
             </div>
           </div>
@@ -320,7 +322,7 @@ export const NoveltyProductGrid = memo(function NoveltyProductGrid({
           <div className="relative flex-1">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
             <Input placeholder="Buscar novidades..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="h-8 text-xs pl-8 bg-muted/40 border-border/50 focus:bg-background" />
-            {searchQuery && <button onClick={() => setSearchQuery("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"><X className="h-3 w-3" /></button>}
+            {searchQuery && <Button variant="ghost" size="icon" onClick={() => setSearchQuery("")} className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 text-muted-foreground hover:text-foreground"><X className="h-3 w-3" /></Button>}
           </div>
         </div>
 
