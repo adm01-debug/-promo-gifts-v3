@@ -6,9 +6,12 @@
  */
 
 import { supabase } from '@/integrations/supabase/client';
-import { logger } from '@/lib/logger';
+import { createClientLogger } from '@/lib/telemetry/structuredLogger';
 import { recordBridgeCall, estimatePayloadBytes } from '@/lib/telemetry/bridgeCallMetrics';
 import { newRequestId, REQUEST_ID_HEADER } from '@/lib/telemetry/requestId';
+
+const log = createClientLogger('lib.crm-db');
+
 
 export interface CrmQuery {
   table: string;
@@ -82,7 +85,7 @@ export async function invokeCrmBatch(queries: CrmBatchQuery[]): Promise<CrmBatch
   });
 
   if (error) {
-    console.error(`[CRM-DB] Batch error [req_id=${requestId}]:`, error);
+    log.error('batch_failed', { error, queries, requestId });
     throw new Error(`CRM batch error: ${error.message}`);
   }
 
@@ -193,9 +196,14 @@ export async function invokeCrmDb<T>(query: CrmQuery): Promise<CrmResponse<T>> {
 
     if (attempt < MAX_RETRIES && isRetryableCrmError(msg)) {
       const delay = INITIAL_BACKOFF_MS * Math.pow(2, attempt);
-      logger.warn(
-        `[CRM-DB] Retry ${attempt + 1}/${MAX_RETRIES} after ${delay}ms [req_id=${requestId}]: ${msg}`,
-      );
+      log.warn('retry_attempt', {
+        attempt: attempt + 1,
+        retries: MAX_RETRIES,
+        delay,
+        requestId,
+        error: msg,
+      });
+
       await new Promise((r) => setTimeout(r, delay));
       continue;
     }
@@ -204,12 +212,13 @@ export async function invokeCrmDb<T>(query: CrmQuery): Promise<CrmResponse<T>> {
 
     // Final attempt failed
     if (error) {
-      console.error(`[CRM-DB] Edge function error [req_id=${requestId}]:`, msg);
+      log.error('edge_function_failed', { msg, requestId, table: query.table, op: opLabel });
       throw new Error(`CRM DB error: ${msg}`);
     }
 
-    console.error(`[CRM-DB] Query error [req_id=${requestId}]:`, msg);
+    log.error('query_failed', { msg, requestId, table: query.table, op: opLabel });
     throw new Error(`CRM query error: ${msg}`);
+
   }
 
   record(false, null, 'max retries exceeded');
