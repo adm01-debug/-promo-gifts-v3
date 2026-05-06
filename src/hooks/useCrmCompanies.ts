@@ -115,6 +115,9 @@ export function useCrmCompanyLegacy(id: string | null | undefined) {
  * Suporta carregamento incremental para performance
  */
 export function useCrmInfiniteCompanySelector() {
+  const { user } = useAuth();
+  const scope = useSalesScope();
+
   return useInfiniteQuery({
     queryKey: ['crm-companies-infinite'],
     queryFn: async ({ pageParam = 0 }) => {
