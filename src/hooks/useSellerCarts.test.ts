@@ -61,27 +61,22 @@ describe('useSellerCarts', () => {
 
   it('should fetch carts and items correctly', async () => {
     const fromMock = supabase.from as any;
-    const mockQuery = fromMock();
     
-    mockQuery.select.mockImplementation(function(this: any) {
-      // In useSellerCarts, it first calls .from("seller_carts").select("*")
-      // Then .from("seller_cart_items").select("*")
-      return this;
-    });
-
     fromMock.mockImplementation((table: string) => {
-      const q = { ...mockQuery };
-      if (table === 'seller_carts') {
-        q.select = vi.fn().mockResolvedValue({ data: mockCarts, error: null });
-      } else if (table === 'seller_cart_items') {
-        q.select = vi.fn().mockResolvedValue({ data: mockItems, error: null });
-      }
-      return q;
+      return {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        in: vi.fn().mockReturnThis(),
+        order: vi.fn().mockImplementation(() => {
+          if (table === 'seller_carts') return Promise.resolve({ data: mockCarts, error: null });
+          if (table === 'seller_cart_items') return Promise.resolve({ data: mockItems, error: null });
+          return Promise.resolve({ data: [], error: null });
+        })
+      };
     });
 
     const { result } = renderHook(() => useSellerCarts(), { wrapper: createWrapper() });
 
-    // Wait for the query to settle
     await waitFor(() => expect(result.current.isLoading).toBe(false), { timeout: 3000 });
     
     expect(result.current.carts.length).toBe(1);
@@ -91,20 +86,16 @@ describe('useSellerCarts', () => {
 
   it('should calculate total items correctly', async () => {
      const fromMock = supabase.from as any;
-     fromMock.mockImplementation((table: string) => {
-      const q = {
-        select: vi.fn().mockReturnThis(),
-        eq: vi.fn().mockReturnThis(),
-        in: vi.fn().mockReturnThis(),
-        order: vi.fn().mockReturnThis(),
-      };
-      if (table === 'seller_carts') {
-        q.select = vi.fn().mockResolvedValue({ data: mockCarts, error: null });
-      } else if (table === 'seller_cart_items') {
-        q.select = vi.fn().mockResolvedValue({ data: mockItems, error: null });
-      }
-      return q;
-    });
+     fromMock.mockImplementation((table: string) => ({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      in: vi.fn().mockReturnThis(),
+      order: vi.fn().mockImplementation(() => {
+        if (table === 'seller_carts') return Promise.resolve({ data: mockCarts, error: null });
+        if (table === 'seller_cart_items') return Promise.resolve({ data: mockItems, error: null });
+        return Promise.resolve({ data: [], error: null });
+      })
+    }));
 
     const { result } = renderHook(() => useSellerCarts(), { wrapper: createWrapper() });
 
@@ -115,12 +106,12 @@ describe('useSellerCarts', () => {
     const manyCarts = [{ id: '1' }, { id: '2' }, { id: '3' }];
     const fromMock = supabase.from as any;
     fromMock.mockImplementation((table: string) => ({
-        select: vi.fn().mockImplementation(() => {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        order: vi.fn().mockImplementation(() => {
           if (table === 'seller_carts') return Promise.resolve({ data: manyCarts, error: null });
           return Promise.resolve({ data: [], error: null });
         }),
-        eq: vi.fn().mockReturnThis(),
-        order: vi.fn().mockReturnThis(),
     }));
 
     const { result } = renderHook(() => useSellerCarts(), { wrapper: createWrapper() });
