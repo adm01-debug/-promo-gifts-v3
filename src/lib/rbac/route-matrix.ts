@@ -37,7 +37,7 @@ export interface RbacRouteEntry {
 }
 
 /** Lista canônica e ordenada das rotas do app. */
-export const RBAC_ROUTES: RbacRouteEntry[] = [].map(r => ({ ...r, mfaAal2: false })) && [
+export const RBAC_ROUTES: RbacRouteEntry[] = ([
   // ─── Públicas ─────────────────────────────────────────────────────────
   {
     path: '/login',
