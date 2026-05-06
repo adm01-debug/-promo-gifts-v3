@@ -65,7 +65,7 @@ export const RBAC_ROUTES: RbacRouteEntry[] = [
   { path: "/colecoes", label: "Coleções", guard: "ProtectedRoute", role: "authenticated", mfaAal2: false, category: "user" },
   { path: "/estoque", label: "Estoque 360º", guard: "ProtectedRoute", role: "authenticated", mfaAal2: false, category: "user" },
   { path: "/inteligencia-comercial", label: "Inteligência Comercial", guard: "ProtectedRoute", role: "authenticated", mfaAal2: false, category: "user" },
-  { path: "/ferramentas/bi", label: "Business Intelligence", guard: "ProtectedRoute", role: "authenticated", mfaAal2: false, category: "user" },
+  
   { path: "/tendencias", label: "Tendências", guard: "AdminRoute", role: "admin", mfaAal2: true, category: "admin" },
 
   // ─── Admin (gestão funcional, exige AAL2) ─────────────────────────────
