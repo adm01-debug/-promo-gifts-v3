@@ -13,7 +13,21 @@ import { HelmetProvider } from 'react-helmet-async';
 import { AriaLiveProvider } from '../components/a11y/AriaLive';
 import React from 'react';
 
-// Mock everything that uses Supabase/Network
+// Mock robusto do Supabase
+const mockSupabaseQuery = {
+  select: vi.fn().mockReturnThis(),
+  order: vi.fn().mockReturnThis(),
+  limit: vi.fn().mockReturnThis(),
+  eq: vi.fn().mockReturnThis(),
+  insert: vi.fn().mockReturnThis(),
+  update: vi.fn().mockReturnThis(),
+  delete: vi.fn().mockReturnThis(),
+  like: vi.fn().mockReturnThis(),
+  single: vi.fn().mockResolvedValue({ data: null, error: null }),
+  maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+  then: vi.fn().mockImplementation((resolve) => resolve({ data: null, error: null })),
+};
+
 vi.mock('../integrations/supabase/client', () => ({
   supabase: {
     auth: {
@@ -21,17 +35,7 @@ vi.mock('../integrations/supabase/client', () => ({
       onAuthStateChange: vi.fn().mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } }),
       getUser: vi.fn().mockResolvedValue({ data: { user: null }, error: null }),
     },
-    from: vi.fn().mockReturnValue({
-      select: vi.fn().mockReturnThis(),
-      order: vi.fn().mockReturnThis(),
-      limit: vi.fn().mockReturnThis(),
-      eq: vi.fn().mockReturnThis(),
-      insert: vi.fn().mockReturnThis(),
-      update: vi.fn().mockReturnThis(),
-      delete: vi.fn().mockReturnThis(),
-      single: vi.fn(),
-      maybeSingle: vi.fn(),
-    }),
+    from: vi.fn().mockReturnValue(mockSupabaseQuery),
     rpc: vi.fn().mockResolvedValue({ data: null, error: null }),
     functions: {
       invoke: vi.fn().mockResolvedValue({ data: null, error: null }),
@@ -49,12 +53,10 @@ vi.mock('../hooks/useSecretsManager', () => ({
   useSecretsManager: () => ({ secrets: [], isLoading: false, list: vi.fn(), refreshCache: vi.fn() }),
 }));
 
-// IMPORTANT: Mock PageTransition to avoid Framer Motion issues
 vi.mock('../components/effects/PageTransition', () => ({
   PageTransition: ({ children }: { children: React.ReactNode }) => <div data-testid="page-transition">{children}</div>,
 }));
 
-// Mock Header and SidebarReorganized to avoid their internal dependencies
 vi.mock('../components/layout/Header', () => ({
   Header: () => <header data-testid="header"><button data-testid="header-mobile-search-trigger">Search</button></header>
 }));
@@ -63,7 +65,6 @@ vi.mock('../components/layout/SidebarReorganized', () => ({
   SidebarReorganized: () => <aside data-testid="sidebar"><div data-testid="sidebar-brand-header">Brand</div></aside>
 }));
 
-// Mock sub-components
 vi.mock('../components/admin/connections/ConnectionsPulseBar', () => ({
   ConnectionsPulseBar: () => <div data-testid="pulse-bar" />
 }));
