@@ -359,47 +359,51 @@ function SellerCartsContent() {
                 )}
               </div>
               <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1.5 mr-2 bg-muted/20 p-1 rounded-lg border border-border/20">
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase px-1">Modo:</span>
-                  <div className="flex items-center gap-1">
-                    <Button 
-                      variant={s.itemsSortBy === "manual" ? "primary" : "ghost"} 
-                      size="icon" 
-                      className="h-6 w-12 text-[10px] rounded-md font-bold uppercase"
-                      onClick={() => s.setItemsSortBy("manual")}
-                    >
-                      Manual
-                    </Button>
-                    <Button 
-                      variant={s.itemsSortBy !== "manual" ? "secondary" : "ghost"} 
-                      size="icon" 
-                      className="h-6 w-12 text-[10px] rounded-md font-bold uppercase"
-                      onClick={() => s.itemsSortBy === "manual" && s.setItemsSortBy("price-desc")}
-                    >
-                      Auto
-                    </Button>
-                  </div>
+                <div className="flex items-center gap-1 mr-2 bg-muted/30 p-1 rounded-xl border border-border/20 shadow-inner">
+                  <Button 
+                    variant={s.itemsSortBy === "manual" ? "primary" : "ghost"} 
+                    size="sm"
+                    className={cn(
+                      "h-7 px-3 text-[10px] rounded-lg font-bold uppercase transition-all",
+                      s.itemsSortBy === "manual" ? "shadow-md scale-105" : "text-muted-foreground hover:bg-muted/50"
+                    )}
+                    onClick={() => s.setItemsSortBy("manual")}
+                  >
+                    <GripVertical className="h-3 w-3 mr-1" />
+                    Manual
+                  </Button>
+                  <Button 
+                    variant={s.itemsSortBy !== "manual" ? "primary" : "ghost"} 
+                    size="sm"
+                    className={cn(
+                      "h-7 px-3 text-[10px] rounded-lg font-bold uppercase transition-all",
+                      s.itemsSortBy !== "manual" ? "shadow-md scale-105" : "text-muted-foreground hover:bg-muted/50"
+                    )}
+                    onClick={() => s.itemsSortBy === "manual" && s.setItemsSortBy("price-desc")}
+                  >
+                    <ArrowUpDown className="h-3 w-3 mr-1" />
+                    Auto
+                  </Button>
                 </div>
 
                 <Select 
-                  value={s.itemsSortBy} 
+                  value={s.itemsSortBy === "manual" ? "" : s.itemsSortBy} 
                   onValueChange={s.setItemsSortBy}
-                  disabled={s.itemsSortBy === "manual" && false} // Just a visual divider if we wanted
+                  disabled={s.itemsSortBy === "manual"}
                 >
                   <SelectTrigger className={cn(
                     "h-8 text-[11px] w-[140px] rounded-lg border-border/40 bg-card/60 transition-all",
-                    s.itemsSortBy === "manual" ? "opacity-50 grayscale" : "opacity-100 ring-2 ring-primary/20 border-primary/30"
+                    s.itemsSortBy === "manual" ? "opacity-40 grayscale" : "opacity-100 ring-2 ring-primary/20 border-primary/40 shadow-sm"
                   )}>
-                    <SelectValue placeholder="Tipo de ordenação" />
+                    <SelectValue placeholder="Escolher ordem..." />
                   </SelectTrigger>
-                  <SelectContent className="rounded-xl">
-                    <SelectItem value="manual" className="font-bold text-primary italic">Arrastar Manualmente</SelectItem>
-                    <SelectItem value="price-desc">Maior Preço</SelectItem>
-                    <SelectItem value="price-asc">Menor Preço</SelectItem>
-                    <SelectItem value="qty-desc">Maior Qtd</SelectItem>
-                    <SelectItem value="qty-asc">Menor Qtd</SelectItem>
-                    <SelectItem value="total-desc">Maior Subtotal</SelectItem>
-                    <SelectItem value="total-asc">Menor Subtotal</SelectItem>
+                  <SelectContent className="rounded-xl p-1 shadow-2xl border-border/40">
+                    <SelectItem value="price-desc" className="rounded-lg py-2">Maior Preço</SelectItem>
+                    <SelectItem value="price-asc" className="rounded-lg py-2">Menor Preço</SelectItem>
+                    <SelectItem value="qty-desc" className="rounded-lg py-2">Maior Qtd</SelectItem>
+                    <SelectItem value="qty-asc" className="rounded-lg py-2">Menor Qtd</SelectItem>
+                    <SelectItem value="total-desc" className="rounded-lg py-2">Maior Subtotal</SelectItem>
+                    <SelectItem value="total-asc" className="rounded-lg py-2">Menor Subtotal</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
