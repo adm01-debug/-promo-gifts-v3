@@ -10,31 +10,31 @@ import type { TabelaPrecoOficial, FaixaPrecoOficial } from './gravacao-types';
 // ============================================
 
 export const TECHNIQUE_COLORS: Record<string, string> = {
-  SERIGRAFIA: 'bg-blue-600/10 text-blue-800 dark:bg-blue-400/20 dark:text-blue-300',
-  SERITEX: 'bg-blue-600/10 text-blue-800 dark:bg-blue-400/20 dark:text-blue-300',
-  LASER: 'bg-red-600/10 text-red-800 dark:bg-red-400/20 dark:text-red-300',
-  FIBER: 'bg-red-600/10 text-red-800 dark:bg-red-400/20 dark:text-red-300',
-  LASER_CO2: 'bg-red-600/10 text-red-800 dark:bg-red-400/20 dark:text-red-300',
-  CO2: 'bg-red-600/10 text-red-800 dark:bg-red-400/20 dark:text-red-300',
-  LASER_UV: 'bg-red-600/10 text-red-800 dark:bg-red-400/20 dark:text-red-300',
-  UV_DIGITAL: 'bg-purple-600/10 text-purple-800 dark:bg-purple-400/20 dark:text-purple-300',
-  DIGITAL: 'bg-purple-600/10 text-purple-800 dark:bg-purple-400/20 dark:text-purple-300',
-  TAMPOGRAFIA: 'bg-emerald-600/10 text-emerald-800 dark:bg-emerald-400/20 dark:text-emerald-300',
-  TAMPO: 'bg-emerald-600/10 text-emerald-800 dark:bg-emerald-400/20 dark:text-emerald-300',
-  BORDADO: 'bg-amber-600/10 text-amber-800 dark:bg-amber-400/20 dark:text-amber-300',
-  SUBLIMACAO: 'bg-pink-600/10 text-pink-800 dark:bg-pink-400/20 dark:text-pink-300',
-  SUBLI: 'bg-pink-600/10 text-pink-800 dark:bg-pink-400/20 dark:text-pink-300',
-  HOT_STAMPING: 'bg-orange-600/10 text-orange-800 dark:bg-orange-400/20 dark:text-orange-300',
-  STAMP: 'bg-orange-600/10 text-orange-800 dark:bg-orange-400/20 dark:text-orange-300',
-  TRANSFER_DIGITAL: 'bg-cyan-600/10 text-cyan-800 dark:bg-cyan-400/20 dark:text-cyan-300',
-  DTF: 'bg-cyan-600/10 text-cyan-800 dark:bg-cyan-400/20 dark:text-cyan-300',
-  ADESIVO: 'bg-indigo-600/10 text-indigo-800 dark:bg-indigo-400/20 dark:text-indigo-300',
-  DOMING: 'bg-indigo-600/10 text-indigo-800 dark:bg-indigo-400/20 dark:text-indigo-300',
-  ETIQUETA: 'bg-slate-600/10 text-slate-800 dark:bg-slate-400/20 dark:text-slate-300',
-  HEAT_TRANSFER: 'bg-rose-600/10 text-rose-800 dark:bg-rose-400/20 dark:text-rose-300',
-  FILME_RECORTE: 'bg-teal-600/10 text-teal-800 dark:bg-teal-400/20 dark:text-teal-300',
-  DECALQUE: 'bg-amber-700/10 text-amber-900 dark:bg-amber-500/20 dark:text-amber-400',
-  EMBORRACHADO: 'bg-lime-700/10 text-lime-900 dark:bg-lime-500/20 dark:text-lime-400',
+  SERIGRAFIA: 'bg-info/10 text-info border-info/20',
+  SERITEX: 'bg-info/10 text-info border-info/20',
+  LASER: 'bg-destructive/10 text-destructive border-destructive/20',
+  FIBER: 'bg-destructive/10 text-destructive border-destructive/20',
+  LASER_CO2: 'bg-destructive/10 text-destructive border-destructive/20',
+  CO2: 'bg-destructive/10 text-destructive border-destructive/20',
+  LASER_UV: 'bg-destructive/10 text-destructive border-destructive/20',
+  UV_DIGITAL: 'bg-primary/10 text-primary border-primary/20',
+  DIGITAL: 'bg-primary/10 text-primary border-primary/20',
+  TAMPOGRAFIA: 'bg-success/10 text-success border-success/20',
+  TAMPO: 'bg-success/10 text-success border-success/20',
+  BORDADO: 'bg-warning/10 text-warning border-warning/20',
+  SUBLIMACAO: 'bg-pink-500/10 text-pink-500 border-pink-500/20',
+  SUBLI: 'bg-pink-500/10 text-pink-500 border-pink-500/20',
+  HOT_STAMPING: 'bg-orange/10 text-orange border-orange/20',
+  STAMP: 'bg-orange/10 text-orange border-orange/20',
+  TRANSFER_DIGITAL: 'bg-cyan-500/10 text-cyan-500 border-cyan-500/20',
+  DTF: 'bg-cyan-500/10 text-cyan-500 border-cyan-500/20',
+  ADESIVO: 'bg-indigo-500/10 text-indigo-500 border-indigo-500/20',
+  DOMING: 'bg-indigo-500/10 text-indigo-500 border-indigo-500/20',
+  ETIQUETA: 'bg-muted/50 text-muted-foreground border-border/20',
+  HEAT_TRANSFER: 'bg-rose-500/10 text-rose-500 border-rose-500/20',
+  FILME_RECORTE: 'bg-teal-500/10 text-teal-500 border-teal-500/20',
+  DECALQUE: 'bg-amber-500/10 text-amber-500 border-amber-500/20',
+  EMBORRACHADO: 'bg-lime-500/10 text-lime-500 border-lime-500/20',
 };
 
 export const TECHNIQUE_ICONS: Record<string, string> = {
@@ -94,7 +94,7 @@ function matchByPrefix(codigo: string, map: Record<string, string>): string | un
 }
 
 export function getTechniqueColor(codigo: string): string {
-  return TECHNIQUE_COLORS[codigo] || matchByPrefix(codigo, TECHNIQUE_COLORS) || 'bg-gray-100 text-gray-800';
+  return TECHNIQUE_COLORS[codigo] || matchByPrefix(codigo, TECHNIQUE_COLORS) || 'bg-muted/50 text-muted-foreground border-border/20';
 }
 
 export function getTechniqueIcon(codigo: string): string {
