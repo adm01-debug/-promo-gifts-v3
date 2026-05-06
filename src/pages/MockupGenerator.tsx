@@ -187,7 +187,7 @@ export default function MockupGenerator() {
   return (
     <>
       <DiagnosticProfiler id="MockupGenerator">
-      <PageSEO title="Gerador de Mockups" description="Crie mockups profissionais de brindes personalizados com sua logo." path="/mockup-generator" />
+      <PageSEO title="Gerador de Mockups" description="Crie mockups profissionais de brindes personalizados com sua logo." path="/ferramentas/mockup" />
       <Suspense fallback={null}>
         <OffscreenLayoutCapture request={layoutCaptureRequest} onCaptured={handleLayoutCaptured} />
       </Suspense>
