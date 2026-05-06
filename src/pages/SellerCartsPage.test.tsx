@@ -23,7 +23,7 @@ vi.mock('@/components/seo/PageSEO', () => ({
   PageSEO: () => null,
 }));
 
-// Mock dos componentes que usam dependências complexas (dnd-kit, jspdf, etc)
+// Mock dos componentes pesados/complexos
 vi.mock('@/components/cart/SortableCartItem', () => ({
   SortableCartItem: ({ item }: any) => <div data-testid="mock-cart-item">{item.product_name}</div>,
 }));
@@ -42,6 +42,17 @@ vi.mock('@/components/cart/CartUtilComponents', () => ({
   formatCurrency: (v: number) => `R$ ${v}`,
   FollowUpTimer: () => null,
   MobileSummarySheet: () => null,
+  SmartSuggestions: () => null,
+  ActionHistoryPanel: () => null,
+  CompareCartsDialog: () => null,
+}));
+
+vi.mock('@/components/cart/CartCompanyPickerDialog', () => ({
+  CartCompanyPickerDialog: () => null,
+}));
+
+vi.mock('@/components/cart/CartEmptyStateSmart', () => ({
+  CartEmptyStateSmart: () => <div data-testid="mock-empty-state" />,
 }));
 
 // Mock da animação
@@ -134,6 +145,17 @@ describe('SellerCartsPage Component', () => {
     setConfirmClearCart: vi.fn(),
     confirmGenerateQuote: vi.fn(),
     handleGenerateQuote: vi.fn(),
+    shareCartLink: vi.fn(),
+    duplicateCart: vi.fn(),
+    exportCartToCSV: vi.fn(),
+    exportCartToPDF: vi.fn(),
+    handleSaveTemplate: vi.fn(),
+    deleteTemplate: { mutate: vi.fn() },
+    setActiveCartId: vi.fn(),
+    deleteCart: vi.fn(),
+    handleClearCart: vi.fn(),
+    localCartNotes: '',
+    handleCartNotesChange: vi.fn(),
   };
 
   beforeEach(() => {
