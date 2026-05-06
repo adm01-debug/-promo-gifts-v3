@@ -12,6 +12,8 @@ interface ProductInfoBarProps {
   sku: string;
   supplierName: string;
   supplierId?: string;
+  productId?: string;
+  productName?: string;
   onOpenFutureStock: () => void;
   onOpenSupplierComparison: () => void;
   hasFutureStock?: boolean;
