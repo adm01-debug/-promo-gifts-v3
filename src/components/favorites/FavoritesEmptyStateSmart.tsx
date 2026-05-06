@@ -4,11 +4,14 @@
  */
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { Sparkles, ArrowRight } from "lucide-react";
+import { Sparkles, ArrowRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useProductsContext } from "@/contexts/ProductsContext";
 import { formatCurrency } from "@/lib/format";
+import { useState } from "react";
+import { toast } from "sonner";
+import { useFavoritesStore } from "@/stores/useFavoritesStore";
 
 interface Props {
   onAddProduct?: (productId: string) => void;
