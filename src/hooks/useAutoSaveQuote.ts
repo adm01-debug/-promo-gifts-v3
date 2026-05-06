@@ -1,4 +1,8 @@
 import { useEffect, useRef } from 'react';
+import { createClientLogger } from '@/lib/telemetry/structuredLogger';
+
+const log = createClientLogger('hooks.useAutoSaveQuote');
+
 
 // Versão atual do schema do payload de AutoSave
 // Incrementar sempre que houver mudança que quebre rascunhos antigos
@@ -32,7 +36,7 @@ export function migratePayload<T>(
 
   // Se for um payload antigo sem versão (v1)
   if (!typedPayload.version) {
-    console.log('[AutoSave] Migrating from v1 to v2');
+    log.info('migration_v1_to_v2_started');
     return {
       version: currentVersion,
       data: payload as T, // Antigamente o payload era o próprio data
@@ -43,11 +47,10 @@ export function migratePayload<T>(
   // Se a versão do payload for maior que a atual, tratamos como inseguro
   // e retornamos null para evitar corrupção de estado (o usuário perderá o rascunho, mas não quebrará o app)
   if (typedPayload.version > currentVersion) {
-    console.warn(
-      '[AutoSave] Future payload version detected, skipping restore to prevent state corruption',
-    );
+    log.warn('future_version_detected', { payloadVersion: typedPayload.version, currentVersion });
     return null;
   }
+
 
   // Adicione futuras migrações aqui:
   // if (typedPayload.version === 2) { ... migrate to 3 ... }
@@ -86,7 +89,7 @@ export function useAutoSaveQuote<T>({
           lastSavedRef.current = JSON.stringify(migrated.data);
         }
       } catch (e) {
-        console.error('Failed to parse/migrate autosave data', e);
+        log.error('parse_failed', { err: e });
       }
     }
   }, [enabled, key, onRestore]); // Adicionado dependências seguras
@@ -116,11 +119,11 @@ export function useAutoSaveQuote<T>({
         try {
           await onSaveServer(data);
         } catch (e) {
-          console.warn('[AutoSave] Server-side draft sync failed (will retry next change)', e);
+          log.warn('server_sync_failed', { err: e });
         }
       }
 
-      console.log(`[AutoSave] Quote saved (v${AUTOSAVE_SCHEMA_VERSION})`);
+      log.info('quote_saved', { version: AUTOSAVE_SCHEMA_VERSION });
     }, debounceMs);
 
     return () => clearTimeout(timer);
