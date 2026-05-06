@@ -23,6 +23,18 @@ interface UseNoveltiesSelectionModeParams {
  * Converte NoveltyWithDetails para Product (mínimo necessário para o BulkVariantWizard)
  */
 function noveltyToProduct(n: NoveltyWithDetails): Product {
+  // Aviso estruturado: o registro de novidade não traz cores enriquecidas — qualquer
+  // consumidor (Share, Wizard) precisa hidratar via useExternalVariantStock antes de
+  // exibir/iterar product.colors. Sem isso o template de WhatsApp mostra "Diversas
+  // opções" como fallback. Logamos uma vez por produto para diagnóstico em produção.
+  log.info("novelty_to_product_mapped", {
+    productId: n.product_id,
+    sku: n.product_sku ?? null,
+    hasImage: !!n.product_image,
+    colorsHydrated: false,
+    note: "colors=[] by design — enrich via useExternalVariantStock if needed",
+  });
+
   return {
     id: n.product_id,
     name: n.product_name,
