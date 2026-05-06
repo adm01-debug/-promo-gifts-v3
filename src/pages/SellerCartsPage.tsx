@@ -8,7 +8,7 @@
  * - Notas sempre visíveis (textarea inline com debounce)
  * - Sidebar reorganizada (Hero pricing → Ação → Menu) + Health Checklist
  */
-import { useCallback, useMemo, useRef } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 
 import { type CartStatus } from "@/hooks/useSellerCarts";
 import { CartCompanyPickerDialog } from "@/components/cart/CartCompanyPickerDialog";
@@ -28,6 +28,7 @@ import { DeleteConfirmDialog, ConfirmDialog } from "@/components/ui/ConfirmDialo
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { motion, AnimatePresence } from "framer-motion";
 import { DndContext, closestCenter } from "@dnd-kit/core";
 import { SortableContext, rectSortingStrategy } from "@dnd-kit/sortable";
