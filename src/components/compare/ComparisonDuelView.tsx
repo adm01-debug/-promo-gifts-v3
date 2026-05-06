@@ -116,12 +116,12 @@ export function ComparisonDuelView({ products, formatCurrency, onRemove, onProdu
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] gap-6 items-start">
         {renderHeader(a, 0, "left")}
         <div className="hidden lg:flex flex-col items-center justify-center pt-32">
-          <div className="w-px h-32 bg-border" />
-          <span className="text-xl font-display font-bold text-muted-foreground my-4">VS</span>
-          <div className="w-px h-32 bg-border" />
+          <div className="w-px h-32 bg-gradient-to-b from-transparent via-amber-400/30 to-transparent" />
+          <span className="text-2xl font-display font-black text-amber-500/30 my-4 animate-pulse">VS</span>
+          <div className="w-px h-32 bg-gradient-to-b from-transparent via-amber-400/30 to-transparent" />
         </div>
         <div className="lg:hidden flex items-center justify-center py-2">
-          <span className="text-xl font-display font-bold text-muted-foreground">VS</span>
+          <span className="text-xl font-display font-black text-amber-500/30">VS</span>
         </div>
         {renderHeader(b, 1, "right")}
       </div>
