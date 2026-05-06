@@ -29,9 +29,9 @@ export function ComparisonWeightsPopover() {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="outline" size="sm" aria-label="Ajustar pesos do score">
+        <Button variant="outline" size="sm" aria-label="Ajustar pesos do score" className="border-amber-500/20 text-amber-600 hover:bg-amber-500/5 font-black uppercase text-[10px] tracking-widest">
           <Sliders className="h-4 w-4 mr-2" />
-          Pesos
+          Configuração Arena
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-80 border-amber-500/20 bg-card/98 backdrop-blur-xl shadow-2xl" align="end">
