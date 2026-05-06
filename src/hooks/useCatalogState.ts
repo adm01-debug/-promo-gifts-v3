@@ -48,7 +48,7 @@ function getPersistedViewMode(): ViewMode {
   try {
     const saved = localStorage.getItem(VIEW_MODE_KEY);
     if (saved === 'grid' || saved === 'list' || saved === 'table') return saved;
-  } catch (_e) {
+  } catch {
     // LocalStorage access can fail in some browsers/modes
   }
   return 'grid';
@@ -97,8 +97,8 @@ export function useCatalogState() {
         const channel = new BroadcastChannel('catalog_preset_sync');
         channel.postMessage({ type: 'PRESET_APPLIED', presetId, filters: newFilters });
         channel.close();
-      } catch (e) {
-        console.warn('BroadcastChannel not supported', e);
+      } catch {
+        // BroadcastChannel not supported
       }
     },
     [setSearchParams],
@@ -135,8 +135,8 @@ export function useCatalogState() {
         }
       };
       return () => channel.close();
-    } catch (e) {
-      console.warn('BroadcastChannel not supported', e);
+    } catch {
+      // BroadcastChannel not supported
     }
   }, []);
 
@@ -146,7 +146,7 @@ export function useCatalogState() {
     setViewModeState(mode);
     try {
       localStorage.setItem(VIEW_MODE_KEY, mode);
-    } catch (_e) {
+    } catch {
       // LocalStorage access can fail
     }
   }, []);
@@ -155,7 +155,7 @@ export function useCatalogState() {
     setGridColumnsState(cols);
     try {
       localStorage.setItem(GRID_COLUMNS_KEY, String(cols));
-    } catch (_e) {
+    } catch {
       // LocalStorage access can fail
     }
   }, []);
