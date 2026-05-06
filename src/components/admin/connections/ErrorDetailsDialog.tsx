@@ -81,12 +81,12 @@ export function ErrorDetailsDialog({ open, onOpenChange, error, details, loading
 
   const hasTiming =
     details?.timing &&
-    (details.timing.dns_ms != null ||
-      details.timing.tcp_ms != null ||
-      details.timing.tls_ms != null ||
-      details.timing.ttfb_ms != null ||
-      details.timing.download_ms != null ||
-      details.timing.latency_ms != null);
+    (details.timing.dns_ms !== null && details.timing.dns_ms !== undefined ||
+      details.timing.tcp_ms !== null && details.timing.tcp_ms !== undefined ||
+      details.timing.tls_ms !== null && details.timing.tls_ms !== undefined ||
+      details.timing.ttfb_ms !== null && details.timing.ttfb_ms !== undefined ||
+      details.timing.download_ms !== null && details.timing.download_ms !== undefined ||
+      details.timing.latency_ms !== null && details.timing.latency_ms !== undefined);
 
   const headers = details?.response.headers ?? null;
   const headerEntries = headers ? Object.entries(headers) : [];
@@ -222,7 +222,7 @@ export function ErrorDetailsDialog({ open, onOpenChange, error, details, loading
                 <Section title="Erro técnico">
                   <KV k="Tipo" v={details.error.kind ?? '—'} />
                   <KV k="Mensagem" v={details.error.message} />
-                  {details.error.timeout_ms != null && (
+                  {details.error.timeout_ms !== null && details.error.timeout_ms !== undefined && (
                     <KV k="Timeout" v={fmtMs(details.error.timeout_ms)} />
                   )}
                 </Section>
