@@ -15,11 +15,13 @@ Deno.test("json-parser: should handle markdown fences", () => {
 
 Deno.test("json-parser: should handle unescaped quotes in strings", () => {
   const input = '{"reason": "Ele gosta de "Blocos" ecológicos", "id": 1}';
-  const result = extractAndParseAIJSON(input);
-  assertEquals(result, { reason: 'Ele gosta de \\"Blocos\\" ecológicos', id: 1 });
+  const result = extractAndParseAIJSON(input) as any;
+  // result.reason should be "Ele gosta de \"Blocos\" ecológicos" (the backslash is internal to the string)
+  assertEquals(result.reason, 'Ele gosta de "Blocos" ecológicos');
+  assertEquals(result.id, 1);
 });
 
-Deno.test("json-parser: should handle truncated JSON (missing closing braces)", () => {
+Deno.test("json-parser: should handle truncated JSON (missing multiple closing braces)", () => {
   const input = '{"recommendations": [{"id": 1, "name": "test"}';
   const result = extractAndParseAIJSON(input);
   assertEquals(result, { recommendations: [{ id: 1, name: "test" }] });
