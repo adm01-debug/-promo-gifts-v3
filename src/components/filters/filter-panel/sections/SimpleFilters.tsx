@@ -208,7 +208,7 @@ export function TagsFilter({
             )}
           >
             {tag.name}
-          </Button>
+          </button>
         ))}
         {tagOptions.filter(t => !tagSearch || t.name.toLowerCase().includes(tagSearch.toLowerCase())).length === 0 && (
           <p className="text-xs text-muted-foreground py-2 text-center w-full">Nenhuma tag encontrada</p>
