@@ -74,11 +74,13 @@ export function ImageUploadButton({
           onUpload(data.url);
           toast.success('Imagem enviada com segurança!');
           uploadSuccess = true;
-        } catch (error: any) {
+        } catch (error: unknown) {
           lastError = error;
+          const status = (error as { status?: number })?.status || 
+                        (error as { context?: { context?: { status?: number } } })?.context?.context?.status;
 
           // Se for bloqueio de segurança (403), interrompe as tentativas
-          if (error.status === 403 || error.context?.context?.status === 403) {
+          if (status === 403) {
             break;
           }
 
