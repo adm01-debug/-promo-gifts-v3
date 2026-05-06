@@ -276,20 +276,29 @@ const FEATURE_ITEMS = [
   { label: "IA", desc: "Assistente Pessoal", icon: Brain },
 ];
 
+/**
+ * Fundo espacial unificado — cobre TODA a tela de login (sem divisão no meio).
+ * Renderizado uma vez no topo do <Auth/>, antes do branding e do form.
+ */
+export function AuthSpaceBackground() {
+  return (
+    <div className="absolute inset-0 overflow-hidden bg-[#0A0D14] pointer-events-none" aria-hidden="true">
+      <div className="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_30%_50%,rgba(13,17,26,1)_0%,rgba(5,7,12,1)_100%)]" />
+      <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_30%_center,rgba(251,146,60,0.12)_0%,transparent_75%)]" />
+      <div className="absolute top-1/4 -left-20 w-80 h-80 bg-orange/10 rounded-full blur-[120px] animate-pulse" />
+      <div className="absolute bottom-1/4 right-0 w-96 h-96 bg-orange/5 rounded-full blur-[150px]" />
+      <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-orange/5 rounded-full blur-[100px]" />
+      <Starfield />
+      <BackgroundRockets />
+      <ContinuousRockets />
+    </div>
+  );
+}
+
 export function AuthBrandingPanel() {
   return (
-    <div className="hidden lg:flex lg:w-1/2 bg-[#0A0D14] relative overflow-hidden">
-      {/* Background decoration with deep space gradient */}
-      <div className="absolute inset-0 overflow-hidden bg-[#0A0D14]">
-        <div className="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_50%_50%,rgba(13,17,26,1)_0%,rgba(5,7,12,1)_100%)]" />
-        <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_center,rgba(251,146,60,0.12)_0%,transparent_75%)]" />
-        <div className="absolute top-1/4 -left-20 w-80 h-80 bg-orange/10 rounded-full blur-[120px] animate-pulse" />
-        <div className="absolute bottom-1/4 right-0 w-96 h-96 bg-orange/5 rounded-full blur-[150px]" />
-        <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-orange/5 rounded-full blur-[100px]" />
-        <Starfield />
-        <BackgroundRockets />
-        <ContinuousRockets />
-      </div>
+    <div className="hidden lg:flex lg:w-1/2 relative">
+      {/* Fundo espacial agora vive no Auth.tsx (full screen). Aqui só o conteúdo. */}
 
       {/* Content */}
       <div className="relative z-10 flex flex-col justify-center items-center px-12 xl:px-16 w-full">
