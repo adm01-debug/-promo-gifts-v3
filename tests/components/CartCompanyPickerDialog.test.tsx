@@ -188,4 +188,3 @@ describe('CartCompanyPickerDialog - UI, Accessibility & Regression', () => {
     expect(loader).toHaveClass('right-3', 'animate-spin');
   });
 });
-});
