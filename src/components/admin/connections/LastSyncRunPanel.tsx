@@ -116,7 +116,7 @@ export function LastSyncRunPanel() {
             Erro ao ler logs: <code className="text-xs">{error}</code>
           </div>
         ) : !last ? (
-          <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-3 text-sm text-amber-700 dark:text-amber-400">
+          <div className="rounded-xl border border-warning/30 bg-warning/5 p-3 text-sm text-warning-foreground">
             Nenhuma execução registrada ainda. Use <strong>Rodar agora</strong> ou edite uma credencial <code className="text-[11px]">EXTERNAL_*</code> para disparar o trigger.
           </div>
         ) : (
@@ -125,9 +125,9 @@ export function LastSyncRunPanel() {
             <div className="flex items-center justify-between gap-3 flex-wrap rounded-xl border p-3 bg-muted/20">
               <div className="flex items-center gap-3">
                 {ok ? (
-                  <CheckCircle2 className="h-5 w-5 text-green-600 shrink-0" />
+                  <CheckCircle2 className="h-5 w-5 text-success shrink-0" />
                 ) : (
-                  <AlertCircle className="h-5 w-5 text-amber-600 shrink-0" />
+                  <AlertCircle className="h-5 w-5 text-warning shrink-0" />
                 )}
                 <div>
                   <div className="text-sm font-semibold">
@@ -145,8 +145,8 @@ export function LastSyncRunPanel() {
                 variant="outline"
                 className={
                   ok
-                    ? "border-green-500/40 text-green-700 bg-green-500/5"
-                    : "border-amber-500/40 text-amber-700 bg-amber-500/5"
+                    ? "border-success/40 text-success bg-success/5"
+                    : "border-warning/40 text-warning bg-warning/5"
                 }
               >
                 {ok ? "ok" : last.status}
@@ -160,18 +160,18 @@ export function LastSyncRunPanel() {
                 <div className="text-xl font-bold tabular-nums">{last.processed}</div>
                 <div className="text-[10px] text-muted-foreground">env_keys avaliadas</div>
               </div>
-              <div className="rounded-xl border p-3 bg-green-500/5 border-green-500/20">
-                <div className="text-[11px] uppercase tracking-wide text-green-700 flex items-center gap-1">
+              <div className="rounded-xl border p-3 bg-success/5 border-success/20">
+                <div className="text-[11px] uppercase tracking-wide text-success flex items-center gap-1">
                   <Plus className="h-3 w-3" /> Criadas
                 </div>
-                <div className="text-xl font-bold tabular-nums text-green-700">{last.created_count}</div>
+                <div className="text-xl font-bold tabular-nums text-success">{last.created_count}</div>
                 <div className="text-[10px] text-muted-foreground">novas linhas em external_connections</div>
               </div>
-              <div className="rounded-xl border p-3 bg-blue-500/5 border-blue-500/20">
-                <div className="text-[11px] uppercase tracking-wide text-blue-700 flex items-center gap-1">
+              <div className="rounded-xl border p-3 bg-info/5 border-info/20">
+                <div className="text-[11px] uppercase tracking-wide text-info flex items-center gap-1">
                   <Pencil className="h-3 w-3" /> Atualizadas
                 </div>
-                <div className="text-xl font-bold tabular-nums text-blue-700">{last.updated_count}</div>
+                <div className="text-xl font-bold tabular-nums text-info">{last.updated_count}</div>
                 <div className="text-[10px] text-muted-foreground">linhas existentes alteradas</div>
               </div>
               <div className="rounded-xl border p-3">
