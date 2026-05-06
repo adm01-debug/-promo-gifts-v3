@@ -4,7 +4,14 @@
  */
 import { createStructuredLogger } from "./structured-logger.ts";
 
-const log = createStructuredLogger("json-parser");
+// Helper to get a logger without needing Request object (useful for shared utils)
+function getLogger() {
+  return createStructuredLogger({ 
+    fn: "json-parser", 
+    requestId: "internal", 
+    base: { module: "shared-json-parser" } 
+  });
+}
 
 /**
  * Robustly extract & parse JSON from an LLM response.
@@ -12,6 +19,7 @@ const log = createStructuredLogger("json-parser");
  * truncation (auto-closes one missing `]` or `}` at the end).
  */
 export function extractAndParseAIJSON(raw: string): unknown {
+  const log = getLogger();
   let s = String(raw ?? "").trim();
 
   // Strip markdown fences
@@ -78,6 +86,7 @@ export function extractAndParseAIJSON(raw: string): unknown {
 }
 
 function repairUnescapedQuotes(input: string): string {
+  const log = getLogger();
   const out: string[] = [];
   let inString = false;
   let escape = false;
