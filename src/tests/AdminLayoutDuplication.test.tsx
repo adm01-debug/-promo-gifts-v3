@@ -53,12 +53,12 @@ vi.mock('../components/ui/aria-live', () => ({
   useAriaLive: () => ({ announce: vi.fn() }),
 }));
 
-// IMPORTANT: Mock PageTransition to avoid Framer Motion / AnimatePresence issues in RTL
+// Mock PageTransition to avoid Framer Motion issues
 vi.mock('../components/effects/PageTransition', () => ({
   PageTransition: ({ children }: { children: React.ReactNode }) => <div data-testid="page-transition">{children}</div>,
 }));
 
-// Mock Header and SidebarReorganized to avoid their internal dependencies/lazy loading complexity
+// Mock Header and SidebarReorganized to avoid their internal dependencies
 vi.mock('../components/layout/Header', () => ({
   Header: () => <header data-testid="header"><button data-testid="header-mobile-search-trigger">Search</button></header>
 }));
@@ -67,7 +67,7 @@ vi.mock('../components/layout/SidebarReorganized', () => ({
   SidebarReorganized: () => <aside data-testid="sidebar"><div data-testid="sidebar-brand-header">Brand</div></aside>
 }));
 
-// Mock sub-components that are failing due to missing hooks/props
+// Mock all potential problematic sub-components in AdminConexoesPage
 vi.mock('../components/admin/connections/ConnectionsPulseBar', () => ({
   ConnectionsPulseBar: () => <div data-testid="pulse-bar" />
 }));
@@ -82,6 +82,11 @@ vi.mock('../components/admin/connections/ExternalConnectionsSyncLogPanel', () =>
 
 vi.mock('../components/admin/connections/ConnectionsOverviewTable', () => ({
   ConnectionsOverviewTable: () => <div data-testid="overview-table" />
+}));
+
+// Mock RotationHistoryRow specifically because it was throwing getRotationHistory error
+vi.mock('../components/admin/connections/RotationHistoryRow', () => ({
+  RotationHistoryRow: () => <div data-testid="rotation-history-row" />
 }));
 
 const queryClient = new QueryClient({
