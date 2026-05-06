@@ -23,6 +23,7 @@
 
 import { logger } from "@/lib/logger";
 
+const APP_VERSION = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : 'dev';
 const STORAGE_KEY = "__chunk_recovery__";
 const WINDOW_MS = 30_000;
 const MAX_HARD_RELOADS = 2;
