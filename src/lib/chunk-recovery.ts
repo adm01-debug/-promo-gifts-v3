@@ -275,9 +275,11 @@ export function markBootSuccessful(): void {
   if (typeof window === "undefined") return;
   window.setTimeout(() => {
     const state = readState();
-    if (state.attempts > 0) {
-      logger.info("[chunk-recovery] boot bem-sucedido após reload — limpando estado", {
+    if (state.attempts > 0 || state.version !== APP_VERSION) {
+      logger.info("[chunk-recovery] boot bem-sucedido após reload ou nova versão — limpando estado", {
         previousAttempts: state.attempts,
+        previousVersion: state.version,
+        currentVersion: APP_VERSION,
       });
     }
     clearChunkRecoveryState();
