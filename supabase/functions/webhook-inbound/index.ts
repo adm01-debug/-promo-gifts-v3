@@ -113,12 +113,12 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     }));
 
-  } catch (err) {
-    log.error("unexpected_error", { err });
-    const msg = err instanceof Error ? err.message : "Erro";
-    return log.respond(new Response(JSON.stringify({ error: msg }), {
-      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-    }));
-  }
-
+    } catch (err) {
+      log.error("unexpected_error", { err });
+      const msg = err instanceof Error ? err.message : "Erro";
+      return log.respond(new Response(JSON.stringify({ error: msg }), {
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }));
+    }
+  });
 });
