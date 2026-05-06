@@ -36,6 +36,7 @@ const Unauthorized = lazyWithRetry(() =>
 const ResetPassword = lazyWithRetry(() => import('./pages/ResetPassword'));
 const Index = lazyWithRetry(() => import('./pages/Index'));
 const PublicQuoteApproval = lazyWithRetry(() => import('./pages/PublicQuoteApprovalPage'));
+const QuoteApprovalPage = lazyWithRetry(() => import('./pages/QuoteApprovalPage'));
 const PublicKitView = lazyWithRetry(() => import('./pages/PublicKitViewPage'));
 const PublicFavoriteList = lazyWithRetry(() => import('./pages/PublicFavoriteListPage'));
 const PublicCollectionPage = lazyWithRetry(() => import('./pages/PublicCollectionPage'));
