@@ -6,7 +6,7 @@ import { defaultAdvancedFilters } from '../constants/filters';
 
 // Mocking useExternalDatabase and specific hooks
 vi.mock('../useExternalDatabase', async () => {
-  const actual = await vi.importActual('./useExternalDatabase');
+  const actual = await vi.importActual('../useExternalDatabase');
   return {
     ...actual,
     useExternalCategories: vi.fn(),
