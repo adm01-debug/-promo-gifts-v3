@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Sparkles } from "lucide-react";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { NoveltyStatsCards } from "@/components/novelties/NoveltyStatsCards";
