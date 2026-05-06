@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { differenceInDays, isSameDay } from "date-fns";
 import { getStatusCfg } from "@/components/cart/CartUtilComponents";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 
 interface CartTabsRichProps {
