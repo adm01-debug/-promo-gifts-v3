@@ -53,7 +53,7 @@ export function VariantForm({ initial, onSave, onCancel, isSaving }: VariantForm
         <div className="space-y-1">
           <Label className="text-xs">Cor (hex)</Label>
           <div className="flex items-center gap-2">
-            <input type="color" value={form.color_hex || '#000000'} onChange={e => set('color_hex', e.target.value)} className="w-8 h-8 rounded border border-input bg-background cursor-pointer" />
+            <input type="color" value={form.color_hex || '#000000'} onChange={e => set('color_hex', e.target.value)} className="w-8 h-8 rounded-[var(--radius)] border border-border bg-background cursor-pointer shadow-soft hover:shadow-medium transition-shadow" />
             <Input value={form.color_hex} onChange={e => set('color_hex', e.target.value)} placeholder="#0000FF" className="h-8 text-sm font-mono flex-1" />
           </div>
         </div>
