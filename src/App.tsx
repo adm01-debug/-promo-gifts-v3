@@ -442,6 +442,7 @@ const AppContent = () => {
           element={<Navigate to="/ferramentas/bi-comercial" replace />}
         />
         <Route path="/ferramentas/bi-comercial" element={<CommercialIntelligencePage />} />
+        <Route path="/ferramentas/bi-mercado" element={<BusinessIntelligencePage />} />
         <Route
           path="/inteligencia-comercial"
           element={<Navigate to="/ferramentas/bi-comercial" replace />}
