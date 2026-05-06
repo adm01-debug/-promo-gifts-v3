@@ -72,9 +72,9 @@ export function TrendsTour() {
                 <p className="text-[10px] text-muted-foreground">Passo {step + 1} de {STEPS.length}</p>
               </div>
             </div>
-            <button onClick={dismiss} className="text-muted-foreground hover:text-foreground" aria-label="Fechar">
+            <Button variant="ghost" size="icon" onClick={dismiss} className="h-6 w-6 text-muted-foreground hover:text-foreground" aria-label="Fechar">
               <X className="h-4 w-4" />
-            </button>
+            </Button>
           </div>
           <p className="text-sm text-foreground/80 leading-relaxed">{current.body}</p>
           <div className="flex items-center justify-between gap-2 pt-1">

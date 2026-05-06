@@ -180,9 +180,14 @@ export function QuantityRangeComparison({
           >
             {qty}un
             {quantities.length > 2 && qty !== currentQuantity && (
-              <button onClick={() => removeQuantity(qty)} className="ml-1 hover:text-destructive">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => removeQuantity(qty)} 
+                className="h-4 w-4 ml-1 p-0 hover:text-destructive hover:bg-transparent"
+              >
                 <X className="h-3 w-3" />
-              </button>
+              </Button>
             )}
           </Badge>
         ))}
