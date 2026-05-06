@@ -21,9 +21,10 @@ describe('RBAC Route Matrix Integrity', () => {
     expect(conexoesStatusRoute?.role).toBe('dev');
   });
 
-  it('should summarize routes correctly with mfa count as zero', () => {
+  it('should summarize routes correctly with correct MFA count', () => {
     const summary = summarizeRoutes(RBAC_ROUTES);
-    expect(summary.mfa).toBe(0);
+    const expectedMfaCount = RBAC_ROUTES.filter(r => r.mfaAal2).length;
+    expect(summary.mfa).toBe(expectedMfaCount);
     expect(summary.total).toBeGreaterThan(0);
   });
 
