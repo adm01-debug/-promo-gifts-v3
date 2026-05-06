@@ -51,11 +51,22 @@ export interface EdgeLatencyRow {
   max_ms: number;
 }
 
+export interface WebVitalRow {
+  name: string;
+  total: number;
+  p75: number;
+  count_good: number;
+  count_needs_improvement: number;
+  count_poor: number;
+  good_pct: number;
+}
+
 export interface AppHealthSummary {
   kpis: AppHealthKpis;
   top_routes_by_error: RouteErrorRow[];
   webhooks_by_source: WebhookSourceRow[];
   edges_by_latency: EdgeLatencyRow[];
+  web_vitals: WebVitalRow[];
 }
 
 export function useAppHealth(windowMinutes: HealthWindow) {
