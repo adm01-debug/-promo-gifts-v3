@@ -1,4 +1,8 @@
 import { supabase } from '@/integrations/supabase/client';
+import { createClientLogger } from '@/lib/telemetry/structuredLogger';
+
+const log = createClientLogger('utils.cnpj-lookup');
+
 
 export interface CnpjData {
   razao_social: string | null;
@@ -29,9 +33,10 @@ export async function fetchCnpjData(cnpj: string): Promise<CnpjData | null> {
   });
 
   if (error) {
-    console.error('[CNPJ-Lookup] Error:', error);
+    log.error('fetch_failed', { error, cnpj });
     throw new Error(error.message || 'Erro ao consultar CNPJ');
   }
+
 
   if (!data?.success) {
     throw new Error(data?.error || 'Erro na consulta do CNPJ');
