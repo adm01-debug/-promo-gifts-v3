@@ -293,7 +293,7 @@ const AppContent = () => {
         <Route path="/simulador" element={<Navigate to="/ferramentas/simulador" replace />} />
         <Route path="/ferramentas/simulador-precos" element={<PriceSimulatorPage />} />
         <Route path="/simulador-precos" element={<Navigate to="/ferramentas/simulador-precos" replace />} />
-        <Route path="/ferramentas/estoque" element={<StockDashboardPage />} />
+        <Route path="/ferramentas/estoque" element={<Navigate to="/estoque" replace />} />
         <Route path="/ferramentas/busca-preco" element={<AdvancedPriceSearchPage />} />
         <Route path="/busca-preco" element={<Navigate to="/ferramentas/busca-preco" replace />} />
         <Route path="/ferramentas/match" element={<ProductMatchPage />} />
