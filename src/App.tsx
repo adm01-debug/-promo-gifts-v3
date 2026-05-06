@@ -284,6 +284,9 @@ const AppContent = () => {
         {/* Tools */}
         <Route path="/ferramentas/mockup" element={<MockupGenerator />} />
         <Route path="/ferramentas/mockup/historico" element={<MockupHistoryPage />} />
+        {/* Aliases legados / atalhos comuns que caíam em 404 */}
+        <Route path="/mockup-generator" element={<Navigate to="/ferramentas/mockup" replace />} />
+        <Route path="/mockup" element={<Navigate to="/ferramentas/mockup" replace />} />
         <Route path="/ferramentas/magic-up" element={<MagicUp />} />
         <Route path="/ferramentas/simulador" element={<SimuladorWizard />} />
         <Route path="/ferramentas/simulador-precos" element={<PriceSimulatorPage />} />
