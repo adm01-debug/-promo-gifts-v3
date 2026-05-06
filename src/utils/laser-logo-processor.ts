@@ -2,12 +2,9 @@
  * laserLogoProcessor — Converte logo para tom laser sólido via Canvas API
  *
  * Abordagem correta: pixel a pixel
- * - Pixels transparentes (alpha < 30) → mantém transparente
- * - Pixels near-white (luminância > 230) → mantém branco/transparente (preserva espaços entre elementos)
+ * - Pixels transparentes (alpha < threshold) → mantém transparente
+ * - Pixels near-white (luminância > threshold) → mantém transparente (preserva espaços entre elementos)
  * - Qualquer outro pixel (colorido, cinza, preto) → substitui pelo tom laser sólido
- *
- * Isso preserva os espaços brancos entre elementos (ex: triângulos do SICOOB)
- * enquanto converte TODOS os pixels "visíveis" para um único tom sólido.
  */
 
 export interface LaserToneConfig {
