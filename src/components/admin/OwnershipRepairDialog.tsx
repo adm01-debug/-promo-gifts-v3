@@ -327,7 +327,7 @@ function Stat({
   return (
     <div className="rounded-xl border p-3">
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
-        <HeroIcon className="h-3.5 w-3.5" /> {label}
+        {heroIcon && <heroIcon className="h-3.5 w-3.5" />} {label}
       </div>
       <div className={`mt-1 text-2xl font-bold ${toneClass}`}>{value}</div>
     </div>
