@@ -32,6 +32,8 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const log = createStructuredLogger('generate-mockup', req);
+
   try {
     const auth = await authenticateRequest(req);
     const user = { id: auth.userId };
@@ -43,7 +45,12 @@ Deno.serve(async (req) => {
       blockSeconds: 3600,
       customIdentifier: `user:${user.id}`,
     }, corsHeaders);
-    if (!protection.allowed) return protection.blockResponse!;
+    
+    if (!protection.allowed) {
+      log.warn("Bot protection triggered", { userId: user.id });
+      return protection.blockResponse!;
+    }
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
