@@ -315,6 +315,7 @@ export function useCatalogState() {
   }, [filters, sortBy, searchQuery]);
 
   const activeFiltersCount = useMemo(() => {
+    if (!filters) return 0;
     let count = 0;
     if (filters.colors?.length) count += filters.colors.length;
     if (filters.colorGroups?.length) count += filters.colorGroups.length;
