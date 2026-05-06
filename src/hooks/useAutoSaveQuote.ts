@@ -62,6 +62,7 @@ export function useAutoSaveQuote<T>({
   onRestore,
   debounceMs = 2000,
   key = 'quote_builder_autosave',
+  onSaveServer,
 }: AutoSaveOptions<T>) {
   const lastSavedRef = useRef<string>('');
 
