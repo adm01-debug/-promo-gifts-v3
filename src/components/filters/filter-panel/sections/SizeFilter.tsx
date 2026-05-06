@@ -80,11 +80,13 @@ export function SizeFilter({ selectedSizes, onToggleSize, products = [] }: SizeF
         {filteredSizes.map((size) => {
           const isSelected = selectedSizes.includes(size);
           return (
-            <button
+            <Button
               key={size}
+              variant="outline"
+              size="sm"
               onClick={() => onToggleSize(size)}
               className={cn(
-                "px-2.5 py-1 rounded-xl text-xs font-medium border transition-all",
+                "h-auto px-2.5 py-1 rounded-lg text-xs font-medium border transition-all",
                 isSelected
                   ? "bg-primary text-primary-foreground border-primary shadow-sm"
                   : "bg-card border-border text-foreground hover:border-primary/40 hover:bg-accent"
