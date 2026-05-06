@@ -2,6 +2,10 @@
  * useTransactionalEmail — Hook para enviar emails transacionais.
  */
 import { supabase } from '@/integrations/supabase/client';
+import { createClientLogger } from '@/lib/telemetry/structuredLogger';
+
+const log = createClientLogger('hooks.useTransactionalEmail');
+
 
 export type EmailEventType = 'quote_sent' | 'quote_approved' | 'quote_rejected' | 'order_created';
 
@@ -19,13 +23,15 @@ export async function sendTransactionalEmail(params: SendEmailParams) {
     });
 
     if (error) {
-      console.error('[TransactionalEmail] Error:', error);
+      log.error('send_failed', { error, params });
       return { success: false, error: error.message };
     }
 
+
     return { success: true, data };
   } catch (err) {
-    console.error('[TransactionalEmail] Unexpected error:', err);
+    log.error('unexpected_error', { err, params });
     return { success: false, error: 'Unexpected error' };
   }
+
 }
