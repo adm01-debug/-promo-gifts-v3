@@ -218,7 +218,7 @@ export function useComparisonHighlight(
  * CSS classes for inline highlighting
  */
 export const highlightClasses = {
-  best: "bg-success/10 text-success font-semibold border-l-2 border-l-success",
-  worst: "bg-destructive/10 text-destructive border-l-2 border-l-destructive",
+  best: "bg-amber-400/10 text-amber-600 dark:text-amber-400 font-bold border-l-2 border-l-amber-500",
+  worst: "bg-destructive/10 text-destructive border-l-2 border-l-destructive/50",
   neutral: "",
 } as const;
