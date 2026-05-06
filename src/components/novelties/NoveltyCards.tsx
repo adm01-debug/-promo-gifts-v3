@@ -2,7 +2,7 @@
  * NoveltyCards — Grid, List, Table, and Skeleton card components for novelties.
  * Follows the same info pattern as ProductCard (catalog).
  */
-import { memo } from "react";
+import { memo, useState, useCallback, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -10,8 +10,19 @@ import { Package, Building2, FolderTree, Sparkles } from "lucide-react";
 import { NoveltyBadge } from "@/components/products/NoveltyBadge";
 import { ProductSparkline } from "@/components/products/ProductSparkline";
 import { SelectionCheckbox } from "@/components/common/SelectionCheckbox";
+import { ProductCardActions } from "@/components/products/ProductCardActions";
+import { VariantPickerDialog, type VariantActionMode } from "@/components/products/VariantPickerDialog";
+import { AddToCollectionModal } from "@/components/collections/AddToCollectionModal";
+import { SharePreviewDialog } from "@/components/products/share/SharePreviewDialog";
+import { ProductQuickView } from "@/components/products/ProductQuickView";
+import { useFavoritesStore } from "@/stores/useFavoritesStore";
+import { useComparisonStore } from "@/stores/useComparisonStore";
+import { toast } from "sonner";
+import { showUndoToast, showErrorToast } from "@/utils/undoToast";
+import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import type { NoveltyWithDetails } from "@/hooks/useNovelties";
+import type { ExternalVariantStock } from "@/hooks/useExternalVariantStock";
 
 function isFresh(detectedAt: string): boolean {
   return Math.floor((Date.now() - new Date(detectedAt).getTime()) / 86400000) <= 2;
@@ -38,17 +49,88 @@ export interface NoveltyCardProps {
 }
 
 export const NoveltyGridCard = memo(function NoveltyGridCard({ product, onClick, selectionMode, isSelected, onToggleSelect }: NoveltyCardProps) {
+  const navigate = useNavigate();
+  const [isHovered, setIsHovered] = useState(false);
+  const [actionsOpen, setActionsOpen] = useState(false);
+  const [variantPickerOpen, setVariantPickerOpen] = useState(false);
+  const [variantPickerMode, setVariantPickerMode] = useState<VariantActionMode>('favorite');
+  const [collectionModalOpen, setCollectionModalOpen] = useState(false);
+  const [collectionVariant, setCollectionVariant] = useState<any>(undefined);
+  const [quickViewOpen, setQuickViewOpen] = useState(false);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [shareVariant, setShareVariant] = useState<any>(null);
+
+  const { isFavorite, toggleFavorite, addFavorite } = useFavoritesStore();
+  const { isInCompare, addToCompare, removeFromCompare, canAdd: canAddToCompare } = useComparisonStore();
+
+  const actionBusyRef = useRef(false);
+  const markBusy = () => { actionBusyRef.current = true; setTimeout(() => { actionBusyRef.current = false; }, 500); };
+
+  const isFavorited = isFavorite(product.product_id);
+  const isCompared = isInCompare(product.product_id);
+
+  const handleVariantComplete = useCallback((variant: ExternalVariantStock | null) => {
+    const variantInfo = variant ? {
+      color_name: variant.color_name, color_hex: variant.color_hex,
+      size_code: variant.size_code, variant_id: variant.id,
+      thumbnail: variant.selected_thumbnail,
+    } : undefined;
+
+    if (variantPickerMode === 'favorite') {
+      addFavorite(product.product_id, variantInfo);
+      toast.success(`"${product.product_name}" favoritado`);
+    } else if (variantPickerMode === 'compare') {
+      const result = addToCompare(product.product_id, variantInfo);
+      if (!result) showErrorToast({ title: "Limite de 4 produtos atingido" });
+      else toast.success(`"${product.product_name}" na comparação`);
+    } else if (variantPickerMode === 'collection') {
+      setCollectionVariant(variantInfo);
+      setCollectionModalOpen(true);
+    } else if (variantPickerMode === 'quote') {
+      const params = new URLSearchParams({
+        product_id: product.product_id, product_name: product.product_name,
+        product_sku: product.product_sku || '', product_price: String(product.base_price ?? 0),
+        product_image: product.product_image || '',
+      });
+      if (variant?.color_name) params.set('color_name', variant.color_name);
+      if (variant?.color_hex) params.set('color_hex', variant.color_hex);
+      navigate(`/orcamentos/novo?${params.toString()}`);
+    } else if (variantPickerMode === 'share') {
+      setShareVariant(variant ? { variantName: variant.color_name, colorHex: variant.color_hex, thumbnailUrl: variant.selected_thumbnail } : null);
+      setShareDialogOpen(true);
+    }
+  }, [variantPickerMode, product, addFavorite, addToCompare, navigate]);
+
+  const handleFavorite = (e: React.MouseEvent) => {
+    e.stopPropagation(); markBusy(); setActionsOpen(false);
+    if (isFavorited) {
+      toggleFavorite(product.product_id);
+      showUndoToast({ title: "Removido dos favoritos", onUndo: () => toggleFavorite(product.product_id) });
+    } else { setVariantPickerMode('favorite'); setVariantPickerOpen(true); }
+  };
+
+  const handleCompare = (e: React.MouseEvent) => {
+    e.stopPropagation(); markBusy(); setActionsOpen(false);
+    if (isCompared) {
+      removeFromCompare(product.product_id);
+      showUndoToast({ title: "Removido da comparação", onUndo: () => addToCompare(product.product_id) });
+    } else { setVariantPickerMode('compare'); setVariantPickerOpen(true); }
+  };
+
   const fresh = isFresh(product.detected_at);
   const stockQty = product.stock_quantity ?? 0;
   const stockStatus = product.stock_status ?? 'in-stock';
   return (
     <Card
+      data-testid={`novelty-card-${product.product_id}`}
       className={cn(
         "group cursor-pointer overflow-hidden transition-all duration-300 rounded-xl sm:rounded-xl",
         "border-border/50 hover:shadow-lg hover:-translate-y-1 hover:border-primary/30",
         fresh && "border-success/30 shadow-[0_0_16px_hsl(var(--success)/0.1)]",
         isSelected && "ring-2 ring-primary border-primary/50 shadow-[0_0_20px_hsl(var(--primary)/0.15)]"
       )}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => { setIsHovered(false); setActionsOpen(false); }}
       onClick={selectionMode ? onToggleSelect : onClick}
     >
       <CardContent className="p-0">
@@ -130,6 +212,62 @@ export const NoveltyGridCard = memo(function NoveltyGridCard({ product, onClick,
             <ProductSparkline productId={product.product_id} />
           </div>
         </div>
+
+        {/* FAB Actions */}
+        {!selectionMode && (
+          <ProductCardActions
+            productId={product.product_id}
+            productName={product.product_name}
+            productSku={product.product_sku}
+            productImageUrl={product.product_image}
+            productPrice={product.base_price || 0}
+            productMinQuantity={product.min_quantity || 1}
+            isFavorited={isFavorited}
+            isInCompare={isCompared}
+            canAddToCompare={canAddToCompare}
+            actionsOpen={actionsOpen}
+            onToggleActions={() => setActionsOpen(!actionsOpen)}
+            onFavorite={handleFavorite}
+            onCompare={handleCompare}
+            onOpenVariantPicker={(mode) => { setActionsOpen(false); setVariantPickerMode(mode); setVariantPickerOpen(true); }}
+            onQuickView={() => { setActionsOpen(false); setQuickViewOpen(true); }}
+            markBusy={markBusy}
+          />
+        )}
+
+        {/* Modals */}
+        <VariantPickerDialog
+          isOpen={variantPickerOpen}
+          onClose={() => setVariantPickerOpen(false)}
+          productId={product.product_id}
+          productName={product.product_name}
+          onComplete={handleVariantComplete}
+          mode={variantPickerMode}
+        />
+
+        <AddToCollectionModal
+          isOpen={collectionModalOpen}
+          onClose={() => setCollectionModalOpen(false)}
+          productId={product.product_id}
+          variantId={collectionVariant?.variant_id}
+          colorName={collectionVariant?.color_name}
+          colorHex={collectionVariant?.color_hex}
+        />
+
+        <SharePreviewDialog
+          isOpen={shareDialogOpen}
+          onClose={() => setShareDialogOpen(false)}
+          product={{ id: product.product_id, name: product.product_name, sku: product.product_sku || '', images: [product.product_image || ''] } as any}
+          variant={shareVariant}
+        />
+
+        {quickViewOpen && (
+          <ProductQuickView
+            productId={product.product_id}
+            isOpen={quickViewOpen}
+            onClose={() => setQuickViewOpen(false)}
+          />
+        )}
       </CardContent>
     </Card>
   );

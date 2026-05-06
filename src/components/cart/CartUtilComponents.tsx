@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 import {
   Package, Trash2, Plus, Copy,
   FileText, Timer, Sparkles, TrendingUp,
-  Lightbulb, History, MessageSquare, MoveRight,
+  Lightbulb, History, MessageSquare, MoveRight, Eraser,
 } from "lucide-react";
 import { type SellerCart, type CartStatus } from "@/hooks/useSellerCarts";
 import { differenceInDays, differenceInHours, formatDistanceToNow } from "date-fns";

@@ -19,7 +19,7 @@ const FIELDS: Array<{ key: keyof ComparisonWeights; label: string }> = [
 ];
 
 export function ComparisonWeightsPopover() {
-  const { weights, setWeights, reset } = useComparisonWeights();
+  const { weights, setWeights, reset, loading } = useComparisonWeights();
   const total = Object.values(weights).reduce((a, b) => a + b, 0);
 
   const update = (key: keyof ComparisonWeights, value: number) => {
@@ -29,16 +29,16 @@ export function ComparisonWeightsPopover() {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="outline" size="sm" aria-label="Ajustar pesos do score">
+        <Button variant="outline" size="sm" aria-label="Ajustar pesos do score" className="border-amber-500/20 text-amber-600 hover:bg-amber-500/5 font-black uppercase text-[10px] tracking-widest">
           <Sliders className="h-4 w-4 mr-2" />
-          Pesos
+          Configuração Arena
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80" align="end">
+      <PopoverContent className="w-80 border-amber-500/20 bg-card/98 backdrop-blur-xl shadow-2xl" align="end">
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h4 className="font-semibold text-sm">Pesos do Score</h4>
-            <Button variant="ghost" size="sm" onClick={() => { reset(); toast.success("Pesos restaurados"); }}>
+            <h4 className="font-black text-[10px] uppercase tracking-widest text-amber-600">Calibragem do Algoritmo</h4>
+            <Button variant="ghost" size="sm" onClick={() => { reset(); toast.success("Algoritmo restaurado para o padrão"); }}>
               <RotateCcw className="h-3 w-3 mr-1" /> Reset
             </Button>
           </div>

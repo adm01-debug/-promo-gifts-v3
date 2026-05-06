@@ -5,9 +5,9 @@
  * conter listas de produtos.
  *
  * Princípios de consistência:
- *  - Largura fixa: TODO valor mascarado é renderizado como `••••XXXX`
+ *  - Largura fixa: o valor mascarado é renderizado como `••••XXXX`
  *    (4 bullets + 4 caracteres do sufixo real), garantindo alinhamento
- *    visual e impedindo inferências de tamanho.
+ *    visual e impedindo inferências de tamanho (exceto para valores curtíssimos).
  *  - Caracteres uniformes: usamos sempre o bullet U+2022 ("•") como filler.
  *    Nunca asteriscos misturados, nunca padding variável.
  *  - Cobertura ampla: mascara JWTs (eyJ…), URLs supabase.co, query params

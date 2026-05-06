@@ -26,6 +26,16 @@ const STEPS = [
     title: "Funil & Demanda Reprimida",
     body: "Identifique gargalos de conversão e termos buscados sem resultado para criar oportunidades.",
   },
+  {
+    title: "Projeções & Anomalias",
+    body: "O gráfico principal usa IA para projetar os próximos 7 dias e destacar picos atípicos de demanda.",
+    selector: "[data-tour='trends-forecast']"
+  },
+  {
+    title: "Mapa de Calor",
+    body: "Descubra os horários de pico de atividade para planejar campanhas ou reposições.",
+    selector: "[data-tour='trends-heatmap']"
+  }
 ];
 
 export function TrendsTour() {

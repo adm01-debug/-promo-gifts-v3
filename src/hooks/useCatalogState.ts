@@ -44,7 +44,7 @@ const ITEMS_PER_PAGE = 36;
 
 export function useCatalogState() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
   const { isFavorite, toggleFavorite, favoriteCount } = useFavoritesStore();
   const favQuickAdd = useFavoriteQuickAdd();
@@ -52,8 +52,73 @@ export function useCatalogState() {
   const { registerProducts } = useProductsContext();
   const { data: promoSalesMap } = usePromoSalesRanking();
   const { data: supplierSalesMap } = useSupplierSalesRanking();
+  
+  const isInternalUpdateRef = useRef(false);
+  const [activePresetId, setActivePresetId] = useState<string | undefined>(
+    searchParams.get("preset") || undefined
+  );
+
+  const setFiltersWithPreset = useCallback((newFilters: FilterState, presetId?: string) => {
+    isInternalUpdateRef.current = true;
+    setFilters(newFilters);
+    setActivePresetId(presetId);
+    
+    // Sincroniza o preset ID com a URL
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      if (presetId) {
+        next.set("preset", presetId);
+      } else {
+        next.delete("preset");
+      }
+      return next;
+    }, { replace: true });
+    
+    // Broadcast para outras abas (mecanismo fallback ao Realtime para UI state local)
+    try {
+      const channel = new BroadcastChannel('catalog_preset_sync');
+      channel.postMessage({ type: 'PRESET_APPLIED', presetId, filters: newFilters });
+      channel.close();
+    } catch (e) {
+      console.warn("BroadcastChannel not supported", e);
+    }
+  }, [setSearchParams]);
+
+  // Efeito para sincronizar URL -> Estado (Navegação/Deep-link)
+  useEffect(() => {
+    if (isInternalUpdateRef.current) {
+      isInternalUpdateRef.current = false;
+      return;
+    }
+
+    const presetFromUrl = searchParams.get("preset") || undefined;
+    if (presetFromUrl !== activePresetId) {
+      setActivePresetId(presetFromUrl);
+      // Aqui poderíamos carregar os filtros do preset se tivéssemos acesso aos presets cadastrados
+      // Por enquanto, apenas sincronizamos o ID visual
+    }
+  }, [searchParams, activePresetId]);
 
   const searchQueryFromUrl = searchParams.get("search") || "";
+  
+  // Efeito para escutar sincronização entre abas via BroadcastChannel
+  useEffect(() => {
+    try {
+      const channel = new BroadcastChannel('catalog_preset_sync');
+      channel.onmessage = (event) => {
+        if (event.data?.type === 'PRESET_APPLIED') {
+          const { presetId, filters: newFilters } = event.data;
+          // Quando vem via BroadcastChannel, marcamos como interno para não re-sincronizar URL
+          isInternalUpdateRef.current = true;
+          setFilters(newFilters);
+          setActivePresetId(presetId);
+        }
+      };
+      return () => channel.close();
+    } catch (e) {
+      console.warn("BroadcastChannel not supported", e);
+    }
+  }, []);
 
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
   const [viewMode, setViewModeState] = useState<ViewMode>(getPersistedViewMode);
@@ -70,6 +135,58 @@ export function useCatalogState() {
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedCount, setSelectedCount] = useState(0);
   const [activeProductId, setActiveProductId] = useState<string | null>(null);
+  const [filterSheetOpen, setFilterSheetOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState(searchQueryFromUrl);
+  const [isSearching, setIsSearching] = useState(false);
+  const [displayCount, setDisplayCount] = useState(ITEMS_PER_PAGE);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+  // Efeito para sincronizar filtros selecionados com a URL (além do preset)
+  useEffect(() => {
+    if (isInternalUpdateRef.current) {
+      // Se foi uma atualização interna, apenas resetamos o ref depois que o ciclo de render terminou
+      const timer = setTimeout(() => {
+        isInternalUpdateRef.current = false;
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+
+    const currentPreset = searchParams.get("preset") || undefined;
+    if (currentPreset !== activePresetId) {
+      setActivePresetId(currentPreset);
+    }
+
+    // Sincronização básica de filtros selecionados para a URL
+    const timeout = setTimeout(() => {
+      setSearchParams(prev => {
+        const next = new URLSearchParams(prev);
+        
+        // Sincroniza query de busca
+        if (searchQuery) next.set("search", searchQuery);
+        else next.delete("search");
+        
+        // Sincroniza cores
+        if (filters.colorGroups?.length) next.set("colors", filters.colorGroups.join(","));
+        else if (!next.get("preset")) next.delete("colors"); // Apenas deleta se não for preset (pois preset pode ter filtros implícitos)
+        
+        // Sincroniza categorias
+        if (filters.categories?.length) next.set("cats", filters.categories.join(","));
+        else if (!next.get("preset")) next.delete("cats");
+
+        // Outros filtros relevantes para consistência total
+        if (filters.inStock) next.set("stock", "true");
+        else next.delete("stock");
+
+        if (filters.isKit) next.set("kit", "true");
+        else next.delete("kit");
+
+        if (next.toString() === prev.toString()) return prev;
+        return next;
+      }, { replace: true });
+    }, 500);
+    
+    return () => clearTimeout(timeout);
+  }, [filters, searchQuery, activePresetId, setSearchParams, searchParams]);
 
   const toggleSelectionMode = useCallback(() => {
     setSelectionMode(prev => {
@@ -92,12 +209,6 @@ export function useCatalogState() {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, [gridColumns]);
-
-  const [filterSheetOpen, setFilterSheetOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState(searchQueryFromUrl);
-  const [isSearching, setIsSearching] = useState(false);
-  const [displayCount, setDisplayCount] = useState(ITEMS_PER_PAGE);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   const debouncedServerSearch = useDebounce(searchQuery, 400);
 
@@ -417,6 +528,8 @@ export function useCatalogState() {
 
   return {
     filters, setFilters,
+    setFiltersWithPreset,
+    activePresetId,
     viewMode, setViewMode,
     gridColumns, setGridColumns,
     sortBy, setSortBy,
@@ -459,6 +572,8 @@ export function useCatalogState() {
     suggestions,
     quickSuggestions,
     searchHistory: history,
-    clearHistory
+    clearHistory,
+    navigate,
+    ITEMS_PER_PAGE
   };
 }

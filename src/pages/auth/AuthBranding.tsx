@@ -11,6 +11,9 @@ export const ContinuousRockets = React.memo(() => {
   const nextIdRef = useRef(0);
 
   const spawnRocket = useCallback((isInitial = false) => {
+    // Check for reduced motion
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
     const id = nextIdRef.current++;
     
     const left = 5 + Math.random() * 90;
@@ -34,6 +37,9 @@ export const ContinuousRockets = React.memo(() => {
   }, []);
 
   useEffect(() => {
+    const isReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (isReduced) return;
+
     // Initial burst
     const delays = [0, 200, 500, 900, 1400, 2000, 2800];
     const timers = delays.map(d => setTimeout(() => spawnRocket(true), d));
@@ -50,7 +56,7 @@ export const ContinuousRockets = React.memo(() => {
   }, [spawnRocket]);
 
   return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden z-[1]" aria-hidden="true">
+    <div className="pointer-events-none absolute inset-0 overflow-hidden z-[1] motion-reduce:hidden" aria-hidden="true">
       {rockets.map((r) => (
         <div
           key={r.id}
@@ -77,7 +83,6 @@ export const ContinuousRockets = React.memo(() => {
                 }}
               />
             </div>
-          {/* Rastro de chamas — gradiente fixo laranja→amarelo para efeito de propulsão consistente */}
           <div
             className="absolute left-1/2 -translate-x-1/2 rounded-full opacity-70"
             style={{
@@ -118,25 +123,120 @@ export const ContinuousRockets = React.memo(() => {
   );
 });
 
+const BackgroundRockets = React.memo(() => {
+  // 6 foguetes decorativos bem visíveis subindo no fundo
+  const rockets = [
+    { left: 10, size: 70, duration: 14, delay: 0,    opacity: 0.55 },
+    { left: 28, size: 44, duration: 11, delay: 3,    opacity: 0.65 },
+    { left: 48, size: 90, duration: 18, delay: 1.5,  opacity: 0.45 },
+    { left: 66, size: 38, duration: 9,  delay: 5,    opacity: 0.7  },
+    { left: 82, size: 60, duration: 13, delay: 2.5,  opacity: 0.55 },
+    { left: 94, size: 32, duration: 8,  delay: 6.5,  opacity: 0.75 },
+  ];
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden z-[0] motion-reduce:hidden" aria-hidden="true">
+      {rockets.map((r, i) => (
+        <div
+          key={`bg-rocket-${i}`}
+          className="absolute bottom-[-10%]"
+          style={{
+            left: `${r.left}%`,
+            opacity: r.opacity,
+            animation: `rocketLaunch ${r.duration}s linear ${r.delay}s infinite`,
+            willChange: "transform, opacity",
+          }}
+        >
+          <div className="relative">
+            <Rocket
+              className="-rotate-45 text-orange"
+              style={{
+                width: r.size,
+                height: r.size,
+                filter: `drop-shadow(0 0 ${r.size * 0.5}px rgba(251, 146, 60, 0.7))`,
+              }}
+            />
+            <div
+              className="absolute left-1/2 -translate-x-1/2 rounded-full"
+              style={{
+                top: `${r.size * 0.7}px`,
+                width: `${r.size * 0.4}px`,
+                height: `${r.size * 1.6}px`,
+                background: "linear-gradient(to bottom, #FB923C, #FBBF24, transparent)",
+                filter: "blur(4px)",
+                opacity: 0.85,
+              }}
+            />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+});
+
 const Starfield = React.memo(() => {
   return (
     <>
-      {[...Array(32)].map((_, i) => {
-        const size = 1 + (i % 3);
-        const top = (i * 37 + 11) % 100;
-        const left = (i * 53 + 7) % 100;
-        const dur = 2 + (i % 5);
-        const delay = (i * 0.4) % 3;
+      {/* Camada Distante — 60 estrelas */}
+      {[...Array(60)].map((_, i) => {
+        const size = 1 + (i % 2);
+        const top = (i * 47 + 13) % 100;
+        const left = (i * 61 + 9) % 100;
+        const dur = 6 + (i % 4);
+        const delay = (i * 0.5) % 4;
         return (
           <div
-            key={`star-${i}`}
-            className="absolute rounded-full bg-white/30 shadow-[0_0_8px_rgba(255,255,255,0.3)]"
+            key={`star-far-${i}`}
+            className="absolute rounded-full bg-white opacity-30 blur-[1px] shadow-[0_0_10px_rgba(255,255,255,0.4)]"
             style={{
               width: `${size}px`,
               height: `${size}px`,
               top: `${top}%`,
               left: `${left}%`,
-              animation: `twinkle ${dur}s ease-in-out ${delay}s infinite`
+              animation: `twinkle ${dur}s ease-in-out ${delay}s infinite`,
+            }}
+          />
+        );
+      })}
+
+      {/* Camada Média — 80 estrelas */}
+      {[...Array(80)].map((_, i) => {
+        const size = 1.5 + (i % 2);
+        const top = (i * 37 + 11) % 100;
+        const left = (i * 53 + 7) % 100;
+        const dur = 3 + (i % 3);
+        const delay = (i * 0.4) % 3;
+        return (
+          <div
+            key={`star-mid-${i}`}
+            className="absolute rounded-full bg-white opacity-50 shadow-[0_0_8px_rgba(255,255,255,0.5)]"
+            style={{
+              width: `${size}px`,
+              height: `${size}px`,
+              top: `${top}%`,
+              left: `${left}%`,
+              animation: `twinkle ${dur}s ease-in-out ${delay}s infinite`,
+            }}
+          />
+        );
+      })}
+
+      {/* Camada Próxima Brilhante — 40 estrelas */}
+      {[...Array(40)].map((_, i) => {
+        const size = 2 + (i % 2);
+        const top = (i * 29 + 17) % 100;
+        const left = (i * 41 + 5) % 100;
+        const dur = 2 + (i % 2);
+        const delay = (i * 0.3) % 2;
+        return (
+          <div
+            key={`star-near-${i}`}
+            className="absolute rounded-full bg-white opacity-80 shadow-[0_0_14px_rgba(255,255,255,0.8)]"
+            style={{
+              width: `${size}px`,
+              height: `${size}px`,
+              top: `${top}%`,
+              left: `${left}%`,
+              animation: `twinkle ${dur}s ease-in-out ${delay}s infinite`,
             }}
           />
         );
@@ -149,16 +249,19 @@ function FeatureCard({ item, index }: { item: typeof FEATURE_ITEMS[0]; index: nu
   const IconComponent = item.icon;
   return (
     <div 
-      className="p-6 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl hover:bg-white/10 hover:border-orange/30 hover:scale-[1.02] transition-all duration-500 group opacity-0"
-      style={{ animation: `scale-fade-in 0.5s ease-out ${300 + index * 150}ms forwards` }}
+      className="p-5 rounded-xl bg-black/60 backdrop-blur-2xl border border-white/10 shadow-2xl hover:bg-black/80 hover:border-primary/50 hover:scale-[1.02] transition-all duration-500 group opacity-0"
+      style={{ 
+        animation: `scale-fade-in 0.5s ease-out ${300 + index * 100}ms forwards`,
+        boxShadow: '0 0 20px rgba(0,0,0,0.5)' 
+      }}
     >
-      <div className="flex items-start justify-between">
+      <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-xl font-bold text-primary truncate">{item.label}</p>
-          <p className="text-sm font-medium text-white/50 truncate">{item.desc}</p>
+          <p className="text-lg font-bold text-white group-hover:text-primary transition-colors truncate leading-tight drop-shadow-md">{item.label}</p>
+          <p className="text-[13px] font-medium text-white/80 truncate uppercase tracking-wider mt-0.5 drop-shadow-sm">{item.desc}</p>
         </div>
-        <div className="w-11 h-11 rounded-xl bg-primary/15 flex items-center justify-center group-hover:bg-primary/25 transition-colors shrink-0">
-          <IconComponent className="h-5 w-5 text-primary" />
+        <div className="w-11 h-11 rounded-lg bg-primary/20 flex items-center justify-center group-hover:bg-primary/30 transition-colors shrink-0 shadow-inner">
+          <IconComponent className="h-5 w-5 text-primary drop-shadow-[0_0_8px_rgba(var(--primary),0.5)]" />
         </div>
       </div>
     </div>
@@ -172,45 +275,57 @@ const FEATURE_ITEMS = [
   { label: "IA", desc: "Assistente Pessoal", icon: Brain },
 ];
 
+/**
+ * Fundo espacial unificado — cobre TODA a tela de login (sem divisão no meio).
+ * Renderizado uma vez no topo do <Auth/>, antes do branding e do form.
+ */
+export function AuthSpaceBackground() {
+  return (
+    <div className="absolute inset-0 overflow-hidden bg-[#0A0D14] pointer-events-none" aria-hidden="true">
+      <div className="absolute inset-0 opacity-40 bg-[radial-gradient(circle_at_30%_50%,rgba(13,17,26,1)_0%,rgba(5,7,12,1)_100%)]" />
+      <div className="absolute inset-0 opacity-20 bg-[radial-gradient(ellipse_at_30%_center,rgba(251,146,60,0.12)_0%,transparent_75%)]" />
+      <div className="absolute top-1/4 -left-20 w-80 h-80 bg-orange/10 rounded-full blur-[120px] animate-pulse" />
+      <div className="absolute bottom-1/4 right-0 w-96 h-96 bg-orange/5 rounded-full blur-[150px]" />
+      <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-orange/5 rounded-full blur-[100px]" />
+      <Starfield />
+      <BackgroundRockets />
+      <ContinuousRockets />
+    </div>
+  );
+}
+
 export function AuthBrandingPanel() {
   return (
-    <div className="hidden lg:flex lg:w-1/2 bg-[#0A0D14] relative overflow-hidden">
-      {/* Background decoration */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/4 -left-20 w-80 h-80 bg-orange/20 rounded-full blur-[120px] animate-pulse" />
-        <div className="absolute bottom-1/4 right-0 w-96 h-96 bg-orange/10 rounded-full blur-[150px]" />
-        <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-orange/5 rounded-full blur-[100px]" />
-        <Starfield />
-        <ContinuousRockets />
-      </div>
+    <div className="hidden lg:flex lg:w-1/2 relative">
+      {/* Fundo espacial agora vive no Auth.tsx (full screen). Aqui só o conteúdo. */}
 
       {/* Content */}
-      <div className="relative z-10 flex flex-col justify-center items-center px-12 xl:px-20 w-full">
-        <div className="space-y-6 w-full max-w-xl">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/30">
-              <Gift className="h-7 w-7 text-primary-foreground" />
+      <div className="relative z-10 flex flex-col justify-center items-center px-12 xl:px-16 w-full">
+        <div className="space-y-5 w-full max-w-lg">
+          <div className="flex items-center gap-3">
+            <div className="w-[53px] h-[53px] rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/30">
+              <Gift className="h-6 w-6 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="font-display text-4xl font-bold text-white tracking-tight">Promo Gifts</h1>
-              <p className="text-primary font-semibold uppercase tracking-widest text-sm -mt-1">Plataforma de Vendas</p>
+              <h1 className="font-display text-[1.85rem] font-bold text-white tracking-tight leading-none">Promo Gifts</h1>
+              <p className="text-primary font-semibold uppercase tracking-[0.2em] text-xs mt-1">Plataforma de Vendas</p>
             </div>
           </div>
 
-          <div className="space-y-4 max-w-md">
-            <h2 className="text-5xl xl:text-6xl font-display font-bold text-white leading-[1.1] tracking-tight relative group">
-              Um Universo de Produtos, para{" "}
-              <span className="text-primary relative">
-                ● Melhor Time das Galáxias!
-                <div className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r from-orange/0 via-orange/60 to-orange/0 scale-x-0 group-hover:scale-x-100 transition-transform duration-700" />
+          <div className="space-y-3 max-w-md">
+            <h2 className="text-[2.25rem] xl:text-[3rem] font-display font-bold text-white leading-[1.15] tracking-tight">
+              Um Universo de Produtos, para o{" "}
+              <span className="text-primary relative inline-flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse" />
+                Melhor Time das Galáxias!
               </span>
             </h2>
-            <p className="text-xl text-white/70 leading-relaxed font-light">
-              Tenha acesso ao maior mix de produtos personalizados, consulte estoque em tempo real, visualize locais e técnicas de personalização. Feito especialmente para você decolar!!!
+            <p className="text-base text-white/80 leading-relaxed font-normal drop-shadow-sm">
+              Acesso ao maior mix de produtos personalizados, estoque em tempo real e técnicas de personalização. Feito para você decolar.
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 pt-6">
+          <div className="grid grid-cols-2 gap-3 pt-2">
             {FEATURE_ITEMS.map((item, i) => (
               <FeatureCard key={i} item={item} index={i} />
             ))}

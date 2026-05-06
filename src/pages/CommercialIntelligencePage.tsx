@@ -38,9 +38,9 @@ export default function CommercialIntelligencePage() {
   return (
     <>
       <PageSEO
-        title="Inteligência de Mercado"
+        title="Inteligência Comercial"
         description="Painel estratégico com insights de mercado para decisões comerciais."
-        path="/inteligencia-comercial"
+        path="/ferramentas/bi-comercial"
         noIndex
       />
       <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
@@ -50,7 +50,7 @@ export default function CommercialIntelligencePage() {
             <Brain className="h-5 w-5 text-primary-foreground" />
           </div>
           <div className="flex-1 min-w-0">
-            <h1 data-testid="page-title-inteligencia-mercado" className="font-display text-xl font-bold text-foreground">Inteligência de Mercado</h1>
+            <h1 data-testid="page-title-inteligencia-mercado" className="font-display text-xl font-bold text-foreground">Inteligência Comercial</h1>
             <p className="text-sm text-muted-foreground">Produtos & Fornecedores · comportamento do mercado + vendas internas</p>
           </div>
           <div className="flex items-center gap-2 text-xs text-muted-foreground">

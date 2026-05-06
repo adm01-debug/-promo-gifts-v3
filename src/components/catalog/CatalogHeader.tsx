@@ -2,11 +2,13 @@ import { useRef, useEffect, useState } from "react";
 import { SmartSearchInput } from "@/components/search";
 import { RecentlyViewedPopover } from "@/components/products/RecentlyViewedPopover";
 import { SearchHistoryPopover } from "@/components/search/SearchHistoryPopover";
+import { PresetsBar } from "@/components/filters/PresetsBar";
 import { Home, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { AnimatePresence } from "framer-motion";
+import type { FilterState } from "@/components/filters/FilterPanel";
 
 interface CatalogHeaderProps {
   shouldShowCatalogSkeleton: boolean;
@@ -19,6 +21,9 @@ interface CatalogHeaderProps {
   activeFiltersCount?: number;
   searchHistory?: string[];
   onClearHistory?: () => void;
+  filters: FilterState;
+  onApplyPreset: (filters: FilterState, presetId?: string) => void;
+  activePresetId?: string;
 }
 
 export function CatalogHeader({
@@ -32,6 +37,9 @@ export function CatalogHeader({
   activeFiltersCount = 0,
   searchHistory = [],
   onClearHistory,
+  filters,
+  onApplyPreset,
+  activePresetId,
 }: CatalogHeaderProps) {
   const hasActiveConstraints = searchQuery.trim().length > 0 || activeFiltersCount > 0;
   const searchRef = useRef<HTMLDivElement>(null);
@@ -93,21 +101,25 @@ export function CatalogHeader({
           </span>
         </h1>
 
-        {/* Search inline next to product count on desktop */}
-        <div className="hidden sm:flex items-center gap-2 w-80 lg:w-[28rem]" ref={searchRef}>
+        {/* Search inline next to product count on desktop — ordem fixa: Busca → Histórico → Preset (Bookmark) → Recentes (Eye) */}
+        <div className="hidden sm:flex items-center gap-2 w-80 lg:w-[32rem]" ref={searchRef}>
           <SmartSearchInput
             placeholder="Buscar produtos…  /"
             onSelect={onSelect}
             className="flex-1"
           />
-          
-          <SearchHistoryPopover 
-            type="general" 
-            onSelect={(term) => onSelect({ type: 'history', id: `hist-${term}`, label: term })} 
-          />
-        </div>
 
-        <div className="hidden sm:block">
+          <SearchHistoryPopover
+            type="general"
+            onSelect={(term) => onSelect({ type: 'history', id: `hist-${term}`, label: term })}
+          />
+
+          <PresetsBar 
+            currentFilters={filters} 
+            onApplyPreset={onApplyPreset} 
+            activePresetId={activePresetId} 
+          />
+
           <RecentlyViewedPopover maxVisible={10} />
         </div>
       </div>
@@ -122,6 +134,11 @@ export function CatalogHeader({
         <SearchHistoryPopover 
           type="general" 
           onSelect={(term) => onSelect({ type: 'history', id: `hist-mobile-${term}`, label: term })} 
+        />
+        <PresetsBar 
+          currentFilters={filters} 
+          onApplyPreset={onApplyPreset} 
+          activePresetId={activePresetId} 
         />
         <RecentlyViewedPopover maxVisible={10} />
       </div>

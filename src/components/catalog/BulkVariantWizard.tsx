@@ -17,6 +17,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 export interface BulkVariantSelection {
   product: Product;
   variant: ExternalVariantStock | null;
+  /** Permite múltiplos variantes para o mesmo produto (opcional para manter compatibilidade) */
+  variants?: (ExternalVariantStock | null)[];
 }
 
 export type BulkWizardMode = 'cart' | 'quote' | 'favorite' | 'compare' | 'collection';
@@ -40,13 +42,39 @@ function ProductVariantStep({
   onSkip,
   stepIndex,
   totalSteps,
+  initialVariants = [],
 }: {
   product: Product;
-  onSelect: (variant: ExternalVariantStock | null) => void;
+  onSelect: (variants: (ExternalVariantStock | null)[]) => void;
   onSkip: () => void;
   stepIndex: number;
   totalSteps: number;
+  initialVariants?: (ExternalVariantStock | null)[];
 }) {
+  const [selectedVariants, setSelectedVariants] = useState<(ExternalVariantStock | null)[]>(initialVariants);
+
+  // Sincroniza se o produto mudar (via Voltar/Próximo)
+  useEffect(() => {
+    setSelectedVariants(initialVariants);
+  }, [product.id, initialVariants]);
+
+  const toggleVariant = (variant: ExternalVariantStock | null) => {
+    setSelectedVariants(prev => {
+      const isSelected = prev.some(v => v?.id === variant?.id);
+      if (isSelected) {
+        return prev.filter(v => v?.id !== variant?.id);
+      }
+      return [...prev, variant];
+    });
+  };
+
+  const handleConfirm = () => {
+    if (selectedVariants.length === 0) {
+      onSkip();
+    } else {
+      onSelect(selectedVariants);
+    }
+  };
   const { data: variants, isLoading } = useExternalVariantStock(product.id);
 
   const sortedVariants = useMemo(() => {
@@ -119,10 +147,17 @@ function ProductVariantStep({
 
       {/* Skip / add without color */}
       <button
-        onClick={onSkip}
-        className="w-full flex items-center gap-3 p-3 rounded-xl border border-dashed border-border/60 hover:border-primary/40 hover:bg-primary/5 transition-all text-left text-sm text-muted-foreground group"
+        onClick={() => toggleVariant(null)}
+        className={cn(
+          "w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left text-sm group",
+          selectedVariants.some(v => v === null)
+            ? "border-primary bg-primary/5 text-primary"
+            : "border-dashed border-border/60 text-muted-foreground hover:border-primary/40 hover:bg-primary/5"
+        )}
       >
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-destructive/70 via-success/70 to-info/70 border border-border/50 shrink-0 group-hover:scale-110 transition-transform" />
+        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-destructive/70 via-success/70 to-info/70 border border-border/50 shrink-0 group-hover:scale-110 transition-transform flex items-center justify-center">
+          {selectedVariants.some(v => v === null) && <Check className="h-4 w-4 text-white drop-shadow-sm" />}
+        </div>
         <span className="flex-1">Sem cor específica</span>
         <SkipForward className="h-3.5 w-3.5 opacity-50 group-hover:opacity-100 transition-opacity" />
       </button>
@@ -132,20 +167,25 @@ function ProductVariantStep({
         {sortedVariants.map((variant) => {
           const stock = variant.stock_quantity ?? 0;
           const isOutOfStock = stock === 0;
-          const isLowStock = stock > 0 && stock < 100;
+          const isSelected = selectedVariants.some(v => v?.id === variant.id);
 
           return (
             <button
               key={variant.id}
-              onClick={() => onSelect(variant)}
+              onClick={() => toggleVariant(variant)}
               className={cn(
                 'relative flex items-center gap-2.5 p-2.5 rounded-xl border transition-all text-left group',
-                'hover:border-primary/50 hover:bg-accent/60 hover:shadow-sm',
-                isOutOfStock
+                isSelected
+                  ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
+                  : 'hover:border-primary/50 hover:bg-accent/60',
+                isOutOfStock && !isSelected
                   ? 'opacity-50 border-border/40 bg-muted/20'
-                  : 'border-border/60 bg-card',
+                  : isSelected ? 'border-primary' : 'border-border/60 bg-card',
               )}
             >
+              <div className="absolute top-2 right-2">
+                {isSelected && <Check className="h-3 w-3 text-primary" />}
+              </div>
               {variant.selected_thumbnail ? (
                 <img
                   src={`${variant.selected_thumbnail}/thumbnail`}
@@ -190,6 +230,26 @@ function ProductVariantStep({
             </button>
           );
         })}
+      </div>
+
+      <div className="pt-2">
+        <Button
+          onClick={handleConfirm}
+          className="w-full gap-2 shadow-sm"
+          size="lg"
+        >
+          {selectedVariants.length > 0 ? (
+            <>
+              Confirmar {selectedVariants.length} {selectedVariants.length === 1 ? 'Variação' : 'Variações'}
+              <ArrowRight className="h-4 w-4" />
+            </>
+          ) : (
+            <>
+              Sem cor específica
+              <SkipForward className="h-4 w-4" />
+            </>
+          )}
+        </Button>
       </div>
     </motion.div>
   );
@@ -257,18 +317,26 @@ export function BulkVariantWizard({ open, onOpenChange, products, mode, onComple
     }
   }, [open, initialSelections, initialIndex, products.length]);
 
-  const handleSelect = useCallback(
-    (variant: ExternalVariantStock | null) => {
+  const handleSelectMulti = useCallback(
+    (selectedVariants: (ExternalVariantStock | null)[]) => {
       const product = products[currentIndex];
-      // Substitui seleção do índice atual (ou adiciona) — suporta re-edição via "Voltar"
-      const newSelections = [...selections];
-      newSelections[currentIndex] = { product, variant };
+      
+      // Criamos seleções individuais para cada variante escolhida
+      // Isso mantém a compatibilidade com o BulkAddToCartModal que espera 1 item por linha
+      const newItems: BulkVariantSelection[] = selectedVariants.map(v => ({
+        product,
+        variant: v
+      }));
+
+      // Removemos seleções anteriores deste produto (para evitar duplicatas em re-edição)
+      const otherProductSelections = selections.filter(s => s.product.id !== product.id);
+      const updatedSelections = [...otherProductSelections, ...newItems];
 
       if (currentIndex + 1 >= products.length) {
-        onComplete(newSelections);
+        onComplete(updatedSelections);
         onOpenChange(false);
       } else {
-        setSelections(newSelections);
+        setSelections(updatedSelections);
         setCurrentIndex((i) => i + 1);
       }
     },
@@ -276,8 +344,8 @@ export function BulkVariantWizard({ open, onOpenChange, products, mode, onComple
   );
 
   const handleSkip = useCallback(() => {
-    handleSelect(null);
-  }, [handleSelect]);
+    handleSelectMulti([null]);
+  }, [handleSelectMulti]);
 
   const handleBack = useCallback(() => {
     setCurrentIndex((i) => Math.max(0, i - 1));
@@ -319,7 +387,7 @@ export function BulkVariantWizard({ open, onOpenChange, products, mode, onComple
           <ProgressBar current={currentIndex} total={products.length} />
 
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Escolha a cor/variação de cada produto. Clique em "Sem cor específica" para pular.
+            Selecione uma ou mais cores/variações para cada produto e clique em "Confirmar".
           </p>
         </div>
 
@@ -329,10 +397,14 @@ export function BulkVariantWizard({ open, onOpenChange, products, mode, onComple
             <ProductVariantStep
               key={currentProduct.id}
               product={currentProduct}
-              onSelect={handleSelect}
+              onSelect={handleSelectMulti}
               onSkip={handleSkip}
               stepIndex={currentIndex}
               totalSteps={products.length}
+              initialVariants={selections
+                .filter(s => s.product.id === currentProduct.id)
+                .map(s => s.variant)
+              }
             />
           </AnimatePresence>
         </div>

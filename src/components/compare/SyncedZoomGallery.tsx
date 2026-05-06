@@ -108,12 +108,12 @@ export function SyncedZoomGallery({ products, onProductClick }: SyncedZoomGaller
 
   const GalleryContent = ({ inDialog = false }: { inDialog?: boolean }) => (
     <div className={cn("space-y-4", inDialog && "p-4")}>
-      <div className="flex items-center justify-center gap-4 p-3 rounded-xl bg-muted/50 backdrop-blur-sm">
+      <div className="flex items-center justify-center gap-4 p-3 rounded-xl bg-muted/50 backdrop-blur-md border border-border/30">
         <Button variant="ghost" size="icon" onClick={handleZoomOut} disabled={zoom <= 1} className="h-8 w-8" aria-label="Reduzir">
           <ZoomOut className="h-4 w-4" />
         </Button>
         <div className="flex items-center gap-3 w-48">
-          <Slider value={[zoom]} min={1} max={4} step={0.1} onValueChange={handleSliderChange} className="flex-1" />
+          <Slider value={[zoom]} min={1} max={4} step={0.1} onValueChange={handleSliderChange} className="flex-1 cursor-pointer" />
           <span className="text-sm font-medium w-12 text-center">{Math.round(zoom * 100)}%</span>
         </div>
         <Button variant="ghost" size="icon" aria-label="Ampliar" onClick={handleZoomIn} disabled={zoom >= 4} className="h-8 w-8">
@@ -191,7 +191,7 @@ export function SyncedZoomGallery({ products, onProductClick }: SyncedZoomGaller
                       className={cn(
                         "w-6 h-6 rounded-full border-2 transition-all",
                         colorIdx === idx
-                          ? "border-primary ring-2 ring-primary/30 scale-110"
+                          ? "border-amber-500 ring-2 ring-amber-500/30 scale-110 shadow-md"
                           : "border-border hover:scale-105"
                       )}
                       style={{ backgroundColor: c.hex ?? "#ccc" }}

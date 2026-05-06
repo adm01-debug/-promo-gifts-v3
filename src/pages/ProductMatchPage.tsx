@@ -64,7 +64,7 @@ export default function ProductMatchPage() {
       <PageSEO
         title="Match de Produtos"
         description="Encontre produtos idênticos, semelhantes e complementares para venda cruzada."
-        path="/match"
+        path="/ferramentas/match"
       />
 
       <div className="max-w-[1600px] mx-auto space-y-4 animate-fade-in">

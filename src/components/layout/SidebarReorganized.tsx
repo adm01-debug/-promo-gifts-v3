@@ -80,7 +80,6 @@ const navGroups: NavGroup[] = [
       { icon: Zap, label: "Novidades", href: "/novidades" },
       { icon: RefreshCw, label: "Reposição", href: "/reposicao" },
       { icon: FolderOpen, label: "Coleções", href: "/colecoes" },
-      { icon: Layers, label: "Estoque", href: "/estoque", shortcut: "Alt+E" },
       { icon: Heart, label: "Favoritos", href: "/favoritos", shortcut: "Alt+V" },
       { icon: GitCompare, label: "Comparar", href: "/comparar", shortcut: "Alt+C" },
     ],
@@ -92,8 +91,8 @@ const navGroups: NavGroup[] = [
     defaultOpen: false,
     items: [
       { icon: ImagePlus, label: "Mockup", href: "/mockup-generator", shortcut: "Alt+M" },
-      { icon: Sparkles, label: "Magic Up", href: "/magic-up" },
-      { icon: Crosshair, label: "Match", href: "/match" },
+      { icon: Sparkles, label: "Magic Up", href: "/ferramentas/magic-up" },
+      { icon: Crosshair, label: "Match", href: "/ferramentas/match" },
       { icon: Boxes, label: "Kit Maker", href: "/montar-kit", shortcut: "Alt+K" },
       { icon: Calculator, label: "Mestre da Personalização", href: "/simulador", shortcut: "Alt+S" },
       { icon: BarChart3, label: "Radar de Preços", href: "/simulador-precos" },
@@ -106,9 +105,9 @@ const navGroups: NavGroup[] = [
     icon: Brain,
     defaultOpen: false,
     items: [
-      { icon: Brain, label: "Inteligência de Mercado", href: "/inteligencia-comercial" },
-      { icon: Sparkles, label: "Estoque", href: "/estoque" },
-      { icon: Activity, label: "Tendências", href: "/tendencias" },
+      { icon: Brain, label: "Inteligência Comercial", href: "/ferramentas/bi-comercial", shortcut: "Alt+I" },
+      { icon: Layers, label: "Estoque 360º", href: "/estoque", shortcut: "Alt+E" },
+      { icon: Activity, label: "Tendências", href: "/tendencias", shortcut: "Alt+T", tourId: "trends" },
     ],
   },
   {
@@ -119,7 +118,7 @@ const navGroups: NavGroup[] = [
     defaultOpen: false,
     items: [
       { icon: Users, label: "Usuários", href: "/admin/usuarios", adminOnly: true },
-      { icon: Settings, label: "Configurações", href: "/configuracoes", adminOnly: true },
+      { icon: Settings, label: "Configurações", href: "/admin/usuarios", adminOnly: true },
       { icon: ShieldCheck, label: "Segurança", href: "/admin/seguranca", devOnly: true },
       { icon: ShieldCheck, label: "Acesso & Bots", href: "/admin/seguranca-acesso", devOnly: true },
       { icon: ShieldCheck, label: "Compliance", href: "/admin/compliance", devOnly: true },

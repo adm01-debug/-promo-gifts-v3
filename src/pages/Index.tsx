@@ -62,6 +62,7 @@ export default function Index() {
               onReset={catalog.resetFilters}
               searchHistory={catalog.searchHistory}
               onClearHistory={catalog.clearHistory}
+              filters={catalog.filters}
               onSelect={(result) => {
                 if (result.type === "product") {
                   catalog.navigate(`/produto/${result.id}`);
@@ -73,6 +74,8 @@ export default function Index() {
                   catalog.handleSearch(result.label);
                 }
               }}
+              onApplyPreset={catalog.setFiltersWithPreset}
+              activePresetId={catalog.activePresetId}
             />
 
             {/* Toolbar: Filters + Sort + Stats + Layout — sticky abaixo do Header global.

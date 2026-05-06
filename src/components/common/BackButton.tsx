@@ -15,8 +15,9 @@ const routeLabels: Record<string, string> = {
   "/orcamentos": "Orçamentos",
   "/pedidos": "Pedidos",
   "/simulador": "Simulador",
-  "/simulador-precos": "Preços por Tiragem",
+  "/simulador-precos": "Radar de Preços",
   "/mockup-generator": "Gerador de Mockups",
+  "/ferramentas/magic-up": "Magic Up",
   "/magic-up": "Magic Up",
   "/favoritos": "Favoritos",
   "/comparar": "Comparar",
@@ -24,7 +25,9 @@ const routeLabels: Record<string, string> = {
   "/configuracoes": "Configurações",
   "/admin": "Administração",
   "/seguranca": "Segurança",
-  "/estoque": "Estoque",
+  "/estoque": "Estoque 360º",
+  "/tendencias": "Tendências",
+  "/ferramentas/bi-comercial": "Inteligência Comercial",
 };
 
 interface BackButtonProps {

@@ -1,80 +1,108 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import Auth from './Auth';
 import { BrowserRouter } from 'react-router-dom';
-import { Toaster } from '@/components/ui/toaster';
-import { HelmetProvider } from 'react-helmet-async';
+import Auth from './Auth';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-// Mocking useIPValidation
-vi.mock('@/hooks/useIPValidation', () => ({
-  useIPValidation: () => ({
-    validateIPForAuthenticatedUser: vi.fn().mockResolvedValue({ isAllowed: true }),
-    logLoginAttempt: vi.fn(),
-    fetchCurrentIP: vi.fn().mockResolvedValue('1.2.3.4'),
+// Mock Supabase
+vi.mock('@/integrations/supabase/client', () => ({
+  supabase: {
+    auth: {
+      getSession: vi.fn(() => Promise.resolve({ data: { session: null }, error: null })),
+      signInWithPassword: vi.fn(),
+    },
+    functions: {
+      invoke: vi.fn(() => Promise.resolve({ data: { ip: '127.0.0.1', city: 'Test' }, error: null })),
+    },
+  },
+}));
+
+// Mock hooks
+vi.mock('@/hooks/use-toast', () => ({
+  useToast: () => ({
+    toast: vi.fn(),
   }),
 }));
 
-// Mocking useAuth - we need to wrap with AuthProvider or mock the hook
-vi.mock('@/contexts/AuthContext', async (importOriginal) => {
-  const actual = await importOriginal() as any;
-  return {
-    ...actual,
-    useAuth: () => ({
-      user: null,
-      isLoading: false,
-      signIn: vi.fn(),
-      signOut: vi.fn(),
-    }),
-  };
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: false,
+    },
+  },
 });
 
-const renderAuth = () => {
+const renderWithProviders = (ui: React.ReactElement) => {
   return render(
-    <HelmetProvider>
-      <BrowserRouter>
-        <Auth />
-        <Toaster />
-      </BrowserRouter>
-    </HelmetProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <BrowserRouter>
+          {ui}
+        </BrowserRouter>
+      </AuthProvider>
+    </QueryClientProvider>
   );
 };
 
-
-describe('Auth Page', () => {
+describe('Auth Page (Login Flow)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('renders login form by default', () => {
-    renderAuth();
-    expect(screen.getByTestId('login-email-input')).toBeInTheDocument();
-    expect(screen.getByTestId('login-password-input')).toBeInTheDocument();
-    expect(screen.getByTestId('login-submit')).toBeInTheDocument();
+  it('renders login form correctly', async () => {
+    renderWithProviders(<Auth />);
+    
+    await waitFor(() => {
+      expect(screen.getByTestId('login-email-input')).toBeInTheDocument();
+      expect(screen.getByTestId('login-password-input')).toBeInTheDocument();
+      expect(screen.getByTestId('login-submit')).toBeInTheDocument();
+    });
   });
 
-  it('toggles password visibility', () => {
-    renderAuth();
-    const passwordInput = screen.getByTestId('login-password-input');
-    const toggleButton = screen.getByTestId('login-password-toggle');
+  it('shows error messages for empty fields', async () => {
+    renderWithProviders(<Auth />);
+    
+    await waitFor(() => {
+      const submitButton = screen.getByTestId('login-submit');
+      fireEvent.click(submitButton);
+    });
 
-    expect(passwordInput).toHaveAttribute('type', 'password');
-
-    fireEvent.click(toggleButton);
-    expect(passwordInput).toHaveAttribute('type', 'text');
-
-    fireEvent.click(toggleButton);
-    expect(passwordInput).toHaveAttribute('type', 'password');
+    await waitFor(() => {
+      expect(screen.getByText(/O e-mail é obrigatório/i)).toBeInTheDocument();
+      expect(screen.getByText(/A senha é obrigatória/i)).toBeInTheDocument();
+    });
   });
 
-  it('shows forgot password form when link is clicked', () => {
-    renderAuth();
-    const forgotLink = screen.getByTestId('login-forgot-link');
+  it('shows error message for invalid email format', async () => {
+    renderWithProviders(<Auth />);
     
-    fireEvent.click(forgotLink);
-    
-    // Check for forgot password form elements
-    expect(screen.getByText(/Esqueceu sua senha\?/i)).toBeInTheDocument();
+    await waitFor(() => {
+      const emailInput = screen.getByTestId('login-email-input');
+      fireEvent.change(emailInput, { target: { value: 'invalid-email' } });
+      const submitButton = screen.getByTestId('login-submit');
+      fireEvent.click(submitButton);
+    });
 
-    expect(screen.queryByTestId('login-password-input')).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/Por favor, insira um endereço de e-mail válido/i)).toBeInTheDocument();
+    });
+  });
+
+  it('shows error for short password', async () => {
+    renderWithProviders(<Auth />);
+    
+    await waitFor(() => {
+      const emailInput = screen.getByTestId('login-email-input');
+      const passwordInput = screen.getByTestId('login-password-input');
+      fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
+      fireEvent.change(passwordInput, { target: { value: '123' } });
+      const submitButton = screen.getByTestId('login-submit');
+      fireEvent.click(submitButton);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText(/A senha deve conter no mínimo 6 caracteres/i)).toBeInTheDocument();
+    });
   });
 });

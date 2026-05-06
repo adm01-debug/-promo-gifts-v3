@@ -17,6 +17,9 @@ import { MESSAGE_TEMPLATES, type TemplateKey } from "./MessageTemplates";
 import { WhatsAppPreview } from "./WhatsAppPreview";
 import { openWhatsAppShare } from "./whatsapp";
 import { cn } from "@/lib/utils";
+import { createClientLogger } from "@/lib/telemetry/structuredLogger";
+
+const log = createClientLogger("share.preview-dialog");
 
 interface SelectedVariantInfo {
   variantName?: string | null;
@@ -37,6 +40,31 @@ export function SharePreviewDialog({ open, onOpenChange, product, selectedVarian
   const [customMessage, setCustomMessage] = useState<string | null>(null);
   const [contactSelection, setContactSelection] = useState<ShareContactSelection | null>(null);
   const [previewMode, setPreviewMode] = useState(false);
+
+  // Diagnóstico de cores: dispara quando o diálogo abre. Permite rastrear em
+  // produção produtos que chegam ao Share sem cores hidratadas (ex.: vindos
+  // do mapeamento Novidades→Product). Veja src/hooks/useNoveltiesSelectionMode.ts.
+  useEffect(() => {
+    if (!open) return;
+    const colors = Array.isArray(product?.colors) ? product.colors : null;
+    const colorCount = colors?.length ?? 0;
+    if (colorCount === 0) {
+      log.warn("share_open_missing_colors", {
+        productId: product?.id,
+        sku: product?.sku || null,
+        colorsField: colors === null ? "undefined" : "empty_array",
+        hasSelectedVariant: !!selectedVariant?.variantName,
+        imagesCount: Array.isArray(product?.images) ? product.images.length : 0,
+      });
+    } else {
+      log.info("share_open_ok", {
+        productId: product?.id,
+        sku: product?.sku || null,
+        colorCount,
+        hasSelectedVariant: !!selectedVariant?.variantName,
+      });
+    }
+  }, [open, product?.id, product?.sku, product?.colors, product?.images, selectedVariant?.variantName]);
 
   // Filter out color-specific images — keep only main product photos
   const mainImages = useMemo(() => {

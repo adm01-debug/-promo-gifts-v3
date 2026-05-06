@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { supabase } from "@/integrations/supabase/client";
 
 const STORAGE_KEY = "recently-viewed-products";
-const MAX_LOCAL_ITEMS = 50; // Aumentado para melhor UX com sincronização cloud
+const MAX_LOCAL_ITEMS = 100; // Aumentado para 100 para ser ferramenta de navegação completa
 
 export interface RecentlyViewedItem {
   productId: string;
@@ -129,7 +129,7 @@ export const useRecentlyViewedStore = create<RecentlyViewedStore>((set, get) => 
           .select("product_id, viewed_at")
           .eq("user_id", userId)
           .order("viewed_at", { ascending: false })
-          .limit(50);
+          .limit(100);
 
         if (error) throw error;
 
@@ -151,7 +151,7 @@ export const useRecentlyViewedStore = create<RecentlyViewedStore>((set, get) => 
 
           const final = merged
             .sort((a, b) => new Date(b.viewedAt).getTime() - new Date(a.viewedAt).getTime())
-            .slice(0, 50);
+            .slice(0, 100);
 
           saveToStorage(final);
           set({ items: final, itemCount: final.length });

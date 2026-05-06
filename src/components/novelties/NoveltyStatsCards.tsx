@@ -1,8 +1,11 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Sparkles, CalendarPlus, CalendarRange, CalendarDays, Building2 } from "lucide-react";
+import { Sparkles, CalendarPlus, CalendarRange, CalendarDays, Building2, AlertCircle, RefreshCw } from "lucide-react";
 import { useNoveltyStats } from "@/hooks/useNovelties";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { useQueryClient } from "@tanstack/react-query";
 
 function useCountUp(end: number, duration: number = 800) {
   const [count, setCount] = useState(0);
@@ -39,9 +42,25 @@ const variantStyles = {
   orange: { iconBg: "bg-orange/15", iconColor: "text-orange", glow: "hover:shadow-[0_0_20px_hsl(var(--orange)/0.15)]" },
 };
 
-function StatCard({ label, value, suffix = "", subtitle, icon, variant, delay = 0 }: StatCardProps) {
+function StatCard({ label, value, suffix = "", subtitle, icon, variant, delay = 0, isLoading = false }: StatCardProps & { isLoading?: boolean }) {
   const animatedValue = useCountUp(value, 800);
   const styles = variantStyles[variant];
+
+  if (isLoading) {
+    return (
+      <Card className={cn("border-border/50 transition-all duration-300", styles.glow)}>
+        <CardContent className="p-2.5 sm:p-3">
+          <div className="flex items-center gap-2.5">
+            <Skeleton className={cn("shrink-0 h-9 w-9 sm:h-10 sm:w-10 rounded-xl", styles.iconBg)} />
+            <div className="min-w-0 flex-1 space-y-1.5">
+              <Skeleton className="h-5 w-16" />
+              <Skeleton className="h-3 w-24" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card
@@ -91,26 +110,53 @@ function StatCardSkeleton() {
   );
 }
 
-export function NoveltyStatsCards() {
-  const { data: stats, isLoading, error } = useNoveltyStats();
+export function NoveltyStatsCards({ 
+  filteredProducts, 
+  isRefreshing = false 
+}: { 
+  filteredProducts?: any[]; 
+  isRefreshing?: boolean;
+}) {
+  const queryClient = useQueryClient();
+  const { data: stats, isLoading, error, refetch } = useNoveltyStats(filteredProducts);
+  const isActuallyLoading = isLoading || isRefreshing;
 
-  if (isLoading) {
+  const handleRetry = () => {
+    refetch();
+  };
+
+  if (error && !stats) {
     return (
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+      <Card className="border-destructive/30 bg-destructive/5 overflow-hidden">
+        <CardContent className="p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-full bg-destructive/10 text-destructive">
+              <AlertCircle className="h-5 w-5" />
+            </div>
+            <div>
+              <h4 className="text-sm font-semibold text-destructive">Falha ao carregar indicadores</h4>
+              <p className="text-xs text-muted-foreground">Não foi possível processar as estatísticas de novidades neste momento.</p>
+            </div>
+          </div>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="h-8 gap-1.5 border-destructive/20 hover:bg-destructive/10 hover:text-destructive shrink-0"
+            onClick={handleRetry}
+          >
+            <RefreshCw className="h-3.5 w-3.5" />
+            Tentar novamente
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (isLoading && !stats) {
+    return (
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 relative">
         {Array.from({ length: 5 }).map((_, i) => (
-          <Card key={i} className="border-border/50">
-            <CardContent className="p-3 sm:p-4">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 sm:h-11 sm:w-11 rounded-xl bg-muted/50 flex items-center justify-center">
-                  <div className="w-4 h-4 border-2 border-primary/40 border-t-transparent rounded-full animate-spin" />
-                </div>
-                <div className="space-y-1.5">
-                  <div className="text-xl font-bold tabular-nums text-muted-foreground/40">--</div>
-                  <div className="text-[10px] text-muted-foreground/30">carregando...</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <StatCardSkeleton key={i} />
         ))}
       </div>
     );
@@ -121,13 +167,24 @@ export function NoveltyStatsCards() {
   }
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+    <div className={cn(
+      "grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 transition-opacity duration-300",
+      isRefreshing && "opacity-60 pointer-events-none"
+    )}>
+      {isRefreshing && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center">
+          <div className="bg-background/80 backdrop-blur-sm p-3 rounded-full shadow-lg border border-border">
+            <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          </div>
+        </div>
+      )}
       <StatCard
         label="Chegaram Hoje"
         value={stats?.arrivedToday || 0}
         icon={<CalendarPlus className="h-4 w-4 sm:h-5 sm:w-5" />}
         variant="orange"
         delay={0}
+        isLoading={isActuallyLoading}
       />
       <StatCard
         label="Últimos 7 Dias"
@@ -135,6 +192,7 @@ export function NoveltyStatsCards() {
         icon={<CalendarRange className="h-4 w-4 sm:h-5 sm:w-5" />}
         variant="success"
         delay={100}
+        isLoading={isActuallyLoading}
       />
       <StatCard
         label="Últimos 15 Dias"
@@ -142,6 +200,7 @@ export function NoveltyStatsCards() {
         icon={<CalendarDays className="h-4 w-4 sm:h-5 sm:w-5" />}
         variant="warning"
         delay={150}
+        isLoading={isActuallyLoading}
       />
       <StatCard
         label="Top Fornecedor"
@@ -150,6 +209,7 @@ export function NoveltyStatsCards() {
         icon={<Building2 className="h-4 w-4 sm:h-5 sm:w-5" />}
         variant="info"
         delay={200}
+        isLoading={isActuallyLoading}
       />
       <StatCard
         label="Novidades Ativas"
@@ -158,6 +218,7 @@ export function NoveltyStatsCards() {
         icon={<Sparkles className="h-4 w-4 sm:h-5 sm:w-5" />}
         variant="default"
         delay={300}
+        isLoading={isActuallyLoading}
       />
     </div>
   );
