@@ -167,9 +167,9 @@ export function StockCategoryTreeSelect({ value, onChange }: StockCategoryTreeSe
           className="h-7 text-xs pl-7 pr-6"
         />
         {search && (
-          <button onClick={() => setSearch("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+          <Button variant="ghost" size="icon" onClick={() => setSearch("")} className="absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground h-5 w-5">
             <X className="h-3 w-3" />
-          </button>
+          </Button>
         )}
       </div>
 
