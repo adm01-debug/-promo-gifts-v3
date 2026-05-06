@@ -14,7 +14,7 @@ describe('RBAC Route Matrix Integrity', () => {
     const conexoesStatusRoute = RBAC_ROUTES.find(r => r.path === '/admin/conexoes/status');
 
     expect(conexoesRoute).toBeDefined();
-    expect(conexoesRoute?.role).toBe('admin');
+    expect(conexoesRoute?.role).toBe('dev');
     
     expect(conexoesStatusRoute).toBeDefined();
     expect(conexoesStatusRoute?.role).toBe('admin');
