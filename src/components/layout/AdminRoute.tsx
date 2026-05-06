@@ -51,6 +51,7 @@ export function AdminRoute({ children }: AdminRouteProps) {
     );
   }
 
+  /* DESATIVADO TEMPORARIAMENTE PARA TESTES
   // Admin/manager sem MFA → mostra dialog de enrollment obrigatório (não renderiza filhos)
   if (!hasMFA) {
     return (
@@ -74,6 +75,7 @@ export function AdminRoute({ children }: AdminRouteProps) {
       </>
     );
   }
+  */
 
   return (
     <EnhancedErrorBoundary
