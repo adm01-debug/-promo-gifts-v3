@@ -67,4 +67,21 @@ describe('Button Component', () => {
       unmount();
     });
   });
+
+  it('works as a submit button inside a form', () => {
+    const handleSubmit = vi.fn((e) => e.preventDefault());
+    render(
+      <form onSubmit={handleSubmit}>
+        <Button type="submit">Submit Form</Button>
+      </form>
+    );
+    fireEvent.click(screen.getByRole('button'));
+    expect(handleSubmit).toHaveBeenCalledTimes(1);
+  });
+
+  it('forwards refs correctly', () => {
+    const ref = { current: null };
+    render(<Button ref={ref}>Ref Button</Button>);
+    expect(ref.current).toBeInstanceOf(HTMLButtonElement);
+  });
 });
