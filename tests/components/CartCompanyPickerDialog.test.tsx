@@ -289,4 +289,22 @@ describe('CartCompanyPickerDialog - UI, Accessibility & Regression', () => {
     const tabsList = screen.getByRole('tablist').parentElement;
     expect(tabsList).toHaveClass('px-5');
   });
+
+  it('displays correct empty state messages for each tab', async () => {
+    const user = userEvent.setup();
+    render(<CartCompanyPickerDialog {...defaultProps} />);
+
+    // Tab 'Todas' (Search) - default
+    expect(screen.getByText(/Nenhuma empresa encontrada/i)).toBeInTheDocument();
+
+    // Tab 'Recentes'
+    const recentTab = screen.getByRole('tab', { name: /Recentes/i });
+    await user.click(recentTab);
+    expect(screen.getByText(/Sem empresas recentes ainda/i)).toBeInTheDocument();
+
+    // Tab 'Favoritas'
+    const favoriteTab = screen.getByRole('tab', { name: /Favoritas/i });
+    await user.click(favoriteTab);
+    expect(screen.getByText(/Marque empresas como favoritas usando a estrela/i)).toBeInTheDocument();
+  });
 });
