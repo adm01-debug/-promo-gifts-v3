@@ -314,15 +314,15 @@ export function SupplierRiskPanel({ products }: SupplierRiskPanelProps) {
 
             {/* Summary — reflects filtered products */}
             <div className="grid grid-cols-3 gap-1.5 pt-2 border-t border-border">
-              <div className="text-center p-1.5 rounded bg-destructive/10" role="status" aria-label={`${filteredCounts.critical} produtos críticos`}>
+              <div className="text-center p-1.5 rounded-lg bg-destructive/10" role="status" aria-label={`${filteredCounts.critical} produtos críticos`}>
                 <p className="text-xl font-bold text-destructive">{filteredCounts.critical}</p>
                 <p className="text-[9px] text-destructive">Críticos</p>
               </div>
-              <div className="text-center p-1.5 rounded bg-warning/10" role="status" aria-label={`${filteredCounts.warning} produtos em atenção`}>
+              <div className="text-center p-1.5 rounded-lg bg-warning/10" role="status" aria-label={`${filteredCounts.warning} produtos em atenção`}>
                 <p className="text-xl font-bold text-warning">{filteredCounts.warning}</p>
                 <p className="text-[9px] text-warning">Atenção</p>
               </div>
-              <div className="text-center p-1.5 rounded bg-primary/10" role="status" aria-label={`${filteredCounts.ok} produtos OK`}>
+              <div className="text-center p-1.5 rounded-lg bg-primary/10" role="status" aria-label={`${filteredCounts.ok} produtos OK`}>
                 <p className="text-xl font-bold text-primary">{filteredCounts.ok}</p>
                 <p className="text-[9px] text-primary">OK</p>
               </div>
