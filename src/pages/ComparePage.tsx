@@ -143,25 +143,25 @@ export default function ComparePage() {
               variant="outline" 
               size="sm" 
               disabled={isMockLoading}
-              className="gap-2 border-primary/20 hover:border-primary/50"
+              className="gap-2 border-amber-500/30 hover:border-amber-500 bg-amber-500/5 font-black uppercase text-[10px] tracking-widest"
               onClick={() => handleLoadMocks(["26462", "26463", "26464"])}
             >
-              {isMockLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3 text-primary" />}
-              Mock Rápido (3 itens)
+              {isMockLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3 text-amber-500" />}
+              Arena Rápida (3 Itens)
             </Button>
             <Button 
               variant="outline" 
               size="sm" 
               disabled={isMockLoading}
-              className="gap-2 border-primary/20 hover:border-primary/50"
+              className="gap-2 border-amber-500/30 hover:border-amber-500 bg-amber-500/5 font-black uppercase text-[10px] tracking-widest"
               onClick={() => handleLoadMocks(["26462", "26463", "26464", "26465", "26466", "26467", "26468", "26469"])}
             >
-              {isMockLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <List className="h-3 w-3 text-primary" />}
-              Mock Volume (8 itens)
+              {isMockLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <List className="h-3 w-3 text-amber-500" />}
+              Arena de Volume (8 Itens)
             </Button>
           </div>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-medium opacity-50">
-            Ambiente de Testes / Modo Demo
+          <p className="text-[10px] text-amber-600/50 uppercase tracking-[0.2em] font-black">
+            Laboratório de Engenharia / 10.10 Final
           </p>
         </div>
       </>
