@@ -28,7 +28,7 @@ export function migratePayload<T>(
 ): AutoSavePayload<T> | null {
   if (!payload) return null;
 
-  const typedPayload = payload as Record<string, any>;
+  const typedPayload = payload as Record<string, unknown>;
 
   // Se for um payload antigo sem versão (v1)
   if (!typedPayload.version) {
