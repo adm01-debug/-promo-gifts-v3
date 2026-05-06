@@ -23,15 +23,37 @@ export function ProductInfoBar({
   sku,
   supplierName,
   supplierId,
+  productId,
+  productName,
   onOpenFutureStock,
   onOpenSupplierComparison,
   hasFutureStock = true,
 }: ProductInfoBarProps) {
   const navigate = useNavigate();
+  const { addToCompare, isInCompare, compareCount } = useComparisonStore();
 
   const handleSupplierClick = () => {
     if (supplierId) {
       navigate(`/filtros?supplier=${supplierId}`);
+    }
+  };
+
+  const handleToggleCompare = () => {
+    if (!productId) return;
+    const added = addToCompare(productId);
+    if (added) {
+      toast.success(`${productName || "Produto"} adicionado ao comparador`, {
+        action: {
+          label: "Ver agora",
+          onClick: () => navigate("/comparar"),
+        },
+      });
+    } else {
+      if (isInCompare(productId)) {
+        toast.info("Produto já está na lista de comparação");
+      } else {
+        toast.error("Limite de produtos atingido (máx 12)");
+      }
     }
   };
   return (
