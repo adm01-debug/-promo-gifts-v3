@@ -158,9 +158,14 @@ export function CartSidebar({
         <SmartSuggestions cart={cart} allProducts={allProducts} isLoading={isLoadingProducts} />
         <ActionHistoryPanel cartId={cart.id} />
         {cartAge >= 3 && (
-          <p className="text-[10px] text-warning bg-warning/5 rounded-lg px-2.5 py-1.5 border border-warning/10">
-            ⏰ Carrinho há {cartAge} dias — considere fazer follow-up!
-          </p>
+          <motion.p 
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="text-[10px] text-destructive font-bold bg-destructive/5 rounded-xl px-3 py-2.5 border border-destructive/10 flex items-center gap-2"
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-destructive animate-pulse" />
+            Carrinho há {cartAge} dias — Follow-up Urgente!
+          </motion.p>
         )}
       </Card>
 
