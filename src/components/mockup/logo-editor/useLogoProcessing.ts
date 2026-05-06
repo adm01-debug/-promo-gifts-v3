@@ -10,7 +10,8 @@ import type { TechniqueColorConfig } from "../techniqueColorUtils";
  */
 export function useLogoProcessing(
   logoPreview: string | null,
-  techniqueColorConfig?: TechniqueColorConfig | null
+  techniqueColorConfig?: TechniqueColorConfig | null,
+  overrides?: { whiteThreshold?: number; alphaThreshold?: number }
 ) {
   const [processedLogoUrl, setProcessedLogoUrl] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
