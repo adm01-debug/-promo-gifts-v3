@@ -114,10 +114,9 @@ export default function ComparePage() {
   if (compareCount < 2) {
     const handleLoadMocks = async (ids: string[]) => {
       setIsMockLoading(true);
-      toast.loading(`Carregando ${ids.length} produtos para teste...`, { id: "mock-loading" });
+      toast.loading(`Iniciando simulação com ${ids.length} itens...`, { id: "mock-loading" });
       
       try {
-        // Simular um pequeno delay para percepção de estado
         await new Promise(resolve => setTimeout(resolve, 800));
         
         let addedCount = 0;
@@ -125,9 +124,9 @@ export default function ComparePage() {
           if (addToCompare(id)) addedCount++;
         });
         
-        toast.success(`${addedCount} produtos carregados no Comparador`, { id: "mock-loading" });
+        toast.success(`Simulação concluída: ${addedCount} itens na Arena`, { id: "mock-loading" });
       } catch (error) {
-        toast.error("Erro ao carregar dados mockados", { id: "mock-loading" });
+        toast.error("Erro na simulação técnica", { id: "mock-loading" });
       } finally {
         setIsMockLoading(false);
       }
