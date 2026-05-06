@@ -171,7 +171,7 @@ function LatencySparkline({
 }) {
   // Ordena cronologicamente asc (mais antigo à esquerda) e pega até 12 pontos
   const sorted = [...items]
-    .filter((i) => i.latency_ms != null)
+    .filter((i) => i.latency_ms !== null)
     .sort((a, b) => new Date(a.tested_at).getTime() - new Date(b.tested_at).getTime())
     .slice(-12);
   if (sorted.length < 2) return null;
