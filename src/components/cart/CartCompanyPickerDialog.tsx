@@ -300,7 +300,11 @@ export function CartCompanyPickerDialog({ open, onOpenChange, onCreated }: CartC
                   aria-live="polite" 
                   id="search-announcement"
                 >
-                  {searchTerm && !isLoading && `${filteredCompanies.length} empresas encontradas`}
+                  {searchTerm.length >= 1 && !isLoading && (
+                    filteredCompanies.length > 0 
+                      ? `${filteredCompanies.length} empresas encontradas` 
+                      : "Nenhuma empresa encontrada"
+                  )}
                 </div>
               </div>
             </div>
