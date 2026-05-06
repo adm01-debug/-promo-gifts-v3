@@ -116,6 +116,8 @@ describe('useSellerCarts', () => {
 
     const { result } = renderHook(() => useSellerCarts(), { wrapper: createWrapper() });
 
-    await waitFor(() => expect(result.current.canCreateCart).toBe(false));
+    // Wait for queries to settle to ensure canCreateCart becomes false
+    await waitFor(() => expect(result.current.isLoading).toBe(false), { timeout: 3000 });
+    expect(result.current.canCreateCart).toBe(false);
   });
 });
