@@ -359,8 +359,8 @@ export default function TrendsPage() {
           </div>
         </div>
 
-        {/* IA — só para managers */}
-        {canManage && <TrendsInsightsCard days={days} />}
+        {/* IA */}
+        <TrendsInsightsCard days={days} />
 
         {/* KPIs */}
         <TrendsKpiCards current={kpiCurrent} previous={kpiPrevious} />
