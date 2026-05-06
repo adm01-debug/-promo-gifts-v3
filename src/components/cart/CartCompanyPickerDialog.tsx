@@ -159,34 +159,38 @@ export function CartCompanyPickerDialog({ open, onOpenChange, onCreated }: CartC
   const isLoading = loadingLocal || loadingServer;
 
   const renderRow = (company: CompanyItem) => (
-    <button
+    <div
       key={company.id}
-      type="button"
-      data-testid="cart-company-picker-select"
-      data-company-id={company.id}
       className={cn(
-        "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left",
-        "hover:bg-accent/60 transition-colors group"
+        "w-full flex items-center gap-2 px-1 rounded-xl transition-colors group",
+        "hover:bg-accent/60"
       )}
-      onClick={() => handleSelect(company)}
-      disabled={!canCreateCart}
     >
-      {company.logo_url ? (
-        <img src={company.logo_url} alt="" className="w-9 h-9 rounded-xl object-contain bg-background border border-border/40 flex-shrink-0" loading="lazy" />
-      ) : (
-        <div className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center flex-shrink-0">
-          <Building2 className="h-4 w-4 text-muted-foreground" />
+      <button
+        type="button"
+        data-testid="cart-company-picker-select"
+        data-company-id={company.id}
+        className="flex-1 flex items-center gap-3 px-2 py-2.5 text-left min-w-0"
+        onClick={() => handleSelect(company)}
+        disabled={!canCreateCart}
+      >
+        {company.logo_url ? (
+          <img src={company.logo_url} alt="" className="w-9 h-9 rounded-xl object-contain bg-background border border-border/40 flex-shrink-0" loading="lazy" />
+        ) : (
+          <div className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center flex-shrink-0">
+            <Building2 className="h-4 w-4 text-muted-foreground" />
+          </div>
+        )}
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium truncate">{company.name}</p>
+          {company.ramo && <p className="text-[11px] text-muted-foreground truncate">{company.ramo}</p>}
         </div>
-      )}
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium truncate">{company.name}</p>
-        {company.ramo && <p className="text-[11px] text-muted-foreground truncate">{company.ramo}</p>}
-      </div>
+      </button>
       <button
         type="button"
         onClick={(e) => toggleFavorite(company, e)}
         className={cn(
-          "h-7 w-7 rounded-xl flex items-center justify-center transition-colors flex-shrink-0",
+          "h-8 w-8 mr-1 rounded-xl flex items-center justify-center transition-colors flex-shrink-0",
           isFavorite(company.id)
             ? "text-warning"
             : "text-muted-foreground/40 opacity-0 group-hover:opacity-100 hover:text-warning"
@@ -195,7 +199,7 @@ export function CartCompanyPickerDialog({ open, onOpenChange, onCreated }: CartC
       >
         <Star className={cn("h-4 w-4", isFavorite(company.id) && "fill-current")} />
       </button>
-    </button>
+    </div>
   );
 
   return (
