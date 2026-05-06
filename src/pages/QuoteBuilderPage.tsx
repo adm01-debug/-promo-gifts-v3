@@ -237,10 +237,24 @@ export default function QuoteBuilderPage() {
                       Prazo | Entrega {s.validationErrors.includes("prazo_entrega") && <span className="ml-1">*</span>}
                     </Label>
                     <div className="flex gap-0.5 rounded-md bg-muted p-0.5">
-                      <button type="button" onClick={() => { s.setDeliveryMode("prazo"); s.setDeliveryTime(""); s.setDeliveryDate(undefined); }}
-                        className={cn("px-2 py-0.5 text-[10px] rounded-sm font-medium transition-colors", s.deliveryMode === "prazo" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground")}>Prazo</button>
-                      <button type="button" onClick={() => { s.setDeliveryMode("data"); s.setDeliveryTime(""); }}
-                        className={cn("px-2 py-0.5 text-[10px] rounded-sm font-medium transition-colors", s.deliveryMode === "data" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground")}>Data</button>
+                      <Button
+                        type="button"
+                        variant={s.deliveryMode === "prazo" ? "secondary" : "ghost"}
+                        size="sm"
+                        onClick={() => { s.setDeliveryMode("prazo"); s.setDeliveryTime(""); s.setDeliveryDate(undefined); }}
+                        className={cn("h-6 px-2 text-[10px] rounded-sm font-medium transition-colors", s.deliveryMode === "prazo" ? "bg-background shadow-sm" : "text-muted-foreground")}
+                      >
+                        Prazo
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={s.deliveryMode === "data" ? "secondary" : "ghost"}
+                        size="sm"
+                        onClick={() => { s.setDeliveryMode("data"); s.setDeliveryTime(""); }}
+                        className={cn("h-6 px-2 text-[10px] rounded-sm font-medium transition-colors", s.deliveryMode === "data" ? "bg-background shadow-sm" : "text-muted-foreground")}
+                      >
+                        Data
+                      </Button>
                     </div>
                   </div>
                   {s.deliveryMode === "prazo" ? (

@@ -300,10 +300,12 @@ export const SortableCartItem = memo(function SortableCartItem({
           {/* Quantity stepper & Subtotal */}
           <div className="flex items-center justify-between pt-2 border-t border-border/30 gap-3">
             <div data-testid="cart-item-qty-stepper" className="flex items-center gap-0 border border-border/50 rounded-xl overflow-hidden bg-background shadow-sm hover:border-primary/30 transition-colors">
-              <button
+              <Button
+                variant="ghost"
+                size="icon"
                 data-testid="cart-qty-decrement"
                 aria-label="Diminuir quantidade"
-                className="h-9 w-9 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all active:scale-90"
+                className="h-9 w-9 text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all active:scale-90"
                 onClick={() => {
                   if (item.quantity <= 1) {
                     onRemove(item.id, item.product_name);
@@ -318,8 +320,8 @@ export const SortableCartItem = memo(function SortableCartItem({
                 ) : (
                   <Minus data-testid="cart-qty-decrement-icon" className="h-4 w-4" />
                 )}
-              </button>
-              <input
+              </Button>
+              <Input
                 type="number"
                 data-testid="cart-qty-input"
                 value={item.quantity}
@@ -328,17 +330,19 @@ export const SortableCartItem = memo(function SortableCartItem({
                   const val = parseInt(e.target.value);
                   if (!isNaN(val) && val > 0) onUpdateQuantity(item.id, val);
                 }}
-                className="h-9 w-12 text-center text-sm font-bold tabular-nums bg-transparent border-x border-border/30 focus:outline-none focus:ring-1 focus:ring-primary/20 appearance-none m-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none transition-all focus:bg-primary/5"
+                className="h-9 w-12 text-center text-sm font-bold tabular-nums bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0 appearance-none m-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none transition-all"
               />
-              <button
+              <Button
+                variant="ghost"
+                size="icon"
                 data-testid="cart-qty-increment"
                 aria-label="Aumentar quantidade"
-                className="h-9 w-9 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 active:bg-muted/80 transition-all active:scale-90"
+                className="h-9 w-9 text-muted-foreground hover:text-foreground hover:bg-muted/60 active:bg-muted/80 transition-all active:scale-90"
                 onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
                 title="Aumentar quantidade"
               >
                 <Plus className="h-4 w-4" />
-              </button>
+              </Button>
             </div>
             <div className="flex flex-col items-end">
               <PriceLabel 
