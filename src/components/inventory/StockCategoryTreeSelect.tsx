@@ -179,7 +179,7 @@ export function StockCategoryTreeSelect({ value, onChange }: StockCategoryTreeSe
           {/* "Todas" option */}
           <div
             className={cn(
-              "flex items-center gap-1.5 py-1.5 px-2 rounded cursor-pointer transition-all text-xs",
+              "flex items-center gap-1.5 py-1.5 px-2 rounded-lg cursor-pointer transition-all text-xs",
               "hover:bg-accent/60",
               !value && "bg-primary/15 text-primary font-semibold"
             )}
