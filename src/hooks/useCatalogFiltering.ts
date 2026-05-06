@@ -133,8 +133,8 @@ export function useCatalogFiltering({
       } else {
         return [];
       }
-    } else if (filters.materiais.length) {
-      const lowerMateriais = filters.materiais.map((m) => m.toLowerCase());
+    } else if (filters.materials?.length) {
+      const lowerMateriais = filters.materials.map((m) => m.toLowerCase());
       result = result.filter((p) => {
         const mats = Array.isArray(p.materials)
           ? p.materials.join(' ').toLowerCase()
