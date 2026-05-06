@@ -353,6 +353,36 @@ export type Database = {
         }
         Relationships: []
       }
+      auth_login_attempts: {
+        Row: {
+          created_at: string
+          email: string
+          failure_reason: string | null
+          id: string
+          ip_address: string | null
+          success: boolean
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          failure_reason?: string | null
+          id?: string
+          ip_address?: string | null
+          success?: boolean
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          failure_reason?: string | null
+          id?: string
+          ip_address?: string | null
+          success?: boolean
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       bot_detection_log: {
         Row: {
           blocked: boolean
@@ -5536,6 +5566,13 @@ export type Database = {
       can_view_connections: { Args: { _user_id?: string }; Returns: boolean }
       can_view_telemetry: { Args: { _user_id?: string }; Returns: boolean }
       check_ai_quota: { Args: { _user_id: string }; Returns: Json }
+      check_auth_throttling: {
+        Args: { _email: string; _ip: string }
+        Returns: {
+          allowed: boolean
+          remaining_seconds: number
+        }[]
+      }
       check_hardening_status: { Args: never; Returns: Json }
       check_ip_access: { Args: { _ip: string }; Returns: string }
       check_mcp_abuse_threshold: {
@@ -5587,6 +5624,7 @@ export type Database = {
       cleanup_rate_limits: { Args: never; Returns: undefined }
       cleanup_security_logs: { Args: never; Returns: Json }
       cleanup_webhook_logs: { Args: never; Returns: Json }
+      clear_auth_attempts: { Args: { _email: string }; Returns: undefined }
       complete_optimization: {
         Args: {
           _error?: string
@@ -5957,6 +5995,16 @@ export type Database = {
       mcp_audit_actor: { Args: { _fallback: string }; Returns: string }
       notify_hardening_regression: { Args: never; Returns: Json }
       purge_old_audit_logs: { Args: never; Returns: undefined }
+      record_auth_attempt: {
+        Args: {
+          _email: string
+          _ip: string
+          _reason?: string
+          _success: boolean
+          _ua?: string
+        }
+        Returns: undefined
+      }
       record_dev_route_telemetry: {
         Args: {
           _blocked_path: string
