@@ -61,7 +61,15 @@ export function LogoPositionEditor({
 }: LogoPositionEditorProps) {
   const { ref: containerRef, size: containerSize } = useElementSize<HTMLDivElement>();
   const productBounds = useProductBounds(productImageUrl);
-  const { processedLogoUrl } = useLogoProcessing(logoPreview, techniqueColorConfig);
+  
+  // Advanced processing state for Laser
+  const [whiteThreshold, setWhiteThreshold] = useState(220);
+  const [alphaThreshold, setAlphaThreshold] = useState(30);
+
+  const { processedLogoUrl, isProcessing } = useLogoProcessing(logoPreview, techniqueColorConfig, {
+    whiteThreshold,
+    alphaThreshold
+  });
   const { handlePointerDown } = useLogoDrag(containerRef, positionX, positionY, onPositionChange);
 
   const techniqueFilter = useMemo(
