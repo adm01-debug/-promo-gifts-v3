@@ -47,6 +47,9 @@ export default defineConfig(({ mode }) => {
     
     rollupOptions: {
       output: {
+        chunkFileNames: `assets/[name]-[hash]-v${version}.js`,
+        entryFileNames: `assets/[name]-[hash]-v${version}.js`,
+        assetFileNames: `assets/[name]-[hash]-v${version}.[ext]`,
         manualChunks(id) {
           // Core React
           if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/')) {
