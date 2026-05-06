@@ -212,6 +212,7 @@ const AppContent = () => {
         <Route path="/reposicao" element={<ReplenishmentsPage />} />
         <Route path="/favoritos" element={<FavoritesPage />} />
         <Route path="/estoque" element={<StockDashboardPage />} />
+        <Route path="/tendencias" element={<TrendsPage />} />
         <Route path="/carrinhos" element={<SellerCartsPage />} />
         
         <Route path="/carrinhos/:cartId" element={<SellerCartsPage />} />
@@ -253,7 +254,7 @@ const AppContent = () => {
           <Route path="/admin/performance" element={<DeprecatedRoute message="O módulo de Performance foi descontinuado. Use o BI Comercial para análises." redirectTo="/ferramentas/bi-comercial" />} />
           <Route path="/admin/performance-comercial" element={<DeprecatedRoute message="O módulo de Performance Comercial foi descontinuado. Use o BI Comercial para análises." redirectTo="/ferramentas/bi-comercial" />} />
           <Route path="/admin/comissoes" element={<DeprecatedRoute message="O módulo de Comissões foi descontinuado nesta plataforma." redirectTo="/admin/usuarios" />} />
-          <Route path="/tendencias" element={<TrendsPage />} />
+          
 
           {/* DEV-ONLY — páginas técnicas com risco elevado (telemetria, conexões, secrets, MCP, audit técnico, prompts IA) */}
           <Route element={<DevRoute />}>
