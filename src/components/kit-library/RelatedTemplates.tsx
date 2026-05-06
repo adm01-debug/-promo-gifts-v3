@@ -20,37 +20,34 @@ export function RelatedTemplates({ current, all, onSelect }: Props) {
   if (related.length === 0) return null;
 
   return (
-    <div className="space-y-2 border-t border-border/40 pt-3">
-      <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+    <div className="space-y-2 pt-3 border-t border-border/40">
+      <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
         Quem usou também usou
       </p>
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
         {related.map((t) => {
           const Icon =
-            (Lucide as unknown as Record<string, React.ComponentType<{ className?: string }>>)[
-              t.icon
-            ] || Lucide.Package;
+            (Lucide as unknown as Record<string, React.ComponentType<{ className?: string }>>)[t.icon] ||
+            Lucide.Package;
           return (
             <button
               key={t.id}
               type="button"
               onClick={() => onSelect(t)}
               className={cn(
-                'flex items-center gap-2 rounded-xl border p-2 text-left',
-                'transition-colors hover:border-primary/40 hover:bg-muted/60',
+                'flex items-center gap-2 p-2 rounded-xl border text-left',
+                'hover:bg-muted/60 hover:border-primary/40 transition-colors',
               )}
             >
               <div
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border"
+                className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border"
                 style={{ background: `${t.color}1A`, borderColor: `${t.color}40`, color: t.color }}
               >
                 <Icon className="h-4 w-4" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-xs font-medium">{t.name}</p>
-                <p className="text-[10px] text-muted-foreground">
-                  {formatCurrency(Number(t.total_price))}
-                </p>
+                <p className="text-xs font-medium truncate">{t.name}</p>
+                <p className="text-[10px] text-muted-foreground">{formatCurrency(Number(t.total_price))}</p>
               </div>
             </button>
           );

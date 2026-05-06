@@ -16,21 +16,15 @@ interface KitHeroPricingCardProps {
   hasContent: boolean;
 }
 
-export function KitHeroPricingCard({
-  unitPrice,
-  total,
-  kitQuantity,
-  isValid,
-  hasContent,
-}: KitHeroPricingCardProps) {
+export function KitHeroPricingCard({ unitPrice, total, kitQuantity, isValid, hasContent }: KitHeroPricingCardProps) {
   if (!hasContent) {
     return (
-      <Card className="border-2 border-dashed border-border/60 bg-gradient-to-br from-muted/30 to-transparent">
-        <CardContent className="space-y-2 p-5 text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
+      <Card className="border-dashed border-2 border-border/60 bg-gradient-to-br from-muted/30 to-transparent">
+        <CardContent className="p-5 text-center space-y-2">
+          <div className="mx-auto w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
             <Sparkles className="h-5 w-5 text-primary" />
           </div>
-          <p className="font-display text-sm font-semibold">Comece seu kit</p>
+          <p className="text-sm font-display font-semibold">Comece seu kit</p>
           <p className="text-[11px] text-muted-foreground">Selecione uma caixa para ver o preço</p>
         </CardContent>
       </Card>
@@ -40,24 +34,22 @@ export function KitHeroPricingCard({
   return (
     <Card
       className={cn(
-        'relative overflow-hidden border-primary/20 dark:border-primary/30',
+        'overflow-hidden border-primary/20 dark:border-primary/30 relative',
         'bg-gradient-to-br from-card via-card to-primary/[0.04] dark:to-primary/[0.10]',
         'shadow-[0_8px_32px_-8px_hsl(var(--primary)/0.25)] dark:shadow-[0_8px_32px_-8px_hsl(var(--primary)/0.35)]',
       )}
     >
       {/* Subtle decorative glow */}
       <div
-        className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full opacity-20 blur-3xl"
+        className="absolute -top-12 -right-12 w-40 h-40 rounded-full opacity-20 blur-3xl pointer-events-none"
         style={{ background: 'radial-gradient(circle, hsl(var(--primary)) 0%, transparent 70%)' }}
         aria-hidden
       />
-      <CardContent className="relative space-y-3 p-5">
+      <CardContent className="p-5 relative space-y-3">
         <div className="flex items-start justify-between gap-2">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-            Preço por kit
-          </p>
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Preço por kit</p>
           {isValid && (
-            <Badge className="h-5 gap-1 border-success/30 bg-success/15 text-[10px] text-success hover:bg-success/20">
+            <Badge className="bg-success/15 text-success border-success/30 hover:bg-success/20 text-[10px] h-5 gap-1">
               <TrendingUp className="h-2.5 w-2.5" /> Pronto
             </Badge>
           )}
@@ -67,10 +59,10 @@ export function KitHeroPricingCard({
             {formatCurrency(unitPrice)}
           </span>
         </div>
-        <div className="space-y-1.5 border-t border-border/40 pt-3">
+        <div className="pt-3 border-t border-border/40 space-y-1.5">
           <div className="flex items-baseline justify-between text-xs">
             <span className="text-muted-foreground">Total ({kitQuantity}x)</span>
-            <span className="font-display text-base font-bold tabular-nums text-primary">
+            <span className="font-display font-bold text-base tabular-nums text-primary">
               {formatCurrency(total)}
             </span>
           </div>

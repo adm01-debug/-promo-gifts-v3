@@ -25,16 +25,10 @@ import { lazyWithRetry } from '@/lib/lazyWithRetry';
 import type { ProductFormData } from './ProductFormSchema';
 import type { FieldErrors, UseFormRegister, UseFormSetValue, UseFormWatch } from 'react-hook-form';
 
-const ProductClassificationSection = lazyWithRetry(
-  () => import('./sections/ProductClassificationSection'),
-);
+const ProductClassificationSection = lazyWithRetry(() => import('./sections/ProductClassificationSection'));
 const ProductMediaSection = lazyWithRetry(() => import('./sections/ProductMediaSection'));
 const ProductEngravingSection = lazyWithRetry(() => import('./sections/ProductEngravingSection'));
-const ProductKitComponentsSection = lazyWithRetry(() =>
-  import('../products/kit-components/ProductKitComponentsSection').then((m) => ({
-    default: m.ProductKitComponentsSection,
-  })),
-);
+const ProductKitComponentsSection = lazyWithRetry(() => import('../products/kit-components/ProductKitComponentsSection').then(m => ({ default: m.ProductKitComponentsSection })));
 
 function SectionSkeleton() {
   return (
@@ -117,9 +111,7 @@ export function ProductFormStepContent({
         <>
           <ProductSupplierSection
             supplierId={supplierId}
-            onSupplierChange={(id, name, markupPercent) =>
-              onSupplierChange(id, name, markupPercent)
-            }
+            onSupplierChange={(id, name, markupPercent) => onSupplierChange(id, name, markupPercent)}
             setValue={setValue}
             errors={errors}
             productId={productId}
@@ -139,12 +131,7 @@ export function ProductFormStepContent({
     case 'commercial':
       return (
         <>
-          <SectionCard
-            id="category"
-            title="Categoria"
-            icon={Layers}
-            subtitle="Classificação principal do produto no catálogo"
-          >
+          <SectionCard id="category" title="Categoria" icon={Layers} subtitle="Classificação principal do produto no catálogo">
             <CategoryCascadeSelector
               value={formValues.category_id || ''}
               onChange={(id) => setValue('category_id', id)}
@@ -183,11 +170,7 @@ export function ProductFormStepContent({
               disabled={isSeoGenerating}
               className="gap-2 border-primary/30 text-primary hover:bg-primary/10"
             >
-              {isSeoGenerating ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Wand2 className="h-4 w-4 animate-pulse" />
-              )}
+              {isSeoGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4 animate-pulse" />}
               {isSeoGenerating ? 'Gerando...' : 'Preencher com IA'}
             </Button>
           </div>
@@ -217,44 +200,29 @@ export function ProductFormStepContent({
     case 'kits':
       return (
         <>
-          <SectionCard
-            id="kit-flag"
-            title="Tipo de Produto"
-            icon={Package}
-            subtitle="Defina se este produto é um kit"
-          >
+          <SectionCard id="kit-flag" title="Tipo de Produto" icon={Package} subtitle="Defina se este produto é um kit">
             <div
               className={cn(
-                'flex cursor-pointer items-center justify-between rounded-xl border p-3 transition-all duration-200 hover:bg-accent/30',
-                formValues.is_kit ? 'border-primary/20 bg-primary/5' : 'border-border/50',
+                'flex items-center justify-between rounded-xl border p-3 transition-all duration-200 cursor-pointer hover:bg-accent/30',
+                formValues.is_kit ? 'bg-primary/5 border-primary/20' : 'border-border/50',
               )}
               onClick={() => setValue('is_kit', !formValues.is_kit)}
               role="switch"
               aria-checked={!!formValues.is_kit}
               tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  setValue('is_kit', !formValues.is_kit);
-                }
-              }}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setValue('is_kit', !formValues.is_kit); } }}
             >
               <div className="flex items-center gap-1.5">
                 <Label className="cursor-pointer text-xs font-medium">É Kit</Label>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Info className="h-3 w-3 shrink-0 cursor-help text-muted-foreground/40" />
+                    <Info className="h-3 w-3 text-muted-foreground/40 cursor-help shrink-0" />
                   </TooltipTrigger>
-                  <TooltipContent className="max-w-[220px] text-xs">
-                    Define como kit composto por múltiplos componentes
-                  </TooltipContent>
+                  <TooltipContent className="text-xs max-w-[220px]">Define como kit composto por múltiplos componentes</TooltipContent>
                 </Tooltip>
               </div>
               <div onClick={(e) => e.stopPropagation()}>
-                <Switch
-                  checked={!!formValues.is_kit}
-                  onCheckedChange={(v) => setValue('is_kit', v)}
-                />
+                <Switch checked={!!formValues.is_kit} onCheckedChange={(v) => setValue('is_kit', v)} />
               </div>
             </div>
           </SectionCard>

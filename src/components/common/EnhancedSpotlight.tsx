@@ -1,19 +1,19 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import Fuse from 'fuse.js';
-import { Search, ArrowRight, Command, Clock, Zap } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Badge } from '@/components/ui/badge';
-import { buildSpotlightItems, type SpotlightItem } from './spotlight/SpotlightItems';
-import { useAuth } from '@/contexts/AuthContext';
-import { filterByRoutePermission } from '@/lib/navigation/filter-restricted-items';
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import Fuse from "fuse.js";
+import { Search, ArrowRight, Command, Clock, Zap } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { buildSpotlightItems, type SpotlightItem } from "./spotlight/SpotlightItems";
+import { useAuth } from "@/contexts/AuthContext";
+import { filterByRoutePermission } from "@/lib/navigation/filter-restricted-items";
 
 // SpotlightItem type imported from ./spotlight/SpotlightItems
 
 export function EnhancedSpotlight() {
   const [isOpen, setIsOpen] = useState(false);
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [recentActions, setRecentActions] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -22,7 +22,7 @@ export function EnhancedSpotlight() {
 
   // Load recent actions from localStorage
   useEffect(() => {
-    const stored = localStorage.getItem('spotlight-recent');
+    const stored = localStorage.getItem("spotlight-recent");
     if (stored) {
       try {
         setRecentActions(JSON.parse(stored));
@@ -35,7 +35,7 @@ export function EnhancedSpotlight() {
   const addToRecent = (id: string) => {
     const updated = [id, ...recentActions.filter((r) => r !== id)].slice(0, 5);
     setRecentActions(updated);
-    localStorage.setItem('spotlight-recent', JSON.stringify(updated));
+    localStorage.setItem("spotlight-recent", JSON.stringify(updated));
   };
 
   const items: SpotlightItem[] = useMemo(() => {
@@ -70,7 +70,7 @@ export function EnhancedSpotlight() {
 
       const quickActions = items.filter((item) => item.isQuickAction);
       const others = items.filter(
-        (item) => !item.isQuickAction && !recentActions.includes(item.id),
+        (item) => !item.isQuickAction && !recentActions.includes(item.id)
       );
 
       return [...recentItems, ...quickActions, ...others];
@@ -92,13 +92,13 @@ export function EnhancedSpotlight() {
         .filter(Boolean) as SpotlightItem[];
 
       if (recentItems.length > 0) {
-        groups['Recentes'] = recentItems;
+        groups["Recentes"] = recentItems;
       }
     }
 
     filteredItems.forEach((item) => {
       // Skip if already in recentes
-      if (groups['Recentes']?.some((r) => r.id === item.id)) return;
+      if (groups["Recentes"]?.some((r) => r.id === item.id)) return;
 
       if (!groups[item.category]) {
         groups[item.category] = [];
@@ -118,19 +118,19 @@ export function EnhancedSpotlight() {
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       // Toggle with Cmd+K / Ctrl+K
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
         setIsOpen((prev) => !prev);
-        setQuery('');
+        setQuery("");
         setSelectedIndex(0);
         return;
       }
 
       // Close with Escape
-      if (e.key === 'Escape' && isOpen) {
+      if (e.key === "Escape" && isOpen) {
         e.preventDefault();
         setIsOpen(false);
-        setQuery('');
+        setQuery("");
         return;
       }
 
@@ -138,27 +138,27 @@ export function EnhancedSpotlight() {
       if (!isOpen) return;
 
       // Navigate with arrows
-      if (e.key === 'ArrowDown') {
+      if (e.key === "ArrowDown") {
         e.preventDefault();
         setSelectedIndex((prev) => Math.min(prev + 1, flatItems.length - 1));
       }
-      if (e.key === 'ArrowUp') {
+      if (e.key === "ArrowUp") {
         e.preventDefault();
         setSelectedIndex((prev) => Math.max(prev - 1, 0));
       }
 
       // Select with Enter
-      if (e.key === 'Enter' && flatItems[selectedIndex]) {
+      if (e.key === "Enter" && flatItems[selectedIndex]) {
         e.preventDefault();
         handleSelect(flatItems[selectedIndex]);
       }
     },
-    [isOpen, flatItems, selectedIndex],
+    [isOpen, flatItems, selectedIndex]
   );
 
   useEffect(() => {
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleKeyDown]);
 
   // Reset selection when query changes
@@ -177,7 +177,7 @@ export function EnhancedSpotlight() {
     addToRecent(item.id);
     item.action();
     setIsOpen(false);
-    setQuery('');
+    setQuery("");
     setSelectedIndex(0);
   };
 
@@ -199,13 +199,13 @@ export function EnhancedSpotlight() {
             initial={{ opacity: 0, scale: 0.95, y: -20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -20 }}
-            transition={{ duration: 0.15, ease: 'easeOut' }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
             className="fixed left-1/2 top-[12%] z-[101] w-full max-w-xl -translate-x-1/2 px-4"
           >
             <div className="overflow-hidden rounded-xl border border-border bg-card shadow-2xl">
               {/* Search Input */}
               <div className="flex items-center border-b border-border px-4">
-                <Search className="h-5 w-5 shrink-0 text-muted-foreground" />
+                <Search className="h-5 w-5 text-muted-foreground shrink-0" />
                 <input
                   ref={inputRef}
                   type="text"
@@ -224,7 +224,7 @@ export function EnhancedSpotlight() {
 
               {/* Quick Action Pills */}
               {!query && (
-                <div className="flex flex-wrap gap-2 border-b border-border bg-muted/30 px-4 py-3">
+                <div className="flex flex-wrap gap-2 px-4 py-3 border-b border-border bg-muted/30">
                   {items
                     .filter((item) => item.isQuickAction)
                     .map((item) => (
@@ -232,9 +232,9 @@ export function EnhancedSpotlight() {
                         key={item.id}
                         onClick={() => handleSelect(item)}
                         className={cn(
-                          'flex items-center gap-2 rounded-full px-3 py-1.5 text-sm',
-                          'bg-primary/10 text-primary hover:bg-primary/20',
-                          'transition-colors duration-150 active:scale-95',
+                          "flex items-center gap-2 px-3 py-1.5 rounded-full text-sm",
+                          "bg-primary/10 text-primary hover:bg-primary/20",
+                          "transition-colors duration-150 active:scale-95"
                         )}
                       >
                         {item.icon}
@@ -250,16 +250,22 @@ export function EnhancedSpotlight() {
               )}
 
               {/* Results */}
-              <div className="scrollbar-thin max-h-[400px] overflow-y-auto p-2">
+              <div className="max-h-[400px] overflow-y-auto p-2 scrollbar-thin">
                 {Object.entries(groupedItems).map(([category, categoryItems]) => (
                   <div key={category} className="mb-2">
                     <div className="flex items-center gap-2 px-3 py-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                      {category === 'Recentes' && <Clock className="h-3 w-3" />}
-                      {category === 'Ações Rápidas' && <Zap className="h-3 w-3" />}
+                      {category === "Recentes" && (
+                        <Clock className="h-3 w-3" />
+                      )}
+                      {category === "Ações Rápidas" && (
+                        <Zap className="h-3 w-3" />
+                      )}
                       {category}
                     </div>
                     {categoryItems.map((item) => {
-                      const globalIndex = flatItems.findIndex((f) => f.id === item.id);
+                      const globalIndex = flatItems.findIndex(
+                        (f) => f.id === item.id
+                      );
                       const isSelected = globalIndex === selectedIndex;
 
                       return (
@@ -268,37 +274,41 @@ export function EnhancedSpotlight() {
                           onClick={() => handleSelect(item)}
                           onMouseEnter={() => setSelectedIndex(globalIndex)}
                           className={cn(
-                            'flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left',
-                            'transition-colors duration-100',
-                            'focus:outline-none',
-                            isSelected ? 'bg-accent text-accent-foreground' : 'hover:bg-accent/50',
+                            "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left",
+                            "transition-colors duration-100",
+                            "focus:outline-none",
+                            isSelected
+                              ? "bg-accent text-accent-foreground"
+                              : "hover:bg-accent/50"
                           )}
                         >
                           <div
                             className={cn(
-                              'flex h-9 w-9 shrink-0 items-center justify-center rounded-xl',
-                              isSelected ? 'bg-primary text-primary-foreground' : 'bg-muted',
+                              "flex h-9 w-9 items-center justify-center rounded-xl shrink-0",
+                              isSelected ? "bg-primary text-primary-foreground" : "bg-muted"
                             )}
                           >
                             {item.icon}
                           </div>
-                          <div className="min-w-0 flex-1">
-                            <div className="truncate font-medium">{item.title}</div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium truncate">{item.title}</div>
                             {item.description && (
-                              <div className="truncate text-sm text-muted-foreground">
+                              <div className="text-sm text-muted-foreground truncate">
                                 {item.description}
                               </div>
                             )}
                           </div>
                           {item.shortcut && (
-                            <kbd className="hidden rounded bg-muted px-2 py-1 text-xs font-medium text-muted-foreground sm:block">
+                            <kbd className="hidden sm:block rounded bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
                               {item.shortcut}
                             </kbd>
                           )}
                           <ArrowRight
                             className={cn(
-                              'h-4 w-4 shrink-0 transition-transform',
-                              isSelected ? 'translate-x-0.5 text-primary' : 'text-muted-foreground',
+                              "h-4 w-4 shrink-0 transition-transform",
+                              isSelected
+                                ? "text-primary translate-x-0.5"
+                                : "text-muted-foreground"
                             )}
                           />
                         </button>
@@ -311,7 +321,7 @@ export function EnhancedSpotlight() {
                   <div className="py-8 text-center text-muted-foreground">
                     <Search className="mx-auto mb-2 h-8 w-8 opacity-50" />
                     <p className="font-medium">Nenhum resultado</p>
-                    <p className="mt-1 text-sm">Tente buscar por "{query.slice(0, 10)}..."</p>
+                    <p className="text-sm mt-1">Tente buscar por "{query.slice(0, 10)}..."</p>
                   </div>
                 )}
               </div>
@@ -344,24 +354,25 @@ export function EnhancedSpotlight() {
 // Trigger button component
 export function EnhancedSpotlightTrigger({ className }: { className?: string }) {
   const handleClick = () => {
-    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }));
+    window.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "k", metaKey: true })
+    );
   };
 
   return (
     <button
       onClick={handleClick}
       className={cn(
-        'flex items-center gap-2 rounded-xl border border-border bg-muted/50 px-3 py-2 text-sm text-muted-foreground',
-        'transition-all duration-150 hover:border-border/80 hover:bg-muted hover:text-foreground',
-        'focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
-        'active:scale-[0.98]',
-        className,
+        "flex items-center gap-2 rounded-xl border border-border bg-muted/50 px-3 py-2 text-sm text-muted-foreground",
+        "hover:bg-muted hover:text-foreground hover:border-border/80 transition-all duration-150",
+        "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+        "active:scale-[0.98]",
+        className
       )}
-      aria-label="Buscar"
-    >
+     aria-label="Buscar">
       <Search className="h-4 w-4" />
       <span className="hidden sm:inline">Buscar...</span>
-      <kbd className="hidden items-center gap-0.5 rounded border border-border/50 bg-background px-1.5 py-0.5 text-xs font-medium sm:inline-flex">
+      <kbd className="hidden sm:inline-flex items-center gap-0.5 rounded bg-background px-1.5 py-0.5 text-xs font-medium border border-border/50">
         <Command className="h-3 w-3" />K
       </kbd>
     </button>

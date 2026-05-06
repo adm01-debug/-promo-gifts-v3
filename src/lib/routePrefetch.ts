@@ -19,20 +19,18 @@ const routeImportMap: Record<string, () => Promise<unknown>> = {
   '/orcamentos/kanban': () => import('@/pages/QuotesKanbanPage'),
   '/orcamentos/dashboard': () => import('@/pages/QuotesDashboardPage'),
   '/orcamentos/templates': () => import('@/pages/QuoteTemplatesPage'),
-  '/ferramentas/simulador-wizard': () => import('@/pages/SimuladorWizard'),
-  '/ferramentas/simulador-preco': () => import('@/pages/PriceSimulatorPage'),
+  '/simulador': () => import('@/pages/SimuladorWizard'),
+  '/simulador-precos': () => import('@/pages/PriceSimulatorPage'),
   '/estoque': () => import('@/pages/StockDashboardPage'),
   '/mockup': () => import('@/pages/MockupGenerator'),
-  '/ferramentas/mockup-generator': () => import('@/pages/MockupGenerator'),
-  '/ferramentas/mockup': () => import('@/pages/MockupGenerator'),
   '/magic-up': () => import('@/pages/MagicUp'),
-  '/ferramentas/kit-builder': () => import('@/pages/KitBuilderPage'),
-  '/ferramentas/kit-library': () => import('@/pages/KitLibraryPage'),
+  '/kits': () => import('@/pages/KitBuilderPage'),
+  '/meus-kits': () => import('@/pages/KitLibraryPage'),
   '/pedidos': () => import('@/pages/OrdersPage'),
-
+  
   '/tendencias': () => import('@/pages/TrendsPage'),
-  '/ferramentas/busca-avancada-preco': () => import('@/pages/AdvancedPriceSearchPage'),
-  '/ferramentas/bi-comercial': () => import('@/pages/CommercialIntelligencePage'),
+  '/busca-precos': () => import('@/pages/AdvancedPriceSearchPage'),
+  '/inteligencia-comercial': () => import('@/pages/CommercialIntelligencePage'),
 };
 
 const prefetched = new Set<string>();
@@ -49,10 +47,9 @@ export function prefetchRoute(path: string): void {
 
   prefetched.add(path);
   // Use requestIdleCallback when available for non-blocking prefetch
-  const schedule =
-    typeof requestIdleCallback === 'function'
-      ? requestIdleCallback
-      : (fn: () => void) => setTimeout(fn, 0);
+  const schedule = typeof requestIdleCallback === 'function'
+    ? requestIdleCallback
+    : (fn: () => void) => setTimeout(fn, 0);
 
   schedule(() => {
     importer().catch(() => {

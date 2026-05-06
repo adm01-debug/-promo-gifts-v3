@@ -7,13 +7,7 @@ import { SectionCard } from '../ProductFormHelpers';
 import { ShieldCheck, Info, Clock } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { addDays, format } from 'date-fns';
 import type { UseFormSetValue } from 'react-hook-form';
 import type { ProductFormData } from '../ProductFormSchema';
@@ -58,53 +52,14 @@ function formatRemaining(expiresAt: string | null): string | null {
   return `${diff}d restantes`;
 }
 
-type ExpiryKey =
-  | 'is_featured_expires_at'
-  | 'is_bestseller_expires_at'
-  | 'is_new_expires_at'
-  | 'is_on_sale_expires_at';
+type ExpiryKey = 'is_featured_expires_at' | 'is_bestseller_expires_at' | 'is_new_expires_at' | 'is_on_sale_expires_at';
 
-const FLAG_CONFIG: {
-  key: keyof ProductFormData;
-  label: string;
-  hint: string;
-  expiryKey?: ExpiryKey;
-  activeClass?: string;
-}[] = [
-  {
-    key: 'is_active',
-    label: 'Produto Ativo',
-    hint: 'Define se o produto aparece no catálogo e pode ser adicionado a orçamentos',
-    activeClass: 'bg-success/10 border-success/40',
-  },
-  {
-    key: 'is_featured',
-    label: 'Destaque',
-    hint: 'Exibe o produto em posições de destaque no catálogo',
-    expiryKey: 'is_featured_expires_at',
-    activeClass: 'bg-primary/10 border-primary/40',
-  },
-  {
-    key: 'is_bestseller',
-    label: 'Mais Vendido',
-    hint: 'Marca o produto como best-seller para filtros e exibição especial',
-    expiryKey: 'is_bestseller_expires_at',
-    activeClass: 'bg-warning/10 border-warning/40',
-  },
-  {
-    key: 'is_new',
-    label: 'Lançamento',
-    hint: 'Indica que o produto é um lançamento recente no catálogo',
-    expiryKey: 'is_new_expires_at',
-    activeClass: 'bg-info/10 border-info/40',
-  },
-  {
-    key: 'is_on_sale',
-    label: 'Em Promoção',
-    hint: 'Sinaliza o produto com badge de promoção',
-    expiryKey: 'is_on_sale_expires_at',
-    activeClass: 'bg-destructive/10 border-destructive/40',
-  },
+const FLAG_CONFIG: { key: keyof ProductFormData; label: string; hint: string; expiryKey?: ExpiryKey; activeClass?: string }[] = [
+  { key: 'is_active', label: 'Produto Ativo', hint: 'Define se o produto aparece no catálogo e pode ser adicionado a orçamentos', activeClass: 'bg-success/10 border-success/40' },
+  { key: 'is_featured', label: 'Destaque', hint: 'Exibe o produto em posições de destaque no catálogo', expiryKey: 'is_featured_expires_at', activeClass: 'bg-primary/10 border-primary/40' },
+  { key: 'is_bestseller', label: 'Mais Vendido', hint: 'Marca o produto como best-seller para filtros e exibição especial', expiryKey: 'is_bestseller_expires_at', activeClass: 'bg-warning/10 border-warning/40' },
+  { key: 'is_new', label: 'Lançamento', hint: 'Indica que o produto é um lançamento recente no catálogo', expiryKey: 'is_new_expires_at', activeClass: 'bg-info/10 border-info/40' },
+  { key: 'is_on_sale', label: 'Em Promoção', hint: 'Sinaliza o produto com badge de promoção', expiryKey: 'is_on_sale_expires_at', activeClass: 'bg-destructive/10 border-destructive/40' },
 ];
 
 export function ProductFlagsSection({ setValue, flags, expirations }: Props) {
@@ -112,7 +67,7 @@ export function ProductFlagsSection({ setValue, flags, expirations }: Props) {
 
   return (
     <SectionCard id="flags" title="Status" icon={ShieldCheck} subtitle={`${flagCount} ativos`}>
-      <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
         {FLAG_CONFIG.map(({ key, label, hint, expiryKey, activeClass }) => {
           const value = !!flags[key];
           const toggle = () => {
@@ -136,30 +91,25 @@ export function ProductFlagsSection({ setValue, flags, expirations }: Props) {
               key={key}
               className={cn(
                 'flex flex-col rounded-xl border transition-all duration-200',
-                value ? activeClass || 'border-primary/20 bg-primary/5' : 'border-border/50',
+                value ? (activeClass || 'bg-primary/5 border-primary/20') : 'border-border/50',
               )}
             >
               {/* Toggle row */}
               <div
-                className="flex cursor-pointer items-center justify-between rounded-t-lg p-3 hover:bg-accent/30"
+                className="flex items-center justify-between p-3 cursor-pointer hover:bg-accent/30 rounded-t-lg"
                 onClick={toggle}
                 role="switch"
                 aria-checked={value}
                 tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    toggle();
-                  }
-                }}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } }}
               >
                 <div className="flex items-center gap-1.5">
                   <Label className="cursor-pointer text-xs font-medium">{label}</Label>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Info className="h-3 w-3 shrink-0 cursor-help text-muted-foreground/40" />
+                      <Info className="h-3 w-3 text-muted-foreground/40 cursor-help shrink-0" />
                     </TooltipTrigger>
-                    <TooltipContent className="max-w-[220px] text-xs">{hint}</TooltipContent>
+                    <TooltipContent className="text-xs max-w-[220px]">{hint}</TooltipContent>
                   </Tooltip>
                 </div>
                 <div onClick={(e) => e.stopPropagation()}>
@@ -171,12 +121,12 @@ export function ProductFlagsSection({ setValue, flags, expirations }: Props) {
               {expiryKey && value && (
                 <div className="px-3 pb-2.5 pt-0">
                   <div className="flex items-center gap-1.5">
-                    <Clock className="h-3 w-3 shrink-0 text-muted-foreground/60" />
+                    <Clock className="h-3 w-3 text-muted-foreground/60 shrink-0" />
                     <Select
                       value={expiryToOption(expiresAt)}
                       onValueChange={(v) => setValue(expiryKey, daysToExpiry(v))}
                     >
-                      <SelectTrigger className="h-6 w-full border-border/30 bg-background/50 text-[10px]">
+                      <SelectTrigger className="h-6 text-[10px] bg-background/50 border-border/30 w-full">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -188,14 +138,10 @@ export function ProductFlagsSection({ setValue, flags, expirations }: Props) {
                       </SelectContent>
                     </Select>
                     {remaining && (
-                      <span
-                        className={cn(
-                          'whitespace-nowrap text-[10px] font-medium',
-                          remaining === 'Expirado'
-                            ? 'text-destructive'
-                            : 'text-muted-foreground/60',
-                        )}
-                      >
+                      <span className={cn(
+                        'text-[10px] whitespace-nowrap font-medium',
+                        remaining === 'Expirado' ? 'text-destructive' : 'text-muted-foreground/60'
+                      )}>
                         {remaining}
                       </span>
                     )}

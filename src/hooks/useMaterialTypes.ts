@@ -1,9 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
-import {
-  materialService,
-  type MaterialType,
-  type MaterialComplete,
-} from '@/services/materialService';
+import { useQuery } from "@tanstack/react-query";
+import { materialService, type MaterialType, type MaterialComplete } from "@/services/materialService";
 
 export interface UseMaterialTypesReturn {
   types: MaterialType[];
@@ -77,10 +73,10 @@ export function useMaterialsComplete(): UseMaterialsCompleteReturn {
   });
 
   const materials = data?.materials || [];
-
+  
   // Organizar por grupo
   const byGroup = new Map<string, MaterialComplete[]>();
-  materials.forEach((m) => {
+  materials.forEach(m => {
     const existing = byGroup.get(m.group_slug) || [];
     existing.push(m);
     byGroup.set(m.group_slug, existing);

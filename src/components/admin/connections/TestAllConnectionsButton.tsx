@@ -1,38 +1,39 @@
 /**
  * TestAllConnectionsButton
  *
- * Botão único no header de /admin/conexoes que valida as
- * credenciais atuais dos ambientes externos (Promobrind + CRM).
+ * Botão único no header de /admin/conexoes que valida automaticamente as
+ * credenciais atuais de TODOS os ambientes Supabase externos (Promobrind +
+ * CRM) num clique:
  *
- * Refatorado para remover TODOs de documentação.
+ *   1. Lê o snapshot de credenciais via `secrets-manager` (action: list) —
+ *      determina se cada secret está em DB (integration_credentials), em ENV
+ *      (fallback legado) ou ausente. Mostra essa origem na UI.
+ *   2. Para cada ambiente com credenciais mínimas (URL + Service Role Key)
+ *      executa o `connection-tester` em paralelo (silent — sem toasts).
+ *      O backend lê integration_credentials e tenta um SELECT real.
+ *   3. Abre um dialog com resultado detalhado por ambiente: badge de origem,
+ *      status (OK/erro), código HTTP, latência, mensagem amigável e horário.
+ *
+ * Não expõe nenhum valor de segredo — apenas máscaras e metadados.
  */
-import { useCallback, useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { useCallback, useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
-import {
-  CheckCircle2,
-  XCircle,
-  Loader2,
-  ShieldCheck,
-  AlertTriangle,
-  ShieldAlert,
-  Database,
-  Clock,
-} from 'lucide-react';
-import { useSecretsManager, type SecretStatus } from '@/hooks/useSecretsManager';
-import { useConnectionTester, type TestResult } from '@/hooks/useConnectionTester';
-import { resolveSource } from './CredentialsSourceFilterContext';
-import { getErrorCopy } from '@/lib/connection-error-copy';
-import { toast } from 'sonner';
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { CheckCircle2, XCircle, Loader2, ShieldCheck, AlertTriangle, ShieldAlert, Database, Clock } from "lucide-react";
+import { useSecretsManager, type SecretStatus } from "@/hooks/useSecretsManager";
+import { useConnectionTester, type TestResult } from "@/hooks/useConnectionTester";
+import { resolveSource } from "./CredentialsSourceFilterContext";
+import { getErrorCopy } from "@/lib/connection-error-copy";
+import { toast } from "sonner";
 
-type EnvKey = 'promobrind' | 'crm';
+type EnvKey = "promobrind" | "crm";
 
 const TARGETS: Array<{
   envKey: EnvKey;
@@ -42,18 +43,18 @@ const TARGETS: Array<{
   serviceSecret: string;
 }> = [
   {
-    envKey: 'promobrind',
-    label: 'Catálogo Promobrind',
-    urlSecret: 'EXTERNAL_PROMOBRIND_URL',
-    anonSecret: 'EXTERNAL_PROMOBRIND_ANON_KEY',
-    serviceSecret: 'EXTERNAL_PROMOBRIND_SERVICE_ROLE_KEY',
+    envKey: "promobrind",
+    label: "Catálogo Promobrind",
+    urlSecret: "EXTERNAL_PROMOBRIND_URL",
+    anonSecret: "EXTERNAL_PROMOBRIND_ANON_KEY",
+    serviceSecret: "EXTERNAL_PROMOBRIND_SERVICE_ROLE_KEY",
   },
   {
-    envKey: 'crm',
-    label: 'CRM Promobrind',
-    urlSecret: 'EXTERNAL_CRM_URL',
-    anonSecret: 'EXTERNAL_CRM_ANON_KEY',
-    serviceSecret: 'EXTERNAL_CRM_SERVICE_ROLE_KEY',
+    envKey: "crm",
+    label: "CRM Promobrind",
+    urlSecret: "EXTERNAL_CRM_URL",
+    anonSecret: "EXTERNAL_CRM_ANON_KEY",
+    serviceSecret: "EXTERNAL_CRM_SERVICE_ROLE_KEY",
   },
 ];
 
@@ -61,11 +62,7 @@ interface PerEnvResult {
   envKey: EnvKey;
   label: string;
   /** Origem resolvida da URL + Service (DB / ENV / mixed / none). */
-  credSummary: {
-    url: 'db' | 'env' | 'none';
-    service: 'db' | 'env' | 'none';
-    anon: 'db' | 'env' | 'none';
-  };
+  credSummary: { url: "db" | "env" | "none"; service: "db" | "env" | "none"; anon: "db" | "env" | "none" };
   /** True se URL + Service estão presentes (mínimo para testar). */
   testable: boolean;
   /** Resultado do connection-tester quando testável. */
@@ -75,15 +72,17 @@ interface PerEnvResult {
 }
 
 function fmtTime(iso?: string) {
-  if (!iso) return '—';
+  if (!iso) return "—";
   const d = new Date(iso);
-  return Number.isNaN(d.getTime()) ? '—' : d.toLocaleTimeString('pt-BR', { hour12: false });
+  return Number.isNaN(d.getTime())
+    ? "—"
+    : d.toLocaleTimeString("pt-BR", { hour12: false });
 }
 
 const SOURCE_BADGE = {
-  db: { label: 'DB', cls: 'border-success/40 bg-success/10 text-success' },
-  env: { label: 'ENV', cls: 'border-warning/40 bg-warning/10 text-warning' },
-  none: { label: 'AUSENTE', cls: 'border-destructive/40 bg-destructive/10 text-destructive' },
+  db: { label: "DB", cls: "border-success/40 bg-success/10 text-success" },
+  env: { label: "ENV", cls: "border-warning/40 bg-warning/10 text-warning" },
+  none: { label: "AUSENTE", cls: "border-destructive/40 bg-destructive/10 text-destructive" },
 } as const;
 
 export function TestAllConnectionsButton({ className }: { className?: string }) {
@@ -126,13 +125,13 @@ export function TestAllConnectionsButton({ className }: { className?: string }) 
           testable: false,
           skipReason:
             !url?.has_value && !svc?.has_value
-              ? 'URL e Service Role Key ausentes'
+              ? "URL e Service Role Key ausentes"
               : !url?.has_value
-                ? 'URL do projeto ausente'
-                : 'Service Role Key ausente',
+                ? "URL do projeto ausente"
+                : "Service Role Key ausente",
         };
       }
-      const r = await test('supabase', { env_key: target.envKey, silent: true });
+      const r = await test("supabase", { env_key: target.envKey, silent: true });
       return {
         envKey: target.envKey,
         label: target.label,
@@ -151,8 +150,8 @@ export function TestAllConnectionsButton({ className }: { className?: string }) 
     const okCount = tested.filter((r) => r.test?.ok).length;
     const failed = tested.length - okCount;
     if (tested.length === 0) {
-      toast.warning('Nenhuma conexão testável', {
-        description: 'Configure URL + Service Role Key antes de testar.',
+      toast.warning("Nenhuma conexão testável", {
+        description: "Configure URL + Service Role Key antes de testar.",
       });
     } else if (failed === 0) {
       toast.success(`Todas as ${okCount} conexões OK`);
@@ -185,13 +184,9 @@ export function TestAllConnectionsButton({ className }: { className?: string }) 
         title="Valida URL + Service Role Key de todos os ambientes externos via integration_credentials"
       >
         {running ? (
-          <>
-            <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> Testando…
-          </>
+          <><Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> Testando…</>
         ) : (
-          <>
-            <ShieldCheck className="mr-1.5 h-4 w-4" /> Testar conexões
-          </>
+          <><ShieldCheck className="h-4 w-4 mr-1.5" /> Testar conexões</>
         )}
       </Button>
 
@@ -203,57 +198,58 @@ export function TestAllConnectionsButton({ className }: { className?: string }) 
               Resultado do teste de conexões
             </DialogTitle>
             <DialogDescription>
-              Credenciais lidas de{' '}
-              <code className="font-mono text-[11px]">integration_credentials</code> via{' '}
-              <code className="font-mono text-[11px]">secrets-manager</code>. Nenhum valor de
-              segredo foi exposto — apenas máscaras e metadados.
+              Credenciais lidas de{" "}
+              <code className="font-mono text-[11px]">integration_credentials</code>{" "}
+              via <code className="font-mono text-[11px]">secrets-manager</code>.
+              Nenhum valor de segredo foi exposto — apenas máscaras e metadados.
             </DialogDescription>
           </DialogHeader>
 
           {/* Header de resumo */}
           {running && !results && (
-            <div className="flex items-center gap-2 py-4 text-sm text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" /> Lendo credenciais e executando testes em
-              paralelo…
+            <div className="flex items-center gap-2 text-sm text-muted-foreground py-4">
+              <Loader2 className="h-4 w-4 animate-spin" /> Lendo credenciais e
+              executando testes em paralelo…
             </div>
           )}
 
           {summary && (
-            <div className="flex flex-wrap items-center gap-2 rounded-xl border bg-muted/20 px-3 py-2 text-xs">
+            <div className="flex items-center flex-wrap gap-2 rounded-xl border bg-muted/20 px-3 py-2 text-xs">
               {summary.ok > 0 && (
                 <Badge
                   variant="outline"
-                  className="border-success/40 bg-success/10 font-mono text-[10px] uppercase text-success"
+                  className="border-success/40 bg-success/10 text-success font-mono uppercase text-[10px]"
                 >
-                  <CheckCircle2 className="mr-1 h-3 w-3" /> OK · {summary.ok}
+                  <CheckCircle2 className="h-3 w-3 mr-1" /> OK · {summary.ok}
                 </Badge>
               )}
               {summary.fail > 0 && (
                 <Badge
                   variant="outline"
-                  className="border-destructive/40 bg-destructive/10 font-mono text-[10px] uppercase text-destructive"
+                  className="border-destructive/40 bg-destructive/10 text-destructive font-mono uppercase text-[10px]"
                 >
-                  <XCircle className="mr-1 h-3 w-3" /> Falha · {summary.fail}
+                  <XCircle className="h-3 w-3 mr-1" /> Falha · {summary.fail}
                 </Badge>
               )}
               {summary.skipped > 0 && (
                 <Badge
                   variant="outline"
-                  className="border-muted-foreground/40 bg-muted/40 font-mono text-[10px] uppercase text-muted-foreground"
+                  className="border-muted-foreground/40 bg-muted/40 text-muted-foreground font-mono uppercase text-[10px]"
                 >
-                  <AlertTriangle className="mr-1 h-3 w-3" /> Sem credenciais · {summary.skipped}
+                  <AlertTriangle className="h-3 w-3 mr-1" /> Sem credenciais ·{" "}
+                  {summary.skipped}
                 </Badge>
               )}
               <span className="ml-auto flex items-center gap-1 text-muted-foreground">
                 <Clock className="h-3 w-3" />
-                {totalDurationMs ?? '?'}ms · iniciado às {fmtTime(startedAt ?? undefined)}
+                {totalDurationMs ?? "?"}ms · iniciado às {fmtTime(startedAt ?? undefined)}
               </span>
             </div>
           )}
 
           {/* Linhas detalhadas */}
           {results && (
-            <ul className="mt-2 space-y-3">
+            <ul className="space-y-3 mt-2">
               {results.map((r) => (
                 <ResultRow key={r.envKey} result={r} />
               ))}
@@ -267,18 +263,20 @@ export function TestAllConnectionsButton({ className }: { className?: string }) 
 
 function ResultRow({ result }: { result: PerEnvResult }) {
   const headerTone = !result.testable
-    ? 'border-muted-foreground/30 bg-muted/30'
+    ? "border-muted-foreground/30 bg-muted/30"
     : result.test?.ok
-      ? 'border-success/40 bg-success/5'
-      : 'border-destructive/40 bg-destructive/5';
+      ? "border-success/40 bg-success/5"
+      : "border-destructive/40 bg-destructive/5";
 
   return (
     <li className={`rounded-xl border p-3 ${headerTone}`}>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-2">
-          <Database className="h-4 w-4 shrink-0 text-primary" />
-          <span className="truncate text-sm font-medium">{result.label}</span>
-          <span className="font-mono text-[10px] text-muted-foreground">{result.envKey}</span>
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-2 min-w-0">
+          <Database className="h-4 w-4 text-primary shrink-0" />
+          <span className="font-medium text-sm truncate">{result.label}</span>
+          <span className="text-[10px] font-mono text-muted-foreground">
+            {result.envKey}
+          </span>
         </div>
         <StatusBadge result={result} />
       </div>
@@ -292,7 +290,7 @@ function ResultRow({ result }: { result: PerEnvResult }) {
 
       {/* Detalhes do teste ou motivo de skip */}
       {!result.testable ? (
-        <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+        <p className="mt-2 text-xs text-muted-foreground flex items-center gap-1.5">
           <AlertTriangle className="h-3.5 w-3.5 text-warning" />
           Não testado — {result.skipReason}.
         </p>
@@ -308,7 +306,7 @@ function StatusBadge({ result }: { result: PerEnvResult }) {
     return (
       <Badge
         variant="outline"
-        className="border-muted-foreground/40 bg-muted/40 font-mono text-[10px] uppercase text-muted-foreground"
+        className="border-muted-foreground/40 bg-muted/40 text-muted-foreground font-mono uppercase text-[10px]"
       >
         Sem credenciais
       </Badge>
@@ -319,30 +317,33 @@ function StatusBadge({ result }: { result: PerEnvResult }) {
     return (
       <Badge
         variant="outline"
-        className="border-success/40 bg-success/10 font-mono text-[10px] uppercase text-success"
+        className="border-success/40 bg-success/10 text-success font-mono uppercase text-[10px]"
       >
-        <CheckCircle2 className="mr-1 h-3 w-3" />
-        OK · {result.test.latency_ms ?? '?'}ms
+        <CheckCircle2 className="h-3 w-3 mr-1" />
+        OK · {result.test.latency_ms ?? "?"}ms
       </Badge>
     );
   }
   return (
     <Badge
       variant="outline"
-      className="border-destructive/40 bg-destructive/10 font-mono text-[10px] uppercase text-destructive"
+      className="border-destructive/40 bg-destructive/10 text-destructive font-mono uppercase text-[10px]"
     >
-      <XCircle className="mr-1 h-3 w-3" />
+      <XCircle className="h-3 w-3 mr-1" />
       Falhou
     </Badge>
   );
 }
 
-function CredCell({ label, source }: { label: string; source: 'db' | 'env' | 'none' }) {
+function CredCell({ label, source }: { label: string; source: "db" | "env" | "none" }) {
   const meta = SOURCE_BADGE[source];
   return (
     <div className="flex items-center gap-1.5 rounded border bg-card/50 px-2 py-1">
       <span className="text-muted-foreground">{label}</span>
-      <Badge variant="outline" className={`ml-auto font-mono text-[9px] uppercase ${meta.cls}`}>
+      <Badge
+        variant="outline"
+        className={`text-[9px] font-mono uppercase ml-auto ${meta.cls}`}
+      >
         {meta.label}
       </Badge>
     </div>
@@ -353,36 +354,33 @@ function TestDetails({ test }: { test: TestResult }) {
   if (test.ok) {
     return (
       <p className="mt-2 text-xs text-muted-foreground">
-        HTTP {test.status ?? 200} · {test.latency_ms ?? '?'}ms
+        HTTP {test.status ?? 200} · {test.latency_ms ?? "?"}ms
         {test.tested_at && <> · às {fmtTime(test.tested_at)}</>}
       </p>
     );
   }
-  const copy = getErrorCopy(
-    test.error_kind,
-    test.status,
-    test.error ?? test.message,
-    test.timeout_ms,
-  );
+  const copy = getErrorCopy(test.error_kind, test.status, test.error ?? test.message, test.timeout_ms);
   const Icon = copy.icon;
   return (
     <div className="mt-2 rounded-xl border border-destructive/40 bg-destructive/5 p-2 text-xs">
       <div className="flex items-center gap-1.5 font-medium text-destructive">
         <Icon className="h-3.5 w-3.5" />
         {copy.title}
-        {typeof test.status === 'number' && (
-          <span className="font-mono text-[10px] text-muted-foreground">HTTP {test.status}</span>
+        {typeof test.status === "number" && (
+          <span className="font-mono text-[10px] text-muted-foreground">
+            HTTP {test.status}
+          </span>
         )}
       </div>
       <p className="mt-1 text-muted-foreground">{copy.hint}</p>
       {test.error && (
-        <p className="mt-1 break-all font-mono text-[10px] text-muted-foreground/80">
+        <p className="mt-1 font-mono text-[10px] text-muted-foreground/80 break-all">
           {test.error}
         </p>
       )}
-      <p className="mt-1 flex items-center gap-1 text-[10px] text-muted-foreground/80">
+      <p className="mt-1 text-[10px] text-muted-foreground/80 flex items-center gap-1">
         <ShieldAlert className="h-3 w-3" />
-        {test.tested_at ? `às ${fmtTime(test.tested_at)}` : ''}
+        {test.tested_at ? `às ${fmtTime(test.tested_at)}` : ""}
         {test.latency_ms != null && <> · {test.latency_ms}ms</>}
       </p>
     </div>

@@ -3,11 +3,11 @@
  * Melhoria #6: Salva última configuração usada no localStorage + Supabase
  */
 
-import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import type { TechniqueSettings } from '@/types/simulation';
+import { useState, useEffect, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import type { TechniqueSettings } from "@/types/simulation";
 
 interface SimulatorPreferences {
   lastQuantity: number;
@@ -33,7 +33,7 @@ const DEFAULT_PREFERENCES: SimulatorPreferences = {
   showUpsellSuggestions: true,
 };
 
-const STORAGE_KEY = 'simulator_preferences';
+const STORAGE_KEY = "simulator_preferences";
 
 export function useSimulatorPreferences() {
   const { user } = useAuth();
@@ -44,18 +44,18 @@ export function useSimulatorPreferences() {
   // Fetch preferences from Supabase (if user is logged in)
   // Uses the 'preferences' JSONB column with a 'simulator' key
   const { data: cloudPreferences } = useQuery({
-    queryKey: ['simulator-preferences', user?.id],
+    queryKey: ["simulator-preferences", user?.id],
     queryFn: async () => {
       if (!user) return null;
-
+      
       const { data, error } = await supabase
-        .from('profiles')
-        .select('preferences')
-        .eq('user_id', user.id)
+        .from("profiles")
+        .select("preferences")
+        .eq("user_id", user.id)
         .single();
-
+      
       if (error || !data?.preferences) return null;
-
+      
       // Extract simulator preferences from nested key
       const prefs = data.preferences as Record<string, unknown>;
       if (!prefs?.simulator) return null;
@@ -69,30 +69,30 @@ export function useSimulatorPreferences() {
   const saveToCloudMutation = useMutation({
     mutationFn: async (prefs: SimulatorPreferences) => {
       if (!user) return;
-
+      
       // First, fetch existing preferences to merge
       const { data: existingData } = await supabase
-        .from('profiles')
-        .select('preferences')
-        .eq('user_id', user.id)
+        .from("profiles")
+        .select("preferences")
+        .eq("user_id", user.id)
         .single();
-
+      
       const existingPrefs = (existingData?.preferences as Record<string, unknown>) || {};
-
+      
       const { error } = await supabase
-        .from('profiles')
-        .update({
-          preferences: {
+        .from("profiles")
+        .update({ 
+          preferences: { 
             ...existingPrefs,
-            simulator: prefs,
-          } as Record<string, unknown>,
+            simulator: prefs 
+          } as Record<string, unknown> 
         })
-        .eq('user_id', user.id);
-
+        .eq("user_id", user.id);
+      
       if (error) throw error;
     },
     onError: (error) => {
-      console.error('Error saving preferences to cloud:', error);
+      console.error("Error saving preferences to cloud:", error);
     },
   });
 
@@ -114,7 +114,7 @@ export function useSimulatorPreferences() {
           }
         }
       } catch (error) {
-        console.error('Error loading preferences:', error);
+        console.error("Error loading preferences:", error);
       }
       setIsLoaded(true);
     };
@@ -123,88 +123,61 @@ export function useSimulatorPreferences() {
   }, [cloudPreferences]);
 
   // Save preferences to localStorage AND Supabase (debounced)
-  const savePreferences = useCallback(
-    (newPrefs: Partial<SimulatorPreferences>) => {
-      setPreferencesState((prev) => {
-        const updated = { ...prev, ...newPrefs };
-
-        // Save to localStorage immediately
-        try {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-        } catch (error) {
-          console.error('Error saving preferences to localStorage:', error);
+  const savePreferences = useCallback((newPrefs: Partial<SimulatorPreferences>) => {
+    setPreferencesState(prev => {
+      const updated = { ...prev, ...newPrefs };
+      
+      // Save to localStorage immediately
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      } catch (error) {
+        console.error("Error saving preferences to localStorage:", error);
+      }
+      
+      // Save to cloud (debounced via mutation)
+      if (user) {
+        // Debounce cloud saves by 2 seconds
+        const timeoutKey = 'simulator_prefs_save_timeout';
+        if ((window as unknown as Record<string, ReturnType<typeof setTimeout>>)[timeoutKey]) {
+          clearTimeout((window as unknown as Record<string, ReturnType<typeof setTimeout>>)[timeoutKey]);
         }
-
-        // Save to cloud (debounced via mutation)
-        if (user) {
-          // Debounce cloud saves by 2 seconds
-          const timeoutKey = 'simulator_prefs_save_timeout';
-          if ((window as unknown as Record<string, ReturnType<typeof setTimeout>>)[timeoutKey]) {
-            clearTimeout(
-              (window as unknown as Record<string, ReturnType<typeof setTimeout>>)[timeoutKey],
-            );
-          }
-          (window as unknown as Record<string, ReturnType<typeof setTimeout>>)[timeoutKey] =
-            setTimeout(() => {
-              saveToCloudMutation.mutate(updated);
-            }, 2000);
-        }
-
-        return updated;
-      });
-    },
-    [user, saveToCloudMutation],
-  );
+        (window as unknown as Record<string, ReturnType<typeof setTimeout>>)[timeoutKey] = setTimeout(() => {
+          saveToCloudMutation.mutate(updated);
+        }, 2000);
+      }
+      
+      return updated;
+    });
+  }, [user, saveToCloudMutation]);
 
   // Individual setters
-  const setLastQuantity = useCallback(
-    (quantity: number) => {
-      savePreferences({ lastQuantity: quantity });
-    },
-    [savePreferences],
-  );
+  const setLastQuantity = useCallback((quantity: number) => {
+    savePreferences({ lastQuantity: quantity });
+  }, [savePreferences]);
 
-  const setLastProductId = useCallback(
-    (productId: string | null) => {
-      savePreferences({ lastProductId: productId });
-    },
-    [savePreferences],
-  );
+  const setLastProductId = useCallback((productId: string | null) => {
+    savePreferences({ lastProductId: productId });
+  }, [savePreferences]);
 
-  const setLastTechniques = useCallback(
-    (techniques: string[]) => {
-      savePreferences({ lastTechniques: techniques });
-    },
-    [savePreferences],
-  );
+  const setLastTechniques = useCallback((techniques: string[]) => {
+    savePreferences({ lastTechniques: techniques });
+  }, [savePreferences]);
 
-  const setLastTechniqueSettings = useCallback(
-    (settings: Record<string, TechniqueSettings>) => {
-      savePreferences({ lastTechniqueSettings: settings });
-    },
-    [savePreferences],
-  );
+  const setLastTechniqueSettings = useCallback((settings: Record<string, TechniqueSettings>) => {
+    savePreferences({ lastTechniqueSettings: settings });
+  }, [savePreferences]);
 
-  const setPreferredView = useCallback(
-    (view: 'cards' | 'table' | 'matrix') => {
-      savePreferences({ preferredView: view });
-    },
-    [savePreferences],
-  );
+  const setPreferredView = useCallback((view: 'cards' | 'table' | 'matrix') => {
+    savePreferences({ preferredView: view });
+  }, [savePreferences]);
 
-  const setDefaultColors = useCallback(
-    (colors: number) => {
-      savePreferences({ defaultColors: colors });
-    },
-    [savePreferences],
-  );
+  const setDefaultColors = useCallback((colors: number) => {
+    savePreferences({ defaultColors: colors });
+  }, [savePreferences]);
 
-  const setDefaultAreaCm2 = useCallback(
-    (area: number) => {
-      savePreferences({ defaultAreaCm2: area });
-    },
-    [savePreferences],
-  );
+  const setDefaultAreaCm2 = useCallback((area: number) => {
+    savePreferences({ defaultAreaCm2: area });
+  }, [savePreferences]);
 
   const toggleAutoExpandResults = useCallback(() => {
     savePreferences({ autoExpandResults: !preferences.autoExpandResults });
@@ -215,22 +188,19 @@ export function useSimulatorPreferences() {
   }, [preferences.showUpsellSuggestions, savePreferences]);
 
   // Save entire session at once
-  const saveCurrentSession = useCallback(
-    (session: {
-      quantity: number;
-      productId: string | null;
-      techniques: string[];
-      settings: Record<string, TechniqueSettings>;
-    }) => {
-      savePreferences({
-        lastQuantity: session.quantity,
-        lastProductId: session.productId,
-        lastTechniques: session.techniques,
-        lastTechniqueSettings: session.settings,
-      });
-    },
-    [savePreferences],
-  );
+  const saveCurrentSession = useCallback((session: {
+    quantity: number;
+    productId: string | null;
+    techniques: string[];
+    settings: Record<string, TechniqueSettings>;
+  }) => {
+    savePreferences({
+      lastQuantity: session.quantity,
+      lastProductId: session.productId,
+      lastTechniques: session.techniques,
+      lastTechniqueSettings: session.settings,
+    });
+  }, [savePreferences]);
 
   // Reset to defaults
   const resetToDefaults = useCallback(() => {

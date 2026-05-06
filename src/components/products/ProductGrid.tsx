@@ -1,10 +1,10 @@
-import { ProductCard } from './ProductCard';
-import type { Product } from '@/hooks/useProducts';
-import type { ActiveColorFilter } from '@/utils/color-image-resolver';
-import { useEffect, useState, useRef } from 'react';
-import { useReducedMotion } from '@/hooks/useReducedMotion';
-import { SelectionCheckbox } from '@/components/common/SelectionCheckbox';
-import { cn } from '@/lib/utils';
+import { ProductCard } from "./ProductCard";
+import type { Product } from "@/hooks/useProducts";
+import type { ActiveColorFilter } from "@/utils/color-image-resolver";
+import { useEffect, useState, useRef } from "react";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
+import { SelectionCheckbox } from "@/components/common/SelectionCheckbox";
+import { cn } from "@/lib/utils";
 
 export interface ProductGridProps {
   products: Product[];
@@ -27,20 +27,20 @@ export interface ProductGridProps {
   onToggleSelect?: (id: string) => void;
 }
 
-import { memo } from 'react';
+import { memo } from "react";
 
-const ProductCardWrapper = memo(function ProductCardWrapper({
-  product,
-  index,
+const ProductCardWrapper = memo(function ProductCardWrapper({ 
+  product, 
+  index, 
   isVisible,
   hideCategoryBadges,
   selectionMode,
   selectedIds,
   onToggleSelect,
-  ...restProps
-}: {
-  product: Product;
-  index: number;
+  ...restProps 
+}: { 
+  product: Product; 
+  index: number; 
   isVisible: boolean;
   hideCategoryBadges?: boolean;
   selectionMode?: boolean;
@@ -52,10 +52,7 @@ const ProductCardWrapper = memo(function ProductCardWrapper({
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (reducedMotion) {
-      setHasAnimated(true);
-      return;
-    }
+    if (reducedMotion) { setHasAnimated(true); return; }
     if (!hasAnimated) {
       const timer = setTimeout(() => setHasAnimated(true), Math.min(index * 80, 800));
       return () => clearTimeout(timer);
@@ -68,31 +65,20 @@ const ProductCardWrapper = memo(function ProductCardWrapper({
     <div
       ref={ref}
       className={cn(
-        reducedMotion
-          ? ''
-          : `transition-all duration-500 ease-out ${
-              hasAnimated
-                ? 'translate-y-0 scale-100 opacity-100'
-                : 'translate-y-8 scale-95 opacity-0'
-            }`,
-        'relative',
-        isSelected && 'rounded-xl ring-2 ring-primary/40',
+        reducedMotion ? '' : `transition-all duration-500 ease-out ${
+          hasAnimated ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-8 scale-95'
+        }`,
+        "relative",
+        isSelected && "ring-2 ring-primary/40 rounded-xl"
       )}
-      style={
-        reducedMotion
-          ? undefined
-          : {
-              transitionDelay: hasAnimated ? '0ms' : `${Math.min(index * 80, 800)}ms`,
-            }
-      }
+      style={reducedMotion ? undefined : {
+        transitionDelay: hasAnimated ? '0ms' : `${Math.min(index * 80, 800)}ms`,
+      }}
     >
       {selectionMode && onToggleSelect && (
-        <div
-          className="absolute left-2 top-2 z-20"
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggleSelect(product.id);
-          }}
+        <div 
+          className="absolute top-2 left-2 z-20"
+          onClick={(e) => { e.stopPropagation(); onToggleSelect(product.id); }}
         >
           <SelectionCheckbox
             checked={!!isSelected}
@@ -101,9 +87,9 @@ const ProductCardWrapper = memo(function ProductCardWrapper({
           />
         </div>
       )}
-      <ProductCard
-        product={product}
-        hideCategoryBadges={hideCategoryBadges}
+      <ProductCard 
+        product={product} 
+        hideCategoryBadges={hideCategoryBadges} 
         {...restProps}
         onClick={selectionMode ? () => onToggleSelect?.(product.id) : restProps.onClick}
       />
@@ -112,18 +98,18 @@ const ProductCardWrapper = memo(function ProductCardWrapper({
 });
 
 const columnClasses: Record<number, string> = {
-  3: 'grid-cols-2 sm:grid-cols-3',
-  4: 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4',
-  5: 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5',
-  6: 'grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6',
-  8: 'grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8',
+  3: "grid-cols-2 sm:grid-cols-3",
+  4: "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4",
+  5: "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5",
+  6: "grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6",
+  8: "grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8",
 };
 
-export function ProductGrid({
+export function ProductGrid({ 
   products,
   onProductClick,
-  onViewProduct,
-  onShareProduct,
+  onViewProduct, 
+  onShareProduct, 
   onFavoriteProduct,
   isFavorite,
   onToggleFavorite,
@@ -150,14 +136,14 @@ export function ProductGrid({
 
   if (products.length === 0) {
     return (
-      <div className="flex animate-fade-in flex-col items-center justify-center py-16 text-center">
-        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+      <div className="flex flex-col items-center justify-center py-16 text-center animate-fade-in">
+        <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
           <span className="text-3xl">📦</span>
         </div>
-        <h3 className="mb-2 font-display text-lg font-semibold text-foreground">
+        <h3 className="font-display text-lg font-semibold text-foreground mb-2">
           Nenhum produto encontrado
         </h3>
-        <p className="max-w-md text-muted-foreground">
+        <p className="text-muted-foreground max-w-md">
           Tente ajustar os filtros ou realizar uma nova busca para encontrar os produtos desejados.
         </p>
       </div>
@@ -165,7 +151,7 @@ export function ProductGrid({
   }
 
   return (
-    <div
+    <div 
       ref={gridRef}
       className={`grid ${columnClasses[columns] || columnClasses[5]} ${columns >= 8 ? 'gap-x-4 gap-y-8' : columns >= 6 ? 'gap-x-6 gap-y-8' : 'gap-x-8 gap-y-8'}`}
     >

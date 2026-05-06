@@ -50,7 +50,7 @@ export function useExternalCollections() {
         limit: 100,
       });
       // Filtrar no cliente se o campo existir
-      return result.records.filter((c) => c.is_active !== false);
+      return result.records.filter(c => c.is_active !== false);
     },
     staleTime: 5 * 60 * 1000, // 5 minutos
   });
@@ -64,7 +64,7 @@ export function useExternalCollectionProducts(collectionId: string | null) {
     queryKey: [QUERY_KEY, 'products', collectionId],
     queryFn: async () => {
       if (!collectionId) return [];
-
+      
       const result = await invokeExternalDb<ExternalCollectionProduct>({
         table: 'collection_products',
         operation: 'select',
@@ -87,7 +87,7 @@ export function useExternalCollectionProductCounts(collectionIds: string[]) {
     queryKey: [QUERY_KEY, 'product-counts', collectionIds],
     queryFn: async () => {
       if (collectionIds.length === 0) return new Map<string, number>();
-
+      
       const result = await invokeExternalDb<ExternalCollectionProduct>({
         table: 'collection_products',
         operation: 'select',
@@ -95,7 +95,7 @@ export function useExternalCollectionProductCounts(collectionIds: string[]) {
         filters: { collection_id: collectionIds },
         limit: 5000,
       });
-
+      
       const counts = new Map<string, number>();
       for (const r of result.records) {
         counts.set(r.collection_id, (counts.get(r.collection_id) || 0) + 1);
@@ -115,11 +115,7 @@ export function useExternalCollectionMutations() {
 
   const createCollection = useMutation({
     mutationFn: async (data: Partial<ExternalCollection>) => {
-      const slug =
-        data.name
-          ?.toLowerCase()
-          .replace(/\s+/g, '-')
-          .replace(/[^a-z0-9-]/g, '') || `col-${Date.now()}`;
+      const slug = data.name?.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') || `col-${Date.now()}`;
       return invokeExternalDbSingle<ExternalCollection>({
         table: 'collections',
         operation: 'insert',
@@ -175,13 +171,7 @@ export function useExternalCollectionMutations() {
   });
 
   const addProductToCollection = useMutation({
-    mutationFn: async ({
-      collectionId,
-      productId,
-    }: {
-      collectionId: string;
-      productId: string;
-    }) => {
+    mutationFn: async ({ collectionId, productId }: { collectionId: string; productId: string }) => {
       return invokeExternalDbSingle<ExternalCollectionProduct>({
         table: 'collection_products',
         operation: 'insert',

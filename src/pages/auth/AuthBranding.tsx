@@ -1,61 +1,42 @@
 /**
  * Left-side branding panel for Auth page — extracted for modularity
  */
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { Gift, Package, Factory, SlidersHorizontal, Brain, Rocket, Sparkles } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { Gift, Package, Factory, SlidersHorizontal, Brain, Rocket } from "lucide-react";
 
-interface RocketData {
-  id: number;
-  left: number;
-  size: number;
-  duration: number;
-  rotation: number;
-  scale: number;
-}
+interface RocketData { id: number; left: number; size: number; duration: number; rotation: number; scale: number; }
 
 export const ContinuousRockets = React.memo(() => {
   const [rockets, setRockets] = useState<RocketData[]>([]);
   const nextIdRef = useRef(0);
 
   const spawnRocket = useCallback((isInitial = false) => {
-    // Check for reduced motion
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
     const id = nextIdRef.current++;
-
+    
     const left = 5 + Math.random() * 90;
     const size = 20 + Math.random() * 35;
-    const duration = isInitial ? 1.5 + Math.random() * 1.5 : 2.2 + Math.random() * 2.8;
-
+    const duration = isInitial 
+      ? (1.5 + Math.random() * 1.5) 
+      : (2.2 + Math.random() * 2.8);
+    
     const rotationOffset = -6 + Math.random() * 12;
     const scale = 0.8 + Math.random() * 0.4;
 
-    const rocket: RocketData = {
-      id,
-      left,
-      size,
-      duration,
-      rotation: rotationOffset,
-      scale,
+    const rocket: RocketData = { 
+      id, left, size, duration, rotation: rotationOffset, scale 
     };
-
+    
     setRockets((prev) => [...prev, rocket]);
-
-    setTimeout(
-      () => {
-        setRockets((prev) => prev.filter((r) => r.id !== id));
-      },
-      (duration + 0.5) * 1000,
-    );
+    
+    setTimeout(() => {
+      setRockets((prev) => prev.filter((r) => r.id !== id));
+    }, (duration + 0.5) * 1000);
   }, []);
 
   useEffect(() => {
-    const isReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (isReduced) return;
-
     // Initial burst
     const delays = [0, 200, 500, 900, 1400, 2000, 2800];
-    const timers = delays.map((d) => setTimeout(() => spawnRocket(true), d));
+    const timers = delays.map(d => setTimeout(() => spawnRocket(true), d));
 
     // Sustained cycle
     const interval = setInterval(() => {
@@ -69,10 +50,7 @@ export const ContinuousRockets = React.memo(() => {
   }, [spawnRocket]);
 
   return (
-    <div
-      className="pointer-events-none absolute inset-0 z-[1] overflow-hidden motion-reduce:hidden"
-      aria-hidden="true"
-    >
+    <div className="pointer-events-none absolute inset-0 overflow-hidden z-[1]" aria-hidden="true">
       {rockets.map((r) => (
         <div
           key={r.id}
@@ -80,14 +58,14 @@ export const ContinuousRockets = React.memo(() => {
           style={{
             left: `${r.left}%`,
             animation: `rocketLaunch ${r.duration}s ease-out forwards`,
-            willChange: 'transform, opacity',
+            willChange: "transform, opacity",
           }}
         >
           <div style={{ transform: `scale(${r.scale}) rotate(${r.rotation}deg)` }}>
-            <div
-              className="animate-rocket-shake relative"
-              style={{
-                animation: 'rocketShake 0.15s ease-in-out infinite',
+            <div 
+              className="relative animate-rocket-shake"
+              style={{ 
+                animation: "rocketShake 0.15s ease-in-out infinite",
               }}
             >
               <Rocket
@@ -95,226 +73,92 @@ export const ContinuousRockets = React.memo(() => {
                 style={{
                   width: r.size,
                   height: r.size,
-                  filter: 'drop-shadow(0 0 12px rgba(251, 146, 60, 0.6))',
+                  filter: "drop-shadow(0 0 12px rgba(251, 146, 60, 0.6))",
                 }}
               />
             </div>
-            <div
-              className="absolute left-1/2 -translate-x-1/2 rounded-full opacity-70"
-              style={{
-                top: `${r.size * 0.7}px`,
-                width: `${r.size * 0.3}px`,
-                height: `${r.size * 1.2}px`,
-                animation: 'flameTrail 0.3s ease-in-out infinite alternate',
-                background: 'linear-gradient(to bottom, #FB923C, #FBBF24, transparent)',
-                zIndex: -1,
-              }}
-            />
-            <div
-              className="absolute left-1/2 -translate-x-1/2 rounded-full opacity-40"
-              style={{
-                top: `${r.size * 0.8}px`,
-                width: `${r.size * 0.15}px`,
-                height: `${r.size * 1.8}px`,
-                animation: 'flameTrail 0.2s ease-in-out infinite alternate-reverse',
-                background: 'linear-gradient(to bottom, #FB923C, transparent)',
-                zIndex: -1,
-              }}
-            />
-            <div
-              className="absolute left-1/2 -translate-x-1/2 rounded-full bg-orange/10"
-              style={{
-                top: `${r.size}px`,
-                width: `${r.size * 2}px`,
-                height: `${r.size * 2}px`,
-                animation: 'smokeRise 2s ease-out forwards',
-                filter: 'blur(12px)',
-                zIndex: -2,
-              }}
-            />
-          </div>
+          {/* Rastro de chamas — gradiente fixo laranja→amarelo para efeito de propulsão consistente */}
+          <div
+            className="absolute left-1/2 -translate-x-1/2 rounded-full opacity-70"
+            style={{
+              top: `${r.size * 0.7}px`,
+              width: `${r.size * 0.3}px`,
+              height: `${r.size * 1.2}px`,
+              animation: "flameTrail 0.3s ease-in-out infinite alternate",
+              background: "linear-gradient(to bottom, #FB923C, #FBBF24, transparent)",
+              zIndex: -1,
+            }}
+          />
+          <div
+            className="absolute left-1/2 -translate-x-1/2 rounded-full opacity-40"
+            style={{
+              top: `${r.size * 0.8}px`,
+              width: `${r.size * 0.15}px`,
+              height: `${r.size * 1.8}px`,
+              animation: "flameTrail 0.2s ease-in-out infinite alternate-reverse",
+              background: "linear-gradient(to bottom, #FB923C, transparent)",
+              zIndex: -1,
+            }}
+          />
+          <div
+            className="absolute left-1/2 -translate-x-1/2 rounded-full bg-orange/10"
+            style={{
+              top: `${r.size}px`,
+              width: `${r.size * 2}px`,
+              height: `${r.size * 2}px`,
+              animation: "smokeRise 2s ease-out forwards",
+              filter: "blur(12px)",
+              zIndex: -2,
+            }}
+          />
         </div>
+      </div>
       ))}
     </div>
   );
 });
 
-const BackgroundRockets = React.memo(() => {
-  // 6 foguetes decorativos bem visíveis subindo no fundo
-  const rockets = [
-    { left: 10, size: 70, duration: 14, delay: 0, opacity: 0.55 },
-    { left: 28, size: 44, duration: 11, delay: 3, opacity: 0.65 },
-    { left: 48, size: 90, duration: 18, delay: 1.5, opacity: 0.45 },
-    { left: 66, size: 38, duration: 9, delay: 5, opacity: 0.7 },
-    { left: 82, size: 60, duration: 13, delay: 2.5, opacity: 0.55 },
-    { left: 94, size: 32, duration: 8, delay: 6.5, opacity: 0.75 },
-  ];
+const Starfield = React.memo(() => {
   return (
-    <div
-      className="pointer-events-none absolute inset-0 z-[0] overflow-hidden motion-reduce:hidden"
-      aria-hidden="true"
-    >
-      {rockets.map((r, i) => (
-        <div
-          key={`bg-rocket-${i}`}
-          className="absolute bottom-[-10%]"
-          style={{
-            left: `${r.left}%`,
-            opacity: r.opacity,
-            animation: `rocketLaunch ${r.duration}s linear ${r.delay}s infinite`,
-            willChange: 'transform, opacity',
-          }}
-        >
-          <div className="relative">
-            <Rocket
-              className="-rotate-45 text-orange"
-              style={{
-                width: r.size,
-                height: r.size,
-                filter: `drop-shadow(0 0 ${r.size * 0.5}px rgba(251, 146, 60, 0.7))`,
-              }}
-            />
-            <div
-              className="absolute left-1/2 -translate-x-1/2 rounded-full"
-              style={{
-                top: `${r.size * 0.7}px`,
-                width: `${r.size * 0.4}px`,
-                height: `${r.size * 1.6}px`,
-                background: 'linear-gradient(to bottom, #FB923C, #FBBF24, transparent)',
-                filter: 'blur(4px)',
-                opacity: 0.85,
-              }}
-            />
-          </div>
-        </div>
-      ))}
-    </div>
+    <>
+      {[...Array(32)].map((_, i) => {
+        const size = 1 + (i % 3);
+        const top = (i * 37 + 11) % 100;
+        const left = (i * 53 + 7) % 100;
+        const dur = 2 + (i % 5);
+        const delay = (i * 0.4) % 3;
+        return (
+          <div
+            key={`star-${i}`}
+            className="absolute rounded-full bg-white/30 shadow-[0_0_8px_rgba(255,255,255,0.3)]"
+            style={{
+              width: `${size}px`,
+              height: `${size}px`,
+              top: `${top}%`,
+              left: `${left}%`,
+              animation: `twinkle ${dur}s ease-in-out ${delay}s infinite`
+            }}
+          />
+        );
+      })}
+    </>
   );
 });
 
-const Starfield = React.memo(({ intensity = 1 }: { intensity?: number }) => {
-  const farStars = useMemo(
-    () =>
-      [...Array(60)].map((_, i) => ({
-        size: 1 + (i % 2),
-        top: (i * 47 + 13) % 100,
-        left: (i * 61 + 9) % 100,
-        dur: 14 + (i % 8),
-        delay: (i * 0.7) % 12,
-      })),
-    [],
-  );
-
-  const midStars = useMemo(
-    () =>
-      [...Array(80)].map((_, i) => ({
-        size: 1.5 + (i % 2),
-        top: (i * 37 + 11) % 100,
-        left: (i * 53 + 7) % 100,
-        dur: 7 + (i % 5),
-        delay: (i * 0.4) % 6,
-      })),
-    [],
-  );
-
-  const nearStars = useMemo(
-    () =>
-      [...Array(40)].map((_, i) => ({
-        size: 2 + (i % 2),
-        top: (i * 29 + 17) % 100,
-        left: (i * 41 + 5) % 100,
-        dur: 3 + (i % 4),
-        delay: (i * 0.2) % 4,
-      })),
-    [],
-  );
-
-  return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden">
-      {/* Camada Distante */}
-      {farStars.map((s, i) => (
-        <div
-          key={`star-far-${i}`}
-          className="absolute rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.3)] blur-[1px]"
-          style={
-            {
-              width: `${s.size}px`,
-              height: `${s.size}px`,
-              top: `${s.top}%`,
-              left: `${s.left}%`,
-              '--star-base-opacity': (0.25 / intensity).toString(),
-              '--star-peak-opacity': (0.6 * intensity).toString(),
-              '--star-peak-scale': (1 + 0.1 * intensity).toString(),
-              animation: `twinkle ${s.dur}s ease-in-out ${s.delay}s infinite`,
-            } as any
-          }
-        />
-      ))}
-
-      {/* Camada Média */}
-      {midStars.map((s, i) => (
-        <div
-          key={`star-mid-${i}`}
-          className="absolute rounded-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.4)]"
-          style={
-            {
-              width: `${s.size}px`,
-              height: `${s.size}px`,
-              top: `${s.top}%`,
-              left: `${s.left}%`,
-              '--star-base-opacity': (0.45 / intensity).toString(),
-              '--star-peak-opacity': (0.85 * intensity).toString(),
-              '--star-peak-scale': (1 + 0.3 * intensity).toString(),
-              animation: `twinkle ${s.dur}s ease-in-out ${s.delay}s infinite`,
-            } as any
-          }
-        />
-      ))}
-
-      {/* Camada Próxima */}
-      {nearStars.map((s, i) => (
-        <div
-          key={`star-near-${i}`}
-          className="absolute rounded-full bg-white shadow-[0_0_15px_rgba(255,255,255,0.7)]"
-          style={
-            {
-              width: `${s.size}px`,
-              height: `${s.size}px`,
-              top: `${s.top}%`,
-              left: `${s.left}%`,
-              '--star-base-opacity': (0.7 / intensity).toString(),
-              '--star-peak-opacity': (1 * intensity).toString(),
-              '--star-peak-scale': (1 + 0.5 * intensity).toString(),
-              animation: `twinkle ${s.dur}s ease-in-out ${s.delay}s infinite`,
-            } as any
-          }
-        />
-      ))}
-    </div>
-  );
-});
-
-function FeatureCard({ item, index }: { item: (typeof FEATURE_ITEMS)[0]; index: number }) {
+function FeatureCard({ item, index }: { item: typeof FEATURE_ITEMS[0]; index: number }) {
   const IconComponent = item.icon;
   return (
-    <div
-      className="group rounded-xl border border-white/10 bg-black/60 p-5 opacity-0 shadow-2xl backdrop-blur-2xl transition-all duration-500 hover:scale-[1.02] hover:border-primary/50 hover:bg-black/80"
-      style={{
-        animation: `scale-fade-in 0.5s ease-out ${300 + index * 100}ms forwards`,
-        boxShadow: '0 0 20px rgba(0,0,0,0.5)',
-      }}
+    <div 
+      className="p-6 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl hover:bg-white/10 hover:border-orange/30 hover:scale-[1.02] transition-all duration-500 group opacity-0"
+      style={{ animation: `scale-fade-in 0.5s ease-out ${300 + index * 150}ms forwards` }}
     >
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex items-start justify-between">
         <div className="min-w-0">
-          <p className="truncate text-lg font-bold leading-tight text-white drop-shadow-md transition-colors group-hover:text-primary">
-            {item.label}
-          </p>
-          <p className="mt-0.5 truncate text-[13px] font-medium uppercase tracking-wider text-white/80 drop-shadow-sm">
-            {item.desc}
-          </p>
+          <p className="text-xl font-bold text-primary truncate">{item.label}</p>
+          <p className="text-sm font-medium text-white/50 truncate">{item.desc}</p>
         </div>
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary/20 shadow-inner transition-colors group-hover:bg-primary/30">
-          <IconComponent className="h-5 w-5 text-primary drop-shadow-[0_0_8px_rgba(var(--primary),0.5)]" />
+        <div className="w-11 h-11 rounded-xl bg-primary/15 flex items-center justify-center group-hover:bg-primary/25 transition-colors shrink-0">
+          <IconComponent className="h-5 w-5 text-primary" />
         </div>
       </div>
     </div>
@@ -322,150 +166,68 @@ function FeatureCard({ item, index }: { item: (typeof FEATURE_ITEMS)[0]; index: 
 }
 
 const FEATURE_ITEMS = [
-  { label: '+20.000', desc: 'Produtos', icon: Package },
-  { label: '+100', desc: 'Fornecedores', icon: Factory },
-  { label: 'Filtros', desc: 'Avançados', icon: SlidersHorizontal },
-  { label: 'IA', desc: 'Assistente Pessoal', icon: Brain },
+  { label: "+20.000", desc: "Produtos", icon: Package },
+  { label: "+100", desc: "Fornecedores", icon: Factory },
+  { label: "Filtros", desc: "Avançados", icon: SlidersHorizontal },
+  { label: "IA", desc: "Assistente Pessoal", icon: Brain },
 ];
-
-/**
- * Fundo espacial unificado — cobre TODA a tela de login (sem divisão no meio).
- * Renderizado uma vez no topo do <Auth/>, antes do branding e do form.
- */
-export function AuthSpaceBackground() {
-  const [intensity, setIntensity] = useState(1);
-  const [showControls, setShowControls] = useState(false);
-
-  return (
-    <div
-      className="pointer-events-none absolute inset-0 overflow-hidden bg-[#0A0D14]"
-      aria-hidden="true"
-    >
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(13,17,26,1)_0%,rgba(5,7,12,1)_100%)] opacity-40" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_center,rgba(251,146,60,0.12)_0%,transparent_75%)] opacity-20 motion-safe:animate-[space-shimmer_8s_ease-in-out_infinite]" />
-      <div className="absolute -left-20 top-1/4 h-80 w-80 animate-pulse rounded-full bg-orange/10 blur-[120px]" />
-      <div className="absolute bottom-1/4 right-0 h-96 w-96 rounded-full bg-orange/5 blur-[150px]" />
-      <div className="absolute left-1/3 top-1/2 h-64 w-64 rounded-full bg-orange/5 blur-[100px]" />
-      <Starfield intensity={intensity} />
-      <BackgroundRockets />
-      <ContinuousRockets />
-
-      {/* Floating Control - Clickable only on parent area if we remove pointer-events-none or add it back to children */}
-      <div className="group pointer-events-auto absolute bottom-6 right-6 z-[50] flex flex-col items-end gap-2">
-        {showControls && (
-          <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-black/80 p-4 shadow-2xl backdrop-blur-xl duration-300 animate-in fade-in slide-in-from-bottom-4">
-            <div className="flex items-center justify-between gap-8">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-white/60">
-                Intensidade do Brilho
-              </span>
-              <span className="font-mono text-xs font-bold text-primary">
-                {(intensity * 100).toFixed(0)}%
-              </span>
-            </div>
-            <input
-              type="range"
-              min="0.2"
-              max="2"
-              step="0.1"
-              value={intensity}
-              onChange={(e) => setIntensity(parseFloat(e.target.value))}
-              className="h-1.5 w-48 cursor-pointer appearance-none rounded-lg bg-white/10 accent-primary"
-            />
-            <div className="flex justify-between px-1 text-[8px] font-medium text-white/30">
-              <span>SUTIL</span>
-              <span>CINEMATOGRÁFICO</span>
-              <span>INTENSO</span>
-            </div>
-          </div>
-        )}
-        <button
-          onClick={() => setShowControls(!showControls)}
-          className="flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-black/60 text-white/60 shadow-xl backdrop-blur-md transition-all hover:scale-110 hover:border-primary/50 hover:text-primary"
-          title="Ajustar Estrelas"
-        >
-          <Sparkles className={`h-5 w-5 ${showControls ? 'text-primary' : ''}`} />
-        </button>
-      </div>
-    </div>
-  );
-}
 
 export function AuthBrandingPanel() {
   return (
-    <div className="relative hidden lg:flex lg:w-1/2">
-      {/* Fundo espacial agora vive no Auth.tsx (full screen). Aqui só o conteúdo. */}
+    <div className="hidden lg:flex lg:w-1/2 bg-[#0A0D14] relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute top-1/4 -left-20 w-80 h-80 bg-orange/20 rounded-full blur-[120px] animate-pulse" />
+        <div className="absolute bottom-1/4 right-0 w-96 h-96 bg-orange/10 rounded-full blur-[150px]" />
+        <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-orange/5 rounded-full blur-[100px]" />
+        <Starfield />
+        <ContinuousRockets />
+      </div>
 
       {/* Content */}
-      <div className="relative z-10 flex w-full flex-col items-center justify-center px-12 xl:px-16">
-        <div className="w-full max-w-lg space-y-5">
-          <div className="flex items-center gap-3">
-            <div className="flex h-[53px] w-[53px] items-center justify-center rounded-xl bg-primary shadow-lg shadow-primary/30">
-              <Gift className="h-6 w-6 text-primary-foreground" />
+      <div className="relative z-10 flex flex-col justify-center items-center px-12 xl:px-20 w-full">
+        <div className="space-y-6 w-full max-w-xl">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-xl bg-primary flex items-center justify-center shadow-lg shadow-primary/30">
+              <Gift className="h-7 w-7 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="font-display text-[1.85rem] font-bold leading-none tracking-tight text-white">
-                Promo Gifts
-              </h1>
-              <p className="mt-1 text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-                Plataforma de Vendas
-              </p>
+              <h1 className="font-display text-4xl font-bold text-white tracking-tight">Promo Gifts</h1>
+              <p className="text-primary font-semibold uppercase tracking-widest text-sm -mt-1">Plataforma de Vendas</p>
             </div>
           </div>
 
-          <div className="max-w-md space-y-3">
-            <h2 className="font-display text-[2.25rem] font-bold leading-[1.15] tracking-tight text-white xl:text-[3rem]">
-              Um Universo de Produtos, para o{' '}
-              <span className="relative inline-flex items-center gap-1.5 text-primary">
-                <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-primary" />
-                Melhor Time das Galáxias!
+          <div className="space-y-4 max-w-md">
+            <h2 className="text-5xl xl:text-6xl font-display font-bold text-white leading-[1.1] tracking-tight relative group">
+              Um Universo de Produtos, para{" "}
+              <span className="text-primary relative">
+                ● Melhor Time das Galáxias!
+                <div className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r from-orange/0 via-orange/60 to-orange/0 scale-x-0 group-hover:scale-x-100 transition-transform duration-700" />
               </span>
             </h2>
-            <p className="text-base font-normal leading-relaxed text-white/80 drop-shadow-sm">
-              Acesso ao maior mix de produtos personalizados, estoque em tempo real e técnicas de
-              personalização. Feito para você decolar.
+            <p className="text-xl text-white/70 leading-relaxed font-light">
+              Tenha acesso ao maior mix de produtos personalizados, consulte estoque em tempo real, visualize locais e técnicas de personalização. Feito especialmente para você decolar!!!
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 pt-2">
+          <div className="grid grid-cols-2 gap-4 pt-6">
             {FEATURE_ITEMS.map((item, i) => (
               <FeatureCard key={i} item={item} index={i} />
             ))}
           </div>
 
           {/* Trust Indicators */}
-          <div
-            className="flex items-center gap-4 pt-6 opacity-0"
-            style={{ animation: 'scale-fade-in 0.5s ease-out 900ms forwards' }}
-          >
+          <div className="flex items-center gap-4 pt-6 opacity-0" style={{ animation: 'scale-fade-in 0.5s ease-out 900ms forwards' }}>
             {[
-              {
-                label: 'Conexão segura',
-                path: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z',
-              },
-              {
-                label: 'Dados criptografados',
-                path: 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z',
-              },
-              {
-                label: 'Infraestrutura SOC 2',
-                path: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4',
-              },
+              { label: "Conexão segura", path: "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" },
+              { label: "Dados criptografados", path: "M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" },
+              { label: "Infraestrutura SOC 2", path: "M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" },
             ].map((item, i) => (
               <React.Fragment key={i}>
-                {i > 0 && <div className="h-4 w-px bg-border" />}
+                {i > 0 && <div className="w-px h-4 bg-border" />}
                 <div className="flex items-center gap-2 text-xs text-white/40">
-                  <svg
-                    className="h-4 w-4 text-success"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d={item.path}
-                    />
+                  <svg className="h-4 w-4 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.path} />
                   </svg>
                   <span>{item.label}</span>
                 </div>
@@ -477,3 +239,4 @@ export function AuthBrandingPanel() {
     </div>
   );
 }
+

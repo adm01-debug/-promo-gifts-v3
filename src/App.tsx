@@ -1,172 +1,143 @@
-import React, { type ReactNode, Suspense, useEffect } from 'react';
-import { Toaster } from '@/components/ui/toaster';
-import { Toaster as Sonner } from '@/components/ui/sonner';
-import { TooltipProvider } from '@/components/ui/tooltip';
-import { QueryClientProvider } from '@tanstack/react-query';
-import { createQueryClient } from '@/lib/query-config';
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import React, { type ReactNode, Suspense, useEffect } from "react";
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { createQueryClient } from "@/lib/query-config";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 
-import { lazyWithRetry } from '@/lib/lazyWithRetry';
-import { AuthProvider } from '@/contexts/AuthContext';
-import { ThemeProvider } from '@/contexts/ThemeContext';
-import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
-import { AdminRoute } from '@/components/layout/AdminRoute';
-import { DevRoute } from '@/components/layout/DevRoute';
-import { DeprecatedRoute } from '@/components/layout/DeprecatedRoute';
-import { RouteErrorBoundary } from '@/components/errors/RouteErrorBoundary';
-import { AppProviders } from '@/components/providers/AppProviders';
-import { AccessibilityProvider, AriaLiveProvider } from '@/components/a11y';
-import { getFallback } from '@/components/layout/SkeletonLoaders';
-import { BridgeStatusBanner } from '@/components/BridgeStatusBanner';
-import { CloudStatusBanner } from '@/components/system/CloudStatusBanner';
-import { GlobalOfflineAlert } from '@/components/common/GlobalOfflineAlert';
-import { DevOnlyBridgeOverlay } from '@/components/dev/DevOnlyBridgeOverlay';
-import { RouteScrollReset } from '@/components/common/RouteScrollReset';
-import { useAppBootstrap } from '@/hooks/useAppBootstrap';
-import './App.css';
-import { ThemeInitializer } from '@/components/ThemeInitializer';
-import { prefetchRoute } from '@/lib/routePrefetch';
-import { initWebVitals } from '@/lib/telemetry/vitals';
-
-// WebVitals initialization is handled in main.tsx to avoid duplication
-
+import { lazyWithRetry } from "@/lib/lazyWithRetry";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
+import { ProtectedRoute } from "@/components/layout/ProtectedRoute";
+import { AdminRoute } from "@/components/layout/AdminRoute";
+import { DevRoute } from "@/components/layout/DevRoute";
+import { DeprecatedRoute } from "@/components/layout/DeprecatedRoute";
+import { AppProviders } from "@/components/providers/AppProviders";
+import { AccessibilityProvider, AriaLiveProvider } from "@/components/a11y";
+import { getFallback } from "@/components/layout/SkeletonLoaders";
+import { BridgeStatusBanner } from "@/components/BridgeStatusBanner";
+import { CloudStatusBanner } from "@/components/system/CloudStatusBanner";
+import { GlobalOfflineAlert } from "@/components/common/GlobalOfflineAlert";
+import { DevOnlyBridgeOverlay } from "@/components/dev/DevOnlyBridgeOverlay";
+import { RouteScrollReset } from "@/components/common/RouteScrollReset";
+import { useAppBootstrap } from "@/hooks/useAppBootstrap";
+import "./App.css";
+import { ThemeInitializer } from "@/components/ThemeInitializer";
+import { prefetchRoute } from "@/lib/routePrefetch";
 const queryClient = createQueryClient();
 
 // Auth Pages
-const Auth = lazyWithRetry(() => import('./pages/Auth'));
-const Unauthorized = lazyWithRetry(() =>
-  import('@/components/access/UnauthorizedPage').then((m) => ({ default: m.UnauthorizedPage })),
-);
-const ResetPassword = lazyWithRetry(() => import('./pages/ResetPassword'));
-const Index = lazyWithRetry(() => import('./pages/Index'));
-const PublicQuoteApproval = lazyWithRetry(() => import('./pages/PublicQuoteApprovalPage'));
-const QuoteApprovalPage = lazyWithRetry(() => import('./pages/QuoteApprovalPage'));
-const PublicKitView = lazyWithRetry(() => import('./pages/PublicKitViewPage'));
-const PublicFavoriteList = lazyWithRetry(() => import('./pages/PublicFavoriteListPage'));
-const PublicCollectionPage = lazyWithRetry(() => import('./pages/PublicCollectionPage'));
-const PublicComparisonPage = lazyWithRetry(() => import('./pages/PublicComparisonPage'));
-const NotFound = lazyWithRetry(() => import('./pages/NotFound'));
+const Auth = lazyWithRetry(() => import("./pages/Auth"));
+const Unauthorized = lazyWithRetry(() => import("@/components/access/UnauthorizedPage").then(m => ({ default: m.UnauthorizedPage })));
+const ResetPassword = lazyWithRetry(() => import("./pages/ResetPassword"));
+const Index = lazyWithRetry(() => import("./pages/Index"));
+const PublicQuoteApproval = lazyWithRetry(() => import("./pages/PublicQuoteApprovalPage"));
+const PublicKitView = lazyWithRetry(() => import("./pages/PublicKitViewPage"));
+const PublicFavoriteList = lazyWithRetry(() => import("./pages/PublicFavoriteListPage"));
+const PublicCollectionPage = lazyWithRetry(() => import("./pages/PublicCollectionPage"));
+const PublicComparisonPage = lazyWithRetry(() => import("./pages/PublicComparisonPage"));
+const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
 
 // Product Pages
-const ProductDetail = lazyWithRetry(() => import('./pages/ProductDetail'));
-const FiltersPage = lazyWithRetry(() => import('./pages/FiltersPage'));
-const NoveltiesPage = lazyWithRetry(() => import('./pages/NoveltiesPage'));
-const ReplenishmentsPage = lazyWithRetry(() => import('./pages/ReplenishmentsPage'));
-const FavoritesPage = lazyWithRetry(() => import('./pages/FavoritesPage'));
-const SellerCartsPage = lazyWithRetry(() => import('./pages/SellerCartsPage'));
-const ComparePage = lazyWithRetry(() => import('./pages/ComparePage'));
-const CollectionsPage = lazyWithRetry(() => import('./pages/CollectionsPage'));
-
-const CollectionDetailPage = lazyWithRetry(() => import('./pages/CollectionDetailPage'));
+const ProductDetail = lazyWithRetry(() => import("./pages/ProductDetail"));
+const FiltersPage = lazyWithRetry(() => import("./pages/FiltersPage"));
+const NoveltiesPage = lazyWithRetry(() => import("./pages/NoveltiesPage"));
+const ReplenishmentsPage = lazyWithRetry(() => import("./pages/ReplenishmentsPage"));
+const FavoritesPage = lazyWithRetry(() => import("./pages/FavoritesPage"));
+const SellerCartsPage = lazyWithRetry(() => import("./pages/SellerCartsPage"));
+const ComparePage = lazyWithRetry(() => import("./pages/ComparePage"));
+const CollectionsPage = lazyWithRetry(() => import("./pages/CollectionsPage"));
+const PersonalizationSimulator = lazyWithRetry(() => import("./pages/PersonalizationSimulator"));
+const CollectionDetailPage = lazyWithRetry(() => import("./pages/CollectionDetailPage"));
 
 // Quote Pages
-const QuoteTemplatesPage = lazyWithRetry(() => import('./pages/QuoteTemplatesPage'));
-const QuotesListPage = lazyWithRetry(() => import('./pages/QuotesListPage'));
-const QuotesDashboardPage = lazyWithRetry(() => import('./pages/QuotesDashboardPage'));
-const QuoteBuilderPage = lazyWithRetry(() => import('./pages/QuoteBuilderPage'));
-const QuoteViewPage = lazyWithRetry(() => import('./pages/QuoteViewPage'));
-const QuoteDetailPage = lazyWithRetry(() => import('./pages/QuoteDetailPage'));
-const QuotesKanbanPage = lazyWithRetry(() => import('./pages/QuotesKanbanPage'));
+const QuoteTemplatesPage = lazyWithRetry(() => import("./pages/QuoteTemplatesPage"));
+const QuotesListPage = lazyWithRetry(() => import("./pages/QuotesListPage"));
+const QuotesDashboardPage = lazyWithRetry(() => import("./pages/QuotesDashboardPage"));
+const QuoteBuilderPage = lazyWithRetry(() => import("./pages/QuoteBuilderPage"));
+const QuoteViewPage = lazyWithRetry(() => import("./pages/QuoteViewPage"));
+const QuotesKanbanPage = lazyWithRetry(() => import("./pages/QuotesKanbanPage"));
 
 // Admin Pages
-const AdminUsuariosPage = lazyWithRetry(() => import('./pages/admin/AdminUsuariosPage'));
-const AdminPromoverUsuarioPage = lazyWithRetry(
-  () => import('./pages/admin/AdminPromoverUsuarioPage'),
-);
-const AdminSegurancaPage = lazyWithRetry(() => import('./pages/admin/AdminSegurancaPage'));
-const AdminCadastrosPage = lazyWithRetry(() => import('./pages/admin/AdminCadastrosPage'));
-const AdminPromptsIAPage = lazyWithRetry(() => import('./pages/admin/AdminPromptsIAPage'));
-const AdminProductFormPage = lazyWithRetry(() => import('./pages/admin/AdminProductFormPage'));
-const AdminTelemetriaPage = lazyWithRetry(() => import('./pages/admin/AdminTelemetriaPage'));
-const AdminDesignTokensPage = lazyWithRetry(() => import('./pages/admin/AdminDesignTokensPage'));
-const AdminTemasPage = lazyWithRetry(() => import('./pages/admin/AdminTemasPage'));
-const AdminWorkflowsPage = lazyWithRetry(() => import('./pages/admin/AdminWorkflowsPage'));
-const AdminLoginAttemptsPage = lazyWithRetry(() => import('./pages/admin/AdminLoginAttemptsPage'));
-const AdminExternalDbPage = lazyWithRetry(() => import('./pages/admin/AdminExternalDbPage'));
-const AdminVideoVariantsPage = lazyWithRetry(() => import('./pages/admin/AdminVideoVariantsPage'));
-const AdminAiUsagePage = lazyWithRetry(() => import('./pages/admin/AdminAiUsagePage'));
-const KitTemplatesAdminPage = lazyWithRetry(() => import('./pages/admin/KitTemplatesAdminPage'));
-const KitTemplatesMetricsPage = lazyWithRetry(
-  () => import('./pages/admin/KitTemplatesMetricsPage'),
-);
-const PriceFreshnessSettingsPage = lazyWithRetry(
-  () => import('./pages/admin/PriceFreshnessSettings'),
-);
+const AdminUsuariosPage = lazyWithRetry(() => import("./pages/admin/AdminUsuariosPage"));
+const AdminPromoverUsuarioPage = lazyWithRetry(() => import("./pages/admin/AdminPromoverUsuarioPage"));
+const AdminSegurancaPage = lazyWithRetry(() => import("./pages/admin/AdminSegurancaPage"));
+const AdminCadastrosPage = lazyWithRetry(() => import("./pages/admin/AdminCadastrosPage"));
+const AdminPromptsIAPage = lazyWithRetry(() => import("./pages/admin/AdminPromptsIAPage"));
+const AdminProductFormPage = lazyWithRetry(() => import("./pages/admin/AdminProductFormPage"));
+const AdminTelemetriaPage = lazyWithRetry(() => import("./pages/admin/AdminTelemetriaPage"));
+const AdminDesignTokensPage = lazyWithRetry(() => import("./pages/admin/AdminDesignTokensPage"));
+const AdminTemasPage = lazyWithRetry(() => import("./pages/admin/AdminTemasPage"));
+const AdminWorkflowsPage = lazyWithRetry(() => import("./pages/admin/AdminWorkflowsPage"));
+const AdminLoginAttemptsPage = lazyWithRetry(() => import("./pages/admin/AdminLoginAttemptsPage"));
+const AdminExternalDbPage = lazyWithRetry(() => import("./pages/admin/AdminExternalDbPage"));
+const AdminVideoVariantsPage = lazyWithRetry(() => import("./pages/admin/AdminVideoVariantsPage"));
+const AdminAiUsagePage = lazyWithRetry(() => import("./pages/admin/AdminAiUsagePage"));
+const KitTemplatesAdminPage = lazyWithRetry(() => import("./pages/admin/KitTemplatesAdminPage"));
+const KitTemplatesMetricsPage = lazyWithRetry(() => import("./pages/admin/KitTemplatesMetricsPage"));
+const PriceFreshnessSettingsPage = lazyWithRetry(() => import("./pages/admin/PriceFreshnessSettings"));
 
-const AdminSegurancaAcessoPage = lazyWithRetry(
-  () => import('./pages/admin/AdminSegurancaAcessoPage'),
-);
-const AdminSegurancaChavesPage = lazyWithRetry(
-  () => import('./pages/admin/AdminSegurancaChavesPage'),
-);
-const DevChallengeExamplesPage = lazyWithRetry(
-  () => import('./pages/admin/DevChallengeExamplesPage'),
-);
-const AdminMigracaoPapeisPage = lazyWithRetry(
-  () => import('./pages/admin/AdminMigracaoPapeisPage'),
-);
-const AdminConexoesPage = lazyWithRetry(() => import('./pages/admin/AdminConexoesPage'));
-const AdminConexoesStatusPage = lazyWithRetry(
-  () => import('./pages/admin/AdminConexoesStatusPage'),
-);
-const AdminRbacRoutesPage = lazyWithRetry(() => import('./pages/admin/AdminRbacRoutesPage'));
-const SellerDiscountLimitsAdminPage = lazyWithRetry(
-  () => import('./pages/admin/SellerDiscountLimitsAdminPage'),
-);
-const RlsDenialsAdminPage = lazyWithRetry(() => import('./pages/admin/RlsDenialsAdminPage'));
-const OwnershipAuditAdminPage = lazyWithRetry(
-  () => import('./pages/admin/OwnershipAuditAdminPage'),
-);
-const ComplianceEvidencePage = lazyWithRetry(() => import('./pages/admin/ComplianceEvidencePage'));
-const EngravingRegistrationPage = lazyWithRetry(() => import('./pages/EngravingRegistrationPage'));
-const ProductRegistrationPage = lazyWithRetry(() => import('./pages/ProductRegistrationPage'));
-const SimuladorWizard = lazyWithRetry(() => import('./pages/SimuladorWizard'));
-const MockupGenerator = lazyWithRetry(() => import('./pages/MockupGenerator'));
-const MagicUp = lazyWithRetry(() => import('./pages/MagicUp'));
-const PriceSimulatorPage = lazyWithRetry(() => import('./pages/PriceSimulatorPage'));
-const StockDashboardPage = lazyWithRetry(() => import('./pages/StockDashboardPage'));
-const AdvancedPriceSearchPage = lazyWithRetry(() => import('./pages/AdvancedPriceSearchPage'));
-const KitBuilderPage = lazyWithRetry(() => import('./pages/KitBuilderPage'));
+const AdminSegurancaAcessoPage = lazyWithRetry(() => import("./pages/admin/AdminSegurancaAcessoPage"));
+const AdminSegurancaChavesPage = lazyWithRetry(() => import("./pages/admin/AdminSegurancaChavesPage"));
+const DevChallengeExamplesPage = lazyWithRetry(() => import("./pages/admin/DevChallengeExamplesPage"));
+const AdminMigracaoPapeisPage = lazyWithRetry(() => import("./pages/admin/AdminMigracaoPapeisPage"));
+const AdminConexoesPage = lazyWithRetry(() => import("./pages/admin/AdminConexoesPage"));
+const AdminConexoesStatusPage = lazyWithRetry(() => import("./pages/admin/AdminConexoesStatusPage"));
+const AdminRbacRoutesPage = lazyWithRetry(() => import("./pages/admin/AdminRbacRoutesPage"));
+const SellerDiscountLimitsAdminPage = lazyWithRetry(() => import("./pages/admin/SellerDiscountLimitsAdminPage"));
+const RlsDenialsAdminPage = lazyWithRetry(() => import("./pages/admin/RlsDenialsAdminPage"));
+const OwnershipAuditAdminPage = lazyWithRetry(() => import("./pages/admin/OwnershipAuditAdminPage"));
+const ComplianceEvidencePage = lazyWithRetry(() => import("./pages/admin/ComplianceEvidencePage"));
 
-const MeusKitsPage = lazyWithRetry(() => import('./pages/KitLibraryPage'));
-const MockupHistoryPage = lazyWithRetry(() => import('./pages/MockupHistoryPage'));
-const DropboxBrowserPage = lazyWithRetry(() => import('./pages/DropboxBrowserPage'));
-const CommercialIntelligencePage = lazyWithRetry(
-  () => import('./pages/CommercialIntelligencePage'),
-);
-const ProductMatchPage = lazyWithRetry(() => import('./pages/ProductMatchPage'));
-const BusinessIntelligencePage = lazyWithRetry(() => import('./pages/BusinessIntelligencePage'));
-const ClientComparatorPage = lazyWithRetry(() => import('./pages/ClientComparatorPage'));
-const PublicDossierPage = lazyWithRetry(() => import('./pages/PublicDossierPage'));
+// Tools Pages
+const SimuladorWizard = lazyWithRetry(() => import("./pages/SimuladorWizard"));
+const MockupGenerator = lazyWithRetry(() => import("./pages/MockupGenerator"));
+const MagicUp = lazyWithRetry(() => import("./pages/MagicUp"));
+const PriceSimulatorPage = lazyWithRetry(() => import("./pages/PriceSimulatorPage"));
+const StockDashboardPage = lazyWithRetry(() => import("./pages/StockDashboardPage"));
+const AdvancedPriceSearchPage = lazyWithRetry(() => import("./pages/AdvancedPriceSearchPage"));
+const KitBuilderPage = lazyWithRetry(() => import("./pages/KitBuilderPage"));
+
+const MeusKitsPage = lazyWithRetry(() => import("./pages/KitLibraryPage"));
+const MockupHistoryPage = lazyWithRetry(() => import("./pages/MockupHistoryPage"));
+const DropboxBrowserPage = lazyWithRetry(() => import("./pages/DropboxBrowserPage"));
+const CommercialIntelligencePage = lazyWithRetry(() => import("./pages/CommercialIntelligencePage"));
+const ProductMatchPage = lazyWithRetry(() => import("./pages/ProductMatchPage"));
+const BusinessIntelligencePage = lazyWithRetry(() => import("./pages/BusinessIntelligencePage"));
+const ClientComparatorPage = lazyWithRetry(() => import("./pages/ClientComparatorPage"));
+const PublicDossierPage = lazyWithRetry(() => import("./pages/PublicDossierPage"));
 
 // Orders Pages
-const OrdersPage = lazyWithRetry(() => import('./pages/OrdersPage'));
-const OrderDetailPage = lazyWithRetry(() => import('./pages/OrderDetailPage'));
+const OrdersPage = lazyWithRetry(() => import("./pages/OrdersPage"));
+const OrderDetailPage = lazyWithRetry(() => import("./pages/OrderDetailPage"));
 
 // Clients (CRM) Pages
-const ClientsPage = lazyWithRetry(() => import('./pages/ClientsPage'));
-const ClientDetailPage = lazyWithRetry(() => import('./pages/ClientDetailPage'));
+const ClientsPage = lazyWithRetry(() => import("./pages/ClientsPage"));
+const ClientDetailPage = lazyWithRetry(() => import("./pages/ClientDetailPage"));
+
 
 // Analytics Pages
-const TrendsPage = lazyWithRetry(() => import('./pages/TrendsPage'));
+const TrendsPage = lazyWithRetry(() => import("./pages/TrendsPage"));
+
 
 // System Pages
-const SystemStatusPage = lazyWithRetry(() => import('./pages/SystemStatusPage'));
-const RateLimitDashboard = lazyWithRetry(() => import('./pages/RateLimitDashboardPage'));
-const ExternalDatabaseTest = lazyWithRetry(() => import('./pages/ExternalDatabaseTest'));
+const SystemStatusPage = lazyWithRetry(() => import("./pages/SystemStatusPage"));
+const RateLimitDashboard = lazyWithRetry(() => import("./pages/RateLimitDashboardPage"));
+const ExternalDatabaseTest = lazyWithRetry(() => import("./pages/ExternalDatabaseTest"));
 
 // Admin - Roles & Permissions
-const PermissionsPage = lazyWithRetry(() => import('./pages/PermissionsPage'));
-const RolesPage = lazyWithRetry(() => import('./pages/RolesPage'));
-const RolePermissionsPage = lazyWithRetry(() => import('./pages/RolePermissionsPage'));
+const PermissionsPage = lazyWithRetry(() => import("./pages/PermissionsPage"));
+const RolesPage = lazyWithRetry(() => import("./pages/RolesPage"));
+const RolePermissionsPage = lazyWithRetry(() => import("./pages/RolePermissionsPage"));
 
 // Dashboard
-const CustomizableDashboard = lazyWithRetry(() => import('./pages/CustomizableDashboard'));
+const CustomizableDashboard = lazyWithRetry(() => import("./pages/CustomizableDashboard"));
 
 // Auth Callbacks
-const QAPage = lazyWithRetry(() => import('./pages/QAPage'));
-const SidebarQAPage = lazyWithRetry(() => import('./pages/SidebarQAPage'));
-const SSOCallbackPage = lazyWithRetry(() => import('./pages/SSOCallbackPage'));
+const QAPage = lazyWithRetry(() => import("./pages/QAPage"));
+const SidebarQAPage = lazyWithRetry(() => import("./pages/SidebarQAPage"));
+const SSOCallbackPage = lazyWithRetry(() => import("./pages/SSOCallbackPage"));
 
 /** Componente interno que roda hooks que dependem de AuthProvider */
 function AppBootstrapContainer({ children }: { children: ReactNode }) {
@@ -183,142 +154,51 @@ function RouteSuspense({ children }: { children: ReactNode }) {
 /** 🚀 PREFETCH CORE CHUNKS: Warm up the next predicted routes for instant feel */
 function RoutePrefetcher() {
   const { pathname } = useLocation();
-
+  
   useEffect(() => {
     // Check for save-data mode to avoid unnecessary data usage
-    const conn = (navigator as unknown as { connection?: { saveData?: boolean } }).connection;
+    const conn = (navigator as any).connection;
     if (conn?.saveData) {
       return;
     }
-
+    
     // Only prefetch core routes to keep bundle small
-    if (pathname === '/login') {
-      prefetchRoute('/');
-      prefetchRoute('/produtos');
-    } else if (pathname === '/') {
-      prefetchRoute('/produtos');
-      prefetchRoute('/orcamentos');
-    } else if (pathname === '/produtos' || pathname === '/filtros') {
-      prefetchRoute('/orcamentos/novo');
-      prefetchRoute('/favoritos');
-      prefetchRoute('/comparar');
-    } else if (pathname.startsWith('/orcamentos')) {
-      prefetchRoute('/orcamentos/novo');
+    if (pathname === "/login") {
+       prefetchRoute("/");
+       prefetchRoute("/produtos");
+    } else if (pathname === "/") {
+       prefetchRoute("/produtos");
+       prefetchRoute("/orcamentos");
+    } else if (pathname === "/produtos" || pathname === "/filtros") {
+       prefetchRoute("/orcamentos/novo");
+       prefetchRoute("/favoritos");
+       prefetchRoute("/comparar");
+    } else if (pathname.startsWith("/orcamentos")) {
+       prefetchRoute("/orcamentos/novo");
     }
   }, [pathname]);
-
+  
   return null;
 }
 
-export const AppContent = () => {
+const AppContent = () => {
   return (
     <Routes>
-      {/* Public Routes - Wrapped in RouteErrorBoundary for safety */}
-      <Route
-        path="/login"
-        element={
-          <RouteErrorBoundary>
-            <Auth />
-          </RouteErrorBoundary>
-        }
-      />
-      <Route
-        path="/reset-password"
-        element={
-          <RouteErrorBoundary>
-            <ResetPassword />
-          </RouteErrorBoundary>
-        }
-      />
-      <Route
-        path="/approve/:token"
-        element={
-          <RouteErrorBoundary>
-            <PublicQuoteApproval />
-          </RouteErrorBoundary>
-        }
-      />
-      <Route
-        path="/proposta/:token"
-        element={
-          <RouteErrorBoundary>
-            <PublicQuoteApproval />
-          </RouteErrorBoundary>
-        }
-      />
-      <Route
-        path="/approval/:token"
-        element={
-          <RouteErrorBoundary>
-            <QuoteApprovalPage />
-          </RouteErrorBoundary>
-        }
-      />
-      <Route
-        path="/kit/:token"
-        element={
-          <RouteErrorBoundary>
-            <PublicKitView />
-          </RouteErrorBoundary>
-        }
-      />
-      <Route
-        path="/lista-publica/:token"
-        element={
-          <RouteErrorBoundary>
-            <PublicFavoriteList />
-          </RouteErrorBoundary>
-        }
-      />
-      <Route
-        path="/colecao-publica/:token"
-        element={
-          <RouteErrorBoundary>
-            <PublicCollectionPage />
-          </RouteErrorBoundary>
-        }
-      />
-      <Route
-        path="/comparar-publica/:token"
-        element={
-          <RouteErrorBoundary>
-            <PublicComparisonPage />
-          </RouteErrorBoundary>
-        }
-      />
-      <Route
-        path="/dossie/:token"
-        element={
-          <RouteErrorBoundary>
-            <PublicDossierPage />
-          </RouteErrorBoundary>
-        }
-      />
-      <Route
-        path="/auth/callback"
-        element={
-          <RouteErrorBoundary>
-            <SSOCallbackPage />
-          </RouteErrorBoundary>
-        }
-      />
-      <Route
-        path="/unauthorized"
-        element={
-          <RouteErrorBoundary>
-            <Unauthorized />
-          </RouteErrorBoundary>
-        }
-      />
+      {/* Public Routes */}
+      <Route path="/login" element={<Auth />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/approve/:token" element={<PublicQuoteApproval />} />
+      <Route path="/proposta/:token" element={<PublicQuoteApproval />} />
+      <Route path="/kit/:token" element={<PublicKitView />} />
+      <Route path="/lista-publica/:token" element={<PublicFavoriteList />} />
+      <Route path="/colecao-publica/:token" element={<PublicCollectionPage />} />
+      <Route path="/comparar-publica/:token" element={<PublicComparisonPage />} />
+      <Route path="/dossie/:token" element={<PublicDossierPage />} />
+      <Route path="/auth/callback" element={<SSOCallbackPage />} />
+      <Route path="/unauthorized" element={<Unauthorized />} />
 
       {/* Protected Layout Route */}
-      <Route
-        element={
-          <RouteErrorBoundary>
-            <ProtectedRoute />
-          </RouteErrorBoundary>
-        }
-      >
+      <Route element={<ProtectedRoute />}>
         {/* Home */}
         <Route path="/" element={<Index />} />
         <Route path="/dashboard" element={<CustomizableDashboard />} />
@@ -326,23 +206,14 @@ export const AppContent = () => {
         {/* Products */}
         <Route path="/produtos" element={<Index />} />
         <Route path="/produto" element={<Navigate to="/produtos" replace />} />
-        <Route path="/mockup-generator" element={<Navigate to="/ferramentas/mockup-generator" replace />} />
-        <Route path="/simulador" element={<Navigate to="/ferramentas/simulador-wizard" replace />} />
-        <Route path="/simulador-precos" element={<Navigate to="/ferramentas/simulador-preco" replace />} />
-        <Route path="/montar-kit" element={<Navigate to="/ferramentas/kit-builder" replace />} />
-        <Route path="/kits" element={<Navigate to="/ferramentas/kit-builder" replace />} />
-        <Route path="/meus-kits" element={<Navigate to="/ferramentas/kit-library" replace />} />
-        <Route path="/busca-preco" element={<Navigate to="/ferramentas/busca-avancada-preco" replace />} />
-        <Route path="/busca-precos" element={<Navigate to="/ferramentas/busca-avancada-preco" replace />} />
         <Route path="/produto/:id" element={<ProductDetail />} />
         <Route path="/filtros" element={<FiltersPage />} />
         <Route path="/novidades" element={<NoveltiesPage />} />
         <Route path="/reposicao" element={<ReplenishmentsPage />} />
         <Route path="/favoritos" element={<FavoritesPage />} />
         <Route path="/estoque" element={<StockDashboardPage />} />
-        <Route path="/tendencias" element={<TrendsPage />} />
         <Route path="/carrinhos" element={<SellerCartsPage />} />
-
+        
         <Route path="/carrinhos/:cartId" element={<SellerCartsPage />} />
         <Route path="/comparar" element={<ComparePage />} />
         <Route path="/colecoes" element={<CollectionsPage />} />
@@ -356,20 +227,13 @@ export const AppContent = () => {
         <Route path="/orcamentos/templates" element={<QuoteTemplatesPage />} />
         <Route path="/orcamentos/novo" element={<QuoteBuilderPage />} />
         <Route path="/orcamentos/:id/editar" element={<QuoteBuilderPage />} />
-        <Route path="/orcamentos/:id/detalhe" element={<QuoteDetailPage />} />
         <Route path="/orcamentos/:id" element={<QuoteViewPage />} />
 
         {/* Skins / Temas — disponível para todos os usuários autenticados (preferência local). */}
         <Route path="/admin/temas" element={<AdminTemasPage />} />
 
         {/* Admin Layout Route — supervisor + dev (gestão de negócio) */}
-        <Route
-          element={
-            <RouteErrorBoundary>
-              <AdminRoute />
-            </RouteErrorBoundary>
-          }
-        >
+        <Route element={<AdminRoute />}>
           <Route path="/admin" element={<Navigate to="/admin/usuarios" replace />} />
           <Route path="/admin/usuarios" element={<AdminUsuariosPage />} />
           <Route path="/admin/usuarios/promover" element={<AdminPromoverUsuarioPage />} />
@@ -379,99 +243,74 @@ export const AppContent = () => {
           <Route path="/admin/compliance" element={<ComplianceEvidencePage />} />
           <Route path="/admin/cadastros" element={<AdminCadastrosPage />} />
           <Route path="/admin/cadastros/produto/:id" element={<AdminProductFormPage />} />
-          <Route path="/admin/cadastros/produto/novo" element={<ProductRegistrationPage />} />
-          <Route path="/admin/cadastros/gravacoes" element={<EngravingRegistrationPage />} />
           <Route path="/admin/permissoes" element={<PermissionsPage />} />
           <Route path="/admin/roles" element={<RolesPage />} />
           <Route path="/admin/role-permissoes" element={<RolePermissionsPage />} />
           <Route path="/admin/video-variantes" element={<AdminVideoVariantsPage />} />
           <Route path="/admin/kit-templates" element={<KitTemplatesAdminPage />} />
           <Route path="/admin/kit-templates/metricas" element={<KitTemplatesMetricsPage />} />
-          <Route path="/admin/ia-uso" element={<AdminAiUsagePage />} />
-          <Route
-            path="/admin/aprovacoes-desconto"
-            element={
-              <DeprecatedRoute
-                message="A gestão de descontos foi movida para a aba 'Descontos' em Usuários."
-                redirectTo="/admin/usuarios?tab=discounts"
-              />
-            }
-          />
-          <Route
-            path="/admin/performance"
-            element={
-              <DeprecatedRoute
-                message="O módulo de Performance foi descontinuado. Use o BI Comercial para análises."
-                redirectTo="/ferramentas/bi-comercial"
-              />
-            }
-          />
-          <Route
-            path="/admin/performance-comercial"
-            element={
-              <DeprecatedRoute
-                message="O módulo de Performance Comercial foi descontinuado. Use o BI Comercial para análises."
-                redirectTo="/ferramentas/bi-comercial"
-              />
-            }
-          />
+          <Route path="/admin/aprovacoes-desconto" element={<DeprecatedRoute message="A gestão de descontos foi movida para a aba 'Descontos' em Usuários." redirectTo="/admin/usuarios?tab=discounts" />} />
+          <Route path="/admin/performance" element={<DeprecatedRoute message="O módulo de Performance foi descontinuado. Use o BI Comercial para análises." redirectTo="/ferramentas/bi" />} />
+          <Route path="/admin/performance-comercial" element={<DeprecatedRoute message="O módulo de Performance Comercial foi descontinuado. Use o BI Comercial para análises." redirectTo="/ferramentas/bi" />} />
+          <Route path="/admin/comissoes" element={<DeprecatedRoute message="O módulo de Comissões foi descontinuado nesta plataforma." redirectTo="/admin/usuarios" />} />
+          <Route path="/tendencias" element={<TrendsPage />} />
+
+          {/* DEV-ONLY — páginas técnicas com risco elevado (telemetria, conexões, secrets, MCP, audit técnico, prompts IA) */}
+          <Route element={<DevRoute />}>
+            <Route path="/admin/seguranca" element={<AdminSegurancaPage />} />
+            <Route path="/admin/seguranca-acesso" element={<AdminSegurancaAcessoPage />} />
+            <Route path="/admin/seguranca/chaves" element={<AdminSegurancaChavesPage />} />
+            <Route path="/admin/seguranca/exemplos-challenge" element={<DevChallengeExamplesPage />} />
+            <Route path="/admin/seguranca/migracao-papeis" element={<AdminMigracaoPapeisPage />} />
+            <Route path="/admin/prompts-ia" element={<AdminPromptsIAPage />} />
+            <Route path="/admin/validade-precos" element={<PriceFreshnessSettingsPage />} />
+            <Route path="/admin/telemetria" element={<AdminTelemetriaPage />} />
+            <Route path="/admin/design-tokens" element={<AdminDesignTokensPage />} />
+            <Route path="/admin/rate-limit" element={<RateLimitDashboard />} />
+            <Route path="/admin/workflows" element={<AdminWorkflowsPage />} />
+            <Route path="/admin/login-attempts" element={<AdminLoginAttemptsPage />} />
+            <Route path="/admin/external-db" element={<AdminExternalDbPage />} />
+            <Route path="/admin/conexoes" element={<AdminConexoesPage />} />
+            <Route path="/admin/conexoes/status" element={<AdminConexoesStatusPage />} />
+            <Route path="/admin/rbac-rotas" element={<AdminRbacRoutesPage />} />
+          </Route>
         </Route>
 
-        {/* Developer Layout Route — logs, db, tokens, system */}
-        <Route
-          element={
-            <RouteErrorBoundary>
-              <DevRoute />
-            </RouteErrorBoundary>
-          }
-        >
-          <Route path="/admin/config" element={<AdminSegurancaPage />} />
-          <Route path="/admin/login-attempts" element={<AdminLoginAttemptsPage />} />
-          <Route path="/admin/security/access" element={<AdminSegurancaAcessoPage />} />
-          <Route path="/admin/security/keys" element={<AdminSegurancaChavesPage />} />
-          <Route path="/admin/rbac-routes" element={<AdminRbacRoutesPage />} />
-          <Route path="/admin/external-db" element={<AdminExternalDbPage />} />
-          <Route path="/admin/external-db/test" element={<ExternalDatabaseTest />} />
-          <Route path="/admin/telemetria" element={<AdminTelemetriaPage />} />
-          <Route path="/admin/design-tokens" element={<AdminDesignTokensPage />} />
-          <Route path="/admin/workflows" element={<AdminWorkflowsPage />} />
-          <Route path="/admin/dev-challenges" element={<DevChallengeExamplesPage />} />
-          <Route path="/admin/migracao-papeis" element={<AdminMigracaoPapeisPage />} />
-          <Route path="/admin/conexoes" element={<AdminConexoesPage />} />
-          <Route path="/admin/conexoes/status" element={<AdminConexoesStatusPage />} />
-          <Route path="/admin/ia-prompts" element={<AdminPromptsIAPage />} />
-          <Route path="/admin/price-freshness" element={<PriceFreshnessSettingsPage />} />
-          <Route path="/admin/logs" element={<Navigate to="/admin/telemetria" replace />} />
-          <Route path="/dev/qa" element={<QAPage />} />
-          <Route path="/dev/sidebar-qa" element={<SidebarQAPage />} />
-        </Route>
+        {/* CRM (Clients) */}
+        <Route path="/clientes" element={<ClientsPage />} />
+        <Route path="/clientes/:id" element={<ClientDetailPage />} />
+        <Route path="/clientes/comparar" element={<ClientComparatorPage />} />
 
-        {/* Advanced Tools / BI */}
-        <Route path="/ferramentas/simulador-wizard" element={<SimuladorWizard />} />
+        {/* Tools */}
+        <Route path="/ferramentas/mockup" element={<MockupGenerator />} />
+        <Route path="/ferramentas/mockup/historico" element={<MockupHistoryPage />} />
         <Route path="/ferramentas/magic-up" element={<MagicUp />} />
-        <Route path="/ferramentas/mockup-generator" element={<MockupGenerator />} />
-        <Route path="/ferramentas/simulador-preco" element={<PriceSimulatorPage />} />
-        <Route path="/ferramentas/kit-builder" element={<KitBuilderPage />} />
-        <Route path="/ferramentas/kit-library" element={<MeusKitsPage />} />
-        <Route path="/ferramentas/mockup-history" element={<MockupHistoryPage />} />
-        <Route path="/ferramentas/dropbox" element={<DropboxBrowserPage />} />
+        <Route path="/ferramentas/simulador" element={<SimuladorWizard />} />
+        <Route path="/ferramentas/simulador-precos" element={<PriceSimulatorPage />} />
+        <Route path="/ferramentas/estoque" element={<StockDashboardPage />} />
+        <Route path="/ferramentas/busca-preco" element={<AdvancedPriceSearchPage />} />
+        <Route path="/ferramentas/match" element={<ProductMatchPage />} />
+        <Route path="/ferramentas/bi" element={<BusinessIntelligencePage />} />
         <Route path="/ferramentas/bi-comercial" element={<CommercialIntelligencePage />} />
-        <Route path="/ferramentas/bi-negocio" element={<BusinessIntelligencePage />} />
-        <Route path="/ferramentas/product-match" element={<ProductMatchPage />} />
-        <Route path="/ferramentas/comparador-clientes" element={<ClientComparatorPage />} />
-        <Route path="/ferramentas/busca-avancada-preco" element={<AdvancedPriceSearchPage />} />
-
+        <Route path="/ferramentas/dropbox" element={<DropboxBrowserPage />} />
+        
+        <Route path="/ferramentas/personalizacao-sim" element={<PersonalizationSimulator />} />
+        
+        {/* Kits */}
+        <Route path="/montar-kit" element={<KitBuilderPage />} />
+        <Route path="/meus-kits" element={<MeusKitsPage />} />
+        
         {/* Orders */}
         <Route path="/pedidos" element={<OrdersPage />} />
         <Route path="/pedidos/:id" element={<OrderDetailPage />} />
 
-        {/* CRM */}
-        <Route path="/clientes" element={<ClientsPage />} />
-        <Route path="/clientes/:id" element={<ClientDetailPage />} />
-
         {/* System */}
-        <Route path="/sistema/status" element={<SystemStatusPage />} />
-        <Route path="/sistema/rate-limits" element={<RateLimitDashboard />} />
+        <Route path="/status" element={<SystemStatusPage />} />
+        <Route path="/admin/external-db-test" element={<ExternalDatabaseTest />} />
+
+        {/* Legacy & QA */}
+        <Route path="/qa" element={<QAPage />} />
+        <Route path="/qa-sidebar" element={<SidebarQAPage />} />
       </Route>
 
       {/* Fallback */}
@@ -516,4 +355,3 @@ const App = () => {
 };
 
 export default App;
-// Force re-read

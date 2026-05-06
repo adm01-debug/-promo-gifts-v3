@@ -55,7 +55,6 @@ const CORS_HEADERS_BASE = {
   'Access-Control-Allow-Headers': ALLOWED_HEADERS_VALUE,
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
   'Access-Control-Expose-Headers': 'x-request-id',
-  'Access-Control-Allow-Credentials': 'true',
   'X-Content-Type-Options': 'nosniff',
   'X-Frame-Options': 'DENY',
   'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',

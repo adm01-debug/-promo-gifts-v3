@@ -15,59 +15,56 @@ export function useBridgeStatusBanner(isAllowed: boolean) {
     unavailableRef.current = unavailable;
   }, [unavailable]);
 
-  const handleStatusEvent = useCallback(
-    (e: BridgeStatusEvent) => {
-      if (e.type === 'degraded') {
-        if (!isAllowed) return;
+  const handleStatusEvent = useCallback((e: BridgeStatusEvent) => {
+    if (e.type === 'degraded') {
+      if (!isAllowed) return;
 
-        const now = Date.now();
-        if (now - lastDegradedAt.current < 8000) return;
-        lastDegradedAt.current = now;
+      const now = Date.now();
+      if (now - lastDegradedAt.current < 8000) return;
+      lastDegradedAt.current = now;
+      
+      toast.loading('Reconectando ao catálogo externo…', {
+        id: TOAST_ID_DEGRADED,
+        description: `Tentativa ${e.attempt}/${e.maxAttempts}. O sistema está se recuperando automaticamente.`,
+        duration: 4000,
+      });
+    } else if (e.type === 'unavailable') {
+      setUnavailable(true);
+      setReason(e.reason);
+      toast.dismiss(TOAST_ID_DEGRADED);
+      
+      const title = 'Catálogo temporariamente indisponível';
+      const description = isAllowed 
+        ? 'O serviço está reiniciando. Aguarde alguns segundos e tente novamente.'
+        : 'Estamos com uma instabilidade momentânea no acesso ao catálogo. Tente recarregar a página em instantes.';
 
-        toast.loading('Reconectando ao catálogo externo…', {
-          id: TOAST_ID_DEGRADED,
-          description: `Tentativa ${e.attempt}/${e.maxAttempts}. O sistema está se recuperando automaticamente.`,
+      toast.error(title, {
+        id: TOAST_ID_UNAVAILABLE,
+        description,
+        duration: Infinity,
+        action: {
+          label: 'Recarregar',
+          onClick: () => window.location.reload(),
+        },
+      });
+    } else if (e.type === 'recovered') {
+      toast.dismiss(TOAST_ID_DEGRADED);
+      if (unavailableRef.current) {
+        toast.success('Conexão restabelecida', {
+          id: TOAST_ID_UNAVAILABLE,
+          description: 'O catálogo voltou a responder normalmente.',
           duration: 4000,
         });
-      } else if (e.type === 'unavailable') {
-        setUnavailable(true);
-        setReason(e.reason);
-        toast.dismiss(TOAST_ID_DEGRADED);
-
-        const title = 'Catálogo temporariamente indisponível';
-        const description = isAllowed
-          ? 'O serviço está reiniciando. Aguarde alguns segundos e tente novamente.'
-          : 'Estamos com uma instabilidade momentânea no acesso ao catálogo. Tente recarregar a página em instantes.';
-
-        toast.error(title, {
-          id: TOAST_ID_UNAVAILABLE,
-          description,
-          duration: Infinity,
-          action: {
-            label: 'Recarregar',
-            onClick: () => window.location.reload(),
-          },
+        setUnavailable(false);
+        setReason('');
+      } else {
+        toast.success('Conexão normalizada', {
+          id: TOAST_ID_DEGRADED,
+          duration: 3000,
         });
-      } else if (e.type === 'recovered') {
-        toast.dismiss(TOAST_ID_DEGRADED);
-        if (unavailableRef.current) {
-          toast.success('Conexão restabelecida', {
-            id: TOAST_ID_UNAVAILABLE,
-            description: 'O catálogo voltou a responder normalmente.',
-            duration: 4000,
-          });
-          setUnavailable(false);
-          setReason('');
-        } else {
-          toast.success('Conexão normalizada', {
-            id: TOAST_ID_DEGRADED,
-            duration: 3000,
-          });
-        }
       }
-    },
-    [isAllowed],
-  );
+    }
+  }, [isAllowed]);
 
   useEffect(() => {
     const unsubscribe = onBridgeStatus(handleStatusEvent);
@@ -86,6 +83,6 @@ export function useBridgeStatusBanner(isAllowed: boolean) {
     unavailable,
     reason,
     closeUnavailable,
-    reload: () => window.location.reload(),
+    reload: () => window.location.reload()
   };
 }

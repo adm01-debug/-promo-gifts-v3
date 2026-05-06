@@ -18,7 +18,9 @@ const wrapper = ({ children }: { children: React.ReactNode }) => (
       <MemoryRouter>
         <ThemeProvider>
           <AuthProvider>
-            <TooltipProvider>{children}</TooltipProvider>
+            <TooltipProvider>
+              {children}
+            </TooltipProvider>
           </AuthProvider>
         </ThemeProvider>
       </MemoryRouter>
@@ -30,10 +32,10 @@ describe('Admin Module Structural Comparison', () => {
   it('Conexoes and Usuarios should share matching container hierarchy', async () => {
     const { container: conexoes } = render(<AdminConexoesPage />, { wrapper });
     const { container: usuarios } = render(<AdminUsuariosPage />, { wrapper });
-
+    
     // Select the standardized inner container (div with max-w inside main)
-    const findContainer = (root: HTMLElement) =>
-      Array.from(root.querySelectorAll('div')).find((d) => d.className.includes('max-w-'));
+    const findContainer = (root: HTMLElement) => 
+      Array.from(root.querySelectorAll('div')).find(d => d.className.includes('max-w-'));
 
     const conexoesInner = findContainer(conexoes);
     const usuariosInner = findContainer(usuarios);

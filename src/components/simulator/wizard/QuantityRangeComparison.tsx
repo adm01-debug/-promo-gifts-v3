@@ -1,6 +1,6 @@
 /**
  * QuantityRangeComparison - Compare pricing across multiple quantities
- *
+ * 
  * Shows a side-by-side table of how pricing changes at different quantity tiers.
  */
 
@@ -42,7 +42,7 @@ export function QuantityRangeComparison({
 }: QuantityRangeComparisonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [quantities, setQuantities] = useState<number[]>(() => {
-    const defaults = DEFAULT_QUANTITIES.filter((q) => q !== currentQuantity);
+    const defaults = DEFAULT_QUANTITIES.filter(q => q !== currentQuantity);
     const selected = [currentQuantity, ...defaults.slice(0, 3)].sort((a, b) => a - b);
     return selected;
   });
@@ -57,14 +57,14 @@ export function QuantityRangeComparison({
       toast.warning('Máximo 6 quantidades');
       return;
     }
-    setQuantities((prev) => [...prev, qty].sort((a, b) => a - b));
+    setQuantities(prev => [...prev, qty].sort((a, b) => a - b));
     setCustomQty('');
     setResults([]); // Reset results
   };
 
   const removeQuantity = (qty: number) => {
     if (quantities.length <= 2) return;
-    setQuantities((prev) => prev.filter((q) => q !== qty));
+    setQuantities(prev => prev.filter(q => q !== qty));
     setResults([]);
   };
 
@@ -92,7 +92,7 @@ export function QuantityRangeComparison({
 
             const result = await invokeExternalRpc<CustomizationPriceResponse>(
               'fn_get_customization_price',
-              rpcParams,
+              rpcParams
             );
 
             if (result?.success) {
@@ -136,7 +136,7 @@ export function QuantityRangeComparison({
       <Button
         variant="outline"
         size="lg"
-        className="h-14 gap-2 rounded-xl px-6"
+        className="gap-2 h-14 px-6 rounded-xl"
         onClick={() => setIsOpen(true)}
       >
         <BarChart3 className="h-5 w-5" />
@@ -145,24 +145,24 @@ export function QuantityRangeComparison({
     );
   }
 
-  const lowestPerUnit = results.length > 0 ? Math.min(...results.map((r) => r.grandPerUnit)) : 0;
+  const lowestPerUnit = results.length > 0
+    ? Math.min(...results.map(r => r.grandPerUnit))
+    : 0;
 
   return (
     <motion.div
       initial={{ opacity: 0, height: 0 }}
       animate={{ opacity: 1, height: 'auto' }}
-      className="space-y-5 rounded-xl border bg-card p-6"
+      className="rounded-xl border bg-card p-6 space-y-5"
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="rounded-xl bg-primary/10 p-2">
+          <div className="p-2 rounded-xl bg-primary/10">
             <BarChart3 className="h-5 w-5 text-primary" />
           </div>
           <div>
             <h4 className="font-bold">Comparativo por Quantidade</h4>
-            <p className="text-[11px] text-muted-foreground">
-              Veja como o preço muda em diferentes tiragens
-            </p>
+            <p className="text-[11px] text-muted-foreground">Veja como o preço muda em diferentes tiragens</p>
           </div>
         </div>
         <Button variant="ghost" size="icon" aria-label="Fechar" onClick={() => setIsOpen(false)}>
@@ -171,12 +171,12 @@ export function QuantityRangeComparison({
       </div>
 
       {/* Quantity pills */}
-      <div className="flex flex-wrap items-center gap-2">
-        {quantities.map((qty) => (
+      <div className="flex items-center gap-2 flex-wrap">
+        {quantities.map(qty => (
           <Badge
             key={qty}
             variant={qty === currentQuantity ? 'default' : 'secondary'}
-            className="cursor-default gap-1.5 px-3 py-1.5 text-sm"
+            className="gap-1.5 px-3 py-1.5 text-sm cursor-default"
           >
             {qty}un
             {quantities.length > 2 && qty !== currentQuantity && (
@@ -192,17 +192,10 @@ export function QuantityRangeComparison({
             placeholder="Qtd"
             value={customQty}
             onChange={(e) => setCustomQty(e.target.value)}
-            className="h-8 w-20 text-sm"
+            className="w-20 h-8 text-sm"
             onKeyDown={(e) => e.key === 'Enter' && addQuantity()}
           />
-          <Button
-            size="icon"
-            variant="ghost"
-            className="h-8 w-8"
-            onClick={addQuantity}
-            aria-label="Adicionar"
-          >
-            <Plus className="h-4 w-4" />
+          <Button size="icon" variant="ghost" className="h-8 w-8" onClick={addQuantity} aria-label="Adicionar"><Plus className="h-4 w-4" />
           </Button>
         </div>
       </div>
@@ -229,23 +222,22 @@ export function QuantityRangeComparison({
       {/* Results Table */}
       <AnimatePresence>
         {results.length > 0 && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="overflow-x-auto">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="overflow-x-auto"
+          >
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b">
-                  <th className="px-3 py-2 text-left font-medium text-muted-foreground">
-                    Quantidade
-                  </th>
+                  <th className="text-left py-2 px-3 text-muted-foreground font-medium">Quantidade</th>
                   {personalizations.map((p, idx) => (
-                    <th
-                      key={p.id}
-                      className="px-3 py-2 text-right font-medium text-muted-foreground"
-                    >
+                    <th key={p.id} className="text-right py-2 px-3 text-muted-foreground font-medium">
                       Grav. {idx + 1}
                     </th>
                   ))}
-                  <th className="px-3 py-2 text-right font-semibold">Total</th>
-                  <th className="px-3 py-2 text-right font-semibold">Por Unid.</th>
+                  <th className="text-right py-2 px-3 font-semibold">Total</th>
+                  <th className="text-right py-2 px-3 font-semibold">Por Unid.</th>
                 </tr>
               </thead>
               <tbody>
@@ -257,28 +249,22 @@ export function QuantityRangeComparison({
                       key={r.quantity}
                       className={isCurrent ? 'bg-primary/5 font-semibold' : 'hover:bg-muted/30'}
                     >
-                      <td className="flex items-center gap-2 px-3 py-2.5">
+                      <td className="py-2.5 px-3 flex items-center gap-2">
                         {r.quantity}un
-                        {isCurrent && (
-                          <Badge variant="outline" className="py-0 text-[10px]">
-                            atual
-                          </Badge>
-                        )}
+                        {isCurrent && <Badge variant="outline" className="text-[10px] py-0">atual</Badge>}
                       </td>
                       {r.persPrices.map((pp) => (
-                        <td key={pp.persId} className="px-3 py-2.5 text-right">
+                        <td key={pp.persId} className="text-right py-2.5 px-3">
                           {formatCurrency(pp.totalPrice)}
                         </td>
                       ))}
-                      <td className="px-3 py-2.5 text-right font-bold">
+                      <td className="text-right py-2.5 px-3 font-bold">
                         {formatCurrency(r.grandTotal)}
                       </td>
-                      <td className="px-3 py-2.5 text-right">
+                      <td className="text-right py-2.5 px-3">
                         <span className="flex items-center justify-end gap-1">
                           {isBest && <TrendingDown className="h-3.5 w-3.5 text-success" />}
-                          <span
-                            className={isBest ? 'font-bold text-success dark:text-success' : ''}
-                          >
+                          <span className={isBest ? 'text-success dark:text-success font-bold' : ''}>
                             {formatCurrency(r.grandPerUnit)}
                           </span>
                         </span>

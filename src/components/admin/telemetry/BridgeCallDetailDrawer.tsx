@@ -5,13 +5,7 @@
  * Usa o request_id (correlation-id) propagado entre client e edge function
  * para permitir buscar logs do servidor com o mesmo identificador.
  */
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Copy, Check, AlertCircle } from 'lucide-react';
@@ -52,12 +46,13 @@ export function BridgeCallDetailDrawer({ sample, open, onOpenChange }: Props) {
 
   if (!sample) return null;
 
-  const idsMatch =
-    sample.requestId && sample.serverRequestId ? sample.requestId === sample.serverRequestId : null;
+  const idsMatch = sample.requestId && sample.serverRequestId
+    ? sample.requestId === sample.serverRequestId
+    : null;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full overflow-y-auto sm:max-w-lg">
+      <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             Detalhes da chamada
@@ -73,11 +68,11 @@ export function BridgeCallDetailDrawer({ sample, open, onOpenChange }: Props) {
         <div className="mt-6 space-y-5">
           {/* Request ID — destaque */}
           <div className="space-y-2">
-            <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+            <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium">
               Request ID (client)
             </p>
             <div className="flex items-center gap-2">
-              <code className="flex-1 break-all rounded border border-border/50 bg-muted/50 px-3 py-2 font-mono text-xs">
+              <code className="flex-1 font-mono text-xs bg-muted/50 px-3 py-2 rounded border border-border/50 break-all">
                 {sample.requestId ?? '—'}
               </code>
               {sample.requestId && (
@@ -96,22 +91,20 @@ export function BridgeCallDetailDrawer({ sample, open, onOpenChange }: Props) {
             </div>
             {sample.serverRequestId && (
               <>
-                <p className="pt-2 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium pt-2">
                   Request ID (server eco)
                 </p>
                 <div className="flex items-center gap-2">
-                  <code className="flex-1 break-all rounded border border-border/50 bg-muted/50 px-3 py-2 font-mono text-xs">
+                  <code className="flex-1 font-mono text-xs bg-muted/50 px-3 py-2 rounded border border-border/50 break-all">
                     {sample.serverRequestId}
                   </code>
                   {idsMatch === false && (
-                    <Badge variant="destructive" className="flex items-center gap-1 text-[10px]">
+                    <Badge variant="destructive" className="text-[10px] flex items-center gap-1">
                       <AlertCircle className="h-3 w-3" /> divergente
                     </Badge>
                   )}
                   {idsMatch === true && (
-                    <Badge variant="secondary" className="text-[10px]">
-                      match ✓
-                    </Badge>
+                    <Badge variant="secondary" className="text-[10px]">match ✓</Badge>
                   )}
                 </div>
               </>
@@ -131,30 +124,24 @@ export function BridgeCallDetailDrawer({ sample, open, onOpenChange }: Props) {
             {sample.target && (
               <div className="col-span-2">
                 <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Alvo</p>
-                <p className="break-all font-mono text-xs">{sample.target}</p>
+                <p className="font-mono text-xs break-all">{sample.target}</p>
               </div>
             )}
           </div>
 
           {/* Timing & sizes */}
           <div className="grid grid-cols-3 gap-3">
-            <div className="rounded-xl border border-border/50 bg-muted/30 p-3">
+            <div className="p-3 rounded-xl border border-border/50 bg-muted/30">
               <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Latência</p>
-              <p className="font-display text-lg font-bold tabular-nums">
-                {formatMs(sample.durationMs)}
-              </p>
+              <p className="font-display text-lg font-bold tabular-nums">{formatMs(sample.durationMs)}</p>
             </div>
-            <div className="rounded-xl border border-border/50 bg-muted/30 p-3">
+            <div className="p-3 rounded-xl border border-border/50 bg-muted/30">
               <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Enviado</p>
-              <p className="font-display text-lg font-bold tabular-nums">
-                {formatBytes(sample.reqBytes)}
-              </p>
+              <p className="font-display text-lg font-bold tabular-nums">{formatBytes(sample.reqBytes)}</p>
             </div>
-            <div className="rounded-xl border border-border/50 bg-muted/30 p-3">
+            <div className="p-3 rounded-xl border border-border/50 bg-muted/30">
               <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Recebido</p>
-              <p className="font-display text-lg font-bold tabular-nums">
-                {formatBytes(sample.respBytes)}
-              </p>
+              <p className="font-display text-lg font-bold tabular-nums">{formatBytes(sample.respBytes)}</p>
             </div>
           </div>
 
@@ -173,11 +160,11 @@ export function BridgeCallDetailDrawer({ sample, open, onOpenChange }: Props) {
 
           {/* Erro */}
           {sample.errorMessage && (
-            <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-3">
-              <p className="mb-1 text-[10px] font-medium uppercase tracking-wide text-destructive">
+            <div className="p-3 rounded-xl border border-destructive/30 bg-destructive/5">
+              <p className="text-[10px] uppercase tracking-wide text-destructive font-medium mb-1">
                 Erro
               </p>
-              <p className="break-words font-mono text-xs text-destructive/90">
+              <p className="text-xs font-mono break-words text-destructive/90">
                 {sample.errorMessage}
               </p>
             </div>
@@ -185,9 +172,9 @@ export function BridgeCallDetailDrawer({ sample, open, onOpenChange }: Props) {
 
           {/* Hint p/ logs do servidor */}
           {sample.requestId && (
-            <div className="border-t border-border/50 pt-3 text-[11px] text-muted-foreground">
+            <div className="text-[11px] text-muted-foreground border-t border-border/50 pt-3">
               💡 Para encontrar este request nos logs do edge function, busque por:
-              <code className="mt-1 block rounded bg-muted/50 px-2 py-1 font-mono">
+              <code className="block mt-1 font-mono bg-muted/50 px-2 py-1 rounded">
                 req_id={sample.requestId}
               </code>
             </div>

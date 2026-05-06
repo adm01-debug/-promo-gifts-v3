@@ -12,125 +12,6 @@
   }
 }
 
-@keyframes twinkle {
-  0%,
-  100% {
-    opacity: var(--star-base-opacity, 0.4);
-    transform: scale(1);
-    filter: brightness(1) blur(0px);
-  }
-  30%,
-  70% {
-    opacity: calc(var(--star-base-opacity, 0.4) * 1.1);
-    filter: brightness(1.1);
-  }
-  50% {
-    opacity: var(--star-peak-opacity, 1);
-    transform: scale(var(--star-peak-scale, 1.25));
-    filter: brightness(1.8) drop-shadow(0 0 12px white) blur(0.3px);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  @keyframes twinkle {
-    0%,
-    100% {
-      opacity: var(--star-base-opacity, 0.4);
-      transform: scale(1);
-      filter: brightness(1);
-    }
-  }
-
-  @keyframes space-shimmer {
-    0%,
-    100% {
-      opacity: 0.15;
-    }
-  }
-
-  @keyframes scale-fade-in {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
-  }
-}
-
-@keyframes rocketLaunch {
-  0% {
-    transform: translateY(110vh) translateX(0);
-    opacity: 0;
-  }
-  10% {
-    opacity: 1;
-  }
-  90% {
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(-110vh) translateX(10px);
-    opacity: 0;
-  }
-}
-
-@keyframes rocketShake {
-  0%,
-  100% {
-    transform: translateX(0);
-  }
-  25% {
-    transform: translateX(-1px) rotate(-1deg);
-  }
-  75% {
-    transform: translateX(1px) rotate(1deg);
-  }
-}
-
-@keyframes flameTrail {
-  0% {
-    transform: translateX(-50%) scaleY(1);
-    opacity: 0.8;
-  }
-  100% {
-    transform: translateX(-50%) scaleY(1.3);
-    opacity: 0.5;
-  }
-}
-
-@keyframes smokeRise {
-  0% {
-    transform: translateY(0) scale(1);
-    opacity: 0.4;
-  }
-  100% {
-    transform: translateY(-20px) scale(2);
-    opacity: 0;
-  }
-}
-
-@keyframes scale-fade-in {
-  from {
-    opacity: 0;
-    transform: scale(0.95) translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
-
-@keyframes space-shimmer {
-  0%,
-  100% {
-    opacity: 0.15;
-  }
-  50% {
-    opacity: 0.25;
-  }
-}
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -166,11 +47,11 @@ html[data-scroll-locked] body {
 @layer base {
   :root {
     /* ===== DESIGN TOKENS - ORANGE PREMIUM ===== */
-
+    
     /* 1. Typography & Contrast Tokens */
     --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
     --font-display: 'Outfit', system-ui, sans-serif;
-
+    
     /* 2. Surface & Background Tokens (High Contrast) */
     --background: 0 0% 100%;
     --foreground: 24 100% 5%;
@@ -249,11 +130,11 @@ html[data-scroll-locked] body {
     --glow-color: 24 100% 50%;
     --glow-blur-hover: 0px;
     --glow-intensity-hover: 0;
-
+    
     --overlay-opacity: 0.45;
     --overlay-blur: 8px;
     --overlay-color: 24 100% 4%;
-
+    
     --shadow-soft: 0 1px 3px hsl(0 0% 0% / 0.06);
     --shadow-medium: 0 4px 12px hsl(0 0% 0% / 0.08);
     --shadow-premium: 0 4px 12px hsl(0 0% 0% / 0.08);
@@ -271,30 +152,16 @@ html[data-scroll-locked] body {
 
     /* 11. Gradient Tokens — Orange Premium SSOT
        Use estes tokens em vez de gradientes literais. */
-    --gradient-primary: linear-gradient(
-      135deg,
-      hsl(var(--primary)) 0%,
-      hsl(var(--primary-glow)) 100%
-    );
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-glow)) 100%);
     --gradient-cta: linear-gradient(135deg, hsl(var(--success)) 0%, hsl(142 100% 45%) 100%);
-    --gradient-hero: linear-gradient(
-      135deg,
-      hsl(24 100% 97%) 0%,
-      hsl(24 100% 92%) 45%,
-      hsl(24 100% 88%) 100%
-    );
-    --gradient-glow: radial-gradient(
-      circle at 50% 0%,
-      hsl(var(--primary) / 0.35) 0%,
-      hsl(var(--primary) / 0.08) 45%,
-      transparent 70%
-    );
+    --gradient-hero: linear-gradient(135deg, hsl(24 100% 97%) 0%, hsl(24 100% 92%) 45%, hsl(24 100% 88%) 100%);
+    --gradient-glow: radial-gradient(circle at 50% 0%, hsl(var(--primary) / 0.35) 0%, hsl(var(--primary) / 0.08) 45%, transparent 70%);
     --gradient-subtle: linear-gradient(180deg, hsl(var(--surface)) 0%, hsl(var(--background)) 100%);
     --gradient-secondary: linear-gradient(135deg, hsl(var(--secondary)) 0%, hsl(var(--muted)) 100%);
     --gradient-success: linear-gradient(135deg, hsl(var(--success)) 0%, hsl(142 100% 45%) 100%);
     --gradient-highlight: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(38 100% 55%) 100%);
     --gradient-card: linear-gradient(180deg, hsl(var(--card)) 0%, hsl(var(--surface)) 100%);
-
+    
     /* 13. Premium Badge & Status Tokens */
     --status-badge-font-size: 11px;
     --status-badge-font-weight: 800;
@@ -302,7 +169,7 @@ html[data-scroll-locked] body {
     --status-badge-radius: var(--radius-xl);
     --status-badge-padding-x: 0.5rem;
     --status-badge-padding-y: 0.125rem;
-
+    
     /* 12. Glassmorphism Tokens */
     --glass-background: 0 0% 100% / 0.7;
     --glass-border: 0 0% 100% / 0.2;
@@ -390,20 +257,10 @@ html[data-scroll-locked] body {
     --shadow-premium-hover: 0 12px 32px hsl(0 0% 0% / 0.7);
 
     /* Gradients — bases escuras + CTA com luminância elevada */
-    --gradient-hero: linear-gradient(
-      135deg,
-      hsl(24 30% 4%) 0%,
-      hsl(24 35% 8%) 50%,
-      hsl(24 45% 12%) 100%
-    );
+    --gradient-hero: linear-gradient(135deg, hsl(24 30% 4%) 0%, hsl(24 35% 8%) 50%, hsl(24 45% 12%) 100%);
     --gradient-subtle: linear-gradient(180deg, hsl(var(--surface)) 0%, hsl(var(--background)) 100%);
     --gradient-card: linear-gradient(180deg, hsl(var(--card-elevated)) 0%, hsl(var(--card)) 100%);
-    --gradient-glow: radial-gradient(
-      circle at 50% 0%,
-      hsl(var(--primary) / 0.5) 0%,
-      hsl(var(--primary) / 0.14) 45%,
-      transparent 70%
-    );
+    --gradient-glow: radial-gradient(circle at 50% 0%, hsl(var(--primary) / 0.5) 0%, hsl(var(--primary) / 0.14) 45%, transparent 70%);
     --gradient-cta: linear-gradient(135deg, hsl(var(--success)) 0%, hsl(142 100% 55%) 100%);
     --gradient-highlight: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(38 100% 62%) 100%);
 
@@ -423,19 +280,19 @@ html[data-scroll-locked] body {
     letter-spacing: var(--status-badge-letter-spacing);
     border-radius: var(--status-badge-radius);
     padding: var(--status-badge-padding-y) var(--status-badge-padding-x);
-    @apply inline-flex items-center border uppercase tracking-widest transition-all duration-300;
+    @apply inline-flex items-center uppercase tracking-widest border transition-all duration-300;
   }
 
   .badge-premium-destructive {
-    @apply badge-premium border-destructive/20 bg-destructive/10 text-destructive shadow-sm;
+    @apply badge-premium bg-destructive/10 text-destructive border-destructive/20 shadow-sm;
   }
 
   .badge-premium-mono {
-    @apply badge-premium border-border/20 bg-muted/30 font-mono text-muted-foreground shadow-sm;
+    @apply badge-premium font-mono bg-muted/30 text-muted-foreground border-border/20 shadow-sm;
   }
 
   .badge-premium-primary {
-    @apply badge-premium border-primary/20 bg-primary/10 text-primary shadow-sm;
+    @apply badge-premium bg-primary/10 text-primary border-primary/20 shadow-sm;
   }
 
   /* Premium Icon Wrapper */
@@ -446,20 +303,21 @@ html[data-scroll-locked] body {
     height: var(--icon-size);
     color: hsl(var(--primary));
   }
-
+  
   /* Universal SVG standardization */
-  svg:not([class*='size-']):not([width]) {
-    @apply h-5 w-5;
+  svg:not([class*="size-"]):not([width]) {
+    @apply w-5 h-5;
   }
-
+  
   svg {
     stroke-width: 1.5;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .icon-premium svg {
-    @apply h-full w-full;
+    @apply w-full h-full;
   }
+
 
   .icon-premium-muted {
     @apply icon-premium;
@@ -477,7 +335,7 @@ html[data-scroll-locked] body {
 
   /* Universal Focus State */
   .focus-premium {
-    @apply border-primary outline-none ring-4 ring-primary/20 transition-all duration-300;
+    @apply outline-none ring-4 ring-primary/20 border-primary transition-all duration-300;
   }
 }
 
@@ -513,8 +371,7 @@ html[data-scroll-locked] body {
       text-decoration: underline !important;
       color: LinkText !important;
     }
-    button,
-    [role='button'] {
+    button, [role="button"] {
       border: 1px solid CanvasText !important;
       background: Canvas !important;
       color: CanvasText !important;
@@ -523,7 +380,7 @@ html[data-scroll-locked] body {
 
   /* Link Variants - SSOT (no orange glow / text-shadow) */
   .link-primary {
-    @apply decoration-primary/40 decoration-2 underline-offset-4 transition-all duration-300 hover:underline active:scale-[0.98] active:opacity-80;
+    @apply transition-all duration-300 underline-offset-4 decoration-2 decoration-primary/40 hover:underline active:opacity-80 active:scale-[0.98];
     font-weight: 800;
     color: hsl(var(--primary));
   }
@@ -531,11 +388,11 @@ html[data-scroll-locked] body {
     color: hsl(var(--primary-hover));
   }
   .link-primary:focus-visible {
-    @apply rounded-sm outline-none ring-2 ring-primary/50 ring-offset-2;
+    @apply outline-none ring-2 ring-primary/50 ring-offset-2 rounded-sm;
   }
 
   .link-secondary {
-    @apply decoration-muted-foreground/30 decoration-1 underline-offset-4 transition-all duration-300 hover:underline active:scale-[0.98] active:opacity-80;
+    @apply transition-all duration-300 underline-offset-4 decoration-1 decoration-muted-foreground/30 hover:underline active:opacity-80 active:scale-[0.98];
     font-weight: 700;
     color: hsl(var(--muted-foreground));
   }
@@ -544,24 +401,24 @@ html[data-scroll-locked] body {
     @apply decoration-primary/60;
   }
   .link-secondary:focus-visible {
-    @apply rounded-sm outline-none ring-2 ring-primary/50 ring-offset-1;
+    @apply outline-none ring-2 ring-primary/50 ring-offset-1 rounded-sm;
   }
 
   .link-disabled {
-    @apply pointer-events-none cursor-not-allowed no-underline decoration-transparent opacity-40 grayscale;
+    @apply pointer-events-none opacity-40 grayscale cursor-not-allowed decoration-transparent no-underline;
   }
 
   /* Legacy global link support - falls back to primary */
-  :root a:not([class*='link-']) {
-    @apply decoration-primary/40 decoration-2 underline-offset-4 transition-all duration-300 hover:underline active:scale-[0.98] active:opacity-80;
+  :root a:not([class*="link-"]) {
+    @apply transition-all duration-300 underline-offset-4 decoration-2 decoration-primary/40 hover:underline active:opacity-80 active:scale-[0.98];
     font-weight: 800;
     color: hsl(var(--primary));
   }
-  :root a:not([class*='link-']):hover {
+  :root a:not([class*="link-"]):hover {
     color: hsl(var(--primary-hover));
   }
-  :root a:not([class*='link-']):focus-visible {
-    @apply rounded-sm outline-none ring-2 ring-primary/50 ring-offset-2;
+  :root a:not([class*="link-"]):focus-visible {
+    @apply outline-none ring-2 ring-primary/50 ring-offset-2 rounded-sm;
   }
 
   /* Global Typography Consistency */
@@ -608,7 +465,7 @@ html[data-scroll-locked] body {
     letter-spacing: -0.01em;
   }
   .dark .link-primary {
-    @apply decoration-primary/50 decoration-2 underline-offset-4 transition-all duration-300 hover:underline active:scale-[0.98] active:opacity-80;
+    @apply transition-all duration-300 underline-offset-4 decoration-2 decoration-primary/50 hover:underline active:opacity-80 active:scale-[0.98];
     font-weight: 800;
     color: hsl(var(--primary));
   }
@@ -617,7 +474,7 @@ html[data-scroll-locked] body {
     color: hsl(var(--primary-hover));
   }
   .dark .link-secondary {
-    @apply decoration-muted-foreground/40 decoration-1 underline-offset-4 transition-all duration-300 hover:underline active:scale-[0.98] active:opacity-80;
+    @apply transition-all duration-300 underline-offset-4 decoration-1 decoration-muted-foreground/40 hover:underline active:opacity-80 active:scale-[0.98];
     font-weight: 650;
     color: hsl(var(--muted-foreground));
   }
@@ -627,17 +484,17 @@ html[data-scroll-locked] body {
   }
 
   /* Legacy global link support - falls back to primary */
-  .dark a:not([class*='link-']) {
-    @apply decoration-primary/50 decoration-2 underline-offset-4 transition-all duration-300 hover:underline active:scale-[0.98] active:opacity-80;
+  .dark a:not([class*="link-"]) {
+    @apply transition-all duration-300 underline-offset-4 decoration-2 decoration-primary/50 hover:underline active:opacity-80 active:scale-[0.98];
     font-weight: 800;
     color: hsl(var(--primary));
   }
-  .dark a:not([class*='link-']):hover {
+  .dark a:not([class*="link-"]):hover {
     @apply decoration-primary;
     color: hsl(var(--primary-hover));
   }
-  .dark a:not([class*='link-']):focus-visible {
-    @apply rounded-sm outline-none ring-2 ring-primary/50 ring-offset-2 ring-offset-background;
+  .dark a:not([class*="link-"]):focus-visible {
+    @apply outline-none ring-2 ring-primary/50 ring-offset-2 ring-offset-background rounded-sm;
   }
 
   h1,
@@ -762,17 +619,13 @@ html[data-scroll-locked] body {
 
   :focus-visible {
     @apply outline-none;
-    box-shadow:
-      0 0 0 2px hsl(var(--background)),
-      0 0 0 4px hsl(var(--primary) / 0.45);
+    box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--primary) / 0.45);
   }
 
   button:focus-visible,
   [role='button']:focus-visible {
     @apply outline-none;
-    box-shadow:
-      0 0 0 2px hsl(var(--background)),
-      0 0 0 4px hsl(var(--primary) / 0.45);
+    box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(var(--primary) / 0.45);
   }
 
   input:focus-visible,
@@ -783,7 +636,7 @@ html[data-scroll-locked] body {
   }
 
   a:focus-visible {
-    @apply rounded-sm outline-none ring-2 ring-primary/50 ring-offset-2;
+    @apply outline-none ring-2 ring-primary/50 ring-offset-2 rounded-sm;
   }
 }
 

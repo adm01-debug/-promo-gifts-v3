@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState } from "react";
 import {
   ResponsiveContainer,
   Area,
@@ -9,12 +9,12 @@ import {
   Bar,
   ComposedChart,
   Legend,
-} from 'recharts';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+} from "recharts";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   ShoppingCart,
   FileText,
@@ -25,13 +25,14 @@ import {
   Crown,
   RefreshCw,
   Package,
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { formatCurrency } from '@/lib/format';
-import { useSalesHistory, type SellerRanking } from '@/hooks/useSalesHistory';
-import { safeParseDateForChart } from '@/lib/stock-chart-utils';
-import { KpiCard } from '@/components/ui/kpi-card';
-import { useProductInsights } from '@/hooks/useProductRecommendations';
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { formatCurrency } from "@/lib/format";
+import { useSalesHistory, type SellerRanking } from "@/hooks/useSalesHistory";
+import { safeParseDateForChart } from "@/lib/stock-chart-utils";
+import { KpiCard } from "@/components/ui/kpi-card";
+import { useProductInsights } from "@/hooks/useProductRecommendations";
+
 
 interface SalesHistoryChartProps {
   productId: string;
@@ -52,9 +53,7 @@ export function SalesHistoryChart({ productId, productSku, productName }: SalesH
 
   const chartData = useMemo(() => {
     if (!hasData) return [];
-    return data!.daily.reduce<
-      Array<(typeof data.daily)[0] & { dateFormatted: string; fullDate: string }>
-    >((acc, d) => {
+    return data!.daily.reduce<Array<typeof data.daily[0] & { dateFormatted: string; fullDate: string }>>((acc, d) => {
       const parsed = safeParseDateForChart(d.date);
       if (parsed) acc.push({ ...d, ...parsed });
       return acc;
@@ -62,17 +61,7 @@ export function SalesHistoryChart({ productId, productSku, productName }: SalesH
   }, [data, hasData]);
 
   const kpis = useMemo(() => {
-    if (!hasData)
-      return {
-        totalQuotedQty: 0,
-        totalOrderedQty: 0,
-        totalQuotedValue: 0,
-        totalOrderedValue: 0,
-        conversionRate: 0,
-        uniqueSellers: 0,
-        avgOrderValue: 0,
-        topSellers: [],
-      };
+    if (!hasData) return { totalQuotedQty: 0, totalOrderedQty: 0, totalQuotedValue: 0, totalOrderedValue: 0, conversionRate: 0, uniqueSellers: 0, avgOrderValue: 0, topSellers: [] };
     return data!.kpis;
   }, [data, hasData]);
 
@@ -92,17 +81,17 @@ export function SalesHistoryChart({ productId, productSku, productName }: SalesH
     return (
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-base">
+          <CardTitle className="text-base flex items-center gap-2">
             <ShoppingCart className="h-4 w-4" />
             Vendas Internas
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col items-center justify-center gap-2 py-6 text-center">
+          <div className="flex flex-col items-center justify-center py-6 gap-2 text-center">
             <ShoppingCart className="h-6 w-6 text-destructive" />
             <p className="text-sm font-medium text-destructive">Erro ao carregar dados de vendas</p>
             <p className="text-[11px] text-muted-foreground">Tente novamente em alguns instantes</p>
-            <Button variant="outline" size="sm" onClick={() => refetch()} className="mt-1 gap-1.5">
+            <Button variant="outline" size="sm" onClick={() => refetch()} className="gap-1.5 mt-1">
               <RefreshCw className="h-3.5 w-3.5" />
               Tentar novamente
             </Button>
@@ -117,15 +106,14 @@ export function SalesHistoryChart({ productId, productSku, productName }: SalesH
     return (
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-base">
+          <CardTitle className="text-base flex items-center gap-2">
             <ShoppingCart className="h-4 w-4" />
             Vendas Internas
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="py-6 text-center text-sm text-muted-foreground">
-            Nenhum dado de vendas disponível ainda. Os dados serão exibidos quando houver orçamentos
-            e pedidos.
+          <p className="text-sm text-muted-foreground text-center py-6">
+            Nenhum dado de vendas disponível ainda. Os dados serão exibidos quando houver orçamentos e pedidos.
           </p>
         </CardContent>
       </Card>
@@ -138,28 +126,28 @@ export function SalesHistoryChart({ productId, productSku, productName }: SalesH
   return (
     <Card>
       <CardHeader className="pb-3">
-        <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center justify-between flex-wrap gap-2">
           <div>
-            <CardTitle className="flex items-center gap-2 text-base">
+            <CardTitle className="text-base flex items-center gap-2">
               <ShoppingCart className="h-4 w-4" />
               Vendas Internas
             </CardTitle>
-            <CardDescription className="mt-1">Orçamentos vs Pedidos · {days} dias</CardDescription>
+            <CardDescription className="mt-1">
+              Orçamentos vs Pedidos · {days} dias
+            </CardDescription>
           </div>
           <div className="flex items-center gap-2">
             {kpis.conversionRate > 0 && (
               <Badge
                 variant="outline"
                 className={cn(
-                  'text-xs font-bold',
-                  kpis.conversionRate >= 40
-                    ? 'border-primary/30 bg-primary/15 text-primary'
-                    : kpis.conversionRate >= 20
-                      ? 'border-warning/30 bg-warning/15 text-warning'
-                      : 'border-destructive/30 bg-destructive/15 text-destructive',
+                  "font-bold text-xs",
+                  kpis.conversionRate >= 40 ? 'bg-primary/15 text-primary border-primary/30' :
+                  kpis.conversionRate >= 20 ? 'bg-warning/15 text-warning border-warning/30' :
+                  'bg-destructive/15 text-destructive border-destructive/30'
                 )}
               >
-                <Target className="mr-1 h-3 w-3" />
+                <Target className="h-3 w-3 mr-1" />
                 {kpis.conversionRate.toFixed(1)}% conversão
               </Badge>
             )}
@@ -169,11 +157,7 @@ export function SalesHistoryChart({ productId, productSku, productName }: SalesH
 
       <CardContent className="space-y-4">
         {/* KPI cards — 6 metrics in unified grid */}
-        <div
-          className="grid grid-cols-3 gap-2 sm:grid-cols-6"
-          role="group"
-          aria-label="Métricas de vendas internas"
-        >
+        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2" role="group" aria-label="Métricas de vendas internas">
           <KpiCard
             icon={FileText}
             label="Orçado (qtd)"
@@ -209,24 +193,17 @@ export function SalesHistoryChart({ productId, productSku, productName }: SalesH
             icon={Users}
             label="Segmentos"
             value={insights?.topSegments?.length ? String(insights.topSegments.length) : '0'}
-            sub={
-              insights?.topSegments?.length
-                ? insights.topSegments
-                    .slice(0, 2)
-                    .map((s) => s.segment)
-                    .join(', ')
-                : 'Nenhum ainda'
-            }
+            sub={insights?.topSegments?.length
+              ? insights.topSegments.slice(0, 2).map(s => s.segment).join(', ')
+              : 'Nenhum ainda'}
           />
         </div>
 
         {/* Period selector */}
         <Tabs value={period} onValueChange={setPeriod}>
           <TabsList className="h-7 flex-wrap">
-            {['15', '30', '60', '90', '120', '180', '360'].map((p) => (
-              <TabsTrigger key={p} value={p} className="h-5 px-2 text-xs">
-                {p}d
-              </TabsTrigger>
+            {['15','30','60','90','120','180','360'].map(p => (
+              <TabsTrigger key={p} value={p} className="text-xs px-2 h-5">{p}d</TabsTrigger>
             ))}
           </TabsList>
         </Tabs>
@@ -260,9 +237,7 @@ export function SalesHistoryChart({ productId, productSku, productName }: SalesH
               <Legend
                 wrapperStyle={{ fontSize: '10px', paddingTop: '4px' }}
                 iconSize={8}
-                formatter={(value: string) => (
-                  <span className="text-[10px] text-muted-foreground">{value}</span>
-                )}
+                formatter={(value: string) => <span className="text-muted-foreground text-[10px]">{value}</span>}
               />
               <Bar
                 yAxisId="qty"
@@ -297,7 +272,7 @@ export function SalesHistoryChart({ productId, productSku, productName }: SalesH
         {/* Top sellers */}
         {kpis.topSellers.length > 0 && (
           <div className="space-y-1.5">
-            <p className="flex items-center gap-1 text-xs font-medium text-muted-foreground">
+            <p className="text-xs font-medium text-muted-foreground flex items-center gap-1">
               <Crown className="h-3 w-3" /> Top Vendedores
             </p>
             <div className="space-y-1">
@@ -317,38 +292,33 @@ export function SalesHistoryChart({ productId, productSku, productName }: SalesH
 // #1 fix: safe initials extraction — guards against empty sellerName
 function SellerRow({ seller, rank }: { seller: SellerRanking; rank: number }) {
   const name = seller.sellerName || 'Vendedor';
-  const initials =
-    name
-      .split(' ')
-      .filter((w) => w.length > 0)
-      .map((w) => w[0])
-      .slice(0, 2)
-      .join('')
-      .toUpperCase() || '??';
+  const initials = name
+    .split(' ')
+    .filter(w => w.length > 0)
+    .map(w => w[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase() || '??';
 
   return (
-    <div className="flex items-center gap-2 rounded-xl p-1.5 text-xs transition-colors hover:bg-muted/50">
-      <span
-        className={cn(
-          'w-4 text-center font-bold',
-          rank === 1 ? 'text-warning' : 'text-muted-foreground',
-        )}
-      >
+    <div className="flex items-center gap-2 text-xs p-1.5 rounded-xl hover:bg-muted/50 transition-colors">
+      <span className={cn(
+        "w-4 text-center font-bold",
+        rank === 1 ? "text-warning" : "text-muted-foreground"
+      )}>
         {rank}
       </span>
       <Avatar className="h-5 w-5">
-        <AvatarFallback className="bg-primary/10 text-[9px] text-primary">
-          {initials}
-        </AvatarFallback>
+        <AvatarFallback className="text-[9px] bg-primary/10 text-primary">{initials}</AvatarFallback>
       </Avatar>
-      <span className="flex-1 truncate font-medium text-foreground">{name}</span>
+      <span className="font-medium text-foreground flex-1 truncate">{name}</span>
       <span className="text-muted-foreground">{seller.totalQty} un</span>
       <span className="font-semibold text-foreground">{formatCurrency(seller.totalValue)}</span>
       <div className="flex gap-1">
-        <Badge variant="outline" className="h-4 px-1 py-0 text-[9px]">
+        <Badge variant="outline" className="text-[9px] px-1 py-0 h-4">
           {seller.quoteCount} orç
         </Badge>
-        <Badge variant="secondary" className="h-4 px-1 py-0 text-[9px]">
+        <Badge variant="secondary" className="text-[9px] px-1 py-0 h-4">
           {seller.orderCount} ped
         </Badge>
       </div>
@@ -362,30 +332,25 @@ function SalesTooltip({ active, payload }: any) {
   const data = payload[0]?.payload;
   if (!data) return null;
 
-  const hasAnyActivity =
-    data.quotedQty > 0 || data.orderedQty > 0 || data.quoteCount > 0 || data.orderCount > 0;
+  const hasAnyActivity = (data.quotedQty > 0) || (data.orderedQty > 0) || (data.quoteCount > 0) || (data.orderCount > 0);
 
   return (
-    <div className="min-w-[180px] rounded-xl border border-border bg-popover p-3 shadow-lg">
+    <div className="bg-popover border border-border rounded-xl p-3 shadow-lg min-w-[180px]">
       <p className="text-xs font-medium text-foreground">{data.fullDate}</p>
       <div className="mt-2 space-y-1.5">
         {!hasAnyActivity && (
-          <p className="text-xs italic text-muted-foreground">Sem movimentação neste dia</p>
+          <p className="text-xs text-muted-foreground italic">Sem movimentação neste dia</p>
         )}
         {data.quotedQty > 0 && (
           <div className="flex justify-between text-xs">
             <span className="text-muted-foreground">Orçado:</span>
-            <span className="font-semibold">
-              {data.quotedQty} un · {formatCurrency(data.quotedValue)}
-            </span>
+            <span className="font-semibold">{data.quotedQty} un · {formatCurrency(data.quotedValue)}</span>
           </div>
         )}
         {data.orderedQty > 0 && (
           <div className="flex justify-between text-xs">
             <span className="text-primary">Vendido:</span>
-            <span className="font-semibold text-primary">
-              {data.orderedQty} un · {formatCurrency(data.orderedValue)}
-            </span>
+            <span className="font-semibold text-primary">{data.orderedQty} un · {formatCurrency(data.orderedValue)}</span>
           </div>
         )}
         {data.quoteCount > 0 && (

@@ -10,7 +10,7 @@ export interface Product {
   minQuantity: number;
   category: Category;
   subcategory?: string;
-  groups?: Category[]; // Grupos/categorias adicionais que o produto pertence
+  groups?: Category[];  // Grupos/categorias adicionais que o produto pertence
   colors: ProductColor[];
   materials: string[];
   supplier: Supplier;
@@ -38,17 +38,17 @@ export interface ProductVariation {
   sku: string;
   color: ProductColor;
   stock: number;
-  image: string; // Imagem principal (retrocompatibilidade)
-  images?: string[]; // Múltiplas fotos da variação
-  videos?: string[]; // Vídeos da variação
+  image: string;            // Imagem principal (retrocompatibilidade)
+  images?: string[];        // Múltiplas fotos da variação
+  videos?: string[];        // Vídeos da variação
 }
 
 export interface ProductColor {
   name: string;
   hex: string;
   group: string;
-  images?: string[]; // Múltiplas fotos por cor
-  videos?: string[]; // Vídeos por cor
+  images?: string[];        // Múltiplas fotos por cor
+  videos?: string[];        // Vídeos por cor
 }
 
 export interface KitItem {
@@ -166,92 +166,39 @@ export const SUPPLIERS: Supplier[] = [
 
 // Público-alvo
 export const PUBLICO_ALVO = [
-  'HOMEM',
-  'MULHER',
-  'CRIANÇA',
-  'UNISSEX',
-  'MÉDICO',
-  'ADVOGADO',
-  'ENGENHEIRO',
-  'CONTADOR',
-  'SECRETÁRIA',
-  'EXECUTIVO',
-  'PROFESSOR',
-  'ENFERMEIRO',
-  'PRODUTOR RURAL',
-  'VETERINÁRIO',
-  'DENTISTA',
+  'HOMEM', 'MULHER', 'CRIANÇA', 'UNISSEX', 'MÉDICO', 'ADVOGADO',
+  'ENGENHEIRO', 'CONTADOR', 'SECRETÁRIA', 'EXECUTIVO', 'PROFESSOR',
+  'ENFERMEIRO', 'PRODUTOR RURAL', 'VETERINÁRIO', 'DENTISTA',
 ];
 
 // Datas comemorativas
 export const DATAS_COMEMORATIVAS = [
-  'DIA DOS PAIS',
-  'DIA DAS MÃES',
-  'DIA DAS CRIANÇAS',
-  'NATAL',
-  'PÁSCOA',
-  'ANO NOVO',
-  'DIA DO MÉDICO',
-  'DIA DO ADVOGADO',
-  'DIA DO ENGENHEIRO',
-  'DIA DA SECRETÁRIA',
-  'DIA DO PROFESSOR',
-  'DIA DO CONTADOR',
-  'DIA DO TRABALHADOR',
-  'DIA DA MULHER',
-  'DIA DO HOMEM',
-  'NOVEMBRO AZUL',
-  'OUTUBRO ROSA',
-  'SETEMBRO AMARELO',
-  'CARNAVAL',
-  'FESTA JUNINA',
+  'DIA DOS PAIS', 'DIA DAS MÃES', 'DIA DAS CRIANÇAS', 'NATAL', 'PÁSCOA',
+  'ANO NOVO', 'DIA DO MÉDICO', 'DIA DO ADVOGADO', 'DIA DO ENGENHEIRO',
+  'DIA DA SECRETÁRIA', 'DIA DO PROFESSOR', 'DIA DO CONTADOR',
+  'DIA DO TRABALHADOR', 'DIA DA MULHER', 'DIA DO HOMEM', 'NOVEMBRO AZUL',
+  'OUTUBRO ROSA', 'SETEMBRO AMARELO', 'CARNAVAL', 'FESTA JUNINA',
   'DIA DOS NAMORADOS',
 ];
 
 // Endomarketing
 export const ENDOMARKETING = [
-  'ONBOARDING | KIT BOAS-VINDAS',
-  'TEMPO DE CASA | ANIVERSÁRIO EMPRESA',
-  'CIPA | SIPAT',
-  'PREMIAÇÃO | INCENTIVO',
-  'RECONHECIMENTO',
-  'INTEGRAÇÃO | TEAM BUILDING',
-  'TREINAMENTO | CAPACITAÇÃO',
-  'FIM DE ANO | CONFRATERNIZAÇÃO',
-  'QUALIDADE DE VIDA',
-  'CAMPANHA INTERNA',
-  'CONVENÇÃO DE VENDAS',
+  'ONBOARDING | KIT BOAS-VINDAS', 'TEMPO DE CASA | ANIVERSÁRIO EMPRESA',
+  'CIPA | SIPAT', 'PREMIAÇÃO | INCENTIVO', 'RECONHECIMENTO',
+  'INTEGRAÇÃO | TEAM BUILDING', 'TREINAMENTO | CAPACITAÇÃO',
+  'FIM DE ANO | CONFRATERNIZAÇÃO', 'QUALIDADE DE VIDA',
+  'CAMPANHA INTERNA', 'CONVENÇÃO DE VENDAS',
 ];
 
 // Nichos
 export const NICHOS = [
-  'Agro',
-  'Celulose',
-  'Companhia Aérea',
-  'Educação',
-  'Energia',
-  'Financeiro',
-  'Ferramentas e Ferragens',
-  'Holdings',
-  'Indústria Alimentícia',
-  'Indústria Automobilística',
-  'Indústria Construção',
-  'Indústria Embalagens',
-  'Indústria Eletrônicos',
-  'Indústria Farmacêutica',
-  'Indústria Química',
-  'Indústria Moveleira',
-  'Indústria Pneus',
-  'Indústria Têxtil',
-  'Indústria Siderúrgica',
-  'Logística',
-  'Metalúrgica',
-  'Mineração',
-  'Petróleo',
-  'Saúde',
-  'Siderurgia',
-  'Saneamento',
-  'TI',
+  'Agro', 'Celulose', 'Companhia Aérea', 'Educação', 'Energia', 'Financeiro',
+  'Ferramentas e Ferragens', 'Holdings', 'Indústria Alimentícia',
+  'Indústria Automobilística', 'Indústria Construção', 'Indústria Embalagens',
+  'Indústria Eletrônicos', 'Indústria Farmacêutica', 'Indústria Química',
+  'Indústria Moveleira', 'Indústria Pneus', 'Indústria Têxtil',
+  'Indústria Siderúrgica', 'Logística', 'Metalúrgica', 'Mineração',
+  'Petróleo', 'Saúde', 'Siderurgia', 'Saneamento', 'TI',
 ];
 
 // Faixas de preço
@@ -266,26 +213,10 @@ export const FAIXAS_PRECO = [
 
 // Materiais
 export const MATERIAIS = [
-  'ALUMÍNIO',
-  'AÇO INOX',
-  'METAL',
-  'PLÁSTICO',
-  'PLÁSTICO RÍGIDO',
-  'PLÁSTICO FLEXÍVEL',
-  'BAMBU',
-  'MADEIRA',
-  'VIDRO',
-  'CERÂMICA',
-  'PORCELANA',
-  'TECIDO',
-  'ALGODÃO',
-  'POLIÉSTER',
-  'COURO',
-  'COURO SINTÉTICO',
-  'SILICONE',
-  'BORRACHA',
-  'PAPEL',
-  'CORTIÇA',
+  'ALUMÍNIO', 'AÇO INOX', 'METAL', 'PLÁSTICO', 'PLÁSTICO RÍGIDO',
+  'PLÁSTICO FLEXÍVEL', 'BAMBU', 'MADEIRA', 'VIDRO', 'CERÂMICA',
+  'PORCELANA', 'TECIDO', 'ALGODÃO', 'POLIÉSTER', 'COURO',
+  'COURO SINTÉTICO', 'SILICONE', 'BORRACHA', 'PAPEL', 'CORTIÇA',
 ];
 
 // Produtos mockados
@@ -294,15 +225,14 @@ export const PRODUCTS: Product[] = [
     id: 'prod-001',
     sku: 'SQ-700-PLAS',
     name: 'Squeeze Plástico 700ml',
-    description:
-      'Squeeze de plástico resistente com tampa rosqueável e bico dosador. Capacidade 700ml. Ideal para academias, esportes e uso diário.',
-    price: 12.9,
+    description: 'Squeeze de plástico resistente com tampa rosqueável e bico dosador. Capacidade 700ml. Ideal para academias, esportes e uso diário.',
+    price: 12.90,
     minQuantity: 100,
-    category: CATEGORIES.find((c) => c.id === 202)!, // ESPORTES | AVENTURA | LAZER
+    category: CATEGORIES.find(c => c.id === 202)!, // ESPORTES | AVENTURA | LAZER
     subcategory: 'Squeezes',
     groups: [
-      CATEGORIES.find((c) => c.id === 222)!, // SAÚDE | BELEZA | BEM ESTAR
-      CATEGORIES.find((c) => c.id === 196)!, // ECOLOGIA
+      CATEGORIES.find(c => c.id === 222)!, // SAÚDE | BELEZA | BEM ESTAR
+      CATEGORIES.find(c => c.id === 196)!, // ECOLOGIA
     ],
     colors: [COLORS[0], COLORS[1], COLORS[2], COLORS[3], COLORS[4]],
     materials: ['PLÁSTICO'],
@@ -322,41 +252,11 @@ export const PRODUCTS: Product[] = [
       nicho: ['Saúde'],
     },
     variations: [
-      {
-        id: 'var-001-1',
-        sku: 'SQ-700-PLAS-PRT',
-        color: COLORS[4],
-        stock: 1500,
-        image: 'https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=400',
-      },
-      {
-        id: 'var-001-2',
-        sku: 'SQ-700-PLAS-BRC',
-        color: COLORS[3],
-        stock: 2300,
-        image: 'https://images.unsplash.com/photo-1523362628745-0c100150b504?w=400',
-      },
-      {
-        id: 'var-001-3',
-        sku: 'SQ-700-PLAS-AZL',
-        color: COLORS[1],
-        stock: 800,
-        image: 'https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=400',
-      },
-      {
-        id: 'var-001-4',
-        sku: 'SQ-700-PLAS-VRM',
-        color: COLORS[0],
-        stock: 450,
-        image: 'https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=400',
-      },
-      {
-        id: 'var-001-5',
-        sku: 'SQ-700-PLAS-VRD',
-        color: COLORS[2],
-        stock: 320,
-        image: 'https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=400',
-      },
+      { id: 'var-001-1', sku: 'SQ-700-PLAS-PRT', color: COLORS[4], stock: 1500, image: 'https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=400' },
+      { id: 'var-001-2', sku: 'SQ-700-PLAS-BRC', color: COLORS[3], stock: 2300, image: 'https://images.unsplash.com/photo-1523362628745-0c100150b504?w=400' },
+      { id: 'var-001-3', sku: 'SQ-700-PLAS-AZL', color: COLORS[1], stock: 800, image: 'https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=400' },
+      { id: 'var-001-4', sku: 'SQ-700-PLAS-VRM', color: COLORS[0], stock: 450, image: 'https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=400' },
+      { id: 'var-001-5', sku: 'SQ-700-PLAS-VRD', color: COLORS[2], stock: 320, image: 'https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=400' },
     ],
     featured: true,
   },
@@ -364,15 +264,14 @@ export const PRODUCTS: Product[] = [
     id: 'prod-002',
     sku: 'CAN-MET-350',
     name: 'Caneca Metal 350ml',
-    description:
-      'Caneca de metal com acabamento brilhante. Capacidade 350ml. Perfeita para café, chá e bebidas quentes.',
-    price: 28.5,
+    description: 'Caneca de metal com acabamento brilhante. Capacidade 350ml. Perfeita para café, chá e bebidas quentes.',
+    price: 28.50,
     minQuantity: 50,
-    category: CATEGORIES.find((c) => c.id === 124)!, // BAR | COZINHA
+    category: CATEGORIES.find(c => c.id === 124)!, // BAR | COZINHA
     subcategory: 'Canecas',
     groups: [
-      CATEGORIES.find((c) => c.id === 214)!, // PAPELARIA | ESCRITÓRIO
-      CATEGORIES.find((c) => c.id === 226)!, // UTENSÍLIOS | DECORAÇÃO
+      CATEGORIES.find(c => c.id === 214)!, // PAPELARIA | ESCRITÓRIO
+      CATEGORIES.find(c => c.id === 226)!, // UTENSÍLIOS | DECORAÇÃO
     ],
     colors: [COLORS[3], COLORS[4], COLORS[8], COLORS[9]],
     materials: ['METAL', 'AÇO INOX'],
@@ -397,16 +296,15 @@ export const PRODUCTS: Product[] = [
     id: 'prod-003',
     sku: 'KIT-CHUR-10P',
     name: 'Kit Churrasco Premium 10 Peças',
-    description:
-      'Kit completo para churrasco com 10 peças em aço inox. Inclui faca, garfo, chaira, pegador, espetos e avental em estojo de madeira.',
-    price: 189.9,
+    description: 'Kit completo para churrasco com 10 peças em aço inox. Inclui faca, garfo, chaira, pegador, espetos e avental em estojo de madeira.',
+    price: 189.90,
     minQuantity: 20,
-    category: CATEGORIES.find((c) => c.id === 124)!, // BAR | COZINHA
+    category: CATEGORIES.find(c => c.id === 124)!, // BAR | COZINHA
     subcategory: 'Kit Churrasco',
     groups: [
-      CATEGORIES.find((c) => c.id === 210)!, // KIT GOURMET
-      CATEGORIES.find((c) => c.id === 192)!, // AGRO
-      CATEGORIES.find((c) => c.id === 126)!, // FERRAMENTAS | UTILIDADES
+      CATEGORIES.find(c => c.id === 210)!, // KIT GOURMET
+      CATEGORIES.find(c => c.id === 192)!, // AGRO
+      CATEGORIES.find(c => c.id === 126)!, // FERRAMENTAS | UTILIDADES
     ],
     colors: [COLORS[4], COLORS[10]],
     materials: ['AÇO INOX', 'MADEIRA', 'COURO'],
@@ -439,43 +337,43 @@ export const PRODUCTS: Product[] = [
     },
     featured: true,
     variations: [
-      {
-        id: 'var-003-1',
-        color: COLORS[4],
-        sku: 'KIT-CHUR-10P-PRT',
-        stock: 120,
+      { 
+        id: 'var-003-1', 
+        color: COLORS[4], 
+        sku: 'KIT-CHUR-10P-PRT', 
+        stock: 120, 
         image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600',
         images: [
           'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600',
           'https://images.unsplash.com/photo-1558030006-450675393462?w=600',
           'https://images.unsplash.com/photo-1544025162-d76978e8e3f2?w=600',
         ],
-        videos: ['https://www.w3schools.com/html/mov_bbb.mp4'],
+        videos: ['https://www.w3schools.com/html/mov_bbb.mp4']
       },
-      {
-        id: 'var-003-2',
-        color: COLORS[10],
-        sku: 'KIT-CHUR-10P-INX',
-        stock: 3,
+      { 
+        id: 'var-003-2', 
+        color: COLORS[10], 
+        sku: 'KIT-CHUR-10P-INX', 
+        stock: 3, 
         image: 'https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?w=600',
         images: [
           'https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?w=600',
           'https://images.unsplash.com/photo-1506354666786-959d6d497f1a?w=600',
         ],
-        videos: [],
+        videos: []
       },
-      {
-        id: 'var-003-3',
-        color: { name: 'Madeira', hex: '#8B4513', group: 'Marrom' },
-        sku: 'KIT-CHUR-10P-MAD',
-        stock: 0,
+      { 
+        id: 'var-003-3', 
+        color: { name: 'Madeira', hex: '#8B4513', group: 'Marrom' }, 
+        sku: 'KIT-CHUR-10P-MAD', 
+        stock: 0, 
         image: 'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=600',
         images: [
           'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=600',
           'https://images.unsplash.com/photo-1559847844-5315695dadae?w=600',
           'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600',
         ],
-        videos: ['https://www.w3schools.com/html/movie.mp4'],
+        videos: ['https://www.w3schools.com/html/movie.mp4']
       },
     ],
   },
@@ -483,11 +381,10 @@ export const PRODUCTS: Product[] = [
     id: 'prod-004',
     sku: 'PEN-USB-32',
     name: 'Pen Drive 32GB Giratório',
-    description:
-      'Pen drive 32GB com sistema giratório em metal. Compatível com USB 3.0. Alta velocidade de transferência.',
-    price: 35.0,
+    description: 'Pen drive 32GB com sistema giratório em metal. Compatível com USB 3.0. Alta velocidade de transferência.',
+    price: 35.00,
     minQuantity: 50,
-    category: CATEGORIES.find((c) => c.id === 224)!,
+    category: CATEGORIES.find(c => c.id === 224)!,
     subcategory: 'Pen Drives',
     colors: [COLORS[0], COLORS[1], COLORS[2], COLORS[4], COLORS[9]],
     materials: ['METAL', 'PLÁSTICO'],
@@ -511,11 +408,10 @@ export const PRODUCTS: Product[] = [
     id: 'prod-005',
     sku: 'CAM-ALG-PP',
     name: 'Camiseta Algodão Premium',
-    description:
-      'Camiseta 100% algodão penteado, 180g/m². Corte regular, gola reforçada. Disponível em diversos tamanhos.',
-    price: 42.0,
+    description: 'Camiseta 100% algodão penteado, 180g/m². Corte regular, gola reforçada. Disponível em diversos tamanhos.',
+    price: 42.00,
     minQuantity: 30,
-    category: CATEGORIES.find((c) => c.id === 220)!,
+    category: CATEGORIES.find(c => c.id === 220)!,
     subcategory: 'Camisetas',
     colors: [COLORS[3], COLORS[4], COLORS[1], COLORS[0], COLORS[8]],
     materials: ['ALGODÃO'],
@@ -540,11 +436,10 @@ export const PRODUCTS: Product[] = [
     id: 'prod-006',
     sku: 'MOC-NOT-15',
     name: 'Mochila Notebook 15"',
-    description:
-      'Mochila executiva para notebook até 15". Compartimento acolchoado, bolsos organizadores, alças ergonômicas.',
-    price: 89.9,
+    description: 'Mochila executiva para notebook até 15". Compartimento acolchoado, bolsos organizadores, alças ergonômicas.',
+    price: 89.90,
     minQuantity: 25,
-    category: CATEGORIES.find((c) => c.id === 214)!,
+    category: CATEGORIES.find(c => c.id === 214)!,
     subcategory: 'Mochilas',
     colors: [COLORS[4], COLORS[8], COLORS[1]],
     materials: ['POLIÉSTER', 'PLÁSTICO'],
@@ -569,11 +464,10 @@ export const PRODUCTS: Product[] = [
     id: 'prod-007',
     sku: 'GAR-TER-500',
     name: 'Garrafa Térmica 500ml',
-    description:
-      'Garrafa térmica de aço inox com parede dupla. Mantém bebidas quentes por 12h e frias por 24h.',
-    price: 65.0,
+    description: 'Garrafa térmica de aço inox com parede dupla. Mantém bebidas quentes por 12h e frias por 24h.',
+    price: 65.00,
     minQuantity: 30,
-    category: CATEGORIES.find((c) => c.id === 124)!,
+    category: CATEGORIES.find(c => c.id === 124)!,
     subcategory: 'Garrafas Térmicas',
     colors: [COLORS[4], COLORS[3], COLORS[1], COLORS[0], COLORS[2]],
     materials: ['AÇO INOX'],
@@ -597,11 +491,10 @@ export const PRODUCTS: Product[] = [
     id: 'prod-008',
     sku: 'CAD-ECO-A5',
     name: 'Caderno Ecológico A5',
-    description:
-      'Caderno A5 com capa em papel reciclado e caneta de bambu. 80 folhas pautadas. Produto ecológico.',
-    price: 18.9,
+    description: 'Caderno A5 com capa em papel reciclado e caneta de bambu. 80 folhas pautadas. Produto ecológico.',
+    price: 18.90,
     minQuantity: 100,
-    category: CATEGORIES.find((c) => c.id === 196)!,
+    category: CATEGORIES.find(c => c.id === 196)!,
     subcategory: 'Cadernos',
     colors: [COLORS[2], COLORS[10]],
     materials: ['PAPEL', 'BAMBU'],
@@ -627,9 +520,9 @@ export const PRODUCTS: Product[] = [
     sku: 'BON-5P-ALG',
     name: 'Boné 5 Painéis Algodão',
     description: 'Boné 5 painéis em algodão com fechamento em velcro. Aba curva pré-formada.',
-    price: 15.5,
+    price: 15.50,
     minQuantity: 100,
-    category: CATEGORIES.find((c) => c.id === 220)!,
+    category: CATEGORIES.find(c => c.id === 220)!,
     subcategory: 'Bonés',
     colors: COLORS.slice(0, 8),
     materials: ['ALGODÃO'],
@@ -653,11 +546,10 @@ export const PRODUCTS: Product[] = [
     id: 'prod-010',
     sku: 'POW-10K-SLM',
     name: 'Power Bank 10000mAh Slim',
-    description:
-      'Carregador portátil 10000mAh com 2 saídas USB. Design slim e leve. Indicador LED de carga.',
-    price: 75.0,
+    description: 'Carregador portátil 10000mAh com 2 saídas USB. Design slim e leve. Indicador LED de carga.',
+    price: 75.00,
     minQuantity: 25,
-    category: CATEGORIES.find((c) => c.id === 224)!,
+    category: CATEGORIES.find(c => c.id === 224)!,
     subcategory: 'Power Banks',
     colors: [COLORS[3], COLORS[4], COLORS[1], COLORS[0]],
     materials: ['PLÁSTICO', 'METAL'],
@@ -682,11 +574,10 @@ export const PRODUCTS: Product[] = [
     id: 'prod-011',
     sku: 'UMB-AUT-PRE',
     name: 'Guarda-Chuva Automático Premium',
-    description:
-      'Guarda-chuva automático com abertura e fechamento por botão. Estrutura reforçada, tecido impermeável.',
-    price: 48.0,
+    description: 'Guarda-chuva automático com abertura e fechamento por botão. Estrutura reforçada, tecido impermeável.',
+    price: 48.00,
     minQuantity: 50,
-    category: CATEGORIES.find((c) => c.id === 220)!,
+    category: CATEGORIES.find(c => c.id === 220)!,
     subcategory: 'Guarda-Chuvas',
     colors: [COLORS[4], COLORS[1], COLORS[0], COLORS[8]],
     materials: ['POLIÉSTER', 'METAL'],
@@ -710,11 +601,10 @@ export const PRODUCTS: Product[] = [
     id: 'prod-012',
     sku: 'KIT-ESC-5P',
     name: 'Kit Escritório 5 Peças',
-    description:
-      'Kit escritório com porta-canetas, bloco de notas, caneta, clips e borracha. Organização elegante para sua mesa.',
-    price: 55.0,
+    description: 'Kit escritório com porta-canetas, bloco de notas, caneta, clips e borracha. Organização elegante para sua mesa.',
+    price: 55.00,
     minQuantity: 30,
-    category: CATEGORIES.find((c) => c.id === 214)!,
+    category: CATEGORIES.find(c => c.id === 214)!,
     subcategory: 'Kits Escritório',
     colors: [COLORS[4], COLORS[3], COLORS[1]],
     materials: ['PLÁSTICO', 'PAPEL', 'METAL'],
@@ -757,7 +647,7 @@ export const CLIENTS: Client[] = [
     email: 'compras@sicoob.com.br',
     phone: '(31) 3333-4444',
     address: 'Av. Brasil, 1500 - Centro, Belo Horizonte/MG',
-    totalSpent: 45890.5,
+    totalSpent: 45890.50,
     lastPurchase: '2024-01-10',
     registeredAt: '2022-03-15',
     purchaseHistory: [
@@ -765,59 +655,29 @@ export const CLIENTS: Client[] = [
         id: 'pur-001',
         date: '2024-01-10',
         products: [
-          {
-            productId: 'prod-001',
-            productName: 'Squeeze Plástico 700ml',
-            quantity: 500,
-            unitPrice: 12.9,
-            color: COLORS[2],
-          },
-          {
-            productId: 'prod-005',
-            productName: 'Camiseta Algodão Premium',
-            quantity: 200,
-            unitPrice: 42.0,
-            color: COLORS[3],
-          },
+          { productId: 'prod-001', productName: 'Squeeze Plástico 700ml', quantity: 500, unitPrice: 12.90, color: COLORS[2] },
+          { productId: 'prod-005', productName: 'Camiseta Algodão Premium', quantity: 200, unitPrice: 42.00, color: COLORS[3] },
         ],
-        total: 14850.0,
+        total: 14850.00,
         status: 'completed',
       },
       {
         id: 'pur-002',
         date: '2023-11-20',
         products: [
-          {
-            productId: 'prod-006',
-            productName: 'Mochila Notebook 15"',
-            quantity: 100,
-            unitPrice: 89.9,
-            color: COLORS[4],
-          },
+          { productId: 'prod-006', productName: 'Mochila Notebook 15"', quantity: 100, unitPrice: 89.90, color: COLORS[4] },
         ],
-        total: 8990.0,
+        total: 8990.00,
         status: 'completed',
       },
       {
         id: 'pur-003',
         date: '2023-08-05',
         products: [
-          {
-            productId: 'prod-002',
-            productName: 'Caneca Metal 350ml',
-            quantity: 300,
-            unitPrice: 28.5,
-            color: COLORS[3],
-          },
-          {
-            productId: 'prod-004',
-            productName: 'Pen Drive 32GB Giratório',
-            quantity: 200,
-            unitPrice: 35.0,
-            color: COLORS[2],
-          },
+          { productId: 'prod-002', productName: 'Caneca Metal 350ml', quantity: 300, unitPrice: 28.50, color: COLORS[3] },
+          { productId: 'prod-004', productName: 'Pen Drive 32GB Giratório', quantity: 200, unitPrice: 35.00, color: COLORS[2] },
         ],
-        total: 15550.0,
+        total: 15550.00,
         status: 'completed',
       },
     ],
@@ -833,7 +693,7 @@ export const CLIENTS: Client[] = [
     email: 'marketing@vale.com',
     phone: '(21) 3485-3000',
     address: 'Praia de Botafogo, 186 - Botafogo, Rio de Janeiro/RJ',
-    totalSpent: 128450.0,
+    totalSpent: 128450.00,
     lastPurchase: '2024-01-05',
     registeredAt: '2021-06-20',
     purchaseHistory: [
@@ -841,37 +701,19 @@ export const CLIENTS: Client[] = [
         id: 'pur-004',
         date: '2024-01-05',
         products: [
-          {
-            productId: 'prod-003',
-            productName: 'Kit Churrasco Premium 10 Peças',
-            quantity: 150,
-            unitPrice: 189.9,
-            color: COLORS[4],
-          },
-          {
-            productId: 'prod-009',
-            productName: 'Boné 5 Painéis Algodão',
-            quantity: 1000,
-            unitPrice: 15.5,
-            color: COLORS[2],
-          },
+          { productId: 'prod-003', productName: 'Kit Churrasco Premium 10 Peças', quantity: 150, unitPrice: 189.90, color: COLORS[4] },
+          { productId: 'prod-009', productName: 'Boné 5 Painéis Algodão', quantity: 1000, unitPrice: 15.50, color: COLORS[2] },
         ],
-        total: 43985.0,
+        total: 43985.00,
         status: 'completed',
       },
       {
         id: 'pur-005',
         date: '2023-12-01',
         products: [
-          {
-            productId: 'prod-007',
-            productName: 'Garrafa Térmica 500ml',
-            quantity: 500,
-            unitPrice: 65.0,
-            color: COLORS[2],
-          },
+          { productId: 'prod-007', productName: 'Garrafa Térmica 500ml', quantity: 500, unitPrice: 65.00, color: COLORS[2] },
         ],
-        total: 32500.0,
+        total: 32500.00,
         status: 'completed',
       },
     ],
@@ -887,7 +729,7 @@ export const CLIENTS: Client[] = [
     email: 'compras@unimed.com.br',
     phone: '(11) 3111-2222',
     address: 'Alameda Santos, 2000 - Cerqueira César, São Paulo/SP',
-    totalSpent: 67320.0,
+    totalSpent: 67320.00,
     lastPurchase: '2023-12-15',
     registeredAt: '2022-01-10',
     purchaseHistory: [
@@ -895,22 +737,10 @@ export const CLIENTS: Client[] = [
         id: 'pur-006',
         date: '2023-12-15',
         products: [
-          {
-            productId: 'prod-001',
-            productName: 'Squeeze Plástico 700ml',
-            quantity: 1000,
-            unitPrice: 12.9,
-            color: COLORS[2],
-          },
-          {
-            productId: 'prod-008',
-            productName: 'Caderno Ecológico A5',
-            quantity: 500,
-            unitPrice: 18.9,
-            color: COLORS[2],
-          },
+          { productId: 'prod-001', productName: 'Squeeze Plástico 700ml', quantity: 1000, unitPrice: 12.90, color: COLORS[2] },
+          { productId: 'prod-008', productName: 'Caderno Ecológico A5', quantity: 500, unitPrice: 18.90, color: COLORS[2] },
         ],
-        total: 22350.0,
+        total: 22350.00,
         status: 'completed',
       },
     ],
@@ -926,7 +756,7 @@ export const CLIENTS: Client[] = [
     email: 'brindes@itau.com.br',
     phone: '(11) 4004-4828',
     address: 'Praça Alfredo Egydio de Souza Aranha, 100 - Jabaquara, São Paulo/SP',
-    totalSpent: 215780.0,
+    totalSpent: 215780.00,
     lastPurchase: '2024-01-12',
     registeredAt: '2020-08-05',
     purchaseHistory: [
@@ -934,37 +764,19 @@ export const CLIENTS: Client[] = [
         id: 'pur-007',
         date: '2024-01-12',
         products: [
-          {
-            productId: 'prod-010',
-            productName: 'Power Bank 10000mAh Slim',
-            quantity: 500,
-            unitPrice: 75.0,
-            color: COLORS[5],
-          },
-          {
-            productId: 'prod-006',
-            productName: 'Mochila Notebook 15"',
-            quantity: 300,
-            unitPrice: 89.9,
-            color: COLORS[1],
-          },
+          { productId: 'prod-010', productName: 'Power Bank 10000mAh Slim', quantity: 500, unitPrice: 75.00, color: COLORS[5] },
+          { productId: 'prod-006', productName: 'Mochila Notebook 15"', quantity: 300, unitPrice: 89.90, color: COLORS[1] },
         ],
-        total: 64470.0,
+        total: 64470.00,
         status: 'completed',
       },
       {
         id: 'pur-008',
         date: '2023-10-20',
         products: [
-          {
-            productId: 'prod-005',
-            productName: 'Camiseta Algodão Premium',
-            quantity: 2000,
-            unitPrice: 42.0,
-            color: COLORS[5],
-          },
+          { productId: 'prod-005', productName: 'Camiseta Algodão Premium', quantity: 2000, unitPrice: 42.00, color: COLORS[5] },
         ],
-        total: 84000.0,
+        total: 84000.00,
         status: 'completed',
       },
     ],
@@ -980,7 +792,7 @@ export const CLIENTS: Client[] = [
     email: 'comunicacao@petrobras.com.br',
     phone: '(21) 3224-4477',
     address: 'Av. República do Chile, 65 - Centro, Rio de Janeiro/RJ',
-    totalSpent: 342150.0,
+    totalSpent: 342150.00,
     lastPurchase: '2024-01-08',
     registeredAt: '2019-11-12',
     purchaseHistory: [
@@ -988,29 +800,11 @@ export const CLIENTS: Client[] = [
         id: 'pur-009',
         date: '2024-01-08',
         products: [
-          {
-            productId: 'prod-003',
-            productName: 'Kit Churrasco Premium 10 Peças',
-            quantity: 200,
-            unitPrice: 189.9,
-            color: COLORS[4],
-          },
-          {
-            productId: 'prod-007',
-            productName: 'Garrafa Térmica 500ml',
-            quantity: 800,
-            unitPrice: 65.0,
-            color: COLORS[2],
-          },
-          {
-            productId: 'prod-009',
-            productName: 'Boné 5 Painéis Algodão',
-            quantity: 2000,
-            unitPrice: 15.5,
-            color: COLORS[6],
-          },
+          { productId: 'prod-003', productName: 'Kit Churrasco Premium 10 Peças', quantity: 200, unitPrice: 189.90, color: COLORS[4] },
+          { productId: 'prod-007', productName: 'Garrafa Térmica 500ml', quantity: 800, unitPrice: 65.00, color: COLORS[2] },
+          { productId: 'prod-009', productName: 'Boné 5 Painéis Algodão', quantity: 2000, unitPrice: 15.50, color: COLORS[6] },
         ],
-        total: 120980.0,
+        total: 120980.00,
         status: 'completed',
       },
     ],

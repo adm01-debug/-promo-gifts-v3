@@ -15,18 +15,14 @@ const TestMainLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div role="document">
       <header>
-        <button onClick={() => setIsOpen(true)} aria-label="Abrir menu">
-          Toggle
-        </button>
+        <button onClick={() => setIsOpen(true)} aria-label="Abrir menu">Toggle</button>
       </header>
-      <aside
+      <aside 
         aria-label="Menu principal"
         data-testid="sidebar-aside"
         className={`fixed transition-transform ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}
       >
-        <button onClick={() => setIsOpen(false)} aria-label="Fechar menu">
-          Close
-        </button>
+        <button onClick={() => setIsOpen(false)} aria-label="Fechar menu">Close</button>
       </aside>
       <main role="main" aria-hidden={isOpen}>
         {children}
@@ -44,7 +40,9 @@ describe('Admin Mobile Interaction Pattern', () => {
         <MemoryRouter>
           <ThemeProvider>
             <AuthProvider>
-              <TooltipProvider>{children}</TooltipProvider>
+              <TooltipProvider>
+                {children}
+              </TooltipProvider>
             </AuthProvider>
           </ThemeProvider>
         </MemoryRouter>
@@ -57,7 +55,7 @@ describe('Admin Mobile Interaction Pattern', () => {
 
     const sidebar = screen.getByTestId('sidebar-aside');
     const main = screen.getByRole('main');
-
+    
     // Initially closed
     expect(sidebar.className).toContain('-translate-x-full');
     expect(main.getAttribute('aria-hidden')).toBe('false');

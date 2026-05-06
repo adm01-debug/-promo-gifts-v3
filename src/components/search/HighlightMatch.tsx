@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo } from "react";
 
 interface HighlightMatchProps {
   text: string;
@@ -14,8 +14,8 @@ interface HighlightMatchProps {
 export const HighlightMatch = memo(function HighlightMatch({
   text,
   query,
-  className = '',
-  highlightClassName = 'bg-primary/20 text-primary font-semibold rounded-sm px-0.5',
+  className = "",
+  highlightClassName = "bg-primary/20 text-primary font-semibold rounded-sm px-0.5",
 }: HighlightMatchProps) {
   if (!query || query.length < 2) {
     return <span className={className}>{text}</span>;
@@ -25,14 +25,14 @@ export const HighlightMatch = memo(function HighlightMatch({
   const words = query
     .trim()
     .split(/\s+/)
-    .filter((w) => w.length >= 2)
-    .map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+    .filter(w => w.length >= 2)
+    .map(w => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
 
   if (words.length === 0) {
     return <span className={className}>{text}</span>;
   }
 
-  const regex = new RegExp(`(${words.join('|')})`, 'gi');
+  const regex = new RegExp(`(${words.join("|")})`, "gi");
   const parts = text.split(regex);
 
   return (
@@ -44,7 +44,7 @@ export const HighlightMatch = memo(function HighlightMatch({
           </mark>
         ) : (
           <span key={i}>{part}</span>
-        ),
+        )
       )}
     </span>
   );

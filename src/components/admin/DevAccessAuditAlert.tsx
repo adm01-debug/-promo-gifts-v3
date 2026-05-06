@@ -8,19 +8,12 @@
  * Visível apenas para devs. Em ambiente saudável, renderiza um banner
  * compacto de status OK (dispensável).
  */
-import { useState } from 'react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import {
-  AlertTriangle,
-  CheckCircle2,
-  RefreshCcw,
-  ShieldCheck,
-  ChevronDown,
-  ChevronUp,
-} from 'lucide-react';
-import { useDevAccessAudit } from '@/hooks/useDevAccessAudit';
+import { useState } from "react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { AlertTriangle, CheckCircle2, RefreshCcw, ShieldCheck, ChevronDown, ChevronUp } from "lucide-react";
+import { useDevAccessAudit } from "@/hooks/useDevAccessAudit";
 
 export function DevAccessAuditAlert() {
   const { enabled, loading, results, blocked, ranAt, run } = useDevAccessAudit();
@@ -45,7 +38,7 @@ export function DevAccessAuditAlert() {
               {results.length}/{results.length} OK
             </Badge>
             <Button size="sm" variant="ghost" onClick={() => void run()} disabled={loading}>
-              <RefreshCcw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
+              <RefreshCcw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
             </Button>
             <Button size="sm" variant="ghost" onClick={() => setDismissed(true)}>
               Ocultar
@@ -54,7 +47,7 @@ export function DevAccessAuditAlert() {
         </AlertTitle>
         <AlertDescription className="text-[11px] text-muted-foreground">
           Acesso a telemetria, logs e conexões confirmado
-          {ranAt ? ` em ${ranAt.toLocaleTimeString()}` : ''}.
+          {ranAt ? ` em ${ranAt.toLocaleTimeString()}` : ""}.
         </AlertDescription>
       </Alert>
     );
@@ -69,8 +62,13 @@ export function DevAccessAuditAlert() {
           <Badge variant="destructive" className="text-xs">
             {blocked.length} de {results.length} bloqueadas
           </Badge>
-          <Button size="sm" variant="outline" onClick={() => void run()} disabled={loading}>
-            <RefreshCcw className={`mr-1 h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => void run()}
+            disabled={loading}
+          >
+            <RefreshCcw className={`mr-1 h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
             Reexecutar
           </Button>
           <Button size="sm" variant="ghost" onClick={() => setExpanded((e) => !e)}>
@@ -80,12 +78,13 @@ export function DevAccessAuditAlert() {
       </AlertTitle>
       <AlertDescription className="space-y-2 text-sm">
         <p>
-          O usuário atual está com role <strong>dev</strong>, mas a checagem de RLS bloqueou leitura
-          em tabelas sensíveis. Isso normalmente indica que uma policy ainda usa{' '}
+          O usuário atual está com role <strong>dev</strong>, mas a checagem de
+          RLS bloqueou leitura em tabelas sensíveis. Isso normalmente indica que
+          uma policy ainda usa{" "}
           <code className="rounded bg-background/40 px-1 text-xs">
             has_role(auth.uid(),'admin')
-          </code>{' '}
-          em vez de{' '}
+          </code>{" "}
+          em vez de{" "}
           <code className="rounded bg-background/40 px-1 text-xs">
             is_supervisor_or_above(auth.uid())
           </code>
@@ -98,14 +97,19 @@ export function DevAccessAuditAlert() {
                 <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0 text-destructive" />
                 <div>
                   <code className="font-mono">{b.table}</code>
-                  {b.error ? <span className="ml-2 text-muted-foreground">— {b.error}</span> : null}
+                  {b.error ? (
+                    <span className="ml-2 text-muted-foreground">— {b.error}</span>
+                  ) : null}
                 </div>
               </li>
             ))}
             {results
               .filter((r) => r.ok)
               .map((r) => (
-                <li key={r.table} className="flex items-start gap-2 text-muted-foreground">
+                <li
+                  key={r.table}
+                  className="flex items-start gap-2 text-muted-foreground"
+                >
                   <CheckCircle2 className="mt-0.5 h-3 w-3 shrink-0 text-success" />
                   <code className="font-mono">{r.table}</code>
                 </li>

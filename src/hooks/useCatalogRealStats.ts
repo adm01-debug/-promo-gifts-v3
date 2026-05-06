@@ -4,6 +4,7 @@
  */
 import { useQuery } from '@tanstack/react-query';
 import { invokeExternalDb } from '@/lib/external-db/bridge';
+import { invokeBatchBridge } from '@/lib/external-db/bridge';
 
 export interface CatalogRealStats {
   totalVariants: number;
@@ -12,18 +13,13 @@ export interface CatalogRealStats {
 }
 
 const HIDDEN_CATEGORY_PATTERNS = [
-  'matéria',
-  'prima',
-  'gravações',
-  'personalização',
-  'suprimentos',
-  'insumos',
-  'gravação | mochila',
+  'matéria', 'prima', 'gravações', 'personalização',
+  'suprimentos', 'insumos', 'gravação | mochila',
 ];
 
 function isHiddenCategory(name: string): boolean {
   const lower = name.toLowerCase();
-  return HIDDEN_CATEGORY_PATTERNS.some((p) => lower.includes(p));
+  return HIDDEN_CATEGORY_PATTERNS.some(p => lower.includes(p));
 }
 
 export function useCatalogRealStats() {
@@ -65,7 +61,7 @@ export function useCatalogRealStats() {
       const totalVariants = variantsResult.count ?? 0;
 
       // Categories: filter hidden ones from records
-      const visible = categoriesResult.records.filter((c) => !isHiddenCategory(c.name || ''));
+      const visible = categoriesResult.records.filter(c => !isHiddenCategory(c.name || ''));
       const totalCategories = visible.length;
 
       // Suppliers: use count from countMode

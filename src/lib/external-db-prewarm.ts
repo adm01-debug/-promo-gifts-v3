@@ -69,9 +69,7 @@ async function pingBridge(): Promise<{ ok: boolean; ms: number; attempts: number
  * (handleBatch, supabase/functions/external-db-bridge/index.ts:499) reusando
  * o mesmo client cacheado. Resultado: ~1.5s → ~250ms no warm path.
  */
-async function warmAllTables(
-  tables: string[],
-): Promise<Array<{ table: string; ok: boolean; ms: number; err?: string }>> {
+async function warmAllTables(tables: string[]): Promise<Array<{ table: string; ok: boolean; ms: number; err?: string }>> {
   const t0 = performance.now();
   try {
     const { data, error } = await supabase.functions.invoke('external-db-bridge', {
@@ -192,6 +190,7 @@ export async function prewarmExternalDb(opts: { force?: boolean; oncePerSession?
     `[Prewarm] Done in ${totalMs}ms — ping=${ping.ms}ms (${ping.attempts}x) ${crmInfo} external_ok=${okCount} fail=${failCount} (1 batch invoke)`,
   );
 }
+
 
 /**
  * Limpa o flag de sessão. Útil em logout para garantir prewarm no próximo login.

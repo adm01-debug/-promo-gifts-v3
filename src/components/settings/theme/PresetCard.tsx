@@ -23,10 +23,10 @@ export function PresetCard({ preset, isActive, onSelect }: PresetCardProps) {
           onHoverStart={() => setIsHovered(true)}
           onHoverEnd={() => setIsHovered(false)}
           className={cn(
-            'group relative cursor-pointer overflow-hidden rounded-xl border bg-card p-4 transition-all duration-300',
+            'relative cursor-pointer rounded-xl border bg-card p-4 transition-all duration-300 overflow-hidden group',
             isActive
-              ? 'border-primary shadow-md ring-2 ring-primary/60'
-              : 'border-border hover:border-primary/40 hover:shadow-lg',
+              ? 'border-primary ring-2 ring-primary/60 shadow-md'
+              : 'border-border hover:border-primary/40 hover:shadow-lg'
           )}
           onClick={() => onSelect(preset.id)}
           role="radio"
@@ -56,11 +56,11 @@ export function PresetCard({ preset, isActive, onSelect }: PresetCardProps) {
           </AnimatePresence>
 
           {/* Swatches bar with rounded edges */}
-          <div className="relative mb-3 flex h-8 overflow-hidden rounded-xl shadow-sm">
+          <div className="relative flex h-8 rounded-xl overflow-hidden mb-3 shadow-sm">
             {preset.swatches.map((color, i) => (
               <motion.div
                 key={i}
-                className="relative flex-1"
+                className="flex-1 relative"
                 style={{ backgroundColor: color }}
                 initial={false}
                 animate={{
@@ -81,9 +81,9 @@ export function PresetCard({ preset, isActive, onSelect }: PresetCardProps) {
 
           {/* Info + Active check */}
           <div className="relative flex items-center justify-between">
-            <div className="flex min-w-0 items-center gap-1.5">
-              <span className="shrink-0 text-sm">{preset.emoji}</span>
-              <h3 className="truncate font-display text-xs font-bold text-foreground">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className="text-sm shrink-0">{preset.emoji}</span>
+              <h3 className="text-xs font-display font-bold text-foreground truncate">
                 {preset.name}
               </h3>
             </div>
@@ -96,7 +96,7 @@ export function PresetCard({ preset, isActive, onSelect }: PresetCardProps) {
                   animate={{ scale: 1, rotate: 0 }}
                   exit={{ scale: 0, rotate: 180 }}
                   transition={{ type: 'spring', stiffness: 500, damping: 25 }}
-                  className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary"
+                  className="h-5 w-5 rounded-full bg-primary flex items-center justify-center shrink-0"
                 >
                   <Check className="h-3 w-3 text-primary-foreground" />
                 </motion.div>
@@ -106,7 +106,7 @@ export function PresetCard({ preset, isActive, onSelect }: PresetCardProps) {
                   initial={{ scale: 0, opacity: 0 }}
                   animate={{ scale: 1, opacity: 0.6 }}
                   exit={{ scale: 0, opacity: 0 }}
-                  className="flex h-5 w-5 shrink-0 items-center justify-center"
+                  className="h-5 w-5 flex items-center justify-center shrink-0"
                 >
                   <Eye className="h-3.5 w-3.5 text-muted-foreground" />
                 </motion.div>
@@ -114,17 +114,15 @@ export function PresetCard({ preset, isActive, onSelect }: PresetCardProps) {
             </AnimatePresence>
           </div>
 
-          <p className="relative mt-0.5 truncate text-[11px] italic text-muted-foreground">
+          <p className="relative text-[11px] text-muted-foreground mt-0.5 italic truncate">
             {preset.description}
           </p>
         </motion.div>
       </TooltipTrigger>
-      <TooltipContent side="bottom" className="max-w-[200px] text-xs">
-        <p className="font-semibold">
-          {preset.emoji} {preset.name}
-        </p>
+      <TooltipContent side="bottom" className="text-xs max-w-[200px]">
+        <p className="font-semibold">{preset.emoji} {preset.name}</p>
         <p className="text-muted-foreground">{preset.description}</p>
-        {isActive && <p className="mt-1 font-medium text-primary">✓ Skin ativa</p>}
+        {isActive && <p className="text-primary font-medium mt-1">✓ Skin ativa</p>}
       </TooltipContent>
     </Tooltip>
   );

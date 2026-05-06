@@ -12,9 +12,7 @@ export interface QuoteItemCalculationParams {
 /**
  * Calcula o total de personalizações de um item.
  */
-export const calculateItemPersonalizationTotal = (
-  item: Pick<QuoteItemCalculationParams, 'personalizations'>,
-): number => {
+export const calculateItemPersonalizationTotal = (item: Pick<QuoteItemCalculationParams, 'personalizations'>): number => {
   return (item.personalizations || []).reduce((sum, p) => sum + (p.total_cost || 0), 0);
 };
 
@@ -22,7 +20,7 @@ export const calculateItemPersonalizationTotal = (
  * Calcula o total bruto de um item (quantidade * preço + gravações).
  */
 export const calculateItemTotal = (item: QuoteItemCalculationParams): number => {
-  return item.quantity * item.unitPrice + calculateItemPersonalizationTotal(item);
+  return (item.quantity * item.unitPrice) + calculateItemPersonalizationTotal(item);
 };
 
 /**
@@ -46,9 +44,9 @@ export const applyMarkup = (baseValue: number, markupPercent: number): number =>
  * Calcula o valor absoluto do desconto.
  */
 export const calculateDiscountAmount = (
-  subtotal: number,
-  discountType: 'percent' | 'amount',
-  discountValue: number,
+  subtotal: number, 
+  discountType: 'percent' | 'amount', 
+  discountValue: number
 ): number => {
   const safeValue = Math.max(0, discountValue || 0);
   if (discountType === 'percent') {
@@ -64,7 +62,7 @@ export const calculateDiscountAmount = (
 export const calculateRealDiscountPercent = (
   realSubtotal: number,
   presentedSubtotal: number,
-  discountAmount: number,
+  discountAmount: number
 ): number => {
   if (realSubtotal <= 0) return 0;
   const finalBeforeShipping = Math.max(0, presentedSubtotal - discountAmount);

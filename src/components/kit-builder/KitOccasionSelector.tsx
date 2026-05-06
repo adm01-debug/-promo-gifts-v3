@@ -9,9 +9,17 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { PartyPopper, Gift, CalendarHeart, Trophy, Sparkles, RefreshCw, X } from 'lucide-react';
+import {
+  PartyPopper, Gift, CalendarHeart, Trophy, Sparkles, RefreshCw, X,
+} from 'lucide-react';
 
-export type Occasion = 'welcome' | 'year-end' | 'event' | 'birthday' | 'vip' | 'reactivation';
+export type Occasion =
+  | 'welcome'
+  | 'year-end'
+  | 'event'
+  | 'birthday'
+  | 'vip'
+  | 'reactivation';
 
 export interface OccasionMeta {
   id: Occasion;
@@ -94,21 +102,23 @@ export function KitOccasionSelector({ value, onChange, className }: KitOccasionS
     const Icon = selected.icon;
     return (
       <div className={cn('flex items-center gap-2', className)}>
-        <Badge variant="outline" className="gap-1.5 border-primary px-2 py-1 text-primary">
+        <Badge variant="outline" className="gap-1.5 py-1 px-2 border-primary text-primary">
           <Icon className="h-3.5 w-3.5" />
           Ocasião: {selected.label}
         </Badge>
-        <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setExpanded(true)}>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-7 text-xs"
+          onClick={() => setExpanded(true)}
+        >
           Mudar
         </Button>
         <Button
           variant="ghost"
           size="sm"
           className="h-7 text-xs"
-          onClick={() => {
-            onChange(null);
-            setExpanded(true);
-          }}
+          onClick={() => { onChange(null); setExpanded(true); }}
         >
           <X className="h-3 w-3" />
         </Button>
@@ -118,14 +128,14 @@ export function KitOccasionSelector({ value, onChange, className }: KitOccasionS
 
   return (
     <Card className={className}>
-      <CardContent className="space-y-3 p-4">
+      <CardContent className="p-4 space-y-3">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="flex items-center gap-2 font-display text-sm font-semibold">
+            <h3 className="font-display font-semibold text-sm flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-primary" />
               Para qual ocasião?
             </h3>
-            <p className="mt-0.5 text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground mt-0.5">
               Opcional — orienta sugestões e filtros contextuais.
             </p>
           </div>
@@ -141,7 +151,7 @@ export function KitOccasionSelector({ value, onChange, className }: KitOccasionS
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           {OCCASIONS.map((o) => {
             const Icon = o.icon;
             const active = value === o.id;
@@ -149,22 +159,17 @@ export function KitOccasionSelector({ value, onChange, className }: KitOccasionS
               <button
                 key={o.id}
                 type="button"
-                onClick={() => {
-                  onChange(o.id);
-                  setExpanded(false);
-                }}
+                onClick={() => { onChange(o.id); setExpanded(false); }}
                 className={cn(
                   'group flex flex-col items-start gap-1 rounded-xl border p-3 text-left transition-all',
                   'hover:border-primary hover:bg-primary/5',
-                  active && 'border-primary bg-primary/10 ring-2 ring-primary/30',
+                  active && 'border-primary bg-primary/10 ring-2 ring-primary/30'
                 )}
                 aria-pressed={active}
               >
-                <Icon
-                  className={cn('h-4 w-4', active ? 'text-primary' : 'text-muted-foreground')}
-                />
+                <Icon className={cn('h-4 w-4', active ? 'text-primary' : 'text-muted-foreground')} />
                 <span className="text-sm font-medium">{o.label}</span>
-                <span className="line-clamp-2 text-[10px] text-muted-foreground">
+                <span className="text-[10px] text-muted-foreground line-clamp-2">
                   {o.description}
                 </span>
               </button>
@@ -174,11 +179,8 @@ export function KitOccasionSelector({ value, onChange, className }: KitOccasionS
 
         <button
           type="button"
-          onClick={() => {
-            onChange(null);
-            setExpanded(false);
-          }}
-          className="text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+          onClick={() => { onChange(null); setExpanded(false); }}
+          className="text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline"
         >
           Pular esta etapa
         </button>

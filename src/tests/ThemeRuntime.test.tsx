@@ -16,32 +16,30 @@ describe('Theme Runtime Safety', () => {
     expect(() => {
       render(<ThemeConsumer />);
     }).not.toThrow();
-
+    
     expect(screen.getByTestId('theme-value')).toBeDefined();
     expect(screen.getByTestId('theme-value').textContent).toBe('light');
   });
 
   it('should show console warning only in development when context is missing', () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-
+    
     // Test development environment
-    const originalEnv = import.meta.env.DEV;
-    (import.meta.env as any).DEV = true;
-
+    const originalEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'development';
+    
     render(<ThemeConsumer />);
-    expect(warnSpy).toHaveBeenCalledWith(
-      expect.stringContaining('useTheme must be used within a ThemeProvider'),
-    );
-
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('useTheme must be used within a ThemeProvider'));
+    
     warnSpy.mockClear();
-
+    
     // Test production environment
-    (import.meta.env as any).DEV = false;
+    process.env.NODE_ENV = 'production';
     render(<ThemeConsumer />);
     expect(warnSpy).not.toHaveBeenCalled();
-
+    
     // Restore
-    (import.meta.env as any).DEV = originalEnv;
+    process.env.NODE_ENV = originalEnv;
     warnSpy.mockRestore();
   });
 
@@ -55,3 +53,5 @@ describe('Theme Runtime Safety', () => {
     expect(screen.getByTestId('fallback-status').textContent).toBe('true');
   });
 });
+
+

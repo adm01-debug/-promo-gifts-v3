@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -6,13 +6,13 @@ import {
   AlertDialogTitle,
   AlertDialogDescription,
   AlertDialogFooter,
-} from '@/components/ui/alert-dialog';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { AlertTriangle, Loader2 } from 'lucide-react';
-import { motion } from 'framer-motion';
-import { SecretMaskedDiff } from './SecretMaskedDiff';
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { AlertTriangle, Loader2 } from "lucide-react";
+import { motion } from "framer-motion";
+import { SecretMaskedDiff } from "./SecretMaskedDiff";
 
 interface Props {
   open: boolean;
@@ -41,10 +41,10 @@ export function RotateSecretConfirmDialog({
   errorMessage,
   onConfirm,
 }: Props) {
-  const [notes, setNotes] = useState('');
+  const [notes, setNotes] = useState("");
 
   useEffect(() => {
-    if (open) setNotes('');
+    if (open) setNotes("");
   }, [open]);
 
   const handleOpenChange = (next: boolean) => {
@@ -63,13 +63,15 @@ export function RotateSecretConfirmDialog({
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-              className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-warning/10"
+              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              className="flex items-center justify-center w-12 h-12 rounded-full flex-shrink-0 bg-warning/10"
             >
-              <AlertTriangle className="h-6 w-6 text-warning" />
+              <AlertTriangle className="w-6 h-6 text-warning" />
             </motion.div>
             <div className="space-y-1">
-              <AlertDialogTitle className="text-xl">Rotacionar {secretName}?</AlertDialogTitle>
+              <AlertDialogTitle className="text-xl">
+                Rotacionar {secretName}?
+              </AlertDialogTitle>
               <AlertDialogDescription>
                 Você está prestes a substituir esta credencial pelo novo valor digitado.
               </AlertDialogDescription>
@@ -87,18 +89,18 @@ export function RotateSecretConfirmDialog({
 
         {/* Impacto */}
         <div className="rounded-xl border border-border bg-muted/30 p-4">
-          <h4 className="mb-2 text-sm font-medium">Isto irá:</h4>
+          <h4 className="text-sm font-medium mb-2">Isto irá:</h4>
           <ul className="space-y-1.5 text-sm text-muted-foreground">
             <li className="flex items-center gap-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/50" />
+              <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50" />
               Sobrescrever a credencial em uso agora
             </li>
             <li className="flex items-center gap-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/50" />
+              <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50" />
               Registrar a rotação no histórico de auditoria
             </li>
             <li className="flex items-center gap-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground/50" />
+              <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50" />
               Disparar verificação automática da nova chave
             </li>
           </ul>
@@ -125,7 +127,9 @@ export function RotateSecretConfirmDialog({
           />
         </div>
 
-        <p className="text-sm font-medium text-destructive">Esta ação não pode ser desfeita.</p>
+        <p className="text-sm font-medium text-destructive">
+          Esta ação não pode ser desfeita.
+        </p>
 
         {errorMessage && (
           <div className="rounded-xl border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
@@ -134,7 +138,11 @@ export function RotateSecretConfirmDialog({
         )}
 
         <AlertDialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={loading}
+          >
             Cancelar
           </Button>
           <Button
@@ -142,7 +150,7 @@ export function RotateSecretConfirmDialog({
             disabled={loading}
             className="bg-warning text-warning-foreground hover:bg-warning/90"
           >
-            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
             Sim, rotacionar
           </Button>
         </AlertDialogFooter>

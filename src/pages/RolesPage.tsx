@@ -6,24 +6,11 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { Shield, Plus, Edit, Trash2, Users } from 'lucide-react';
-import { PageSEO } from '@/components/seo/PageSEO';
+import { PageSEO } from "@/components/seo/PageSEO";
 
 interface Role {
   id: string;
@@ -46,7 +33,10 @@ export default function RolesPage() {
 
   const fetchRoles = async () => {
     try {
-      const { data, error } = await supabase.from('roles').select('*').order('name');
+      const { data, error } = await supabase
+        .from('roles')
+        .select('*')
+        .order('name');
 
       if (error) throw error;
       setRoles(data || []);
@@ -101,13 +91,8 @@ export default function RolesPage() {
 
   return (
     <>
-      <PageSEO
-        title="Roles"
-        description="Gerencie perfis de acesso do sistema."
-        path="/admin/roles"
-        noIndex
-      />
-      <div className="mx-auto w-full max-w-[1920px] animate-fade-in space-y-4">
+      <PageSEO title="Roles" description="Gerencie perfis de acesso do sistema." path="/admin/roles" noIndex />
+      <div className="w-full max-w-[1920px] mx-auto space-y-4 animate-fade-in">
         <div className="flex items-center justify-between">
           <h1 className="font-display text-2xl font-bold">Gestão de Roles</h1>
         </div>
@@ -124,13 +109,8 @@ export default function RolesPage() {
               </div>
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button
-                    onClick={() => {
-                      setEditingRole(null);
-                      setFormData({ name: '', description: '' });
-                    }}
-                  >
-                    <Plus className="mr-2 h-4 w-4" />
+                  <Button onClick={() => { setEditingRole(null); setFormData({ name: '', description: '' }); }}>
+                    <Plus className="h-4 w-4 mr-2" />
                     Nova Role
                   </Button>
                 </DialogTrigger>
@@ -165,7 +145,7 @@ export default function RolesPage() {
             <CardContent>
               {isLoading ? (
                 <div className="flex justify-center py-8">
-                  <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary" />
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
                 </div>
               ) : (
                 <Table>
@@ -180,7 +160,7 @@ export default function RolesPage() {
                     {roles.map((role) => (
                       <TableRow key={role.id}>
                         <TableCell>
-                          <Badge variant="outline" className="flex w-fit items-center gap-1">
+                          <Badge variant="outline" className="flex items-center gap-1 w-fit">
                             <Users className="h-3 w-3" />
                             {role.name}
                           </Badge>
@@ -190,20 +170,10 @@ export default function RolesPage() {
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-2">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              aria-label="Editar"
-                              onClick={() => handleEdit(role)}
-                            >
+                            <Button variant="ghost" size="icon" aria-label="Editar" onClick={() => handleEdit(role)}>
                               <Edit className="h-4 w-4" />
                             </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              aria-label="Excluir"
-                              onClick={() => handleDelete(role.id)}
-                            >
+                            <Button variant="ghost" size="icon" aria-label="Excluir" onClick={() => handleDelete(role.id)}>
                               <Trash2 className="h-4 w-4 text-destructive" />
                             </Button>
                           </div>

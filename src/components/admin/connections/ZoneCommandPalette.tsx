@@ -12,8 +12,8 @@
  * e estende com "connections:focus-module" para módulos internos com
  * âncora própria (ex: tabs do "Conexões").
  */
-import { useEffect, useMemo, useState } from 'react';
-import { Activity, Settings2, Network, Search, Layers } from 'lucide-react';
+import { useEffect, useMemo, useState } from "react";
+import { Activity, Settings2, Network, Search, Layers } from "lucide-react";
 import {
   CommandDialog,
   CommandEmpty,
@@ -22,8 +22,8 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-} from '@/components/ui/command';
-import type { ZoneId } from './useZoneVisibility';
+} from "@/components/ui/command";
+import type { ZoneId } from "./useZoneVisibility";
 
 export interface ZoneCommandEntry {
   /** Zona alvo */
@@ -38,72 +38,30 @@ export interface ZoneCommandEntry {
   keywords?: string[];
 }
 
-const ZONE_META: Record<ZoneId, { label: string; icon: typeof Activity; anchor: string }> = {
-  health: { label: 'Saúde', icon: Activity, anchor: 'zone-health' },
-  operation: { label: 'Operação', icon: Settings2, anchor: 'zone-operation' },
-  connections: { label: 'Conexões', icon: Network, anchor: 'zone-connections' },
+const ZONE_META: Record<
+  ZoneId,
+  { label: string; icon: typeof Activity; anchor: string }
+> = {
+  health: { label: "Saúde", icon: Activity, anchor: "zone-health" },
+  operation: { label: "Operação", icon: Settings2, anchor: "zone-operation" },
+  connections: { label: "Conexões", icon: Network, anchor: "zone-connections" },
 };
 
 /** Catálogo padrão de módulos pesquisáveis dentro de cada zona. */
 export const DEFAULT_MODULES: ZoneCommandEntry[] = [
   // Saúde
-  {
-    zone: 'health',
-    label: 'Cartão de Integrações',
-    hint: 'Saúde',
-    keywords: ['health', 'card', 'status', 'uptime'],
-  },
+  { zone: "health", label: "Cartão de Integrações", hint: "Saúde", keywords: ["health", "card", "status", "uptime"] },
   // Operação
-  {
-    zone: 'operation',
-    label: 'Intervalo de Auto-Test',
-    hint: 'Operação',
-    keywords: ['cron', 'interval', 'frequência'],
-  },
-  {
-    zone: 'operation',
-    label: 'Janela de Falha Contínua',
-    hint: 'Operação',
-    keywords: ['failure', 'window', 'alerta'],
-  },
-  {
-    zone: 'operation',
-    label: 'Status do Job de Auto-Test',
-    hint: 'Operação',
-    keywords: ['job', 'scheduler'],
-  },
+  { zone: "operation", label: "Intervalo de Auto-Test", hint: "Operação", keywords: ["cron", "interval", "frequência"] },
+  { zone: "operation", label: "Janela de Falha Contínua", hint: "Operação", keywords: ["failure", "window", "alerta"] },
+  { zone: "operation", label: "Status do Job de Auto-Test", hint: "Operação", keywords: ["job", "scheduler"] },
   // Conexões
-  {
-    zone: 'connections',
-    label: 'Tabela de Conexões',
-    hint: 'Conexões',
-    keywords: ['overview', 'lista', 'table'],
-  },
-  {
-    zone: 'connections',
-    label: 'Bancos de Dados',
-    hint: 'Conexões › Aba',
-    keywords: ['supabase', 'postgres', 'db'],
-  },
-  { zone: 'connections', label: 'Bitrix24', hint: 'Conexões › Aba', keywords: ['crm', 'bitrix'] },
-  {
-    zone: 'connections',
-    label: 'n8n',
-    hint: 'Conexões › Aba',
-    keywords: ['workflow', 'automação'],
-  },
-  {
-    zone: 'connections',
-    label: 'MCP (Claude)',
-    hint: 'Conexões › Aba',
-    keywords: ['claude', 'anthropic', 'mcp'],
-  },
-  {
-    zone: 'connections',
-    label: 'Webhooks',
-    hint: 'Conexões › Aba',
-    keywords: ['webhook', 'events', 'outbound'],
-  },
+  { zone: "connections", label: "Tabela de Conexões", hint: "Conexões", keywords: ["overview", "lista", "table"] },
+  { zone: "connections", label: "Bancos de Dados", hint: "Conexões › Aba", keywords: ["supabase", "postgres", "db"] },
+  { zone: "connections", label: "Bitrix24", hint: "Conexões › Aba", keywords: ["crm", "bitrix"] },
+  { zone: "connections", label: "n8n", hint: "Conexões › Aba", keywords: ["workflow", "automação"] },
+  { zone: "connections", label: "MCP (Claude)", hint: "Conexões › Aba", keywords: ["claude", "anthropic", "mcp"] },
+  { zone: "connections", label: "Webhooks", hint: "Conexões › Aba", keywords: ["webhook", "events", "outbound"] },
 ];
 
 interface ZoneCommandPaletteProps {
@@ -131,12 +89,14 @@ export function ZoneCommandPalette({
   const handleSelect = (entry: ZoneCommandEntry | { zone: ZoneId; jumpToZone: true }) => {
     const zone = entry.zone;
     const anchorId =
-      'jumpToZone' in entry || !entry.anchorId ? ZONE_META[zone].anchor : entry.anchorId;
+      "jumpToZone" in entry || !entry.anchorId
+        ? ZONE_META[zone].anchor
+        : entry.anchorId;
 
     // Reaproveita o evento já tratado por AdminConexoesPage:
     // garante reveal + expand + scroll + highlight.
     window.dispatchEvent(
-      new CustomEvent('connections:focus-zone', {
+      new CustomEvent("connections:focus-zone", {
         detail: { zone, anchorId: ZONE_META[zone].anchor },
       }),
     );
@@ -147,7 +107,7 @@ export function ZoneCommandPalette({
         // Pequeno delay para deixar a zona expandir antes de descer ao módulo.
         window.setTimeout(() => {
           const el = document.getElementById(anchorId);
-          el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          el?.scrollIntoView({ behavior: "smooth", block: "start" });
         }, 120);
       });
     }
@@ -190,13 +150,15 @@ export function ZoneCommandPalette({
                 {items.map((mod) => (
                   <CommandItem
                     key={`${mod.zone}-${mod.label}`}
-                    value={`${mod.label} ${mod.hint ?? ''} ${(mod.keywords ?? []).join(' ')}`}
+                    value={`${mod.label} ${mod.hint ?? ""} ${(mod.keywords ?? []).join(" ")}`}
                     onSelect={() => handleSelect(mod)}
                   >
                     <Layers className="mr-2 h-4 w-4 text-muted-foreground" />
                     <span>{mod.label}</span>
                     {mod.hint && (
-                      <span className="ml-auto text-[10px] text-muted-foreground">{mod.hint}</span>
+                      <span className="ml-auto text-[10px] text-muted-foreground">
+                        {mod.hint}
+                      </span>
                     )}
                   </CommandItem>
                 ))}
@@ -217,18 +179,20 @@ export function useZoneCommandPaletteShortcut() {
   const [open, setOpen] = useState(false);
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if ((e.key === 'k' || e.key === 'K') && (e.metaKey || e.ctrlKey)) {
+      if ((e.key === "k" || e.key === "K") && (e.metaKey || e.ctrlKey)) {
         const target = e.target as HTMLElement | null;
         const tag = target?.tagName;
         const isEditing =
-          tag === 'INPUT' || tag === 'TEXTAREA' || (target?.isContentEditable ?? false);
+          tag === "INPUT" ||
+          tag === "TEXTAREA" ||
+          (target?.isContentEditable ?? false);
         if (isEditing) return;
         e.preventDefault();
         setOpen((v) => !v);
       }
     };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
   }, []);
   return { open, setOpen };
 }

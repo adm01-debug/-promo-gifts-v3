@@ -3,10 +3,10 @@
  * Inclui preview expandido, quick-add e badges de urgência
  */
 
-import { useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Heart,
   Eye,
@@ -19,13 +19,13 @@ import {
   Clock,
   TrendingUp,
   ChevronRight,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { cn } from '@/lib/utils';
-import type { Product } from '@/hooks/useProducts';
-import { PriceFreshnessBadge } from './PriceFreshnessBadge';
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
+import type { Product } from "@/hooks/useProducts";
+import { PriceFreshnessBadge } from "./PriceFreshnessBadge";
 
 interface EnhancedProductCardProps {
   product: Product;
@@ -39,7 +39,7 @@ interface EnhancedProductCardProps {
   isInCompare?: boolean;
   canAddToCompare?: boolean;
   showUrgencyBadge?: boolean;
-  urgencyType?: 'limited-stock' | 'trending' | 'ending-soon';
+  urgencyType?: "limited-stock" | "trending" | "ending-soon";
   urgencyText?: string;
 }
 
@@ -55,7 +55,7 @@ export function EnhancedProductCard({
   isInCompare = false,
   canAddToCompare = true,
   showUrgencyBadge = false,
-  urgencyType = 'limited-stock',
+  urgencyType = "limited-stock",
   urgencyText,
 }: EnhancedProductCardProps) {
   const navigate = useNavigate();
@@ -67,9 +67,9 @@ export function EnhancedProductCard({
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
+    return new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
     }).format(price);
   };
 
@@ -93,20 +93,20 @@ export function EnhancedProductCard({
     if (!showUrgencyBadge) return null;
 
     const configs = {
-      'limited-stock': {
+      "limited-stock": {
         icon: <Package className="h-3 w-3" />,
-        text: urgencyText || 'Estoque limitado',
-        className: 'bg-destructive/90 text-destructive-foreground',
+        text: urgencyText || "Estoque limitado",
+        className: "bg-destructive/90 text-destructive-foreground",
       },
       trending: {
         icon: <TrendingUp className="h-3 w-3" />,
-        text: urgencyText || 'Em alta',
-        className: 'bg-primary/90 text-primary-foreground',
+        text: urgencyText || "Em alta",
+        className: "bg-primary/90 text-primary-foreground",
       },
-      'ending-soon': {
+      "ending-soon": {
         icon: <Clock className="h-3 w-3" />,
-        text: urgencyText || 'Termina em breve',
-        className: 'bg-warning/90 text-warning-foreground',
+        text: urgencyText || "Termina em breve",
+        className: "bg-warning/90 text-warning-foreground",
       },
     };
 
@@ -117,8 +117,8 @@ export function EnhancedProductCard({
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         className={cn(
-          'absolute left-3 top-3 z-20 flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium shadow-md',
-          config.className,
+          "absolute top-3 left-3 z-20 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium shadow-md",
+          config.className
         )}
       >
         {config.icon}
@@ -130,10 +130,10 @@ export function EnhancedProductCard({
   return (
     <article
       className={cn(
-        'group relative overflow-hidden rounded-xl border border-border/50 bg-card',
-        'cursor-pointer transition-all duration-300 ease-out',
-        'hover:-translate-y-1 hover:border-primary/30 hover:shadow-2xl',
-        isHovered && 'ring-2 ring-primary/20',
+        "group relative overflow-hidden rounded-xl bg-card border border-border/50",
+        "transition-all duration-300 ease-out cursor-pointer",
+        "hover:border-primary/30 hover:shadow-2xl hover:-translate-y-1",
+        isHovered && "ring-2 ring-primary/20"
       )}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -143,15 +143,17 @@ export function EnhancedProductCard({
       {getUrgencyBadge()}
 
       {/* Image Container */}
-      <div className="product-img-container relative aspect-[4/5] overflow-hidden">
-        {!imageLoaded && <div className="absolute inset-0 bg-muted/30" />}
+      <div className="relative aspect-[4/5] overflow-hidden product-img-container">
+        {!imageLoaded && (
+          <div className="absolute inset-0 bg-muted/30" />
+        )}
 
         <motion.img
           src={product.images[0]}
           alt={product.name}
           className={cn(
-            'h-full w-full object-contain transition-all duration-700 ease-out',
-            imageLoaded ? 'scale-100 opacity-100 blur-0' : 'scale-105 opacity-40 blur-md',
+            "w-full h-full object-contain transition-all duration-700 ease-out",
+            imageLoaded ? "opacity-100 blur-0 scale-100" : "opacity-40 blur-md scale-105"
           )}
           animate={{
             scale: isHovered ? 1.05 : 1,
@@ -169,8 +171,8 @@ export function EnhancedProductCard({
 
         {/* Featured badge */}
         {product.featured && (
-          <Badge className="absolute right-3 top-3 z-10 bg-primary text-primary-foreground shadow-md">
-            <Sparkles className="mr-1 h-3 w-3" />
+          <Badge className="absolute top-3 right-3 z-10 bg-primary text-primary-foreground shadow-md">
+            <Sparkles className="h-3 w-3 mr-1" />
             Destaque
           </Badge>
         )}
@@ -178,24 +180,23 @@ export function EnhancedProductCard({
         {/* Quick Actions - Always visible on mobile, hover on desktop */}
         <div
           className={cn(
-            'absolute right-3 top-12 z-20 flex flex-col gap-2',
-            'transition-all duration-300',
-            'opacity-100 md:opacity-0',
-            'md:translate-x-4 md:group-hover:translate-x-0 md:group-hover:opacity-100',
+            "absolute right-3 top-12 flex flex-col gap-2 z-20",
+            "transition-all duration-300",
+            "opacity-100 md:opacity-0",
+            "md:group-hover:opacity-100 md:group-hover:translate-x-0 md:translate-x-4"
           )}
         >
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 variant="secondary"
-                size="icon"
-                aria-label="Favoritar"
+                size="icon" aria-label="Favoritar"
                 data-testid="product-card-favorite"
                 aria-pressed={isFavorited}
                 className={cn(
-                  'h-10 w-10 rounded-full bg-card/95 shadow-md backdrop-blur-md',
-                  'transition-all hover:scale-110',
-                  isFavorited && 'border-destructive/30 bg-destructive/10',
+                  "h-10 w-10 rounded-full bg-card/95 backdrop-blur-md shadow-md",
+                  "hover:scale-110 transition-all",
+                  isFavorited && "bg-destructive/10 border-destructive/30"
                 )}
                 onClick={(e: React.MouseEvent) => {
                   e.stopPropagation();
@@ -203,12 +204,15 @@ export function EnhancedProductCard({
                 }}
               >
                 <Heart
-                  className={cn('h-4 w-4', isFavorited && 'fill-destructive text-destructive')}
+                  className={cn(
+                    "h-4 w-4",
+                    isFavorited && "fill-destructive text-destructive"
+                  )}
                 />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="left">
-              {isFavorited ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
+              {isFavorited ? "Remover dos favoritos" : "Adicionar aos favoritos"}
             </TooltipContent>
           </Tooltip>
 
@@ -216,12 +220,11 @@ export function EnhancedProductCard({
             <TooltipTrigger asChild>
               <Button
                 variant="secondary"
-                size="icon"
-                aria-label="GitCompare"
+                size="icon" aria-label="GitCompare"
                 className={cn(
-                  'h-10 w-10 rounded-full bg-card/95 shadow-md backdrop-blur-md',
-                  'transition-all hover:scale-110',
-                  isInCompare && 'border-primary/30 bg-primary/10',
+                  "h-10 w-10 rounded-full bg-card/95 backdrop-blur-md shadow-md",
+                  "hover:scale-110 transition-all",
+                  isInCompare && "bg-primary/10 border-primary/30"
                 )}
                 onClick={(e: React.MouseEvent) => {
                   e.stopPropagation();
@@ -229,11 +232,13 @@ export function EnhancedProductCard({
                 }}
                 disabled={!isInCompare && !canAddToCompare}
               >
-                <GitCompare className={cn('h-4 w-4', isInCompare && 'text-primary')} />
+                <GitCompare
+                  className={cn("h-4 w-4", isInCompare && "text-primary")}
+                />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="left">
-              {isInCompare ? 'Remover da comparação' : 'Comparar'}
+              {isInCompare ? "Remover da comparação" : "Comparar"}
             </TooltipContent>
           </Tooltip>
 
@@ -241,9 +246,8 @@ export function EnhancedProductCard({
             <TooltipTrigger asChild>
               <Button
                 variant="secondary"
-                size="icon"
-                aria-label="Visualizar"
-                className="h-10 w-10 rounded-full bg-card/95 shadow-md backdrop-blur-md transition-all hover:scale-110"
+                size="icon" aria-label="Visualizar"
+                className="h-10 w-10 rounded-full bg-card/95 backdrop-blur-md shadow-md hover:scale-110 transition-all"
                 onClick={(e: React.MouseEvent) => {
                   e.stopPropagation();
                   onQuickView?.(product);
@@ -259,9 +263,8 @@ export function EnhancedProductCard({
             <TooltipTrigger asChild>
               <Button
                 variant="secondary"
-                size="icon"
-                aria-label="Compartilhar"
-                className="h-10 w-10 rounded-full bg-card/95 shadow-md backdrop-blur-md transition-all hover:scale-110"
+                size="icon" aria-label="Compartilhar"
+                className="h-10 w-10 rounded-full bg-card/95 backdrop-blur-md shadow-md hover:scale-110 transition-all"
                 onClick={(e: React.MouseEvent) => {
                   e.stopPropagation();
                   onShare?.(product);
@@ -278,14 +281,14 @@ export function EnhancedProductCard({
         <AnimatePresence>
           {isHovered && onQuickAdd && (
             <motion.div
-              className="absolute bottom-0 left-0 right-0 z-20 p-4"
+              className="absolute bottom-0 left-0 right-0 p-4 z-20"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
               transition={{ duration: 0.2 }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center gap-2 rounded-full border border-border/50 bg-card/95 p-2 shadow-xl backdrop-blur-md">
+              <div className="flex items-center gap-2 bg-card/95 backdrop-blur-md rounded-full p-2 shadow-xl border border-border/50">
                 <Button
                   variant="ghost"
                   size="icon"
@@ -295,7 +298,9 @@ export function EnhancedProductCard({
                 >
                   -
                 </Button>
-                <span className="w-8 text-center text-sm font-medium">{quickAddQuantity}</span>
+                <span className="w-8 text-center font-medium text-sm">
+                  {quickAddQuantity}
+                </span>
                 <Button
                   variant="ghost"
                   size="icon"
@@ -308,11 +313,8 @@ export function EnhancedProductCard({
                 <Button
                   data-testid="product-card-quick-add"
                   size="sm"
-                  className="flex-1 gap-2 rounded-full"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onQuickAdd(product, quickAddQuantity);
-                  }}
+                  className="flex-1 rounded-full gap-2"
+                  onClick={(e) => { e.stopPropagation(); onQuickAdd(product, quickAddQuantity); }}
                 >
                   <ShoppingCart className="h-4 w-4" />
                   Adicionar
@@ -326,21 +328,21 @@ export function EnhancedProductCard({
         {product.colors?.length > 0 && (
           <motion.div
             className={cn(
-              'absolute bottom-4 left-4 z-10',
-              'transition-all duration-300',
-              isHovered ? 'opacity-0' : 'opacity-100',
+              "absolute bottom-4 left-4 z-10",
+              "transition-all duration-300",
+              isHovered ? "opacity-0" : "opacity-100"
             )}
           >
-            <div className="flex items-center gap-1 rounded-full bg-card/90 px-2 py-1 backdrop-blur-sm">
+            <div className="flex items-center gap-1 bg-card/90 backdrop-blur-sm rounded-full px-2 py-1">
               {product.colors.slice(0, 4).map((color: { hex: string }, idx: number) => (
                 <div
                   key={idx}
-                  className="h-4 w-4 rounded-full border-2 border-card shadow-sm"
+                  className="w-4 h-4 rounded-full border-2 border-card shadow-sm"
                   style={{ backgroundColor: color.hex }}
                 />
               ))}
               {product.colors.length > 4 && (
-                <span className="ml-1 text-[10px] text-muted-foreground">
+                <span className="text-[10px] text-muted-foreground ml-1">
                   +{product.colors.length - 4}
                 </span>
               )}
@@ -350,11 +352,11 @@ export function EnhancedProductCard({
       </div>
 
       {/* Content */}
-      <div className="space-y-3 p-4">
+      <div className="p-4 space-y-3">
         {/* Supplier */}
         <div className="flex items-center justify-between">
           <Badge variant="secondary" className="text-[10px]">
-            {product.supplier?.name || 'Fornecedor'}
+            {product.supplier?.name || "Fornecedor"}
           </Badge>
           {product.rating && (
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -368,7 +370,7 @@ export function EnhancedProductCard({
         <h3
           data-testid="product-card-name"
           data-product-name={product.name}
-          className="line-clamp-2 min-h-[2.5rem] font-display text-sm font-medium transition-colors group-hover:text-primary"
+          className="font-display font-medium text-sm line-clamp-2 min-h-[2.5rem] group-hover:text-primary transition-colors"
         >
           {product.name}
         </h3>
@@ -377,7 +379,7 @@ export function EnhancedProductCard({
         <div className="flex items-end justify-between">
           <div>
             <p className="text-[10px] text-muted-foreground">A partir de</p>
-            <span className="inline-flex items-center gap-1.5 text-xl font-bold">
+            <span className="text-xl font-bold inline-flex items-center gap-1.5">
               {formatPrice(product.price)}
               <PriceFreshnessBadge
                 priceUpdatedAt={product.priceUpdatedAt}
@@ -388,13 +390,13 @@ export function EnhancedProductCard({
           </div>
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
             <Package className="h-3 w-3" />
-            {product.stock?.toLocaleString('pt-BR')} un
+            {product.stock?.toLocaleString("pt-BR")} un
           </div>
         </div>
 
         {/* View More Indicator */}
         <motion.div
-          className="flex items-center justify-center gap-1 border-t border-border/50 pt-2 text-xs text-primary"
+          className="flex items-center justify-center gap-1 text-xs text-primary pt-2 border-t border-border/50"
           animate={{ x: isHovered ? 5 : 0 }}
         >
           Ver detalhes
@@ -406,16 +408,18 @@ export function EnhancedProductCard({
       <AnimatePresence>
         {showPreview && (
           <motion.div
-            className="absolute left-full top-0 z-50 ml-4 w-72 overflow-hidden rounded-xl border bg-card shadow-xl"
+            className="absolute left-full top-0 ml-4 w-72 bg-card rounded-xl shadow-xl border z-50 overflow-hidden"
             initial={{ opacity: 0, x: -20, scale: 0.95 }}
             animate={{ opacity: 1, x: 0, scale: 1 }}
             exit={{ opacity: 0, x: -20, scale: 0.95 }}
             transition={{ duration: 0.2 }}
           >
-            <div className="space-y-3 p-4">
-              <h4 className="text-sm font-semibold">{product.name}</h4>
-
-              <p className="line-clamp-3 text-xs text-muted-foreground">{product.description}</p>
+            <div className="p-4 space-y-3">
+              <h4 className="font-semibold text-sm">{product.name}</h4>
+              
+              <p className="text-xs text-muted-foreground line-clamp-3">
+                {product.description}
+              </p>
 
               {Array.isArray(product.materials) && product.materials.length > 0 && (
                 <div className="flex flex-wrap gap-1">
@@ -438,16 +442,10 @@ export function EnhancedProductCard({
                 </div>
               </div>
 
-              <Button
-                className="w-full"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  navigate(`/produto/${product.id}`);
-                }}
-              >
+              <Button className="w-full" size="sm" onClick={(e) => { e.stopPropagation(); navigate(`/produto/${product.id}`); }}>
                 Ver produto completo
               </Button>
+
             </div>
           </motion.div>
         )}

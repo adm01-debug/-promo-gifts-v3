@@ -46,8 +46,8 @@ function bridgeBadge(bridge: BridgeAggregateRow['bridge']) {
       variant="outline"
       className={
         isCrm
-          ? 'border-primary/30 bg-primary/5 text-[10px] text-primary'
-          : 'border-warning/30 bg-warning/5 text-[10px] text-warning'
+          ? 'text-[10px] border-primary/30 text-primary bg-primary/5'
+          : 'text-[10px] border-warning/30 text-warning bg-warning/5'
       }
     >
       {isCrm ? 'CRM' : 'External'}
@@ -68,7 +68,10 @@ export function BridgesLiveCard() {
   // Últimas N chamadas (mais recentes primeiro) para visualização individual
   // por request_id — permite drill-down em uma chamada específica.
   const RECENT_LIMIT = 20;
-  const recent = useMemo(() => samples.slice(-RECENT_LIMIT).reverse(), [samples]);
+  const recent = useMemo(
+    () => samples.slice(-RECENT_LIMIT).reverse(),
+    [samples],
+  );
 
   const [selected, setSelected] = useState<BridgeCallSample | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -83,7 +86,7 @@ export function BridgesLiveCard() {
     const reqBytes = samples.reduce((acc, s) => acc + s.reqBytes, 0);
     const respBytes = samples.reduce((acc, s) => acc + s.respBytes, 0);
     const totalMs = samples.reduce((acc, s) => acc + s.durationMs, 0);
-    const sortedDur = samples.map((s) => s.durationMs).sort((a, b) => a - b);
+    const sortedDur = samples.map(s => s.durationMs).sort((a, b) => a - b);
     const p50 = sortedDur.length
       ? sortedDur[Math.min(sortedDur.length - 1, Math.floor(0.5 * sortedDur.length))]
       : 0;
@@ -104,11 +107,11 @@ export function BridgesLiveCard() {
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-        <CardTitle className="flex items-center gap-2 text-base">
+      <CardHeader className="pb-3 flex flex-row items-center justify-between space-y-0">
+        <CardTitle className="text-base flex items-center gap-2">
           <Network className="h-4 w-4" />
           Bridges (ao vivo)
-          <Badge variant="secondary" className="ml-1 text-[10px]">
+          <Badge variant="secondary" className="text-[10px] ml-1">
             sessão atual · sem persistência
           </Badge>
         </CardTitle>
@@ -118,18 +121,18 @@ export function BridgesLiveCard() {
           onClick={clearBridgeSamples}
           disabled={samples.length === 0}
         >
-          <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+          <Trash2 className="h-3.5 w-3.5 mr-1.5" />
           Limpar
         </Button>
       </CardHeader>
       <CardContent>
         {/* Totais — KPIs em tempo real */}
-        <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-6">
-          <div className="rounded-xl border border-border/50 bg-muted/30 p-3">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-3 mb-4">
+          <div className="p-3 rounded-xl border border-border/50 bg-muted/30">
             <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Chamadas</p>
             <p className="font-display text-2xl font-bold tabular-nums">{totals.total}</p>
           </div>
-          <div className="rounded-xl border border-border/50 bg-muted/30 p-3">
+          <div className="p-3 rounded-xl border border-border/50 bg-muted/30">
             <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Erros</p>
             <p
               className={`font-display text-2xl font-bold tabular-nums ${
@@ -139,16 +142,12 @@ export function BridgesLiveCard() {
               {totals.errors}
             </p>
           </div>
-          <div className="rounded-xl border border-border/50 bg-muted/30 p-3">
-            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
-              p50 latência
-            </p>
+          <div className="p-3 rounded-xl border border-border/50 bg-muted/30">
+            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">p50 latência</p>
             <p className="font-display text-2xl font-bold tabular-nums">{formatMs(totals.p50Ms)}</p>
           </div>
-          <div className="rounded-xl border border-border/50 bg-muted/30 p-3">
-            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
-              p95 latência
-            </p>
+          <div className="p-3 rounded-xl border border-border/50 bg-muted/30">
+            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">p95 latência</p>
             <p
               className={`font-display text-2xl font-bold tabular-nums ${
                 totals.p95Ms >= 8000
@@ -161,77 +160,46 @@ export function BridgesLiveCard() {
               {formatMs(totals.p95Ms)}
             </p>
           </div>
-          <div className="rounded-xl border border-border/50 bg-muted/30 p-3">
-            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
-              Tam. médio resp.
-            </p>
+          <div className="p-3 rounded-xl border border-border/50 bg-muted/30">
+            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Tam. médio resp.</p>
             <p className="font-display text-2xl font-bold tabular-nums">
               {formatBytes(totals.avgRespBytes)}
             </p>
           </div>
-          <div className="rounded-xl border border-border/50 bg-muted/30 p-3">
-            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
-              Total recebido
-            </p>
-            <p className="font-display text-2xl font-bold tabular-nums">
-              {formatBytes(totals.respBytes)}
-            </p>
+          <div className="p-3 rounded-xl border border-border/50 bg-muted/30">
+            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Total recebido</p>
+            <p className="font-display text-2xl font-bold tabular-nums">{formatBytes(totals.respBytes)}</p>
           </div>
         </div>
 
         {/* Tabela por endpoint+op */}
         {rows.length === 0 ? (
-          <div className="py-10 text-center text-muted-foreground">
-            <Activity className="mx-auto mb-2 h-10 w-10 opacity-30" />
-            <p className="text-sm font-medium">Nenhuma chamada registrada ainda</p>
-            <p className="mt-1 text-xs">
-              Navegue pela aplicação para começar a coletar telemetria.
-            </p>
+          <div className="text-center py-10 text-muted-foreground">
+            <Activity className="h-10 w-10 mx-auto mb-2 opacity-30" />
+            <p className="font-medium text-sm">Nenhuma chamada registrada ainda</p>
+            <p className="text-xs mt-1">Navegue pela aplicação para começar a coletar telemetria.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b bg-muted/30">
-                  <th className="p-2 text-left text-xs font-medium text-muted-foreground">
-                    Bridge
-                  </th>
-                  <th className="p-2 text-left text-xs font-medium text-muted-foreground">
-                    Operação
-                  </th>
-                  <th className="p-2 text-right text-xs font-medium text-muted-foreground">
-                    Chamadas
-                  </th>
-                  <th className="p-2 text-right text-xs font-medium text-muted-foreground">
-                    Erros
-                  </th>
-                  <th className="p-2 text-right text-xs font-medium text-muted-foreground">avg</th>
-                  <th className="p-2 text-right text-xs font-medium text-muted-foreground">p50</th>
-                  <th className="p-2 text-right text-xs font-medium text-muted-foreground">p95</th>
-                  <th className="p-2 text-right text-xs font-medium text-muted-foreground">max</th>
-                  <th
-                    className="p-2 text-right text-xs font-medium text-muted-foreground"
-                    title="Tamanho médio de resposta"
-                  >
-                    resp. méd.
-                  </th>
-                  <th
-                    className="p-2 text-right text-xs font-medium text-muted-foreground"
-                    title="Total recebido nesta sessão"
-                  >
-                    resp. total
-                  </th>
-                  <th className="p-2 text-left text-xs font-medium text-muted-foreground">
-                    Última
-                  </th>
+                  <th className="text-left p-2 font-medium text-muted-foreground text-xs">Bridge</th>
+                  <th className="text-left p-2 font-medium text-muted-foreground text-xs">Operação</th>
+                  <th className="text-right p-2 font-medium text-muted-foreground text-xs">Chamadas</th>
+                  <th className="text-right p-2 font-medium text-muted-foreground text-xs">Erros</th>
+                  <th className="text-right p-2 font-medium text-muted-foreground text-xs">avg</th>
+                  <th className="text-right p-2 font-medium text-muted-foreground text-xs">p50</th>
+                  <th className="text-right p-2 font-medium text-muted-foreground text-xs">p95</th>
+                  <th className="text-right p-2 font-medium text-muted-foreground text-xs">max</th>
+                  <th className="text-right p-2 font-medium text-muted-foreground text-xs" title="Tamanho médio de resposta">resp. méd.</th>
+                  <th className="text-right p-2 font-medium text-muted-foreground text-xs" title="Total recebido nesta sessão">resp. total</th>
+                  <th className="text-left p-2 font-medium text-muted-foreground text-xs">Última</th>
                 </tr>
               </thead>
               <tbody>
-                {rows.map((row) => (
-                  <tr
-                    key={row.key}
-                    className="border-b border-border/30 transition-colors hover:bg-muted/20"
-                  >
+                {rows.map(row => (
+                  <tr key={row.key} className="border-b border-border/30 hover:bg-muted/20 transition-colors">
                     <td className="p-2">{bridgeBadge(row.bridge)}</td>
                     <td className="p-2 font-mono text-xs font-medium">{row.op}</td>
                     <td className="p-2 text-right font-mono tabular-nums">{row.count}</td>
@@ -242,12 +210,8 @@ export function BridgesLiveCard() {
                     >
                       {row.errors}
                     </td>
-                    <td className="p-2 text-right font-mono text-xs tabular-nums">
-                      {formatMs(row.avgMs)}
-                    </td>
-                    <td className="p-2 text-right font-mono text-xs tabular-nums">
-                      {formatMs(row.p50Ms)}
-                    </td>
+                    <td className="p-2 text-right font-mono text-xs tabular-nums">{formatMs(row.avgMs)}</td>
+                    <td className="p-2 text-right font-mono text-xs tabular-nums">{formatMs(row.p50Ms)}</td>
                     <td
                       className={`p-2 text-right font-mono text-xs tabular-nums ${
                         row.p95Ms >= 3000 ? 'text-warning' : ''
@@ -255,16 +219,14 @@ export function BridgesLiveCard() {
                     >
                       {formatMs(row.p95Ms)}
                     </td>
-                    <td className="p-2 text-right font-mono text-xs tabular-nums">
-                      {formatMs(row.maxMs)}
-                    </td>
+                    <td className="p-2 text-right font-mono text-xs tabular-nums">{formatMs(row.maxMs)}</td>
                     <td className="p-2 text-right font-mono text-xs tabular-nums">
                       {formatBytes(row.avgRespBytes)}
                     </td>
                     <td className="p-2 text-right font-mono text-xs tabular-nums text-muted-foreground">
                       {formatBytes(row.totalRespBytes)}
                     </td>
-                    <td className="whitespace-nowrap p-2 text-xs text-muted-foreground">
+                    <td className="p-2 text-xs text-muted-foreground whitespace-nowrap">
                       {formatRelative(row.lastTs)}
                     </td>
                   </tr>
@@ -277,8 +239,8 @@ export function BridgesLiveCard() {
         {/* Últimas chamadas — drill-down individual por request_id */}
         {recent.length > 0 && (
           <div className="mt-6">
-            <div className="mb-2 flex items-center justify-between">
-              <h4 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="text-xs uppercase tracking-wide text-muted-foreground font-medium">
                 Últimas chamadas (request-id)
               </h4>
               <span className="text-[10px] text-muted-foreground">
@@ -289,35 +251,21 @@ export function BridgesLiveCard() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b bg-muted/30">
-                    <th className="p-2 text-left text-xs font-medium text-muted-foreground">
-                      Bridge
-                    </th>
-                    <th className="p-2 text-left text-xs font-medium text-muted-foreground">
-                      Operação
-                    </th>
-                    <th className="p-2 text-left text-xs font-medium text-muted-foreground">
-                      request_id
-                    </th>
-                    <th className="p-2 text-right text-xs font-medium text-muted-foreground">
-                      Latência
-                    </th>
-                    <th className="p-2 text-right text-xs font-medium text-muted-foreground">
-                      Resp.
-                    </th>
-                    <th className="p-2 text-left text-xs font-medium text-muted-foreground">
-                      Quando
-                    </th>
-                    <th className="p-2 text-right text-xs font-medium text-muted-foreground">
-                      Status
-                    </th>
+                    <th className="text-left p-2 font-medium text-muted-foreground text-xs">Bridge</th>
+                    <th className="text-left p-2 font-medium text-muted-foreground text-xs">Operação</th>
+                    <th className="text-left p-2 font-medium text-muted-foreground text-xs">request_id</th>
+                    <th className="text-right p-2 font-medium text-muted-foreground text-xs">Latência</th>
+                    <th className="text-right p-2 font-medium text-muted-foreground text-xs">Resp.</th>
+                    <th className="text-left p-2 font-medium text-muted-foreground text-xs">Quando</th>
+                    <th className="text-right p-2 font-medium text-muted-foreground text-xs">Status</th>
                     <th className="p-2"></th>
                   </tr>
                 </thead>
                 <tbody>
-                  {recent.map((s) => (
+                  {recent.map(s => (
                     <tr
                       key={s.id}
-                      className="cursor-pointer border-b border-border/30 transition-colors hover:bg-muted/20"
+                      className="border-b border-border/30 hover:bg-muted/20 transition-colors cursor-pointer"
                       onClick={() => openDetail(s)}
                     >
                       <td className="p-2">{bridgeBadge(s.bridge)}</td>
@@ -333,18 +281,14 @@ export function BridgesLiveCard() {
                       <td className="p-2 text-right font-mono text-xs tabular-nums text-muted-foreground">
                         {formatBytes(s.respBytes)}
                       </td>
-                      <td className="whitespace-nowrap p-2 text-xs text-muted-foreground">
+                      <td className="p-2 text-xs text-muted-foreground whitespace-nowrap">
                         {formatRelative(s.ts)}
                       </td>
                       <td className="p-2 text-right">
                         {s.ok ? (
-                          <Badge variant="secondary" className="text-[10px]">
-                            OK
-                          </Badge>
+                          <Badge variant="secondary" className="text-[10px]">OK</Badge>
                         ) : (
-                          <Badge variant="destructive" className="text-[10px]">
-                            ERRO
-                          </Badge>
+                          <Badge variant="destructive" className="text-[10px]">ERRO</Badge>
                         )}
                       </td>
                       <td className="p-2 text-right">
@@ -358,7 +302,11 @@ export function BridgesLiveCard() {
           </div>
         )}
       </CardContent>
-      <BridgeCallDetailDrawer sample={selected} open={drawerOpen} onOpenChange={setDrawerOpen} />
+      <BridgeCallDetailDrawer
+        sample={selected}
+        open={drawerOpen}
+        onOpenChange={setDrawerOpen}
+      />
     </Card>
   );
 }

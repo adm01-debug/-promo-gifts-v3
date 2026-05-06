@@ -14,12 +14,7 @@ interface SeoAIResult {
 }
 
 const SEO_FIELDS: (keyof SeoAIResult)[] = [
-  'meta_title',
-  'meta_description',
-  'meta_keywords',
-  'slug',
-  'key_benefits',
-  'use_cases',
+  'meta_title', 'meta_description', 'meta_keywords', 'slug', 'key_benefits', 'use_cases',
 ];
 
 export function useProductSeoAI(

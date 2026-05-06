@@ -1,6 +1,6 @@
 /**
  * useLogoColorAnalysis — Hook para análise de cores de logo
- *
+ * 
  * Envia a imagem para a edge function, recebe cores detectadas,
  * e mapeia para Pantone mais próximo via Delta-E.
  */
@@ -59,7 +59,7 @@ export function useLogoColorAnalysis() {
       }
 
       // Map each detected color to nearest Pantone
-      const mapped: DetectedColor[] = rawColors.map((c) => {
+      const mapped: DetectedColor[] = rawColors.map(c => {
         const match = getBestPantoneMatch(c.hex);
         return {
           name: c.name,
@@ -85,9 +85,9 @@ export function useLogoColorAnalysis() {
   }, []);
 
   const updatePantone = useCallback((index: number, pantoneCode: string) => {
-    setColors((prev) =>
-      prev.map((c, i) => (i === index ? { ...c, selectedPantone: pantoneCode } : c)),
-    );
+    setColors(prev => prev.map((c, i) =>
+      i === index ? { ...c, selectedPantone: pantoneCode } : c
+    ));
   }, []);
 
   const clearAnalysis = useCallback(() => {

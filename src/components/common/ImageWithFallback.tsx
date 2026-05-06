@@ -42,12 +42,14 @@ export const ImageWithFallback = forwardRef<HTMLImageElement, ImageWithFallbackP
       onError,
       ...props
     },
-    ref,
+    ref
   ) {
     const [error, setError] = useState(false);
     const [loaded, setLoaded] = useState(false);
 
-    const src = error ? urlOriginal || '/placeholder.svg' : getCdnUrl(urlCdn, variant);
+    const src = error
+      ? (urlOriginal || '/placeholder.svg')
+      : getCdnUrl(urlCdn, variant);
 
     const handleError = (e: React.SyntheticEvent<HTMLImageElement>) => {
       if (!error) {
@@ -63,8 +65,10 @@ export const ImageWithFallback = forwardRef<HTMLImageElement, ImageWithFallbackP
 
     return (
       <div className={cn('relative overflow-hidden', className)}>
-        {/* Background while loading */}
-        {!loaded && <div className="absolute inset-0 bg-muted/30" />}
+      {/* Background while loading */}
+        {!loaded && (
+          <div className="absolute inset-0 bg-muted/30" />
+        )}
         <img
           ref={ref}
           src={src}
@@ -76,13 +80,13 @@ export const ImageWithFallback = forwardRef<HTMLImageElement, ImageWithFallbackP
           onError={handleError}
           onLoad={handleLoad}
           className={cn(
-            'h-full w-full object-cover transition-all duration-700 ease-out',
-            loaded ? 'scale-100 opacity-100 blur-0' : 'scale-105 opacity-40 blur-md',
+            'w-full h-full object-cover transition-all duration-700 ease-out',
+            loaded ? 'opacity-100 blur-0 scale-100' : 'opacity-40 blur-md scale-105'
           )}
           draggable={false}
           {...props}
         />
       </div>
     );
-  },
+  }
 );

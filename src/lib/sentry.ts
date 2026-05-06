@@ -90,11 +90,8 @@ export function initSentry(): void {
   };
 
   if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
-    (
-      window as Window & {
-        requestIdleCallback: (cb: () => void, opts?: { timeout: number }) => void;
-      }
-    ).requestIdleCallback(trigger, { timeout: 3000 });
+    (window as Window & { requestIdleCallback: (cb: () => void, opts?: { timeout: number }) => void })
+      .requestIdleCallback(trigger, { timeout: 3000 });
   } else {
     setTimeout(trigger, 3000);
   }
@@ -132,3 +129,4 @@ export function setSentryUser(user: { id: string; email?: string } | null): void
 export function getSentryErrorBoundary(): typeof SentryNS.ErrorBoundary | null {
   return sentryRef?.ErrorBoundary ?? null;
 }
+

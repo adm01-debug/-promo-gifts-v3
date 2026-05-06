@@ -52,31 +52,28 @@ export function useCloudStatus(): UseCloudStatusReturn {
     }
   }, []);
 
-  const schedule = useCallback(
-    (snap: CloudStatusSnapshot) => {
-      clearTimer();
-      if (snap.status === 'healthy') {
-        degradedAttemptRef.current = 0;
-        downSinceRef.current = null;
-        timerRef.current = setTimeout(() => void runProbe(false), HEALTHY_INTERVAL);
-        return;
-      }
-      if (snap.status === 'down') {
-        if (downSinceRef.current === null) downSinceRef.current = Date.now();
-        const elapsed = Date.now() - (downSinceRef.current ?? Date.now());
-        if (elapsed >= DOWN_AUTO_STOP_MS) return; // aguarda retry manual
-        timerRef.current = setTimeout(() => void runProbe(true), 5_000);
-        return;
-      }
-      // warming | degraded
+  const schedule = useCallback((snap: CloudStatusSnapshot) => {
+    clearTimer();
+    if (snap.status === 'healthy') {
+      degradedAttemptRef.current = 0;
       downSinceRef.current = null;
-      const idx = Math.min(degradedAttemptRef.current, DEGRADED_BACKOFF.length - 1);
-      const delay = DEGRADED_BACKOFF[idx];
-      degradedAttemptRef.current++;
-      timerRef.current = setTimeout(() => void runProbe(true), delay);
-    },
-    [runProbe],
-  );
+      timerRef.current = setTimeout(() => void runProbe(false), HEALTHY_INTERVAL);
+      return;
+    }
+    if (snap.status === 'down') {
+      if (downSinceRef.current === null) downSinceRef.current = Date.now();
+      const elapsed = Date.now() - (downSinceRef.current ?? Date.now());
+      if (elapsed >= DOWN_AUTO_STOP_MS) return; // aguarda retry manual
+      timerRef.current = setTimeout(() => void runProbe(true), 5_000);
+      return;
+    }
+    // warming | degraded
+    downSinceRef.current = null;
+    const idx = Math.min(degradedAttemptRef.current, DEGRADED_BACKOFF.length - 1);
+    const delay = DEGRADED_BACKOFF[idx];
+    degradedAttemptRef.current++;
+    timerRef.current = setTimeout(() => void runProbe(true), delay);
+  }, [runProbe]);
 
   // Bootstrap + listener de mudanças globais.
   useEffect(() => {

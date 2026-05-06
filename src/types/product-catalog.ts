@@ -1,6 +1,6 @@
 /**
  * Product Catalog Types (Runtime/UI)
- *
+ * 
  * These are the runtime types used throughout the UI.
  * Distinct from src/types/product.ts which holds DB-oriented types.
  */
@@ -59,7 +59,7 @@ export interface Product {
   boxQuantity?: number | null;
   boxVolumeCm3?: number | null;
 
-  stockStatus: 'in-stock' | 'low-stock' | 'out-of-stock';
+  stockStatus: "in-stock" | "low-stock" | "out-of-stock";
   featured: boolean;
   newArrival: boolean;
   onSale: boolean;
@@ -120,7 +120,7 @@ export interface KitComponent {
     display_order: number;
     is_primary: boolean;
     title: string | null;
-  }>;
+    }>;
 }
 
 export interface ProductVariation {

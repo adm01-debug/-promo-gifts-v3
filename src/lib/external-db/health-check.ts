@@ -30,14 +30,8 @@ function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
   return new Promise<T>((resolve, reject) => {
     const t = setTimeout(() => reject(new Error(`${label} timeout after ${ms}ms`)), ms);
     p.then(
-      (v) => {
-        clearTimeout(t);
-        resolve(v);
-      },
-      (e) => {
-        clearTimeout(t);
-        reject(e);
-      },
+      (v) => { clearTimeout(t); resolve(v); },
+      (e) => { clearTimeout(t); reject(e); },
     );
   });
 }
@@ -55,9 +49,8 @@ export async function pingHealth(timeoutMs = 2500): Promise<BridgeHealth> {
     );
     const ms = Math.round(performance.now() - t0);
     if (error) {
-      const status =
-        (error as { status?: number; context?: { status?: number } })?.status ??
-        (error as { context?: { status?: number } })?.context?.status;
+      const status = (error as { status?: number; context?: { status?: number } })?.status
+        ?? (error as { context?: { status?: number } })?.context?.status;
       return { ok: false, ms, status, error: error.message };
     }
     lastReadyAt = Date.now();
@@ -98,9 +91,7 @@ export async function waitForBridgeReady(totalTimeoutMs = 5000): Promise<BridgeH
       const perAttempt = Math.min(1200, Math.max(600, remaining));
       last = await pingHealth(perAttempt);
       if (last.ok) {
-        logger.log(
-          `[Health] ✅ bridge ready in ${Math.round(performance.now() - start)}ms (${attempt}x)`,
-        );
+        logger.log(`[Health] ✅ bridge ready in ${Math.round(performance.now() - start)}ms (${attempt}x)`);
         return last;
       }
       // Backoff acelerado: 80 → 160 → 320 → 500 → 500 (cap 500ms) com jitter ±20%.
@@ -112,9 +103,7 @@ export async function waitForBridgeReady(totalTimeoutMs = 5000): Promise<BridgeH
       if (performance.now() - start + delay >= totalTimeoutMs) break;
       await new Promise((r) => setTimeout(r, delay));
     }
-    logger.warn(
-      `[Health] ⛔ bridge not ready after ${attempt} attempts (${last.error ?? 'unknown'})`,
-    );
+    logger.warn(`[Health] ⛔ bridge not ready after ${attempt} attempts (${last.error ?? 'unknown'})`);
     return last;
   })();
 

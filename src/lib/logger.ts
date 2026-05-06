@@ -1,15 +1,73 @@
-import { createClientLogger } from '@/lib/telemetry/structuredLogger';
-
 /**
- * Legacy compatibility layer for logger.
- * Migrates existing calls to the new structured logging system.
+ * Production-safe structured logger utility.
+ * - DEV mode: prints all levels with full context
+ * - PROD mode: only errors are printed (with structured metadata)
+ * 
+ * Usage:
+ *   logger.info('User logged in', { userId: '123' });
+ *   logger.error('Failed to fetch', { url, status });
  */
-const structured = createClientLogger('legacy-compat');
+
+const isDev = import.meta.env.DEV;
+
+type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+
+interface LogEntry {
+  level: LogLevel;
+  message: string;
+  timestamp: string;
+  data?: Record<string, unknown>;
+}
+
+function formatEntry(level: LogLevel, message: string, data?: Record<string, unknown>): LogEntry {
+  return {
+    level,
+    message,
+    timestamp: new Date().toISOString(),
+    ...(data && Object.keys(data).length > 0 ? { data } : {}),
+  };
+}
+
+function extractData(args: unknown[]): Record<string, unknown> | undefined {
+  if (args.length === 0) return undefined;
+  if (args.length === 1 && typeof args[0] === 'object' && args[0] !== null && !(args[0] instanceof Error)) {
+    return args[0] as Record<string, unknown>;
+  }
+  return { details: args };
+}
 
 export const logger = {
-  debug: (message: string, ...args: unknown[]) => structured.debug(message, { details: args }),
-  log: (message: string, ...args: unknown[]) => structured.info(message, { details: args }),
-  info: (message: string, ...args: unknown[]) => structured.info(message, { details: args }),
-  warn: (message: string, ...args: unknown[]) => structured.warn(message, { details: args }),
-  error: (message: string, ...args: unknown[]) => structured.error(message, { details: args }),
+  debug(message: string, ...args: unknown[]): void {
+    const entry = formatEntry('debug', message, extractData(args));
+    if (isDev) {
+      console.debug(`[DEBUG] ${entry.timestamp}`, message, ...args);
+    }
+  },
+
+  log(message: string, ...args: unknown[]): void {
+    const entry = formatEntry('info', message, extractData(args));
+    if (isDev) {
+      console.log(`[LOG] ${entry.timestamp}`, message, ...args);
+    }
+  },
+
+  info(message: string, ...args: unknown[]): void {
+    const entry = formatEntry('info', message, extractData(args));
+    if (isDev) {
+      console.info(`[INFO] ${entry.timestamp}`, message, ...args);
+    }
+  },
+
+  warn(message: string, ...args: unknown[]): void {
+    const entry = formatEntry('warn', message, extractData(args));
+    if (isDev) {
+      console.warn(`[WARN] ${entry.timestamp}`, message, ...args);
+    }
+  },
+
+  error(message: string, ...args: unknown[]): void {
+    // Always log errors, even in production
+    const entry = formatEntry('error', message, extractData(args));
+    console.error(`[ERROR] ${entry.timestamp}`, message, ...args);
+  },
 };

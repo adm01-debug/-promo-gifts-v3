@@ -1,22 +1,22 @@
-import { useState, useMemo } from 'react';
-import { Plus, Check, FolderPlus, Package } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useMemo } from "react";
+import { Plus, Check, FolderPlus, Package } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { cn } from '@/lib/utils';
-import { useCollectionsContext } from '@/contexts/CollectionsContext';
-import { type CollectionVariantInfo } from '@/hooks/useCollections';
-import { toast } from 'sonner';
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/lib/utils";
+import { useCollectionsContext } from "@/contexts/CollectionsContext";
+import { type CollectionVariantInfo } from "@/hooks/useCollections";
+import { toast } from "sonner";
 
 interface AddToCollectionModalProps {
   open: boolean;
@@ -44,7 +44,7 @@ export const AddToCollectionModal = ({
   } = useCollectionsContext();
 
   const [isCreating, setIsCreating] = useState(false);
-  const [newName, setNewName] = useState('');
+  const [newName, setNewName] = useState("");
   const [selectedColor, setSelectedColor] = useState(defaultColors[0]);
   const [selectedIcon, setSelectedIcon] = useState(defaultIcons[0]);
 
@@ -68,32 +68,26 @@ export const AddToCollectionModal = ({
     const newCollection = createCollection(newName, undefined, selectedColor, selectedIcon);
     addProductToCollection(newCollection.id, productId, variant);
     toast.success(`Coleção "${newName}" criada e produto adicionado`);
-
-    setNewName('');
+    
+    setNewName("");
     setIsCreating(false);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        className="sm:max-w-md"
-        onClick={(e) => e.stopPropagation()}
-        onPointerDown={(e) => e.stopPropagation()}
-      >
+      <DialogContent className="sm:max-w-md" onClick={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()}>
         <DialogHeader>
           <DialogTitle className="font-display">Adicionar à Coleção</DialogTitle>
           <DialogDescription className="flex flex-wrap items-center gap-1.5 leading-snug">
             {variant?.color_hex && (
               <span
-                className="inline-block h-3 w-3 shrink-0 rounded-full border border-border"
+                className="inline-block w-3 h-3 rounded-full border border-border shrink-0"
                 style={{ backgroundColor: variant.color_hex }}
               />
             )}
             <span className="break-words">{productName}</span>
             {variant?.color_name && (
-              <span className="whitespace-nowrap text-xs text-muted-foreground">
-                ({variant.color_name})
-              </span>
+              <span className="text-xs text-muted-foreground whitespace-nowrap">({variant.color_name})</span>
             )}
           </DialogDescription>
         </DialogHeader>
@@ -110,32 +104,25 @@ export const AddToCollectionModal = ({
                       key={collection.id}
                       initial={{ opacity: 0, x: -8 }}
                       animate={{ opacity: 1, x: 0 }}
-                      transition={{
-                        delay: idx * 0.03,
-                        type: 'spring',
-                        stiffness: 400,
-                        damping: 25,
-                      }}
+                      transition={{ delay: idx * 0.03, type: "spring", stiffness: 400, damping: 25 }}
                       onClick={() => handleToggleCollection(collection.id, collection.name)}
                       className={cn(
-                        'flex w-full items-center gap-3 rounded-xl border-[1.5px] p-3 transition-all duration-200',
+                        "w-full flex items-center gap-3 p-3 rounded-xl border-[1.5px] transition-all duration-200",
                         isInCollection
-                          ? 'border-primary/50 bg-primary/5 shadow-sm shadow-primary/10'
-                          : 'border-border/50 hover:border-primary/40 hover:bg-accent/50',
+                          ? "border-primary/50 bg-primary/5 shadow-sm shadow-primary/10"
+                          : "border-border/50 hover:border-primary/40 hover:bg-accent/50"
                       )}
                     >
                       <motion.div
-                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg"
+                        className="w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0"
                         style={{ backgroundColor: `${collection.color}20` }}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                       >
                         {collection.icon}
                       </motion.div>
-                      <div className="min-w-0 flex-1 text-left">
-                        <p className="truncate font-display text-sm font-medium">
-                          {collection.name}
-                        </p>
+                      <div className="flex-1 text-left min-w-0">
+                        <p className="font-display font-medium text-sm truncate">{collection.name}</p>
                         <p className="text-[11px] text-muted-foreground">
                           {collection.productIds.length} produtos
                         </p>
@@ -147,8 +134,8 @@ export const AddToCollectionModal = ({
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
                             exit={{ scale: 0 }}
-                            transition={{ type: 'spring', stiffness: 600, damping: 25 }}
-                            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary"
+                            transition={{ type: "spring", stiffness: 600, damping: 25 }}
+                            className="w-6 h-6 rounded-full bg-primary flex items-center justify-center shrink-0"
                           >
                             <Check className="h-3.5 w-3.5 text-primary-foreground" />
                           </motion.div>
@@ -158,7 +145,7 @@ export const AddToCollectionModal = ({
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
                             exit={{ scale: 0 }}
-                            className="h-6 w-6 shrink-0 rounded-full border-2 border-border/40"
+                            className="w-6 h-6 rounded-full border-2 border-border/40 shrink-0"
                           />
                         )}
                       </AnimatePresence>
@@ -175,38 +162,36 @@ export const AddToCollectionModal = ({
               <motion.div
                 key="form"
                 initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
+                animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
                 transition={{ duration: 0.25 }}
                 className="overflow-hidden"
               >
                 <div
-                  className="space-y-4 rounded-xl border-[1.5px] border-dashed border-primary/30 bg-primary/5 p-4"
+                  className="space-y-4 p-4 border-[1.5px] border-dashed border-primary/30 rounded-xl bg-primary/5"
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter' && newName.trim()) {
+                    if (e.key === "Enter" && newName.trim()) {
                       e.preventDefault();
                       handleCreateCollection();
                     }
                   }}
                 >
                   {/* Mini preview */}
-                  <div className="flex items-center gap-2 rounded-xl border border-border/50 bg-background/80 p-2">
+                  <div className="flex items-center gap-2 p-2 rounded-xl bg-background/80 border border-border/50">
                     <motion.div
                       key={`${selectedColor}-${selectedIcon}`}
                       initial={{ scale: 0.8, rotate: -10 }}
                       animate={{ scale: 1, rotate: 0 }}
-                      transition={{ type: 'spring', stiffness: 500, damping: 25 }}
-                      className="flex h-8 w-8 items-center justify-center rounded-xl text-sm"
+                      transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                      className="w-8 h-8 rounded-xl flex items-center justify-center text-sm"
                       style={{ backgroundColor: `${selectedColor}20` }}
                     >
                       {selectedIcon}
                     </motion.div>
-                    <span className="flex-1 truncate text-xs font-medium text-foreground">
-                      {newName || 'Nova coleção...'}
+                    <span className="text-xs font-medium text-foreground truncate flex-1">
+                      {newName || "Nova coleção..."}
                     </span>
-                    <Badge variant="secondary" className="shrink-0 text-[10px]">
-                      Preview
-                    </Badge>
+                    <Badge variant="secondary" className="text-[10px] shrink-0">Preview</Badge>
                   </div>
 
                   <div className="space-y-2">
@@ -229,9 +214,8 @@ export const AddToCollectionModal = ({
                           whileTap={{ scale: 0.9 }}
                           onClick={() => setSelectedColor(color)}
                           className={cn(
-                            'h-7 w-7 rounded-full transition-all duration-200',
-                            selectedColor === color &&
-                              'scale-110 shadow-md ring-2 ring-primary ring-offset-2',
+                            "w-7 h-7 rounded-full transition-all duration-200",
+                            selectedColor === color && "ring-2 ring-offset-2 ring-primary scale-110 shadow-md"
                           )}
                           style={{ backgroundColor: color }}
                         />
@@ -249,10 +233,10 @@ export const AddToCollectionModal = ({
                           whileTap={{ scale: 0.9 }}
                           onClick={() => setSelectedIcon(icon)}
                           className={cn(
-                            'flex h-9 w-9 items-center justify-center rounded-xl border text-base transition-all',
+                            "w-9 h-9 rounded-xl text-base flex items-center justify-center border transition-all",
                             selectedIcon === icon
-                              ? 'border-primary bg-primary/10 shadow-sm'
-                              : 'border-border/50 hover:border-primary/40',
+                              ? "border-primary bg-primary/10 shadow-sm"
+                              : "border-border/50 hover:border-primary/40"
                           )}
                         >
                           {icon}
@@ -306,18 +290,13 @@ export const AddToCollectionModal = ({
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="flex items-center gap-2 rounded-xl border border-border/50 bg-muted/40 px-3 py-2"
+              className="flex items-center gap-2 px-3 py-2 rounded-xl bg-muted/40 border border-border/50"
             >
-              <Package className="h-3.5 w-3.5 shrink-0 text-primary" />
+              <Package className="h-3.5 w-3.5 text-primary shrink-0" />
               <p className="text-[11px] text-muted-foreground">
-                Em{' '}
-                <span className="font-medium text-foreground">{collectionsWithProduct.length}</span>{' '}
-                coleção{collectionsWithProduct.length > 1 ? 'ões' : ''}
+                Em <span className="font-medium text-foreground">{collectionsWithProduct.length}</span> coleção{collectionsWithProduct.length > 1 ? "ões" : ""}
                 {collectionsWithProduct.length <= 3 && (
-                  <span className="text-muted-foreground">
-                    {' '}
-                    · {collectionsWithProduct.map((c) => c.name).join(', ')}
-                  </span>
+                  <span className="text-muted-foreground"> · {collectionsWithProduct.map(c => c.name).join(", ")}</span>
                 )}
               </p>
             </motion.div>

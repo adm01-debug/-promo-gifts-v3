@@ -12,7 +12,12 @@ interface ContainerProps {
 /**
  * Container responsivo com tamanhos pré-definidos
  */
-export function Container({ children, className, size = 'lg', centered = true }: ContainerProps) {
+export function Container({
+  children,
+  className,
+  size = 'lg',
+  centered = true,
+}: ContainerProps) {
   const sizeClasses = {
     sm: 'max-w-2xl',
     md: 'max-w-4xl',
@@ -27,7 +32,7 @@ export function Container({ children, className, size = 'lg', centered = true }:
         'w-full px-4 sm:px-6 lg:px-8',
         sizeClasses[size],
         centered && 'mx-auto',
-        className,
+        className
       )}
     >
       {children}
@@ -46,7 +51,13 @@ interface SectionProps {
 /**
  * Section com título e descrição opcionais
  */
-export function Section({ children, className, title, description, action }: SectionProps) {
+export function Section({
+  children,
+  className,
+  title,
+  description,
+  action,
+}: SectionProps) {
   return (
     <section className={cn('py-8', className)}>
       {(title || description || action) && (
@@ -55,7 +66,9 @@ export function Section({ children, className, title, description, action }: Sec
             {title && (
               <h2 className="font-display text-2xl font-semibold tracking-tight">{title}</h2>
             )}
-            {description && <p className="mt-1 text-muted-foreground">{description}</p>}
+            {description && (
+              <p className="mt-1 text-muted-foreground">{description}</p>
+            )}
           </div>
           {action && <div className="shrink-0">{action}</div>}
         </div>
@@ -76,7 +89,13 @@ interface GridProps {
 /**
  * Grid layout responsivo
  */
-export function Grid({ children, className, cols = 3, gap = 'md', responsive = true }: GridProps) {
+export function Grid({
+  children,
+  className,
+  cols = 3,
+  gap = 'md',
+  responsive = true,
+}: GridProps) {
   const gapClasses = {
     sm: 'gap-2',
     md: 'gap-4',
@@ -101,7 +120,11 @@ export function Grid({ children, className, cols = 3, gap = 'md', responsive = t
         6: 'grid-cols-6',
       };
 
-  return <div className={cn('grid', colClasses[cols], gapClasses[gap], className)}>{children}</div>;
+  return (
+    <div className={cn('grid', colClasses[cols], gapClasses[gap], className)}>
+      {children}
+    </div>
+  );
 }
 
 interface StackProps {
@@ -159,7 +182,7 @@ export function Stack({
         alignClasses[align],
         justifyClasses[justify],
         wrap && 'flex-wrap',
-        className,
+        className
       )}
     >
       {children}
@@ -176,7 +199,11 @@ interface DividerProps {
 /**
  * Divider com label opcional
  */
-export function Divider({ className, orientation = 'horizontal', label }: DividerProps) {
+export function Divider({
+  className,
+  orientation = 'horizontal',
+  label,
+}: DividerProps) {
   if (orientation === 'vertical') {
     return (
       <div
@@ -236,7 +263,11 @@ interface AnimatedContainerProps {
 /**
  * Container com animação de entrada
  */
-export function AnimatedContainer({ children, className, delay = 0 }: AnimatedContainerProps) {
+export function AnimatedContainer({
+  children,
+  className,
+  delay = 0,
+}: AnimatedContainerProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}

@@ -1,7 +1,7 @@
-import React from 'react';
-import { Check } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { PRESET_COLORS, PRESET_EMOJIS } from './preset-utils';
+import React from "react";
+import { Check } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { PRESET_COLORS, PRESET_EMOJIS } from "./preset-utils";
 
 // ─── Color & Emoji Picker ─────────────────────────────────
 export function ColorEmojiPicker({
@@ -26,9 +26,11 @@ export function ColorEmojiPicker({
               type="button"
               onClick={() => onEmojiChange(e)}
               className={cn(
-                'flex h-8 w-8 items-center justify-center rounded-xl text-base transition-all',
-                'hover:scale-110 hover:bg-accent',
-                emoji === e ? 'scale-110 bg-primary/15 ring-2 ring-primary' : 'bg-muted/50',
+                "w-8 h-8 rounded-xl text-base flex items-center justify-center transition-all",
+                "hover:bg-accent hover:scale-110",
+                emoji === e
+                  ? "bg-primary/15 ring-2 ring-primary scale-110"
+                  : "bg-muted/50"
               )}
             >
               {e}
@@ -45,12 +47,16 @@ export function ColorEmojiPicker({
               type="button"
               onClick={() => onColorChange(c)}
               className={cn(
-                'h-7 w-7 rounded-full border-2 transition-all hover:scale-110',
-                color === c ? 'scale-110 border-foreground shadow-lg' : 'border-transparent',
+                "w-7 h-7 rounded-full transition-all border-2 hover:scale-110",
+                color === c
+                  ? "border-foreground scale-110 shadow-lg"
+                  : "border-transparent"
               )}
               style={{ backgroundColor: c }}
             >
-              {color === c && <Check className="mx-auto h-3.5 w-3.5 text-primary-foreground" />}
+              {color === c && (
+                <Check className="h-3.5 w-3.5 text-primary-foreground mx-auto" />
+              )}
             </button>
           ))}
         </div>
@@ -72,17 +78,19 @@ export function PresetPreviewHeader({
   description: string;
 }) {
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-border/50 bg-muted/50 p-3">
+    <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50 border border-border/50">
       <div
-        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-xl transition-colors"
-        style={{ backgroundColor: color + '25' }}
+        className="w-10 h-10 rounded-xl flex items-center justify-center text-xl shrink-0 transition-colors"
+        style={{ backgroundColor: color + "25" }}
       >
         {emoji}
       </div>
       <div className="min-w-0">
-        <p className="truncate text-sm font-semibold">{name || 'Nome do preset'}</p>
-        <p className="truncate text-[10px] text-muted-foreground">
-          {description || 'Descrição...'}
+        <p className="text-sm font-semibold truncate">
+          {name || "Nome do preset"}
+        </p>
+        <p className="text-[10px] text-muted-foreground truncate">
+          {description || "Descrição..."}
         </p>
       </div>
     </div>

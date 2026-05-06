@@ -33,18 +33,15 @@ export interface LongTaskEvent {
   startedAtWallMs: number;
   /** Atribuição reportada pelo browser. */
   attribution: LongTaskAttribution[];
-  /** Chamadas de bridge que estavam ativas durante o bloqueio. */
+  /** Chamadas de bridge que estavam ativas durante TODO ou PARTE do bloqueio. */
   overlappingCalls: readonly BridgeCallSample[];
   /** Chamadas de bridge que terminaram imediatamente antes (janela de cooldown). */
   recentlyCompletedCalls: readonly BridgeCallSample[];
 }
 
 const MAX_EVENTS = 100;
-/**
- * Tasks abaixo disso são ruído (animações, layout normais).
- * Reduzido de 80ms para 50ms para alinhar com o padrão W3C (RAIL).
- */
-const MIN_DURATION_MS = 50;
+/** Tasks abaixo disso são ruído (animações, layout normais). */
+const MIN_DURATION_MS = 80;
 /** Janela "recente" considerada após o término (ms). */
 const RECENT_COMPLETION_WINDOW_MS = 50;
 
@@ -57,18 +54,11 @@ let started = false;
 function emit() {
   if (listeners.size === 0) return;
   for (const l of listeners) {
-    try {
-      l();
-    } catch {
-      /* noop */
-    }
+    try { l(); } catch { /* noop */ }
   }
 }
 
-function correlate(
-  startWall: number,
-  endWall: number,
-): {
+function correlate(startWall: number, endWall: number): {
   overlapping: BridgeCallSample[];
   recent: BridgeCallSample[];
 } {
@@ -109,12 +99,9 @@ export function startLongTaskWatchdog(): void {
         const startWall = origin + entry.startTime;
         const endWall = startWall + entry.duration;
         const { overlapping, recent } = correlate(startWall, endWall);
-        const attribution =
-          (
-            entry as PerformanceEntry & {
-              attribution?: Array<{ name?: string }>;
-            }
-          ).attribution?.map((a) => a.name || 'unknown') ?? [];
+        const attribution = (entry as PerformanceEntry & {
+          attribution?: Array<{ name?: string }>
+        }).attribution?.map(a => a.name || 'unknown') ?? [];
         events.push({
           id: nextId++,
           startTime: entry.startTime,
@@ -177,10 +164,10 @@ export function clearLongTaskEvents(): void {
 export function describeLongTask(e: LongTaskEvent): string {
   const head = `⏱ longtask ${e.durationMs}ms @${new Date(e.startedAtWallMs).toISOString().slice(11, 23)}`;
   const ov = e.overlappingCalls.length
-    ? ` · em voo: ${e.overlappingCalls.map((c) => `${c.bridge.split('-')[0]}:${c.op}(${c.durationMs}ms)`).join(', ')}`
+    ? ` · em voo: ${e.overlappingCalls.map(c => `${c.bridge.split('-')[0]}:${c.op}(${c.durationMs}ms)`).join(', ')}`
     : '';
   const rc = e.recentlyCompletedCalls.length
-    ? ` · acabou de chegar: ${e.recentlyCompletedCalls.map((c) => `${c.op}(${c.respBytes}B)`).join(', ')}`
+    ? ` · acabou de chegar: ${e.recentlyCompletedCalls.map(c => `${c.op}(${c.respBytes}B)`).join(', ')}`
     : '';
   const attr = e.attribution.length ? ` · attr=${e.attribution.join('|')}` : '';
   return head + ov + rc + attr;

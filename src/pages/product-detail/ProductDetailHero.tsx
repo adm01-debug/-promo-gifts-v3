@@ -3,30 +3,32 @@
  * Extraído de ProductDetail para reduzir complexidade
  */
 
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Heart, Package, Clock, Tag, Layers, Sparkles, FileText, Eye, Info } from 'lucide-react';
-import { ProductGallery } from '@/components/products/ProductGallery';
-import { KitComposition } from '@/components/products/KitComposition';
-import { ProductCategoryBadges } from '@/components/products/ProductCategoryBadges';
-import { GenderBadge } from '@/components/products/GenderBadge';
-import { ProductQuickActions } from '@/components/products/ProductQuickActions';
-import { ProductInfoBar } from '@/components/products/ProductInfoBar';
-import { PackagingBadge } from '@/components/products/PackagingBadge';
-import { ProductDimensions } from '@/components/products/ProductDimensions';
-import { QuickAddToQuote } from '@/components/products/QuickAddToQuote';
-import { BulkVariantWizard } from '@/components/catalog/BulkVariantWizard';
-import { DynamicTrustBadges } from '@/components/common/SocialProof';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { PriceFreshnessBadge } from '@/components/products/PriceFreshnessBadge';
-import { PriceFreshnessThresholdEditor } from '@/components/products/PriceFreshnessThresholdEditor';
-import { useProductFreshnessOverride } from '@/hooks/useProductFreshnessOverride';
-import { DEFAULT_PRICE_FRESHNESS_THRESHOLD_DAYS } from '@/utils/price-freshness';
-import { cn } from '@/lib/utils';
-import { sortVariationsByColor } from '@/utils/colorSorting';
-import type { Product } from '@/hooks/useProducts';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  Heart, Package, Clock, Tag, Layers, Sparkles, FileText, Eye, Info,
+} from "lucide-react";
+import { ProductGallery } from "@/components/products/ProductGallery";
+import { KitComposition } from "@/components/products/KitComposition";
+import { ProductCategoryBadges } from "@/components/products/ProductCategoryBadges";
+import { GenderBadge } from "@/components/products/GenderBadge";
+import { ProductQuickActions } from "@/components/products/ProductQuickActions";
+import { ProductInfoBar } from "@/components/products/ProductInfoBar";
+import { PackagingBadge } from "@/components/products/PackagingBadge";
+import { ProductDimensions } from "@/components/products/ProductDimensions";
+import { QuickAddToQuote } from "@/components/products/QuickAddToQuote";
+import { BulkVariantWizard } from "@/components/catalog/BulkVariantWizard";
+import { DynamicTrustBadges } from "@/components/common/SocialProof";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { PriceFreshnessBadge } from "@/components/products/PriceFreshnessBadge";
+import { PriceFreshnessThresholdEditor } from "@/components/products/PriceFreshnessThresholdEditor";
+import { useProductFreshnessOverride } from "@/hooks/useProductFreshnessOverride";
+import { DEFAULT_PRICE_FRESHNESS_THRESHOLD_DAYS } from "@/utils/price-freshness";
+import { cn } from "@/lib/utils";
+import { sortVariationsByColor } from "@/utils/colorSorting";
+import type { Product } from "@/hooks/useProducts";
 
 interface ProductDetailHeroProps {
   product: Product;
@@ -43,36 +45,21 @@ interface ProductDetailHeroProps {
 }
 
 const formatPrice = (price: number) =>
-  new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(price);
+  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(price);
 
 const getStockStatusInfo = (status: string) => {
   switch (status) {
-    case 'in-stock':
-      return { label: 'Em estoque', class: 'bg-success/10 text-success border-success/20' };
-    case 'low-stock':
-      return { label: 'Estoque baixo', class: 'bg-warning/10 text-warning border-warning/20' };
-    case 'out-of-stock':
-      return {
-        label: 'Sem estoque',
-        class: 'bg-destructive/10 text-destructive border-destructive/20',
-      };
-    default:
-      return { label: 'Consultar', class: 'bg-muted text-muted-foreground' };
+    case "in-stock": return { label: "Em estoque", class: "bg-success/10 text-success border-success/20" };
+    case "low-stock": return { label: "Estoque baixo", class: "bg-warning/10 text-warning border-warning/20" };
+    case "out-of-stock": return { label: "Sem estoque", class: "bg-destructive/10 text-destructive border-destructive/20" };
+    default: return { label: "Consultar", class: "bg-muted text-muted-foreground" };
   }
 };
 
 export function ProductDetailHero({
-  product,
-  id,
-  selectedVariation,
-  setSelectedVariation,
-  isFavorite,
-  onToggleFavorite,
-  viewCount,
-  supplierTrust,
-  onOpenPackagingModal,
-  onOpenFutureStock,
-  onOpenSupplierComparison,
+  product, id, selectedVariation, setSelectedVariation,
+  isFavorite, onToggleFavorite, viewCount, supplierTrust,
+  onOpenPackagingModal, onOpenFutureStock, onOpenSupplierComparison,
 }: ProductDetailHeroProps) {
   const navigate = useNavigate();
   const [quoteVariantWizardOpen, setQuoteVariantWizardOpen] = useState(false);
@@ -89,74 +76,52 @@ export function ProductDetailHero({
     DEFAULT_PRICE_FRESHNESS_THRESHOLD_DAYS;
 
   return (
-    <div className="grid min-w-0 gap-4 overflow-x-hidden lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-6 xl:gap-8">
+    <div className="grid min-w-0 overflow-x-hidden lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] gap-4 lg:gap-6 xl:gap-8">
       {/* LEFT — Gallery */}
       <div className="min-w-0">
-        <div className="space-y-3 pb-4 lg:sticky lg:top-20">
+        <div className="lg:sticky lg:top-20 space-y-3 pb-4">
           <ProductGallery
             images={product.images}
             video={product.video}
             productVideos={product.productVideos}
             productName={product.name}
             colors={product.variations?.map((variation: any) => ({
-              name: variation.color.name,
-              hex: variation.color.hex,
-              sku: variation.sku,
-              stock: variation.stock,
-              image: variation.image,
-              images: variation.images,
-              videos: variation.videos,
+              name: variation.color.name, hex: variation.color.hex, sku: variation.sku,
+              stock: variation.stock, image: variation.image, images: variation.images, videos: variation.videos,
             }))}
             onColorSelect={(index: number) => {
               if (index === -1) setSelectedVariation(null);
               else if (product.variations?.[index]) setSelectedVariation(product.variations[index]);
             }}
-            selectedColorIndex={
-              product.variations?.findIndex((v: any) => v.id === selectedVariation?.id) ?? -1
-            }
+            selectedColorIndex={product.variations?.findIndex((v: any) => v.id === selectedVariation?.id) ?? -1}
           />
         </div>
       </div>
 
       {/* RIGHT — Info */}
-      <div className="flex min-w-0 flex-col gap-3 md:gap-4 xl:gap-5">
+      <div className="flex flex-col gap-3 md:gap-4 xl:gap-5 min-w-0">
         {/* Header */}
         <div className="space-y-2">
           <div className="flex flex-wrap items-center gap-1.5">
             <ProductCategoryBadges
-              category={product.category}
-              groups={product.groups}
-              categoryUuid={product.category_id}
-              productId={product.id}
-              productName={product.name}
-              productSku={product.sku}
-              productPrice={product.price}
-              productImageUrl={product.images?.[0]}
-              productMinQuantity={minQuantity}
-              isKit={product.isKit}
+              category={product.category} groups={product.groups}
+              categoryUuid={product.category_id} productId={product.id}
+              productName={product.name} productSku={product.sku}
+              productPrice={product.price} productImageUrl={product.images?.[0]}
+              productMinQuantity={minQuantity} isKit={product.isKit}
             />
           </div>
           <div className="flex flex-wrap gap-1.5">
             {product.featured && (
-              <Badge className="bg-gradient-primary px-2 py-0.5 text-[11px] text-primary-foreground shadow-sm">
-                <Sparkles className="mr-1 h-3 w-3" />
-                Destaque
+              <Badge className="bg-gradient-primary text-primary-foreground px-2 py-0.5 text-[11px] shadow-sm">
+                <Sparkles className="h-3 w-3 mr-1" />Destaque
               </Badge>
             )}
-            {product.newArrival && (
-              <Badge className="bg-gradient-to-r from-info to-info/80 px-2 py-0.5 text-[11px] text-info-foreground">
-                Novidade
-              </Badge>
-            )}
-            {product.onSale && (
-              <Badge className="bg-gradient-to-r from-destructive to-destructive/80 px-2 py-0.5 text-[11px] text-destructive-foreground">
-                Promoção
-              </Badge>
-            )}
+            {product.newArrival && <Badge className="bg-gradient-to-r from-info to-info/80 text-info-foreground px-2 py-0.5 text-[11px]">Novidade</Badge>}
+            {product.onSale && <Badge className="bg-gradient-to-r from-destructive to-destructive/80 text-destructive-foreground px-2 py-0.5 text-[11px]">Promoção</Badge>}
             {product.isKit && (
-              <Badge className="bg-gradient-to-r from-warning to-warning/80 px-2 py-0.5 text-[11px] text-warning-foreground">
-                <Layers className="mr-1 h-3 w-3" />
-                KIT
+              <Badge className="bg-gradient-to-r from-warning to-warning/80 text-warning-foreground px-2 py-0.5 text-[11px]">
+                <Layers className="h-3 w-3 mr-1" />KIT
               </Badge>
             )}
             {product.gender && <GenderBadge gender={product.gender} size="md" />}
@@ -171,7 +136,7 @@ export function ProductDetailHero({
           <h1
             data-testid="product-name"
             data-product-name={product.name}
-            className="font-display text-lg font-bold leading-tight tracking-tight text-foreground sm:text-xl lg:text-2xl xl:text-3xl 2xl:text-4xl"
+            className="font-display text-lg sm:text-xl lg:text-2xl xl:text-3xl 2xl:text-4xl font-bold text-foreground leading-tight tracking-tight"
           >
             {product.name}
           </h1>
@@ -179,30 +144,24 @@ export function ProductDetailHero({
             sku={selectedVariation?.sku || product.sku}
             supplierName={product.supplier.name}
             supplierId={product.supplier.id}
-            productId={product.id}
-            productName={product.name}
             onOpenFutureStock={onOpenFutureStock}
             onOpenSupplierComparison={onOpenSupplierComparison}
           />
         </div>
 
         {/* Price + Specs */}
-        <div className="grid flex-1 grid-cols-1 items-stretch gap-3 md:grid-cols-2 xl:gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 xl:gap-4 items-stretch flex-1">
           {/* Price & CTA */}
-          <div className="group/price relative flex flex-col overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-br from-card via-card to-secondary/10 p-5 shadow-lg transition-all duration-500 hover:border-primary/20 hover:shadow-xl hover:shadow-primary/10 xl:p-6">
+          <div className="group/price rounded-2xl bg-gradient-to-br from-card via-card to-secondary/10 border border-border/60 p-5 xl:p-6 shadow-lg relative overflow-hidden flex flex-col transition-all duration-500 hover:shadow-xl hover:shadow-primary/10 hover:border-primary/20">
             {product.featured && (
-              <div className="from-primary/8 absolute right-0 top-0 h-24 w-24 rounded-bl-full bg-gradient-to-br to-transparent transition-opacity duration-500 group-hover/price:from-primary/15" />
+              <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-primary/8 to-transparent rounded-bl-full transition-opacity duration-500 group-hover/price:from-primary/15" />
             )}
             <div className="relative flex flex-col gap-4">
               <div>
-                <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.15em] text-muted-foreground/60 xl:text-[11px]">
-                  A partir de
-                </p>
+                <p className="text-[10px] xl:text-[11px] text-muted-foreground/60 uppercase tracking-[0.15em] font-semibold mb-1">A partir de</p>
                 <div className="flex items-baseline gap-1.5">
-                  <span className="font-display text-3xl font-extrabold leading-none tracking-tight text-foreground xl:text-4xl">
-                    {formatPrice(product.price)}
-                  </span>
-                  <span className="text-sm font-medium text-muted-foreground/50">/un</span>
+                  <span className="text-3xl xl:text-4xl font-display font-extrabold text-foreground tracking-tight leading-none">{formatPrice(product.price)}</span>
+                  <span className="text-sm text-muted-foreground/50 font-medium">/un</span>
                 </div>
                 <div className="mt-2 flex flex-wrap items-center gap-2">
                   <PriceFreshnessBadge
@@ -221,59 +180,36 @@ export function ProductDetailHero({
               {/* Stock per color */}
               {product.variations && product.variations.length > 0 ? (
                 <div className="space-y-1.5">
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/50">
-                    Estoque por cor
-                  </p>
+                  <p className="text-[10px] text-muted-foreground/50 uppercase tracking-wider font-semibold">Estoque por cor</p>
                   <div className="flex flex-wrap items-center gap-1.5">
-                    <TooltipProvider>
+                    <TooltipProvider >
                       {sortVariationsByColor(product.variations).map((variation: any) => {
                         const isSelected = selectedVariation?.id === variation.id;
                         const stock = Math.max(0, variation.stock);
                         return (
                           <Tooltip key={variation.id}>
                             <TooltipTrigger asChild>
-                              <button
-                                onClick={() => setSelectedVariation(variation)}
+                              <button onClick={() => setSelectedVariation(variation)}
                                 aria-label={`Cor ${variation.color.name}, ${stock} unidades`}
                                 className={cn(
-                                  'flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[11.5px] font-medium transition-all duration-200',
-                                  !isSelected &&
-                                    'border border-border/30 bg-secondary/30 hover:bg-secondary/50',
-                                  stock === 0 && 'opacity-40',
+                                  "flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[11.5px] font-medium transition-all duration-200",
+                                  !isSelected && "bg-secondary/30 border border-border/30 hover:bg-secondary/50",
+                                  stock === 0 && "opacity-40"
                                 )}
-                                style={
-                                  isSelected
-                                    ? {
-                                        backgroundColor: `${variation.color.hex}15`,
-                                        border: `1.5px solid ${variation.color.hex}`,
-                                        boxShadow: `0 0 0 2px ${variation.color.hex}20`,
-                                      }
-                                    : undefined
-                                }
+                                style={isSelected ? {
+                                  backgroundColor: `${variation.color.hex}15`,
+                                  border: `1.5px solid ${variation.color.hex}`,
+                                  boxShadow: `0 0 0 2px ${variation.color.hex}20`
+                                } : undefined}
                               >
-                                <div
-                                  className="h-3 w-3 shrink-0 rounded-full border border-border/40"
-                                  style={{ backgroundColor: variation.color.hex }}
-                                />
-                                <span
-                                  className={cn(
-                                    stock === 0
-                                      ? 'text-destructive'
-                                      : stock < 100
-                                        ? 'text-warning'
-                                        : 'text-muted-foreground',
-                                  )}
-                                >
-                                  {stock >= 1000
-                                    ? `${(stock / 1000).toFixed(1)}k`
-                                    : stock.toLocaleString('pt-BR')}
+                                <div className="w-3 h-3 rounded-full border border-border/40 shrink-0" style={{ backgroundColor: variation.color.hex }} />
+                                <span className={cn(stock === 0 ? "text-destructive" : stock < 100 ? "text-warning" : "text-muted-foreground")}>
+                                  {stock >= 1000 ? `${(stock / 1000).toFixed(1)}k` : stock.toLocaleString("pt-BR")}
                                 </span>
                               </button>
                             </TooltipTrigger>
-                            <TooltipContent className="border-none bg-primary px-2 py-1 text-[11px] font-medium text-primary-foreground shadow-xl">
-                              <p>
-                                {variation.color.name}: {stock.toLocaleString('pt-BR')} un.
-                              </p>
+                            <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
+                              <p>{variation.color.name}: {stock.toLocaleString("pt-BR")} un.</p>
                             </TooltipContent>
                           </Tooltip>
                         );
@@ -282,71 +218,47 @@ export function ProductDetailHero({
                   </div>
                 </div>
               ) : (
-                <span
-                  className={cn(
-                    'inline-flex w-fit items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium',
-                    stockInfo.class,
-                  )}
-                >
-                  <Package className="h-3.5 w-3.5" />
-                  {Math.max(0, product.stock).toLocaleString('pt-BR')} un.
+                <span className={cn("inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border w-fit", stockInfo.class)}>
+                  <Package className="h-3.5 w-3.5" />{Math.max(0, product.stock).toLocaleString("pt-BR")} un.
                 </span>
               )}
 
               {/* Compact info */}
-              <div className="flex items-center gap-4 rounded-lg border border-border/20 bg-secondary/20 px-3 py-2.5">
+              <div className="flex items-center gap-4 py-2.5 px-3 rounded-lg bg-secondary/20 border border-border/20">
                 <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                  <Tag className="h-3 w-3 shrink-0 text-primary" />
-                  <span className="font-medium">Mín. {minQuantity}</span>
+                  <Tag className="h-3 w-3 text-primary shrink-0" /><span className="font-medium">Mín. {minQuantity}</span>
                 </div>
                 <div className="h-3.5 w-px bg-border/40" />
                 <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                  <Clock className="h-3 w-3 shrink-0 text-info" />
-                  <span className="font-medium">
-                    {product.leadTimeDays
-                      ? `${product.leadTimeDays} dias úteis`
-                      : 'Consultar prazo'}
-                  </span>
+                  <Clock className="h-3 w-3 text-info shrink-0" />
+                  <span className="font-medium">{product.leadTimeDays ? `${product.leadTimeDays} dias úteis` : 'Consultar prazo'}</span>
                 </div>
               </div>
 
               {/* CTAs */}
               <div className="flex gap-2.5">
                 <QuickAddToQuote
-                  productId={id}
-                  productName={product.name}
-                  productSku={product.sku}
-                  productImageUrl={product.images?.[0]}
-                  productPrice={product.price}
-                  minQuantity={minQuantity}
-                  variant="button"
-                  buttonSize="lg"
-                  className="xl:h-13 h-12 flex-1 basis-0 gap-1.5 rounded-xl bg-primary font-display text-[0.875rem] font-bold tracking-wide text-primary-foreground shadow-md shadow-primary/20 transition-all duration-300 hover:scale-[1.02] hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/30 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50"
-                  labelOverride="Carrinho"
-                  iconOverride="cart"
+                  productId={id} productName={product.name} productSku={product.sku}
+                  productImageUrl={product.images?.[0]} productPrice={product.price}
+                  minQuantity={minQuantity} variant="button" buttonSize="lg"
+                  className="flex-1 basis-0 h-12 xl:h-13 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-display font-bold text-[0.875rem] tracking-wide shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none gap-1.5"
+                  labelOverride="Carrinho" iconOverride="cart"
                 />
-                <Button
-                  size="lg"
-                  className="xl:h-13 h-12 flex-1 basis-0 gap-1.5 rounded-xl bg-success font-display text-[0.875rem] font-bold tracking-wide text-success-foreground shadow-md shadow-success/20 transition-all duration-300 hover:scale-[1.02] hover:bg-success/90 hover:shadow-lg hover:shadow-success/30 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50"
+                <Button size="lg"
+                  className="flex-1 basis-0 h-12 xl:h-13 rounded-xl bg-success hover:bg-success/90 text-success-foreground font-display font-bold text-[0.875rem] tracking-wide shadow-md shadow-success/20 hover:shadow-lg hover:shadow-success/30 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none gap-1.5"
                   onClick={() => setQuoteVariantWizardOpen(true)}
                 >
-                  <FileText className="h-4 w-4" />
-                  Orçamento
+                  <FileText className="h-4 w-4" />Orçamento
                 </Button>
                 <BulkVariantWizard
-                  open={quoteVariantWizardOpen}
-                  onOpenChange={setQuoteVariantWizardOpen}
-                  products={[product]}
-                  mode="quote"
+                  open={quoteVariantWizardOpen} onOpenChange={setQuoteVariantWizardOpen}
+                  products={[product]} mode="quote"
                   onComplete={(selections) => {
                     const s = selections[0];
                     const v = s?.variant;
                     const params = new URLSearchParams({
-                      product_id: id,
-                      product_name: product.name,
-                      product_sku: product.sku || '',
-                      product_price: String(product.price),
-                      product_image: v?.selected_thumbnail || product.images?.[0] || '',
+                      product_id: id, product_name: product.name, product_sku: product.sku || '',
+                      product_price: String(product.price), product_image: v?.selected_thumbnail || product.images?.[0] || '',
                       min_quantity: String(minQuantity),
                     });
                     if (v?.color_name) params.set('color_name', v.color_name);
@@ -360,47 +272,27 @@ export function ProductDetailHero({
               {/* Trust + Social proof */}
               <div className="space-y-2.5 pt-1">
                 <DynamicTrustBadges
-                  trust={
-                    supplierTrust ?? { isVerified: false, deliveryDays: null, avgRating: null }
-                  }
-                  productFlags={{
-                    newArrival: product?.newArrival ?? false,
-                    onSale: product?.onSale ?? false,
-                    featured: product?.featured ?? false,
-                    minQuantity: product?.minQuantity,
-                  }}
+                  trust={supplierTrust ?? { isVerified: false, deliveryDays: null, avgRating: null }}
+                  productFlags={{ newArrival: product?.newArrival ?? false, onSale: product?.onSale ?? false, featured: product?.featured ?? false, minQuantity: product?.minQuantity }}
                   className="text-[10px]"
                 />
-                <div className="flex items-center gap-3 border-t border-border/30 pt-2">
+                <div className="flex items-center gap-3 pt-2 border-t border-border/30">
                   <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <Eye className="h-3.5 w-3.5" />
-                    <span className="font-semibold text-foreground">{viewCount}</span>
-                    <span>visualizações</span>
+                    <Eye className="h-3.5 w-3.5" /><span className="font-semibold text-foreground">{viewCount}</span><span>visualizações</span>
                   </div>
                   <div className="h-4 w-px bg-border/30" />
-                  <TooltipProvider>
+                  <TooltipProvider >
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={onToggleFavorite}
-                          className={cn(
-                            'h-7 gap-1.5 rounded-full px-3 text-xs transition-all duration-300 hover:scale-105 hover:bg-destructive/15 hover:text-destructive hover:shadow-md hover:shadow-destructive/20',
-                            isFavorite && 'bg-destructive/10 text-destructive',
-                          )}
+                        <Button variant="ghost" size="sm" onClick={onToggleFavorite}
+                          className={cn("rounded-full px-3 text-xs gap-1.5 h-7 transition-all duration-300 hover:bg-destructive/15 hover:text-destructive hover:scale-105 hover:shadow-md hover:shadow-destructive/20", isFavorite && "text-destructive bg-destructive/10")}
                         >
-                          <Heart
-                            className={cn(
-                              'h-3.5 w-3.5 transition-all duration-300',
-                              isFavorite && 'scale-110 fill-destructive text-destructive',
-                            )}
-                          />
-                          {isFavorite ? 'Favoritado' : 'Favoritar'}
+                          <Heart className={cn("h-3.5 w-3.5 transition-all duration-300", isFavorite && "fill-destructive text-destructive scale-110")} />
+                          {isFavorite ? "Favoritado" : "Favoritar"}
                         </Button>
                       </TooltipTrigger>
-                      <TooltipContent className="border-none bg-primary px-2 py-1 text-[11px] font-medium text-primary-foreground">
-                        <p>{isFavorite ? 'Remover dos favoritos' : 'Salvar em meus favoritos'}</p>
+                      <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none">
+                        <p>{isFavorite ? "Remover dos favoritos" : "Salvar em meus favoritos"}</p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
@@ -410,59 +302,31 @@ export function ProductDetailHero({
           </div>
 
           {/* Specs + Description */}
-          <div
-            id="sec-specs"
-            className="flex scroll-mt-28 flex-col gap-4 rounded-2xl border border-border/60 bg-card/40 p-5 xl:p-6"
-          >
+          <div id="sec-specs" className="scroll-mt-28 rounded-2xl border border-border/60 bg-card/40 p-5 xl:p-6 flex flex-col gap-4">
             <div id="sec-descricao" className="scroll-mt-28">
-              <h4 className="mb-2 text-xs font-bold uppercase tracking-wide text-foreground xl:text-sm">
-                Descrição
-              </h4>
-              {product.description ? (
-                (() => {
-                  const sentences = product.description
-                    .split(/[.]\s+/)
-                    .map((s) => s.trim().replace(/\.$/, ''))
-                    .filter((s) => s.length > 5);
-                  if (sentences.length > 2) {
-                    return (
-                      <ul className="space-y-1">
-                        {sentences.map((sentence, i) => (
-                          <li
-                            key={i}
-                            className="flex items-start gap-2 text-xs leading-relaxed text-muted-foreground"
-                          >
-                            <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary/60" />
-                            {sentence}
-                          </li>
-                        ))}
-                      </ul>
-                    );
-                  }
+              <h4 className="text-xs xl:text-sm font-bold text-foreground mb-2 uppercase tracking-wide">Descrição</h4>
+              {product.description ? (() => {
+                const sentences = product.description.split(/[.]\s+/).map(s => s.trim().replace(/\.$/, '')).filter(s => s.length > 5);
+                if (sentences.length > 2) {
                   return (
-                    <p className="text-xs leading-relaxed text-muted-foreground">
-                      {product.description}
-                    </p>
+                    <ul className="space-y-1">
+                      {sentences.map((sentence, i) => (
+                        <li key={i} className="flex items-start gap-2 text-xs text-muted-foreground leading-relaxed">
+                          <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-primary/60 shrink-0" />{sentence}
+                        </li>
+                      ))}
+                    </ul>
                   );
-                })()
-              ) : (
-                <p className="text-xs italic text-muted-foreground">Sem descrição disponível</p>
-              )}
+                }
+                return <p className="text-muted-foreground leading-relaxed text-xs">{product.description}</p>;
+              })() : <p className="text-muted-foreground italic text-xs">Sem descrição disponível</p>}
             </div>
-            <div className="space-y-3 border-t border-border/30 pt-4">
-              <h4 className="text-xs font-bold uppercase tracking-wide text-foreground xl:text-sm">
-                Especificações
-              </h4>
+            <div className="border-t border-border/30 pt-4 space-y-3">
+              <h4 className="text-xs xl:text-sm font-bold text-foreground uppercase tracking-wide">Especificações</h4>
               {product.materials && product.materials.length > 0 && (
                 <div className="flex flex-wrap gap-1.5">
                   {product.materials.map((material: string) => (
-                    <Badge
-                      key={material}
-                      variant="secondary"
-                      className="rounded-full px-2.5 py-0.5 text-[11px]"
-                    >
-                      {material}
-                    </Badge>
+                    <Badge key={material} variant="secondary" className="px-2.5 py-0.5 text-[11px] rounded-full">{material}</Badge>
                   ))}
                 </div>
               )}
@@ -477,31 +341,12 @@ export function ProductDetailHero({
         {/* Quick Actions */}
         <div className="mt-auto">
           <ProductQuickActions
-            productId={product.id}
-            productName={product.name}
-            productSku={product.sku}
-            basePrice={product.price}
-            minQuantity={minQuantity}
-            tags={
-              product.tags
-                ? {
-                    'Público-Alvo': product.tags.publicoAlvo || [],
-                    'Datas Comemorativas': product.tags.datasComemorativas || [],
-                    Endomarketing: product.tags.endomarketing || [],
-                  }
-                : undefined
-            }
+            productId={product.id} productName={product.name} productSku={product.sku}
+            basePrice={product.price} minQuantity={minQuantity}
+            tags={product.tags ? { "Público-Alvo": product.tags.publicoAlvo || [], "Datas Comemorativas": product.tags.datasComemorativas || [], "Endomarketing": product.tags.endomarketing || [] } : undefined}
             niches={product.tags?.nicho || product.tags?.ramo || undefined}
             product={product}
-            selectedVariant={
-              selectedVariation
-                ? {
-                    variantName: selectedVariation.color?.name,
-                    colorHex: selectedVariation.color?.hex,
-                    thumbnailUrl: selectedVariation.images?.[0] || selectedVariation.image,
-                  }
-                : null
-            }
+            selectedVariant={selectedVariation ? { variantName: selectedVariation.color?.name, colorHex: selectedVariation.color?.hex, thumbnailUrl: selectedVariation.images?.[0] || selectedVariation.image } : null}
           />
         </div>
       </div>

@@ -1,28 +1,15 @@
-import { useEffect, useMemo, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { useToast } from '@/hooks/use-toast';
-import { Shield, RefreshCw, Clock, Infinity, Trash2, CalendarPlus } from 'lucide-react';
-import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { useEffect, useMemo, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
+import { Shield, RefreshCw, Clock, Infinity, Trash2, CalendarPlus } from "lucide-react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 interface IpEntry {
   id: string;
@@ -34,23 +21,23 @@ interface IpEntry {
   created_by: string;
 }
 
-type Filter = 'all' | 'allow' | 'block' | 'active' | 'expired';
+type Filter = "all" | "allow" | "block" | "active" | "expired";
 
 export function ActiveIpsList() {
   const [items, setItems] = useState<IpEntry[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<Filter>('all');
-  const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState<Filter>("all");
+  const [search, setSearch] = useState("");
   const { toast } = useToast();
 
   const load = async () => {
     setLoading(true);
     const { data, error } = await supabase
-      .from('ip_access_control')
-      .select('*')
-      .order('created_at', { ascending: false });
+      .from("ip_access_control")
+      .select("*")
+      .order("created_at", { ascending: false });
     if (error) {
-      toast({ title: 'Erro ao carregar IPs', description: error.message, variant: 'destructive' });
+      toast({ title: "Erro ao carregar IPs", description: error.message, variant: "destructive" });
     } else {
       setItems(data || []);
     }
@@ -66,15 +53,15 @@ export function ActiveIpsList() {
   const filtered = useMemo(() => {
     return items.filter((i) => {
       const isActive = !i.expires_at || new Date(i.expires_at).getTime() > now;
-      if (filter === 'allow' && i.list_type !== 'allow') return false;
-      if (filter === 'block' && i.list_type !== 'block') return false;
-      if (filter === 'active' && !isActive) return false;
-      if (filter === 'expired' && isActive) return false;
+      if (filter === "allow" && i.list_type !== "allow") return false;
+      if (filter === "block" && i.list_type !== "block") return false;
+      if (filter === "active" && !isActive) return false;
+      if (filter === "expired" && isActive) return false;
       if (search.trim()) {
         const q = search.trim().toLowerCase();
         if (
           !i.ip_address.toLowerCase().includes(q) &&
-          !(i.reason || '').toLowerCase().includes(q)
+          !(i.reason || "").toLowerCase().includes(q)
         ) {
           return false;
         }
@@ -84,12 +71,12 @@ export function ActiveIpsList() {
   }, [items, filter, search, now]);
 
   const revoke = async (id: string) => {
-    const { error } = await supabase.from('ip_access_control').delete().eq('id', id);
+    const { error } = await supabase.from("ip_access_control").delete().eq("id", id);
     if (error) {
-      toast({ title: 'Erro ao revogar', description: error.message, variant: 'destructive' });
+      toast({ title: "Erro ao revogar", description: error.message, variant: "destructive" });
       return;
     }
-    toast({ title: 'IP revogado' });
+    toast({ title: "IP revogado" });
     void load();
   };
 
@@ -98,37 +85,33 @@ export function ActiveIpsList() {
     if (base.getTime() < Date.now()) base.setTime(Date.now());
     const next = new Date(base.getTime() + 24 * 60 * 60 * 1000);
     const { error } = await supabase
-      .from('ip_access_control')
+      .from("ip_access_control")
       .update({ expires_at: next.toISOString() })
-      .eq('id', id);
+      .eq("id", id);
     if (error) {
-      toast({ title: 'Erro ao estender', description: error.message, variant: 'destructive' });
+      toast({ title: "Erro ao estender", description: error.message, variant: "destructive" });
       return;
     }
-    toast({ title: 'Expiração estendida +24h' });
+    toast({ title: "Expiração estendida +24h" });
     void load();
   };
 
   const makePermanent = async (id: string) => {
     const { error } = await supabase
-      .from('ip_access_control')
+      .from("ip_access_control")
       .update({ expires_at: null })
-      .eq('id', id);
+      .eq("id", id);
     if (error) {
-      toast({
-        title: 'Erro ao tornar permanente',
-        description: error.message,
-        variant: 'destructive',
-      });
+      toast({ title: "Erro ao tornar permanente", description: error.message, variant: "destructive" });
       return;
     }
-    toast({ title: 'Bloqueio agora é permanente' });
+    toast({ title: "Bloqueio agora é permanente" });
     void load();
   };
 
   return (
     <Card>
-      <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <CardTitle className="flex items-center gap-2">
             <Shield className="h-5 w-5" /> IPs ativos
@@ -157,7 +140,7 @@ export function ActiveIpsList() {
             </SelectContent>
           </Select>
           <Button variant="outline" size="sm" onClick={() => void load()} disabled={loading}>
-            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
           </Button>
         </div>
       </CardHeader>
@@ -178,8 +161,8 @@ export function ActiveIpsList() {
             <TableBody>
               {filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="py-8 text-center text-muted-foreground">
-                    {loading ? 'Carregando…' : 'Nenhum IP encontrado'}
+                  <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                    {loading ? "Carregando…" : "Nenhum IP encontrado"}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -190,7 +173,7 @@ export function ActiveIpsList() {
                       <TableCell className="font-mono text-xs">{i.ip_address}</TableCell>
                       <TableCell>
                         <Badge
-                          variant={i.list_type === 'block' ? 'destructive' : 'outline'}
+                          variant={i.list_type === "block" ? "destructive" : "outline"}
                           className="text-xs"
                         >
                           {i.list_type}
@@ -205,17 +188,14 @@ export function ActiveIpsList() {
                           </Badge>
                         )}
                       </TableCell>
-                      <TableCell
-                        className="max-w-[260px] truncate text-xs text-muted-foreground"
-                        title={i.reason || ''}
-                      >
-                        {i.reason || '—'}
+                      <TableCell className="max-w-[260px] truncate text-xs text-muted-foreground" title={i.reason || ""}>
+                        {i.reason || "—"}
                       </TableCell>
-                      <TableCell className="whitespace-nowrap text-xs">
+                      <TableCell className="text-xs whitespace-nowrap">
                         {i.expires_at ? (
                           <span className="inline-flex items-center gap-1">
                             <Clock className="h-3 w-3" />
-                            {format(new Date(i.expires_at), 'dd/MM HH:mm', { locale: ptBR })}
+                            {format(new Date(i.expires_at), "dd/MM HH:mm", { locale: ptBR })}
                           </span>
                         ) : (
                           <span className="inline-flex items-center gap-1 text-muted-foreground">
@@ -223,8 +203,8 @@ export function ActiveIpsList() {
                           </span>
                         )}
                       </TableCell>
-                      <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
-                        {format(new Date(i.created_at), 'dd/MM HH:mm', { locale: ptBR })}
+                      <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                        {format(new Date(i.created_at), "dd/MM HH:mm", { locale: ptBR })}
                       </TableCell>
                       <TableCell>
                         <div className="flex justify-end gap-1">

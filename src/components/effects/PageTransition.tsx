@@ -1,14 +1,8 @@
-import { type ReactNode } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useLocation } from 'react-router-dom';
+import { type ReactNode } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useLocation } from "react-router-dom";
 
-type TransitionVariant =
-  | 'fade'
-  | 'slide-up'
-  | 'slide-left'
-  | 'slide-right'
-  | 'scale'
-  | 'fade-slide';
+type TransitionVariant = "fade" | "slide-up" | "slide-left" | "slide-right" | "scale" | "fade-slide";
 
 interface PageTransitionProps {
   children: ReactNode;
@@ -23,17 +17,17 @@ const variants = {
     animate: { opacity: 1 },
     exit: { opacity: 0 },
   },
-  'slide-up': {
+  "slide-up": {
     initial: { opacity: 0, y: 20 },
     animate: { opacity: 1, y: 0 },
     exit: { opacity: 0, y: -20 },
   },
-  'slide-left': {
+  "slide-left": {
     initial: { opacity: 0, x: 20 },
     animate: { opacity: 1, x: 0 },
     exit: { opacity: 0, x: -20 },
   },
-  'slide-right': {
+  "slide-right": {
     initial: { opacity: 0, x: -20 },
     animate: { opacity: 1, x: 0 },
     exit: { opacity: 0, x: 20 },
@@ -43,16 +37,16 @@ const variants = {
     animate: { opacity: 1, scale: 1 },
     exit: { opacity: 0, scale: 1.05 },
   },
-  'fade-slide': {
-    initial: { opacity: 0, y: 8, filter: 'blur(4px)' },
-    animate: { opacity: 1, y: 0, filter: 'blur(0px)' },
-    exit: { opacity: 0, y: -6, filter: 'blur(2px)' },
+  "fade-slide": {
+    initial: { opacity: 0, y: 8, filter: "blur(4px)" },
+    animate: { opacity: 1, y: 0, filter: "blur(0px)" },
+    exit: { opacity: 0, y: -6, filter: "blur(2px)" },
   },
 };
 
 export function PageTransition({
   children,
-  variant = 'fade-slide',
+  variant = "fade-slide",
   duration = 0.3,
   className,
 }: PageTransitionProps) {
@@ -131,7 +125,13 @@ export function StaggerContainer({
   );
 }
 
-export function StaggerItem({ children, className }: { children: ReactNode; className?: string }) {
+export function StaggerItem({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
   return (
     <motion.div variants={itemVariants} className={className}>
       {children}
@@ -151,7 +151,7 @@ export function FadeInView({ children, className, delay = 0 }: FadeInViewProps) 
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-50px' }}
+      viewport={{ once: true, margin: "-50px" }}
       transition={{
         duration: 0.5,
         delay,

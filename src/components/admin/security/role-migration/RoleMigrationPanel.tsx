@@ -10,58 +10,31 @@
  *     e em `admin_audit_log` (rastreio por usuário e por evento).
  *  5. Acompanhar histórico de lotes com drill-down nos itens.
  *
- * RBAC: a RPC server-side exige `is_admin_strict`.
+ * RBAC: a RPC server-side exige `is_admin_strict`; aqui no front também
+ * gateamos por `useUserRole` para evitar mostrar a UI a quem não pode usar.
  */
-import { useEffect, useMemo, useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import {
-  Loader2,
-  PlayCircle,
-  FlaskConical,
-  History,
-  ChevronRight,
-  Users,
-  AlertTriangle,
-} from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import {
-  useRoleMigration,
-  type AppRole,
-  type BatchRow,
-  type ItemRow,
-  type MigrationItemInput,
-} from '@/hooks/useRoleMigration';
+import { useEffect, useMemo, useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Loader2, PlayCircle, FlaskConical, History, ChevronRight, Users, AlertTriangle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { useRoleMigration, type AppRole, type BatchRow, type ItemRow, type MigrationItemInput } from "@/hooks/useRoleMigration";
 
-const ROLES: AppRole[] = ['admin', 'manager', 'supervisor', 'vendedor', 'dev'];
+const ROLES: AppRole[] = ["admin", "manager", "supervisor", "vendedor", "dev"];
 const OPERATIONS = [
-  { value: 'add', label: 'Adicionar papel', description: 'INSERT user_roles (mantém os demais)' },
-  {
-    value: 'remove',
-    label: 'Remover papel',
-    description: 'DELETE user_roles deste papel específico',
-  },
-  {
-    value: 'replace',
-    label: 'Substituir todos',
-    description: 'Remove papéis atuais e adiciona o novo',
-  },
+  { value: "add", label: "Adicionar papel", description: "INSERT user_roles (mantém os demais)" },
+  { value: "remove", label: "Remover papel", description: "DELETE user_roles deste papel específico" },
+  { value: "replace", label: "Substituir todos", description: "DELETE todos os papéis + INSERT do novo" },
 ] as const;
 
 interface ProfileLite {
@@ -71,31 +44,27 @@ interface ProfileLite {
   current_roles: AppRole[];
 }
 
-const STATUS_BADGE: Record<
-  string,
-  { variant: 'default' | 'destructive' | 'secondary' | 'outline'; className?: string }
-> = {
-  completed: { variant: 'default', className: 'bg-emerald-600 hover:bg-emerald-600' },
-  partial: { variant: 'secondary' },
-  failed: { variant: 'destructive' },
-  running: { variant: 'outline' },
-  pending: { variant: 'outline' },
-  dry_run: { variant: 'secondary' },
-  success: { variant: 'default', className: 'bg-emerald-600 hover:bg-emerald-600' },
-  skipped: { variant: 'outline' },
+const STATUS_BADGE: Record<string, { variant: "default" | "destructive" | "secondary" | "outline"; className?: string }> = {
+  completed: { variant: "default", className: "bg-emerald-600 hover:bg-emerald-600" },
+  partial:   { variant: "secondary" },
+  failed:    { variant: "destructive" },
+  running:   { variant: "outline" },
+  pending:   { variant: "outline" },
+  dry_run:   { variant: "secondary" },
+  success:   { variant: "default", className: "bg-emerald-600 hover:bg-emerald-600" },
+  skipped:   { variant: "outline" },
 };
 
 export function RoleMigrationPanel() {
-  const { batches, loadingBatches, submitting, refreshBatches, executeBatch, fetchItems } =
-    useRoleMigration();
+  const { batches, loadingBatches, submitting, refreshBatches, executeBatch, fetchItems } = useRoleMigration();
   const [profiles, setProfiles] = useState<ProfileLite[]>([]);
   const [loadingProfiles, setLoadingProfiles] = useState(false);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [toRole, setToRole] = useState<AppRole>('supervisor');
-  const [operation, setOperation] = useState<MigrationItemInput['operation']>('add');
-  const [label, setLabel] = useState('');
-  const [reason, setReason] = useState('');
+  const [toRole, setToRole] = useState<AppRole>("supervisor");
+  const [operation, setOperation] = useState<MigrationItemInput["operation"]>("add");
+  const [label, setLabel] = useState("");
+  const [reason, setReason] = useState("");
   const [openBatch, setOpenBatch] = useState<BatchRow | null>(null);
   const [openItems, setOpenItems] = useState<ItemRow[]>([]);
   const [loadingItems, setLoadingItems] = useState(false);
@@ -107,8 +76,8 @@ export function RoleMigrationPanel() {
       setLoadingProfiles(true);
       try {
         const [{ data: profs, error: pErr }, { data: roles, error: rErr }] = await Promise.all([
-          supabase.from('profiles').select('user_id, email, full_name').order('email'),
-          supabase.from('user_roles').select('user_id, role'),
+          supabase.from("profiles").select("user_id, email, full_name").order("email"),
+          supabase.from("user_roles").select("user_id, role"),
         ]);
         if (pErr) throw pErr;
         if (rErr) throw rErr;
@@ -128,32 +97,26 @@ export function RoleMigrationPanel() {
           })),
         );
       } catch (e) {
-        toast.error('Falha ao carregar usuários', {
-          description: e instanceof Error ? e.message : String(e),
-        });
+        toast.error("Falha ao carregar usuários", { description: e instanceof Error ? e.message : String(e) });
       } finally {
         if (!cancelled) setLoadingProfiles(false);
       }
     })();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, []);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return profiles;
-    return profiles.filter(
-      (p) =>
-        (p.email ?? '').toLowerCase().includes(q) || (p.full_name ?? '').toLowerCase().includes(q),
-    );
+    return profiles.filter((p) =>
+      (p.email ?? "").toLowerCase().includes(q) ||
+      (p.full_name ?? "").toLowerCase().includes(q));
   }, [profiles, search]);
 
   const toggle = (userId: string) => {
     setSelected((prev) => {
       const next = new Set(prev);
-      if (next.has(userId)) next.delete(userId);
-      else next.add(userId);
+      if (next.has(userId)) next.delete(userId); else next.add(userId);
       return next;
     });
   };
@@ -163,15 +126,15 @@ export function RoleMigrationPanel() {
 
   const submit = async (dryRun: boolean) => {
     if (selected.size === 0) {
-      toast.error('Selecione ao menos 1 usuário');
+      toast.error("Selecione ao menos 1 usuário");
       return;
     }
     if (label.trim().length < 3) {
-      toast.error('Defina um rótulo descritivo para o lote (mín. 3 caracteres)');
+      toast.error("Defina um rótulo descritivo para o lote (mín. 3 caracteres)");
       return;
     }
     if (reason.trim().length < 5) {
-      toast.error('Justifique a migração (mín. 5 caracteres)');
+      toast.error("Justifique a migração (mín. 5 caracteres)");
       return;
     }
     try {
@@ -181,16 +144,14 @@ export function RoleMigrationPanel() {
         items: buildItems(),
         dryRun,
       });
-      toast.success(dryRun ? 'Dry-run concluído' : 'Lote executado', {
+      toast.success(dryRun ? "Dry-run concluído" : "Lote executado", {
         description: `Batch ${batchId.slice(0, 8)}… registrado.`,
       });
       if (!dryRun) {
         setSelected(new Set());
       }
     } catch (e) {
-      toast.error('Falha ao executar lote', {
-        description: e instanceof Error ? e.message : String(e),
-      });
+      toast.error("Falha ao executar lote", { description: e instanceof Error ? e.message : String(e) });
     }
   };
 
@@ -200,9 +161,7 @@ export function RoleMigrationPanel() {
     try {
       setOpenItems(await fetchItems(b.id));
     } catch (e) {
-      toast.error('Falha ao carregar itens', {
-        description: e instanceof Error ? e.message : String(e),
-      });
+      toast.error("Falha ao carregar itens", { description: e instanceof Error ? e.message : String(e) });
     } finally {
       setLoadingItems(false);
     }
@@ -213,15 +172,13 @@ export function RoleMigrationPanel() {
       <Card>
         <CardHeader>
           <div className="flex items-center gap-3">
-            <div className="rounded-xl bg-primary/10 p-2">
-              <Users className="h-5 w-5 text-primary" />
-            </div>
+            <div className="p-2 rounded-xl bg-primary/10"><Users className="h-5 w-5 text-primary" /></div>
             <div>
               <CardTitle>Migração de papéis em lote</CardTitle>
               <CardDescription>
                 Execute trocas de papéis para múltiplos usuários com auditoria por evento
-                (`role_migration_items` + `admin_audit_log`). Sempre rode <strong>dry-run</strong>{' '}
-                antes de aplicar de verdade.
+                (`role_migration_items` + `admin_audit_log`). Sempre rode <strong>dry-run</strong> antes
+                de aplicar de verdade.
               </CardDescription>
             </div>
           </div>
@@ -230,12 +187,7 @@ export function RoleMigrationPanel() {
           <div className="grid gap-4 md:grid-cols-3">
             <div className="space-y-2 md:col-span-1">
               <Label htmlFor="rm-label">Rótulo do lote</Label>
-              <Input
-                id="rm-label"
-                placeholder="ex.: Fase 2 — Supervisores"
-                value={label}
-                onChange={(e) => setLabel(e.target.value)}
-              />
+              <Input id="rm-label" placeholder="ex.: Fase 2 — Supervisores" value={label} onChange={(e) => setLabel(e.target.value)} />
             </div>
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="rm-reason">Justificativa</Label>
@@ -249,21 +201,14 @@ export function RoleMigrationPanel() {
             </div>
             <div className="space-y-2">
               <Label>Operação</Label>
-              <Select
-                value={operation}
-                onValueChange={(v) => setOperation(v as MigrationItemInput['operation'])}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
+              <Select value={operation} onValueChange={(v) => setOperation(v as MigrationItemInput["operation"])}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {OPERATIONS.map((o) => (
                     <SelectItem key={o.value} value={o.value}>
                       <div className="flex flex-col">
                         <span>{o.label}</span>
-                        <span className="font-mono text-[10px] text-muted-foreground">
-                          {o.description}
-                        </span>
+                        <span className="text-[10px] text-muted-foreground font-mono">{o.description}</span>
                       </div>
                     </SelectItem>
                   ))}
@@ -273,38 +218,25 @@ export function RoleMigrationPanel() {
             <div className="space-y-2">
               <Label>Papel-alvo</Label>
               <Select value={toRole} onValueChange={(v) => setToRole(v as AppRole)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {ROLES.map((r) => (
-                    <SelectItem key={r} value={r}>
-                      {r}
-                    </SelectItem>
-                  ))}
+                  {ROLES.map((r) => (<SelectItem key={r} value={r}>{r}</SelectItem>))}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="rm-search">Filtrar usuários</Label>
-              <Input
-                id="rm-search"
-                placeholder="email ou nome…"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
+              <Input id="rm-search" placeholder="email ou nome…" value={search} onChange={(e) => setSearch(e.target.value)} />
             </div>
           </div>
 
-          {(operation === 'replace' || toRole === 'admin' || toRole === 'dev') && (
+          {(operation === "replace" || toRole === "admin" || toRole === "dev") && (
             <Alert variant="destructive">
               <AlertTriangle className="h-4 w-4" />
               <AlertTitle>Operação de alto impacto</AlertTitle>
               <AlertDescription>
-                {operation === 'replace' &&
-                  'Esta operação remove os papéis atuais antes de inserir o novo. '}
-                {(toRole === 'admin' || toRole === 'dev') &&
-                  `Promover a "${toRole}" concede acesso administrativo. `}
+                {operation === "replace" && "Esta operação remove TODOS os papéis atuais antes de inserir o novo. "}
+                {(toRole === "admin" || toRole === "dev") && `Promover a "${toRole}" concede acesso administrativo. `}
                 Sempre execute dry-run primeiro e revise o histórico.
               </AlertDescription>
             </Alert>
@@ -316,52 +248,32 @@ export function RoleMigrationPanel() {
                 {selected.size} de {filtered.length} usuários selecionados
               </p>
               <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setSelected(new Set(filtered.map((p) => p.user_id)))}
-                >
+                <Button variant="outline" size="sm" onClick={() => setSelected(new Set(filtered.map((p) => p.user_id)))}>
                   Selecionar todos visíveis
                 </Button>
-                <Button variant="ghost" size="sm" onClick={() => setSelected(new Set())}>
-                  Limpar
-                </Button>
+                <Button variant="ghost" size="sm" onClick={() => setSelected(new Set())}>Limpar</Button>
               </div>
             </div>
-            <ScrollArea className="h-72 rounded-xl border">
+            <ScrollArea className="h-72 border rounded-xl">
               {loadingProfiles ? (
-                <div className="flex items-center justify-center p-6 text-muted-foreground">
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Carregando…
+                <div className="p-6 flex items-center justify-center text-muted-foreground">
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Carregando…
                 </div>
               ) : (
                 <div className="divide-y">
                   {filtered.map((p) => (
-                    <label
-                      key={p.user_id}
-                      className="flex cursor-pointer items-center gap-3 p-3 hover:bg-muted/50"
-                    >
-                      <Checkbox
-                        checked={selected.has(p.user_id)}
-                        onCheckedChange={() => toggle(p.user_id)}
-                      />
-                      <div className="min-w-0 flex-1">
-                        <div className="truncate text-sm font-medium">
-                          {p.full_name || p.email || p.user_id}
-                        </div>
-                        <div className="truncate text-xs text-muted-foreground">{p.email}</div>
+                    <label key={p.user_id} className="flex items-center gap-3 p-3 hover:bg-muted/50 cursor-pointer">
+                      <Checkbox checked={selected.has(p.user_id)} onCheckedChange={() => toggle(p.user_id)} />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium truncate">{p.full_name || p.email || p.user_id}</div>
+                        <div className="text-xs text-muted-foreground truncate">{p.email}</div>
                       </div>
                       <div className="flex flex-wrap gap-1">
-                        {p.current_roles.length === 0 ? (
-                          <Badge variant="outline" className="text-[10px]">
-                            sem papel
-                          </Badge>
-                        ) : (
-                          p.current_roles.map((r) => (
-                            <Badge key={r} variant="secondary" className="text-[10px]">
-                              {r}
-                            </Badge>
-                          ))
-                        )}
+                        {p.current_roles.length === 0
+                          ? <Badge variant="outline" className="text-[10px]">sem papel</Badge>
+                          : p.current_roles.map((r) => (
+                              <Badge key={r} variant="secondary" className="text-[10px]">{r}</Badge>
+                            ))}
                       </div>
                     </label>
                   ))}
@@ -372,19 +284,11 @@ export function RoleMigrationPanel() {
 
           <div className="flex items-center justify-end gap-2">
             <Button variant="outline" onClick={() => submit(true)} disabled={submitting}>
-              {submitting ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <FlaskConical className="mr-2 h-4 w-4" />
-              )}
+              {submitting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <FlaskConical className="h-4 w-4 mr-2" />}
               Dry-run
             </Button>
             <Button onClick={() => submit(false)} disabled={submitting}>
-              {submitting ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <PlayCircle className="mr-2 h-4 w-4" />
-              )}
+              {submitting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <PlayCircle className="h-4 w-4 mr-2" />}
               Executar lote
             </Button>
           </div>
@@ -395,30 +299,21 @@ export function RoleMigrationPanel() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="rounded-xl bg-muted p-2">
-                <History className="h-5 w-5 text-muted-foreground" />
-              </div>
+              <div className="p-2 rounded-xl bg-muted"><History className="h-5 w-5 text-muted-foreground" /></div>
               <div>
                 <CardTitle>Histórico de lotes</CardTitle>
                 <CardDescription>Últimos 50 lotes (dry-run incluso)</CardDescription>
               </div>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => void refreshBatches()}
-              disabled={loadingBatches}
-            >
-              {loadingBatches && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            <Button variant="ghost" size="sm" onClick={() => void refreshBatches()} disabled={loadingBatches}>
+              {loadingBatches && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               Atualizar
             </Button>
           </div>
         </CardHeader>
         <CardContent>
           {batches.length === 0 ? (
-            <p className="py-6 text-center text-sm text-muted-foreground">
-              Nenhum lote ainda. Execute o primeiro acima.
-            </p>
+            <p className="text-sm text-muted-foreground py-6 text-center">Nenhum lote ainda. Execute o primeiro acima.</p>
           ) : (
             <div className="space-y-2">
               {batches.map((b) => {
@@ -427,24 +322,17 @@ export function RoleMigrationPanel() {
                   <button
                     key={b.id}
                     onClick={() => void drillDown(b)}
-                    className="flex w-full items-center gap-3 rounded-xl border p-3 text-left hover:bg-muted/40"
+                    className="w-full text-left p-3 rounded-xl border hover:bg-muted/40 flex items-center gap-3"
                   >
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="truncate text-sm font-medium">{b.label}</span>
-                        <Badge variant={meta.variant} className={meta.className}>
-                          {b.status}
-                        </Badge>
-                        {b.dry_run && (
-                          <Badge variant="outline" className="text-[10px]">
-                            DRY-RUN
-                          </Badge>
-                        )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-medium text-sm truncate">{b.label}</span>
+                        <Badge variant={meta.variant} className={meta.className}>{b.status}</Badge>
+                        {b.dry_run && <Badge variant="outline" className="text-[10px]">DRY-RUN</Badge>}
                       </div>
-                      <div className="mt-1 truncate text-xs text-muted-foreground">{b.reason}</div>
-                      <div className="mt-1 font-mono text-[11px] text-muted-foreground">
-                        {new Date(b.created_at).toLocaleString('pt-BR')} · {b.total_items} itens ·
-                        ✅ {b.success_count} · ❌ {b.failed_count} · ⏭ {b.skipped_count}
+                      <div className="text-xs text-muted-foreground mt-1 truncate">{b.reason}</div>
+                      <div className="text-[11px] text-muted-foreground font-mono mt-1">
+                        {new Date(b.created_at).toLocaleString("pt-BR")} · {b.total_items} itens · ✅ {b.success_count} · ❌ {b.failed_count} · ⏭ {b.skipped_count}
                         {b.duration_ms != null && ` · ${b.duration_ms}ms`}
                       </div>
                     </div>
@@ -460,52 +348,32 @@ export function RoleMigrationPanel() {
               <Separator className="my-4" />
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-semibold">Itens do lote: {openBatch.label}</h4>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      setOpenBatch(null);
-                      setOpenItems([]);
-                    }}
-                  >
-                    Fechar
-                  </Button>
+                  <h4 className="font-semibold text-sm">Itens do lote: {openBatch.label}</h4>
+                  <Button variant="ghost" size="sm" onClick={() => { setOpenBatch(null); setOpenItems([]); }}>Fechar</Button>
                 </div>
                 {loadingItems ? (
-                  <div className="flex items-center justify-center p-4 text-muted-foreground">
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Carregando itens…
+                  <div className="p-4 flex items-center justify-center text-muted-foreground">
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Carregando itens…
                   </div>
                 ) : (
                   <div className="space-y-1">
                     {openItems.map((it) => {
                       const meta = STATUS_BADGE[it.status] ?? STATUS_BADGE.pending;
                       return (
-                        <div
-                          key={it.id}
-                          className="flex items-start gap-3 rounded border bg-card p-2 text-sm"
-                        >
-                          <Badge variant={meta.variant} className={meta.className}>
-                            {it.status}
-                          </Badge>
-                          <div className="min-w-0 flex-1">
+                        <div key={it.id} className="flex items-start gap-3 p-2 rounded border bg-card text-sm">
+                          <Badge variant={meta.variant} className={meta.className}>{it.status}</Badge>
+                          <div className="flex-1 min-w-0">
                             <div className="truncate">
                               <span className="font-medium">{it.user_email ?? it.user_id}</span>
                               <span className="text-muted-foreground"> · {it.operation} </span>
-                              <code className="text-xs">
-                                {it.from_role ?? '—'} → {it.to_role}
-                              </code>
+                              <code className="text-xs">{it.from_role ?? "—"} → {it.to_role}</code>
                             </div>
                             {it.error_message && (
-                              <div className="mt-1 font-mono text-xs text-destructive">
-                                {it.error_message}
-                              </div>
+                              <div className="text-xs text-destructive mt-1 font-mono">{it.error_message}</div>
                             )}
                           </div>
                           {it.duration_ms != null && (
-                            <span className="font-mono text-[10px] text-muted-foreground">
-                              {it.duration_ms}ms
-                            </span>
+                            <span className="text-[10px] font-mono text-muted-foreground">{it.duration_ms}ms</span>
                           )}
                         </div>
                       );

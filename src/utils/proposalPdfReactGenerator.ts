@@ -1,44 +1,38 @@
 /**
  * Proposal PDF Generator v3 — HTML→PDF via html2canvas + jsPDF
- *
+ * 
  * Renders pixel-perfect HTML template offscreen (multi-page),
  * captures each page with html2canvas, and outputs as PDF.
  */
 
-const getJsPDF = () => import('jspdf').then((m) => m.jsPDF);
-const getHtml2Canvas = () => import('html2canvas').then((m) => m.default);
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import { type ProposalTemplateData } from '@/components/pdf/ProposalHtmlTemplate';
-import { PropostaComercialTailwind } from '@/components/pdf/PropostaComercialTailwind';
-import { processLogoTransparent } from '@/components/pdf/proposal/LogoWithTransparentBg';
+const getJsPDF = () => import("jspdf").then(m => m.jsPDF);
+const getHtml2Canvas = () => import("html2canvas").then(m => m.default);
+import React from "react";
+import ReactDOM from "react-dom/client";
+import { type ProposalTemplateData } from "@/components/pdf/ProposalHtmlTemplate";
+import { PropostaComercialTailwind } from "@/components/pdf/PropostaComercialTailwind";
+import { processLogoTransparent } from "@/components/pdf/proposal/LogoWithTransparentBg";
 
-export async function generateProposalPDFv2(
-  data: ProposalTemplateData,
-  options?: { isDraft?: boolean },
-): Promise<Blob> {
+
+export async function generateProposalPDFv2(data: ProposalTemplateData, options?: { isDraft?: boolean }): Promise<Blob> {
   const [jsPDF, html2canvas] = await Promise.all([getJsPDF(), getHtml2Canvas()]);
 
   // ① Pre-process logo BEFORE React renders — guarantees cache is warm
 
-  const container = document.createElement('div');
-  container.style.position = 'fixed';
-  container.style.top = '-10000px';
-  container.style.left = '-10000px';
-  container.style.zIndex = '-9999';
-  container.style.pointerEvents = 'none';
+  const container = document.createElement("div");
+  container.style.position = "fixed";
+  container.style.top = "-10000px";
+  container.style.left = "-10000px";
+  container.style.zIndex = "-9999";
+  container.style.pointerEvents = "none";
   document.body.appendChild(container);
 
   try {
     const root = ReactDOM.createRoot(container);
     const templateRef = React.createRef<HTMLDivElement>();
-
+    
     root.render(
-      React.createElement(PropostaComercialTailwind, {
-        data,
-        ref: templateRef,
-        isDraft: options?.isDraft || false,
-      }),
+      React.createElement(PropostaComercialTailwind, { data, ref: templateRef, isDraft: options?.isDraft || false })
     );
 
     // Poll until React renders (max 2s) instead of fixed 3s wait
@@ -54,11 +48,11 @@ export async function generateProposalPDFv2(
       requestAnimationFrame(check);
     });
 
-    const wrapper = templateRef.current || (container.firstElementChild as HTMLElement);
-    if (!wrapper) throw new Error('Failed to render proposal template');
+    const wrapper = templateRef.current || container.firstElementChild as HTMLElement;
+    if (!wrapper) throw new Error("Failed to render proposal template");
 
     // Wait for all images + Google Fonts in parallel
-    const images = wrapper.querySelectorAll('img');
+    const images = wrapper.querySelectorAll("img");
     const imgPromises = Array.from(images).map(
       (img) =>
         new Promise<void>((resolve) => {
@@ -66,19 +60,19 @@ export async function generateProposalPDFv2(
           img.onload = () => resolve();
           img.onerror = () => resolve();
           setTimeout(resolve, 5000);
-        }),
+        })
     );
     const fontPromise = document.fonts?.ready
-      ? Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 1000))])
-      : new Promise((r) => setTimeout(r, 500));
+      ? Promise.race([document.fonts.ready, new Promise(r => setTimeout(r, 1000))])
+      : new Promise(r => setTimeout(r, 500));
 
     await Promise.all([...imgPromises, fontPromise]);
 
     // Find all page elements
-    const pageElements = wrapper.querySelectorAll('.proposal-page');
+    const pageElements = wrapper.querySelectorAll(".proposal-page");
     const pages = pageElements.length > 0 ? Array.from(pageElements) : [wrapper];
 
-    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pdf = new jsPDF("p", "mm", "a4");
     const pdfWidth = pdf.internal.pageSize.getWidth();
     const pdfHeight = pdf.internal.pageSize.getHeight();
 
@@ -93,8 +87,8 @@ export async function generateProposalPDFv2(
     // apenas durante a captura do canvas, removendo a regra no bloco `finally`
     // para não afetar o restante da UI. Confirmado funcionando em 2026-02.
     // ─────────────────────────────────────────────────────────────────────────
-    const imgFixStyle = document.createElement('style');
-    imgFixStyle.textContent = 'img { display: inline-block !important; }';
+    const imgFixStyle = document.createElement("style");
+    imgFixStyle.textContent = "img { display: inline-block !important; }";
     document.head.appendChild(imgFixStyle);
 
     try {
@@ -102,11 +96,11 @@ export async function generateProposalPDFv2(
         if (i > 0) pdf.addPage();
 
         const canvas = await html2canvas(pages[i] as HTMLElement, {
-          scale: 2, // 2x = ~190 DPI — qualidade profissional de impressão
+          scale: 2,          // 2x = ~190 DPI — qualidade profissional de impressão
           useCORS: true,
           allowTaint: true,
           logging: false,
-          backgroundColor: '#ffffff',
+          backgroundColor: "#ffffff",
           width: 794,
           height: 1123,
           windowWidth: 794,
@@ -114,10 +108,10 @@ export async function generateProposalPDFv2(
         });
 
         // JPEG com qualidade 0.92 — visualmente idêntico ao PNG, ~5-8x menor
-        const imgData = canvas.toDataURL('image/jpeg', 0.92);
+        const imgData = canvas.toDataURL("image/jpeg", 0.92);
         const imgHeight = (canvas.height * pdfWidth) / canvas.width;
 
-        pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, Math.min(imgHeight, pdfHeight));
+        pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, Math.min(imgHeight, pdfHeight));
       }
     } finally {
       // Always remove the temporary style, even if html2canvas throws
@@ -125,7 +119,7 @@ export async function generateProposalPDFv2(
     }
 
     root.unmount();
-    return pdf.output('blob');
+    return pdf.output("blob");
   } finally {
     document.body.removeChild(container);
   }
@@ -133,7 +127,7 @@ export async function generateProposalPDFv2(
 
 export function downloadPDF(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
+  const link = document.createElement("a");
   link.href = url;
   link.download = filename;
   document.body.appendChild(link);

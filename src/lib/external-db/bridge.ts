@@ -3,10 +3,8 @@
  * Handles retry, error parsing, batch queries.
  */
 import { supabase } from '@/integrations/supabase/client';
-import { createClientLogger } from '@/lib/telemetry/structuredLogger';
+import { logger } from '@/lib/logger';
 import { emitBridgeStatus, isColdStartSignal } from './bridge-status-events';
-
-const log = createClientLogger('external-db.bridge');
 
 export type Operation = 'select' | 'insert' | 'update' | 'delete' | 'upsert' | 'batch_insert';
 
@@ -54,7 +52,7 @@ export interface BatchResult {
 
 const BOOT_RETRY_ATTEMPTS = 4;
 const BOOT_INITIAL_BACKOFF_MS = 400;
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 async function buildBridgeError(error: unknown): Promise<{ message: string; retryable: boolean }> {
   let baseMessage = 'Erro desconhecido';
@@ -68,19 +66,13 @@ async function buildBridgeError(error: unknown): Promise<{ message: string; retr
     }
     if (maybeError.context instanceof Response) {
       status = maybeError.context.status;
-      try {
-        responseBody = await maybeError.context.clone().text();
-      } catch {
-        /* ignore */
-      }
+      try { responseBody = await maybeError.context.clone().text(); } catch { /* ignore */ }
     }
   }
 
   const diagnostic = `${baseMessage} ${responseBody}`.toLowerCase();
   const retryable =
-    status === 502 ||
-    status === 503 ||
-    status === 504 ||
+    status === 502 || status === 503 || status === 504 ||
     diagnostic.includes('boot_error') ||
     diagnostic.includes('bad gateway') ||
     diagnostic.includes('function failed to start') ||
@@ -102,16 +94,14 @@ export async function invokeBridge<T>(body: Record<string, unknown>): Promise<Br
   const op = body.operation as string | undefined;
   if (op !== 'batch' && (!body.table || typeof body.table !== 'string')) {
     const caller = new Error().stack?.split('\n')[2]?.trim() || 'unknown';
-    log.error('missing_table', { operation: op, body });
+    logger.error(`[external-db] invokeBridge called without table! operation=${op}, caller=${caller}`, body);
     throw new Error(`invokeBridge: tabela não informada (operation=${op})`);
   }
 
   let sawColdStart = false;
   const { data: sessionData } = await supabase.auth.getSession();
   const accessToken = sessionData?.session?.access_token;
-  const headers: Record<string, string> = {
-    ...log.headers(),
-  };
+  const headers: Record<string, string> = {};
   if (accessToken) {
     headers['Authorization'] = `Bearer ${accessToken}`;
   }
@@ -124,14 +114,11 @@ export async function invokeBridge<T>(body: Record<string, unknown>): Promise<Br
     if (error) {
       const parsed = await buildBridgeError(error);
       if (parsed.retryable && attempt < BOOT_RETRY_ATTEMPTS) {
+        // Backoff exponencial com jitter: 400ms, 800ms, 1600ms
         const base = BOOT_INITIAL_BACKOFF_MS * Math.pow(2, attempt - 1);
         const jitter = Math.floor(Math.random() * 150);
         const delay = Math.min(base + jitter, 4000);
-        log.warn('retry_attempt', {
-          attempt,
-          delay,
-          reason: parsed.message,
-        });
+        logger.warn(`[external-db] bridge retry ${attempt}/${BOOT_RETRY_ATTEMPTS - 1} in ${delay}ms (base=${base}+jitter=${jitter}): ${parsed.message}`);
         if (isColdStartSignal(parsed.message)) {
           sawColdStart = true;
           emitBridgeStatus({
@@ -208,25 +195,25 @@ export async function invokeBatchBridge(queries: BatchQuery[]): Promise<BatchRes
 // CRUD HELPERS
 // ============================================
 
-export async function invokeExternalDb<T>(options: InvokeOptions): Promise<InvokeResult<T>> {
-  const response = await invokeBridge<InvokeResult<T> | T>(
-    options as unknown as Record<string, unknown>,
-  );
+export async function invokeExternalDb<T>(
+  options: InvokeOptions
+): Promise<InvokeResult<T>> {
+  const response = await invokeBridge<InvokeResult<T> | T>(options as unknown as Record<string, unknown>);
   const payload = response.data;
 
   if (
     options.operation !== 'select' &&
-    payload &&
-    typeof payload === 'object' &&
-    !Array.isArray(payload) &&
-    !('records' in payload)
+    payload && typeof payload === 'object' &&
+    !Array.isArray(payload) && !('records' in payload)
   ) {
     return { records: [payload as T], count: 1 };
   }
   return payload as InvokeResult<T>;
 }
 
-export async function invokeExternalDbSingle<T>(options: InvokeOptions): Promise<T> {
+export async function invokeExternalDbSingle<T>(
+  options: InvokeOptions
+): Promise<T> {
   const result = await invokeExternalDb<T>(options);
   if (!result.records?.length) {
     throw new Error('Nenhum registro retornado');
@@ -234,7 +221,10 @@ export async function invokeExternalDbSingle<T>(options: InvokeOptions): Promise
   return result.records[0];
 }
 
-export async function invokeExternalDbDelete(table: string, id: string): Promise<void> {
+export async function invokeExternalDbDelete(
+  table: string,
+  id: string
+): Promise<void> {
   await invokeBridge<{ success: boolean; deleted_id: string }>({
     table,
     operation: 'delete',

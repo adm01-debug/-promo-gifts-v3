@@ -1,112 +1,109 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { type Product } from '@/hooks/useProducts';
-import { useProductAnalytics } from '@/hooks/useProductAnalytics';
-import { useToast } from '@/hooks/use-toast';
+import { useState, useEffect, useCallback, useRef } from "react";
+import { type Product } from "@/hooks/useProducts";
+import { useProductAnalytics } from "@/hooks/useProductAnalytics";
 
-const STORAGE_KEY = 'product-favorites';
+const STORAGE_KEY = "product-favorites";
 
 export interface FavoriteItem {
   productId: string;
   addedAt: string;
 }
 
-import { useFavoritesStore } from '@/stores/useFavoritesStore';
+interface UseFavoritesOptions {
+  onFavoriteAdded?: () => void;
+}
 
-export function useFavorites() {
-  const { toast } = useToast();
-  const {
-    favorites,
-    isLoaded,
-    error,
-    addFavorite: storeAdd,
-    removeFavorite: storeRemove,
-    toggleFavorite: storeToggle,
-    clearFavorites: storeClear,
-    favoriteCount,
-    setError,
-  } = useFavoritesStore();
-
-  const trackProductView = useProductAnalytics().trackProductView;
+export function useFavorites(options?: UseFavoritesOptions) {
+  const [favorites, setFavorites] = useState<FavoriteItem[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const onFavoriteAddedRef = useRef(options?.onFavoriteAdded);
+  const { trackProductView } = useProductAnalytics();
+  const trackProductViewRef = useRef(trackProductView);
 
   useEffect(() => {
-    if (error) {
-      toast({
-        title: 'Erro nos Favoritos',
-        description: error,
-        variant: 'destructive',
-      });
-      setError(null);
+    onFavoriteAddedRef.current = options?.onFavoriteAdded;
+    trackProductViewRef.current = trackProductView;
+  }, [options?.onFavoriteAdded, trackProductView]);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        setFavorites(JSON.parse(stored));
+      }
+    } catch (e) {
+      console.error("Error loading favorites:", e);
     }
-  }, [error, toast, setError]);
+    setIsLoaded(true);
+  }, []);
 
-  const addFavorite = useCallback(
-    async (productId: string) => {
-      try {
-        await storeAdd(productId);
-        trackProductView({
-          productId,
-          productSku: productId,
-          productName: productId,
-          viewType: 'favorite',
-        });
-      } catch (err) {
-        console.error('Failed to add favorite:', err);
-      }
-    },
-    [storeAdd, trackProductView],
-  );
+  useEffect(() => {
+    if (isLoaded) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(favorites));
+    }
+  }, [favorites, isLoaded]);
 
-  const removeFavorite = useCallback(
-    async (productId: string) => {
-      try {
-        await storeRemove(productId);
-      } catch (err) {
-        console.error('Failed to remove favorite:', err);
+  const addFavorite = useCallback((productId: string) => {
+    setFavorites((prev) => {
+      if (prev.some((f) => f.productId === productId)) {
+        return prev;
       }
-    },
-    [storeRemove],
-  );
+      onFavoriteAddedRef.current?.();
+      trackProductViewRef.current({
+        productId,
+        productSku: productId,
+        productName: productId,
+        viewType: "favorite",
+      });
+      return [...prev, { productId, addedAt: new Date().toISOString() }];
+    });
+  }, []);
 
-  const toggleFavorite = useCallback(
-    async (productId: string) => {
-      const exists = favorites.some((f) => f.productId === productId);
-      try {
-        await storeToggle(productId);
-        if (!exists) {
-          trackProductView({
-            productId,
-            productSku: productId,
-            productName: productId,
-            viewType: 'favorite',
-          });
-        }
-      } catch (err) {
-        console.error('Failed to toggle favorite:', err);
+  const removeFavorite = useCallback((productId: string) => {
+    setFavorites((prev) => prev.filter((f) => f.productId !== productId));
+  }, []);
+
+  const toggleFavorite = useCallback((productId: string) => {
+    setFavorites((prev) => {
+      const exists = prev.some((f) => f.productId === productId);
+      if (exists) {
+        return prev.filter((f) => f.productId !== productId);
       }
-    },
-    [favorites, storeToggle, trackProductView],
-  );
+      onFavoriteAddedRef.current?.();
+      trackProductViewRef.current({
+        productId,
+        productSku: productId,
+        productName: productId,
+        viewType: "favorite",
+      });
+      return [...prev, { productId, addedAt: new Date().toISOString() }];
+    });
+  }, []);
 
   const isFavorite = useCallback(
     (productId: string) => favorites.some((f) => f.productId === productId),
-    [favorites],
+    [favorites]
   );
 
   const getFavoriteProductsFromMap = useCallback(
     (getProductsByIds: (ids: string[]) => Product[]): Product[] =>
       getProductsByIds(favorites.map((f) => f.productId)),
-    [favorites],
+    [favorites]
   );
+
+  const clearFavorites = useCallback(() => {
+    setFavorites([]);
+  }, []);
 
   return {
     favorites,
-    favoriteCount,
+    favoriteCount: favorites.length,
     addFavorite,
     removeFavorite,
     toggleFavorite,
     isFavorite,
     getFavoriteProductsFromMap,
-    clearFavorites: storeClear,
+    clearFavorites,
     isLoaded,
   };
 }

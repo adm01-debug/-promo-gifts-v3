@@ -2,13 +2,13 @@
  * ProductCardActions — FAB action buttons for ProductCard.
  * Extracted to reduce ProductCard.tsx size.
  */
-import { memo } from 'react';
-import { Heart, Share2, Eye, GitCompare, FolderPlus, FileText, Plus } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { QuickAddToQuote } from './QuickAddToQuote';
-import { cn } from '@/lib/utils';
-import type { VariantActionMode } from './VariantPickerDialog';
+import { memo } from "react";
+import { Heart, Share2, Eye, GitCompare, FolderPlus, FileText, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { QuickAddToQuote } from "./QuickAddToQuote";
+import { cn } from "@/lib/utils";
+import type { VariantActionMode } from "./VariantPickerDialog";
 
 interface ProductCardActionsProps {
   productId: string;
@@ -30,189 +30,104 @@ interface ProductCardActionsProps {
 }
 
 export const ProductCardActions = memo(function ProductCardActions({
-  productId,
-  productName,
-  productSku,
-  productImageUrl,
-  productPrice,
-  productMinQuantity,
-  isFavorited,
-  isInCompare,
-  canAddToCompare,
-  actionsOpen,
-  onToggleActions,
-  onFavorite,
-  onCompare,
-  onOpenVariantPicker,
-  onQuickView,
-  markBusy,
+  productId, productName, productSku, productImageUrl, productPrice, productMinQuantity,
+  isFavorited, isInCompare, canAddToCompare,
+  actionsOpen, onToggleActions, onFavorite, onCompare,
+  onOpenVariantPicker, onQuickView, markBusy,
 }: ProductCardActionsProps) {
-  const btnClass =
-    'h-9 w-9 md:h-11 md:w-11 rounded-full bg-card/95 backdrop-blur-md shadow-lg border border-border/50 hover:bg-card hover:scale-110 hover:shadow-xl transition-all duration-200 min-h-[36px] min-w-[36px] md:min-h-[44px] md:min-w-[44px]';
+  const btnClass = "h-9 w-9 md:h-11 md:w-11 rounded-full bg-card/95 backdrop-blur-md shadow-lg border border-border/50 hover:bg-card hover:scale-110 hover:shadow-xl transition-all duration-200 min-h-[36px] min-w-[36px] md:min-h-[44px] md:min-w-[44px]";
 
   return (
     <div
       className={cn(
-        'absolute right-3 top-3 z-30 flex flex-col items-end gap-2',
-        'transition-all duration-300 ease-out',
-        'translate-x-0 opacity-100 md:translate-x-4 md:opacity-0',
-        'md:group-hover:translate-x-0 md:group-hover:opacity-100',
+        "absolute top-3 right-3 flex flex-col items-end gap-2 z-30",
+        "transition-all duration-300 ease-out",
+        "opacity-100 translate-x-0 md:opacity-0 md:translate-x-4",
+        "md:group-hover:opacity-100 md:group-hover:translate-x-0",
       )}
     >
       {/* Main FAB */}
-      <TooltipProvider>
+      <TooltipProvider >
         <Tooltip>
           <TooltipTrigger asChild>
             <button
               type="button"
               data-testid="product-card-actions-toggle"
-              data-actions-open={actionsOpen ? 'true' : 'false'}
+              data-actions-open={actionsOpen ? "true" : "false"}
               className={cn(
-                'flex h-9 w-9 items-center justify-center rounded-full shadow-lg md:h-11 md:w-11',
-                'transition-all duration-300 ease-out',
-                'min-h-[36px] min-w-[36px] md:min-h-[44px] md:min-w-[44px]',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                actionsOpen
-                  ? 'rotate-45 bg-muted text-muted-foreground'
-                  : 'bg-orange/60 text-orange-foreground hover:bg-orange/80',
+                "flex items-center justify-center h-9 w-9 md:h-11 md:w-11 rounded-full shadow-lg",
+                "transition-all duration-300 ease-out",
+                "min-h-[36px] min-w-[36px] md:min-h-[44px] md:min-w-[44px]",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                actionsOpen ? "bg-muted text-muted-foreground rotate-45" : "bg-orange/60 text-orange-foreground hover:bg-orange/80"
               )}
-              onClick={(e) => {
-                e.stopPropagation();
-                onToggleActions();
-              }}
-              aria-label={actionsOpen ? 'Fechar ações' : 'Ações rápidas'}
+              onClick={(e) => { e.stopPropagation(); onToggleActions(); }}
+              aria-label={actionsOpen ? "Fechar ações" : "Ações rápidas"}
               aria-expanded={actionsOpen}
             >
-              <Plus className="h-4 w-4 transition-transform duration-200 md:h-5 md:w-5" />
+              <Plus className="h-4 w-4 md:h-5 md:w-5 transition-transform duration-200" />
             </button>
           </TooltipTrigger>
-          <TooltipContent
-            side="left"
-            className="border-none bg-primary px-2 py-1 text-[11px] font-medium text-primary-foreground shadow-xl"
-          >
-            {actionsOpen ? 'Fechar menu' : 'Ver ações rápidas'}
+          <TooltipContent side="left" className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
+            {actionsOpen ? "Fechar menu" : "Ver ações rápidas"}
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
 
       {/* Expanded actions */}
-      <div
-        className={cn(
-          'flex origin-top flex-col gap-2 transition-all duration-300 ease-out',
-          actionsOpen
-            ? 'translate-y-0 scale-100 opacity-100'
-            : 'pointer-events-none -translate-y-4 scale-75 opacity-0',
-        )}
-      >
+      <div className={cn(
+        "flex flex-col gap-2 transition-all duration-300 ease-out origin-top",
+        actionsOpen ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-75 -translate-y-4 pointer-events-none"
+      )}>
         {/* Favorite */}
-        <ActionButton
-          icon={Heart}
-          label={isFavorited ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
+        <ActionButton icon={Heart} label={isFavorited ? "Remover dos favoritos" : "Adicionar aos favoritos"}
           testId="product-card-favorite"
           ariaPressed={isFavorited}
-          className={cn(btnClass, isFavorited && 'border-destructive/30 bg-destructive/10')}
-          iconClassName={cn(
-            isFavorited && 'fill-destructive text-destructive scale-110 animate-heart-fill',
-          )}
-          onClick={(e) => {
-            e.stopPropagation();
-            onFavorite(e);
-          }}
-        />
+          className={cn(btnClass, isFavorited && "bg-destructive/10 border-destructive/30")}
+          iconClassName={cn(isFavorited && "fill-destructive text-destructive scale-110 animate-heart-fill")}
+          onClick={(e) => { e.stopPropagation(); onFavorite(e); }} />
 
         {/* Compare */}
-        <ActionButton
-          icon={GitCompare}
-          label={isInCompare ? 'Remover da comparação' : 'Adicionar à comparação'}
-          className={cn(btnClass, isInCompare && 'border-primary/30 bg-primary/10')}
-          iconClassName={cn(isInCompare && 'text-primary scale-110')}
+        <ActionButton icon={GitCompare} label={isInCompare ? "Remover da comparação" : "Adicionar à comparação"}
+          className={cn(btnClass, isInCompare && "bg-primary/10 border-primary/30")}
+          iconClassName={cn(isInCompare && "text-primary scale-110")}
           disabled={!isInCompare && !canAddToCompare}
-          onClick={(e) => {
-            e.stopPropagation();
-            e.preventDefault();
-            onCompare(e);
-          }}
-        />
+          onClick={(e) => { e.stopPropagation(); e.preventDefault(); onCompare(e); }} />
 
         {/* Collection */}
-        <ActionButton
-          icon={FolderPlus}
-          label="Adicionar à coleção"
-          className={btnClass}
+        <ActionButton icon={FolderPlus} label="Adicionar à coleção" className={btnClass}
           testId="product-card-collection"
-          onClick={(e) => {
-            e.stopPropagation();
-            markBusy();
-            onOpenVariantPicker('collection');
-          }}
-        />
+          onClick={(e) => { e.stopPropagation(); markBusy(); onOpenVariantPicker('collection'); }} />
 
         {/* Share */}
-        <ActionButton
-          icon={Share2}
-          label="Compartilhar"
-          className={btnClass}
+        <ActionButton icon={Share2} label="Compartilhar" className={btnClass}
           testId="product-card-share"
-          onClick={(e) => {
-            e.stopPropagation();
-            e.preventDefault();
-            markBusy();
-            onOpenVariantPicker('share');
-          }}
-        />
+          onClick={(e) => { e.stopPropagation(); e.preventDefault(); markBusy(); onOpenVariantPicker('share'); }} />
 
         {/* Quote */}
-        <ActionButton
-          icon={FileText}
-          label="Orçamento"
-          className={cn(
-            btnClass,
-            'border-success/20 bg-success text-success-foreground shadow-success/20 hover:scale-110 hover:bg-success/90 active:scale-95 disabled:opacity-50',
-          )}
+        <ActionButton icon={FileText} label="Orçamento" className={cn(btnClass, "bg-success hover:bg-success/90 text-success-foreground border-success/20 shadow-success/20 hover:scale-110 active:scale-95 disabled:opacity-50")}
           testId="product-card-quote"
-          onClick={(e) => {
-            e.stopPropagation();
-            markBusy();
-            onOpenVariantPicker('quote');
-          }}
-        />
+          onClick={(e) => { e.stopPropagation(); markBusy(); onOpenVariantPicker('quote'); }} />
 
         {/* Add to Cart */}
-        <TooltipProvider>
+        <TooltipProvider >
           <Tooltip>
             <TooltipTrigger asChild>
               <QuickAddToQuote
-                productId={productId}
-                productName={productName}
-                productSku={productSku}
-                productImageUrl={productImageUrl}
-                productPrice={productPrice}
-                minQuantity={productMinQuantity}
-                variant="icon"
-                className="h-9 min-h-[36px] w-9 min-w-[36px] border-primary/20 bg-primary text-primary-foreground shadow-primary/20 hover:scale-110 hover:bg-primary/90 active:scale-95 disabled:opacity-50 md:h-11 md:min-h-[44px] md:w-11 md:min-w-[44px]"
+                productId={productId} productName={productName} productSku={productSku}
+                productImageUrl={productImageUrl} productPrice={productPrice}
+                minQuantity={productMinQuantity} variant="icon"
+                className="h-9 w-9 md:h-11 md:w-11 min-h-[36px] min-w-[36px] md:min-h-[44px] md:min-w-[44px] bg-primary hover:bg-primary/90 text-primary-foreground border-primary/20 shadow-primary/20 hover:scale-110 active:scale-95 disabled:opacity-50"
               />
             </TooltipTrigger>
-            <TooltipContent
-              side="left"
-              className="border-none bg-primary px-2 py-1 text-[11px] font-medium text-primary-foreground shadow-xl"
-            >
-              Adicionar ao carrinho
-            </TooltipContent>
+            <TooltipContent side="left" className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Adicionar ao carrinho</TooltipContent>
           </Tooltip>
         </TooltipProvider>
 
         {/* Quick View */}
-        <ActionButton
-          icon={Eye}
-          label="Visualização Rápida"
-          className={btnClass}
+        <ActionButton icon={Eye} label="Visualização Rápida" className={btnClass}
           testId="product-card-quickview"
-          onClick={(e) => {
-            e.stopPropagation();
-            markBusy();
-            onQuickView();
-          }}
-        />
+          onClick={(e) => { e.stopPropagation(); markBusy(); onQuickView(); }} />
       </div>
     </div>
   );
@@ -220,49 +135,26 @@ export const ProductCardActions = memo(function ProductCardActions({
 
 // Tiny helper to reduce repetition
 function ActionButton({
-  icon: Icon,
-  label,
-  className,
-  iconClassName,
-  disabled,
-  onClick,
-  testId,
-  ariaPressed,
+  icon: Icon, label, className, iconClassName, disabled, onClick, testId, ariaPressed,
 }: {
   icon: React.ComponentType<{ className?: string }>;
-  label: string;
-  className?: string;
-  iconClassName?: string;
-  disabled?: boolean;
-  onClick: (e: React.MouseEvent) => void;
+  label: string; className?: string; iconClassName?: string;
+  disabled?: boolean; onClick: (e: React.MouseEvent) => void;
   testId?: string;
   ariaPressed?: boolean;
 }) {
   return (
-    <TooltipProvider>
+    <TooltipProvider >
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button
-            variant="secondary"
-            size="icon"
-            className={className}
-            disabled={disabled}
-            onClick={onClick}
-            aria-label={label}
+          <Button variant="secondary" size="icon" className={className} disabled={disabled}
+            onClick={onClick} aria-label={label}
             data-testid={testId}
-            aria-pressed={ariaPressed}
-          >
-            <Icon
-              className={cn('h-4 w-4 transition-all duration-300 md:h-5 md:w-5', iconClassName)}
-            />
+            aria-pressed={ariaPressed}>
+            <Icon className={cn("h-4 w-4 md:h-5 md:w-5 transition-all duration-300", iconClassName)} />
           </Button>
         </TooltipTrigger>
-        <TooltipContent
-          side="left"
-          className="border-none bg-primary px-2 py-1 text-[11px] font-medium text-primary-foreground shadow-xl"
-        >
-          {label}
-        </TooltipContent>
+        <TooltipContent side="left" className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">{label}</TooltipContent>
       </Tooltip>
     </TooltipProvider>
   );

@@ -1,5 +1,5 @@
 export { LocationPanel } from './LocationPanel';
-export { TechniqueCard } from '@/components/shared/TechniqueCard';
+export { TechniqueCard } from './TechniqueCard';
 export { ConfigurationPanelV6 } from './ConfigurationPanelV6';
 
 // Legacy exports (kept for backward compatibility)

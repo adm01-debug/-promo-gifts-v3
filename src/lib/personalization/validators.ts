@@ -1,6 +1,6 @@
 /**
  * Domain Validators: Personalização
- *
+ * 
  * Funções puras para validação de parâmetros de personalização.
  */
 
@@ -22,13 +22,13 @@ import type {
  */
 export function validateTableForParams(
   table: PriceTableInput,
-  params: PriceCalculationParams,
+  params: PriceCalculationParams
 ): ValidationResult {
   const errors: ValidationError[] = [];
   const warnings: ValidationWarning[] = [];
-
+  
   const { quantity, colors, widthCm, heightCm } = params;
-
+  
   // Validar quantidade
   if (quantity <= 0) {
     errors.push({
@@ -37,11 +37,12 @@ export function validateTableForParams(
       message: 'Quantidade deve ser maior que zero',
     });
   }
-
+  
   // Validar quantidade mínima
-  const minQuantity =
-    table.tiers.length > 0 ? Math.min(...table.tiers.map((t) => t.minQuantity)) : 1;
-
+  const minQuantity = table.tiers.length > 0
+    ? Math.min(...table.tiers.map(t => t.minQuantity))
+    : 1;
+  
   if (quantity < minQuantity) {
     errors.push({
       code: 'BELOW_MIN_QUANTITY',
@@ -49,7 +50,7 @@ export function validateTableForParams(
       message: `Quantidade mínima é ${minQuantity} unidades`,
     });
   }
-
+  
   // Validar cores
   if (table.priceByColor && colors !== undefined) {
     if (colors <= 0) {
@@ -59,7 +60,7 @@ export function validateTableForParams(
         message: 'Número de cores deve ser maior que zero',
       });
     }
-
+    
     if (table.maxColors && colors > table.maxColors) {
       warnings.push({
         code: 'EXCEEDS_MAX_COLORS',
@@ -68,7 +69,7 @@ export function validateTableForParams(
       });
     }
   }
-
+  
   // Validar dimensões
   if (table.priceByArea) {
     if (widthCm !== undefined && widthCm <= 0) {
@@ -78,7 +79,7 @@ export function validateTableForParams(
         message: 'Largura deve ser maior que zero',
       });
     }
-
+    
     if (heightCm !== undefined && heightCm <= 0) {
       errors.push({
         code: 'INVALID_HEIGHT',
@@ -86,7 +87,7 @@ export function validateTableForParams(
         message: 'Altura deve ser maior que zero',
       });
     }
-
+    
     if (widthCm && table.maxWidthCm && widthCm > table.maxWidthCm) {
       warnings.push({
         code: 'EXCEEDS_MAX_WIDTH',
@@ -94,7 +95,7 @@ export function validateTableForParams(
         message: `Largura (${widthCm}cm) excede máximo (${table.maxWidthCm}cm)`,
       });
     }
-
+    
     if (heightCm && table.maxHeightCm && heightCm > table.maxHeightCm) {
       warnings.push({
         code: 'EXCEEDS_MAX_HEIGHT',
@@ -102,11 +103,11 @@ export function validateTableForParams(
         message: `Altura (${heightCm}cm) excede máximo (${table.maxHeightCm}cm)`,
       });
     }
-
+    
     // Validar área
     if (widthCm && heightCm) {
       const areaCm2 = widthCm * heightCm;
-
+      
       if (table.minAreaCm2 && areaCm2 < table.minAreaCm2) {
         errors.push({
           code: 'BELOW_MIN_AREA',
@@ -114,7 +115,7 @@ export function validateTableForParams(
           message: `Área (${areaCm2}cm²) abaixo do mínimo (${table.minAreaCm2}cm²)`,
         });
       }
-
+      
       if (table.maxAreaCm2 && areaCm2 > table.maxAreaCm2) {
         warnings.push({
           code: 'EXCEEDS_MAX_AREA',
@@ -124,7 +125,7 @@ export function validateTableForParams(
       }
     }
   }
-
+  
   return {
     isValid: errors.length === 0,
     errors,
@@ -137,13 +138,13 @@ export function validateTableForParams(
  */
 export function validateTechniqueForParams(
   technique: TechniqueInput,
-  params: PriceCalculationParams,
+  params: PriceCalculationParams
 ): ValidationResult {
   const errors: ValidationError[] = [];
   const warnings: ValidationWarning[] = [];
-
+  
   const { colors, widthCm, heightCm } = params;
-
+  
   // Validar status
   if (!technique.isActive) {
     errors.push({
@@ -152,7 +153,7 @@ export function validateTechniqueForParams(
       message: 'Técnica não está ativa',
     });
   }
-
+  
   // Validar cores
   if (technique.requiresColors) {
     if (colors === undefined || colors === null) {
@@ -169,7 +170,7 @@ export function validateTechniqueForParams(
           message: `Mínimo de ${technique.minColors} cor(es) requerido`,
         });
       }
-
+      
       if (colors > technique.maxColors) {
         warnings.push({
           code: 'EXCEEDS_MAX_COLORS',
@@ -179,11 +180,11 @@ export function validateTechniqueForParams(
       }
     }
   }
-
+  
   // Validar área
   if (technique.priceByArea && widthCm && heightCm) {
     const areaCm2 = widthCm * heightCm;
-
+    
     if (technique.minAreaCm2 && areaCm2 < technique.minAreaCm2) {
       errors.push({
         code: 'BELOW_MIN_AREA',
@@ -191,7 +192,7 @@ export function validateTechniqueForParams(
         message: `Área mínima é ${technique.minAreaCm2}cm²`,
       });
     }
-
+    
     if (technique.maxAreaCm2 && areaCm2 > technique.maxAreaCm2) {
       warnings.push({
         code: 'EXCEEDS_MAX_AREA',
@@ -200,7 +201,7 @@ export function validateTechniqueForParams(
       });
     }
   }
-
+  
   return {
     isValid: errors.length === 0,
     errors,
@@ -218,11 +219,11 @@ export function validateTechniqueForParams(
 export function validateQuantityRange(
   quantity: number,
   minQuantity: number,
-  maxQuantity?: number | null,
+  maxQuantity?: number | null
 ): ValidationResult {
   const errors: ValidationError[] = [];
   const warnings: ValidationWarning[] = [];
-
+  
   if (quantity <= 0) {
     errors.push({
       code: 'INVALID_QUANTITY',
@@ -230,7 +231,7 @@ export function validateQuantityRange(
       message: 'Quantidade deve ser maior que zero',
     });
   }
-
+  
   if (quantity < minQuantity) {
     errors.push({
       code: 'BELOW_MIN_QUANTITY',
@@ -238,7 +239,7 @@ export function validateQuantityRange(
       message: `Quantidade mínima é ${minQuantity}`,
     });
   }
-
+  
   if (maxQuantity && quantity > maxQuantity) {
     warnings.push({
       code: 'EXCEEDS_MAX_QUANTITY',
@@ -246,7 +247,7 @@ export function validateQuantityRange(
       message: `Quantidade (${quantity}) excede máximo usual (${maxQuantity})`,
     });
   }
-
+  
   return {
     isValid: errors.length === 0,
     errors,
@@ -267,7 +268,7 @@ export function validateQuantity(quantity: number): ValidationResult {
 export function validateColors(colors: number, maxColors?: number): ValidationResult {
   const errors: ValidationError[] = [];
   const warnings: ValidationWarning[] = [];
-
+  
   if (colors <= 0) {
     errors.push({
       code: 'INVALID_COLORS',
@@ -275,7 +276,7 @@ export function validateColors(colors: number, maxColors?: number): ValidationRe
       message: 'Número de cores deve ser maior que zero',
     });
   }
-
+  
   if (maxColors && colors > maxColors) {
     warnings.push({
       code: 'EXCEEDS_MAX_COLORS',
@@ -283,7 +284,7 @@ export function validateColors(colors: number, maxColors?: number): ValidationRe
       message: `Número de cores (${colors}) excede máximo (${maxColors})`,
     });
   }
-
+  
   return {
     isValid: errors.length === 0,
     errors,
@@ -298,11 +299,11 @@ export function validateArea(
   widthCm: number,
   heightCm: number,
   maxWidthCm?: number,
-  maxHeightCm?: number,
+  maxHeightCm?: number
 ): ValidationResult {
   const errors: ValidationError[] = [];
   const warnings: ValidationWarning[] = [];
-
+  
   if (widthCm <= 0) {
     errors.push({
       code: 'INVALID_WIDTH',
@@ -310,7 +311,7 @@ export function validateArea(
       message: 'Largura deve ser maior que zero',
     });
   }
-
+  
   if (heightCm <= 0) {
     errors.push({
       code: 'INVALID_HEIGHT',
@@ -318,7 +319,7 @@ export function validateArea(
       message: 'Altura deve ser maior que zero',
     });
   }
-
+  
   if (maxWidthCm && widthCm > maxWidthCm) {
     warnings.push({
       code: 'EXCEEDS_MAX_WIDTH',
@@ -326,7 +327,7 @@ export function validateArea(
       message: `Largura (${widthCm}cm) excede máximo (${maxWidthCm}cm)`,
     });
   }
-
+  
   if (maxHeightCm && heightCm > maxHeightCm) {
     warnings.push({
       code: 'EXCEEDS_MAX_HEIGHT',
@@ -334,7 +335,7 @@ export function validateArea(
       message: `Altura (${heightCm}cm) excede máximo (${maxHeightCm}cm)`,
     });
   }
-
+  
   return {
     isValid: errors.length === 0,
     errors,
@@ -349,7 +350,10 @@ export function validateArea(
 /**
  * Verifica se precisa de setup (primeira gravação ou novo cliente)
  */
-export function requiresSetup(isFirstOrder: boolean, hasExistingMatrix: boolean): boolean {
+export function requiresSetup(
+  isFirstOrder: boolean,
+  hasExistingMatrix: boolean
+): boolean {
   // Cobra setup apenas se não tiver matriz existente
   return isFirstOrder || !hasExistingMatrix;
 }
@@ -360,19 +364,19 @@ export function requiresSetup(isFirstOrder: boolean, hasExistingMatrix: boolean)
 export function calculateHandlingCost(
   baseHandling: number,
   positions: number,
-  isFragile: boolean,
+  isFragile: boolean
 ): number {
   let cost = baseHandling;
-
+  
   // Múltiplas posições aumenta manuseio
   if (positions > 1) {
     cost *= 1 + (positions - 1) * 0.25; // +25% por posição adicional
   }
-
+  
   // Produtos frágeis dobram manuseio
   if (isFragile) {
     cost *= 2;
   }
-
+  
   return Math.round(cost * 100) / 100;
 }

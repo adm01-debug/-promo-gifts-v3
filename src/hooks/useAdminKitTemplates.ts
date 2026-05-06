@@ -38,7 +38,9 @@ export function useAdminKitTemplates() {
           .eq('id', id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from('kit_templates').insert(payload as never);
+        const { error } = await supabase
+          .from('kit_templates')
+          .insert(payload as never);
         if (error) throw error;
       }
     },

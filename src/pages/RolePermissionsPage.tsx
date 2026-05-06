@@ -9,7 +9,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { Shield, Key, Save, Users, CheckCircle2, XCircle } from 'lucide-react';
 import type { Database } from '@/integrations/supabase/types';
-import { PageSEO } from '@/components/seo/PageSEO';
+import { PageSEO } from "@/components/seo/PageSEO";
 
 type AppRole = Database['public']['Enums']['app_role'];
 
@@ -32,13 +32,13 @@ const ROLES: { value: AppRole; label: string; description: string; icon: React.R
     value: 'supervisor',
     label: 'Supervisor',
     description: 'Gestão comercial, descontos e cadastros',
-    icon: <Shield className="h-5 w-5 text-primary" />,
+    icon: <Shield className="h-5 w-5 text-primary" />
   },
   {
     value: 'vendedor',
     label: 'Agente',
     description: 'Acesso somente aos próprios dados',
-    icon: <Users className="h-5 w-5 text-primary" />,
+    icon: <Users className="h-5 w-5 text-primary" />
   },
 ];
 
@@ -68,11 +68,7 @@ export default function RolePermissionsPage() {
       setPermissions(permRes.data || []);
       setRolePermissions(rolePermRes.data || []);
     } catch (error: any) {
-      toast({
-        title: 'Erro ao carregar dados',
-        description: error.message,
-        variant: 'destructive',
-      });
+      toast({ title: 'Erro ao carregar dados', description: error.message, variant: 'destructive' });
     } finally {
       setIsLoading(false);
     }
@@ -83,30 +79,28 @@ export default function RolePermissionsPage() {
     if (pendingChanges.has(key)) {
       return pendingChanges.get(key)!;
     }
-    return rolePermissions.some((rp) => rp.role === role && rp.permission_id === permissionId);
+    return rolePermissions.some(rp => rp.role === role && rp.permission_id === permissionId);
   };
 
   const togglePermission = (permissionId: string, role: AppRole) => {
     const key = `${role}-${permissionId}`;
     const currentValue = hasPermission(permissionId, role);
-
+    
     const newChanges = new Map(pendingChanges);
-    const originalValue = rolePermissions.some(
-      (rp) => rp.role === role && rp.permission_id === permissionId,
-    );
-
+    const originalValue = rolePermissions.some(rp => rp.role === role && rp.permission_id === permissionId);
+    
     if (currentValue === originalValue) {
       newChanges.set(key, !currentValue);
     } else {
       newChanges.delete(key);
     }
-
+    
     setPendingChanges(newChanges);
   };
 
   const saveChanges = async () => {
     if (pendingChanges.size === 0) return;
-
+    
     setIsSaving(true);
     try {
       const toAdd: { role: AppRole; permission_id: string }[] = [];
@@ -147,98 +141,82 @@ export default function RolePermissionsPage() {
 
   const selectAllForRole = (role: AppRole, category?: string) => {
     const newChanges = new Map(pendingChanges);
-    const permsToSelect = category
-      ? permissions.filter((p) => p.category === category)
+    const permsToSelect = category 
+      ? permissions.filter(p => p.category === category)
       : permissions;
-
-    permsToSelect.forEach((perm) => {
+    
+    permsToSelect.forEach(perm => {
       const key = `${role}-${perm.id}`;
-      const alreadyHas = rolePermissions.some(
-        (rp) => rp.role === role && rp.permission_id === perm.id,
-      );
+      const alreadyHas = rolePermissions.some(rp => rp.role === role && rp.permission_id === perm.id);
       if (!alreadyHas) {
         newChanges.set(key, true);
       }
     });
-
+    
     setPendingChanges(newChanges);
   };
 
   const deselectAllForRole = (role: AppRole, category?: string) => {
     const newChanges = new Map(pendingChanges);
-    const permsToDeselect = category
-      ? permissions.filter((p) => p.category === category)
+    const permsToDeselect = category 
+      ? permissions.filter(p => p.category === category)
       : permissions;
-
-    permsToDeselect.forEach((perm) => {
+    
+    permsToDeselect.forEach(perm => {
       const key = `${role}-${perm.id}`;
-      const alreadyHas = rolePermissions.some(
-        (rp) => rp.role === role && rp.permission_id === perm.id,
-      );
+      const alreadyHas = rolePermissions.some(rp => rp.role === role && rp.permission_id === perm.id);
       if (alreadyHas) {
         newChanges.set(key, false);
       } else {
         newChanges.delete(key);
       }
     });
-
+    
     setPendingChanges(newChanges);
   };
 
-  const groupedPermissions = permissions.reduce(
-    (acc, perm) => {
-      if (!acc[perm.category]) acc[perm.category] = [];
-      acc[perm.category].push(perm);
-      return acc;
-    },
-    {} as Record<string, Permission[]>,
-  );
+  const groupedPermissions = permissions.reduce((acc, perm) => {
+    if (!acc[perm.category]) acc[perm.category] = [];
+    acc[perm.category].push(perm);
+    return acc;
+  }, {} as Record<string, Permission[]>);
 
   const getCategoryStats = (category: string, role: AppRole) => {
     const categoryPerms = groupedPermissions[category] || [];
-    const assigned = categoryPerms.filter((p) => hasPermission(p.id, role)).length;
+    const assigned = categoryPerms.filter(p => hasPermission(p.id, role)).length;
     return { assigned, total: categoryPerms.length };
   };
 
   const getTotalStats = (role: AppRole) => {
-    const assigned = permissions.filter((p) => hasPermission(p.id, role)).length;
+    const assigned = permissions.filter(p => hasPermission(p.id, role)).length;
     return { assigned, total: permissions.length };
   };
 
   return (
     <>
-      <PageSEO
-        title="Permissões por Role"
-        description="Configure permissões associadas a cada perfil de acesso."
-        path="/admin/role-permissoes"
-        noIndex
-      />
-      <div className="mx-auto w-full max-w-[1920px] animate-fade-in space-y-4">
+      <PageSEO title="Permissões por Role" description="Configure permissões associadas a cada perfil de acesso." path="/admin/role-permissoes" noIndex />
+      <div className="w-full max-w-[1920px] mx-auto space-y-4 animate-fade-in">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="font-display text-2xl font-bold">
-              Gerenciamento de Permissões por Role
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Configure quais permissões cada role possui
-            </p>
+            <h1 className="font-display text-2xl font-bold">Gerenciamento de Permissões por Role</h1>
+            <p className="text-sm text-muted-foreground">Configure quais permissões cada role possui</p>
           </div>
           {pendingChanges.size > 0 && (
             <Button onClick={saveChanges} disabled={isSaving}>
-              <Save className="mr-2 h-4 w-4" />
+              <Save className="h-4 w-4 mr-2" />
               {isSaving ? 'Salvando...' : `Salvar ${pendingChanges.size} alteração(ões)`}
             </Button>
           )}
         </div>
 
-        <div className="mx-auto max-w-6xl space-y-6">
+        <div className="max-w-6xl mx-auto space-y-6">
           {/* Role Cards Overview */}
           <div className="grid gap-4 md:grid-cols-2">
-            {ROLES.map((role) => {
+            {ROLES.map(role => {
               const stats = getTotalStats(role.value);
               return (
-                <Card
-                  key={role.value}
+                <Card 
+                  key={role.value} 
                   className={`cursor-pointer transition-all ${selectedRole === role.value ? 'ring-2 ring-primary' : 'hover:border-primary/50'}`}
                   onClick={() => setSelectedRole(role.value)}
                 >
@@ -257,9 +235,9 @@ export default function RolePermissionsPage() {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="h-2 overflow-hidden rounded-full bg-muted">
-                      <div
-                        className="h-full bg-primary transition-all"
+                    <div className="h-2 bg-muted rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-primary transition-all" 
                         style={{ width: `${(stats.assigned / stats.total) * 100}%` }}
                       />
                     </div>
@@ -275,25 +253,15 @@ export default function RolePermissionsPage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Key className="h-5 w-5" />
-                  <CardTitle>
-                    Permissões para: {ROLES.find((r) => r.value === selectedRole)?.label}
-                  </CardTitle>
+                  <CardTitle>Permissões para: {ROLES.find(r => r.value === selectedRole)?.label}</CardTitle>
                 </div>
                 <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => selectAllForRole(selectedRole)}
-                  >
-                    <CheckCircle2 className="mr-1 h-4 w-4" />
+                  <Button variant="outline" size="sm" onClick={() => selectAllForRole(selectedRole)}>
+                    <CheckCircle2 className="h-4 w-4 mr-1" />
                     Marcar Todas
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => deselectAllForRole(selectedRole)}
-                  >
-                    <XCircle className="mr-1 h-4 w-4" />
+                  <Button variant="outline" size="sm" onClick={() => deselectAllForRole(selectedRole)}>
+                    <XCircle className="h-4 w-4 mr-1" />
                     Desmarcar Todas
                   </Button>
                 </div>
@@ -302,12 +270,12 @@ export default function RolePermissionsPage() {
             <CardContent>
               {isLoading ? (
                 <div className="flex justify-center py-12">
-                  <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary" />
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
                 </div>
               ) : (
                 <Tabs defaultValue={Object.keys(groupedPermissions)[0]} className="w-full">
-                  <TabsList className="mb-4 h-auto flex-wrap gap-1">
-                    {Object.keys(groupedPermissions).map((category) => {
+                  <TabsList className="flex-wrap h-auto gap-1 mb-4">
+                    {Object.keys(groupedPermissions).map(category => {
                       const stats = getCategoryStats(category, selectedRole);
                       return (
                         <TabsTrigger key={category} value={category} className="capitalize">
@@ -319,23 +287,23 @@ export default function RolePermissionsPage() {
                       );
                     })}
                   </TabsList>
-
+                  
                   {Object.entries(groupedPermissions).map(([category, perms]) => (
                     <TabsContent key={category} value={category}>
-                      <div className="rounded-lg border">
-                        <div className="flex items-center justify-between border-b bg-muted/50 px-4 py-2">
+                      <div className="border rounded-lg">
+                        <div className="bg-muted/50 px-4 py-2 border-b flex items-center justify-between">
                           <span className="font-medium capitalize">{category}</span>
                           <div className="flex gap-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
                               onClick={() => selectAllForRole(selectedRole, category)}
                             >
                               Marcar Categoria
                             </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
                               onClick={() => deselectAllForRole(selectedRole, category)}
                             >
                               Desmarcar Categoria
@@ -344,29 +312,29 @@ export default function RolePermissionsPage() {
                         </div>
                         <ScrollArea className="max-h-[400px]">
                           <div className="divide-y">
-                            {perms.map((perm) => {
+                            {perms.map(perm => {
                               const isChecked = hasPermission(perm.id, selectedRole);
                               const key = `${selectedRole}-${perm.id}`;
                               const hasChange = pendingChanges.has(key);
-
+                              
                               return (
-                                <div
-                                  key={perm.id}
-                                  className={`flex items-center gap-4 px-4 py-3 transition-colors hover:bg-muted/30 ${hasChange ? 'bg-primary/5' : ''}`}
+                                <div 
+                                  key={perm.id} 
+                                  className={`flex items-center gap-4 px-4 py-3 hover:bg-muted/30 transition-colors ${hasChange ? 'bg-primary/5' : ''}`}
                                 >
-                                  <Checkbox
+                                  <Checkbox 
                                     id={perm.id}
                                     checked={isChecked}
                                     onCheckedChange={() => togglePermission(perm.id, selectedRole)}
                                   />
-                                  <div className="min-w-0 flex-1">
-                                    <label
+                                  <div className="flex-1 min-w-0">
+                                    <label 
                                       htmlFor={perm.id}
-                                      className="block cursor-pointer font-medium"
+                                      className="font-medium cursor-pointer block"
                                     >
                                       {perm.name}
                                     </label>
-                                    <p className="truncate text-sm text-muted-foreground">
+                                    <p className="text-sm text-muted-foreground truncate">
                                       {perm.description || perm.code}
                                     </p>
                                   </div>
@@ -402,29 +370,29 @@ export default function RolePermissionsPage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b">
-                      <th className="px-3 py-2 text-left font-medium">Permissão</th>
-                      {ROLES.map((role) => (
-                        <th key={role.value} className="px-3 py-2 text-center font-medium">
+                      <th className="text-left py-2 px-3 font-medium">Permissão</th>
+                      {ROLES.map(role => (
+                        <th key={role.value} className="text-center py-2 px-3 font-medium">
                           {role.label}
                         </th>
                       ))}
                     </tr>
                   </thead>
                   <tbody className="divide-y">
-                    {permissions.map((perm) => (
+                    {permissions.map(perm => (
                       <tr key={perm.id} className="hover:bg-muted/30">
-                        <td className="px-3 py-2">
+                        <td className="py-2 px-3">
                           <div className="font-medium">{perm.name}</div>
                           <div className="text-xs text-muted-foreground">{perm.code}</div>
                         </td>
-                        {ROLES.map((role) => {
+                        {ROLES.map(role => {
                           const has = hasPermission(perm.id, role.value);
                           const key = `${role.value}-${perm.id}`;
                           const hasChange = pendingChanges.has(key);
-
+                          
                           return (
-                            <td key={role.value} className="px-3 py-2 text-center">
-                              <Checkbox
+                            <td key={role.value} className="text-center py-2 px-3">
+                              <Checkbox 
                                 checked={has}
                                 onCheckedChange={() => togglePermission(perm.id, role.value)}
                                 className={hasChange ? 'border-primary' : ''}

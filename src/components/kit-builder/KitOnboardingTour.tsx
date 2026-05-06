@@ -10,22 +10,10 @@ import { Card } from '@/components/ui/card';
 const STORAGE_KEY = 'kit-tour-completed';
 
 const STEPS = [
-  {
-    title: '1. Selecione a Embalagem',
-    desc: 'Comece escolhendo uma caixa ou aplique um template pronto.',
-  },
-  {
-    title: '2. Adicione Itens',
-    desc: 'Use a busca, sugestões inteligentes ou modo IA (✨) para gerar kit completo.',
-  },
-  {
-    title: '3. Personalize',
-    desc: 'Configure gravação, cores e logo. Veja o preview ao vivo na lateral.',
-  },
-  {
-    title: '4. Resumo & Envio',
-    desc: 'Confira saúde, margem, estoque e envie para orçamento ou exporte PDF.',
-  },
+  { title: '1. Selecione a Embalagem', desc: 'Comece escolhendo uma caixa ou aplique um template pronto.' },
+  { title: '2. Adicione Itens', desc: 'Use a busca, sugestões inteligentes ou modo IA (✨) para gerar kit completo.' },
+  { title: '3. Personalize', desc: 'Configure gravação, cores e logo. Veja o preview ao vivo na lateral.' },
+  { title: '4. Resumo & Envio', desc: 'Confira saúde, margem, estoque e envie para orçamento ou exporte PDF.' },
 ];
 
 export function KitOnboardingTour() {
@@ -47,12 +35,12 @@ export function KitOnboardingTour() {
   const current = STEPS[step];
 
   return (
-    <div className="fixed inset-0 z-[80] flex animate-fade-in items-center justify-center bg-background/80 p-4 backdrop-blur-sm">
-      <Card className="relative w-full max-w-md space-y-4 p-6">
+    <div className="fixed inset-0 z-[80] bg-background/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+      <Card className="w-full max-w-md p-6 space-y-4 relative">
         <Button
           variant="ghost"
           size="icon"
-          className="absolute right-2 top-2 h-7 w-7"
+          className="absolute top-2 right-2 h-7 w-7"
           onClick={finish}
           aria-label="Fechar tour"
         >
@@ -62,7 +50,7 @@ export function KitOnboardingTour() {
           <Sparkles className="h-5 w-5 text-primary" />
           <h3 className="font-display text-lg font-semibold">Bem-vindo ao Kit Maker</h3>
         </div>
-        <div className="space-y-1 rounded-xl bg-muted/40 p-4">
+        <div className="bg-muted/40 rounded-xl p-4 space-y-1">
           <p className="font-medium">{current.title}</p>
           <p className="text-sm text-muted-foreground">{current.desc}</p>
         </div>
@@ -77,18 +65,16 @@ export function KitOnboardingTour() {
           </div>
           {step < STEPS.length - 1 ? (
             <Button size="sm" onClick={() => setStep(step + 1)}>
-              Próximo <ArrowRight className="ml-1 h-3 w-3" />
+              Próximo <ArrowRight className="h-3 w-3 ml-1" />
             </Button>
           ) : (
-            <Button size="sm" onClick={finish}>
-              Começar
-            </Button>
+            <Button size="sm" onClick={finish}>Começar</Button>
           )}
         </div>
         <button
           type="button"
           onClick={finish}
-          className="w-full text-center text-[11px] text-muted-foreground hover:underline"
+          className="text-[11px] text-muted-foreground hover:underline w-full text-center"
         >
           Pular tour
         </button>

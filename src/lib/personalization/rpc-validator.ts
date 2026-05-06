@@ -102,7 +102,10 @@ function knownTopLevel(contract: RpcContract): Set<string> {
   return out;
 }
 
-export function validateRpcPayload(contract: RpcContract, payload: unknown): ValidationResult {
+export function validateRpcPayload(
+  contract: RpcContract,
+  payload: unknown,
+): ValidationResult {
   const missing: string[] = [];
   const resolvedAliases: Record<string, string> = {};
 

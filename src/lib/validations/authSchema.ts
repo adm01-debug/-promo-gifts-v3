@@ -1,57 +1,50 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 export const loginSchema = z.object({
-  email: z
-    .string()
-    .trim()
-    .min(1, 'O e-mail é obrigatório')
-    .email('Por favor, insira um endereço de e-mail válido'),
-  password: z
-    .string()
-    .min(1, 'A senha é obrigatória')
-    .min(6, 'A senha deve conter no mínimo 6 caracteres'),
+  email: z.string()
+    .min(1, "Email é obrigatório")
+    .email("Email inválido"),
+  password: z.string()
+    .min(6, "Senha deve ter pelo menos 6 caracteres"),
 });
 
-export const signupSchema = z
-  .object({
-    fullName: z
-      .string()
-      .min(2, 'Nome deve ter pelo menos 2 caracteres')
-      .max(100, 'Nome deve ter no máximo 100 caracteres'),
-    email: z.string().min(1, 'Email é obrigatório').email('Email inválido'),
-    password: z
-      .string()
-      .min(8, 'Senha deve ter pelo menos 8 caracteres')
-      .regex(/[A-Z]/, 'Senha deve conter letra maiúscula')
-      .regex(/[a-z]/, 'Senha deve conter letra minúscula')
-      .regex(/[0-9]/, 'Senha deve conter número')
-      .regex(/[!@#$%^&*(),.?":{}|<>]/, 'Senha deve conter caractere especial'),
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: 'Senhas não conferem',
-    path: ['confirmPassword'],
-  });
+export const signupSchema = z.object({
+  fullName: z.string()
+    .min(2, "Nome deve ter pelo menos 2 caracteres")
+    .max(100, "Nome deve ter no máximo 100 caracteres"),
+  email: z.string()
+    .min(1, "Email é obrigatório")
+    .email("Email inválido"),
+  password: z.string()
+    .min(8, "Senha deve ter pelo menos 8 caracteres")
+    .regex(/[A-Z]/, "Senha deve conter letra maiúscula")
+    .regex(/[a-z]/, "Senha deve conter letra minúscula")
+    .regex(/[0-9]/, "Senha deve conter número")
+    .regex(/[!@#$%^&*(),.?":{}|<>]/, "Senha deve conter caractere especial"),
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Senhas não conferem",
+  path: ["confirmPassword"],
+});
 
 export const forgotPasswordSchema = z.object({
-  email: z.string().min(1, 'Email é obrigatório').email('Email inválido'),
+  email: z.string()
+    .min(1, "Email é obrigatório")
+    .email("Email inválido"),
 });
 
-export const resetPasswordSchema = z
-  .object({
-    password: z
-      .string()
-      .min(8, 'Senha deve ter pelo menos 8 caracteres')
-      .regex(/[A-Z]/, 'Senha deve conter letra maiúscula')
-      .regex(/[a-z]/, 'Senha deve conter letra minúscula')
-      .regex(/[0-9]/, 'Senha deve conter número')
-      .regex(/[!@#$%^&*(),.?":{}|<>]/, 'Senha deve conter caractere especial'),
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: 'Senhas não conferem',
-    path: ['confirmPassword'],
-  });
+export const resetPasswordSchema = z.object({
+  password: z.string()
+    .min(8, "Senha deve ter pelo menos 8 caracteres")
+    .regex(/[A-Z]/, "Senha deve conter letra maiúscula")
+    .regex(/[a-z]/, "Senha deve conter letra minúscula")
+    .regex(/[0-9]/, "Senha deve conter número")
+    .regex(/[!@#$%^&*(),.?":{}|<>]/, "Senha deve conter caractere especial"),
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Senhas não conferem",
+  path: ["confirmPassword"],
+});
 
 export type LoginFormData = z.infer<typeof loginSchema>;
 export type SignupFormData = z.infer<typeof signupSchema>;

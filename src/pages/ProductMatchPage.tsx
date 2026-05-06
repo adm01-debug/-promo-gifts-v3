@@ -33,27 +33,27 @@ export default function ProductMatchPage() {
 
   const categories = useMemo(() => {
     const cats = new Set<string>();
-    allProducts.forEach((p) => p.category?.name && cats.add(p.category.name));
+    allProducts.forEach(p => p.category?.name && cats.add(p.category.name));
     return [...cats].sort();
   }, [allProducts]);
 
   const suppliers = useMemo(() => {
     const sups = new Set<string>();
-    allProducts.forEach((p) => p.supplier?.name && sups.add(p.supplier.name));
+    allProducts.forEach(p => p.supplier?.name && sups.add(p.supplier.name));
     return [...sups].sort();
   }, [allProducts]);
 
   const stats = useMemo(() => {
     const byType = { identical: 0, similar: 0, complementary: 0 };
-    matches.forEach((m) => byType[m.matchType]++);
+    matches.forEach(m => byType[m.matchType]++);
     return byType;
   }, [matches]);
 
   const toggleMatchType = useCallback((type: MatchResult['matchType']) => {
-    setFilters((prev) => {
+    setFilters(prev => {
       const current = prev.matchTypes || ['identical', 'similar', 'complementary'];
       const updated = current.includes(type)
-        ? current.filter((t) => t !== type)
+        ? current.filter(t => t !== type)
         : [...current, type];
       return { ...prev, matchTypes: updated.length > 0 ? updated : current };
     });
@@ -64,23 +64,18 @@ export default function ProductMatchPage() {
       <PageSEO
         title="Match de Produtos"
         description="Encontre produtos idênticos, semelhantes e complementares para venda cruzada."
-        path="/ferramentas/match"
+        path="/match"
       />
 
-      <div className="mx-auto max-w-[1600px] animate-fade-in space-y-4">
+      <div className="max-w-[1600px] mx-auto space-y-4 animate-fade-in">
         {/* Header */}
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-3">
-            <div className="rounded-xl border border-primary/20 bg-gradient-to-br from-primary/20 to-primary/5 p-2.5">
+            <div className="p-2.5 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20">
               <Zap className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <h1
-                data-testid="page-title-match-produtos"
-                className="font-display text-xl font-bold text-foreground"
-              >
-                Match de Produtos
-              </h1>
+              <h1 data-testid="page-title-match-produtos" className="font-display text-xl font-bold text-foreground">Match de Produtos</h1>
               <p className="text-xs text-muted-foreground">
                 Encontre produtos idênticos, semelhantes e complementares
               </p>
@@ -89,12 +84,7 @@ export default function ProductMatchPage() {
 
           {selectedProduct && matches.length > 0 && (
             <div className="flex items-center gap-2">
-              {(
-                Object.entries(MATCH_TYPE_CONFIG) as [
-                  MatchResult['matchType'],
-                  (typeof MATCH_TYPE_CONFIG)[keyof typeof MATCH_TYPE_CONFIG],
-                ][]
-              ).map(([type, cfg]) => {
+              {(Object.entries(MATCH_TYPE_CONFIG) as [MatchResult['matchType'], typeof MATCH_TYPE_CONFIG[keyof typeof MATCH_TYPE_CONFIG]][]).map(([type, cfg]) => {
                 const Icon = cfg.icon;
                 const count = stats[type];
                 const active = (filters.matchTypes || []).includes(type);
@@ -103,10 +93,10 @@ export default function ProductMatchPage() {
                     key={type}
                     onClick={() => toggleMatchType(type)}
                     className={cn(
-                      'inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[11px] font-semibold transition-all',
+                      'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold border transition-all',
                       active
                         ? `${cfg.color} border-transparent shadow-sm`
-                        : 'border-border/40 bg-muted/50 text-muted-foreground opacity-60 hover:opacity-100',
+                        : 'bg-muted/50 text-muted-foreground border-border/40 opacity-60 hover:opacity-100'
                     )}
                   >
                     <Icon className="h-3.5 w-3.5" />
@@ -120,10 +110,10 @@ export default function ProductMatchPage() {
         </div>
 
         {/* Main grid */}
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[280px_300px_1fr] xl:gap-5">
+        <div className="grid grid-cols-1 lg:grid-cols-[280px_300px_1fr] gap-4 xl:gap-5">
           {/* Column 1: Product search */}
           <div className="space-y-3">
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               <Search className="h-3.5 w-3.5" />
               Buscar Produto
             </div>
@@ -136,7 +126,7 @@ export default function ProductMatchPage() {
 
           {/* Column 2: Selected product + Filters */}
           <div className="space-y-3">
-            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               <Target className="h-3.5 w-3.5" />
               Produto Selecionado
             </div>
@@ -144,17 +134,12 @@ export default function ProductMatchPage() {
             {selectedProduct ? (
               <>
                 <SelectedProductCard product={selectedProduct} />
-                <MatchFiltersPanel
-                  filters={filters}
-                  setFilters={setFilters}
-                  categories={categories}
-                  suppliers={suppliers}
-                />
+                <MatchFiltersPanel filters={filters} setFilters={setFilters} categories={categories} suppliers={suppliers} />
               </>
             ) : (
               <Card className="border-dashed border-border/40">
-                <CardContent className="flex flex-col items-center justify-center gap-3 p-8 text-center">
-                  <div className="rounded-full bg-muted/50 p-3">
+                <CardContent className="p-8 flex flex-col items-center justify-center text-center gap-3">
+                  <div className="p-3 rounded-full bg-muted/50">
                     <Target className="h-8 w-8 text-muted-foreground/50" />
                   </div>
                   <p className="text-xs text-muted-foreground">
@@ -168,28 +153,24 @@ export default function ProductMatchPage() {
           {/* Column 3: Matches */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 <Sparkles className="h-3.5 w-3.5" />
                 Matches Encontrados
                 {matches.length > 0 && (
-                  <Badge variant="secondary" className="ml-1 px-1.5 py-0 text-[10px]">
-                    {matches.length}
-                  </Badge>
+                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0 ml-1">{matches.length}</Badge>
                 )}
               </div>
             </div>
 
             {!selectedProduct ? (
               <Card className="border-dashed border-border/40">
-                <CardContent className="flex flex-col items-center justify-center gap-3 p-12 text-center">
-                  <div className="rounded-full bg-muted/50 p-4">
+                <CardContent className="p-12 flex flex-col items-center justify-center text-center gap-3">
+                  <div className="p-4 rounded-full bg-muted/50">
                     <Zap className="h-10 w-10 text-muted-foreground/30" />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-foreground/60">
-                      Nenhum produto selecionado
-                    </p>
-                    <p className="mt-1 text-xs text-muted-foreground">
+                    <p className="text-sm font-semibold text-foreground/60">Nenhum produto selecionado</p>
+                    <p className="text-xs text-muted-foreground mt-1">
                       Busque e selecione um produto para encontrar matches automáticos
                     </p>
                   </div>
@@ -197,15 +178,13 @@ export default function ProductMatchPage() {
               </Card>
             ) : matches.length === 0 ? (
               <Card className="border-dashed border-border/40">
-                <CardContent className="flex flex-col items-center justify-center gap-3 p-12 text-center">
-                  <div className="rounded-full bg-muted/50 p-4">
+                <CardContent className="p-12 flex flex-col items-center justify-center text-center gap-3">
+                  <div className="p-4 rounded-full bg-muted/50">
                     <Package className="h-10 w-10 text-muted-foreground/30" />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-foreground/60">
-                      Nenhum match encontrado
-                    </p>
-                    <p className="mt-1 text-xs text-muted-foreground">
+                    <p className="text-sm font-semibold text-foreground/60">Nenhum match encontrado</p>
+                    <p className="text-xs text-muted-foreground mt-1">
                       Tente reduzir o score mínimo ou remover filtros
                     </p>
                   </div>

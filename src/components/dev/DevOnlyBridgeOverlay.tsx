@@ -12,9 +12,9 @@ const Overlay = lazy(() => import('./BridgeMetricsOverlay'));
 
 export function DevOnlyBridgeOverlay() {
   const { isAllowed } = useDevGate();
-
+  
   if (!isAllowed) return null;
-
+  
   return (
     <Suspense fallback={null}>
       <Overlay />

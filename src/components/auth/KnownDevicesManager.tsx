@@ -4,15 +4,15 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useDeviceDetection } from '@/hooks/useDeviceDetection';
 import { useToast } from '@/hooks/use-toast';
-import {
-  Monitor,
-  Smartphone,
-  Tablet,
-  Trash2,
-  Shield,
+import { 
+  Monitor, 
+  Smartphone, 
+  Tablet, 
+  Trash2, 
+  Shield, 
   ShieldCheck,
   Globe,
-  Clock,
+  Clock
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -38,8 +38,7 @@ interface KnownDevicesManagerProps {
 export function KnownDevicesManager({ targetUserId }: KnownDevicesManagerProps) {
   const [devices, setDevices] = useState<KnownDevice[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { getKnownDevices, removeDevice, trustDevice, getDeviceInfo } =
-    useDeviceDetection(targetUserId);
+  const { getKnownDevices, removeDevice, trustDevice, getDeviceInfo } = useDeviceDetection(targetUserId);
   const { toast } = useToast();
   const currentFingerprint = getDeviceInfo().fingerprint;
   const isManagingOther = !!targetUserId;
@@ -131,24 +130,29 @@ export function KnownDevicesManager({ targetUserId }: KnownDevicesManagerProps) 
       </CardHeader>
       <CardContent className="space-y-4">
         {devices.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Nenhum dispositivo registrado ainda.</p>
+          <p className="text-sm text-muted-foreground">
+            Nenhum dispositivo registrado ainda.
+          </p>
         ) : (
           devices.map((device) => (
             <div
               key={device.id}
-              className={`flex items-center justify-between rounded-xl border p-4 ${
+              className={`flex items-center justify-between p-4 rounded-xl border ${
                 isCurrentDevice(device) ? 'border-primary bg-primary/5' : ''
               }`}
             >
               <div className="flex items-center gap-4">
-                <div className="rounded-full bg-muted p-2">{getDeviceIcon(device.device_type)}</div>
+                <div className="p-2 rounded-full bg-muted">
+                  {getDeviceIcon(device.device_type)}
+                </div>
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="font-medium">
-                      {device.browser_name || 'Navegador desconhecido'} -{' '}
-                      {device.os_name || 'SO desconhecido'}
+                      {device.browser_name || 'Navegador desconhecido'} - {device.os_name || 'SO desconhecido'}
                     </span>
-                    {isCurrentDevice(device) && <Badge variant="secondary">Este dispositivo</Badge>}
+                    {isCurrentDevice(device) && (
+                      <Badge variant="secondary">Este dispositivo</Badge>
+                    )}
                     {device.is_trusted && (
                       <Badge variant="default" className="gap-1">
                         <ShieldCheck className="h-3 w-3" />
@@ -156,17 +160,16 @@ export function KnownDevicesManager({ targetUserId }: KnownDevicesManagerProps) 
                       </Badge>
                     )}
                   </div>
-                  <div className="mt-1 flex items-center gap-4 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
                     <span className="flex items-center gap-1">
                       <Globe className="h-3 w-3" />
                       {device.ip_address}
                     </span>
                     <span className="flex items-center gap-1">
                       <Clock className="h-3 w-3" />
-                      Último acesso:{' '}
-                      {formatDistanceToNow(new Date(device.last_seen_at), {
-                        addSuffix: true,
-                        locale: ptBR,
+                      Último acesso: {formatDistanceToNow(new Date(device.last_seen_at), { 
+                        addSuffix: true, 
+                        locale: ptBR 
                       })}
                     </span>
                   </div>
@@ -174,8 +177,12 @@ export function KnownDevicesManager({ targetUserId }: KnownDevicesManagerProps) 
               </div>
               <div className="flex items-center gap-2">
                 {!device.is_trusted && !isCurrentDevice(device) && (
-                  <Button variant="outline" size="sm" onClick={() => handleTrustDevice(device.id)}>
-                    <ShieldCheck className="mr-1 h-4 w-4" />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleTrustDevice(device.id)}
+                  >
+                    <ShieldCheck className="h-4 w-4 mr-1" />
                     Confiar
                   </Button>
                 )}

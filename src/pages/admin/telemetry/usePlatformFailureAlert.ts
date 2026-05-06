@@ -13,10 +13,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
-import {
-  usePlatformFailureMetrics,
-  type PlatformFailureMetrics,
-} from './usePlatformFailureMetrics';
+import { usePlatformFailureMetrics, type PlatformFailureMetrics } from './usePlatformFailureMetrics';
 
 const STORAGE_KEY = 'admin.telemetry.failureAlertConfig';
 
@@ -101,9 +98,7 @@ export function usePlatformFailureAlert(windowMinutes = 60): AlertState {
       parts.push(`503=${metrics.rate503Pct.toFixed(2)}% (limite ${config.threshold503Pct}%)`);
     }
     if (level !== 'breach_503') {
-      parts.push(
-        `cold-start=${metrics.rateColdStartPct.toFixed(2)}% (limite ${config.thresholdColdStartPct}%)`,
-      );
+      parts.push(`cold-start=${metrics.rateColdStartPct.toFixed(2)}% (limite ${config.thresholdColdStartPct}%)`);
     }
     return parts.join(' · ');
   }, [metrics, level, config]);

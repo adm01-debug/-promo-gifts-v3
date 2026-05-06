@@ -1,14 +1,14 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingCart, Heart, FileText } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { QuickAddToQuote } from './QuickAddToQuote';
-import { BulkVariantWizard } from '@/components/catalog/BulkVariantWizard';
-import { PriceFreshnessBadge } from './PriceFreshnessBadge';
-import { cn } from '@/lib/utils';
-import type { Product } from '@/hooks/useProducts';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { ShoppingCart, Heart, FileText } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { QuickAddToQuote } from "./QuickAddToQuote";
+import { BulkVariantWizard } from "@/components/catalog/BulkVariantWizard";
+import { PriceFreshnessBadge } from "./PriceFreshnessBadge";
+import { cn } from "@/lib/utils";
+import type { Product } from "@/hooks/useProducts";
 
 interface ProductStickyHeaderProps {
   productId: string;
@@ -41,24 +41,22 @@ export function ProductStickyHeader({
     const handleScroll = () => {
       setVisible(window.scrollY > 400);
     };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const formatPrice = (price: number) =>
-    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(price);
+    new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(price);
 
   // Build a minimal Product object for the wizard if not provided
-  const wizardProduct: Product =
-    product ||
-    ({
-      id: productId,
-      name: productName,
-      sku: productSku,
-      price: productPrice,
-      images: productImage ? [productImage] : [],
-      minQuantity,
-    } as Product);
+  const wizardProduct: Product = product || {
+    id: productId,
+    name: productName,
+    sku: productSku,
+    price: productPrice,
+    images: productImage ? [productImage] : [],
+    minQuantity,
+  } as Product;
 
   return (
     <>
@@ -68,31 +66,28 @@ export function ProductStickyHeader({
             initial={{ y: -60, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: -60, opacity: 0 }}
-            transition={{ duration: 0.25, ease: 'easeOut' }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
             data-testid="product-sticky-header"
-            className="fixed right-0 top-0 z-50 hidden border-b border-border bg-background/95 shadow-sm backdrop-blur-md md:block"
-            style={{ left: 'var(--header-left, 0px)' }}
+            className="fixed top-0 right-0 z-50 hidden md:block bg-background/95 backdrop-blur-md border-b border-border shadow-sm"
+            style={{ left: "var(--header-left, 0px)" }}
           >
-            <div className="mx-auto flex h-14 max-w-7xl items-center gap-4 px-4 lg:px-6">
+            <div className="max-w-7xl mx-auto px-4 lg:px-6 h-14 flex items-center gap-4">
               {/* Thumbnail */}
-              <div className="h-10 w-10 shrink-0 overflow-hidden rounded-xl border border-border bg-secondary">
+              <div className="w-10 h-10 rounded-xl overflow-hidden bg-secondary shrink-0 border border-border">
                 <img
                   src={productImage}
                   alt={productName}
-                  className="h-full w-full object-contain"
-                  loading="lazy"
-                />
+                  className="w-full h-full object-contain" loading="lazy" />
               </div>
 
               {/* Name */}
-              <h2 className="max-w-[300px] truncate font-display text-sm font-semibold text-foreground lg:max-w-[500px]">
+              <h2 className="font-display text-sm font-semibold text-foreground truncate max-w-[300px] lg:max-w-[500px]">
                 {productName}
               </h2>
 
               {/* Price */}
-              <span className="ml-auto flex items-center gap-2 whitespace-nowrap text-sm font-bold text-foreground">
-                {formatPrice(productPrice)}
-                <span className="font-normal text-muted-foreground">/un</span>
+              <span className="text-sm font-bold text-foreground whitespace-nowrap ml-auto flex items-center gap-2">
+                {formatPrice(productPrice)}<span className="text-muted-foreground font-normal">/un</span>
                 <PriceFreshnessBadge
                   priceUpdatedAt={product?.priceUpdatedAt}
                   thresholdDays={product?.priceFreshnessThresholdDays}
@@ -101,8 +96,8 @@ export function ProductStickyHeader({
               </span>
 
               {/* Actions */}
-              <div className="flex shrink-0 items-center gap-2">
-                <TooltipProvider>
+              <div className="flex items-center gap-2 shrink-0">
+                <TooltipProvider >
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
@@ -114,16 +109,11 @@ export function ProductStickyHeader({
                         aria-pressed={isFavorite}
                         aria-label="Favoritar"
                       >
-                        <Heart
-                          className={cn(
-                            'h-4 w-4',
-                            isFavorite && 'fill-destructive text-destructive',
-                          )}
-                        />
+                        <Heart className={cn("h-4 w-4", isFavorite && "fill-destructive text-destructive")} />
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent className="border-none bg-primary px-2 py-1 text-[11px] font-medium text-primary-foreground shadow-xl">
-                      {isFavorite ? 'Remover dos favoritos' : 'Salvar em meus favoritos'}
+                    <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
+                      {isFavorite ? "Remover dos favoritos" : "Salvar em meus favoritos"}
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -138,24 +128,22 @@ export function ProductStickyHeader({
                   buttonSize="sm"
                   labelOverride="Carrinho"
                   iconOverride="cart"
-                  className="h-9 rounded-full bg-primary px-5 text-sm font-medium text-primary-foreground transition-all hover:scale-105 hover:bg-primary/90 active:scale-95 disabled:opacity-50"
+                  className="h-9 rounded-full px-5 bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-sm transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
                 />
 
-                <TooltipProvider>
+                <TooltipProvider >
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
                         size="sm"
-                        className="h-9 gap-1.5 rounded-full bg-success px-5 text-sm font-medium text-success-foreground transition-all hover:scale-105 hover:bg-success/90 active:scale-95 disabled:opacity-50"
+                        className="h-9 rounded-full px-5 bg-success hover:bg-success/90 text-success-foreground font-medium text-sm gap-1.5 transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
                         onClick={() => setQuoteWizardOpen(true)}
                       >
                         <FileText className="h-3.5 w-3.5" />
                         Orçamento
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent className="border-none bg-primary px-2 py-1 text-[11px] font-medium text-primary-foreground shadow-xl">
-                      Iniciar processo de orçamento para este produto
-                    </TooltipContent>
+                    <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Iniciar processo de orçamento para este produto</TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               </div>

@@ -1,7 +1,7 @@
-import { useState, useEffect, forwardRef } from 'react';
-import { Fingerprint, Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { useWebAuthn } from '@/hooks/useWebAuthn';
+import { useState, useEffect, forwardRef } from "react";
+import { Fingerprint, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useWebAuthn } from "@/hooks/useWebAuthn";
 
 interface PasskeyLoginProps {
   onSuccess: (userId: string) => void;
@@ -9,12 +9,8 @@ interface PasskeyLoginProps {
   disabled?: boolean;
 }
 
-export const PasskeyLogin = forwardRef<HTMLButtonElement, PasskeyLoginProps>(function PasskeyLogin(
-  { onSuccess, email, disabled },
-  ref,
-) {
-  const { isSupported, isLoading, authenticateWithPasskey, checkPlatformAuthenticator } =
-    useWebAuthn();
+export const PasskeyLogin = forwardRef<HTMLButtonElement, PasskeyLoginProps>(function PasskeyLogin({ onSuccess, email, disabled }, ref) {
+  const { isSupported, isLoading, authenticateWithPasskey, checkPlatformAuthenticator } = useWebAuthn();
   const [hasPlatformAuth, setHasPlatformAuth] = useState(false);
 
   useEffect(() => {
@@ -26,7 +22,7 @@ export const PasskeyLogin = forwardRef<HTMLButtonElement, PasskeyLoginProps>(fun
   }
 
   const handleClick = async () => {
-    const result = await authenticateWithPasskey(email || '');
+    const result = await authenticateWithPasskey(email || "");
     if (result.success && result.userId) {
       onSuccess(result.userId);
     }
@@ -37,7 +33,7 @@ export const PasskeyLogin = forwardRef<HTMLButtonElement, PasskeyLoginProps>(fun
       ref={ref}
       type="button"
       variant="outline"
-      className="h-12 w-full gap-3 border-border/60 bg-background font-bold uppercase tracking-widest text-primary shadow-sm transition-all hover:bg-muted/50 hover:text-primary-glow"
+      className="w-full h-12 gap-3 font-bold uppercase tracking-widest border-border/60 bg-background hover:bg-muted/50 transition-all shadow-sm text-primary hover:text-primary-glow"
       onClick={handleClick}
       disabled={disabled || isLoading}
     >

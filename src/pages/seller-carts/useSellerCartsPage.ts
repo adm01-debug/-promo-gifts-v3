@@ -2,76 +2,32 @@
  * useSellerCartsPage — Business logic hook for SellerCartsPage
  * Extracted to follow Page → Hook → Service pattern.
  */
-import { useState, useCallback, useMemo, useRef, useEffect, useContext } from 'react';
-import { useSearchParams, useNavigate, useParams, useLocation } from 'react-router-dom';
-import { useSellerCartContext } from '@/contexts/SellerCartContext';
-import { type SellerCart, CartStatus } from '@/hooks/useSellerCarts';
-import { useCartTemplates, type CartTemplateItem } from '@/hooks/useCartTemplates';
-import { ProductsContext } from '@/contexts/ProductsContext';
+import { useState, useCallback, useMemo, useRef, useEffect, useContext } from "react";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { useSellerCartContext } from "@/contexts/SellerCartContext";
+import { type SellerCart, CartStatus } from "@/hooks/useSellerCarts";
+import { useCartTemplates, type CartTemplateItem } from "@/hooks/useCartTemplates";
+import { ProductsContext } from "@/contexts/ProductsContext";
 import {
-  recordAction,
-  exportCartToCSV,
-  exportCartToPDF,
-  shareCartLink,
-} from '@/components/cart/CartUtilComponents';
-import { toast } from 'sonner';
-import { showUndoToast } from '@/utils/undoToast';
-import { differenceInDays } from 'date-fns';
+  recordAction, exportCartToCSV, exportCartToPDF, shareCartLink,
+} from "@/components/cart/CartUtilComponents";
+import { toast } from "sonner";
+import { showUndoToast } from "@/utils/undoToast";
+import { differenceInDays } from "date-fns";
 import {
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-} from '@dnd-kit/core';
-import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
+  KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent,
+} from "@dnd-kit/core";
+import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 
 export function useSellerCartsPage() {
-  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const location = useLocation();
   const { cartId: routeCartId } = useParams<{ cartId?: string }>();
-
-  // Sync search and sort with URL
-  const initialSearch = searchParams.get('search') || '';
-  const initialSortBy = searchParams.get('sort') || 'date-desc';
-  const initialProductFilter = searchParams.get('product') || '';
-
-  const [searchTerm, setSearchTerm] = useState(initialSearch);
-  const [productFilter, setProductFilter] = useState(initialProductFilter);
-  const [sortBy, setSortBy] = useState<string>(initialSortBy);
-  const [companyFilter, setCompanyFilter] = useState<string>(searchParams.get('company') || 'all');
-
-  useEffect(() => {
-    const params: Record<string, string> = {};
-    if (searchTerm) params.search = searchTerm;
-    if (productFilter) params.product = productFilter;
-    if (sortBy !== 'date-desc') params.sort = sortBy;
-    if (companyFilter !== 'all') params.company = companyFilter;
-    setSearchParams(params, { replace: true });
-  }, [searchTerm, productFilter, sortBy, companyFilter, setSearchParams]);
-
   const {
-    carts,
-    activeCart,
-    activeCartId,
-    isLoading,
-    totalItems,
-    canCreateCart,
-    setActiveCartId,
-    deleteCart,
-    addToActiveCart,
-    removeItem,
-    updateItemQuantity,
-    updateItemNotes,
-    updateItemSortOrder,
-    updateCartNotes,
-    updateCartStatus,
-    duplicateCart,
-    moveItemToCart,
-    duplicateItemToCart,
-    clearCart,
-    restoreItems,
+    carts, activeCart, activeCartId, isLoading, totalItems, canCreateCart,
+    setActiveCartId, deleteCart, addToActiveCart, removeItem, updateItemQuantity,
+    updateItemNotes, updateItemSortOrder, updateCartNotes, updateCartStatus,
+    duplicateCart, moveItemToCart, duplicateItemToCart, clearCart, restoreItems,
   } = useSellerCartContext();
 
   const { templates, saveTemplate, deleteTemplate } = useCartTemplates();
@@ -83,11 +39,11 @@ export function useSellerCartsPage() {
   const [showNewCart, setShowNewCart] = useState(false);
 
   useEffect(() => {
-    if (location.pathname === '/carrinhos/novo') setShowNewCart(true);
+    if (location.pathname === "/carrinhos/novo") setShowNewCart(true);
   }, [location.pathname]);
 
   const [cartNotesOpen, setCartNotesOpen] = useState(false);
-  const [localCartNotes, setLocalCartNotes] = useState('');
+  const [localCartNotes, setLocalCartNotes] = useState("");
   const debounceNotesRef = useRef<ReturnType<typeof setTimeout>>();
 
   const stockMap = useMemo(() => {
@@ -103,39 +59,27 @@ export function useSellerCartsPage() {
     let totalWeightG = 0;
     let totalVolumeCm3 = 0;
     let hasData = false;
-    activeCart.items.forEach((item) => {
-      const product = allProducts.find((p: { id: string }) => p.id === item.product_id) as
-        | { dimensions?: { weight_g?: number }; boxVolumeCm3?: number }
-        | undefined;
+    activeCart.items.forEach(item => {
+      const product = allProducts.find((p: { id: string }) => p.id === item.product_id) as { dimensions?: { weight_g?: number }; boxVolumeCm3?: number } | undefined;
       if (!product) return;
       const weight = product.dimensions?.weight_g || 0;
       const volume = product.boxVolumeCm3 || 0;
-      if (weight > 0) {
-        totalWeightG += weight * item.quantity;
-        hasData = true;
-      }
-      if (volume > 0) {
-        totalVolumeCm3 += volume * item.quantity;
-        hasData = true;
-      }
+      if (weight > 0) { totalWeightG += weight * item.quantity; hasData = true; }
+      if (volume > 0) { totalVolumeCm3 += volume * item.quantity; hasData = true; }
     });
     if (!hasData) return null;
-    return {
-      weightKg: totalWeightG / 1000,
-      volumeM3: totalVolumeCm3 / 1000000,
-      volumeCm3: totalVolumeCm3,
-    };
+    return { weightKg: totalWeightG / 1000, volumeM3: totalVolumeCm3 / 1000000, volumeCm3: totalVolumeCm3 };
   }, [activeCart, allProducts]);
 
   useEffect(() => {
     if (routeCartId && carts.length > 0) {
-      const found = carts.find((c) => c.id === routeCartId);
+      const found = carts.find(c => c.id === routeCartId);
       if (found) setActiveCartId(routeCartId);
     }
   }, [routeCartId, carts, setActiveCartId]);
 
   useEffect(() => {
-    setLocalCartNotes(activeCart?.notes || '');
+    setLocalCartNotes(activeCart?.notes || "");
     setCartNotesOpen(!!activeCart?.notes);
   }, [activeCart?.id, activeCart?.notes]);
 
@@ -149,121 +93,77 @@ export function useSellerCartsPage() {
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
-  const [itemsSortBy, setItemsSortBy] = useState<string>('manual');
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id || !activeCart) return;
+    const items = activeCart.items;
+    const oldIndex = items.findIndex(i => i.id === active.id);
+    const newIndex = items.findIndex(i => i.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+    const reordered = arrayMove(items, oldIndex, newIndex);
+    updateItemSortOrder(reordered.map((item, idx) => ({ id: item.id, sort_order: idx })));
+  }, [activeCart, updateItemSortOrder]);
 
-  const handleDragEnd = useCallback(
-    (event: DragEndEvent) => {
-      const { active, over } = event;
-      if (!over || active.id === over.id || !activeCart) return;
+  const handleRemoveItem = useCallback((itemId: string, itemName: string) => {
+    const item = activeCart?.items.find(i => i.id === itemId);
+    removeItem(itemId);
+    if (item && activeCart) {
+      recordAction(activeCart.id, { type: "remove", itemName, time: new Date() });
+      showUndoToast({
+        title: `${itemName} removido`,
+        description: activeCart.company_name,
+        onUndo: () => {
+          addToActiveCart({
+            product_id: item.product_id, product_name: item.product_name,
+            product_sku: item.product_sku || undefined, product_image_url: item.product_image_url || undefined,
+            product_price: item.product_price, quantity: item.quantity,
+            color_name: item.color_name || undefined, color_hex: item.color_hex || undefined,
+          });
+        },
+      });
+    }
+  }, [removeItem, activeCart, addToActiveCart]);
 
-      // Solo permitir reordenar manualmente si el modo de ordenación es "manual"
-      if (itemsSortBy !== 'manual') {
-        toast.error("Mude para ordenação 'Manual' para arrastar os itens");
-        return;
-      }
+  const handleUpdateQuantity = useCallback((itemId: string, qty: number) => {
+    updateItemQuantity(itemId, qty);
+    const item = activeCart?.items.find(i => i.id === itemId);
+    if (item && activeCart) {
+      recordAction(activeCart.id, { type: "qty", itemName: item.product_name, detail: `${qty}`, time: new Date() });
+    }
+  }, [updateItemQuantity, activeCart]);
 
-      const items = activeCart.items;
-      const oldIndex = items.findIndex((i) => i.id === active.id);
-      const newIndex = items.findIndex((i) => i.id === over.id);
-      if (oldIndex === -1 || newIndex === -1) return;
+  const handleMoveItem = useCallback((itemId: string, targetCartId: string) => {
+    const item = activeCart?.items.find(i => i.id === itemId);
+    const targetCart = carts.find(c => c.id === targetCartId);
+    moveItemToCart(itemId, targetCartId);
+    if (item && activeCart) {
+      recordAction(activeCart.id, { type: "move", itemName: item.product_name, detail: targetCart?.company_name, time: new Date() });
+    }
+  }, [moveItemToCart, activeCart, carts]);
 
-      const reordered = arrayMove(items, oldIndex, newIndex);
-      updateItemSortOrder(reordered.map((item, idx) => ({ id: item.id, sort_order: idx })));
-    },
-    [activeCart, updateItemSortOrder, itemsSortBy],
-  );
-
-  const handleRemoveItem = useCallback(
-    (itemId: string, itemName: string) => {
-      const item = activeCart?.items.find((i) => i.id === itemId);
-      removeItem(itemId);
-      if (item && activeCart) {
-        recordAction(activeCart.id, { type: 'remove', itemName, time: new Date() });
-        showUndoToast({
-          title: `${itemName} removido`,
-          description: activeCart.company_name,
-          onUndo: () => {
-            addToActiveCart({
-              product_id: item.product_id,
-              product_name: item.product_name,
-              product_sku: item.product_sku || undefined,
-              product_image_url: item.product_image_url || undefined,
-              product_price: item.product_price,
-              quantity: item.quantity,
-              color_name: item.color_name || undefined,
-              color_hex: item.color_hex || undefined,
-            });
-          },
-        });
-      }
-    },
-    [removeItem, activeCart, addToActiveCart],
-  );
-
-  const handleUpdateQuantity = useCallback(
-    (itemId: string, qty: number) => {
-      updateItemQuantity(itemId, qty);
-      const item = activeCart?.items.find((i) => i.id === itemId);
-      if (item && activeCart) {
-        recordAction(activeCart.id, {
-          type: 'qty',
-          itemName: item.product_name,
-          detail: `${qty}`,
-          time: new Date(),
-        });
-      }
-    },
-    [updateItemQuantity, activeCart],
-  );
-
-  const handleMoveItem = useCallback(
-    (itemId: string, targetCartId: string) => {
-      const item = activeCart?.items.find((i) => i.id === itemId);
-      const targetCart = carts.find((c) => c.id === targetCartId);
-      moveItemToCart(itemId, targetCartId);
-      if (item && activeCart) {
-        recordAction(activeCart.id, {
-          type: 'move',
-          itemName: item.product_name,
-          detail: targetCart?.company_name,
-          time: new Date(),
-        });
-      }
-    },
-    [moveItemToCart, activeCart, carts],
-  );
-
-  const handleDuplicateItem = useCallback(
-    (itemId: string, targetCartId: string) => {
-      const item = activeCart?.items.find((i) => i.id === itemId);
-      const targetCart = carts.find((c) => c.id === targetCartId);
-      duplicateItemToCart(itemId, targetCartId);
-      if (item && activeCart) {
-        recordAction(activeCart.id, {
-          type: 'duplicate',
-          itemName: item.product_name,
-          detail: targetCart?.company_name,
-          time: new Date(),
-        });
-      }
-    },
-    [duplicateItemToCart, activeCart, carts],
-  );
+  const handleDuplicateItem = useCallback((itemId: string, targetCartId: string) => {
+    const item = activeCart?.items.find(i => i.id === itemId);
+    const targetCart = carts.find(c => c.id === targetCartId);
+    duplicateItemToCart(itemId, targetCartId);
+    if (item && activeCart) {
+      recordAction(activeCart.id, { type: "duplicate", itemName: item.product_name, detail: targetCart?.company_name, time: new Date() });
+    }
+  }, [duplicateItemToCart, activeCart, carts]);
 
   const handleClearCart = useCallback(() => {
     if (!activeCart) return;
     const itemsToRestore = [...activeCart.items];
     clearCart(activeCart.id);
-    recordAction(activeCart.id, { type: 'clear', itemName: 'todos os itens', time: new Date() });
-
+    recordAction(activeCart.id, { type: "clear", itemName: "todos os itens", time: new Date() });
+    
     showUndoToast({
       title: `Carrinho limpo`,
       description: activeCart.company_name,
       onUndo: () => {
-        const addItems = itemsToRestore.map((item) => ({
+        const addItems = itemsToRestore.map(item => ({
           product_id: item.product_id,
           product_name: item.product_name,
           product_sku: item.product_sku || undefined,
@@ -278,47 +178,28 @@ export function useSellerCartsPage() {
     });
   }, [clearCart, activeCart, addToActiveCart]);
 
-  const handleSaveTemplate = useCallback(
-    (name: string, description: string) => {
-      if (!activeCart) return;
-      const items: CartTemplateItem[] = activeCart.items.map((i) => ({
-        product_id: i.product_id,
-        product_name: i.product_name,
-        product_sku: i.product_sku || undefined,
-        product_image_url: i.product_image_url || undefined,
-        product_price: i.product_price,
-        quantity: i.quantity,
-        color_name: i.color_name || undefined,
-        color_hex: i.color_hex || undefined,
-      }));
-      saveTemplate.mutate({ name, description, items });
-    },
-    [activeCart, saveTemplate],
-  );
+  const handleSaveTemplate = useCallback((name: string, description: string) => {
+    if (!activeCart) return;
+    const items: CartTemplateItem[] = activeCart.items.map(i => ({
+      product_id: i.product_id, product_name: i.product_name,
+      product_sku: i.product_sku || undefined, product_image_url: i.product_image_url || undefined,
+      product_price: i.product_price, quantity: i.quantity,
+      color_name: i.color_name || undefined, color_hex: i.color_hex || undefined,
+    }));
+    saveTemplate.mutate({ name, description, items });
+  }, [activeCart, saveTemplate]);
 
-  const handleLoadTemplate = useCallback(
-    (items: CartTemplateItem[]) => {
-      // Calculamos o maior sort_order atual para adicionar os novos itens ao final
-      const currentMaxSortOrder =
-        activeCart?.items.reduce((max, i) => Math.max(max, i.sort_order ?? 0), -1) ?? -1;
-
-      items.forEach((item, index) => {
-        addToActiveCart({
-          product_id: item.product_id,
-          product_name: item.product_name,
-          product_sku: item.product_sku,
-          product_image_url: item.product_image_url,
-          product_price: item.product_price,
-          quantity: item.quantity,
-          color_name: item.color_name,
-          color_hex: item.color_hex,
-          sort_order: currentMaxSortOrder + 1 + index,
-        });
+  const handleLoadTemplate = useCallback((items: CartTemplateItem[]) => {
+    items.forEach(item => {
+      addToActiveCart({
+        product_id: item.product_id, product_name: item.product_name,
+        product_sku: item.product_sku, product_image_url: item.product_image_url,
+        product_price: item.product_price, quantity: item.quantity,
+        color_name: item.color_name, color_hex: item.color_hex,
       });
-      toast.success('Template aplicado ao carrinho');
-    },
-    [addToActiveCart, activeCart],
-  );
+    });
+    toast.success("Template aplicado ao carrinho");
+  }, [addToActiveCart]);
 
   const [confirmQuoteCart, setConfirmQuoteCart] = useState<SellerCart | null>(null);
   const [confirmDeleteCart, setConfirmDeleteCart] = useState(false);
@@ -330,22 +211,16 @@ export function useSellerCartsPage() {
 
   const confirmGenerateQuote = useCallback(() => {
     if (!confirmQuoteCart) return;
-    navigate('/orcamentos/novo', {
+    navigate("/orcamentos/novo", {
       state: {
-        fromCart: true,
-        cartId: confirmQuoteCart.id,
-        companyId: confirmQuoteCart.company_id,
-        companyName: confirmQuoteCart.company_name,
+        fromCart: true, cartId: confirmQuoteCart.id,
+        companyId: confirmQuoteCart.company_id, companyName: confirmQuoteCart.company_name,
         companyLocation: confirmQuoteCart.company_location,
-        items: confirmQuoteCart.items.map((i) => ({
-          product_id: i.product_id,
-          product_name: i.product_name,
-          product_sku: i.product_sku,
-          product_image_url: i.product_image_url,
-          unit_price: i.product_price,
-          quantity: i.quantity,
-          color_name: i.color_name,
-          color_hex: i.color_hex,
+        items: confirmQuoteCart.items.map(i => ({
+          product_id: i.product_id, product_name: i.product_name,
+          product_sku: i.product_sku, product_image_url: i.product_image_url,
+          unit_price: i.product_price, quantity: i.quantity,
+          color_name: i.color_name, color_hex: i.color_hex,
         })),
       },
     });
@@ -353,14 +228,9 @@ export function useSellerCartsPage() {
     setConfirmQuoteCart(null);
   }, [confirmQuoteCart, navigate, deleteCart]);
 
-  const otherCarts = useMemo(
-    () => carts.filter((c) => c.id !== activeCartId),
-    [carts, activeCartId],
-  );
+  const otherCarts = useMemo(() => carts.filter(c => c.id !== activeCartId), [carts, activeCartId]);
   const cartAge = activeCart ? differenceInDays(new Date(), new Date(activeCart.created_at)) : 0;
-  const cartSubtotal = activeCart
-    ? activeCart.items.reduce((s, i) => s + i.product_price * i.quantity, 0)
-    : 0;
+  const cartSubtotal = activeCart ? activeCart.items.reduce((s, i) => s + i.product_price * i.quantity, 0) : 0;
   const cartTotalQty = activeCart ? activeCart.items.reduce((s, i) => s + i.quantity, 0) : 0;
 
   const companyAccentColor = useMemo(() => {
@@ -369,221 +239,16 @@ export function useSellerCartsPage() {
     return cart.company_primary_color || null;
   }, [activeCart]);
 
-  const filteredCarts = useMemo(() => {
-    let result = [...carts];
-
-    // Global Search (Company or Product)
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      result = result.filter(
-        (c) =>
-          c.company_name.toLowerCase().includes(term) ||
-          c.items.some((i) => i.product_name.toLowerCase().includes(term)),
-      );
-    }
-
-    // Specific Company Filter
-    if (companyFilter !== 'all') {
-      result = result.filter((c) => c.company_name === companyFilter);
-    }
-
-    // Specific Product Filter (Autocomplete)
-    if (productFilter) {
-      const term = productFilter.toLowerCase();
-      result = result.filter((c) =>
-        c.items.some((i) => i.product_name.toLowerCase().includes(term)),
-      );
-    }
-
-    result.sort((a, b) => {
-      if (sortBy === 'date-desc')
-        return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
-      if (sortBy === 'date-asc')
-        return new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime();
-      if (sortBy === 'total-desc') {
-        const totalA = a.items.reduce((sum, i) => sum + i.product_price * i.quantity, 0);
-        const totalB = b.items.reduce((sum, i) => sum + i.product_price * i.quantity, 0);
-        return totalB - totalA;
-      }
-      if (sortBy === 'total-asc') {
-        const totalA = a.items.reduce((sum, i) => sum + i.product_price * i.quantity, 0);
-        const totalB = b.items.reduce((sum, i) => sum + i.product_price * i.quantity, 0);
-        return totalA - totalB;
-      }
-      return 0;
-    });
-
-    return result;
-  }, [carts, searchTerm, sortBy, companyFilter, productFilter]);
-
-  const sortedItems = useMemo(() => {
-    if (!activeCart) return [];
-    let items = [...activeCart.items];
-
-    if (itemsSortBy === 'manual') {
-      // Garantir ordem consistente por sort_order, fallback para id
-      return items.sort((a, b) => {
-        if (a.sort_order !== null && b.sort_order !== null) return a.sort_order - b.sort_order;
-        if (a.sort_order !== null) return -1;
-        if (b.sort_order !== null) return 1;
-        return a.id.localeCompare(b.id);
-      });
-    }
-
-    items.sort((a, b) => {
-      if (itemsSortBy === 'price-desc') return b.product_price - a.product_price;
-      if (itemsSortBy === 'price-asc') return a.product_price - b.product_price;
-      if (itemsSortBy === 'qty-desc') return b.quantity - a.quantity;
-      if (itemsSortBy === 'qty-asc') return a.quantity - b.quantity;
-      if (itemsSortBy === 'total-desc')
-        return b.product_price * b.quantity - a.product_price * a.quantity;
-      if (itemsSortBy === 'total-asc')
-        return a.product_price * a.quantity - b.product_price * b.quantity;
-      return 0;
-    });
-    return items;
-  }, [activeCart, itemsSortBy]);
-
-  const [selectedItemIds, setSelectedItemIds] = useState<Set<string>>(new Set());
-
-  const toggleItemSelection = useCallback((itemId: string) => {
-    setSelectedItemIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(itemId)) next.delete(itemId);
-      else next.add(itemId);
-      return next;
-    });
-  }, []);
-
-  const clearSelection = useCallback(() => setSelectedItemIds(new Set()), []);
-
-  const handleBulkRemove = useCallback(() => {
-    if (selectedItemIds.size === 0) return;
-    const count = selectedItemIds.size;
-    selectedItemIds.forEach((id) => removeItem(id));
-    toast.success(`${count} itens removidos do carrinho`);
-    clearSelection();
-  }, [selectedItemIds, removeItem, clearSelection]);
-
-  const handleBulkMove = useCallback(
-    (targetCartId: string) => {
-      if (selectedItemIds.size === 0) return;
-      const count = selectedItemIds.size;
-      const targetCart = carts.find((c) => c.id === targetCartId);
-      selectedItemIds.forEach((id) => moveItemToCart(id, targetCartId));
-      toast.success(`${count} itens movidos para ${targetCart?.company_name}`);
-      clearSelection();
-    },
-    [selectedItemIds, moveItemToCart, carts, clearSelection],
-  );
-
-  const handleBulkUpdateNotes = useCallback(
-    (notes: string) => {
-      if (selectedItemIds.size === 0) return;
-      const count = selectedItemIds.size;
-      const itemsToUpdate = Array.from(selectedItemIds);
-
-      // Atualizar cada item individualmente através da mutation do contexto
-      itemsToUpdate.forEach((id) => updateItemNotes(id, notes));
-
-      toast.success(`Notas atualizadas em ${count} itens`);
-      clearSelection();
-    },
-    [selectedItemIds, updateItemNotes, clearSelection],
-  );
-
-  const handleClearFilters = useCallback(() => {
-    setSearchTerm('');
-    setProductFilter('');
-    setCompanyFilter('all');
-    setSortBy('date-desc');
-  }, []);
-
-  const productSuggestions = useMemo(() => {
-    const names = new Set<string>();
-    carts.forEach((c) => {
-      c.items.forEach((i) => names.add(i.product_name));
-    });
-    return Array.from(names).sort();
-  }, [carts]);
-
   return {
-    navigate,
-    carts,
-    filteredCarts,
-    activeCart,
-    activeCartId,
-    isLoading,
-    totalItems,
-    canCreateCart,
-    setActiveCartId,
-    deleteCart,
-    removeItem,
-    updateItemQuantity,
-    updateItemNotes,
-    updateItemSortOrder,
-    updateCartNotes,
-    updateCartStatus,
-    duplicateCart,
-    moveItemToCart,
-    duplicateItemToCart,
-    clearCart,
-    restoreItems,
-    templates,
-    deleteTemplate,
-    allProducts,
-    showNewCart,
-    setShowNewCart,
-    cartNotesOpen,
-    setCartNotesOpen,
-    localCartNotes,
-    handleCartNotesChange,
-    stockMap,
-    weightVolume,
-    sensors,
-    handleDragEnd,
-    handleRemoveItem,
-    handleUpdateQuantity,
-    handleMoveItem,
-    handleDuplicateItem,
-    handleSaveTemplate,
-    handleLoadTemplate,
-    confirmQuoteCart,
-    setConfirmQuoteCart,
-    confirmDeleteCart,
-    setConfirmDeleteCart,
-    confirmClearCart,
-    setConfirmClearCart,
-    handleGenerateQuote,
-    confirmGenerateQuote,
-    handleClearCart,
-    otherCarts,
-    cartAge,
-    cartSubtotal,
-    cartTotalQty,
-    companyAccentColor,
-    isLoadingProducts,
-    exportCartToCSV,
-    exportCartToPDF,
-    shareCartLink,
-    searchTerm,
-    setSearchTerm,
-    sortBy,
-    setSortBy,
-    itemsSortBy,
-    setItemsSortBy,
-    sortedItems,
-    companyFilter,
-    setCompanyFilter,
-    productFilter,
-    setProductFilter,
-    handleClearFilters,
-    productSuggestions,
-    selectedItemIds,
-    toggleItemSelection,
-    clearSelection,
-    handleBulkRemove,
-    handleBulkMove,
-    handleBulkUpdateNotes,
+    navigate, carts, activeCart, activeCartId, isLoading, totalItems, canCreateCart,
+    setActiveCartId, deleteCart, removeItem, updateItemNotes, updateCartStatus, duplicateCart,
+    templates, deleteTemplate, allProducts, showNewCart, setShowNewCart,
+    cartNotesOpen, setCartNotesOpen, localCartNotes, handleCartNotesChange,
+    stockMap, weightVolume, sensors, handleDragEnd, handleRemoveItem, handleUpdateQuantity,
+    handleMoveItem, handleDuplicateItem, handleSaveTemplate, handleLoadTemplate,
+    confirmQuoteCart, setConfirmQuoteCart, confirmDeleteCart, setConfirmDeleteCart,
+    confirmClearCart, setConfirmClearCart, handleGenerateQuote, confirmGenerateQuote, handleClearCart,
+    otherCarts, cartAge, cartSubtotal, cartTotalQty, companyAccentColor, isLoadingProducts,
+    exportCartToCSV, exportCartToPDF, shareCartLink,
   };
 }

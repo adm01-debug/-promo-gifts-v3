@@ -1,17 +1,14 @@
 /**
  * quoteHelpers — Cálculos e payloads reutilizáveis de orçamentos
  */
-import type { TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
-import type { Quote, QuoteItem } from './quoteTypes';
+import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
+import type { Quote, QuoteItem } from "./quoteTypes";
 
 export function calculateQuoteTotals(quote: Partial<Quote>, items: QuoteItem[]) {
   // Subtotal real = soma direta dos itens + personalizações (sem markup)
   const realSubtotal = items.reduce((sum, item) => {
     const baseTotal = item.quantity * item.unit_price;
-    const persTotal = (item.personalizations || []).reduce(
-      (pSum, p) => pSum + (p.total_cost || 0),
-      0,
-    );
+    const persTotal = (item.personalizations || []).reduce((pSum, p) => pSum + (p.total_cost || 0), 0);
     return sum + baseTotal + persTotal;
   }, 0);
 
@@ -19,25 +16,23 @@ export function calculateQuoteTotals(quote: Partial<Quote>, items: QuoteItem[]) 
   const markup = Math.min(50, Math.max(0, quote.negotiation_markup_percent || 0));
 
   // Subtotal apresentado = subtotal real * (1 + markup/100). É o que o cliente vê e o que vai para o banco em `subtotal`.
-  const subtotal =
-    markup > 0 ? Math.round(realSubtotal * (1 + markup / 100) * 100) / 100 : realSubtotal;
+  const subtotal = markup > 0
+    ? Math.round(realSubtotal * (1 + markup / 100) * 100) / 100
+    : realSubtotal;
 
   // Desconto APARENTE aplicado sobre subtotal apresentado
   const discountAmount = quote.discount_percent
     ? subtotal * (quote.discount_percent / 100)
-    : quote.discount_amount || 0;
-  const shippingCostValue =
-    quote.shipping_type === 'fob' || quote.shipping_type === 'fob_pre'
-      ? quote.shipping_cost || 0
-      : 0;
+    : (quote.discount_amount || 0);
+  const shippingCostValue = (quote.shipping_type === "fob" || quote.shipping_type === "fob_pre")
+    ? (quote.shipping_cost || 0) : 0;
   const total = subtotal - discountAmount + shippingCostValue;
 
   // Desconto REAL: comparado ao subtotal real (usado para alçada)
   const finalBeforeShipping = subtotal - discountAmount;
-  const realDiscountPercent =
-    realSubtotal > 0
-      ? Math.round(((realSubtotal - finalBeforeShipping) / realSubtotal) * 10000) / 100
-      : 0;
+  const realDiscountPercent = realSubtotal > 0
+    ? Math.round(((realSubtotal - finalBeforeShipping) / realSubtotal) * 10000) / 100
+    : 0;
 
   return { subtotal, realSubtotal, discountAmount, total, realDiscountPercent, markup };
 }
@@ -46,8 +41,8 @@ export function buildInsertPayload(
   quote: Partial<Quote>,
   userId: string,
   orgId: string | null,
-  totals: { subtotal: number; discountAmount: number; total: number },
-): TablesInsert<'quotes'> {
+  totals: { subtotal: number; discountAmount: number; total: number }
+): TablesInsert<"quotes"> {
   return {
     client_id: quote.client_id || null,
     client_name: quote.client_name || null,
@@ -56,7 +51,7 @@ export function buildInsertPayload(
     client_company: quote.client_company || null,
     seller_id: userId,
     organization_id: orgId,
-    status: quote.status || 'draft',
+    status: quote.status || "draft",
     subtotal: totals.subtotal,
     discount_percent: quote.discount_percent || 0,
     discount_amount: totals.discountAmount,
@@ -74,8 +69,8 @@ export function buildInsertPayload(
 
 export function buildUpdatePayload(
   quote: Partial<Quote>,
-  totals: { subtotal: number; discountAmount: number; total: number },
-): TablesUpdate<'quotes'> {
+  totals: { subtotal: number; discountAmount: number; total: number }
+): TablesUpdate<"quotes"> {
   return {
     client_id: quote.client_id || null,
     client_name: quote.client_name || null,
@@ -101,8 +96,8 @@ export function buildUpdatePayload(
 
 export function buildItemsInsertPayload(
   items: QuoteItem[],
-  quoteId: string,
-): TablesInsert<'quote_items'>[] {
+  quoteId: string
+): TablesInsert<"quote_items">[] {
   return items.map((item, index) => ({
     quote_id: quoteId,
     product_id: item.product_id,
@@ -124,10 +119,10 @@ export function buildItemsInsertPayload(
 }
 
 export function buildPersonalizationsInsertPayload(
-  personalizations: NonNullable<QuoteItem['personalizations']>,
-  quoteItemId: string,
-): TablesInsert<'quote_item_personalizations'>[] {
-  return personalizations.map((p) => ({
+  personalizations: NonNullable<QuoteItem["personalizations"]>,
+  quoteItemId: string
+): TablesInsert<"quote_item_personalizations">[] {
+  return personalizations.map(p => ({
     quote_item_id: quoteItemId,
     technique_id: p.technique_id || null,
     technique_name: p.technique_name || null,
@@ -142,10 +137,6 @@ export function buildPersonalizationsInsertPayload(
 }
 
 export const STATUS_LABELS: Record<string, string> = {
-  draft: 'Rascunho',
-  pending: 'Pendente',
-  sent: 'Enviado',
-  approved: 'Aprovado',
-  rejected: 'Rejeitado',
-  expired: 'Expirado',
+  draft: "Rascunho", pending: "Pendente", sent: "Enviado",
+  approved: "Aprovado", rejected: "Rejeitado", expired: "Expirado",
 };

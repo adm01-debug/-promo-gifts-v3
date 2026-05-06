@@ -457,7 +457,7 @@ const diversityPreset: ThemePreset = {
     'sidebar-accent-foreground': '290 80% 35%',
     'sidebar-border': '330 40% 92%',
     'sidebar-ring': PRIDE_PINK,
-    // === GRADIENTES — RAINBOW ===
+    // === GRADIENTES — TODOS RAINBOW ===
     'gradient-primary': rainbowGrad,
     'gradient-secondary': rainbowGrad,
     'gradient-success': `linear-gradient(135deg, hsl(${PRIDE_GREEN}), hsl(${PRIDE_BLUE}))`,
@@ -499,7 +499,7 @@ const diversityPreset: ThemePreset = {
     'sidebar-accent-foreground': '290 85% 78%',
     'sidebar-border': '330 30% 18%',
     'sidebar-ring': '330 85% 60%',
-    // === GRADIENTES — RAINBOW ===
+    // === GRADIENTES — TODOS RAINBOW ===
     'gradient-primary': rainbowGrad,
     'gradient-secondary': rainbowGrad,
     'gradient-success': `linear-gradient(135deg, hsl(${PRIDE_GREEN}), hsl(${PRIDE_BLUE}))`,
@@ -551,7 +551,7 @@ function applyGxDarkSurfaces(preset: ThemePreset): ThemePreset {
   d.border = '265 18% 22%';
   d.secondary = '265 18% 17%';
   d.accent = '265 18% 17%';
-
+  
   // Tokens específicos mantendo a coesão visual e legibilidade
   d.surface = '265 22% 10%';
   d['surface-hover'] = '265 18% 17%';
@@ -562,7 +562,7 @@ function applyGxDarkSurfaces(preset: ThemePreset): ThemePreset {
   d.elevated = '265 18% 17%';
   d['elevated-hover'] = '265 18% 22%';
   d['gradient-surface'] = 'linear-gradient(180deg, hsl(265 22% 12%), hsl(265 24% 8%))';
-
+  
   // Garantir contraste do foreground em superfícies GX
   d.foreground = '210 40% 98%';
   d['muted-foreground'] = '215 20% 75%';

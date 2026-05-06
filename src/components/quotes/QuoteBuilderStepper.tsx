@@ -3,10 +3,10 @@
  * 4 etapas: Cliente → Itens → Condições → Revisão
  */
 
-import { Check, Building2, Package, CreditCard, FileCheck } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Check, Building2, Package, CreditCard, FileCheck } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-export type QuoteBuilderStep = 'client' | 'items' | 'conditions' | 'review';
+export type QuoteBuilderStep = "client" | "items" | "conditions" | "review";
 
 interface StepDef {
   id: QuoteBuilderStep;
@@ -15,10 +15,10 @@ interface StepDef {
 }
 
 const STEPS: StepDef[] = [
-  { id: 'client', label: 'Cliente', icon: Building2 },
-  { id: 'items', label: 'Itens', icon: Package },
-  { id: 'conditions', label: 'Condições', icon: CreditCard },
-  { id: 'review', label: 'Revisão', icon: FileCheck },
+  { id: "client", label: "Cliente", icon: Building2 },
+  { id: "items", label: "Itens", icon: Package },
+  { id: "conditions", label: "Condições", icon: CreditCard },
+  { id: "review", label: "Revisão", icon: FileCheck },
 ];
 
 interface QuoteBuilderStepperProps {
@@ -35,7 +35,7 @@ export function QuoteBuilderStepper({
   className,
 }: QuoteBuilderStepperProps) {
   return (
-    <div data-testid="quote-wizard" role="tablist" className={cn('w-full', className)}>
+    <div data-testid="quote-wizard" role="tablist" className={cn("w-full", className)}>
       <div className="flex items-center justify-between">
         {STEPS.map((step, index) => {
           const isCompleted = completedSteps.includes(step.id);
@@ -43,15 +43,17 @@ export function QuoteBuilderStepper({
           const Icon = step.icon;
 
           return (
-            <div key={step.id} className="flex flex-1 items-center">
+            <div key={step.id} className="flex items-center flex-1">
               <div className="flex flex-col items-center gap-1.5">
                 <div
                   className={cn(
-                    'flex h-10 w-10 items-center justify-center rounded-full border-2 transition-all duration-200',
-                    isCompleted && !isActive && 'border-primary bg-primary/20 text-primary',
+                    "w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-200",
+                    isCompleted && !isActive &&
+                      "bg-primary/20 border-primary text-primary",
                     isActive &&
-                      'scale-110 border-primary bg-primary text-primary-foreground shadow-md',
-                    !isCompleted && !isActive && 'border-border bg-muted/50 text-muted-foreground',
+                      "bg-primary border-primary text-primary-foreground scale-110 shadow-md",
+                    !isCompleted && !isActive &&
+                      "bg-muted/50 border-border text-muted-foreground"
                   )}
                 >
                   {isCompleted && !isActive ? (
@@ -62,10 +64,10 @@ export function QuoteBuilderStepper({
                 </div>
                 <span
                   className={cn(
-                    'whitespace-nowrap text-xs font-medium transition-colors',
-                    isActive && 'text-primary',
-                    isCompleted && !isActive && 'text-foreground',
-                    !isActive && !isCompleted && 'text-muted-foreground',
+                    "text-xs font-medium transition-colors whitespace-nowrap",
+                    isActive && "text-primary",
+                    isCompleted && !isActive && "text-foreground",
+                    !isActive && !isCompleted && "text-muted-foreground"
                   )}
                 >
                   {step.label}
@@ -74,13 +76,11 @@ export function QuoteBuilderStepper({
 
               {/* Connector line */}
               {index < STEPS.length - 1 && (
-                <div className="mx-3 mt-[-1rem] h-0.5 flex-1">
+                <div className="flex-1 h-0.5 mx-3 mt-[-1rem]">
                   <div
                     className={cn(
-                      'h-full rounded-full transition-all duration-300',
-                      STEPS.findIndex((s) => s.id === activeStep) > index
-                        ? 'bg-primary'
-                        : 'bg-border',
+                      "h-full rounded-full transition-all duration-300",
+                      STEPS.findIndex(s => s.id === activeStep) > index ? "bg-primary" : "bg-border"
                     )}
                   />
                 </div>

@@ -2,11 +2,11 @@
  * useFavoriteReactions — hook leve para registrar reactions anônimas no public list page.
  * Anon ID é mantido em cookie/localStorage por 30 dias.
  */
-import { useCallback, useEffect, useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { useCallback, useEffect, useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
-const ANON_KEY = 'fav-anon-id';
+const ANON_KEY = "fav-anon-id";
 
 function getAnonId(): string {
   try {
@@ -17,7 +17,7 @@ function getAnonId(): string {
     }
     return id;
   } catch {
-    return 'anon-' + Math.random().toString(36).slice(2);
+    return "anon-" + Math.random().toString(36).slice(2);
   }
 }
 
@@ -35,13 +35,13 @@ export function useFavoriteReactions(listId: string | null, listToken: string | 
   const [anonId] = useState<string>(() => getAnonId());
 
   const reactionsQuery = useQuery({
-    queryKey: ['fav-reactions', listId],
+    queryKey: ["fav-reactions", listId],
     queryFn: async (): Promise<ReactionRow[]> => {
       if (!listId) return [];
       const { data, error } = await supabase
-        .from('favorite_item_reactions')
-        .select('id, item_id, emoji, anon_id, created_at')
-        .eq('list_id', listId);
+        .from("favorite_item_reactions")
+        .select("id, item_id, emoji, anon_id, created_at")
+        .eq("list_id", listId);
       if (error) throw error;
       return (data ?? []) as ReactionRow[];
     },
@@ -50,12 +50,12 @@ export function useFavoriteReactions(listId: string | null, listToken: string | 
   });
 
   const react = useMutation({
-    mutationFn: async ({ itemId, emoji }: { itemId: string; emoji: '👍' | '❤️' | '🔥' | '💡' }) => {
-      if (!listToken) throw new Error('Lista não está pública');
+    mutationFn: async ({ itemId, emoji }: { itemId: string; emoji: "👍" | "❤️" | "🔥" | "💡" }) => {
+      if (!listToken) throw new Error("Lista não está pública");
       const url = `https://nmojwpihnslkssljowjh.supabase.co/functions/v1/favorites-public-react`;
       const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ list_token: listToken, item_id: itemId, emoji, anon_id: anonId }),
       });
       if (!res.ok) {
@@ -65,7 +65,7 @@ export function useFavoriteReactions(listId: string | null, listToken: string | 
       return res.json();
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['fav-reactions', listId] });
+      qc.invalidateQueries({ queryKey: ["fav-reactions", listId] });
     },
   });
 
@@ -80,13 +80,13 @@ export function useFavoriteReactions(listId: string | null, listToken: string | 
 /** Para o vendedor: lê apenas as reactions agregadas por item da própria lista. */
 export function useMyListReactions(listId: string | null) {
   return useQuery({
-    queryKey: ['fav-reactions-owner', listId],
+    queryKey: ["fav-reactions-owner", listId],
     queryFn: async (): Promise<Map<string, Record<string, number>>> => {
       if (!listId) return new Map();
       const { data, error } = await supabase
-        .from('favorite_item_reactions')
-        .select('item_id, emoji')
-        .eq('list_id', listId);
+        .from("favorite_item_reactions")
+        .select("item_id, emoji")
+        .eq("list_id", listId);
       if (error) throw error;
       const map = new Map<string, Record<string, number>>();
       (data ?? []).forEach((r: { item_id: string; emoji: string }) => {

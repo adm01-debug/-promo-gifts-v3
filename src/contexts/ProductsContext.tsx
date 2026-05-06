@@ -1,16 +1,10 @@
-import React, {
-  createContext,
-  useContext,
-  type ReactNode,
-  useMemo,
-  useCallback,
-  useState,
-  useEffect,
-  useRef,
-} from 'react';
-import { type Product, mapPromobrindToProduct } from '@/hooks/useProducts';
-import { fetchPromobrindProducts } from '@/lib/external-db';
-import { logger } from '@/lib/logger';
+import React, { createContext, useContext, type ReactNode, useMemo, useCallback, useState, useEffect, useRef } from "react";
+import { type Product } from "@/hooks/useProducts";
+import { fetchPromobrindProducts } from "@/lib/external-db";
+
+// Re-use the same mapping logic from useProducts
+import { mapPromobrindToProduct } from "@/hooks/useProducts";
+import { logger } from "@/lib/logger";
 
 interface ProductsContextType {
   /** Cached products (only those that have been requested) */
@@ -68,7 +62,7 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
 
       if (idsToFetch.length === 0) return;
 
-      idsToFetch.forEach((id) => fetchingRef.current.add(id));
+      idsToFetch.forEach(id => fetchingRef.current.add(id));
       if (mountedRef.current) setIsLoading(true);
 
       try {
@@ -79,35 +73,31 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
         const mapped = raw.map(mapPromobrindToProduct);
 
         if (mountedRef.current) {
-          setCache((prev) => {
+          setCache(prev => {
             const next = new Map(prev);
-            mapped.forEach((p) => next.set(p.id, p));
+            mapped.forEach(p => next.set(p.id, p));
             return next;
           });
         }
       } catch (err) {
         logger.warn('[ProductsContext] Failed to fetch products by IDs:', err);
       } finally {
-        idsToFetch.forEach((id) => fetchingRef.current.delete(id));
+        idsToFetch.forEach(id => fetchingRef.current.delete(id));
         if (mountedRef.current) setIsLoading(false);
       }
     }, 50); // 50ms batching window
   }, []);
 
   // Queue IDs for lazy fetching
-  const queueFetch = useCallback(
-    (ids: string[]) => {
-      const missing = ids.filter(
-        (id) =>
-          !cacheRef.current.has(id) && !fetchingRef.current.has(id) && !batchIdsRef.current.has(id),
-      );
-      if (missing.length === 0) return;
+  const queueFetch = useCallback((ids: string[]) => {
+    const missing = ids.filter(
+      id => !cacheRef.current.has(id) && !fetchingRef.current.has(id) && !batchIdsRef.current.has(id)
+    );
+    if (missing.length === 0) return;
 
-      missing.forEach((id) => batchIdsRef.current.add(id));
-      scheduleBatchFetch();
-    },
-    [scheduleBatchFetch],
-  );
+    missing.forEach(id => batchIdsRef.current.add(id));
+    scheduleBatchFetch();
+  }, [scheduleBatchFetch]);
 
   const getProductById = useCallback(
     (id: string): Product | undefined => {
@@ -117,7 +107,7 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
       }
       return cached;
     },
-    [queueFetch],
+    [queueFetch]
   );
 
   const getProductsByIds = useCallback(
@@ -140,13 +130,13 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
 
       return found;
     },
-    [queueFetch],
+    [queueFetch]
   );
 
   // Register products from external sources (e.g. page-level useProducts queries)
   const registerProducts = useCallback((products: Product[]) => {
     if (products.length === 0) return;
-    setCache((prev) => {
+    setCache(prev => {
       const next = new Map(prev);
       let changed = false;
       for (const p of products) {
@@ -163,9 +153,7 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
   const products = useMemo(() => [...cache.values()], [cache]);
 
   return (
-    <ProductsContext.Provider
-      value={{ products, isLoading, getProductById, getProductsByIds, registerProducts }}
-    >
+    <ProductsContext.Provider value={{ products, isLoading, getProductById, getProductsByIds, registerProducts }}>
       {children}
     </ProductsContext.Provider>
   );
@@ -174,7 +162,7 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
 export function useProductsContext() {
   const context = useContext(ProductsContext);
   if (context === undefined) {
-    throw new Error('useProductsContext must be used within a ProductsProvider');
+    throw new Error("useProductsContext must be used within a ProductsProvider");
   }
   return context;
 }

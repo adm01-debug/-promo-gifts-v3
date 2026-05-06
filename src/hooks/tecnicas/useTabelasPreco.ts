@@ -1,19 +1,22 @@
 /**
  * Hook: Tabelas de Preço
- *
+ * 
  * Responsável por: Busca e filtragem de tabelas de preço
  */
 import { useQuery } from '@tanstack/react-query';
 import { TABELAS_PRECO_QUERY_OPTIONS } from '@/lib/query-config';
 import { invokeExternalDb } from '@/lib/external-db';
-import { rawToTabelaPrecoTecnica, transformRawToTabelas } from '@/lib/personalization';
+import { 
+  rawToTabelaPrecoTecnica,
+  transformRawToTabelas 
+} from '@/lib/personalization';
 import { TECNICAS_QUERY_KEYS } from './keys';
-import type {
+import type { 
   TabelaPrecoTecnica,
   TabelaPrecoFiltros,
   CustomizationPriceTableRaw,
 } from '@/types/tecnica-unificada';
-import { logger } from '@/lib/logger';
+import { logger } from "@/lib/logger";
 
 /**
  * Lista de tabelas de preço com filtros
@@ -23,7 +26,7 @@ export function useTabelasPreco(filtros?: TabelaPrecoFiltros) {
     queryKey: [...TECNICAS_QUERY_KEYS.tabelasPreco(), filtros],
     queryFn: async (): Promise<TabelaPrecoTecnica[]> => {
       const filters: Record<string, unknown> = {};
-
+      
       if (filtros?.apenasAtivas) {
         filters.is_active = true;
       }
@@ -49,7 +52,7 @@ export function useTabelasPreco(filtros?: TabelaPrecoFiltros) {
 
       // Filtro de max_colors pós-query
       if (filtros?.maxCores !== undefined) {
-        tabelas = tabelas.filter((t) => t.maxCores === filtros.maxCores);
+        tabelas = tabelas.filter(t => t.maxCores === filtros.maxCores);
       }
 
       return tabelas;
@@ -119,7 +122,7 @@ export function useNomesTecnicasPreco() {
         filters: { is_active: true },
       });
 
-      const nomes = [...new Set(result.records.map((r) => r.customization_type_name))];
+      const nomes = [...new Set(result.records.map(r => r.customization_type_name))];
       return nomes.sort();
     },
     staleTime: 10 * 60 * 1000,
@@ -133,7 +136,7 @@ export async function buscarTabelaAdequada(
   nomeTecnica: string,
   cores: number,
   larguraCm?: number,
-  alturaCm?: number,
+  alturaCm?: number
 ): Promise<TabelaPrecoTecnica | null> {
   const result = await invokeExternalDb<CustomizationPriceTableRaw>({
     table: 'customization_price_tables',
@@ -145,7 +148,9 @@ export async function buscarTabelaAdequada(
   const tabelas = transformRawToTabelas(result.records);
 
   // Encontrar tabela que comporta o número de cores
-  let tabelaAdequada = tabelas.find((t) => t.maxCores !== null && t.maxCores >= cores);
+  let tabelaAdequada = tabelas.find(t => 
+    t.maxCores !== null && t.maxCores >= cores
+  );
 
   // Se não encontrou por cores, pegar a com mais cores disponível
   if (!tabelaAdequada && tabelas.length > 0) {

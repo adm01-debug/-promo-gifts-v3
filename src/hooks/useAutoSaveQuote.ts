@@ -1,8 +1,4 @@
-import { useEffect, useRef } from 'react';
-import { createClientLogger } from '@/lib/telemetry/structuredLogger';
-
-const log = createClientLogger('hooks.useAutoSaveQuote');
-
+import { useEffect, useRef } from "react";
 
 // Versão atual do schema do payload de AutoSave
 // Incrementar sempre que houver mudança que quebre rascunhos antigos
@@ -20,42 +16,35 @@ interface AutoSaveOptions<T> {
   onRestore?: (data: T) => void;
   debounceMs?: number;
   key?: string;
-  onSaveServer?: (data: T) => Promise<boolean>;
 }
 
 /**
  * Migra dados de versões antigas para a versão atual.
  */
-export function migratePayload<T>(
-  payload: unknown,
-  currentVersion: number = AUTOSAVE_SCHEMA_VERSION,
-): AutoSavePayload<T> | null {
+export function migratePayload<T>(payload: any, currentVersion: number = AUTOSAVE_SCHEMA_VERSION): AutoSavePayload<T> | null {
   if (!payload) return null;
 
-  const typedPayload = payload as Record<string, unknown>;
-
   // Se for um payload antigo sem versão (v1)
-  if (!typedPayload.version) {
-    log.info('migration_v1_to_v2_started');
+  if (!payload.version) {
+    console.log("[AutoSave] Migrating from v1 to v2");
     return {
       version: currentVersion,
       data: payload as T, // Antigamente o payload era o próprio data
-      savedAt: new Date().toISOString(),
+      savedAt: new Date().toISOString()
     };
   }
 
-  // Se a versão do payload for maior que a atual, tratamos como inseguro
+  // Se a versão do payload for maior que a atual, tratamos como inseguro 
   // e retornamos null para evitar corrupção de estado (o usuário perderá o rascunho, mas não quebrará o app)
-  if (typedPayload.version > currentVersion) {
-    log.warn('future_version_detected', { payloadVersion: typedPayload.version, currentVersion });
+  if (payload.version > currentVersion) {
+    console.warn("[AutoSave] Future payload version detected, skipping restore to prevent state corruption");
     return null;
   }
 
-
   // Adicione futuras migrações aqui:
-  // if (typedPayload.version === 2) { ... migrate to 3 ... }
+  // if (payload.version === 2) { ... migrate to 3 ... }
 
-  return typedPayload as AutoSavePayload<T>;
+  return payload as AutoSavePayload<T>;
 }
 
 /**
@@ -66,30 +55,29 @@ export function useAutoSaveQuote<T>({
   data,
   onRestore,
   debounceMs = 2000,
-  key = 'quote_builder_autosave',
-  onSaveServer,
+  key = "quote_builder_autosave"
 }: AutoSaveOptions<T>) {
-  const lastSavedRef = useRef<string>('');
+  const lastSavedRef = useRef<string>("");
 
   // Efeito de carregamento inicial (Restaurar)
   useEffect(() => {
     if (!enabled) return;
-
+    
     const saved = localStorage.getItem(key);
     if (saved) {
       try {
-        const payload = JSON.parse(saved);
-
+        let payload = JSON.parse(saved);
+        
         // Aplica migrações se necessário
         const migrated = migratePayload<T>(payload);
-
+        
         if (migrated && migrated.data && onRestore) {
           onRestore(migrated.data);
           // Atualiza o lastSavedRef para evitar salvar logo em seguida se nada mudou
           lastSavedRef.current = JSON.stringify(migrated.data);
         }
       } catch (e) {
-        log.error('parse_failed', { err: e });
+        console.error("Failed to parse/migrate autosave data", e);
       }
     }
   }, [enabled, key, onRestore]); // Adicionado dependências seguras
@@ -98,40 +86,30 @@ export function useAutoSaveQuote<T>({
   useEffect(() => {
     if (!enabled) return;
 
-    const timer = setTimeout(async () => {
+    const timer = setTimeout(() => {
       const stringData = JSON.stringify(data);
-
+      
       // Evita salvar se nada mudou
       if (stringData === lastSavedRef.current) return;
 
       const payload: AutoSavePayload<T> = {
         version: AUTOSAVE_SCHEMA_VERSION,
         data: data,
-        savedAt: new Date().toISOString(),
+        savedAt: new Date().toISOString()
       };
 
-      // 1. LocalStorage (Instantâneo/Offline)
       localStorage.setItem(key, JSON.stringify(payload));
       lastSavedRef.current = stringData;
-
-      // 2. Servidor (Opcional - Robusto)
-      if (onSaveServer) {
-        try {
-          await onSaveServer(data);
-        } catch (e) {
-          log.warn('server_sync_failed', { err: e });
-        }
-      }
-
-      log.info('quote_saved', { version: AUTOSAVE_SCHEMA_VERSION });
+      
+      console.log(`[AutoSave] Quote saved to localStorage (v${AUTOSAVE_SCHEMA_VERSION})`);
     }, debounceMs);
 
     return () => clearTimeout(timer);
-  }, [data, enabled, key, debounceMs, onSaveServer]);
+  }, [data, enabled, key, debounceMs]);
 
   const clearAutoSave = () => {
     localStorage.removeItem(key);
-    lastSavedRef.current = '';
+    lastSavedRef.current = "";
   };
 
   return { clearAutoSave };

@@ -1,16 +1,11 @@
-import { RatioSample } from './useNotificationsMetricsPanel';
+import { RatioSample } from "./useNotificationsMetricsPanel";
 
 /**
  * Build the SVG `points` string for a polyline that fits the samples in a
  * `width × height` box. Returns an empty string if there's nothing to draw.
  */
-export function buildSparkPath(
-  samples: RatioSample[],
-  width: number,
-  height: number,
-  windowSeconds: number,
-): string {
-  if (samples.length === 0) return '';
+export function buildSparkPath(samples: RatioSample[], width: number, height: number, windowSeconds: number): string {
+  if (samples.length === 0) return "";
   const n = windowSeconds;
   // X-axis: index 0 = oldest, index n-1 = newest. Right-align so newest sits
   // at the right edge regardless of how many samples we have.
@@ -23,7 +18,7 @@ export function buildSparkPath(
       const y = height - Math.min(1, s.ratio) * height;
       return `${x.toFixed(1)},${y.toFixed(1)}`;
     })
-    .join(' ');
+    .join(" ");
 }
 
 /**
@@ -33,21 +28,21 @@ export function buildSparkPath(
  *   - >0.7 = suspicious (debounce/TTL not coalescing — investigate)
  */
 export function ratioTone(ratio: number, triggers: number): string {
-  if (triggers === 0) return 'text-muted-foreground';
-  if (ratio < 0.3) return 'text-primary';
-  if (ratio < 0.7) return 'text-foreground';
-  return 'text-warning';
+  if (triggers === 0) return "text-muted-foreground";
+  if (ratio < 0.3) return "text-primary";
+  if (ratio < 0.7) return "text-foreground";
+  return "text-warning";
 }
 
 export function fmtMs(v: number | null | undefined): string {
-  if (v === null || v === undefined) return '—';
-  if (v < 1) return '<1ms';
+  if (v === null || v === undefined) return "—";
+  if (v < 1) return "<1ms";
   if (v < 1000) return `${Math.round(v)}ms`;
   return `${(v / 1000).toFixed(2)}s`;
 }
 
 export function fmtAge(ms: number | null): string {
-  if (ms === null) return '—';
+  if (ms === null) return "—";
   if (ms < 1000) return `${ms}ms`;
   if (ms < 60_000) return `${Math.round(ms / 1000)}s`;
   return `${Math.round(ms / 60_000)}m`;
@@ -56,11 +51,11 @@ export function fmtAge(ms: number | null): string {
 /** Trigger a JSON Blob download. */
 export const downloadJson = (filenameStem: string, payload: unknown) => {
   try {
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
-    a.download = `${filenameStem}-${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
+    a.download = `${filenameStem}-${new Date().toISOString().replace(/[:.]/g, "-")}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -68,6 +63,6 @@ export const downloadJson = (filenameStem: string, payload: unknown) => {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   } catch (err) {
     // eslint-disable-next-line no-console
-    console.error('[NotificationsBadgeStatsPanel] export failed', err);
+    console.error("[NotificationsBadgeStatsPanel] export failed", err);
   }
 };

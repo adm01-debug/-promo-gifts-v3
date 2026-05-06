@@ -1,26 +1,22 @@
 /**
  * Shared types for product registration form
  */
-import { z } from 'zod';
+import { z } from "zod";
 
 export const productFormSchema = z.object({
-  name: z.string().min(3, 'Nome deve ter pelo menos 3 caracteres'),
-  sku: z.string().min(2, 'SKU deve ter pelo menos 2 caracteres'),
-  price: z.number().min(0.01, 'Preço deve ser maior que zero'),
-  supplier_id: z.string().min(1, 'Selecione um fornecedor'),
-  category_id: z.string().min(1, 'Selecione uma categoria'),
-  images: z
-    .array(
-      z.object({
-        url: z.string().url('URL inválida'),
-        alt_text: z.string().optional(),
-        is_primary: z.boolean().optional(),
-        image_type: z.enum(['main', 'gallery', 'detail', 'mockup']).optional(),
-      }),
-    )
-    .min(1, 'Adicione pelo menos uma imagem'),
-  colors: z.array(z.string()).min(1, 'Selecione pelo menos uma cor'),
-  materials: z.array(z.string()).min(1, 'Selecione pelo menos um material'),
+  name: z.string().min(3, "Nome deve ter pelo menos 3 caracteres"),
+  sku: z.string().min(2, "SKU deve ter pelo menos 2 caracteres"),
+  price: z.number().min(0.01, "Preço deve ser maior que zero"),
+  supplier_id: z.string().min(1, "Selecione um fornecedor"),
+  category_id: z.string().min(1, "Selecione uma categoria"),
+  images: z.array(z.object({
+    url: z.string().url("URL inválida"),
+    alt_text: z.string().optional(),
+    is_primary: z.boolean().optional(),
+    image_type: z.enum(["main", "gallery", "detail", "mockup"]).optional(),
+  })).min(1, "Adicione pelo menos uma imagem"),
+  colors: z.array(z.string()).min(1, "Selecione pelo menos uma cor"),
+  materials: z.array(z.string()).min(1, "Selecione pelo menos um material"),
   description: z.string().optional(),
   short_description: z.string().optional(),
   cost_price: z.number().optional(),

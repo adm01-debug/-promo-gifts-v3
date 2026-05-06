@@ -48,9 +48,7 @@ const warnedKeys = new Set<string>();
 
 function publishStats() {
   if (typeof window !== 'undefined') {
-    (
-      window as unknown as { __personalizationSchemaStats?: FullSchemaStats }
-    ).__personalizationSchemaStats = {
+    (window as unknown as { __personalizationSchemaStats?: FullSchemaStats }).__personalizationSchemaStats = {
       ...stats,
       legacyFieldsSeen: { ...legacyFieldsSeen },
       contractMismatches: { ...contractMismatches },
@@ -95,6 +93,7 @@ export function getRecentMismatches(): ReadonlyArray<ContractMismatchEntry> {
   return [...recentMismatches];
 }
 
+
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
@@ -102,9 +101,7 @@ function isObject(value: unknown): value is Record<string, unknown> {
 /**
  * Detecta a versão do payload retornado por `fn_get_customization_price`.
  */
-export function detectPriceSchema(
-  resp: Record<string, unknown> | null | undefined,
-): PriceSchemaVersion {
+export function detectPriceSchema(resp: Record<string, unknown> | null | undefined): PriceSchemaVersion {
   if (!resp || !isObject(resp)) {
     bumpStat('unknown');
     return 'unknown';

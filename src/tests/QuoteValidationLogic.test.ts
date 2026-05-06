@@ -14,7 +14,7 @@ describe('Quote Validation Logic Audit', () => {
 
     const result = quoteFormSchema.safeParse(data);
     expect(result.success).toBe(false);
-
+    
     const errors = !result.success ? result.error.flatten().fieldErrors : {};
     expect(errors.shippingCost).toContain('Valor do frete é obrigatório para modalidade FOB');
   });
@@ -26,7 +26,7 @@ describe('Quote Validation Logic Audit', () => {
       paymentTerms: '30 dias',
       deliveryTime: '10 dias',
       shippingType: 'cif',
-      discountValue: 0,
+      discountValue: 0
     };
 
     const result = quoteFormSchema.safeParse(data);
@@ -38,16 +38,16 @@ describe('Quote Validation Logic Audit', () => {
       product_id: 'prod-1',
       product_name: 'Garrafa',
       quantity: 50,
-      unit_price: 15.5,
+      unit_price: 15.5
     };
-
+    
     expect(quoteItemSchema.safeParse(validItem).success).toBe(true);
 
     const invalidItem = {
       product_id: '',
       product_name: 'Garrafa',
       quantity: 0, // invalid
-      unit_price: -1, // invalid
+      unit_price: -1 // invalid
     };
 
     const result = quoteItemSchema.safeParse(invalidItem);
@@ -62,7 +62,7 @@ describe('Quote Validation Logic Audit', () => {
       paymentTerms: '30 dias',
       deliveryTime: '10 dias',
       shippingType: 'cif',
-      notes: longNotes,
+      notes: longNotes
     };
 
     const result = quoteFormSchema.safeParse(data);

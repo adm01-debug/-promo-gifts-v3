@@ -24,26 +24,30 @@ interface ErrorHandlerOptions {
  *   try { ... } catch (e) { handleError(e, { message: 'Falha ao salvar' }); }
  */
 export function useErrorHandler() {
-  const handleError = useCallback((error: unknown, options?: ErrorHandlerOptions) => {
-    const scope = options?.message ? 'useErrorHandler.custom' : 'useErrorHandler.generic';
-    const log = createClientLogger(scope);
+  const handleError = useCallback(
+    (error: unknown, options?: ErrorHandlerOptions) => {
+      const scope = options?.message ? 'useErrorHandler.custom' : 'useErrorHandler.generic';
+      const log = createClientLogger(scope);
+      
+      const msg =
+        options?.message ||
+        (error instanceof Error ? error.message : 'Ocorreu um erro inesperado');
 
-    const msg =
-      options?.message || (error instanceof Error ? error.message : 'Ocorreu um erro inesperado');
+      // Log estruturado com suporte a Sentry e Correlação
+      log.error('error_captured', { 
+        err: error, 
+        custom_message: options?.message,
+        silent: options?.silent 
+      });
 
-    // Log estruturado com suporte a Sentry e Correlação
-    log.error('error_captured', {
-      err: error,
-      custom_message: options?.message,
-      silent: options?.silent,
-    });
+      if (!options?.silent) {
+        toast.error(msg);
+      }
 
-    if (!options?.silent) {
-      toast.error(msg);
-    }
-
-    options?.onError?.(error);
-  }, []);
+      options?.onError?.(error);
+    },
+    []
+  );
 
   /**
    * Wraps an async function so any thrown error is automatically handled.
@@ -51,7 +55,7 @@ export function useErrorHandler() {
   const wrapAsync = useCallback(
     <T extends (...args: never[]) => Promise<unknown>>(
       fn: T,
-      options?: ErrorHandlerOptions,
+      options?: ErrorHandlerOptions
     ): ((...args: Parameters<T>) => Promise<ReturnType<T> | undefined>) => {
       return async (...args: Parameters<T>) => {
         try {
@@ -62,7 +66,7 @@ export function useErrorHandler() {
         }
       };
     },
-    [handleError],
+    [handleError]
   );
 
   return { handleError, wrapAsync };

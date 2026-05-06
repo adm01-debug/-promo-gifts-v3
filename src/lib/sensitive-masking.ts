@@ -5,9 +5,9 @@
  * conter listas de produtos.
  *
  * Princípios de consistência:
- *  - Largura fixa: o valor mascarado é renderizado como `••••XXXX`
+ *  - Largura fixa: TODO valor mascarado é renderizado como `••••XXXX`
  *    (4 bullets + 4 caracteres do sufixo real), garantindo alinhamento
- *    visual e impedindo inferências de tamanho (exceto para valores curtíssimos).
+ *    visual e impedindo inferências de tamanho.
  *  - Caracteres uniformes: usamos sempre o bullet U+2022 ("•") como filler.
  *    Nunca asteriscos misturados, nunca padding variável.
  *  - Cobertura ampla: mascara JWTs (eyJ…), URLs supabase.co, query params
@@ -16,7 +16,7 @@
  *  - Idempotente: aplicar duas vezes não introduz ruído extra.
  */
 
-const BULLET = '\u2022';
+const BULLET = "\u2022";
 const FILL = BULLET.repeat(4);
 
 /** Sufixo padronizado para qualquer segredo — sempre 4 chars + 4 bullets. */
@@ -97,16 +97,8 @@ export function containsSensitive(text: string | null | undefined): boolean {
   if (!text) return false;
   if (/eyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}/.test(text)) return true;
   if (/https?:\/\/[a-z0-9]{16,}\.supabase\.(co|in)/i.test(text)) return true;
-  if (
-    /[?&](?:auth|apikey|api_key|token|access_token|refresh_token|key|secret)=[^&#\s"']+/i.test(text)
-  )
-    return true;
-  if (
-    /"(?:authorization|apikey|api_key|token|access_token|refresh_token|password|secret|service_role|service_role_key|anon_key)"\s*:\s*"[^"•]+"/i.test(
-      text,
-    )
-  )
-    return true;
+  if (/[?&](?:auth|apikey|api_key|token|access_token|refresh_token|key|secret)=[^&#\s"']+/i.test(text)) return true;
+  if (/"(?:authorization|apikey|api_key|token|access_token|refresh_token|password|secret|service_role|service_role_key|anon_key)"\s*:\s*"[^"•]+"/i.test(text)) return true;
   if (/Bearer\s+[A-Za-z0-9._-]{8,}/.test(text) && !/Bearer\s+\u2022{4}/.test(text)) return true;
   return false;
 }

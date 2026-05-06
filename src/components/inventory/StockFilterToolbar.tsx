@@ -2,44 +2,33 @@
  * StockFilterToolbar — Advanced filter bar for Stock Dashboard
  * Uses same FilterSection architecture as Super Filtro
  */
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from "react";
 import {
-  Search,
-  X,
-  Building2,
-  Palette,
-  PackageCheck,
-  Package,
-  ShoppingCart,
-  AlertTriangle,
-  SlidersHorizontal,
-  Sparkles,
-  LayoutGrid,
-  Filter,
-  Truck,
-} from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+  Search, X, Building2, Palette, PackageCheck, Package,
+  ShoppingCart, AlertTriangle, SlidersHorizontal, Sparkles, LayoutGrid, Filter, Truck,
+} from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Popover, PopoverContent, PopoverTrigger, PopoverClose } from '@/components/ui/popover';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { RotateCcw } from 'lucide-react';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { cn } from '@/lib/utils';
-import { InlineColorGroupFilter } from '@/components/filters/InlineColorGroupFilter';
-import { ExternalCategoryFilter } from '@/components/filters/ExternalCategoryFilter';
-import { DebouncedPriceInput } from '@/components/filters/DebouncedPriceInput';
-import { FilterSection } from '@/components/filters/FilterSection';
-import type { StockFilters, StockStatus } from '@/types/stock';
-import { motion, AnimatePresence } from 'framer-motion';
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import {
+  Popover, PopoverContent, PopoverTrigger, PopoverClose,
+} from "@/components/ui/popover";
+import {
+  Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { RotateCcw } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
+import { InlineColorGroupFilter } from "@/components/filters/InlineColorGroupFilter";
+import { ExternalCategoryFilter } from "@/components/filters/ExternalCategoryFilter";
+import { DebouncedPriceInput } from "@/components/filters/DebouncedPriceInput";
+import { FilterSection } from "@/components/filters/filter-panel/FilterSection";
+import type { StockFilters, StockStatus } from "@/types/stock";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface FilterOption {
   name: string;
@@ -58,60 +47,19 @@ interface StockFilterToolbarProps {
   filteredCount: number;
 }
 
-const STATUS_OPTIONS: {
-  value: StockStatus | 'all';
-  label: string;
-  icon: React.ReactNode;
-  color: string;
-}[] = [
-  {
-    value: 'all',
-    label: 'Todos',
-    icon: <PackageCheck className="h-3.5 w-3.5" />,
-    color: 'text-foreground',
-  },
-  {
-    value: 'in_stock',
-    label: 'Em Estoque',
-    icon: <PackageCheck className="h-3.5 w-3.5" />,
-    color: 'text-success',
-  },
-  {
-    value: 'low_stock',
-    label: 'Baixo',
-    icon: <AlertTriangle className="h-3.5 w-3.5" />,
-    color: 'text-warning',
-  },
-  {
-    value: 'critical',
-    label: 'Crítico',
-    icon: <AlertTriangle className="h-3.5 w-3.5" />,
-    color: 'text-destructive',
-  },
-  {
-    value: 'out_of_stock',
-    label: 'Esgotado',
-    icon: <X className="h-3.5 w-3.5" />,
-    color: 'text-destructive',
-  },
-  {
-    value: 'incoming',
-    label: 'Chegando',
-    icon: <ShoppingCart className="h-3.5 w-3.5" />,
-    color: 'text-primary',
-  },
+const STATUS_OPTIONS: { value: StockStatus | 'all'; label: string; icon: React.ReactNode; color: string }[] = [
+  { value: 'all', label: 'Todos', icon: <PackageCheck className="h-3.5 w-3.5" />, color: 'text-foreground' },
+  { value: 'in_stock', label: 'Em Estoque', icon: <PackageCheck className="h-3.5 w-3.5" />, color: 'text-success' },
+  { value: 'low_stock', label: 'Baixo', icon: <AlertTriangle className="h-3.5 w-3.5" />, color: 'text-warning' },
+  { value: 'critical', label: 'Crítico', icon: <AlertTriangle className="h-3.5 w-3.5" />, color: 'text-destructive' },
+  { value: 'out_of_stock', label: 'Esgotado', icon: <X className="h-3.5 w-3.5" />, color: 'text-destructive' },
+  { value: 'incoming', label: 'Chegando', icon: <ShoppingCart className="h-3.5 w-3.5" />, color: 'text-primary' },
 ];
 
 export function StockFilterToolbar({
-  filters,
-  onUpdateFilter,
-  onResetFilters,
-  categories,
-  suppliers,
-  colors,
-  colorGroups,
-  totalProducts,
-  filteredCount,
+  filters, onUpdateFilter, onResetFilters,
+  categories, suppliers, colors, colorGroups,
+  totalProducts, filteredCount,
 }: StockFilterToolbarProps) {
   const [localSearch, setLocalSearch] = useState(filters.search);
   const [quantityInput, setQuantityInput] = useState(filters.minQuantityNeeded?.toString() || '');
@@ -119,20 +67,17 @@ export function StockFilterToolbar({
 
   // Accordion behavior: only one section open at a time
   const toggleSection = (id: string) => {
-    setOpenSections((prev) => (prev.includes(id) ? [] : [id]));
+    setOpenSections(prev => prev.includes(id) ? [] : [id]);
   };
 
   // Section active counts
-  const sectionCounts = useMemo(
-    () => ({
-      cores: (filters.colorGroup ? 1 : 0) + (filters.colorName ? 1 : 0),
-      categorias: filters.categoryId ? 1 : 0,
-      estoque: filters.minQuantityNeeded && filters.minQuantityNeeded > 0 ? 1 : 0,
-      fornecedores: filters.supplierId ? 1 : 0,
-      ordenacao: filters.sortBy !== 'stock_quantity' ? 1 : 0,
-    }),
-    [filters],
-  );
+  const sectionCounts = useMemo(() => ({
+    cores: (filters.colorGroup ? 1 : 0) + (filters.colorName ? 1 : 0),
+    categorias: filters.categoryId ? 1 : 0,
+    estoque: (filters.minQuantityNeeded && filters.minQuantityNeeded > 0) ? 1 : 0,
+    fornecedores: filters.supplierId ? 1 : 0,
+    ordenacao: filters.sortBy !== 'stock_quantity' ? 1 : 0,
+  }), [filters]);
 
   // Debounce search
   useEffect(() => {
@@ -168,36 +113,29 @@ export function StockFilterToolbar({
   return (
     <div className="space-y-3">
       {/* Row 1: Search + Quick Filters */}
-      <div className="flex flex-col gap-3 lg:flex-row">
+      <div className="flex flex-col lg:flex-row gap-3">
         {/* 1. Advanced Filters Popover */}
         <Popover>
           <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              size="default"
-              className={cn(
-                'relative h-11 gap-2.5 border-border/60 px-5 text-[11px] font-bold uppercase tracking-widest transition-all hover:border-primary/50 hover:bg-primary/5',
-                activeFiltersCount > 0 && 'border-primary bg-primary/10 text-primary shadow-sm',
-              )}
-            >
+            <Button variant="outline" size="default" className={cn("gap-2.5 relative h-11 px-5 border-border/60 font-bold uppercase text-[11px] tracking-widest transition-all hover:border-primary/50 hover:bg-primary/5", activeFiltersCount > 0 && "border-primary bg-primary/10 text-primary shadow-sm")}>
               <SlidersHorizontal className="h-4 w-4" />
               <span>Filtros Avançados</span>
               {activeFiltersCount > 0 && (
-                <Badge className="h-5 min-w-5 border-none bg-primary px-1.5 text-[10px] text-primary-foreground shadow-md animate-in zoom-in-50">
+                <Badge className="bg-primary text-primary-foreground h-5 min-w-5 text-[10px] px-1.5 animate-in zoom-in-50 border-none shadow-md">
                   {activeFiltersCount}
                 </Badge>
               )}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-80 p-0" align="start">
-            <div className="scrollbar-thin scrollbar-thumb-muted-foreground/30 scrollbar-track-transparent max-h-[70vh] overflow-y-auto overscroll-contain">
+            <div className="max-h-[70vh] overflow-y-auto overscroll-contain scrollbar-thin scrollbar-thumb-muted-foreground/30 scrollbar-track-transparent">
               {/* Header with Reset + Fechar */}
-              <div className="flex items-center justify-between border-b border-border/40 px-3 py-2.5">
-                <h4 className="flex items-center gap-2 text-sm font-semibold">
+              <div className="flex items-center justify-between px-3 py-2.5 border-b border-border/40">
+                <h4 className="font-semibold text-sm flex items-center gap-2">
                   <SlidersHorizontal className="h-4 w-4" />
                   Filtros Avançados
                   {activeFiltersCount > 0 && (
-                    <span className="text-xs font-normal text-muted-foreground">
+                    <span className="text-xs text-muted-foreground font-normal">
                       ({filteredCount} de {totalProducts})
                     </span>
                   )}
@@ -208,13 +146,13 @@ export function StockFilterToolbar({
                     size="sm"
                     onClick={handleReset}
                     disabled={activeFiltersCount === 0}
-                    className="h-7 gap-1 px-2 text-xs text-muted-foreground hover:text-foreground"
+                    className="h-7 text-xs gap-1 text-muted-foreground hover:text-foreground px-2"
                   >
                     <RotateCcw className="h-3 w-3" />
                     Reset
                   </Button>
                   <PopoverClose asChild>
-                    <Button variant="outline" size="sm" className="h-7 px-2.5 text-xs">
+                    <Button variant="outline" size="sm" className="h-7 text-xs px-2.5">
                       Fechar
                     </Button>
                   </PopoverClose>
@@ -232,14 +170,9 @@ export function StockFilterToolbar({
                 activeSummary={filters.colorGroup || filters.colorName}
               >
                 <InlineColorGroupFilter
-                  selection={{
-                    groups: filters.colorGroup ? [filters.colorGroup] : [],
-                    variations: [],
-                    nuances: [],
-                  }}
+                  selection={{ groups: filters.colorGroup ? [filters.colorGroup] : [], variations: [], nuances: [] }}
                   onChange={(sel) => {
-                    const selected =
-                      sel.groups.length > 0 ? sel.groups[sel.groups.length - 1] : undefined;
+                    const selected = sel.groups.length > 0 ? sel.groups[sel.groups.length - 1] : undefined;
                     onUpdateFilter('colorGroup', selected);
                     onUpdateFilter('colorName', undefined);
                   }}
@@ -261,12 +194,7 @@ export function StockFilterToolbar({
               >
                 <ExternalCategoryFilter
                   selectedCategories={filters.categoryId ? [filters.categoryId] : []}
-                  onCategoriesChange={(cats) =>
-                    onUpdateFilter(
-                      'categoryId',
-                      cats.length > 0 ? cats[cats.length - 1] : undefined,
-                    )
-                  }
+                  onCategoriesChange={(cats) => onUpdateFilter('categoryId', cats.length > 0 ? cats[cats.length - 1] : undefined)}
                   compact
                 />
               </FilterSection>
@@ -279,28 +207,20 @@ export function StockFilterToolbar({
                 openSections={openSections}
                 onToggle={toggleSection}
                 activeCount={sectionCounts.estoque}
-                activeSummary={
-                  filters.minQuantityNeeded ? `≥${filters.minQuantityNeeded}` : undefined
-                }
+                activeSummary={filters.minQuantityNeeded ? `≥${filters.minQuantityNeeded}` : undefined}
               >
                 <div className="px-1">
                   <div className="flex items-center gap-2 text-sm">
-                    <span className="whitespace-nowrap text-xs text-muted-foreground">
-                      Mínimo por cor
-                    </span>
+                    <span className="text-muted-foreground text-xs whitespace-nowrap">Mínimo por cor</span>
                     <DebouncedPriceInput
                       value={filters.minQuantityNeeded || ''}
                       onChange={(v) => onUpdateFilter('minQuantityNeeded', v > 0 ? v : undefined)}
                       fallback={0}
                       placeholder="Ex: 500"
                       min={0}
-                      className={
-                        filters.minQuantityNeeded && filters.minQuantityNeeded > 0
-                          ? 'border-orange/60'
-                          : ''
-                      }
+                      className={filters.minQuantityNeeded && filters.minQuantityNeeded > 0 ? 'border-orange/60' : ''}
                     />
-                    <span className="text-xs text-muted-foreground">un.</span>
+                    <span className="text-muted-foreground text-xs">un.</span>
                   </div>
                 </div>
               </FilterSection>
@@ -317,18 +237,14 @@ export function StockFilterToolbar({
               >
                 <Select
                   value={filters.supplierId || '__all__'}
-                  onValueChange={(v) =>
-                    onUpdateFilter('supplierId', v === '__all__' ? undefined : v)
-                  }
+                  onValueChange={(v) => onUpdateFilter('supplierId', v === '__all__' ? undefined : v)}
                 >
                   <SelectTrigger className="h-8 text-xs">
                     <SelectValue placeholder="Todos os fornecedores" />
                   </SelectTrigger>
                   <SelectContent className="max-h-48 overflow-y-auto">
-                    <SelectItem value="__all__" className="text-xs">
-                      Todos ({totalProducts})
-                    </SelectItem>
-                    {suppliers.map((s) => (
+                    <SelectItem value="__all__" className="text-xs">Todos ({totalProducts})</SelectItem>
+                    {suppliers.map(s => (
                       <SelectItem key={s.name} value={s.name} className="text-xs">
                         {s.name} ({s.count})
                       </SelectItem>
@@ -338,8 +254,8 @@ export function StockFilterToolbar({
               </FilterSection>
 
               {/* Alerts toggle */}
-              <div className="flex items-center justify-between border-t border-border/40 px-3 py-2.5">
-                <Label className="flex cursor-pointer items-center gap-1.5 text-xs">
+              <div className="flex items-center justify-between px-3 py-2.5 border-t border-border/40">
+                <Label className="text-xs flex items-center gap-1.5 cursor-pointer">
                   <AlertTriangle className="h-3.5 w-3.5 text-warning" />
                   Somente com alertas
                 </Label>
@@ -361,9 +277,7 @@ export function StockFilterToolbar({
                   value={filters.sortBy}
                   onValueChange={(v) => onUpdateFilter('sortBy', v as StockFilters['sortBy'])}
                 >
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
+                  <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="stock_quantity">Menor Estoque</SelectItem>
                     <SelectItem value="name">Nome (A-Z)</SelectItem>
@@ -377,19 +291,16 @@ export function StockFilterToolbar({
         </Popover>
 
         {/* 2. Search */}
-        <div className="relative min-w-[280px] flex-1">
-          <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-primary opacity-60" />
+        <div className="relative flex-1 min-w-[280px]">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-primary opacity-60" />
           <Input
             placeholder="Buscar no estoque (nome, SKU ou cor)... "
             value={localSearch}
             onChange={(e) => setLocalSearch(e.target.value)}
-            className="h-11 rounded-xl border-border/50 bg-card/40 pl-10 pr-10 shadow-inner transition-all focus:border-primary/60 focus:bg-card"
+            className="pl-10 pr-10 h-11 bg-card/40 border-border/50 focus:bg-card focus:border-primary/60 transition-all rounded-xl shadow-inner"
           />
           {localSearch && (
-            <button
-              onClick={() => setLocalSearch('')}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-            >
+            <button onClick={() => setLocalSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
               <X className="h-4 w-4" />
             </button>
           )}
@@ -399,23 +310,22 @@ export function StockFilterToolbar({
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className="group relative w-full lg:w-56">
-                <ShoppingCart className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-primary opacity-60 transition-opacity group-focus-within:opacity-100" />
+              <div className="relative w-full lg:w-56 group">
+                <ShoppingCart className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-primary opacity-60 group-focus-within:opacity-100 transition-opacity" />
                 <Input
                   type="number"
                   placeholder="Preciso de X unidades..."
                   value={quantityInput}
                   onChange={(e) => setQuantityInput(e.target.value)}
-                  className="h-11 rounded-xl border-border/50 bg-card/40 pl-10 text-sm font-semibold shadow-inner transition-all focus:bg-card"
+                  className="pl-10 h-11 bg-card/40 border-border/50 focus:bg-card transition-all rounded-xl shadow-inner text-sm font-semibold"
                   min={0}
                 />
               </div>
             </TooltipTrigger>
             <TooltipContent side="bottom" className="max-w-[250px]">
               <p className="text-xs">
-                <strong>Filtro de tiragem:</strong> mostra apenas produtos com estoque disponível ≥
-                a quantidade informada. Ideal para verificar se há estoque suficiente para um
-                pedido.
+                <strong>Filtro de tiragem:</strong> mostra apenas produtos com estoque disponível ≥ a quantidade informada. 
+                Ideal para verificar se há estoque suficiente para um pedido.
               </p>
             </TooltipContent>
           </Tooltip>
@@ -440,73 +350,53 @@ export function StockFilterToolbar({
             className="flex flex-wrap gap-1.5 overflow-hidden"
           >
             {filters.categoryId && (
-              <Badge variant="secondary" className="gap-1 pr-1 text-xs">
+              <Badge variant="secondary" className="gap-1 text-xs pr-1">
                 <LayoutGrid className="h-3 w-3" />
                 Categoria
-                <button
-                  onClick={() => onUpdateFilter('categoryId', undefined)}
-                  className="ml-0.5 hover:text-foreground"
-                >
+                <button onClick={() => onUpdateFilter('categoryId', undefined)} className="ml-0.5 hover:text-foreground">
                   <X className="h-3 w-3" />
                 </button>
               </Badge>
             )}
             {filters.supplierId && (
-              <Badge variant="secondary" className="gap-1 pr-1 text-xs">
+              <Badge variant="secondary" className="gap-1 text-xs pr-1">
                 <Building2 className="h-3 w-3" />
                 {filters.supplierId}
-                <button
-                  onClick={() => onUpdateFilter('supplierId', undefined)}
-                  className="ml-0.5 hover:text-foreground"
-                >
+                <button onClick={() => onUpdateFilter('supplierId', undefined)} className="ml-0.5 hover:text-foreground">
                   <X className="h-3 w-3" />
                 </button>
               </Badge>
             )}
             {(filters.colorName || filters.colorGroup) && (
-              <Badge variant="secondary" className="gap-1 pr-1 text-xs">
+              <Badge variant="secondary" className="gap-1 text-xs pr-1">
                 <Palette className="h-3 w-3" />
                 {filters.colorName || filters.colorGroup}
-                <button
-                  onClick={() => {
-                    onUpdateFilter('colorName', undefined);
-                    onUpdateFilter('colorGroup', undefined);
-                  }}
-                  className="ml-0.5 hover:text-foreground"
-                >
+                <button onClick={() => { onUpdateFilter('colorName', undefined); onUpdateFilter('colorGroup', undefined); }} className="ml-0.5 hover:text-foreground">
                   <X className="h-3 w-3" />
                 </button>
               </Badge>
             )}
             {filters.minQuantityNeeded && filters.minQuantityNeeded > 0 && (
-              <Badge variant="secondary" className="gap-1 pr-1 text-xs">
-                <ShoppingCart className="h-3 w-3" />≥ {filters.minQuantityNeeded} un
-                <button
-                  onClick={() => {
-                    setQuantityInput('');
-                    onUpdateFilter('minQuantityNeeded', undefined);
-                  }}
-                  className="ml-0.5 hover:text-foreground"
-                >
+              <Badge variant="secondary" className="gap-1 text-xs pr-1">
+                <ShoppingCart className="h-3 w-3" />
+                ≥ {filters.minQuantityNeeded} un
+                <button onClick={() => { setQuantityInput(''); onUpdateFilter('minQuantityNeeded', undefined); }} className="ml-0.5 hover:text-foreground">
                   <X className="h-3 w-3" />
                 </button>
               </Badge>
             )}
             {filters.showOnlyWithAlerts && (
-              <Badge variant="secondary" className="gap-1 pr-1 text-xs">
+              <Badge variant="secondary" className="gap-1 text-xs pr-1">
                 <AlertTriangle className="h-3 w-3" />
                 Com alertas
-                <button
-                  onClick={() => onUpdateFilter('showOnlyWithAlerts', false)}
-                  className="ml-0.5 hover:text-foreground"
-                >
+                <button onClick={() => onUpdateFilter('showOnlyWithAlerts', false)} className="ml-0.5 hover:text-foreground">
                   <X className="h-3 w-3" />
                 </button>
               </Badge>
             )}
 
-            <span className="ml-1 flex items-center text-xs text-muted-foreground">
-              <Sparkles className="mr-1 h-3 w-3" />
+            <span className="text-xs text-muted-foreground flex items-center ml-1">
+              <Sparkles className="h-3 w-3 mr-1" />
               {filteredCount} de {totalProducts} produtos
             </span>
           </motion.div>

@@ -1,6 +1,6 @@
 /**
  * useProducts — Product data hooks
- *
+ * 
  * Hooks for fetching products from the external catalog.
  * Types and utilities are extracted to dedicated modules but
  * re-exported here for backward compatibility with 29+ consumers.
@@ -23,7 +23,7 @@ import { mapPromobrindToProduct } from '@/utils/product-mapper';
  */
 export function useProducts(
   filters?: ProductFilters,
-  options?: Omit<UseQueryOptions<Product[]>, 'queryKey' | 'queryFn'>,
+  options?: Omit<UseQueryOptions<Product[]>, 'queryKey' | 'queryFn'>
 ) {
   return useQuery<Product[]>({
     queryKey: ['promobrind-products', filters],
@@ -36,20 +36,19 @@ export function useProducts(
       let result = products.map(mapPromobrindToProduct);
 
       if (filters?.category) {
-        result = result.filter(
-          (p) =>
-            p.category_name?.toLowerCase().includes(filters.category!.toLowerCase()) ||
-            p.category_id === filters.category,
+        result = result.filter(p =>
+          p.category_name?.toLowerCase().includes(filters.category!.toLowerCase()) ||
+          p.category_id === filters.category
         );
       }
       if (filters?.minPrice !== undefined) {
-        result = result.filter((p) => p.price >= filters.minPrice!);
+        result = result.filter(p => p.price >= filters.minPrice!);
       }
       if (filters?.maxPrice !== undefined) {
-        result = result.filter((p) => p.price <= filters.maxPrice!);
+        result = result.filter(p => p.price <= filters.maxPrice!);
       }
       if (filters?.inStock) {
-        result = result.filter((p) => (p.stock || 0) > 0);
+        result = result.filter(p => (p.stock || 0) > 0);
       }
 
       return result;
@@ -108,7 +107,7 @@ export function useRelatedProducts(product: Product | null | undefined, limit = 
 
       return raw
         .map(mapPromobrindToProduct)
-        .filter((p) => p.id !== productId)
+        .filter(p => p.id !== productId)
         .slice(0, limit);
     },
     staleTime: 10 * 60 * 1000,

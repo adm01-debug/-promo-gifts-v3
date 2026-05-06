@@ -2,14 +2,14 @@
  * useClientsComparison — paraleliza dados de até 3 clientes para comparação lado-a-lado.
  * Composição de hooks BI existentes (sem novas RPCs).
  */
-import { useClientHealthScore } from './useClientHealthScore';
-import { useClientBI } from './useClientBI';
-import { useClientSeasonality } from './useClientSeasonality';
-import { useClientAffinity } from './useClientAffinity';
-import { useClientCategoryAffinity } from './useClientCategoryAffinity';
-import { useIndustryCategoryTrends } from './useIndustryCategoryTrends';
-import { useCrmCompany } from '@/hooks/useCrmCompanies';
-import { getCompanyDisplayName } from '@/types/crm';
+import { useClientHealthScore } from "./useClientHealthScore";
+import { useClientBI } from "./useClientBI";
+import { useClientSeasonality } from "./useClientSeasonality";
+import { useClientAffinity } from "./useClientAffinity";
+import { useClientCategoryAffinity } from "./useClientCategoryAffinity";
+import { useIndustryCategoryTrends } from "./useIndustryCategoryTrends";
+import { useCrmCompany } from "@/hooks/useCrmCompanies";
+import { getCompanyDisplayName } from "@/types/crm";
 
 export interface ClientComparisonRow {
   clientId: string;
@@ -17,7 +17,7 @@ export interface ClientComparisonRow {
   ramoAtividade: string | null;
   isLoading: boolean;
   score: number;
-  tier: 'healthy' | 'attention' | 'risk' | 'unknown';
+  tier: "healthy" | "attention" | "risk" | "unknown";
   ltv: number;
   avgTicket: number;
   ordersCount: number;
@@ -64,21 +64,16 @@ export function useSingleClientComparisonRow(clientId: string): ClientComparison
 
   const nextPeakLabel =
     seas.daysToNextPeak === 0
-      ? 'Hoje'
+      ? "Hoje"
       : seas.daysToNextPeak !== null && seas.nextPeakMonth !== null
         ? `${seas.daysToNextPeak}d`
-        : '—';
+        : "—";
 
   return {
     clientId,
-    clientName: company ? getCompanyDisplayName(company) : 'Cliente',
+    clientName: company ? getCompanyDisplayName(company) : "Cliente",
     ramoAtividade: ramo,
-    isLoading:
-      health.isLoading ||
-      bi.isLoading ||
-      seas.isLoading ||
-      catAffinity.isLoading ||
-      catIndustry.isLoading,
+    isLoading: health.isLoading || bi.isLoading || seas.isLoading || catAffinity.isLoading || catIndustry.isLoading,
     score: health.score,
     tier: health.tier,
     ltv: bi.ltv,

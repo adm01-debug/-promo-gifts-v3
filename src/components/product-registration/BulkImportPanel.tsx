@@ -15,18 +15,19 @@ import { cn } from '@/lib/utils';
 import { useState } from 'react';
 
 export function BulkImportPanel() {
-  const { generateTemplate, importProducts, importProgress, loadReferenceData } =
-    useProductRegistration();
+  const {
+    generateTemplate,
+    importProducts,
+    importProgress,
+    loadReferenceData,
+  } = useProductRegistration();
 
   const {
-    importMode,
-    setImportMode,
-    step,
-    setStep,
+    importMode, setImportMode,
+    step, setStep,
     parsedData,
     columnMappings,
-    isDragging,
-    setIsDragging,
+    isDragging, setIsDragging,
     fileInputRef,
     updateMapping,
     isMappingComplete,
@@ -42,9 +43,7 @@ export function BulkImportPanel() {
     errors: Array<{ row: number; errors: string[] }>;
   } | null>(null);
 
-  useEffect(() => {
-    loadReferenceData();
-  }, [loadReferenceData]);
+  useEffect(() => { loadReferenceData(); }, [loadReferenceData]);
 
   const startImport = async () => {
     setStep('importing');
@@ -66,11 +65,11 @@ export function BulkImportPanel() {
         <Tabs value={importMode} onValueChange={(v) => setImportMode(v as 'template' | 'custom')}>
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="template">
-              <FileSpreadsheet className="mr-2 h-4 w-4" />
+              <FileSpreadsheet className="h-4 w-4 mr-2" />
               Usar Template
             </TabsTrigger>
             <TabsTrigger value="custom">
-              <TableIcon className="mr-2 h-4 w-4" />
+              <TableIcon className="h-4 w-4 mr-2" />
               Mapeamento Manual
             </TabsTrigger>
           </TabsList>
@@ -80,12 +79,12 @@ export function BulkImportPanel() {
               <FileSpreadsheet className="h-4 w-4" />
               <AlertTitle>Template Recomendado</AlertTitle>
               <AlertDescription>
-                Baixe nosso template CSV/XLSX com todos os campos pré-configurados. Preencha os
-                dados e faça o upload para importação rápida.
+                Baixe nosso template CSV/XLSX com todos os campos pré-configurados.
+                Preencha os dados e faça o upload para importação rápida.
               </AlertDescription>
             </Alert>
             <Button onClick={generateTemplate} variant="outline" className="mt-4">
-              <Download className="mr-2 h-4 w-4" />
+              <Download className="h-4 w-4 mr-2" />
               Baixar Template CSV
             </Button>
           </TabsContent>
@@ -95,8 +94,8 @@ export function BulkImportPanel() {
               <TableIcon className="h-4 w-4" />
               <AlertTitle>Mapeamento Personalizado</AlertTitle>
               <AlertDescription>
-                Faça upload de qualquer planilha e mapeie as colunas manualmente para os campos do
-                produto.
+                Faça upload de qualquer planilha e mapeie as colunas manualmente
+                para os campos do produto.
               </AlertDescription>
             </Alert>
           </TabsContent>
@@ -107,24 +106,19 @@ export function BulkImportPanel() {
       {step === 'upload' && (
         <Card
           className={cn(
-            'cursor-pointer border-2 border-dashed transition-colors',
-            isDragging && 'border-primary bg-primary/5',
+            "border-2 border-dashed transition-colors cursor-pointer",
+            isDragging && "border-primary bg-primary/5"
           )}
-          onDragOver={(e) => {
-            e.preventDefault();
-            setIsDragging(true);
-          }}
+          onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
           onDragLeave={() => setIsDragging(false)}
           onDrop={handleDrop}
           onClick={() => fileInputRef.current?.click()}
         >
           <CardContent className="flex flex-col items-center justify-center py-12">
-            <FileUp className="mb-4 h-12 w-12 text-muted-foreground" />
+            <FileUp className="h-12 w-12 text-muted-foreground mb-4" />
             <p className="text-xl font-medium">Arraste seu arquivo aqui</p>
-            <p className="mt-1 text-sm text-muted-foreground">ou clique para selecionar</p>
-            <p className="mt-4 text-xs text-muted-foreground">
-              Formatos suportados: CSV, XLSX, XLS
-            </p>
+            <p className="text-sm text-muted-foreground mt-1">ou clique para selecionar</p>
+            <p className="text-xs text-muted-foreground mt-4">Formatos suportados: CSV, XLSX, XLS</p>
             <input
               ref={fileInputRef}
               type="file"
@@ -158,7 +152,9 @@ export function BulkImportPanel() {
       )}
 
       {/* Importing */}
-      {step === 'importing' && importProgress && <ImportingStep progress={importProgress} />}
+      {step === 'importing' && importProgress && (
+        <ImportingStep progress={importProgress} />
+      )}
 
       {/* Results */}
       {step === 'results' && importResults && (

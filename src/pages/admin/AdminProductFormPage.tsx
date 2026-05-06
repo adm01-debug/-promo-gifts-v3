@@ -5,35 +5,20 @@
 
 import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import {
-  invokeExternalDbSingle,
-  invokeExternalDbDelete,
-  fetchPromobrindProductById,
-  getProductImageUrl,
-  getProductPrice,
-  getProductStock,
-} from '@/lib/external-db';
+import { MainLayout } from '@/components/layout/MainLayout';
+import { invokeExternalDbSingle, invokeExternalDbDelete, fetchPromobrindProductById, getProductImageUrl, getProductPrice, getProductStock } from '@/lib/external-db';
 import { useAuditLog } from '@/hooks/useAuditLog';
 import { toast } from 'sonner';
-import {
-  type ProductFormData,
-  defaultFormValues,
-} from '@/components/admin/products/ProductFormSchema';
+import { type ProductFormData, defaultFormValues } from '@/components/admin/products/ProductFormSchema';
 import { Loader2, ArrowLeft, History, Pencil, Copy, FileDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { lazyWithRetry } from '@/lib/lazyWithRetry';
-import { PageSEO } from '@/components/seo/PageSEO';
+import { PageSEO } from "@/components/seo/PageSEO";
 
 // Lazy load heavy sub-components
-const ProductFormFullscreen = lazyWithRetry(() =>
-  import('@/components/admin/products/ProductFormFullscreen').then((m) => ({
-    default: m.ProductFormFullscreen,
-  })),
-);
-const AuditHistory = lazyWithRetry(() =>
-  import('@/components/audit/AuditHistory').then((m) => ({ default: m.AuditHistory })),
-);
+const ProductFormFullscreen = lazyWithRetry(() => import('@/components/admin/products/ProductFormFullscreen').then(m => ({ default: m.ProductFormFullscreen })));
+const AuditHistory = lazyWithRetry(() => import('@/components/audit/AuditHistory').then(m => ({ default: m.AuditHistory })));
 
 export default function AdminProductFormPage() {
   const { id } = useParams<{ id: string }>();
@@ -55,9 +40,7 @@ export default function AdminProductFormPage() {
           const parsed = JSON.parse(stored);
           setDuplicateProduct(parsed);
           toast.info(`Duplicando produto: ${parsed.name}. Altere o SKU antes de salvar.`);
-        } catch {
-          /* ignore */
-        }
+        } catch { /* ignore */ }
         sessionStorage.removeItem('duplicate_product');
       }
     }
@@ -68,7 +51,7 @@ export default function AdminProductFormPage() {
   // Load product data for edit mode
   useEffect(() => {
     if (!isEdit) return;
-
+    
     const loadProduct = async () => {
       setIsLoading(true);
       try {
@@ -191,12 +174,8 @@ export default function AdminProductFormPage() {
       if (!isEdit || skuChanged) {
         const { fetchPromobrindProducts } = await import('@/lib/external-db');
         const existing = await fetchPromobrindProducts({ search: data.sku, limit: 5 });
-        const products = Array.isArray(existing)
-          ? existing
-          : (existing as Record<string, unknown>).products || [];
-        const duplicate = products.find(
-          (p: any) => p.sku?.toLowerCase() === data.sku.toLowerCase(),
-        );
+        const products = Array.isArray(existing) ? existing : (existing as Record<string, unknown>).products || [];
+        const duplicate = products.find((p: any) => p.sku?.toLowerCase() === data.sku.toLowerCase());
         if (duplicate) {
           toast.error(`SKU "${data.sku}" já está cadastrado no produto "${duplicate.name}"`);
           setIsSaving(false);
@@ -277,12 +256,7 @@ export default function AdminProductFormPage() {
         lead_time_days: data.lead_time_days ?? null,
         gender: data.gender || null,
         meta_title: data.meta_title || null,
-        meta_keywords: data.meta_keywords
-          ? data.meta_keywords
-              .split(',')
-              .map((k: string) => k.trim())
-              .filter(Boolean)
-          : null,
+        meta_keywords: data.meta_keywords ? data.meta_keywords.split(',').map((k: string) => k.trim()).filter(Boolean) : null,
         slug: data.slug || null,
         canonical_url: data.canonical_url || null,
         videos: data.video_url ? [data.video_url] : [],
@@ -306,25 +280,12 @@ export default function AdminProductFormPage() {
         });
 
         const { oldFields, newFields } = getChangedFields(
-          {
-            sku: product.sku,
-            name: product.name,
-            description: product.description,
-            sale_price: getProductPrice(product),
-            stock_quantity: getProductStock(product),
-            is_active: product.is_active,
-          },
-          productData,
+          { sku: product.sku, name: product.name, description: product.description, sale_price: getProductPrice(product), stock_quantity: getProductStock(product), is_active: product.is_active },
+          productData
         );
 
         if (Object.keys(newFields).length > 0) {
-          await logAction({
-            action: 'UPDATE',
-            entityType: 'products',
-            entityId: product.id,
-            oldValues: oldFields,
-            newValues: newFields,
-          });
+          await logAction({ action: 'UPDATE', entityType: 'products', entityId: product.id, oldValues: oldFields, newValues: newFields });
         }
 
         toast.success('Produto atualizado com sucesso');
@@ -339,18 +300,7 @@ export default function AdminProductFormPage() {
         });
 
         if (newProduct) {
-          await logAction({
-            action: 'INSERT',
-            entityType: 'products',
-            entityId: newProduct.id,
-            oldValues: null,
-            newValues: {
-              sku: productData.sku,
-              name: productData.name,
-              sale_price: productData.sale_price,
-              is_active: productData.is_active,
-            },
-          });
+          await logAction({ action: 'INSERT', entityType: 'products', entityId: newProduct.id, oldValues: null, newValues: { sku: productData.sku, name: productData.name, sale_price: productData.sale_price, is_active: productData.is_active } });
           toast.success('Produto criado! Agora vincule Tags, Ramos, Marketing e Técnicas.');
           // Navigate to edit mode for the newly created product
           navigate(`/admin/cadastros/produto/${newProduct.id}`, { replace: true });
@@ -370,151 +320,123 @@ export default function AdminProductFormPage() {
   const getProductImages = useCallback((p: any): string[] => {
     if (!p) return [];
     const imgUrl = getProductImageUrl(p);
-    if (imgUrl)
-      return [
-        imgUrl,
-        ...(Array.isArray(p.images) ? p.images.filter((i: string) => i !== imgUrl) : []),
-      ];
+    if (imgUrl) return [imgUrl, ...(Array.isArray(p.images) ? p.images.filter((i: string) => i !== imgUrl) : [])];
     return Array.isArray(p.images) ? p.images : [];
   }, []);
 
   if (isLoading) {
     return (
-      <>
-        <PageSEO
-          title="Carregando Produto..."
-          description="Aguarde enquanto carregamos os dados do produto."
-          path="/admin/cadastros/produto"
-          noIndex
+      <MainLayout>
+        <PageSEO 
+          title="Carregando Produto..." 
+          description="Aguarde enquanto carregamos os dados do produto." 
+          path="/admin/cadastros/produto" 
+          noIndex 
         />
-        <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="flex items-center justify-center min-h-[60vh]">
           <div className="flex flex-col items-center gap-3">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
             <p className="text-sm text-muted-foreground">Carregando produto...</p>
           </div>
         </div>
-      </>
+      </MainLayout>
     );
   }
 
   return (
-    <>
-      <PageSEO
-        title={isEdit ? `Editar: ${product?.sku || 'Produto'}` : 'Novo Produto'}
-        description={
-          isEdit ? `Editando o produto ${product?.name}` : 'Cadastre um novo produto no catálogo.'
-        }
-        path={`/admin/cadastros/produto/${id || 'novo'}`}
-        noIndex
+    <MainLayout>
+      <PageSEO 
+        title={isEdit ? `Editar: ${product?.sku || 'Produto'}` : "Novo Produto"} 
+        description={isEdit ? `Editando o produto ${product?.name}` : "Cadastre um novo produto no catálogo."} 
+        path={`/admin/cadastros/produto/${id || 'novo'}`} 
+        noIndex 
       />
-      <div className="mx-auto w-full max-w-[1920px] animate-fade-in space-y-3 px-3 py-3 pb-24 sm:space-y-4 sm:px-4 sm:py-4 md:pb-6 lg:px-6 xl:px-8">
+      <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
         {/* Breadcrumbs are rendered by MainLayout's PersistentBreadcrumbs */}
 
         {/* Header */}
         {isEdit && (
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Button
-                variant="ghost"
-                size="icon"
-                aria-label="Voltar"
-                onClick={() => navigate('/admin/cadastros')}
-                className="h-9 w-9 rounded-lg"
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-              {isEdit && product && (
-                <div>
-                  <p className="text-sm text-muted-foreground">
-                    {product.sku} — {product.name}
-                  </p>
-                </div>
-              )}
-            </div>
-
-            <div className="flex items-center gap-2">
-              {isEdit && product && (
-                <>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="gap-1.5"
-                    onClick={async () => {
-                      const { exportProductPdf } = await import('@/utils/productPdfExport');
-                      const formData = productToFormData(product) as ProductFormData;
-                      exportProductPdf({
-                        formData,
-                        productImages: getProductImages(product),
-                        categoryName: product.category_name || product.category || '',
-                        supplierName: product.supplier_name || product.supplier || '',
-                      });
-                      toast.success('PDF gerado com sucesso!');
-                    }}
-                  >
-                    <FileDown className="h-3.5 w-3.5" />
-                    Exportar PDF
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="gap-1.5"
-                    onClick={() => {
-                      const dupeData = { ...product, sku: `${product.sku}-COPIA` };
-                      sessionStorage.setItem('duplicate_product', JSON.stringify(dupeData));
-                      navigate('/admin/cadastros/produto/novo');
-                    }}
-                  >
-                    <Copy className="h-3.5 w-3.5" />
-                    Duplicar
-                  </Button>
-                </>
-              )}
-
-              {isEdit && (
-                <Tabs
-                  value={activeTab}
-                  onValueChange={(v) => setActiveTab(v as 'form' | 'history')}
-                >
-                  <TabsList className="h-9">
-                    <TabsTrigger value="form" className="gap-1.5 text-xs">
-                      <Pencil className="h-3.5 w-3.5" />
-                      Editar
-                    </TabsTrigger>
-                    <TabsTrigger value="history" className="gap-1.5 text-xs">
-                      <History className="h-3.5 w-3.5" />
-                      Histórico
-                    </TabsTrigger>
-                  </TabsList>
-                </Tabs>
-              )}
-            </div>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="icon" aria-label="Voltar"
+              onClick={() => navigate('/admin/cadastros')}
+              className="h-9 w-9 rounded-lg"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            {isEdit && product && (
+              <div>
+                <p className="text-sm text-muted-foreground">
+                  {product.sku} — {product.name}
+                </p>
+              </div>
+            )}
           </div>
+
+          <div className="flex items-center gap-2">
+            {isEdit && product && (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={async () => {
+                    const { exportProductPdf } = await import('@/utils/productPdfExport');
+                    const formData = productToFormData(product) as ProductFormData;
+                    exportProductPdf({
+                      formData,
+                      productImages: getProductImages(product),
+                      categoryName: product.category_name || product.category || '',
+                      supplierName: product.supplier_name || product.supplier || '',
+                    });
+                    toast.success('PDF gerado com sucesso!');
+                  }}
+                >
+                  <FileDown className="h-3.5 w-3.5" />
+                  Exportar PDF
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={() => {
+                    const dupeData = { ...product, sku: `${product.sku}-COPIA` };
+                    sessionStorage.setItem('duplicate_product', JSON.stringify(dupeData));
+                    navigate('/admin/cadastros/produto/novo');
+                  }}
+                >
+                  <Copy className="h-3.5 w-3.5" />
+                  Duplicar
+                </Button>
+              </>
+            )}
+
+          {isEdit && (
+            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'form' | 'history')}>
+              <TabsList className="h-9">
+                <TabsTrigger value="form" className="gap-1.5 text-xs">
+                  <Pencil className="h-3.5 w-3.5" />
+                  Editar
+                </TabsTrigger>
+                <TabsTrigger value="history" className="gap-1.5 text-xs">
+                  <History className="h-3.5 w-3.5" />
+                  Histórico
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          )}
+          </div>
+        </div>
         )}
 
         {/* Content */}
-        <Suspense
-          fallback={
-            <div className="flex items-center justify-center py-16">
-              <Loader2 className="h-6 w-6 animate-spin text-primary" />
-            </div>
-          }
-        >
+        <Suspense fallback={<div className="flex items-center justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>}>
           {activeTab === 'form' ? (
             <ProductFormFullscreen
-              initialData={
-                isEdit && product
-                  ? productToFormData(product)
-                  : duplicateProduct
-                    ? productToFormData(duplicateProduct)
-                    : undefined
-              }
-              productImages={
-                isEdit && product
-                  ? getProductImages(product)
-                  : duplicateProduct
-                    ? getProductImages(duplicateProduct)
-                    : []
-              }
+              initialData={isEdit && product ? productToFormData(product) : duplicateProduct ? productToFormData(duplicateProduct) : undefined}
+              productImages={isEdit && product ? getProductImages(product) : duplicateProduct ? getProductImages(duplicateProduct) : []}
               productId={isEdit ? id : undefined}
               onSubmit={handleFormSubmit}
               onCancel={() => navigate('/admin/cadastros')}
@@ -522,8 +444,7 @@ export default function AdminProductFormPage() {
               isEdit={isEdit}
             />
           ) : (
-            isEdit &&
-            id && (
+            isEdit && id && (
               <AuditHistory
                 entityType="products"
                 entityId={id}
@@ -534,6 +455,6 @@ export default function AdminProductFormPage() {
           )}
         </Suspense>
       </div>
-    </>
+    </MainLayout>
   );
 }

@@ -9,12 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
+  Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger,
 } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -34,9 +29,7 @@ export function KitShareLinkDialog({ kitId, kitName }: Props) {
   const [copied, setCopied] = useState(false);
   const [tab, setTab] = useState<'generate' | 'links'>('generate');
 
-  const { data: tokens = [], isLoading: loadingTokens } = useKitShareTokens(
-    open ? kitId : undefined,
-  );
+  const { data: tokens = [], isLoading: loadingTokens } = useKitShareTokens(open ? kitId : undefined);
 
   const disabled = !kitId;
 
@@ -92,8 +85,8 @@ export function KitShareLinkDialog({ kitId, kitName }: Props) {
         <DialogHeader>
           <DialogTitle className="font-display">Compartilhar apresentação</DialogTitle>
           <DialogDescription>
-            Gere um link público de "{kitName || 'seu kit'}" para enviar ao cliente. O link expira
-            em 30 dias e esconde preços de custo.
+            Gere um link público de "{kitName || 'seu kit'}" para enviar ao cliente. O link expira em 30 dias e
+            esconde preços de custo.
           </DialogDescription>
         </DialogHeader>
 
@@ -101,12 +94,7 @@ export function KitShareLinkDialog({ kitId, kitName }: Props) {
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="generate">Gerar novo</TabsTrigger>
             <TabsTrigger value="links">
-              Links{' '}
-              {tokens.length > 0 && (
-                <Badge variant="secondary" className="ml-2 h-5 px-1.5">
-                  {tokens.length}
-                </Badge>
-              )}
+              Links {tokens.length > 0 && <Badge variant="secondary" className="ml-2 h-5 px-1.5">{tokens.length}</Badge>}
             </TabsTrigger>
           </TabsList>
 
@@ -114,9 +102,7 @@ export function KitShareLinkDialog({ kitId, kitName }: Props) {
             {!link ? (
               <>
                 <div className="space-y-1.5">
-                  <Label htmlFor="client-name" className="text-xs">
-                    Nome do cliente (opcional)
-                  </Label>
+                  <Label htmlFor="client-name" className="text-xs">Nome do cliente (opcional)</Label>
                   <Input
                     id="client-name"
                     value={clientName}
@@ -126,11 +112,7 @@ export function KitShareLinkDialog({ kitId, kitName }: Props) {
                   />
                 </div>
                 <Button onClick={handleGenerate} disabled={isLoading} className="w-full">
-                  {isLoading ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <Share2 className="mr-2 h-4 w-4" />
-                  )}
+                  {isLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Share2 className="h-4 w-4 mr-2" />}
                   Gerar link de apresentação
                 </Button>
               </>
@@ -139,17 +121,8 @@ export function KitShareLinkDialog({ kitId, kitName }: Props) {
                 <Label className="text-xs">Link público</Label>
                 <div className="flex gap-2">
                   <Input value={link} readOnly className="h-9 font-mono text-xs" />
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleCopy(link)}
-                    aria-label="Copiar link"
-                  >
-                    {copied ? (
-                      <Check className="h-4 w-4 text-success" />
-                    ) : (
-                      <Copy className="h-4 w-4" />
-                    )}
+                  <Button size="sm" variant="outline" onClick={() => handleCopy(link)} aria-label="Copiar link">
+                    {copied ? <Check className="h-4 w-4 text-success" /> : <Copy className="h-4 w-4" />}
                   </Button>
                   <Button size="sm" variant="outline" asChild aria-label="Abrir link">
                     <a href={link} target="_blank" rel="noopener noreferrer">
@@ -160,41 +133,26 @@ export function KitShareLinkDialog({ kitId, kitName }: Props) {
                 <p className="text-[11px] text-muted-foreground">
                   Expira em 30 dias. Veja a aba "Links" para gerenciar.
                 </p>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setLink(null);
-                    setClientName('');
-                    setTab('links');
-                  }}
-                  className="w-full"
-                >
+                <Button variant="ghost" size="sm" onClick={() => { setLink(null); setClientName(''); setTab('links'); }} className="w-full">
                   Ver todos os links
                 </Button>
               </div>
             )}
           </TabsContent>
 
-          <TabsContent value="links" className="max-h-[420px] space-y-2 overflow-y-auto pt-3">
+          <TabsContent value="links" className="space-y-2 pt-3 max-h-[420px] overflow-y-auto">
             {loadingTokens ? (
               <div className="flex justify-center py-6">
                 <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
               </div>
             ) : tokens.length === 0 ? (
-              <p className="py-6 text-center text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground text-center py-6">
                 Nenhum link gerado ainda.
               </p>
             ) : (
               <ul className="space-y-2">
                 {tokens.map((t) => (
-                  <TokenRow
-                    key={t.id}
-                    token={t}
-                    kitId={kitId}
-                    onCopy={handleCopy}
-                    onRevoke={revokeShareLink}
-                  />
+                  <TokenRow key={t.id} token={t} kitId={kitId} onCopy={handleCopy} onRevoke={revokeShareLink} />
                 ))}
               </ul>
             )}
@@ -217,36 +175,31 @@ function TokenRow({ token, kitId, onCopy, onRevoke }: TokenRowProps) {
   const expired = token.expires_at && new Date(token.expires_at) < new Date();
   const status = token.status === 'revoked' ? 'revoked' : expired ? 'expired' : 'active';
   const statusLabel = { active: 'Ativo', revoked: 'Revogado', expired: 'Expirado' }[status];
-  const statusVariant = { active: 'default', revoked: 'destructive', expired: 'outline' }[
-    status
-  ] as 'default' | 'destructive' | 'outline';
+  const statusVariant = { active: 'default', revoked: 'destructive', expired: 'outline' }[status] as 'default' | 'destructive' | 'outline';
 
   return (
-    <li className="space-y-2 rounded-xl border bg-card p-3">
+    <li className="rounded-xl border bg-card p-3 space-y-2">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge variant={statusVariant} className="text-[10px]">
-              {statusLabel}
-            </Badge>
+          <div className="flex items-center gap-2 flex-wrap">
+            <Badge variant={statusVariant} className="text-[10px]">{statusLabel}</Badge>
             {token.viewed_at && (
-              <Badge variant="secondary" className="gap-1 text-[10px]">
+              <Badge variant="secondary" className="text-[10px] gap-1">
                 <Eye className="h-3 w-3" /> Visualizado
               </Badge>
             )}
             {token.client_name && (
-              <span className="truncate text-xs text-muted-foreground">{token.client_name}</span>
+              <span className="text-xs text-muted-foreground truncate">{token.client_name}</span>
             )}
           </div>
-          <p className="mt-1 flex items-center gap-1 text-[11px] text-muted-foreground">
+          <p className="text-[11px] text-muted-foreground mt-1 flex items-center gap-1">
             <Clock className="h-3 w-3" />
             Criado em {new Date(token.created_at).toLocaleDateString('pt-BR')}
-            {token.expires_at &&
-              ` • Expira ${new Date(token.expires_at).toLocaleDateString('pt-BR')}`}
+            {token.expires_at && ` • Expira ${new Date(token.expires_at).toLocaleDateString('pt-BR')}`}
             {token.viewed_at && ` • Visto ${new Date(token.viewed_at).toLocaleDateString('pt-BR')}`}
           </p>
         </div>
-        <div className="flex shrink-0 items-center gap-1">
+        <div className="flex items-center gap-1 shrink-0">
           <Button
             size="icon"
             variant="ghost"

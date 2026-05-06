@@ -8,13 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useKitCollaborators, useKitComments } from '@/hooks/useKitCollaboration';
 
 interface Props {
@@ -43,9 +37,7 @@ export function KitCollaborationPanel({ kitId }: Props) {
     try {
       await invite({ email: email.trim(), permission });
       setEmail('');
-    } catch {
-      /* toast handled */
-    }
+    } catch { /* toast handled */ }
   };
 
   const handlePost = async () => {
@@ -57,7 +49,7 @@ export function KitCollaborationPanel({ kitId }: Props) {
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-sm">
+        <CardTitle className="text-sm flex items-center gap-2">
           <Users className="h-4 w-4 text-primary" /> Colaboração
         </CardTitle>
       </CardHeader>
@@ -74,9 +66,7 @@ export function KitCollaborationPanel({ kitId }: Props) {
               className="h-9"
             />
             <Select value={permission} onValueChange={(v) => setPermission(v as 'view' | 'edit')}>
-              <SelectTrigger className="h-9 w-[100px]">
-                <SelectValue />
-              </SelectTrigger>
+              <SelectTrigger className="h-9 w-[100px]"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="view">Ver</SelectItem>
                 <SelectItem value="edit">Editar</SelectItem>
@@ -89,15 +79,10 @@ export function KitCollaborationPanel({ kitId }: Props) {
           {collaborators.length > 0 && (
             <ul className="space-y-1">
               {collaborators.map((c) => (
-                <li
-                  key={c.id}
-                  className="flex items-center justify-between rounded bg-muted/40 px-2 py-1 text-xs"
-                >
+                <li key={c.id} className="flex items-center justify-between text-xs bg-muted/40 rounded px-2 py-1">
                   <span>{c.invited_email || c.user_id.slice(0, 8)}</span>
                   <div className="flex items-center gap-1">
-                    <Badge variant="outline" className="text-[10px]">
-                      {c.permission}
-                    </Badge>
+                    <Badge variant="outline" className="text-[10px]">{c.permission}</Badge>
                     <Button
                       variant="ghost"
                       size="icon"
@@ -116,7 +101,7 @@ export function KitCollaborationPanel({ kitId }: Props) {
 
         {/* Comentários */}
         <div className="space-y-2">
-          <p className="flex items-center gap-1 text-xs font-medium text-muted-foreground">
+          <p className="text-xs font-medium text-muted-foreground flex items-center gap-1">
             <MessageSquare className="h-3 w-3" /> Comentários ({comments.length})
           </p>
           <Textarea
@@ -128,22 +113,17 @@ export function KitCollaborationPanel({ kitId }: Props) {
           <Button size="sm" onClick={handlePost} disabled={!body.trim()} className="w-full">
             Comentar
           </Button>
-          <ul className="max-h-[280px] space-y-2 overflow-y-auto">
+          <ul className="space-y-2 max-h-[280px] overflow-y-auto">
             {comments.map((c) => (
               <li
                 key={c.id}
-                className={`space-y-1 rounded bg-muted/30 p-2 text-xs ${c.resolved ? 'opacity-60' : ''}`}
+                className={`text-xs bg-muted/30 rounded p-2 space-y-1 ${c.resolved ? 'opacity-60' : ''}`}
               >
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-mono text-muted-foreground">{c.author_id.slice(0, 8)}</span>
                   <div className="flex items-center gap-1">
                     <span className="text-[10px] text-muted-foreground">
-                      {new Date(c.created_at).toLocaleString('pt-BR', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
+                      {new Date(c.created_at).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
                     </span>
                     {!c.resolved && (
                       <Button

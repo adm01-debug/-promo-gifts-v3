@@ -1,6 +1,6 @@
 /**
  * Lib: Personalization Types
- *
+ * 
  * Tipos internos usados pelos calculadores e validadores.
  * São versões simplificadas/flat dos tipos de domínio,
  * otimizadas para operações de cálculo.
@@ -33,26 +33,26 @@ export interface PriceTableInput {
   tableCode: string;
   tableCodeOption: string;
   techniqueName: string;
-
+  
   // Limites (flat)
   maxColors: number | null;
   maxWidthCm: number | null;
   maxHeightCm: number | null;
   minAreaCm2: number | null;
   maxAreaCm2: number | null;
-
+  
   // Tipo de precificação
   priceByColor: boolean;
   priceByArea: boolean;
   priceByStitches: boolean;
-
+  
   // Custos fixos
   setupPrice: number;
   handlingPrice: number;
-
+  
   // Faixas de quantidade
   tiers: import('../../types/domain').PriceTier[];
-
+  
   // Status
   isActive: boolean;
 }
@@ -66,28 +66,28 @@ export interface TechniqueInput {
   code: string;
   name: string;
   category: string;
-
+  
   // Cores (flat)
   requiresColors: boolean;
   minColors: number;
   maxColors: number;
   priceByColor: boolean;
   extraColorPrice: number;
-
+  
   // Área (flat)
   priceByArea: boolean;
   priceByStitches: boolean;
   minAreaCm2: number | null;
   maxAreaCm2: number | null;
-
+  
   // Custos
   setupPrice: number;
   handlingPrice: number;
   costMultiplier: number;
-
+  
   // Características
   appliesToCurved: boolean;
-
+  
   // Status
   isActive: boolean;
 }

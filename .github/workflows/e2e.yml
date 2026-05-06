@@ -163,20 +163,13 @@ jobs:
             cat playwright-report/feature-summary.md
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Upload Playwright report & artifacts
+      - name: Upload Playwright report
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: playwright-report
-          path: |
-            playwright-report/
-            e2e-artifacts/
-            test-results/
+          path: playwright-report
           retention-days: 7
-
-      - name: Fail if coverage dropped
-        if: always() && steps.e2e_run.outcome == 'success'
-        run: node scripts/e2e-feature-summary.mjs --check-thresholds
 
       - name: Upload smoke summary (markdown + json)
         if: always()

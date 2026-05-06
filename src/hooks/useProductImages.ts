@@ -1,9 +1,9 @@
 /**
  * Hook para buscar imagens de produtos da tabela product_images (BD externo Promobrind)
- *
+ * 
  * IMPORTANTE: Este hook substitui a lógica legada que buscava imagens dos campos
  * image_url, images, primary_image_url da tabela products.
- *
+ * 
  * A nova estrutura usa a tabela product_images com campos:
  * - url_cdn: URL da imagem no CDN
  * - image_type: Tipo (main, gallery, set, logo, box, etc.)
@@ -15,7 +15,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { invokeExternalDb, type InvokeResult } from '@/lib/external-db';
-import { logger } from '@/lib/logger';
+import { logger } from "@/lib/logger";
 
 // ============================================
 // TIPOS
@@ -59,9 +59,8 @@ export async function fetchProductImages(productId: string): Promise<ProductImag
     const result = await invokeExternalDb<ProductImage>({
       table: 'product_images',
       operation: 'select',
-      select:
-        'id, product_id, variant_id, color_id, supplier_code, url_cdn, url_original, image_type, is_primary, is_og_image, display_order, is_active, alt_text, title_text',
-      filters: {
+      select: 'id, product_id, variant_id, color_id, supplier_code, url_cdn, url_original, image_type, is_primary, is_og_image, display_order, is_active, alt_text, title_text',
+      filters: { 
         product_id: productId,
         is_active: true,
       },
@@ -79,9 +78,7 @@ export async function fetchProductImages(productId: string): Promise<ProductImag
 /**
  * Busca imagens de múltiplos produtos de uma vez (batch)
  */
-export async function fetchProductImagesBatch(
-  productIds: string[],
-): Promise<Map<string, ProductImage[]>> {
+export async function fetchProductImagesBatch(productIds: string[]): Promise<Map<string, ProductImage[]>> {
   if (productIds.length === 0) return new Map();
 
   try {
@@ -90,8 +87,7 @@ export async function fetchProductImagesBatch(
     const result = await invokeExternalDb<ProductImage>({
       table: 'product_images',
       operation: 'select',
-      select:
-        'id, product_id, variant_id, color_id, supplier_code, url_cdn, url_original, image_type, is_primary, is_og_image, display_order, is_active, alt_text, title_text',
+      select: 'id, product_id, variant_id, color_id, supplier_code, url_cdn, url_original, image_type, is_primary, is_og_image, display_order, is_active, alt_text, title_text',
       filters: { is_active: true },
       orderBy: { column: 'display_order', ascending: true },
       limit: 5000,
@@ -101,9 +97,9 @@ export async function fetchProductImagesBatch(
     const imagesByProduct = new Map<string, ProductImage[]>();
     const productIdSet = new Set(productIds);
 
-    result.records.forEach((image) => {
+    result.records.forEach(image => {
       if (!productIdSet.has(image.product_id)) return;
-
+      
       if (!imagesByProduct.has(image.product_id)) {
         imagesByProduct.set(image.product_id, []);
       }
@@ -126,7 +122,7 @@ export async function fetchPrimaryImage(productId: string): Promise<string | nul
       table: 'product_images',
       operation: 'select',
       select: 'url_cdn, alt_text',
-      filters: {
+      filters: { 
         product_id: productId,
         is_primary: true,
         is_active: true,
@@ -145,7 +141,7 @@ export async function fetchPrimaryImage(productId: string): Promise<string | nul
  * Transforma imagens do banco para formato de exibição
  */
 export function transformToDisplayImages(images: ProductImage[]): ProductImageForDisplay[] {
-  return images.map((img) => ({
+  return images.map(img => ({
     url: img.url_cdn,
     type: img.image_type,
     alt: img.alt_text,
@@ -158,9 +154,9 @@ export function transformToDisplayImages(images: ProductImage[]): ProductImageFo
  * Extrai a imagem principal de uma lista de imagens
  */
 export function getPrimaryImageUrl(images: ProductImage[]): string | null {
-  const primary = images.find((img) => img.is_primary);
+  const primary = images.find(img => img.is_primary);
   if (primary) return primary.url_cdn;
-
+  
   // Fallback: primeira imagem por ordem
   const sorted = [...images].sort((a, b) => a.display_order - b.display_order);
   return sorted[0]?.url_cdn || null;
@@ -170,7 +166,9 @@ export function getPrimaryImageUrl(images: ProductImage[]): string | null {
  * Extrai URLs de imagens como array simples
  */
 export function getImageUrls(images: ProductImage[]): string[] {
-  return images.sort((a, b) => a.display_order - b.display_order).map((img) => img.url_cdn);
+  return images
+    .sort((a, b) => a.display_order - b.display_order)
+    .map(img => img.url_cdn);
 }
 
 // ============================================

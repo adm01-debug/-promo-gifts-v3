@@ -1,6 +1,6 @@
 /**
  * Hook: Mutations de Técnicas
- *
+ * 
  * Responsável por: CRUD operations (create, update, delete, toggle)
  */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -94,27 +94,26 @@ export function useTecnicaMutations() {
     toggleStatus: toggleStatusMutation.mutate,
     toggleStatusAsync: toggleStatusMutation.mutateAsync,
     isToggling: toggleStatusMutation.isPending,
-
+    
     // Create
     create: createMutation.mutate,
     createAsync: createMutation.mutateAsync,
     isCreating: createMutation.isPending,
-
+    
     // Update
     update: updateMutation.mutate,
     updateAsync: updateMutation.mutateAsync,
     isUpdating: updateMutation.isPending,
-
+    
     // Delete
     remove: deleteMutation.mutate,
     removeAsync: deleteMutation.mutateAsync,
     isRemoving: deleteMutation.isPending,
-
+    
     // Combined loading state
-    isMutating:
-      toggleStatusMutation.isPending ||
-      createMutation.isPending ||
-      updateMutation.isPending ||
-      deleteMutation.isPending,
+    isMutating: toggleStatusMutation.isPending || 
+                createMutation.isPending || 
+                updateMutation.isPending || 
+                deleteMutation.isPending,
   };
 }

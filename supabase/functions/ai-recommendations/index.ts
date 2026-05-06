@@ -30,15 +30,6 @@ const RecommendationRequestSchema = z.object({
   products: z.array(ProductSchema).min(1).max(100),
 });
 
-const RecommendationResponseSchema = z.object({
-  recommendations: z.array(z.object({
-    productId: z.string().min(1),
-    score: z.number().min(0).max(1),
-    reason: z.string().min(1)
-  })),
-  insights: z.string().optional()
-});
-
 /**
  * JSON robustness is now handled by _shared/json-parser.ts
  */
@@ -172,19 +163,10 @@ Com base no perfil do cliente, recomende os produtos mais adequados.`;
 
     // Parse JSON from response — robust extraction + sanitization to survive
     // markdown fences, trailing commas, prose around the JSON, and minor truncation.
-    const rawRecommendations = extractAndParseAIJSON(content);
+    const recommendations = extractAndParseAIJSON(content);
 
-    // Validate the AI output with Zod
-    const validated = RecommendationResponseSchema.safeParse(rawRecommendations);
-    if (!validated.success) {
-      console.error("AI Output Validation Failed:", validated.error.format());
-      return new Response(JSON.stringify(rawRecommendations), {
-        headers: { ...corsHeaders, "Content-Type": "application/json", "X-AI-Validation": "failed" },
-      });
-    }
-
-    return new Response(JSON.stringify(validated.data), {
-      headers: { ...corsHeaders, "Content-Type": "application/json", "X-AI-Validation": "passed" },
+    return new Response(JSON.stringify(recommendations), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
     if (error instanceof QuotaExceededError) {

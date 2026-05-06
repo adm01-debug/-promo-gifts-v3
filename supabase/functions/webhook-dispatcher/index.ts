@@ -8,14 +8,15 @@ import { crypto } from "https://deno.land/std@0.224.0/crypto/mod.ts";
 import { encodeHex } from "https://deno.land/std@0.224.0/encoding/hex.ts";
 import { z } from "https://deno.land/x/zod@v3.23.8/mod.ts";
 import { buildPublicCorsHeaders } from "../_shared/cors.ts";
-import { createStructuredLogger, alertOnFailure } from "../_shared/structured-logging.ts";
 
 const corsHeaders = buildPublicCorsHeaders({ allowMethods: "POST, OPTIONS" });
 
-export const BodySchema = z.object({
+const BodySchema = z.object({
   event: z.string().min(1),
   payload: z.unknown().optional(),
+  // Replay mode: re-deliver a single failed delivery by id
   replay_delivery_id: z.string().uuid().optional(),
+  // Test mode (Onda 13 #9): dispatch to a specific webhook, no metrics, no breaker, no DB log
   test_mode: z.boolean().optional(),
   test_webhook_id: z.string().uuid().optional(),
 });
@@ -39,7 +40,6 @@ async function payloadHash(payload: string): Promise<string> {
 }
 
 Deno.serve(async (req) => {
-  const log = createStructuredLogger('webhook-dispatcher', req);
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
@@ -243,10 +243,13 @@ Deno.serve(async (req) => {
       }
     }
 
-    return log.respond({ ok: true, dispatched: hooks.length, results }, 200, corsHeaders);
-  } catch (err: any) {
-    await alertOnFailure(log, err);
+    return new Response(JSON.stringify({ ok: true, dispatched: hooks.length, results }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  } catch (err) {
     const msg = err instanceof Error ? err.message : "Erro desconhecido";
-    return log.respond({ error: msg }, 500, corsHeaders);
+    return new Response(JSON.stringify({ error: msg }), {
+      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });

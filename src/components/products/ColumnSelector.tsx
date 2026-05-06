@@ -1,8 +1,8 @@
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { cn } from '@/lib/utils';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 
-const STORAGE_KEY = 'product-grid-columns';
+const STORAGE_KEY = "product-grid-columns";
 
 export type ColumnCount = 3 | 4 | 5 | 6 | 8;
 
@@ -23,7 +23,7 @@ function GridIcon({ cols, rows = 2 }: { cols: number; rows?: number }) {
           height={cellH}
           rx={1}
           fill="currentColor"
-        />,
+        />
       );
     }
   }
@@ -42,11 +42,11 @@ interface ColumnOption {
 }
 
 const columnOptions: ColumnOption[] = [
-  { value: 3, label: '3 colunas', cols: 3, rows: 2 },
-  { value: 4, label: '4 colunas', cols: 4, rows: 2 },
-  { value: 5, label: '5 colunas', cols: 5, rows: 2 },
-  { value: 6, label: '6 colunas', cols: 3, rows: 3 },
-  { value: 8, label: '8 colunas', cols: 4, rows: 3 },
+  { value: 3, label: "3 colunas", cols: 3, rows: 2 },
+  { value: 4, label: "4 colunas", cols: 4, rows: 2 },
+  { value: 5, label: "5 colunas", cols: 5, rows: 2 },
+  { value: 6, label: "6 colunas", cols: 3, rows: 3 },
+  { value: 8, label: "8 colunas", cols: 4, rows: 3 },
 ];
 
 function getDefaultColumns(): ColumnCount {
@@ -57,7 +57,7 @@ function getDefaultColumns(): ColumnCount {
       if ([3, 4, 5, 6, 8].includes(parsed)) return parsed;
     }
   } catch {}
-  if (typeof window !== 'undefined') {
+  if (typeof window !== "undefined") {
     const w = window.innerWidth;
     if (w < 1024) return 3;
   }
@@ -74,12 +74,10 @@ export function ColumnSelector({ value, onChange, className }: ColumnSelectorPro
   const available = columnOptions;
 
   return (
-    <div
-      className={cn(
-        'inline-flex items-center gap-0.5 rounded-xl border border-border/40 bg-muted/60 p-1',
-        className,
-      )}
-    >
+    <div className={cn(
+      "inline-flex items-center gap-0.5 p-1 rounded-xl bg-muted/60 border border-border/40",
+      className
+    )}>
       <AnimatePresence mode="popLayout">
         {available.map((opt) => {
           const isActive = value === opt.value;
@@ -89,23 +87,21 @@ export function ColumnSelector({ value, onChange, className }: ColumnSelectorPro
                 <button
                   aria-label={opt.label}
                   className={cn(
-                    'relative flex h-9 w-9 items-center justify-center rounded-xl transition-colors duration-150',
+                    "relative flex items-center justify-center h-9 w-9 rounded-xl transition-colors duration-150",
                     isActive
-                      ? 'text-primary-foreground'
-                      : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                      ? "text-primary-foreground"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
                   )}
                   onClick={() => {
                     onChange(opt.value);
-                    try {
-                      localStorage.setItem(STORAGE_KEY, String(opt.value));
-                    } catch {}
+                    try { localStorage.setItem(STORAGE_KEY, String(opt.value)); } catch {}
                   }}
                 >
                   {isActive && (
                     <motion.div
                       layoutId="column-selector-bg"
                       className="absolute inset-0 rounded-xl bg-primary shadow-sm"
-                      transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                      transition={{ type: "spring", stiffness: 500, damping: 35 }}
                     />
                   )}
                   <span className="relative z-10">

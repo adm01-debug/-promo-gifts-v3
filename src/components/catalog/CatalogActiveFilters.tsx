@@ -1,10 +1,10 @@
-import { Badge } from '@/components/ui/badge';
-import type { FilterState } from '@/components/filters/FilterPanel';
-import { useExternalCategoriesQuery } from '@/hooks/useExternalCategoriesQuery';
-import { useCategoryIcons, getCategoryIcon } from '@/hooks/useCategoryIcons';
-import { useSupplierNames } from '@/hooks/useSupplierNames';
-import { toTitleCase } from '@/lib/textUtils';
-import { X } from 'lucide-react';
+import { Badge } from "@/components/ui/badge";
+import type { FilterState } from "@/components/filters/FilterPanel";
+import { useExternalCategoriesQuery } from "@/hooks/useExternalCategoriesQuery";
+import { useCategoryIcons, getCategoryIcon } from "@/hooks/useCategoryIcons";
+import { useSupplierNames } from "@/hooks/useSupplierNames";
+import { toTitleCase } from "@/lib/textUtils";
+import { X } from "lucide-react";
 
 interface CatalogActiveFiltersProps {
   filters: FilterState;
@@ -12,11 +12,7 @@ interface CatalogActiveFiltersProps {
   activeFiltersCount: number;
 }
 
-export function CatalogActiveFilters({
-  filters,
-  setFilters,
-  activeFiltersCount,
-}: CatalogActiveFiltersProps) {
+export function CatalogActiveFilters({ filters, setFilters, activeFiltersCount }: CatalogActiveFiltersProps) {
   const { data: categories = [] } = useExternalCategoriesQuery();
   const { data: icons = [] } = useCategoryIcons();
   const { data: supplierNamesMap } = useSupplierNames(filters.suppliers);
@@ -30,23 +26,19 @@ export function CatalogActiveFilters({
           key={color}
           variant="secondary"
           className="cursor-pointer hover:bg-destructive/10"
-          onClick={() =>
-            setFilters({ ...filters, colors: filters.colors.filter((c) => c !== color) })
-          }
+          onClick={() => setFilters({ ...filters, colors: filters.colors.filter((c) => c !== color) })}
         >
           🎨 {color}
           <span className="ml-1">×</span>
         </Badge>
       ))}
-
+      
       {filters.colorGroups?.map((group) => (
         <Badge
           key={`group-${group}`}
           variant="secondary"
           className="cursor-pointer hover:bg-destructive/10"
-          onClick={() =>
-            setFilters({ ...filters, colorGroups: filters.colorGroups?.filter((g) => g !== group) })
-          }
+          onClick={() => setFilters({ ...filters, colorGroups: filters.colorGroups?.filter((g) => g !== group) })}
         >
           🌈 {toTitleCase(group)}
           <span className="ml-1">×</span>
@@ -58,12 +50,7 @@ export function CatalogActiveFilters({
           key={`var-${variation}`}
           variant="secondary"
           className="cursor-pointer hover:bg-destructive/10"
-          onClick={() =>
-            setFilters({
-              ...filters,
-              colorVariations: filters.colorVariations?.filter((v) => v !== variation),
-            })
-          }
+          onClick={() => setFilters({ ...filters, colorVariations: filters.colorVariations?.filter((v) => v !== variation) })}
         >
           🖌️ {toTitleCase(variation.replace(/-/g, ' '))}
           <span className="ml-1">×</span>
@@ -73,16 +60,14 @@ export function CatalogActiveFilters({
       {filters.categories.map((catId) => {
         const cat = categories.find((c) => c.id === catId);
         if (!cat) return null;
-
+        
         const icon = getCategoryIcon(cat.name, icons);
         return (
           <Badge
             key={catId}
             variant="secondary"
             className="cursor-pointer hover:bg-destructive/10"
-            onClick={() =>
-              setFilters({ ...filters, categories: filters.categories.filter((c) => c !== catId) })
-            }
+            onClick={() => setFilters({ ...filters, categories: filters.categories.filter((c) => c !== catId) })}
           >
             <span className="mr-1">{icon}</span>
             {toTitleCase(cat.name)}
@@ -98,12 +83,7 @@ export function CatalogActiveFilters({
             key={supplierId}
             variant="secondary"
             className="cursor-pointer hover:bg-destructive/10"
-            onClick={() =>
-              setFilters({
-                ...filters,
-                suppliers: filters.suppliers.filter((s) => s !== supplierId),
-              })
-            }
+            onClick={() => setFilters({ ...filters, suppliers: filters.suppliers.filter((s) => s !== supplierId) })}
           >
             🏭 {toTitleCase(name)}
             <span className="ml-1">×</span>
@@ -134,7 +114,7 @@ export function CatalogActiveFilters({
       {filters.inStock && (
         <Badge
           variant="secondary"
-          className="cursor-pointer border-success/30 text-success-foreground hover:bg-destructive/10"
+          className="cursor-pointer hover:bg-destructive/10 border-success/30 text-success-foreground"
           onClick={() => setFilters({ ...filters, inStock: false })}
         >
           ✅ Em estoque

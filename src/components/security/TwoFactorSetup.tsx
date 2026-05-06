@@ -4,7 +4,13 @@ import { Shield, ShieldCheck, ShieldOff, Copy, Check, Loader2 } from 'lucide-rea
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -27,9 +33,9 @@ export function TwoFactorSetup({ targetUserId, targetUserEmail }: TwoFactorSetup
   const { user } = useAuth();
   const { toast } = useToast();
   const { is2FAEnabled, isLoading, generateSecret, enable2FA, disable2FA } = use2FA(targetUserId);
-
+  
   const isManagingOther = !!targetUserId && targetUserId !== user?.id;
-
+  
   const [setupMode, setSetupMode] = useState(false);
   const [disableMode, setDisableMode] = useState(false);
   const [qrData, setQrData] = useState<{ secret: string; uri: string } | null>(null);
@@ -54,7 +60,7 @@ export function TwoFactorSetup({ targetUserId, targetUserEmail }: TwoFactorSetup
 
   const handleEnable = async () => {
     if (verificationCode.length !== 6) return;
-
+    
     setIsSubmitting(true);
     const result = await enable2FA(verificationCode);
     setIsSubmitting(false);
@@ -78,7 +84,7 @@ export function TwoFactorSetup({ targetUserId, targetUserEmail }: TwoFactorSetup
 
   const handleDisable = async () => {
     setIsSubmitting(true);
-
+    
     // Admin desativando de outro usuário não precisa de token
     if (isManagingOther) {
       const result = await disable2FA();
@@ -99,12 +105,9 @@ export function TwoFactorSetup({ targetUserId, targetUserEmail }: TwoFactorSetup
       }
       return;
     }
-
-    if (verificationCode.length !== 6) {
-      setIsSubmitting(false);
-      return;
-    }
-
+    
+    if (verificationCode.length !== 6) { setIsSubmitting(false); return; }
+    
     const result = await disable2FA(verificationCode);
     setIsSubmitting(false);
 
@@ -154,16 +157,16 @@ export function TwoFactorSetup({ targetUserId, targetUserEmail }: TwoFactorSetup
       <CardContent className="space-y-4">
         {is2FAEnabled ? (
           <div className="space-y-4">
-            <div className="flex items-center gap-2 rounded-xl bg-success/10 p-3 text-success">
+            <div className="flex items-center gap-2 text-success bg-success/10 p-3 rounded-xl">
               <ShieldCheck className="h-5 w-5" />
               <span className="font-medium">2FA está ativo</span>
             </div>
-
+            
             {isManagingOther ? (
               <Dialog open={disableMode} onOpenChange={setDisableMode}>
                 <DialogTrigger asChild>
                   <Button variant="outline" className="text-destructive">
-                    <ShieldOff className="mr-2 h-4 w-4" />
+                    <ShieldOff className="h-4 w-4 mr-2" />
                     Desativar 2FA (Admin)
                   </Button>
                 </DialogTrigger>
@@ -171,8 +174,7 @@ export function TwoFactorSetup({ targetUserId, targetUserEmail }: TwoFactorSetup
                   <DialogHeader>
                     <DialogTitle>Desativar 2FA</DialogTitle>
                     <DialogDescription>
-                      Tem certeza que deseja desativar o 2FA deste usuário? Isso reduzirá a
-                      segurança da conta.
+                      Tem certeza que deseja desativar o 2FA deste usuário? Isso reduzirá a segurança da conta.
                     </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4 py-4">
@@ -182,7 +184,9 @@ export function TwoFactorSetup({ targetUserId, targetUserEmail }: TwoFactorSetup
                       className="w-full"
                       variant="destructive"
                     >
-                      {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                      {isSubmitting ? (
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      ) : null}
                       Confirmar Desativação
                     </Button>
                   </div>
@@ -192,7 +196,7 @@ export function TwoFactorSetup({ targetUserId, targetUserEmail }: TwoFactorSetup
               <Dialog open={disableMode} onOpenChange={setDisableMode}>
                 <DialogTrigger asChild>
                   <Button variant="outline" className="text-destructive">
-                    <ShieldOff className="mr-2 h-4 w-4" />
+                    <ShieldOff className="h-4 w-4 mr-2" />
                     Desativar 2FA
                   </Button>
                 </DialogTrigger>
@@ -226,7 +230,9 @@ export function TwoFactorSetup({ targetUserId, targetUserEmail }: TwoFactorSetup
                       className="w-full"
                       variant="destructive"
                     >
-                      {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                      {isSubmitting ? (
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      ) : null}
                       Confirmar Desativação
                     </Button>
                   </div>
@@ -235,19 +241,16 @@ export function TwoFactorSetup({ targetUserId, targetUserEmail }: TwoFactorSetup
             )}
           </div>
         ) : (
-          <Dialog
-            open={setupMode}
-            onOpenChange={(open) => {
-              setSetupMode(open);
-              if (!open) {
-                setQrData(null);
-                setVerificationCode('');
-              }
-            }}
-          >
+          <Dialog open={setupMode} onOpenChange={(open) => {
+            setSetupMode(open);
+            if (!open) {
+              setQrData(null);
+              setVerificationCode('');
+            }
+          }}>
             <DialogTrigger asChild>
               <Button onClick={handleStartSetup}>
-                <Shield className="mr-2 h-4 w-4" />
+                <Shield className="h-4 w-4 mr-2" />
                 Configurar 2FA
               </Button>
             </DialogTrigger>
@@ -255,26 +258,28 @@ export function TwoFactorSetup({ targetUserId, targetUserEmail }: TwoFactorSetup
               <DialogHeader>
                 <DialogTitle>Configurar 2FA</DialogTitle>
                 <DialogDescription>
-                  Escaneie o QR code com seu aplicativo autenticador (Google Authenticator, Authy,
-                  etc.)
+                  Escaneie o QR code com seu aplicativo autenticador (Google Authenticator, Authy, etc.)
                 </DialogDescription>
               </DialogHeader>
               {qrData && (
                 <div className="space-y-6 py-4">
                   <div className="flex justify-center">
-                    <div className="rounded-xl bg-white p-4">
+                    <div className="bg-white p-4 rounded-xl">
                       <QRCodeSVG value={qrData.uri} size={200} />
                     </div>
                   </div>
-
+                  
                   <div className="space-y-2">
                     <Label>Ou digite o código manualmente:</Label>
                     <div className="flex gap-2">
-                      <Input value={qrData.secret} readOnly className="font-mono text-sm" />
+                      <Input
+                        value={qrData.secret}
+                        readOnly
+                        className="font-mono text-sm"
+                      />
                       <Button
                         variant="outline"
-                        size="icon"
-                        aria-label="Confirmar"
+                        size="icon" aria-label="Confirmar"
                         onClick={handleCopySecret}
                       >
                         {copied ? (
@@ -311,7 +316,9 @@ export function TwoFactorSetup({ targetUserId, targetUserEmail }: TwoFactorSetup
                     disabled={verificationCode.length !== 6 || isSubmitting}
                     className="w-full"
                   >
-                    {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                    {isSubmitting ? (
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    ) : null}
                     Ativar 2FA
                   </Button>
                 </div>

@@ -22,7 +22,7 @@ export function calculateBoxPrice(box: KitBox | null, quantity: number = 1): num
  */
 export function calculateItemsPrice(items: KitItem[]): number {
   return items.reduce((total, item) => {
-    return total + item.price * item.quantity;
+    return total + (item.price * item.quantity);
   }, 0);
 }
 
@@ -32,7 +32,7 @@ export function calculateItemsPrice(items: KitItem[]): number {
 export function calculatePersonalizationPrice(
   personalization: KitPersonalization,
   items: KitItem[],
-  quantity: number = 1,
+  quantity: number = 1
 ): number {
   let total = 0;
 
@@ -42,7 +42,7 @@ export function calculatePersonalizationPrice(
   }
 
   // Personalização dos itens
-  items.forEach((item) => {
+  items.forEach(item => {
     const itemPersonalization = personalization.items[item.id];
     if (itemPersonalization?.enabled && itemPersonalization.estimatedPrice) {
       total += itemPersonalization.estimatedPrice * item.quantity * quantity;
@@ -59,7 +59,7 @@ export function calculateTotalKitPrice(
   box: KitBox | null,
   items: KitItem[],
   personalization: KitPersonalization,
-  kitQuantity: number = 1,
+  kitQuantity: number = 1
 ): {
   boxPrice: number;
   itemsPrice: number;
@@ -92,13 +92,15 @@ export function calculateTotalKitPrice(
  */
 export function calculateSavings(
   kitPrice: number,
-  individualItemsPrice: number,
+  individualItemsPrice: number
 ): {
   amount: number;
   percent: number;
 } {
   const amount = individualItemsPrice - kitPrice;
-  const percent = individualItemsPrice > 0 ? (amount / individualItemsPrice) * 100 : 0;
+  const percent = individualItemsPrice > 0 
+    ? (amount / individualItemsPrice) * 100 
+    : 0;
 
   return {
     amount: Math.max(0, amount),
@@ -141,7 +143,7 @@ export function generatePriceBreakdown(
   box: KitBox | null,
   items: KitItem[],
   personalization: KitPersonalization,
-  kitQuantity: number = 1,
+  kitQuantity: number = 1
 ): PriceBreakdownItem[] {
   const breakdown: PriceBreakdownItem[] = [];
 
@@ -167,7 +169,7 @@ export function generatePriceBreakdown(
   }
 
   // Itens
-  items.forEach((item) => {
+  items.forEach(item => {
     const totalQty = item.quantity * kitQuantity;
     breakdown.push({
       label: item.name,

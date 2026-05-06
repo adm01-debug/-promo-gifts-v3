@@ -1,17 +1,9 @@
 /**
  * PriceHistoryChart — gráfico de linha do histórico de preços de um produto.
  */
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  CartesianGrid,
-} from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { TrendingUp } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { TrendingUp } from "lucide-react";
 
 export interface PricePoint {
   date: string;
@@ -23,12 +15,12 @@ interface PriceHistoryChartProps {
   title?: string;
 }
 
-export function PriceHistoryChart({ data, title = 'Histórico de Preços' }: PriceHistoryChartProps) {
+export function PriceHistoryChart({ data, title = "Histórico de Preços" }: PriceHistoryChartProps) {
   if (!data?.length) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
+          <CardTitle className="text-base flex items-center gap-2">
             <TrendingUp className="h-4 w-4" /> {title}
           </CardTitle>
         </CardHeader>
@@ -42,7 +34,7 @@ export function PriceHistoryChart({ data, title = 'Histórico de Preços' }: Pri
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-base">
+        <CardTitle className="text-base flex items-center gap-2">
           <TrendingUp className="h-4 w-4 text-primary" /> {title}
         </CardTitle>
       </CardHeader>
@@ -53,19 +45,10 @@ export function PriceHistoryChart({ data, title = 'Histórico de Preços' }: Pri
             <XAxis dataKey="date" tick={{ fontSize: 11 }} />
             <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `R$${v}`} />
             <Tooltip
-              contentStyle={{
-                background: 'hsl(var(--background))',
-                border: '1px solid hsl(var(--border))',
-              }}
-              formatter={(v: number) => [`R$ ${v.toFixed(2)}`, 'Preço']}
+              contentStyle={{ background: "hsl(var(--background))", border: "1px solid hsl(var(--border))" }}
+              formatter={(v: number) => [`R$ ${v.toFixed(2)}`, "Preço"]}
             />
-            <Line
-              type="monotone"
-              dataKey="price"
-              stroke="hsl(var(--primary))"
-              strokeWidth={2}
-              dot={{ r: 3 }}
-            />
+            <Line type="monotone" dataKey="price" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 3 }} />
           </LineChart>
         </ResponsiveContainer>
       </CardContent>

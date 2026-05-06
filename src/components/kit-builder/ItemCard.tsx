@@ -7,7 +7,11 @@ import { Plus, Check, X, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { formatVolume, formatCurrency } from '@/lib/kit-builder';
 import type { KitItem, CompatibilityResult } from '@/lib/kit-builder';
@@ -27,40 +31,37 @@ export function ItemCard({ item, isSelected, boxSelected, onAdd, onRemove }: Ite
   return (
     <Card
       className={cn(
-        'group rounded-xl transition-all duration-200 will-change-transform',
-        'border-border/50 focus-within:ring-2 focus-within:ring-primary/60',
-        isSelected &&
-          'bg-primary/5 shadow-[0_4px_20px_-6px_hsl(var(--primary)/0.35)] ring-2 ring-primary',
-        cantFit && 'opacity-60',
-        !cantFit &&
-          !isSelected &&
-          'cursor-pointer hover:-translate-y-0.5 hover:border-primary/40 hover:bg-card hover:shadow-lg',
+        "group rounded-xl transition-all duration-200 will-change-transform",
+        "border-border/50 focus-within:ring-2 focus-within:ring-primary/60",
+        isSelected && "ring-2 ring-primary bg-primary/5 shadow-[0_4px_20px_-6px_hsl(var(--primary)/0.35)]",
+        cantFit && "opacity-60",
+        !cantFit && !isSelected && "cursor-pointer hover:-translate-y-0.5 hover:shadow-lg hover:border-primary/40 hover:bg-card",
       )}
     >
       <CardContent className="p-3">
         <div className="flex gap-3">
           {/* Imagem pequena */}
-          <div className="h-14 w-14 flex-shrink-0 overflow-hidden rounded-xl bg-secondary">
+          <div className="w-14 h-14 rounded-xl bg-secondary overflow-hidden flex-shrink-0">
             {item.imageUrl ? (
               <img
                 src={item.imageUrl}
                 alt={item.name}
-                className="h-full w-full object-cover"
-                loading="lazy"
-              />
+                className="w-full h-full object-cover" loading="lazy" />
             ) : (
-              <div className="flex h-full w-full items-center justify-center">
+              <div className="w-full h-full flex items-center justify-center">
                 <Package className="h-6 w-6 text-muted-foreground" />
               </div>
             )}
           </div>
 
           {/* Info */}
-          <div className="min-w-0 flex-1">
-            <h4 className="truncate text-sm font-medium">{item.name}</h4>
-            <p className="font-mono text-xs text-muted-foreground">{item.sku}</p>
-            <div className="mt-1 flex items-center justify-between">
-              <span className="text-[11px] text-muted-foreground">{formatVolume(item.volume)}</span>
+          <div className="flex-1 min-w-0">
+            <h4 className="font-medium text-sm truncate">{item.name}</h4>
+            <p className="text-xs text-muted-foreground font-mono">{item.sku}</p>
+            <div className="flex items-center justify-between mt-1">
+              <span className="text-[11px] text-muted-foreground">
+                {formatVolume(item.volume)}
+              </span>
               <span className="text-sm font-semibold text-primary">
                 {formatCurrency(item.price)}
               </span>
@@ -69,25 +70,25 @@ export function ItemCard({ item, isSelected, boxSelected, onAdd, onRemove }: Ite
         </div>
 
         {/* Badge de compatibilidade e ação */}
-        <div className="mt-2 flex items-center justify-between border-t pt-2">
+        <div className="flex items-center justify-between mt-2 pt-2 border-t">
           {boxSelected && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <Badge
-                  variant={fits ? 'secondary' : 'destructive'}
+                  variant={fits ? "secondary" : "destructive"}
                   className={cn(
-                    'text-xs',
-                    fits && 'bg-primary/10 text-primary hover:bg-primary/20 dark:text-primary',
+                    "text-xs",
+                    fits && "bg-primary/10 text-primary dark:text-primary hover:bg-primary/20"
                   )}
                 >
                   {fits ? (
                     <>
-                      <Check className="mr-1 h-3 w-3" />
+                      <Check className="h-3 w-3 mr-1" />
                       CABE
                     </>
                   ) : (
                     <>
-                      <X className="mr-1 h-3 w-3" />
+                      <X className="h-3 w-3 mr-1" />
                       NÃO CABE
                     </>
                   )}
@@ -108,7 +109,7 @@ export function ItemCard({ item, isSelected, boxSelected, onAdd, onRemove }: Ite
               className="ml-auto focus-visible:ring-2 focus-visible:ring-primary/60"
               onClick={() => onRemove(item.id)}
             >
-              <Check className="mr-1 h-3 w-3 text-success" />
+              <Check className="h-3 w-3 mr-1 text-success" />
               <span className="group-hover:hidden">Adicionado</span>
               <span className="hidden group-hover:inline">Remover</span>
             </Button>
@@ -116,11 +117,11 @@ export function ItemCard({ item, isSelected, boxSelected, onAdd, onRemove }: Ite
             <Button
               variant="default"
               size="sm"
-              className="ml-auto opacity-90 transition-opacity focus-visible:ring-2 focus-visible:ring-primary/60 group-hover:opacity-100"
+              className="ml-auto opacity-90 group-hover:opacity-100 transition-opacity focus-visible:ring-2 focus-visible:ring-primary/60"
               disabled={cantFit}
               onClick={() => onAdd(item)}
             >
-              <Plus className="mr-1 h-3 w-3" />
+              <Plus className="h-3 w-3 mr-1" />
               Adicionar
             </Button>
           )}

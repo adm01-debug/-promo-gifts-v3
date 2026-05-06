@@ -1,14 +1,19 @@
-import React from 'react';
-import { cn } from '@/lib/utils';
-import { X } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import React from "react";
+import { cn } from "@/lib/utils";
+import { X } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface MaterialBadgeProps {
   name: string;
   groupName?: string;
   hexCode?: string | null;
-  size?: 'sm' | 'md' | 'lg';
-  variant?: 'default' | 'outline' | 'solid' | 'ghost';
+  size?: "sm" | "md" | "lg";
+  variant?: "default" | "outline" | "solid" | "ghost";
   showGroup?: boolean;
   onClick?: () => void;
   onRemove?: () => void;
@@ -21,8 +26,8 @@ export function MaterialBadge({
   name,
   groupName,
   hexCode,
-  size = 'md',
-  variant = 'default',
+  size = "md",
+  variant = "default",
   showGroup = false,
   onClick,
   onRemove,
@@ -31,22 +36,22 @@ export function MaterialBadge({
   productCount,
 }: MaterialBadgeProps) {
   const sizeClasses = {
-    sm: 'text-[11px] px-2 py-0.5 gap-1',
-    md: 'text-xs px-2.5 py-1 gap-1.5',
-    lg: 'text-sm px-3 py-1.5 gap-2',
+    sm: "text-[11px] px-2 py-0.5 gap-1",
+    md: "text-xs px-2.5 py-1 gap-1.5",
+    lg: "text-sm px-3 py-1.5 gap-2",
   };
 
   const colorDotSizes = {
-    sm: 'w-2 h-2',
-    md: 'w-2.5 h-2.5',
-    lg: 'w-3 h-3',
+    sm: "w-2 h-2",
+    md: "w-2.5 h-2.5",
+    lg: "w-3 h-3",
   };
 
   const variantClasses = {
-    default: 'bg-muted/60 text-muted-foreground hover:bg-muted',
-    outline: 'border border-border bg-background text-foreground hover:bg-muted/50',
-    solid: 'bg-primary/15 text-primary border border-primary/20 hover:bg-primary/25',
-    ghost: 'bg-transparent text-muted-foreground hover:bg-muted/50',
+    default: "bg-muted/60 text-muted-foreground hover:bg-muted",
+    outline: "border border-border bg-background text-foreground hover:bg-muted/50",
+    solid: "bg-primary/15 text-primary border border-primary/20 hover:bg-primary/25",
+    ghost: "bg-transparent text-muted-foreground hover:bg-muted/50",
   };
 
   const displayText = showGroup && groupName ? `${groupName}: ${name}` : name;
@@ -54,41 +59,38 @@ export function MaterialBadge({
   const badgeContent = (
     <span
       className={cn(
-        'inline-flex items-center rounded-full font-medium transition-all duration-200',
+        "inline-flex items-center rounded-full font-medium transition-all duration-200",
         sizeClasses[size],
         variantClasses[variant],
-        onClick && 'cursor-pointer',
-        onRemove && 'pr-1',
-        className,
+        onClick && "cursor-pointer",
+        onRemove && "pr-1",
+        className
       )}
       onClick={onClick}
     >
+      
       {/* Texto */}
-      <span
-        className={cn(
-          'truncate',
-          size === 'sm' && 'max-w-[100px]',
-          size === 'md' && 'max-w-[120px]',
-          size === 'lg' && 'max-w-[150px]',
-        )}
-      >
+      <span className={cn(
+        "truncate",
+        size === "sm" && "max-w-[100px]",
+        size === "md" && "max-w-[120px]",
+        size === "lg" && "max-w-[150px]"
+      )}>
         {displayText}
       </span>
-
+      
       {/* Contador de produtos */}
       {productCount !== undefined && productCount > 0 && (
-        <span
-          className={cn(
-            'rounded-full bg-background/80 font-normal text-muted-foreground',
-            size === 'sm' && 'px-1 text-[9px]',
-            size === 'md' && 'px-1.5 text-[10px]',
-            size === 'lg' && 'px-2 text-xs',
-          )}
-        >
+        <span className={cn(
+          "rounded-full bg-background/80 text-muted-foreground font-normal",
+          size === "sm" && "text-[9px] px-1",
+          size === "md" && "text-[10px] px-1.5",
+          size === "lg" && "text-xs px-2"
+        )}>
           {productCount}
         </span>
       )}
-
+      
       {/* Botão remover */}
       {onRemove && (
         <button
@@ -98,19 +100,17 @@ export function MaterialBadge({
             onRemove();
           }}
           className={cn(
-            'rounded-full transition-all duration-150 hover:bg-destructive/20 hover:text-destructive',
-            size === 'sm' && 'ml-0.5 p-0.5',
-            size === 'md' && 'ml-1 p-0.5',
-            size === 'lg' && 'ml-1 p-1',
+            "rounded-full transition-all duration-150 hover:bg-destructive/20 hover:text-destructive",
+            size === "sm" && "p-0.5 ml-0.5",
+            size === "md" && "p-0.5 ml-1",
+            size === "lg" && "p-1 ml-1"
           )}
         >
-          <X
-            className={cn(
-              size === 'sm' && 'h-2.5 w-2.5',
-              size === 'md' && 'h-3 w-3',
-              size === 'lg' && 'h-3.5 w-3.5',
-            )}
-          />
+          <X className={cn(
+            size === "sm" && "w-2.5 h-2.5",
+            size === "md" && "w-3 h-3",
+            size === "lg" && "w-3.5 h-3.5"
+          )} />
         </button>
       )}
     </span>
@@ -119,12 +119,19 @@ export function MaterialBadge({
   // Com tooltip
   if (showTooltip && (groupName || productCount)) {
     return (
-      <TooltipProvider>
+      <TooltipProvider >
         <Tooltip>
-          <TooltipTrigger asChild>{badgeContent}</TooltipTrigger>
-          <TooltipContent side="top" className="text-xs">
+          <TooltipTrigger asChild>
+            {badgeContent}
+          </TooltipTrigger>
+          <TooltipContent 
+            side="top" 
+            className="text-xs"
+          >
             <div className="flex flex-col gap-0.5">
-              {groupName && <span className="font-medium">{groupName}</span>}
+              {groupName && (
+                <span className="font-medium">{groupName}</span>
+              )}
               <span>{name}</span>
               {productCount !== undefined && (
                 <span className="text-muted-foreground">
@@ -158,13 +165,13 @@ export function CompactMaterialBadge({
       type="button"
       onClick={onClick}
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-xl px-2 py-1 text-xs transition-all duration-150',
+        "inline-flex items-center gap-1.5 text-xs px-2 py-1 rounded-xl transition-all duration-150",
         isSelected
-          ? 'bg-primary/15 font-medium text-primary ring-1 ring-primary/30'
-          : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground',
+          ? "bg-primary/15 text-primary font-medium ring-1 ring-primary/30"
+          : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
       )}
     >
-      <span className="max-w-[80px] truncate">{name}</span>
+      <span className="truncate max-w-[80px]">{name}</span>
     </button>
   );
 }

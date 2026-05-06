@@ -1,6 +1,6 @@
 /**
  * useUndoRedo - History stack wrapper for useReducer
- *
+ * 
  * Wraps a reducer to add undo/redo capabilities via a history stack.
  * Only meaningful actions are tracked (not UI-only state changes).
  */
@@ -30,15 +30,12 @@ const MAX_HISTORY = 30;
 export function useUndoableReducer<S, A extends { type: string }>(
   reducer: (state: S, action: A) => S,
   initialState: S,
-  initializer?: (init: S) => S,
+  initializer?: (init: S) => S
 ) {
   const init = initializer ? initializer(initialState) : initialState;
 
   const historyReducer = useCallback(
-    (
-      history: HistoryState<S>,
-      action: A | { type: '__UNDO__' } | { type: '__REDO__' },
-    ): HistoryState<S> => {
+    (history: HistoryState<S>, action: A | { type: '__UNDO__' } | { type: '__REDO__' }): HistoryState<S> => {
       switch (action.type) {
         case '__UNDO__': {
           if (history.past.length === 0) return history;
@@ -76,7 +73,7 @@ export function useUndoableReducer<S, A extends { type: string }>(
         }
       }
     },
-    [reducer],
+    [reducer]
   );
 
   const [history, historyDispatch] = useReducer(historyReducer, {

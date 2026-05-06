@@ -1,14 +1,14 @@
 /**
  * QuoteShareDialog — modal para gerar e copiar link público de aprovação do orçamento.
  */
-import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { supabase } from '@/integrations/supabase/client';
-import { Copy, Link2, Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
+import { useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { supabase } from "@/integrations/supabase/client";
+import { Copy, Link2, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 interface QuoteShareDialogProps {
   quoteId: string;
@@ -18,15 +18,9 @@ interface QuoteShareDialogProps {
   defaultClientName?: string;
 }
 
-export function QuoteShareDialog({
-  quoteId,
-  open,
-  onOpenChange,
-  defaultClientEmail,
-  defaultClientName,
-}: QuoteShareDialogProps) {
-  const [clientName, setClientName] = useState(defaultClientName ?? '');
-  const [clientEmail, setClientEmail] = useState(defaultClientEmail ?? '');
+export function QuoteShareDialog({ quoteId, open, onOpenChange, defaultClientEmail, defaultClientName }: QuoteShareDialogProps) {
+  const [clientName, setClientName] = useState(defaultClientName ?? "");
+  const [clientEmail, setClientEmail] = useState(defaultClientEmail ?? "");
   const [generatedToken, setGeneratedToken] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -38,22 +32,22 @@ export function QuoteShareDialog({
     setIsGenerating(true);
     try {
       const { data: u } = await supabase.auth.getUser();
-      if (!u.user) throw new Error('Não autenticado');
+      if (!u.user) throw new Error("Não autenticado");
       const { data, error } = await supabase
-        .from('quote_approval_tokens')
+        .from("quote_approval_tokens")
         .insert({
           quote_id: quoteId,
           seller_id: u.user.id,
           client_name: clientName || null,
           client_email: clientEmail || null,
         })
-        .select('token')
+        .select("token")
         .single();
       if (error) throw error;
       setGeneratedToken(data.token);
-      toast.success('Link gerado!');
+      toast.success("Link gerado!");
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Erro ao gerar link');
+      toast.error(e instanceof Error ? e.message : "Erro ao gerar link");
     } finally {
       setIsGenerating(false);
     }
@@ -62,7 +56,7 @@ export function QuoteShareDialog({
   const copy = async () => {
     if (!link) return;
     await navigator.clipboard.writeText(link);
-    toast.success('Link copiado');
+    toast.success("Link copiado");
   };
 
   return (
@@ -80,11 +74,7 @@ export function QuoteShareDialog({
           </div>
           <div className="space-y-1">
             <Label>E-mail do cliente</Label>
-            <Input
-              type="email"
-              value={clientEmail}
-              onChange={(e) => setClientEmail(e.target.value)}
-            />
+            <Input type="email" value={clientEmail} onChange={(e) => setClientEmail(e.target.value)} />
           </div>
           {link ? (
             <div className="space-y-1">
@@ -98,11 +88,7 @@ export function QuoteShareDialog({
             </div>
           ) : (
             <Button onClick={generate} disabled={isGenerating} className="w-full">
-              {isGenerating ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Link2 className="mr-2 h-4 w-4" />
-              )}
+              {isGenerating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Link2 className="h-4 w-4 mr-2" />}
               Gerar link
             </Button>
           )}

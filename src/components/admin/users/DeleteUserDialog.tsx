@@ -1,16 +1,10 @@
-import { useState } from 'react';
+import { useState } from "react";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { Loader2, Trash2 } from 'lucide-react';
-import { type UserWithRole } from './types';
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Loader2, Trash2 } from "lucide-react";
+import { type UserWithRole } from "./types";
 
 interface DeleteUserDialogProps {
   user: UserWithRole | null;
@@ -35,9 +29,8 @@ export function DeleteUserDialog({ user, onClose, onConfirm }: DeleteUserDialogP
         <AlertDialogHeader>
           <AlertDialogTitle>Excluir Usuário</AlertDialogTitle>
           <AlertDialogDescription>
-            Tem certeza que deseja excluir{' '}
-            <span className="font-semibold">{user?.full_name || user?.email}</span>? Esta ação é
-            irreversível e removerá todos os dados associados a este usuário.
+            Tem certeza que deseja excluir <span className="font-semibold">{user?.full_name || user?.email}</span>?
+            Esta ação é irreversível e removerá todos os dados associados a este usuário.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -47,11 +40,7 @@ export function DeleteUserDialog({ user, onClose, onConfirm }: DeleteUserDialogP
             disabled={isDeleting}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
-            {isDeleting ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Trash2 className="mr-2 h-4 w-4" />
-            )}
+            {isDeleting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Trash2 className="h-4 w-4 mr-2" />}
             Excluir
           </AlertDialogAction>
         </AlertDialogFooter>

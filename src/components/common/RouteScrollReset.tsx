@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react';
-import { useLocation, useNavigationType } from 'react-router-dom';
+import { useEffect, useRef } from "react";
+import { useLocation, useNavigationType } from "react-router-dom";
 
 /**
  * RouteScrollReset
@@ -23,15 +23,17 @@ export function RouteScrollReset() {
       isFirstMount.current = false;
       return;
     }
-    if (navType === 'POP') return;
+    if (navType === "POP") return;
     if (hash) return;
 
-    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const prefersReduced = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
 
     window.scrollTo({
       top: 0,
       left: 0,
-      behavior: prefersReduced ? 'auto' : 'smooth',
+      behavior: prefersReduced ? "auto" : "smooth",
     });
   }, [pathname, hash, navType]);
 

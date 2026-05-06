@@ -94,11 +94,7 @@ function matchByPrefix(codigo: string, map: Record<string, string>): string | un
 }
 
 export function getTechniqueColor(codigo: string): string {
-  return (
-    TECHNIQUE_COLORS[codigo] ||
-    matchByPrefix(codigo, TECHNIQUE_COLORS) ||
-    'bg-gray-100 text-gray-800'
-  );
+  return TECHNIQUE_COLORS[codigo] || matchByPrefix(codigo, TECHNIQUE_COLORS) || 'bg-gray-100 text-gray-800';
 }
 
 export function getTechniqueIcon(codigo: string): string {
@@ -115,16 +111,13 @@ export function formatPrice(value: number | null | undefined): string {
 // ============================================
 
 export function calculateTotalWithColorDiscount(
-  basePrice: number,
-  numCores: number,
-  tabela: TabelaPrecoOficial,
+  basePrice: number, numCores: number, tabela: TabelaPrecoOficial
 ): number {
   if (!tabela.cobra_por_cor || numCores <= 1) return basePrice;
   let discount = 0;
   if (numCores === 2 && tabela.desconto_segunda_cor) discount = tabela.desconto_segunda_cor;
   else if (numCores === 3 && tabela.desconto_terceira_cor) discount = tabela.desconto_terceira_cor;
-  else if (numCores >= 4 && tabela.desconto_quarta_cor_mais)
-    discount = tabela.desconto_quarta_cor_mais;
+  else if (numCores >= 4 && tabela.desconto_quarta_cor_mais) discount = tabela.desconto_quarta_cor_mais;
   return basePrice * (1 - discount) * numCores;
 }
 
@@ -133,15 +126,9 @@ export function calculateSetupCost(numCores: number, tabela: TabelaPrecoOficial)
   return tabela.custo_setup_por_cor ? tabela.custo_setup * numCores : tabela.custo_setup;
 }
 
-export function findPriceTier(
-  quantidade: number,
-  faixas: FaixaPrecoOficial[],
-): FaixaPrecoOficial | null {
+export function findPriceTier(quantidade: number, faixas: FaixaPrecoOficial[]): FaixaPrecoOficial | null {
   for (const faixa of faixas) {
-    if (
-      quantidade >= faixa.quantidade_minima &&
-      (faixa.quantidade_maxima === null || quantidade <= faixa.quantidade_maxima)
-    ) {
+    if (quantidade >= faixa.quantidade_minima && (faixa.quantidade_maxima === null || quantidade <= faixa.quantidade_maxima)) {
       return faixa;
     }
   }
@@ -149,31 +136,18 @@ export function findPriceTier(
 }
 
 export function calculateCustomizationTotal(
-  quantidade: number,
-  numCores: number,
-  tabela: TabelaPrecoOficial,
-  faixas: FaixaPrecoOficial[],
-  markupPercent: number = 115,
+  quantidade: number, numCores: number, tabela: TabelaPrecoOficial,
+  faixas: FaixaPrecoOficial[], markupPercent: number = 115
 ) {
   const faixa = findPriceTier(quantidade, faixas);
-  const markupMultiplier = 1 + markupPercent / 100;
+  const markupMultiplier = 1 + (markupPercent / 100);
 
   if (!faixa) {
     return {
-      faixa: null,
-      custoUnitarioBase: 0,
-      custoUnitarioTotal: 0,
-      custoSetup: 0,
-      custoManuseio: 0,
-      custoTotalPecas: 0,
-      precoUnitario: 0,
-      precoMinimoUnitario: 0,
-      subtotalPecas: 0,
-      faturamentoMinimoGravacao: tabela.faturamento_minimo || 0,
-      minimumApplied: false,
-      total: 0,
-      margemPercent: 0,
-      prazoDias: null as number | null,
+      faixa: null, custoUnitarioBase: 0, custoUnitarioTotal: 0, custoSetup: 0,
+      custoManuseio: 0, custoTotalPecas: 0, precoUnitario: 0, precoMinimoUnitario: 0,
+      subtotalPecas: 0, faturamentoMinimoGravacao: tabela.faturamento_minimo || 0,
+      minimumApplied: false, total: 0, margemPercent: 0, prazoDias: null as number | null,
     };
   }
 
@@ -182,11 +156,11 @@ export function calculateCustomizationTotal(
   const custoSetup = calculateSetupCost(numCores, tabela);
   const custoManuseio = tabela.custo_manuseio_por_peca
     ? (tabela.custo_manuseio || 0) * quantidade
-    : tabela.custo_manuseio || 0;
+    : (tabela.custo_manuseio || 0);
   const custoTotalPecas = custoUnitarioTotal * quantidade;
 
   let precoUnitario = custoUnitarioTotal * markupMultiplier;
-  const precoMinimoUnitario = 1.0;
+  const precoMinimoUnitario = 1.00;
   if (precoUnitario < precoMinimoUnitario) precoUnitario = precoMinimoUnitario;
 
   const subtotalPecas = precoUnitario * quantidade;
@@ -199,19 +173,9 @@ export function calculateCustomizationTotal(
   const margemPercent = custoTotal > 0 ? ((total - custoTotal) / custoTotal) * 100 : 0;
 
   return {
-    faixa,
-    custoUnitarioBase,
-    custoUnitarioTotal,
-    custoSetup,
-    custoManuseio,
-    custoTotalPecas,
-    precoUnitario,
-    precoMinimoUnitario,
-    subtotalPecas,
-    faturamentoMinimoGravacao,
-    minimumApplied,
-    total,
-    margemPercent,
+    faixa, custoUnitarioBase, custoUnitarioTotal, custoSetup, custoManuseio,
+    custoTotalPecas, precoUnitario, precoMinimoUnitario, subtotalPecas,
+    faturamentoMinimoGravacao, minimumApplied, total, margemPercent,
     prazoDias: faixa.prazo_dias,
   };
 }

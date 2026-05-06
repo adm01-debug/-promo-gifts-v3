@@ -1,4 +1,4 @@
-import { AppRole } from '@/contexts/AuthContext';
+import { AppRole } from "@/contexts/AuthContext";
 
 export interface AccessPolicy {
   requiredRole?: AppRole;
@@ -9,7 +9,7 @@ export interface AccessPolicy {
 export const checkAccess = (
   userRoles: AppRole[],
   currentAAL: string | null,
-  policy: AccessPolicy,
+  policy: AccessPolicy
 ): { allowed: boolean; reason?: 'unauthenticated' | 'insufficient_role' | 'mfa_required' } => {
   const { requiredRole, requireMfa, requireDev } = policy;
 
@@ -18,9 +18,7 @@ export const checkAccess = (
   }
 
   if (requiredRole) {
-    const isSupervisorOrAbove = userRoles.some((r) =>
-      ['dev', 'supervisor', 'admin', 'manager'].includes(r),
-    );
+    const isSupervisorOrAbove = userRoles.some(r => ['dev', 'supervisor', 'admin', 'manager'].includes(r));
     if (requiredRole === 'supervisor' && !isSupervisorOrAbove) {
       return { allowed: false, reason: 'insufficient_role' };
     }

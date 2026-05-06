@@ -2,20 +2,14 @@
  * Mobile Sticky Bottom Summary
  * Shows price/volume/weight at-a-glance and opens a drawer with full sidebar content.
  */
-import { useState } from 'react';
-import { ChevronUp, Package } from 'lucide-react';
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from '@/components/ui/drawer';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { formatCurrency } from '@/lib/kit-builder';
-import type { KitState } from '@/lib/kit-builder';
-import { cn } from '@/lib/utils';
+import { useState } from "react";
+import { ChevronUp, Package } from "lucide-react";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { formatCurrency } from "@/lib/kit-builder";
+import type { KitState } from "@/lib/kit-builder";
+import { cn } from "@/lib/utils";
 
 interface KitMobileSummaryBarProps {
   kitState: KitState;
@@ -30,34 +24,34 @@ export function KitMobileSummaryBar({ kitState, kitQuantity, children }: KitMobi
 
   return (
     <Drawer open={open} onOpenChange={setOpen}>
-      <div className="fixed bottom-0 left-0 right-0 z-40 border-t bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 lg:hidden">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 border-t bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
         <DrawerTrigger asChild>
           <button
-            className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
+            className="w-full px-4 py-3 flex items-center justify-between gap-3 text-left"
             aria-label="Abrir resumo do kit"
           >
-            <div className="flex min-w-0 items-center gap-2">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
                 <Package className="h-4 w-4 text-primary" />
               </div>
               <div className="min-w-0">
-                <p className="truncate text-sm font-semibold leading-tight">
+                <p className="text-sm font-semibold leading-tight truncate">
                   {formatCurrency(kitState.totalPrice)}
-                  <span className="font-normal text-muted-foreground"> /kit</span>
+                  <span className="text-muted-foreground font-normal"> /kit</span>
                 </p>
-                <p className="truncate text-[11px] text-muted-foreground">
+                <p className="text-[11px] text-muted-foreground truncate">
                   Total {formatCurrency(grandTotal)} · {kitQuantity}x
                 </p>
               </div>
             </div>
-            <div className="flex shrink-0 items-center gap-2">
+            <div className="flex items-center gap-2 shrink-0">
               {kitState.box && (
                 <Badge
                   variant="outline"
                   className={cn(
-                    'text-[10px]',
-                    volume > 100 && 'border-destructive text-destructive',
-                    volume > 80 && volume <= 100 && 'border-warning text-warning',
+                    "text-[10px]",
+                    volume > 100 && "border-destructive text-destructive",
+                    volume > 80 && volume <= 100 && "border-warning text-warning",
                   )}
                 >
                   {volume}%
@@ -76,7 +70,7 @@ export function KitMobileSummaryBar({ kitState, kitQuantity, children }: KitMobi
         <DrawerHeader className="pb-2">
           <DrawerTitle className="font-display">Resumo do Kit</DrawerTitle>
         </DrawerHeader>
-        <div className="scrollbar-thin space-y-4 overflow-y-auto px-4 pb-8">{children}</div>
+        <div className="px-4 pb-8 overflow-y-auto space-y-4 scrollbar-thin">{children}</div>
       </DrawerContent>
     </Drawer>
   );

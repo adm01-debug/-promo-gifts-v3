@@ -1,6 +1,6 @@
 /**
  * Types: Gravação Database
- *
+ * 
  * Tipos para o banco de dados externo de Gravação (Promobrind).
  * Mantido para compatibilidade com código legado.
  */
@@ -60,7 +60,13 @@ export interface TecnicaGravacaoWithVariantes extends TecnicaGravacaoRaw {
 // JSON TYPE
 // ============================================
 
-export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[];
 
 // ============================================
 // FORMULÁRIOS

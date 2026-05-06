@@ -14,499 +14,7 @@ export type Database = {
   }
   public: {
     Tables: {
-      access_security_settings: {
-        Row: {
-          block_unknown_locations: boolean | null
-          city_whitelist_enabled: boolean | null
-          created_at: string | null
-          id: string
-          ip_whitelist_enabled: boolean | null
-          lockout_duration_minutes: number | null
-          max_failed_attempts: number | null
-          strict_access_mode: boolean | null
-          updated_at: string | null
-        }
-        Insert: {
-          block_unknown_locations?: boolean | null
-          city_whitelist_enabled?: boolean | null
-          created_at?: string | null
-          id?: string
-          ip_whitelist_enabled?: boolean | null
-          lockout_duration_minutes?: number | null
-          max_failed_attempts?: number | null
-          strict_access_mode?: boolean | null
-          updated_at?: string | null
-        }
-        Update: {
-          block_unknown_locations?: boolean | null
-          city_whitelist_enabled?: boolean | null
-          created_at?: string | null
-          id?: string
-          ip_whitelist_enabled?: boolean | null
-          lockout_duration_minutes?: number | null
-          max_failed_attempts?: number | null
-          strict_access_mode?: boolean | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       admin_audit_log: {
-        Row: {
-          action: string
-          created_at: string
-          details: Json | null
-          duration_ms: number | null
-          finished_at: string | null
-          id: string
-          ip_address: string | null
-          payload_summary: Json | null
-          request_id: string | null
-          resource_id: string | null
-          resource_type: string
-          source: string | null
-          started_at: string | null
-          status: string | null
-          user_agent: string | null
-          user_id: string
-        }
-        Insert: {
-          action: string
-          created_at?: string
-          details?: Json | null
-          duration_ms?: number | null
-          finished_at?: string | null
-          id?: string
-          ip_address?: string | null
-          payload_summary?: Json | null
-          request_id?: string | null
-          resource_id?: string | null
-          resource_type: string
-          source?: string | null
-          started_at?: string | null
-          status?: string | null
-          user_agent?: string | null
-          user_id: string
-        }
-        Update: {
-          action?: string
-          created_at?: string
-          details?: Json | null
-          duration_ms?: number | null
-          finished_at?: string | null
-          id?: string
-          ip_address?: string | null
-          payload_summary?: Json | null
-          request_id?: string | null
-          resource_id?: string | null
-          resource_type?: string
-          source?: string | null
-          started_at?: string | null
-          status?: string | null
-          user_agent?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
-      admin_audit_log_old: {
-        Row: {
-          action: string
-          created_at: string
-          details: Json | null
-          duration_ms: number | null
-          finished_at: string | null
-          id: string
-          ip_address: string | null
-          payload_summary: Json | null
-          request_id: string | null
-          resource_id: string | null
-          resource_type: string
-          source: string | null
-          started_at: string | null
-          status: string | null
-          user_agent: string | null
-          user_id: string
-        }
-        Insert: {
-          action: string
-          created_at?: string
-          details?: Json | null
-          duration_ms?: number | null
-          finished_at?: string | null
-          id?: string
-          ip_address?: string | null
-          payload_summary?: Json | null
-          request_id?: string | null
-          resource_id?: string | null
-          resource_type: string
-          source?: string | null
-          started_at?: string | null
-          status?: string | null
-          user_agent?: string | null
-          user_id: string
-        }
-        Update: {
-          action?: string
-          created_at?: string
-          details?: Json | null
-          duration_ms?: number | null
-          finished_at?: string | null
-          id?: string
-          ip_address?: string | null
-          payload_summary?: Json | null
-          request_id?: string | null
-          resource_id?: string | null
-          resource_type?: string
-          source?: string | null
-          started_at?: string | null
-          status?: string | null
-          user_agent?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
-      admin_audit_log_y2025m12: {
-        Row: {
-          action: string
-          created_at: string
-          details: Json | null
-          duration_ms: number | null
-          finished_at: string | null
-          id: string
-          ip_address: string | null
-          payload_summary: Json | null
-          request_id: string | null
-          resource_id: string | null
-          resource_type: string
-          source: string | null
-          started_at: string | null
-          status: string | null
-          user_agent: string | null
-          user_id: string
-        }
-        Insert: {
-          action: string
-          created_at?: string
-          details?: Json | null
-          duration_ms?: number | null
-          finished_at?: string | null
-          id?: string
-          ip_address?: string | null
-          payload_summary?: Json | null
-          request_id?: string | null
-          resource_id?: string | null
-          resource_type: string
-          source?: string | null
-          started_at?: string | null
-          status?: string | null
-          user_agent?: string | null
-          user_id: string
-        }
-        Update: {
-          action?: string
-          created_at?: string
-          details?: Json | null
-          duration_ms?: number | null
-          finished_at?: string | null
-          id?: string
-          ip_address?: string | null
-          payload_summary?: Json | null
-          request_id?: string | null
-          resource_id?: string | null
-          resource_type?: string
-          source?: string | null
-          started_at?: string | null
-          status?: string | null
-          user_agent?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
-      admin_audit_log_y2026m01: {
-        Row: {
-          action: string
-          created_at: string
-          details: Json | null
-          duration_ms: number | null
-          finished_at: string | null
-          id: string
-          ip_address: string | null
-          payload_summary: Json | null
-          request_id: string | null
-          resource_id: string | null
-          resource_type: string
-          source: string | null
-          started_at: string | null
-          status: string | null
-          user_agent: string | null
-          user_id: string
-        }
-        Insert: {
-          action: string
-          created_at?: string
-          details?: Json | null
-          duration_ms?: number | null
-          finished_at?: string | null
-          id?: string
-          ip_address?: string | null
-          payload_summary?: Json | null
-          request_id?: string | null
-          resource_id?: string | null
-          resource_type: string
-          source?: string | null
-          started_at?: string | null
-          status?: string | null
-          user_agent?: string | null
-          user_id: string
-        }
-        Update: {
-          action?: string
-          created_at?: string
-          details?: Json | null
-          duration_ms?: number | null
-          finished_at?: string | null
-          id?: string
-          ip_address?: string | null
-          payload_summary?: Json | null
-          request_id?: string | null
-          resource_id?: string | null
-          resource_type?: string
-          source?: string | null
-          started_at?: string | null
-          status?: string | null
-          user_agent?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
-      admin_audit_log_y2026m02: {
-        Row: {
-          action: string
-          created_at: string
-          details: Json | null
-          duration_ms: number | null
-          finished_at: string | null
-          id: string
-          ip_address: string | null
-          payload_summary: Json | null
-          request_id: string | null
-          resource_id: string | null
-          resource_type: string
-          source: string | null
-          started_at: string | null
-          status: string | null
-          user_agent: string | null
-          user_id: string
-        }
-        Insert: {
-          action: string
-          created_at?: string
-          details?: Json | null
-          duration_ms?: number | null
-          finished_at?: string | null
-          id?: string
-          ip_address?: string | null
-          payload_summary?: Json | null
-          request_id?: string | null
-          resource_id?: string | null
-          resource_type: string
-          source?: string | null
-          started_at?: string | null
-          status?: string | null
-          user_agent?: string | null
-          user_id: string
-        }
-        Update: {
-          action?: string
-          created_at?: string
-          details?: Json | null
-          duration_ms?: number | null
-          finished_at?: string | null
-          id?: string
-          ip_address?: string | null
-          payload_summary?: Json | null
-          request_id?: string | null
-          resource_id?: string | null
-          resource_type?: string
-          source?: string | null
-          started_at?: string | null
-          status?: string | null
-          user_agent?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
-      admin_audit_log_y2026m03: {
-        Row: {
-          action: string
-          created_at: string
-          details: Json | null
-          duration_ms: number | null
-          finished_at: string | null
-          id: string
-          ip_address: string | null
-          payload_summary: Json | null
-          request_id: string | null
-          resource_id: string | null
-          resource_type: string
-          source: string | null
-          started_at: string | null
-          status: string | null
-          user_agent: string | null
-          user_id: string
-        }
-        Insert: {
-          action: string
-          created_at?: string
-          details?: Json | null
-          duration_ms?: number | null
-          finished_at?: string | null
-          id?: string
-          ip_address?: string | null
-          payload_summary?: Json | null
-          request_id?: string | null
-          resource_id?: string | null
-          resource_type: string
-          source?: string | null
-          started_at?: string | null
-          status?: string | null
-          user_agent?: string | null
-          user_id: string
-        }
-        Update: {
-          action?: string
-          created_at?: string
-          details?: Json | null
-          duration_ms?: number | null
-          finished_at?: string | null
-          id?: string
-          ip_address?: string | null
-          payload_summary?: Json | null
-          request_id?: string | null
-          resource_id?: string | null
-          resource_type?: string
-          source?: string | null
-          started_at?: string | null
-          status?: string | null
-          user_agent?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
-      admin_audit_log_y2026m04: {
-        Row: {
-          action: string
-          created_at: string
-          details: Json | null
-          duration_ms: number | null
-          finished_at: string | null
-          id: string
-          ip_address: string | null
-          payload_summary: Json | null
-          request_id: string | null
-          resource_id: string | null
-          resource_type: string
-          source: string | null
-          started_at: string | null
-          status: string | null
-          user_agent: string | null
-          user_id: string
-        }
-        Insert: {
-          action: string
-          created_at?: string
-          details?: Json | null
-          duration_ms?: number | null
-          finished_at?: string | null
-          id?: string
-          ip_address?: string | null
-          payload_summary?: Json | null
-          request_id?: string | null
-          resource_id?: string | null
-          resource_type: string
-          source?: string | null
-          started_at?: string | null
-          status?: string | null
-          user_agent?: string | null
-          user_id: string
-        }
-        Update: {
-          action?: string
-          created_at?: string
-          details?: Json | null
-          duration_ms?: number | null
-          finished_at?: string | null
-          id?: string
-          ip_address?: string | null
-          payload_summary?: Json | null
-          request_id?: string | null
-          resource_id?: string | null
-          resource_type?: string
-          source?: string | null
-          started_at?: string | null
-          status?: string | null
-          user_agent?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
-      admin_audit_log_y2026m05: {
-        Row: {
-          action: string
-          created_at: string
-          details: Json | null
-          duration_ms: number | null
-          finished_at: string | null
-          id: string
-          ip_address: string | null
-          payload_summary: Json | null
-          request_id: string | null
-          resource_id: string | null
-          resource_type: string
-          source: string | null
-          started_at: string | null
-          status: string | null
-          user_agent: string | null
-          user_id: string
-        }
-        Insert: {
-          action: string
-          created_at?: string
-          details?: Json | null
-          duration_ms?: number | null
-          finished_at?: string | null
-          id?: string
-          ip_address?: string | null
-          payload_summary?: Json | null
-          request_id?: string | null
-          resource_id?: string | null
-          resource_type: string
-          source?: string | null
-          started_at?: string | null
-          status?: string | null
-          user_agent?: string | null
-          user_id: string
-        }
-        Update: {
-          action?: string
-          created_at?: string
-          details?: Json | null
-          duration_ms?: number | null
-          finished_at?: string | null
-          id?: string
-          ip_address?: string | null
-          payload_summary?: Json | null
-          request_id?: string | null
-          resource_id?: string | null
-          resource_type?: string
-          source?: string | null
-          started_at?: string | null
-          status?: string | null
-          user_agent?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
-      admin_audit_log_y2026m06: {
         Row: {
           action: string
           created_at: string
@@ -734,42 +242,6 @@ export type Database = {
         }
         Relationships: []
       }
-      app_vitals: {
-        Row: {
-          created_at: string
-          id: string
-          metric_name: string
-          metric_value: number
-          page_url: string | null
-          rating: string | null
-          request_id: string | null
-          user_agent: string | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          metric_name: string
-          metric_value: number
-          page_url?: string | null
-          rating?: string | null
-          request_id?: string | null
-          user_agent?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          metric_name?: string
-          metric_value?: number
-          page_url?: string | null
-          rating?: string | null
-          request_id?: string | null
-          user_agent?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
       art_file_attachments: {
         Row: {
           created_at: string
@@ -842,36 +314,6 @@ export type Database = {
           id?: string
           identifier?: string
           metadata?: Json | null
-        }
-        Relationships: []
-      }
-      auth_login_attempts: {
-        Row: {
-          created_at: string
-          email: string
-          failure_reason: string | null
-          id: string
-          ip_address: string | null
-          success: boolean
-          user_agent: string | null
-        }
-        Insert: {
-          created_at?: string
-          email: string
-          failure_reason?: string | null
-          id?: string
-          ip_address?: string | null
-          success?: boolean
-          user_agent?: string | null
-        }
-        Update: {
-          created_at?: string
-          email?: string
-          failure_reason?: string | null
-          id?: string
-          ip_address?: string | null
-          success?: boolean
-          user_agent?: string | null
         }
         Relationships: []
       }
@@ -1006,7 +448,6 @@ export type Database = {
       }
       collection_items: {
         Row: {
-          added_at: string
           collection_id: string
           color_hex: string | null
           color_name: string | null
@@ -1019,7 +460,6 @@ export type Database = {
           thumbnail_url: string | null
         }
         Insert: {
-          added_at?: string
           collection_id: string
           color_hex?: string | null
           color_name?: string | null
@@ -1032,7 +472,6 @@ export type Database = {
           thumbnail_url?: string | null
         }
         Update: {
-          added_at?: string
           collection_id?: string
           color_hex?: string | null
           color_name?: string | null
@@ -1111,7 +550,6 @@ export type Database = {
           icon: string | null
           icon_color: string | null
           id: string
-          is_deleted: boolean
           is_featured: boolean
           is_public: boolean
           name: string
@@ -1128,7 +566,6 @@ export type Database = {
           icon?: string | null
           icon_color?: string | null
           id?: string
-          is_deleted?: boolean
           is_featured?: boolean
           is_public?: boolean
           name: string
@@ -1145,7 +582,6 @@ export type Database = {
           icon?: string | null
           icon_color?: string | null
           id?: string
-          is_deleted?: boolean
           is_featured?: boolean
           is_public?: boolean
           name?: string
@@ -1312,121 +748,6 @@ export type Database = {
             columns: ["connection_id"]
             isOneToOne: false
             referencedRelation: "external_connections"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      conversation_audit_logs: {
-        Row: {
-          client_info: Json | null
-          ended_at: string | null
-          id: string
-          metadata: Json | null
-          session_id: string
-          started_at: string
-          status: string
-          total_tokens_estimated: number | null
-          user_id: string
-        }
-        Insert: {
-          client_info?: Json | null
-          ended_at?: string | null
-          id?: string
-          metadata?: Json | null
-          session_id: string
-          started_at?: string
-          status?: string
-          total_tokens_estimated?: number | null
-          user_id: string
-        }
-        Update: {
-          client_info?: Json | null
-          ended_at?: string | null
-          id?: string
-          metadata?: Json | null
-          session_id?: string
-          started_at?: string
-          status?: string
-          total_tokens_estimated?: number | null
-          user_id?: string
-        }
-        Relationships: []
-      }
-      conversation_delivery_status: {
-        Row: {
-          error_details: string | null
-          event_id: string
-          id: string
-          status: string
-          updated_at: string
-        }
-        Insert: {
-          error_details?: string | null
-          event_id: string
-          id?: string
-          status?: string
-          updated_at?: string
-        }
-        Update: {
-          error_details?: string | null
-          event_id?: string
-          id?: string
-          status?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "conversation_delivery_status_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "conversation_event_history"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      conversation_event_history: {
-        Row: {
-          content: string | null
-          conversation_id: string
-          created_at: string
-          event_type: Database["public"]["Enums"]["conversation_event_type"]
-          id: string
-          media_metadata: Json | null
-          media_url: string | null
-          request_id: string | null
-          role: string
-          tokens_estimated: number | null
-        }
-        Insert: {
-          content?: string | null
-          conversation_id: string
-          created_at?: string
-          event_type?: Database["public"]["Enums"]["conversation_event_type"]
-          id?: string
-          media_metadata?: Json | null
-          media_url?: string | null
-          request_id?: string | null
-          role: string
-          tokens_estimated?: number | null
-        }
-        Update: {
-          content?: string | null
-          conversation_id?: string
-          created_at?: string
-          event_type?: Database["public"]["Enums"]["conversation_event_type"]
-          id?: string
-          media_metadata?: Json | null
-          media_url?: string | null
-          request_id?: string | null
-          role?: string
-          tokens_estimated?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "conversation_event_history_conversation_id_fkey"
-            columns: ["conversation_id"]
-            isOneToOne: false
-            referencedRelation: "conversation_audit_logs"
             referencedColumns: ["id"]
           },
         ]
@@ -1995,36 +1316,6 @@ export type Database = {
         }
         Relationships: []
       }
-      favorites: {
-        Row: {
-          added_at: string
-          id: string
-          is_deleted: boolean
-          product_id: string
-          updated_at: string
-          user_id: string
-          variant_info: Json | null
-        }
-        Insert: {
-          added_at?: string
-          id?: string
-          is_deleted?: boolean
-          product_id: string
-          updated_at?: string
-          user_id: string
-          variant_info?: Json | null
-        }
-        Update: {
-          added_at?: string
-          id?: string
-          is_deleted?: boolean
-          product_id?: string
-          updated_at?: string
-          user_id?: string
-          variant_info?: Json | null
-        }
-        Relationships: []
-      }
       file_scan_logs: {
         Row: {
           bucket: string
@@ -2169,33 +1460,6 @@ export type Database = {
           seller_id?: string
           technique_id?: string | null
           technique_name?: string | null
-        }
-        Relationships: []
-      }
-      geo_allowed_countries: {
-        Row: {
-          country_code: string
-          country_name: string
-          created_at: string | null
-          created_by: string | null
-          id: string
-          is_active: boolean | null
-        }
-        Insert: {
-          country_code: string
-          country_name: string
-          created_at?: string | null
-          created_by?: string | null
-          id?: string
-          is_active?: boolean | null
-        }
-        Update: {
-          country_code?: string
-          country_name?: string
-          created_at?: string | null
-          created_by?: string | null
-          id?: string
-          is_active?: boolean | null
         }
         Relationships: []
       }
@@ -4458,27 +3722,6 @@ export type Database = {
           },
         ]
       }
-      quote_drafts: {
-        Row: {
-          data: Json
-          id: string
-          last_saved_at: string | null
-          user_id: string
-        }
-        Insert: {
-          data: Json
-          id?: string
-          last_saved_at?: string | null
-          user_id: string
-        }
-        Update: {
-          data?: Json
-          id?: string
-          last_saved_at?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
       quote_history: {
         Row: {
           action: string
@@ -5902,8 +5145,8 @@ export type Database = {
       }
       webhook_delivery_metrics: {
         Row: {
-          attempt: number | null
-          direction: string | null
+          attempt: number
+          direction: string
           duration_ms: number | null
           endpoint: string | null
           error_class: string | null
@@ -5911,16 +5154,16 @@ export type Database = {
           event_type: string | null
           http_status: number | null
           id: string
-          metadata: Json | null
+          metadata: Json
           occurred_at: string
           payload_bytes: number | null
-          request_id: string | null
-          source: string | null
-          success: boolean | null
+          request_id: string
+          source: string
+          success: boolean
         }
         Insert: {
-          attempt?: number | null
-          direction?: string | null
+          attempt?: number
+          direction: string
           duration_ms?: number | null
           endpoint?: string | null
           error_class?: string | null
@@ -5928,16 +5171,16 @@ export type Database = {
           event_type?: string | null
           http_status?: number | null
           id?: string
-          metadata?: Json | null
+          metadata?: Json
           occurred_at?: string
           payload_bytes?: number | null
-          request_id?: string | null
-          source?: string | null
-          success?: boolean | null
+          request_id: string
+          source: string
+          success: boolean
         }
         Update: {
-          attempt?: number | null
-          direction?: string | null
+          attempt?: number
+          direction?: string
           duration_ms?: number | null
           endpoint?: string | null
           error_class?: string | null
@@ -5945,120 +5188,12 @@ export type Database = {
           event_type?: string | null
           http_status?: number | null
           id?: string
-          metadata?: Json | null
+          metadata?: Json
           occurred_at?: string
           payload_bytes?: number | null
-          request_id?: string | null
-          source?: string | null
-          success?: boolean | null
-        }
-        Relationships: []
-      }
-      webhook_delivery_metrics_y2026m05: {
-        Row: {
-          attempt: number | null
-          direction: string | null
-          duration_ms: number | null
-          endpoint: string | null
-          error_class: string | null
-          error_message: string | null
-          event_type: string | null
-          http_status: number | null
-          id: string
-          metadata: Json | null
-          occurred_at: string
-          payload_bytes: number | null
-          request_id: string | null
-          source: string | null
-          success: boolean | null
-        }
-        Insert: {
-          attempt?: number | null
-          direction?: string | null
-          duration_ms?: number | null
-          endpoint?: string | null
-          error_class?: string | null
-          error_message?: string | null
-          event_type?: string | null
-          http_status?: number | null
-          id?: string
-          metadata?: Json | null
-          occurred_at?: string
-          payload_bytes?: number | null
-          request_id?: string | null
-          source?: string | null
-          success?: boolean | null
-        }
-        Update: {
-          attempt?: number | null
-          direction?: string | null
-          duration_ms?: number | null
-          endpoint?: string | null
-          error_class?: string | null
-          error_message?: string | null
-          event_type?: string | null
-          http_status?: number | null
-          id?: string
-          metadata?: Json | null
-          occurred_at?: string
-          payload_bytes?: number | null
-          request_id?: string | null
-          source?: string | null
-          success?: boolean | null
-        }
-        Relationships: []
-      }
-      webhook_delivery_metrics_y2026m06: {
-        Row: {
-          attempt: number | null
-          direction: string | null
-          duration_ms: number | null
-          endpoint: string | null
-          error_class: string | null
-          error_message: string | null
-          event_type: string | null
-          http_status: number | null
-          id: string
-          metadata: Json | null
-          occurred_at: string
-          payload_bytes: number | null
-          request_id: string | null
-          source: string | null
-          success: boolean | null
-        }
-        Insert: {
-          attempt?: number | null
-          direction?: string | null
-          duration_ms?: number | null
-          endpoint?: string | null
-          error_class?: string | null
-          error_message?: string | null
-          event_type?: string | null
-          http_status?: number | null
-          id?: string
-          metadata?: Json | null
-          occurred_at?: string
-          payload_bytes?: number | null
-          request_id?: string | null
-          source?: string | null
-          success?: boolean | null
-        }
-        Update: {
-          attempt?: number | null
-          direction?: string | null
-          duration_ms?: number | null
-          endpoint?: string | null
-          error_class?: string | null
-          error_message?: string | null
-          event_type?: string | null
-          http_status?: number | null
-          id?: string
-          metadata?: Json | null
-          occurred_at?: string
-          payload_bytes?: number | null
-          request_id?: string | null
-          source?: string | null
-          success?: boolean | null
+          request_id?: string
+          source?: string
+          success?: boolean
         }
         Relationships: []
       }
@@ -6166,13 +5301,6 @@ export type Database = {
       can_view_connections: { Args: { _user_id?: string }; Returns: boolean }
       can_view_telemetry: { Args: { _user_id?: string }; Returns: boolean }
       check_ai_quota: { Args: { _user_id: string }; Returns: Json }
-      check_auth_throttling: {
-        Args: { _email: string; _ip: string }
-        Returns: {
-          allowed: boolean
-          remaining_seconds: number
-        }[]
-      }
       check_hardening_status: { Args: never; Returns: Json }
       check_ip_access: { Args: { _ip: string }; Returns: string }
       check_mcp_abuse_threshold: {
@@ -6224,7 +5352,6 @@ export type Database = {
       cleanup_rate_limits: { Args: never; Returns: undefined }
       cleanup_security_logs: { Args: never; Returns: Json }
       cleanup_webhook_logs: { Args: never; Returns: Json }
-      clear_auth_attempts: { Args: { _email: string }; Returns: undefined }
       complete_optimization: {
         Args: {
           _error?: string
@@ -6307,15 +5434,6 @@ export type Database = {
         }
         Returns: string
       }
-      fn_check_geo_access: {
-        Args: { p_country_code: string }
-        Returns: boolean
-      }
-      fn_create_quote_v3: {
-        Args: { p_items_data: Json; p_quote_data: Json }
-        Returns: Json
-      }
-      fn_save_quote_draft: { Args: { p_data: Json }; Returns: string }
       get_app_health_summary: { Args: { _minutes?: number }; Returns: Json }
       get_auto_test_job_status: {
         Args: { _limit?: number }
@@ -6583,7 +5701,6 @@ export type Database = {
       }
       log_user_logout: { Args: never; Returns: undefined }
       lookup_request_id: { Args: { _request_id: string }; Returns: Json }
-      maintain_webhook_metrics: { Args: never; Returns: undefined }
       mark_all_notifications_read: { Args: never; Returns: undefined }
       mark_notification_read: {
         Args: { p_notification_id: string }
@@ -6596,41 +5713,6 @@ export type Database = {
       mcp_audit_actor: { Args: { _fallback: string }; Returns: string }
       notify_hardening_regression: { Args: never; Returns: Json }
       purge_old_audit_logs: { Args: never; Returns: undefined }
-      record_app_vital:
-        | {
-            Args: {
-              _name: string
-              _rating?: string
-              _req_id?: string
-              _ua?: string
-              _uid?: string
-              _url?: string
-              _value: number
-            }
-            Returns: undefined
-          }
-        | {
-            Args: {
-              _name: string
-              _rating: string
-              _req_id: string
-              _ua: string
-              _uid?: string
-              _url: string
-              _value: number
-            }
-            Returns: undefined
-          }
-      record_auth_attempt: {
-        Args: {
-          _email: string
-          _ip: string
-          _reason?: string
-          _success: boolean
-          _ua?: string
-        }
-        Returns: undefined
-      }
       record_dev_route_telemetry: {
         Args: {
           _blocked_path: string
@@ -6764,13 +5846,6 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "manager" | "vendedor" | "supervisor" | "dev"
-      conversation_event_type:
-        | "text"
-        | "image"
-        | "file"
-        | "system"
-        | "tool_call"
-        | "tool_result"
       org_role: "owner" | "admin" | "member"
       role_migration_item_status:
         | "pending"
@@ -6922,14 +5997,6 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "manager", "vendedor", "supervisor", "dev"],
-      conversation_event_type: [
-        "text",
-        "image",
-        "file",
-        "system",
-        "tool_call",
-        "tool_result",
-      ],
       org_role: ["owner", "admin", "member"],
       role_migration_item_status: [
         "pending",

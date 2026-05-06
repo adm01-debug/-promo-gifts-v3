@@ -2,13 +2,13 @@
  * BISkeletons — esqueletos com a forma das zonas reais do BI.
  * Reduz CLS percebido e dá pista visual de "o que vem aí".
  */
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function HeroSkeleton() {
   return (
-    <Card className="overflow-hidden border-[1.5px]">
-      <CardContent className="space-y-4 p-6">
+    <Card className="border-[1.5px] overflow-hidden">
+      <CardContent className="p-6 space-y-4">
         <div className="flex items-start gap-4">
           <Skeleton className="h-16 w-16 rounded-xl" />
           <div className="flex-1 space-y-2">
@@ -18,7 +18,7 @@ export function HeroSkeleton() {
           </div>
           <Skeleton className="h-10 w-32 rounded-xl" />
         </div>
-        <div className="grid grid-cols-2 gap-3 pt-2 sm:grid-cols-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
           {[0, 1, 2, 3].map((i) => (
             <div key={i} className="space-y-1.5">
               <Skeleton className="h-3 w-16" />
@@ -33,10 +33,10 @@ export function HeroSkeleton() {
 
 export function KPIsSkeleton() {
   return (
-    <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
       {[0, 1, 2].map((i) => (
         <Card key={i} className="border-[1.5px]">
-          <CardContent className="space-y-2 p-5">
+          <CardContent className="p-5 space-y-2">
             <div className="flex items-center justify-between">
               <Skeleton className="h-3 w-20" />
               <Skeleton className="h-4 w-4 rounded" />
@@ -59,8 +59,8 @@ export function TimelineSkeleton() {
       </CardHeader>
       <CardContent className="space-y-3">
         {[0, 1, 2, 3].map((i) => (
-          <div key={i} className="flex items-start gap-3 rounded-xl border p-3">
-            <Skeleton className="h-8 w-8 shrink-0 rounded-full" />
+          <div key={i} className="flex items-start gap-3 p-3 rounded-xl border">
+            <Skeleton className="h-8 w-8 rounded-full shrink-0" />
             <div className="flex-1 space-y-2">
               <div className="flex items-center justify-between">
                 <Skeleton className="h-4 w-40" />
@@ -84,9 +84,9 @@ export function ProductGridSkeleton({ rows = 5 }: { rows?: number }) {
       </CardHeader>
       <CardContent className="space-y-2">
         {Array.from({ length: rows }).map((_, i) => (
-          <div key={i} className="flex items-center gap-3 rounded-xl p-2.5">
-            <Skeleton className="h-7 w-7 shrink-0 rounded-xl" />
-            <Skeleton className="h-9 w-9 shrink-0 rounded-xl" />
+          <div key={i} className="flex items-center gap-3 p-2.5 rounded-xl">
+            <Skeleton className="h-7 w-7 rounded-xl shrink-0" />
+            <Skeleton className="h-9 w-9 rounded-xl shrink-0" />
             <div className="flex-1 space-y-1.5">
               <Skeleton className="h-4 w-3/4 max-w-xs" />
               <Skeleton className="h-3 w-1/3" />
@@ -121,7 +121,7 @@ export function HeatmapSkeleton() {
             <Skeleton key={`s-${i}`} className="h-12 w-full rounded-xl" />
           ))}
         </div>
-        <div className="grid grid-cols-1 gap-3 pt-2 md:grid-cols-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
           <Skeleton className="h-20 rounded-xl" />
           <Skeleton className="h-20 rounded-xl" />
         </div>
@@ -137,9 +137,9 @@ export function ComparisonSkeleton() {
         <Skeleton className="h-5 w-40" />
         <Skeleton className="h-3 w-72" />
       </CardHeader>
-      <CardContent className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {[0, 1, 2, 3, 4].map((i) => (
-          <div key={i} className="space-y-2 rounded-xl border p-3">
+          <div key={i} className="p-3 rounded-xl border space-y-2">
             <div className="flex items-center justify-between">
               <Skeleton className="h-3 w-20" />
               <Skeleton className="h-4 w-12 rounded-full" />

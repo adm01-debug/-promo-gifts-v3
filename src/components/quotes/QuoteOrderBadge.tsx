@@ -2,12 +2,12 @@
  * QuoteOrderBadge — badge clicável que indica que o orçamento foi convertido
  * em pedido. Navega para /pedidos/:id ao clicar.
  */
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Package } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { supabase } from '@/integrations/supabase/client';
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Package } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { supabase } from "@/integrations/supabase/client";
 
 interface QuoteOrderBadgeProps {
   quoteId: string;
@@ -31,10 +31,10 @@ export function QuoteOrderBadge({ quoteId, silent = true }: QuoteOrderBadgeProps
     (async () => {
       const { data } = await supabase
         // rls-allow: lookup por id específico; RLS valida ownership
-        .from('orders')
-        .select('id, order_number, created_at')
-        .eq('quote_id', quoteId)
-        .order('created_at', { ascending: false })
+        .from("orders")
+        .select("id, order_number, created_at")
+        .eq("quote_id", quoteId)
+        .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
       if (!cancelled && data) setOrder(data as LinkedOrder);
@@ -57,7 +57,7 @@ export function QuoteOrderBadge({ quoteId, silent = true }: QuoteOrderBadgeProps
             navigate(`/pedidos/${order.id}`);
           }}
           onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
+            if (e.key === "Enter" || e.key === " ") {
               e.preventDefault();
               navigate(`/pedidos/${order.id}`);
             }
@@ -66,7 +66,7 @@ export function QuoteOrderBadge({ quoteId, silent = true }: QuoteOrderBadgeProps
         >
           <Badge
             variant="outline"
-            className="cursor-pointer gap-1 border-success/40 bg-success/10 text-[10px] font-semibold text-success hover:bg-success/20"
+            className="gap-1 border-success/40 bg-success/10 text-success hover:bg-success/20 cursor-pointer text-[10px] font-semibold"
           >
             <Package className="h-3 w-3" />
             {order.order_number}

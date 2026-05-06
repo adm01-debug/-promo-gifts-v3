@@ -1,21 +1,17 @@
 /**
  * useProductsLightweight — Minimal product data for selectors & catalog
- *
+ * 
  * Loads ~10x faster than useProducts (no color/variant enrichment).
  */
 import { useQuery, useInfiniteQuery, keepPreviousData } from '@tanstack/react-query';
-import {
-  fetchPromobrindProductsLightweight,
-  invokeBatchBridge,
-  type LightweightProduct,
-} from '@/lib/external-db';
+import { fetchPromobrindProductsLightweight, invokeBatchBridge, type LightweightProduct } from '@/lib/external-db';
 
 // Re-export type for consumers
 export type { ProductLightweight } from '@/types/product-catalog';
 import type { ProductLightweight, Product } from '@/types/product-catalog';
 
 function mapLightweight(p: LightweightProduct): ProductLightweight {
-  const price = p.sale_price ?? p.cost_price ?? 0;
+  const price = (p.sale_price ?? p.cost_price ?? 0);
   const imageUrl = p.primary_image_url || p.image_url || '/placeholder.svg';
 
   return {
@@ -67,12 +63,12 @@ export function mapLightweightToProduct(p: LightweightProduct): Product {
     isKit: p.is_kit ?? false,
     gender: p.gender || null,
     category: {
-      id: p.category_id || p.main_category_id || '0',
-      name: 'Sem categoria',
+      id: p.category_id || p.main_category_id || "0",
+      name: "Sem categoria",
     },
     supplier: {
-      id: p.supplier_id || p.brand || 'unknown',
-      name: p.brand || 'Fornecedor',
+      id: p.supplier_id || p.brand || "unknown",
+      name: p.brand || "Fornecedor",
     },
     tags: {
       publicoAlvo: [],
@@ -99,8 +95,7 @@ export const CATALOG_BATCH_PAGES = 4;
 // `price_updated_at` é o SSOT da idade do preço (trigger no BD externo).
 // `price_freshness_threshold_days` ainda NÃO existe no BD externo — quando
 // existir, basta acrescentar à lista; o mapper já trata como opcional.
-export const PRODUCT_SELECT_LIGHTWEIGHT =
-  'id, name, sku, sale_price, cost_price, primary_image_url, supplier_id, category_id, main_category_id, brand, is_active, active, stock_quantity, min_quantity, is_kit, gender, price_updated_at';
+export const PRODUCT_SELECT_LIGHTWEIGHT = 'id, name, sku, sale_price, cost_price, primary_image_url, supplier_id, category_id, main_category_id, brand, is_active, active, stock_quantity, min_quantity, is_kit, gender, price_updated_at';
 
 interface CatalogPage {
   products: Product[];
@@ -113,7 +108,10 @@ interface CatalogPage {
  * First call fetches 4 pages (2000 products) via batch bridge.
  * Subsequent calls fetch 1 page (500 products) each.
  */
-async function fetchCatalogPage(offset: number, search?: string): Promise<CatalogPage> {
+async function fetchCatalogPage(
+  offset: number,
+  search?: string,
+): Promise<CatalogPage> {
   const filters: Record<string, unknown> = { active: true };
   if (search) filters._search = search;
   const orderBy = { column: 'name', ascending: true };

@@ -5,16 +5,7 @@
  */
 
 import { useState, useMemo, useEffect, useRef } from 'react';
-import {
-  Palette,
-  Package,
-  ChevronDown,
-  ChevronUp,
-  Check,
-  Settings,
-  Loader2,
-  AlertTriangle,
-} from 'lucide-react';
+import { Palette, Package, ChevronDown, ChevronUp, Check, Settings, Loader2, AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -27,7 +18,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { formatCurrency } from '@/lib/kit-builder';
@@ -109,16 +104,16 @@ function ItemPersonalizationCard({
   // Fetch real techniques for this product
   const { data: options, isLoading: loadingTechniques } = useProductCustomizationOptions(productId);
   const techniques = useMemo(
-    () => (options?.locations ? flattenTechniques(options.locations) : []),
-    [options],
+    () => options?.locations ? flattenTechniques(options.locations) : [],
+    [options]
   );
 
   // Find current technique for reactive price
-  const currentTech = techniques.find((t) => t.technique_id === personalization.techniqueId);
+  const currentTech = techniques.find(t => t.technique_id === personalization.techniqueId);
 
   // Reactive price from real RPC
   const { price: priceData, loading: priceLoading } = useCustomizationPriceReactive(
-    personalization.enabled ? personalization.techniqueId || null : null,
+    personalization.enabled ? (personalization.techniqueId || null) : null,
     kitQuantity,
     personalization.colors || 1,
     personalization.width || null,
@@ -131,7 +126,7 @@ function ItemPersonalizationCard({
   // #3 FIX: Sync estimatedPrice with RPC result so price-calculator picks it up
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
-
+  
   useEffect(() => {
     if (priceData?.success && priceData.preco_unitario != null) {
       const rpcPrice = priceData.preco_unitario;
@@ -140,16 +135,12 @@ function ItemPersonalizationCard({
   }, [priceData?.preco_unitario, priceData?.success, personalization]);
 
   const handleToggle = (enabled: boolean) => {
-    onChange({
-      ...personalization,
-      enabled,
-      estimatedPrice: enabled ? personalization.estimatedPrice : undefined,
-    });
+    onChange({ ...personalization, enabled, estimatedPrice: enabled ? personalization.estimatedPrice : undefined });
     setIsOpen(enabled);
   };
 
   const handleTechniqueChange = (techniqueId: string) => {
-    const tech = techniques.find((t) => t.technique_id === techniqueId);
+    const tech = techniques.find(t => t.technique_id === techniqueId);
     if (tech) {
       onChange({
         ...personalization,
@@ -173,40 +164,28 @@ function ItemPersonalizationCard({
   const colorOptions = Array.from({ length: maxColors }, (_, i) => i + 1);
 
   return (
-    <Card className={cn(personalization.enabled && 'border-primary/50 bg-primary/5')}>
+    <Card className={cn(personalization.enabled && "border-primary/50 bg-primary/5")}>
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-xl bg-secondary">
+              <div className="w-10 h-10 rounded-xl bg-secondary overflow-hidden flex-shrink-0">
                 {imageUrl ? (
-                  <img
-                    src={imageUrl}
-                    alt={displayName}
-                    className="h-full w-full object-cover"
-                    loading="lazy"
-                  />
+                  
+<img src={imageUrl} alt={displayName} className="w-full h-full object-cover"  loading="lazy" />
                 ) : (
-                  <div className="flex h-full w-full items-center justify-center">
-                    {isBox ? (
-                      <Package className="h-5 w-5 text-muted-foreground" />
-                    ) : (
-                      <Palette className="h-5 w-5 text-muted-foreground" />
-                    )}
+                  <div className="w-full h-full flex items-center justify-center">
+                    {isBox ? <Package className="h-5 w-5 text-muted-foreground" /> : <Palette className="h-5 w-5 text-muted-foreground" />}
                   </div>
                 )}
               </div>
               <div>
-                <CardTitle className="flex items-center gap-2 text-base">
+                <CardTitle className="text-base flex items-center gap-2">
                   {displayName}
-                  {isBox && (
-                    <Badge variant="outline" className="text-xs">
-                      Caixa
-                    </Badge>
-                  )}
+                  {isBox && <Badge variant="outline" className="text-xs">Caixa</Badge>}
                 </CardTitle>
                 {personalization.enabled && personalization.techniqueName && (
-                  <p className="mt-0.5 text-xs text-muted-foreground">
+                  <p className="text-xs text-muted-foreground mt-0.5">
                     {personalization.techniqueName} • {personalization.colors || 1} cor(es)
                     {personalization.position && ` • ${personalization.position}`}
                   </p>
@@ -218,16 +197,16 @@ function ItemPersonalizationCard({
               {personalization.enabled && (
                 <span className="text-sm font-semibold">
                   {priceLoading ? (
-                    <Loader2 className="inline h-3 w-3 animate-spin text-primary" />
+                    <Loader2 className="h-3 w-3 animate-spin inline text-primary" />
                   ) : !personalization.techniqueId ? (
-                    <span className="flex items-center gap-1 text-warning">
+                    <span className="text-warning flex items-center gap-1">
                       <AlertTriangle className="h-3 w-3" />
                       Sem técnica
                     </span>
                   ) : currentUnitPrice ? (
                     <span className="text-primary">+{formatCurrency(currentUnitPrice)}/un</span>
                   ) : (
-                    <span className="flex items-center gap-1 text-warning">
+                    <span className="text-warning flex items-center gap-1">
                       <AlertTriangle className="h-3 w-3" />
                       R$ 0,00
                     </span>
@@ -238,11 +217,7 @@ function ItemPersonalizationCard({
               {personalization.enabled && (
                 <CollapsibleTrigger asChild>
                   <Button variant="ghost" size="icon" aria-label="Expandir" className="h-8 w-8">
-                    {isOpen ? (
-                      <ChevronUp className="h-4 w-4" />
-                    ) : (
-                      <ChevronDown className="h-4 w-4" />
-                    )}
+                    {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                   </Button>
                 </CollapsibleTrigger>
               )}
@@ -251,39 +226,32 @@ function ItemPersonalizationCard({
         </CardHeader>
 
         <CollapsibleContent>
-          <CardContent className="space-y-4 pt-0">
+          <CardContent className="pt-0 space-y-4">
             {/* Técnica */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Técnica de Gravação</Label>
                 {loadingTechniques ? (
-                  <div className="flex h-10 items-center gap-2 rounded-xl border bg-secondary/50 px-3">
+                  <div className="flex items-center gap-2 h-10 px-3 border rounded-xl bg-secondary/50">
                     <Loader2 className="h-4 w-4 animate-spin" />
                     <span className="text-sm text-muted-foreground">Carregando...</span>
                   </div>
                 ) : techniques.length === 0 ? (
-                  <p className="py-2 text-sm text-muted-foreground">
+                  <p className="text-sm text-muted-foreground py-2">
                     Nenhuma técnica disponível para este produto
                   </p>
                 ) : (
-                  <Select
-                    value={personalization.techniqueId || ''}
-                    onValueChange={handleTechniqueChange}
-                  >
+                  <Select value={personalization.techniqueId || ''} onValueChange={handleTechniqueChange}>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione a técnica..." />
                     </SelectTrigger>
                     <SelectContent>
-                      {techniques.map((tech) => (
+                      {techniques.map(tech => (
                         <SelectItem key={tech.technique_id} value={tech.technique_id}>
                           <span className="flex items-center gap-2">
-                            <Badge variant="outline" className="px-1 py-0 text-[10px]">
-                              {tech.grupo_tecnica}
-                            </Badge>
+                            <Badge variant="outline" className="text-[10px] px-1 py-0">{tech.grupo_tecnica}</Badge>
                             {tech.tecnica_nome}
-                            <span className="text-xs text-muted-foreground">
-                              ({tech.location_name})
-                            </span>
+                            <span className="text-muted-foreground text-xs">({tech.location_name})</span>
                           </span>
                         </SelectItem>
                       ))}
@@ -298,11 +266,9 @@ function ItemPersonalizationCard({
                   value={String(personalization.colors || 1)}
                   onValueChange={(v) => handleColorsChange(parseInt(v))}
                 >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {colorOptions.map((n) => (
+                    {colorOptions.map(n => (
                       <SelectItem key={n} value={String(n)}>
                         {n} {n === 1 ? 'cor' : 'cores'}
                       </SelectItem>
@@ -316,49 +282,31 @@ function ItemPersonalizationCard({
             {currentTech?.usa_dimensao && (
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>
-                    Largura (cm){' '}
-                    <span className="text-[11px] text-muted-foreground">
-                      máx {currentTech.efetiva_largura_max}
-                    </span>
-                  </Label>
+                  <Label>Largura (cm) <span className="text-[11px] text-muted-foreground">máx {currentTech.efetiva_largura_max}</span></Label>
                   <Input
                     type="number"
                     step="0.1"
                     max={currentTech.efetiva_largura_max}
                     placeholder={`Até ${currentTech.efetiva_largura_max}cm`}
                     value={personalization.width || ''}
-                    onChange={(e) =>
-                      onChange({
-                        ...personalization,
-                        width: e.target.value
-                          ? Math.min(parseFloat(e.target.value), currentTech.efetiva_largura_max)
-                          : undefined,
-                      })
-                    }
+                    onChange={(e) => onChange({
+                      ...personalization,
+                      width: e.target.value ? Math.min(parseFloat(e.target.value), currentTech.efetiva_largura_max) : undefined,
+                    })}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>
-                    Altura (cm){' '}
-                    <span className="text-[11px] text-muted-foreground">
-                      máx {currentTech.efetiva_altura_max}
-                    </span>
-                  </Label>
+                  <Label>Altura (cm) <span className="text-[11px] text-muted-foreground">máx {currentTech.efetiva_altura_max}</span></Label>
                   <Input
                     type="number"
                     step="0.1"
                     max={currentTech.efetiva_altura_max}
                     placeholder={`Até ${currentTech.efetiva_altura_max}cm`}
                     value={personalization.height || ''}
-                    onChange={(e) =>
-                      onChange({
-                        ...personalization,
-                        height: e.target.value
-                          ? Math.min(parseFloat(e.target.value), currentTech.efetiva_altura_max)
-                          : undefined,
-                      })
-                    }
+                    onChange={(e) => onChange({
+                      ...personalization,
+                      height: e.target.value ? Math.min(parseFloat(e.target.value), currentTech.efetiva_altura_max) : undefined,
+                    })}
                   />
                 </div>
               </div>
@@ -366,7 +314,7 @@ function ItemPersonalizationCard({
 
             {/* Preço detalhado */}
             {priceData?.success && (
-              <div className="space-y-1 rounded-xl bg-secondary/50 p-3 text-sm">
+              <div className="bg-secondary/50 rounded-xl p-3 space-y-1 text-sm">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Preço unitário</span>
                   <span>{formatCurrency(priceData.preco_unitario)}</span>
@@ -381,7 +329,7 @@ function ItemPersonalizationCard({
                     <span>{formatCurrency(priceData.setup_total)}</span>
                   </div>
                 )}
-                <div className="mt-1 flex justify-between border-t pt-1 font-semibold">
+                <div className="flex justify-between font-semibold border-t pt-1 mt-1">
                   <span>Total gravação</span>
                   <span className="text-primary">{formatCurrency(priceData.total_cobrado)}</span>
                 </div>
@@ -407,16 +355,15 @@ export function PersonalizationConfig({
   onBoxPersonalizationChange,
   onItemPersonalizationChange,
 }: PersonalizationConfigProps) {
-  const totalPersonalizations =
-    (boxPersonalization.enabled ? 1 : 0) +
-    Object.values(itemPersonalizations).filter((p) => p.enabled).length;
+  const totalPersonalizations = (boxPersonalization.enabled ? 1 : 0) +
+    Object.values(itemPersonalizations).filter(p => p.enabled).length;
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="flex items-center gap-2 font-display text-lg font-semibold">
+          <h3 className="font-display text-lg font-semibold flex items-center gap-2">
             <Settings className="h-5 w-5" />
             Configurar Personalização
           </h3>
@@ -424,26 +371,24 @@ export function PersonalizationConfig({
             Escolha quais itens serão personalizados e configure a técnica de gravação
           </p>
         </div>
-
+        
         {totalPersonalizations > 0 && (
           <Badge variant="default" className="text-sm">
-            <Check className="mr-1 h-3 w-3" />
-            {totalPersonalizations} {totalPersonalizations === 1 ? 'item' : 'itens'}{' '}
-            personalizado(s)
+            <Check className="h-3 w-3 mr-1" />
+            {totalPersonalizations} {totalPersonalizations === 1 ? 'item' : 'itens'} personalizado(s)
           </Badge>
         )}
       </div>
 
       {/* Alerta de quantidade mínima */}
       {kitQuantity < 50 && totalPersonalizations > 0 && (
-        <div className="flex items-center gap-2.5 rounded-xl border border-warning/20 bg-warning/10 p-3 text-sm">
-          <AlertTriangle className="h-4 w-4 flex-shrink-0 text-warning" />
+        <div className="flex items-center gap-2.5 text-sm bg-warning/10 border border-warning/20 rounded-xl p-3">
+          <AlertTriangle className="h-4 w-4 text-warning flex-shrink-0" />
           <div>
             <p className="font-medium text-warning">Quantidade baixa para personalização</p>
             <p className="text-[11px] text-muted-foreground">
-              A maioria das técnicas de gravação exige lote mínimo de 50 unidades. Com {kitQuantity}{' '}
-              {kitQuantity === 1 ? 'kit' : 'kits'}, o custo por unidade pode ser significativamente
-              maior.
+              A maioria das técnicas de gravação exige lote mínimo de 50 unidades.
+              Com {kitQuantity} {kitQuantity === 1 ? 'kit' : 'kits'}, o custo por unidade pode ser significativamente maior.
             </p>
           </div>
         </div>
@@ -472,7 +417,7 @@ export function PersonalizationConfig({
             Itens do Kit ({items.length})
           </h4>
           <div className="space-y-3">
-            {items.map((item) => (
+            {items.map(item => (
               <ItemPersonalizationCard
                 key={item.id}
                 productId={item.id}
@@ -488,8 +433,8 @@ export function PersonalizationConfig({
       )}
 
       {items.length === 0 && !box && (
-        <div className="py-12 text-center text-muted-foreground">
-          <Palette className="mx-auto mb-3 h-12 w-12 opacity-50" />
+        <div className="text-center py-12 text-muted-foreground">
+          <Palette className="h-12 w-12 mx-auto mb-3 opacity-50" />
           <p>Selecione uma caixa e itens para configurar a personalização</p>
         </div>
       )}

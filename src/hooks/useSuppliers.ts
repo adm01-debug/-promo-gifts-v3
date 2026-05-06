@@ -19,16 +19,16 @@ export function useSuppliers() {
 
   // Buscar fornecedores ao montar
   useEffect(() => {
-    fetchAll({
+    fetchAll({ 
       orderBy: { column: 'name', ascending: true },
-      limit: 100,
+      limit: 100 
     });
   }, []);
 
   // Transformar dados para o formato usado pelos componentes
   const suppliers = useMemo((): SupplierOption[] => {
     if (!data?.length) return [];
-
+    
     return data.map((supplier: ExternalSupplier) => ({
       id: supplier.id,
       name: supplier.name,

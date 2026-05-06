@@ -1,6 +1,6 @@
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { LayoutTemplate, Save, Trash2, User } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { LayoutTemplate, Save, Trash2, User } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,9 +9,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel,
   DropdownMenuGroup,
-} from '@/components/ui/dropdown-menu';
-import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
-import { TemplatePreview } from './TemplatePreview';
+} from "@/components/ui/dropdown-menu";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
+import { TemplatePreview } from "./TemplatePreview";
 
 interface TemplateArea {
   name: string;
@@ -52,7 +56,7 @@ export function TemplateSelector({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm" className="flex-1">
-          <LayoutTemplate className="mr-1 h-4 w-4" />
+          <LayoutTemplate className="h-4 w-4 mr-1" />
           Templates
         </Button>
       </DropdownMenuTrigger>
@@ -63,8 +67,11 @@ export function TemplateSelector({
           {builtInTemplates.map((template) => (
             <HoverCard key={template.id} openDelay={200} closeDelay={100}>
               <HoverCardTrigger asChild>
-                <DropdownMenuItem onClick={() => onApply(template)} className="cursor-pointer">
-                  <template.icon className="mr-2 h-4 w-4" />
+                <DropdownMenuItem
+                  onClick={() => onApply(template)}
+                  className="cursor-pointer"
+                >
+                  <template.icon className="h-4 w-4 mr-2" />
                   {template.name}
                   <Badge variant="secondary" className="ml-auto text-[10px]">
                     {template.areas.length}
@@ -75,16 +82,13 @@ export function TemplateSelector({
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <template.icon className="h-4 w-4 text-primary" />
-                    <span className="text-sm font-medium">{template.name}</span>
+                    <span className="font-medium text-sm">{template.name}</span>
                   </div>
                   <TemplatePreview areas={template.areas} />
                   <div className="space-y-0.5">
                     {template.areas.map((area, idx) => (
-                      <div
-                        key={idx}
-                        className="flex items-center gap-1 text-[10px] text-muted-foreground"
-                      >
-                        <span className="flex h-3 w-3 items-center justify-center rounded-full bg-primary text-[8px] text-primary-foreground">
+                      <div key={idx} className="text-[10px] text-muted-foreground flex items-center gap-1">
+                        <span className="w-3 h-3 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-[8px]">
                           {idx + 1}
                         </span>
                         {area.name} ({area.logoWidth}x{area.logoHeight}cm)
@@ -105,19 +109,21 @@ export function TemplateSelector({
               {customTemplates.map((template) => (
                 <HoverCard key={template.id} openDelay={200} closeDelay={100}>
                   <HoverCardTrigger asChild>
-                    <DropdownMenuItem className="group cursor-pointer">
-                      <div className="flex flex-1 items-center" onClick={() => onApply(template)}>
-                        <User className="mr-2 h-4 w-4 text-primary" />
+                    <DropdownMenuItem className="cursor-pointer group">
+                      <div
+                        className="flex items-center flex-1"
+                        onClick={() => onApply(template)}
+                      >
+                        <User className="h-4 w-4 mr-2 text-primary" />
                         {template.name}
-                        <Badge variant="secondary" className="ml-auto mr-2 text-[10px]">
+                        <Badge variant="secondary" className="ml-auto text-[10px] mr-2">
                           {template.areas.length}
                         </Badge>
                       </div>
                       <Button
                         variant="ghost"
-                        size="icon"
-                        aria-label="Excluir"
-                        className="h-5 w-5 text-destructive opacity-0 hover:text-destructive group-hover:opacity-100"
+                        size="icon" aria-label="Excluir"
+                        className="h-5 w-5 opacity-0 group-hover:opacity-100 text-destructive hover:text-destructive"
                         onClick={(e) => {
                           e.stopPropagation();
                           onDeleteCustom(template.id);
@@ -131,16 +137,13 @@ export function TemplateSelector({
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
                         <User className="h-4 w-4 text-primary" />
-                        <span className="text-sm font-medium">{template.name}</span>
+                        <span className="font-medium text-sm">{template.name}</span>
                       </div>
                       <TemplatePreview areas={template.areas} />
                       <div className="space-y-0.5">
                         {template.areas.map((area, idx) => (
-                          <div
-                            key={idx}
-                            className="flex items-center gap-1 text-[10px] text-muted-foreground"
-                          >
-                            <span className="flex h-3 w-3 items-center justify-center rounded-full bg-primary text-[8px] text-primary-foreground">
+                          <div key={idx} className="text-[10px] text-muted-foreground flex items-center gap-1">
+                            <span className="w-3 h-3 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-[8px]">
                               {idx + 1}
                             </span>
                             {area.name} ({area.logoWidth}x{area.logoHeight}cm)
@@ -161,7 +164,7 @@ export function TemplateSelector({
           className="cursor-pointer text-primary"
           disabled={!hasAreas}
         >
-          <Save className="mr-2 h-4 w-4" />
+          <Save className="h-4 w-4 mr-2" />
           Salvar Posicionamento Atual
         </DropdownMenuItem>
       </DropdownMenuContent>

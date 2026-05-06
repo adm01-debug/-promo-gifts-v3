@@ -47,10 +47,10 @@ export class SimulatorErrorBoundary extends Component<Props, State> {
   }
 
   handleRetry = () => {
-    this.setState((prev) => ({
-      hasError: false,
-      error: null,
-      errorCount: prev.errorCount + 1,
+    this.setState(prev => ({ 
+      hasError: false, 
+      error: null, 
+      errorCount: prev.errorCount + 1 
     }));
     this.props.onReset?.();
   };
@@ -67,26 +67,26 @@ export class SimulatorErrorBoundary extends Component<Props, State> {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mx-auto max-w-lg px-4 py-16 text-center"
+        className="max-w-lg mx-auto text-center py-16 px-4"
       >
-        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-xl bg-destructive/10">
+        <div className="w-16 h-16 mx-auto mb-6 rounded-xl bg-destructive/10 flex items-center justify-center">
           <AlertTriangle className="h-8 w-8 text-destructive" />
         </div>
 
-        <h3 className="mb-2 font-display text-xl font-bold">{fallbackTitle}</h3>
-        <p className="mb-6 text-sm leading-relaxed text-muted-foreground">
+        <h3 className="font-display text-xl font-bold mb-2">{fallbackTitle}</h3>
+        <p className="text-muted-foreground mb-6 text-sm leading-relaxed">
           {tooManyRetries
             ? 'O erro persiste após várias tentativas. Tente recarregar a página ou voltar ao início.'
             : 'Ocorreu um erro inesperado. Isso pode ser uma falha temporária de conexão.'}
         </p>
 
         {this.state.error?.message && (
-          <div className="mb-6 break-all rounded-xl bg-muted p-3 text-left font-mono text-xs text-muted-foreground">
+          <div className="mb-6 p-3 rounded-xl bg-muted text-xs font-mono text-muted-foreground text-left break-all">
             {this.state.error.message}
           </div>
         )}
 
-        <div className="flex flex-wrap justify-center gap-3">
+        <div className="flex flex-wrap gap-3 justify-center">
           {!tooManyRetries && (
             <Button onClick={this.handleRetry} className="gap-2">
               <RefreshCw className="h-4 w-4" />

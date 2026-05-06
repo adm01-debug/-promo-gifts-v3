@@ -4,7 +4,11 @@
 import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { Info } from 'lucide-react';
 import type { UseFormRegister, UseFormSetValue, FieldErrors } from 'react-hook-form';
 import type { ProductFormData } from './ProductFormSchema';
@@ -13,18 +17,7 @@ import type { ProductFormData } from './ProductFormSchema';
 // TYPES
 // ============================================
 
-export type SectionId =
-  | 'info'
-  | 'price'
-  | 'commercial'
-  | 'flags'
-  | 'dimensions'
-  | 'packaging'
-  | 'fiscal'
-  | 'seo'
-  | 'marketing'
-  | 'classification'
-  | 'media';
+export type SectionId = 'info' | 'price' | 'commercial' | 'flags' | 'dimensions' | 'packaging' | 'fiscal' | 'seo' | 'marketing' | 'classification' | 'media';
 
 export interface SectionDef {
   id: SectionId;
@@ -60,25 +53,16 @@ export const SECTIONS: SectionDef[] = [
 export function CharCounter({ current, max }: { current: number; max: number }) {
   const pct = current / max;
   return (
-    <span
-      className={cn(
-        'text-[10px] font-medium tabular-nums',
-        pct > 0.9 ? 'text-destructive' : pct > 0.7 ? 'text-warning' : 'text-muted-foreground/50',
-      )}
-    >
+    <span className={cn(
+      'text-[10px] tabular-nums font-medium',
+      pct > 0.9 ? 'text-destructive' : pct > 0.7 ? 'text-warning' : 'text-muted-foreground/50',
+    )}>
       {current}/{max}
     </span>
   );
 }
 
-export function FieldLabel({
-  htmlFor,
-  children,
-  required,
-  charCount,
-  charMax,
-  hint,
-}: {
+export function FieldLabel({ htmlFor, children, required, charCount, charMax, hint }: {
   htmlFor?: string;
   children: React.ReactNode;
   required?: boolean;
@@ -87,18 +71,18 @@ export function FieldLabel({
   hint?: string;
 }) {
   return (
-    <div className="mb-1.5 flex items-center justify-between">
+    <div className="flex items-center justify-between mb-1.5">
       <div className="flex items-center gap-1.5">
         <Label htmlFor={htmlFor} className="text-xs font-semibold text-foreground/80">
           {children}
-          {required && <span className="ml-0.5 text-destructive">*</span>}
+          {required && <span className="text-destructive ml-0.5">*</span>}
         </Label>
         {hint && (
           <Tooltip>
             <TooltipTrigger asChild>
-              <Info className="h-3 w-3 cursor-help text-muted-foreground/40" />
+              <Info className="h-3 w-3 text-muted-foreground/40 cursor-help" />
             </TooltipTrigger>
-            <TooltipContent className="max-w-[260px] text-xs">{hint}</TooltipContent>
+            <TooltipContent className="text-xs max-w-[260px]">{hint}</TooltipContent>
           </Tooltip>
         )}
       </div>
@@ -109,13 +93,7 @@ export function FieldLabel({
   );
 }
 
-export function SectionCard({
-  id,
-  title,
-  icon: Icon,
-  children,
-  subtitle,
-}: {
+export function SectionCard({ id, title, icon: Icon, children, subtitle }: {
   id: string;
   title: string;
   icon: React.ElementType;
@@ -123,22 +101,19 @@ export function SectionCard({
   subtitle?: string;
 }) {
   return (
-    <Card
-      id={`section-${id}`}
-      className="scroll-mt-4 overflow-hidden border-border/50 bg-card/60 backdrop-blur-sm"
-    >
-      <div className="border-b border-border/30 p-5 pb-4">
+    <Card id={`section-${id}`} className="border-border/50 bg-card/60 backdrop-blur-sm overflow-hidden scroll-mt-4">
+      <div className="p-5 pb-4 border-b border-border/30">
         <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+          <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
             <Icon className="h-4 w-4 text-primary" />
           </div>
           <div>
             <h3 className="font-display text-sm font-semibold text-foreground">{title}</h3>
-            {subtitle && <p className="mt-0.5 text-[11px] text-muted-foreground">{subtitle}</p>}
+            {subtitle && <p className="text-[11px] text-muted-foreground mt-0.5">{subtitle}</p>}
           </div>
         </div>
       </div>
-      <div className="space-y-4 p-5">{children}</div>
+      <div className="p-5 space-y-4">{children}</div>
     </Card>
   );
 }

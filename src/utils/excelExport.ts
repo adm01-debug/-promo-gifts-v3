@@ -1,21 +1,21 @@
 // src/utils/excelExport.ts
 
-import { formatDateTime } from '@/lib/date-utils';
+import { formatDate, formatDateTime } from '@/lib/date-utils';
 
 const getXLSX = () => import('@e965/xlsx');
 
 /**
  * Configuração de exportação Excel
  */
-export interface ExcelExportConfig<T = Record<string, any>> {
+export interface ExcelExportConfig {
   /** Nome do arquivo (sem extensão) */
   filename: string;
   /** Nome da planilha */
   sheetName?: string;
   /** Colunas a exportar */
-  columns: ExcelColumn<T>[];
+  columns: ExcelColumn[];
   /** Dados a exportar */
-  data: T[];
+  data: any[];
   /** Incluir timestamp no nome do arquivo */
   includeTimestamp?: boolean;
 }
@@ -23,7 +23,7 @@ export interface ExcelExportConfig<T = Record<string, any>> {
 /**
  * Definição de coluna
  */
-export interface ExcelColumn<T = Record<string, any>> {
+export interface ExcelColumn {
   /** Chave do campo no objeto de dados */
   key: string;
   /** Cabeçalho da coluna */
@@ -31,24 +31,46 @@ export interface ExcelColumn<T = Record<string, any>> {
   /** Largura da coluna (em caracteres) */
   width?: number;
   /** Função de formatação customizada */
-  format?: (value: any, row: T) => string | number;
+  format?: (value: any, row: any) => string | number;
 }
 
 /**
  * Exporta dados para arquivo Excel (.xlsx)
+ * 
+ * @example
+ * ```typescript
+ * exportToExcel({
+ *   filename: 'orcamentos',
+ *   sheetName: 'Orçamentos 2025',
+ *   columns: [
+ *     { key: 'quote_number', header: 'Número', width: 15 },
+ *     { key: 'client_name', header: 'Cliente', width: 30 },
+ *     { key: 'total', header: 'Valor Total', format: (v) => `R$ ${v.toFixed(2)}` },
+ *     { key: 'created_at', header: 'Data', format: (v) => formatDate(v) }
+ *   ],
+ *   data: quotes,
+ *   includeTimestamp: true
+ * });
+ * ```
  */
-export async function exportToExcel<T = Record<string, any>>(config: ExcelExportConfig<T>): Promise<void> {
-  const { filename, sheetName = 'Dados', columns, data, includeTimestamp = true } = config;
+export async function exportToExcel(config: ExcelExportConfig): Promise<void> {
+  const {
+    filename,
+    sheetName = 'Dados',
+    columns,
+    data,
+    includeTimestamp = true
+  } = config;
 
   try {
     const XLSX = await getXLSX();
     // 1. Preparar dados formatados
     const formattedData = data.map((row) => {
-      const formattedRow: Record<string, string | number> = {};
-
+      const formattedRow: any = {};
+      
       columns.forEach((col) => {
         const value = getNestedValue(row, col.key);
-
+        
         if (col.format) {
           // Aplicar formatação customizada
           formattedRow[col.header] = col.format(value, row);
@@ -66,7 +88,7 @@ export async function exportToExcel<T = Record<string, any>>(config: ExcelExport
           formattedRow[col.header] = String(value);
         }
       });
-
+      
       return formattedRow;
     });
 
@@ -77,25 +99,26 @@ export async function exportToExcel<T = Record<string, any>>(config: ExcelExport
 
     // 3. Configurar larguras das colunas
     const colWidths = columns.map((col) => ({
-      wch: col.width || 20,
+      wch: col.width || 20
     }));
     worksheet['!cols'] = colWidths;
 
     // 4. Aplicar estilos no cabeçalho (se possível)
+    // Nota: XLSX gratuito tem suporte limitado a estilos
     const range = XLSX.utils.decode_range(worksheet['!ref'] || 'A1');
     for (let C = range.s.c; C <= range.e.c; ++C) {
       const address = XLSX.utils.encode_col(C) + '1';
       if (!worksheet[address]) continue;
-
-      // Fonte em negrito para cabeçalho
+      
+      // Fonte em negrito para cabeçalho (se biblioteca suportar)
       if (worksheet[address].s) {
         worksheet[address].s.font = { bold: true };
       }
     }
 
     // 5. Gerar nome do arquivo
-    const timestamp = includeTimestamp
-      ? `_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}`
+    const timestamp = includeTimestamp 
+      ? `_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}` 
       : '';
     const fullFilename = `${filename}${timestamp}.xlsx`;
 
@@ -113,10 +136,10 @@ export async function exportMultipleSheets(
   filename: string,
   sheets: Array<{
     sheetName: string;
-    columns: ExcelColumn<any>[];
+    columns: ExcelColumn[];
     data: any[];
   }>,
-  includeTimestamp = true,
+  includeTimestamp = true
 ): Promise<void> {
   try {
     const XLSX = await getXLSX();
@@ -125,17 +148,19 @@ export async function exportMultipleSheets(
     sheets.forEach(({ sheetName, columns, data }) => {
       // Formatar dados
       const formattedData = data.map((row) => {
-        const formattedRow: Record<string, string | number> = {};
+        const formattedRow: any = {};
         columns.forEach((col) => {
           const value = getNestedValue(row, col.key);
-          formattedRow[col.header] = col.format ? col.format(value, row) : formatValue(value);
+          formattedRow[col.header] = col.format 
+            ? col.format(value, row)
+            : formatValue(value);
         });
         return formattedRow;
       });
 
       // Criar worksheet
       const worksheet = XLSX.utils.json_to_sheet(formattedData);
-
+      
       // Configurar larguras
       const colWidths = columns.map((col) => ({ wch: col.width || 20 }));
       worksheet['!cols'] = colWidths;
@@ -145,8 +170,8 @@ export async function exportMultipleSheets(
     });
 
     // Gerar arquivo
-    const timestamp = includeTimestamp
-      ? `_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}`
+    const timestamp = includeTimestamp 
+      ? `_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}` 
       : '';
     const fullFilename = `${filename}${timestamp}.xlsx`;
 
@@ -166,7 +191,7 @@ function getNestedValue(obj: any, path: string): any {
 }
 
 // Formata valor automaticamente
-function formatValue(value: unknown): string | number {
+function formatValue(value: any): string | number {
   if (value instanceof Date) {
     return formatDateTime(value);
   }
@@ -185,7 +210,7 @@ function formatValue(value: unknown): string | number {
 export function formatCurrency(value: number): string {
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
-    currency: 'BRL',
+    currency: 'BRL'
   }).format(value);
 }
 
@@ -201,16 +226,16 @@ export function formatPercentage(value: number): string {
  */
 export function formatStatus(status: string): string {
   const statusMap: Record<string, string> = {
-    draft: '📝 Rascunho',
-    sent: '📤 Enviado',
-    approved: '✅ Aprovado',
-    rejected: '❌ Rejeitado',
-    expired: '⏰ Expirado',
-    pending: '⏳ Pendente',
-    processing: '🔄 Processando',
-    completed: '✅ Concluído',
-    cancelled: '🚫 Cancelado',
+    'draft': '📝 Rascunho',
+    'sent': '📤 Enviado',
+    'approved': '✅ Aprovado',
+    'rejected': '❌ Rejeitado',
+    'expired': '⏰ Expirado',
+    'pending': '⏳ Pendente',
+    'processing': '🔄 Processando',
+    'completed': '✅ Concluído',
+    'cancelled': '🚫 Cancelado'
   };
-
+  
   return statusMap[status] || status;
 }

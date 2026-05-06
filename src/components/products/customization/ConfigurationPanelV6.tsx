@@ -1,40 +1,32 @@
 /**
  * ConfigurationPanelV6 — Dimensões + Cores + Preço
- *
+ * 
  * Mostra inputs condicionais baseado em usa_dimensao e cobra_por_cor.
  * Calcula preço via fn_get_customization_price com debounce.
  * Briefing v6 (12/02/2026).
  */
 
-import { useState, useEffect, useMemo, useRef } from 'react';
-import { Loader2, Palette, Clock, Ruler, AlertCircle, Check } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { cn } from '@/lib/utils';
-import { useCustomizationPriceReactive } from '@/hooks/useCustomizationPrice';
-import type { TechniqueOption, CustomizationPriceResponseV6 } from '@/types/customization';
+import { useState, useEffect, useMemo, useRef } from "react";
+import { Loader2, Palette, Clock, Ruler, AlertCircle, Check } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
+import { useCustomizationPriceReactive } from "@/hooks/useCustomizationPrice";
+import type { TechniqueOption, CustomizationPriceResponseV6 } from "@/types/customization";
 
 interface ConfigurationPanelV6Props {
   technique: TechniqueOption;
   quantity: number;
-  onPriceCalculated: (
-    techniqueId: string,
-    price: CustomizationPriceResponseV6 | null,
-    dimensions?: { width?: number; height?: number },
-  ) => void;
+  onPriceCalculated: (techniqueId: string, price: CustomizationPriceResponseV6 | null, dimensions?: { width?: number; height?: number }) => void;
 }
 
-export function ConfigurationPanelV6({
-  technique,
-  quantity,
-  onPriceCalculated,
-}: ConfigurationPanelV6Props) {
+export function ConfigurationPanelV6({ technique, quantity, onPriceCalculated }: ConfigurationPanelV6Props) {
   // Dimensions
   const [largura, setLargura] = useState<string>(
-    technique.usa_dimensao ? String(technique.efetiva_largura_max) : '',
+    technique.usa_dimensao ? String(technique.efetiva_largura_max) : ""
   );
   const [altura, setAltura] = useState<string>(
-    technique.usa_dimensao ? String(technique.efetiva_altura_max) : '',
+    technique.usa_dimensao ? String(technique.efetiva_altura_max) : ""
   );
 
   // Colors
@@ -46,11 +38,9 @@ export function ConfigurationPanelV6({
   // Validation
   const dimensionError = useMemo(() => {
     if (!technique.usa_dimensao) return null;
-    if (larguraNum <= 0 || alturaNum <= 0) return 'Preencha largura e altura';
-    if (larguraNum > technique.efetiva_largura_max)
-      return `Largura máxima: ${technique.efetiva_largura_max} cm`;
-    if (alturaNum > technique.efetiva_altura_max)
-      return `Altura máxima: ${technique.efetiva_altura_max} cm`;
+    if (larguraNum <= 0 || alturaNum <= 0) return "Preencha largura e altura";
+    if (larguraNum > technique.efetiva_largura_max) return `Largura máxima: ${technique.efetiva_largura_max} cm`;
+    if (alturaNum > technique.efetiva_altura_max) return `Altura máxima: ${technique.efetiva_altura_max} cm`;
     return null;
   }, [technique, larguraNum, alturaNum]);
 
@@ -74,8 +64,8 @@ export function ConfigurationPanelV6({
   }, [price, technique.technique_id, technique.usa_dimensao, larguraNum, alturaNum]);
 
   return (
-    <div className="space-y-4 rounded-xl border border-border/50 bg-secondary/30 p-4">
-      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+    <div className="space-y-4 p-4 rounded-xl bg-secondary/30 border border-border/50">
+      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
         Configure a gravação
       </p>
 
@@ -103,7 +93,7 @@ export function ConfigurationPanelV6({
                 className="h-9 text-sm"
               />
             </div>
-            <span className="mt-5 text-muted-foreground">×</span>
+            <span className="text-muted-foreground mt-5">×</span>
             <div className="flex-1">
               <Label className="text-[11px] text-muted-foreground">Altura (cm)</Label>
               <Input
@@ -135,14 +125,14 @@ export function ConfigurationPanelV6({
             <span className="font-medium">Nº de cores</span>
           </div>
           <div className="flex gap-1.5">
-            {Array.from({ length: technique.max_cores }, (_, i) => i + 1).map((n) => (
+            {Array.from({ length: technique.max_cores }, (_, i) => i + 1).map(n => (
               <button
                 key={n}
                 className={cn(
-                  'h-9 rounded-xl px-3 text-sm font-medium transition-colors',
+                  "px-3 h-9 rounded-xl text-sm font-medium transition-colors",
                   n === numCores
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
                 )}
                 onClick={() => setNumCores(n)}
               >
@@ -165,7 +155,7 @@ export function ConfigurationPanelV6({
 
       {/* Loading */}
       {loading && (
-        <div className="flex items-center gap-2 rounded-xl bg-muted/50 p-3 text-sm text-muted-foreground">
+        <div className="flex items-center gap-2 p-3 rounded-xl bg-muted/50 text-sm text-muted-foreground">
           <Loader2 className="h-3.5 w-3.5 animate-spin" />
           Calculando preço...
         </div>
@@ -173,7 +163,7 @@ export function ConfigurationPanelV6({
 
       {/* Error */}
       {error && !loading && (
-        <div className="flex items-center gap-2 rounded-xl border border-destructive/20 bg-destructive/10 p-3 text-sm text-destructive">
+        <div className="flex items-center gap-2 p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-sm text-destructive">
           <AlertCircle className="h-3.5 w-3.5" />
           {error}
         </div>
@@ -181,26 +171,26 @@ export function ConfigurationPanelV6({
 
       {/* Price result */}
       {price && !loading && (
-        <div className="space-y-2 rounded-xl border border-primary/20 bg-primary/5 p-3">
+        <div className="p-3 rounded-xl bg-primary/5 border border-primary/20 space-y-2">
           <div className="flex items-center gap-2">
             <Check className="h-4 w-4 text-primary" />
-            <span className="text-sm font-semibold text-foreground">{price.nome_tabela}</span>
+            <span className="text-sm font-semibold text-foreground">
+              {price.nome_tabela}
+            </span>
           </div>
-
-          <div className="space-y-0.5 text-xs text-muted-foreground">
+          
+          <div className="text-xs text-muted-foreground space-y-0.5">
             {technique.usa_dimensao && larguraNum > 0 && alturaNum > 0 && (
-              <p>
-                Gravação: {larguraNum} × {alturaNum} cm
-              </p>
+              <p>Gravação: {larguraNum} × {alturaNum} cm</p>
             )}
             <p>Quantidade: {price.quantidade} peças</p>
-            <p>
-              Faixa: {price.faixa.qtd_min} a {price.faixa.qtd_max} peças
-            </p>
-            {price.num_cores > 1 && <p>Cores: {price.num_cores}</p>}
+            <p>Faixa: {price.faixa.qtd_min} a {price.faixa.qtd_max} peças</p>
+            {price.num_cores > 1 && (
+              <p>Cores: {price.num_cores}</p>
+            )}
           </div>
 
-          <div className="space-y-1 border-t border-border/50 pt-2">
+          <div className="border-t border-border/50 pt-2 space-y-1">
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Preço unitário:</span>
               <span className="font-semibold text-primary">
@@ -221,9 +211,11 @@ export function ConfigurationPanelV6({
                 </span>
               </div>
             )}
-            <div className="flex justify-between border-t border-border/50 pt-1 text-sm font-bold">
+            <div className="flex justify-between text-sm font-bold border-t border-border/50 pt-1">
               <span className="text-foreground">TOTAL:</span>
-              <span className="text-primary">R$ {price.total_cobrado.toFixed(2)}</span>
+              <span className="text-primary">
+                R$ {price.total_cobrado.toFixed(2)}
+              </span>
             </div>
           </div>
         </div>
@@ -231,10 +223,10 @@ export function ConfigurationPanelV6({
 
       {/* Waiting for inputs */}
       {!price && !loading && !error && (
-        <div className="rounded-xl bg-muted/30 p-3 text-center text-xs text-muted-foreground">
+        <div className="p-3 rounded-xl bg-muted/30 text-xs text-muted-foreground text-center">
           {technique.usa_dimensao && (larguraNum <= 0 || alturaNum <= 0)
-            ? 'Preencha largura e altura para calcular o preço'
-            : 'Aguardando cálculo...'}
+            ? "Preencha largura e altura para calcular o preço"
+            : "Aguardando cálculo..."}
         </div>
       )}
     </div>

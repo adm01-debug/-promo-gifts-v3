@@ -37,7 +37,7 @@ export function ProductVariantSelector({
   label = 'Cor do Produto',
 }: ProductVariantSelectorProps) {
   // Detect if any variant has size_code
-  const hasSizes = useMemo(() => variants.some((v) => v.size_code), [variants]);
+  const hasSizes = useMemo(() => variants.some(v => v.size_code), [variants]);
 
   // Group by color when sizes exist
   const grouped = useMemo(() => {
@@ -71,9 +71,9 @@ export function ProductVariantSelector({
   // Single variant — just show info
   if (variants.length === 1 && !hasSizes) {
     return (
-      <div className="flex items-center gap-3 rounded-xl bg-muted/50 p-3">
+      <div className="p-3 rounded-xl bg-muted/50 flex items-center gap-3">
         <div
-          className="h-6 w-6 rounded-full border-2 border-border"
+          className="w-6 h-6 rounded-full border-2 border-border"
           style={{ backgroundColor: variants[0].hex || '#888' }}
         />
         <span className="text-sm">
@@ -86,8 +86,8 @@ export function ProductVariantSelector({
   return (
     <div className="space-y-3">
       {label && (
-        <label className="flex items-center gap-2 text-sm font-medium">
-          <Palette className="h-4 w-4 text-primary" />
+        <label className="text-sm font-medium flex items-center gap-2">
+          <Palette className="w-4 h-4 text-primary" />
           {label}
         </label>
       )}
@@ -97,13 +97,13 @@ export function ProductVariantSelector({
         <div className="space-y-3">
           {Array.from(grouped.entries()).map(([colorName, group]) => {
             const hex = group[0]?.hex;
-            const anySelected = group.some((v) => selectedVariant?.code === v.code);
+            const anySelected = group.some(v => selectedVariant?.code === v.code);
 
             return (
               <div
                 key={colorName}
                 className={cn(
-                  'space-y-2 rounded-xl border p-3 transition-colors',
+                  'rounded-xl border p-3 space-y-2 transition-colors',
                   anySelected ? 'border-primary/40 bg-primary/5' : 'border-border',
                 )}
               >
@@ -111,7 +111,7 @@ export function ProductVariantSelector({
                 <div className="flex items-center gap-2">
                   <div
                     className={cn(
-                      'h-5 w-5 shrink-0 rounded-full border-2',
+                      'w-5 h-5 rounded-full border-2 shrink-0',
                       anySelected ? 'border-primary' : 'border-muted-foreground/30',
                     )}
                     style={{ backgroundColor: hex || '#888' }}
@@ -121,7 +121,7 @@ export function ProductVariantSelector({
 
                 {/* Size chips */}
                 <div className="flex flex-wrap gap-1.5 pl-7">
-                  {group.map((variant) => {
+                  {group.map(variant => {
                     const isSelected = selectedVariant?.code === variant.code;
                     const isOutOfStock = (variant.stock ?? 1) === 0;
 
@@ -131,11 +131,11 @@ export function ProductVariantSelector({
                         onClick={() => onSelect(isSelected ? null : variant)}
                         disabled={isOutOfStock}
                         className={cn(
-                          'flex items-center gap-1.5 rounded-xl border px-2.5 py-1.5 text-xs font-medium transition-all',
+                          'flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-xs font-medium transition-all',
                           isSelected
                             ? 'border-primary bg-primary/15 text-primary ring-1 ring-primary/30'
-                            : 'border-border bg-card text-foreground hover:border-primary/50 hover:bg-accent',
-                          isOutOfStock && 'cursor-not-allowed opacity-40',
+                            : 'border-border bg-card hover:border-primary/50 hover:bg-accent text-foreground',
+                          isOutOfStock && 'opacity-40 cursor-not-allowed',
                         )}
                       >
                         <Ruler className="h-3 w-3" />
@@ -162,29 +162,29 @@ export function ProductVariantSelector({
                 onClick={() => onSelect(isSelected ? null : variant)}
                 disabled={isOutOfStock}
                 className={cn(
-                  'group relative flex items-center gap-2 rounded-xl border px-3 py-2 transition-all',
+                  'group relative flex items-center gap-2 px-3 py-2 rounded-xl border transition-all',
                   isSelected
                     ? 'border-primary bg-primary/10 ring-2 ring-primary/30'
                     : 'border-border bg-card hover:border-primary/50 hover:bg-accent',
-                  isOutOfStock && 'cursor-not-allowed opacity-50',
+                  isOutOfStock && 'opacity-50 cursor-not-allowed'
                 )}
               >
                 <div
                   className={cn(
-                    'h-5 w-5 rounded-full border-2 transition-all',
-                    isSelected ? 'border-primary' : 'border-muted-foreground/30',
+                    'w-5 h-5 rounded-full border-2 transition-all',
+                    isSelected ? 'border-primary' : 'border-muted-foreground/30'
                   )}
                   style={{ backgroundColor: variant.hex || '#888' }}
                 >
                   {isSelected && (
-                    <Check className="absolute left-[14px] top-1/2 h-3 w-3 -translate-y-1/2 text-primary-foreground" />
+                    <Check className="w-3 h-3 text-primary-foreground absolute top-1/2 left-[14px] -translate-y-1/2" />
                   )}
                 </div>
 
                 <span className="text-sm font-medium">{variant.name}</span>
 
                 {isOutOfStock && (
-                  <Badge variant="secondary" className="px-1.5 py-0 text-xs">
+                  <Badge variant="secondary" className="text-xs px-1.5 py-0">
                     Sem estoque
                   </Badge>
                 )}

@@ -1,20 +1,14 @@
 /**
  * OrderFulfillmentManager — controle de fulfillment + tracking + transportadora.
  */
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Truck } from 'lucide-react';
-import { useUpdateOrder, FULFILLMENT_LABELS, type OrderRow } from '@/hooks/useOrders';
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Truck } from "lucide-react";
+import { useUpdateOrder, FULFILLMENT_LABELS, type OrderRow } from "@/hooks/useOrders";
 
 interface OrderFulfillmentManagerProps {
   order: OrderRow;
@@ -22,11 +16,11 @@ interface OrderFulfillmentManagerProps {
 
 export function OrderFulfillmentManager({ order }: OrderFulfillmentManagerProps) {
   const update = useUpdateOrder(order.id);
-  const [tracking, setTracking] = useState(order.tracking_number ?? '');
-  const [shippingType, setShippingType] = useState(order.shipping_type ?? '');
+  const [tracking, setTracking] = useState(order.tracking_number ?? "");
+  const [shippingType, setShippingType] = useState(order.shipping_type ?? "");
 
   const dirty =
-    tracking !== (order.tracking_number ?? '') || shippingType !== (order.shipping_type ?? '');
+    tracking !== (order.tracking_number ?? "") || shippingType !== (order.shipping_type ?? "");
 
   return (
     <Card>
@@ -36,7 +30,7 @@ export function OrderFulfillmentManager({ order }: OrderFulfillmentManagerProps)
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <Label htmlFor="ful-status">Fulfillment</Label>
             <Select
@@ -49,9 +43,7 @@ export function OrderFulfillmentManager({ order }: OrderFulfillmentManagerProps)
               </SelectTrigger>
               <SelectContent>
                 {Object.entries(FULFILLMENT_LABELS).map(([k, l]) => (
-                  <SelectItem key={k} value={k}>
-                    {l}
-                  </SelectItem>
+                  <SelectItem key={k} value={k}>{l}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -87,7 +79,7 @@ export function OrderFulfillmentManager({ order }: OrderFulfillmentManagerProps)
           disabled={!dirty || update.isPending}
           size="sm"
         >
-          {update.isPending ? 'Salvando...' : 'Salvar logística'}
+          {update.isPending ? "Salvando..." : "Salvar logística"}
         </Button>
       </CardContent>
     </Card>

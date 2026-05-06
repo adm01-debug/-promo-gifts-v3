@@ -36,16 +36,10 @@ export function setInstrumentationPaused(next: boolean): void {
   try {
     if (next) localStorage.setItem(STORAGE_KEY, '1');
     else localStorage.removeItem(STORAGE_KEY);
-  } catch {
-    /* noop */
-  }
+  } catch { /* noop */ }
   // Notifica para que watchdog reaja (start/stop) e UI re-renderize.
   for (const l of listeners) {
-    try {
-      l();
-    } catch {
-      /* noop */
-    }
+    try { l(); } catch { /* noop */ }
   }
 }
 
@@ -56,7 +50,5 @@ export function toggleInstrumentationPaused(): boolean {
 
 export function subscribeInstrumentationPaused(fn: () => void): () => void {
   listeners.add(fn);
-  return () => {
-    listeners.delete(fn);
-  };
+  return () => { listeners.delete(fn); };
 }

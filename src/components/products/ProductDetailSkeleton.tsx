@@ -1,4 +1,4 @@
-import { Skeleton } from '@/components/ui/skeleton';
+import { Skeleton } from "@/components/ui/skeleton";
 
 /**
  * Skeleton loader that mimics the ProductDetail page layout.
@@ -6,7 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton';
  */
 export function ProductDetailSkeleton() {
   return (
-    <div className="mx-auto max-w-[1600px] animate-fade-in space-y-4 pb-20 md:space-y-6 md:pb-0 xl:space-y-8 xl:px-4 2xl:px-8">
+    <div className="max-w-[1600px] mx-auto space-y-4 md:space-y-6 xl:space-y-8 animate-fade-in pb-20 md:pb-0 xl:px-4 2xl:px-8">
       {/* Intelligence badges */}
       <div className="flex flex-wrap items-center gap-2">
         <Skeleton className="h-6 w-24 rounded-full" />
@@ -15,13 +15,13 @@ export function ProductDetailSkeleton() {
       </div>
 
       {/* Main content grid — matches 5fr / 7fr */}
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-6 xl:gap-8">
+      <div className="grid lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] gap-4 lg:gap-6 xl:gap-8">
         {/* LEFT — Gallery skeleton (sticky area) */}
         <div className="space-y-3">
-          <Skeleton className="aspect-square w-full rounded-xl" />
+          <Skeleton className="w-full aspect-square rounded-xl" />
           <div className="flex gap-2">
             {Array.from({ length: 5 }).map((_, i) => (
-              <Skeleton key={i} className="h-14 w-14 shrink-0 rounded-xl" />
+              <Skeleton key={i} className="w-14 h-14 rounded-xl shrink-0" />
             ))}
           </div>
         </div>
@@ -56,11 +56,11 @@ export function ProductDetailSkeleton() {
           </div>
 
           {/* PRICE + SPECS — two columns */}
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 xl:gap-4">
             {/* Price card */}
-            <div className="space-y-3 rounded-xl border border-border p-3 xl:p-5">
+            <div className="rounded-xl border border-border p-3 xl:p-5 space-y-3">
               <div>
-                <Skeleton className="mb-2 h-3 w-16" />
+                <Skeleton className="h-3 w-16 mb-2" />
                 <Skeleton className="h-9 w-32" />
               </div>
               {/* Color swatches */}
@@ -70,7 +70,7 @@ export function ProductDetailSkeleton() {
                 ))}
               </div>
               {/* Info grid */}
-              <div className="grid grid-cols-3 gap-1 border-y border-border/40 py-1">
+              <div className="grid grid-cols-3 gap-1 py-1 border-y border-border/40">
                 <Skeleton className="h-4 w-full" />
                 <Skeleton className="h-4 w-full" />
                 <Skeleton className="h-4 w-full" />
@@ -83,12 +83,12 @@ export function ProductDetailSkeleton() {
             </div>
 
             {/* Specs card */}
-            <div className="space-y-3 rounded-xl border border-border p-3 xl:p-5">
-              <Skeleton className="mb-1 h-4 w-20" />
+            <div className="rounded-xl border border-border p-3 xl:p-5 space-y-3">
+              <Skeleton className="h-4 w-20 mb-1" />
               <Skeleton className="h-3 w-full" />
               <Skeleton className="h-3 w-[90%]" />
               <Skeleton className="h-3 w-[75%]" />
-              <div className="space-y-2 border-t border-border/40 pt-2">
+              <div className="border-t border-border/40 pt-2 space-y-2">
                 <Skeleton className="h-4 w-24" />
                 <div className="flex flex-wrap gap-1">
                   <Skeleton className="h-5 w-16 rounded-full" />
@@ -109,12 +109,12 @@ export function ProductDetailSkeleton() {
       </div>
 
       {/* Similar products section */}
-      <div className="space-y-3 border-t border-border/60 pt-6">
+      <div className="pt-6 border-t border-border/60 space-y-3">
         <Skeleton className="h-6 w-48" />
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-5">
+        <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-3">
           {Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="space-y-2">
-              <Skeleton className="aspect-square w-full rounded-xl" />
+              <Skeleton className="w-full aspect-square rounded-xl" />
               <Skeleton className="h-4 w-[80%]" />
               <Skeleton className="h-3 w-[50%]" />
             </div>

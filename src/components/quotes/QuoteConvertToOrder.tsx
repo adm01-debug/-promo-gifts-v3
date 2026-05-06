@@ -1,11 +1,11 @@
-import { useState } from 'react';
-import { Package, Loader2, CheckCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import { useOrganization } from '@/contexts/OrganizationContext';
-import { convertQuoteToOrder } from '@/services/orderService';
+import { useState } from "react";
+import { Package, Loader2, CheckCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { useOrganization } from "@/contexts/OrganizationContext";
+import { convertQuoteToOrder } from "@/services/orderService";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,7 +16,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+} from "@/components/ui/alert-dialog";
 
 interface QuoteConvertToOrderProps {
   quoteId: string;
@@ -30,11 +30,11 @@ export function QuoteConvertToOrder({ quoteId, status, onConverted }: QuoteConve
   const navigate = useNavigate();
   const [isConverting, setIsConverting] = useState(false);
 
-  if (status !== 'approved') return null;
+  if (status !== "approved") return null;
 
   const handleConvert = async () => {
     if (!user) {
-      toast.error('Você precisa estar logado');
+      toast.error("Você precisa estar logado");
       return;
     }
 
@@ -46,17 +46,20 @@ export function QuoteConvertToOrder({ quoteId, status, onConverted }: QuoteConve
         organizationId: currentOrg?.id || null,
       });
 
-      toast.success(`Pedido #${order.order_number} criado com sucesso!`, {
-        description: `Total: ${order.total?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`,
-        action: {
-          label: 'Ver Pedido',
-          onClick: () => navigate(`/pedidos/${order.id}`),
-        },
-      });
+      toast.success(
+        `Pedido #${order.order_number} criado com sucesso!`,
+        {
+          description: `Total: ${order.total?.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}`,
+          action: {
+            label: "Ver Pedido",
+            onClick: () => navigate(`/pedidos/${order.id}`),
+          },
+        }
+      );
 
       onConverted?.();
     } catch (err: any) {
-      toast.error(err.message || 'Erro ao converter orçamento em pedido');
+      toast.error(err.message || "Erro ao converter orçamento em pedido");
     } finally {
       setIsConverting(false);
     }
@@ -65,10 +68,7 @@ export function QuoteConvertToOrder({ quoteId, status, onConverted }: QuoteConve
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button
-          className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
-          disabled={isConverting}
-        >
+        <Button className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground" disabled={isConverting}>
           {isConverting ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
@@ -84,9 +84,9 @@ export function QuoteConvertToOrder({ quoteId, status, onConverted }: QuoteConve
             Converter Orçamento em Pedido?
           </AlertDialogTitle>
           <AlertDialogDescription>
-            Esta ação criará um novo pedido com base nos dados deste orçamento aprovado. Os itens,
-            valores e informações do cliente serão copiados automaticamente. O status do orçamento
-            será atualizado para "Convertido".
+            Esta ação criará um novo pedido com base nos dados deste orçamento aprovado.
+            Os itens, valores e informações do cliente serão copiados automaticamente.
+            O status do orçamento será atualizado para "Convertido".
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -96,7 +96,7 @@ export function QuoteConvertToOrder({ quoteId, status, onConverted }: QuoteConve
             className="bg-primary hover:bg-primary/90"
             disabled={isConverting}
           >
-            {isConverting ? 'Convertendo...' : 'Confirmar Conversão'}
+            {isConverting ? "Convertendo..." : "Confirmar Conversão"}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

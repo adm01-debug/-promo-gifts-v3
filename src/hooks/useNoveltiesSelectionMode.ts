@@ -2,17 +2,14 @@
  * useNoveltiesSelectionMode — Hook de seleção em lote para o módulo Novidades.
  * Replicação do padrão useFiltersSelectionMode adaptado para NoveltyWithDetails.
  */
-import { useState, useCallback, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import type { NoveltyWithDetails } from '@/hooks/useNovelties';
-import type { Product } from '@/hooks/useProducts';
-import type { BulkVariantSelection, BulkWizardMode } from '@/components/catalog/BulkVariantWizard';
-import { useFavoritesStore } from '@/stores/useFavoritesStore';
-import { useComparisonStore } from '@/stores/useComparisonStore';
-import { toast } from 'sonner';
-import { createClientLogger } from '@/lib/telemetry/structuredLogger';
-
-const log = createClientLogger('novelties.mapping');
+import { useState, useCallback, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import type { NoveltyWithDetails } from "@/hooks/useNovelties";
+import type { Product } from "@/hooks/useProducts";
+import type { BulkVariantSelection, BulkWizardMode } from "@/components/catalog/BulkVariantWizard";
+import { useFavoritesStore } from "@/stores/useFavoritesStore";
+import { useComparisonStore } from "@/stores/useComparisonStore";
+import { toast } from "sonner";
 
 interface UseNoveltiesSelectionModeParams {
   selectionMode: boolean;
@@ -23,18 +20,6 @@ interface UseNoveltiesSelectionModeParams {
  * Converte NoveltyWithDetails para Product (mínimo necessário para o BulkVariantWizard)
  */
 function noveltyToProduct(n: NoveltyWithDetails): Product {
-  // Aviso estruturado: o registro de novidade não traz cores enriquecidas — qualquer
-  // consumidor (Share, Wizard) precisa hidratar via useExternalVariantStock antes de
-  // exibir/iterar product.colors. Sem isso o template de WhatsApp mostra "Diversas
-  // opções" como fallback. Logamos uma vez por produto para diagnóstico em produção.
-  log.info('novelty_to_product_mapped', {
-    productId: n.product_id,
-    sku: n.product_sku ?? null,
-    hasImage: !!n.product_image,
-    colorsHydrated: false,
-    note: 'colors=[] by design — enrich via useExternalVariantStock if needed',
-  });
-
   return {
     id: n.product_id,
     name: n.product_name,
@@ -65,10 +50,7 @@ function noveltyToProduct(n: NoveltyWithDetails): Product {
   } as Product;
 }
 
-export function useNoveltiesSelectionMode({
-  selectionMode,
-  filteredProducts,
-}: UseNoveltiesSelectionModeParams) {
+export function useNoveltiesSelectionMode({ selectionMode, filteredProducts }: UseNoveltiesSelectionModeParams) {
   const navigate = useNavigate();
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [collectionModalOpen, setCollectionModalOpen] = useState(false);
@@ -80,152 +62,105 @@ export function useNoveltiesSelectionMode({
   const selectedCount = selectedIds.size;
 
   // Clear selection when leaving selection mode
-  useEffect(() => {
-    if (!selectionMode) setSelectedIds(new Set());
-  }, [selectionMode]);
+  useEffect(() => { if (!selectionMode) setSelectedIds(new Set()); }, [selectionMode]);
 
   // Remove stale IDs when products change
   useEffect(() => {
-    setSelectedIds((prev) => {
+    setSelectedIds(prev => {
       if (prev.size === 0) return prev;
-      const validIds = new Set(filteredProducts.map((p) => p.product_id));
-      const filtered = new Set([...prev].filter((id) => validIds.has(id)));
+      const validIds = new Set(filteredProducts.map(p => p.product_id));
+      const filtered = new Set([...prev].filter(id => validIds.has(id)));
       return filtered.size === prev.size ? prev : filtered;
     });
   }, [filteredProducts]);
 
   const toggleSelect = useCallback((id: string) => {
-    setSelectedIds((prev) => {
+    setSelectedIds(prev => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
+      if (next.has(id)) next.delete(id); else next.add(id);
       return next;
     });
   }, []);
 
-  const selectAll = useCallback(
-    () => setSelectedIds(new Set(filteredProducts.map((p) => p.product_id))),
-    [filteredProducts],
-  );
+  const selectAll = useCallback(() => setSelectedIds(new Set(filteredProducts.map(p => p.product_id))), [filteredProducts]);
   const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
 
-  const handleBulkFavorite = useCallback(() => {
-    setWizardMode('favorite');
-    setVariantWizardOpen(true);
-  }, []);
-  const handleBulkCompare = useCallback(() => {
-    setWizardMode('compare');
-    setVariantWizardOpen(true);
-  }, []);
-  const handleBulkCollection = useCallback(() => {
-    setWizardMode('collection');
-    setVariantWizardOpen(true);
-  }, []);
-  const handleBulkCart = useCallback(() => {
-    setWizardMode('cart');
-    setVariantWizardOpen(true);
-  }, []);
-  const handleBulkQuote = useCallback(() => {
-    setWizardMode('quote');
-    setVariantWizardOpen(true);
-  }, []);
+  const handleBulkFavorite = useCallback(() => { setWizardMode('favorite'); setVariantWizardOpen(true); }, []);
+  const handleBulkCompare = useCallback(() => { setWizardMode('compare'); setVariantWizardOpen(true); }, []);
+  const handleBulkCollection = useCallback(() => { setWizardMode('collection'); setVariantWizardOpen(true); }, []);
+  const handleBulkCart = useCallback(() => { setWizardMode('cart'); setVariantWizardOpen(true); }, []);
+  const handleBulkQuote = useCallback(() => { setWizardMode('quote'); setVariantWizardOpen(true); }, []);
 
-  const handleWizardComplete = useCallback(
-    (selections: BulkVariantSelection[]) => {
-      if (wizardMode === 'cart') {
-        setWizardSelections(selections);
-        setCartModalOpen(true);
-      } else if (wizardMode === 'quote') {
-        if (selections.length === 0) return;
-        const params = selections
-          .map(
-            (s) =>
-              `items[]=${encodeURIComponent(
-                JSON.stringify({
-                  product_id: s.product.id,
-                  product_name: s.product.name,
-                  product_sku: s.product.sku || '',
-                  product_price: s.product.price,
-                  product_image: s.variant?.selected_thumbnail || s.product.images?.[0] || '',
-                  quantity: 1,
-                  color_name: s.variant?.color_name || null,
-                  color_hex: s.variant?.color_hex || null,
-                  size_code: s.variant?.size_code || null,
-                }),
-              )}`,
-          )
-          .join('&');
-        navigate(`/orcamentos/novo?${params}`);
-        toast.success(
-          `${selections.length} produto${selections.length > 1 ? 's' : ''} enviado${selections.length > 1 ? 's' : ''} para orçamento`,
-        );
-        clearSelection();
-      } else if (wizardMode === 'favorite') {
-        const { addFavorite, isFavorite: isFav } = useFavoritesStore.getState();
-        let added = 0;
-        selections.forEach((s) => {
-          if (!isFav(s.product.id)) {
-            addFavorite(
-              s.product.id,
-              s.variant
-                ? {
-                    color_name: s.variant.color_name,
-                    color_hex: s.variant.color_hex,
-                    size_code: s.variant.size_code,
-                    variant_id: s.variant.id,
-                    thumbnail: s.variant.selected_thumbnail,
-                  }
-                : undefined,
-            );
-            added++;
-          }
-        });
-        toast.success(`${added} produto${added > 1 ? 's' : ''} favoritado${added > 1 ? 's' : ''}`);
-        clearSelection();
-      } else if (wizardMode === 'compare') {
-        const { addToCompare, isInCompare: isComp } = useComparisonStore.getState();
-        let added = 0;
-        selections.slice(0, 4).forEach((s) => {
-          if (!isComp(s.product.id)) {
-            addToCompare(
-              s.product.id,
-              s.variant
-                ? {
-                    color_name: s.variant.color_name,
-                    color_hex: s.variant.color_hex,
-                    size_code: s.variant.size_code,
-                    variant_id: s.variant.id,
-                    thumbnail: s.variant.selected_thumbnail,
-                  }
-                : undefined,
-            );
-            added++;
-          }
-        });
-        toast.success(
-          `${added} produto${added > 1 ? 's' : ''} adicionado${added > 1 ? 's' : ''} à comparação`,
-        );
-        clearSelection();
-      } else if (wizardMode === 'collection') {
-        setWizardSelections(selections);
-        setCollectionModalOpen(true);
-      }
-    },
-    [wizardMode, navigate, clearSelection],
-  );
+  const handleWizardComplete = useCallback((selections: BulkVariantSelection[]) => {
+    if (wizardMode === 'cart') {
+      setWizardSelections(selections);
+      setCartModalOpen(true);
+    } else if (wizardMode === 'quote') {
+      if (selections.length === 0) return;
+      const params = selections.map(s =>
+        `items[]=${encodeURIComponent(JSON.stringify({
+          product_id: s.product.id,
+          product_name: s.product.name,
+          product_sku: s.product.sku || '',
+          product_price: s.product.price,
+          product_image: s.variant?.selected_thumbnail || s.product.images?.[0] || '',
+          quantity: 1,
+          color_name: s.variant?.color_name || null,
+          color_hex: s.variant?.color_hex || null,
+          size_code: s.variant?.size_code || null,
+        }))}`
+      ).join('&');
+      navigate(`/orcamentos/novo?${params}`);
+      toast.success(`${selections.length} produto${selections.length > 1 ? 's' : ''} enviado${selections.length > 1 ? 's' : ''} para orçamento`);
+      clearSelection();
+    } else if (wizardMode === 'favorite') {
+      const { addFavorite, isFavorite: isFav } = useFavoritesStore.getState();
+      let added = 0;
+      selections.forEach(s => {
+        if (!isFav(s.product.id)) {
+          addFavorite(s.product.id, s.variant ? {
+            color_name: s.variant.color_name, color_hex: s.variant.color_hex,
+            size_code: s.variant.size_code, variant_id: s.variant.id,
+            thumbnail: s.variant.selected_thumbnail,
+          } : undefined);
+          added++;
+        }
+      });
+      toast.success(`${added} produto${added > 1 ? 's' : ''} favoritado${added > 1 ? 's' : ''}`);
+      clearSelection();
+    } else if (wizardMode === 'compare') {
+      const { addToCompare, isInCompare: isComp } = useComparisonStore.getState();
+      let added = 0;
+      selections.slice(0, 4).forEach(s => {
+        if (!isComp(s.product.id)) {
+          addToCompare(s.product.id, s.variant ? {
+            color_name: s.variant.color_name, color_hex: s.variant.color_hex,
+            size_code: s.variant.size_code, variant_id: s.variant.id,
+            thumbnail: s.variant.selected_thumbnail,
+          } : undefined);
+          added++;
+        }
+      });
+      toast.success(`${added} produto${added > 1 ? 's' : ''} adicionado${added > 1 ? 's' : ''} à comparação`);
+      clearSelection();
+    } else if (wizardMode === 'collection') {
+      setWizardSelections(selections);
+      setCollectionModalOpen(true);
+    }
+  }, [wizardMode, navigate, clearSelection]);
 
   const bulkCartProducts = useMemo(() => {
     const ids = Array.from(selectedIds);
-    return filteredProducts.filter((p) => ids.includes(p.product_id)).map(noveltyToProduct);
+    return filteredProducts.filter(p => ids.includes(p.product_id)).map(noveltyToProduct);
   }, [selectedIds, filteredProducts]);
 
   const selectedProducts = useMemo(() => {
     const ids = Array.from(selectedIds);
-    return filteredProducts.filter((p) => ids.includes(p.product_id)).map(noveltyToProduct);
+    return filteredProducts.filter(p => ids.includes(p.product_id)).map(noveltyToProduct);
   }, [selectedIds, filteredProducts]);
 
-  const firstSelectedId = selectedIds.size > 0 ? Array.from(selectedIds)[0] : '';
-  const firstSelectedProduct = filteredProducts.find((p) => p.product_id === firstSelectedId);
+  const firstSelectedId = selectedIds.size > 0 ? Array.from(selectedIds)[0] : "";
+  const firstSelectedProduct = filteredProducts.find(p => p.product_id === firstSelectedId);
 
   /** Volta do BulkAddToCartModal para o wizard preservando seleções. */
   const handleBackToWizard = useCallback(() => {
@@ -235,30 +170,14 @@ export function useNoveltiesSelectionMode({
   }, []);
 
   return {
-    selectedIds,
-    selectedCount,
-    toggleSelect,
-    selectAll,
-    clearSelection,
-    collectionModalOpen,
-    setCollectionModalOpen,
-    cartModalOpen,
-    setCartModalOpen,
-    variantWizardOpen,
-    setVariantWizardOpen,
-    wizardMode,
-    wizardSelections,
-    handleBulkFavorite,
-    handleBulkCompare,
-    handleBulkCollection,
-    handleBulkCart,
-    handleBulkQuote,
-    handleWizardComplete,
-    handleBackToWizard,
-    bulkCartProducts,
-    selectedProducts,
-    firstSelectedId,
-    firstSelectedProduct,
+    selectedIds, selectedCount, toggleSelect, selectAll, clearSelection,
+    collectionModalOpen, setCollectionModalOpen,
+    cartModalOpen, setCartModalOpen,
+    variantWizardOpen, setVariantWizardOpen,
+    wizardMode, wizardSelections,
+    handleBulkFavorite, handleBulkCompare, handleBulkCollection, handleBulkCart, handleBulkQuote,
+    handleWizardComplete, handleBackToWizard, bulkCartProducts, selectedProducts,
+    firstSelectedId, firstSelectedProduct,
     noveltyToProduct,
   };
 }

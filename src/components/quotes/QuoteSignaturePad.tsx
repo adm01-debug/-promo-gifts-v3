@@ -2,12 +2,12 @@
  * QuoteSignaturePad — pad de assinatura eletrônica em canvas para aprovação de orçamentos.
  * Conforme MP 2.200-2/2001 — captura traço, nome, documento.
  */
-import { useRef, useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Eraser, PenLine } from 'lucide-react';
+import { useRef, useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Eraser, PenLine } from "lucide-react";
 
 interface QuoteSignaturePadProps {
   onSign: (data: { name: string; document: string; signatureDataUrl: string }) => void;
@@ -18,28 +18,28 @@ export function QuoteSignaturePad({ onSign, isSubmitting }: QuoteSignaturePadPro
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [hasSignature, setHasSignature] = useState(false);
-  const [name, setName] = useState('');
-  const [document, setDocument] = useState('');
+  const [name, setName] = useState("");
+  const [document, setDocument] = useState("");
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    ctx.strokeStyle = 'hsl(var(--foreground))';
+    ctx.strokeStyle = "hsl(var(--foreground))";
     ctx.lineWidth = 2;
-    ctx.lineCap = 'round';
+    ctx.lineCap = "round";
   }, []);
 
   const getPos = (e: React.MouseEvent | React.TouchEvent) => {
     const canvas = canvasRef.current!;
     const rect = canvas.getBoundingClientRect();
-    const point = 'touches' in e ? e.touches[0] : e;
+    const point = "touches" in e ? e.touches[0] : e;
     return { x: point.clientX - rect.left, y: point.clientY - rect.top };
   };
 
   const start = (e: React.MouseEvent | React.TouchEvent) => {
-    const ctx = canvasRef.current?.getContext('2d');
+    const ctx = canvasRef.current?.getContext("2d");
     if (!ctx) return;
     const { x, y } = getPos(e);
     ctx.beginPath();
@@ -50,7 +50,7 @@ export function QuoteSignaturePad({ onSign, isSubmitting }: QuoteSignaturePadPro
   const draw = (e: React.MouseEvent | React.TouchEvent) => {
     if (!isDrawing) return;
     e.preventDefault();
-    const ctx = canvasRef.current?.getContext('2d');
+    const ctx = canvasRef.current?.getContext("2d");
     if (!ctx) return;
     const { x, y } = getPos(e);
     ctx.lineTo(x, y);
@@ -62,13 +62,13 @@ export function QuoteSignaturePad({ onSign, isSubmitting }: QuoteSignaturePadPro
 
   const clear = () => {
     const canvas = canvasRef.current;
-    canvas?.getContext('2d')?.clearRect(0, 0, canvas.width, canvas.height);
+    canvas?.getContext("2d")?.clearRect(0, 0, canvas.width, canvas.height);
     setHasSignature(false);
   };
 
   const submit = () => {
     if (!hasSignature || !name.trim() || !document.trim()) return;
-    const dataUrl = canvasRef.current!.toDataURL('image/png');
+    const dataUrl = canvasRef.current!.toDataURL("image/png");
     onSign({ name: name.trim(), document: document.trim(), signatureDataUrl: dataUrl });
   };
 
@@ -80,19 +80,14 @@ export function QuoteSignaturePad({ onSign, isSubmitting }: QuoteSignaturePadPro
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="space-y-1">
             <Label htmlFor="sig-name">Nome completo</Label>
             <Input id="sig-name" value={name} onChange={(e) => setName(e.target.value)} required />
           </div>
           <div className="space-y-1">
             <Label htmlFor="sig-doc">CPF/CNPJ</Label>
-            <Input
-              id="sig-doc"
-              value={document}
-              onChange={(e) => setDocument(e.target.value)}
-              required
-            />
+            <Input id="sig-doc" value={document} onChange={(e) => setDocument(e.target.value)} required />
           </div>
         </div>
         <div className="space-y-2">
@@ -102,7 +97,7 @@ export function QuoteSignaturePad({ onSign, isSubmitting }: QuoteSignaturePadPro
               ref={canvasRef}
               width={500}
               height={180}
-              className="w-full cursor-crosshair touch-none"
+              className="w-full touch-none cursor-crosshair"
               onMouseDown={start}
               onMouseMove={draw}
               onMouseUp={stop}
@@ -115,13 +110,10 @@ export function QuoteSignaturePad({ onSign, isSubmitting }: QuoteSignaturePadPro
         </div>
         <div className="flex justify-between gap-2">
           <Button variant="outline" size="sm" onClick={clear}>
-            <Eraser className="mr-1 h-4 w-4" /> Limpar
+            <Eraser className="h-4 w-4 mr-1" /> Limpar
           </Button>
-          <Button
-            onClick={submit}
-            disabled={!hasSignature || !name.trim() || !document.trim() || isSubmitting}
-          >
-            {isSubmitting ? 'Enviando...' : 'Confirmar assinatura'}
+          <Button onClick={submit} disabled={!hasSignature || !name.trim() || !document.trim() || isSubmitting}>
+            {isSubmitting ? "Enviando..." : "Confirmar assinatura"}
           </Button>
         </div>
         <p className="text-[11px] text-muted-foreground">

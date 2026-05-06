@@ -1,7 +1,7 @@
-import { AlertTriangle, ShieldAlert, CheckCircle2 } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { diagnoseMaskedSuffix, formatDisplaySuffix } from '@/lib/masked-suffix';
+import { AlertTriangle, ShieldAlert, CheckCircle2 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { diagnoseMaskedSuffix, formatDisplaySuffix } from "@/lib/masked-suffix";
 
 interface Props {
   /** Sufixo cru retornado pelo backend (pode ser null, curto ou completo). */
@@ -43,37 +43,34 @@ export function MaskedSuffixBadge({
   // Sempre usa o resolvedor com fallback derivado — garante layout estável
   // mesmo quando o sufixo cru é nulo/curto.
   const display = formatDisplaySuffix(suffix, { length });
-  const isFallback = diagnosis.status !== 'valid' && (suffix ?? '').trim().length === 0;
+  const isFallback = diagnosis.status !== "valid" && (suffix ?? "").trim().length === 0;
 
-  if (diagnosis.status === 'valid' && !showWhenValid) {
+  if (diagnosis.status === "valid" && !showWhenValid) {
     return showSuffix ? (
-      <span
-        className={cn('font-mono text-xs tabular-nums text-muted-foreground', className)}
-        aria-label={diagnosis.message}
-      >
+      <span className={cn("font-mono text-xs text-muted-foreground tabular-nums", className)} aria-label={diagnosis.message}>
         {display}
       </span>
     ) : null;
   }
 
   const tone =
-    diagnosis.status === 'missing'
+    diagnosis.status === "missing"
       ? {
           icon: ShieldAlert,
-          chip: 'bg-destructive/10 border-destructive/40 text-destructive',
-          ring: 'ring-destructive/30',
+          chip: "bg-destructive/10 border-destructive/40 text-destructive",
+          ring: "ring-destructive/30",
         }
-      : diagnosis.status === 'short'
-        ? {
-            icon: AlertTriangle,
-            chip: 'bg-amber-500/10 border-amber-500/40 text-amber-700 dark:text-amber-300',
-            ring: 'ring-amber-500/30',
-          }
-        : {
-            icon: CheckCircle2,
-            chip: 'bg-emerald-500/10 border-emerald-500/40 text-emerald-700 dark:text-emerald-300',
-            ring: 'ring-emerald-500/30',
-          };
+      : diagnosis.status === "short"
+      ? {
+          icon: AlertTriangle,
+          chip: "bg-amber-500/10 border-amber-500/40 text-amber-700 dark:text-amber-300",
+          ring: "ring-amber-500/30",
+        }
+      : {
+          icon: CheckCircle2,
+          chip: "bg-emerald-500/10 border-emerald-500/40 text-emerald-700 dark:text-emerald-300",
+          ring: "ring-emerald-500/30",
+        };
 
   const Icon = tone.icon;
 
@@ -85,7 +82,7 @@ export function MaskedSuffixBadge({
           aria-live="polite"
           aria-label={diagnosis.message}
           className={cn(
-            'inline-flex cursor-help items-center gap-1 rounded border px-1.5 py-0.5 text-[11px] font-medium ring-1',
+            "inline-flex items-center gap-1 text-[11px] font-medium px-1.5 py-0.5 rounded border ring-1 cursor-help",
             tone.chip,
             tone.ring,
             className,
@@ -102,12 +99,12 @@ export function MaskedSuffixBadge({
         </span>
       </TooltipTrigger>
       <TooltipContent side="top" align="start" className="max-w-xs text-xs leading-relaxed">
-        <p className="mb-1 font-medium">{diagnosis.label}</p>
+        <p className="font-medium mb-1">{diagnosis.label}</p>
         <p className="text-muted-foreground">{diagnosis.message}</p>
         {isFallback && length != null && length > 0 && (
-          <p className="mt-2 border-t border-border/50 pt-2 text-[11px] text-muted-foreground">
-            Exibindo placeholder derivado <span className="font-mono">{display}</span> (comprimento
-            total: {length} chars) até que o sufixo real seja regenerado.
+          <p className="mt-2 pt-2 border-t border-border/50 text-[11px] text-muted-foreground">
+            Exibindo placeholder derivado <span className="font-mono">{display}</span> (comprimento total: {length} chars)
+            até que o sufixo real seja regenerado.
           </p>
         )}
       </TooltipContent>

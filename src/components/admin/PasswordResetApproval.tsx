@@ -14,33 +14,29 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import {
-  usePasswordResetRequests,
-  type PasswordResetRequest,
-} from '@/hooks/usePasswordResetRequests';
+import { usePasswordResetRequests, type PasswordResetRequest } from '@/hooks/usePasswordResetRequests';
 
 export function PasswordResetApproval() {
-  const { requests, isLoading, approveRequest, rejectRequest } =
-    usePasswordResetRequests();
+  const { requests, isLoading, approveRequest, rejectRequest, refetch } = usePasswordResetRequests();
   const [selectedRequest, setSelectedRequest] = useState<PasswordResetRequest | null>(null);
   const [action, setAction] = useState<'approve' | 'reject' | null>(null);
   const [notes, setNotes] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const pendingRequests = requests.filter((r) => r.status === 'pending');
-  const processedRequests = requests.filter((r) => r.status !== 'pending');
+  const pendingRequests = requests.filter(r => r.status === 'pending');
+  const processedRequests = requests.filter(r => r.status !== 'pending');
 
   const handleAction = async () => {
     if (!selectedRequest || !action) return;
-
+    
     setIsProcessing(true);
-
+    
     if (action === 'approve') {
       await approveRequest(selectedRequest.id, notes);
     } else {
       await rejectRequest(selectedRequest.id, notes);
     }
-
+    
     setIsProcessing(false);
     setSelectedRequest(null);
     setAction(null);
@@ -50,26 +46,11 @@ export function PasswordResetApproval() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
-        return (
-          <Badge variant="outline" className="border-warning/30 bg-warning/10 text-warning">
-            <Clock className="mr-1 h-3 w-3" /> Pendente
-          </Badge>
-        );
+        return <Badge variant="outline" className="bg-warning/10 text-warning border-warning/30"><Clock className="h-3 w-3 mr-1" /> Pendente</Badge>;
       case 'approved':
-        return (
-          <Badge variant="outline" className="border-success/30 bg-success/10 text-success">
-            <Check className="mr-1 h-3 w-3" /> Aprovado
-          </Badge>
-        );
+        return <Badge variant="outline" className="bg-success/10 text-success border-success/30"><Check className="h-3 w-3 mr-1" /> Aprovado</Badge>;
       case 'rejected':
-        return (
-          <Badge
-            variant="outline"
-            className="border-destructive/30 bg-destructive/10 text-destructive"
-          >
-            <X className="mr-1 h-3 w-3" /> Rejeitado
-          </Badge>
-        );
+        return <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/30"><X className="h-3 w-3 mr-1" /> Rejeitado</Badge>;
       default:
         return null;
     }
@@ -92,12 +73,14 @@ export function PasswordResetApproval() {
             <Shield className="h-5 w-5 text-orange" />
             <CardTitle>Solicitações Pendentes</CardTitle>
           </div>
-          <CardDescription>Aprove ou rejeite solicitações de recuperação de senha</CardDescription>
+          <CardDescription>
+            Aprove ou rejeite solicitações de recuperação de senha
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {pendingRequests.length === 0 ? (
-            <div className="py-8 text-center text-muted-foreground">
-              <Mail className="mx-auto mb-3 h-12 w-12 opacity-50" />
+            <div className="text-center py-8 text-muted-foreground">
+              <Mail className="h-12 w-12 mx-auto mb-3 opacity-50" />
               <p>Nenhuma solicitação pendente</p>
             </div>
           ) : (
@@ -105,7 +88,7 @@ export function PasswordResetApproval() {
               {pendingRequests.map((request) => (
                 <div
                   key={request.id}
-                  className="flex items-center justify-between rounded-xl border border-border bg-card p-4 transition-colors hover:bg-muted/50"
+                  className="flex items-center justify-between p-4 rounded-xl border border-border bg-card hover:bg-muted/50 transition-colors"
                 >
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
@@ -114,10 +97,7 @@ export function PasswordResetApproval() {
                       {getStatusBadge(request.status)}
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      Solicitado em{' '}
-                      {format(new Date(request.requested_at), "dd/MM/yyyy 'às' HH:mm", {
-                        locale: ptBR,
-                      })}
+                      Solicitado em {format(new Date(request.requested_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                     </p>
                   </div>
                   <div className="flex gap-2">
@@ -130,7 +110,7 @@ export function PasswordResetApproval() {
                         setAction('reject');
                       }}
                     >
-                      <X className="mr-1 h-4 w-4" />
+                      <X className="h-4 w-4 mr-1" />
                       Rejeitar
                     </Button>
                     <Button
@@ -141,7 +121,7 @@ export function PasswordResetApproval() {
                         setAction('approve');
                       }}
                     >
-                      <Check className="mr-1 h-4 w-4" />
+                      <Check className="h-4 w-4 mr-1" />
                       Aprovar
                     </Button>
                   </div>
@@ -157,14 +137,16 @@ export function PasswordResetApproval() {
         <Card>
           <CardHeader>
             <CardTitle className="text-xl">Histórico</CardTitle>
-            <CardDescription>Solicitações já processadas</CardDescription>
+            <CardDescription>
+              Solicitações já processadas
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
               {processedRequests.slice(0, 10).map((request) => (
                 <div
                   key={request.id}
-                  className="flex items-center justify-between rounded-xl border border-border/50 bg-muted/30 p-3"
+                  className="flex items-center justify-between p-3 rounded-xl border border-border/50 bg-muted/30"
                 >
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
@@ -172,16 +154,10 @@ export function PasswordResetApproval() {
                       {getStatusBadge(request.status)}
                     </div>
                     <p className="text-[11px] text-muted-foreground">
-                      Processado em{' '}
-                      {request.reviewed_at &&
-                        format(new Date(request.reviewed_at), "dd/MM/yyyy 'às' HH:mm", {
-                          locale: ptBR,
-                        })}
+                      Processado em {request.reviewed_at && format(new Date(request.reviewed_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                     </p>
                     {request.reviewer_notes && (
-                      <p className="text-xs italic text-muted-foreground">
-                        "{request.reviewer_notes}"
-                      </p>
+                      <p className="text-xs text-muted-foreground italic">"{request.reviewer_notes}"</p>
                     )}
                   </div>
                 </div>
@@ -192,26 +168,20 @@ export function PasswordResetApproval() {
       )}
 
       {/* Confirmation Dialog */}
-      <Dialog
-        open={!!selectedRequest && !!action}
-        onOpenChange={() => {
-          setSelectedRequest(null);
-          setAction(null);
-          setNotes('');
-        }}
-      >
+      <Dialog open={!!selectedRequest && !!action} onOpenChange={() => { setSelectedRequest(null); setAction(null); setNotes(''); }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
               {action === 'approve' ? 'Aprovar Solicitação' : 'Rejeitar Solicitação'}
             </DialogTitle>
             <DialogDescription>
-              {action === 'approve'
+              {action === 'approve' 
                 ? `Ao aprovar, um email de recuperação será enviado para ${selectedRequest?.email}`
-                : `A solicitação de ${selectedRequest?.email} será rejeitada`}
+                : `A solicitação de ${selectedRequest?.email} será rejeitada`
+              }
             </DialogDescription>
           </DialogHeader>
-
+          
           <div className="space-y-4">
             <div>
               <label className="text-sm font-medium">Observações (opcional)</label>
@@ -225,14 +195,7 @@ export function PasswordResetApproval() {
           </div>
 
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setSelectedRequest(null);
-                setAction(null);
-                setNotes('');
-              }}
-            >
+            <Button variant="outline" onClick={() => { setSelectedRequest(null); setAction(null); setNotes(''); }}>
               Cancelar
             </Button>
             <Button
@@ -242,17 +205,17 @@ export function PasswordResetApproval() {
             >
               {isProcessing ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   Processando...
                 </>
               ) : action === 'approve' ? (
                 <>
-                  <Check className="mr-2 h-4 w-4" />
+                  <Check className="h-4 w-4 mr-2" />
                   Aprovar e Enviar Email
                 </>
               ) : (
                 <>
-                  <X className="mr-2 h-4 w-4" />
+                  <X className="h-4 w-4 mr-2" />
                   Rejeitar
                 </>
               )}

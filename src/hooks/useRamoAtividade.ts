@@ -29,11 +29,7 @@ export function useRamosAtividadeGroups() {
     queryKey: [...QUERY_KEY, 'groups'],
     queryFn: async () => {
       const { groups, count } = await ramoAtividadeService.getRamosComEstatisticas();
-      return {
-        groups,
-        totalGroups: count,
-        totalSegmentos: groups.reduce((acc, g) => acc + g.total_segmentos, 0),
-      };
+      return { groups, totalGroups: count, totalSegmentos: groups.reduce((acc, g) => acc + g.total_segmentos, 0) };
     },
   });
 }

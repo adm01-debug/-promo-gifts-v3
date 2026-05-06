@@ -1,17 +1,17 @@
-import { Timer } from 'lucide-react';
+import { Timer } from "lucide-react";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { cn } from '@/lib/utils';
+} from "@/components/ui/select";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 import {
   RETEST_COOLDOWN_PRESETS_MS,
   useRetestCooldownSetting,
-} from '@/hooks/useRetestCooldownSetting';
+} from "@/hooks/useRetestCooldownSetting";
 
 interface Props {
   className?: string;
@@ -27,10 +27,10 @@ export function RetestCooldownSelector({ className }: Props) {
   const { cooldownMs, loading, saving, save } = useRetestCooldownSetting();
 
   return (
-    <TooltipProvider>
+    <TooltipProvider >
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className={cn('inline-flex items-center gap-1.5', className)}>
+          <div className={cn("inline-flex items-center gap-1.5", className)}>
             <Timer className="h-3.5 w-3.5 text-muted-foreground" aria-hidden />
             <Select
               value={String(cooldownMs)}
@@ -41,7 +41,7 @@ export function RetestCooldownSelector({ className }: Props) {
               }}
             >
               <SelectTrigger
-                className="h-7 w-[88px] px-2 text-xs"
+                className="h-7 w-[88px] text-xs px-2"
                 aria-label="Cooldown entre testes manuais"
               >
                 <SelectValue />
@@ -58,7 +58,7 @@ export function RetestCooldownSelector({ className }: Props) {
         </TooltipTrigger>
         <TooltipContent side="top" className="max-w-xs text-xs leading-snug">
           <p className="font-medium">Cooldown entre testes manuais</p>
-          <p className="mt-0.5 text-muted-foreground">
+          <p className="text-muted-foreground mt-0.5">
             Tempo mínimo de espera após disparar "Testar novamente". Vale para todos os admins
             (configuração global).
           </p>

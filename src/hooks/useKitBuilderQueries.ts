@@ -20,34 +20,23 @@ import { MOCK_BOXES, MOCK_ITEMS } from '@/lib/kit-builder/mock-data';
 import { transformToKitBox, transformToKitItem } from './useKitBuilderTransformers';
 import { logger } from '@/lib/logger';
 
-function filterBoxes(
-  boxes: KitBox[],
-  search: string | null,
-  dimFilters?: Omit<BoxFilters, 'search'>,
-): KitBox[] {
+function filterBoxes(boxes: KitBox[], search: string | null, dimFilters?: Omit<BoxFilters, 'search'>): KitBox[] {
   let filtered = boxes;
   if (search) {
     const q = search.toLowerCase();
-    filtered = filtered.filter(
-      (b) => b.name.toLowerCase().includes(q) || b.sku.toLowerCase().includes(q),
-    );
+    filtered = filtered.filter(b => b.name.toLowerCase().includes(q) || b.sku.toLowerCase().includes(q));
   }
-  if (dimFilters?.minWidth)
-    filtered = filtered.filter((b) => b.internalWidth >= dimFilters.minWidth!);
-  if (dimFilters?.minHeight)
-    filtered = filtered.filter((b) => b.internalHeight >= dimFilters.minHeight!);
-  if (dimFilters?.minDepth)
-    filtered = filtered.filter((b) => b.internalDepth >= dimFilters.minDepth!);
-  if (dimFilters?.material) filtered = filtered.filter((b) => b.material === dimFilters.material);
+  if (dimFilters?.minWidth) filtered = filtered.filter(b => b.internalWidth >= dimFilters.minWidth!);
+  if (dimFilters?.minHeight) filtered = filtered.filter(b => b.internalHeight >= dimFilters.minHeight!);
+  if (dimFilters?.minDepth) filtered = filtered.filter(b => b.internalDepth >= dimFilters.minDepth!);
+  if (dimFilters?.material) filtered = filtered.filter(b => b.material === dimFilters.material);
   return filtered;
 }
 
 function filterItems(items: KitItem[], search: string): KitItem[] {
   if (!search) return items;
   const q = search.toLowerCase();
-  return items.filter(
-    (i) => i.name.toLowerCase().includes(q) || (i.sku && i.sku.toLowerCase().includes(q)),
-  );
+  return items.filter(i => i.name.toLowerCase().includes(q) || (i.sku && i.sku.toLowerCase().includes(q)));
 }
 
 export function useKitBuilderQueries() {
@@ -66,17 +55,13 @@ export function useKitBuilderQueries() {
   useEffect(() => {
     if (boxTimerRef.current) clearTimeout(boxTimerRef.current);
     boxTimerRef.current = setTimeout(() => setDebouncedBoxSearch(boxSearchInput), 300);
-    return () => {
-      if (boxTimerRef.current) clearTimeout(boxTimerRef.current);
-    };
+    return () => { if (boxTimerRef.current) clearTimeout(boxTimerRef.current); };
   }, [boxSearchInput]);
 
   useEffect(() => {
     if (itemTimerRef.current) clearTimeout(itemTimerRef.current);
     itemTimerRef.current = setTimeout(() => setDebouncedItemSearch(itemSearchInput), 300);
-    return () => {
-      if (itemTimerRef.current) clearTimeout(itemTimerRef.current);
-    };
+    return () => { if (itemTimerRef.current) clearTimeout(itemTimerRef.current); };
   }, [itemSearchInput]);
 
   const setBoxFilters = useCallback((filters: BoxFilters) => {
@@ -93,15 +78,7 @@ export function useKitBuilderQueries() {
 
   // Query: boxes — products that have packing_type containing "Caixa" or similar packaging terms
   const { data: availableBoxes = [], isLoading: isLoadingBoxes } = useQuery({
-    queryKey: [
-      'kit-builder',
-      'boxes',
-      debouncedBoxSearch,
-      boxDimFilters.minWidth ?? '',
-      boxDimFilters.minHeight ?? '',
-      boxDimFilters.minDepth ?? '',
-      boxDimFilters.material ?? '',
-    ],
+    queryKey: ['kit-builder', 'boxes', debouncedBoxSearch, boxDimFilters.minWidth ?? '', boxDimFilters.minHeight ?? '', boxDimFilters.minDepth ?? '', boxDimFilters.material ?? ''],
     queryFn: async () => {
       try {
         const filters: Record<string, unknown> = { active: true };
@@ -111,19 +88,18 @@ export function useKitBuilderQueries() {
           table: 'products',
           operation: 'select',
           filters,
-          select:
-            'id, name, sku, sale_price, primary_image_url, images, dimensions, category_id, weight_g, materials, width_cm, height_cm, length_cm, internal_width_cm, internal_height_cm, internal_length_cm, packing_type, packing_classification',
+          select: 'id, name, sku, sale_price, primary_image_url, images, dimensions, category_id, weight_g, materials, width_cm, height_cm, length_cm, internal_width_cm, internal_height_cm, internal_length_cm, packing_type, packing_classification',
           limit: 200,
           orderBy: { column: 'name', ascending: true },
           countMode: 'none',
         });
 
         const boxes = result.records
-          .filter((p) => {
+          .filter(p => {
             const pt = (p.packing_type || '').toLowerCase();
             return pt.includes('caixa') || pt.includes('embalagem') || pt.includes('box');
           })
-          .map((p) => transformToKitBox(p))
+          .map(p => transformToKitBox(p))
           .filter((box): box is KitBox => box !== null);
 
         if (boxes.length === 0) {
@@ -153,16 +129,15 @@ export function useKitBuilderQueries() {
           table: 'products',
           operation: 'select',
           filters,
-          select:
-            'id, name, sku, sale_price, primary_image_url, images, dimensions, category_id, weight_g, materials, width_cm, height_cm, length_cm, colors, packing_classification',
+          select: 'id, name, sku, sale_price, primary_image_url, images, dimensions, category_id, weight_g, materials, width_cm, height_cm, length_cm, colors, packing_classification',
           limit: 200,
           orderBy: { column: 'name', ascending: true },
           countMode: 'none',
         });
 
         const items = result.records
-          .filter((p) => p.packing_classification !== 'embalagem')
-          .map((p) => transformToKitItem(p));
+          .filter(p => p.packing_classification !== 'embalagem')
+          .map(p => transformToKitItem(p));
 
         if (items.length === 0) {
           console.info('[KitBuilder] No items from external DB, using mock data');

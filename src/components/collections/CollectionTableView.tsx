@@ -1,78 +1,51 @@
 /**
  * CollectionTableView — Table view for local collections with sorting.
  */
-import { useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-  FolderOpen,
-  MoreVertical,
-  Pencil,
-  Copy,
-  Star,
-  Trash2,
-  Package,
-  Clock,
-  ArrowUp,
-  ArrowDown,
-  ArrowUpDown,
+  FolderOpen, MoreVertical, Pencil, Copy, Star,
+  Trash2, Package, Clock, ArrowUp, ArrowDown, ArrowUpDown,
   Filter,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { SelectionCheckbox } from '@/components/common/SelectionCheckbox';
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { SelectionCheckbox } from "@/components/common/SelectionCheckbox";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
-import type { Collection } from '@/hooks/useCollections';
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuSeparator, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+import type { Collection } from "@/hooks/useCollections";
 
-type SortKey = 'name' | 'products' | 'featured' | 'updated';
-type SortDir = 'asc' | 'desc';
-type FilterType = 'all' | 'featured' | 'with-products' | 'empty';
+type SortKey = "name" | "products" | "featured" | "updated";
+type SortDir = "asc" | "desc";
+type FilterType = "all" | "featured" | "with-products" | "empty";
 
 const FILTER_OPTIONS: { value: FilterType; label: string; icon?: React.ReactNode }[] = [
-  { value: 'all', label: 'Todas' },
-  { value: 'featured', label: 'Destacadas', icon: <Star className="h-3 w-3" /> },
-  { value: 'with-products', label: 'Com produtos', icon: <Package className="h-3 w-3" /> },
-  { value: 'empty', label: 'Vazias', icon: <FolderOpen className="h-3 w-3" /> },
+  { value: "all", label: "Todas" },
+  { value: "featured", label: "Destacadas", icon: <Star className="h-3 w-3" /> },
+  { value: "with-products", label: "Com produtos", icon: <Package className="h-3 w-3" /> },
+  { value: "empty", label: "Vazias", icon: <FolderOpen className="h-3 w-3" /> },
 ];
 
-function SortHeader({
-  label,
-  sortKey,
-  currentKey,
-  currentDir,
-  onSort,
-  className,
-}: {
-  label: string;
-  sortKey: SortKey;
-  currentKey: SortKey | null;
-  currentDir: SortDir;
-  onSort: (key: SortKey) => void;
-  className?: string;
+function SortHeader({ label, sortKey, currentKey, currentDir, onSort, className }: {
+  label: string; sortKey: SortKey; currentKey: SortKey | null; currentDir: SortDir;
+  onSort: (key: SortKey) => void; className?: string;
 }) {
   const isActive = currentKey === sortKey;
   return (
     <th
       className={cn(
-        'cursor-pointer select-none px-3 py-2 text-xs font-medium uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground',
-        className,
+        "px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer select-none hover:text-foreground transition-colors",
+        className
       )}
       onClick={() => onSort(sortKey)}
     >
       <span className="inline-flex items-center gap-1">
         {label}
         {isActive ? (
-          currentDir === 'asc' ? (
-            <ArrowUp className="h-3 w-3" />
-          ) : (
-            <ArrowDown className="h-3 w-3" />
-          )
+          currentDir === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
         ) : (
           <ArrowUpDown className="h-3 w-3 opacity-40" />
         )}
@@ -97,22 +70,13 @@ interface CollectionTableRowProps {
 }
 
 function CollectionTableRow({
-  collection,
-  products,
-  isSelected,
-  isSelectionMode,
-  onToggleSelect,
-  onNavigate,
-  onEdit,
-  onClone,
-  onToggleFeatured,
-  onDelete,
-  updatedAgo,
-  index,
+  collection, products, isSelected, isSelectionMode,
+  onToggleSelect, onNavigate, onEdit, onClone, onToggleFeatured, onDelete,
+  updatedAgo, index,
 }: CollectionTableRowProps) {
   const previewImage = products[0]?.images?.[0];
-  const iconChar = collection.icon || '📁';
-  const iconColor = collection.iconColor || '#6366f1';
+  const iconChar = collection.icon || "📁";
+  const iconColor = collection.iconColor || "#6366f1";
 
   return (
     <motion.tr
@@ -120,8 +84,8 @@ function CollectionTableRow({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.03 }}
       className={cn(
-        'group cursor-pointer border-b border-border/50 transition-colors hover:bg-muted/30',
-        isSelected && 'bg-primary/5',
+        "group border-b border-border/50 hover:bg-muted/30 transition-colors cursor-pointer",
+        isSelected && "bg-primary/5"
       )}
       onClick={onNavigate}
     >
@@ -131,37 +95,35 @@ function CollectionTableRow({
       <td className="px-3 py-2.5">
         <div className="flex items-center gap-2.5">
           {previewImage ? (
-            <img src={previewImage} alt="" className="h-8 w-8 shrink-0 rounded object-cover" />
+            <img src={previewImage} alt="" className="w-8 h-8 rounded object-cover shrink-0" />
           ) : (
             <div
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded text-sm"
+              className="w-8 h-8 rounded flex items-center justify-center text-sm shrink-0"
               style={{ backgroundColor: `${iconColor}20`, color: iconColor }}
             >
               {iconChar}
             </div>
           )}
           <div className="min-w-0">
-            <p className="truncate text-sm font-medium text-foreground">{collection.name}</p>
+            <p className="text-sm font-medium text-foreground truncate">{collection.name}</p>
             {collection.description && (
-              <p className="max-w-[200px] truncate text-xs text-muted-foreground">
-                {collection.description}
-              </p>
+              <p className="text-xs text-muted-foreground truncate max-w-[200px]">{collection.description}</p>
             )}
           </div>
         </div>
       </td>
       <td className="px-3 py-2.5 text-center">
-        <Badge variant="secondary" className="gap-1 text-xs">
+        <Badge variant="secondary" className="text-xs gap-1">
           <Package className="h-3 w-3" />
           {collection.productIds.length}
         </Badge>
       </td>
       <td className="px-3 py-2.5 text-center">
         {collection.isFeatured && (
-          <Star className="mx-auto h-4 w-4 fill-amber-500 text-amber-500" />
+          <Star className="h-4 w-4 text-amber-500 fill-amber-500 mx-auto" />
         )}
       </td>
-      <td className="whitespace-nowrap px-3 py-2.5 text-xs text-muted-foreground">
+      <td className="px-3 py-2.5 text-xs text-muted-foreground whitespace-nowrap">
         {updatedAgo && (
           <span className="flex items-center gap-1">
             <Clock className="h-3 w-3" />
@@ -172,31 +134,24 @@ function CollectionTableRow({
       <td className="px-3 py-2.5 text-right" onClick={(e) => e.stopPropagation()}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 w-7 p-0 opacity-0 transition-opacity group-hover:opacity-100"
-            >
+            <Button variant="ghost" size="sm" className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity">
               <MoreVertical className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-44">
             <DropdownMenuItem onClick={onEdit}>
-              <Pencil className="mr-2 h-3.5 w-3.5" /> Editar
+              <Pencil className="h-3.5 w-3.5 mr-2" /> Editar
             </DropdownMenuItem>
             <DropdownMenuItem onClick={onClone}>
-              <Copy className="mr-2 h-3.5 w-3.5" /> Duplicar
+              <Copy className="h-3.5 w-3.5 mr-2" /> Duplicar
             </DropdownMenuItem>
             <DropdownMenuItem onClick={onToggleFeatured}>
-              <Star className="mr-2 h-3.5 w-3.5" />
-              {collection.isFeatured ? 'Remover destaque' : 'Destacar'}
+              <Star className="h-3.5 w-3.5 mr-2" />
+              {collection.isFeatured ? "Remover destaque" : "Destacar"}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={onDelete}
-              className="text-destructive focus:text-destructive"
-            >
-              <Trash2 className="mr-2 h-3.5 w-3.5" /> Excluir
+            <DropdownMenuItem onClick={onDelete} className="text-destructive focus:text-destructive">
+              <Trash2 className="h-3.5 w-3.5 mr-2" /> Excluir
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -220,43 +175,35 @@ interface CollectionTableViewProps {
 }
 
 export function CollectionTableView({
-  collections,
-  getCollectionProducts,
-  selectedCollectionIds,
-  isSelectionMode,
-  onToggleSelect,
-  onNavigate,
-  onEdit,
-  onClone,
-  onToggleFeatured,
-  onDelete,
+  collections, getCollectionProducts, selectedCollectionIds, isSelectionMode,
+  onToggleSelect, onNavigate, onEdit, onClone, onToggleFeatured, onDelete,
   relativeTime,
 }: CollectionTableViewProps) {
   const [sortKey, setSortKey] = useState<SortKey | null>(null);
-  const [sortDir, setSortDir] = useState<SortDir>('asc');
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
-      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
     } else {
       setSortKey(key);
-      setSortDir('asc');
+      setSortDir("asc");
     }
   };
 
   const sorted = useMemo(() => {
     if (!sortKey) return collections;
-    const dir = sortDir === 'asc' ? 1 : -1;
+    const dir = sortDir === "asc" ? 1 : -1;
     return [...collections].sort((a, b) => {
       switch (sortKey) {
-        case 'name':
-          return dir * a.name.localeCompare(b.name, 'pt-BR');
-        case 'products':
+        case "name":
+          return dir * a.name.localeCompare(b.name, "pt-BR");
+        case "products":
           return dir * (a.productIds.length - b.productIds.length);
-        case 'featured':
+        case "featured":
           return dir * ((a.isFeatured ? 1 : 0) - (b.isFeatured ? 1 : 0));
-        case 'updated':
-          return dir * (a.updatedAt || '').localeCompare(b.updatedAt || '');
+        case "updated":
+          return dir * ((a.updatedAt || "").localeCompare(b.updatedAt || ""));
         default:
           return 0;
       }
@@ -266,42 +213,16 @@ export function CollectionTableView({
   return (
     <div className="space-y-2">
       {/* Table */}
-      <div className="overflow-hidden rounded-xl border border-border/50">
+      <div className="rounded-xl border border-border/50 overflow-hidden">
         <table className="w-full text-left">
           <thead>
-            <tr className="border-b border-border/50 bg-muted/30">
+            <tr className="bg-muted/30 border-b border-border/50">
               <th className="w-10 px-3 py-2" />
-              <SortHeader
-                label="Coleção"
-                sortKey="name"
-                currentKey={sortKey}
-                currentDir={sortDir}
-                onSort={handleSort}
-              />
-              <SortHeader
-                label="Produtos"
-                sortKey="products"
-                currentKey={sortKey}
-                currentDir={sortDir}
-                onSort={handleSort}
-                className="text-center"
-              />
-              <SortHeader
-                label="Destaque"
-                sortKey="featured"
-                currentKey={sortKey}
-                currentDir={sortDir}
-                onSort={handleSort}
-                className="text-center"
-              />
-              <SortHeader
-                label="Atualizado"
-                sortKey="updated"
-                currentKey={sortKey}
-                currentDir={sortDir}
-                onSort={handleSort}
-              />
-              <th className="w-12 px-3 py-2" />
+              <SortHeader label="Coleção" sortKey="name" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
+              <SortHeader label="Produtos" sortKey="products" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} className="text-center" />
+              <SortHeader label="Destaque" sortKey="featured" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} className="text-center" />
+              <SortHeader label="Atualizado" sortKey="updated" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
+              <th className="px-3 py-2 w-12" />
             </tr>
           </thead>
           <tbody>
@@ -325,12 +246,14 @@ export function CollectionTableView({
                   />
                 ))
               ) : (
-                <motion.tr key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                <motion.tr
+                  key="empty"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                >
                   <td colSpan={6} className="px-3 py-8 text-center">
-                    <Filter className="mx-auto mb-2 h-8 w-8 text-muted-foreground/40" />
-                    <p className="text-sm text-muted-foreground">
-                      Nenhuma coleção encontrada com os filtros atuais
-                    </p>
+                    <Filter className="h-8 w-8 text-muted-foreground/40 mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">Nenhuma coleção encontrada com os filtros atuais</p>
                   </td>
                 </motion.tr>
               )}

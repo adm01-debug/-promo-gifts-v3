@@ -25,7 +25,7 @@ interface KitPdfOptions {
 }
 
 // Brand colors
-const PRIMARY = [30, 64, 175] as const; // blue-700
+const PRIMARY = [30, 64, 175] as const;   // blue-700
 const GRAY_800 = [31, 41, 55] as const;
 const GRAY_500 = [107, 114, 128] as const;
 const GRAY_200 = [229, 231, 235] as const;
@@ -68,9 +68,7 @@ function drawHeader(
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
   const dateStr = new Date().toLocaleDateString('pt-BR', {
-    day: '2-digit',
-    month: 'long',
-    year: 'numeric',
+    day: '2-digit', month: 'long', year: 'numeric',
   });
   doc.text(`Gerado em ${dateStr}${orgName ? ` • ${orgName}` : ''}`, textStartX, 28);
 
@@ -117,16 +115,8 @@ function drawKpiCards(doc: jsPDF, kitState: KitState, kitQuantity: number, y: nu
   const cards = [
     { label: 'Embalagem', value: '1', sub: box?.name || '-' },
     { label: 'Itens', value: String(totalItems), sub: `${items.length} diferentes` },
-    {
-      label: 'Personalizações',
-      value: String(personalizedCount),
-      sub: personalizedCount === 1 ? 'item' : 'itens',
-    },
-    {
-      label: 'Peso estimado',
-      value: totalWeight >= 1000 ? `${(totalWeight / 1000).toFixed(1)}kg` : `${totalWeight}g`,
-      sub: `x${kitQuantity} kits`,
-    },
+    { label: 'Personalizações', value: String(personalizedCount), sub: personalizedCount === 1 ? 'item' : 'itens' },
+    { label: 'Peso estimado', value: totalWeight >= 1000 ? `${(totalWeight / 1000).toFixed(1)}kg` : `${totalWeight}g`, sub: `x${kitQuantity} kits` },
   ];
 
   const cardW = 43;
@@ -172,7 +162,7 @@ function drawCompositionTable(doc: jsPDF, kitState: KitState, y: number): number
       box.material || '-',
       '1',
       formatCurrency(box.price),
-      personalization.box.enabled ? personalization.box.techniqueName || 'Sim' : '-',
+      personalization.box.enabled ? (personalization.box.techniqueName || 'Sim') : '-',
     ]);
   }
 
@@ -185,7 +175,7 @@ function drawCompositionTable(doc: jsPDF, kitState: KitState, y: number): number
       item.material || '-',
       String(item.quantity),
       formatCurrency(item.price),
-      itemP?.enabled ? itemP.techniqueName || 'Sim' : '-',
+      itemP?.enabled ? (itemP.techniqueName || 'Sim') : '-',
     ]);
   });
 
@@ -219,29 +209,24 @@ function drawCompositionTable(doc: jsPDF, kitState: KitState, y: number): number
   return doc.lastAutoTable.finalY + 8;
 }
 
-function drawPersonalizationDetails(doc: jsPDF, kitState: KitState, y: number): number {
+function drawPersonalizationDetails(
+  doc: jsPDF,
+  kitState: KitState,
+  y: number
+): number {
   const { personalization, box, items } = kitState;
 
-  const entries: {
-    name: string;
-    technique: string;
-    colors: string;
-    dimensions: string;
-    price: string;
-  }[] = [];
+  const entries: { name: string; technique: string; colors: string; dimensions: string; price: string }[] = [];
 
   if (personalization.box.enabled && box) {
     entries.push({
       name: `Caixa: ${box.name}`,
       technique: personalization.box.techniqueName || '-',
       colors: personalization.box.colors ? `${personalization.box.colors} cor(es)` : '-',
-      dimensions:
-        personalization.box.width && personalization.box.height
-          ? `${personalization.box.width}x${personalization.box.height}cm`
-          : '-',
-      price: personalization.box.estimatedPrice
-        ? formatCurrency(personalization.box.estimatedPrice)
+      dimensions: personalization.box.width && personalization.box.height
+        ? `${personalization.box.width}x${personalization.box.height}cm`
         : '-',
+      price: personalization.box.estimatedPrice ? formatCurrency(personalization.box.estimatedPrice) : '-',
     });
   }
 
@@ -287,7 +272,7 @@ function drawPriceBreakdown(
   doc: jsPDF,
   kitState: KitState,
   kitQuantity: number,
-  y: number,
+  y: number
 ): number {
   const { box, items, personalization } = kitState;
   const breakdown = generatePriceBreakdown(box, items, personalization, kitQuantity);
@@ -374,11 +359,7 @@ function drawFooter(doc: jsPDF) {
   doc.setFontSize(7);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...GRAY_500);
-  doc.text(
-    'Valores estimados, sujeitos a confirmação. Preços de personalização podem variar conforme arte final.',
-    14,
-    pageHeight - 10,
-  );
+  doc.text('Valores estimados, sujeitos a confirmação. Preços de personalização podem variar conforme arte final.', 14, pageHeight - 10);
   doc.text(`Página 1`, 196, pageHeight - 10, { align: 'right' });
 }
 
@@ -402,8 +383,7 @@ export function generateKitPDF(options: KitPdfOptions): Blob {
     doc.setTextColor(...GRAY_500);
     doc.text(
       `Caixa: ${formatDimensions(kitState.box.internalWidth, kitState.box.internalHeight, kitState.box.internalDepth)} | Volume: ${formatVolume(kitState.box.internalVolume)} | Ocupação: ${kitState.volumeUsagePercent.toFixed(0)}%`,
-      14,
-      y,
+      14, y
     );
     y += 8;
   }

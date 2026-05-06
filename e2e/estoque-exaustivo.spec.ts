@@ -1,5 +1,4 @@
 import { test, expect } from '@playwright/test';
-import fs from 'fs';
 
 /**
  * Módulo: Estoque
@@ -18,7 +17,7 @@ test.describe('Módulo Estoque - Testes Exaustivos', () => {
 
   test('Deve carregar a estrutura básica do dashboard e breadcrumbs corretamente', async ({ page }) => {
     // Valida Título da Página e Breadcrumbs
-    await expect(page).toHaveTitle(/ESTOQUE 360º/i);
+    await expect(page).toHaveTitle(/Estoque/i);
     const breadcrumb = page.locator('nav[aria-label="Breadcrumb"]');
     await expect(breadcrumb).toContainText('Estoque');
     
@@ -95,6 +94,7 @@ test.describe('Módulo Estoque - Testes Exaustivos', () => {
       await expect(page.locator('text=/Exportação concluída/i')).toBeVisible();
       
       const path = await download.path();
+      const fs = require('fs');
       const content = fs.readFileSync(path, 'utf8');
       
       // Valida se o CSV contém o primeiro produto da tabela

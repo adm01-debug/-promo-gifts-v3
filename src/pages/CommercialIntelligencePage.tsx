@@ -1,19 +1,16 @@
-import { useState } from 'react';
-import { PageSEO } from '@/components/seo/PageSEO';
-import {
-  IntelligenceFilterBar,
-  type IntelligenceFilters,
-} from '@/components/intelligence/IntelligenceFilterBar';
-import { IntelligenceKPICards } from '@/components/intelligence/IntelligenceKPICards';
-import { MarketIntelligenceInsightsCard } from '@/components/intelligence/MarketIntelligenceInsightsCard';
-import { MarketIntelligenceChart } from '@/components/intelligence/MarketIntelligenceChart';
-import { SalesOverviewChart } from '@/components/intelligence/SalesOverviewChart';
-import { TrendingProducts } from '@/components/intelligence/TrendingProducts';
-import { ProductRankingSearch } from '@/components/intelligence/ProductRankingSearch';
-import { CategoryRanking } from '@/components/intelligence/CategoryRanking';
-import { SupplierSales } from '@/components/intelligence/SupplierSales';
-import { Brain, Clock } from 'lucide-react';
-import { useDebouncedFilters } from '@/hooks/useDebouncedFilters';
+import { useState } from "react";
+import { PageSEO } from "@/components/seo/PageSEO";
+import { IntelligenceFilterBar, type IntelligenceFilters } from "@/components/intelligence/IntelligenceFilterBar";
+import { IntelligenceKPICards } from "@/components/intelligence/IntelligenceKPICards";
+import { MarketIntelligenceInsightsCard } from "@/components/intelligence/MarketIntelligenceInsightsCard";
+import { MarketIntelligenceChart } from "@/components/intelligence/MarketIntelligenceChart";
+import { SalesOverviewChart } from "@/components/intelligence/SalesOverviewChart";
+import { TrendingProducts } from "@/components/intelligence/TrendingProducts";
+import { ProductRankingSearch } from "@/components/intelligence/ProductRankingSearch";
+import { CategoryRanking } from "@/components/intelligence/CategoryRanking";
+import { SupplierSales } from "@/components/intelligence/SupplierSales";
+import { Brain, Clock } from "lucide-react";
+import { useDebouncedFilters } from "@/hooks/useDebouncedFilters";
 
 export default function CommercialIntelligencePage() {
   const [lastRefresh] = useState<Date>(new Date());
@@ -33,7 +30,7 @@ export default function CommercialIntelligencePage() {
 
   const formatRelative = (d: Date) => {
     const diff = Math.round((Date.now() - d.getTime()) / 1000);
-    if (diff < 60) return 'agora';
+    if (diff < 60) return "agora";
     if (diff < 3600) return `há ${Math.floor(diff / 60)} min`;
     return `há ${Math.floor(diff / 3600)}h`;
   };
@@ -41,27 +38,20 @@ export default function CommercialIntelligencePage() {
   return (
     <>
       <PageSEO
-        title="Inteligência Comercial"
+        title="Inteligência de Mercado"
         description="Painel estratégico com insights de mercado para decisões comerciais."
-        path="/ferramentas/bi-comercial"
+        path="/inteligencia-comercial"
         noIndex
       />
-      <div className="mx-auto w-full max-w-[1920px] animate-fade-in space-y-3 px-3 py-3 pb-24 sm:space-y-4 sm:px-4 sm:py-4 md:pb-6 lg:px-6 xl:px-8">
+      <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
         {/* Header */}
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-indigo-700 shadow-lg shadow-primary/20">
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-600 to-indigo-700 flex items-center justify-center shadow-lg shadow-primary/20">
             <Brain className="h-5 w-5 text-primary-foreground" />
           </div>
-          <div className="min-w-0 flex-1">
-            <h1
-              data-testid="page-title-inteligencia-mercado"
-              className="font-display text-xl font-bold text-foreground"
-            >
-              Inteligência Comercial
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Produtos & Fornecedores · comportamento do mercado + vendas internas
-            </p>
+          <div className="flex-1 min-w-0">
+            <h1 data-testid="page-title-inteligencia-mercado" className="font-display text-xl font-bold text-foreground">Inteligência de Mercado</h1>
+            <p className="text-sm text-muted-foreground">Produtos & Fornecedores · comportamento do mercado + vendas internas</p>
           </div>
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Clock className="h-3.5 w-3.5" />
@@ -70,12 +60,12 @@ export default function CommercialIntelligencePage() {
         </div>
 
         {/* Filters — sticky no scroll · UI controlada por rawFilters (sem latência), refetch debounced */}
-        <div className="sticky top-[calc(var(--header-h,56px)+var(--breadcrumb-h,0px))] z-20 -mx-3 border-b border-border/40 bg-background/85 px-3 py-2 backdrop-blur-md sm:-mx-4 sm:px-4 lg:-mx-6 lg:px-6 xl:-mx-8 xl:px-8">
+        <div className="sticky top-[calc(var(--header-h,56px)+var(--breadcrumb-h,0px))] z-20 -mx-3 sm:-mx-4 lg:-mx-6 xl:-mx-8 px-3 sm:px-4 lg:px-6 xl:px-8 py-2 bg-background/85 backdrop-blur-md border-b border-border/40">
           <IntelligenceFilterBar filters={rawFilters} onFiltersChange={setFilters} />
         </div>
 
         {/* KPI Summary */}
-        <div className="animate-fade-in" style={{ animationDelay: '50ms' }}>
+        <div className="animate-fade-in" style={{ animationDelay: "50ms" }}>
           <IntelligenceKPICards
             days={filters.days}
             categoryId={filters.categoryId}
@@ -87,7 +77,7 @@ export default function CommercialIntelligencePage() {
         </div>
 
         {/* AI Insights */}
-        <div className="animate-fade-in" style={{ animationDelay: '100ms' }}>
+        <div className="animate-fade-in" style={{ animationDelay: "100ms" }}>
           <MarketIntelligenceInsightsCard
             days={filters.days}
             categoryId={filters.categoryId}
@@ -100,53 +90,28 @@ export default function CommercialIntelligencePage() {
         </div>
 
         {/* 1. Market Intelligence */}
-        <div className="animate-fade-in" style={{ animationDelay: '150ms' }}>
-          <MarketIntelligenceChart
-            days={filters.days}
-            supplierId={filters.supplierId}
-            productId={filters.productId}
-          />
+        <div className="animate-fade-in" style={{ animationDelay: "150ms" }}>
+          <MarketIntelligenceChart days={filters.days} supplierId={filters.supplierId} productId={filters.productId} />
         </div>
 
         {/* 2. Product Ranking Search — main feature */}
-        <div className="animate-fade-in" style={{ animationDelay: '200ms' }}>
+        <div className="animate-fade-in" style={{ animationDelay: "200ms" }}>
           <ProductRankingSearch />
         </div>
 
         {/* 3. Ranking de Categorias */}
-        <div className="animate-fade-in" style={{ animationDelay: '250ms' }}>
-          <CategoryRanking
-            days={filters.days}
-            categoryId={filters.categoryId}
-            supplierId={filters.supplierId}
-            productId={filters.productId}
-            categoryName={filters.categoryName}
-          />
+        <div className="animate-fade-in" style={{ animationDelay: "250ms" }}>
+          <CategoryRanking days={filters.days} categoryId={filters.categoryId} supplierId={filters.supplierId} productId={filters.productId} categoryName={filters.categoryName} />
         </div>
 
         {/* 4+5. Produtos em Alta + Vendas por Fornecedor */}
-        <div
-          className="grid animate-fade-in grid-cols-1 gap-6 lg:grid-cols-2"
-          style={{ animationDelay: '300ms' }}
-        >
-          <TrendingProducts
-            days={filters.days}
-            categoryId={filters.categoryId}
-            supplierId={filters.supplierId}
-            productId={filters.productId}
-            categoryName={filters.categoryName}
-          />
-          <SupplierSales
-            days={filters.days}
-            categoryId={filters.categoryId}
-            supplierId={filters.supplierId}
-            productId={filters.productId}
-            categoryName={filters.categoryName}
-          />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fade-in" style={{ animationDelay: "300ms" }}>
+          <TrendingProducts days={filters.days} categoryId={filters.categoryId} supplierId={filters.supplierId} productId={filters.productId} categoryName={filters.categoryName} />
+          <SupplierSales days={filters.days} categoryId={filters.categoryId} supplierId={filters.supplierId} productId={filters.productId} categoryName={filters.categoryName} />
         </div>
 
         {/* 5. Vendas Internas */}
-        <div className="animate-fade-in" style={{ animationDelay: '350ms' }}>
+        <div className="animate-fade-in" style={{ animationDelay: "350ms" }}>
           <SalesOverviewChart days={filters.days} productId={filters.productId} />
         </div>
       </div>

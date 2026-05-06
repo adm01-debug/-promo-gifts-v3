@@ -1,9 +1,6 @@
 import { lazy, type ComponentType } from 'react';
-import { createClientLogger } from '@/lib/telemetry/structuredLogger';
-import { attemptChunkRecovery, isChunkLoadError } from '@/lib/chunk-recovery';
-
-const log = createClientLogger('lib.lazyWithRetry');
-
+import { logger } from "@/lib/logger";
+import { attemptChunkRecovery, isChunkLoadError } from "@/lib/chunk-recovery";
 
 /**
  * Wrapper around React.lazy that retries on chunk loading failures.
@@ -20,22 +17,20 @@ const log = createClientLogger('lib.lazyWithRetry');
 export function lazyWithRetry<T extends ComponentType<unknown>>(
   componentImport: () => Promise<{ default: T }>,
   retries = 3,
-  interval = 1000,
+  interval = 1000
 ): React.LazyExoticComponent<T> {
   return lazy(async () => {
     let lastError: Error | undefined;
 
     for (let i = 0; i < retries; i++) {
       try {
-        const component = await componentImport();
-        return component;
+        return await componentImport();
       } catch (error) {
         lastError = error as Error;
-        log.warn('load_attempt_failed', { attempt: i + 1, retries, error });
 
         if (isChunkLoadError(error)) {
-          log.info('retrying_chunk_load', { attempt: i + 1, retries });
-          await new Promise((resolve) => setTimeout(resolve, interval * (i + 1)));
+          logger.warn(`Chunk load failed (attempt ${i + 1}/${retries}), retrying...`);
+          await new Promise(resolve => setTimeout(resolve, interval * (i + 1)));
 
           // Última tentativa: aciona recovery agressivo (hard reload + cache bust).
           if (i === retries - 1) {
@@ -58,3 +53,4 @@ export function lazyWithRetry<T extends ComponentType<unknown>>(
     throw lastError;
   });
 }
+

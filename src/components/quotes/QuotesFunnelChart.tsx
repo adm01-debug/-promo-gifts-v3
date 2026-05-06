@@ -2,10 +2,10 @@
  * QuotesFunnelChart — visualização horizontal do funil de orçamentos
  * com taxas de conversão entre etapas e KPI de ciclo médio.
  */
-import { TrendingDown, Clock } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import type { QuoteFunnelData } from '@/hooks/useQuoteFunnel';
+import { TrendingDown, Clock } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import type { QuoteFunnelData } from "@/hooks/useQuoteFunnel";
 
 interface QuotesFunnelChartProps {
   data: QuoteFunnelData;
@@ -18,17 +18,15 @@ export function QuotesFunnelChart({ data }: QuotesFunnelChartProps) {
   return (
     <Card className="border-border/50">
       <CardContent className="p-4">
-        <div className="mb-3 flex items-center justify-between">
+        <div className="flex items-center justify-between mb-3">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Funil de vendas
-            </p>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Funil de vendas</p>
             <p className="text-[10px] text-muted-foreground">Conversão entre etapas</p>
           </div>
           {avgCycleDays !== null && (
             <Tooltip>
               <TooltipTrigger asChild>
-                <div className="flex items-center gap-1.5 rounded-xl bg-info/10 px-2 py-1 text-info">
+                <div className="flex items-center gap-1.5 px-2 py-1 rounded-xl bg-info/10 text-info">
                   <Clock className="h-3 w-3" />
                   <span className="text-xs font-semibold">{avgCycleDays.toFixed(1)}d</span>
                 </div>
@@ -47,15 +45,15 @@ export function QuotesFunnelChart({ data }: QuotesFunnelChartProps) {
                 <div className="flex items-center justify-between text-[11px]">
                   <span className="font-medium text-foreground">{stage.label}</span>
                   <div className="flex items-center gap-2">
-                    <span className="font-bold tabular-nums text-foreground">{stage.count}</span>
+                    <span className="font-bold text-foreground tabular-nums">{stage.count}</span>
                     {idx > 0 && stage.rateFromPrev !== null && (
                       <span
                         className={`flex items-center gap-0.5 tabular-nums ${
                           stage.rateFromPrev >= 50
-                            ? 'text-success'
+                            ? "text-success"
                             : stage.rateFromPrev >= 20
-                              ? 'text-warning'
-                              : 'text-destructive'
+                            ? "text-warning"
+                            : "text-destructive"
                         }`}
                       >
                         {stage.rateFromPrev < 50 && <TrendingDown className="h-2.5 w-2.5" />}
@@ -64,7 +62,7 @@ export function QuotesFunnelChart({ data }: QuotesFunnelChartProps) {
                     )}
                   </div>
                 </div>
-                <div className="h-2 overflow-hidden rounded-full bg-muted">
+                <div className="h-2 rounded-full bg-muted overflow-hidden">
                   <div
                     className="h-full bg-gradient-to-r from-primary to-primary/70 transition-all"
                     style={{ width: `${pct}%` }}

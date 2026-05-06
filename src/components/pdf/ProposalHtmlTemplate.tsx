@@ -1,12 +1,5 @@
-import React, { forwardRef } from 'react';
-import {
-  HeaderSection,
-  ClientBar,
-  ProductsTable,
-  TotalsSection,
-  NotesSection,
-  FooterSection,
-} from './ProposalSections';
+import React, { forwardRef } from "react";
+import { HeaderSection, ClientBar, ProductsTable, TotalsSection, NotesSection, FooterSection } from "./ProposalSections";
 
 export interface ProposalItemPersonalization {
   technique_name: string;
@@ -71,67 +64,65 @@ export interface ProposalTemplateData {
 
 export function formatPaymentTerms(value?: string): string {
   const map: Record<string, string> = {
-    '21_dias': '21 dias a partir da entrega',
-    '28_dias': '28 dias a partir da entrega',
-    '50_50': '50% entrada / 50% após entrega',
+    "21_dias": "21 dias a partir da entrega",
+    "28_dias": "28 dias a partir da entrega",
+    "50_50": "50% entrada / 50% após entrega",
   };
-  return value ? map[value] || value : '';
+  return value ? (map[value] || value) : "";
 }
 
 export function formatDeliveryTime(value?: string): string {
-  if (!value) return '';
-  if (value.startsWith('date:')) {
+  if (!value) return "";
+  if (value.startsWith("date:")) {
     const iso = value.slice(5);
-    const [y, m, d] = iso.split('-');
+    const [y, m, d] = iso.split("-");
     if (y && m && d) return `Entrega até ${d}/${m}/${y}`;
     return value;
   }
   const map: Record<string, string> = {
-    '14_dias': '14 dias após aprovação',
-    '21_dias': '21 dias após aprovação',
-    '28_dias': '28 dias após aprovação',
-    '45_dias': '45 dias após aprovação',
+    "14_dias": "14 dias após aprovação",
+    "21_dias": "21 dias após aprovação",
+    "28_dias": "28 dias após aprovação",
+    "45_dias": "45 dias após aprovação",
   };
   return map[value] || value;
 }
 
 export function formatShipping(type?: string, cost?: number): string {
-  if (!type) return 'A combinar';
-  if (type === 'cif') return 'CIF — Frete grátis (Cortesia)';
-  if (type === 'fob')
-    return cost && cost > 0
-      ? `FOB — Repassado ao cliente (${cost.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })})`
-      : 'FOB — Repassado ao cliente';
-  if (type === 'fob_pre')
-    return cost && cost > 0
-      ? `FOB — Valor pré-negociado (${cost.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })})`
-      : 'FOB — Valor pré-negociado';
+  if (!type) return "A combinar";
+  if (type === "cif") return "CIF — Frete grátis (Cortesia)";
+  if (type === "fob") return cost && cost > 0
+    ? `FOB — Repassado ao cliente (${cost.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })})`
+    : "FOB — Repassado ao cliente";
+  if (type === "fob_pre") return cost && cost > 0
+    ? `FOB — Valor pré-negociado (${cost.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })})`
+    : "FOB — Valor pré-negociado";
   return type;
 }
 
 export const ProposalHtmlTemplate = forwardRef<HTMLDivElement, { data: ProposalTemplateData }>(
   ({ data }, ref) => {
     const company = data.client.company || data.client.name;
-    const contact = data.client.contactName || '';
+    const contact = data.client.contactName || "";
 
     return (
       <div
         ref={ref}
         style={{
-          width: '794px',
-          minHeight: '1123px',
-          backgroundColor: '#fff',
+          width: "794px",
+          minHeight: "1123px",
+          backgroundColor: "#fff",
           fontFamily: "'Roboto', 'Segoe UI', Helvetica, Arial, sans-serif",
-          color: '#333',
-          position: 'relative',
-          boxSizing: 'border-box',
-          overflow: 'hidden',
-          display: 'flex',
-          flexDirection: 'column',
+          color: "#333",
+          position: "relative",
+          boxSizing: "border-box",
+          overflow: "hidden",
+          display: "flex",
+          flexDirection: "column",
         }}
       >
         <HeaderSection data={data} />
-        <div style={{ padding: '0 50px', flex: 1 }}>
+        <div style={{ padding: "0 50px", flex: 1 }}>
           <ClientBar company={company} contact={contact} cnpj={data.client.cnpj} />
           <ProductsTable items={data.items} />
           <TotalsSection data={data} />
@@ -140,7 +131,7 @@ export const ProposalHtmlTemplate = forwardRef<HTMLDivElement, { data: ProposalT
         <FooterSection data={data} />
       </div>
     );
-  },
+  }
 );
 
-ProposalHtmlTemplate.displayName = 'ProposalHtmlTemplate';
+ProposalHtmlTemplate.displayName = "ProposalHtmlTemplate";

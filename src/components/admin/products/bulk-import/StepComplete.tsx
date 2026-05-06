@@ -25,19 +25,16 @@ export function StepImporting({ progress }: StepImportingProps) {
   return (
     <div className="space-y-6 py-8">
       <div className="text-center">
-        <Loader2 className="mx-auto mb-4 h-10 w-10 animate-spin text-primary" />
+        <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto mb-4" />
         <p className="text-sm font-medium">Importando produtos em lotes...</p>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Lote {progress.currentChunk} de {progress.totalChunks} • {progress.processed} de{' '}
-          {progress.total} processados
+        <p className="text-xs text-muted-foreground mt-1">
+          Lote {progress.currentChunk} de {progress.totalChunks} • {progress.processed} de {progress.total} processados
         </p>
       </div>
       <Progress value={(progress.processed / progress.total) * 100} className="h-2" />
       <div className="flex justify-center gap-4 text-xs">
         <span className="text-success">✓ {progress.succeeded} sucesso</span>
-        {progress.failed > 0 && (
-          <span className="text-destructive">✕ {progress.failed} falha(s)</span>
-        )}
+        {progress.failed > 0 && <span className="text-destructive">✕ {progress.failed} falha(s)</span>}
       </div>
     </div>
   );
@@ -53,30 +50,18 @@ interface StepCompleteProps {
   onClose: () => void;
 }
 
-export function StepComplete({
-  importResult,
-  importMode,
-  invalidCount,
-  validationResults,
-  rawData,
-  onReset,
-  onClose,
-}: StepCompleteProps) {
+export function StepComplete({ importResult, importMode, invalidCount, validationResults, rawData, onReset, onClose }: StepCompleteProps) {
   const downloadErrorReport = () => {
     const failedRows = validationResults
-      .filter((r) => !r.valid)
-      .map((r) => ({
+      .filter(r => !r.valid)
+      .map(r => ({
         row: r.row,
         sku: r.data?.sku || rawData[r.row - 1]?.sku || '',
         name: r.data?.name || rawData[r.row - 1]?.name || '',
         errors: r.errors,
       }));
     const csv = generateErrorReportCSV(importResult.errors, failedRows);
-    downloadBlob(
-      csv,
-      `erros_importacao_${new Date().toISOString().slice(0, 10)}.csv`,
-      'text/csv;charset=utf-8;',
-    );
+    downloadBlob(csv, `erros_importacao_${new Date().toISOString().slice(0, 10)}.csv`, 'text/csv;charset=utf-8;');
     toast.success('Relatório de erros baixado');
   };
 
@@ -84,29 +69,25 @@ export function StepComplete({
     <div className="space-y-6 py-4">
       <div className="text-center">
         {importResult.failed === 0 ? (
-          <CheckCircle2 className="mx-auto mb-3 h-12 w-12 text-success" />
+          <CheckCircle2 className="h-12 w-12 text-success mx-auto mb-3" />
         ) : (
-          <AlertTriangle className="mx-auto mb-3 h-12 w-12 text-warning" />
+          <AlertTriangle className="h-12 w-12 text-warning mx-auto mb-3" />
         )}
-        <p className="font-display text-xl font-semibold">Importação Concluída</p>
-        <div className="mt-2 flex justify-center gap-4 text-sm">
-          <span className="font-medium text-success">{importResult.succeeded} importados</span>
-          {importResult.failed > 0 && (
-            <span className="font-medium text-destructive">{importResult.failed} falharam</span>
-          )}
+        <p className="text-xl font-semibold font-display">Importação Concluída</p>
+        <div className="flex justify-center gap-4 mt-2 text-sm">
+          <span className="text-success font-medium">{importResult.succeeded} importados</span>
+          {importResult.failed > 0 && <span className="text-destructive font-medium">{importResult.failed} falharam</span>}
         </div>
-        <p className="mt-1 text-xs text-muted-foreground">
+        <p className="text-xs text-muted-foreground mt-1">
           Modo: {importMode === 'upsert' ? 'Upsert (inserir/atualizar)' : 'Apenas inserção'}
         </p>
       </div>
 
       {importResult.errors.length > 0 && (
-        <ScrollArea className="h-[150px] rounded-xl border p-3">
-          <p className="mb-2 text-xs font-medium">Erros detalhados:</p>
+        <ScrollArea className="h-[150px] border rounded-xl p-3">
+          <p className="text-xs font-medium mb-2">Erros detalhados:</p>
           {importResult.errors.map((e, i) => (
-            <p key={i} className="mb-1 text-xs text-destructive">
-              Linhas {e.startRow}–{e.endRow}: {e.message}
-            </p>
+            <p key={i} className="text-xs text-destructive mb-1">Linhas {e.startRow}–{e.endRow}: {e.message}</p>
           ))}
         </ScrollArea>
       )}
@@ -114,14 +95,10 @@ export function StepComplete({
       <div className="flex justify-center gap-2">
         {(importResult.failed > 0 || invalidCount > 0) && (
           <Button variant="outline" size="sm" onClick={downloadErrorReport}>
-            <FileDown className="mr-2 h-4 w-4" />
-            Baixar Erros
+            <FileDown className="h-4 w-4 mr-2" />Baixar Erros
           </Button>
         )}
-        <Button variant="outline" onClick={onReset}>
-          <RotateCcw className="mr-2 h-4 w-4" />
-          Nova Importação
-        </Button>
+        <Button variant="outline" onClick={onReset}><RotateCcw className="h-4 w-4 mr-2" />Nova Importação</Button>
         <Button onClick={onClose}>Concluir</Button>
       </div>
     </div>

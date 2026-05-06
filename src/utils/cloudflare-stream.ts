@@ -36,7 +36,7 @@ function appendThumbnailOptions(url: URL, options: CloudflareThumbnailOptions = 
 
 export function getCloudflareThumbnailUrl(
   url: string | null | undefined,
-  options: CloudflareThumbnailOptions = {},
+  options: CloudflareThumbnailOptions = {}
 ) {
   const streamId = extractCloudflareStreamId(url);
   if (!streamId) return null;
@@ -52,10 +52,7 @@ interface CloudflareEmbedOptions {
   poster?: string | null;
 }
 
-function normalizeCloudflarePoster(
-  url: string | null | undefined,
-  poster: string | null | undefined,
-) {
+function normalizeCloudflarePoster(url: string | null | undefined, poster: string | null | undefined) {
   const streamId = extractCloudflareStreamId(url);
   if (!streamId) return poster?.trim() || null;
 
@@ -70,7 +67,7 @@ function normalizeCloudflarePoster(
 
 export function getCloudflareEmbedUrl(
   url: string | null | undefined,
-  options: CloudflareEmbedOptions = {},
+  options: CloudflareEmbedOptions = {}
 ) {
   const streamId = extractCloudflareStreamId(url);
   if (!streamId) return null;

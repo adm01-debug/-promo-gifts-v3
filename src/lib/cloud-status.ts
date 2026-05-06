@@ -39,16 +39,11 @@ const HIGH_LATENCY_MS = 2000;
 let cached: CloudStatusSnapshot | null = null;
 let inFlight: Promise<CloudStatusSnapshot> | null = null;
 
-const target: EventTarget =
-  typeof EventTarget !== 'undefined'
-    ? new EventTarget()
-    : ({
-        addEventListener() {},
-        removeEventListener() {},
-        dispatchEvent() {
-          return true;
-        },
-      } as unknown as EventTarget);
+const target: EventTarget = typeof EventTarget !== 'undefined' ? new EventTarget() : ({
+  addEventListener() {},
+  removeEventListener() {},
+  dispatchEvent() { return true; },
+} as unknown as EventTarget);
 
 const EVENT_NAME = 'cloud-status-change';
 
@@ -66,14 +61,8 @@ function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
   return new Promise<T>((resolve, reject) => {
     const t = setTimeout(() => reject(new Error(`timeout ${ms}ms`)), ms);
     p.then(
-      (v) => {
-        clearTimeout(t);
-        resolve(v);
-      },
-      (e) => {
-        clearTimeout(t);
-        reject(e);
-      },
+      (v) => { clearTimeout(t); resolve(v); },
+      (e) => { clearTimeout(t); reject(e); },
     );
   });
 }
@@ -109,9 +98,7 @@ async function checkRest(): Promise<{ ok: boolean; ms: number }> {
 
 function deriveStatus(signals: CloudStatusSnapshot['signals']): CloudStatus {
   const okCount = [signals.auth.ok, signals.bridge.ok, signals.rest.ok].filter(Boolean).length;
-  const slow = [signals.auth.ms, signals.bridge.ms, signals.rest.ms].some(
-    (m) => m > HIGH_LATENCY_MS,
-  );
+  const slow = [signals.auth.ms, signals.bridge.ms, signals.rest.ms].some((m) => m > HIGH_LATENCY_MS);
   if (okCount === 3) return slow ? 'warming' : 'healthy';
   if (okCount === 2) return 'warming';
   if (okCount === 1) return 'degraded';
@@ -142,10 +129,7 @@ export async function probeCloudStatus(force = false): Promise<CloudStatusSnapsh
     const previous = cached?.status;
     cached = snapshot;
     if (previous !== snapshot.status) {
-      logger.warn(
-        `[CloudStatus] state change ${previous ?? 'unknown'} → ${snapshot.status}`,
-        signals,
-      );
+      logger.warn(`[CloudStatus] state change ${previous ?? 'unknown'} → ${snapshot.status}`, signals);
       target.dispatchEvent(new CustomEvent(EVENT_NAME, { detail: snapshot }));
     }
     return snapshot;
@@ -162,7 +146,9 @@ export function getCachedCloudStatus(): CloudStatusSnapshot | null {
   return cached;
 }
 
-export function onCloudStatusChange(cb: (snapshot: CloudStatusSnapshot) => void): () => void {
+export function onCloudStatusChange(
+  cb: (snapshot: CloudStatusSnapshot) => void,
+): () => void {
   const handler = (e: Event) => cb((e as CustomEvent<CloudStatusSnapshot>).detail);
   target.addEventListener(EVENT_NAME, handler);
   return () => target.removeEventListener(EVENT_NAME, handler);
@@ -187,7 +173,8 @@ export async function ensureCloudReady(
   let attempt = 0;
   let snap = await probeCloudStatus(false);
 
-  const isReady = (s: CloudStatus) => s === 'healthy' || (acceptWarming && s === 'warming');
+  const isReady = (s: CloudStatus) =>
+    s === 'healthy' || (acceptWarming && s === 'warming');
 
   while (!isReady(snap.status) && performance.now() - start < totalTimeoutMs) {
     attempt++;

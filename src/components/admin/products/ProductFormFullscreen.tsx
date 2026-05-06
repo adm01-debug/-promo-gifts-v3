@@ -14,24 +14,10 @@ import { useProductFormDraft } from './hooks/useProductFormDraft';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import {
-  Loader2,
-  Package,
-  Tag,
-  ImageIcon,
-  Layers,
-  Megaphone,
-  Paintbrush,
-  AlertCircle,
-  FileText,
-  Save,
-  X,
-  PanelRightClose,
-  PanelRightOpen,
-  ChevronLeft,
-  ChevronRight,
-  Info,
-  Boxes,
-  Wand2,
+  Loader2, Package, Tag, ImageIcon, Layers, Megaphone, Paintbrush,
+  AlertCircle, FileText, Save, X,
+  PanelRightClose, PanelRightOpen,
+  ChevronLeft, ChevronRight, Info, Boxes, Wand2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -53,78 +39,15 @@ interface ProductFormFullscreenProps {
 }
 
 const STEPS: StepDef[] = [
-  {
-    id: 'essentials',
-    label: 'Identificação',
-    description: 'Fornecedor e dados',
-    icon: Info,
-    requiredFields: ['supplier_id', 'sku', 'name'],
-    fieldLabels: { supplier_id: 'Fornecedor', sku: 'SKU Interno', name: 'Nome do Produto' },
-  },
-  {
-    id: 'fiscal',
-    label: 'Financeiro e Fiscal',
-    description: 'Preços, estoque e tributos',
-    icon: FileText,
-    requiredFields: ['sale_price'],
-    fieldLabels: { sale_price: 'Preço de Venda' },
-  },
-  {
-    id: 'classification',
-    label: 'Classificação',
-    description: 'Gênero, cores e vínculos',
-    icon: Layers,
-    requiredFields: [],
-    fieldLabels: {},
-  },
-  {
-    id: 'commercial',
-    label: 'Categorias e Dimensões',
-    description: 'Categoria, dimensões e flags',
-    icon: Tag,
-    requiredFields: [],
-    fieldLabels: {},
-  },
-  {
-    id: 'engraving',
-    label: 'Gravação',
-    description: 'Áreas de personalização',
-    icon: Paintbrush,
-    requiredFields: [],
-    fieldLabels: {},
-  },
-  {
-    id: 'packaging',
-    label: 'Embalagem',
-    description: 'Dados da embalagem',
-    icon: Package,
-    requiredFields: [],
-    fieldLabels: {},
-  },
-  {
-    id: 'kits',
-    label: 'Kits',
-    description: 'Gestão de kits nativos',
-    icon: Boxes,
-    requiredFields: [],
-    fieldLabels: {},
-  } as StepDef,
-  {
-    id: 'media',
-    label: 'Mídia',
-    description: 'Imagens e vídeos',
-    icon: ImageIcon,
-    requiredFields: [],
-    fieldLabels: {},
-  },
-  {
-    id: 'content',
-    label: 'SEO',
-    description: 'Meta tags e marketing',
-    icon: Megaphone,
-    requiredFields: [],
-    fieldLabels: {},
-  },
+  { id: 'essentials', label: 'Identificação', description: 'Fornecedor e dados', icon: Info, requiredFields: ['supplier_id', 'sku', 'name'], fieldLabels: { supplier_id: 'Fornecedor', sku: 'SKU Interno', name: 'Nome do Produto' } },
+  { id: 'fiscal', label: 'Financeiro e Fiscal', description: 'Preços, estoque e tributos', icon: FileText, requiredFields: ['sale_price'], fieldLabels: { sale_price: 'Preço de Venda' } },
+  { id: 'classification', label: 'Classificação', description: 'Gênero, cores e vínculos', icon: Layers, requiredFields: [], fieldLabels: {} },
+  { id: 'commercial', label: 'Categorias e Dimensões', description: 'Categoria, dimensões e flags', icon: Tag, requiredFields: [], fieldLabels: {} },
+  { id: 'engraving', label: 'Gravação', description: 'Áreas de personalização', icon: Paintbrush, requiredFields: [], fieldLabels: {} },
+  { id: 'packaging', label: 'Embalagem', description: 'Dados da embalagem', icon: Package, requiredFields: [], fieldLabels: {} },
+  { id: 'kits', label: 'Kits', description: 'Gestão de kits nativos', icon: Boxes, requiredFields: [], fieldLabels: {} } as StepDef,
+  { id: 'media', label: 'Mídia', description: 'Imagens e vídeos', icon: ImageIcon, requiredFields: [], fieldLabels: {} },
+  { id: 'content', label: 'SEO', description: 'Meta tags e marketing', icon: Megaphone, requiredFields: [], fieldLabels: {} },
 ];
 
 // ============================================
@@ -153,12 +76,7 @@ export function ProductFormFullscreen({
   });
 
   const {
-    register,
-    handleSubmit,
-    setValue,
-    watch,
-    trigger,
-    getValues,
+    register, handleSubmit, setValue, watch, trigger, getValues,
     formState: { errors },
   } = useForm<ProductFormData>({
     resolver: zodResolver(productFormSchema),
@@ -201,15 +119,7 @@ export function ProductFormFullscreen({
   };
 
   const { status: skuStatus, duplicateName } = useSkuValidation(skuValue, isEdit, initialData?.sku);
-  const { clearDraft } = useProductFormDraft(
-    productId,
-    setValue,
-    formValues,
-    images,
-    stepIndex,
-    setImages,
-    setStepIndex,
-  );
+  const { clearDraft } = useProductFormDraft(productId, setValue, formValues, images, stepIndex, setImages, setStepIndex);
 
   // Effects
   useEffect(() => {
@@ -245,70 +155,54 @@ export function ProductFormFullscreen({
   });
 
   const formProps = { register, setValue, watch, errors, numericProps };
-  const { generate: generateSeoAI, isGenerating: isSeoGenerating } = useProductSeoAI(
-    getValues,
-    setValue,
-  );
+  const { generate: generateSeoAI, isGenerating: isSeoGenerating } = useProductSeoAI(getValues, setValue);
 
   const [showValidation, setShowValidation] = useState(false);
 
   const missingFields = useMemo(() => {
-    return STEPS.map((step) =>
+    return STEPS.map(step =>
       step.requiredFields
-        .filter((f) => {
+        .filter(f => {
           const val = formValues[f];
           if (typeof val === 'number') return val <= 0 || val === undefined || val === null;
           return !val;
         })
-        .map((f) => step.fieldLabels[f] || f),
+        .map(f => step.fieldLabels[f] || f)
     );
   }, [formValues]);
 
-  const stepReady = useMemo(
-    () => [
-      Boolean(formValues.supplier_id && formValues.sku && formValues.name),
-      Boolean((formValues.sale_price ?? 0) > 0),
-      Boolean(formValues.packing_type),
-      Boolean(formValues.ncm_code || formValues.ean),
-      isEdit && !!productId,
-      true,
-      images.length > 0 || Boolean(formValues.video_url),
-      Boolean(formValues.meta_title || formValues.meta_description || formValues.key_benefits),
-    ],
-    [formValues, images.length, isEdit, productId],
-  );
+  const stepReady = useMemo(() => [
+    Boolean(formValues.supplier_id && formValues.sku && formValues.name),
+    Boolean((formValues.sale_price ?? 0) > 0),
+    Boolean(formValues.packing_type),
+    Boolean(formValues.ncm_code || formValues.ean),
+    isEdit && !!productId,
+    true,
+    images.length > 0 || Boolean(formValues.video_url),
+    Boolean(formValues.meta_title || formValues.meta_description || formValues.key_benefits),
+  ], [formValues, images.length, isEdit, productId]);
 
   const stepErrors = useMemo(() => {
     const errs = Object.keys(errors);
-    return STEPS.map((step) =>
-      step.requiredFields.reduce((c, f) => c + (errs.includes(f) ? 1 : 0), 0),
+    return STEPS.map(step =>
+      step.requiredFields.reduce((c, f) => c + (errs.includes(f) ? 1 : 0), 0)
     );
   }, [errors]);
 
   const [direction, setDirection] = useState(0);
 
-  const goStep = useCallback(
-    (i: number) => {
-      setDirection(i > stepIndex ? 1 : -1);
-      setStepIndex(i);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    },
-    [stepIndex],
-  );
+  const goStep = useCallback((i: number) => {
+    setDirection(i > stepIndex ? 1 : -1);
+    setStepIndex(i);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [stepIndex]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.ctrlKey || e.metaKey) {
-        if (e.key === 's') {
-          e.preventDefault();
-          document.querySelector<HTMLFormElement>('form')?.requestSubmit();
-        } else if (e.key === 'ArrowRight' && stepIndex < STEPS.length - 1) {
-          e.preventDefault();
-          goStep(stepIndex + 1);
-        } else if (e.key === 'ArrowLeft' && stepIndex > 0) {
-          e.preventDefault();
-          goStep(stepIndex - 1);
-        }
+        if (e.key === 's') { e.preventDefault(); document.querySelector<HTMLFormElement>('form')?.requestSubmit(); }
+        else if (e.key === 'ArrowRight' && stepIndex < STEPS.length - 1) { e.preventDefault(); goStep(stepIndex + 1); }
+        else if (e.key === 'ArrowLeft' && stepIndex > 0) { e.preventDefault(); goStep(stepIndex - 1); }
       }
     };
     window.addEventListener('keydown', handler);
@@ -322,7 +216,7 @@ export function ProductFormFullscreen({
 
     if (!isValid || totalMissing > 0) {
       setShowValidation(true);
-      const firstBadStep = missingFields.findIndex((arr) => arr.length > 0);
+      const firstBadStep = missingFields.findIndex(arr => arr.length > 0);
       if (firstBadStep >= 0 && firstBadStep !== stepIndex) goStep(firstBadStep);
       return;
     }
@@ -344,35 +238,18 @@ export function ProductFormFullscreen({
       {/* STEPPER BAR */}
       <Card className="border-border/50 bg-card/80 px-6 py-4">
         <div className="flex items-end justify-between gap-6">
-          <div className="min-w-0 flex-1">
-            <HorizontalStepper
-              steps={STEPS}
-              activeIndex={stepIndex}
-              stepReady={stepReady}
-              stepErrors={stepErrors}
-              onStepClick={goStep}
-              missingFields={missingFields}
-              showValidation={showValidation}
-            />
+          <div className="flex-1 min-w-0">
+            <HorizontalStepper steps={STEPS} activeIndex={stepIndex} stepReady={stepReady} stepErrors={stepErrors} onStepClick={goStep} missingFields={missingFields} showValidation={showValidation} />
           </div>
-          <div className="flex shrink-0 items-center gap-2 pb-1">
+          <div className="flex items-center gap-2 shrink-0 pb-1">
             {Object.keys(errors).length > 0 && (
-              <span className="flex items-center gap-1 text-xs font-medium text-destructive">
+              <span className="flex items-center gap-1 text-destructive text-xs font-medium">
                 <AlertCircle className="h-3.5 w-3.5" />
                 {Object.keys(errors).length}
               </span>
             )}
-            <Button
-              type="submit"
-              size="sm"
-              disabled={isSaving || skuStatus === 'duplicate'}
-              className="gap-2 font-semibold shadow-sm"
-            >
-              {isSaving ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <Save className="h-3.5 w-3.5" />
-              )}
+            <Button type="submit" size="sm" disabled={isSaving || skuStatus === 'duplicate'} className="gap-2 font-semibold shadow-sm">
+              {isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
               {isEdit ? 'Salvar' : 'Criar'}
             </Button>
           </div>
@@ -381,17 +258,14 @@ export function ProductFormFullscreen({
 
       {/* CONTENT + PREVIEW */}
       <div className="flex gap-6">
-        <div className="min-w-0 flex-1 space-y-5">
+        <div className="flex-1 min-w-0 space-y-5">
           {skuStatus === 'duplicate' && (
             <Card className="border-destructive/20 bg-destructive/5 p-4">
               <div className="flex items-start gap-3 text-destructive">
                 <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
                 <div>
                   <p className="text-sm font-semibold">SKU duplicado</p>
-                  <p className="mt-1 text-sm">
-                    Este SKU já está em uso{duplicateName ? ` no produto "${duplicateName}"` : ''}.
-                    Ajuste antes de salvar.
-                  </p>
+                  <p className="mt-1 text-sm">Este SKU já está em uso{duplicateName ? ` no produto "${duplicateName}"` : ''}. Ajuste antes de salvar.</p>
                 </div>
               </div>
             </Card>
@@ -442,25 +316,16 @@ export function ProductFormFullscreen({
           </AnimatePresence>
 
           {showValidation && missingFields[stepIndex].length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="rounded-xl border border-warning/30 bg-warning/5 p-3"
-            >
+            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border border-warning/30 bg-warning/5 p-3">
               <div className="flex items-start gap-2.5">
-                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
+                <AlertCircle className="h-4 w-4 text-warning mt-0.5 shrink-0" />
                 <div>
                   <p className="text-sm font-semibold text-warning">
-                    {missingFields[stepIndex].length} campo
-                    {missingFields[stepIndex].length > 1 ? 's' : ''} obrigatório
-                    {missingFields[stepIndex].length > 1 ? 's' : ''} nesta etapa
+                    {missingFields[stepIndex].length} campo{missingFields[stepIndex].length > 1 ? 's' : ''} obrigatório{missingFields[stepIndex].length > 1 ? 's' : ''} nesta etapa
                   </p>
                   <ul className="mt-1.5 space-y-0.5">
-                    {missingFields[stepIndex].map((label) => (
-                      <li
-                        key={label}
-                        className="flex items-center gap-1.5 text-xs text-muted-foreground"
-                      >
+                    {missingFields[stepIndex].map(label => (
+                      <li key={label} className="text-xs text-muted-foreground flex items-center gap-1.5">
                         <span className="h-1 w-1 rounded-full bg-warning" />
                         {label}
                       </li>
@@ -472,97 +337,51 @@ export function ProductFormFullscreen({
           )}
 
           {/* Navigation footer */}
-          <div className="flex items-center justify-between pb-20 pt-2 lg:pb-4">
+          <div className="flex items-center justify-between pt-2 pb-20 lg:pb-4">
             <div className="flex items-center gap-3">
               {hasPrev && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => goStep(stepIndex - 1)}
-                  className="gap-2"
-                >
+                <Button type="button" variant="outline" size="sm" onClick={() => goStep(stepIndex - 1)} className="gap-2">
                   <ChevronLeft className="h-4 w-4" />
                   {STEPS[stepIndex - 1].label}
                 </Button>
               )}
-              <span className="hidden text-[10px] text-muted-foreground/50 lg:inline">
-                Ctrl+←/→ navegar · Ctrl+S salvar
-              </span>
+              <span className="hidden lg:inline text-[10px] text-muted-foreground/50">Ctrl+←/→ navegar · Ctrl+S salvar</span>
             </div>
             <div className="flex items-center gap-2">
               {hasNext && (
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={() => goStep(stepIndex + 1)}
-                  className="gap-2"
-                >
+                <Button type="button" size="sm" onClick={() => goStep(stepIndex + 1)} className="gap-2">
                   {STEPS[stepIndex + 1].label}
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               )}
               {isLast && (
-                <Button
-                  type="submit"
-                  size="sm"
-                  disabled={isSaving || skuStatus === 'duplicate'}
-                  className="gap-2 font-semibold shadow-sm"
-                >
-                  {isSaving ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Save className="h-4 w-4" />
-                  )}
+                <Button type="submit" size="sm" disabled={isSaving || skuStatus === 'duplicate'} className="gap-2 font-semibold shadow-sm">
+                  {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                   {isEdit ? 'Salvar produto' : 'Criar produto'}
                 </Button>
               )}
-              <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
-                Cancelar
-              </Button>
+              <Button type="button" variant="ghost" size="sm" onClick={onCancel}>Cancelar</Button>
             </div>
           </div>
         </div>
 
         {/* Preview sidebar */}
-        <div className="hidden shrink-0 flex-col xl:flex">
+        <div className="hidden xl:flex flex-col shrink-0">
           <div className="sticky top-24">
-            <div className="mb-2 flex items-center justify-end">
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="h-7 gap-1.5 px-2 text-xs text-muted-foreground hover:text-foreground"
-                onClick={() =>
-                  setShowPreview((v) => {
-                    const next = !v;
-                    localStorage.setItem('product-form-show-preview', String(next));
-                    return next;
-                  })
-                }
-              >
-                {showPreview ? (
-                  <PanelRightClose className="h-3.5 w-3.5" />
-                ) : (
-                  <PanelRightOpen className="h-3.5 w-3.5" />
-                )}
+            <div className="flex items-center justify-end mb-2">
+              <Button type="button" variant="ghost" size="sm" className="gap-1.5 text-xs text-muted-foreground hover:text-foreground h-7 px-2"
+                onClick={() => setShowPreview(v => { const next = !v; localStorage.setItem('product-form-show-preview', String(next)); return next; })}>
+                {showPreview ? <PanelRightClose className="h-3.5 w-3.5" /> : <PanelRightOpen className="h-3.5 w-3.5" />}
                 {showPreview ? 'Ocultar' : 'Preview'}
               </Button>
             </div>
             {showPreview && (
-              <div className="w-64 duration-200 animate-in slide-in-from-right-4">
+              <div className="w-64 animate-in slide-in-from-right-4 duration-200">
                 <ProductPreviewPanel
-                  name={nameValue}
-                  sku={skuValue}
-                  salePrice={salePriceValue}
-                  stockQuantity={stockQuantityValue}
-                  images={images}
-                  brand={brandValue}
-                  isFeatured={flags.is_featured}
-                  isNew={flags.is_new}
-                  isOnSale={flags.is_on_sale}
-                  isKit={formValues.is_kit}
-                  isActive={flags.is_active}
+                  name={nameValue} sku={skuValue} salePrice={salePriceValue}
+                  stockQuantity={stockQuantityValue} images={images} brand={brandValue}
+                  isFeatured={flags.is_featured} isNew={flags.is_new} isOnSale={flags.is_on_sale}
+                  isKit={formValues.is_kit} isActive={flags.is_active}
                 />
               </div>
             )}
@@ -571,51 +390,28 @@ export function ProductFormFullscreen({
       </div>
 
       {/* Mobile bottom bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-border/50 bg-background/95 p-3 backdrop-blur-sm lg:hidden">
-        <div className="mx-auto flex max-w-3xl items-center justify-between gap-3">
+      <div className="fixed bottom-0 left-0 right-0 lg:hidden bg-background/95 backdrop-blur-sm border-t border-border/50 p-3 z-40">
+        <div className="flex items-center justify-between gap-3 max-w-3xl mx-auto">
           <div className="flex items-center gap-2">
             {hasPrev && (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => goStep(stepIndex - 1)}
-              >
+              <Button type="button" variant="outline" size="sm" onClick={() => goStep(stepIndex - 1)}>
                 <ChevronLeft className="h-4 w-4" />
               </Button>
             )}
-            <span className="text-xs font-medium text-muted-foreground">
-              {stepIndex + 1}/{STEPS.length}
-            </span>
+            <span className="text-xs font-medium text-muted-foreground">{stepIndex + 1}/{STEPS.length}</span>
           </div>
           <div className="flex items-center gap-2">
             {hasNext ? (
-              <Button
-                type="button"
-                size="sm"
-                onClick={() => goStep(stepIndex + 1)}
-                className="gap-2"
-              >
+              <Button type="button" size="sm" onClick={() => goStep(stepIndex + 1)} className="gap-2">
                 Próxima <ChevronRight className="h-4 w-4" />
               </Button>
             ) : (
-              <Button
-                type="submit"
-                size="sm"
-                disabled={isSaving || skuStatus === 'duplicate'}
-                className="gap-2"
-              >
-                {isSaving ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                ) : (
-                  <Save className="h-3.5 w-3.5" />
-                )}
+              <Button type="submit" size="sm" disabled={isSaving || skuStatus === 'duplicate'} className="gap-2">
+                {isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
                 {isEdit ? 'Salvar' : 'Criar'}
               </Button>
             )}
-            <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
-              <X className="h-4 w-4" />
-            </Button>
+            <Button type="button" variant="ghost" size="sm" onClick={onCancel}><X className="h-4 w-4" /></Button>
           </div>
         </div>
       </div>

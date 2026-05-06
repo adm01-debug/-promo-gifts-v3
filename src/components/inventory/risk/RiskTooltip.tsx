@@ -1,13 +1,10 @@
-import { forwardRef } from 'react';
-import { Badge } from '@/components/ui/badge';
-import { safeNumber } from '@/lib/stock-chart-utils';
+import { forwardRef } from "react";
+import { Badge } from "@/components/ui/badge";
+import { safeNumber } from "@/lib/stock-chart-utils";
 
 // #11 fix: shows fallback when zero-activity day
 // forwardRef required because Recharts passes refs to custom tooltip components
-export const RiskTooltip = forwardRef<HTMLDivElement, any>(function RiskTooltip(
-  { active, payload },
-  ref,
-) {
+export const RiskTooltip = forwardRef<HTMLDivElement, any>(function RiskTooltip({ active, payload }, ref) {
   if (!active || !payload?.length) return null;
   const data = payload[0]?.payload;
   if (!data) return null;
@@ -17,20 +14,15 @@ export const RiskTooltip = forwardRef<HTMLDivElement, any>(function RiskTooltip(
   const hasActivity = (depleted != null && depleted > 0) || (restocked != null && restocked > 0);
 
   return (
-    <div
-      ref={ref}
-      className="min-w-[150px] rounded-xl border border-border bg-popover p-2.5 shadow-lg"
-    >
+    <div ref={ref} className="bg-popover border border-border rounded-xl p-2.5 shadow-lg min-w-[150px]">
       <p className="text-[10px] font-medium text-foreground">{data.fullDate}</p>
       <div className="mt-1.5 space-y-1">
         <div className="flex justify-between text-[10px]">
           <span className="text-muted-foreground">Estoque:</span>
-          <span className="font-semibold">
-            {data.stockClose != null ? data.stockClose.toLocaleString('pt-BR') : '—'}
-          </span>
+          <span className="font-semibold">{data.stockClose != null ? data.stockClose.toLocaleString('pt-BR') : '—'}</span>
         </div>
         {!hasActivity && (
-          <p className="text-[9px] italic text-muted-foreground">Sem movimentação</p>
+          <p className="text-[9px] text-muted-foreground italic">Sem movimentação</p>
         )}
         {depleted != null && depleted > 0 && (
           <div className="flex justify-between text-[10px]">
@@ -45,10 +37,7 @@ export const RiskTooltip = forwardRef<HTMLDivElement, any>(function RiskTooltip(
           </div>
         )}
         {data.restockDetected && (
-          <Badge
-            variant="outline"
-            className="border-primary/30 bg-primary/10 px-1 py-0 text-[9px] text-primary"
-          >
+          <Badge variant="outline" className="text-[9px] px-1 py-0 bg-primary/10 text-primary border-primary/30">
             🔄 Reabastecimento
           </Badge>
         )}

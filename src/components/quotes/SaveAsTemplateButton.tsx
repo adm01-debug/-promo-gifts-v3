@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   Dialog,
   DialogContent,
@@ -8,10 +8,10 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
-import { BookmarkPlus } from 'lucide-react';
-import { type QuoteTemplateItem } from '@/hooks/useQuoteTemplates';
-import { QuoteTemplateForm } from './QuoteTemplateForm';
+} from "@/components/ui/dialog";
+import { BookmarkPlus } from "lucide-react";
+import { type QuoteTemplateItem } from "@/hooks/useQuoteTemplates";
+import { QuoteTemplateForm } from "./QuoteTemplateForm";
 
 interface SaveAsTemplateButtonProps {
   items: QuoteTemplateItem[];
@@ -27,8 +27,8 @@ export function SaveAsTemplateButton({
   items,
   discountPercent = 0,
   discountAmount = 0,
-  notes = '',
-  internalNotes = '',
+  notes = "",
+  internalNotes = "",
   trigger,
   onSaved,
 }: SaveAsTemplateButtonProps) {
@@ -40,8 +40,8 @@ export function SaveAsTemplateButton({
   };
 
   const initialTemplate = {
-    name: '',
-    description: '',
+    name: "",
+    description: "",
     is_default: false,
     items_data: items,
     discount_percent: discountPercent,
@@ -55,25 +55,25 @@ export function SaveAsTemplateButton({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {trigger || (
-          <TooltipProvider>
+          <TooltipProvider >
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button variant="outline" size="sm">
-                  <BookmarkPlus className="mr-2 h-4 w-4" />
+                  <BookmarkPlus className="h-4 w-4 mr-2" />
                   Salvar como Template
                 </Button>
               </TooltipTrigger>
-              <TooltipContent className="border-none bg-primary px-2 py-1 text-[11px] font-medium text-primary-foreground shadow-xl">
-                Transformar este orçamento em um modelo para uso futuro
-              </TooltipContent>
+              <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Transformar este orçamento em um modelo para uso futuro</TooltipContent>
             </Tooltip>
           </TooltipProvider>
         )}
       </DialogTrigger>
-      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Salvar como Template</DialogTitle>
-          <DialogDescription>Salve este orçamento como um template reutilizável</DialogDescription>
+          <DialogDescription>
+            Salve este orçamento como um template reutilizável
+          </DialogDescription>
         </DialogHeader>
         <QuoteTemplateForm
           initialItems={items}
