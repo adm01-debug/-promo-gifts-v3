@@ -40,8 +40,11 @@ export interface LongTaskEvent {
 }
 
 const MAX_EVENTS = 100;
-/** Tasks abaixo disso são ruído (animações, layout normais). */
-const MIN_DURATION_MS = 80;
+/** 
+ * Tasks abaixo disso são ruído (animações, layout normais).
+ * Reduzido de 80ms para 50ms para alinhar com o padrão W3C (RAIL).
+ */
+const MIN_DURATION_MS = 50;
 /** Janela "recente" considerada após o término (ms). */
 const RECENT_COMPLETION_WINDOW_MS = 50;
 
