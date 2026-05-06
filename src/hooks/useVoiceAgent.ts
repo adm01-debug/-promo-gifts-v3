@@ -401,15 +401,31 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
 
   useEffect(() => {
     return () => {
+      console.log("[VoiceAgent] cleaning up resources...");
+      isStartingRef.current = false;
+      isProcessingRef.current = false;
+      
       clearResetPhaseTimer();
       clearSessionStartTimer();
+      
       try {
         disconnectScribeRef.current();
-      } catch {
+      } catch (err) {
+        logger.warn("[VoiceAgent] error disconnecting scribe on cleanup", err);
       }
-      stopWebSpeech();
-      stopSpeakingRef.current?.();
-      stopSpeakingRef.current = null;
+      
+      try {
+        stopWebSpeech();
+      } catch (err) {
+        logger.warn("[VoiceAgent] error stopping webspeech on cleanup", err);
+      }
+      
+      try {
+        stopSpeakingRef.current?.();
+        stopSpeakingRef.current = null;
+      } catch (err) {
+        logger.warn("[VoiceAgent] error stopping speaking on cleanup", err);
+      }
     };
   }, [clearResetPhaseTimer, clearSessionStartTimer]);
 
