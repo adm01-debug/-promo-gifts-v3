@@ -76,9 +76,15 @@ export function ProductsManager() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input placeholder="Buscar por nome, SKU ou categoria..." value={s.searchTerm} onChange={(e) => s.setSearchTerm(e.target.value)} className="pl-10 h-10 bg-background" />
               {s.searchTerm && (
-                <button aria-label="Fechar" onClick={() => s.setSearchTerm('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Fechar"
+                  onClick={() => s.setSearchTerm('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground hover:text-foreground transition-colors"
+                >
                   <X className="h-4 w-4" />
-                </button>
+                </Button>
               )}
             </div>
           </div>
