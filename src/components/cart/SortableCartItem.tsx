@@ -332,15 +332,17 @@ export const SortableCartItem = memo(function SortableCartItem({
                 }}
                 className="h-9 w-12 text-center text-sm font-bold tabular-nums bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0 appearance-none m-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none transition-all"
               />
-              <button
+              <Button
+                variant="ghost"
+                size="icon"
                 data-testid="cart-qty-increment"
                 aria-label="Aumentar quantidade"
-                className="h-9 w-9 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 active:bg-muted/80 transition-all active:scale-90"
+                className="h-9 w-9 text-muted-foreground hover:text-foreground hover:bg-muted/60 active:bg-muted/80 transition-all active:scale-90"
                 onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
                 title="Aumentar quantidade"
               >
                 <Plus className="h-4 w-4" />
-              </button>
+              </Button>
             </div>
             <div className="flex flex-col items-end">
               <PriceLabel 
