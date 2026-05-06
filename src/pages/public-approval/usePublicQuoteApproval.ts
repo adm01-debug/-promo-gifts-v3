@@ -5,10 +5,11 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface QuoteData {
-  quote: any;
-  seller: any;
-  token: any;
+  quote: Record<string, unknown> & { id: string; status: string; total: number };
+  seller: Record<string, unknown> & { full_name: string; email: string };
+  token: Record<string, unknown> & { expires_at: string };
 }
+
 
 export interface SignatureReceipt {
   signer_name: string;
@@ -23,7 +24,7 @@ export interface PublicQuoteApprovalState {
   isLoading: boolean;
   error: string | null;
   isExpired: boolean;
-  alreadyResponded: any;
+  alreadyResponded: Record<string, unknown> | null;
   responseNotes: string;
   setResponseNotes: (v: string) => void;
   signerName: string;
@@ -59,7 +60,7 @@ export function usePublicQuoteApproval(token?: string): PublicQuoteApprovalState
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isExpired, setIsExpired] = useState(false);
-  const [alreadyResponded, setAlreadyResponded] = useState<any>(null);
+  const [alreadyResponded, setAlreadyResponded] = useState<Record<string, unknown> | null>(null);
   const [responseNotes, setResponseNotes] = useState('');
   const [signerName, setSignerName] = useState('');
   const [signerDocumentRaw, setSignerDocumentRaw] = useState('');
@@ -148,9 +149,11 @@ export function usePublicQuoteApproval(token?: string): PublicQuoteApprovalState
 
         if (result?.signature) setSignatureReceipt(result.signature);
         setSubmitted(response);
-      } catch (err: any) {
-        setSignatureError(err?.message || 'Erro ao enviar resposta');
-        console.error(err);
+      } catch (err: unknown) {
+        const error = err as Error;
+        setSignatureError(error.message || 'Erro ao enviar resposta');
+        console.error(error);
+
       } finally {
         setIsSubmitting(false);
       }
@@ -182,9 +185,10 @@ export function formatCurrency(value: number) {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
 }
 
-export function calcPersonalizationTotal(item: any): number {
+export function calcPersonalizationTotal(item: { personalizations?: Array<{ total_cost?: number }> }): number {
   return (item.personalizations || []).reduce(
-    (sum: number, p: any) => sum + (p.total_cost || 0),
+    (sum: number, p) => sum + (p.total_cost || 0),
     0,
   );
 }
+
