@@ -124,7 +124,8 @@ describe('NoveltiesPage UI', () => {
     
     await waitFor(() => {
       expect(screen.getByText(/Chegaram Hoje/i)).toBeInTheDocument();
-      expect(screen.getByText(/Ativas no Momento/i)).toBeInTheDocument();
+      expect(screen.getByText(/Novidades Ativas/i)).toBeInTheDocument();
+      expect(screen.getByText(/Últimos 7 Dias/i)).toBeInTheDocument();
     });
   });
 
@@ -139,6 +140,9 @@ describe('NoveltiesPage UI', () => {
   it('filters products by search query', async () => {
     render(<NoveltiesPage />, { wrapper: AllProviders });
     
+    // Wait for initial load
+    await screen.findByText('Power Bank Solar 20000mAh');
+
     const searchInputs = screen.getAllByPlaceholderText(/Buscar novidades…/i);
     const searchInput = searchInputs[0];
     
@@ -163,6 +167,8 @@ describe('NoveltiesPage UI', () => {
   it('clears filters when clicking the clear button', async () => {
     render(<NoveltiesPage />, { wrapper: AllProviders });
     
+    await screen.findByText('Power Bank Solar 20000mAh');
+
     const searchInputs = screen.getAllByPlaceholderText(/Buscar novidades…/i);
     fireEvent.change(searchInputs[0], { target: { value: 'XYZ_NON_EXISTENT' } });
     
