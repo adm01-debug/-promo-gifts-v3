@@ -110,7 +110,7 @@ export function ComparisonDuelView({ products, formatCurrency, onRemove, onProdu
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-amber-400 to-transparent opacity-50" />
       <div className="flex items-center justify-center gap-3 pb-2">
         <Badge variant="outline" className="text-[10px] border-amber-400/40 text-amber-700 bg-amber-400/10">⚔️ ARENA DE DUELO</Badge>
-        <span className="text-[11px] font-bold uppercase tracking-tighter text-muted-foreground/80">Confronto 1 a 1 de Atributos</span>
+        <span className="text-[11px] font-black uppercase tracking-widest text-muted-foreground/80">Confronto Direto</span>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] gap-6 items-start">
