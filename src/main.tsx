@@ -4,9 +4,15 @@ import { HelmetProvider } from 'react-helmet-async';
 import { registerServiceWorker } from '@/lib/sw-register';
 import { installGlobalErrorHandlers } from '@/lib/error-reporter';
 import { initSentry } from '@/lib/sentry';
+import { initWebVitals } from '@/lib/telemetry/vitals';
+import { initOTel } from '@/lib/telemetry/otel';
 import EnhancedErrorBoundary from '@/components/errors/EnhancedErrorBoundary';
 import App from './App.tsx';
 import './index.css';
+
+// Initialize Telemetry (OTel & Web Vitals) for World-Class Observability
+initOTel();
+initWebVitals();
 
 // Initialize Sentry FIRST (no-op if VITE_SENTRY_DSN is unset)
 initSentry();
