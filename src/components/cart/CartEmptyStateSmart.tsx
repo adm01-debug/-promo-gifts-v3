@@ -2,6 +2,7 @@
  * CartEmptyStateSmart - Empty state com 3 CTAs inteligentes:
  * Aplicar template, Duplicar último carrinho desta empresa, Explorar catálogo.
  */
+import { useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { LayoutTemplate, Copy, Package, Sparkles, ArrowRight } from "lucide-react";
