@@ -16,29 +16,25 @@ import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { LogoPositionEditor } from "@/components/mockup/LogoPositionEditor";
+import { MockupWizard } from "@/components/mockup/MockupWizard";
+import { MockupResultCard } from "@/components/mockup/MockupResultCard";
+import { MockupConfigPanel } from "@/components/mockup/MockupConfigPanel";
+import { MockupHistoryPanel } from "@/components/mockup/MockupHistoryPanel";
 import { TechniqueChangeDialog, DeleteMockupDialog } from "./mockup-generator/MockupDialogs";
 import { MockupToolbar } from "./mockup-generator/MockupToolbar";
 import { MockupEmptyState } from "./mockup-generator/MockupEmptyState";
 import { useKeyboardShortcuts } from "@/components/mockup/KeyboardShortcuts";
 import { GeneratingOverlay } from "@/components/mockup/GeneratingOverlay";
 import { TechniqueColorConfigDialog } from "@/components/mockup/TechniqueColorConfigDialog";
+import { MockupLayoutButtons } from "@/components/mockup/approval/MockupLayoutButtons";
+import { OffscreenLayoutCapture } from "@/components/mockup/approval/OffscreenLayoutCapture";
 import { useMockupGenerator } from "@/hooks/useMockupGenerator";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTechniqueHandlers } from "./mockup-generator/MockupTechniqueHandlers";
 import type { MockupApprovalData } from "@/types/mockup-approval";
 import { DiagnosticProfiler } from "@/components/dev/DiagnosticProfiler";
-import { lazyWithRetry } from "@/lib/lazyWithRetry";
 import type { LayoutCaptureRequest } from "@/components/mockup/approval/OffscreenLayoutCapture";
-
-// Lazy load heavy sub-components
-const LogoPositionEditor = lazyWithRetry(() => import("@/components/mockup/LogoPositionEditor").then(m => ({ default: m.LogoPositionEditor })));
-const MockupWizard = lazyWithRetry(() => import("@/components/mockup/MockupWizard").then(m => ({ default: m.MockupWizard })));
-const MockupResultCard = lazyWithRetry(() => import("@/components/mockup/MockupResultCard").then(m => ({ default: m.MockupResultCard })));
-const MockupConfigPanel = lazyWithRetry(() => import("@/components/mockup/MockupConfigPanel").then(m => ({ default: m.MockupConfigPanel })));
-const MockupHistoryPanel = lazyWithRetry(() => import("@/components/mockup/MockupHistoryPanel").then(m => ({ default: m.MockupHistoryPanel })));
-const MockupLayoutButtons = lazyWithRetry(() => import("@/components/mockup/approval/MockupLayoutButtons").then(m => ({ default: m.MockupLayoutButtons })));
-const OffscreenLayoutCapture = lazyWithRetry(() => import("@/components/mockup/approval/OffscreenLayoutCapture").then(m => ({ default: m.OffscreenLayoutCapture })));
-const AIMockupAssistant = lazyWithRetry(() => import("@/components/ai").then(m => ({ default: m.AIMockupAssistant })));
 
 // ─── Sub-components ──────────────────────────────────────────────────
 
