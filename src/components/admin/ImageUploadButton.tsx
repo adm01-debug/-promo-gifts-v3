@@ -44,8 +44,8 @@ export function ImageUploadButton({
 
     try {
       // Generate unique filename
-      const fileExt = file.name.split('.').pop();
       // fileName variable removed since it was unused and causing lint error
+
 
 
       const formData = new FormData();
