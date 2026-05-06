@@ -234,7 +234,7 @@ export function RoleMigrationPanel() {
               <AlertTriangle className="h-4 w-4" />
               <AlertTitle>Operação de alto impacto</AlertTitle>
               <AlertDescription>
-                {operation === "replace" && "Esta operação remove TODOS os papéis atuais antes de inserir o novo. "}
+                {operation === "replace" && "Esta operação remove os papéis atuais antes de inserir o novo. "}
                 {(toRole === "admin" || toRole === "dev") && `Promover a "${toRole}" concede acesso administrativo. `}
                 Sempre execute dry-run primeiro e revise o histórico.
               </AlertDescription>
