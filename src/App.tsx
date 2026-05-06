@@ -350,6 +350,7 @@ const AppContent = () => {
           <Route path="/admin/video-variantes" element={<AdminVideoVariantsPage />} />
           <Route path="/admin/kit-templates" element={<KitTemplatesAdminPage />} />
           <Route path="/admin/kit-templates/metricas" element={<KitTemplatesMetricsPage />} />
+          <Route path="/admin/ia-uso" element={<AdminAiUsagePage />} />
           <Route
             path="/admin/aprovacoes-desconto"
             element={
