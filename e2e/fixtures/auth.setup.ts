@@ -12,28 +12,49 @@ const __dirname = path.dirname(__filename);
 
 import { loginViaUI } from "../helpers/auth";
 
-const STORAGE = path.resolve(__dirname, "../.auth/storageState.json");
+const AUTH_DIR = path.resolve(__dirname, "../.auth");
 
-setup("authenticate", async ({ page }) => {
-  fs.mkdirSync(path.dirname(STORAGE), { recursive: true });
-
-  const email = process.env.E2E_USER_EMAIL;
-  const password = process.env.E2E_USER_PASSWORD;
-
+async function authenticate(page: any, email?: string, password?: string, storagePath: string) {
   if (!email || !password) {
     fs.writeFileSync(
-      STORAGE,
+      storagePath,
       JSON.stringify({ cookies: [], origins: [] }, null, 2),
       "utf-8",
     );
-    setup.info().annotations.push({
-      type: "skip-reason",
-      description:
-        "E2E_USER_EMAIL/E2E_USER_PASSWORD ausentes — specs autenticados serão pulados.",
-    });
-    return;
+    return false;
   }
 
   await loginViaUI(page, { email, password });
-  await page.context().storageState({ path: STORAGE });
+  await page.context().storageState({ path: storagePath });
+  return true;
+}
+
+setup("authenticate agente", async ({ page }) => {
+  fs.mkdirSync(AUTH_DIR, { recursive: true });
+  await authenticate(
+    page,
+    process.env.E2E_USER_EMAIL,
+    process.env.E2E_USER_PASSWORD,
+    path.join(AUTH_DIR, "agente.json")
+  );
+});
+
+setup("authenticate supervisor", async ({ page }) => {
+  fs.mkdirSync(AUTH_DIR, { recursive: true });
+  await authenticate(
+    page,
+    process.env.E2E_SUPERVISOR_EMAIL,
+    process.env.E2E_USER_PASSWORD,
+    path.join(AUTH_DIR, "supervisor.json")
+  );
+});
+
+setup("authenticate dev", async ({ page }) => {
+  fs.mkdirSync(AUTH_DIR, { recursive: true });
+  await authenticate(
+    page,
+    process.env.E2E_ADMIN_EMAIL,
+    process.env.E2E_USER_PASSWORD,
+    path.join(AUTH_DIR, "dev.json")
+  );
 });

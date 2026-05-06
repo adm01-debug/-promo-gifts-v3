@@ -10,31 +10,12 @@ test.describe("RBAC — Matriz de Acesso por Papel", () => {
 
   for (const role of rolesToTest) {
     test.describe(`Papel: ${role}`, () => {
-      // Setup de autenticação por papel (pula para público)
-      test.beforeEach(async ({ page }) => {
-        if (role === "publico") {
-          await page.context().clearCookies();
-          await page.evaluate(() => localStorage.clear());
-        } else {
-          // Nota: O setup global já deve ter preparado os storageStates se usarmos projects específicos,
-          // mas para um teste de matriz completa em um único arquivo, podemos usar logins programáticos
-          // ou assumir que o worker está isolado.
-          // Aqui usamos o helper de navegação para forçar o estado se necessário.
-          await page.goto("/login");
-          
-          const email = role === "dev" ? process.env.E2E_ADMIN_EMAIL : 
-                        role === "supervisor" ? process.env.E2E_SUPERVISOR_EMAIL : 
-                        process.env.E2E_USER_EMAIL;
-          const password = process.env.E2E_USER_PASSWORD; // Assumindo mesma senha para simplificar testes
-
-          if (email && password) {
-             // Realiza login se não estiver logado como o papel correto
-             // (Em um ambiente real, usaríamos storageState específico por role via projects do Playwright)
-          }
-        }
+      test.use({ 
+        storageState: role === "publico" ? { cookies: [], origins: [] } : `e2e/.auth/${role}.json` 
       });
 
       const routes = PERMISSION_MATRIX[role];
+
       for (const route of routes) {
         const paths = resolvePaths(route);
         for (const path of paths) {
@@ -79,7 +60,7 @@ test.describe("RBAC — Matriz de Acesso por Papel", () => {
 
 test.describe("RBAC — Permissões de Grão Fino (UI & API)", () => {
   // Nota: o setup global gera o state como agente (vendedor)
-  test.use({ storageState: "e2e/.auth/storageState.json" });
+  test.use({ storageState: "e2e/.auth/agente.json" });
 
   test("Vendedor não deve ver botão de Gerenciar Usuários no Sidebar", async ({ page }) => {
     await page.goto("/");
@@ -108,6 +89,17 @@ test.describe("RBAC — Permissões de Grão Fino (UI & API)", () => {
     
     if (response) {
       expect([401, 403]).toContain(response.status());
+      // Valida que o payload está vazio ou segue o schema de erro (auth/unauthorized)
+      const body = await response.text();
+      try {
+        const json = JSON.parse(body);
+        // Se houver JSON, deve conter mensagens de erro e não dados sensíveis
+        expect(json).toHaveProperty("error");
+        expect(json).not.toHaveProperty("data"); 
+      } catch {
+        // Se não for JSON (ex: 403 via Cloudflare), o body deve ser mínimo/vazio
+        expect(body.length).toBeLessThan(500);
+      }
     }
   });
 
@@ -122,6 +114,10 @@ test.describe("RBAC — Permissões de Grão Fino (UI & API)", () => {
     // No AdminRoute.tsx o título é "Área Administrativa" e desc "Acesso restrito a gestores..."
     await expect(title).toContainText("Área Administrativa");
     await expect(desc).toContainText("Acesso restrito a gestores e administradores");
+    
+    // Valida consistência visual específica: ícone e cor da variante security
+    const icon = page.locator('svg.text-warning'); // Variante security usa text-warning
+    await expect(icon).toBeVisible();
   });
 
   test("Validação de Feature Flags por Papel", async ({ page }) => {
