@@ -71,12 +71,12 @@ export function MockupPromptManager() {
     try {
       const [cr, tr] = await Promise.all([
         supabase.from('mockup_prompt_configs').select('*').order('config_key'),
-        supabase.from('personalization_techniques').select('id, name, code').eq('is_active', true) as any,
+        supabase.from('personalization_techniques').select('id, name, code').eq('is_active', true),
       ]);
       if (cr.error) throw cr.error;
       if (tr.error) throw tr.error;
-      setConfigs((cr.data || []) as PromptConfig[]);
-      setTechniques(tr.data || []);
+      setConfigs((cr.data || []) as unknown as PromptConfig[]);
+      setTechniques((tr.data || []) as unknown as Technique[]);
     } catch (err: unknown) {
       toast.error('Erro ao carregar configurações', {
         description: err instanceof Error ? err.message : undefined,
