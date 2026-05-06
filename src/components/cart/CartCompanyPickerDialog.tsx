@@ -300,7 +300,7 @@ export function CartCompanyPickerDialog({ open, onOpenChange, onCreated }: CartC
                 </div>
               </div>
             </div>
-            <ScrollArea className="h-[290px] pr-2">
+            <ScrollArea id="company-search-results" className="h-[290px] pr-2">
               {isLoading && filteredCompanies.length === 0 ? (
                 <div className="space-y-1 px-1">
                   {[...Array(6)].map((_, i) => (
