@@ -115,7 +115,7 @@ export function MockupPromptManager() {
           ai_model: edited.ai_model,
           version: config.version + 1,
           updated_by: user?.id,
-        })
+        } as any)
         .eq('id', config.id);
       if (error) throw error;
       toast.success(`Prompt "${config.label}" salvo (v${config.version + 1})`);
