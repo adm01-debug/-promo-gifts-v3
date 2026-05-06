@@ -91,28 +91,40 @@ export function ComparisonScoreCard({ products, className }: ComparisonScoreCard
                   Ajuste para refletir suas prioridades.
                 </p>
               </div>
-              {(Object.keys(weights) as Array<keyof ComparisonScoreWeights>).map(key => (
-                <div key={key} className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-xs">{WEIGHT_LABELS[key]}</Label>
-                    <span className="text-xs font-mono text-muted-foreground">
-                      {weights[key]}
-                    </span>
-                  </div>
-                  <Slider
-                    value={[weights[key]]}
-                    onValueChange={(v) => setWeights({ ...weights, [key]: v[0] })}
-                    min={0}
-                    max={50}
-                    step={5}
-                  />
+              {weightsLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin text-amber-500" />
                 </div>
-              ))}
+              ) : (
+                (Object.keys(WEIGHT_LABELS) as Array<keyof ComparisonScoreWeights>).map(key => {
+                  const persistentKey = key === "minQuantity" ? "minQty" : 
+                                      key === "colorVariety" ? "colors" : 
+                                      key === "verifiedSupplier" ? "verified" : key;
+                  
+                  return (
+                    <div key={key} className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs">{WEIGHT_LABELS[key]}</Label>
+                        <span className="text-xs font-mono text-muted-foreground">
+                          {persistentWeights[persistentKey as keyof typeof persistentWeights]}%
+                        </span>
+                      </div>
+                      <Slider
+                        value={[persistentWeights[persistentKey as keyof typeof persistentWeights]]}
+                        onValueChange={(v) => setWeights({ ...persistentWeights, [persistentKey]: v[0] })}
+                        min={0}
+                        max={50}
+                        step={5}
+                      />
+                    </div>
+                  );
+                })
+              )}
               <Button
                 variant="ghost"
                 size="sm"
                 className="w-full"
-                onClick={() => setWeights(DEFAULT_SCORE_WEIGHTS)}
+                onClick={() => reset()}
               >
                 Restaurar padrão
               </Button>
