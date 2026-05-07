@@ -10,6 +10,7 @@ import { devInfraGate } from '@/lib/system/dev-gate/DevInfraGate';
 export function useDevGate() {
   const { roles, isDev, isLoading } = useAuth();
   const [mounted, setMounted] = useState(false);
+  const safeRoles = Array.isArray(roles) ? roles : [];
 
   useEffect(() => {
     setMounted(true);
@@ -17,8 +18,8 @@ export function useDevGate() {
   
   // Otimização: Estabilizamos a referência das roles usando uma stringificação leve.
   // Isso evita que o hook dispare re-renders se o AuthContext retornar uma nova instância de array com os mesmos dados.
-  const rolesKey = roles.join(',');
-  const stableRoles = useMemo(() => roles, [rolesKey]);
+  const rolesKey = safeRoles.join(',');
+  const stableRoles = useMemo(() => safeRoles, [rolesKey]);
 
   const isAllowedStore = useSyncExternalStore(
     (onStoreChange) => devInfraGate.subscribe(onStoreChange),
