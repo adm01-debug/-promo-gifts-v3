@@ -16,10 +16,148 @@ import { cn } from "@/lib/utils";
 import { selectCrm, searchCrm } from "@/lib/crm-db";
 import { getCompanyDisplayName, type CrmCompany } from "@/types/crm";
 import { useSellerCartContext, type CreateCartInput } from "@/contexts/SellerCartContext";
-import { AvatarLogo } from "@/components/shared/AvatarLogo";
 
 interface CompanyItem {
-// ... keep existing code
+  id: string;
+  name: string;
+  razao_social: string;
+  nome_fantasia: string | null;
+  ramo: string | null;
+  logo_url: string | null;
+}
+
+const RECENT_KEY = "cart-companies-recent";
+const FAV_KEY = "cart-companies-favorites";
+const MAX_RECENT = 5;
+
+function readList(key: string): CompanyItem[] {
+  try { return JSON.parse(localStorage.getItem(key) || "[]"); } catch { return []; }
+}
+function writeList(key: string, list: CompanyItem[]) {
+  try { localStorage.setItem(key, JSON.stringify(list)); } catch { /* ignore */ }
+}
+
+interface CartCompanyPickerDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onCreated?: () => void;
+}
+
+export function CartCompanyPickerDialog({ open, onOpenChange, onCreated }: CartCompanyPickerDialogProps) {
+  const [tab, setTab] = useState<"recent" | "favorites" | "search">("recent");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [recents, setRecents] = useState<CompanyItem[]>(() => readList(RECENT_KEY));
+  const [favorites, setFavorites] = useState<CompanyItem[]>(() => readList(FAV_KEY));
+  const inputRef = useRef<HTMLInputElement>(null);
+  const { createCart, canCreateCart } = useSellerCartContext();
+
+  useEffect(() => {
+    if (!open) return;
+    setRecents(readList(RECENT_KEY));
+    setFavorites(readList(FAV_KEY));
+    // Sempre abre na aba "Todas" (busca) para o usuário poder digitar imediatamente.
+    setTab("search");
+    // Aguarda a aba "search" montar para garantir que inputRef.current exista.
+    const t = setTimeout(() => {
+      inputRef.current?.focus();
+      inputRef.current?.select();
+    }, 120);
+    return () => clearTimeout(t);
+  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchTerm), 280);
+    return () => clearTimeout(t);
+  }, [searchTerm]);
+
+  const { data: localCompanies = [], isLoading: loadingLocal } = useQuery({
+    queryKey: ["cart-companies-local"],
+    queryFn: async () => {
+      const companies = await selectCrm<CrmCompany>("companies", {
+        select: "id, razao_social, nome_fantasia, logo_url, ramo_atividade",
+        filters: { deleted_at: null, is_customer: true },
+        orderBy: { column: "razao_social", ascending: true },
+        limit: 200,
+      });
+      return companies.map((c): CompanyItem => ({
+        id: c.id,
+        name: getCompanyDisplayName(c),
+        razao_social: c.razao_social,
+        nome_fantasia: c.nome_fantasia || null,
+        ramo: c.ramo_atividade || null,
+        logo_url: c.logo_url || null,
+      }));
+    },
+    staleTime: 15 * 60 * 1000,
+    enabled: open,
+  });
+
+  const { data: serverResults = [], isLoading: loadingServer } = useQuery({
+    queryKey: ["cart-companies-search", debouncedSearch],
+    queryFn: async () => {
+      if (debouncedSearch.length < 3) return [];
+      const results = await searchCrm<CrmCompany>("companies", "razao_social", debouncedSearch, {
+        orderBy: { column: "razao_social", ascending: true },
+        limit: 30,
+      });
+      return results.map((c): CompanyItem => ({
+        id: c.id,
+        name: getCompanyDisplayName(c),
+        razao_social: c.razao_social,
+        nome_fantasia: c.nome_fantasia || null,
+        ramo: c.ramo_atividade || null,
+        logo_url: c.logo_url || null,
+      }));
+    },
+    enabled: open && debouncedSearch.length >= 3,
+  });
+
+  const fuse = useMemo(() =>
+    new Fuse(localCompanies, { keys: ["name", "razao_social", "nome_fantasia"], threshold: 0.4 })
+  , [localCompanies]);
+
+  const filteredCompanies = useMemo(() => {
+    if (!searchTerm) return localCompanies.slice(0, 30);
+    const localMatches = fuse.search(searchTerm).map(r => r.item);
+    const ids = new Set(localMatches.map(c => c.id));
+    const merged = [...localMatches];
+    for (const sr of serverResults) if (!ids.has(sr.id)) { merged.push(sr); ids.add(sr.id); }
+    return merged.slice(0, 40);
+  }, [searchTerm, fuse, localCompanies, serverResults]);
+
+  const isFavorite = useCallback((id: string) => favorites.some(f => f.id === id), [favorites]);
+
+  const toggleFavorite = useCallback((company: CompanyItem, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setFavorites(prev => {
+      const next = prev.some(f => f.id === company.id)
+        ? prev.filter(f => f.id !== company.id)
+        : [company, ...prev].slice(0, 20);
+      writeList(FAV_KEY, next);
+      return next;
+    });
+  }, []);
+
+  const handleSelect = useCallback(async (company: CompanyItem) => {
+    const input: CreateCartInput = {
+      company_id: company.id,
+      company_name: company.name,
+      company_location: company.ramo || undefined,
+      company_logo_url: company.logo_url || undefined,
+    };
+    const result = await createCart(input);
+    if (result) {
+      const nextRecents = [company, ...recents.filter(r => r.id !== company.id)].slice(0, MAX_RECENT);
+      writeList(RECENT_KEY, nextRecents);
+      setRecents(nextRecents);
+      onCreated?.();
+      onOpenChange(false);
+    }
+  }, [createCart, onCreated, onOpenChange, recents]);
+
+  const isLoading = loadingLocal || loadingServer;
+
   const renderRow = (company: CompanyItem) => (
     <button
       key={company.id}
@@ -33,7 +171,13 @@ interface CompanyItem {
       onClick={() => handleSelect(company)}
       disabled={!canCreateCart}
     >
-      <AvatarLogo name={company.name} logoUrl={company.logo_url} size="lg" />
+      {company.logo_url ? (
+        <img src={company.logo_url} alt="" className="w-9 h-9 rounded-full object-cover bg-background border border-border/40 flex-shrink-0" loading="lazy" />
+      ) : (
+        <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+          <Building2 className="h-4 w-4 text-muted-foreground" />
+        </div>
+      )}
       <div className="min-w-0 flex-1">
         <p className="text-sm font-medium truncate">{company.name}</p>
         {company.ramo && <p className="text-[11px] text-muted-foreground truncate">{company.ramo}</p>}
