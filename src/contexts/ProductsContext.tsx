@@ -169,10 +169,11 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
   const products = useMemo(() => [...cache.values()], [cache]);
 
   return (
-    <ProductsContext.Provider value={{ products, isLoading, getProductById, getProductsByIds, registerProducts }}>
+    <ProductsContext.Provider key={key} value={{ products, isLoading, getProductById, getProductsByIds, registerProducts }}>
       {children}
     </ProductsContext.Provider>
   );
+
 }
 
 /**
