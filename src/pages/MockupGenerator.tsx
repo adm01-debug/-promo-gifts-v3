@@ -134,10 +134,13 @@ export default function MockupGenerator() {
     const mockupUrl = mg.lastSavedMockupUrl || mg.generatedMockup || "";
     if (!mockupUrl) return null;
 
-    const now = new Date();
-    const dateStr = now.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
-    const docNumber = `MK-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}-${String(now.getHours()).padStart(2, "0")}${String(now.getMinutes()).padStart(2, "0")}`;
+    // recordId é estável por captura → derivamos data/numeroDoc dele para manter o memo determinístico
+    const stableSeed = mg.lastSavedRecordId;
+    const seedDate = new Date(parseInt(stableSeed.slice(0, 8), 16) * 1000 || Date.now());
+    const dateStr = seedDate.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
+    const docNumber = `MK-${stableSeed.slice(0, 12).toUpperCase()}`;
 
+    const tech = mg.selectedTechnique as MockupTechnique;
     const approvalData: MockupApprovalData = {
       documentNumber: docNumber,
       date: dateStr,
@@ -162,15 +165,15 @@ export default function MockupGenerator() {
         weightG: mg.selectedProduct.dimensions?.weight_g ?? null,
       },
       personalization: {
-        techniqueName: mg.selectedTechnique.name,
-        techniqueCode: mg.selectedTechnique.code || undefined,
-        locationName: ('locationName' in mg.selectedTechnique ? (mg.selectedTechnique as MockupTechnique).locationName : null) || mg.activeArea?.name || "Frente",
+        techniqueName: tech.name,
+        techniqueCode: tech.code || undefined,
+        locationName: tech.locationName ?? mg.activeArea?.name ?? "Frente",
         widthCm: mg.activeArea?.logoWidth || 0,
         heightCm: mg.activeArea?.logoHeight || 0,
         colorsCount: mg.techniqueColorConfig?.colorCount,
       },
-      pantoneColors: (mg.logoColorAnalysis.colors || []).map((c: any) => ({
-        name: c.selectedPantone || c.pantoneMatch?.name || c.name,
+      pantoneColors: (mg.logoColorAnalysis.colors || []).map((c: { selectedPantone?: string; pantoneMatch?: { name?: string }; name?: string; hex: string }) => ({
+        name: c.selectedPantone || c.pantoneMatch?.name || c.name || "",
         hex: c.hex,
       })),
       mockupImageUrl: mockupUrl,
@@ -178,7 +181,7 @@ export default function MockupGenerator() {
     };
 
     return { data: approvalData, recordId: mg.lastSavedRecordId, userId: user.id };
-  }, [mg.lastSavedRecordId, mg.lastSavedMockupUrl, mg.lastSavedLayoutMode, user?.id, mg.selectedProduct, mg.selectedTechnique, mg.selectedClient, mg.activeArea, mg.generatedMockup, profile, mg.techniqueColorConfig, mg.logoColorAnalysis.colors, mg.productSelection]);
+  }, [mg.lastSavedRecordId, mg.lastSavedMockupUrl, mg.lastSavedLayoutMode, user?.id, mg.selectedProduct, mg.selectedTechnique, mg.selectedClient, mg.activeArea, mg.generatedMockup, profile, mg.techniqueColorConfig, mg.logoColorAnalysis.colors, mg.productSelection, mg]);
 
   const handleLayoutCaptured = useCallback(() => {
     mg.setLastSavedRecordId(null);
