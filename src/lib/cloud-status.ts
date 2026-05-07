@@ -38,7 +38,38 @@ const PROBE_TIMEOUT_MS = 5000; // Increased from 2.5s to 5s to avoid false posit
 
 let cached: CloudStatusSnapshot | null = null;
 let inFlight: Promise<CloudStatusSnapshot> | null = null;
-let consecutiveFailures = 0; // Hysteresis counter
+let consecutiveFailures = 0; 
+
+export interface StatusHistoryEntry {
+  status: CloudStatus;
+  timestamp: number;
+  consecutiveFailures: number;
+}
+
+const HISTORY_KEY = 'lovable_cloud_status_history';
+const MAX_HISTORY_AGE_MS = 24 * 60 * 60 * 1000; // 24h
+
+function getStatusHistory(): StatusHistoryEntry[] {
+  try {
+    const raw = localStorage.getItem(HISTORY_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    const now = Date.now();
+    return parsed.filter((e: StatusHistoryEntry) => now - e.timestamp < MAX_HISTORY_AGE_MS);
+  } catch {
+    return [];
+  }
+}
+
+function saveStatusHistory(entry: StatusHistoryEntry) {
+  const history = getStatusHistory();
+  history.push(entry);
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(-100))); // Keep last 100
+}
+
+export function getStatusTimeline() {
+  return getStatusHistory();
+}
+
 const FAILURE_THRESHOLD = 2; // Need 2 consecutive full failures to go 'down'
 
 const target: EventTarget = typeof EventTarget !== 'undefined' ? new EventTarget() : ({
