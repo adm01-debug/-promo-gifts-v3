@@ -29,18 +29,29 @@ export function OffscreenLayoutCapture({ request, onCaptured }: OffscreenLayoutC
   const [isCapturing, setIsCapturing] = useState(false);
   const processedRef = useRef<string | null>(null);
   const mountedRef = useRef(true);
+  const captureCountRef = useRef<Record<string, number>>({});
 
-  // Track mount state and reset processedRef on unmount
+  // Reset counters on unmount
   useEffect(() => {
     mountedRef.current = true;
     return () => {
       mountedRef.current = false;
       processedRef.current = null;
+      captureCountRef.current = {};
     };
   }, []);
 
   useEffect(() => {
     if (!request || isCapturing || processedRef.current === request.recordId) return;
+
+    // Trava de loop: impede mais de 3 tentativas para o mesmo recordId
+    const count = (captureCountRef.current[request.recordId] || 0) + 1;
+    captureCountRef.current[request.recordId] = count;
+    
+    if (count > 3) {
+      logger.error("Loop de captura detectado para o record:", { recordId: request.recordId, attempts: count });
+      return;
+    }
 
     const capture = async () => {
       // Wait for template to render
