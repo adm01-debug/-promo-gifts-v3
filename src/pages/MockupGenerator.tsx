@@ -285,7 +285,13 @@ export default function MockupGenerator() {
                   onAreasChange={mg.setPersonalizationAreas}
                   onActiveAreaChange={mg.setActiveAreaId}
                   onLogoUpload={mg.handleAreaLogoUpload}
-                   onLogoRemove={() => mg.logoColorAnalysis.clearAnalysis()}
+                   onLogoRemove={() => {
+                     mg.logoColorAnalysis.clearAnalysis();
+                     if (mg.activeArea) {
+                       mg.updateActiveArea({ logoPreview: null, logoFile: null });
+                     }
+                     mg.setGeneratedMockup(null);
+                   }}
                    productLocations={mg.productLocations}
                    logoColorAnalysis={mg.logoColorAnalysis}
                    artAttachments={mg.artAttachments}
