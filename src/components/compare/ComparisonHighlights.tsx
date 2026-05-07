@@ -114,16 +114,16 @@ function HighlightCell({
 
   const styles = {
     best: {
-      bg: "bg-amber-400/10 border-amber-400/30",
-      text: "text-amber-600 dark:text-amber-400 font-bold",
+      bg: "bg-success/10 border-success/30",
+      text: "text-success font-semibold",
       icon: Crown,
-      tooltip: "Melhor performance técnica",
+      tooltip: "Melhor valor",
     },
     worst: {
       bg: "bg-destructive/10 border-destructive/30",
-      text: "text-destructive font-medium",
+      text: "text-destructive",
       icon: AlertTriangle,
-      tooltip: "Ponto de atenção técnica",
+      tooltip: "Valor mais alto",
     },
     neutral: {
       bg: "bg-muted/50 border-border",
@@ -154,7 +154,7 @@ function HighlightCell({
               {formatValue(value)}
             </span>
             {type === "best" && diff === 0 && (
-              <TrendingUp className="h-3 w-3 text-amber-500 animate-bounce" />
+              <TrendingUp className="h-3 w-3 text-success" />
             )}
             {type !== "best" && diff > 0 && (
               <span className="text-[11px] text-muted-foreground">
@@ -218,7 +218,7 @@ export function useComparisonHighlight(
  * CSS classes for inline highlighting
  */
 export const highlightClasses = {
-  best: "bg-amber-400/10 text-amber-600 dark:text-amber-400 font-bold border-l-2 border-l-amber-500",
-  worst: "bg-destructive/10 text-destructive border-l-2 border-l-destructive/50",
+  best: "bg-success/10 text-success font-semibold border-l-2 border-l-success",
+  worst: "bg-destructive/10 text-destructive border-l-2 border-l-destructive",
   neutral: "",
 } as const;

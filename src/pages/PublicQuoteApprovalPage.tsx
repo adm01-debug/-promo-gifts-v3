@@ -170,7 +170,7 @@ export default function PublicQuoteApprovalPage() {
         )}
 
         {/* Response Section with Electronic Signature */}
-        <Card className="border-2 border-[#3B82F6]/30 bg-[#3B82F6]/[0.03] shadow-lg shadow-primary/5">
+        <Card className="border-2 border-[#3B82F6]/30 bg-[#3B82F6]/[0.03] shadow-lg shadow-blue-500/5">
           <CardHeader className="pb-3">
             <CardTitle className="text-lg flex items-center gap-2 text-foreground">
               <ShieldCheck className="h-5 w-5 text-[#3B82F6]" />
@@ -231,7 +231,7 @@ export default function PublicQuoteApprovalPage() {
               <Button
                 onClick={() => state.handleResponse("approved")}
                 disabled={state.isSubmitting}
-                className="flex-1 h-12 text-base bg-[#3B82F6] hover:bg-[#2563EB] text-white shadow-lg shadow-primary/20"
+                className="flex-1 h-12 text-base bg-[#3B82F6] hover:bg-[#2563EB] text-white shadow-lg shadow-blue-500/20"
               >
                 {state.isSubmitting ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <CheckCircle className="h-5 w-5 mr-2" />}
                 Aprovar e Assinar

@@ -1,19 +1,15 @@
 import { useNavigate } from "react-router-dom";
-import { Building2, CalendarClock, GitCompare, LayoutGrid } from "lucide-react";
+import { Building2, CalendarClock, GitCompare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { getSupplierColors } from "@/lib/supplier-colors";
-import { useComparisonStore } from "@/stores/useComparisonStore";
-import { toast } from "sonner";
 
 interface ProductInfoBarProps {
   sku: string;
   supplierName: string;
   supplierId?: string;
-  productId?: string;
-  productName?: string;
   onOpenFutureStock: () => void;
   onOpenSupplierComparison: () => void;
   hasFutureStock?: boolean;
@@ -23,37 +19,15 @@ export function ProductInfoBar({
   sku,
   supplierName,
   supplierId,
-  productId,
-  productName,
   onOpenFutureStock,
   onOpenSupplierComparison,
   hasFutureStock = true,
 }: ProductInfoBarProps) {
   const navigate = useNavigate();
-  const { addToCompare, isInCompare, compareCount } = useComparisonStore();
 
   const handleSupplierClick = () => {
     if (supplierId) {
       navigate(`/filtros?supplier=${supplierId}`);
-    }
-  };
-
-  const handleToggleCompare = () => {
-    if (!productId) return;
-    const added = addToCompare(productId);
-    if (added) {
-      toast.success(`${productName || "Produto"} adicionado ao comparador`, {
-        action: {
-          label: "Ver agora",
-          onClick: () => navigate("/comparar"),
-        },
-      });
-    } else {
-      if (isInCompare(productId)) {
-        toast.info("Produto já está na lista de comparação");
-      } else {
-        toast.error("Limite de produtos atingido (máx 12)");
-      }
     }
   };
   return (
@@ -126,28 +100,6 @@ export function ProductInfoBar({
         </TooltipTrigger>
         <TooltipContent>
           Ver mesmo produto em outros fornecedores
-        </TooltipContent>
-      </Tooltip>
-      {/* Botão Comparar Produto (Zustand Store) */}
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant={productId && isInCompare(productId) ? "default" : "outline"}
-            size="sm"
-            onClick={handleToggleCompare}
-            className={cn(
-              "rounded-full h-8 px-3 text-xs gap-1.5 transition-all duration-300",
-              productId && isInCompare(productId) && "bg-amber-500 hover:bg-amber-600 border-none shadow-md shadow-orange/20"
-            )}
-          >
-            <LayoutGrid className={cn("h-3.5 w-3.5", productId && isInCompare(productId) ? "text-white" : "text-primary")} />
-            {productId && isInCompare(productId) ? "No Comparador" : "Adicionar à Arena"}
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>
-          {productId && isInCompare(productId) 
-            ? "Produto já está na Arena de Comparação" 
-            : "Enviar para comparação técnica (Score, Radar e Duelo)"}
         </TooltipContent>
       </Tooltip>
     </div>

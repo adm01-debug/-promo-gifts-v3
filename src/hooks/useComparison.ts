@@ -3,7 +3,7 @@ import { type Product } from "@/hooks/useProducts";
 import { useProductAnalytics } from "@/hooks/useProductAnalytics";
 
 const STORAGE_KEY = "product-comparison";
-const MAX_COMPARE_ITEMS = 12; // Alinhado com useComparisonStore para suporte a volume 10/10
+const MAX_COMPARE_ITEMS = 4;
 
 interface UseComparisonOptions {
   onProductAdded?: () => void;

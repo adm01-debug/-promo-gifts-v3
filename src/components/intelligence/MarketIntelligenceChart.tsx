@@ -187,7 +187,7 @@ export function MarketIntelligenceChart({ days: defaultDays = 30, supplierId, pr
           <div>
             <CardTitle className="text-base flex items-center gap-2">
               <Target className="h-4 w-4" aria-hidden="true" />
-              Inteligência Comercial
+              Inteligência de Mercado
             </CardTitle>
             <CardDescription className="mt-1">
               Como o mercado está comprando · visão macro · {days} dias

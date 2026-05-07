@@ -10,8 +10,7 @@ import type { TechniqueColorConfig } from "../techniqueColorUtils";
  */
 export function useLogoProcessing(
   logoPreview: string | null,
-  techniqueColorConfig?: TechniqueColorConfig | null,
-  overrides?: { whiteThreshold?: number; alphaThreshold?: number }
+  techniqueColorConfig?: TechniqueColorConfig | null
 ) {
   const [processedLogoUrl, setProcessedLogoUrl] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -33,7 +32,7 @@ export function useLogoProcessing(
 
     if (isLaser) {
       const tone = techniqueColorConfig?.laserTone || "escuro";
-      promise = processLogoForLaser(logoPreview, tone, overrides);
+      promise = processLogoForLaser(logoPreview, tone);
     } else {
       const selectedColors = techniqueColorConfig?.selectedColors || [];
       if (selectedColors.length === 0) {
@@ -50,7 +49,7 @@ export function useLogoProcessing(
       .finally(() => { if (!cancelled) setIsProcessing(false); });
 
     return () => { cancelled = true; };
-  }, [logoPreview, techniqueColorConfig?.category, techniqueColorConfig?.laserTone, techniqueColorConfig?.selectedColors, overrides?.whiteThreshold, overrides?.alphaThreshold]);
+  }, [logoPreview, techniqueColorConfig?.category, techniqueColorConfig?.laserTone, techniqueColorConfig?.selectedColors]);
 
   return { processedLogoUrl, isProcessing };
 }

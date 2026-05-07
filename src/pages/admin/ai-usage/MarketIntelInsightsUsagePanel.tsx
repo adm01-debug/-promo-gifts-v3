@@ -76,7 +76,7 @@ export function MarketIntelInsightsUsagePanel() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
           <Brain className="h-4 w-4 text-primary" />
-          Insights da IA — Inteligência Comercial
+          Insights da IA — Inteligência de Mercado
         </CardTitle>
         <CardDescription>Telemetria dos últimos 30 dias da edge function `market-intelligence-insights`.</CardDescription>
       </CardHeader>

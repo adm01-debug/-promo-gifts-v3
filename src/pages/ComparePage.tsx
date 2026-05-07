@@ -21,8 +21,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { GitCompare, X, ArrowLeft, Share2, Image as ImageIcon, List, Filter, FileText, Building2, Swords, Trash2, Loader2, Sparkles } from "lucide-react";
-import { toast } from "sonner";
+import { GitCompare, X, ArrowLeft, Share2, Image as ImageIcon, List, Filter, FileText, Building2, Swords } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SyncedZoomGallery } from "@/components/compare/SyncedZoomGallery";
 import { CompareTableView } from "@/components/compare/CompareTableView";
@@ -36,7 +35,6 @@ import { ComparisonMobileView } from "@/components/compare/ComparisonMobileView"
 import { ComparisonPresentationLauncher } from "@/components/compare/ComparisonPresentationLauncher";
 import { SimilarProductsRail } from "@/components/compare/SimilarProductsRail";
 import { CompareEmptyStateSmart } from "@/components/compare/CompareEmptyStateSmart";
-import { ComparisonSummaryDashboard } from "@/components/compare/ComparisonSummaryDashboard";
 import { RecentComparisonsSidebar } from "@/components/compare/RecentComparisonsSidebar";
 import { FavoritesClientPicker } from "@/components/favorites/FavoritesClientPicker";
 import { useComparisonSync } from "@/hooks/useComparisonSync";
@@ -49,10 +47,9 @@ export default function ComparePage() {
   const [duelMode, setDuelMode] = useState(true);
   const [showRadar, setShowRadar] = useState(true);
   const [shareOpen, setShareOpen] = useState(false);
-  const [isMockLoading, setIsMockLoading] = useState(false);
   const [client, setClient] = useState<{ id: string; name: string } | null>(null);
   const [ariaMessage, setAriaMessage] = useState("");
-  const { compareItems, removeByIndex, clearCompare, compareCount, addToCompare } = useComparisonStore();
+  const { compareItems, removeByIndex, clearCompare, compareCount } = useComparisonStore();
   const { getProductsByIds, products: _cacheSignal } = useProductsContext();
 
   // Track previous count for ARIA-live announcements
@@ -112,75 +109,11 @@ export default function ComparePage() {
 
   // Empty state with smart suggestions
   if (compareCount < 2) {
-    const handleLoadMocks = async (ids: string[]) => {
-      setIsMockLoading(true);
-      toast.loading(`Iniciando simulação com ${ids.length} itens...`, { id: "mock-loading" });
-      
-      try {
-        await new Promise(resolve => setTimeout(resolve, 800));
-        
-        let addedCount = 0;
-        let skippedCount = 0;
-        let limitReached = false;
-        
-        for (const id of ids) {
-          if (compareItems.length + addedCount >= 12) {
-            limitReached = true;
-            break;
-          }
-          if (addToCompare(id)) {
-            addedCount++;
-          } else {
-            skippedCount++;
-          }
-        }
-        
-        if (limitReached) {
-          toast.warning(`Limite de 12 itens atingido. ${addedCount} adicionados.`, { id: "mock-loading" });
-        } else if (addedCount > 0) {
-          toast.success(`Simulação concluída: ${addedCount} itens na Arena${skippedCount > 0 ? ` (${skippedCount} duplicados ignorados)` : ""}`, { id: "mock-loading" });
-        } else {
-          toast.info("Todos os itens já estavam na Arena", { id: "mock-loading" });
-        }
-      } catch (error) {
-        toast.error("Erro na simulação técnica", { id: "mock-loading" });
-      } finally {
-        setIsMockLoading(false);
-      }
-    };
-
     return (
       <>
         <PageSEO title="Comparar Produtos" description="Compare brindes lado a lado." path="/comparar"
           jsonLd={{ "@context": "https://schema.org", "@type": "WebPage", "name": "Comparar Produtos", "url": "https://criar-together-now.lovable.app/comparar" }} />
         <CompareEmptyStateSmart />
-        <div className="flex flex-col items-center gap-4 pb-20">
-          <div className="flex flex-wrap justify-center gap-3">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              disabled={isMockLoading}
-              className="gap-2 border-amber-500/30 hover:border-amber-500 bg-amber-500/5 font-black uppercase text-[10px] tracking-widest"
-              onClick={() => handleLoadMocks(["26462", "26463", "26464"])}
-            >
-              {isMockLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3 text-amber-500" />}
-              Arena Rápida (3 Itens)
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              disabled={isMockLoading}
-              className="gap-2 border-amber-500/30 hover:border-amber-500 bg-amber-500/5 font-black uppercase text-[10px] tracking-widest"
-              onClick={() => handleLoadMocks(["26462", "26463", "26464", "26465", "26466", "26467", "26468", "26469", "26470", "26471", "26472", "26473"])}
-            >
-              {isMockLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <List className="h-3 w-3 text-amber-500" />}
-              Arena Total (12 Itens)
-            </Button>
-          </div>
-          <p className="text-[10px] text-amber-600/50 uppercase tracking-[0.2em] font-black">
-            Laboratório de Engenharia / 10.10 Final
-          </p>
-        </div>
       </>
     );
   }
@@ -222,9 +155,9 @@ export default function ComparePage() {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <PopoverTrigger asChild>
-                    <Button variant={client ? "default" : "outline"} size="sm" className={cn(client && "bg-amber-500 hover:bg-amber-600 border-none")}>
+                    <Button variant={client ? "default" : "outline"} size="sm">
                       <Building2 className="h-4 w-4 mr-2" />
-                      {client ? client.name.slice(0, 22) : "Vincular Cliente"}
+                      {client ? client.name.slice(0, 22) : "Cliente CRM"}
                     </Button>
                   </PopoverTrigger>
                 </TooltipTrigger>
@@ -248,10 +181,9 @@ export default function ComparePage() {
                     size="sm"
                     onClick={() => setDifferencesOnly(v => !v)}
                     aria-pressed={differencesOnly}
-                    className={cn(differencesOnly && "bg-amber-500 hover:bg-amber-600 border-none")}
                   >
                     <Filter className="h-4 w-4 mr-2" />
-                    {differencesOnly ? "Confronto Ativo" : "Só Diferenças"}
+                    {differencesOnly ? "Mostrando diferenças" : "Só diferenças"}
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Destacar apenas atributos diferentes entre os produtos <kbd className="ml-1 px-1 py-0.5 rounded bg-primary-foreground/20 text-primary-foreground text-[10px] font-mono">D</kbd></TooltipContent>
@@ -260,9 +192,9 @@ export default function ComparePage() {
             <TooltipProvider >
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="default" size="sm" onClick={handleCreateQuote} className="bg-amber-500 hover:bg-amber-600 border-none font-bold">
+                  <Button variant="default" size="sm" onClick={handleCreateQuote}>
                     <FileText className="h-4 w-4 mr-2" />
-                    Gerar Orçamento
+                    Criar orçamento
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Enviar produtos comparados para novo orçamento</TooltipContent>
@@ -283,14 +215,7 @@ export default function ComparePage() {
             <TooltipProvider >
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="outline" size="sm" onClick={() => { 
-                    clearCompare(); 
-                    toast.success("Comparação limpa");
-                    navigate("/comparar"); 
-                  }} className="text-destructive hover:bg-destructive/10 border-destructive/20">
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Limpar Tudo
-                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => { clearCompare(); navigate("/"); }}>Limpar</Button>
                 </TooltipTrigger>
                 <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Remover todos os produtos da comparação</TooltipContent>
               </Tooltip>
@@ -308,9 +233,6 @@ export default function ComparePage() {
 
         {/* Desktop view (>=768px) */}
         <div className="hidden md:block space-y-4">
-          {/* Resumo Técnico (Dashboard Mock/Demo) */}
-          <ComparisonSummaryDashboard products={products} />
-
           {/* Score + Radar */}
           <div className={cn("grid grid-cols-1 gap-4", showRadar && "lg:grid-cols-2")}>
             <ComparisonScoreCard products={products} />

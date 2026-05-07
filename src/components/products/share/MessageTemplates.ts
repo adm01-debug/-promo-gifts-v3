@@ -10,15 +10,7 @@ export interface MessageTemplate {
 }
 
 const formatPrice = (price: number) =>
-  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(price ?? 0);
-
-const getColorsLabel = (product: Product): string => {
-  const list = Array.isArray(product?.colors) ? product.colors : [];
-  const names = list
-    .map((c) => (typeof c === "string" ? c : c?.name))
-    .filter((n): n is string => !!n && n.trim().length > 0);
-  return names.length > 0 ? names.join(", ") : "Diversas opções";
-};
+  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(price);
 
 export const MESSAGE_TEMPLATES: MessageTemplate[] = [
   {
@@ -26,7 +18,7 @@ export const MESSAGE_TEMPLATES: MessageTemplate[] = [
     label: "Formal",
     description: "Linguagem profissional para clientes corporativos",
     generate: (product) => {
-      const colors = getColorsLabel(product);
+      const colors = product.colors.map((c) => c.name).join(", ");
       return `Prezado(a),
 
 Segue informações sobre o produto solicitado:
@@ -52,7 +44,7 @@ Promo Brindes`;
     label: "Informal",
     description: "Tom descontraído e direto",
     generate: (product) => {
-      const colors = getColorsLabel(product);
+      const colors = product.colors.map((c) => c.name).join(", ");
       return `Oi! 😊
 
 Olha esse produto que separei pra você:
@@ -74,7 +66,7 @@ Promo Brindes - Brindes com Excelência!`;
     label: "Promoção",
     description: "Destaque urgência e benefícios",
     generate: (product) => {
-      const colors = getColorsLabel(product);
+      const colors = product.colors.map((c) => c.name).join(", ");
       return `🔥 *OPORTUNIDADE ESPECIAL* 🔥
 
 *${product.name}*

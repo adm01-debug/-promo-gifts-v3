@@ -97,7 +97,7 @@ export function useQuoteBuilderState() {
   const isEditMode = Boolean(quoteId);
 
   const { user } = useAuth();
-  const { createQuote, updateQuote, fetchQuote, techniques, isLoading: quotesLoading, saveDraft } = useQuotes();
+  const { createQuote, updateQuote, fetchQuote, techniques, isLoading: quotesLoading } = useQuotes();
   const { templates } = useQuoteTemplates();
   const { myLimit: maxDiscountPercent } = useSellerDiscountLimits();
   const { requestApproval } = useDiscountApproval();
@@ -165,7 +165,6 @@ export function useQuoteBuilderState() {
       paymentTerms, deliveryTime, shippingType, shippingCost,
       notes, internalNotes, validUntil
     },
-    onSaveServer: saveDraft,
     onRestore: (saved) => {
       // Exemplo: Restaurar campos se o usuário desejar ou automaticamente
       // Para evitar sobrescrever um carregamento de rascunho real (via URL),

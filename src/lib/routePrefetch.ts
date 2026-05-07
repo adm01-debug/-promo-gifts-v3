@@ -23,8 +23,6 @@ const routeImportMap: Record<string, () => Promise<unknown>> = {
   '/simulador-precos': () => import('@/pages/PriceSimulatorPage'),
   '/estoque': () => import('@/pages/StockDashboardPage'),
   '/mockup': () => import('@/pages/MockupGenerator'),
-  '/mockup-generator': () => import('@/pages/MockupGenerator'),
-  '/ferramentas/mockup': () => import('@/pages/MockupGenerator'),
   '/magic-up': () => import('@/pages/MagicUp'),
   '/kits': () => import('@/pages/KitBuilderPage'),
   '/meus-kits': () => import('@/pages/KitLibraryPage'),
@@ -32,7 +30,7 @@ const routeImportMap: Record<string, () => Promise<unknown>> = {
   
   '/tendencias': () => import('@/pages/TrendsPage'),
   '/busca-precos': () => import('@/pages/AdvancedPriceSearchPage'),
-  '/ferramentas/bi-comercial': () => import('@/pages/CommercialIntelligencePage'),
+  '/inteligencia-comercial': () => import('@/pages/CommercialIntelligencePage'),
 };
 
 const prefetched = new Set<string>();

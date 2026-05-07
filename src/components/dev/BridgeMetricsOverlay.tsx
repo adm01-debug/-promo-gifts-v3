@@ -20,8 +20,10 @@ import type { BridgeCallSample } from '@/lib/telemetry/bridgeCallMetrics';
 import type { LongTaskEvent } from '@/lib/telemetry/longTaskWatchdog';
 
 export default function BridgeMetricsOverlay() {
-  // Segue "Rules of Hooks": chamamos hooks antes de qualquer early-return.
-  // Isso evita erros de re-render quando isAllowed muda de estado.
+  // ⚠️ Rules of Hooks: TODOS os hooks devem ser chamados antes de qualquer
+  // early-return. Caso contrário, mudanças em `isAllowed` (ex: AuthContext
+  // resolvendo role `dev` após RLS desbloqueada) provocam
+  // "Rendered more hooks than during the previous render" e crash global.
   const { isAllowed } = useDevGate();
 
   const {

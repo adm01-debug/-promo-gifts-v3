@@ -14,42 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      access_security_settings: {
-        Row: {
-          block_unknown_locations: boolean | null
-          city_whitelist_enabled: boolean | null
-          created_at: string | null
-          id: string
-          ip_whitelist_enabled: boolean | null
-          lockout_duration_minutes: number | null
-          max_failed_attempts: number | null
-          strict_access_mode: boolean | null
-          updated_at: string | null
-        }
-        Insert: {
-          block_unknown_locations?: boolean | null
-          city_whitelist_enabled?: boolean | null
-          created_at?: string | null
-          id?: string
-          ip_whitelist_enabled?: boolean | null
-          lockout_duration_minutes?: number | null
-          max_failed_attempts?: number | null
-          strict_access_mode?: boolean | null
-          updated_at?: string | null
-        }
-        Update: {
-          block_unknown_locations?: boolean | null
-          city_whitelist_enabled?: boolean | null
-          created_at?: string | null
-          id?: string
-          ip_whitelist_enabled?: boolean | null
-          lockout_duration_minutes?: number | null
-          max_failed_attempts?: number | null
-          strict_access_mode?: boolean | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       admin_audit_log: {
         Row: {
           action: string
@@ -794,121 +758,6 @@ export type Database = {
           },
         ]
       }
-      conversation_audit_logs: {
-        Row: {
-          client_info: Json | null
-          ended_at: string | null
-          id: string
-          metadata: Json | null
-          session_id: string
-          started_at: string
-          status: string
-          total_tokens_estimated: number | null
-          user_id: string
-        }
-        Insert: {
-          client_info?: Json | null
-          ended_at?: string | null
-          id?: string
-          metadata?: Json | null
-          session_id: string
-          started_at?: string
-          status?: string
-          total_tokens_estimated?: number | null
-          user_id: string
-        }
-        Update: {
-          client_info?: Json | null
-          ended_at?: string | null
-          id?: string
-          metadata?: Json | null
-          session_id?: string
-          started_at?: string
-          status?: string
-          total_tokens_estimated?: number | null
-          user_id?: string
-        }
-        Relationships: []
-      }
-      conversation_delivery_status: {
-        Row: {
-          error_details: string | null
-          event_id: string
-          id: string
-          status: string
-          updated_at: string
-        }
-        Insert: {
-          error_details?: string | null
-          event_id: string
-          id?: string
-          status?: string
-          updated_at?: string
-        }
-        Update: {
-          error_details?: string | null
-          event_id?: string
-          id?: string
-          status?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "conversation_delivery_status_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "conversation_event_history"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      conversation_event_history: {
-        Row: {
-          content: string | null
-          conversation_id: string
-          created_at: string
-          event_type: Database["public"]["Enums"]["conversation_event_type"]
-          id: string
-          media_metadata: Json | null
-          media_url: string | null
-          request_id: string | null
-          role: string
-          tokens_estimated: number | null
-        }
-        Insert: {
-          content?: string | null
-          conversation_id: string
-          created_at?: string
-          event_type?: Database["public"]["Enums"]["conversation_event_type"]
-          id?: string
-          media_metadata?: Json | null
-          media_url?: string | null
-          request_id?: string | null
-          role: string
-          tokens_estimated?: number | null
-        }
-        Update: {
-          content?: string | null
-          conversation_id?: string
-          created_at?: string
-          event_type?: Database["public"]["Enums"]["conversation_event_type"]
-          id?: string
-          media_metadata?: Json | null
-          media_url?: string | null
-          request_id?: string | null
-          role?: string
-          tokens_estimated?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "conversation_event_history_conversation_id_fkey"
-            columns: ["conversation_id"]
-            isOneToOne: false
-            referencedRelation: "conversation_audit_logs"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       custom_kits: {
         Row: {
           box_data: Json | null
@@ -1647,33 +1496,6 @@ export type Database = {
           seller_id?: string
           technique_id?: string | null
           technique_name?: string | null
-        }
-        Relationships: []
-      }
-      geo_allowed_countries: {
-        Row: {
-          country_code: string
-          country_name: string
-          created_at: string | null
-          created_by: string | null
-          id: string
-          is_active: boolean | null
-        }
-        Insert: {
-          country_code: string
-          country_name: string
-          created_at?: string | null
-          created_by?: string | null
-          id?: string
-          is_active?: boolean | null
-        }
-        Update: {
-          country_code?: string
-          country_name?: string
-          created_at?: string | null
-          created_by?: string | null
-          id?: string
-          is_active?: boolean | null
         }
         Relationships: []
       }
@@ -3936,27 +3758,6 @@ export type Database = {
           },
         ]
       }
-      quote_drafts: {
-        Row: {
-          data: Json
-          id: string
-          last_saved_at: string | null
-          user_id: string
-        }
-        Insert: {
-          data: Json
-          id?: string
-          last_saved_at?: string | null
-          user_id: string
-        }
-        Update: {
-          data?: Json
-          id?: string
-          last_saved_at?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
       quote_history: {
         Row: {
           action: string
@@ -5669,15 +5470,6 @@ export type Database = {
         }
         Returns: string
       }
-      fn_check_geo_access: {
-        Args: { p_country_code: string }
-        Returns: boolean
-      }
-      fn_create_quote_v3: {
-        Args: { p_items_data: Json; p_quote_data: Json }
-        Returns: Json
-      }
-      fn_save_quote_draft: { Args: { p_data: Json }; Returns: string }
       get_app_health_summary: { Args: { _minutes?: number }; Returns: Json }
       get_auto_test_job_status: {
         Args: { _limit?: number }
@@ -6090,13 +5882,6 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "manager" | "vendedor" | "supervisor" | "dev"
-      conversation_event_type:
-        | "text"
-        | "image"
-        | "file"
-        | "system"
-        | "tool_call"
-        | "tool_result"
       org_role: "owner" | "admin" | "member"
       role_migration_item_status:
         | "pending"
@@ -6248,14 +6033,6 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "manager", "vendedor", "supervisor", "dev"],
-      conversation_event_type: [
-        "text",
-        "image",
-        "file",
-        "system",
-        "tool_call",
-        "tool_result",
-      ],
       org_role: ["owner", "admin", "member"],
       role_migration_item_status: [
         "pending",

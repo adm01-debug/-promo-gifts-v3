@@ -3,7 +3,7 @@
  * Extracted to follow Page → Hook → Service pattern.
  */
 import { useState, useCallback, useMemo, useRef, useEffect, useContext } from "react";
-import { useSearchParams, useNavigate, useParams, useLocation } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useSellerCartContext } from "@/contexts/SellerCartContext";
 import { type SellerCart, CartStatus } from "@/hooks/useSellerCarts";
 import { useCartTemplates, type CartTemplateItem } from "@/hooks/useCartTemplates";
@@ -20,30 +20,9 @@ import {
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 
 export function useSellerCartsPage() {
-  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const location = useLocation();
   const { cartId: routeCartId } = useParams<{ cartId?: string }>();
-  
-  // Sync search and sort with URL
-  const initialSearch = searchParams.get("search") || "";
-  const initialSortBy = searchParams.get("sort") || "date-desc";
-  const initialProductFilter = searchParams.get("product") || "";
-  
-  const [searchTerm, setSearchTerm] = useState(initialSearch);
-  const [productFilter, setProductFilter] = useState(initialProductFilter);
-  const [sortBy, setSortBy] = useState<string>(initialSortBy);
-  const [companyFilter, setCompanyFilter] = useState<string>(searchParams.get("company") || "all");
-  
-  useEffect(() => {
-    const params: Record<string, string> = {};
-    if (searchTerm) params.search = searchTerm;
-    if (productFilter) params.product = productFilter;
-    if (sortBy !== "date-desc") params.sort = sortBy;
-    if (companyFilter !== "all") params.company = companyFilter;
-    setSearchParams(params, { replace: true });
-  }, [searchTerm, productFilter, sortBy, companyFilter, setSearchParams]);
-
   const {
     carts, activeCart, activeCartId, isLoading, totalItems, canCreateCart,
     setActiveCartId, deleteCart, addToActiveCart, removeItem, updateItemQuantity,
@@ -117,26 +96,16 @@ export function useSellerCartsPage() {
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
-  const [itemsSortBy, setItemsSortBy] = useState<string>("manual");
-
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id || !activeCart) return;
-    
-    // Solo permitir reordenar manualmente si el modo de ordenación es "manual"
-    if (itemsSortBy !== "manual") {
-      toast.error("Mude para ordenação 'Manual' para arrastar os itens");
-      return;
-    }
-
     const items = activeCart.items;
     const oldIndex = items.findIndex(i => i.id === active.id);
     const newIndex = items.findIndex(i => i.id === over.id);
     if (oldIndex === -1 || newIndex === -1) return;
-    
     const reordered = arrayMove(items, oldIndex, newIndex);
     updateItemSortOrder(reordered.map((item, idx) => ({ id: item.id, sort_order: idx })));
-  }, [activeCart, updateItemSortOrder, itemsSortBy]);
+  }, [activeCart, updateItemSortOrder]);
 
   const handleRemoveItem = useCallback((itemId: string, itemName: string) => {
     const item = activeCart?.items.find(i => i.id === itemId);
@@ -221,20 +190,16 @@ export function useSellerCartsPage() {
   }, [activeCart, saveTemplate]);
 
   const handleLoadTemplate = useCallback((items: CartTemplateItem[]) => {
-    // Calculamos o maior sort_order atual para adicionar os novos itens ao final
-    const currentMaxSortOrder = activeCart?.items.reduce((max, i) => Math.max(max, i.sort_order ?? 0), -1) ?? -1;
-
-    items.forEach((item, index) => {
+    items.forEach(item => {
       addToActiveCart({
         product_id: item.product_id, product_name: item.product_name,
         product_sku: item.product_sku, product_image_url: item.product_image_url,
         product_price: item.product_price, quantity: item.quantity,
         color_name: item.color_name, color_hex: item.color_hex,
-        sort_order: currentMaxSortOrder + 1 + index,
       });
     });
     toast.success("Template aplicado ao carrinho");
-  }, [addToActiveCart, activeCart]);
+  }, [addToActiveCart]);
 
   const [confirmQuoteCart, setConfirmQuoteCart] = useState<SellerCart | null>(null);
   const [confirmDeleteCart, setConfirmDeleteCart] = useState(false);
@@ -274,139 +239,9 @@ export function useSellerCartsPage() {
     return cart.company_primary_color || null;
   }, [activeCart]);
 
-
-  const filteredCarts = useMemo(() => {
-    let result = [...carts];
-    
-    // Global Search (Company or Product)
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      result = result.filter(c => 
-        c.company_name.toLowerCase().includes(term) || 
-        c.items.some(i => i.product_name.toLowerCase().includes(term))
-      );
-    }
-    
-    // Specific Company Filter
-    if (companyFilter !== "all") {
-      result = result.filter(c => c.company_name === companyFilter);
-    }
-    
-    // Specific Product Filter (Autocomplete)
-    if (productFilter) {
-      const term = productFilter.toLowerCase();
-      result = result.filter(c => 
-        c.items.some(i => i.product_name.toLowerCase().includes(term))
-      );
-    }
-    
-    result.sort((a, b) => {
-      if (sortBy === "date-desc") return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
-      if (sortBy === "date-asc") return new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime();
-      if (sortBy === "total-desc") {
-        const totalA = a.items.reduce((sum, i) => sum + i.product_price * i.quantity, 0);
-        const totalB = b.items.reduce((sum, i) => sum + i.product_price * i.quantity, 0);
-        return totalB - totalA;
-      }
-      if (sortBy === "total-asc") {
-        const totalA = a.items.reduce((sum, i) => sum + i.product_price * i.quantity, 0);
-        const totalB = b.items.reduce((sum, i) => sum + i.product_price * i.quantity, 0);
-        return totalA - totalB;
-      }
-      return 0;
-    });
-
-    return result;
-  }, [carts, searchTerm, sortBy, companyFilter, productFilter]);
-
-  const sortedItems = useMemo(() => {
-    if (!activeCart) return [];
-    let items = [...activeCart.items];
-    
-    if (itemsSortBy === "manual") {
-      // Garantir ordem consistente por sort_order, fallback para id
-      return items.sort((a, b) => {
-        if (a.sort_order !== null && b.sort_order !== null) return a.sort_order - b.sort_order;
-        if (a.sort_order !== null) return -1;
-        if (b.sort_order !== null) return 1;
-        return a.id.localeCompare(b.id);
-      });
-    }
-    
-    items.sort((a, b) => {
-      if (itemsSortBy === "price-desc") return b.product_price - a.product_price;
-      if (itemsSortBy === "price-asc") return a.product_price - b.product_price;
-      if (itemsSortBy === "qty-desc") return b.quantity - a.quantity;
-      if (itemsSortBy === "qty-asc") return a.quantity - b.quantity;
-      if (itemsSortBy === "total-desc") return (b.product_price * b.quantity) - (a.product_price * a.quantity);
-      if (itemsSortBy === "total-asc") return (a.product_price * a.quantity) - (b.product_price * b.quantity);
-      return 0;
-    });
-    return items;
-  }, [activeCart, itemsSortBy]);
-
-  const [selectedItemIds, setSelectedItemIds] = useState<Set<string>>(new Set());
-
-  const toggleItemSelection = useCallback((itemId: string) => {
-    setSelectedItemIds(prev => {
-      const next = new Set(prev);
-      if (next.has(itemId)) next.delete(itemId);
-      else next.add(itemId);
-      return next;
-    });
-  }, []);
-
-  const clearSelection = useCallback(() => setSelectedItemIds(new Set()), []);
-
-  const handleBulkRemove = useCallback(() => {
-    if (selectedItemIds.size === 0) return;
-    const count = selectedItemIds.size;
-    selectedItemIds.forEach(id => removeItem(id));
-    toast.success(`${count} itens removidos do carrinho`);
-    clearSelection();
-  }, [selectedItemIds, removeItem, clearSelection]);
-
-  const handleBulkMove = useCallback((targetCartId: string) => {
-    if (selectedItemIds.size === 0) return;
-    const count = selectedItemIds.size;
-    const targetCart = carts.find(c => c.id === targetCartId);
-    selectedItemIds.forEach(id => moveItemToCart(id, targetCartId));
-    toast.success(`${count} itens movidos para ${targetCart?.company_name}`);
-    clearSelection();
-  }, [selectedItemIds, moveItemToCart, carts, clearSelection]);
-
-  const handleBulkUpdateNotes = useCallback((notes: string) => {
-    if (selectedItemIds.size === 0) return;
-    const count = selectedItemIds.size;
-    const itemsToUpdate = Array.from(selectedItemIds);
-    
-    // Atualizar cada item individualmente através da mutation do contexto
-    itemsToUpdate.forEach(id => updateItemNotes(id, notes));
-    
-    toast.success(`Notas atualizadas em ${count} itens`);
-    clearSelection();
-  }, [selectedItemIds, updateItemNotes, clearSelection]);
-
-  const handleClearFilters = useCallback(() => {
-    setSearchTerm("");
-    setProductFilter("");
-    setCompanyFilter("all");
-    setSortBy("date-desc");
-  }, []);
-
-  const productSuggestions = useMemo(() => {
-    const names = new Set<string>();
-    carts.forEach(c => {
-      c.items.forEach(i => names.add(i.product_name));
-    });
-    return Array.from(names).sort();
-  }, [carts]);
-
   return {
-    navigate, carts, filteredCarts, activeCart, activeCartId, isLoading, totalItems, canCreateCart,
-    setActiveCartId, deleteCart, removeItem, updateItemQuantity,
-    updateItemNotes, updateItemSortOrder, updateCartNotes, updateCartStatus,
-    duplicateCart, moveItemToCart, duplicateItemToCart, clearCart, restoreItems,
+    navigate, carts, activeCart, activeCartId, isLoading, totalItems, canCreateCart,
+    setActiveCartId, deleteCart, removeItem, updateItemNotes, updateCartStatus, duplicateCart,
     templates, deleteTemplate, allProducts, showNewCart, setShowNewCart,
     cartNotesOpen, setCartNotesOpen, localCartNotes, handleCartNotesChange,
     stockMap, weightVolume, sensors, handleDragEnd, handleRemoveItem, handleUpdateQuantity,
@@ -415,8 +250,5 @@ export function useSellerCartsPage() {
     confirmClearCart, setConfirmClearCart, handleGenerateQuote, confirmGenerateQuote, handleClearCart,
     otherCarts, cartAge, cartSubtotal, cartTotalQty, companyAccentColor, isLoadingProducts,
     exportCartToCSV, exportCartToPDF, shareCartLink,
-    searchTerm, setSearchTerm, sortBy, setSortBy, itemsSortBy, setItemsSortBy, sortedItems,
-    companyFilter, setCompanyFilter, productFilter, setProductFilter, handleClearFilters, productSuggestions,
-    selectedItemIds, toggleItemSelection, clearSelection, handleBulkRemove, handleBulkMove, handleBulkUpdateNotes
   };
 }

@@ -16,7 +16,6 @@ interface AutoSaveOptions<T> {
   onRestore?: (data: T) => void;
   debounceMs?: number;
   key?: string;
-  onSaveServer?: (data: T) => Promise<boolean>;
 }
 
 /**
@@ -87,7 +86,7 @@ export function useAutoSaveQuote<T>({
   useEffect(() => {
     if (!enabled) return;
 
-    const timer = setTimeout(async () => {
+    const timer = setTimeout(() => {
       const stringData = JSON.stringify(data);
       
       // Evita salvar se nada mudou
@@ -99,24 +98,14 @@ export function useAutoSaveQuote<T>({
         savedAt: new Date().toISOString()
       };
 
-      // 1. LocalStorage (Instantâneo/Offline)
       localStorage.setItem(key, JSON.stringify(payload));
       lastSavedRef.current = stringData;
       
-      // 2. Servidor (Opcional - Robusto)
-      if (onSaveServer) {
-        try {
-          await onSaveServer(data);
-        } catch (e) {
-          console.warn("[AutoSave] Server-side draft sync failed (will retry next change)", e);
-        }
-      }
-      
-      console.log(`[AutoSave] Quote saved (v${AUTOSAVE_SCHEMA_VERSION})`);
+      console.log(`[AutoSave] Quote saved to localStorage (v${AUTOSAVE_SCHEMA_VERSION})`);
     }, debounceMs);
 
     return () => clearTimeout(timer);
-  }, [data, enabled, key, debounceMs, onSaveServer]);
+  }, [data, enabled, key, debounceMs]);
 
   const clearAutoSave = () => {
     localStorage.removeItem(key);

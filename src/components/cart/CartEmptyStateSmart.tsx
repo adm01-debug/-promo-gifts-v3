@@ -2,7 +2,6 @@
  * CartEmptyStateSmart - Empty state com 3 CTAs inteligentes:
  * Aplicar template, Duplicar último carrinho desta empresa, Explorar catálogo.
  */
-import { useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { LayoutTemplate, Copy, Package, Sparkles, ArrowRight } from "lucide-react";
@@ -31,9 +30,9 @@ export function CartEmptyStateSmart({
   onApplyTemplate, onDuplicateLast, onNavigateProducts,
 }: CartEmptyStateSmartProps) {
   const topTemplates = templates.slice(0, 3);
-  const lastCartSameCompany = useMemo(() => otherCarts
+  const lastCartSameCompany = otherCarts
     .filter(c => c.company_id === activeCart.company_id && c.items.length > 0)
-    .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())[0], [otherCarts, activeCart.company_id]);
+    .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())[0];
 
   return (
     <div className="space-y-4 animate-in fade-in zoom-in duration-500 max-w-4xl mx-auto">

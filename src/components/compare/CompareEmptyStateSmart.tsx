@@ -52,17 +52,10 @@ export function CompareEmptyStateSmart() {
 
   const handleAdd = (id: string, name: string) => {
     if (!canAddMore) {
-      toast.error("Limite técnico atingido (máx 12 itens)");
+      toast.error("Máximo 4 produtos");
       return;
     }
-    if (addToCompare(id)) {
-      toast.success(`${name} enviado para a Arena`, {
-        action: {
-          label: "Ver agora",
-          onClick: () => navigate("/comparar"),
-        }
-      });
-    }
+    if (addToCompare(id)) toast.success(`${name} adicionado`);
   };
 
   return (

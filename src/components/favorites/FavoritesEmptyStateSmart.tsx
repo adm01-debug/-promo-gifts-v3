@@ -4,14 +4,11 @@
  */
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { Sparkles, ArrowRight, Loader2 } from "lucide-react";
+import { Sparkles, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useProductsContext } from "@/contexts/ProductsContext";
 import { formatCurrency } from "@/lib/format";
-import { useState } from "react";
-import { toast } from "sonner";
-import { useFavoritesStore } from "@/stores/useFavoritesStore";
 
 interface Props {
   onAddProduct?: (productId: string) => void;
@@ -20,8 +17,6 @@ interface Props {
 export function FavoritesEmptyStateSmart({ onAddProduct }: Props) {
   const navigate = useNavigate();
   const { getProductsByIds } = useProductsContext();
-  const { toggleFavorite } = useFavoritesStore();
-  const [isMockLoading, setIsMockLoading] = useState(false);
 
   const { data: topIds = [] } = useQuery({
     queryKey: ["top-favorited-products"],
@@ -35,51 +30,20 @@ export function FavoritesEmptyStateSmart({ onAddProduct }: Props) {
 
   const products = topIds.length ? getProductsByIds(topIds) : [];
 
-  const handleLoadMocks = async () => {
-    setIsMockLoading(true);
-    toast.loading("Simulando carga de favoritos...", { id: "fav-mock" });
-    try {
-      await new Promise(resolve => setTimeout(resolve, 800));
-      const mockIds = ["26462", "26463", "26464", "26465"];
-      mockIds.forEach(id => toggleFavorite(id));
-      toast.success("Favoritos simulados com sucesso", { id: "fav-mock" });
-    } catch (err) {
-      toast.error("Erro na simulação", { id: "fav-mock" });
-    } finally {
-      setIsMockLoading(false);
-    }
-  };
-
   if (products.length === 0) {
     return (
-      <div data-testid="favorites-empty-state" className="flex flex-col items-center gap-6 py-16">
-        <div className="text-center bg-muted/20 rounded-xl border-[1.5px] border-dashed border-primary/10 p-8 w-full max-w-2xl">
-          <Sparkles className="h-12 w-12 text-primary/40 mx-auto mb-3" />
-          <h3 className="font-display text-lg font-semibold text-foreground mb-1">
-            Comece a salvar seus favoritos
-          </h3>
-          <p className="text-muted-foreground text-sm mb-4 max-w-md mx-auto">
-            Explore o catálogo e clique no coração para criar listas curadas para seus clientes.
-          </p>
-          <div className="flex flex-wrap justify-center gap-3">
-            <Button data-testid="favorites-empty-cta" onClick={() => navigate("/")}>
-              Explorar Catálogo
-              <ArrowRight className="h-4 w-4 ml-1.5" />
-            </Button>
-            <Button 
-              variant="outline" 
-              disabled={isMockLoading}
-              onClick={handleLoadMocks}
-              className="border-primary/20 hover:border-primary/50 text-[11px] font-black uppercase tracking-widest bg-primary/5"
-            >
-              {isMockLoading ? <Loader2 className="h-3 w-3 animate-spin mr-2" /> : <Sparkles className="h-3 w-3 text-primary mr-2" />}
-              Mock Demo (Engenharia)
-            </Button>
-          </div>
-        </div>
-        <p className="text-[10px] text-primary/40 uppercase tracking-[0.2em] font-black">
-          Laboratório de UX / 10.10 Final
+      <div data-testid="favorites-empty-state" className="text-center py-16 bg-muted/20 rounded-xl border-[1.5px] border-dashed border-primary/10">
+        <Sparkles className="h-12 w-12 text-primary/40 mx-auto mb-3" />
+        <h3 className="font-display text-lg font-semibold text-foreground mb-1">
+          Comece a salvar seus favoritos
+        </h3>
+        <p className="text-muted-foreground text-sm mb-4 max-w-md mx-auto">
+          Explore o catálogo e clique no coração para criar listas curadas para seus clientes.
         </p>
+        <Button data-testid="favorites-empty-cta" onClick={() => navigate("/")}>
+          Explorar Catálogo
+          <ArrowRight className="h-4 w-4 ml-1.5" />
+        </Button>
       </div>
     );
   }

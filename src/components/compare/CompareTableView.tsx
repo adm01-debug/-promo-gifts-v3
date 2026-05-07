@@ -11,8 +11,7 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { X, Check, Minus, Crown, AlertTriangle, ShieldCheck, Zap } from "lucide-react";
-import { useComparisonScore, DEFAULT_SCORE_WEIGHTS } from "@/hooks/useComparisonScore";
+import { X, Check, Minus, Crown, AlertTriangle, ShieldCheck } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useComparisonHighlight, highlightClasses } from "./ComparisonHighlights";
@@ -72,7 +71,6 @@ export function CompareTableView({
   const headerSentinelRef = useRef<HTMLDivElement | null>(null);
   const [headerStuck, setHeaderStuck] = useState(false);
   const [hoveredVariant, setHoveredVariant] = useState<Record<number, string | null>>({});
-  const scores = useComparisonScore(products, DEFAULT_SCORE_WEIGHTS);
 
   // Sticky thumbnails: IntersectionObserver on top of table
   useEffect(() => {
@@ -193,12 +191,6 @@ export function CompareTableView({
                             </div>
                           )}
                           <StockRiskBadge product={entry.product} />
-                          {scores.find(s => String(s.productId) === String(entry.product.id))?.isWinner && (
-                            <Badge className="bg-amber-500 text-white border-none text-[9px] gap-1 px-1.5 py-0.5 mt-1 animate-pulse">
-                              <Zap className="h-3 w-3 fill-current" />
-                              Best Value
-                            </Badge>
-                          )}
                         </div>
                       </div>
                     </motion.th>

@@ -323,7 +323,6 @@ export default function TrendsPage() {
   return (
     <>
       <PageSEO title="Tendências" description="Analise tendências de produtos e buscas." path="/tendencias" noIndex />
-      <TrendsTour />
       <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div>
@@ -343,7 +342,7 @@ export default function TrendsPage() {
             <p className="text-muted-foreground mt-1">
               {canManage
                 ? "Crescimento, conversão e demanda reprimida em tempo real"
-                : "Crescimento, conversão e demanda reprimida em tempo real"}
+                : "Suas vendas, suas buscas, sua atividade"}
             </p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
@@ -360,8 +359,8 @@ export default function TrendsPage() {
           </div>
         </div>
 
-        {/* IA */}
-        <TrendsInsightsCard days={days} />
+        {/* IA — só para managers */}
+        {canManage && <TrendsInsightsCard days={days} />}
 
         {/* KPIs */}
         <TrendsKpiCards current={kpiCurrent} previous={kpiPrevious} />

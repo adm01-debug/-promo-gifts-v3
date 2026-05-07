@@ -8,8 +8,7 @@
  * - Notas sempre visíveis (textarea inline com debounce)
  * - Sidebar reorganizada (Hero pricing → Ação → Menu) + Health Checklist
  */
-import { useSellerCartContext } from "@/contexts/SellerCartContext";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef } from "react";
 
 import { type CartStatus } from "@/hooks/useSellerCarts";
 import { CartCompanyPickerDialog } from "@/components/cart/CartCompanyPickerDialog";
@@ -29,13 +28,12 @@ import { DeleteConfirmDialog, ConfirmDialog } from "@/components/ui/ConfirmDialo
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { motion, AnimatePresence } from "framer-motion";
 import { DndContext, closestCenter } from "@dnd-kit/core";
 import { SortableContext, rectSortingStrategy } from "@dnd-kit/sortable";
 import { cn } from "@/lib/utils";
 import {
-  ShoppingCart, Plus, Building2, Trash2, Clock, MapPin, FileText, Search, ArrowUpDown, Filter, Package, MoveRight, MessageSquare, GripVertical,
+  ShoppingCart, Plus, Building2, Trash2, Clock, MapPin, FileText,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
@@ -63,7 +61,6 @@ const NOTES_PLACEHOLDERS = [
 function SellerCartsContent() {
   const s = useSellerCartsPage();
   const notesRef = useRef<HTMLTextAreaElement>(null);
-  const [bulkNote, setBulkNote] = useState("");
 
   const focusNotes = useCallback(() => {
     notesRef.current?.focus();
@@ -121,90 +118,11 @@ function SellerCartsContent() {
             </p>
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {s.filteredCarts.length >= 2 && <CompareCartsDialog carts={s.filteredCarts} />}
-          
-          <div className="flex items-center gap-2 border border-border/40 bg-card/60 rounded-xl p-1 h-9 shadow-sm">
-            <Search className="h-3.5 w-3.5 text-muted-foreground ml-2" />
-            <input 
-              type="text" 
-              placeholder="Busca global..."
-              className="bg-transparent border-none text-xs w-32 sm:w-48 focus:ring-0 placeholder:text-muted-foreground/50 h-full"
-              value={s.searchTerm}
-              onChange={(e) => s.setSearchTerm(e.target.value)}
-            />
-          </div>
-
-          <div className="relative group/company">
-            <Select value={s.companyFilter} onValueChange={s.setCompanyFilter}>
-              <SelectTrigger className="h-9 text-xs w-[160px] gap-2 rounded-xl border-border/40 bg-card/60 shadow-sm hover:border-primary/30 transition-all">
-                <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
-                <SelectValue placeholder="Empresa" />
-              </SelectTrigger>
-              <SelectContent className="rounded-xl p-1 shadow-2xl border-border/40">
-                <SelectItem value="all" className="rounded-lg py-2">
-                  <span className="flex items-center gap-2">
-                    <Filter className="h-3.5 w-3.5 opacity-40" />
-                    Todas Empresas
-                  </span>
-                </SelectItem>
-                <div className="h-px bg-muted/40 my-1 mx-1" />
-                {Array.from(new Set(s.carts.map(c => c.company_name))).sort().map(name => (
-                  <SelectItem key={name} value={name} className="rounded-lg py-2">
-                    <span className="flex items-center gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-primary/40" />
-                      {name}
-                    </span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="relative flex items-center gap-2 border border-border/40 bg-card/60 rounded-xl p-1 h-9 shadow-sm">
-            <Package className="h-3.5 w-3.5 text-muted-foreground ml-2" />
-            <input 
-              type="text" 
-              placeholder="Filtrar produto..."
-              list="product-suggestions"
-              className="bg-transparent border-none text-xs w-32 focus:ring-0 placeholder:text-muted-foreground/50 h-full"
-              value={s.productFilter}
-              onChange={(e) => s.setProductFilter(e.target.value)}
-            />
-            <datalist id="product-suggestions">
-              {s.productSuggestions.map(name => (
-                <option key={name} value={name} />
-              ))}
-            </datalist>
-          </div>
-
-          <Select value={s.sortBy} onValueChange={s.setSortBy}>
-            <SelectTrigger className="h-9 text-xs w-[140px] gap-2 rounded-xl border-border/40 bg-card/60 shadow-sm">
-              <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
-              <SelectValue placeholder="Ordenar" />
-            </SelectTrigger>
-            <SelectContent className="rounded-xl">
-              <SelectItem value="date-desc">Mais recentes</SelectItem>
-              <SelectItem value="date-asc">Mais antigos</SelectItem>
-              <SelectItem value="total-desc">Maior valor</SelectItem>
-              <SelectItem value="total-asc">Menor valor</SelectItem>
-            </SelectContent>
-          </Select>
-
-          {(s.searchTerm || s.productFilter || s.companyFilter !== "all" || s.sortBy !== "date-desc") && (
-            <Button 
-              variant="ghost" 
-              onClick={s.handleClearFilters}
-              size="sm" 
-              className="h-9 px-3 rounded-xl text-xs gap-1.5 hover:bg-destructive/5 hover:text-destructive"
-            >
-              <Trash2 className="h-3.5 w-3.5" /> Limpar
-            </Button>
-          )}
-
+        <div className="flex items-center gap-2">
+          {s.carts.length >= 2 && <CompareCartsDialog carts={s.carts} />}
           {s.canCreateCart && (
-            <Button onClick={() => s.setShowNewCart(true)} size="sm" className="gap-1.5 bg-primary hover:bg-primary/90 text-primary-foreground h-9 shadow-sm rounded-xl px-4">
-              <Plus className="h-4 w-4" /> Novo Carrinho
+            <Button onClick={() => s.setShowNewCart(true)} size="sm" className="gap-1.5 bg-primary hover:bg-primary/90 text-primary-foreground h-9">
+              <Plus className="h-3.5 w-3.5" /> Novo Carrinho
             </Button>
           )}
         </div>
@@ -220,7 +138,7 @@ function SellerCartsContent() {
       {/* Tabs ricas */}
       {s.carts.length > 0 && (
         <CartTabsRich
-          carts={s.filteredCarts}
+          carts={s.carts}
           activeCartId={s.activeCartId}
           canCreateCart={s.canCreateCart}
           onSelect={s.setActiveCartId}
@@ -339,170 +257,6 @@ function SellerCartsContent() {
             </div>
 
             {/* Produtos */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
-              <div className="flex items-center gap-3">
-                <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-                  <Package className="h-4 w-4" /> Produtos no carrinho
-                </h3>
-                {s.activeCart.items.length > 0 && (
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className={cn(
-                      "h-7 text-[10px] font-black uppercase tracking-widest px-3 rounded-lg transition-all border border-transparent shadow-sm",
-                      s.selectedItemIds.size > 0 
-                        ? "bg-primary text-primary-foreground border-primary/20 hover:bg-primary/90" 
-                        : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-                    )}
-                    onClick={() => {
-                      if (s.selectedItemIds.size === s.activeCart!.items.length) s.clearSelection();
-                      else s.activeCart!.items.forEach(i => !s.selectedItemIds.has(i.id) && s.toggleItemSelection(i.id));
-                    }}
-                  >
-                    <div className="flex items-center gap-2">
-                      <div className={cn(
-                        "w-2.5 h-2.5 rounded-sm border-2 transition-all flex items-center justify-center",
-                        s.selectedItemIds.size === s.activeCart.items.length ? "bg-white border-white" : "border-current opacity-40"
-                      )}>
-                        {s.selectedItemIds.size === s.activeCart.items.length && <div className="w-1 h-1 bg-primary rounded-full" />}
-                      </div>
-                      {s.selectedItemIds.size === s.activeCart.items.length ? "Desmarcar todos" : "Selecionar todos"}
-                    </div>
-                  </Button>
-                )}
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1 mr-2 bg-muted/30 p-1 rounded-xl border border-border/20 shadow-inner">
-                  <Button 
-                    variant={s.itemsSortBy === "manual" ? "primary" : "ghost"} 
-                    size="sm"
-                    className={cn(
-                      "h-7 px-3 text-[10px] rounded-lg font-bold uppercase transition-all",
-                      s.itemsSortBy === "manual" ? "shadow-md scale-105" : "text-muted-foreground hover:bg-muted/50"
-                    )}
-                    onClick={() => s.setItemsSortBy("manual")}
-                  >
-                    <GripVertical className="h-3 w-3 mr-1" />
-                    Manual
-                  </Button>
-                  <Button 
-                    variant={s.itemsSortBy !== "manual" ? "primary" : "ghost"} 
-                    size="sm"
-                    className={cn(
-                      "h-7 px-3 text-[10px] rounded-lg font-bold uppercase transition-all",
-                      s.itemsSortBy !== "manual" ? "shadow-md scale-105" : "text-muted-foreground hover:bg-muted/50"
-                    )}
-                    onClick={() => s.itemsSortBy === "manual" && s.setItemsSortBy("price-desc")}
-                  >
-                    <ArrowUpDown className="h-3 w-3 mr-1" />
-                    Auto
-                  </Button>
-                </div>
-
-                <Select 
-                  value={s.itemsSortBy === "manual" ? "" : s.itemsSortBy} 
-                  onValueChange={s.setItemsSortBy}
-                  disabled={s.itemsSortBy === "manual"}
-                >
-                  <SelectTrigger className={cn(
-                    "h-8 text-[11px] w-[140px] rounded-lg border-border/40 bg-card/60 transition-all",
-                    s.itemsSortBy === "manual" ? "opacity-40 grayscale" : "opacity-100 ring-2 ring-primary/20 border-primary/40 shadow-sm"
-                  )}>
-                    <SelectValue placeholder="Escolher ordem..." />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl p-1 shadow-2xl border-border/40">
-                    <SelectItem value="price-desc" className="rounded-lg py-2">Maior Preço</SelectItem>
-                    <SelectItem value="price-asc" className="rounded-lg py-2">Menor Preço</SelectItem>
-                    <SelectItem value="qty-desc" className="rounded-lg py-2">Maior Qtd</SelectItem>
-                    <SelectItem value="qty-asc" className="rounded-lg py-2">Menor Qtd</SelectItem>
-                    <SelectItem value="total-desc" className="rounded-lg py-2">Maior Subtotal</SelectItem>
-                    <SelectItem value="total-asc" className="rounded-lg py-2">Menor Subtotal</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {/* Ações em Massa (Barra flutuante) */}
-            <AnimatePresence>
-              {s.selectedItemIds.size > 0 && (
-                <motion.div 
-                  initial={{ y: 100, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  exit={{ y: 100, opacity: 0 }}
-                  className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-4 bg-foreground text-background px-6 py-3 rounded-2xl shadow-2xl border border-border/10 backdrop-blur-xl"
-                >
-                  <div className="flex items-center gap-3 pr-4 border-r border-background/20">
-                    <span className="text-xs font-black tabular-nums bg-primary text-primary-foreground w-6 h-6 rounded-full flex items-center justify-center">
-                      {s.selectedItemIds.size}
-                    </span>
-                    <span className="text-xs font-bold uppercase tracking-widest opacity-80 whitespace-nowrap">Itens Selecionados</span>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <Select onValueChange={s.handleBulkMove}>
-                      <SelectTrigger className="h-9 bg-transparent border-background/20 text-background text-xs font-bold rounded-xl w-[180px] hover:bg-background/10 transition-colors">
-                        <MoveRight className="h-4 w-4 mr-2 opacity-60" />
-                        <SelectValue placeholder="Mover para..." />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-xl">
-                        {s.otherCarts.map(c => (
-                          <SelectItem key={c.id} value={c.id} className="rounded-lg">{c.company_name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button 
-                          variant="ghost" 
-                          className="h-9 px-4 rounded-xl text-xs font-bold gap-2 hover:bg-background/10"
-                        >
-                          <MessageSquare className="h-4 w-4" /> Notas em Massa
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-80 p-4 rounded-2xl shadow-2xl bg-card border-border/50">
-                        <div className="space-y-3">
-                          <h4 className="text-xs font-bold uppercase tracking-tight text-muted-foreground">Adicionar notas aos itens selecionados</h4>
-                          <Textarea 
-                            placeholder="Ex: Todos com gravação laser..."
-                            className="text-xs min-h-[100px] rounded-xl"
-                            value={bulkNote}
-                            onChange={(e) => setBulkNote(e.target.value)}
-                          />
-                          <Button 
-                            className="w-full text-xs font-bold rounded-xl h-10" 
-                            disabled={!bulkNote.trim()}
-                            onClick={() => {
-                              s.handleBulkUpdateNotes(bulkNote.trim());
-                              setBulkNote("");
-                            }}
-                          >
-                            Aplicar Notas
-                          </Button>
-                        </div>
-                      </PopoverContent>
-                    </Popover>
-                    
-                    <Button 
-                      variant="ghost" 
-                      onClick={s.handleBulkRemove}
-                      className="h-9 px-4 rounded-xl text-xs font-bold gap-2 text-destructive-foreground hover:bg-destructive/10"
-                    >
-                      <Trash2 className="h-4 w-4" /> Remover
-                    </Button>
-                    
-                    <Button 
-                      variant="ghost" 
-                      onClick={s.clearSelection}
-                      className="h-9 px-4 rounded-xl text-xs font-bold gap-2 hover:bg-background/10"
-                    >
-                      Cancelar
-                    </Button>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
             {s.activeCart.items.length === 0 ? (
               <CartEmptyStateSmart
                 activeCart={s.activeCart}
@@ -514,10 +268,10 @@ function SellerCartsContent() {
               />
             ) : (
               <DndContext sensors={s.sensors} collisionDetection={closestCenter} onDragEnd={s.handleDragEnd}>
-                <SortableContext items={s.sortedItems.map(i => i.id)} strategy={rectSortingStrategy}>
+                <SortableContext items={s.activeCart.items.map(i => i.id)} strategy={rectSortingStrategy}>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <AnimatePresence mode="popLayout">
-                      {s.sortedItems.map((item, index) => (
+                    <AnimatePresence>
+                      {s.activeCart.items.map((item, index) => (
                         <SortableCartItem
                           key={item.id} item={item} index={index}
                           otherCarts={s.otherCarts} companyAccentColor={s.companyAccentColor}
@@ -525,9 +279,6 @@ function SellerCartsContent() {
                           onUpdateQuantity={s.handleUpdateQuantity} onUpdateNotes={s.updateItemNotes}
                           onMoveToCart={s.handleMoveItem} onDuplicateToCart={s.handleDuplicateItem}
                           onNavigate={s.navigate}
-                          isSelected={s.selectedItemIds.has(item.id)}
-                          isSelectionMode={s.selectedItemIds.size > 0}
-                          onToggleSelection={s.toggleItemSelection}
                         />
                       ))}
                     </AnimatePresence>
@@ -535,15 +286,8 @@ function SellerCartsContent() {
                 </SortableContext>
               </DndContext>
             )}
-            
-            {/* Legend/Helper text below list */}
-            {s.activeCart.items.length > 0 && (
-              <div className="flex items-center justify-center gap-6 pt-6 text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-40">
-                <span className="flex items-center gap-1.5"><GripVertical className="h-3 w-3" /> Arraste para reordenar</span>
-                <span className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-sm border-2 border-muted-foreground/30" /> Selecione para ações em massa</span>
-              </div>
-            )}
           </div>
+
           {/* Sidebar */}
           {s.activeCart.items.length > 0 && (
             <CartSidebar

@@ -159,47 +159,43 @@ export function CartCompanyPickerDialog({ open, onOpenChange, onCreated }: CartC
   const isLoading = loadingLocal || loadingServer;
 
   const renderRow = (company: CompanyItem) => (
-    <div
+    <button
       key={company.id}
+      type="button"
+      data-testid="cart-company-picker-select"
+      data-company-id={company.id}
       className={cn(
-        "w-full flex items-center gap-2 px-1 rounded-xl transition-colors group",
-        "hover:bg-accent/60"
+        "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left",
+        "hover:bg-accent/60 transition-colors group"
       )}
+      onClick={() => handleSelect(company)}
+      disabled={!canCreateCart}
     >
-      <button
-        type="button"
-        data-testid="cart-company-picker-select"
-        data-company-id={company.id}
-        className="flex-1 flex items-center gap-3 px-2 py-2.5 text-left min-w-0"
-        onClick={() => handleSelect(company)}
-        disabled={!canCreateCart}
-      >
-        {company.logo_url ? (
-          <img src={company.logo_url} alt="" className="w-9 h-9 rounded-xl object-contain bg-background border border-border/40 flex-shrink-0" loading="lazy" />
-        ) : (
-          <div className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center flex-shrink-0">
-            <Building2 className="h-4 w-4 text-muted-foreground" />
-          </div>
-        )}
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium truncate">{company.name}</p>
-          {company.ramo && <p className="text-[11px] text-muted-foreground truncate">{company.ramo}</p>}
+      {company.logo_url ? (
+        <img src={company.logo_url} alt="" className="w-9 h-9 rounded-xl object-contain bg-background border border-border/40 flex-shrink-0" loading="lazy" />
+      ) : (
+        <div className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center flex-shrink-0">
+          <Building2 className="h-4 w-4 text-muted-foreground" />
         </div>
-      </button>
+      )}
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-medium truncate">{company.name}</p>
+        {company.ramo && <p className="text-[11px] text-muted-foreground truncate">{company.ramo}</p>}
+      </div>
       <button
         type="button"
         onClick={(e) => toggleFavorite(company, e)}
         className={cn(
-          "h-8 w-8 mr-1 rounded-xl flex items-center justify-center transition-colors flex-shrink-0 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 outline-none",
+          "h-7 w-7 rounded-xl flex items-center justify-center transition-colors flex-shrink-0",
           isFavorite(company.id)
             ? "text-warning"
-            : "text-muted-foreground/40 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 hover:text-warning"
+            : "text-muted-foreground/40 opacity-0 group-hover:opacity-100 hover:text-warning"
         )}
         aria-label={isFavorite(company.id) ? "Remover dos favoritos" : "Adicionar aos favoritos"}
       >
         <Star className={cn("h-4 w-4", isFavorite(company.id) && "fill-current")} />
       </button>
-    </div>
+    </button>
   );
 
   return (
@@ -264,51 +260,18 @@ export function CartCompanyPickerDialog({ open, onOpenChange, onCreated }: CartC
           </TabsContent>
 
           <TabsContent value="search" className="m-0 px-3 pt-3 pb-4 space-y-3">
-            <div className="px-2" role="search">
-              <div className="relative">
-                <Search 
-                  aria-hidden="true"
-                  data-testid="search-icon"
-                  className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" 
-                />
-                <label htmlFor="company-search-input" className="sr-only">
-                  Buscar empresa por nome, CNPJ ou segmento
-                </label>
-                <Input
-                  id="company-search-input"
-                  ref={inputRef}
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Nome, CNPJ ou segmento..."
-                  className="h-9 pl-8 pr-8 text-sm bg-muted/20 border-border/40 focus:bg-background transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1"
-                  aria-busy={isLoading}
-                  aria-controls="company-search-results"
-                />
-                {isLoading && (
-                  <>
-                    <Loader2 
-                      aria-hidden="true"
-                      data-testid="loader-icon"
-                      className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-muted-foreground opacity-50 pointer-events-none" 
-                    />
-                    <span className="sr-only">Carregando empresas...</span>
-                  </>
-                )}
-                <div 
-                  className="sr-only" 
-                  aria-live="polite" 
-                  id="search-announcement"
-                >
-                  {searchTerm.length >= 1 && !isLoading && (
-                    filteredCompanies.length > 0 
-                      ? `${filteredCompanies.length} empresas encontradas` 
-                      : "Nenhuma empresa encontrada"
-                  )}
-                </div>
-              </div>
+            <div className="relative px-2">
+              <Search className="absolute left-4.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+              <Input
+                ref={inputRef}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Nome, CNPJ ou segmento..."
+                className="h-9 pl-8 text-sm bg-muted/20 border-border/40 focus:bg-background transition-colors"
+              />
+              {isLoading && <Loader2 className="absolute right-4.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-muted-foreground opacity-50" />}
             </div>
-            <ScrollArea id="company-search-results" className="h-[290px] pr-2">
+            <ScrollArea className="h-[290px] pr-2">
               {isLoading && filteredCompanies.length === 0 ? (
                 <div className="space-y-1 px-1">
                   {[...Array(6)].map((_, i) => (
@@ -331,14 +294,7 @@ export function CartCompanyPickerDialog({ open, onOpenChange, onCreated }: CartC
         </Tabs>
 
         <div className="flex justify-end gap-2 px-5 py-3 border-t border-border/40">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={() => onOpenChange(false)}
-            data-testid="dialog-close-button"
-          >
-            Fechar
-          </Button>
+          <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)}>Fechar</Button>
         </div>
       </DialogContent>
     </Dialog>

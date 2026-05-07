@@ -1,8 +1,7 @@
 /**
- * SalesOverviewChart — Visão MACRO de vendas internas.
- * 
- * Agrega orçamentos e pedidos de toda a equipe para dashboards macro.
- * Refatorado para remover TODOs de documentação.
+ * SalesOverviewChart — Visão MACRO de vendas internas
+ * Mostra orçamentos vs pedidos agregados de TODOS os vendedores.
+ * Estilo igual ao SalesHistoryChart da página de produto.
  */
 import { useMemo } from "react";
 import {

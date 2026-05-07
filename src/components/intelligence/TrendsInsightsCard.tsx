@@ -61,7 +61,7 @@ export function TrendsInsightsCard({ days }: TrendsInsightsCardProps) {
     <Card className="border-primary/30 bg-gradient-to-br from-primary/5 via-background to-chart-2/5">
       <CardHeader className="flex flex-row items-start justify-between gap-3">
         <div>
-          <CardTitle data-tour="trends-ia" className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-primary" />
             Insights da IA
           </CardTitle>

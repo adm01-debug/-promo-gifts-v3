@@ -1,7 +1,6 @@
-import { useState, useMemo, useEffect, useRef, useCallback, memo } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { createClientLogger } from "@/lib/telemetry/structuredLogger";
-import { useNoveltyFilters, type SortMode, type ViewMode } from "@/hooks/useNoveltyFilters";
 
 const log = createClientLogger("novelties.grid");
 import { Button } from "@/components/ui/button";
@@ -28,8 +27,8 @@ import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, Dr
 import { NOVELTY_STATUS_CONFIG } from "@/hooks/useNovelties";
 import { exportNoveltiesToCsv, shareNoveltiesOnWhatsApp } from "@/utils/noveltiesExport";
 
-// Types are now imported from useNoveltyFilters hook
-
+type ViewMode = "grid" | "list" | "table";
+type SortMode = "name" | "price-asc" | "price-desc" | "newest" | "stock" | "best-seller-supplier" | "best-seller-promo";
 
 function getGridColsClass(cols: ColumnCount): string {
   switch (cols) {
@@ -48,43 +47,28 @@ function getGridGapClass(cols: ColumnCount): string {
   return "gap-x-8 gap-y-8";
 }
 
-export const NoveltyProductGrid = memo(function NoveltyProductGrid({ 
-  onFilteredChange 
-}: { 
-  onFilteredChange?: (products: any[], isLoading: boolean) => void 
-}) {
+export function NoveltyProductGrid() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
 
+  const [viewMode, setViewMode] = useState<ViewMode>((searchParams.get("view") as ViewMode) || "grid");
+  const [gridColumns, setGridColumns] = useState<ColumnCount>(Number(searchParams.get("cols")) as ColumnCount || getDefaultColumns);
+  const [sortMode, setSortMode] = useState<SortMode>((searchParams.get("sort") as SortMode) || "newest");
+  const [selectedSupplier, setSelectedSupplier] = useState<string>(searchParams.get("supplier") || "all");
+  const [selectedCategory, setSelectedCategory] = useState<string>(searchParams.get("category") || "all");
+  const [selectedStatus, setSelectedStatus] = useState<string>(searchParams.get("status") || "all");
+  const [maxDays, setMaxDays] = useState<string>(searchParams.get("expires") || "all");
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
+  const [currentPage, setCurrentPage] = useState(Number(searchParams.get("page")) || 1);
+  const itemsPerPage = 20;
   const [selectionMode, setSelectionMode] = useState(false);
 
   const { data: novelties, isLoading, isFetching, error } = useNoveltiesWithDetails({ 
     limit: 200,
-    status: searchParams.get("status") !== "all" ? (searchParams.get("status") as any) : undefined,
-    maxDays: searchParams.get("expires") !== "all" ? Number(searchParams.get("expires")) : undefined
+    status: selectedStatus !== "all" ? (selectedStatus as any) : undefined,
+    maxDays: maxDays !== "all" ? Number(maxDays) : undefined
   });
-  
-  const isGlobalLoading = isLoading || isFetching;
   const products = novelties || [];
-
-  const { 
-    state, 
-    actions, 
-    filteredProducts, 
-    paginatedProducts, 
-    totalPages, 
-    hasActiveFilters,
-    itemsPerPage,
-    isSearching
-  } = useNoveltyFilters(products);
-
-  const {
-    viewMode, sortMode, selectedSupplier, selectedCategory, selectedStatus, maxDays, searchQuery, currentPage, gridColumns
-  } = state;
-
-  const {
-    setViewMode, setSortMode, setSelectedSupplier, setSelectedCategory, setSelectedStatus, setMaxDays, setSearchQuery, setCurrentPage, clearFilters, setGridColumns
-  } = actions;
 
   const [loadingProgress, setLoadingProgress] = useState(0);
   const progressRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -114,15 +98,86 @@ export const NoveltyProductGrid = memo(function NoveltyProductGrid({
     return { suppliers: [...supMap.values()].sort((a, b) => b.count - a.count), categories: [...catMap.values()].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR')) };
   }, [products]);
 
-  // Notifica o pai sobre mudanças nos filtros/produtos
+  const filteredProducts = useMemo(() => {
+    let filtered = [...products];
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      filtered = filtered.filter(p => p.product_name.toLowerCase().includes(q) || (p.product_sku && p.product_sku.toLowerCase().includes(q)) || (p.supplier_name && p.supplier_name.toLowerCase().includes(q)));
+    }
+    if (selectedSupplier !== "all") filtered = filtered.filter(p => p.supplier_id === selectedSupplier);
+    if (selectedCategory !== "all") filtered = filtered.filter(p => p.category_id === selectedCategory);
+    filtered.sort((a, b) => {
+      switch (sortMode) {
+        case "name": return (a.product_name || "").localeCompare(b.product_name || "", 'pt-BR');
+        case "price-asc": return (a.base_price || 0) - (b.base_price || 0);
+        case "price-desc": return (b.base_price || 0) - (a.base_price || 0);
+        case "newest": return new Date(b.detected_at).getTime() - new Date(a.detected_at).getTime();
+        case "stock": return (b.stock_quantity || 0) - (a.stock_quantity || 0);
+        case "best-seller-supplier": 
+          // Simulado: usamos stock_quantity como proxy para best seller se não houver campo específico
+          return (b.stock_quantity || 0) - (a.stock_quantity || 0);
+        case "best-seller-promo":
+          // Simulado: ordem inversa de stock (mais vendidos costumam ter menos stock se não reposto)
+          return (a.stock_quantity || 0) - (b.stock_quantity || 0);
+        default: return new Date(b.detected_at).getTime() - new Date(a.detected_at).getTime();
+      }
+    });
+    log.debug("filters_applied", { count: filtered.length, q: searchQuery, supplier: selectedSupplier, category: selectedCategory, status: selectedStatus, expires: maxDays });
+    return filtered;
+  }, [products, selectedSupplier, selectedCategory, sortMode, searchQuery, selectedStatus, maxDays]);
+
+  // Reset pagination when filters change
+  const isFirstMount = useRef(true);
   useEffect(() => {
-    onFilteredChange?.(filteredProducts, isGlobalLoading);
-  }, [filteredProducts, isGlobalLoading, onFilteredChange]);
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      return;
+    }
+    setCurrentPage(1);
+  }, [selectedSupplier, selectedCategory, selectedStatus, searchQuery, sortMode, maxDays]);
+
+  // Sync state to URL
+  useEffect(() => {
+    const params: Record<string, string> = {};
+    if (viewMode !== "grid") params.view = viewMode;
+    if (gridColumns !== getDefaultColumns) params.cols = String(gridColumns);
+    if (sortMode !== "newest") params.sort = sortMode;
+    if (selectedSupplier !== "all") params.supplier = selectedSupplier;
+    if (selectedCategory !== "all") params.category = selectedCategory;
+    if (selectedStatus !== "all") params.status = selectedStatus;
+    if (maxDays !== "all") params.expires = maxDays;
+    if (searchQuery.trim()) params.q = searchQuery;
+    if (currentPage !== 1) params.page = String(currentPage);
+
+    setSearchParams(params, { replace: true });
+  }, [viewMode, gridColumns, sortMode, selectedSupplier, selectedCategory, selectedStatus, searchQuery, currentPage]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / itemsPerPage));
+
+  // Normalizar página se ela for maior que o total (página inexistente)
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0 && !isLoading) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages, isLoading]);
+  const paginatedProducts = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filteredProducts.slice(start, start + itemsPerPage);
+  }, [filteredProducts, currentPage]);
 
   const sel = useNoveltiesSelectionMode({ selectionMode, filteredProducts: paginatedProducts });
+  const hasActiveFilters = selectedSupplier !== "all" || selectedCategory !== "all" || selectedStatus !== "all" || maxDays !== "all" || searchQuery.trim() !== "";
   const handleProductClick = (id: string) => {
     log.info("product_click", { id });
     navigate(`/produto/${id}`);
+  };
+  const clearFilters = () => { 
+    log.info("filters_clear");
+    setSelectedSupplier("all"); 
+    setSelectedCategory("all"); 
+    setSelectedStatus("all");
+    setMaxDays("all");
+    setSearchQuery(""); 
   };
   if (error) console.error('Erro ao carregar novidades:', error);
 
@@ -152,62 +207,14 @@ export const NoveltyProductGrid = memo(function NoveltyProductGrid({
       );
     }
     if (filteredProducts.length === 0) {
-      const handleLoadMocks = async () => {
-        toast.loading("Simulando carga de novidades...", { id: "novelty-mock" });
-        try {
-          await new Promise(resolve => setTimeout(resolve, 800));
-          // Esta função depende da implementação do hook useNoveltiesWithDetails.
-          // Como as novidades vêm do banco via fetch, o mock ideal é recarregar a página
-          // ou inserir dados temporários. Por ora, vamos apenas simular visualmente.
-          toast.success("Novidades sincronizadas com o laboratório", { id: "novelty-mock" });
-        } catch (err) {
-          toast.error("Erro na simulação", { id: "novelty-mock" });
-        }
-      };
-
       return (
-        <div className="flex flex-col items-center justify-center py-20 text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="relative mb-6">
-            <div className="absolute -inset-4 bg-muted/20 rounded-full blur-2xl animate-pulse" />
-            <div className="relative inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-muted/50 border border-border/50">
-              <Package className="h-10 w-10 text-muted-foreground/30" />
-            </div>
-          </div>
-          <h3 className="text-lg font-semibold text-foreground mb-2">
-            {hasActiveFilters ? "Nenhuma novidade encontrada" : "Sem novidades no momento"}
-          </h3>
-          <p className="text-sm text-muted-foreground max-w-[300px] mb-8 leading-relaxed">
-            {hasActiveFilters 
-              ? "Tente ajustar seus filtros ou termos de busca para encontrar o que procura." 
-              : "Novos produtos aparecerão aqui assim que forem detectados pelo sistema."}
-          </p>
-          <div className="flex flex-wrap justify-center gap-3">
-            {hasActiveFilters && (
-              <Button 
-                variant="outline" 
-                className="gap-2 px-6 h-10 border-primary/20 hover:border-primary/50 hover:bg-primary/5 transition-all duration-300"
-                onClick={clearFilters}
-              >
-                <X className="h-4 w-4" />
-                Limpar filtros
-              </Button>
-            )}
-            <Button 
-              variant="outline"
-              onClick={handleLoadMocks}
-              className="border-success/20 hover:border-success/50 text-[11px] font-black uppercase tracking-widest bg-success/5 h-10 px-6"
-            >
-              <Sparkles className="h-4 w-4 text-success mr-2" />
-              Mock Demo (Lab)
-            </Button>
-          </div>
-          <p className="text-[10px] text-success/40 uppercase tracking-[0.2em] font-black mt-6">
-            Engenharia de Dados / 10.10 Final
-          </p>
+        <div className="text-center py-10">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-muted/80 mb-3"><Package className="h-7 w-7 text-muted-foreground/40" /></div>
+          <p className="text-muted-foreground font-medium text-sm">{hasActiveFilters ? "Nenhuma novidade com esses filtros" : "Nenhuma novidade encontrada"}</p>
+          {hasActiveFilters ? <Button variant="link-primary" className="mt-1 text-xs" onClick={clearFilters}>Limpar filtros</Button> : <p className="text-xs text-muted-foreground/70 mt-1">Produtos novos aparecerão aqui automaticamente</p>}
         </div>
       );
     }
-
     if (viewMode === "table") return <NoveltyTableView products={paginatedProducts} onProductClick={handleProductClick} selectionMode={selectionMode} selectedIds={sel.selectedIds} onToggleSelect={sel.toggleSelect} />;
     const effectiveCols = Math.min(gridColumns, paginatedProducts.length) as ColumnCount;
 
@@ -266,31 +273,9 @@ export const NoveltyProductGrid = memo(function NoveltyProductGrid({
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <Sparkles className="h-4 w-4 text-success shrink-0" />
             <h1 className="text-base sm:text-lg font-semibold whitespace-nowrap" data-testid="page-title-novidades">Novidades</h1>
-            <div className="flex items-center gap-1.5">
-              <Badge variant="secondary" className="text-[10px] tabular-nums px-1.5 shrink-0 h-5">
-                {isLoading && products.length === 0 ? (
-                  <span className="flex items-center gap-1">
-                    <Loader2 className="h-2.5 w-2.5 animate-spin" />
-                    carregando...
-                  </span>
-                ) : (
-                  <>
-                    {filteredProducts.length}
-                    {hasActiveFilters && <span className="text-muted-foreground ml-0.5">/{products.length}</span>}
-                  </>
-                )}
-              </Badge>
-              {hasActiveFilters && (
-                <button 
-                  onClick={clearFilters}
-                  className="text-[10px] font-medium text-primary hover:text-primary/80 flex items-center gap-0.5 transition-colors"
-                >
-                  <X className="h-3 w-3" />
-                  Limpar
-                </button>
-              )}
-            </div>
-
+            <Badge variant="secondary" className="text-[10px] tabular-nums px-1.5 shrink-0">
+              {isLoading && products.length === 0 ? <span className="flex items-center gap-1"><Loader2 className="h-2.5 w-2.5 animate-spin" />carregando...</span> : <>{filteredProducts.length}{hasActiveFilters && <span className="text-muted-foreground">/{products.length}</span>}</>}
+            </Badge>
             <AnimatePresence>
               {isLoading && loadingProgress > 0 && loadingProgress < 100 && (
                 <motion.span initial={{ opacity: 0, width: 0 }} animate={{ opacity: 1, width: 48 }} exit={{ opacity: 0, width: 0 }} className="inline-flex items-center gap-1 ml-1">
@@ -312,7 +297,7 @@ export const NoveltyProductGrid = memo(function NoveltyProductGrid({
           <Button variant={selectionMode ? "default" : "outline"} size="sm" className={cn("h-8 text-xs gap-1.5 shrink-0 transition-all", selectionMode && "bg-primary text-primary-foreground shadow-[0_0_12px_hsl(var(--primary)/0.3)]")} onClick={() => { setSelectionMode(!selectionMode); if (selectionMode) sel.clearSelection(); }}>
             <CheckSquare className="h-3.5 w-3.5" /><span className="hidden sm:inline">{selectionMode ? "Cancelar" : "Selecionar"}</span>
           </Button>
-          <LayoutPopover viewMode={viewMode} setViewMode={setViewMode} gridColumns={gridColumns as any} setGridColumns={setGridColumns as any} />
+          <LayoutPopover viewMode={viewMode} setViewMode={setViewMode} gridColumns={gridColumns} setGridColumns={setGridColumns} />
         </div>
 
         {/* Search full-width on mobile */}
@@ -367,11 +352,9 @@ export const NoveltyProductGrid = memo(function NoveltyProductGrid({
               <SelectTrigger className="w-[130px] h-7 text-[11px] gap-1" aria-label="Filtrar por prazo de expiração"><Package className="h-3 w-3 shrink-0" /><SelectValue placeholder="Expira em" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Qualquer prazo</SelectItem>
-                <SelectItem value="1">Expira hoje</SelectItem>
-                <SelectItem value="3">Até 3 dias</SelectItem>
-                <SelectItem value="7">Esta semana</SelectItem>
+                <SelectItem value="3">Próximos 3 dias</SelectItem>
+                <SelectItem value="7">Próxima semana</SelectItem>
                 <SelectItem value="15">Próximos 15 dias</SelectItem>
-                <SelectItem value="30">Este mês</SelectItem>
               </SelectContent>
             </Select>
             <Select value={selectedSupplier} onValueChange={setSelectedSupplier}>
@@ -423,11 +406,9 @@ export const NoveltyProductGrid = memo(function NoveltyProductGrid({
                       <SelectTrigger className="w-full h-10 text-sm"><SelectValue placeholder="Prazo" /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">Qualquer prazo</SelectItem>
-                        <SelectItem value="1">Expira hoje</SelectItem>
                         <SelectItem value="3">Até 3 dias</SelectItem>
-                        <SelectItem value="7">Esta semana</SelectItem>
-                        <SelectItem value="15">Próximos 15 dias</SelectItem>
-                        <SelectItem value="30">Este mês</SelectItem>
+                        <SelectItem value="7">Até 7 dias</SelectItem>
+                        <SelectItem value="15">Até 15 dias</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -534,4 +515,4 @@ export const NoveltyProductGrid = memo(function NoveltyProductGrid({
       <AddToCollectionModal open={sel.collectionModalOpen} onOpenChange={sel.setCollectionModalOpen} productId={sel.firstSelectedId} productName={sel.firstSelectedProduct?.product_name || ""} />
     </div>
   );
-});
+}

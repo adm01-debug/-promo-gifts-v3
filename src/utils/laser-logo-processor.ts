@@ -2,9 +2,12 @@
  * laserLogoProcessor — Converte logo para tom laser sólido via Canvas API
  *
  * Abordagem correta: pixel a pixel
- * - Pixels transparentes (alpha < threshold) → mantém transparente
- * - Pixels near-white (luminância > threshold) → mantém transparente (preserva espaços entre elementos)
+ * - Pixels transparentes (alpha < 30) → mantém transparente
+ * - Pixels near-white (luminância > 230) → mantém branco/transparente (preserva espaços entre elementos)
  * - Qualquer outro pixel (colorido, cinza, preto) → substitui pelo tom laser sólido
+ *
+ * Isso preserva os espaços brancos entre elementos (ex: triângulos do SICOOB)
+ * enquanto converte TODOS os pixels "visíveis" para um único tom sólido.
  */
 
 export interface LaserToneConfig {
@@ -12,15 +15,13 @@ export interface LaserToneConfig {
   hex: string;
   /** Alpha multiplier 0-1 for the final tone */
   opacity?: number;
-  /** Luminance threshold above which pixels are treated as "white/background" (0-255, default 220) */
+  /** Luminance threshold above which pixels are treated as "white/background" (0-255, default 230) */
   whiteThreshold?: number;
-  /** Alpha threshold below which pixels are treated as transparent (0-255, default 30) */
-  alphaThreshold?: number;
 }
 
 const LASER_TONES: Record<"claro" | "escuro", LaserToneConfig> = {
-  claro: { hex: "#BEBEBE", opacity: 0.85, whiteThreshold: 220, alphaThreshold: 30 },
-  escuro: { hex: "#3A3A3A", opacity: 0.92, whiteThreshold: 220, alphaThreshold: 30 },
+  claro: { hex: "#BEBEBE", opacity: 0.85, whiteThreshold: 220 },
+  escuro: { hex: "#3A3A3A", opacity: 0.92, whiteThreshold: 220 },
 };
 
 function hexToRgb(hex: string): [number, number, number] {
@@ -39,14 +40,11 @@ function hexToRgb(hex: string): [number, number, number] {
  */
 export async function processLogoForLaser(
   imageUrl: string,
-  tone: "claro" | "escuro",
-  overrides?: Partial<LaserToneConfig>
+  tone: "claro" | "escuro"
 ): Promise<string> {
-  const baseConfig = LASER_TONES[tone];
-  const config = { ...baseConfig, ...overrides };
+  const config = LASER_TONES[tone];
   const [tR, tG, tB] = hexToRgb(config.hex);
-  const whiteThreshold = Math.min(255, Math.max(0, config.whiteThreshold ?? 220));
-  const alphaThreshold = Math.min(255, Math.max(0, config.alphaThreshold ?? 30));
+  const whiteThreshold = config.whiteThreshold ?? 220;
 
   // Load image — handle CORS by fetching as blob first
   const blob = await fetchAsBlob(imageUrl);
@@ -80,7 +78,7 @@ export async function processLogoForLaser(
         const a = data[i + 3];
 
         // Skip fully/mostly transparent pixels
-        if (a < alphaThreshold) {
+        if (a < 30) {
           data[i + 3] = 0;
           continue;
         }
@@ -90,7 +88,6 @@ export async function processLogoForLaser(
 
         // White/near-white pixels = background or intentional gaps between elements
         // → make transparent to preserve spaces (e.g. between SICOOB triangles)
-        // Adjust: also check if original pixel was already very close to white
         if (luminance > whiteThreshold && a > 200) {
           data[i + 3] = 0; // transparent
           continue;

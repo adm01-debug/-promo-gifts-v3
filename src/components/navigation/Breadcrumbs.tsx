@@ -38,8 +38,7 @@ const routeLabels: Record<string, string> = {
   "favoritos": "Favoritos",
   "comparar": "Comparar",
   "colecoes": "Coleções",
-  "estoque": "Estoque 360º",
-  "bi-comercial": "Inteligência Comercial",
+  "bi": "Estoque",
   "tendencias": "Tendências",
   
   "perfil": "Meu Perfil",
@@ -140,18 +139,6 @@ function generateBreadcrumbs(
       if (!roles.isDev && isDevOnlyPath(currentPath)) {
         continue;
       }
-
-      // Injeção do pai "Insights" para rotas específicas
-      const isInsightRoute = ["/estoque", "/tendencias", "/ferramentas/bi-comercial"].includes(currentPath);
-      if (isInsightRoute && breadcrumbs.every(b => b.label !== "Insights")) {
-        breadcrumbs.push({ label: "Insights" });
-      }
-
-      // Se estivermos em bi-comercial, não queremos mostrar "Ferramentas" antes se o objetivo é mostrar "Insights"
-      if (segment === "ferramentas" && pathname.includes("/bi-comercial")) {
-        continue;
-      }
-
       const label = routeLabels[segment] || segment.charAt(0).toUpperCase() + segment.slice(1);
       const navigable = canNavigateTo(currentPath, roles);
       const isLast = i >= segments.length - 1;

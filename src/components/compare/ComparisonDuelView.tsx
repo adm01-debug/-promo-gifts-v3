@@ -54,14 +54,14 @@ export function ComparisonDuelView({ products, formatCurrency, onRemove, onProdu
       }
     }
     return (
-      <div key={row.key} className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 py-3 odd:bg-muted/30 px-4 rounded-xl transition-colors hover:bg-primary/5">
-        <div className={cn("text-right text-sm font-medium tabular-nums", aWin && "text-amber-600 dark:text-amber-400 font-bold")}>
+      <div key={row.key} className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 py-3 odd:bg-muted/30 px-4 rounded-xl">
+        <div className={cn("text-right text-sm font-medium tabular-nums", aWin && "text-success font-bold")}>
           {row.key === "price" ? formatCurrency(row.raw(a)) : row.format(a)}
-          {aWin && <Crown className="h-3.5 w-3.5 inline ml-1.5" />}
+          {aWin && <Check className="h-3.5 w-3.5 inline ml-1.5" />}
         </div>
-        <div className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground/60 text-center px-2">{row.label}</div>
-        <div className={cn("text-left text-sm font-medium tabular-nums", bWin && "text-amber-600 dark:text-amber-400 font-bold")}>
-          {bWin && <Crown className="h-3.5 w-3.5 inline mr-1.5" />}
+        <div className="text-xs uppercase tracking-wide text-muted-foreground text-center px-2">{row.label}</div>
+        <div className={cn("text-left text-sm font-medium tabular-nums", bWin && "text-success font-bold")}>
+          {bWin && <Check className="h-3.5 w-3.5 inline mr-1.5" />}
           {row.key === "price" ? formatCurrency(row.raw(b)) : row.format(b)}
         </div>
       </div>
@@ -106,22 +106,21 @@ export function ComparisonDuelView({ products, formatCurrency, onRemove, onProdu
   );
 
   return (
-    <div className="space-y-6 rounded-xl border-[2px] border-amber-400/30 bg-gradient-to-br from-amber-400/5 via-card to-card p-4 sm:p-6 shadow-xl relative overflow-hidden">
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-amber-400 to-transparent opacity-50" />
+    <div className="space-y-6 rounded-xl border-2 border-primary/20 bg-card p-4 sm:p-6 shadow-sm">
       <div className="flex items-center justify-center gap-3 pb-2">
-        <Badge variant="outline" className="text-[10px] border-amber-400/40 text-amber-700 bg-amber-400/10">⚔️ ARENA DE DUELO</Badge>
-        <span className="text-[11px] font-black uppercase tracking-widest text-muted-foreground/80">Confronto Direto</span>
+        <Badge variant="outline" className="text-xs">⚔️ Modo Duelo</Badge>
+        <span className="text-[11px] text-muted-foreground">Comparação 1 a 1 com destaques</span>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] gap-6 items-start">
         {renderHeader(a, 0, "left")}
         <div className="hidden lg:flex flex-col items-center justify-center pt-32">
-          <div className="w-px h-32 bg-gradient-to-b from-transparent via-amber-400/30 to-transparent" />
-          <span className="text-2xl font-display font-black text-amber-500/30 my-4 animate-pulse">VS</span>
-          <div className="w-px h-32 bg-gradient-to-b from-transparent via-amber-400/30 to-transparent" />
+          <div className="w-px h-32 bg-border" />
+          <span className="text-xl font-display font-bold text-muted-foreground my-4">VS</span>
+          <div className="w-px h-32 bg-border" />
         </div>
         <div className="lg:hidden flex items-center justify-center py-2">
-          <span className="text-xl font-display font-black text-amber-500/30">VS</span>
+          <span className="text-xl font-display font-bold text-muted-foreground">VS</span>
         </div>
         {renderHeader(b, 1, "right")}
       </div>

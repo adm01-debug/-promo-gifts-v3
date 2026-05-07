@@ -52,7 +52,6 @@ export interface AddToCartInput {
   quantity?: number;
   color_name?: string;
   color_hex?: string;
-  sort_order?: number;
 }
 
 export interface CreateCartInput {
@@ -186,7 +185,6 @@ export function useSellerCarts() {
             quantity: item.quantity || 1,
             color_name: item.color_name || null,
             color_hex: item.color_hex || null,
-            sort_order: item.sort_order ?? 0,
           });
         if (error) throw error;
       }
@@ -346,6 +344,7 @@ export function useSellerCarts() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
+      toast.success("Item movido para outro carrinho");
     },
   });
 
@@ -373,6 +372,7 @@ export function useSellerCarts() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
+      toast.success("Item duplicado para outro carrinho");
     },
   });
 

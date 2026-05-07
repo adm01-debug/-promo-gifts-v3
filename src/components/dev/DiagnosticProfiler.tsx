@@ -10,9 +10,6 @@ import { logger } from "@/lib/logger";
  * </DiagnosticProfiler>
  */
 export function DiagnosticProfiler({ id, children }: { id: string; children: React.ReactNode }) {
-  const formatMetric = (value: unknown, suffix = "ms") =>
-    typeof value === "number" && Number.isFinite(value) ? `${value.toFixed(2)}${suffix}` : null;
-
   const onRender: ProfilerOnRenderCallback = (
     phase,
     actualDuration,
@@ -22,12 +19,12 @@ export function DiagnosticProfiler({ id, children }: { id: string; children: Rea
     interactions
   ) => {
     // Só loga commits significativos ou em modo debug para evitar spam no console
-    if ((typeof actualDuration === "number" && actualDuration > 16) || import.meta.env.DEV) {
+    if (actualDuration > 16 || import.meta.env.DEV) {
       logger.debug(`[Profiler:${id}] ${phase}`, {
-        actualDuration: formatMetric(actualDuration),
-        baseDuration: formatMetric(baseDuration),
-        commitTime: formatMetric(commitTime, ""),
-        startTime: formatMetric(startTime, ""),
+        actualDuration: `${actualDuration.toFixed(2)}ms`,
+        baseDuration: `${baseDuration.toFixed(2)}ms`,
+        commitTime: commitTime.toFixed(2),
+        startTime: startTime.toFixed(2),
       });
     }
     

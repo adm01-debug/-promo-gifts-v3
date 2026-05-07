@@ -92,11 +92,11 @@ vi.mock("@/hooks/useMockupGenerator", () => ({
   useMockupGenerator: () => mockMg,
 }));
 
-vi.mock("@/pages/mockup-generator/MockupTechniqueHandlers", () => ({
+vi.mock("@/hooks/mockup/MockupTechniqueHandlers", () => ({
   useTechniqueHandlers: () => ({
     handleTechniqueChange: vi.fn(),
-    techniqueChangeDialogOpen: false,
-    setTechniqueChangeDialogOpen: vi.fn(),
+    isDialogOpen: false,
+    setIsDialogOpen: vi.fn(),
     confirmTechniqueChange: vi.fn(),
     pendingTechnique: null,
     setColorConfigDialogOpen: vi.fn(),

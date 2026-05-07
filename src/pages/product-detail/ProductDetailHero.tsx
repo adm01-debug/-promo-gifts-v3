@@ -144,8 +144,6 @@ export function ProductDetailHero({
             sku={selectedVariation?.sku || product.sku}
             supplierName={product.supplier.name}
             supplierId={product.supplier.id}
-            productId={product.id}
-            productName={product.name}
             onOpenFutureStock={onOpenFutureStock}
             onOpenSupplierComparison={onOpenSupplierComparison}
           />

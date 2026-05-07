@@ -21,17 +21,9 @@ interface ComparisonRadarChartProps {
 
 const COLORS = [
   "hsl(var(--primary))",
-  "#22c55e", // green-500
-  "#eab308", // yellow-500
-  "#ef4444", // red-500
-  "#8b5cf6", // violet-500
-  "#06b6d4", // cyan-500
-  "#f97316", // orange-500
-  "#ec4899", // pink-500
-  "#6366f1", // indigo-500
-  "#14b8a6", // teal-500
-  "#f43f5e", // rose-500
-  "#a855f7", // purple-500
+  "hsl(var(--success))",
+  "hsl(var(--warning))",
+  "hsl(var(--destructive))",
 ];
 
 function leadTimeScore(status: string | undefined): number {
@@ -59,11 +51,11 @@ export function ComparisonRadarChart({ products, className }: ComparisonRadarCha
     const maxColors = Math.max(...colorCounts, 1);
 
     const axes = [
-      { key: "Economia", values: prices.map(v => Math.round((1 - v / maxPrice) * 100)) },
-      { key: "Pronta Entrega", values: stocks.map(v => Math.round((v / maxStock) * 100)) },
-      { key: "Variedade", values: colorCounts.map(v => Math.round((v / maxColors) * 100)) },
-      { key: "Acessibilidade", values: mins.map(v => Math.round((1 - (v - 1) / Math.max(1, maxMin - 1)) * 100)) },
-      { key: "Rapidez", values: products.map(p => leadTimeScore(p.stockStatus)) },
+      { key: "Preço", values: prices.map(v => Math.round((1 - v / maxPrice) * 100)) },
+      { key: "Estoque", values: stocks.map(v => Math.round((v / maxStock) * 100)) },
+      { key: "Cores", values: colorCounts.map(v => Math.round((v / maxColors) * 100)) },
+      { key: "Qtd. mín", values: mins.map(v => Math.round((1 - (v - 1) / Math.max(1, maxMin - 1)) * 100)) },
+      { key: "Lead time", values: products.map(p => leadTimeScore(p.stockStatus)) },
     ];
 
     return axes.map(axis => {
@@ -93,10 +85,10 @@ export function ComparisonRadarChart({ products, className }: ComparisonRadarCha
 
   return (
     <div className={className}>
-      <div className="rounded-xl border-[2px] border-amber-400/20 bg-gradient-to-br from-amber-400/5 to-transparent p-4 shadow-sm">
-        <h3 className="text-[10px] font-black uppercase tracking-widest mb-4 flex items-center gap-2 text-amber-600">
-          <span className="inline-block w-1.5 h-4 bg-amber-500 rounded-full animate-pulse" />
-          Radar de Performance (0–100)
+      <div className="rounded-xl border bg-card p-4">
+        <h3 className="text-sm font-semibold mb-2 flex items-center gap-2">
+          <span className="inline-block w-1 h-4 bg-primary rounded-full" />
+          Radar comparativo (0–100, maior é melhor)
         </h3>
         <ResponsiveContainer width="100%" height={320}>
           <RadarChart data={data} outerRadius="75%">
@@ -132,8 +124,8 @@ export function ComparisonRadarChart({ products, className }: ComparisonRadarCha
                 dataKey={String(p.id)}
                 stroke={COLORS[i % COLORS.length]}
                 fill={COLORS[i % COLORS.length]}
-                fillOpacity={opacity[String(p.id)] ?? (Object.keys(opacity).length > 0 ? 0.05 : 0.18)}
-                strokeOpacity={opacity[String(p.id)] ? 1 : (Object.keys(opacity).length > 0 ? 0.2 : 0.8)}
+                fillOpacity={opacity[String(p.id)] ?? 0.18}
+                strokeOpacity={opacity[String(p.id)] ? 1 : 0.8}
                 strokeWidth={2}
                 animationBegin={i * 100}
                 animationDuration={800}

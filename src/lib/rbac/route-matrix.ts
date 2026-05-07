@@ -63,10 +63,10 @@ export const RBAC_ROUTES: RbacRouteEntry[] = [
   { path: "/favoritos", label: "Favoritos", guard: "ProtectedRoute", role: "authenticated", mfaAal2: false, category: "user" },
   { path: "/comparar", label: "Comparador", guard: "ProtectedRoute", role: "authenticated", mfaAal2: false, category: "user" },
   { path: "/colecoes", label: "Coleções", guard: "ProtectedRoute", role: "authenticated", mfaAal2: false, category: "user" },
-  { path: "/estoque", label: "Estoque 360º", guard: "ProtectedRoute", role: "authenticated", mfaAal2: false, category: "user" },
-  { path: "/ferramentas/bi-comercial", label: "Inteligência Comercial", guard: "ProtectedRoute", role: "authenticated", mfaAal2: false, category: "user" },
-  
-  { path: "/tendencias", label: "Tendências", guard: "ProtectedRoute", role: "authenticated", mfaAal2: false, category: "user" },
+  { path: "/estoque", label: "Estoque", guard: "ProtectedRoute", role: "authenticated", mfaAal2: false, category: "user" },
+  { path: "/inteligencia-comercial", label: "Inteligência Comercial", guard: "ProtectedRoute", role: "authenticated", mfaAal2: false, category: "user" },
+  { path: "/ferramentas/bi", label: "Business Intelligence", guard: "ProtectedRoute", role: "authenticated", mfaAal2: false, category: "user" },
+  { path: "/tendencias", label: "Tendências", guard: "AdminRoute", role: "admin", mfaAal2: true, category: "admin" },
 
   // ─── Admin (gestão funcional, exige AAL2) ─────────────────────────────
   { path: "/admin/usuarios", label: "Usuários", guard: "AdminRoute", role: "admin", mfaAal2: true, rlsHelper: "is_admin / has_role(_,'admin')", category: "admin" },

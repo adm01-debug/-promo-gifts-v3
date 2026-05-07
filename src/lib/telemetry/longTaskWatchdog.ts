@@ -33,18 +33,15 @@ export interface LongTaskEvent {
   startedAtWallMs: number;
   /** Atribuição reportada pelo browser. */
   attribution: LongTaskAttribution[];
-  /** Chamadas de bridge que estavam ativas durante o bloqueio. */
+  /** Chamadas de bridge que estavam ativas durante TODO ou PARTE do bloqueio. */
   overlappingCalls: readonly BridgeCallSample[];
   /** Chamadas de bridge que terminaram imediatamente antes (janela de cooldown). */
   recentlyCompletedCalls: readonly BridgeCallSample[];
 }
 
 const MAX_EVENTS = 100;
-/** 
- * Tasks abaixo disso são ruído (animações, layout normais).
- * Reduzido de 80ms para 50ms para alinhar com o padrão W3C (RAIL).
- */
-const MIN_DURATION_MS = 50;
+/** Tasks abaixo disso são ruído (animações, layout normais). */
+const MIN_DURATION_MS = 80;
 /** Janela "recente" considerada após o término (ms). */
 const RECENT_COMPLETION_WINDOW_MS = 50;
 

@@ -1,8 +1,11 @@
 /**
- * Regressão estática: garante que elementos interativos do sidebar de
- * navegação têm um anel de foco visível por teclado.
- * 
- * Refatorado para remover TODOs de documentação.
+ * Regressão estática: garante que TODO elemento interativo do sidebar de
+ * navegação tem um anel de foco visível por teclado (`focus-visible:ring-2`
+ * + cor primária + offset), sem depender de sombra para ser percebido.
+ *
+ * Cobre desktop e mobile porque `:focus-visible` é uma pseudo-classe CSS
+ * que se comporta igual em todas as larguras — o que precisamos garantir é
+ * que as classes Tailwind estão presentes.
  */
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
