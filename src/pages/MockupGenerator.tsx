@@ -236,16 +236,7 @@ export default function MockupGenerator() {
                 hasGenerated={!!mg.generatedMockup}
                 onStepClick={(step) => {
                   mg.setActiveTab("generator");
-                  const sectionMap: Record<number, string> = { 1: "step-client", 2: "step-product", 3: "step-technique", 4: "step-logo", 5: "step-logo", 6: "step-logo" };
-                  const targetId = sectionMap[step];
-                  if (targetId) {
-                    const el = document.getElementById(targetId);
-                    if (el) {
-                      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                      el.classList.add('ring-2', 'ring-primary/50', 'rounded-lg');
-                      setTimeout(() => el.classList.remove('ring-2', 'ring-primary/50', 'rounded-lg'), 2000);
-                    }
-                  }
+                  scrollToStep(step, true);
                 }}
               />
             </Suspense>
