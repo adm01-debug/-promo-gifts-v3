@@ -34,4 +34,20 @@ test.describe("Login Page", () => {
     await expectUnauthenticated(page);
     expect(page.url()).toMatch(/\/login/);
   });
+
+  test("exibe link de recuperação de senha", async ({ page }) => {
+    await gotoAndSettle(page, "/login");
+    const recoveryLink = page.locator('a:text("Esqueceu a senha"), a:text("Recuperar senha")');
+    await expect(recoveryLink.first()).toBeVisible();
+  });
+
+  test("valida formato de email no client-side", async ({ page }) => {
+    await gotoAndSettle(page, "/login");
+    await page.locator('[data-testid="login-email-input"]').fill("invalid-email");
+    await page.locator('[data-testid="login-submit"]').click();
+    // HTML5 validation or custom error message
+    const emailInput = page.locator('[data-testid="login-email-input"]');
+    const isInvalid = await emailInput.evaluate((el: HTMLInputElement) => !el.checkValidity() || el.classList.contains('invalid'));
+    expect(isInvalid).toBeTruthy();
+  });
 });
