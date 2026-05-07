@@ -118,7 +118,7 @@ export const ContinuousRockets = React.memo(() => {
   );
 });
 
-const Starfield = React.memo(() => {
+export const Starfield = React.memo(() => {
   return (
     <>
       {[...Array(32)].map((_, i) => {
