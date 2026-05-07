@@ -5,7 +5,7 @@
  * Supports Ctrl+Z (undo) and Ctrl+Shift+Z / Ctrl+Y (redo).
  */
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 
 interface PositionState {
   positionX: number;
