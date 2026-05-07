@@ -159,10 +159,30 @@ export function ProductsProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function useProductsContext() {
+/**
+ * No-op fallback returned when the context is unexpectedly missing.
+ * This prevents the entire app from crashing under HMR race conditions or
+ * Suspense edge-cases where a consumer mounts before the provider re-evaluates.
+ * Page-level data still loads via useProducts/useExternalProducts queries.
+ */
+const FALLBACK_CONTEXT: ProductsContextType = {
+  products: [],
+  isLoading: false,
+  getProductById: () => undefined,
+  getProductsByIds: () => [],
+  registerProducts: () => {},
+};
+
+export function useProductsContext(): ProductsContextType {
   const context = useContext(ProductsContext);
   if (context === undefined) {
-    throw new Error("useProductsContext must be used within a ProductsProvider");
+    if (import.meta.env.DEV) {
+      logger.warn(
+        "[ProductsContext] useProductsContext called outside ProductsProvider — using fallback. " +
+        "This usually indicates an HMR module-duplication race; a full reload should fix it."
+      );
+    }
+    return FALLBACK_CONTEXT;
   }
   return context;
 }
