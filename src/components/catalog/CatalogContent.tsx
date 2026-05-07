@@ -1,7 +1,11 @@
 import { useRef, useCallback, useEffect, useState, useMemo, memo } from "react";
 import type { ActiveColorFilter } from "@/utils/color-image-resolver";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { Loader2, ArrowUp, Keyboard, X } from "lucide-react";
+import { Loader2, ArrowUp, Keyboard, X, AlertCircle } from "lucide-react";
+import { useProductsContextSafe } from "@/contexts/ProductsContext";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+
 
 import { AnimatePresence, motion } from "framer-motion";
 import { ProductCard } from "@/components/products/ProductCard";
