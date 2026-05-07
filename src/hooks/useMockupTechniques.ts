@@ -232,6 +232,7 @@ export function useFilteredTechniques(
     }
 
     // No customization data yet (loading) -> return empty to avoid showing wrong list
+    // Use undefined check to see if we are in the initial loading state
     if (customizationData === undefined) {
       return [];
     }
