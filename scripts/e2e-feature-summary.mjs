@@ -118,11 +118,6 @@ function walkSuites(suites = [], parentTitles = []) {
           .toString()
           .split("\n")[0]
           .slice(0, 200);
-        
-        // Link para artefatos (Playwright default path: playwright-report/data/...)
-        const screenshot = last.attachments?.find(a => a.name === "screenshot")?.path;
-        const video = last.attachments?.find(a => a.name === "video")?.path;
-
         rows.push({
           feature: featureKey(file || spec.file || ""),
           file: file || spec.file || "",
@@ -133,8 +128,6 @@ function walkSuites(suites = [], parentTitles = []) {
           location: spec.line ? `${file}:${spec.line}` : null,
           error: errorMsg || null,
           e2eName: extractE2eName(specTitle, errorMsg),
-          screenshot,
-          video
         });
       }
     }
@@ -312,8 +305,6 @@ if (failedFeatures.length === 0) {
     for (const fr of f.failures) {
       mdLines.push(`- **${fr.title}**${fr.location ? `  \n  \`${fr.location}\`` : ""}`);
       if (fr.error) mdLines.push(`  - ↳ ${fr.error}`);
-      if (fr.screenshot) mdLines.push(`  - [📸 Screenshot](${fr.screenshot})`);
-      if (fr.video) mdLines.push(`  - [🎥 Video](${fr.video})`);
     }
     mdLines.push(``);
   }
@@ -351,58 +342,6 @@ for (const f of slowestFeatures) {
 const outDir = path.dirname(REPORT);
 fs.mkdirSync(outDir, { recursive: true });
 fs.writeFileSync(path.join(outDir, "feature-summary.md"), mdLines.join("\n") + "\n");
-
-// Gerar versão HTML simples para o CI
-const htmlContent = `
-<!DOCTYPE html>
-<html>
-<head>
-  <title>E2E Test Report</title>
-  <style>
-    body { font-family: sans-serif; max-width: 1200px; mx-auto; padding: 20px; }
-    .status-passed { color: green; }
-    .status-failed { color: red; }
-    table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
-    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-    tr:nth-child(even) { background-color: #f2f2f2; }
-  </style>
-</head>
-<body>
-  <h1>E2E Feature Summary Report</h1>
-  <p>Started: ${startedAt} | Wall time: ${wallSec}s</p>
-  <table>
-    <tr><th>Feature</th><th>Passed</th><th>Failed</th><th>Total</th></tr>
-    ${[...byFeature.values()].map(f => `
-      <tr>
-        <td>${f.feature}</td>
-        <td class="status-passed">${f.passed}</td>
-        <td class="status-failed">${f.failed}</td>
-        <td>${f.total}</td>
-      </tr>
-    `).join('')}
-  </table>
-  <h2>Common Failures</h2>
-  <ul>
-    ${failedFeatures.map(f => `
-      <li>
-        <b>${f.feature}</b>: ${f.failed} failures
-        <ul>
-          ${f.failures.map(fr => `
-            <li>
-              ${fr.title} 
-              ${fr.screenshot ? `<a href="${fr.screenshot}">[📸]</a>` : ''} 
-              ${fr.video ? `<a href="${fr.video}">[🎥]</a>` : ''}
-            </li>
-          `).join('')}
-        </ul>
-      </li>
-    `).join('')}
-  </ul>
-</body>
-</html>
-`;
-fs.writeFileSync(path.join(outDir, "report.html"), htmlContent);
-
 fs.writeFileSync(
   path.join(outDir, "feature-summary.json"),
   JSON.stringify(

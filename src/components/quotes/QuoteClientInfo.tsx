@@ -5,13 +5,7 @@ import { Building2, CreditCard, Mail, MapPin, Phone, User, UserPlus } from "luci
 import { AvatarLogo } from "@/components/shared/AvatarLogo";
 
 interface QuoteClientInfoProps {
-  clientCompany?: string | null;
-  clientName?: string | null;
-  clientEmail?: string | null;
-  clientPhone?: string | null;
-  clientCnpj?: string;
-}
-
+// ... keep existing code
 export function QuoteClientInfo({ clientCompany, clientName, clientEmail, clientPhone, clientCnpj }: QuoteClientInfoProps) {
   const parts = (clientCompany || "").split(" | ");
   const companyName = parts[0] || clientName || "Não especificado";
@@ -30,19 +24,20 @@ export function QuoteClientInfo({ clientCompany, clientName, clientEmail, client
             <div className="space-y-1 min-w-0 flex-1">
               <p className="text-foreground font-bold text-lg truncate">{companyName}</p>
               {cityState && (
-                <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                  <MapPin className="h-3.5 w-3.5" />
-                  <span>{cityState}</span>
-                </div>
-              )}
-              {clientCnpj && (
-                <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                  <CreditCard className="h-3.5 w-3.5" />
-                  <span>CNPJ: {clientCnpj}</span>
-                </div>
-              )}
-            </div>
-          </div>
+                  <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                    <MapPin className="h-3.5 w-3.5" />
+                    <span>{cityState}</span>
+                  </div>
+                )}
+                {clientCnpj && (
+                  <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                    <CreditCard className="h-3.5 w-3.5" />
+                    <span>CNPJ: {clientCnpj}</span>
+                  </div>
+                )}
+              </div>
+            );
+          })()
         ) : (
           <div className="flex items-center gap-3 p-3 rounded-lg border border-dashed border-muted-foreground/30 print:hidden">
             <UserPlus className="h-5 w-5 text-muted-foreground" />

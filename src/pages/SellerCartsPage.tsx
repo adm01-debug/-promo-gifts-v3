@@ -42,159 +42,18 @@ import { ptBR } from "date-fns/locale";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { useSellerCartsPage } from "./seller-carts/useSellerCartsPage";
 import { CartSidebar } from "./seller-carts/CartSidebar";
+import { AvatarLogo } from "@/components/shared/AvatarLogo";
 
 export default function SellerCartsPage() {
-  return (
-    <MainLayout>
-      <PageSEO title="Carrinhos" description="Gerencie carrinhos de seleção de produtos para seus clientes." path="/carrinhos" noIndex />
-      <SellerCartsContent />
-    </MainLayout>
-  );
-}
-
-const NOTES_PLACEHOLDERS = [
-  "Cliente quer entrega para o evento dia DD/MM...",
-  "Negociar prazo 30/60/90 dias...",
-  "Aprovar arte até dia X — produção começa após confirmação...",
-  "Margem-alvo: XX%. Frete por conta do cliente.",
-];
-
-function SellerCartsContent() {
-  const s = useSellerCartsPage();
-  const notesRef = useRef<HTMLTextAreaElement>(null);
-
-  const focusNotes = useCallback(() => {
-    notesRef.current?.focus();
-    notesRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-  }, []);
-
-  const aggregateTotal = useMemo(
-    () => s.carts.reduce((sum, c) => sum + c.items.reduce((a, i) => a + i.product_price * i.quantity, 0), 0),
-    [s.carts]
-  );
-
-  // Stable rotating placeholder per cart
-  const notesPlaceholder = useMemo(() => {
-    if (!s.activeCart) return NOTES_PLACEHOLDERS[0];
-    const seed = s.activeCart.id.charCodeAt(0) % NOTES_PLACEHOLDERS.length;
-    return NOTES_PLACEHOLDERS[seed];
-  }, [s.activeCart]);
-
-  const handleDuplicateLast = useCallback((sourceCart: typeof s.activeCart) => {
-    if (!sourceCart) return;
-    sourceCart.items.forEach(i => {
-      // re-uses the addToActiveCart through handleLoadTemplate-like flow
-      s.handleLoadTemplate([{
-        product_id: i.product_id, product_name: i.product_name,
-        product_sku: i.product_sku || undefined, product_image_url: i.product_image_url || undefined,
-        product_price: i.product_price, quantity: i.quantity,
-        color_name: i.color_name || undefined, color_hex: i.color_hex || undefined,
-      }]);
-    });
-  }, [s]);
-
-  return (
-    <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
-      {/* Header compactado */}
-      <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-            <ShoppingCart className="h-4.5 w-4.5 text-primary" />
-          </div>
-          <div className="min-w-0">
-            <h1 data-testid="page-title-carrinhos" className="text-xl lg:text-2xl font-display font-bold text-foreground leading-tight">Carrinhos</h1>
-            <p className="text-xs text-muted-foreground flex items-center gap-1.5 flex-wrap">
-              <span className="tabular-nums">{s.carts.length}</span>
-              <span className="text-muted-foreground/50">·</span>
-              <span className="tabular-nums">{s.totalItems} itens</span>
-              {aggregateTotal > 0 && (
-                <>
-                  <span className="text-muted-foreground/50">·</span>
-                  <span className="tabular-nums font-medium text-foreground/80">{formatCurrency(aggregateTotal)}</span>
-                </>
-              )}
-              <span className="hidden sm:inline-flex items-center gap-1 ml-2 text-muted-foreground/50" title="Buscar produtos">
-                <kbd className="text-[10px] px-1.5 py-0.5 bg-muted rounded font-mono">Ctrl+K</kbd>
-              </span>
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          {s.carts.length >= 2 && <CompareCartsDialog carts={s.carts} />}
-          {s.canCreateCart && (
-            <Button onClick={() => s.setShowNewCart(true)} size="sm" className="gap-1.5 bg-primary hover:bg-primary/90 text-primary-foreground h-9">
-              <Plus className="h-3.5 w-3.5" /> Novo Carrinho
-            </Button>
-          )}
-        </div>
-      </header>
-
-      {/* Picker em Dialog */}
-      <CartCompanyPickerDialog
-        open={s.showNewCart}
-        onOpenChange={s.setShowNewCart}
-        onCreated={() => s.setShowNewCart(false)}
-      />
-
-      {/* Tabs ricas */}
-      {s.carts.length > 0 && (
-        <CartTabsRich
-          carts={s.carts}
-          activeCartId={s.activeCartId}
-          canCreateCart={s.canCreateCart}
-          onSelect={s.setActiveCartId}
-          onNew={() => s.setShowNewCart(true)}
-          isLoading={s.isLoading}
-        />
-      )}
-
-      {/* Conteúdo */}
-      {s.isLoading ? (
-        <div className="grid grid-cols-1 xl:grid-cols-[1fr_340px] gap-6">
-          <div className="space-y-4">
-            <div className="p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border border-border/20 rounded-xl bg-card/40 animate-pulse">
-              <div className="flex items-center gap-3">
-                <Skeleton className="w-10 h-10 rounded-xl opacity-30" />
-                <div className="space-y-2">
-                  <Skeleton className="h-4 w-32 opacity-20" />
-                  <Skeleton className="h-3 w-48 opacity-10" />
-                </div>
-              </div>
-              <Skeleton className="h-8 w-32 rounded-lg opacity-20" />
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {[...Array(6)].map((_, i) => <CartItemSkeleton key={i} />)}
-            </div>
-          </div>
-          <div className="space-y-4 animate-pulse">
-            <Skeleton className="h-[400px] w-full rounded-xl opacity-20" />
-            <Skeleton className="h-[200px] w-full rounded-xl opacity-10" />
-          </div>
-        </div>
-      ) : s.carts.length === 0 ? (
-        <EmptyState
-          variant="cart"
-          title="Monte o carrinho perfeito para seu cliente"
-          description="Crie carrinhos vinculados a empresas, adicione produtos do catálogo e gere orçamentos profissionais em segundos."
-          action={{ label: "Criar Primeiro Carrinho", onClick: () => s.setShowNewCart(true) }}
-        />
-      ) : s.activeCart ? (
-        <div className="grid grid-cols-1 xl:grid-cols-[1fr_340px] gap-6">
-          <div className="space-y-4">
-            {/* Cart header fundido (status Select óbvio + ações inline) */}
-            <Card
-              className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-border/40 shadow-sm relative overflow-hidden group/header"
-              style={s.companyAccentColor ? { borderLeft: `4px solid ${s.companyAccentColor}` } : undefined}
-            >
-              <div className="flex items-center gap-4 min-w-0">
+// ... keep existing code
                 <div className="relative">
-                  {s.activeCart.company_logo_url ? (
-                    <img src={s.activeCart.company_logo_url} alt="" className="w-12 h-12 rounded-full object-cover bg-background border border-border/40 flex-shrink-0 shadow-inner group-hover/header:scale-105 transition-transform duration-300" loading="lazy" />
-                  ) : (
-                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover/header:bg-primary/20 transition-colors">
-                      <Building2 className="h-5 w-5 text-primary" />
-                    </div>
-                  )}
+                  <AvatarLogo 
+                    name={s.activeCart.company_name} 
+                    logoUrl={s.activeCart.company_logo_url} 
+                    size="xl" 
+                    className="group-hover/header:scale-105 transition-transform duration-300" 
+                    fallbackClassName="bg-primary/10 text-primary group-hover/header:bg-primary/20 transition-colors"
+                  />
                   <div className={cn(
                     "absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-background",
                     getStatusCfg(s.activeCart.status).color.split(" ")[0]
