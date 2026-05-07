@@ -45,8 +45,8 @@ export const CloudStatusBanner = memo(function CloudStatusBanner() {
   const shouldShowIssue = status === 'warming'
     ? isAllowed
     : status === 'down' || status === 'degraded';
-  const shouldShowHealthyDevBar = isDev && (status === 'healthy' || status === 'unknown');
-  const shouldShow = shouldShowIssue || shouldShowHealthyDevBar;
+  // Banner removido quando saudável — indicador discreto fica no rodapé via DevStatusDot.
+  const shouldShow = shouldShowIssue;
 
   if (!shouldShow) return null;
 
