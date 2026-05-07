@@ -44,6 +44,15 @@ export function OffscreenLayoutCapture({ request, onCaptured }: OffscreenLayoutC
   useEffect(() => {
     if (!request || isCapturing || processedRef.current === request.recordId) return;
 
+    // Trava de loop: impede mais de 3 tentativas para o mesmo recordId
+    const count = (captureCountRef.current[request.recordId] || 0) + 1;
+    captureCountRef.current[request.recordId] = count;
+    
+    if (count > 3) {
+      logger.error("Loop de captura detectado para o record:", { recordId: request.recordId, attempts: count });
+      return;
+    }
+
     const capture = async () => {
       // Wait for template to render
       await new Promise(r => setTimeout(r, 500));
