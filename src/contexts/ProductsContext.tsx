@@ -1,10 +1,16 @@
 import React, { createContext, useContext, type ReactNode, useMemo, useCallback, useState, useEffect, useRef } from "react";
 import { type Product } from "@/hooks/useProducts";
 import { fetchPromobrindProducts } from "@/lib/external-db";
-
-// Re-use the same mapping logic from useProducts
 import { mapPromobrindToProduct } from "@/hooks/useProducts";
 import { logger } from "@/lib/logger";
+
+// HMR Module Duplication Guard
+// We use a global symbol to detect if multiple instances of this module are loaded
+const INSTANCE_KEY = Symbol.for("lovable_products_context_instance");
+const globalObj = (typeof window !== 'undefined' ? window : {}) as any;
+const isDuplicateModule = globalObj[INSTANCE_KEY] && globalObj[INSTANCE_KEY] !== Math.random();
+globalObj[INSTANCE_KEY] = globalObj[INSTANCE_KEY] || Math.random();
+
 
 interface ProductsContextType {
   /** Cached products (only those that have been requested) */
