@@ -2,16 +2,15 @@
  * QuoteClientInfo — Client & contact info cards for QuoteViewPage
  */
 import { Building2, CreditCard, Mail, MapPin, Phone, User, UserPlus } from "lucide-react";
+import { AvatarLogo } from "@/components/shared/AvatarLogo";
 
 interface QuoteClientInfoProps {
-  clientCompany?: string | null;
-  clientName?: string | null;
-  clientEmail?: string | null;
-  clientPhone?: string | null;
-  clientCnpj?: string;
-}
-
+// ... keep existing code
 export function QuoteClientInfo({ clientCompany, clientName, clientEmail, clientPhone, clientCnpj }: QuoteClientInfoProps) {
+  const parts = (clientCompany || "").split(" | ");
+  const companyName = parts[0] || clientName || "Não especificado";
+  const cityState = parts[1];
+
   return (
     <div className="grid md:grid-cols-2 gap-6">
       <div>
@@ -20,15 +19,11 @@ export function QuoteClientInfo({ clientCompany, clientName, clientEmail, client
           <h3 className="font-display font-semibold text-sm uppercase tracking-wide text-muted-foreground">Empresa</h3>
         </div>
         {clientCompany || clientName ? (
-          (() => {
-            const company = clientCompany || "Não especificado";
-            const parts = company.split(" | ");
-            const companyName = parts[0];
-            const cityState = parts[1];
-            return (
-              <div className="space-y-1">
-                <p className="text-foreground font-bold text-lg">{companyName}</p>
-                {cityState && (
+          <div className="flex items-start gap-4">
+            <AvatarLogo name={companyName} size="lg" />
+            <div className="space-y-1 min-w-0 flex-1">
+              <p className="text-foreground font-bold text-lg truncate">{companyName}</p>
+              {cityState && (
                   <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                     <MapPin className="h-3.5 w-3.5" />
                     <span>{cityState}</span>
