@@ -333,10 +333,11 @@ export default function MockupGenerator() {
                             weightG: mg.selectedProduct.dimensions?.weight_g ?? null,
                           } : null}
                           technique={mg.selectedTechnique ? {
-                            name: mg.selectedTechnique.name, code: mg.selectedTechnique.code,
-                            maxWidth: 'maxWidth' in mg.selectedTechnique ? (mg.selectedTechnique as MockupTechnique).maxWidth : null,
-                            maxHeight: 'maxHeight' in mg.selectedTechnique ? (mg.selectedTechnique as MockupTechnique).maxHeight : null,
-                            locationName: 'locationName' in mg.selectedTechnique ? (mg.selectedTechnique as MockupTechnique).locationName : null,
+                            name: mg.selectedTechnique.name,
+                            code: mg.selectedTechnique.code,
+                            maxWidth: mg.selectedTechnique.maxWidth ?? null,
+                            maxHeight: mg.selectedTechnique.maxHeight ?? null,
+                            locationName: mg.selectedTechnique.locationName ?? null,
                           } : null}
                           client={mg.selectedClient}
                           seller={profile ? { name: profile.full_name || "—", email: profile.email || undefined } : null}
