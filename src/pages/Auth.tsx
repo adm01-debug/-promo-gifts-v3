@@ -178,7 +178,12 @@ export default function Auth() {
   }
 
   return (
-    <main className="min-h-screen flex bg-background" role="main" aria-label="Autenticação">
+    <main className="min-h-screen flex relative overflow-hidden bg-[#0A0D14]" role="main" aria-label="Autenticação">
+      {/* Fundo unificado azul-escuro com estrelas cobrindo TODA a tela */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden>
+        <Starfield />
+      </div>
+
       <PageSEO
         title="Login"
         description="Acesse a plataforma Promo Gifts. Faça login para gerenciar seus orçamentos e catálogo."
@@ -195,7 +200,7 @@ export default function Auth() {
       <AuthBrandingPanel />
 
       {/* Right side - Auth Form */}
-      <div className="flex-1 flex items-center justify-center p-6 lg:p-12">
+      <div className="flex-1 flex items-center justify-center p-6 lg:p-12 relative z-10">
         <div className="w-full max-w-md space-y-8 animate-fade-in">
           {/* Mobile Logo */}
           <div className="text-center lg:hidden space-y-3">
