@@ -342,6 +342,45 @@ for (const f of slowestFeatures) {
 const outDir = path.dirname(REPORT);
 fs.mkdirSync(outDir, { recursive: true });
 fs.writeFileSync(path.join(outDir, "feature-summary.md"), mdLines.join("\n") + "\n");
+
+// Gerar versão HTML simples para o CI
+const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <title>E2E Test Report</title>
+  <style>
+    body { font-family: sans-serif; max-width: 1200px; mx-auto; padding: 20px; }
+    .status-passed { color: green; }
+    .status-failed { color: red; }
+    table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    tr:nth-child(even) { background-color: #f2f2f2; }
+  </style>
+</head>
+<body>
+  <h1>E2E Feature Summary Report</h1>
+  <p>Started: ${startedAt} | Wall time: ${wallSec}s</p>
+  <table>
+    <tr><th>Feature</th><th>Passed</th><th>Failed</th><th>Total</th></tr>
+    ${[...byFeature.values()].map(f => `
+      <tr>
+        <td>${f.feature}</td>
+        <td class="status-passed">${f.passed}</td>
+        <td class="status-failed">${f.failed}</td>
+        <td>${f.total}</td>
+      </tr>
+    `).join('')}
+  </table>
+  <h2>Common Failures</h2>
+  <ul>
+    ${failedFeatures.map(f => `<li><b>${f.feature}</b>: ${f.failed} failures</li>`).join('')}
+  </ul>
+</body>
+</html>
+`;
+fs.writeFileSync(path.join(outDir, "report.html"), htmlContent);
+
 fs.writeFileSync(
   path.join(outDir, "feature-summary.json"),
   JSON.stringify(
