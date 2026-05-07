@@ -199,6 +199,7 @@ const App = () => {
                       <Toaster />
                       <Sonner />
                       <CloudStatusBanner />
+                      <CloudStatusDot />
                       <BridgeStatusBanner />
                       <GlobalOfflineAlert />
                       <DevOnlyBridgeOverlay />
