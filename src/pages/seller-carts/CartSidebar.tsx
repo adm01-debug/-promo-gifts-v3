@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import type { UseMutationResult } from "@tanstack/react-query";
+import { AvatarLogo } from "@/components/shared/AvatarLogo";
 
 interface CartSidebarProps {
   cart: SellerCart;
