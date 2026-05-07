@@ -146,8 +146,9 @@ export async function probeCloudStatus(force = false): Promise<CloudStatusSnapsh
       checkRest(),
     ]);
     const signals = { auth, bridge: bridgeRes, rest };
+    const newStatus = deriveStatus(signals);
     const snapshot: CloudStatusSnapshot = {
-      status: deriveStatus(signals),
+      status: newStatus,
       signals,
       checkedAt: Date.now(),
     };
