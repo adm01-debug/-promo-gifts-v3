@@ -17,205 +17,10 @@ import { formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-
+import { AvatarLogo } from "@/components/shared/AvatarLogo";
 
 export function CartHeaderButton() {
-  const navigate = useNavigate();
-  const [open, setOpen] = useState(false);
-  const [showPicker, setShowPicker] = useState(false);
-
-  // Listen for FAB "open cart" event
-  useEffect(() => {
-    const handler = () => setOpen(true);
-    window.addEventListener("open-seller-cart", handler);
-    return () => window.removeEventListener("open-seller-cart", handler);
-  }, []);
-
-  // Keyboard shortcut: Alt+O to toggle cart
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.altKey && e.key.toLowerCase() === "o") {
-        e.preventDefault();
-        setOpen((prev) => !prev);
-      }
-    };
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, []);
-  const {
-    carts,
-    activeCart,
-    activeCartId,
-    isLoading,
-    totalItems,
-    canCreateCart,
-    setActiveCartId,
-    deleteCart,
-    removeItem,
-    updateItemQuantity,
-    clearCart,
-  } = useSellerCartContext();
-
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <span className="inline-flex">
-            <PopoverTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                data-testid="cart-trigger"
-                className="relative h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-all duration-200"
-               aria-label="Carrinho"><ShoppingCart className="h-[17px] w-[17px]" strokeWidth={1.75} />
-                {totalItems > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-1 flex items-center justify-center text-[9px] font-bold rounded-full bg-primary text-primary-foreground shadow-sm animate-in zoom-in-50">
-                    {totalItems > 99 ? "99+" : totalItems}
-                  </span>
-                )}
-              </Button>
-            </PopoverTrigger>
-          </span>
-        </TooltipTrigger>
-        <TooltipContent className="bg-card border-border text-xs">
-          Carrinho de Orçamentos <kbd className="ml-1.5 px-1 py-0.5 bg-muted rounded text-[9px] font-mono">Alt+O</kbd>
-        </TooltipContent>
-      </Tooltip>
-
-      <PopoverContent
-        data-testid="cart-drawer"
-        className="w-[420px] p-0 rounded-xl border-border/50 shadow-xl overflow-hidden"
-        align="end"
-        sideOffset={8}
-        onCloseAutoFocus={() => setShowPicker(false)}
-      >
-        <AnimatePresence mode="wait">
-          {showPicker ? (
-            <motion.div
-              key="picker"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.15 }}
-              className="p-4"
-            >
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-display text-sm font-semibold">Novo Carrinho</h3>
-                <Button
-                  variant="ghost"
-                  size="icon" aria-label="Fechar"
-                  className="h-6 w-6"
-                  onClick={() => setShowPicker(false)}
-                >
-                  <X className="h-3.5 w-3.5" />
-                </Button>
-              </div>
-              <CartCompanyPicker
-                onCreated={() => setShowPicker(false)}
-                onCancel={() => setShowPicker(false)}
-              />
-            </motion.div>
-          ) : (
-            <motion.div
-              key="carts"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.15 }}
-            >
-              {/* Header */}
-              <div className="px-4 pt-4 pb-3 flex items-center justify-between border-b border-border/40 bg-muted/5">
-                <div className="flex items-center gap-2.5">
-                  <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center shadow-inner">
-                    <ShoppingCart className="h-4 w-4 text-primary" />
-                  </div>
-                  <div className="flex flex-col">
-                    <h3 className="font-display font-bold text-[13px] leading-tight">Meus Carrinhos</h3>
-                    <div className="flex items-center gap-1.5 mt-0.5">
-                      <span className="text-[10px] text-muted-foreground font-bold tabular-nums">
-                        {carts.length}/3
-                      </span>
-                      <span className="text-[10px] text-muted-foreground opacity-30">|</span>
-                      <button
-                        className="text-[10px] text-primary hover:text-primary/80 font-bold underline-offset-2 hover:underline transition-colors"
-                        onClick={() => { setOpen(false); navigate("/carrinhos"); }}
-                      >
-                        Ver todos
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                {canCreateCart && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 text-[11px] gap-1.5 px-3 rounded-lg text-primary hover:bg-primary/10 font-bold transition-all hover:scale-105 active:scale-95"
-                    onClick={() => setShowPicker(true)}
-                  >
-                    <Plus className="h-3.5 w-3.5" />
-                    Novo
-                  </Button>
-                )}
-              </div>
-
-              {isLoading ? (
-                <div className="p-3 space-y-3">
-                  {[...Array(2)].map((_, i) => (
-                    <div key={i} className="rounded-xl border border-border/40 p-3 space-y-4 animate-pulse">
-                      <div className="flex items-center gap-2.5">
-                        <Skeleton className="h-9 w-9 rounded-lg" />
-                        <div className="flex-1 space-y-2">
-                          <Skeleton className="h-3.5 w-1/2" />
-                          <Skeleton className="h-2.5 w-1/3" />
-                        </div>
-                      </div>
-                      {i === 0 && (
-                        <div className="space-y-2.5 pt-2 border-t border-border/20">
-                          {[...Array(2)].map((_, j) => (
-                            <div key={j} className="flex items-center gap-2">
-                              <Skeleton className="h-8 w-8 rounded-lg" />
-                              <div className="flex-1 space-y-1.5">
-                                <Skeleton className="h-2.5 w-3/4" />
-                                <Skeleton className="h-2 w-1/4" />
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ) : carts.length === 0 ? (
-                <div className="px-4 pb-5 pt-6 text-center">
-                  <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-muted/30 flex items-center justify-center">
-                    <Package className="h-7 w-7 text-muted-foreground/50" />
-                  </div>
-                  <p className="text-sm font-medium mb-1">Nenhum carrinho</p>
-                  <p className="text-xs text-muted-foreground mb-4 max-w-[220px] mx-auto">
-                    Crie um carrinho vinculado a uma empresa para coletar produtos
-                  </p>
-                  <Button
-                    size="sm"
-                    className="gap-1.5 text-xs rounded-lg"
-                    onClick={() => setShowPicker(true)}
-                  >
-                    <Plus className="h-3.5 w-3.5" />
-                    Criar Carrinho
-                  </Button>
-                </div>
-              ) : (
-                <>
-                  <ScrollArea className="max-h-[440px]">
-                    <div className="p-3 space-y-2">
-                      {carts.map((cart) => {
-                        const isActive = cart.id === activeCartId;
-                        const cartSubtotal = cart.items.reduce(
-                          (sum, item) => sum + item.product_price * item.quantity,
-                          0
-                        );
-                        return (
-                          <div
-                            key={cart.id}
+// ... keep existing code
                             className={cn(
                               "rounded-xl border transition-all duration-200 cursor-pointer group",
                               isActive
@@ -226,19 +31,12 @@ export function CartHeaderButton() {
                           >
                             {/* Cart header */}
                             <div className="flex items-center gap-2.5 px-3 py-2.5">
-                              {cart.company_logo_url ? (
-                                <img
-                                  src={cart.company_logo_url}
-                                  alt="Logo da empresa"
-                                  className="w-9 h-9 rounded-full object-cover bg-background border border-border/50 flex-shrink-0" loading="lazy" />
-                              ) : (
-                                <div className={cn(
-                                  "w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0",
-                                  isActive ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"
-                                )}>
-                                  <Building2 className="h-4 w-4" />
-                                </div>
-                              )}
+                              <AvatarLogo 
+                                name={cart.company_name} 
+                                logoUrl={cart.company_logo_url} 
+                                size="md" 
+                                fallbackClassName={cn(isActive ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground")}
+                              />
 
                               <div className="min-w-0 flex-1">
                                 <p className={cn(
