@@ -33,6 +33,16 @@ export const ProductsContext = createContext<ProductsContextType | undefined>(un
 export function ProductsProvider({ children }: { children: ReactNode }) {
   const [cache, setCache] = useState<Map<string, Product>>(new Map());
   const [isLoading, setIsLoading] = useState(false);
+  const [key, setKey] = useState(0); // Force re-mount key
+
+  // HMR Recovery: If we detect a duplicate module via Global Symbol, force a re-mount
+  useEffect(() => {
+    if (isDuplicateModule) {
+      logger.warn("[ProductsContext] HMR duplication detected. Forcing Provider re-mount.");
+      setKey(prev => prev + 1);
+    }
+  }, []);
+
 
   // Refs for stable callbacks
   const cacheRef = useRef<Map<string, Product>>(cache);
