@@ -34,10 +34,12 @@ export interface CloudStatusSnapshot {
 }
 
 const CACHE_MS = 15_000;
-const HIGH_LATENCY_MS = 2000;
+const PROBE_TIMEOUT_MS = 5000; // Increased from 2.5s to 5s to avoid false positives on cold starts
 
 let cached: CloudStatusSnapshot | null = null;
 let inFlight: Promise<CloudStatusSnapshot> | null = null;
+let consecutiveFailures = 0; // Hysteresis counter
+const FAILURE_THRESHOLD = 2; // Need 2 consecutive full failures to go 'down'
 
 const target: EventTarget = typeof EventTarget !== 'undefined' ? new EventTarget() : ({
   addEventListener() {},
@@ -70,7 +72,8 @@ function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
 async function checkAuth(): Promise<{ ok: boolean; ms: number }> {
   const t0 = performance.now();
   try {
-    const { error } = await withTimeout(supabase.auth.getSession(), 2500);
+    const { error } = await withTimeout(supabase.auth.getSession(), PROBE_TIMEOUT_MS);
+    // getSession might return session: null without error if no user is logged in, that's still "ok"
     return { ok: !error, ms: Math.round(performance.now() - t0) };
   } catch {
     return { ok: false, ms: Math.round(performance.now() - t0) };
@@ -88,19 +91,42 @@ async function checkRest(): Promise<{ ok: boolean; ms: number }> {
         method: 'HEAD',
         headers: { apikey: key, Authorization: `Bearer ${key}` },
       }),
-      2500,
+      PROBE_TIMEOUT_MS,
     );
-    return { ok: res.ok || res.status === 404, ms: Math.round(performance.now() - t0) };
+    // PostgREST typically returns 200/404 for HEAD /
+    return { ok: res.ok || res.status === 404 || res.status === 401, ms: Math.round(performance.now() - t0) };
   } catch {
     return { ok: false, ms: Math.round(performance.now() - t0) };
   }
 }
 
 function deriveStatus(signals: CloudStatusSnapshot['signals']): CloudStatus {
-  const okCount = [signals.auth.ok, signals.bridge.ok, signals.rest.ok].filter(Boolean).length;
-  if (okCount === 3) return 'healthy';
-  if (okCount === 2) return 'warming';
-  if (okCount === 1) return 'degraded';
+  const okSignals = [signals.auth.ok, signals.bridge.ok, signals.rest.ok];
+  const okCount = okSignals.filter(Boolean).length;
+  
+  if (okCount === 3) {
+    consecutiveFailures = 0;
+    return 'healthy';
+  }
+  
+  if (okCount === 2) {
+    consecutiveFailures = 0;
+    return 'warming';
+  }
+  
+  if (okCount === 1) {
+    consecutiveFailures = 0;
+    return 'degraded';
+  }
+
+  // okCount === 0: Full failure detected
+  consecutiveFailures++;
+  
+  // If we don't have enough consecutive failures yet, return 'degraded' instead of 'down'
+  if (consecutiveFailures < FAILURE_THRESHOLD) {
+    return 'degraded';
+  }
+  
   return 'down';
 }
 
@@ -116,12 +142,13 @@ export async function probeCloudStatus(force = false): Promise<CloudStatusSnapsh
   inFlight = (async () => {
     const [auth, bridgeRes, rest] = await Promise.all([
       checkAuth(),
-      pingHealth(2500).then((r) => ({ ok: r.ok, ms: r.ms })),
+      pingHealth(PROBE_TIMEOUT_MS).then((r) => ({ ok: r.ok, ms: r.ms })),
       checkRest(),
     ]);
     const signals = { auth, bridge: bridgeRes, rest };
+    const newStatus = deriveStatus(signals);
     const snapshot: CloudStatusSnapshot = {
-      status: deriveStatus(signals),
+      status: newStatus,
       signals,
       checkedAt: Date.now(),
     };
