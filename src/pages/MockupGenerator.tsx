@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { TechniqueChangeDialog, DeleteMockupDialog } from "./mockup-generator/MockupDialogs";
 import { MockupToolbar } from "./mockup-generator/MockupToolbar";
 import { MockupEmptyState } from "./mockup-generator/MockupEmptyState";
