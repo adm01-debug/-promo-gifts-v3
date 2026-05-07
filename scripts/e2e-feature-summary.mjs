@@ -118,6 +118,11 @@ function walkSuites(suites = [], parentTitles = []) {
           .toString()
           .split("\n")[0]
           .slice(0, 200);
+        
+        // Link para artefatos (Playwright default path: playwright-report/data/...)
+        const screenshot = last.attachments?.find(a => a.name === "screenshot")?.path;
+        const video = last.attachments?.find(a => a.name === "video")?.path;
+
         rows.push({
           feature: featureKey(file || spec.file || ""),
           file: file || spec.file || "",
@@ -128,6 +133,8 @@ function walkSuites(suites = [], parentTitles = []) {
           location: spec.line ? `${file}:${spec.line}` : null,
           error: errorMsg || null,
           e2eName: extractE2eName(specTitle, errorMsg),
+          screenshot,
+          video
         });
       }
     }
@@ -305,6 +312,8 @@ if (failedFeatures.length === 0) {
     for (const fr of f.failures) {
       mdLines.push(`- **${fr.title}**${fr.location ? `  \n  \`${fr.location}\`` : ""}`);
       if (fr.error) mdLines.push(`  - ↳ ${fr.error}`);
+      if (fr.screenshot) mdLines.push(`  - [📸 Screenshot](${fr.screenshot})`);
+      if (fr.video) mdLines.push(`  - [🎥 Video](${fr.video})`);
     }
     mdLines.push(``);
   }
@@ -374,7 +383,20 @@ const htmlContent = `
   </table>
   <h2>Common Failures</h2>
   <ul>
-    ${failedFeatures.map(f => `<li><b>${f.feature}</b>: ${f.failed} failures</li>`).join('')}
+    ${failedFeatures.map(f => `
+      <li>
+        <b>${f.feature}</b>: ${f.failed} failures
+        <ul>
+          ${f.failures.map(fr => `
+            <li>
+              ${fr.title} 
+              ${fr.screenshot ? `<a href="${fr.screenshot}">[📸]</a>` : ''} 
+              ${fr.video ? `<a href="${fr.video}">[🎥]</a>` : ''}
+            </li>
+          `).join('')}
+        </ul>
+      </li>
+    `).join('')}
   </ul>
 </body>
 </html>

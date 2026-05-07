@@ -11,7 +11,7 @@ test.describe("Fluxo: Catálogo Avançado", () => {
 
   test("deve filtrar por categorias e cores simultaneamente", async ({ page }) => {
     // 1. Abrir filtros se estiverem escondidos (mobile) ou usar sidebar
-    const filterPanel = page.getByTestId("catalog-filters-panel");
+    const filterPanel = page.locator(TID("catalog-filters-panel"));
     await expect(filterPanel).toBeVisible();
 
     // 2. Selecionar uma categoria
@@ -30,14 +30,14 @@ test.describe("Fluxo: Catálogo Avançado", () => {
     // 5. Validar que resultados aparecem ou estado vazio consistente
     const productCount = await page.locator(Sel.product.card).count();
     if (productCount === 0) {
-      await expect(page.getByTestId("catalog-empty-state")).toBeVisible();
+      await expect(page.locator(TID("catalog-empty-state"))).toBeVisible();
     } else {
       await expect(page.locator(Sel.product.card).first()).toBeVisible();
     }
   });
 
   test("deve ordenar produtos e manter estado", async ({ page }) => {
-    const sortTrigger = page.getByTestId("catalog-sort-trigger");
+    const sortTrigger = page.locator(TID("catalog-sort-trigger"));
     await sortTrigger.click();
 
     // Selecionar "Maior Preço"
@@ -55,7 +55,7 @@ test.describe("Fluxo: Catálogo Avançado", () => {
     await search.fill("termo_inexistente_xyz_123");
     await page.keyboard.press("Enter");
 
-    await expect(page.getByTestId("catalog-empty-state")).toBeVisible();
+    await expect(page.locator(TID("catalog-empty-state"))).toBeVisible();
     await expect(page.getByText(/nenhum produto encontrado/i)).toBeVisible();
   });
 });
