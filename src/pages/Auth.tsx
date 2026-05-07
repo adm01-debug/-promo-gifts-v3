@@ -219,7 +219,7 @@ export default function Auth() {
 
           {/* IP Blocked Alert */}
           {ipBlocked && (
-            <Card className="border-destructive bg-destructive/10 shadow-lg">
+            <Card className="border-destructive/40 bg-destructive/10 backdrop-blur-xl shadow-lg">
               <CardContent className="pt-6 pb-6">
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 rounded-full bg-destructive/20 flex items-center justify-center flex-shrink-0">
