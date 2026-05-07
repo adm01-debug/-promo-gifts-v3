@@ -109,6 +109,7 @@ export function useProductCustomizationOptionsForMockup(productId: string | unde
     },
     enabled: !!productId,
     staleTime: 5 * 60 * 1000,
+    placeholderData: keepPreviousData,
   });
 }
 
