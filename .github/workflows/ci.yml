@@ -164,7 +164,7 @@ jobs:
           TEST_ADMIN_PASSWORD: ${{ secrets.TEST_ADMIN_PASSWORD }}
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
-        run: npx vitest run tests/rls/ --reporter=verbose
+        run: npx vitest run tests/rls/ --reporter=verbose --coverage.reporter=json-summary
         continue-on-error: true
 
   integration-tests:
@@ -183,9 +183,16 @@ jobs:
         run: npm run test:fuzz
       - name: Run Edge Integration Tests (Mocked Env)
         run: |
-          # Note: In a real CI with Supabase, we'd start the local stack
-          # For this project, we'll run it and report results
           npm run test:edge:integration || true
+      - name: Generate Coverage Report (JSON/HTML)
+        run: |
+          npx vitest run --coverage --coverage.reporter=json --coverage.reporter=html
+      - name: Upload Coverage Artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: full-coverage-report
+          path: coverage/
+          retention-days: 14
 
   critical-e2e:
     name: Critical Flows E2E
@@ -203,6 +210,13 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Run Critical E2E
         run: npm run test:e2e:critical
+      - name: Upload E2E Report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14
       - name: Enforce Critical Coverage
         run: npm run check:critical-coverage
 
