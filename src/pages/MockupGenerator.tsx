@@ -156,7 +156,7 @@ export default function MockupGenerator() {
     };
 
     return { data: approvalData, recordId: mg.lastSavedRecordId, userId: user.id };
-  }, [mg.lastSavedRecordId, mg.lastSavedMockupUrl, mg.lastSavedLayoutMode, user?.id, mg.selectedProduct, mg.selectedTechnique, mg.selectedClient, mg.activeArea, mg.generatedMockup, profile, mg.techniqueColorConfig, mg.logoColorAnalysis.colors, mg.productSelection, mg]);
+  }, [mg.lastSavedRecordId, mg.lastSavedMockupUrl, mg.lastSavedLayoutMode, user?.id, mg.selectedProduct, mg.selectedTechnique, mg.selectedClient, mg.activeArea?.logoWidth, mg.activeArea?.logoHeight, mg.activeArea?.name, mg.generatedMockup, profile, mg.techniqueColorConfig?.colorCount, mg.logoColorAnalysis.colors, mg.productSelection?.selectedColor?.name, mg.productSelection?.selectedColor?.hex, mg.getProductImage]);
 
   const handleLayoutCaptured = useCallback(() => {
     mg.setLastSavedRecordId(null);
