@@ -66,10 +66,10 @@ export function CartTabsRich({ carts, activeCartId, canCreateCart, onSelect, onN
               isActive ? "scale-x-100 opacity-100" : "scale-x-0 opacity-0"
             )} />
             {cart.company_logo_url ? (
-              <img src={cart.company_logo_url} alt="" className="w-8 h-8 rounded-xl object-contain bg-background border border-border/40 p-1 flex-shrink-0 group-hover:scale-110 transition-transform" loading="lazy" />
+              <img src={cart.company_logo_url} alt="" className="w-8 h-8 rounded-full object-cover bg-background border border-border/40 flex-shrink-0 group-hover:scale-110 transition-transform" loading="lazy" />
             ) : (
               <div className={cn(
-                "w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 transition-all",
+                "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all",
                 isActive ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground group-hover:bg-muted/80"
               )}>
                 <Building2 className="h-4 w-4" />
