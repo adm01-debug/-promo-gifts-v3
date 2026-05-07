@@ -59,7 +59,11 @@
     "check:security-definer-acl": "node scripts/check-security-definer-acl.mjs",
     "check:edge-cors": "node scripts/check-edge-cors-headers.mjs",
     "check:no-inline-cors": "node scripts/check-no-inline-cors.mjs",
-    "build:cors-snapshot": "node scripts/build-cors-snapshot.mjs"
+    "build:cors-snapshot": "node scripts/build-cors-snapshot.mjs",
+    "test:e2e:critical": "npx playwright test e2e/catalog.spec.ts e2e/kit-builder.spec.ts e2e/login.spec.ts e2e/mockup-generate.spec.ts",
+    "test:edge:integration": "npx supabase test db --file supabase/functions/tests/edge_integration.test.ts",
+    "test:fuzz": "node scripts/fuzz-testing.mjs",
+    "check:critical-coverage": "node scripts/check-critical-modules-coverage.mjs"
   },
   "lint-staged": {
     "src/**/*.{ts,tsx}": [
