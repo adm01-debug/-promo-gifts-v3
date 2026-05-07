@@ -367,13 +367,13 @@ export function useMockupGenerator() {
     reader.readAsDataURL(processedFile);
   }, [logoColorAnalysis]);
 
-  const getProductImage = (): string | null => {
+  const getProductImage = useCallback((): string | null => {
     if (productSelection?.imageUrl) {
       const url = productSelection.imageUrl;
       return url.endsWith('/thumbnail') ? url.replace('/thumbnail', '') : url;
     }
     return selectedProduct?.images?.[0] || null;
-  };
+  }, [productSelection, selectedProduct]);
 
   const saveMockupToHistory = async (mockupUrl: string, area: PersonalizationArea, extra?: { layoutUrl?: string; locationName?: string; colorsCount?: number }): Promise<string | null> => {
     if (!user || !selectedProduct || !selectedTechnique || !area.logoPreview) return null;
