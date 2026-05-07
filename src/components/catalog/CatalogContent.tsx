@@ -1,7 +1,11 @@
 import { useRef, useCallback, useEffect, useState, useMemo, memo } from "react";
 import type { ActiveColorFilter } from "@/utils/color-image-resolver";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { Loader2, ArrowUp, Keyboard, X } from "lucide-react";
+import { Loader2, ArrowUp, Keyboard, X, AlertCircle } from "lucide-react";
+import { useProductsContextSafe } from "@/contexts/ProductsContext";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+
 
 import { AnimatePresence, motion } from "framer-motion";
 import { ProductCard } from "@/components/products/ProductCard";
@@ -266,8 +270,10 @@ export const CatalogContent = memo(function CatalogContent({
   onLoadMore, onResetFilters, selectionMode, onSelectedCountChange, activeColorFilter,
   activeProductId, setActiveProductId
 }: CatalogContentProps) {
+  const ctx = useProductsContextSafe();
   const sparklineProductIds = useMemo(() => paginatedProducts.map(p => p.id), [paginatedProducts]);
   const sel = useCatalogSelection(paginatedProducts, selectionMode, onSelectedCountChange);
+
 
   const [showKbdTip, setShowKbdTip] = useState(false);
   useEffect(() => {
@@ -293,6 +299,36 @@ export const CatalogContent = memo(function CatalogContent({
   ]);
 
   const renderContent = () => {
+    // Missing Context Fallback (HMR or Race Condition)
+    if (!ctx) {
+      return (
+        <div className={cn(CONTAINER_CLASS, "p-8 flex flex-col items-center justify-center text-center gap-6")}>
+          <div className="relative">
+            <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full" />
+            <div className="relative w-20 h-20 rounded-2xl bg-muted border border-border flex items-center justify-center">
+              <AlertCircle className="h-10 w-10 text-muted-foreground animate-pulse" />
+            </div>
+          </div>
+          <div className="max-w-md space-y-2">
+            <h3 className="text-xl font-display font-bold">Conectando ao Catálogo</h3>
+            <p className="text-muted-foreground">
+              O módulo de produtos está sendo inicializado. Se esta mensagem persistir, tente recarregar a página.
+            </p>
+          </div>
+          <div className="flex flex-wrap justify-center gap-3">
+            <Button variant="outline" onClick={() => window.location.reload()} size="sm" className="gap-2">
+              <Loader2 className="h-3.5 w-3.5" />
+              Recarregar Página
+            </Button>
+            <div className="w-full flex justify-center gap-2 mt-4">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-4 w-32" />
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     if (shouldShowCatalogSkeleton) {
       return (
         <div className={`${CONTAINER_CLASS} p-4`}>
