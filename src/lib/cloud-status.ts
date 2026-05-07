@@ -142,7 +142,7 @@ export async function probeCloudStatus(force = false): Promise<CloudStatusSnapsh
   inFlight = (async () => {
     const [auth, bridgeRes, rest] = await Promise.all([
       checkAuth(),
-      pingHealth(2500).then((r) => ({ ok: r.ok, ms: r.ms })),
+      pingHealth(PROBE_TIMEOUT_MS).then((r) => ({ ok: r.ok, ms: r.ms })),
       checkRest(),
     ]);
     const signals = { auth, bridge: bridgeRes, rest };
