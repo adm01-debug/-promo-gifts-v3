@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { TechniqueChangeDialog, DeleteMockupDialog } from "./mockup-generator/MockupDialogs";
 import { MockupToolbar } from "./mockup-generator/MockupToolbar";
 import { MockupEmptyState } from "./mockup-generator/MockupEmptyState";
@@ -430,11 +431,14 @@ export default function MockupGenerator() {
           </TabsContent>
         </Tabs>
 
-        <TechniqueChangeDialog 
-          open={technique.isDialogOpen} 
-          onOpenChange={technique.setIsDialogOpen} 
-          onConfirm={technique.confirmTechniqueChange} 
-          techniqueName={technique.pendingTechnique?.name || ""} 
+        <TechniqueChangeDialog
+          open={technique.techniqueChangeDialogOpen}
+          onOpenChange={technique.setTechniqueChangeDialogOpen}
+          onConfirm={technique.confirmTechniqueChange}
+          onCancel={() => technique.setTechniqueChangeDialogOpen(false)}
+          fromName={mg.selectedTechnique?.name}
+          toName={technique.pendingTechnique?.name}
+          hasGeneratedMockup={!!mg.generatedMockup}
         />
 
         <DeleteMockupDialog 
