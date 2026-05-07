@@ -238,18 +238,25 @@ export function useMockupGenerator() {
     window.history.replaceState({}, '', window.location.pathname);
   }, [isLoadingData, hasDraftRestored, techniques, getProductById]);
 
-  // Auto-save
+  // Auto-save with debounce to prevent UI lag during logo dragging/resizing
+  // especially since logoPreview can be a large base64 string
   useEffect(() => {
     if (!hasDraftRestored || isRestoringDraft.current) return;
-    saveDraft({
-      productId: productSelection?.product?.id || null,
-      productName: productSelection?.product?.name || null,
-      techniqueId: selectedTechnique?.id || null,
-      techniqueName: selectedTechnique?.name || null,
-      clientId: selectedClient?.id || null,
-      clientName: selectedClient?.name || null,
-      personalizationAreas, updatedAt: new Date().toISOString(),
-    });
+    
+    const timeout = setTimeout(() => {
+      saveDraft({
+        productId: productSelection?.product?.id || null,
+        productName: productSelection?.product?.name || null,
+        techniqueId: selectedTechnique?.id || null,
+        techniqueName: selectedTechnique?.name || null,
+        clientId: selectedClient?.id || null,
+        clientName: selectedClient?.name || null,
+        personalizationAreas,
+        updatedAt: new Date().toISOString(),
+      });
+    }, 1000); // 1 second debounce for all state changes
+
+    return () => clearTimeout(timeout);
   }, [productSelection, selectedTechnique, selectedClient, personalizationAreas, saveDraft, hasDraftRestored]);
 
   useEffect(() => { if (user?.id) fetchHistory(); }, [user?.id]);
