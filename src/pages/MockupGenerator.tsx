@@ -67,34 +67,6 @@ function scrollToStep(step: number, highlight = false): void {
   window.requestAnimationFrame(tryScroll);
 }
 
-// ─── Sub-components ──────────────────────────────────────────────────
-
-const STEP_SECTION_MAP: Record<number, string> = {
-  1: "step-client", 2: "step-product", 3: "step-technique",
-  4: "step-logo", 5: "step-logo", 6: "step-logo",
-};
-
-function scrollToStep(step: number, highlight = false): void {
-  const targetId = STEP_SECTION_MAP[step];
-  if (!targetId) return;
-  let attempts = 0;
-  const tryScroll = () => {
-    const el = document.getElementById(targetId);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      if (highlight) {
-        el.classList.add('ring-2', 'ring-primary/50', 'rounded-lg');
-        window.setTimeout(() => el.classList.remove('ring-2', 'ring-primary/50', 'rounded-lg'), 2000);
-      }
-      return;
-    }
-    if (attempts++ < 10) {
-      window.requestAnimationFrame(tryScroll);
-    }
-  };
-  window.requestAnimationFrame(tryScroll);
-}
-
 export default function MockupGenerator() {
   const mg = useMockupGenerator();
   const { profile } = useAuth();
