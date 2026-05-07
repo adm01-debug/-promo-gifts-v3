@@ -489,7 +489,7 @@ export function useMockupGenerator() {
     hasGenerated: !!generatedMockup,
   });
 
-  return {
+  return useMemo(() => ({
     user, techniques, isLoadingData,
     productSelection, setProductSelection, selectedProduct, selectedTechnique, setSelectedTechnique,
     selectedClient, setSelectedClient,
@@ -507,5 +507,16 @@ export function useMockupGenerator() {
     activeTab, setActiveTab, wizardStep, hasLogo, hasUserInteractedPosition,
     positionHistory, logoColorAnalysis, techniqueColorConfig, setTechniqueColorConfig,
     filteredTechniques, getProductImage, resetForm, saveMockupToHistory, fetchHistory,
-  };
+  }), [
+    user, techniques, isLoadingData, productSelection, selectedProduct, selectedTechnique,
+    selectedClient, personalizationAreas, activeAreaId, activeArea, updateActiveArea,
+    handleAreaLogoUpload, productLocations, generatedMockup, generatedBatchMockups,
+    artAttachments, isLoading, generationError, generateMockup, downloadMockup,
+    mockupAnnotations, beforeImage, mockupHistory, isLoadingHistory, deleteDialogOpen,
+    mockupToDelete, deleteMockup, loadFromHistory, handleShareMockup, historyClients,
+    lastSavedRecordId, lastSavedMockupUrl, lastSavedLayoutMode, isDraftSaving, lastSaved,
+    draftError, showDraftRestoredNotice, activeTab, wizardStep, hasLogo,
+    hasUserInteractedPosition, positionHistory, logoColorAnalysis, techniqueColorConfig,
+    filteredTechniques, getProductImage, resetForm, saveMockupToHistory, fetchHistory
+  ]);
 }
