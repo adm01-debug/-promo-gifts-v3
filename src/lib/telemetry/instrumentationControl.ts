@@ -18,9 +18,16 @@ const STORAGE_KEY = 'lov:instrumentation:paused';
 
 let paused = (() => {
   try {
-    return typeof localStorage !== 'undefined' && localStorage.getItem(STORAGE_KEY) === '1';
+    if (typeof localStorage === 'undefined') return true;
+    const v = localStorage.getItem(STORAGE_KEY);
+    // Kill-switch FORÇADO: default = pausado. Para reativar, set '0' explicitamente.
+    if (v === '0') return false;
+    if (v !== '1') {
+      try { localStorage.setItem(STORAGE_KEY, '1'); } catch { /* noop */ }
+    }
+    return true;
   } catch {
-    return false;
+    return true;
   }
 })();
 
