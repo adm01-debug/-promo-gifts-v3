@@ -11,31 +11,34 @@ import { logger } from "@/lib/logger";
  */
 export function DiagnosticProfiler({ id, children }: { id: string; children: React.ReactNode }) {
   const onRender: ProfilerOnRenderCallback = (
+    _id,
     phase,
     actualDuration,
     baseDuration,
     startTime,
     commitTime,
-    interactions
   ) => {
-    // Só loga commits significativos ou em modo debug para evitar spam no console
-    if (actualDuration > 16 || import.meta.env.DEV) {
+    const ad = Number(actualDuration) || 0;
+    const bd = Number(baseDuration) || 0;
+    const st = Number(startTime) || 0;
+    const ct = Number(commitTime) || 0;
+
+    if (ad > 16 || import.meta.env.DEV) {
       logger.debug(`[Profiler:${id}] ${phase}`, {
-        actualDuration: `${actualDuration.toFixed(2)}ms`,
-        baseDuration: `${baseDuration.toFixed(2)}ms`,
-        commitTime: commitTime.toFixed(2),
-        startTime: startTime.toFixed(2),
+        actualDuration: `${ad.toFixed(2)}ms`,
+        baseDuration: `${bd.toFixed(2)}ms`,
+        commitTime: ct.toFixed(2),
+        startTime: st.toFixed(2),
       });
     }
-    
-    // Tracking global de métricas se necessário
-    if (window.__DIAGNOSTICS__) {
+
+    if (typeof window !== "undefined" && window.__DIAGNOSTICS__) {
       window.__DIAGNOSTICS__.push({
         id,
         phase,
-        actualDuration,
-        commitTime,
-        timestamp: Date.now()
+        actualDuration: ad,
+        commitTime: ct,
+        timestamp: Date.now(),
       });
     }
   };
