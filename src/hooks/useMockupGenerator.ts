@@ -79,7 +79,7 @@ export function useMockupGenerator() {
   const isRestoringDraft = useRef(false);
 
   // Tab & positioning
-  const [activeTab, setActiveTab] = useState("generator");
+  const [activeTab, setActiveTab] = useState<"generator" | "history">("generator");
   const [hasUserInteractedPosition, setHasUserInteractedPosition] = useState(false);
 
   // Logo color analysis
