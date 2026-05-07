@@ -1,5 +1,5 @@
-import { memo, useState } from 'react';
-import { AlertTriangle, Loader2, RefreshCw, WifiOff, Info, CheckCircle2, XCircle, Clock } from 'lucide-react';
+import { memo, useMemo, useState } from 'react';
+import { AlertTriangle, CheckCircle2, Clock, Info, Loader2, RefreshCw, WifiOff, XCircle, type LucideIcon } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { useCloudStatus } from '@/hooks/useCloudStatus';
@@ -9,7 +9,13 @@ import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
-const STATUS_CONFIG: Record<string, { message: string; icon: any; className: string }> = {
+type BannerVariant = {
+  className: string;
+  icon: LucideIcon;
+  message: string;
+};
+
+const STATUS_CONFIG: Partial<Record<'down' | 'degraded' | 'warming', BannerVariant>> = {
   down: {
     message: 'Backend indisponível. Verifique sua conexão e tente novamente.',
     icon: WifiOff,
@@ -32,24 +38,21 @@ export const CloudStatusBanner = memo(function CloudStatusBanner() {
   const { status, snapshot, retry, isChecking } = useCloudStatus();
   const [showDebug, setShowDebug] = useState(false);
   const [showTimeline, setShowTimeline] = useState(false);
-  
-  const config = status ? STATUS_CONFIG[status] : null;
-  
-  // No-op if nothing to show
-  if (!config && !isDev) return null;
 
-  // Lógica de visibilidade desacoplada:
-  // Mensagens técnicas (warming) aparecem APENAS para usuários com role "dev".
-  // Mensagens críticas (down/degraded) aparecem para todos.
-  const isTechnical = status === 'warming';
-  const shouldShow = isTechnical ? isDev : (status && status !== 'healthy');
+  const timeline = useMemo(() => getStatusTimeline(), []);
+  const isIssueStatus = status === 'down' || status === 'degraded' || status === 'warming';
+  const config = isIssueStatus ? STATUS_CONFIG[status] : null;
+  const shouldShowIssue = status === 'warming' ? isDev : status === 'down' || status === 'degraded';
+  const shouldShowHealthyDevBar = isDev && (status === 'healthy' || status === 'unknown');
+  const shouldShow = shouldShowIssue || shouldShowHealthyDevBar;
 
-  // If we are dev, we might want to see the debug toggle even if healthy
-  if (!shouldShow && !isDev) return null;
+  if (!shouldShow) return null;
 
-  const timeline = getStatusTimeline();
-
-  const Icon = config?.icon;
+  const Icon = config?.icon ?? CheckCircle2;
+  const message = config?.message ?? (status === 'unknown'
+    ? 'Cloud status aguardando primeira sondagem.'
+    : 'Cloud saudável — modo debug ativo.');
+  const className = config?.className ?? 'bg-card text-foreground border-border';
 
   return (
     <AnimatePresence>
@@ -63,24 +66,14 @@ export const CloudStatusBanner = memo(function CloudStatusBanner() {
         aria-live="polite"
         className={cn(
           "sticky top-0 z-50 w-full border-b safe-area-top shadow-md transition-colors duration-500",
-          config?.className || "bg-card text-foreground border-border"
+          className
         )}
       >
         <div className="container mx-auto px-4 py-2">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 text-sm">
             <div className="flex items-start sm:items-center gap-3 flex-1">
-              {config && (
-                <>
-                  <Icon className={cn("h-4 w-4 shrink-0 mt-0.5 sm:mt-0", status === 'warming' && "animate-spin")} aria-hidden />
-                  <span className="flex-1 leading-tight font-medium">{config.message}</span>
-                </>
-              )}
-              {!config && isDev && (
-                <span className="text-muted-foreground flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-green-500" />
-                  Cloud Healthy (Dev Mode)
-                </span>
-              )}
+              <Icon className={cn("h-4 w-4 shrink-0 mt-0.5 sm:mt-0", status === 'warming' && "animate-spin", !config && "text-green-500")} aria-hidden />
+              <span className="flex-1 leading-tight font-medium">{message}</span>
             </div>
             
             <div className="flex items-center gap-2">
