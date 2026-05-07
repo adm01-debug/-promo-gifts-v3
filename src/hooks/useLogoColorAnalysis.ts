@@ -31,6 +31,41 @@ export function useLogoColorAnalysis() {
   const abortRef = useRef<AbortController | null>(null);
 
   const analyzeImage = useCallback(async (imageBase64: string) => {
+    // 1. Resize image locally before sending to edge function for faster processing
+    // Color analysis doesn't need high resolution
+    const resizeImage = (base64: string): Promise<string> => {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_SIZE = 200; // Small is fine for color extraction
+          let width = img.width;
+          let height = img.height;
+          
+          if (width > height) {
+            if (width > MAX_SIZE) {
+              height *= MAX_SIZE / width;
+              width = MAX_SIZE;
+            }
+          } else {
+            if (height > MAX_SIZE) {
+              width *= MAX_SIZE / height;
+              height = MAX_SIZE;
+            }
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) { resolve(base64); return; }
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/png', 0.8));
+        };
+        img.onerror = () => resolve(base64);
+        img.src = base64;
+      });
+    };
+
     // Cancel any in-flight analysis
     if (abortRef.current) abortRef.current.abort();
     const controller = new AbortController();
@@ -41,8 +76,10 @@ export function useLogoColorAnalysis() {
     setColors([]);
 
     try {
+      const resizedBase64 = await resizeImage(imageBase64);
+      
       const { data, error: fnError } = await supabase.functions.invoke('analyze-logo-colors', {
-        body: { imageBase64 },
+        body: { imageBase64: resizedBase64 },
       });
 
       if (fnError) throw fnError;

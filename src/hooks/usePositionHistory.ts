@@ -5,7 +5,7 @@
  * Supports Ctrl+Z (undo) and Ctrl+Shift+Z / Ctrl+Y (redo).
  */
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 
 interface PositionState {
   positionX: number;
@@ -116,7 +116,7 @@ export function usePositionHistory(options: UsePositionHistoryOptions = {}) {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [enabled, undo, redo]);
 
-  return {
+  return useMemo(() => ({
     pushState,
     undo,
     redo,
@@ -126,5 +126,5 @@ export function usePositionHistory(options: UsePositionHistoryOptions = {}) {
     setOnApply,
     historyLength: history.length,
     currentIndex: historyIndex,
-  };
+  }), [pushState, undo, redo, clear, canUndo, canRedo, setOnApply, history.length, historyIndex]);
 }

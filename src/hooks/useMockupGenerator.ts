@@ -238,18 +238,25 @@ export function useMockupGenerator() {
     window.history.replaceState({}, '', window.location.pathname);
   }, [isLoadingData, hasDraftRestored, techniques, getProductById]);
 
-  // Auto-save
+  // Auto-save with debounce to prevent UI lag during logo dragging/resizing
+  // especially since logoPreview can be a large base64 string
   useEffect(() => {
     if (!hasDraftRestored || isRestoringDraft.current) return;
-    saveDraft({
-      productId: productSelection?.product?.id || null,
-      productName: productSelection?.product?.name || null,
-      techniqueId: selectedTechnique?.id || null,
-      techniqueName: selectedTechnique?.name || null,
-      clientId: selectedClient?.id || null,
-      clientName: selectedClient?.name || null,
-      personalizationAreas, updatedAt: new Date().toISOString(),
-    });
+    
+    const timeout = setTimeout(() => {
+      saveDraft({
+        productId: productSelection?.product?.id || null,
+        productName: productSelection?.product?.name || null,
+        techniqueId: selectedTechnique?.id || null,
+        techniqueName: selectedTechnique?.name || null,
+        clientId: selectedClient?.id || null,
+        clientName: selectedClient?.name || null,
+        personalizationAreas,
+        updatedAt: new Date().toISOString(),
+      });
+    }, 1000); // 1 second debounce for all state changes
+
+    return () => clearTimeout(timeout);
   }, [productSelection, selectedTechnique, selectedClient, personalizationAreas, saveDraft, hasDraftRestored]);
 
   useEffect(() => { if (user?.id) fetchHistory(); }, [user?.id]);
@@ -360,13 +367,13 @@ export function useMockupGenerator() {
     reader.readAsDataURL(processedFile);
   }, [logoColorAnalysis]);
 
-  const getProductImage = (): string | null => {
+  const getProductImage = useCallback((): string | null => {
     if (productSelection?.imageUrl) {
       const url = productSelection.imageUrl;
       return url.endsWith('/thumbnail') ? url.replace('/thumbnail', '') : url;
     }
     return selectedProduct?.images?.[0] || null;
-  };
+  }, [productSelection, selectedProduct]);
 
   const saveMockupToHistory = async (mockupUrl: string, area: PersonalizationArea, extra?: { layoutUrl?: string; locationName?: string; colorsCount?: number }): Promise<string | null> => {
     if (!user || !selectedProduct || !selectedTechnique || !area.logoPreview) return null;
@@ -482,7 +489,7 @@ export function useMockupGenerator() {
     hasGenerated: !!generatedMockup,
   });
 
-  return {
+  return useMemo(() => ({
     user, techniques, isLoadingData,
     productSelection, setProductSelection, selectedProduct, selectedTechnique, setSelectedTechnique,
     selectedClient, setSelectedClient,
@@ -500,5 +507,16 @@ export function useMockupGenerator() {
     activeTab, setActiveTab, wizardStep, hasLogo, hasUserInteractedPosition,
     positionHistory, logoColorAnalysis, techniqueColorConfig, setTechniqueColorConfig,
     filteredTechniques, getProductImage, resetForm, saveMockupToHistory, fetchHistory,
-  };
+  }), [
+    user, techniques, isLoadingData, productSelection, selectedProduct, selectedTechnique,
+    selectedClient, personalizationAreas, activeAreaId, activeArea, updateActiveArea,
+    handleAreaLogoUpload, productLocations, generatedMockup, generatedBatchMockups,
+    artAttachments, isLoading, generationError, generateMockup, downloadMockup,
+    mockupAnnotations, beforeImage, mockupHistory, isLoadingHistory, deleteDialogOpen,
+    mockupToDelete, deleteMockup, loadFromHistory, handleShareMockup, historyClients,
+    lastSavedRecordId, lastSavedMockupUrl, lastSavedLayoutMode, isDraftSaving, lastSaved,
+    draftError, showDraftRestoredNotice, activeTab, wizardStep, hasLogo,
+    hasUserInteractedPosition, positionHistory, logoColorAnalysis, techniqueColorConfig,
+    filteredTechniques, getProductImage, resetForm, saveMockupToHistory, fetchHistory
+  ]);
 }

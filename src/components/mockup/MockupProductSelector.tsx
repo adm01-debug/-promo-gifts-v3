@@ -6,22 +6,20 @@
  * Flow: Search products -> Select product -> Load full data -> Choose color/variant -> Confirmed.
  */
 
-import { useState, useMemo, useRef, useCallback } from "react";
+import { useState, useMemo, useRef, useCallback, useEffect } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
-import Fuse from "fuse.js";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { Search, Package, X, SearchX, Filter } from "lucide-react";
+import { Search, Package, X, SearchX, Filter, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { useProductsLightweight, type ProductLightweight } from "@/hooks/useProductsLightweight";
+import { useProductsCatalog, type ProductLightweight } from "@/hooks/useProductsLightweight";
 import { type Product } from "@/hooks/useProducts";
 import { type ExternalVariantStock } from "@/hooks/useExternalVariantStock";
 import { ProductLoaderAndColorSelector } from "./MockupColorSelector";
-import { createProductFuseOptions, rankProductSearchResults } from "@/utils/product-search";
 
 export interface MockupProductSelection {
   product: Product;
@@ -39,9 +37,19 @@ interface MockupProductSelectorProps {
 }
 
 export function MockupProductSelector({ selection, onSelect, disabled }: MockupProductSelectorProps) {
-  const { data: products = [], isLoading: isLoadingProducts } = useProductsLightweight();
-  const scrollParentRef = useRef<HTMLDivElement>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const debouncedQuery = useDebounce(searchQuery, 400);
+  
+  const { 
+    data, 
+    fetchNextPage, 
+    hasNextPage, 
+    isFetchingNextPage, 
+    isLoading: isLoadingProducts 
+  } = useProductsCatalog({ search: debouncedQuery });
+
+  const products = useMemo(() => data?.pages.flatMap(page => page.products) ?? [], [data]);
+  const scrollParentRef = useRef<HTMLDivElement>(null);
   const [sortBy, setSortBy] = useState<'default' | 'name-asc' | 'name-desc' | 'price-asc' | 'price-desc'>('default');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
@@ -49,25 +57,18 @@ export function MockupProductSelector({ selection, onSelect, disabled }: MockupP
   const [pendingProductId, setPendingProductId] = useState<string | null>(null);
 
   const handleScroll = useCallback(() => {
-    // Empty scroll handler to maintain compatibility if needed, but virtualizer now handles grid layout better
-  }, []);
+    if (!scrollParentRef.current) return;
+    const { scrollTop, scrollHeight, clientHeight } = scrollParentRef.current;
+    if (scrollHeight - scrollTop <= clientHeight * 1.5 && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  const debouncedQuery = useDebounce(searchQuery, 300);
   const isFilterPending = searchQuery.length >= 2 && searchQuery !== debouncedQuery;
 
-  const fuse = useMemo(
-    () => new Fuse(products, createProductFuseOptions<ProductLightweight>()),
-    [products]
-  );
-
-  const filteredProducts = useMemo(() => {
-    if (!debouncedQuery || debouncedQuery.length < 2) return products;
-    return rankProductSearchResults(products, debouncedQuery, fuse);
-  }, [fuse, debouncedQuery, products]);
-
   const sortedProducts = useMemo(() => {
-    if (sortBy === 'default') return filteredProducts;
-    const sorted = [...filteredProducts];
+    if (sortBy === 'default') return products;
+    const sorted = [...products];
     switch (sortBy) {
       case 'name-asc': return sorted.sort((a, b) => a.name.localeCompare(b.name));
       case 'name-desc': return sorted.sort((a, b) => b.name.localeCompare(a.name));
@@ -75,7 +76,7 @@ export function MockupProductSelector({ selection, onSelect, disabled }: MockupP
       case 'price-desc': return sorted.sort((a, b) => b.price - a.price);
       default: return sorted;
     }
-  }, [filteredProducts, sortBy]);
+  }, [products, sortBy]);
 
   const columnCount = 4; // Max columns as per grid class
   const rowVirtualizer = useVirtualizer({
