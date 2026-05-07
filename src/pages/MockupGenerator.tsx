@@ -262,7 +262,7 @@ export default function MockupGenerator() {
           </Alert>
         )}
 
-        <Tabs value={mg.activeTab} onValueChange={mg.setActiveTab} className="w-full">
+        <Tabs value={mg.activeTab} onValueChange={(v) => mg.setActiveTab(v as "generator" | "history")} className="w-full">
           <div className="flex items-center justify-between gap-2 mb-4">
             <TabsList>
               <TabsTrigger value="generator" className="flex items-center gap-2"><Wand2 className="h-4 w-4" /> Gerar Mockup</TabsTrigger>
