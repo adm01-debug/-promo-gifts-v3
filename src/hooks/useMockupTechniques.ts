@@ -230,7 +230,7 @@ export function useFilteredTechniques(
     }
 
     // No customization data yet (loading) -> return empty to avoid showing wrong list
-    if (!customizationData?.locations) {
+    if (customizationData === undefined) {
       return [];
     }
 
