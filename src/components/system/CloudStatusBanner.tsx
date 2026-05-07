@@ -49,7 +49,7 @@ export const CloudStatusBanner = memo(function CloudStatusBanner() {
 
   const timeline = getStatusTimeline();
 
-  const Icon = config.icon;
+  const Icon = config?.icon;
 
   return (
     <AnimatePresence>
