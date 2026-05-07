@@ -5,9 +5,9 @@
  * para usuários comuns. Falhas críticas ("down", "degraded") são exibidas a todos.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { CloudStatusBanner } from '@/components/system/CloudStatusBanner';
-import type { CloudStatus } from '@/lib/cloud-status';
+import type { CloudStatus, CloudStatusSnapshot, StatusHistoryEntry } from '@/lib/cloud-status';
 
 const mockUseAuth = vi.fn();
 vi.mock('@/contexts/AuthContext', () => ({
@@ -19,6 +19,15 @@ vi.mock('@/hooks/useCloudStatus', () => ({
   useCloudStatus: () => mockUseCloudStatus(),
 }));
 
+const mockGetStatusTimeline = vi.fn<() => StatusHistoryEntry[]>();
+vi.mock('@/lib/cloud-status', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/cloud-status')>('@/lib/cloud-status');
+  return {
+    ...actual,
+    getStatusTimeline: () => mockGetStatusTimeline(),
+  };
+});
+
 // Mock do hook useDevGate (já que o componente o usa agora)
 const mockIsAllowed = vi.fn();
 vi.mock('@/hooks/useDevGate', () => ({
@@ -28,10 +37,23 @@ vi.mock('@/hooks/useDevGate', () => ({
   })
 }));
 
+function buildSnapshot(status: CloudStatus): CloudStatusSnapshot | null {
+  if (status === 'unknown') return null;
+  return {
+    status,
+    checkedAt: Date.now(),
+    signals: {
+      auth: { ok: status !== 'down', ms: 120 },
+      bridge: { ok: status === 'healthy' || status === 'warming', ms: 140 },
+      rest: { ok: status === 'healthy' || status === 'warming' || status === 'degraded', ms: 160 },
+    },
+  };
+}
+
 function setStatus(status: CloudStatus) {
   mockUseCloudStatus.mockReturnValue({
     status,
-    snapshot: null,
+    snapshot: buildSnapshot(status),
     retry: vi.fn(),
     isChecking: false,
   });
@@ -41,6 +63,8 @@ beforeEach(() => {
   mockUseAuth.mockReset();
   mockUseCloudStatus.mockReset();
   mockIsAllowed.mockReset();
+  mockGetStatusTimeline.mockReset();
+  mockGetStatusTimeline.mockReturnValue([]);
   // Default: isAllowed segue isDev
   mockIsAllowed.mockImplementation(() => mockUseAuth().isDev);
 });
